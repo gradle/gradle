@@ -17,6 +17,7 @@
 package org.gradle.nativebinaries.internal
 import org.gradle.api.NamedDomainObjectFactory
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.nativebinaries.Platform
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -115,7 +116,7 @@ class DefaultToolChainRegistryTest extends Specification {
 
         when:
         def defaultToolChain = registry.defaultToolChain
-        defaultToolChain.createCCompiler()
+        defaultToolChain.target(Stub(Platform))
 
         then:
         IllegalStateException e = thrown()

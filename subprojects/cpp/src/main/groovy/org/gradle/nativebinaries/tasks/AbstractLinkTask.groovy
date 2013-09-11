@@ -21,6 +21,7 @@ import org.gradle.api.Incubating
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.*
 import org.gradle.language.jvm.internal.SimpleStaleClassCleaner
+import org.gradle.nativebinaries.Platform
 import org.gradle.nativebinaries.ToolChain
 import org.gradle.nativebinaries.internal.LinkerSpec
 
@@ -40,6 +41,7 @@ abstract class AbstractLinkTask extends DefaultTask implements BuildBinaryTask {
      * The tool chain used for linking.
      */
     ToolChain toolChain
+    Platform targetPlatform
 
     // Invalidate output when the tool chain output changes
     @Input
@@ -109,7 +111,7 @@ abstract class AbstractLinkTask extends DefaultTask implements BuildBinaryTask {
         spec.libs = getLibs()
         spec.args = getLinkerArgs()
 
-        def result = toolChain.createLinker().execute(spec)
+        def result = toolChain.target(targetPlatform).createLinker().execute(spec)
         didWork = result.didWork
     }
 

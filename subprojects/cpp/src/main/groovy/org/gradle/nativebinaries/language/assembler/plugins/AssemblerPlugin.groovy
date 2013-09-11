@@ -73,6 +73,7 @@ class AssemblerPlugin implements Plugin<ProjectInternal> {
         }
 
         assembleTask.toolChain = binary.toolChain
+        assembleTask.targetPlatform = binary.targetPlatform
 
         assembleTask.source sourceSet.source
 

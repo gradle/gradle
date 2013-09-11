@@ -17,6 +17,8 @@
 package org.gradle.nativebinaries.language.c.tasks
 import org.gradle.api.internal.tasks.compile.Compiler
 import org.gradle.api.tasks.WorkResult
+import org.gradle.nativebinaries.Platform
+import org.gradle.nativebinaries.internal.PlatformToolChain
 import org.gradle.nativebinaries.internal.ToolChainInternal
 import org.gradle.nativebinaries.language.c.internal.CCompileSpec
 import org.gradle.nativebinaries.language.cpp.internal.CppCompileSpec
@@ -28,6 +30,8 @@ class CCompileTest extends Specification {
     def testDir = new TestNameTestDirectoryProvider().testDirectory
     CCompile cCompile = TestUtil.createTask(CCompile)
     def toolChain = Mock(ToolChainInternal)
+    def platform = Mock(Platform)
+    def platformToolChain = Mock(PlatformToolChain)
     Compiler<CppCompileSpec> cCompiler = Mock(Compiler)
 
     def "executes using the C Compiler"() {
@@ -35,6 +39,7 @@ class CCompileTest extends Specification {
         def result = Mock(WorkResult)
         when:
         cCompile.toolChain = toolChain
+        cCompile.targetPlatform = platform
         cCompile.compilerArgs = ["arg"]
         cCompile.macros = [def: "value"]
         cCompile.objectFileDir = testDir.file("outputFile")
@@ -43,7 +48,8 @@ class CCompileTest extends Specification {
 
         then:
         _ * toolChain.outputType >> "c"
-        1 * toolChain.createCCompiler() >> cCompiler
+        1 * toolChain.target(platform) >> platformToolChain
+        1 * platformToolChain.createCCompiler() >> cCompiler
         1 * cCompiler.execute({ CCompileSpec spec ->
             assert spec.source.collect {it.name} == ["sourceFile"]
             assert spec.args == ['arg']

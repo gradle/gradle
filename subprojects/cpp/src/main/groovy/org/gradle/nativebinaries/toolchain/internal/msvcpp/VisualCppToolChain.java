@@ -18,6 +18,7 @@ package org.gradle.nativebinaries.toolchain.internal.msvcpp;
 
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.compile.Compiler;
+import org.gradle.nativebinaries.Platform;
 import org.gradle.nativebinaries.toolchain.internal.AbstractToolChain;
 import org.gradle.internal.Factory;
 import org.gradle.internal.os.OperatingSystem;
@@ -76,48 +77,6 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
         }
     }
 
-    @Override
-    public String getSharedLibraryLinkFileName(String libraryName) {
-        return getSharedLibraryName(libraryName).replaceFirst("\\.dll$", ".lib");
-    }
-
-    public <T extends BinaryToolSpec> Compiler<T> createCppCompiler() {
-        checkAvailable();
-        CommandLineTool<CppCompileSpec> commandLineTool = commandLineTool(ToolType.CPP_COMPILER);
-        return (Compiler<T>) new CppCompiler(commandLineTool);
-    }
-
-    public <T extends BinaryToolSpec> Compiler<T> createCCompiler() {
-        checkAvailable();
-        CommandLineTool<CCompileSpec> commandLineTool = commandLineTool(ToolType.C_COMPILER);
-        return (Compiler<T>) new CCompiler(commandLineTool);
-    }
-
-    public <T extends BinaryToolSpec> Compiler<T> createAssembler() {
-        checkAvailable();
-        CommandLineTool<AssembleSpec> commandLineTool = commandLineTool(ToolType.ASSEMBLER);
-        return (Compiler<T>) new Assembler(commandLineTool);
-    }
-
-    public <T extends LinkerSpec> Compiler<T> createLinker() {
-        checkAvailable();
-        CommandLineTool<LinkerSpec> commandLineTool = commandLineTool(ToolType.LINKER);
-        return (Compiler<T>) new LinkExeLinker(commandLineTool);
-    }
-
-    public <T extends StaticLibraryArchiverSpec> Compiler<T> createStaticLibraryArchiver() {
-        checkAvailable();
-        CommandLineTool<StaticLibraryArchiverSpec> commandLineTool = commandLineTool(ToolType.STATIC_LIB_ARCHIVER);
-        return (Compiler<T>) new LibExeStaticLibraryArchiver(commandLineTool);
-    }
-
-    private <T extends BinaryToolSpec> CommandLineTool<T> commandLineTool(ToolType key) {
-        CommandLineTool<T> commandLineTool = new CommandLineTool<T>(key.getToolName(), tools.locate(key), execActionFactory);
-        commandLineTool.withPath(tools.getPath());
-        commandLineTool.withEnvironment(environment);
-        return commandLineTool;
-    }
-
     public File getInstallDir() {
         return installDir;
     }
@@ -129,5 +88,57 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
         tools.setPath(install.getPathEntries());
         environment.clear();
         environment.putAll(install.getEnvironment());
+    }
+
+    public PlatformToolChain target(Platform targetPlatform) {
+        return new VisualCppPlatformToolChain();
+    }
+
+    @Override
+    public String getSharedLibraryLinkFileName(String libraryName) {
+        return getSharedLibraryName(libraryName).replaceFirst("\\.dll$", ".lib");
+    }
+
+    private class VisualCppPlatformToolChain implements PlatformToolChain {
+        public <T extends BinaryToolSpec> Compiler<T> createCppCompiler() {
+            checkAvailable();
+            CommandLineTool<CppCompileSpec> commandLineTool = commandLineTool(ToolType.CPP_COMPILER);
+            return (Compiler<T>) new CppCompiler(commandLineTool);
+        }
+
+        public <T extends BinaryToolSpec> Compiler<T> createCCompiler() {
+            checkAvailable();
+            CommandLineTool<CCompileSpec> commandLineTool = commandLineTool(ToolType.C_COMPILER);
+            return (Compiler<T>) new CCompiler(commandLineTool);
+        }
+
+        public <T extends BinaryToolSpec> Compiler<T> createAssembler() {
+            checkAvailable();
+            CommandLineTool<AssembleSpec> commandLineTool = commandLineTool(ToolType.ASSEMBLER);
+            return (Compiler<T>) new Assembler(commandLineTool);
+        }
+
+        public <T extends LinkerSpec> Compiler<T> createLinker() {
+            checkAvailable();
+            CommandLineTool<LinkerSpec> commandLineTool = commandLineTool(ToolType.LINKER);
+            return (Compiler<T>) new LinkExeLinker(commandLineTool);
+        }
+
+        public <T extends StaticLibraryArchiverSpec> Compiler<T> createStaticLibraryArchiver() {
+            checkAvailable();
+            CommandLineTool<StaticLibraryArchiverSpec> commandLineTool = commandLineTool(ToolType.STATIC_LIB_ARCHIVER);
+            return (Compiler<T>) new LibExeStaticLibraryArchiver(commandLineTool);
+        }
+
+        private <T extends BinaryToolSpec> CommandLineTool<T> commandLineTool(ToolType key) {
+            CommandLineTool<T> commandLineTool = new CommandLineTool<T>(key.getToolName(), tools.locate(key), execActionFactory);
+            commandLineTool.withPath(tools.getPath());
+            commandLineTool.withEnvironment(environment);
+            return commandLineTool;
+        }
+
+        public String getOutputType() {
+            return String.format("%s-%s", getName(), operatingSystem.getName());
+        }
     }
 }

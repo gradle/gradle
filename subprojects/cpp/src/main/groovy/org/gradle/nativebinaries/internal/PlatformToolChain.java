@@ -16,25 +16,16 @@
 
 package org.gradle.nativebinaries.internal;
 
-import org.gradle.nativebinaries.Platform;
-import org.gradle.nativebinaries.ToolChain;
+import org.gradle.api.internal.tasks.compile.Compiler;
 
-public interface ToolChainInternal extends ToolChain {
-    ToolChainAvailability getAvailability();
+public interface PlatformToolChain {
+    <T extends BinaryToolSpec> Compiler<T> createCppCompiler();
 
-    PlatformToolChain target(Platform targetPlatform);
+    <T extends BinaryToolSpec> Compiler<T> createCCompiler();
 
-    // TODO:DAZ These are platform-specific
-    String getExecutableName(String executablePath);
+    <T extends BinaryToolSpec> Compiler<T> createAssembler();
 
-    String getSharedLibraryName(String libraryPath);
+    <T extends LinkerSpec> Compiler<T> createLinker();
 
-    String getSharedLibraryLinkFileName(String libraryPath);
-
-    String getStaticLibraryName(String libraryPath);
-
-    /**
-     * Returns a unique identifier for the output produced by this toolchain on the current platform.
-     */
-    String getOutputType();
+    <T extends StaticLibraryArchiverSpec> Compiler<T> createStaticLibraryArchiver();
 }

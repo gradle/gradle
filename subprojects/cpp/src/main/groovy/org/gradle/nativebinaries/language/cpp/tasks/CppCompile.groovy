@@ -18,7 +18,7 @@ package org.gradle.nativebinaries.language.cpp.tasks
 
 import org.gradle.api.Incubating
 import org.gradle.api.tasks.WorkResult
-import org.gradle.nativebinaries.internal.ToolChainInternal
+import org.gradle.nativebinaries.internal.PlatformToolChain
 import org.gradle.nativebinaries.language.c.tasks.AbstractNativeCompileTask
 import org.gradle.nativebinaries.language.cpp.internal.DefaultCppCompileSpec
 import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec
@@ -34,7 +34,7 @@ class CppCompile extends AbstractNativeCompileTask {
     }
 
     @Override
-    protected WorkResult execute(ToolChainInternal toolChain, NativeCompileSpec spec) {
+    protected WorkResult execute(PlatformToolChain toolChain, NativeCompileSpec spec) {
         return toolChain.createCppCompiler().execute(spec)
     }
 }

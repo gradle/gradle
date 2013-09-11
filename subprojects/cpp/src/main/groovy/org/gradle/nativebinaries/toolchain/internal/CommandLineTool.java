@@ -31,6 +31,7 @@ import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,6 +41,7 @@ public class CommandLineTool<T extends CompileSpec> {
     private final File executable;
     private final Factory<ExecAction> execActionFactory;
     private final Map<String, String> environment = new HashMap<String, String>();
+    private List<String> arguments = new ArrayList<String>();
     private CompileSpecToArguments<T> toArguments;
     private File workDir;
     private String path;
@@ -71,6 +73,11 @@ public class CommandLineTool<T extends CompileSpec> {
         return this;
     }
 
+    public CommandLineTool<T> withArguments(List<String> arguments) {
+        this.arguments.addAll(arguments);
+        return this;
+    }
+
     public WorkResult execute(T spec) {
         ExecAction compiler = execActionFactory.create();
         compiler.executable(executable);
@@ -78,6 +85,9 @@ public class CommandLineTool<T extends CompileSpec> {
             compiler.workingDir(workDir);
         }
 
+        if (!arguments.isEmpty()) {
+            compiler.args(arguments);
+        }
         toArguments.collectArguments(spec, new ExecSpecBackedArgCollector(compiler));
 
         if (GUtil.isTrue(path)) {

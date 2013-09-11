@@ -82,6 +82,7 @@ public class NativeBinariesPlugin implements Plugin<Project> {
          }
 
         linkTask.toolChain = binary.toolChain
+        linkTask.targetPlatform = binary.targetPlatform
 
         binary.libs.each { NativeDependencySet lib ->
             linkTask.lib lib.linkFiles
@@ -106,6 +107,7 @@ public class NativeBinariesPlugin implements Plugin<Project> {
          }
 
         task.toolChain = binary.toolChain
+        task.targetPlatform = binary.targetPlatform
         task.conventionMapping.outputFile = { binary.outputFile }
         task.staticLibArgs = binary.staticLibArchiver.args
         return task

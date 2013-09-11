@@ -20,12 +20,23 @@ import org.gradle.nativebinaries.Platform;
 
 public class DefaultPlatform implements Platform {
     private final String name;
+    private Architecture architecture;
 
     public DefaultPlatform(String name) {
+        // TODO: Determine the default architecture
         this.name = name;
+        this.architecture = Architecture.CURRENT;
     }
 
     public String getName() {
         return name;
+    }
+
+    public Architecture getArchitecture() {
+        return architecture;
+    }
+
+    public void setArchitecture(Architecture architecture) {
+        this.architecture = architecture;
     }
 }

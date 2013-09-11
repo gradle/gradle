@@ -20,6 +20,7 @@ import org.gradle.api.Incubating
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.*
 import org.gradle.language.jvm.internal.SimpleStaleClassCleaner
+import org.gradle.nativebinaries.Platform
 import org.gradle.nativebinaries.ToolChain
 import org.gradle.nativebinaries.language.assembler.internal.DefaultAssembleSpec
 
@@ -33,6 +34,12 @@ class Assemble extends DefaultTask {
     private FileCollection source
 
     ToolChain toolChain
+
+    /**
+     * The platform being targeted.
+     */
+    // TODO:DAZ This should form an @Input
+    Platform targetPlatform
 
     /**
      * The directory where object files will be generated.
@@ -75,7 +82,7 @@ class Assemble extends DefaultTask {
         spec.source = getSource()
         spec.args = getAssemblerArgs()
 
-        def result = toolChain.createAssembler().execute(spec)
+        def result = toolChain.target(targetPlatform).createAssembler().execute(spec)
         didWork = result.didWork
     }
 

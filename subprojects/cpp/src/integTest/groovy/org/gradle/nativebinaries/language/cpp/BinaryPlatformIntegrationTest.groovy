@@ -18,16 +18,14 @@ package org.gradle.nativebinaries.language.cpp
 
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativebinaries.language.cpp.fixtures.app.CppHelloWorldApp
 import org.gradle.nativebinaries.language.cpp.fixtures.binaryinfo.BinaryInfo
 import org.gradle.nativebinaries.language.cpp.fixtures.binaryinfo.DumpbinBinaryInfo
 import org.gradle.nativebinaries.language.cpp.fixtures.binaryinfo.OtoolBinaryInfo
 import org.gradle.nativebinaries.language.cpp.fixtures.binaryinfo.ReadelfBinaryInfo
-import org.gradle.nativebinaries.language.cpp.fixtures.app.CppHelloWorldApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.Ignore
 
-@Ignore
 class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def helloWorldApp = new CppHelloWorldApp()
 
@@ -42,36 +40,17 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
             apply plugin: 'cpp'
 
             targetPlatforms {
-                x86 {}
-                x86_64 {}
+                x86 {
+                    architecture Platform.Architecture.I386
+                }
+                x86_64 {
+                    architecture Platform.Architecture.AMD64
+                }
             }
             executables {
-                main {
-                    binaries.all {
-                        if (targetPlatform == targetPlatforms.x86) {
-                            cppCompiler.args "-m32"
-                        } else {
-                            cppCompiler.args "-m64"
-                        }
-                    }
-                }
+                main {}
             }
         """
-        if (OperatingSystem.current().isMacOsX()) {
-            buildFile << """
-            executables {
-                main {
-                    binaries.all {
-                        if (targetPlatform == targetPlatforms.x86) {
-                            linker.args "-arch", "i386"
-                        } else {
-                            linker.args "-arch", "x86_64"
-                        }
-                    }
-                }
-            }
-"""
-        }
 
         and:
         succeeds "installX86MainExecutable", "installX86_64MainExecutable"

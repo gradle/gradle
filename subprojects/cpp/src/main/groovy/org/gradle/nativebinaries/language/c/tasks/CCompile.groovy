@@ -18,9 +18,9 @@ package org.gradle.nativebinaries.language.c.tasks
 
 import org.gradle.api.Incubating
 import org.gradle.api.tasks.WorkResult
-import org.gradle.nativebinaries.internal.ToolChainInternal
-import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec
+import org.gradle.nativebinaries.internal.PlatformToolChain
 import org.gradle.nativebinaries.language.c.internal.DefaultCCompileSpec
+import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec
 
 /**
  * Compiles C source files into object files.
@@ -33,7 +33,7 @@ class CCompile extends AbstractNativeCompileTask {
     }
 
     @Override
-    protected WorkResult execute(ToolChainInternal toolChain, NativeCompileSpec spec) {
+    protected WorkResult execute(PlatformToolChain toolChain, NativeCompileSpec spec) {
         return toolChain.createCCompiler().execute(spec)
     }
 }

@@ -21,8 +21,9 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.tasks.*
 import org.gradle.language.jvm.internal.SimpleStaleClassCleaner
+import org.gradle.nativebinaries.Platform
 import org.gradle.nativebinaries.ToolChain
-import org.gradle.nativebinaries.internal.ToolChainInternal
+import org.gradle.nativebinaries.internal.PlatformToolChain
 import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec
 
 import javax.inject.Inject
@@ -34,6 +35,12 @@ abstract class AbstractNativeCompileTask extends DefaultTask {
     private FileCollection source
 
     ToolChain toolChain
+
+    /**
+     * The platform being targeted.
+     */
+    // TODO:DAZ This should form an @Input
+    Platform targetPlatform
 
     /**
      * Should the compiler generate position independent code?
@@ -55,6 +62,7 @@ abstract class AbstractNativeCompileTask extends DefaultTask {
         source
     }
 
+    // TODO:DAZ We also need the platform to form an input
     // Invalidate output when the tool chain output changes
     @Input
     def getOutputType() {
@@ -95,13 +103,14 @@ abstract class AbstractNativeCompileTask extends DefaultTask {
         spec.args = getCompilerArgs()
         spec.positionIndependentCode = isPositionIndependentCode()
 
-        def result = execute(toolChain as ToolChainInternal, spec)
+        PlatformToolChain platformToolChain = toolChain.target(targetPlatform)
+        def result = execute(platformToolChain, spec)
         didWork = result.didWork
     }
 
     protected abstract NativeCompileSpec createCompileSpec();
 
-    protected abstract WorkResult execute(ToolChainInternal toolChain, NativeCompileSpec spec);
+    protected abstract WorkResult execute(PlatformToolChain toolChain, NativeCompileSpec spec);
 
     /**
      * Add locations where the compiler should search for header files.

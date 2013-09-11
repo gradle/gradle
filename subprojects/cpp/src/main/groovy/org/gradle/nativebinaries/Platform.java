@@ -22,4 +22,20 @@ import org.gradle.api.Named;
  * A target platform for building native binaries.
  */
 public interface Platform extends Named {
+
+    /**
+     * The cpu architecture being targeted.
+     */
+    Architecture getArchitecture();
+
+    /**
+     * Sets the cpu architecture being targeted.
+     */
+    void setArchitecture(Architecture architecture);
+
+    /**
+     * The set of available architectures.
+     */
+    // TODO:DAZ Model this whole concept better: don't use an enum, make this an 'architecture specification', ...
+    enum Architecture { CURRENT, I386, AMD64 }
 }

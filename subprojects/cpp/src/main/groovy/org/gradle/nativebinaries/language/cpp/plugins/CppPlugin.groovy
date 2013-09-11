@@ -76,6 +76,7 @@ class CppPlugin implements Plugin<ProjectInternal> {
         }
 
         compileTask.toolChain = binary.toolChain
+        compileTask.targetPlatform = binary.targetPlatform
         compileTask.positionIndependentCode = binary instanceof SharedLibraryBinary
 
         compileTask.includes sourceSet.exportedHeaders

@@ -18,14 +18,15 @@ package org.gradle.nativebinaries.toolchain.internal.gcc;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.compile.Compiler;
-import org.gradle.nativebinaries.toolchain.internal.AbstractToolChain;
 import org.gradle.internal.Factory;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.nativebinaries.Platform;
 import org.gradle.nativebinaries.internal.*;
 import org.gradle.nativebinaries.language.assembler.internal.AssembleSpec;
 import org.gradle.nativebinaries.language.c.internal.CCompileSpec;
 import org.gradle.nativebinaries.language.cpp.internal.CppCompileSpec;
 import org.gradle.nativebinaries.toolchain.Gcc;
+import org.gradle.nativebinaries.toolchain.internal.AbstractToolChain;
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
 import org.gradle.nativebinaries.toolchain.internal.ToolType;
 import org.gradle.nativebinaries.toolchain.internal.gcc.version.GccVersionDeterminer;
@@ -34,6 +35,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Compiler adapter for GCC.
@@ -77,42 +80,6 @@ public class GccToolChain extends AbstractToolChain implements Gcc {
         }
     }
 
-    public <T extends BinaryToolSpec> Compiler<T> createCppCompiler() {
-        checkAvailable();
-        CommandLineTool<CppCompileSpec> commandLineTool = commandLineTool(ToolType.CPP_COMPILER);
-        return (Compiler<T>) new CppCompiler(commandLineTool, canUseCommandFile());
-    }
-
-    public <T extends BinaryToolSpec> Compiler<T> createCCompiler() {
-        checkAvailable();
-        CommandLineTool<CCompileSpec> commandLineTool = commandLineTool(ToolType.C_COMPILER);
-        return (Compiler<T>) new CCompiler(commandLineTool, canUseCommandFile());
-    }
-
-    public <T extends BinaryToolSpec> Compiler<T> createAssembler() {
-        checkAvailable();
-        CommandLineTool<AssembleSpec> commandLineTool = commandLineTool(ToolType.ASSEMBLER);
-        return (Compiler<T>) new Assembler(commandLineTool);
-    }
-
-    public <T extends LinkerSpec> Compiler<T> createLinker() {
-        checkAvailable();
-        CommandLineTool<LinkerSpec> commandLineTool = commandLineTool(ToolType.LINKER);
-        return (Compiler<T>) new GccLinker(commandLineTool, canUseCommandFile());
-    }
-
-    public <T extends StaticLibraryArchiverSpec> Compiler<T> createStaticLibraryArchiver() {
-        checkAvailable();
-        CommandLineTool<StaticLibraryArchiverSpec> commandLineTool = commandLineTool(ToolType.STATIC_LIB_ARCHIVER);
-        return (Compiler<T>) new ArStaticLibraryArchiver(commandLineTool);
-    }
-
-    private <T extends BinaryToolSpec> CommandLineTool<T> commandLineTool(ToolType key) {
-        CommandLineTool<T> commandLineTool = new CommandLineTool<T>(key.getToolName(), tools.locate(key), execActionFactory);
-        commandLineTool.withPath(getPaths());
-        return commandLineTool;
-    }
-
     private void determineVersion() {
         version = determineVersion(tools.locate(ToolType.CPP_COMPILER));
         if (version == null) {
@@ -126,15 +93,97 @@ public class GccToolChain extends AbstractToolChain implements Gcc {
         return executable == null ? null : versionDeterminer.transform(executable);
     }
 
-    private boolean canUseCommandFile() {
-        String[] components = version.split("\\.");
-        int majorVersion;
-        try {
-            majorVersion = Integer.valueOf(components[0]);
-        } catch (NumberFormatException e) {
-            throw new IllegalStateException(String.format("Unable to determine major g++ version from version number %s.", version), e);
+    public PlatformToolChain target(Platform targetPlatform) {
+        return new GccPlatformToolChain(targetPlatform);
+    }
+
+    private class GccPlatformToolChain implements PlatformToolChain {
+        private final Platform targetPlatform;
+
+        public GccPlatformToolChain(Platform targetPlatform) {
+            this.targetPlatform = targetPlatform;
         }
-        return majorVersion >= 4;
+
+        public <T extends BinaryToolSpec> Compiler<T> createCppCompiler() {
+            checkAvailable();
+            CommandLineTool<CppCompileSpec> commandLineTool = commandLineTool(ToolType.CPP_COMPILER);
+            return (Compiler<T>) new CppCompiler(commandLineTool, canUseCommandFile());
+        }
+
+        public <T extends BinaryToolSpec> Compiler<T> createCCompiler() {
+            checkAvailable();
+            CommandLineTool<CCompileSpec> commandLineTool = commandLineTool(ToolType.C_COMPILER);
+            return (Compiler<T>) new CCompiler(commandLineTool, canUseCommandFile());
+        }
+
+        public <T extends BinaryToolSpec> Compiler<T> createAssembler() {
+            checkAvailable();
+            CommandLineTool<AssembleSpec> commandLineTool = commandLineTool(ToolType.ASSEMBLER);
+            return (Compiler<T>) new Assembler(commandLineTool);
+        }
+
+        public <T extends LinkerSpec> Compiler<T> createLinker() {
+            checkAvailable();
+            CommandLineTool<LinkerSpec> commandLineTool = commandLineTool(ToolType.LINKER);
+            return (Compiler<T>) new GccLinker(commandLineTool, canUseCommandFile());
+        }
+
+        public <T extends StaticLibraryArchiverSpec> Compiler<T> createStaticLibraryArchiver() {
+            checkAvailable();
+            CommandLineTool<StaticLibraryArchiverSpec> commandLineTool = commandLineTool(ToolType.STATIC_LIB_ARCHIVER);
+            return (Compiler<T>) new ArStaticLibraryArchiver(commandLineTool);
+        }
+
+        private <T extends BinaryToolSpec> CommandLineTool<T> commandLineTool(ToolType key) {
+            CommandLineTool<T> commandLineTool = new CommandLineTool<T>(key.getToolName(), tools.locate(key), execActionFactory);
+            commandLineTool.withPath(getPaths());
+            targetToPlatform(commandLineTool, key);
+            return commandLineTool;
+        }
+
+        private void targetToPlatform(CommandLineTool tool, ToolType key) {
+            switch (key) {
+                case CPP_COMPILER:
+                case C_COMPILER:
+                case LINKER:
+                    tool.withArguments(gccSwitches());
+                    return;
+                case ASSEMBLER:
+                    // TODO:DAZ
+                case STATIC_LIB_ARCHIVER:
+                    // TODO:DAZ
+            }
+        }
+
+        private List<String> gccSwitches() {
+            switch (targetPlatform.getArchitecture()) {
+                case I386:
+                    return args("-m32");
+                case AMD64:
+                    return args("-m64");
+                default:
+                    return args();
+            }
+        }
+
+        private List<String> args(String... values) {
+            return Arrays.asList(values);
+        }
+
+        public String getOutputType() {
+            return String.format("%s-%s-%s", getName(), targetPlatform.getArchitecture().name(), operatingSystem.getName());
+        }
+
+        private boolean canUseCommandFile() {
+            String[] components = version.split("\\.");
+            int majorVersion;
+            try {
+                majorVersion = Integer.valueOf(components[0]);
+            } catch (NumberFormatException e) {
+                throw new IllegalStateException(String.format("Unable to determine major g++ version from version number %s.", version), e);
+            }
+            return majorVersion >= 4;
+        }
     }
 
 }

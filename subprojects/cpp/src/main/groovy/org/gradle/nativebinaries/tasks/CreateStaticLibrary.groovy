@@ -15,20 +15,15 @@
  */
 
 package org.gradle.nativebinaries.tasks
-
 import org.gradle.api.DefaultTask
 import org.gradle.api.Incubating
 import org.gradle.api.file.FileCollection
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.InputFiles
-import org.gradle.api.tasks.OutputFile
-import org.gradle.api.tasks.SkipWhenEmpty
-import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.*
+import org.gradle.nativebinaries.Platform
 import org.gradle.nativebinaries.ToolChain
 import org.gradle.nativebinaries.internal.StaticLibraryArchiverSpec
 
 import javax.inject.Inject
-
 /**
  * Assembles a static library from object files.
  */
@@ -45,6 +40,12 @@ class CreateStaticLibrary extends DefaultTask implements BuildBinaryTask {
      * The tool chain used for creating the static library.
      */
     ToolChain toolChain
+
+    /**
+     * The platform being targeted.
+     */
+    // TODO:DAZ This should form an @Input
+    Platform targetPlatform
 
     // Invalidate output when the tool chain output changes
     @Input
@@ -90,7 +91,7 @@ class CreateStaticLibrary extends DefaultTask implements BuildBinaryTask {
         spec.source = getSource()
         spec.args = getStaticLibArgs()
 
-        def result = toolChain.createStaticLibraryArchiver().execute(spec)
+        def result = toolChain.target(targetPlatform).createStaticLibraryArchiver().execute(spec)
         didWork = result.didWork
     }
 

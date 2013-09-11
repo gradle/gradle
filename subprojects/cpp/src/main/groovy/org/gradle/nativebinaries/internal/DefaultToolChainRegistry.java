@@ -17,9 +17,9 @@ package org.gradle.nativebinaries.internal;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
-import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.nativebinaries.Platform;
 import org.gradle.nativebinaries.ToolChain;
 import org.gradle.nativebinaries.ToolChainRegistry;
 
@@ -90,28 +90,12 @@ public class DefaultToolChainRegistry extends DefaultPolymorphicDomainObjectCont
             return "unavailable";
         }
 
+        public PlatformToolChain target(Platform targetPlatform) {
+            throw failure();
+        }
+
         private IllegalStateException failure() {
             return new IllegalStateException(String.format("No tool chain is available: %s", messages));
-        }
-
-        public <T extends BinaryToolSpec> Compiler<T> createCppCompiler() {
-            throw failure();
-        }
-
-        public <T extends BinaryToolSpec> Compiler<T> createCCompiler() {
-            throw failure();
-        }
-
-        public <T extends BinaryToolSpec> Compiler<T> createAssembler() {
-            throw failure();
-        }
-
-        public <T extends LinkerSpec> Compiler<T> createLinker() {
-            throw failure();
-        }
-
-        public <T extends StaticLibraryArchiverSpec> Compiler<T> createStaticLibraryArchiver() {
-            throw failure();
         }
 
         public ToolChainAvailability getAvailability() {
@@ -137,6 +121,5 @@ public class DefaultToolChainRegistry extends DefaultPolymorphicDomainObjectCont
         public String getOutputType() {
             throw failure();
         }
-
     }
 }
