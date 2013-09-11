@@ -25,7 +25,9 @@ import org.gradle.nativebinaries.language.cpp.fixtures.binaryinfo.ReadelfBinaryI
 import org.gradle.nativebinaries.language.cpp.fixtures.app.CppHelloWorldApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Ignore
 
+@Ignore
 class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def helloWorldApp = new CppHelloWorldApp()
 
