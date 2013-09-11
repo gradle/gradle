@@ -214,17 +214,15 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "placeolder actions not triggered when not requested"() {
+        when:
         buildFile << """
         task a
         tasks.addPlaceholderAction("b") {
             throw new RuntimeException()
         }
 """
-        when:
-        succeeds 'a'
-
         then:
-        !output.contains("placeholder action triggered")
+        succeeds 'a'
     }
 
     def "explicit tasks are preferred over placeholder actions"() {
