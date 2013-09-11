@@ -67,6 +67,32 @@ ${toolChainConfig}
         }
     }
 
+    def "exception when building with unavailable tool chain"() {
+        when:
+        buildFile << """
+            apply plugin: "cpp"
+
+            toolChains {
+                bad(Gcc) {
+                    linker.executable = "does_not_exist"
+                }
+            }
+
+            executables {
+                main {}
+            }
+"""
+
+        helloWorld.writeSources(file("src/main"))
+
+        then:
+        fails "mainExecutable"
+
+        and:
+        failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainCpp'.")
+        failure.assertHasCause("Tool chain bad is not available")
+    }
+
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
     def "includes tool chain in task names and binary paths with two defined and one available"() {
         AvailableToolChains.InstalledToolChain toolChain = AvailableToolChains.getToolChains().get(0) as AvailableToolChains.InstalledToolChain
