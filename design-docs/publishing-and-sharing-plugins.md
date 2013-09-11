@@ -244,16 +244,101 @@ Step 2: Given a plugin name and plugin component:
 1. Load the plugin implementation class from this `ClassLoader`.
 1. Cache the result.
 
+Note that no core plugins will be visible to the plugin implementation by default. These will be declared as explicit dependencies of the plugin (TBD).
+
 # Stories
 
-TBD
+## Story: Introduce plugins DSL block
+
+Adds the initial DSL support and APIs. Can only be used to apply core plugins to the script's target object.
+
+## Story: Resolve hard-coded set of plugins from public bintray repository
+
+Adds a basic mechanism to load plugins from a repository. Adds a plugin resolver that uses a hard-coded mapping from plugin name to implementation component,
+then resolves the implementation from `jcenter`.
+
+Cache implementation ClassLoader for a given build, so that if multiple scripts apply the same plugin, then the same implementation Class is used.
+
+Gradleware developers select a small set of plugins to include in this hard-coded mapping. The mapping should include the Android plugins.
+
+At this point, dependencies on other plugins are not supported.
+
+## Story: Resolve plugins from public bintray repository
+
+Extend the above mechanism to use plugin meta-data from the public bintray repository to map a plugin name + version to implementation component.
+
+Uses meta-data manually attached to each package in the repository. Again, a small set of plugins is selected by the
+Gradleware developers to include in the repository.
+
+## Story: External plugins are usable when offline
+
+Cache the plugin mapping and reuse when `--offline`.
+
+## Story: Plugin author requests that plugin version be included in the Gradle plugins repository
+
+The set of plugins available via the public plugin repository is curated by Gradleware.
+
+TBD - perhaps implement this using the bintray 'contact' UI plus some kind of reference from the Gradle website.
+
+Retire the 'plugins' wiki page some point after this.
+
+## Story: Plugins declare dependencies on other plugins
+
+Should include dependencies on core plugins.
+
+## Story: Plugin author publishes plugin to bintray
+
+Add a basic plugin authoring plugin, that adds support for publishing to bintray with the appropriate meta-data.
+
+## Story: Resolve plugins relative to Gradle distribution
+
+Plugin resolution uses Gradle runtime's URL (i.e as used by the wrapper) to locate a repository to search for plugins
+and implementations.
+
+TBD - introduce some plugins mapping artifact, or perhaps use an init script to bootstrap the mappings.
+
+Plugin mappings are cached per repository.
+
+Deprecate the 'custom distribution' feature some time after this.
+
+## Story: Resolve plugins from enterprise repository
+
+Allow the plugin repositories to use to be declared.
+
+Multiple plugin and module repositories can be declared.
+
+## Story: Resolve local script plugins
+
+Add a resolver that uses some convention to map plugin id to a build script.
+
+    plugins {
+        // Looks for a script in $rootDir/gradle/plugins/groovy-project.gradle
+        apply plugin: 'groovy-project'
+    }
+
+## Story: Daemon reuses plugin implementation
+
+Cache the implementation ClassLoader across builds. More details in the [performance spec](performance.md).
+
+## Story: Resolve core plugins from public repository
+
+- Publish core plugins to a public repository (possibly bintray)
+- Produce a minimal Gradle distribution that does not include any plugins
+- Change default wrapper configuration to download to this distribution
+- Resolve a class import at script compilation time to a core plugin implementation on demand
+- Introduce plugin resolution for old DSL.
+
+Deprecate the bin Gradle distribution some time after this.
 
 # Open issues
 
+TBD - conditional plugin application
+TBD - need some way to tweak the resolve strategy for plugin component resolution.
 TBD - declaring dependencies of a plugin on other plugins
 TBD - configuring which repositories, possibly none, to use to resolve plugin declaration and to use to resolve implementation modules.
 TBD - backwards compatibility wrt moving the core plugins. eg all core plugins are currently visible on every script compile classpath.
 TBD - declare and expose only the API of the plugin
-TBD - require statement adds a mapping rule so that version is not required to apply the plugin later in the same script.
 TBD - handle conflicts where different versions of a plugin are requested to be applied to the target object.
 TBD - conflict resolution for the script compile classpath when mixing combinations of `require` and `dependencies { classpath ... }` and inherited classpath.
+TBD - plugins that add new kinds of repository and resolver implementations or that define and configure the repositories to use.
+TBD - automate promotion of new plugin versions to the public repository
