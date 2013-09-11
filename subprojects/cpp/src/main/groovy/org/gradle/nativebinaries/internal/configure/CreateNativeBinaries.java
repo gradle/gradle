@@ -25,8 +25,6 @@ import org.gradle.nativebinaries.internal.DefaultExecutableBinary;
 import org.gradle.nativebinaries.internal.DefaultSharedLibraryBinary;
 import org.gradle.nativebinaries.internal.DefaultStaticLibraryBinary;
 
-import java.util.List;
-
 public class CreateNativeBinaries implements Action<ProjectInternal> {
     private final Instantiator instantiator;
 
@@ -42,8 +40,7 @@ public class CreateNativeBinaries implements Action<ProjectInternal> {
         BinaryContainer binaries = project.getExtensions().getByType(BinaryContainer.class);
 
         NativeBinaryFactory factory = new NativeBinaryFactory(instantiator, project, toolChains, targetPlatforms);
-        List<? extends ToolChain> availableToolChains = toolChains.getAvailableToolChains();
-        for (ToolChain toolChain : availableToolChains) {
+        for (ToolChain toolChain : toolChains) {
             for (Platform targetPlatform : targetPlatforms) {
                 for (Library library : libraries) {
                     for (Flavor flavor : library.getFlavors()) {

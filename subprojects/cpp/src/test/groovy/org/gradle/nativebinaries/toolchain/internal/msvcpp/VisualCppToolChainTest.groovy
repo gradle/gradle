@@ -60,7 +60,7 @@ class VisualCppToolChainTest extends Specification {
 
         then:
         !availability.available
-        availability.unavailableMessage == "C++ compiler cannot be found"
+        availability.unavailableMessage == "C++ compiler does not exist (${file("cl.exe")})"
 
         when:
         createFile('cl.exe')
@@ -73,7 +73,7 @@ class VisualCppToolChainTest extends Specification {
 
         then:
         !availability2.available
-        availability2.unavailableMessage == 'Static library archiver cannot be found'
+        availability2.unavailableMessage == "Static library archiver does not exist (${file('lib.exe')})"
 
         when:
         createFile('lib.exe')
