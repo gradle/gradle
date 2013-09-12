@@ -25,7 +25,7 @@ public class DefaultPlatform implements Platform {
     public DefaultPlatform(String name) {
         // TODO: Determine the default architecture
         this.name = name;
-        this.architecture = Architecture.CURRENT;
+        this.architecture = Architecture.TOOL_CHAIN_DEFAULT;
     }
 
     public String getName() {

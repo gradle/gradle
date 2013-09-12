@@ -18,30 +18,27 @@ package org.gradle.nativebinaries.toolchain.internal.msvcpp;
 
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.compile.Compiler;
-import org.gradle.nativebinaries.Platform;
-import org.gradle.nativebinaries.toolchain.internal.AbstractToolChain;
 import org.gradle.internal.Factory;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.nativebinaries.Platform;
 import org.gradle.nativebinaries.internal.*;
 import org.gradle.nativebinaries.language.assembler.internal.AssembleSpec;
 import org.gradle.nativebinaries.language.c.internal.CCompileSpec;
 import org.gradle.nativebinaries.language.cpp.internal.CppCompileSpec;
 import org.gradle.nativebinaries.toolchain.VisualCpp;
+import org.gradle.nativebinaries.toolchain.internal.AbstractToolChain;
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
 import org.gradle.nativebinaries.toolchain.internal.ToolRegistry;
 import org.gradle.nativebinaries.toolchain.internal.ToolType;
 import org.gradle.process.internal.ExecAction;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
 
 public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
 
     public static final String DEFAULT_NAME = "visualCpp";
 
     private final Factory<ExecAction> execActionFactory;
-    private final Map<String, String> environment = new HashMap<String, String>();
 
     private File installDir;
 
@@ -89,13 +86,11 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
 
     public PlatformToolChain target(Platform targetPlatform) {
         checkAvailable();
-        // TODO:DAZ Even if installDir == null, we should attempt to locate a VisualStudioInstall to configure for non-default architectures.
+        // TODO:DAZ When installDir == null, we should attempt to locate a VisualStudioInstall to target non-default architecture.
         if (installDir != null) {
+            // TODO:DAZ Definitely shouldn't overwrite the tools here
             VisualStudioInstall install = new VisualStudioInstall(installDir);
-
-            tools.setPath(install.getPathEntries(targetPlatform));
-            environment.clear();
-            environment.putAll(install.getEnvironment(targetPlatform));
+            install.configureTools(tools, targetPlatform);
         }
         return new VisualCppPlatformToolChain();
     }
@@ -134,7 +129,7 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
         private <T extends BinaryToolSpec> CommandLineTool<T> commandLineTool(ToolType key) {
             CommandLineTool<T> commandLineTool = new CommandLineTool<T>(key.getToolName(), tools.locate(key), execActionFactory);
             commandLineTool.withPath(tools.getPath());
-            commandLineTool.withEnvironment(environment);
+            commandLineTool.withEnvironment(tools.getEnvironment());
             return commandLineTool;
         }
 

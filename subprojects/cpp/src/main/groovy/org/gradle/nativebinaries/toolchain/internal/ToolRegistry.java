@@ -25,6 +25,7 @@ public class ToolRegistry {
     private final Map<ToolType, String> executableNames = new HashMap<ToolType, String>();
     private final Map<String, File> executables = new HashMap<String, File>();
     private final List<File> pathEntries = new ArrayList<File>();
+    private final Map<String, String> environment = new HashMap<String, String>();
 
     private final OperatingSystem operatingSystem;
 
@@ -74,5 +75,9 @@ public class ToolRegistry {
             }
         }
         return operatingSystem.findInPath(name);
+    }
+
+    public Map<String, String> getEnvironment() {
+        return environment;
     }
 }

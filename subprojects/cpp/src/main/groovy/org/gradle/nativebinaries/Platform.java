@@ -37,5 +37,5 @@ public interface Platform extends Named {
      * The set of available architectures.
      */
     // TODO:DAZ Model this whole concept better: don't use an enum, make this an 'architecture specification', ...
-    enum Architecture { CURRENT, I386, AMD64 }
+    enum Architecture { TOOL_CHAIN_DEFAULT, I386, AMD64 }
 }

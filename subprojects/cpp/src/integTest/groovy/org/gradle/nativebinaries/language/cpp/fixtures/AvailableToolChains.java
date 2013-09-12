@@ -23,6 +23,7 @@ import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativebinaries.internal.DefaultPlatform;
 import org.gradle.nativebinaries.toolchain.Gcc;
 import org.gradle.nativebinaries.toolchain.VisualCpp;
+import org.gradle.nativebinaries.toolchain.internal.ToolRegistry;
 import org.gradle.nativebinaries.toolchain.internal.gcc.version.GccVersionDeterminer;
 import org.gradle.nativebinaries.toolchain.internal.msvcpp.VisualStudioInstall;
 import org.gradle.test.fixtures.file.TestFile;
@@ -259,10 +260,12 @@ public class AvailableToolChains {
         }
 
         public InstalledVisualCpp withInstall(VisualStudioInstall install) {
+            ToolRegistry toolRegistry = new ToolRegistry(OperatingSystem.current());
             DefaultPlatform targetPlatform = new DefaultPlatform("default");
-            pathEntries.addAll(install.getPathEntries(targetPlatform));
-            environmentVars.putAll(install.getEnvironment(targetPlatform));
+            install.configureTools(toolRegistry, targetPlatform);
             installDir = install.getInstallDir();
+            pathEntries.addAll(toolRegistry.getPath());
+            environmentVars.putAll(toolRegistry.getEnvironment());
             return this;
         }
 
