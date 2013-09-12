@@ -68,6 +68,7 @@ task check << {
         module.withXml {
             asNode().info[0].appendNode("extends", extendAttributes)
         }
+        parentModule.publish()
         module.publish()
 
         when:
@@ -87,6 +88,7 @@ task check << {
         module.expectIvyGet()
         if (!includeLocation) {
             parentModule.expectIvyGet()
+            parentModule.expectIvyHead()
         }
         depModule.expectIvyGet()
         module.expectJarGet()

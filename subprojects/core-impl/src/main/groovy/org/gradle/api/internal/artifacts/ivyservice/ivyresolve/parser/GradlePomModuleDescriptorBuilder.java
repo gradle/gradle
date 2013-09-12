@@ -92,6 +92,7 @@ public class GradlePomModuleDescriptorBuilder {
     private static final String PROPERTIES = "m:properties";
     private static final String EXTRA_INFO_DELIMITER = "__";
     private static final Collection<String> JAR_PACKAGINGS = Arrays.asList("ejb", "bundle", "maven-plugin", "eclipse-plugin");
+    private static final Map<String, String> EXTRA_INFO = new HashMap<String, String>();
 
     static interface ConfMapper {
         public void addMappingConfs(DefaultDependencyDescriptor dd, boolean isOptional);
@@ -291,7 +292,7 @@ public class GradlePomModuleDescriptorBuilder {
         // is present, but empty.
         List /*<ModuleId>*/ excluded = dep.getExcludedModules();
         if (excluded.isEmpty()) {
-            excluded = getDependencyMgtExclusions(ivyModuleDescriptor, dep.getGroupId(), dep.getArtifactId());
+            excluded = getDependencyMgtExclusions(dep.getGroupId(), dep.getArtifactId());
         }
         for (Object anExcluded : excluded) {
             ModuleId excludedModule = (ModuleId) anExcluded;
@@ -324,18 +325,18 @@ public class GradlePomModuleDescriptorBuilder {
 
     public void addDependencyMgt(PomDependencyMgt dep) {
         String key = getDependencyMgtExtraInfoKeyForVersion(dep.getGroupId(), dep.getArtifactId());
-        ivyModuleDescriptor.addExtraInfo(key, dep.getVersion());
+        addExtraInfo(key, dep.getVersion());
         if (dep.getScope() != null) {
             String scopeKey = getDependencyMgtExtraInfoKeyForScope(dep.getGroupId(), dep.getArtifactId());
-            ivyModuleDescriptor.addExtraInfo(scopeKey, dep.getScope());
+            addExtraInfo(scopeKey, dep.getScope());
         }
         if (!dep.getExcludedModules().isEmpty()) {
             final String exclusionPrefix = getDependencyMgtExtraInfoPrefixForExclusion(dep.getGroupId(), dep.getArtifactId());
             int index = 0;
             for (Object o : dep.getExcludedModules()) {
                 final ModuleId excludedModule = (ModuleId) o;
-                ivyModuleDescriptor.addExtraInfo(exclusionPrefix + index,
-                        excludedModule.getOrganisation() + EXTRA_INFO_DELIMITER + excludedModule.getName());
+                addExtraInfo(exclusionPrefix + index,
+                          excludedModule.getOrganisation() + EXTRA_INFO_DELIMITER + excludedModule.getName());
                 index += 1;
             }
         }
@@ -349,13 +350,13 @@ public class GradlePomModuleDescriptorBuilder {
     public void addPlugin(PomDependencyMgt plugin) {
         String pluginValue = plugin.getGroupId() + EXTRA_INFO_DELIMITER + plugin.getArtifactId()
                 + EXTRA_INFO_DELIMITER + plugin.getVersion();
-        String pluginExtraInfo = (String) ivyModuleDescriptor.getExtraInfo().get("m:maven.plugins");
+        String pluginExtraInfo = EXTRA_INFO.get("m:maven.plugins");
         if (pluginExtraInfo == null) {
             pluginExtraInfo = pluginValue;
         } else {
             pluginExtraInfo = pluginExtraInfo + "|" + pluginValue;
         }
-        ivyModuleDescriptor.getExtraInfo().put("m:maven.plugins", pluginExtraInfo);
+        addExtraInfo("m:maven.plugins", pluginExtraInfo);
     }
 
     public static List<PomDependencyMgt> getPlugins(ModuleDescriptor md) {
@@ -407,12 +408,12 @@ public class GradlePomModuleDescriptorBuilder {
 
     private String getDefaultVersion(PomReader.PomDependencyData dep) {
         String key = getDependencyMgtExtraInfoKeyForVersion(dep.getGroupId(), dep.getArtifactId());
-        return (String) ivyModuleDescriptor.getExtraInfo().get(key);
+        return EXTRA_INFO.get(key);
     }
 
     private String getDefaultScope(PomReader.PomDependencyData dep) {
         String key = getDependencyMgtExtraInfoKeyForScope(dep.getGroupId(), dep.getArtifactId());
-        String result = (String) ivyModuleDescriptor.getExtraInfo().get(key);
+        String result = EXTRA_INFO.get(key);
         if ((result == null) || !MAVEN2_CONF_MAPPING.containsKey(result)) {
             result = "compile";
         }
@@ -440,10 +441,10 @@ public class GradlePomModuleDescriptorBuilder {
                 + EXTRA_INFO_DELIMITER + artifaceId + EXTRA_INFO_DELIMITER + "exclusion_";
     }
 
-    private static List<ModuleId> getDependencyMgtExclusions(ModuleDescriptor descriptor, String groupId, String artifactId) {
+    private static List<ModuleId> getDependencyMgtExclusions(String groupId, String artifactId) {
         String exclusionPrefix = getDependencyMgtExtraInfoPrefixForExclusion(groupId, artifactId);
         List<ModuleId> exclusionIds = new LinkedList<ModuleId>();
-        Map<String, String> extras = descriptor.getExtraInfo();
+        Map<String, String> extras = EXTRA_INFO;
         for (Entry<String, String> entry : extras.entrySet()) {
             String key = entry.getKey();
             if (key.startsWith(exclusionPrefix)) {
@@ -482,7 +483,7 @@ public class GradlePomModuleDescriptorBuilder {
                     String version = (String) md.getExtraInfo().get(versionKey);
                     String scope = (String) md.getExtraInfo().get(scopeKey);
 
-                    List<ModuleId> exclusions = getDependencyMgtExclusions(md, parts[1], parts[2]);
+                    List<ModuleId> exclusions = getDependencyMgtExclusions(parts[1], parts[2]);
                     result.add(new DefaultPomDependencyMgt(parts[1], parts[2], version, scope, exclusions));
                 }
             }
@@ -502,8 +503,8 @@ public class GradlePomModuleDescriptorBuilder {
     }
 
     private void addExtraInfo(String key, String value) {
-        if (!ivyModuleDescriptor.getExtraInfo().containsKey(key)) {
-            ivyModuleDescriptor.addExtraInfo(key, value);
+        if (!EXTRA_INFO.containsKey(key)) {
+            EXTRA_INFO.put(key, value);
         }
     }
 

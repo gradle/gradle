@@ -19,9 +19,9 @@ package org.gradle.api.publish.ivy.internal.publisher;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DisconnectedDescriptorParseContext;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyXmlModuleDescriptorParser;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DisconnectedDescriptorParseContext;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DisconnectedIvyXmlModuleDescriptorParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParseException;
 import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository;
 import org.gradle.api.publish.internal.PublicationFieldValidator;
@@ -35,7 +35,7 @@ import java.util.Set;
 public class ValidatingIvyPublisher implements IvyPublisher {
     private final DescriptorParseContext parserSettings = new DisconnectedDescriptorParseContext();
     private final IvyPublisher delegate;
-    private IvyXmlModuleDescriptorParser moduleDescriptorParser = new IvyXmlModuleDescriptorParser();
+    private final DisconnectedIvyXmlModuleDescriptorParser moduleDescriptorParser = new DisconnectedIvyXmlModuleDescriptorParser();
 
     public ValidatingIvyPublisher(IvyPublisher delegate) {
         this.delegate = delegate;

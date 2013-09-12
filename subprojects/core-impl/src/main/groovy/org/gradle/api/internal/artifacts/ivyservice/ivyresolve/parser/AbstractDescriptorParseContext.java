@@ -17,9 +17,17 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
 import org.apache.ivy.core.IvyPatternHelper;
+import org.apache.ivy.core.module.descriptor.Artifact;
+import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.artifacts.ivyservice.*;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DefaultDependencyMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
+import org.gradle.api.internal.externalresource.DefaultLocallyAvailableExternalResource;
+import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
+import org.gradle.internal.resource.local.DefaultLocallyAvailableResource;
+import org.gradle.internal.resource.local.LocallyAvailableResource;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
@@ -62,5 +70,23 @@ public abstract class AbstractDescriptorParseContext implements DescriptorParseC
 
     public String getDefaultStatus() {
         return defaultStatus;
+    }
+
+    protected LocallyAvailableExternalResource resolveArtifact(Artifact artifact, DependencyToModuleVersionResolver resolver) {
+        File resolvedArtifactFile = resolveArtifactFile(artifact, resolver);
+        LocallyAvailableResource localResource = new DefaultLocallyAvailableResource(resolvedArtifactFile);
+        return new DefaultLocallyAvailableExternalResource(resolvedArtifactFile.toURI().toString(), localResource);
+    }
+
+    private File resolveArtifactFile(Artifact artifact, DependencyToModuleVersionResolver resolver) {
+        BuildableArtifactResolveResult artifactResolveResult = new DefaultBuildableArtifactResolveResult();
+        resolveModuleVersionResolveResult(artifact, resolver).getArtifactResolver().resolve(artifact, artifactResolveResult);
+        return artifactResolveResult.getFile();
+    }
+
+    private BuildableModuleVersionResolveResult resolveModuleVersionResolveResult(Artifact artifact, DependencyToModuleVersionResolver resolver) {
+        BuildableModuleVersionResolveResult moduleVersionResolveResult = new DefaultBuildableModuleVersionResolveResult();
+        resolver.resolve(new DefaultDependencyMetaData(new DefaultDependencyDescriptor(artifact.getModuleRevisionId(), true)), moduleVersionResolveResult);
+        return moduleVersionResolveResult;
     }
 }

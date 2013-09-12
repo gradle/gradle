@@ -64,7 +64,15 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
     private static final Logger LOGGER = LoggerFactory.getLogger(IvyXmlModuleDescriptorParser.class);
 
     protected MutableModuleVersionMetaData doParseDescriptor(DescriptorParseContext ivySettings, LocallyAvailableExternalResource resource, boolean validate) throws IOException, ParseException {
-        Parser parser = new Parser(this, ivySettings, resource, resource.getLocalResource().getFile().toURI().toURL());
+        Parser parser = createParser(ivySettings, resource);
+        return doParseDescriptorWithProvidedParser(parser, validate);
+    }
+
+    protected Parser createParser(DescriptorParseContext ivySettings, LocallyAvailableExternalResource resource) throws MalformedURLException {
+        return new Parser(this, ivySettings, resource, resource.getLocalResource().getFile().toURI().toURL());
+    }
+
+    private MutableModuleVersionMetaData doParseDescriptorWithProvidedParser(Parser parser, boolean validate) throws IOException, ParseException {
         parser.setValidate(validate);
         parser.parse();
         DefaultModuleDescriptor moduleDescriptor = parser.getModuleDescriptor();
@@ -443,6 +451,14 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             this.validate = validate;
         }
 
+        public boolean isValidate() {
+            return validate;
+        }
+
+        public DescriptorParseContext getParserSettings() {
+            return parserSettings;
+        }
+
         public void parse() throws ParseException, IOException {
             getResource().withContent(new Action<InputStream>() {
                 public void execute(InputStream inputStream) {
@@ -582,7 +598,11 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                                             + ";"
                                             + parentRevision);
                     parent = parseOtherIvyFile(parentOrganisation, parentModule, parentRevision);
+                } catch(IOException e) {
+                    LOGGER.warn("Unable to access included ivy file for " + parentOrganisation + "#" + parentModule + ";" + parentRevision);
                 } catch (ParseException e) {
+                    LOGGER.warn("Unable to parse included ivy file for " + parentOrganisation + "#" + parentModule + ";" + parentRevision);
+                } catch(SAXException e) {
                     LOGGER.warn("Unable to parse included ivy file for " + parentOrganisation + "#" + parentModule + ";" + parentRevision);
                 }
             }
@@ -695,17 +715,22 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                 throws ParseException, IOException {
             URL url = relativeUrlResolver.getURL(descriptorURL, location);
             LOGGER.debug("Trying to load included ivy file from " + url.toString());
-            Parser parser = newParser(new UrlExternalResource(url), url);
-            parser.parse();
-            return parser.getModuleDescriptor();
+            return parseModuleDescriptor(new UrlExternalResource(url), url);
         }
 
-        private ModuleDescriptor parseOtherIvyFile(String parentOrganisation,
-                String parentModule, String parentRevision) throws ParseException {
+        protected ModuleDescriptor parseOtherIvyFile(String parentOrganisation,
+                String parentModule, String parentRevision) throws IOException, ParseException, SAXException {
             ModuleId parentModuleId = new ModuleId(parentOrganisation, parentModule);
             ModuleRevisionId parentMrid = new ModuleRevisionId(parentModuleId, parentRevision);
+            Artifact pomArtifact = DefaultArtifact.newIvyArtifact(parentMrid, new Date());
+            LocallyAvailableExternalResource externalResource = parserSettings.getArtifact(pomArtifact);
+            return parseModuleDescriptor(externalResource, externalResource.getLocalResource().getFile().toURI().toURL());
+        }
 
-            return parserSettings.getModuleDescriptor(parentMrid);
+        private ModuleDescriptor parseModuleDescriptor(ExternalResource externalResource, URL descriptorURL) throws IOException, ParseException {
+            Parser parser = newParser(externalResource, descriptorURL);
+            parser.parse();
+            return parser.getModuleDescriptor();
         }
 
         private void publicationsStarted(Attributes attributes) {

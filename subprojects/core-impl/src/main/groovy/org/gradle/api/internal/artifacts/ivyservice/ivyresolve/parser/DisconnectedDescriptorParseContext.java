@@ -17,11 +17,8 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-
-import java.util.Date;
+import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
 
 /**
  * An implementation of {@link DescriptorParseContext} that is useful for parsing an ivy.xml file without attempting to download
@@ -32,15 +29,15 @@ public class DisconnectedDescriptorParseContext extends AbstractDescriptorParseC
         super("integration");
     }
 
-    public ModuleDescriptor getModuleDescriptor(ModuleRevisionId mRevId) {
-        return new DefaultModuleDescriptor(mRevId, "release", new Date());
-    }
-
     public boolean artifactExists(Artifact artifact) {
         return false;
     }
 
     public ModuleRevisionId getCurrentRevisionId() {
+        throw new UnsupportedOperationException();
+    }
+
+    public LocallyAvailableExternalResource getArtifact(Artifact artifact) {
         throw new UnsupportedOperationException();
     }
 }

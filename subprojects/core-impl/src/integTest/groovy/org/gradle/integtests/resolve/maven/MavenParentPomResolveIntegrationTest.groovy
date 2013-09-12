@@ -52,6 +52,7 @@ task retrieve(type: Sync) {
         when:
         child.pom.expectGet()
         parent.pom.expectGet()
+        parent.pom.expectHead()
 
         // Will always check for a default artifact with a module with 'pom' packaging
         // TODO - should not make this request
@@ -110,6 +111,7 @@ task retrieve(type: Sync) {
         child.pom.expectGet()
         parent.metaData.expectGet()
         parent.pom.expectGet()
+        parent.pom.expectHead()
 
         // Will always check for a default artifact with a module with 'pom' packaging
         // TODO - should not make this request
@@ -163,6 +165,7 @@ task retrieve(type: Sync) {
         parentInRepo2.pom.expectGet()
          // TODO - should not make this request
         parentInRepo2.artifact.expectHeadMissing()
+        parentInRepo2.pom.expectHead()
 
         and:
         run 'retrieve'
@@ -221,6 +224,7 @@ task retrieveChild2(type: Sync) {
         missingParent.artifact.expectHeadMissing()
         parent.pom.expectGet()
         parent.artifact.expectHeadMissing()
+        parent.pom.expectHead()
 
         child1.artifact.expectGet()
 
@@ -244,5 +248,109 @@ task retrieveChild2(type: Sync) {
 
         then:
         file('libs/child2').assertHasDescendants('child2-1.0.jar', 'parent_dep-1.2.jar')
+    }
+
+    @Issue("GRADLE-2861")
+    def "two modules that share common parent"() {
+        given:
+        server.start()
+
+        def parent = mavenHttpRepo.module("org", "parent", "1.0")
+        parent.hasPackaging('pom')
+        parent.publish()
+
+        def child1 = mavenHttpRepo.module("org", "child1", "1.0")
+        child1.parent("org", "parent", "1.0")
+        child1.publish()
+        def child2 = mavenHttpRepo.module("org", "child2", "1.0")
+        child2.parent("org", "parent", "1.0")
+        child2.publish()
+
+        buildFile << """
+repositories {
+    maven { url '${mavenHttpRepo.uri}' }
+}
+configurations { compile }
+dependencies {
+    compile 'org:child1:1.0'
+    compile 'org:child2:1.0'
+}
+task retrieve(type: Sync) {
+    into 'libs'
+    from configurations.compile
+}
+"""
+
+        when:
+        child1.pom.expectGet()
+        child2.pom.expectGet()
+        parent.pom.expectGet()
+        parent.pom.expectHead()
+
+        // Will always check for a default artifact with a module with 'pom' packaging
+        // TODO - should not make this request
+        parent.artifact.expectHeadMissing()
+
+        child1.artifact.expectGet()
+        child2.artifact.expectGet()
+
+        and:
+        run 'retrieve'
+
+        then:
+        file('libs').assertHasDescendants('child1-1.0.jar', 'child2-1.0.jar')
+    }
+
+    @Issue("GRADLE-2861")
+    def "module that has a parent and grandparent module"() {
+        given:
+        server.start()
+
+        def grandParent = mavenHttpRepo.module("org", "grandparent", "1.0")
+        grandParent.hasPackaging('pom')
+        grandParent.publish()
+
+        def parent = mavenHttpRepo.module("org", "parent", "1.0")
+        parent.hasPackaging('pom')
+        parent.parent("org", "grandparent", "1.0")
+        parent.publish()
+
+        def child = mavenHttpRepo.module("org", "child", "1.0")
+        child.parent("org", "parent", "1.0")
+        child.publish()
+
+        buildFile << """
+repositories {
+    maven { url '${mavenHttpRepo.uri}' }
+}
+configurations { compile }
+dependencies {
+    compile 'org:child:1.0'
+}
+task retrieve(type: Sync) {
+    into 'libs'
+    from configurations.compile
+}
+"""
+
+        when:
+        child.pom.expectGet()
+        parent.pom.expectGet()
+        parent.pom.expectHead()
+        grandParent.pom.expectGet()
+        grandParent.pom.expectHead()
+
+        // Will always check for a default artifact with a module with 'pom' packaging
+        // TODO - should not make this request
+        parent.artifact.expectHeadMissing()
+        grandParent.artifact.expectHeadMissing()
+
+        child.artifact.expectGet()
+
+        and:
+        run 'retrieve'
+
+        then:
+        file('libs').assertHasDescendants('child-1.0.jar')
     }
 }

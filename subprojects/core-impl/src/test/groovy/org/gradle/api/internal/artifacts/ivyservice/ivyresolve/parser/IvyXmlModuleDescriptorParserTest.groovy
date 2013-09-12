@@ -33,7 +33,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
     public final Resources resources = new Resources()
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
-    IvyXmlModuleDescriptorParser parser = new IvyXmlModuleDescriptorParser()
+    IvyXmlModuleDescriptorParser parser = createParser()
     DescriptorParseContext parseContext = Mock()
 
     def setup() {
@@ -41,6 +41,10 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         parseContext.getMatcher("exact") >> ExactPatternMatcher.INSTANCE
         parseContext.getMatcher("glob") >> GlobPatternMatcher.INSTANCE
         parseContext.getMatcher("regexp") >> RegexpPatternMatcher.INSTANCE
+    }
+
+    protected IvyXmlModuleDescriptorParser createParser() {
+        return new IvyXmlModuleDescriptorParser();
     }
 
     def "parses Ivy descriptor with empty dependencies section"() throws Exception {

@@ -20,6 +20,8 @@ import org.apache.ivy.core.module.descriptor.Configuration.Visibility;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.parser.m2.PomDependencyMgt;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.MutableModuleVersionMetaData;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomReader.PomDependencyData;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomReader.PomPluginElement;
 import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +29,7 @@ import org.xml.sax.SAXException;
 
 import java.io.IOException;
 import java.text.ParseException;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -62,7 +65,7 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
             mdBuilder.addProperty((String) prop.getKey(), (String) prop.getValue());
         }
 
-        ModuleDescriptor parentDescr = null;
+        PomReader parentDescr = null;
         if (pomReader.hasParent()) {
             //Is there any other parent properties?
 
@@ -74,7 +77,7 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
             if (parentDescr == null) {
                 throw new IOException("Impossible to load parent for " + resource.getName() + ". Parent=" + parentModRevID);
             }
-            Map parentPomProps = GradlePomModuleDescriptorBuilder.extractPomProperties(parentDescr.getExtraInfo());
+            Map parentPomProps = GradlePomModuleDescriptorBuilder.extractPomProperties(parentDescr.getPomProperties());
             for (Object o : parentPomProps.entrySet()) {
                 Map.Entry prop = (Map.Entry) o;
                 pomReader.setProperty((String) prop.getKey(), (String) prop.getValue());
@@ -100,17 +103,19 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
                         mdBuilder.getModuleDescriptor().getModuleRevisionId(), relocation);
                 LOGGER.warn("Please update your dependency to directly use the correct version '{}'.", relocation);
                 LOGGER.warn("Resolution will only pick dependencies of the relocated element.  Artifacts and other metadata will be ignored.");
-                ModuleDescriptor relocatedModule = parseOtherPom(parserSettings, relocation);
+                PomReader relocatedModule = parseOtherPom(parserSettings, relocation);
                 if (relocatedModule == null) {
                     throw new ParseException("impossible to load module "
                             + relocation + " to which "
                             + mdBuilder.getModuleDescriptor().getModuleRevisionId()
                             + " has been relocated", 0);
                 }
-                DependencyDescriptor[] dds = relocatedModule.getDependencies();
-                for (DependencyDescriptor dd : dds) {
-                    mdBuilder.addDependency(dd);
+
+                List<PomDependencyData> pomDependencyDataList = relocatedModule.getDependencies();
+                for(PomDependencyData pomDependencyData : pomDependencyDataList) {
+                    mdBuilder.addDependency(pomDependencyData);
                 }
+
             } else {
                 LOGGER.info(mdBuilder.getModuleDescriptor().getModuleRevisionId()
                         + " is relocated to " + relocation
@@ -138,18 +143,18 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
             pomReader.setProperty("version", version);
 
             if (parentDescr != null) {
-                mdBuilder.addExtraInfos(parentDescr.getExtraInfo());
+                mdBuilder.addExtraInfos(parentDescr.getPomProperties());
 
                 // add dependency management info from parent
-                List depMgt = GradlePomModuleDescriptorBuilder.getDependencyManagements(parentDescr);
-                for (Object aDepMgt : depMgt) {
-                    mdBuilder.addDependencyMgt((PomDependencyMgt) aDepMgt);
+                List<PomDependencyMgt> depMgt = parentDescr.getDependencyMgt();
+                for (PomDependencyMgt aDepMgt : depMgt) {
+                    mdBuilder.addDependencyMgt(aDepMgt);
                 }
 
                 // add plugins from parent
-                List /*<PomDependencyMgt>*/ plugins = GradlePomModuleDescriptorBuilder.getPlugins(parentDescr);
-                for (Object plugin : plugins) {
-                    mdBuilder.addPlugin((PomDependencyMgt) plugin);
+                List<PomPluginElement> plugins = parentDescr.getPlugins();
+                for(PomPluginElement plugin : plugins) {
+                    mdBuilder.addPlugin(plugin);
                 }
             }
 
@@ -160,15 +165,15 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
                             dep.getGroupId(),
                             dep.getArtifactId(),
                             dep.getVersion());
-                    ModuleDescriptor importDescr = parseOtherPom(parserSettings, importModRevID);
+                    PomReader importDescr = parseOtherPom(parserSettings, importModRevID);
                     if (importDescr == null) {
                         throw new IOException("Impossible to import module for " + resource.getName() + "."
                                 + " Import=" + importModRevID);
                     }
                     // add dependency management info from imported module
-                    List depMgt = GradlePomModuleDescriptorBuilder.getDependencyManagements(importDescr);
-                    for (Object aDepMgt : depMgt) {
-                        mdBuilder.addDependencyMgt((PomDependencyMgt) aDepMgt);
+                    List<PomDependencyMgt> depMgt = importDescr.getDependencyMgt();
+                    for (PomDependencyMgt aDepMgt : depMgt) {
+                        mdBuilder.addDependencyMgt(aDepMgt);
                     }
 
                 } else {
@@ -182,8 +187,8 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
             }
 
             if (parentDescr != null) {
-                for (int i = 0; i < parentDescr.getDependencies().length; i++) {
-                    mdBuilder.addDependency(parentDescr.getDependencies()[i]);
+                for (PomDependencyData pomDependencyData : parentDescr.getDependencies()) {
+                    mdBuilder.addDependency(pomDependencyData);
                 }
             }
 
@@ -203,8 +208,10 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
         return adapter;
     }
 
-    private ModuleDescriptor parseOtherPom(DescriptorParseContext ivySettings,
-                                           ModuleRevisionId parentModRevID) throws ParseException {
-        return ivySettings.getModuleDescriptor(parentModRevID);
+    private PomReader parseOtherPom(DescriptorParseContext ivySettings,
+                                           ModuleRevisionId parentModRevID) throws IOException, SAXException {
+        Artifact pomArtifact = DefaultArtifact.newPomArtifact(parentModRevID, new Date());
+        LocallyAvailableExternalResource localResource = ivySettings.getArtifact(pomArtifact);
+        return new PomReader(localResource);
     }
 }

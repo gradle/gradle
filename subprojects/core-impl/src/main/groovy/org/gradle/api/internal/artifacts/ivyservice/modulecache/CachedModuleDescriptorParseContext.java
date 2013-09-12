@@ -17,13 +17,10 @@
 package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.gradle.api.internal.artifacts.ivyservice.DefaultBuildableModuleVersionResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DefaultDependencyMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.AbstractDescriptorParseContext;
+import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
 
 /**
  * Context used for parsing cached module descriptor files.
@@ -45,9 +42,7 @@ class CachedModuleDescriptorParseContext extends AbstractDescriptorParseContext 
         throw new UnsupportedOperationException();
     }
 
-    public ModuleDescriptor getModuleDescriptor(ModuleRevisionId moduleRevisionId) {
-        DefaultBuildableModuleVersionResolveResult result = new DefaultBuildableModuleVersionResolveResult();
-        resolver.resolve(new DefaultDependencyMetaData(new DefaultDependencyDescriptor(moduleRevisionId, true)), result);
-        return result.getMetaData().getDescriptor();
+    public LocallyAvailableExternalResource getArtifact(Artifact artifact) {
+        return resolveArtifact(artifact, resolver);
     }
 }

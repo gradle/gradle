@@ -16,7 +16,6 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import spock.lang.Ignore
 import spock.lang.Issue
 
 class BadPomFileResolveIntegrationTest extends AbstractDependencyResolutionTest {
@@ -42,7 +41,6 @@ class BadPomFileResolveIntegrationTest extends AbstractDependencyResolutionTest 
     }
 
     @Issue("http://issues.gradle.org/browse/GRADLE-2861")
-    @Ignore
     def "can handle pom with placeholders in dependency management"() {
         given:
         server.start()
@@ -79,6 +77,7 @@ class BadPomFileResolveIntegrationTest extends AbstractDependencyResolutionTest 
         parent.pom.expectGet()
         module.pom.expectGet()
         module.artifact.expectGet()
+        parent.pom.expectHead()
 
         expect:
         // have to run twice to trigger the failure, to parse the descriptor from the cache
