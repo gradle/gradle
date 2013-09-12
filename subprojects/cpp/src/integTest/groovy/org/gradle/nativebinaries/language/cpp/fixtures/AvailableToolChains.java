@@ -26,6 +26,7 @@ import org.gradle.nativebinaries.toolchain.VisualCpp;
 import org.gradle.nativebinaries.toolchain.internal.ToolRegistry;
 import org.gradle.nativebinaries.toolchain.internal.gcc.version.GccVersionDeterminer;
 import org.gradle.nativebinaries.toolchain.internal.msvcpp.VisualStudioInstall;
+import org.gradle.nativebinaries.toolchain.internal.msvcpp.VisualStudioLocation;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.util.TextUtil;
 
@@ -67,12 +68,9 @@ public class AvailableToolChains {
             return new InstalledVisualCpp("visual c++");
         }
 
-        VisualStudioInstall install = new VisualStudioInstall(new File("C:/Program Files (x86)/Microsoft Visual Studio 10.0"));
-        if (!install.isInstalled()) {
-            install = new VisualStudioInstall(new File("C:/Program Files/Microsoft Visual Studio 10.0"));
-        }
-
-        if (install.isInstalled()) {
+        VisualStudioLocation vsLocation = VisualStudioLocation.findDefault();
+        if (vsLocation.isFound()) {
+            VisualStudioInstall install = new VisualStudioInstall(vsLocation.getVisualStudioDir(), vsLocation.getWindowsSdkDir());
             return new InstalledVisualCpp("visual c++").withInstall(install);
         }
 
@@ -263,7 +261,7 @@ public class AvailableToolChains {
             ToolRegistry toolRegistry = new ToolRegistry(OperatingSystem.current());
             DefaultPlatform targetPlatform = new DefaultPlatform("default");
             install.configureTools(toolRegistry, targetPlatform);
-            installDir = install.getInstallDir();
+            installDir = install.getVisualStudioDir();
             pathEntries.addAll(toolRegistry.getPath());
             environmentVars.putAll(toolRegistry.getEnvironment());
             return this;

@@ -24,45 +24,16 @@ import java.io.File;
 import java.util.*;
 
 public class VisualStudioInstall {
-    private final File installDir;
     private final File visualStudioDir;
     private final File visualCppDir;
     private final File windowsSdkDir;
 
-    public VisualStudioInstall(File installDir) {
-        this.installDir = installDir;
-        visualStudioDir = locateVisualStudio(installDir);
+    public VisualStudioInstall(File visualStudioDir, File windowsSdkDir) {
+        this.visualStudioDir = visualStudioDir;
         visualCppDir = new File(visualStudioDir, "VC");
 
         // TODO:DAZ Should the windows SDK be part of the tool chain? How should we deal with system libraries?
-        windowsSdkDir = locateWindowsSdk(visualStudioDir);
-    }
-
-    private File locateVisualStudio(File installDir) {
-        // Handle the visual studio install, VC, or VC/bin directories.
-        if (new File(installDir, "cl.exe").isFile()) {
-            return installDir.getParentFile().getParentFile();
-        } else if (new File(installDir, "bin/cl.exe").isFile()) {
-            return installDir.getParentFile();
-        }
-        return installDir;
-    }
-
-    private File locateWindowsSdk(File visualStudioDir) {
-        File programFiles = visualStudioDir.getParentFile();
-        File winsdk71 = new File(programFiles, "Microsoft SDKs/Windows/v7.1");
-        if (winsdk71.isDirectory()) {
-            return winsdk71;
-        }
-        return new File(programFiles, "Microsoft SDKs/Windows/v7.0A");
-    }
-
-    public File getInstallDir() {
-        return installDir;
-    }
-
-    public boolean isInstalled() {
-        return new File(visualStudioDir, "VC/bin/cl.exe").isFile();
+        this.windowsSdkDir = windowsSdkDir;
     }
 
     public File getVisualStudioDir() {

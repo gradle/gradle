@@ -39,9 +39,6 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
         buildFile << """
             apply plugin: 'cpp'
 
-            toolChains {
-            ${toolChain.buildScriptConfig}
-            }
             targetPlatforms {
                 x86 {
                     architecture Platform.Architecture.I386

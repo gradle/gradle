@@ -31,6 +31,7 @@ import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
 import org.gradle.nativebinaries.toolchain.internal.ToolRegistry;
 import org.gradle.nativebinaries.toolchain.internal.ToolType;
 import org.gradle.process.internal.ExecAction;
+import org.gradle.util.GUtil;
 
 import java.io.File;
 
@@ -65,9 +66,9 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
             return;
         }
         if (installDir != null) {
-            VisualStudioInstall install = new VisualStudioInstall(installDir);
-            availability.mustExist("Visual Studio installation", install.getVisualStudioDir());
-            availability.mustExist("Windows SDK", install.getWindowsSdkDir());
+            VisualStudioLocation visualStudio = VisualStudioLocation.findByCandidate(installDir);
+            availability.mustExist("Visual Studio installation", visualStudio.getVisualStudioDir());
+            availability.mustExist("Windows SDK", visualStudio.getWindowsSdkDir());
         } else {
             // Locate tools in the path
             for (ToolType key : ToolType.values()) {
@@ -86,12 +87,22 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
 
     public PlatformToolChain target(Platform targetPlatform) {
         checkAvailable();
-        // TODO:DAZ When installDir == null, we should attempt to locate a VisualStudioInstall to target non-default architecture.
-        if (installDir != null) {
-            // TODO:DAZ Definitely shouldn't overwrite the tools here
-            VisualStudioInstall install = new VisualStudioInstall(installDir);
-            install.configureTools(tools, targetPlatform);
+
+        if (installDir == null && targetPlatform.getArchitecture() == Platform.Architecture.TOOL_CHAIN_DEFAULT) {
+            // Just build with whatever is in the path
+            return new VisualCppPlatformToolChain();
         }
+
+        // We either have an installDir specified, or we have a CPP compiler in the path
+        File cppExe = tools.locate(ToolType.CPP_COMPILER);
+        VisualStudioLocation vsLocation = VisualStudioLocation.findByCandidate(GUtil.elvis(installDir, cppExe));
+        if (!vsLocation.isFound()) {
+            throw new IllegalStateException("Could not find visual studio install, so cannot target platform " + targetPlatform.getArchitecture());
+        }
+
+        // TODO:DAZ Definitely shouldn't overwrite the tools here
+        VisualStudioInstall install = new VisualStudioInstall(vsLocation.getVisualStudioDir(), vsLocation.getWindowsSdkDir());
+        install.configureTools(tools, targetPlatform);
         return new VisualCppPlatformToolChain();
     }
 
