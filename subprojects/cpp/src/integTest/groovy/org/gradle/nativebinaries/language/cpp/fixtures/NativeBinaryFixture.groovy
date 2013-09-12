@@ -19,7 +19,7 @@ package org.gradle.nativebinaries.language.cpp.fixtures
 import org.gradle.test.fixtures.file.TestFile
 
 class NativeBinaryFixture {
-    protected final TestFile file
+    final TestFile file
     protected final AvailableToolChains.ToolChainCandidate toolChain
 
     NativeBinaryFixture(TestFile file, AvailableToolChains.ToolChainCandidate toolChain) {

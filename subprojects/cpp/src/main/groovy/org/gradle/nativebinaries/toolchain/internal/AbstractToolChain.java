@@ -60,6 +60,7 @@ public abstract class AbstractToolChain implements ToolChainInternal, Configurab
 
     protected void checkAvailable() {
         if (!getAvailability().isAvailable()) {
+            // TODO:DAZ Use a more friendly exception
             throw new IllegalStateException(String.format("Tool chain %s is not available", getName()));
         }
     }

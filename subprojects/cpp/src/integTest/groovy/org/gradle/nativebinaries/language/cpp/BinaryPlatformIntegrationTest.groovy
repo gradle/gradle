@@ -15,7 +15,6 @@
  */
 
 package org.gradle.nativebinaries.language.cpp
-
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativebinaries.language.cpp.fixtures.app.CppHelloWorldApp
@@ -23,6 +22,7 @@ import org.gradle.nativebinaries.language.cpp.fixtures.binaryinfo.BinaryInfo
 import org.gradle.nativebinaries.language.cpp.fixtures.binaryinfo.DumpbinBinaryInfo
 import org.gradle.nativebinaries.language.cpp.fixtures.binaryinfo.OtoolBinaryInfo
 import org.gradle.nativebinaries.language.cpp.fixtures.binaryinfo.ReadelfBinaryInfo
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -33,12 +33,15 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
         helloWorldApp.writeSources(file("src/main"))
     }
 
-    @Requires([TestPrecondition.CAN_INSTALL_EXECUTABLE, TestPrecondition.NOT_WINDOWS])
+    @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
     def "build binary for multiple target platforms"() {
         when:
         buildFile << """
             apply plugin: 'cpp'
 
+            toolChains {
+            ${toolChain.buildScriptConfig}
+            }
             targetPlatforms {
                 x86 {
                     architecture Platform.Architecture.I386
@@ -56,18 +59,15 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
         succeeds "installX86MainExecutable", "installX86_64MainExecutable"
 
         then:
-        installation("build/install/mainExecutable/x86").exec().out == helloWorldApp.englishOutput
-        installation("build/install/mainExecutable/x86_64").exec().out == helloWorldApp.englishOutput
+        binaryInfo(executable("build/binaries/mainExecutable/x86/main").file).arch == BinaryInfo.Architecture.I386
+        binaryInfo(objectFile("build/objectFiles/mainExecutable/x86/mainCpp/main")).arch == BinaryInfo.Architecture.I386
 
-        binaryInfo("build/binaries/mainExecutable/x86/main").arch == BinaryInfo.Architecture.I386
-        binaryInfo("build/objectFiles/mainExecutable/x86/mainCpp/main.o").arch == BinaryInfo.Architecture.I386
-        binaryInfo("build/binaries/mainExecutable/x86_64/main").arch == BinaryInfo.Architecture.X86_64
-        binaryInfo("build/objectFiles/mainExecutable/x86_64/mainCpp/main.o").arch == BinaryInfo.Architecture.X86_64
+        binaryInfo(executable("build/binaries/mainExecutable/x86_64/main").file).arch == BinaryInfo.Architecture.X86_64
+        binaryInfo(objectFile("build/objectFiles/mainExecutable/x86_64/mainCpp/main")).arch == BinaryInfo.Architecture.X86_64
     }
 
-    def binaryInfo(String path) {
-        def file = file(path)
-        assert file.exists()
+    def binaryInfo(TestFile file) {
+        file.assertIsFile()
         if (OperatingSystem.current().isMacOsX()) {
             return new OtoolBinaryInfo(file)
         }
@@ -76,4 +76,5 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
         }
         return new ReadelfBinaryInfo(file)
     }
+
 }
