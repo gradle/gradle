@@ -83,6 +83,7 @@ class DaemonCompatibilitySpecSpec extends Specification {
         link.createLink(dir)
 
         assert dir != link
+        assert link.readLink() == dir.absolutePath
         assert dir.canonicalFile == link.canonicalFile
 
         client { javaHome = dir }
