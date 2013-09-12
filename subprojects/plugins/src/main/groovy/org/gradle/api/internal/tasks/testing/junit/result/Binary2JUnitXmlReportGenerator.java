@@ -22,6 +22,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.util.Clock;
+import org.gradle.util.GFileUtils;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -47,7 +48,7 @@ public class Binary2JUnitXmlReportGenerator {
         Clock clock = new Clock();
         testResultsProvider.visitClasses(new Action<TestClassResult>() {
             public void execute(TestClassResult result) {
-                File file = new File(testResultsDir, "TEST-" + result.getClassName() + ".xml");
+                File file = new File(testResultsDir, getReportFileName(result));
                 OutputStream output = null;
                 try {
                     output = new BufferedOutputStream(new FileOutputStream(file));
@@ -61,6 +62,10 @@ public class Binary2JUnitXmlReportGenerator {
             }
         });
         LOG.info("Finished generating test XML results (" + clock.getTime() + ")");
+    }
+
+    private String getReportFileName(TestClassResult result) {
+        return "TEST-" + GFileUtils.toSafeFileName(result.getClassName()) + ".xml";
     }
 
     private static String getHostname() {
