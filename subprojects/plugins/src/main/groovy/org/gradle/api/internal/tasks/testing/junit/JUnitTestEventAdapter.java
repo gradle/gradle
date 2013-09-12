@@ -50,7 +50,7 @@ public class JUnitTestEventAdapter extends RunListener {
 
     @Override
     public void testStarted(Description description) throws Exception {
-        TestDescriptorInternal descriptor = descriptor(idGenerator.generateId(), description);
+        TestDescriptorInternal descriptor = nullSafeDescriptor(idGenerator.generateId(), description);
         synchronized (lock) {
             TestDescriptorInternal oldTest = executing.put(description, descriptor);
             assert oldTest == null : String.format("Unexpected start event for %s", description);
@@ -68,7 +68,7 @@ public class JUnitTestEventAdapter extends RunListener {
         if (testInternal == null) {
             // This can happen when, for example, a @BeforeClass or @AfterClass method fails
             needEndEvent = true;
-            testInternal = failureDescriptor(idGenerator.generateId(), failure.getDescription());
+            testInternal = nullSafeDescriptor(idGenerator.generateId(), failure.getDescription());
             resultProcessor.started(testInternal, startEvent());
         }
         resultProcessor.failure(testInternal.getId(), failure.getException());
@@ -132,7 +132,7 @@ public class JUnitTestEventAdapter extends RunListener {
         return new DefaultTestDescriptor(id, className(description), methodName(description));
     }
 
-    private TestDescriptorInternal failureDescriptor(Object id, Description description) {
+    private TestDescriptorInternal nullSafeDescriptor(Object id, Description description) {
         if (methodName(description) != null) {
             return new DefaultTestDescriptor(id, className(description), methodName(description));
         } else {
