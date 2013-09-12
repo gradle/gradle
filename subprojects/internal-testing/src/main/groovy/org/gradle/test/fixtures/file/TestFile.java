@@ -67,6 +67,16 @@ public class TestFile extends File {
         return new File(getAbsolutePath());
     }
 
+    @Override
+    public File getCanonicalFile() throws IOException {
+        return new File(getAbsolutePath()).getCanonicalFile();
+    }
+
+    @Override
+    public String getCanonicalPath() throws IOException {
+        return new File(getAbsolutePath()).getCanonicalPath();
+    }
+
     private static URI toUri(URL url) {
         try {
             return url.toURI();
