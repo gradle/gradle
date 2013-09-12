@@ -20,6 +20,7 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.NamedDomainObjectSet
 import org.gradle.api.file.FileCollection
 import org.gradle.api.plugins.quality.internal.findbugs.FindBugsSpecBuilder
+import org.gradle.api.plugins.quality.internal.findbugs.FindBugsXmlReportImpl;
 import org.gradle.api.reporting.SingleFileReport
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -92,7 +93,7 @@ class FindBugsSpecBuilderTest extends Specification {
 
         then:
         def e = thrown(InvalidUserDataException)
-        e.message == "FindBugs tasks can only have one report enabled, however both the XML and HTML report are enabled. You need to disable one of them."
+        e.message == "FindBugs tasks can only have one report enabled, however more than one report was enabled. You need to disable all but one of them."
     }
 
     def "with report configured"() {
@@ -121,7 +122,38 @@ class FindBugsSpecBuilderTest extends Specification {
         args.contains(destination.absolutePath)
 
         where:
-        reportType << ["xml", "html"]
+        reportType << ["xml", "html", "emacs", "text"]
+    }
+    
+    def "with xml with messages report configured"() {
+        setup:
+        FindBugsXmlReportImpl singleReport = Mock()
+        File destination = Mock()
+        NamedDomainObjectSet enabledReportSet = Mock()
+        FindBugsReportsImpl report = Mock()
+
+        report.enabled >> enabledReportSet
+        report.firstEnabled >> singleReport
+        singleReport.withMessages >> withMessages
+        singleReport.name >> "xml"
+        destination.absolutePath >> "/absolute/report/output"
+        singleReport.destination >> destination
+        enabledReportSet.empty >> false
+        enabledReportSet.size() >> 1
+
+
+        when:
+        builder.configureReports(report)
+        def args = builder.build().arguments
+
+        then:
+        args.contains(arg.toString())
+        args.contains("-outputFile")
+        args.contains(destination.absolutePath)
+        
+        where:
+        withMessages << [true, false]
+        arg << ['-xml:withMessages', '-xml']
     }
 
     def "configure effort"() {
