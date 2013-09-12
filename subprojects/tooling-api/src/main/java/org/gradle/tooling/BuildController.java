@@ -70,7 +70,7 @@ public interface BuildController {
 
     /**
      * Returns an overview of the Gradle build, including some basic details of the projects that make up the build.
-     * This is equivalent to calling {@code #getModel(GradleBuild)}.
+     * This is equivalent to calling {@code #getModel(GradleBuild.class)}.
      *
      * @return The model.
      */
