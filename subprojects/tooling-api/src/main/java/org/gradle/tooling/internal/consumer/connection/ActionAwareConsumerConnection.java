@@ -25,9 +25,11 @@ import org.gradle.tooling.internal.protocol.*;
 
 public class ActionAwareConsumerConnection extends ModelBuilderBackedConsumerConnection {
     private final InternalBuildActionExecutor executor;
+    private final ProtocolToModelAdapter adapter;
 
     public ActionAwareConsumerConnection(ConnectionVersion4 delegate, ModelMapping modelMapping, ProtocolToModelAdapter adapter) {
         super(delegate, modelMapping, adapter);
+        this.adapter = adapter;
         executor = (InternalBuildActionExecutor) delegate;
     }
 

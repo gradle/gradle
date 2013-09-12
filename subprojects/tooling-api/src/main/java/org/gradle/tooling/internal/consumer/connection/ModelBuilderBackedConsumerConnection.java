@@ -17,13 +17,12 @@
 package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
-import org.gradle.tooling.internal.consumer.converters.GradleBuildConverter;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
-import org.gradle.tooling.internal.gradle.DefaultGradleBuild;
-import org.gradle.tooling.internal.protocol.*;
-import org.gradle.tooling.model.eclipse.EclipseProject;
+import org.gradle.tooling.internal.protocol.ConnectionVersion4;
+import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
+import org.gradle.tooling.internal.protocol.ModelBuilder;
 import org.gradle.tooling.model.gradle.GradleBuild;
 import org.gradle.tooling.model.internal.Exceptions;
 import org.gradle.util.GradleVersion;
@@ -33,38 +32,21 @@ import org.gradle.util.GradleVersion;
  */
 public class ModelBuilderBackedConsumerConnection extends AbstractPost12ConsumerConnection {
     private final ModelBuilder builder;
-    private final ModelMapping modelMapping;
-    protected final ProtocolToModelAdapter adapter;
+    private final ModelProducer modelProducer;
 
     public ModelBuilderBackedConsumerConnection(ConnectionVersion4 delegate, ModelMapping modelMapping, ProtocolToModelAdapter adapter) {
         super(delegate, new R16VersionDetails(delegate.getMetaData().getVersion()));
-        this.adapter = adapter;
-        this.modelMapping = modelMapping;
         builder = (ModelBuilder) delegate;
+        ModelProducer consumerConnectionBackedModelProducer = new ConsumerConnectionBackedModelProducer(adapter, getVersionDetails(), modelMapping, builder);
+        modelProducer = new GradleBuildAdapterProducer(adapter, getVersionDetails(), modelMapping, consumerConnectionBackedModelProducer);
     }
 
     public <T> T run(Class<T> type, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
-        ModelIdentifier modelIdentifier = modelMapping.getModelIdentifierFromModelType(type);
-        BuildResult<?> result;
         try {
-            if (type == GradleBuild.class && !getVersionDetails().isModelSupported(type)) {
-                BuildResult<?> gradleProjectBuildResult = builder.getModel(modelMapping.getModelIdentifierFromModelType(EclipseProject.class), operationParameters);
-                final Object gradleProjectModel = gradleProjectBuildResult.getModel();
-                final EclipseProject adapt = adapter.adapt(EclipseProject.class, gradleProjectModel);
-                final DefaultGradleBuild convert = new GradleBuildConverter().convert(adapt);
-                result = new BuildResult() {
-                    public Object getModel() {
-                        return convert;
-                    }
-                };
-            } else {
-                result = builder.getModel(modelIdentifier, operationParameters);
-            }
+            return modelProducer.produceModel(type, operationParameters);
         } catch (InternalUnsupportedModelException e) {
             throw Exceptions.unknownModel(type, e);
         }
-        Object model = result.getModel();
-        return adapter.adapt(type, model);
     }
 
     private static class R16VersionDetails extends VersionDetails {
@@ -74,7 +56,7 @@ public class ModelBuilderBackedConsumerConnection extends AbstractPost12Consumer
 
         @Override
         public boolean isModelSupported(Class<?> modelType) {
-            if(modelType==GradleBuild.class){
+            if (modelType == GradleBuild.class) {
                 //GradleBuild is natively supported since 1.8-rc-1
                 return GradleVersion.version(getVersion()).compareTo(GradleVersion.version("1.8-rc-1")) >= 0;
             }

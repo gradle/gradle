@@ -28,7 +28,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-public class GradleBuildConverter {
+public class GradleBuildConverter{
 
     public DefaultGradleBuild convert(EclipseProject project) {
         DefaultGradleBuild gradleBuild = new DefaultGradleBuild();
