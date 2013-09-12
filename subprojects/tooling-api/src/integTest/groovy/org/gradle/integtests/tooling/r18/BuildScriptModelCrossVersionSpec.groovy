@@ -44,6 +44,7 @@ class BuildScriptModelCrossVersionSpec extends ToolingApiSpecification {
         project.buildScript.sourceFile == custom
     }
 
+    @ToolingApiVersion('current')
     @TargetGradleVersion('<1.8 >=1.0-milestone-5')
     def "gives reasonable error message when target Gradle version does not provide build script details"() {
         when:
@@ -65,6 +66,26 @@ class BuildScriptModelCrossVersionSpec extends ToolingApiSpecification {
         when:
         IdeaProject ideaProject = withConnection { it.getModel(IdeaProject.class) }
         ideaProject.modules.each { it.gradleProject.buildScript }
+
+        then:
+        e = thrown()
+        e.message.startsWith('Unsupported method: GradleProject.getBuildScript().')
+    }
+
+    @ToolingApiVersion('current')
+    @TargetGradleVersion('<1.0-milestone-5')
+    def "gives reasonable error message when build script details not available via Eclipse model"() {
+        when:
+        GradleProject project = withConnection { it.getModel(GradleProject.class) }
+        project.buildScript
+
+        then:
+        UnsupportedMethodException e = thrown()
+        e.message.startsWith('Unsupported method: GradleProject.getBuildScript().')
+
+        when:
+        EclipseProject eclipseProject = withConnection { it.getModel(EclipseProject.class) }
+        eclipseProject.gradleProject.buildScript
 
         then:
         e = thrown()
