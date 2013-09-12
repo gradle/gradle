@@ -15,8 +15,11 @@
  */
 
 package org.gradle.nativebinaries.language.cpp
+
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativebinaries.language.cpp.fixtures.AvailableToolChains
+import org.gradle.nativebinaries.language.cpp.fixtures.ExecutableFixture
 import org.gradle.nativebinaries.language.cpp.fixtures.app.CppHelloWorldApp
 import org.gradle.nativebinaries.language.cpp.fixtures.binaryinfo.BinaryInfo
 import org.gradle.nativebinaries.language.cpp.fixtures.binaryinfo.DumpbinBinaryInfo
@@ -26,11 +29,19 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
-class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+class BinaryPlatformIntegrationTest extends AbstractIntegrationSpec {
     def helloWorldApp = new CppHelloWorldApp()
+    private AvailableToolChains.InstalledToolChain toolChain
 
-    def "setup"() {
+    def setup() {
         helloWorldApp.writeSources(file("src/main"))
+
+        toolChain = AvailableToolChains.getToolChains().get(0) as AvailableToolChains.InstalledToolChain
+        toolChain.initialiseEnvironment()
+    }
+
+    def cleanup() {
+       toolChain.resetEnvironment()
     }
 
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
@@ -72,6 +83,14 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
             return new DumpbinBinaryInfo(file, toolChain)
         }
         return new ReadelfBinaryInfo(file)
+    }
+
+    def ExecutableFixture executable(Object path) {
+        return toolChain.executable(file(path))
+    }
+
+    def TestFile objectFile(Object path) {
+        return toolChain.objectFile(file(path));
     }
 
 }

@@ -142,6 +142,10 @@ public class AvailableToolChains {
             return new ExecutableFixture(new TestFile(OperatingSystem.current().getExecutableName(path.toString())), this);
         }
 
+        public TestFile objectFile(Object path) {
+            return new TestFile(path.toString() + ".o");
+        }
+
         public SharedLibraryFixture sharedLibrary(Object path) {
             return new SharedLibraryFixture(new TestFile(OperatingSystem.current().getSharedLibraryName(path.toString())), this);
         }
@@ -282,6 +286,11 @@ public class AvailableToolChains {
 
         public boolean isVisualCpp() {
             return true;
+        }
+
+        @Override
+        public TestFile objectFile(Object path) {
+            return new TestFile(path.toString() + ".obj");
         }
     }
 

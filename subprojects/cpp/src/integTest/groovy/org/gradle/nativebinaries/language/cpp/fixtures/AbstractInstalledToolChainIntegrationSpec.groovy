@@ -35,10 +35,7 @@ abstract class AbstractInstalledToolChainIntegrationSpec extends AbstractIntegra
     }
 
     def TestFile objectFile(Object path) {
-        if (toolChain.visualCpp) {
-            return file("${path}.obj")
-        }
-        return file("${path}.o")
+        return toolChain.objectFile(file(path))
     }
 
     def SharedLibraryFixture sharedLibrary(Object path) {
