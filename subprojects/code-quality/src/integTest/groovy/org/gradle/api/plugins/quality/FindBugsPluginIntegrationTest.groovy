@@ -197,6 +197,149 @@ class FindBugsPluginIntegrationTest extends WellBehavedPluginTest {
         file("build/reports/findbugs/test.xml").assertContents(containsClass("org.gradle.Class800Test"))
     }
 
+    def "is incremental for reporting settings when value is not changed"() {
+        given:
+        buildFile << """
+            findbugsMain.reports {
+                xml.enabled true
+            }
+        """
+
+        and:
+        goodCode()
+
+        when:
+        succeeds "findbugsMain"
+
+        then:
+        file("build/reports/findbugs/main.xml").exists()
+        ":findbugsMain" in nonSkippedTasks
+        !(":findbugsMain" in skippedTasks)
+
+        when:
+        succeeds "findbugsMain"
+
+        then:
+        file("build/reports/findbugs/main.xml").exists()
+        !(":findbugsMain" in nonSkippedTasks)
+        ":findbugsMain" in skippedTasks
+    }
+
+    def "is incremental for reporting settings when value is changed"() {
+        given:
+        buildFile << """
+            findbugsMain.reports {
+                xml.enabled true
+            }
+        """
+
+        and:
+        goodCode()
+
+        when:
+        succeeds "findbugsMain"
+
+        then:
+        file("build/reports/findbugs/main.xml").exists()
+        ":findbugsMain" in nonSkippedTasks
+        !(":findbugsMain" in skippedTasks)
+
+        when:
+        buildFile.delete()
+        buildFile << """
+            apply plugin: "java"
+            apply plugin: "findbugs"
+
+            repositories {
+                mavenCentral()
+            }
+
+            findbugsMain.reports {
+                xml.enabled false
+            }
+        """
+
+        succeeds "findbugsMain"
+
+        then:
+        file("build/reports/findbugs/main.xml").exists()
+        ":findbugsMain" in nonSkippedTasks
+        !(":findbugsMain" in skippedTasks)
+    }
+
+    def "is incremental for withMessage when value is not changed"() {
+        given:
+        buildFile << """
+            findbugsMain.reports {
+                xml.enabled true
+                xml.withMessages true
+            }
+        """
+
+        and:
+        goodCode()
+
+        when:
+        succeeds "findbugsMain"
+
+        then:
+        file("build/reports/findbugs/main.xml").exists()
+        ":findbugsMain" in nonSkippedTasks
+        !(":findbugsMain" in skippedTasks)
+
+        when:
+        succeeds "findbugsMain"
+
+        then:
+        file("build/reports/findbugs/main.xml").exists()
+        !(":findbugsMain" in nonSkippedTasks)
+        ":findbugsMain" in skippedTasks
+    }
+
+    def "is incremental for withMessage when value is changed"() {
+        given:
+        buildFile << """
+            findbugsMain.reports {
+                xml.enabled true
+                xml.withMessages true
+            }
+        """
+
+        and:
+        goodCode()
+
+        when:
+        succeeds "findbugsMain"
+
+        then:
+        file("build/reports/findbugs/main.xml").exists()
+        ":findbugsMain" in nonSkippedTasks
+        !(":findbugsMain" in skippedTasks)
+
+        when:
+        buildFile.delete()
+        buildFile << """
+            apply plugin: "java"
+            apply plugin: "findbugs"
+
+            repositories {
+                mavenCentral()
+            }
+
+            findbugsMain.reports {
+                xml.enabled true
+                xml.withMessages false
+            }
+        """
+
+        succeeds "findbugsMain"
+
+        then:
+        file("build/reports/findbugs/main.xml").exists()
+        ":findbugsMain" in nonSkippedTasks
+        !(":findbugsMain" in skippedTasks)
+    }
+
     private goodCode(int numberOfClasses = 1) {
         1.upto(numberOfClasses) {
             file("src/main/java/org/gradle/Class${it}.java") << "package org.gradle; public class Class${it} { public boolean isFoo(Object arg) { return true; } }"
