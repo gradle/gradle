@@ -24,6 +24,8 @@ import org.apache.tools.ant.taskdefs.Tar;
 import org.apache.tools.ant.taskdefs.Zip;
 import org.apache.tools.ant.types.EnumeratedAttribute;
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
+import org.gradle.internal.nativeplatform.filesystem.*;
+import org.gradle.internal.nativeplatform.services.NativeServices;
 import org.hamcrest.Matcher;
 
 import java.io.*;
@@ -340,9 +342,16 @@ public class TestFile extends File {
         }
     }
 
-    public TestFile assertPermissions(Matcher<String> matcher) {
-        assertThat(String.format("mismatched permissions for '%s'", this), getPermissions(), matcher);
-        return this;
+    public void createLink(File target) {
+        createLink(target.getAbsolutePath());
+    }
+
+    public void createLink(String target) {
+        try {
+            NativeServices.getInstance().get(FileSystem.class).createSymbolicLink(this, new File(target));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public String readLink() {

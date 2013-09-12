@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.file
 
-import org.gradle.internal.nativeplatform.filesystem.FileSystems
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -174,11 +174,11 @@ class BaseDirFileResolverSpec extends Specification {
     }
 
     def createLink(File link, File target) {
-        FileSystems.default.createSymbolicLink(link, target)
+        createLink(link, target.absolutePath)
     }
 
     def createLink(File link, String target) {
-        createLink(link, new File(target))
+        new TestFile(link).createLink(target)
     }
 
     def createFile(File file) {
@@ -188,7 +188,7 @@ class BaseDirFileResolverSpec extends Specification {
     }
 
     def normalize(Object path, File baseDir = tmpDir.testDirectory) {
-        new BaseDirFileResolver(FileSystems.default, baseDir).resolve(path)
+        new BaseDirFileResolver(TestFiles.fileSystem(), baseDir).resolve(path)
     }
 
     private File[] getFsRoots() {

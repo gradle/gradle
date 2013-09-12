@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.jvm.Jvm
-import org.gradle.internal.nativeplatform.filesystem.FileSystems
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.gradle.util.TextUtil
@@ -54,7 +53,7 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
         given:
         def javaHome = Jvm.current().javaHome
         def javaLink = file("javaLink")
-        FileSystems.default.createSymbolicLink(javaLink, javaHome)
+        javaLink.createLink(javaHome)
         file("tmp").deleteDir().createDir()
 
         String linkPath = TextUtil.escapeString(javaLink.absolutePath)

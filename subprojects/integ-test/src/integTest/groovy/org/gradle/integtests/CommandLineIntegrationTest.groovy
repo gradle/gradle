@@ -19,7 +19,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.internal.jvm.Jvm
-import org.gradle.internal.nativeplatform.filesystem.FileSystems
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.PreconditionVerifier
@@ -106,7 +105,7 @@ public class CommandLineIntegrationTest extends AbstractIntegrationTest {
             binary = new File("/bin/$command")
         }
         assert binary.exists()
-        FileSystems.default.createSymbolicLink(binDir.file(command), binary.absoluteFile)
+        binDir.file(command).createLink(binary)
     }
 
     @Test
@@ -179,7 +178,7 @@ public class CommandLineIntegrationTest extends AbstractIntegrationTest {
     public void resolvesLinksWhenDeterminingHomeDirectory() {
         def script = file('bin/my app')
         script.parentFile.createDir()
-        FileSystems.default.createSymbolicLink(script, distribution.gradleHomeDir.file('bin/gradle'))
+        script.createLink(distribution.gradleHomeDir.file('bin/gradle'))
 
         def result = executer.usingExecutable(script.absolutePath).withTasks("help").run()
         assert result.output.contains("my app")

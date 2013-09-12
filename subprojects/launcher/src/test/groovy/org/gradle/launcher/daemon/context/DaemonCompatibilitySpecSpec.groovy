@@ -16,7 +16,6 @@
 package org.gradle.launcher.daemon.context
 
 import org.gradle.internal.nativeplatform.ProcessEnvironment
-import org.gradle.internal.nativeplatform.filesystem.FileSystems
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.ConfigureUtil
 import org.gradle.util.Requires
@@ -78,9 +77,10 @@ class DaemonCompatibilitySpecSpec extends Specification {
 
     @Requires(TestPrecondition.SYMLINKS)
     def "contexts with symlinked javaHome are compatible"() {
-        File dir = tmp.createDir("a")
-        File link = new File(tmp.testDirectory, "link")
-        FileSystems.default.createSymbolicLink(link, dir)
+        def dir = tmp.createDir("a")
+        def link = tmp.file("link")
+
+        link.createLink(dir)
 
         assert dir != link
         assert dir.canonicalFile == link.canonicalFile

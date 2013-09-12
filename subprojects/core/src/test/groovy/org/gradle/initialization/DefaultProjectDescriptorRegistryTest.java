@@ -15,9 +15,8 @@
  */
 package org.gradle.initialization;
 
-import org.gradle.api.internal.file.BaseDirFileResolver;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.internal.nativeplatform.filesystem.FileSystems;
+import org.gradle.api.internal.file.TestFiles;
 import org.gradle.util.Path;
 import org.junit.Test;
 
@@ -31,7 +30,7 @@ import static org.junit.Assert.assertThat;
 public class DefaultProjectDescriptorRegistryTest {
     private static final File TEST_DIR = new File("testDir");
 
-    private static final FileResolver FILE_RESOLVER = new BaseDirFileResolver(FileSystems.getDefault(), TEST_DIR.getAbsoluteFile());
+    private static final FileResolver FILE_RESOLVER = TestFiles.resolver(TEST_DIR.getAbsoluteFile());
     private final DefaultProjectDescriptorRegistry registry = new DefaultProjectDescriptorRegistry();
 
     @Test

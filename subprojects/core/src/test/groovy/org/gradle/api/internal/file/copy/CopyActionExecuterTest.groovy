@@ -15,13 +15,11 @@
  */
 package org.gradle.api.internal.file.copy
 
-import org.gradle.api.Action
 import org.gradle.api.file.FileCopyDetails
-import org.gradle.api.internal.file.BaseDirFileResolver
 import org.gradle.api.internal.file.CopyActionProcessingStreamAction
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.tasks.SimpleWorkResult
 import org.gradle.api.tasks.WorkResult
-import org.gradle.internal.nativeplatform.filesystem.FileSystems
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.test.fixtures.file.WorkspaceTest
 
@@ -37,7 +35,7 @@ class CopyActionExecuterTest extends WorkspaceTest {
             createDir("b1").createFile("b1")
         }
 
-        def resolver = new BaseDirFileResolver(FileSystems.getDefault(), testDirectory)
+        def resolver = TestFiles.resolver(testDirectory)
         def copySpec = new DestinationRootCopySpec(resolver, new DefaultCopySpec(resolver, new DirectInstantiator()))
         copySpec.with {
             into "out"
@@ -58,7 +56,7 @@ class CopyActionExecuterTest extends WorkspaceTest {
                 new SimpleWorkResult(workResult)
             }
         }
-        def executer = new CopyActionExecuter(new DirectInstantiator(), FileSystems.getDefault())
+        def executer = new CopyActionExecuter(new DirectInstantiator(), TestFiles.fileSystem())
 
         when:
         executer.execute(copySpec, copyAction)

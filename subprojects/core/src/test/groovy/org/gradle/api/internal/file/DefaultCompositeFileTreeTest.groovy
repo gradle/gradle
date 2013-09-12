@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.file
 
-import org.gradle.internal.nativeplatform.filesystem.FileSystems
 import org.gradle.test.fixtures.file.WorkspaceTest
 
 class DefaultCompositeFileTreeTest extends WorkspaceTest {
@@ -33,7 +32,7 @@ class DefaultCompositeFileTreeTest extends WorkspaceTest {
         given:
         def a1 = file("a/1.txt") << "a/1"
         def b1 = file("b/1.txt") << "b/1"
-        def fileResolver = new BaseDirFileResolver(FileSystems.getDefault(), testDirectory)
+        def fileResolver = TestFiles.resolver(testDirectory)
 
         when:
         def a = fileResolver.resolveFilesAsTree("a")
@@ -48,7 +47,7 @@ class DefaultCompositeFileTreeTest extends WorkspaceTest {
         given:
         def a1 = file("a/1.txt") << "a/1"
         def b1 = file("b/1.txt") << "b/1"
-        def fileResolver = new BaseDirFileResolver(FileSystems.getDefault(), testDirectory)
+        def fileResolver = TestFiles.resolver(testDirectory)
 
         when:
         def a = fileResolver.resolveFilesAsTree("a")

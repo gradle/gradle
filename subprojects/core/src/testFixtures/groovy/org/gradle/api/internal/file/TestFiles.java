@@ -21,11 +21,15 @@ import org.gradle.internal.nativeplatform.services.NativeServices;
 import java.io.File;
 
 public class TestFiles {
+    public static FileSystem fileSystem() {
+        return NativeServices.getInstance().get(FileSystem.class);
+    }
+
     /**
      * Returns a resolver with no base directory.
      */
     public static FileResolver resolver() {
-        return new IdentityFileResolver(NativeServices.getInstance().get(FileSystem.class));
+        return new IdentityFileResolver(fileSystem());
     }
 
     /**
