@@ -16,12 +16,14 @@
 
 package org.gradle.nativebinaries.internal;
 
-import org.gradle.nativebinaries.Flavor;
-import org.gradle.nativebinaries.LibraryBinary;
-import org.gradle.nativebinaries.LibraryResolver;
+import org.gradle.nativebinaries.*;
 
-public interface ConfigurableLibraryResolver extends LibraryResolver {
-    ConfigurableLibraryResolver withType(Class<? extends LibraryBinary> type);
+public interface ContextualLibraryResolver extends LibraryResolver {
+    ContextualLibraryResolver withType(Class<? extends LibraryBinary> type);
 
-    ConfigurableLibraryResolver withFlavor(Flavor flavor);
+    ContextualLibraryResolver withFlavor(Flavor flavor);
+
+    ContextualLibraryResolver withToolChain(ToolChain toolChain);
+
+    ContextualLibraryResolver withPlatform(Platform platform);
 }

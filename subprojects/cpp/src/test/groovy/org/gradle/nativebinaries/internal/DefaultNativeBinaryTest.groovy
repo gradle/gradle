@@ -26,10 +26,16 @@ import spock.lang.Specification
 class DefaultNativeBinaryTest extends Specification {
     def flavor1 = new DefaultFlavor("flavor1")
     def component = new DefaultNativeComponent("name", new DirectInstantiator())
+    def toolChain1 = Stub(ToolChainInternal) {
+        getName() >> "ToolChain1"
+    }
+    def platform1 = Stub(Platform) {
+        getArchitecture() >> Platform.Architecture.AMD64
+    }
 
     def "binary uses source from its owner component"() {
         given:
-        def binary = new TestBinary(component)
+        def binary = testBinary(component)
         def sourceSet = Stub(LanguageSourceSet)
 
         when:
@@ -41,7 +47,7 @@ class DefaultNativeBinaryTest extends Specification {
 
     def "binary uses all source sets from a functional source set"() {
         given:
-        def binary = new TestBinary(component)
+        def binary = testBinary(component)
         def functionalSourceSet = new DefaultFunctionalSourceSet("func", new DirectInstantiator())
         def sourceSet1 = Stub(LanguageSourceSet) {
             getName() >> "ss1"
@@ -63,14 +69,16 @@ class DefaultNativeBinaryTest extends Specification {
     }
 
     def "can add a resolved library as a dependency of the binary"() {
-        def binary = new TestBinary(component, flavor1)
+        def binary = testBinary(component, flavor1)
         def library = Mock(Library)
-        def resolver = Mock(ConfigurableLibraryResolver)
+        def resolver = Mock(ContextualLibraryResolver)
         def dependency = Stub(NativeDependencySet)
 
         given:
         library.shared >> resolver
         resolver.withFlavor(flavor1) >> resolver
+        resolver.withToolChain(toolChain1) >> resolver
+        resolver.withPlatform(platform1) >> resolver
         resolver.resolve() >> dependency
 
         when:
@@ -82,7 +90,7 @@ class DefaultNativeBinaryTest extends Specification {
     }
 
     def "can add a library binary as a dependency of the binary"() {
-        def binary = new TestBinary(component)
+        def binary = testBinary(component)
         def dependency = Stub(NativeDependencySet)
         def libraryBinary = Mock(LibraryBinary)
 
@@ -98,7 +106,7 @@ class DefaultNativeBinaryTest extends Specification {
     }
 
     def "can add a native dependency as a dependency of the binary"() {
-        def binary = new TestBinary(component)
+        def binary = testBinary(component)
         def dependency = Stub(NativeDependencySet)
 
         when:
@@ -109,19 +117,25 @@ class DefaultNativeBinaryTest extends Specification {
         binary.libs.contains(dependency)
     }
 
+    def testBinary(NativeComponent owner, Flavor flavor = Flavor.DEFAULT) {
+        return new TestBinary(owner, flavor, toolChain1, platform1, new DefaultBinaryNamingScheme("baseName"))
+    }
+
     class TestBinary extends DefaultNativeBinary {
-        TestBinary(NativeComponent owner, Flavor flavor = Flavor.DEFAULT, String type = "type") {
-            super(owner, flavor, null, null, new DefaultBinaryNamingScheme("baseName"))
+        def owner
+        TestBinary(NativeComponent owner, Flavor flavor, ToolChainInternal toolChain, Platform targetPlatform, DefaultBinaryNamingScheme namingScheme) {
+            super(owner, flavor, toolChain, targetPlatform, namingScheme)
+            this.owner = owner
         }
 
         @Override
         protected NativeComponent getComponent() {
-            throw new UnsupportedOperationException()
+            return owner
         }
 
         @Override
         String getOutputFileName() {
-            throw new UnsupportedOperationException()
+            return null
         }
     }
 }

@@ -568,7 +568,6 @@ This story adds support for building a native component using multiple tool chai
 - Define a tool chain as a type and required version (eg GCC v4.+)
     - Attempt to locate the tool chain in path (if no `path` provided)
     - Verify the version for defined tool chain (if `path` is provided)
-- VisualCppToolChain should automatically switch between different executables for different target architectures.
 
 ## Story: Build a native component for multiple architectures
 
@@ -649,6 +648,7 @@ Each variant has a platform associated with it.
     - PowerPC 64bit: `ppc64`
     - Sparc: ??
     - ARM: ??
+- VisualCppToolChain should automatically switch between different executables for different target architectures.
 
 ## Story: Cross-compile for multiple operating systems
 

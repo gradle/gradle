@@ -27,6 +27,22 @@ import org.gradle.util.TestPrecondition
 class MultipleToolChainIntegrationTest extends AbstractIntegrationSpec {
     def helloWorld = new CppHelloWorldApp()
 
+    def setup() {
+        buildFile << """
+            apply plugin: 'cpp'
+
+            executables {
+                main {}
+            }
+            libraries {
+                hello {}
+            }
+            sources.main.cpp.lib libraries.hello
+        """
+
+        helloWorld.writeSources(file("src/main"), file("src/hello"))
+    }
+
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
     def "can build with all available tool chains"() {
         List<AvailableToolChains.InstalledToolChain> installedToolChains = []
@@ -40,8 +56,6 @@ class MultipleToolChainIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         buildFile << """
-            apply plugin: "cpp"
-
             toolChains {
 ${toolChainConfig}
 
@@ -50,12 +64,7 @@ ${toolChainConfig}
                 }
             }
 
-            executables {
-                main {}
-            }
 """
-
-        helloWorld.writeSources(file("src/main"))
 
         then:
         def tasks = installedToolChains.collect { "install${it.id.capitalize()}MainExecutable" }
@@ -70,16 +79,10 @@ ${toolChainConfig}
     def "exception when building with unavailable tool chain"() {
         when:
         buildFile << """
-            apply plugin: "cpp"
-
             toolChains {
                 bad(Gcc) {
                     linker.executable = "does_not_exist"
                 }
-            }
-
-            executables {
-                main {}
             }
 """
 
@@ -99,17 +102,12 @@ ${toolChainConfig}
 
         given:
         buildFile << """
-            apply plugin: "cpp"
-
             toolChains {
 ${toolChain.buildScriptConfig}
 
                 unavailable(Gcc) {
                     linker.executable = "does_not_exist"
                 }
-            }
-            executables {
-                main {}
             }
 """
 

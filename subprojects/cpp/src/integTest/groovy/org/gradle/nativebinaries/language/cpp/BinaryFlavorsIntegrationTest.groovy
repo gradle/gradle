@@ -196,6 +196,6 @@ class BinaryFlavorsIntegrationTest extends AbstractInstalledToolChainIntegration
 
         then:
         fails "germanMainExecutable"
-        failure.assertHasCause("No shared library binary available for library 'hello' with flavor 'german'")
+        failure.assertHasCause("No shared library binary available for library 'hello' with [flavor: 'german'")
    }
 }

@@ -49,8 +49,12 @@ public class ResolvableNativeDependencySet {
         if (lib instanceof Library) {
             return resolve(target, ((Library) lib).getShared());
         }
-        if (lib instanceof ConfigurableLibraryResolver) {
-            return ((ConfigurableLibraryResolver) lib).withFlavor(target.getFlavor()).resolve();
+        if (lib instanceof ContextualLibraryResolver) {
+            return ((ContextualLibraryResolver) lib)
+                    .withFlavor(target.getFlavor())
+                    .withToolChain(target.getToolChain())
+                    .withPlatform(target.getTargetPlatform())
+                    .resolve();
         }
         if (lib instanceof LibraryResolver) {
             return ((LibraryResolver) lib).resolve();

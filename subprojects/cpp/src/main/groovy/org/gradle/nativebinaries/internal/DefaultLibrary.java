@@ -46,11 +46,11 @@ public class DefaultLibrary extends DefaultNativeComponent implements Library {
         return headers;
     }
 
-    public ConfigurableLibraryResolver getShared() {
+    public ContextualLibraryResolver getShared() {
         return new DefaultLibraryResolver(this).withType(SharedLibraryBinary.class);
     }
 
-    public ConfigurableLibraryResolver getStatic() {
+    public ContextualLibraryResolver getStatic() {
         return new DefaultLibraryResolver(this).withType(StaticLibraryBinary.class);
     }
 

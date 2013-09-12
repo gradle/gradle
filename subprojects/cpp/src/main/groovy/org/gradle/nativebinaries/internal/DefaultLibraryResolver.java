@@ -19,38 +19,58 @@ package org.gradle.nativebinaries.internal;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.nativebinaries.*;
 
-class DefaultLibraryResolver implements ConfigurableLibraryResolver {
+class DefaultLibraryResolver implements ContextualLibraryResolver {
+    private final Library library;
+
     private Flavor flavor = Flavor.DEFAULT;
+    private ToolChain toolChain;
+    private Platform platform = new DefaultPlatform("default");
     private Class<? extends LibraryBinary> type = SharedLibraryBinary.class;
-    private Library library;
 
     public DefaultLibraryResolver(Library library) {
         this.library = library;
     }
 
-    public ConfigurableLibraryResolver withFlavor(Flavor flavor) {
+    public ContextualLibraryResolver withFlavor(Flavor flavor) {
         this.flavor = flavor;
         return this;
     }
 
-    public ConfigurableLibraryResolver withType(Class<? extends LibraryBinary> type) {
+    public ContextualLibraryResolver withToolChain(ToolChain toolChain) {
+        this.toolChain = toolChain;
+        return this;
+    }
+
+    public ContextualLibraryResolver withPlatform(Platform platform) {
+        this.platform = platform;
+        return this;
+    }
+
+    public ContextualLibraryResolver withType(Class<? extends LibraryBinary> type) {
         this.type = type;
         return this;
     }
 
     public NativeDependencySet resolve() {
         for (LibraryBinary candidate : library.getBinaries().withType(type)) {
-            // If the library has only 1 flavor, then flavor is not important
-            if (library.getFlavors().size() == 1) {
-                return candidate.resolve();
+            // If the library has > 1 flavor, then flavor must match
+            if (library.getFlavors().size() > 1 && !flavor.equals(candidate.getFlavor())) {
+                continue;
             }
-            // Otherwise match on the flavor
-            if (flavor.equals(candidate.getFlavor())) {
-                return candidate.resolve();
+            // ToolChains and Platforms are global within project, so can always compare directly
+            // TODO:DAZ Need a better way to perform tool chain equality
+            if (toolChain != null && !toolChain.getName().equals(candidate.getToolChain().getName())) {
+                continue;
             }
+            if (platform.getArchitecture() != candidate.getTargetPlatform().getArchitecture()) {
+                continue;
+            }
+
+            return candidate.resolve();
         }
 
         String typeName = type == SharedLibraryBinary.class ? "shared" : "static";
-        throw new InvalidUserDataException(String.format("No %s library binary available for %s with %s", typeName, library, flavor));
+        throw new InvalidUserDataException(String.format("No %s library binary available for %s with [flavor: '%s', toolChain: '%s', platform: '%s']",
+                typeName, library, flavor.getName(), toolChain.getName(), platform.getArchitecture()));
     }
 }

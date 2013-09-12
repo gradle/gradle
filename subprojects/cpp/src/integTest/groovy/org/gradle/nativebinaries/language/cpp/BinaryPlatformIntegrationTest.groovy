@@ -34,7 +34,19 @@ class BinaryPlatformIntegrationTest extends AbstractIntegrationSpec {
     private AvailableToolChains.InstalledToolChain toolChain
 
     def setup() {
-        helloWorldApp.writeSources(file("src/main"))
+        buildFile << """
+            apply plugin: 'cpp'
+
+            executables {
+                main {}
+            }
+            libraries {
+                hello {}
+            }
+            sources.main.cpp.lib libraries.hello
+        """
+
+        helloWorldApp.writeSources(file("src/main"), file("src/hello"))
 
         toolChain = AvailableToolChains.getToolChains().get(0) as AvailableToolChains.InstalledToolChain
         toolChain.initialiseEnvironment()
@@ -48,8 +60,6 @@ class BinaryPlatformIntegrationTest extends AbstractIntegrationSpec {
     def "build binary for multiple target platforms"() {
         when:
         buildFile << """
-            apply plugin: 'cpp'
-
             targetPlatforms {
                 x86 {
                     architecture Platform.Architecture.I386
@@ -57,9 +67,6 @@ class BinaryPlatformIntegrationTest extends AbstractIntegrationSpec {
                 x86_64 {
                     architecture Platform.Architecture.AMD64
                 }
-            }
-            executables {
-                main {}
             }
         """
 

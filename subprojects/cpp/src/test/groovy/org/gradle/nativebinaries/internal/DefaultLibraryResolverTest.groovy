@@ -25,102 +25,127 @@ class DefaultLibraryResolverTest extends Specification {
     final flavor1 = new DefaultFlavor("flavor1")
     final flavor2 = new DefaultFlavor("flavor2")
     final flavorContainer = new DefaultFlavorContainer(new DirectInstantiator())
+    final toolChain1 = Stub(ToolChain) {
+        getName() >> "ToolChain1"
+    }
+    final toolChain2 = Stub(ToolChain) {
+        getName() >> "ToolChain2"
+    }
+    final platform1 = Stub(Platform) {
+        getArchitecture() >> Platform.Architecture.I386
+    }
+    final platform2 = Stub(Platform) {
+        getArchitecture() >> Platform.Architecture.AMD64
+    }
 
     def library = Mock(Library)
-    def sharedDeps = Mock(NativeDependencySet)
-    def staticDeps = Mock(NativeDependencySet)
-
-    def staticBinary1 = Stub(StaticLibraryBinary) {
-        getFlavor() >> flavor1
-    }
-    def staticBinary2 = Stub(StaticLibraryBinary) {
-        getFlavor() >> flavor2
-    }
-    def sharedBinary1 = Stub(SharedLibraryBinary) {
-        getFlavor() >> flavor1
-    }
-    def sharedBinary2 = Stub(SharedLibraryBinary) {
-        getFlavor() >> flavor2
-    }
+    def resolver = new DefaultLibraryResolver(library)
+    def deps1 = Mock(NativeDependencySet)
+    def deps2 = Mock(NativeDependencySet)
 
     def "setup"() {
         library.flavors >> flavorContainer
+
+        resolver.withFlavor(flavor1).withToolChain(toolChain1).withPlatform(platform1).withType(SharedLibraryBinary)
     }
 
-    def "returns library dependencies for library with single default flavor"() {
+    def "resolves dependencies for library binary with matching type"() {
         when:
-        flavorContainer.add(Flavor.DEFAULT)
-        library.getBinaries() >> binaries(staticBinary1, sharedBinary1)
-
-        and:
-        sharedBinary1.resolve() >> sharedDeps
-        staticBinary1.resolve() >> staticDeps
+        library.getBinaries() >>
+                binaries(
+                        staticBinary(flavor1, toolChain1, platform1, deps1),
+                        sharedBinary(flavor1, toolChain1, platform1, deps2)
+                )
 
         then:
-        resolver.resolve() == sharedDeps;
-        resolver.withType(SharedLibraryBinary.class).resolve() == sharedDeps
-        resolver.withType(StaticLibraryBinary.class).resolve() == staticDeps
+        resolver.withType(StaticLibraryBinary).resolve() == deps1
+        resolver.withType(SharedLibraryBinary).resolve() == deps2
     }
 
-    def "returns library dependencies for library with single explicit flavor"() {
-        when:
-        flavorContainer.addAll([flavor2])
-        library.getBinaries() >> binaries(staticBinary2, sharedBinary2)
-
-        and:
-        sharedBinary2.resolve() >> sharedDeps
-        staticBinary2.resolve() >> staticDeps
-
-        then:
-        resolver.withFlavor(flavor1).resolve() == sharedDeps;
-        resolver.withFlavor(flavor1).withType(SharedLibraryBinary.class).resolve() == sharedDeps
-        resolver.withFlavor(flavor1).withType(StaticLibraryBinary.class).resolve() == staticDeps
-
-        and:
-        resolver.withFlavor(flavor2).resolve() == sharedDeps;
-        resolver.withFlavor(flavor2).withType(SharedLibraryBinary.class).resolve() == sharedDeps
-        resolver.withFlavor(flavor2).withType(StaticLibraryBinary.class).resolve() == staticDeps
-    }
-
-    def "returns matching library dependencies for library with multiple flavors"() {
+    def "resolves dependencies for library binary with matching flavor"() {
         when:
         flavorContainer.addAll([flavor1, flavor2])
-        library.getBinaries() >> binaries(staticBinary1, staticBinary2, sharedBinary1, sharedBinary2)
-
-        and:
-        sharedBinary2.resolve() >> sharedDeps
-        staticBinary2.resolve() >> staticDeps
+        library.getBinaries() >>
+                binaries(
+                        sharedBinary(flavor1, toolChain1, platform1, deps1),
+                        sharedBinary(flavor2, toolChain1, platform1, deps2)
+                )
 
         then:
-        resolver.withFlavor(flavor2).resolve() == sharedDeps;
-        resolver.withFlavor(flavor2).withType(SharedLibraryBinary.class).resolve() == sharedDeps
-        resolver.withFlavor(flavor2).withType(StaticLibraryBinary.class).resolve() == staticDeps
+        resolver.withFlavor(flavor1).resolve() == deps1
+        resolver.withFlavor(flavor2).resolve() == deps2
+    }
 
+    def "resolves dependencies for library binary when library has a single flavor"() {
         when:
-        sharedBinary1.resolve() >> sharedDeps
-        staticBinary1.resolve() >> staticDeps
+        flavorContainer.addAll([flavor2])
+        library.getBinaries() >>
+                binaries(
+                        sharedBinary(flavor2, toolChain1, platform1, deps1)
+                )
 
         then:
-        resolver.withFlavor(flavor1).resolve() == sharedDeps;
-        resolver.withFlavor(flavor1).withType(SharedLibraryBinary.class).resolve() == sharedDeps
-        resolver.withFlavor(flavor1).withType(StaticLibraryBinary.class).resolve() == staticDeps
+        resolver.withFlavor(flavor1).resolve() == deps1
+        resolver.withFlavor(flavor2).resolve() == deps1
+    }
+
+    def "resolves dependencies for library binary with matching tool chain"() {
+        when:
+        library.getBinaries() >>
+                binaries(
+                        sharedBinary(flavor1, toolChain1, platform1, deps1),
+                        sharedBinary(flavor1, toolChain2, platform1, deps2)
+                )
+
+        then:
+        resolver.withToolChain(toolChain1).resolve() == deps1
+        resolver.withToolChain(toolChain2).resolve() == deps2
+    }
+
+    def "resolves dependencies for library binary with matching platform"() {
+        when:
+        library.getBinaries() >>
+                binaries(
+                        sharedBinary(flavor1, toolChain1, platform1, deps1),
+                        sharedBinary(flavor1, toolChain1, platform2, deps2)
+                )
+
+        then:
+        resolver.withPlatform(platform1).resolve() == deps1
+        resolver.withPlatform(platform2).resolve() == deps2
     }
 
     def "fails when no library found with matching flavor"() {
         when:
-        flavorContainer.addAll([flavor1, flavor2])
-        library.getBinaries() >> binaries(sharedBinary1, sharedBinary2)
+        library.getBinaries() >>
+                binaries(
+                        sharedBinary(flavor1, toolChain1, platform1, deps1)
+                )
 
         and:
-        resolver.withFlavor(new DefaultFlavor("different")).resolve();
+        resolver.withToolChain(toolChain2).resolve();
 
         then:
         def e = thrown InvalidUserDataException
-        e.message == "No shared library binary available for $library with flavor 'different'"
+        e.message == "No shared library binary available for $library with [flavor: 'flavor1', toolChain: 'ToolChain2', platform: 'I386']"
     }
 
-    def getResolver() {
-        return new DefaultLibraryResolver(library)
+    def staticBinary(def flavor, def toolChain, def platform, def deps) {
+        return Stub(StaticLibraryBinary) {
+            getFlavor() >> flavor
+            getToolChain() >> toolChain
+            getTargetPlatform() >> platform
+            resolve() >> deps
+        }
+    }
+
+    def sharedBinary(def flavor, def toolChain, def platform, def deps) {
+        return Stub(SharedLibraryBinary) {
+            getFlavor() >> flavor
+            getToolChain() >> toolChain
+            getTargetPlatform() >> platform
+            resolve() >> deps
+        }
     }
 
     def binaries(NativeBinary... values) {
