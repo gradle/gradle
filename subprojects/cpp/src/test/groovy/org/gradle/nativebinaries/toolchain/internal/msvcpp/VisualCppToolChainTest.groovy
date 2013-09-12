@@ -103,18 +103,15 @@ class VisualCppToolChainTest extends Specification {
         toolChain.assembler.executable == "foo"
     }
 
-    def "resolves path entries"() {
+    def "resolves install directory"() {
         when:
-        toolChain.path "The Path"
-        toolChain.path "Path1", "Path2"
+        toolChain.installDir = "The Path"
 
         then:
         fileResolver.resolve("The Path") >> file("one")
-        fileResolver.resolve("Path1") >> file("two")
-        fileResolver.resolve("Path2") >> file("three")
 
         and:
-        toolChain.paths == [file("one"), file("two"), file("three")]
+        toolChain.installDir == file("one")
     }
 
     def file(String name) {

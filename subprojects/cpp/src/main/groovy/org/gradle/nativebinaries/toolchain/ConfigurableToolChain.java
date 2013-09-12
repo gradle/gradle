@@ -19,25 +19,11 @@ package org.gradle.nativebinaries.toolchain;
 import org.gradle.api.Incubating;
 import org.gradle.nativebinaries.ToolChain;
 
-import java.io.File;
-import java.util.List;
-
 /**
  * A tool chain that allows the individual tools to be configured.
  */
 @Incubating
 public interface ConfigurableToolChain extends ToolChain {
-    /**
-     * The paths setting required for executing the tool chain.
-     */
-    List<File> getPaths();
-    // TODO:DAZ Add a setter
-
-    /**
-     * Add an entry or entries to the tool chain path.
-     */
-    void path(Object... pathEntry);
-
     /**
      * The C++ compiler.
      */

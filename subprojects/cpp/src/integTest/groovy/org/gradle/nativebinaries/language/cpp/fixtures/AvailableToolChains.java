@@ -20,6 +20,7 @@ import com.google.common.base.Joiner;
 import org.gradle.internal.nativeplatform.ProcessEnvironment;
 import org.gradle.internal.nativeplatform.services.NativeServices;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.nativebinaries.internal.DefaultPlatform;
 import org.gradle.nativebinaries.toolchain.Gcc;
 import org.gradle.nativebinaries.toolchain.VisualCpp;
 import org.gradle.nativebinaries.toolchain.internal.gcc.version.GccVersionDeterminer;
@@ -258,8 +259,9 @@ public class AvailableToolChains {
         }
 
         public InstalledVisualCpp withInstall(VisualStudioInstall install) {
-            pathEntries.addAll(install.getPathEntries());
-            environmentVars.putAll(install.getEnvironment());
+            DefaultPlatform targetPlatform = new DefaultPlatform("default");
+            pathEntries.addAll(install.getPathEntries(targetPlatform));
+            environmentVars.putAll(install.getEnvironment(targetPlatform));
             installDir = install.getInstallDir();
             return this;
         }

@@ -44,7 +44,6 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
     private final Map<String, String> environment = new HashMap<String, String>();
 
     private File installDir;
-    private VisualStudioInstall install;
 
     public VisualCppToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, Factory<ExecAction> execActionFactory) {
         super(name, operatingSystem, new ToolRegistry(operatingSystem), fileResolver);
@@ -68,12 +67,15 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
             availability.unavailable("Not available on this operating system.");
             return;
         }
-        if (install != null) {
+        if (installDir != null) {
+            VisualStudioInstall install = new VisualStudioInstall(installDir);
             availability.mustExist("Visual Studio installation", install.getVisualStudioDir());
             availability.mustExist("Windows SDK", install.getWindowsSdkDir());
-        }
-        for (ToolType key : ToolType.values()) {
-            availability.mustExist(key.getToolName(), tools.locate(key));
+        } else {
+            // Locate tools in the path
+            for (ToolType key : ToolType.values()) {
+                availability.mustExist(key.getToolName(), tools.locate(key));
+            }
         }
     }
 
@@ -83,14 +85,18 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
 
     public void setInstallDir(Object installDirPath) {
         this.installDir = resolve(installDirPath);
-        this.install = new VisualStudioInstall(this.installDir);
-
-        tools.setPath(install.getPathEntries());
-        environment.clear();
-        environment.putAll(install.getEnvironment());
     }
 
     public PlatformToolChain target(Platform targetPlatform) {
+        checkAvailable();
+        // TODO:DAZ Even if installDir == null, we should attempt to locate a VisualStudioInstall to configure for non-default architectures.
+        if (installDir != null) {
+            VisualStudioInstall install = new VisualStudioInstall(installDir);
+
+            tools.setPath(install.getPathEntries(targetPlatform));
+            environment.clear();
+            environment.putAll(install.getEnvironment(targetPlatform));
+        }
         return new VisualCppPlatformToolChain();
     }
 
@@ -101,31 +107,26 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
 
     private class VisualCppPlatformToolChain implements PlatformToolChain {
         public <T extends BinaryToolSpec> Compiler<T> createCppCompiler() {
-            checkAvailable();
             CommandLineTool<CppCompileSpec> commandLineTool = commandLineTool(ToolType.CPP_COMPILER);
             return (Compiler<T>) new CppCompiler(commandLineTool);
         }
 
         public <T extends BinaryToolSpec> Compiler<T> createCCompiler() {
-            checkAvailable();
             CommandLineTool<CCompileSpec> commandLineTool = commandLineTool(ToolType.C_COMPILER);
             return (Compiler<T>) new CCompiler(commandLineTool);
         }
 
         public <T extends BinaryToolSpec> Compiler<T> createAssembler() {
-            checkAvailable();
             CommandLineTool<AssembleSpec> commandLineTool = commandLineTool(ToolType.ASSEMBLER);
             return (Compiler<T>) new Assembler(commandLineTool);
         }
 
         public <T extends LinkerSpec> Compiler<T> createLinker() {
-            checkAvailable();
             CommandLineTool<LinkerSpec> commandLineTool = commandLineTool(ToolType.LINKER);
             return (Compiler<T>) new LinkExeLinker(commandLineTool);
         }
 
         public <T extends StaticLibraryArchiverSpec> Compiler<T> createStaticLibraryArchiver() {
-            checkAvailable();
             CommandLineTool<StaticLibraryArchiverSpec> commandLineTool = commandLineTool(ToolType.STATIC_LIB_ARCHIVER);
             return (Compiler<T>) new LibExeStaticLibraryArchiver(commandLineTool);
         }

@@ -16,6 +16,8 @@
 
 package org.gradle.nativebinaries.toolchain.internal.msvcpp;
 
+import org.gradle.nativebinaries.Platform;
+
 import java.io.File;
 import java.util.*;
 
@@ -73,11 +75,11 @@ public class VisualStudioInstall {
         return installDir;
     }
 
-    public List<File> getPathEntries() {
+    public List<File> getPathEntries(Platform targetPlatform) {
         return pathEntries;
     }
 
-    public Map<String, String> getEnvironment() {
+    public Map<String, String> getEnvironment(Platform targetPlatform) {
         return environment;
     }
 

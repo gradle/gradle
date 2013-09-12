@@ -18,9 +18,23 @@ package org.gradle.nativebinaries.toolchain;
 
 import org.gradle.api.Incubating;
 
+import java.io.File;
+import java.util.List;
+
 /**
- * The Visual C++ tool chain.
+ * The GCC tool chain.
  */
 @Incubating
 public interface Gcc extends ConfigurableToolChain {
+    /**
+     * The paths setting required for executing the tool chain.
+     */
+    List<File> getPaths();
+    // TODO:DAZ Add a setter
+
+    /**
+     * Add an entry or entries to the tool chain path.
+     */
+    void path(Object... pathEntry);
+
 }

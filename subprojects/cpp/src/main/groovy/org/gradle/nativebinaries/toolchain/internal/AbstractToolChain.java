@@ -17,14 +17,13 @@
 package org.gradle.nativebinaries.toolchain.internal;
 
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativebinaries.internal.ToolChainAvailability;
 import org.gradle.nativebinaries.internal.ToolChainInternal;
 import org.gradle.nativebinaries.toolchain.ConfigurableToolChain;
 import org.gradle.nativebinaries.toolchain.Tool;
-import org.gradle.internal.os.OperatingSystem;
 
 import java.io.File;
-import java.util.List;
 
 public abstract class AbstractToolChain implements ToolChainInternal, ConfigurableToolChain {
     private final String name;
@@ -85,16 +84,6 @@ public abstract class AbstractToolChain implements ToolChainInternal, Configurab
 
     public String getStaticLibraryName(String libraryName) {
         return operatingSystem.getStaticLibraryName(libraryName);
-    }
-
-    public List<File> getPaths() {
-        return tools.getPath();
-    }
-
-    public void path(Object... paths) {
-        for (Object path : paths) {
-            tools.path(resolve(path));
-        }
     }
 
     protected File resolve(Object path) {

@@ -69,6 +69,16 @@ public class GccToolChain extends AbstractToolChain implements Gcc {
         return "GNU G++";
     }
 
+    public List<File> getPaths() {
+        return tools.getPath();
+    }
+
+    public void path(Object... paths) {
+        for (Object path : paths) {
+            tools.path(resolve(path));
+        }
+    }
+
     @Override
     protected void checkAvailable(ToolChainAvailability availability) {
         for (ToolType key : ToolType.values()) {
@@ -94,6 +104,7 @@ public class GccToolChain extends AbstractToolChain implements Gcc {
     }
 
     public PlatformToolChain target(Platform targetPlatform) {
+        checkAvailable();
         return new GccPlatformToolChain(targetPlatform);
     }
 
@@ -105,31 +116,26 @@ public class GccToolChain extends AbstractToolChain implements Gcc {
         }
 
         public <T extends BinaryToolSpec> Compiler<T> createCppCompiler() {
-            checkAvailable();
             CommandLineTool<CppCompileSpec> commandLineTool = commandLineTool(ToolType.CPP_COMPILER);
             return (Compiler<T>) new CppCompiler(commandLineTool, canUseCommandFile());
         }
 
         public <T extends BinaryToolSpec> Compiler<T> createCCompiler() {
-            checkAvailable();
             CommandLineTool<CCompileSpec> commandLineTool = commandLineTool(ToolType.C_COMPILER);
             return (Compiler<T>) new CCompiler(commandLineTool, canUseCommandFile());
         }
 
         public <T extends BinaryToolSpec> Compiler<T> createAssembler() {
-            checkAvailable();
             CommandLineTool<AssembleSpec> commandLineTool = commandLineTool(ToolType.ASSEMBLER);
             return (Compiler<T>) new Assembler(commandLineTool);
         }
 
         public <T extends LinkerSpec> Compiler<T> createLinker() {
-            checkAvailable();
             CommandLineTool<LinkerSpec> commandLineTool = commandLineTool(ToolType.LINKER);
             return (Compiler<T>) new GccLinker(commandLineTool, canUseCommandFile());
         }
 
         public <T extends StaticLibraryArchiverSpec> Compiler<T> createStaticLibraryArchiver() {
-            checkAvailable();
             CommandLineTool<StaticLibraryArchiverSpec> commandLineTool = commandLineTool(ToolType.STATIC_LIB_ARCHIVER);
             return (Compiler<T>) new ArStaticLibraryArchiver(commandLineTool);
         }
