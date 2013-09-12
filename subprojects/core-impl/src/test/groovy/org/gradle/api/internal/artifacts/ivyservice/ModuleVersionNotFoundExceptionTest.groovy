@@ -17,20 +17,18 @@ package org.gradle.api.internal.artifacts.ivyservice
 
 import spock.lang.Specification
 
-import static org.apache.ivy.core.module.id.ModuleRevisionId.newInstance
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
+import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 class ModuleVersionNotFoundExceptionTest extends Specification {
     def "formats message to include selector"() {
-        def exception1 = new ModuleVersionNotFoundException(newInstance("org", "a", "1.2"))
-        def exception2 = new ModuleVersionNotFoundException(newId("org", "a", "1.2"))
-        def exception3 = new ModuleVersionNotFoundException(newInstance("org", "a", "1.2"), "nothing matches %s")
+        def exception1 = new ModuleVersionNotFoundException(newId("org", "a", "1.2"))
+        def exception2 = new ModuleVersionNotFoundException(newSelector("org", "a", "1.2"))
 
         expect:
         exception1.message == 'Could not find org:a:1.2.'
-        exception2.message == 'Could not find org:a:1.2.'
-        exception3.message == 'nothing matches org:a:1.2'
+        exception2.message == 'Could not find any version that matches org:a:1.2.'
     }
 
     def "can add incoming paths to exception"() {
@@ -38,7 +36,7 @@ class ModuleVersionNotFoundExceptionTest extends Specification {
         def b = newId("org", "b", "5")
         def c = newId("org", "c", "1.0")
 
-        def exception = new ModuleVersionNotFoundException(newInstance("a", "b", "c"))
+        def exception = new ModuleVersionNotFoundException(newId("a", "b", "c"))
         def onePath = exception.withIncomingPaths([[a, b, c]])
 
         expect:

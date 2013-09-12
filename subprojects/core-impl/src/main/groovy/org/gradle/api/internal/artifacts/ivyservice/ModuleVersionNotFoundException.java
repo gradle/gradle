@@ -15,21 +15,13 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 
 public class ModuleVersionNotFoundException extends ModuleVersionResolveException {
+    @SuppressWarnings("UnusedDeclaration")
     public ModuleVersionNotFoundException(ModuleVersionSelector selector, String messageFormat) {
         super(selector, messageFormat);
-    }
-
-    public ModuleVersionNotFoundException(ModuleRevisionId id, String messageFormat) {
-        super(id, messageFormat);
-    }
-
-    public ModuleVersionNotFoundException(ModuleRevisionId id) {
-        super(id, "Could not find %s.");
     }
 
     public ModuleVersionNotFoundException(ModuleVersionSelector selector) {
