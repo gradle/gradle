@@ -64,6 +64,11 @@ executables {
     </tr>
 </table>
 
+// TODO:DAZ Expand on these
+* Define multiple tool chains to build native binary variants
+* Build binary variants for different custom flavors
+* Build binary variants for different target architectures
+
 ### FindBugs plugin provides new reporting capabilities
 
 * If the plugin is configured to produce an XML report, the output can be augmented with human-readable messages. The follow example demonstrates its use:
