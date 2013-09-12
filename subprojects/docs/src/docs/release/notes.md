@@ -114,8 +114,10 @@ The following are the newly deprecated items in this Gradle release. If you have
 We would like to thank the following community members for making contributions to this release of Gradle.
 
 <!--
-* [John Engelman](https://github.com/johnrengelman) - Existence of pom file requires that declared artifacts can be found in the same repository (GRADLE-2034)
-* [John Engelman](https://github.com/johnrengelman) - Fix publishing to Maven Local to follow Maven rules (GRADLE-2762)
+* [John Engelman](https://github.com/johnrengelman)
+    - Existence of pom file requires that declared artifacts can be found in the same repository (GRADLE-2034).
+    - Fix publishing to Maven Local to follow Maven rules (GRADLE-2762).
+* [Valdis Rigdon](https://github.com/valdisrigdon) - Adds the ability to specify xml:withMessages, text, or emacs for the FindBugs report.
 -->
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
