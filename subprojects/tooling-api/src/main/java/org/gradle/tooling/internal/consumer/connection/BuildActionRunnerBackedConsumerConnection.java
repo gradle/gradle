@@ -17,6 +17,7 @@
 package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
+import org.gradle.tooling.internal.consumer.converters.GradleBuildConverter;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
@@ -26,6 +27,7 @@ import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.build.BuildEnvironment;
 import org.gradle.tooling.model.eclipse.EclipseProject;
 import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject;
+import org.gradle.tooling.model.gradle.GradleBuild;
 import org.gradle.tooling.model.idea.BasicIdeaProject;
 import org.gradle.tooling.model.idea.IdeaProject;
 import org.gradle.tooling.model.internal.Exceptions;
@@ -47,12 +49,18 @@ public class BuildActionRunnerBackedConsumerConnection extends AbstractPost12Con
     }
 
     public <T> T run(Class<T> type, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
-        VersionDetails versionDetails = getVersionDetails();
-        if (!versionDetails.isModelSupported(type)) {
-            //don't bother asking the provider for this model
-            throw Exceptions.unsupportedModel(type, versionDetails.getVersion());
+        final VersionDetails versionDetails = getVersionDetails();
+        if (type == GradleBuild.class && !versionDetails.isModelSupported(GradleBuild.class)) {
+            Class<?> eclipseModelPrototypeType = modelMapping.getProtocolType(EclipseProject.class);
+            Object eclipseModel = buildActionRunner.run(eclipseModelPrototypeType, operationParameters).getModel();
+            final EclipseProject adapt = adapter.adapt(EclipseProject.class, eclipseModel);
+            return adapter.adapt(type, new GradleBuildConverter().convert(adapt));
         }
+        if (!versionDetails.isModelSupported(type)) {
+          //don't bother asking the provider for this model
+          throw Exceptions.unsupportedModel(type, versionDetails.getVersion());
 
+        }
         Class<?> protocolType = modelMapping.getProtocolType(type);
         Object model = buildActionRunner.run(protocolType, operationParameters).getModel();
         return adapter.adapt(type, model);
