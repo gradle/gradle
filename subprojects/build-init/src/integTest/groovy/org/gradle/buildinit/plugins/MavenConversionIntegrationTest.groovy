@@ -72,6 +72,24 @@ Root project 'webinar-parent'
 """))
     }
 
+    def "multiModuleWithNestedParent"() {
+        when:
+        run 'init'
+
+        then:
+        gradleFilesGenerated()
+
+        when:
+        run 'clean', 'build'
+
+        then: //smoke test the build artifacts
+        file("webinar-api/build/libs/webinar-api-1.0-SNAPSHOT.jar").exists()
+        file("webinar-impl/build/libs/webinar-impl-1.0-SNAPSHOT.jar").exists()
+        file("webinar-war/build/libs/webinar-war-1.0-SNAPSHOT.war").exists()
+
+        new DefaultTestExecutionResult(file("webinar-impl")).assertTestClassesExecuted('webinar.WebinarTest')
+    }
+
     def "flatmultimodule"() {
         when:
         executer.inDirectory(file("webinar-parent"))

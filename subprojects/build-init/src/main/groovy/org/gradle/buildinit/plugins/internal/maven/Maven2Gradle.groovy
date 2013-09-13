@@ -210,12 +210,14 @@ ${globalExclusions(this.effectivePom)}
         buffer.insert(0, ":${artifactId}")
         //we don't need the top-level parent in gradle, so we stop on it
         if (project.parent.artifactId.text() != allProjects[0].artifactId.text()) {
-            generateFqn(allProjects.find { fullProject ->
-                fullProject.artifactId.text() == project.parent.artifactId.text()
-            }, allProjects, buffer)
+            def parentInBuild = allProjects.find { proj ->
+                proj.artifactId.text() == project.parent.artifactId.text()
+            }
+            if (parentInBuild) {
+                generateFqn(parentInBuild, allProjects, buffer)
+            }
         }
     }
-
 
     def localRepoUri = {
         """mavenLocal()
@@ -444,8 +446,12 @@ artifacts.archives packageTests
         if (projects) {
             modulePoms.each { project ->
                 def fqn = fqn(project, projects)
-                artifactIdToDir[fqn] = GFileUtils.relativePath(workingDir, projectDir(project))
-                modules.append("'${fqn}', ")
+                File projectDirectory = projectDir(project)
+                // don't add project if it's the rootproject
+                if (!workingDir.equals(projectDirectory)) {
+                    artifactIdToDir[fqn] = GFileUtils.relativePath(workingDir, projectDirectory)
+                    modules.append("'${fqn}', ")
+                }
             }
             def strLength = modules.length()
             if (strLength > 2) {
