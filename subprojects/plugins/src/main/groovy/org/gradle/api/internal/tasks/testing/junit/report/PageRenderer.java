@@ -21,6 +21,7 @@ import org.gradle.api.internal.html.SimpleHtmlWriter;
 import org.gradle.reporting.ReportRenderer;
 import org.gradle.reporting.TabbedPageRenderer;
 import org.gradle.reporting.TabsRenderer;
+import org.gradle.util.GFileUtils;
 
 import java.io.IOException;
 
@@ -63,9 +64,9 @@ abstract class PageRenderer<T extends CompositeTestResults> extends TabbedPageRe
         htmlWriter.startElement("ul").attribute("class", "linkList");
         for (TestResult test : results.getFailures()) {
             htmlWriter.startElement("li");
-            htmlWriter.startElement("a").attribute("href", String.format("%s.html", test.getClassResults().getName())).characters(test.getClassResults().getSimpleName()).endElement();
+            htmlWriter.startElement("a").attribute("href", String.format("%s.html", asHtmlLinkEncoded(test.getClassResults().getName()))).characters(test.getClassResults().getSimpleName()).endElement();
             htmlWriter.characters(".");
-            htmlWriter.startElement("a").attribute("href", String.format("%s.html#%s", test.getClassResults().getName(), test.getName())).characters(test.getName()).endElement();
+            htmlWriter.startElement("a").attribute("href", String.format("%s.html#%s", asHtmlLinkEncoded(test.getClassResults().getName()), test.getName())).characters(test.getName()).endElement();
             htmlWriter.endElement();
         }
         htmlWriter.endElement();
@@ -143,5 +144,9 @@ abstract class PageRenderer<T extends CompositeTestResults> extends TabbedPageRe
                 renderTabs(htmlWriter);
             }
         };
+    }
+
+    protected String asHtmlLinkEncoded(String rawLink) {
+        return GFileUtils.toSafeFileName(rawLink).replaceAll("#", "%23");
     }
 }

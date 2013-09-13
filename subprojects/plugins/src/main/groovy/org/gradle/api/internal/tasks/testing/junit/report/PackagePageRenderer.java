@@ -17,6 +17,7 @@ package org.gradle.api.internal.tasks.testing.junit.report;
 
 import org.gradle.api.internal.ErroringAction;
 import org.gradle.api.internal.html.SimpleHtmlWriter;
+import org.gradle.util.GFileUtils;
 
 import java.io.IOException;
 
@@ -47,7 +48,7 @@ class PackagePageRenderer extends PageRenderer<PackageTestResults> {
         for (ClassTestResults testClass : getResults().getClasses()) {
             htmlWriter.startElement("tr");
             htmlWriter.startElement("td").attribute("class", testClass.getStatusClass());
-                htmlWriter.startElement("a").attribute("href", String.format("%s.html", testClass.getName())).characters(testClass.getSimpleName()).endElement();
+                htmlWriter.startElement("a").attribute("href", String.format("%s.html", asHtmlLinkEncoded(testClass.getName()))).characters(testClass.getSimpleName()).endElement();
             htmlWriter.endElement();
             htmlWriter.startElement("td").characters(Integer.toString(testClass.getTestCount())).endElement();
             htmlWriter.startElement("td").characters(Integer.toString(testClass.getFailureCount())).endElement();

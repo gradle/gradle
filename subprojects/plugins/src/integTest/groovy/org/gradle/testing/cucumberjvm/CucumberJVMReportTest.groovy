@@ -17,7 +17,7 @@
 package org.gradle.testing.cucumberjvm
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
+import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 import spock.lang.Issue
@@ -43,17 +43,17 @@ class CucumberJVMReportTest extends AbstractIntegrationSpec {
                testLogging.showStandardStreams = true
                testLogging.events  'started', 'passed', 'skipped', 'failed', 'standardOut', 'standardError'
                reports.junitXml.enabled = true
-               reports.html.enabled = false
+               reports.html.enabled = true
             }
         """
-
         when:
         run "test"
 
+        println testDirectory.absolutePath
         then:
         ":test" in nonSkippedTasks
         and:
-        JUnitXmlTestExecutionResult result = new JUnitXmlTestExecutionResult(testDirectory)
+        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted("RunCukesTest", "Scenario: Say hello /two/three")
     }
 }
