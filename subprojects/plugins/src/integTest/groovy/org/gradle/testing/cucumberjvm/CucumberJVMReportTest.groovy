@@ -23,6 +23,7 @@ import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Timeout
 import org.gradle.util.TestPrecondition
+import org.gradle.util.Requires
 
 class CucumberJVMReportTest extends AbstractIntegrationSpec {
 
