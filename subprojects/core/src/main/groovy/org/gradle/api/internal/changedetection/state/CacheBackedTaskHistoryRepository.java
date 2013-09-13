@@ -48,7 +48,6 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
             previousExecution.snapshotRepository = snapshotRepository;
             previousExecution.cacheAccess = cacheAccess;
         }
-        history.configurations.add(0, currentExecution);
 
         return new History() {
             public TaskExecution getPreviousExecution() {
@@ -62,6 +61,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
             public void update() {
                 cacheAccess.useCache("Update task history", new Runnable() {
                     public void run() {
+                        history.configurations.add(0, currentExecution);
                         if (currentExecution.inputFilesSnapshotId == null && currentExecution.inputFilesSnapshot != null) {
                             currentExecution.inputFilesSnapshotId = snapshotRepository.add(currentExecution.inputFilesSnapshot);
                         }
@@ -81,10 +81,6 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                         taskHistoryCache.put(task.getPath(), history);
                     }
                 });
-            }
-
-            public void removeCurrentExecution() {
-                history.configurations.remove(0);
             }
         };
     }
