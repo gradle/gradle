@@ -75,7 +75,7 @@ class HtmlTestExecutionResult implements TestExecutionResult {
     }
 
     TestClassExecutionResult testClass(String testClass) {
-        return new HtmlTestClassExecutionResult(new File(htmlReportDirectory, "${testClass}.html"));
+        return new HtmlTestClassExecutionResult(new File(htmlReportDirectory, "${toSafeFileName(testClass)}.html"));
     }
 
     private static class HtmlTestClassExecutionResult implements TestClassExecutionResult {

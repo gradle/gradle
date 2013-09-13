@@ -39,7 +39,7 @@ class JUnitXmlTestExecutionResult implements TestExecutionResult {
 
     TestExecutionResult assertTestClassesExecuted(String... testClasses) {
         Map<String, File> classes = findClasses()
-        assertThat((classes.keySet().collect {fromFileToTestClass(it)} as Set), equalTo(testClasses as Set));
+        assertThat(classes.keySet(), equalTo(testClasses as Set))
         this
     }
 
@@ -68,7 +68,7 @@ class JUnitXmlTestExecutionResult implements TestExecutionResult {
         buildDir.file('test-results').eachFile { File file ->
             def matcher = (file.name=~/TEST-(.+)\.xml/)
             if (matcher.matches()) {
-                classes[matcher.group(1)] = file
+                classes[fromFileToTestClass(matcher.group(1))] = file
             }
         }
         return classes
