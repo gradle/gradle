@@ -16,17 +16,14 @@
 
 package org.gradle.tooling.internal.gradle;
 
-import org.gradle.tooling.model.GradleProject;
-import org.gradle.tooling.model.GradleTask;
-
 import java.io.Serializable;
 
-public class DefaultGradleTask implements GradleTask, Serializable {
+public class DefaultGradleTask implements Serializable {
 
     String path;
     String name;
     String description;
-    GradleProject project;
+    PartialGradleProject project;
 
     public String getPath() {
         return path;
@@ -55,11 +52,11 @@ public class DefaultGradleTask implements GradleTask, Serializable {
         return this;
     }
 
-    public GradleProject getProject() {
+    public PartialGradleProject getProject() {
         return project;
     }
 
-    public DefaultGradleTask setProject(GradleProject project) {
+    public DefaultGradleTask setProject(PartialGradleProject project) {
         this.project = project;
         return this;
     }

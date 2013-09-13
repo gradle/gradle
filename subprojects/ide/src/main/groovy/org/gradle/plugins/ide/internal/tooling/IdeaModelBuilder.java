@@ -21,7 +21,7 @@ import org.gradle.plugins.ide.idea.IdeaPlugin;
 import org.gradle.plugins.ide.idea.model.*;
 import org.gradle.plugins.ide.internal.tooling.idea.*;
 import org.gradle.tooling.internal.gradle.DefaultGradleModuleVersion;
-import org.gradle.tooling.model.GradleProject;
+import org.gradle.tooling.internal.gradle.DefaultGradleProject;
 import org.gradle.tooling.model.idea.IdeaSourceDirectory;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 
@@ -39,7 +39,7 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
     public DefaultIdeaProject buildAll(String modelName, Project project) {
         Project root = project.getRootProject();
         applyIdeaPlugin(root);
-        GradleProject rootGradleProject = gradleProjectBuilder.buildAll(project);
+        DefaultGradleProject rootGradleProject = gradleProjectBuilder.buildAll(project);
         return build(root, rootGradleProject);
     }
 
@@ -51,7 +51,7 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
         root.getPlugins().getPlugin(IdeaPlugin.class).makeSureModuleNamesAreUnique();
     }
 
-    private DefaultIdeaProject build(Project project, GradleProject rootGradleProject) {
+    private DefaultIdeaProject build(Project project, DefaultGradleProject rootGradleProject) {
         IdeaModel ideaModel = project.getPlugins().getPlugin(IdeaPlugin.class).getModel();
         IdeaProject projectModel = ideaModel.getProject();
 
@@ -102,7 +102,7 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
         modules.get(ideaModule.getName()).setDependencies(dependencies);
     }
 
-    private void appendModule(Map<String, DefaultIdeaModule> modules, IdeaModule ideaModule, DefaultIdeaProject ideaProject, GradleProject rootGradleProject) {
+    private void appendModule(Map<String, DefaultIdeaModule> modules, IdeaModule ideaModule, DefaultIdeaProject ideaProject, DefaultGradleProject rootGradleProject) {
         DefaultIdeaContentRoot contentRoot = new DefaultIdeaContentRoot()
             .setRootDirectory(ideaModule.getContentRoot())
             .setSourceDirectories(srcDirs(ideaModule.getSourceDirs()))

@@ -18,16 +18,14 @@ package org.gradle.tooling.internal.consumer.converters
 
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.tooling.internal.gradle.DefaultGradleBuild
-import org.gradle.tooling.internal.gradle.DefaultGradleProject
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3
+import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.eclipse.EclipseProject
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class GradleBuildConverterTest extends Specification {
-
-
     @Shared
     TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
@@ -95,9 +93,10 @@ class GradleBuildConverterTest extends Specification {
     }
 
     EclipseProject eclipseProject(String projectName, String path, EclipseProject... children) {
-        DefaultGradleProject gradleProject = new DefaultGradleProject()
-        gradleProject.path = path
-        gradleProject.name = projectName
+        GradleProject gradleProject = Mock() {
+            getPath() >> path
+            getName() >> projectName
+        }
 
         EclipseProject eclipseProject = Mock(EclipseProject)
         _ * eclipseProject.getGradleProject() >> gradleProject
@@ -119,7 +118,7 @@ class GradleBuildConverterTest extends Specification {
         } else {
             _ * eclipseProject.getProjectDirectory() >> temporaryFolder.testDirectory.file(path.substring(1).replace(":", "/"))
         }
-        eclipseProject.children >> (Arrays.asList(children) as org.gradle.tooling.model.DomainObjectSet)
+        eclipseProject.children >> Arrays.asList(children)
         eclipseProject
     }
 }

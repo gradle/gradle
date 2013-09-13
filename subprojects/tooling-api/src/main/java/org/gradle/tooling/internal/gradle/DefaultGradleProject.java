@@ -17,112 +17,54 @@
 package org.gradle.tooling.internal.gradle;
 
 import org.gradle.tooling.internal.protocol.InternalGradleProject;
-import org.gradle.tooling.model.DomainObjectSet;
-import org.gradle.tooling.model.GradleProject;
-import org.gradle.tooling.model.GradleTask;
-import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
 
 import java.io.File;
 import java.io.Serializable;
-import java.util.LinkedList;
 import java.util.List;
 
-public class DefaultGradleProject implements InternalGradleProject, GradleProject, Serializable, GradleProjectIdentity {
-
-    private String name;
-    private String description;
-    private String path;
-    private GradleProject parent;
-    private List<? extends GradleProject> children = new LinkedList<GradleProject>();
-    private List<GradleTask> tasks = new LinkedList<GradleTask>();
+public class DefaultGradleProject extends PartialGradleProject implements InternalGradleProject, Serializable, GradleProjectIdentity {
     private DefaultGradleScript buildScript = new DefaultGradleScript();
 
     public DefaultGradleProject() {}
 
     public DefaultGradleProject(String path) {
-        this.path = path;
+        super(path);
     }
 
-    public String getName() {
-        return name;
-    }
-
+    @Override
     public DefaultGradleProject setName(String name) {
-        this.name = name;
+        super.setName(name);
         return this;
     }
 
-    public String getDescription() {
-        return description;
-    }
-
-    public DefaultGradleProject setDescription(String description) {
-        this.description = description;
-        return this;
-    }
-
-    public GradleProject getParent() {
-        return parent;
-    }
-
-    public DefaultGradleProject setParent(GradleProject parent) {
-        this.parent = parent;
-        return this;
-    }
-
-    public DomainObjectSet<? extends GradleProject> getChildren() {
-        return new ImmutableDomainObjectSet<GradleProject>(children);
-    }
-
-    public DefaultGradleProject setChildren(List<? extends GradleProject> children) {
-        this.children = children;
-        return this;
-    }
-
-    public DomainObjectSet<GradleTask> getTasks() {
-        return new ImmutableDomainObjectSet<GradleTask>(tasks);
-    }
-
-    public DefaultGradleProject setTasks(List<GradleTask> tasks) {
-        this.tasks = tasks;
-        return this;
-    }
-
-    public String getPath() {
-        return path;
-    }
-
+    @Override
     public DefaultGradleProject setPath(String path) {
-        this.path = path;
+        super.setPath(path);
         return this;
     }
 
-    public File getProjectDirectory() {
-        throw new RuntimeException("ProjectVersion3 methods are deprecated.");
+    @Override
+    public DefaultGradleProject setDescription(String description) {
+        super.setDescription(description);
+        return this;
     }
 
-    public GradleProject findByPath(String path) {
-        if (path.equals(this.path)) {
-            return this;
-        }
-        for (GradleProject child : children) {
-            GradleProject found = child.findByPath(path);
-            if (found != null) {
-                return found;
-            }
-        }
-
-        return null;
+    @Override
+    public DefaultGradleProject setChildren(List<? extends PartialGradleProject> children) {
+        super.setChildren(children);
+        return this;
     }
 
     public DefaultGradleScript getBuildScript() {
         return buildScript;
     }
 
-    public String toString() {
-        return "GradleProject{"
-                + "path='" + path + '\''
-                + "tasks='" + tasks + '\''
-                + '}';
+    public File getProjectDirectory() {
+        throw new RuntimeException("ProjectVersion3 methods are deprecated.");
+    }
+
+    @Override
+    public DefaultGradleProject findByPath(String path) {
+        return (DefaultGradleProject) super.findByPath(path);
     }
 }
