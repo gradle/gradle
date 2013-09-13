@@ -17,7 +17,6 @@ package org.gradle.api.internal.tasks.testing.junit.report;
 
 import org.gradle.api.internal.ErroringAction;
 import org.gradle.api.internal.html.SimpleHtmlWriter;
-import org.gradle.util.GFileUtils;
 
 import java.io.IOException;
 
