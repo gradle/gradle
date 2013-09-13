@@ -67,8 +67,10 @@ ext {
 
     allDistImage = copySpec {
         with binDistImage
-        into('src') {
-            from groovyProjects.collect {project -> project.sourceSets.main.allSource }
+        groovyProjects.each { project ->
+            into("src/$project.projectDir.name") {
+                from project.sourceSets.main.allSource
+            }
         }
         into('docs') {
             from project(':docs').outputs.docs

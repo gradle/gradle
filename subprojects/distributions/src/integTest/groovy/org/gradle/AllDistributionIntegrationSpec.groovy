@@ -36,10 +36,11 @@ class AllDistributionIntegrationSpec extends DistributionIntegrationSpec {
         checkMinimalContents(contentsDir)
 
         // Source
-        contentsDir.file('src/org/gradle/api/Project.java').assertIsFile()
-        contentsDir.file('src/org/gradle/initialization/buildsrc/defaultBuildSourceScript.txt').assertIsFile()
-        contentsDir.file('src/org/gradle/gradleplugin/userinterface/swing/standalone/BlockingApplication.java').assertIsFile()
-        contentsDir.file('src/org/gradle/wrapper/WrapperExecutor.java').assertIsFile()
+        contentsDir.file('src').eachFile { TestFile file -> file.assertIsDir() }
+        contentsDir.file('src/core/org/gradle/api/Project.java').assertIsFile()
+        contentsDir.file('src/core/org/gradle/initialization/buildsrc/defaultBuildSourceScript.txt').assertIsFile()
+        contentsDir.file('src/ui/org/gradle/gradleplugin/userinterface/swing/standalone/BlockingApplication.java').assertIsFile()
+        contentsDir.file('src/wrapper/org/gradle/wrapper/WrapperExecutor.java').assertIsFile()
 
         // Samples
         contentsDir.file('samples/java/quickstart/build.gradle').assertIsFile()
