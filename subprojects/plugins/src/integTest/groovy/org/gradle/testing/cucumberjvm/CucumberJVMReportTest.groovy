@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Timeout
+import org.gradle.util.TestPrecondition
 
 class CucumberJVMReportTest extends AbstractIntegrationSpec {
 
@@ -29,6 +30,7 @@ class CucumberJVMReportTest extends AbstractIntegrationSpec {
 
     @Timeout(30)
     @Issue("http://issues.gradle.org/browse/GRADLE-2739")
+    @Requires(TestPrecondition.NON_JDK5)
     def testReportingSupportsCucumberStepsWithSlashes() {
         given:
         buildFile << """
