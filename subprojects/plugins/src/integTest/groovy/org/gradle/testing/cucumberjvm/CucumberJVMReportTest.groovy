@@ -31,7 +31,7 @@ class CucumberJVMReportTest extends AbstractIntegrationSpec {
 
     @Timeout(30)
     @Issue("http://issues.gradle.org/browse/GRADLE-2739")
-    @Requires(TestPrecondition.NON_JDK5)
+    @Requires(TestPrecondition.NOT_JDK5)
     def testReportingSupportsCucumberStepsWithSlashes() {
         given:
         buildFile << """
