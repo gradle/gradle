@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationCont
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
+import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TemporaryFileProvider
@@ -68,6 +69,7 @@ class DefaultDependencyManagementServicesTest extends Specification {
         _ * parent.get(TemporaryFileProvider) >> Mock(TemporaryFileProvider)
         _ * parent.get(ProjectAccessListener) >> Mock(ProjectAccessListener)
         _ * parent.get(FileResolver) >> Stub(FileResolver)
+        _ * parent.get(IvyContextManager) >> Stub(IvyContextManager)
     }
 
     private CacheRepository initCacheRepository() {

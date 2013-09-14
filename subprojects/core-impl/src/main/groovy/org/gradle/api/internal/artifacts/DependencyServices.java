@@ -14,17 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.service.scopes;
+package org.gradle.api.internal.artifacts;
 
 import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.scopes.PluginServiceRegistry;
 
-/**
- * Can be implemented by plugins to provide services in various scopes.
- *
- * <p>Implementations are discovered using the JAR service locator mechanism (see {@link org.gradle.internal.service.ServiceLocator}).
- */
-public interface PluginServiceRegistry {
-    void registerGlobalServices(ServiceRegistration registration);
+public class DependencyServices implements PluginServiceRegistry {
+    public void registerGlobalServices(ServiceRegistration registration) {
+        registration.addProvider(new DependencyManagementGlobalScopeServices());
+    }
 
-    void registerBuildServices(ServiceRegistration registration);
+    public void registerBuildServices(ServiceRegistration registration) {
+        registration.addProvider(new DependencyManagementBuildScopeServices());
+    }
+
 }

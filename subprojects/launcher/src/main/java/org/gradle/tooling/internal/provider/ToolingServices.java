@@ -16,13 +16,14 @@
 
 package org.gradle.tooling.internal.provider;
 
-import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
-import org.gradle.internal.service.ServiceRegistry;
 
 public class ToolingServices implements PluginServiceRegistry {
-    public ServiceRegistry createGlobalServices(ServiceRegistry parent) {
-        return new DefaultServiceRegistry().addProvider(new ToolingGlobalScopeServices());
+    public void registerGlobalServices(ServiceRegistration registration) {
+        registration.addProvider(new ToolingGlobalScopeServices());
     }
 
+    public void registerBuildServices(ServiceRegistration registration) {
+    }
 }

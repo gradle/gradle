@@ -13,18 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.api.internal.artifacts
 
-package org.gradle.internal.service.scopes;
+import org.gradle.internal.service.DefaultServiceRegistry
+import spock.lang.Specification
 
-import org.gradle.internal.service.ServiceRegistration;
+class DependencyManagementBuildScopeServicesTest extends Specification {
+    def services = new DefaultServiceRegistry().addProvider(new DependencyManagementBuildScopeServices())
 
-/**
- * Can be implemented by plugins to provide services in various scopes.
- *
- * <p>Implementations are discovered using the JAR service locator mechanism (see {@link org.gradle.internal.service.ServiceLocator}).
- */
-public interface PluginServiceRegistry {
-    void registerGlobalServices(ServiceRegistration registration);
-
-    void registerBuildServices(ServiceRegistration registration);
+    def "provides a DependencyManagementServices"() {
+        expect:
+        services.get(DependencyManagementServices) instanceof DefaultDependencyManagementServices
+    }
 }

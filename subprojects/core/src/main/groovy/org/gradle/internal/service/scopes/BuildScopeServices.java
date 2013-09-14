@@ -17,6 +17,7 @@
 package org.gradle.internal.service.scopes;
 
 import org.gradle.StartParameter;
+import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.internal.*;
@@ -54,7 +55,7 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.id.LongIdGenerator;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
-import org.gradle.internal.service.ServiceLocator;
+import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.invocation.BuildClassLoaderRegistry;
 import org.gradle.invocation.DefaultBuildClassLoaderRegistry;
@@ -73,12 +74,16 @@ import org.gradle.profile.ProfileListener;
  * Contains the singleton services for a single build invocation.
  */
 public class BuildScopeServices extends DefaultServiceRegistry implements ServiceRegistryFactory {
-    private final StartParameter startParameter;
-
     public BuildScopeServices(final ServiceRegistry parent, final StartParameter startParameter) {
         super(parent);
-        this.startParameter = startParameter;
-        add(StartParameter.class, startParameter);
+        register(new Action<ServiceRegistration>() {
+            public void execute(ServiceRegistration registration) {
+                add(StartParameter.class, startParameter);
+                for (PluginServiceRegistry pluginServiceRegistry : parent.getAll(PluginServiceRegistry.class)) {
+                    pluginServiceRegistry.registerBuildServices(registration);
+                }
+            }
+        });
     }
 
     protected ImportsReader createImportsReader() {
@@ -113,7 +118,7 @@ public class BuildScopeServices extends DefaultServiceRegistry implements Servic
     }
 
     protected IGradlePropertiesLoader createGradlePropertiesLoader() {
-        return new DefaultGradlePropertiesLoader(startParameter);
+        return new DefaultGradlePropertiesLoader(get(StartParameter.class));
     }
 
     protected BuildLoader createBuildLoader() {
@@ -128,6 +133,7 @@ public class BuildScopeServices extends DefaultServiceRegistry implements Servic
 
     protected CacheRepository createCacheRepository() {
         CacheFactory factory = get(CacheFactory.class);
+        StartParameter startParameter = get(StartParameter.class);
         return new DefaultCacheRepository(startParameter.getGradleUserHomeDir(), startParameter.getProjectCacheDir(),
                 startParameter.getCacheUsage(), factory);
     }
@@ -218,7 +224,7 @@ public class BuildScopeServices extends DefaultServiceRegistry implements Servic
     protected Factory<WorkerProcessBuilder> createWorkerProcessFactory() {
         ClassPathRegistry classPathRegistry = get(ClassPathRegistry.class);
         return new DefaultWorkerProcessFactory(
-                startParameter.getLogLevel(),
+                get(StartParameter.class).getLogLevel(),
                 get(MessagingServer.class),
                 classPathRegistry,
                 get(FileResolver.class),
@@ -239,12 +245,6 @@ public class BuildScopeServices extends DefaultServiceRegistry implements Servic
 
     protected PluginRegistry createPluginRegistry() {
         return new DefaultPluginRegistry(get(ClassLoaderRegistry.class).getPluginsClassLoader(), new DependencyInjectingInstantiator(this));
-    }
-
-    protected DependencyManagementServices createDependencyManagementServices() {
-        ClassLoader coreImplClassLoader = get(ClassLoaderRegistry.class).getCoreImplClassLoader();
-        ServiceLocator serviceLocator = new ServiceLocator(coreImplClassLoader);
-        return serviceLocator.getFactory(DependencyManagementServices.class).newInstance(this);
     }
 
     public ServiceRegistryFactory createFor(Object domainObject) {

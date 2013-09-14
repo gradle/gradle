@@ -17,6 +17,7 @@
 package org.gradle.internal.service.scopes;
 
 import org.gradle.StartParameter;
+import org.gradle.api.Action;
 import org.gradle.api.internal.*;
 import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
@@ -31,6 +32,8 @@ import org.gradle.cache.internal.locklistener.FileLockContentionHandler;
 import org.gradle.cli.CommandLineConverter;
 import org.gradle.initialization.*;
 import org.gradle.internal.Factory;
+import org.gradle.internal.classloader.ClassLoaderFactory;
+import org.gradle.internal.classloader.DefaultClassLoaderFactory;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.nativeplatform.ProcessEnvironment;
@@ -40,6 +43,7 @@ import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceLocator;
+import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.listener.DefaultListenerManager;
 import org.gradle.listener.ListenerManager;
@@ -47,8 +51,6 @@ import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.messaging.remote.MessagingServer;
 import org.gradle.messaging.remote.internal.MessagingServices;
 import org.gradle.messaging.remote.internal.inet.InetAddressFactory;
-import org.gradle.internal.classloader.ClassLoaderFactory;
-import org.gradle.internal.classloader.DefaultClassLoaderFactory;
 
 import java.util.List;
 
@@ -63,10 +65,16 @@ public class GlobalScopeServices extends DefaultServiceRegistry {
     public GlobalScopeServices(ServiceRegistry loggingServices) {
         super(loggingServices);
         add(NativeServices.getInstance());
-        List<PluginServiceRegistry> pluginServiceFactories = new ServiceLocator(get(ClassLoaderRegistry.class).getRuntimeClassLoader()).getAll(PluginServiceRegistry.class);
-        for (PluginServiceRegistry pluginServiceRegistry : pluginServiceFactories) {
-            add(pluginServiceRegistry.createGlobalServices(this));
-        }
+        ClassLoaderRegistry classLoaderRegistry = get(ClassLoaderRegistry.class);
+        final List<PluginServiceRegistry> pluginServiceFactories = new ServiceLocator(classLoaderRegistry.getRuntimeClassLoader(), classLoaderRegistry.getCoreImplClassLoader()).getAll(PluginServiceRegistry.class);
+        register(new Action<ServiceRegistration>() {
+            public void execute(ServiceRegistration registration) {
+                for (PluginServiceRegistry pluginServiceRegistry : pluginServiceFactories) {
+                    registration.add(PluginServiceRegistry.class, pluginServiceRegistry);
+                    pluginServiceRegistry.registerGlobalServices(registration);
+                }
+            }
+        });
     }
 
     protected GradleLauncherFactory createGradleLauncherFactory() {

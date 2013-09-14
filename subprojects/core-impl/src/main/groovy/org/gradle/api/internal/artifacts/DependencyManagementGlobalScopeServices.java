@@ -14,17 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.service.scopes;
+package org.gradle.api.internal.artifacts;
 
-import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyContextManager;
+import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
 
-/**
- * Can be implemented by plugins to provide services in various scopes.
- *
- * <p>Implementations are discovered using the JAR service locator mechanism (see {@link org.gradle.internal.service.ServiceLocator}).
- */
-public interface PluginServiceRegistry {
-    void registerGlobalServices(ServiceRegistration registration);
-
-    void registerBuildServices(ServiceRegistration registration);
+class DependencyManagementGlobalScopeServices {
+    IvyContextManager createIvyContextManager() {
+        return new DefaultIvyContextManager();
+    }
 }

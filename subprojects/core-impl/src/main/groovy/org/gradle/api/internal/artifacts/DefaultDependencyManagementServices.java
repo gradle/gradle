@@ -40,7 +40,9 @@ import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.SingleFileBa
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.StartParameterResolutionOverride;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache.InMemoryDependencyMetadataCache;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.*;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestVersionStrategy;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.DefaultModuleMetaDataCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetaDataCache;
@@ -52,9 +54,9 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.Resoluti
 import org.gradle.api.internal.artifacts.mvnsettings.*;
 import org.gradle.api.internal.artifacts.repositories.DefaultBaseRepositoryFactory;
 import org.gradle.api.internal.artifacts.repositories.cachemanager.DownloadingRepositoryArtifactCache;
+import org.gradle.api.internal.artifacts.repositories.cachemanager.LocalFileRepositoryArtifactCache;
 import org.gradle.api.internal.artifacts.repositories.legacy.CustomIvyResolverRepositoryFactory;
 import org.gradle.api.internal.artifacts.repositories.legacy.DownloadingRepositoryCacheManager;
-import org.gradle.api.internal.artifacts.repositories.cachemanager.LocalFileRepositoryArtifactCache;
 import org.gradle.api.internal.artifacts.repositories.legacy.LegacyDependencyResolverRepositoryFactory;
 import org.gradle.api.internal.artifacts.repositories.legacy.LocalFileRepositoryCacheManager;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
@@ -216,10 +218,6 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
 
     protected ArtifactRevisionIdFileStore createArtifactRevisionIdFileStore() {
         return new ArtifactRevisionIdFileStore(get(PathKeyFileStore.class), new TmpDirTemporaryFileProvider());
-    }
-
-    protected IvyContextManager createIvyContextManager() {
-        return new DefaultIvyContextManager();
     }
 
     protected MavenSettingsProvider createMavenSettingsProvider() {

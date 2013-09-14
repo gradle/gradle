@@ -18,6 +18,7 @@ package org.gradle.internal.service.scopes
 
 import org.gradle.StartParameter
 import org.gradle.api.internal.*
+import org.gradle.api.internal.artifacts.DependencyManagementServices
 import org.gradle.api.internal.classpath.DefaultModuleRegistry
 import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.classpath.PluginModuleRegistry
@@ -63,7 +64,9 @@ public class BuildScopeServicesTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     StartParameter startParameter = new StartParameter()
-    ServiceRegistry parent = Mock()
+    ServiceRegistry parent = Mock() {
+        getAll(PluginServiceRegistry) >> []
+    }
     Factory<CacheFactory> cacheFactoryFactory = Mock()
     ClosableCacheFactory cacheFactory = Mock()
     ClassLoaderRegistry classLoaderRegistry = Mock()
@@ -78,6 +81,7 @@ public class BuildScopeServicesTest extends Specification {
         parent.getFactory(LoggingManagerInternal) >> Stub(Factory)
         parent.get(ModuleRegistry) >> new DefaultModuleRegistry()
         parent.get(PluginModuleRegistry) >> Stub(PluginModuleRegistry)
+        parent.get(DependencyManagementServices) >> Stub(DependencyManagementServices)
         parent.get(Instantiator) >> ThreadGlobalInstantiator.getOrCreate()
         parent.get(FileResolver) >> Stub(FileResolver)
     }

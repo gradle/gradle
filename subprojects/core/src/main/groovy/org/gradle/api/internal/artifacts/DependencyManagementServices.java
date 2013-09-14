@@ -19,7 +19,6 @@ import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.internal.service.ServiceRegistry;
 
 /**
  * Factory for various types related to dependency management.
@@ -29,7 +28,7 @@ import org.gradle.internal.service.ServiceRegistry;
  * different class loader. This helps to prevent version conflicts,
  * for example between Maven 2 and Maven 3 libraries.
  */
-public interface DependencyManagementServices extends ServiceRegistry {
+public interface DependencyManagementServices {
     DependencyResolutionServices create(FileResolver resolver, DependencyMetaDataProvider dependencyMetaDataProvider,
                                         ProjectFinder projectFinder, DomainObjectContext domainObjectContext);
 }
