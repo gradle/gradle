@@ -44,7 +44,7 @@ class BinaryPlatformIntegrationTest extends AbstractIntegrationSpec {
        toolChain.resetEnvironment()
     }
 
-    @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+    @Requires([TestPrecondition.CAN_INSTALL_EXECUTABLE, TestPrecondition.NOT_WINDOWS])
     def "build binary for multiple target platforms"() {
         when:
         buildFile << """
