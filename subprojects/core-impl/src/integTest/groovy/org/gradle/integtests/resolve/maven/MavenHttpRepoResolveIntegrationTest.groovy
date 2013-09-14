@@ -63,10 +63,10 @@ task retrieve(type: Sync) {
         def snapshot = file('libs/projectA-1.0.jar').snapshot()
 
         and:
-        progressLogging.downloadProgressLogged(projectA.pom.uri.toString())
-        progressLogging.downloadProgressLogged(projectA.artifact.uri.toString())
-        progressLogging.downloadProgressLogged(projectB.pom.uri.toString())
-        progressLogging.downloadProgressLogged(projectB.artifact.uri.toString())
+        progressLogging.downloadProgressLogged(projectA.pom.uri)
+        progressLogging.downloadProgressLogged(projectA.artifact.uri)
+        progressLogging.downloadProgressLogged(projectB.pom.uri)
+        progressLogging.downloadProgressLogged(projectB.artifact.uri)
 
         when:
         server.resetExpectations()

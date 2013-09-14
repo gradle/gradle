@@ -58,8 +58,8 @@ task listJars << {
         succeeds 'listJars'
 
         and:
-        progressLogging.downloadProgressLogged(module.ivyFileUri)
-        progressLogging.downloadProgressLogged(module.jarFileUri)
+        progressLogging.downloadProgressLogged(module.ivy.uri)
+        progressLogging.downloadProgressLogged(module.jar.uri)
 
         when:
         server.resetExpectations()

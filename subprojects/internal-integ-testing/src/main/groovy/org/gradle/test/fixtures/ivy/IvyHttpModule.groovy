@@ -81,16 +81,8 @@ class IvyHttpModule implements IvyModule {
         return this
     }
 
-    String getIvyFileUri() {
-        return "http://localhost:${server.port}$prefix/$ivyFile.name"
-    }
-
     TestFile getIvyFile() {
         return backingModule.ivyFile
-    }
-
-    String getJarFileUri() {
-        return "http://localhost:${server.port}$prefix/$jarFile.name"
     }
 
     TestFile getJarFile() {

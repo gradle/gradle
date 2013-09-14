@@ -19,8 +19,48 @@ package org.gradle.integtests.resolve.maven
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 
 class MavenBrokenRemoteResolveIntegrationTest extends AbstractDependencyResolutionTest {
-    public void "reports POM that cannot be parsed"() {
+    public void "reports and recovers from failed POM download"() {
         server.start()
+
+        given:
+        def module = mavenHttpRepo.module('group', 'projectA', '1.3').publish()
+
+        buildFile << """
+repositories {
+    maven {
+        url "${ivyHttpRepo.uri}"
+    }
+}
+configurations { broken }
+dependencies {
+    broken 'group:projectA:1.3'
+}
+task showBroken << { println configurations.broken.files }
+"""
+
+        when:
+        module.pom.expectGetBroken()
+        fails("showBroken")
+
+        then:
+        failure
+            .assertHasDescription('Execution failed for task \':showBroken\'.')
+            .assertResolutionFailure(':broken')
+            .assertHasCause('Could not resolve group:projectA:1.3.')
+            .assertHasCause("Could not GET '${module.pom.uri}'. Received status code 500 from server: broken")
+
+        when:
+        server.resetExpectations()
+        module.pom.expectGet()
+        module.artifact.expectGet()
+
+        then:
+        succeeds("showBroken")
+    }
+
+    public void "reports and recovers from failed artifact download"() {
+        server.start()
+
         given:
         buildFile << """
 repositories {
@@ -32,19 +72,30 @@ configurations { compile }
 dependencies {
     compile 'group:projectA:1.2'
 }
-task showBroken << { println configurations.compile.files }
+task retrieve(type: Sync) {
+    from configurations.compile
+    into 'libs'
+}
 """
 
         and:
         def module = mavenHttpRepo.module('group', 'projectA', '1.2').publish()
-        module.pomFile.text = "<project>"
 
         when:
         module.pom.expectGet()
+        module.artifact.expectGetBroken()
 
         then:
-        fails "showBroken"
-        failure.assertResolutionFailure(":compile")
-            .assertHasCause("Could not parse POM ${module.pom.uri}")
+        fails "retrieve"
+        failure.assertHasCause("Could not download artifact 'group:projectA:1.2@jar'")
+        failure.assertHasCause("Could not GET '${module.artifact.uri}'. Received status code 500 from server: broken")
+
+        when:
+        server.resetExpectations()
+        module.artifact.expectGet()
+
+        then:
+        succeeds "retrieve"
+        file('libs').assertHasDescendants('projectA-1.2.jar')
     }
 }

@@ -87,8 +87,8 @@ credentials {
         module.jarFile.assertIsCopyOf(file('build/libs/publish-2.jar'))
 
         and:
-        progressLogging.uploadProgressLogged(module.ivyFileUri)
-        progressLogging.uploadProgressLogged(module.jarFileUri)
+        progressLogging.uploadProgressLogged(module.ivy.uri)
+        progressLogging.uploadProgressLogged(module.jar.uri)
     }
 
     @Unroll
@@ -137,8 +137,8 @@ credentials {
         module.jarFile.assertIsCopyOf(file('build/libs/publish-2.jar'))
 
         and:
-        progressLogging.uploadProgressLogged(module.ivyFileUri)
-        progressLogging.uploadProgressLogged(module.jarFileUri)
+        progressLogging.uploadProgressLogged(module.ivy.uri)
+        progressLogging.uploadProgressLogged(module.jar.uri)
 
         where:
         authScheme << [HttpServer.AuthScheme.BASIC, HttpServer.AuthScheme.DIGEST]

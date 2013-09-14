@@ -84,4 +84,104 @@ class BadPomFileResolveIntegrationTest extends AbstractDependencyResolutionTest 
         succeeds ":libs"
         succeeds ":libs"
     }
+
+    public void "reports POM that cannot be parsed"() {
+        server.start()
+        given:
+        buildFile << """
+repositories {
+    maven {
+        url "${mavenHttpRepo.uri}"
+    }
+}
+configurations { compile }
+dependencies {
+    compile 'group:projectA:1.2'
+}
+task showBroken << { println configurations.compile.files }
+"""
+
+        and:
+        def module = mavenHttpRepo.module('group', 'projectA', '1.2').publish()
+        module.pomFile.text = "<project/>"
+
+        when:
+        module.pom.expectGet()
+
+        then:
+        fails "showBroken"
+        failure.assertResolutionFailure(":compile")
+            .assertHasCause("Could not parse POM ${module.pom.uri}")
+            .assertHasCause("null name not allowed")
+    }
+
+    def "reports missing parent POM"() {
+        given:
+        server.start()
+
+        def parent = mavenHttpRepo.module("org", "parent", "1.0")
+
+        def child = mavenHttpRepo.module("org", "child", "1.0")
+        child.parent("org", "parent", "1.0")
+        child.publish()
+
+        buildFile << """
+repositories {
+    maven { url '${mavenHttpRepo.uri}' }
+}
+configurations { compile }
+dependencies { compile 'org:child:1.0' }
+task showBroken << { println configurations.compile.files }
+"""
+
+        when:
+        child.pom.expectGet()
+        parent.pom.expectGetMissing()
+
+        // Will always check for a default artifact with a module with 'pom' packaging
+        // TODO - should not make this request
+        parent.artifact.expectHeadMissing()
+
+        and:
+        fails 'showBroken'
+
+        then:
+        failure.assertResolutionFailure(':compile')
+                .assertHasCause("Could not parse POM ${child.pom.uri}")
+                .assertHasCause("Could not find any version that matches org:parent:1.0.")
+    }
+
+    def "reports parent POM that cannot be parsed"() {
+        given:
+        server.start()
+
+        def parent = mavenHttpRepo.module("org", "parent", "1.0").publish()
+        parent.pomFile.text = "<project/>"
+
+        def child = mavenHttpRepo.module("org", "child", "1.0")
+        child.parent("org", "parent", "1.0")
+        child.publish()
+
+        buildFile << """
+repositories {
+    maven { url '${mavenHttpRepo.uri}' }
+}
+configurations { compile }
+dependencies { compile 'org:child:1.0' }
+task showBroken << { println configurations.compile.files }
+"""
+
+        when:
+        child.pom.expectGet()
+        parent.pom.expectGet()
+
+        and:
+        fails 'showBroken'
+
+        then:
+        failure.assertResolutionFailure(":compile")
+            .assertHasCause("Could not parse POM ${child.pom.uri}")
+            .assertHasCause("Could not parse POM ${parent.pom.uri}")
+            .assertHasCause("null name not allowed")
+    }
 }

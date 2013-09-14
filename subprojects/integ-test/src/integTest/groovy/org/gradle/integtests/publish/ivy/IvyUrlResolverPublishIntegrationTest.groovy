@@ -69,7 +69,7 @@ uploadArchives {
         module.jarFile.assertIsCopyOf(file('build/libs/publish-2.jar'))
 
         and:
-        progressLogging.uploadProgressLogged(module.jarFileUri)
-        progressLogging.uploadProgressLogged(module.ivyFileUri)
+        progressLogging.uploadProgressLogged(module.jar.uri)
+        progressLogging.uploadProgressLogged(module.ivy.uri)
     }
 }
