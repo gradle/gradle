@@ -61,13 +61,18 @@ class IvyHttpModule implements IvyModule {
         return this
     }
 
-    IvyHttpModule dependsOn(Map<String, String> attributes) {
+    IvyHttpModule dependsOn(Map<String, ?> attributes) {
         backingModule.dependsOn(attributes)
         return this
     }
 
     IvyHttpModule artifact(Map<String, ?> options) {
         backingModule.artifact(options)
+        return this
+    }
+
+    IvyHttpModule extendsFrom(Map<String, ?> attributes) {
+        backingModule.extendsFrom(attributes)
         return this
     }
 

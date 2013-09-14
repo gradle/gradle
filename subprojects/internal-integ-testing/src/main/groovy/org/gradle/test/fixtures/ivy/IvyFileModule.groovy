@@ -32,6 +32,7 @@ class IvyFileModule extends AbstractModule implements IvyModule {
     final List dependencies = []
     final Map<String, Map> configurations = [:]
     final List artifacts = []
+    final Map extendsFrom = [:]
     String status = "integration"
     boolean noMetaData
     int publishCount = 1
@@ -77,13 +78,19 @@ class IvyFileModule extends AbstractModule implements IvyModule {
         return this
     }
 
-    IvyFileModule dependsOn(Map<String, String> attributes) {
+    IvyFileModule dependsOn(Map<String, ?> attributes) {
         dependencies << attributes
         return this
     }
 
     IvyFileModule dependsOn(String... modules) {
         modules.each { dependsOn(organisation, it, revision) }
+        return this
+    }
+
+    IvyFileModule extendsFrom(Map<String, ?> attributes) {
+        this.extendsFrom.clear()
+        this.extendsFrom.putAll(attributes)
         return this
     }
 
@@ -154,7 +161,15 @@ class IvyFileModule extends AbstractModule implements IvyModule {
 		module="${module}"
 		revision="${revision}"
 		status="${status}"
-	/>
+	>"""
+        if (extendsFrom) {
+            ivyFileWriter << "<extends organisation='${extendsFrom.organisation}' module='${extendsFrom.module}' revision='${extendsFrom.revision}'"
+            if (extendsFrom.location) {
+                ivyFileWriter << " location='${extendsFrom.location}'"
+            }
+            ivyFileWriter << "/>"
+        }
+                    ivyFileWriter << """</info>
 	<configurations>"""
             configurations.each { name, config ->
                 ivyFileWriter << "<conf name='$name'"

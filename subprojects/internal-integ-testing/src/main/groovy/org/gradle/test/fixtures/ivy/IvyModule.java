@@ -35,7 +35,9 @@ public interface IvyModule {
 
     IvyModule dependsOn(String organisation, String module, String revision);
 
-    IvyModule dependsOn(Map<String, String> attributes);
+    IvyModule extendsFrom(Map<String, ?> attributes);
+
+    IvyModule dependsOn(Map<String, ?> attributes);
 
     IvyModule artifact(Map<String, ?> options);
 
