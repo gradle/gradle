@@ -64,7 +64,7 @@ public class DefaultMultiProcessSafePersistentIndexedCache<K, V> implements Mult
         });
     }
 
-    public void onStartWork(String operationDisplayName) {
+    public void onStartWork(String operationDisplayName, boolean lockHasNewOwner) {
     }
 
     public void onEndWork() {
