@@ -32,18 +32,18 @@ import java.util.Date;
 
 public class DisconnectedIvyXmlModuleDescriptorParser extends IvyXmlModuleDescriptorParser {
     @Override
-    protected Parser createParser(DescriptorParseContext ivySettings, LocallyAvailableExternalResource resource) throws MalformedURLException {
-        return new DisconnectedParser(this, ivySettings, resource, resource.getLocalResource().getFile().toURI().toURL());
+    protected Parser createParser(DescriptorParseContext parseContext, LocallyAvailableExternalResource resource) throws MalformedURLException {
+        return new DisconnectedParser(parseContext, resource, resource.getLocalResource().getFile().toURI().toURL());
     }
 
-    public static class DisconnectedParser extends Parser {
-        public DisconnectedParser(IvyXmlModuleDescriptorParser moduleDescriptorParser, DescriptorParseContext ivySettings, ExternalResource res, URL descriptorURL) {
-            super(moduleDescriptorParser, ivySettings, res, descriptorURL);
+    private static class DisconnectedParser extends Parser {
+        public DisconnectedParser(DescriptorParseContext parseContext, ExternalResource res, URL descriptorURL) {
+            super(parseContext, res, descriptorURL);
         }
 
         @Override
         public Parser newParser(ExternalResource res, URL descriptorURL) {
-            Parser parser = new DisconnectedParser(getModuleDescriptorParser(), getParserSettings(), res, descriptorURL);
+            Parser parser = new DisconnectedParser(getParseContext(), res, descriptorURL);
             parser.setValidate(isValidate());
             return parser;
         }
