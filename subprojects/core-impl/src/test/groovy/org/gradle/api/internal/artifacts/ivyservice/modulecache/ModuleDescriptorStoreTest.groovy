@@ -56,12 +56,12 @@ class ModuleDescriptorStoreTest extends Specification {
         when:
         pathKeyFileStore.get("module-metadata/org.test/testArtifact/1.0/repositoryId/ivy.xml") >> null
         then:
-        null == store.getModuleDescriptor(repository, moduleVersionIdentifier, resolver)
+        null == store.getModuleDescriptor(repository, moduleVersionIdentifier)
     }
 
     def "getModuleDescriptorFile uses PathKeyFileStore to get file"() {
         when:
-        store.getModuleDescriptor(repository, moduleVersionIdentifier, resolver);
+        store.getModuleDescriptor(repository, moduleVersionIdentifier);
         then:
         1 * pathKeyFileStore.get("module-metadata/org.test/testArtifact/1.0/repositoryId/ivy.xml") >> null
     }

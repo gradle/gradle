@@ -76,7 +76,7 @@ public class DefaultModuleMetaDataCache implements ModuleMetaDataCache {
         if (moduleDescriptorCacheEntry.isMissing) {
             return new DefaultCachedMetaData(moduleDescriptorCacheEntry, null, timeProvider);
         }
-        ModuleDescriptor descriptor = moduleDescriptorStore.getModuleDescriptor(repository, moduleVersionIdentifier, resolver);
+        ModuleDescriptor descriptor = moduleDescriptorStore.getModuleDescriptor(repository, moduleVersionIdentifier);
         if (descriptor == null) {
             // Descriptor file has been manually deleted - ignore the entry
             return null;

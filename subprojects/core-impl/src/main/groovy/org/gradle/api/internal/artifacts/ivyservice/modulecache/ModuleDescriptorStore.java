@@ -19,7 +19,6 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver;
 import org.gradle.api.internal.artifacts.ivyservice.IvyModuleDescriptorWriter;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
@@ -43,12 +42,11 @@ public class ModuleDescriptorStore {
         this.descriptorParser = ivyXmlModuleDescriptorParser;
     }
 
-    // TODO:DAZ Persisted module descriptors should be self-contained: should not need to resolve included descriptors
-    public ModuleDescriptor getModuleDescriptor(ModuleVersionRepository repository, ModuleVersionIdentifier moduleVersionIdentifier, DependencyToModuleVersionResolver resolver) {
+    public ModuleDescriptor getModuleDescriptor(ModuleVersionRepository repository, ModuleVersionIdentifier moduleVersionIdentifier) {
         String filePath = getFilePath(repository, moduleVersionIdentifier);
         final LocallyAvailableResource resource = pathKeyFileStore.get(filePath);
         if (resource != null) {
-            return parseModuleDescriptorFile(resource.getFile(), resolver);
+            return parseModuleDescriptorFile(resource.getFile());
         }
         return null;
     }
@@ -66,8 +64,8 @@ public class ModuleDescriptorStore {
         });
     }
 
-    private ModuleDescriptor parseModuleDescriptorFile(File moduleDescriptorFile, DependencyToModuleVersionResolver resolver) {
-        DescriptorParseContext parserSettings = new CachedModuleDescriptorParseContext(resolver, "integration");
+    private ModuleDescriptor parseModuleDescriptorFile(File moduleDescriptorFile) {
+        DescriptorParseContext parserSettings = new CachedModuleDescriptorParseContext("integration");
         return descriptorParser.parseMetaData(parserSettings, moduleDescriptorFile, false).getDescriptor();
     }
 

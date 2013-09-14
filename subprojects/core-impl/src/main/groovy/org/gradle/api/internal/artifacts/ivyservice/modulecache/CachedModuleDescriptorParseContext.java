@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.AbstractDescriptorParseContext;
 import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
 
@@ -27,11 +26,8 @@ import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource
  * Will only be used for parsing ivy.xml files, as pom files are converted before caching.
  */
 class CachedModuleDescriptorParseContext extends AbstractDescriptorParseContext {
-    private final DependencyToModuleVersionResolver resolver;
-
-    public CachedModuleDescriptorParseContext(DependencyToModuleVersionResolver resolver, String defaultStatus) {
+    public CachedModuleDescriptorParseContext(String defaultStatus) {
         super(defaultStatus);
-        this.resolver = resolver;
     }
 
     public ModuleRevisionId getCurrentRevisionId() {
@@ -43,6 +39,6 @@ class CachedModuleDescriptorParseContext extends AbstractDescriptorParseContext 
     }
 
     public LocallyAvailableExternalResource getArtifact(Artifact artifact) {
-        return resolveArtifact(artifact, resolver);
+        throw new UnsupportedOperationException();
     }
 }
