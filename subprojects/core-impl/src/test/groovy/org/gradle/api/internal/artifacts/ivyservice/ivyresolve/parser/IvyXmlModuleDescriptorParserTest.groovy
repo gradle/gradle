@@ -20,6 +20,10 @@ import org.apache.ivy.plugins.matcher.ExactPatternMatcher
 import org.apache.ivy.plugins.matcher.GlobPatternMatcher
 import org.apache.ivy.plugins.matcher.PatternMatcher
 import org.apache.ivy.plugins.matcher.RegexpPatternMatcher
+import org.gradle.api.internal.externalresource.DefaultLocallyAvailableExternalResource
+import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource
+import org.gradle.internal.resource.local.DefaultLocallyAvailableResource
+import org.gradle.internal.resource.local.LocallyAvailableResource
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Resources
 import org.junit.Rule
@@ -33,7 +37,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
     public final Resources resources = new Resources()
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
-    IvyXmlModuleDescriptorParser parser = createParser()
+    IvyXmlModuleDescriptorParser parser = new IvyXmlModuleDescriptorParser()
     DescriptorParseContext parseContext = Mock()
 
     def setup() {
@@ -41,10 +45,6 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         parseContext.getMatcher("exact") >> ExactPatternMatcher.INSTANCE
         parseContext.getMatcher("glob") >> GlobPatternMatcher.INSTANCE
         parseContext.getMatcher("regexp") >> RegexpPatternMatcher.INSTANCE
-    }
-
-    protected IvyXmlModuleDescriptorParser createParser() {
-        return new IvyXmlModuleDescriptorParser();
     }
 
     def "parses Ivy descriptor with empty dependencies section"() throws Exception {
@@ -67,18 +67,17 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
 
         then:
         md != null
-        "myorg" == md.moduleRevisionId.organisation
-        "mymodule" == md.moduleRevisionId.name
-        "myrev" == md.moduleRevisionId.revision
-        "integration" == md.status
-        md.configurations != null
-        Arrays.asList(new Configuration("default")) == Arrays.asList(md.configurations)
+        md.moduleRevisionId.organisation == "myorg"
+        md.moduleRevisionId.name == "mymodule"
+        md.moduleRevisionId.revision == "myrev"
+        md.status == "integration"
+        md.configurations*.name == ["default"]
         md.getArtifacts("default") != null
-        1 == md.getArtifacts("default").length
-        "mymodule" == md.getArtifacts("default")[0].name
-        "jar" == md.getArtifacts("default")[0].type
-        md.dependencies != null
-        0 == md.dependencies.length
+        md.getArtifacts("default").length == 1
+        md.getArtifacts("default")[0].name == "mymodule"
+        md.getArtifacts("default")[0].type == "jar"
+        md.dependencies.length == 0
+        md.inheritedDescriptors.length == 0
     }
 
     public void "fails when configuration extends an unknown configuration"() throws IOException {
@@ -218,7 +217,52 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         assertEquals(Arrays.asList("myconf1"), Arrays.asList(rules[0]
                 .getConfigurations()))
         assertEquals(Arrays.asList("myconf1", "myconf2", "myconf3", "myconf4", "myoldconf"), Arrays.asList(rules[1].getConfigurations()))
-        true
+        md.inheritedDescriptors.length == 0
+    }
+
+    def "merges values from parent Ivy descriptor"() throws Exception {
+        given:
+        def parentFile = temporaryFolder.file("parent.xml") << """
+<ivy-module version="1.0">
+    <info organisation="myorg"
+          module="parent"
+          revision="parentrev"
+          status="integration"
+          publication="20041101110000"
+    />
+    <configurations>
+        <conf name='default'/>
+    </configurations>
+    <dependencies>
+        <dependency conf="*->*" org="deporg" name="depname" rev="deprev"/>
+    </dependencies>
+</ivy-module>
+"""
+        def file = temporaryFolder.file("ivy.xml") << """
+<ivy-module version="1.0">
+    <info module="mymodule" revision="myrev">
+        <extends organisation="myorg" module="parent" revision="parentrev"/>
+    </info>
+</ivy-module>
+"""
+        and:
+        parseContext.getArtifact(_) >> new DefaultLocallyAvailableExternalResource(parentFile.toURI().toString(), new DefaultLocallyAvailableResource(parentFile))
+
+        when:
+        ModuleDescriptor md = parser.parseMetaData(parseContext, file, true).descriptor
+
+        then:
+        md != null
+        md.moduleRevisionId.organisation == "myorg"
+        md.moduleRevisionId.name == "mymodule"
+        md.moduleRevisionId.revision == "myrev"
+        md.status == "integration"
+        md.configurations*.name == ["default"]
+        md.dependencies.length == 1
+        md.dependencies[0].dependencyRevisionId.organisation == 'deporg'
+        md.dependencies[0].dependencyRevisionId.name == 'depname'
+        md.dependencies[0].dependencyRevisionId.revision == 'deprev'
+        md.inheritedDescriptors.length == 0
     }
 
     @Issue("http://issues.gradle.org/browse/GRADLE-2766")

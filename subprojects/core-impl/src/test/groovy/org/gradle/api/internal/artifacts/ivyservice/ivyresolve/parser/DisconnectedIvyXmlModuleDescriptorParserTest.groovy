@@ -20,18 +20,16 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.gradle.api.internal.externalresource.ExternalResource
 import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource
 import org.gradle.internal.resource.local.LocallyAvailableResource
+import spock.lang.Specification
 
-class DisconnectedIvyXmlModuleDescriptorParserTest extends IvyXmlModuleDescriptorParserTest {
+class DisconnectedIvyXmlModuleDescriptorParserTest extends Specification {
     LocallyAvailableExternalResource localExternalResource = Mock()
     LocallyAvailableResource localResource = Mock()
     ExternalResource externalResource = Mock()
+    IvyXmlModuleDescriptorParser parser = new DisconnectedIvyXmlModuleDescriptorParser()
+    DescriptorParseContext parseContext = Mock()
 
-    @Override
-    protected IvyXmlModuleDescriptorParser createParser() {
-        return new DisconnectedIvyXmlModuleDescriptorParser();
-    }
-
-    def "creates overriden internal Ivy parser"() throws Exception {
+    def "creates overridden internal Ivy parser"() throws Exception {
         when:
         IvyXmlModuleDescriptorParser.Parser disconnectedParser = parser.createParser(parseContext, localExternalResource)
 

@@ -604,13 +604,6 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                 throw new ParseException("Unable to parse included ivy file for " + parentOrganisation + "#" + parentModule + ";" + parentRevision, 0);
             }
 
-            DefaultExtendsDescriptor ed = new DefaultExtendsDescriptor(
-                    parent.getModuleRevisionId(),
-                    parent.getResolvedModuleRevisionId(),
-                    attributes.getValue("location"),
-                    extendTypes.toArray(new String[extendTypes.size()]));
-            getMd().addInheritedDescriptor(ed);
-
             mergeWithOtherModuleDescriptor(extendTypes, parent);
         }
 
