@@ -102,7 +102,7 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         Object model = createModel(path);
         Collection<ModelMutation<?>> modelMutations = mutators.removeAll(path);
-        for (ModelMutation modelMutation : modelMutations) {
+        for (ModelMutation<?> modelMutation : modelMutations) {
             fireMutation(model, modelMutation);
         }
 
@@ -139,7 +139,7 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     private Inputs toInputs(Iterable<ModelPath> inputPaths) {
-        ImmutableList.Builder<?> builder = ImmutableList.builder();
+        ImmutableList.Builder<Object> builder = ImmutableList.builder();
         for (ModelPath inputPath : inputPaths) {
             builder.add(getClosedModel(inputPath));
         }

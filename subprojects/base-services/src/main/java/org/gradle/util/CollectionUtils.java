@@ -15,15 +15,27 @@
  */
 package org.gradle.util;
 
+import static org.gradle.api.internal.Cast.cast;
+
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.Transformers;
 import org.gradle.api.specs.Spec;
-
-import java.lang.reflect.Array;
-import java.util.*;
-
-import static org.gradle.api.internal.Cast.cast;
 
 public abstract class CollectionUtils {
 
@@ -177,7 +189,7 @@ public abstract class CollectionUtils {
                 Object[] thingArray = (Object[]) thing;
                 List<T> list = new ArrayList<T>(thingArray.length);
                 for (Object thingThing : thingArray) {
-                    list.addAll(flattenToList(type, thingThing));
+                    list.addAll(flattenToList((Class)type, thingThing));
                 }
                 return list;
             }
@@ -186,7 +198,7 @@ public abstract class CollectionUtils {
                 Iterable<?> iterableThing = (Iterable<?>) thing;
                 List<T> list = new ArrayList<T>();
                 for (Object thingThing : iterableThing) {
-                    list.addAll(flattenToList(type, thingThing));
+                    list.addAll(flattenToList((Class)type, thingThing));
                 }
                 return list;
             }
@@ -195,7 +207,7 @@ public abstract class CollectionUtils {
         } else {
             List<T> list = new ArrayList<T>();
             for (Object thing : things) {
-                list.addAll(flattenToList(type, thing));
+                list.addAll(flattenToList((Class)type, thing));
             }
             return list;
         }
