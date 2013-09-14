@@ -17,9 +17,11 @@
 package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.StartParameter;
-import org.gradle.cache.PersistentCache;
+import org.gradle.cache.internal.MultiProcessSafePersistentIndexedCache;
 import org.gradle.internal.Factory;
 import org.gradle.internal.GradleBuildEnvironment;
+
+import java.io.File;
 
 public class InMemoryPersistentCacheDecoratorFactory implements Factory<InMemoryPersistentCacheDecorator> {
     private InMemoryPersistentCacheDecorator cache;
@@ -39,8 +41,8 @@ public class InMemoryPersistentCacheDecoratorFactory implements Factory<InMemory
     }
 
     private static class NoOpDecorator implements InMemoryPersistentCacheDecorator {
-        public PersistentCache withMemoryCaching(PersistentCache target) {
-            return target;
+        public <K, V> MultiProcessSafePersistentIndexedCache<K, V> withMemoryCaching(File cacheFile, MultiProcessSafePersistentIndexedCache<K, V> original) {
+            return original;
         }
     }
 }

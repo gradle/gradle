@@ -20,11 +20,7 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.cache.PersistentCache;
-import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.cache.internal.PersistentIndexedCacheParameters;
-import org.gradle.internal.Factories;
-import org.gradle.internal.Factory;
+import org.gradle.cache.internal.MultiProcessSafePersistentIndexedCache;
 
 import java.io.File;
 import java.util.HashMap;
@@ -35,7 +31,7 @@ public class InMemoryTaskArtifactCache implements InMemoryPersistentCacheDecorat
     private final static Logger LOG = Logging.getLogger(InMemoryTaskArtifactCache.class);
 
     private final Object lock = new Object();
-    private final Map<File, CacheData> cache = new HashMap<File, CacheData>();
+    private final Map<File, Cache> cache = new HashMap<File, Cache>();
 
     private static final Map<String, Integer> CACHE_CAPS = new HashMap<String, Integer>();
 
@@ -52,148 +48,68 @@ public class InMemoryTaskArtifactCache implements InMemoryPersistentCacheDecorat
         //In general, the in-memory cache must be capped at some level, otherwise it is reduces performance in truly gigantic builds
     }
 
-    private <K, V> PersistentIndexedCache memCached(File cacheFile, PersistentIndexedCache<K, V> target) {
+    public <K, V> MultiProcessSafePersistentIndexedCache<K, V> withMemoryCaching(final File cacheFile, final MultiProcessSafePersistentIndexedCache<K, V> original) {
+        StringBuilder sb = new StringBuilder();
+        for (File file : cache.keySet()) {
+            sb.append("\n  ").append(file.getName()).append(":").append(cache.get(file).stats());
+        }
+        if (!cache.isEmpty()) {
+            LOG.info("In-memory task history cache contains {} entries: {}", cache.size(), sb);
+        }
+
+        final Cache data;
         synchronized (lock) {
-            CacheData data;
             if (this.cache.containsKey(cacheFile)) {
                 data = this.cache.get(cacheFile);
             } else {
                 Integer maxSize = CACHE_CAPS.get(cacheFile.getName());
                 assert maxSize != null : "Unknown cache.";
-                data = new CacheData(cacheFile, maxSize);
+                data = CacheBuilder.newBuilder().maximumSize(maxSize).build();
                 this.cache.put(cacheFile, data);
             }
-            return new MapCache(target, data);
         }
-    }
-
-    private class CacheData {
-        private File expirationMarker;
-        private long marker;
-        private final Cache data;
-
-        public CacheData(File expirationMarker, int maxSize) {
-            this.expirationMarker = expirationMarker;
-            this.marker = expirationMarker.lastModified();
-            this.data = CacheBuilder.newBuilder().maximumSize(maxSize).build();
-        }
-
-        public void storeMarker() {
-            marker = expirationMarker.lastModified();
-        }
-
-        public void maybeExpire() {
-            if (marker != expirationMarker.lastModified()) {
-                LOG.info("Discarding {} in-memory cache values for {}", data.size(), expirationMarker);
-                data.invalidateAll();
-            }
-        }
-    }
-
-    public PersistentCache withMemoryCaching(final PersistentCache target) {
-        StringBuilder sb = new StringBuilder();
-        for (CacheData data : cache.values()) {
-            data.maybeExpire();
-            sb.append(data.expirationMarker.getName()).append(":").append(data.data.size()).append(", ");
-        }
-        if (!cache.isEmpty()) {
-            LOG.info("In-memory task history cache contains {} entries: {}", cache.size(), sb);
-        }
-        return new PersistentCache() {
-            public File getBaseDir() {
-                return target.getBaseDir();
+        return new MultiProcessSafePersistentIndexedCache<K, V>() {
+            public void close() {
+                original.close();
             }
 
-            public <K, V> PersistentIndexedCache<K, V> createCache(PersistentIndexedCacheParameters<K, V> parameters) {
-                PersistentIndexedCache<K, V> out = target.createCache(parameters);
-                return memCached(parameters.getCacheFile(), out);
+            public V get(K key) {
+                assert key instanceof String || key instanceof Long || key instanceof File : "Unsupported key type: " + key;
+                Value<V> value = (Value) data.getIfPresent(key);
+                if (value != null) {
+                    return value.value;
+                }
+                Object out = original.get(key);
+                data.put(key, new Value(out));
+                return (V) out;
             }
 
-            public <T> T longRunningOperation(String operationDisplayName, Factory<? extends T> action) {
-                beforeUnlocked();
-                try {
-                    return target.longRunningOperation(operationDisplayName, action);
-                } finally {
-                    beforeLocked();
+            public void put(K key, V value) {
+                data.put(key, new Value<V>(value));
+                original.put(key, value);
+            }
+
+            public void remove(K key) {
+                data.invalidate(key);
+                original.remove(key);
+            }
+
+            public void onStartWork(String operationDisplayName, boolean lockHasNewOwner) {
+                if (lockHasNewOwner) {
+                    LOG.info("Invalidating in-memory cache of {}. Stats: {}", cacheFile, data.size(), data.stats());
+                    data.invalidateAll();
                 }
             }
 
-            public <T> T useCache(final String operationDisplayName, final Factory<? extends T> action) {
-                return target.useCache(operationDisplayName, new Factory<T>() {
-                    public T create() {
-                        beforeLocked();
-                        try {
-                            return target.useCache(operationDisplayName, action);
-                        } finally {
-                            beforeUnlocked();
-                        }
-                    }
-                });
-            }
-
-            public void useCache(String operationDisplayName, Runnable action) {
-                useCache(operationDisplayName, Factories.toFactory(action));
-            }
-
-            public void longRunningOperation(String operationDisplayName, Runnable action) {
-                longRunningOperation(operationDisplayName, Factories.toFactory(action));
-            }
+            public void onEndWork() {}
         };
     }
 
-    private void beforeLocked() {
-        synchronized (lock) {
-            for (CacheData data : cache.values()) {
-                data.maybeExpire();
-            }
-        }
-    }
+    private static class Value<T> {
+        private T value;
 
-    private void beforeUnlocked() {
-        synchronized (lock) {
-            for (CacheData data : cache.values()) {
-                data.storeMarker();
-            }
-        }
-    }
-
-    private static class MapCache<K, V> implements PersistentIndexedCache<K, V> {
-
-        private final PersistentIndexedCache delegate;
-        private final CacheData cache;
-
-        public MapCache(PersistentIndexedCache delegate, CacheData cache) {
-            this.delegate = delegate;
-            this.cache = cache;
-        }
-
-        public V get(K key) {
-            assert key instanceof String || key instanceof Long || key instanceof File : "Unsupported key type: " + key;
-            Value<V> value = (Value) cache.data.getIfPresent(key);
-            if (value != null) {
-                return value.value;
-            }
-            Object out = delegate.get(key);
-            cache.data.put(key, new Value(out));
-            return (V) out;
-        }
-
-        public void put(K key, V value) {
-            cache.data.put(key, new Value<V>(value));
-            delegate.put(key, value);
-        }
-
-        public void remove(K key) {
-            cache.data.invalidate(key);
-            delegate.remove(key);
-        }
-
-        private static class Value<T> {
-            private T value;
-
-            public Value(T value) {
-                this.value = value;
-            }
+        public Value(T value) {
+            this.value = value;
         }
     }
 }

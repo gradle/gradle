@@ -16,16 +16,16 @@
 package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.Transformer;
-import org.gradle.cache.internal.MultiProcessSafePersistentIndexedCache;
-import org.gradle.cache.internal.PersistentIndexedCacheParameters;
-import org.gradle.internal.Factory;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.messaging.serialize.Serializer;
 import org.gradle.cache.internal.FileLockManager;
+import org.gradle.cache.internal.MultiProcessSafePersistentIndexedCache;
+import org.gradle.cache.internal.PersistentIndexedCacheParameters;
+import org.gradle.internal.Factory;
 import org.gradle.listener.LazyCreationProxy;
+import org.gradle.messaging.serialize.Serializer;
 
 import java.io.File;
 
@@ -46,12 +46,12 @@ public class DefaultTaskArtifactStateCacheAccess implements TaskArtifactStateCac
         //TODO SF just do it in the constructor
         synchronized (lock) {
             if (cache == null) {
-                cache = inMemoryDecorator.withMemoryCaching(cacheRepository
+                cache = cacheRepository
                         .cache("taskArtifacts")
                         .forObject(gradle)
                         .withDisplayName("task artifact state cache")
                         .withLockMode(FileLockManager.LockMode.Exclusive)
-                        .open());
+                        .open();
             }
             return cache;
         }
@@ -60,23 +60,19 @@ public class DefaultTaskArtifactStateCacheAccess implements TaskArtifactStateCac
     public <K, V> PersistentIndexedCache<K, V> createCache(final String cacheName, final Class<K> keyType, final Serializer<V> valueSerializer) {
         Factory<PersistentIndexedCache> factory = new Factory<PersistentIndexedCache>() {
             public PersistentIndexedCache create() {
+                final File cacheFile = cacheFile(cacheName);
                 PersistentIndexedCacheParameters parameters =
-                        new PersistentIndexedCacheParameters(cacheFile(cacheName), keyType, valueSerializer)
-                            .cacheDecorator(withInMemoryCaching());
+                        new PersistentIndexedCacheParameters(cacheFile, keyType, valueSerializer)
+                            .cacheDecorator(new Transformer<MultiProcessSafePersistentIndexedCache<Object, Object>, MultiProcessSafePersistentIndexedCache<Object, Object>>() {
+                                public MultiProcessSafePersistentIndexedCache<Object, Object> transform(MultiProcessSafePersistentIndexedCache<Object, Object> original) {
+                                    return inMemoryDecorator.withMemoryCaching(cacheFile, original);
+                                }
+                            });
                 return getCache().createCache(parameters);
             }
         };
         return new LazyCreationProxy<PersistentIndexedCache>(PersistentIndexedCache.class, factory).getSource();
 
-    }
-
-    private <K, V> Transformer<MultiProcessSafePersistentIndexedCache<K, V>, MultiProcessSafePersistentIndexedCache<K, V>> withInMemoryCaching() {
-        //TODO SF this is the hook for in-memory caching capabilities, now synced with DefaultCacheAccess
-        return new Transformer<MultiProcessSafePersistentIndexedCache<K, V>, MultiProcessSafePersistentIndexedCache<K, V>>() {
-            public MultiProcessSafePersistentIndexedCache<K, V> transform(MultiProcessSafePersistentIndexedCache<K, V> original) {
-                return original;
-            }
-        };
     }
 
     private File cacheFile(String cacheName) {
