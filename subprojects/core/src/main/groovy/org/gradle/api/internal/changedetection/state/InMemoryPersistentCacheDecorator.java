@@ -21,6 +21,5 @@ import org.gradle.cache.internal.MultiProcessSafePersistentIndexedCache;
 import java.io.File;
 
 public interface InMemoryPersistentCacheDecorator {
-
-    <K, V> MultiProcessSafePersistentIndexedCache<K,V> withMemoryCaching(File cacheFile, MultiProcessSafePersistentIndexedCache<K, V> original);
+    <K, V> MultiProcessSafePersistentIndexedCache<K, V> withMemoryCaching(File cacheFile, MultiProcessSafePersistentIndexedCache<K, V> original);
 }
