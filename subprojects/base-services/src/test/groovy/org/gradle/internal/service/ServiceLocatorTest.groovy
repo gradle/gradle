@@ -33,6 +33,27 @@ class ServiceLocatorTest extends Specification {
         1 * classLoader.loadClass('org.gradle.ImplClass') >> String
     }
 
+    def "uses union of resources found in all ClassLoaders"() {
+        def ClassLoader classLoader2 = Mock()
+        def serviceLocator = new ServiceLocator(classLoader, classLoader2)
+
+        def serviceFile1 = stream('org.gradle.ImplClass')
+        def serviceFile2 = stream('org.gradle.ImplClass2')
+        def serviceFile3 = stream('org.gradle.ImplClass')
+        def serviceFile4 = stream('org.gradle.ImplClass3')
+
+        when:
+        def result = serviceLocator.getAll(CharSequence.class)
+
+        then:
+        result*.class == [String, StringBuilder, StringBuffer]
+        1 * classLoader.getResources("META-INF/services/java.lang.CharSequence") >> Collections.enumeration([serviceFile1, serviceFile2])
+        1 * classLoader.loadClass('org.gradle.ImplClass') >> String
+        1 * classLoader.loadClass('org.gradle.ImplClass2') >> StringBuilder
+        1 * classLoader2.getResources("META-INF/services/java.lang.CharSequence") >> Collections.enumeration([serviceFile3, serviceFile4])
+        1 * classLoader2.loadClass('org.gradle.ImplClass3') >> StringBuffer
+    }
+
     def "findFactory() returns null when no service meta data resource available"() {
         when:
         def result = serviceLocator.findFactory(String.class)
@@ -123,18 +144,6 @@ org.gradle.ImplClass2""")
         result instanceof String
     }
 
-    def "get() caches service implementation instances"() {
-        given:
-        implementationDeclared(CharSequence, String)
-
-        when:
-        def obj1 = serviceLocator.get(CharSequence)
-        def obj2 = serviceLocator.get(CharSequence)
-
-        then:
-        obj1.is(obj2)
-    }
-
     def "get() fails when no meta-data file found for service type"() {
         when:
         serviceLocator.get(CharSequence)
@@ -168,17 +177,6 @@ org.gradle.ImplClass2""")
         UnknownServiceException e = thrown()
         e.message == "Could not find meta-data resource 'META-INF/services/java.lang.CharSequence' for service 'java.lang.CharSequence'."
         1 * classLoader.getResources("META-INF/services/java.lang.CharSequence") >> Collections.enumeration([])
-    }
-
-    def "newInstance() creates instances of implementation class"() {
-        given:
-        implementationDeclared(CharSequence, String)
-
-        when:
-        def result = serviceLocator.newInstance(CharSequence)
-
-        then:
-        result instanceof String
     }
 
     def "getAll() returns an instance of each declared implementation"() {

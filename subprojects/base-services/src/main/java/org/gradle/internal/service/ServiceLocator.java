@@ -30,26 +30,18 @@ import java.util.*;
 /**
  * Uses the Jar service resource specification to locate service implementations.
  */
-public class ServiceLocator extends AbstractServiceRegistry {
-    private final ClassLoader classLoader;
-    private final Map<Class<?>, Object> implementations = new HashMap<Class<?>, Object>();
+public class ServiceLocator {
+    private final List<ClassLoader> classLoaders;
 
-    public ServiceLocator(ClassLoader classLoader) {
-        this.classLoader = classLoader;
+    public ServiceLocator(ClassLoader... classLoaders) {
+        this.classLoaders = Arrays.asList(classLoaders);
     }
 
-    public <T> T doGet(Class<T> serviceType) throws UnknownServiceException {
-        synchronized (implementations) {
-            T implementation = serviceType.cast(implementations.get(serviceType));
-            if (implementation == null) {
-                implementation = getFactory(serviceType).create();
-                implementations.put(serviceType, implementation);
-            }
-            return implementation;
-        }
+    public <T> T get(Class<T> serviceType) throws UnknownServiceException {
+        return getFactory(serviceType).create();
     }
 
-    public <T> List<T> getAll(Class<T> serviceType) {
+    public <T> List<T> getAll(Class<T> serviceType) throws UnknownServiceException {
         List<ServiceFactory<T>> factories = findFactoriesForServiceType(serviceType);
         ArrayList<T> services = new ArrayList<T>();
         for (ServiceFactory<T> factory : factories) {
@@ -95,31 +87,33 @@ public class ServiceLocator extends AbstractServiceRegistry {
 
     private <T> List<Class<? extends T>> findServiceImplementations(Class<T> serviceType) throws IOException {
         String resourceName = "META-INF/services/" + serviceType.getName();
-        Enumeration<URL> resources = classLoader.getResources(resourceName);
         Set<String> implementationClassNames = new HashSet<String>();
         List<Class<? extends T>> implementations = new ArrayList<Class<? extends T>>();
-        while (resources.hasMoreElements()) {
-            URL resource = resources.nextElement();
-            List<String> implementationClassNamesFromResource;
-            try {
-                implementationClassNamesFromResource = extractImplementationClassNames(resource);
-                if (implementationClassNamesFromResource.isEmpty()) {
-                    throw new RuntimeException(String.format("No implementation class for service '%s' specified.", serviceType.getName()));
+        for (ClassLoader classLoader : classLoaders) {
+            Enumeration<URL> resources = classLoader.getResources(resourceName);
+            while (resources.hasMoreElements()) {
+                URL resource = resources.nextElement();
+                List<String> implementationClassNamesFromResource;
+                try {
+                    implementationClassNamesFromResource = extractImplementationClassNames(resource);
+                    if (implementationClassNamesFromResource.isEmpty()) {
+                        throw new RuntimeException(String.format("No implementation class for service '%s' specified.", serviceType.getName()));
+                    }
+                } catch (Exception e) {
+                    throw new ServiceLookupException(String.format("Could not determine implementation class for service '%s' specified in resource '%s'.", serviceType.getName(), resource), e);
                 }
-            } catch (Exception e) {
-                throw new ServiceLookupException(String.format("Could not determine implementation class for service '%s' specified in resource '%s'.", serviceType.getName(), resource), e);
-            }
 
-            for (String implementationClassName : implementationClassNamesFromResource) {
-                if (implementationClassNames.add(implementationClassName)) {
-                    try {
-                        Class<?> implClass = classLoader.loadClass(implementationClassName);
-                        if (!serviceType.isAssignableFrom(implClass)) {
-                            throw new RuntimeException(String.format("Implementation class '%s' is not assignable to service class '%s'.", implementationClassName, serviceType.getName()));
+                for (String implementationClassName : implementationClassNamesFromResource) {
+                    if (implementationClassNames.add(implementationClassName)) {
+                        try {
+                            Class<?> implClass = classLoader.loadClass(implementationClassName);
+                            if (!serviceType.isAssignableFrom(implClass)) {
+                                throw new RuntimeException(String.format("Implementation class '%s' is not assignable to service class '%s'.", implementationClassName, serviceType.getName()));
+                            }
+                            implementations.add(implClass.asSubclass(serviceType));
+                        } catch (Exception e) {
+                            throw new ServiceLookupException(String.format("Could not load implementation class '%s' for service '%s' specified in resource '%s'.", implementationClassName, serviceType.getName(), resource), e);
                         }
-                        implementations.add(implClass.asSubclass(serviceType));
-                    } catch (Exception e) {
-                        throw new ServiceLookupException(String.format("Could not load implementation class '%s' for service '%s' specified in resource '%s'.", implementationClassName, serviceType.getName(), resource), e);
                     }
                 }
             }
