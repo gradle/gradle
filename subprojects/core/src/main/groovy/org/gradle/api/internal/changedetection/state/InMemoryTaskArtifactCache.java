@@ -49,18 +49,11 @@ public class InMemoryTaskArtifactCache implements InMemoryPersistentCacheDecorat
     }
 
     public <K, V> MultiProcessSafePersistentIndexedCache<K, V> withMemoryCaching(final File cacheFile, final MultiProcessSafePersistentIndexedCache<K, V> original) {
-        StringBuilder sb = new StringBuilder();
-        for (File file : cache.keySet()) {
-            sb.append("\n  ").append(file.getName()).append(":").append(cache.get(file).stats());
-        }
-        if (!cache.isEmpty()) {
-            LOG.info("In-memory task history cache contains {} entries: {}", cache.size(), sb);
-        }
-
         final Cache data;
         synchronized (lock) {
             if (this.cache.containsKey(cacheFile)) {
                 data = this.cache.get(cacheFile);
+                LOG.info("In-memory cache of {}: Size{{}}, {}", cacheFile.getName(), data.size(), data.stats());
             } else {
                 Integer maxSize = CACHE_CAPS.get(cacheFile.getName());
                 assert maxSize != null : "Unknown cache.";
@@ -96,7 +89,7 @@ public class InMemoryTaskArtifactCache implements InMemoryPersistentCacheDecorat
 
             public void onStartWork(String operationDisplayName, boolean lockHasNewOwner) {
                 if (lockHasNewOwner) {
-                    LOG.info("Invalidating in-memory cache of {}. Stats: {}", cacheFile, data.size(), data.stats());
+                    LOG.info("Invalidating in-memory cache of {}", cacheFile);
                     data.invalidateAll();
                 }
             }
