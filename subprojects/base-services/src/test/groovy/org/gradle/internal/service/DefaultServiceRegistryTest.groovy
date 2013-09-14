@@ -16,6 +16,7 @@
 
 package org.gradle.internal.service
 
+import org.gradle.api.Action
 import org.gradle.internal.Factory
 import spock.lang.Specification
 
@@ -63,7 +64,7 @@ class DefaultServiceRegistryTest extends Specification {
         e.message == "No service of type StringBuilder available in TestRegistry."
     }
 
-    def returnsAddedServiceInstance() {
+    def returnsServiceInstanceThatHasBeenRegistered() {
         def value = BigDecimal.TEN
         def registry = new DefaultServiceRegistry()
 
@@ -93,20 +94,75 @@ class DefaultServiceRegistryTest extends Specification {
         registry.get(String) == "12"
     }
 
+    def injectsParentServicesIntoProviderFactoryMethod() {
+        def parent = Mock(ServiceRegistry)
+        def registry = new DefaultServiceRegistry(parent)
+        registry.addProvider(new Object() {
+            String createString(Number n) {
+                return n.toString()
+            }
+        })
+
+        when:
+        def result = registry.get(String)
+
+        then:
+        result == '123'
+
+        and:
+        1 * parent.get(Number) >> 123
+    }
+
+    def injectsServiceRegistryIntoProviderFactoryMethod() {
+        def parent = Mock(ServiceRegistry)
+        def registry = new DefaultServiceRegistry(parent)
+        registry.addProvider(new Object() {
+            String createString(ServiceRegistry services) {
+                assert services.is(registry)
+                return services.get(Number).toString()
+            }
+        })
+        registry.add(Integer, 123)
+
+        expect:
+        registry.get(String) == '123'
+    }
+
     def failsWhenProviderFactoryMethodRequiresUnknownService() {
         def registry = new DefaultServiceRegistry()
-        registry.addProvider(new Object(){
+        def provider = new Object() {
             String createString(Runnable r) {
                 return "hi"
             }
-        })
+        }
+        registry.addProvider(provider)
 
         when:
         registry.get(String)
 
         then:
-        UnknownServiceException e = thrown()
-        e.message == "No service of type Runnable available in DefaultServiceRegistry."
+        ServiceLookupException e = thrown()
+        e.message == "Cannot create service String using ${provider.class.simpleName}.createString() as required service Runnable is not available."
+        e.cause instanceof UnknownServiceException
+    }
+
+    def failsWhenProviderFactoryMethodThrowsException() {
+        def failure = new RuntimeException()
+        def registry = new DefaultServiceRegistry()
+        def provider = new Object() {
+            String createString() {
+                throw failure
+            }
+        }
+        registry.addProvider(provider)
+
+        when:
+        registry.get(String)
+
+        then:
+        ServiceLookupException e = thrown()
+        e.message == "Could not create service String using ${provider.class.simpleName}.createString()."
+        e.cause == failure
     }
 
     def cachesInstancesCreatedUsingAProviderFactoryMethod() {
@@ -228,13 +284,31 @@ class DefaultServiceRegistryTest extends Specification {
         e.message == "Cannot use decorator methods when no parent registry is provided."
     }
 
+    def canRegisterServicesUsingAction() {
+        def registry = new DefaultServiceRegistry()
+
+        given:
+        registry.register({ ServiceRegistration registration ->
+            registration.add(Number, 12)
+            registration.addProvider(new Object() {
+                String createString() {
+                    return "hi"
+                }
+            })
+        } as Action)
+
+        expect:
+        registry.get(Number) == 12
+        registry.get(String) == "hi"
+    }
+
     def canGetAllServicesOfAGivenType() {
         expect:
         registry.getAll(String) == ["12"]
         registry.getAll(Number) == [12]
     }
 
-    def returnsNullWhenNoServicesOfGivenType() {
+    def returnsEmptyCollectionWhenNoServicesOfGivenType() {
         expect:
         registry.getAll(Long).empty
     }

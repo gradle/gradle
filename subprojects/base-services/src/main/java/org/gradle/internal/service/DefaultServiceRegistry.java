@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.service;
 
+import org.gradle.api.Action;
 import org.gradle.internal.CompositeStoppable;
 import org.gradle.internal.Factory;
 import org.gradle.internal.Stoppable;
@@ -107,6 +108,21 @@ public class DefaultServiceRegistry extends AbstractServiceRegistry {
                 }
             }
         }
+    }
+
+    /**
+     * Adds services to this container using the given action.
+     */
+    public void register(Action<? super ServiceRegistration> action) {
+        action.execute(new ServiceRegistration(){
+            public <T> void add(Class<T> serviceType, T serviceInstance) {
+                DefaultServiceRegistry.this.add(serviceType, serviceInstance);
+            }
+
+            public void addProvider(Object provider) {
+                DefaultServiceRegistry.this.addProvider(provider);
+            }
+        });
     }
 
     /**
@@ -373,9 +389,26 @@ public class DefaultServiceRegistry extends AbstractServiceRegistry {
             Object[] params = new Object[method.getParameterTypes().length];
             for (int i = 0; i < method.getGenericParameterTypes().length; i++) {
                 Type type = method.getGenericParameterTypes()[i];
-                params[i] = get(type);
+                try {
+                    params[i] = type.equals(ServiceRegistry.class) ? DefaultServiceRegistry.this : get(type);
+                } catch (UnknownServiceException e) {
+                    throw new ServiceLookupException(String.format("Cannot create service %s using %s.%s() as required service %s is not available.",
+                            method.getReturnType().getSimpleName(),
+                            method.getDeclaringClass().getSimpleName(),
+                            method.getName(),
+                            e.getType().getSimpleName()),
+                            e);
+                }
             }
-            return invoke(method, target, params);
+            try {
+                return invoke(method, target, params);
+            } catch (Exception e) {
+                throw new ServiceLookupException(String.format("Could not create service %s using %s.%s().",
+                        method.getReturnType().getSimpleName(),
+                        method.getDeclaringClass().getSimpleName(),
+                        method.getName()),
+                        e);
+            }
         }
     }
 
