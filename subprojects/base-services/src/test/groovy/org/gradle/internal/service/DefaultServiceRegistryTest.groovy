@@ -76,6 +76,88 @@ class DefaultServiceRegistryTest extends Specification {
         registry.get(Object) == value
     }
 
+    def usesFactoryMethodOnProviderToCreateServiceInstance() {
+        def registry = new DefaultServiceRegistry()
+        registry.addProvider(new TestProvider())
+
+        expect:
+        registry.get(Integer) == 12
+        registry.get(Number) == 12
+    }
+
+    def injectsServicesIntoProviderFactoryMethod() {
+        def registry = new DefaultServiceRegistry()
+        registry.addProvider(new TestProvider())
+
+        expect:
+        registry.get(String) == "12"
+    }
+
+    def failsWhenProviderFactoryMethodRequiresUnknownService() {
+        def registry = new DefaultServiceRegistry()
+        registry.addProvider(new Object(){
+            String createString(Runnable r) {
+                return "hi"
+            }
+        })
+
+        when:
+        registry.get(String)
+
+        then:
+        UnknownServiceException e = thrown()
+        e.message == "No service of type Runnable available in DefaultServiceRegistry."
+    }
+
+    def cachesInstancesCreatedUsingAProviderFactoryMethod() {
+        def registry = new DefaultServiceRegistry()
+        registry.addProvider(new TestProvider())
+
+        expect:
+        registry.get(Integer).is(registry.get(Integer))
+        registry.get(Number).is(registry.get(Number))
+
+        and:
+        registry.get(String).is(registry.get(String))
+    }
+
+    def usesProviderDecoratorMethodToDecorateParentServiceInstance() {
+        def parent = Mock(ServiceRegistry)
+        def registry = new DefaultServiceRegistry(parent)
+        registry.addProvider(new TestDecoratingProvider())
+
+        given:
+        _ * parent.get(Long) >> 110L
+
+        expect:
+        registry.get(Long) == 112L
+        registry.get(Number) == 112L
+        registry.get(Object) == 112L
+    }
+
+    def cachesServiceCreatedUsingProviderDecoratorMethod() {
+        def parent = Mock(ServiceRegistry)
+        def registry = new DefaultServiceRegistry(parent)
+        registry.addProvider(new TestDecoratingProvider())
+
+        given:
+        _ * parent.get(Long) >> 11L
+
+        expect:
+        registry.get(Long).is(registry.get(Long))
+    }
+
+    def providerDecoratorMethodFailsWhenNoParentRegistry() {
+        def registry = new DefaultServiceRegistry()
+
+        when:
+        registry.addProvider(new TestDecoratingProvider())
+
+        then:
+        ServiceLookupException e = thrown()
+        e.message == "Cannot use decorator methods when no parent registry is provided."
+    }
+
     def usesFactoryMethodToCreateServiceInstance() {
         expect:
         registry.get(String.class) == "12"
@@ -432,7 +514,7 @@ class DefaultServiceRegistryTest extends Specification {
         noExceptionThrown()
     }
 
-    public void closeInvokesCloseMethodOnEachNestedServiceRegistry() {
+    def closeInvokesCloseMethodOnEachNestedServiceRegistry() {
         def nested = Mock(ClosableServiceRegistry)
 
         given:
@@ -443,6 +525,41 @@ class DefaultServiceRegistryTest extends Specification {
 
         then:
         1 * nested.close()
+    }
+
+    def closeInvokesCloseMethodOnEachServiceCreatedByProviderFactoryMethod() {
+        def service = Mock(TestStopService)
+
+        given:
+        registry.addProvider(new Object() {
+            TestStopService createServices() {
+                return service
+            }
+        })
+        registry.get(TestStopService)
+
+        when:
+        registry.close()
+
+        then:
+        1 * service.stop()
+    }
+
+    def doesNotStopServiceThatHasNotBeenCreated() {
+        def service = Mock(TestStopService)
+
+        given:
+        registry.addProvider(new Object() {
+            TestStopService createServices() {
+                return service
+            }
+        })
+
+        when:
+        registry.close()
+
+        then:
+        0 * service.stop()
     }
 
     def discardsServicesOnClose() {
@@ -525,6 +642,26 @@ class DefaultServiceRegistryTest extends Specification {
 
         protected Factory<BigDecimal> createTestFactory() {
             return new TestFactory()
+        }
+    }
+
+    private static class TestProvider {
+        String createString(Integer integer) {
+            return integer.toString()
+        }
+
+        Integer createInt() {
+            return 12
+        }
+
+        Factory<BigDecimal> createTestFactory() {
+            return new TestFactory()
+        }
+    }
+
+    private static class TestDecoratingProvider {
+        Long createLong(Long value) {
+            return value + 2
         }
     }
 

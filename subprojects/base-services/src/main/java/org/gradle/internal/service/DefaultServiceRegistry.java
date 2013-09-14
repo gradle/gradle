@@ -32,8 +32,10 @@ import java.util.*;
  *
  * <li>Calling {@link #add(ServiceRegistry)} to register a set of services.</li>
  *
- * <li>Adding a factory method. A factory method should have a name that starts with 'create', take no parameters, and have a non-void return type. For example, <code>protected SomeService
- * createSomeService() { .... }</code>.</li>
+ * <li>Calling {@link #addProvider(Object)} to register a service provider bean.</li>
+ *
+ * <li>Adding a factory method. A factory method should have a name that starts with 'create', and have a non-void return type. For example, <code>protected SomeService
+ * createSomeService() { .... }</code>. Parameters are injected using services from this registry.</li>
  *
  * <li>Adding a decorator method. A decorator method should have a name that starts with 'decorate', take a single parameter, and a have a non-void return type. The before invoking the method, the
  * parameter is located in the parent service registry and then passed to the method.</li>
@@ -64,7 +66,7 @@ public class DefaultServiceRegistry extends AbstractServiceRegistry {
         }
         registeredProviders = providers.subList(1, 1);
 
-        findProviderMethods();
+        findProviderMethods(this);
     }
 
     @Override
@@ -72,28 +74,26 @@ public class DefaultServiceRegistry extends AbstractServiceRegistry {
         return getClass().getSimpleName();
     }
 
-    private void findProviderMethods() {
-        Set<String> factoryMethods = new HashSet<String>();
-        Set<String> decoratorMethods = new HashSet<String>();
-        for (Class<?> type = getClass(); type != Object.class; type = type.getSuperclass()) {
-            findFactoryMethods(type, factoryMethods, ownServices);
-            findDecoratorMethods(type, decoratorMethods, ownServices);
+    private void findProviderMethods(Object target) {
+        Set<String> methods = new HashSet<String>();
+        for (Class<?> type = target.getClass(); type != Object.class; type = type.getSuperclass()) {
+            findDecoratorMethods(target, type, methods, ownServices);
+            findFactoryMethods(target, type, methods, ownServices);
         }
     }
 
-    private void findFactoryMethods(Class<?> type, Set<String> factoryMethods, OwnServices ownServices) {
+    private void findFactoryMethods(Object target, Class<?> type, Set<String> factoryMethods, OwnServices ownServices) {
         for (Method method : type.getDeclaredMethods()) {
             if (method.getName().startsWith("create")
-                    && method.getParameterTypes().length == 0
                     && method.getReturnType() != Void.class) {
                 if (factoryMethods.add(method.getName())) {
-                    ownServices.add(new FactoryMethodService(method));
+                    ownServices.add(new FactoryMethodService(target, method));
                 }
             }
         }
     }
 
-    private void findDecoratorMethods(Class<?> type, Set<String> decoratorMethods, OwnServices ownServices) {
+    private void findDecoratorMethods(Object target, Class<?> type, Set<String> decoratorMethods, OwnServices ownServices) {
         for (Method method : type.getDeclaredMethods()) {
             if (method.getName().startsWith("create")
                     && method.getParameterTypes().length == 1
@@ -103,7 +103,7 @@ public class DefaultServiceRegistry extends AbstractServiceRegistry {
                     throw new ServiceLookupException("Cannot use decorator methods when no parent registry is provided.");
                 }
                 if (decoratorMethods.add(method.getName())) {
-                    ownServices.add(new DecoratorMethodService(method));
+                    ownServices.add(new DecoratorMethodService(target, method));
                 }
             }
         }
@@ -112,15 +112,25 @@ public class DefaultServiceRegistry extends AbstractServiceRegistry {
     /**
      * Adds a set of services to this registry. The given registry is closed when this registry is closed.
      */
-    public void add(ServiceRegistry nested) {
+    public DefaultServiceRegistry add(ServiceRegistry nested) {
         registeredProviders.add(new NestedServices(nested));
+        return this;
     }
 
     /**
      * Adds a service to this registry. The given object is closed when this registry is closed.
      */
-    public <T> void add(Class<T> serviceType, final T serviceInstance) {
+    public <T> DefaultServiceRegistry add(Class<T> serviceType, final T serviceInstance) {
         ownServices.add(new FixedInstanceService<T>(serviceType, serviceInstance));
+        return this;
+    }
+
+    /**
+     * Adds a service provider bean to this registry. This provider may define factory and decorator methods.
+     */
+    public DefaultServiceRegistry addProvider(Object provider) {
+        findProviderMethods(provider);
+        return this;
     }
 
     /**
@@ -349,16 +359,23 @@ public class DefaultServiceRegistry extends AbstractServiceRegistry {
     }
 
     private class FactoryMethodService extends SingletonService {
+        private final Object target;
         private final Method method;
 
-        public FactoryMethodService(Method method) {
+        public FactoryMethodService(Object target, Method method) {
             super(method.getGenericReturnType());
+            this.target = target;
             this.method = method;
         }
 
         @Override
         protected Object create() {
-            return invoke(method, DefaultServiceRegistry.this);
+            Object[] params = new Object[method.getParameterTypes().length];
+            for (int i = 0; i < method.getGenericParameterTypes().length; i++) {
+                Type type = method.getGenericParameterTypes()[i];
+                params[i] = get(type);
+            }
+            return invoke(method, target, params);
         }
     }
 
@@ -378,10 +395,12 @@ public class DefaultServiceRegistry extends AbstractServiceRegistry {
     }
 
     private class DecoratorMethodService extends SingletonService {
+        private final Object target;
         private final Method method;
 
-        public DecoratorMethodService(Method method) {
+        public DecoratorMethodService(Object target, Method method) {
             super(method.getGenericReturnType());
+            this.target = target;
             this.method = method;
         }
 
@@ -402,7 +421,7 @@ public class DefaultServiceRegistry extends AbstractServiceRegistry {
             } else {
                 value = parent.get(method.getParameterTypes()[0]);
             }
-            return invoke(method, DefaultServiceRegistry.this, value);
+            return invoke(method, target, value);
         }
     }
 
