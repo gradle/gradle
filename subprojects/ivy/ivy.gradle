@@ -17,9 +17,10 @@
 
 
 dependencies {
-    compile project(':core'),
-            project(':publish'),
-            project(':plugins') // for base plugin to get archives conf
+    compile project(':core')
+    compile project(':publish')
+    compile project(':plugins') // for base plugin to get archives conf
+    compile project(':coreImpl')
 
     testCompile libraries.groovy
     integTestCompile project(":ear")
