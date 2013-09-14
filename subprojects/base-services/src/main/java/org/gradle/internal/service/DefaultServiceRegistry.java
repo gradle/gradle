@@ -135,14 +135,26 @@ public class DefaultServiceRegistry extends AbstractServiceRegistry {
         }
     }
 
+    public <T> List<T> getAll(Class<T> serviceType) throws ServiceLookupException {
+        if (closed) {
+            throw new IllegalStateException(String.format("Cannot locate service of type %s, as %s has been closed.",
+                    serviceType.getSimpleName(), this));
+        }
+        List<T> result = new ArrayList<T>();
+        for (Provider provider : providers) {
+            provider.getAll(serviceType, result);
+        }
+        return result;
+    }
+
     public <T> T doGet(Class<T> serviceType) throws IllegalArgumentException {
         if (closed) {
             throw new IllegalStateException(String.format("Cannot locate service of type %s, as %s has been closed.",
                     serviceType.getSimpleName(), this));
         }
 
-        for (Provider service : providers) {
-            T t = service.getService(serviceType);
+        for (Provider provider : providers) {
+            T t = provider.getService(serviceType);
             if (t != null) {
                 return t;
             }
@@ -158,8 +170,8 @@ public class DefaultServiceRegistry extends AbstractServiceRegistry {
                     type.getSimpleName(), this));
         }
 
-        for (Provider service : providers) {
-            Factory<T> factory = service.getFactory(type);
+        for (Provider provider : providers) {
+            Factory<T> factory = provider.getFactory(type);
             if (factory != null) {
                 return factory;
             }
@@ -190,6 +202,8 @@ public class DefaultServiceRegistry extends AbstractServiceRegistry {
          * Locates a factory for services of the given type. Returns null if this provider does not provide any services of this type.
          */
         <T> Factory<T> getFactory(Class<T> type);
+
+        <T> void getAll(Class<T> serviceType, List<T> result);
     }
 
     private class OwnServices implements Provider {
@@ -221,6 +235,12 @@ public class DefaultServiceRegistry extends AbstractServiceRegistry {
                 }
             }
             return match;
+        }
+
+        public <T> void getAll(Class<T> serviceType, List<T> result) {
+            for (Provider provider : providers) {
+                provider.getAll(serviceType, result);
+            }
         }
 
         public void stop() {
@@ -275,6 +295,11 @@ public class DefaultServiceRegistry extends AbstractServiceRegistry {
             return serviceType.cast(getInstance());
         }
 
+        public <T> void getAll(Class<T> serviceType, List<T> result) {
+            if (serviceType.isAssignableFrom(this.serviceClass)) {
+                result.add(serviceType.cast(getInstance()));
+            }
+        }
 
         public <T> Factory<T> getFactory(Class<T> elementType) {
             if (!Factory.class.isAssignableFrom(serviceClass)) {
@@ -420,6 +445,10 @@ public class DefaultServiceRegistry extends AbstractServiceRegistry {
                 throw e;
             }
         }
+
+        public <T> void getAll(Class<T> serviceType, List<T> result) {
+            result.addAll(getInstance().getAll(serviceType));
+        }
     }
 
     private class ParentServices implements Provider {
@@ -447,6 +476,10 @@ public class DefaultServiceRegistry extends AbstractServiceRegistry {
                 }
                 throw e;
             }
+        }
+
+        public <T> void getAll(Class<T> serviceType, List<T> result) {
+            result.addAll(parent.getAll(serviceType));
         }
 
         public void stop() {

@@ -25,6 +25,7 @@ import org.junit.runner.RunWith;
 
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.Map;
 
 import static org.hamcrest.Matchers.*;
@@ -153,6 +154,27 @@ public class DefaultServiceRegistryTest {
         } catch (ServiceLookupException e) {
             assertThat(e.getMessage(), equalTo("Cannot use decorator methods when no parent registry is provided."));
         }
+    }
+
+    @Test
+    public void canGetAllServicesOfAGivenType() {
+        assertThat(registry.getAll(String.class), equalTo(Arrays.asList("12")));
+        assertThat(registry.getAll(Number.class), equalTo(Arrays.<Number>asList(12)));
+    }
+
+    @Test
+    public void returnsNullWhenNoServicesOfGivenType() {
+        assertThat(registry.getAll(Long.class), empty());
+    }
+
+    @Test
+    public void includesServicesFromParent() {
+        ServiceRegistry child = new DefaultServiceRegistry(registry) {
+            Long createLong() {
+                return 123L;
+            }
+        };
+        assertThat(child.getAll(Number.class), equalTo(Arrays.<Number>asList(123L, 12)));
     }
 
     @Test

@@ -20,6 +20,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.Synchronizer;
 
 import java.lang.reflect.Type;
+import java.util.List;
 
 public class SynchronizedServiceRegistry implements ServiceRegistry {
     private final Synchronizer synchronizer = new Synchronizer();
@@ -33,6 +34,14 @@ public class SynchronizedServiceRegistry implements ServiceRegistry {
         return synchronizer.synchronize(new Factory<T>() {
             public T create() {
                 return delegate.get(serviceType);
+            }
+        });
+    }
+
+    public <T> List<T> getAll(final Class<T> serviceType) throws ServiceLookupException {
+        return synchronizer.synchronize(new Factory<List<T>>() {
+            public List<T> create() {
+                return delegate.getAll(serviceType);
             }
         });
     }
