@@ -59,7 +59,7 @@ class IvyPublishIdentifierValidationIntegTest extends AbstractIvyPublishIntegTes
 
         then:
         module.assertPublished()
-        module.ivy.description == description.toString()
+        module.parsedIvy.description == description.toString()
 
         and:
         resolveArtifacts(module) == [moduleName + '-' + version + '.jar']

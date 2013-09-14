@@ -29,13 +29,13 @@ class IvyPublishMultiProjectIntegTest extends AbstractIvyPublishIntegTest {
 
         then:
         project1.assertPublishedAsJavaModule()
-        project1.ivy.assertDependsOn("org.gradle.test:project2:2.0@runtime", "org.gradle.test:project3:3.0@runtime")
+        project1.parsedIvy.assertDependsOn("org.gradle.test:project2:2.0@runtime", "org.gradle.test:project3:3.0@runtime")
 
         project2.assertPublishedAsJavaModule()
-        project2.ivy.assertDependsOn("org.gradle.test:project3:3.0@runtime")
+        project2.parsedIvy.assertDependsOn("org.gradle.test:project3:3.0@runtime")
 
         project3.assertPublishedAsJavaModule()
-        project3.ivy.dependencies.isEmpty()
+        project3.parsedIvy.dependencies.isEmpty()
 
         and:
         resolveArtifacts(project1) == ['project1-1.0.jar', 'project2-2.0.jar', 'project3-3.0.jar']
@@ -61,13 +61,13 @@ project(":project3") {
 
         then:
         project1.assertPublishedAsJavaModule()
-        project1.ivy.assertDependsOn("org.gradle.test:project2:2.0@runtime", "changed.org:changed-module:changed@runtime")
+        project1.parsedIvy.assertDependsOn("org.gradle.test:project2:2.0@runtime", "changed.org:changed-module:changed@runtime")
 
         project2.assertPublishedAsJavaModule()
-        project2.ivy.assertDependsOn("changed.org:changed-module:changed@runtime")
+        project2.parsedIvy.assertDependsOn("changed.org:changed-module:changed@runtime")
 
         project3.assertPublishedAsJavaModule()
-        project3.ivy.dependencies.isEmpty()
+        project3.parsedIvy.dependencies.isEmpty()
 
         and:
         resolveArtifacts(project1) == ['changed-module-changed.jar', 'project1-1.0.jar', 'project2-2.0.jar']
@@ -109,14 +109,14 @@ project(":project2") {
 
         then:
         project1.assertPublishedAsJavaModule()
-        project1.ivy.assertDependsOn("org.gradle.test:project2:2.0@runtime", "org.gradle.test:project3:3.0@runtime")
+        project1.parsedIvy.assertDependsOn("org.gradle.test:project2:2.0@runtime", "org.gradle.test:project3:3.0@runtime")
 
         // published with the correct coordinates, even though artifact has different name
         project2.assertPublishedAsJavaModule()
-        project2.ivy.assertDependsOn("org.gradle.test:project3:3.0@runtime")
+        project2.parsedIvy.assertDependsOn("org.gradle.test:project3:3.0@runtime")
 
         project3.assertPublishedAsJavaModule()
-        project3.ivy.dependencies.isEmpty()
+        project3.parsedIvy.dependencies.isEmpty()
     }
 
     def "ivy-publish plugin uses target project name for project dependency when target project does not have ivy-publish plugin applied"() {
@@ -161,7 +161,7 @@ project(":project2") {
 
         then:
         project1.assertPublishedAsJavaModule()
-        project1.ivy.assertDependsOn("org.gradle.test:project2:1.0@runtime")
+        project1.parsedIvy.assertDependsOn("org.gradle.test:project2:1.0@runtime")
     }
 
 

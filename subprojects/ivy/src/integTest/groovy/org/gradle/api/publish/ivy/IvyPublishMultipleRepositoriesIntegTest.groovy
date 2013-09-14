@@ -81,8 +81,8 @@ class IvyPublishMultipleRepositoriesIntegTest extends AbstractIntegrationSpec {
         repo2Module.jarFile.exists()
 
         and: // Modification applied to both
-        repo1Module.ivy.description == "test module"
-        repo2Module.ivy.description == "test module"
+        repo1Module.parsedIvy.description == "test module"
+        repo2Module.parsedIvy.description == "test module"
     }
 
 }

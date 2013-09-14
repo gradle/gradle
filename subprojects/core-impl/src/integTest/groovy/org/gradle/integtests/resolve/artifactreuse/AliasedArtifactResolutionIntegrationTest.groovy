@@ -76,18 +76,18 @@ class AliasedArtifactResolutionIntegrationTest extends AbstractDependencyResolut
     def "does not re-download ivy artifact downloaded from a different ivy repository when sha1 matches"() {
         when:
         def projectBRepo1 = ivyRepo1.module('org.name', 'projectB', '1.0').publish()
-        projectBRepo1.expectIvyGet()
-        projectBRepo1.expectJarGet()
+        projectBRepo1.ivy.expectGet()
+        projectBRepo1.jar.expectGet()
 
         then:
         succeedsWith 'ivyRepository1'
 
         when:
         def projectBRepo2 = ivyRepo2.module('org.name', 'projectB', '1.0').publish()
-        projectBRepo2.expectIvyHead()
-        projectBRepo2.expectIvySha1Get()
-        projectBRepo2.expectJarHead()
-        projectBRepo2.expectJarSha1Get()
+        projectBRepo2.ivy.expectHead()
+        projectBRepo2.ivy.sha1.expectGet()
+        projectBRepo2.jar.expectHead()
+        projectBRepo2.jar.sha1.expectGet()
 
         then:
         succeedsWith 'ivyRepository2'
@@ -104,9 +104,9 @@ class AliasedArtifactResolutionIntegrationTest extends AbstractDependencyResolut
 
         when:
         def projectBRepo2 = ivyRepo1.module('org.name', 'projectB', '1.0').publish()
-        projectBRepo2.expectIvyGet()
-        projectBRepo2.expectJarHead()
-        projectBRepo2.expectJarSha1Get()
+        projectBRepo2.ivy.expectGet()
+        projectBRepo2.jar.expectHead()
+        projectBRepo2.jar.sha1.expectGet()
 
         then:
         succeedsWith 'ivyRepository1'
@@ -115,8 +115,8 @@ class AliasedArtifactResolutionIntegrationTest extends AbstractDependencyResolut
     def "does not re-download maven artifact downloaded from a ivy repository when sha1 matches"() {
         when:
         def projectBRepo1 = ivyRepo1.module('org.name', 'projectB', '1.0').publish()
-        projectBRepo1.expectIvyGet()
-        projectBRepo1.expectJarGet()
+        projectBRepo1.ivy.expectGet()
+        projectBRepo1.jar.expectGet()
 
         then:
         succeedsWith 'ivyRepository1'

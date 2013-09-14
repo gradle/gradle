@@ -42,7 +42,7 @@ public interface IvyModule {
     IvyModule withXml(Closure action);
 
     /**
-     * Publishes ivy.xml plus all artifacts with different content to previous publication.
+     * Publishes ivy.xml plus all artifacts with different content (and size) to previous publication.
      */
     IvyModule publishWithChangedContent();
 
@@ -52,7 +52,7 @@ public interface IvyModule {
      */
     IvyModule publish();
 
-    IvyDescriptor getIvy();
+    IvyDescriptor getParsedIvy();
 
     /**
      * Assert that exactly the ivy.xml and jar file for this module, plus checksum files, have been published.

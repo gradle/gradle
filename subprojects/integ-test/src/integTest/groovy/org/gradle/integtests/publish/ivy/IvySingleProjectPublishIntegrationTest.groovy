@@ -65,7 +65,7 @@ uploadPublish {
         ivyModule.moduleDir.file("jar2-1.9.jar").bytes == file("build/libs/jar2-1.9.jar").bytes
 
         and:
-        def ivyDescriptor = ivyModule.ivy
+        def ivyDescriptor = ivyModule.parsedIvy
         ivyDescriptor.expectArtifact("jar1").conf == ["archives", "publish"]
         ivyDescriptor.expectArtifact("jar2").conf == ["publish"]
     }
@@ -116,7 +116,7 @@ tasks.withType(Upload) {
         ivyModule.moduleDir.file("jar$n-1.9.jar").bytes == file("build/libs/jar$n-1.9.jar").bytes
 
         and:
-        def ivyDescriptor = ivyModule.ivy
+        def ivyDescriptor = ivyModule.parsedIvy
         ivyDescriptor.expectArtifact("jar$n").conf.contains("publish$n" as String)
         ivyDescriptor.expectArtifact("jar$n").conf.contains("archives") == onArchivesConfig
 

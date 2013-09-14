@@ -195,7 +195,7 @@ public class CachedChangingModulesIntegrationTest extends AbstractDependencyReso
           }
           """
         when:
-        module.expectIvyGet()
+        module.ivy.expectGet()
         module.expectArtifactGet(name: "projectA", classifier: "source")
 
         then:
@@ -203,7 +203,7 @@ public class CachedChangingModulesIntegrationTest extends AbstractDependencyReso
 
         when:
         server.resetExpectations()
-        module.expectIvyHead()
+        module.ivy.expectHead()
         module.expectArtifactHead(name: "projectA", classifier: 'source')
         then:
         run 'retrieve'
@@ -211,11 +211,11 @@ public class CachedChangingModulesIntegrationTest extends AbstractDependencyReso
         when:
         module.publishWithChangedContent()
         server.resetExpectations()
-        module.expectIvyHead()
+        module.ivy.expectHead()
         module.expectArtifactHead(name: "projectA", classifier: 'source')
 
-        module.expectIvySha1Get()
-        module.expectIvyGet()
+        module.ivy.sha1.expectGet()
+        module.ivy.expectGet()
         module.expectArtifactGet(name: "projectA", classifier: 'source')
         module.expectArtifactSha1Get(name: "projectA", classifier: 'source')
 

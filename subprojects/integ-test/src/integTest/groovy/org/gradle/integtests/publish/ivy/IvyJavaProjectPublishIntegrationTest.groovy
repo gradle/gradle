@@ -54,7 +54,7 @@ uploadArchives {
         def ivyModule = ivyRepo.module("org.gradle.test", "publishTest", "1.9")
         ivyModule.assertArtifactsPublished("ivy-1.9.xml", "publishTest-1.9.jar")
 
-        with (ivyModule.ivy) {
+        with (ivyModule.parsedIvy) {
             dependencies.size() == 2
             dependencies["commons-collections:commons-collections:3.2.1"].hasConf("compile->default")
             dependencies["commons-io:commons-io:1.4"].hasConf("runtime->default")

@@ -85,14 +85,14 @@ task check << {
 """
 
         and:
-        module.expectIvyGet()
+        module.ivy.expectGet()
         if (!includeLocation) {
-            parentModule.expectIvyGet()
-            parentModule.expectIvyHead()
+            parentModule.ivy.expectGet()
+            parentModule.ivy.expectHead()
         }
-        depModule.expectIvyGet()
-        module.expectJarGet()
-        depModule.expectJarGet()
+        depModule.ivy.expectGet()
+        module.jar.expectGet()
+        depModule.jar.expectGet()
 
         then:
         executer.withArgument("--debug")

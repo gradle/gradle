@@ -13,9 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
-
 package org.gradle.test.fixtures.maven
 
 import org.gradle.test.fixtures.file.TestFile
@@ -28,7 +25,7 @@ interface MavenModule {
     MavenModule publish()
 
     /**
-     * Publishes the pom.xml plus main artifact, plus any additional artifacts for this module, with changed content to any
+     * Publishes the pom.xml plus main artifact, plus any additional artifacts for this module, with different content (and size) to any
      * previous publication.
      */
     MavenModule publishWithChangedContent()
@@ -40,6 +37,11 @@ interface MavenModule {
     MavenModule dependsOn(String group, String artifactId, String version)
 
     MavenModule hasPackaging(String packaging)
+
+    /**
+     * Sets the type of the main artifact for this module.
+     */
+    MavenModule hasType(String type)
 
     TestFile getPomFile()
 

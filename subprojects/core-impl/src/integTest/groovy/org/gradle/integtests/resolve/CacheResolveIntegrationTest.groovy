@@ -51,8 +51,8 @@ task deleteCacheFiles(type: Delete) {
         
         when:
         server.resetExpectations()
-        module.expectIvyGet()
-        module.expectJarGet()
+        module.ivy.expectGet()
+        module.jar.expectGet()
 
         then:
         succeeds('listJars')
@@ -95,15 +95,15 @@ project('b') {
 """
 
         when:
-        module1.expectIvyGet()
-        module1.expectJarGet()
+        module1.ivy.expectGet()
+        module1.jar.expectGet()
 
-        module2.expectIvyHead()
-        module2.expectIvySha1Get()
-        module2.expectIvyGet()
-        module2.expectJarHead()
-        module2.expectJarSha1Get()
-        module2.expectJarGet()
+        module2.ivy.expectHead()
+        module2.ivy.sha1.expectGet()
+        module2.ivy.expectGet()
+        module2.jar.expectHead()
+        module2.jar.sha1.expectGet()
+        module2.jar.expectGet()
 
         then:
         succeeds 'retrieve'

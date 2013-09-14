@@ -48,8 +48,8 @@ task retrieve(type: Copy) {
         def module = ivyHttpRepo.module("group", "projectA", "1.1").publish()
 
         and: "Server handles requests"
-        module.expectIvyGet()
-        module.expectJarGet()
+        module.ivy.expectGet()
+        module.jar.expectGet()
 
         and: "We request 1.1 (changing)"
         run 'retrieve'
@@ -66,13 +66,13 @@ task retrieve(type: Copy) {
         and: "Server handles requests"
         server.resetExpectations()
         // Server will be hit to get updated versions
-        module.expectIvyHead()
-        module.expectIvySha1Get()
-        module.expectIvyGet()
-        module.expectJarHead()
+        module.ivy.expectHead()
+        module.ivy.sha1.expectGet()
+        module.ivy.expectGet()
+        module.jar.expectHead()
         module.expectArtifactGet('other')
-        moduleB.expectIvyGet()
-        moduleB.expectJarGet()
+        moduleB.ivy.expectGet()
+        moduleB.jar.expectGet()
 
         and: "We request 1.1 again"
         run 'retrieve'
@@ -116,12 +116,12 @@ task retrieve(type: Copy) {
         when:
         server.resetExpectations()
         module.publishWithChangedContent()
-        module.expectIvyHead()
-        module.expectIvySha1Get()
-        module.expectIvyGet()
-        module.expectJarHead()
-        module.expectJarSha1Get()
-        module.expectJarGet()
+        module.ivy.expectHead()
+        module.ivy.sha1.expectGet()
+        module.ivy.expectGet()
+        module.jar.expectHead()
+        module.jar.sha1.expectGet()
+        module.jar.expectGet()
 
         and:
         executer.withArguments('-PisChanging')
@@ -160,8 +160,8 @@ task retrieve(type: Copy) {
         def module = ivyHttpRepo.module("group", "projectA", "1.1").publish()
 
         when:
-        module.expectIvyGet()
-        module.expectJarGet()
+        module.ivy.expectGet()
+        module.jar.expectGet()
 
         run 'retrieve'
 
@@ -175,12 +175,12 @@ task retrieve(type: Copy) {
 
         server.resetExpectations()
         // Server will be hit to get updated versions
-        module.expectIvyHead()
-        module.expectIvySha1Get()
-        module.expectIvyGet()
-        module.expectJarHead()
-        module.expectJarSha1Get()
-        module.expectJarGet()
+        module.ivy.expectHead()
+        module.ivy.sha1.expectGet()
+        module.ivy.expectGet()
+        module.jar.expectHead()
+        module.jar.sha1.expectGet()
+        module.jar.expectGet()
 
         run 'retrieve'
 
@@ -222,8 +222,8 @@ task retrieve(type: Copy) {
         def module = ivyHttpRepo.module("group", "projectA", "1.1").publish()
 
         and: "Server handles requests"
-        module.expectIvyGet()
-        module.expectJarGet()
+        module.ivy.expectGet()
+        module.jar.expectGet()
 
         and: "We request 1.1 (changing)"
         run 'retrieve'
@@ -249,12 +249,12 @@ task retrieve(type: Copy) {
         when: "Server handles requests"
         server.resetExpectations()
         // Server will be hit to get updated versions
-        module.expectIvyHead()
-        module.expectIvySha1Get()
-        module.expectIvyGet()
-        module.expectJarHead()
-        module.expectJarSha1Get()
-        module.expectJarGet()
+        module.ivy.expectHead()
+        module.ivy.sha1.expectGet()
+        module.ivy.expectGet()
+        module.jar.expectHead()
+        module.jar.sha1.expectGet()
+        module.jar.expectGet()
         module.expectArtifactGet('other')
 
         and: "We request 1.1 (changing) again, with zero expiry for dynamic revision cache"
@@ -309,8 +309,8 @@ task retrieve(type: Copy) {
         def module = ivyHttpRepo.module("group", "projectA", "1-CHANGING").publish()
 
         and: "Server handles requests"
-        module.expectIvyGet()
-        module.expectJarGet()
+        module.ivy.expectGet()
+        module.jar.expectGet()
 
         and: "We request 1-CHANGING"
         run 'retrieve'
@@ -328,12 +328,12 @@ task retrieve(type: Copy) {
         and: "Server handles requests"
         server.resetExpectations()
         // Server will be hit to get updated versions
-        module.expectIvyHead()
-        module.expectIvySha1Get()
-        module.expectIvyGet()
-        module.expectJarHead()
-        module.expectJarSha1Get()
-        module.expectJarGet()
+        module.ivy.expectHead()
+        module.ivy.sha1.expectGet()
+        module.ivy.expectGet()
+        module.jar.expectHead()
+        module.jar.sha1.expectGet()
+        module.jar.expectGet()
         module.expectArtifactGet('other')
 
         and: "We request 1-CHANGING again"
@@ -373,16 +373,10 @@ task retrieve(type: Copy) {
 
         and:
         def module = ivyHttpRepo.module("group", "projectA", "1.1").publish()
-        
-        def base = "/repo/group/projectA/1.1"
-        def ivyPath = "$base/$module.ivyFile.name"
-        def ivySha1Path = "${ivyPath}.sha1"
-        def jarPath = "$base/$module.jarFile.name"
-        def jarSha1Path = "${jarPath}.sha1"
 
         when:
-        module.expectIvyGet()
-        module.expectJarGet()
+        module.ivy.expectGet()
+        module.jar.expectGet()
 
         and:
         run 'retrieve'
@@ -394,8 +388,8 @@ task retrieve(type: Copy) {
 
         when:
         server.resetExpectations()
-        module.expectIvyHead()
-        module.expectJarHead()
+        module.ivy.expectHead()
+        module.jar.expectHead()
 
         and:
         run 'retrieve'
@@ -408,12 +402,12 @@ task retrieve(type: Copy) {
         module.publishWithChangedContent()
 
         server.resetExpectations()
-        module.expectIvyHead()
-        module.expectIvySha1GetMissing()
-        module.expectIvyGet()
-        module.expectJarHead()
-        module.expectJarSha1GetMissing()
-        module.expectJarGet()
+        module.ivy.expectHead()
+        module.ivy.sha1.expectGetMissing()
+        module.ivy.expectGet()
+        module.jar.expectHead()
+        module.jar.sha1.expectGetMissing()
+        module.jar.expectGet()
 
         run 'retrieve'
 

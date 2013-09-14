@@ -68,7 +68,7 @@ public class IvyPublishBasicIntegTest extends AbstractIvyPublishIntegTest {
         module.assertArtifactsPublished("ivy-1.0.xml")
 
         and:
-        with (module.ivy) {
+        with (module.parsedIvy) {
             configurations.isEmpty()
             artifacts.isEmpty()
             dependencies.isEmpty()
@@ -116,7 +116,7 @@ public class IvyPublishBasicIntegTest extends AbstractIvyPublishIntegTest {
 
         then: "jar is published to defined ivy repository"
         module.assertPublishedAsJavaModule()
-        module.ivy.status == 'integration'
+        module.parsedIvy.status == 'integration'
         module.moduleDir.file('root-1.0.jar').assertIsCopyOf(file('build/libs/root-1.0.jar'))
 
         and:

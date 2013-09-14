@@ -44,8 +44,8 @@ task listJars << {
 }
 """
         when:
-        module.expectIvyGet()
-        module.expectJarGet()
+        module.ivy.expectGet()
+        module.jar.expectGet()
 
         then:
         succeeds 'listJars'
@@ -81,8 +81,8 @@ task listJars << {
 
 
         when:
-        module.expectIvyGet()
-        module.expectJarGet()
+        module.ivy.expectGet()
+        module.jar.expectGet()
 
         then:
         succeeds('listJars')
@@ -118,9 +118,9 @@ task listJars << {
 
 
         when:
-        module.expectIvyGetMissing()
-        module.expectJarHead()
-        module.expectJarGet()
+        module.ivy.expectGetMissing()
+        module.jar.expectHead()
+        module.jar.expectGet()
 
         then:
         succeeds('listJars')
@@ -164,21 +164,21 @@ task listJars << {
 """
 
         when:
-        moduleA.expectIvyGet()
-        moduleA.expectJarGet()
+        moduleA.ivy.expectGet()
+        moduleA.jar.expectGet()
 
         // Handles missing in repo1
-        missingModuleB.expectIvyGetMissing()
-        missingModuleB.expectJarHeadMissing()
+        missingModuleB.ivy.expectGetMissing()
+        missingModuleB.jar.expectHeadMissing()
 
-        moduleB.expectIvyGet()
-        moduleB.expectJarGet()
+        moduleB.ivy.expectGet()
+        moduleB.jar.expectGet()
 
         // Handles from broken url in repo1 (but does not cache)
-        brokenModuleC.expectIvyGetBroken()
+        brokenModuleC.ivy.expectGetBroken()
 
-        moduleC.expectIvyGet()
-        moduleC.expectJarGet()
+        moduleC.ivy.expectGet()
+        moduleC.jar.expectGet()
 
         then:
         succeeds('listJars')
@@ -307,10 +307,10 @@ task retrieve(type: Sync) {
                 .publish()
 
         when:
-        moduleA.expectIvyGet()
-        moduleA.expectJarGet()
-        moduleB15.expectIvyGet()
-        moduleB15.expectJarGet()
+        moduleA.ivy.expectGet()
+        moduleA.jar.expectGet()
+        moduleB15.ivy.expectGet()
+        moduleB15.jar.expectGet()
         run 'retrieve'
 
         then:
@@ -319,8 +319,8 @@ task retrieve(type: Sync) {
         when:
         server.resetExpectations()
         ivyHttpRepo.expectDirectoryListGet('org', 'projectB')
-        moduleB16.expectIvyGet()
-        moduleB16.expectJarGet()
+        moduleB16.ivy.expectGet()
+        moduleB16.jar.expectGet()
         executer.withArguments("-PuseDynamicResolve=true")
         run 'retrieve'
 

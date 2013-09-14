@@ -48,12 +48,12 @@ task listJars << {
 """
 
         when:
-        projectB.expectIvyGet()
-        projectB.expectJarGet()
-        projectAInRepo1.expectIvyGetMissing()
-        projectAInRepo1.expectJarHeadMissing()
-        projectAInRepo2.expectIvyGet()
-        projectAInRepo2.expectJarGet()
+        projectB.ivy.expectGet()
+        projectB.jar.expectGet()
+        projectAInRepo1.ivy.expectGetMissing()
+        projectAInRepo1.jar.expectHeadMissing()
+        projectAInRepo2.ivy.expectGet()
+        projectAInRepo2.jar.expectGet()
 
         then:
         succeeds('listJars')

@@ -48,7 +48,7 @@ class IvyFileModule extends AbstractModule implements IvyModule {
         configurations['default'] = [extendsFrom: ['runtime'], transitive: true, visibility: 'public']
     }
 
-    IvyDescriptor getIvy() {
+    IvyDescriptor getParsedIvy() {
         return new IvyDescriptor(ivyFile)
     }
 
@@ -119,7 +119,7 @@ class IvyFileModule extends AbstractModule implements IvyModule {
     /**
      * Publishes ivy.xml plus all artifacts with different content to previous publication.
      */
-    IvyModule publishWithChangedContent() {
+    IvyFileModule publishWithChangedContent() {
         publishCount++
         publish()
     }
@@ -127,7 +127,7 @@ class IvyFileModule extends AbstractModule implements IvyModule {
     /**
      * Publishes ivy.xml (if enabled) plus all artifacts
      */
-    IvyModule publish() {
+    IvyFileModule publish() {
         moduleDir.createDir()
 
         if (artifacts.empty) {
@@ -239,26 +239,26 @@ class IvyFileModule extends AbstractModule implements IvyModule {
 
     void assertPublished() {
         assert ivyFile.assertIsFile()
-        assert ivy.organisation == organisation
-        assert ivy.module == module
-        assert ivy.revision == revision
+        assert parsedIvy.organisation == organisation
+        assert parsedIvy.module == module
+        assert parsedIvy.revision == revision
     }
 
     void assertPublishedAsJavaModule() {
         assertPublished()
         assertArtifactsPublished("${module}-${revision}.jar", "ivy-${revision}.xml")
-        ivy.expectArtifact(module, "jar").hasAttributes("jar", "jar", ["runtime"], null)
+        parsedIvy.expectArtifact(module, "jar").hasAttributes("jar", "jar", ["runtime"], null)
     }
 
     void assertPublishedAsWebModule() {
         assertPublished()
         assertArtifactsPublished("${module}-${revision}.war", "ivy-${revision}.xml")
-        ivy.expectArtifact(module, "war").hasAttributes("war", "war", ["master"])
+        parsedIvy.expectArtifact(module, "war").hasAttributes("war", "war", ["master"])
     }
 
     void assertPublishedAsEarModule() {
         assertPublished()
         assertArtifactsPublished("${module}-${revision}.ear", "ivy-${revision}.xml")
-        ivy.expectArtifact(module, "ear").hasAttributes("ear", "ear", ["master"])
+        parsedIvy.expectArtifact(module, "ear").hasAttributes("ear", "ear", ["master"])
     }
 }

@@ -56,7 +56,7 @@ class IvyPublishDescriptorCustomizationIntegTest extends AbstractIntegrationSpec
         ":jar" in executedTasks
 
         and:
-        module.ivy.revision == "2"
+        module.parsedIvy.revision == "2"
 
         when:
         buildFile << """
@@ -80,8 +80,8 @@ class IvyPublishDescriptorCustomizationIntegTest extends AbstractIntegrationSpec
         ":jar" in skippedTasks
 
         and:
-        module.ivy.description == "Customized descriptor"
-        module.ivy.status == "custom-status"
+        module.parsedIvy.description == "Customized descriptor"
+        module.parsedIvy.status == "custom-status"
     }
 
     def "can generate ivy.xml without publishing"() {

@@ -223,8 +223,8 @@ class RecoverFromBrokenResolutionIntegrationTest extends AbstractDependencyResol
                       from configurations.compile
                   }"""
         when:
-        ivyModule.expectIvyGet()
-        ivyModule.expectJarGet()
+        ivyModule.ivy.expectGet()
+        ivyModule.jar.expectGet()
 
         then:
         run 'retrieve'

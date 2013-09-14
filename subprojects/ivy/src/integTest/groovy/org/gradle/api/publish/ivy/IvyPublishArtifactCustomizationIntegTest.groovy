@@ -48,7 +48,7 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
         module.assertArtifactsPublished("ivy-2.4.xml", "ivyPublish-2.4.txt", "ivyPublish-2.4.html", "ivyPublish-2.4.jar")
 
         and:
-        def ivy = module.ivy
+        def ivy = module.parsedIvy
         ivy.expectArtifact('ivyPublish', 'txt').hasType("txt").hasConf(null)
         ivy.expectArtifact('ivyPublish', 'html').hasType("html").hasConf(null)
         ivy.expectArtifact('ivyPublish', 'jar').hasType("jar").hasConf(null)
@@ -95,7 +95,7 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
         module.assertArtifactsPublished("ivy-2.4.xml", "docs-2.4.htm", "customFile-2.4-classified.txt", "ivyPublish-2.4.war")
 
         and:
-        def ivy = module.ivy
+        def ivy = module.parsedIvy
         ivy.expectArtifact("ivyPublish", "war").hasType("web-archive").hasConf(["*"])
         ivy.expectArtifact("docs", "htm").hasType("html").hasConf(null)
         ivy.expectArtifact("customFile", "txt", "classified").hasType("txt").hasConf(["foo", "bar"])
@@ -130,7 +130,7 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
         module.assertArtifactsPublished("ivy-2.4.xml", "docs-2.4.htm", "customFile-2.4-classified.txt", "ivyPublish-2.4.war")
 
         and:
-        def ivy = module.ivy
+        def ivy = module.parsedIvy
         ivy.expectArtifact("ivyPublish", "war").hasType("web-archive").hasConf(["*"])
         ivy.expectArtifact("docs", "htm").hasType("html").hasConf(null)
         ivy.expectArtifact("customFile", "txt", "classified").hasType("txt").hasConf(["foo", "bar"])
@@ -161,7 +161,7 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
         then:
         module.assertPublished()
         module.assertArtifactsPublished("ivy-2.4.xml", "ivyPublish-2.4.txt", "ivyPublish-2.4.html", "ivyPublish-2.4.jar")
-        module.ivy.artifacts.collect({"${it.name}.${it.ext}"}) as Set == ["ivyPublish.txt", "ivyPublish.html", "ivyPublish.jar"] as Set
+        module.parsedIvy.artifacts.collect({"${it.name}.${it.ext}"}) as Set == ["ivyPublish.txt", "ivyPublish.html", "ivyPublish.jar"] as Set
     }
 
     def "can configure custom artifacts post creation"() {
@@ -191,7 +191,7 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
         module.assertPublished()
         module.assertArtifactsPublished("ivy-2.4.xml", "customFile-2.4.mod", "docs-2.4.mod", "ivyPublish-2.4.mod")
 
-        for (IvyDescriptorArtifact artifact : module.ivy.artifacts) {
+        for (IvyDescriptorArtifact artifact : module.parsedIvy.artifacts) {
             artifact.ext == "mod"
             artifact.conf == "mod-conf"
         }
@@ -213,7 +213,7 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
         then:
         module.assertPublished()
         module.assertArtifactsPublished("ivy-2.4.xml", "no-extension-2.4")
-        module.ivy.expectArtifact("no-extension").hasAttributes("", "ext-less", null)
+        module.parsedIvy.expectArtifact("no-extension").hasAttributes("", "ext-less", null)
 
         // TODO:DAZ Fix publication with empty extension so it can be resolved
 //        and:
@@ -235,7 +235,7 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
         then:
         module.assertPublished()
         module.assertArtifactsPublished("ivy-2.4.xml", "ivyPublish-2.4-classy.jar")
-        module.ivy.expectArtifact("ivyPublish").hasAttributes("jar", "jar", null, "classy")
+        module.parsedIvy.expectArtifact("ivyPublish").hasAttributes("jar", "jar", null, "classy")
 
         and:
         resolveArtifacts(module) == ["ivyPublish-2.4-classy.jar"]
@@ -263,7 +263,7 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
 
         then:
         module.assertPublished()
-        def ivy = module.ivy
+        def ivy = module.parsedIvy
         ivy.configurations.keySet() == ["base", "custom", "runtime"] as Set
         ivy.configurations["runtime"].extend == null
         ivy.configurations["base"].extend == null

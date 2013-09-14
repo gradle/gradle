@@ -207,14 +207,6 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
         moduleDir.parentFile.file(MAVEN_METADATA_FILE)
     }
 
-    TestFile getArtifactSha1File() {
-        return getSha1File(artifactFile)
-    }
-
-    TestFile getArtifactMd5File() {
-        return getMd5File(artifactFile)
-    }
-
     TestFile artifactFile(Map<String, ?> options) {
         def artifact = toArtifact(options)
         def fileName = "$artifactId-${publishArtifactVersion}.${artifact.type}"

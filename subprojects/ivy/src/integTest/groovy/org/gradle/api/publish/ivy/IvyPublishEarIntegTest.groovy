@@ -68,7 +68,7 @@ class IvyPublishEarIntegTest extends AbstractIvyPublishIntegTest {
         ivyModule.assertPublishedAsEarModule()
 
         and: "correct configurations and dependencies declared"
-        with (ivyModule.ivy) {
+        with (ivyModule.parsedIvy) {
             configurations.keySet() == ["default", "master"] as Set
             configurations.default.extend == ["master"] as Set
             configurations.master.extend == null

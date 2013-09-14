@@ -54,11 +54,11 @@ task retrieve(type: Sync) {
 
         and: "Server handles requests"
         ivyHttpRepo.expectDirectoryListGet("group", "projectA")
-        projectA1.expectIvyGet()
-        projectA1.expectJarGet()
+        projectA1.ivy.expectGet()
+        projectA1.jar.expectGet()
         ivyHttpRepo.expectDirectoryListGet("group", "projectB")
-        projectB1.expectIvyGet()
-        projectB1.expectJarGet()
+        projectB1.ivy.expectGet()
+        projectB1.jar.expectGet()
 
         and:
         run 'retrieve'
@@ -75,11 +75,11 @@ task retrieve(type: Sync) {
         and: "Server handles requests"
         server.resetExpectations()
         ivyHttpRepo.expectDirectoryListGet("group", "projectA")
-        projectA2.expectIvyGet()
-        projectA2.expectJarGet()
+        projectA2.ivy.expectGet()
+        projectA2.jar.expectGet()
         ivyHttpRepo.expectDirectoryListGet("group", "projectB")
-        projectB2.expectIvyGet()
-        projectB2.expectJarGet()
+        projectB2.ivy.expectGet()
+        projectB2.jar.expectGet()
 
         and:
         run 'retrieve'
@@ -120,13 +120,13 @@ task retrieve(type: Sync) {
 
         and: "Server handles requests"
         ivyHttpRepo.expectDirectoryListGet("group", "projectA")
-        projectA12.expectIvyGetMissing()
-        projectA11.expectIvyGetMissing()
+        projectA12.ivy.expectGetMissing()
+        projectA11.ivy.expectGetMissing()
 
         // TODO - Should not list twice
         ivyHttpRepo.expectDirectoryListGet("group", "projectA")
-        projectA12.expectJarHead()
-        projectA12.expectJarGet()
+        projectA12.jar.expectHead()
+        projectA12.jar.expectGet()
 
         and:
         run 'retrieve'
@@ -177,10 +177,10 @@ task retrieveMilestone(type: Sync) {
 
         and: "Server handles requests"
         ivyHttpRepo.expectDirectoryListGet("group", "projectA")
-        integration.expectIvyGet()
-        milestone.expectIvyGet()
-        release.expectIvyGet()
-        release.expectJarGet()
+        integration.ivy.expectGet()
+        milestone.ivy.expectGet()
+        release.ivy.expectGet()
+        release.jar.expectGet()
 
         and:
         run 'retrieveRelease'
@@ -190,9 +190,9 @@ task retrieveMilestone(type: Sync) {
 
         when:
         ivyHttpRepo.expectDirectoryListGet("group", "projectA")
-        integration.expectIvyHead()
-        milestone.expectIvyHead()
-        milestone.expectJarGet()
+        integration.ivy.expectHead()
+        milestone.ivy.expectHead()
+        milestone.jar.expectGet()
 
         and:
         run 'retrieveMilestone'
@@ -237,14 +237,14 @@ task retrieveMilestone(type: Sync) {
 
         and: "Server handles requests"
         repo1.expectDirectoryListGet("group", "projectA")
-        version11.expectIvyGet()
-        version11.expectJarGet()
+        version11.ivy.expectGet()
+        version11.jar.expectGet()
         repo2.expectDirectoryListGet("group", "projectA")
-        version12.expectIvyGet()
+        version12.ivy.expectGet()
         // TODO - shouldn't need this
         repo2.expectDirectoryListGet("group", "projectA")
         // TODO - shouldn't need this
-        version12.expectJarGet()
+        version12.jar.expectGet()
 
         and:
         run 'retrieveMilestone'
@@ -285,9 +285,9 @@ task retrieveMilestone(type: Sync) {
         when:
         repo1.expectDirectoryListGet("org.test", "projectA")
         repo2.expectDirectoryListGet("org.test", "projectA")
-        repo2version3.expectIvyGet()
-        repo1version2.expectIvyGet()
-        repo1version2.expectJarGet()
+        repo2version3.ivy.expectGet()
+        repo1version2.ivy.expectGet()
+        repo1version2.jar.expectGet()
 
         then:
         succeeds 'retrieveMilestone'
@@ -331,8 +331,8 @@ task retrieve(type: Sync) {
 
         and: "Server handles requests"
         repo1.expectDirectoryListGet("group", "projectA")
-        projectA11.expectIvyGet()
-        projectA11.expectJarGet()
+        projectA11.ivy.expectGet()
+        projectA11.jar.expectGet()
 
         and: "Retrieve with only repo1"
         run 'retrieve'
@@ -343,8 +343,8 @@ task retrieve(type: Sync) {
         when: "Server handles requests"
         server.resetExpectations()
         repo2.expectDirectoryListGet("group", "projectA")
-        projectA12.expectIvyGet()
-        projectA12.expectJarGet()
+        projectA12.ivy.expectGet()
+        projectA12.jar.expectGet()
 
         and: "Retrieve with both repos"
         executer.withArguments("-PaddRepo2")
@@ -385,8 +385,8 @@ task retrieve(type: Sync) {
         and: "projectA is broken in repo1"
         repo1.expectDirectoryListGetBroken("group", "projectA")
         repo2.expectDirectoryListGet("group", "projectA")
-        projectA11.expectIvyGet()
-        projectA11.expectJarGet()
+        projectA11.ivy.expectGet()
+        projectA11.jar.expectGet()
 
         and: "Retrieve with only repo2"
         run 'retrieve'
@@ -397,8 +397,8 @@ task retrieve(type: Sync) {
         when: "Server handles requests"
         server.resetExpectations()
         repo1.expectDirectoryListGet("group", "projectA")
-        projectA12.expectIvyGet()
-        projectA12.expectJarGet()
+        projectA12.ivy.expectGet()
+        projectA12.jar.expectGet()
 
         and: "Retrieve with both repos"
         run 'retrieve'
@@ -440,13 +440,13 @@ task retrieve(type: Sync) {
         and: "Server handles requests"
         repo1.expectDirectoryListGet("group", "projectA")
         // TODO Should not need to get this
-        projectA11.expectIvyGet()
+        projectA11.ivy.expectGet()
         // TODO Should only list missing directory once
         repo2.expectDirectoryListGet("group", "projectA")
         repo2.expectDirectoryListGet("group", "projectA")
         repo3.expectDirectoryListGet("group", "projectA")
-        projectA12.expectIvyGet()
-        projectA12.expectJarGet()
+        projectA12.ivy.expectGet()
+        projectA12.jar.expectGet()
 
         and:
         run 'retrieve'
@@ -494,8 +494,8 @@ task retrieve2(type: Sync) {
 
         and:
         ivyHttpRepo.expectDirectoryListGet("org.test", "projectA")
-        projectA12.expectIvyGet()
-        projectA12.expectJarGet()
+        projectA12.ivy.expectGet()
+        projectA12.jar.expectGet()
 
         and:
         run 'retrieve1'
@@ -506,7 +506,7 @@ task retrieve2(type: Sync) {
         when:
         server.resetExpectations()
         ivyHttpRepo.expectDirectoryListGet("org.test", "projectA")
-        projectA12.expectIvyHead()
+        projectA12.ivy.expectHead()
 
         and:
         run 'retrieve2'
@@ -549,8 +549,8 @@ task retrieve(type: Sync) {
 
         and: "Server handles requests"
         ivyHttpRepo.expectDirectoryListGet("group", "projectA")
-        version1.expectIvyGet()
-        version1.expectJarGet()
+        version1.ivy.expectGet()
+        version1.jar.expectGet()
 
         and: "We request 1.+"
         run 'retrieve'
@@ -571,8 +571,8 @@ task retrieve(type: Sync) {
 
         when: "Server handles requests"
         ivyHttpRepo.expectDirectoryListGet("group", "projectA")
-        version2.expectIvyGet()
-        version2.expectJarGet()
+        version2.ivy.expectGet()
+        version2.jar.expectGet()
 
         and: "We request 1.+, with zero expiry for dynamic revision cache"
         executer.withArguments("-PnoDynamicRevisionCache").withTasks('retrieve').run()
@@ -622,14 +622,14 @@ task retrieve(type: Sync) {
         def projectB1 = ivyHttpRepo.module("group", "projectB", "1.1").publish()
 
         and: "Server handles requests"
-        mainProject.expectIvyGet()
-        mainProject.expectJarGet()
+        mainProject.ivy.expectGet()
+        mainProject.jar.expectGet()
         ivyHttpRepo.expectDirectoryListGet("group", "projectA")
-        projectA1.expectIvyGet()
-        projectA1.expectJarGet()
+        projectA1.ivy.expectGet()
+        projectA1.jar.expectGet()
         ivyHttpRepo.expectDirectoryListGet("group", "projectB")
-        projectB1.expectIvyGet()
-        projectB1.expectJarGet()
+        projectB1.ivy.expectGet()
+        projectB1.jar.expectGet()
 
         and:
         run 'retrieve'
@@ -657,11 +657,11 @@ task retrieve(type: Sync) {
         when: "Server handles requests"
         server.resetExpectations()
         ivyHttpRepo.expectDirectoryListGet("group", "projectA")
-        projectA2.expectIvyGet()
-        projectA2.expectJarGet()
+        projectA2.ivy.expectGet()
+        projectA2.jar.expectGet()
         ivyHttpRepo.expectDirectoryListGet("group", "projectB")
-        projectB2.expectIvyGet()
-        projectB2.expectJarGet()
+        projectB2.ivy.expectGet()
+        projectB2.jar.expectGet()
 
         and: "DynamicRevisionCache is bypassed"
         executer.withArguments("-PnoDynamicRevisionCache")
@@ -700,8 +700,8 @@ task retrieve(type: Sync) {
         // TODO - should only list versions once
         repo1.expectDirectoryListGetMissing("group", "projectA")
         repo2.expectDirectoryListGet("group", "projectA")
-        moduleA.expectIvyGet()
-        moduleA.expectJarGet()
+        moduleA.ivy.expectGet()
+        moduleA.jar.expectGet()
 
         then:
         succeeds('listJars')
@@ -741,8 +741,8 @@ task retrieve(type: Sync) {
 
         when:
         ivyRepo.expectDirectoryListGet("org.test", "a")
-        ivyModule.expectIvyGet()
-        ivyModule.expectJarGet()
+        ivyModule.ivy.expectGet()
+        ivyModule.jar.expectGet()
 
         and:
         run 'retrieve'
