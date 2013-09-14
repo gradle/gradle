@@ -20,7 +20,6 @@ import org.apache.ivy.core.IvyPatternHelper;
 import org.apache.ivy.core.module.descriptor.*;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.matcher.MapMatcher;
-import org.apache.ivy.util.StringUtils;
 import org.apache.ivy.util.XMLHelper;
 import org.apache.ivy.util.extendable.ExtendableItem;
 import org.gradle.api.Action;
@@ -481,20 +480,8 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
             writer.write("\t>");
             writer.write(TextUtil.getPlatformLineSeparator());
             ExtendsDescriptor[] parents = md.getInheritedDescriptors();
-            for (int i = 0; i < parents.length; i++) {
-                ExtendsDescriptor parent = parents[i];
-                ModuleRevisionId mrid = parent.getParentRevisionId();
-                writer.write("\t\t<extends organisation=\"" + XMLHelper.escape(mrid.getOrganisation()) + "\""
-                        + " module=\"" + XMLHelper.escape(mrid.getName()) + "\""
-                        + " revision=\"" + XMLHelper.escape(mrid.getRevision()) + "\"");
-
-                String location = parent.getLocation();
-                if (location != null) {
-                    writer.write(" location=\"" + XMLHelper.escape(location) + "\"");
-                }
-                writer.write(" extendType=\"" + StringUtils.join(parent.getExtendsTypes(), ",") + "\"");
-                writer.write("/>");
-                writer.write(TextUtil.getPlatformLineSeparator());
+            if (parents.length != 0) {
+                throw new UnsupportedOperationException("Extends descriptors not supported.");
             }
             License[] licenses = md.getLicenses();
             for (int i = 0; i < licenses.length; i++) {
