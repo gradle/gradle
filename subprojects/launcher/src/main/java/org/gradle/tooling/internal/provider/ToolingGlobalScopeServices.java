@@ -16,10 +16,8 @@
 
 package org.gradle.tooling.internal.provider;
 
-import org.gradle.internal.service.DefaultServiceRegistry;
-
-class ToolingGlobalScopeServices extends DefaultServiceRegistry {
-    protected PayloadSerializer createPayloadSerializer() {
+class ToolingGlobalScopeServices {
+    PayloadSerializer createPayloadSerializer() {
         return new PayloadSerializer(
                 new DefaultPayloadClassLoaderRegistry(
                         new ModelClassLoaderFactory()));
