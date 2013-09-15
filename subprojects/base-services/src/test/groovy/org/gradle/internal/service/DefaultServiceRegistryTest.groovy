@@ -817,6 +817,77 @@ class DefaultServiceRegistryTest extends Specification {
         1 * service.stop()
     }
 
+    def closeClosesServicesInDependencyOrder() {
+        def service1 = Mock(TestCloseService)
+        def service2 = Mock(TestStopService)
+        def service3 = Mock(Closeable)
+        def registry = new DefaultServiceRegistry()
+
+        given:
+        registry.addProvider(new Object() {
+            TestStopService createService2(Closeable b) {
+                return service2
+            }
+            Closeable createService3() {
+                return service3
+            }
+        })
+        registry.addProvider(new Object() {
+            TestCloseService createService1(TestStopService a, Closeable b) {
+                return service1
+            }
+        })
+        registry.get(TestCloseService)
+
+        when:
+        registry.close()
+
+        then:
+        1 * service1.close()
+
+        then:
+        1 * service2.stop()
+
+        then:
+        1 * service3.close()
+        0 * _._
+    }
+
+    def closeContinuesToCloseServicesAfterFailingToStopSomeService() {
+        def service1 = Mock(TestCloseService)
+        def service2 = Mock(TestStopService)
+        def service3 = Mock(Closeable)
+        def failure = new RuntimeException()
+        def registry = new DefaultServiceRegistry()
+
+        given:
+        registry.addProvider(new Object() {
+            TestStopService createService2(Closeable b) {
+                return service2
+            }
+            TestCloseService createService1(TestStopService a, Closeable b) {
+                return service1
+            }
+            Closeable createService3() {
+                return service3
+            }
+        })
+        registry.get(TestCloseService)
+
+        when:
+        registry.close()
+
+        then:
+        RuntimeException e = thrown()
+        e == failure
+
+        and:
+        1 * service1.close()
+        1 * service2.stop() >> { throw failure }
+        1 * service3.close()
+        0 * _._
+    }
+
     def doesNotStopServiceThatHasNotBeenCreated() {
         def service = Mock(TestStopService)
 
