@@ -29,21 +29,10 @@ import org.gradle.execution.taskgraph.TaskPlanExecutor;
 import org.gradle.execution.taskgraph.TaskPlanExecutorFactory;
 import org.gradle.internal.id.RandomLongIdGenerator;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.service.DefaultServiceRegistry;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.listener.ListenerManager;
 
-public class TaskExecutionServices extends DefaultServiceRegistry {
-    private final Gradle gradle;
-
-    public TaskExecutionServices(ServiceRegistry parent, Gradle gradle) {
-        super(parent);
-        this.gradle = gradle;
-    }
-
-    protected TaskExecuter createTaskExecuter() {
-        TaskArtifactStateCacheAccess cacheAccess = get(TaskArtifactStateCacheAccess.class);
-        TaskArtifactStateRepository repository = get(TaskArtifactStateRepository.class);
+public class TaskExecutionServices {
+    TaskExecuter createTaskExecuter(TaskArtifactStateRepository repository, ListenerManager listenerManager) {
         return new ExecuteAtMostOnceTaskExecuter(
                 new SkipOnlyIfTaskExecuter(
                         new SkipTaskWithNoActionsExecuter(
@@ -52,18 +41,16 @@ public class TaskExecutionServices extends DefaultServiceRegistry {
                                                 new SkipUpToDateTaskExecuter(repository,
                                                         new PostExecutionAnalysisTaskExecuter(
                                                                 new ExecuteActionsTaskExecuter(
-                                                                        get(ListenerManager.class).getBroadcaster(TaskActionListener.class)
+                                                                        listenerManager.getBroadcaster(TaskActionListener.class)
                                                                 ))))))));
     }
 
-    protected TaskArtifactStateCacheAccess createCacheAccess() {
-        InMemoryPersistentCacheDecoratorFactory decoratorFactory = new InMemoryPersistentCacheDecoratorFactory(get(InMemoryTaskArtifactCache.class), get(StartParameter.class));
-        return new DefaultTaskArtifactStateCacheAccess(gradle, get(CacheRepository.class), decoratorFactory);
+    TaskArtifactStateCacheAccess createCacheAccess(Gradle gradle, CacheRepository cacheRepository, InMemoryTaskArtifactCache inMemoryTaskArtifactCache, StartParameter startParameter) {
+        InMemoryPersistentCacheDecoratorFactory decoratorFactory = new InMemoryPersistentCacheDecoratorFactory(inMemoryTaskArtifactCache, startParameter);
+        return new DefaultTaskArtifactStateCacheAccess(gradle, cacheRepository, decoratorFactory);
     }
 
-   protected TaskArtifactStateRepository createTaskArtifactStateRepository() {
-        TaskArtifactStateCacheAccess cacheAccess = get(TaskArtifactStateCacheAccess.class);
-
+    TaskArtifactStateRepository createTaskArtifactStateRepository(Instantiator instantiator, TaskArtifactStateCacheAccess cacheAccess, StartParameter startParameter) {
         FileSnapshotter fileSnapshotter = new DefaultFileSnapshotter(
                 new CachingHasher(
                         new DefaultHasher(),
@@ -71,11 +58,12 @@ public class TaskExecutionServices extends DefaultServiceRegistry {
 
         FileSnapshotter outputFilesSnapshotter = new OutputFilesSnapshotter(fileSnapshotter, new RandomLongIdGenerator(), cacheAccess);
 
-        TaskHistoryRepository taskHistoryRepository = new CacheBackedTaskHistoryRepository(cacheAccess, new CacheBackedFileSnapshotRepository(cacheAccess, new RandomLongIdGenerator()));
+        TaskHistoryRepository taskHistoryRepository = new CacheBackedTaskHistoryRepository(cacheAccess,
+                new CacheBackedFileSnapshotRepository(cacheAccess,
+                        new RandomLongIdGenerator()));
 
-        Instantiator instantiator = get(Instantiator.class);
         return new ShortCircuitTaskArtifactStateRepository(
-                        get(StartParameter.class),
+                        startParameter,
                         instantiator,
                         new DefaultTaskArtifactStateRepository(
                                 taskHistoryRepository,
@@ -86,9 +74,7 @@ public class TaskExecutionServices extends DefaultServiceRegistry {
         );
     }
 
-    protected TaskPlanExecutor createTaskExecutorFactory() {
-        StartParameter startParameter = gradle.getStartParameter();
-        TaskArtifactStateCacheAccess cacheAccess = get(TaskArtifactStateCacheAccess.class);
+    TaskPlanExecutor createTaskExecutorFactory(StartParameter startParameter, TaskArtifactStateCacheAccess cacheAccess) {
         return new TaskPlanExecutorFactory(cacheAccess, startParameter.getParallelThreadCount()).create();
     }
 }

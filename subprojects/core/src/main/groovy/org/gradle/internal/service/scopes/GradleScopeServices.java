@@ -44,10 +44,11 @@ import static java.util.Arrays.asList;
 public class GradleScopeServices extends DefaultServiceRegistry implements ServiceRegistryFactory {
     private final GradleInternal gradle;
 
-    public GradleScopeServices(ServiceRegistry parent, final GradleInternal gradle) {
+    public GradleScopeServices(ServiceRegistry parent, GradleInternal gradle) {
         super(parent);
         this.gradle = gradle;
-        add(new TaskExecutionServices(parent, gradle));
+        add(GradleInternal.class, gradle);
+        addProvider(new TaskExecutionServices());
     }
 
     protected BuildExecuter createBuildExecuter() {

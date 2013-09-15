@@ -24,6 +24,7 @@ import org.gradle.cache.CacheRepository
 import org.gradle.cache.DirectoryCacheBuilder
 import org.gradle.cache.PersistentCache
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.listener.ListenerManager
 import spock.lang.Specification
@@ -31,12 +32,13 @@ import spock.lang.Specification
 class TaskExecutionServicesTest extends Specification {
     final ServiceRegistry parent = Mock()
     final Gradle gradle = Mock()
-    final TaskExecutionServices services = new TaskExecutionServices(parent, gradle)
+    final def services = new DefaultServiceRegistry(parent).addProvider(new TaskExecutionServices())
 
     def "makes a TaskExecutor available"() {
         given:
         CacheRepository cacheRepository = Mock()
         DirectoryCacheBuilder cacheBuilder = Mock()
+        _ * parent.get(Gradle) >> gradle
         _ * parent.get(ListenerManager) >> Mock(ListenerManager)
         _ * parent.get(StartParameter) >> Mock(StartParameter)
         _ * parent.get(CacheRepository) >> cacheRepository
