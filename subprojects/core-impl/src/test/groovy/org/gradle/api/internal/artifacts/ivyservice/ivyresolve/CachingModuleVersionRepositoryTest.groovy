@@ -26,7 +26,7 @@ import org.gradle.api.internal.externalresource.cached.CachedArtifactIndex
 import org.gradle.api.internal.externalresource.ivy.ArtifactAtRepositoryKey
 import org.gradle.api.internal.externalresource.metadata.DefaultExternalResourceMetaData
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData
-import org.gradle.internal.TrueTimeProvider
+import org.gradle.util.BuildCommencedTimeProvider
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -39,7 +39,7 @@ class CachingModuleVersionRepositoryTest extends Specification {
     final resolver = Mock(DependencyToModuleVersionResolver)
     final cachePolicy = Mock(CachePolicy)
     CachingModuleVersionRepository repo = new CachingModuleVersionRepository(realRepo, moduleResolutionCache, moduleDescriptorCache, artifactAtRepositoryCache,
-            resolver, cachePolicy, new TrueTimeProvider())
+            resolver, cachePolicy, new BuildCommencedTimeProvider())
     int descriptorHash = 1234
     CachingModuleVersionRepository.CachingModuleSource moduleSource = Mock()
 

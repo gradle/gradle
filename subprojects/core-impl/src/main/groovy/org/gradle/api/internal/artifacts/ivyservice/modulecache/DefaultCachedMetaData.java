@@ -21,7 +21,7 @@ import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResol
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.MutableModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleDescriptorAdapter;
-import org.gradle.internal.TimeProvider;
+import org.gradle.util.BuildCommencedTimeProvider;
 
 import java.math.BigInteger;
 
@@ -31,7 +31,7 @@ class DefaultCachedMetaData implements ModuleMetaDataCache.CachedMetaData {
     private final long ageMillis;
     private final MutableModuleVersionMetaData metaData;
 
-    public DefaultCachedMetaData(ModuleDescriptorCacheEntry entry, ModuleDescriptor moduleDescriptor, TimeProvider timeProvider) {
+    public DefaultCachedMetaData(ModuleDescriptorCacheEntry entry, ModuleDescriptor moduleDescriptor, BuildCommencedTimeProvider timeProvider) {
         this.moduleSource = entry.moduleSource;
         this.descriptorHash = entry.moduleDescriptorHash;
         this.ageMillis = timeProvider.getCurrentTime() - entry.createTimestamp;

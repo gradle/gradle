@@ -33,7 +33,7 @@ import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetaDataCa
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver;
 import org.gradle.api.internal.externalresource.cached.CachedArtifactIndex;
-import org.gradle.internal.TimeProvider;
+import org.gradle.util.BuildCommencedTimeProvider;
 import org.gradle.util.WrapUtil;
 
 public class ResolveIvyFactory {
@@ -42,7 +42,7 @@ public class ResolveIvyFactory {
     private final CachedArtifactIndex artifactAtRepositoryCachedResolutionIndex;
     private final CacheLockingManager cacheLockingManager;
     private final StartParameterResolutionOverride startParameterResolutionOverride;
-    private final TimeProvider timeProvider;
+    private final BuildCommencedTimeProvider timeProvider;
     private final InMemoryDependencyMetadataCache inMemoryCache;
     private final VersionMatcher versionMatcher;
     private final LatestStrategy latestStrategy;
@@ -50,7 +50,7 @@ public class ResolveIvyFactory {
     public ResolveIvyFactory(ModuleResolutionCache moduleResolutionCache, ModuleMetaDataCache moduleMetaDataCache,
                              CachedArtifactIndex artifactAtRepositoryCachedResolutionIndex,
                              CacheLockingManager cacheLockingManager, StartParameterResolutionOverride startParameterResolutionOverride,
-                             TimeProvider timeProvider, InMemoryDependencyMetadataCache inMemoryCache, VersionMatcher versionMatcher, LatestStrategy latestStrategy) {
+                             BuildCommencedTimeProvider timeProvider, InMemoryDependencyMetadataCache inMemoryCache, VersionMatcher versionMatcher, LatestStrategy latestStrategy) {
         this.moduleResolutionCache = moduleResolutionCache;
         this.moduleMetaDataCache = moduleMetaDataCache;
         this.artifactAtRepositoryCachedResolutionIndex = artifactAtRepositoryCachedResolutionIndex;

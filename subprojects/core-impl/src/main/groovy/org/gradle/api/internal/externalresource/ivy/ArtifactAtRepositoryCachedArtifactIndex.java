@@ -24,18 +24,18 @@ import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.externalresource.cached.CachedArtifact;
 import org.gradle.api.internal.externalresource.cached.CachedArtifactIndex;
 import org.gradle.api.internal.externalresource.cached.DefaultCachedArtifact;
-import org.gradle.internal.TimeProvider;
 import org.gradle.messaging.serialize.Decoder;
 import org.gradle.messaging.serialize.Encoder;
 import org.gradle.messaging.serialize.Serializer;
+import org.gradle.util.BuildCommencedTimeProvider;
 
 import java.io.File;
 import java.math.BigInteger;
 
 public class ArtifactAtRepositoryCachedArtifactIndex extends AbstractCachedIndex<ArtifactAtRepositoryKey, CachedArtifact> implements CachedArtifactIndex {
-    private final TimeProvider timeProvider;
+    private final BuildCommencedTimeProvider timeProvider;
 
-    public ArtifactAtRepositoryCachedArtifactIndex(File persistentCacheFile, TimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
+    public ArtifactAtRepositoryCachedArtifactIndex(File persistentCacheFile, BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
         super(persistentCacheFile, new ArtifactAtRepositoryKeySerializer(), new CachedArtifactSerializer(), cacheLockingManager);
         this.timeProvider = timeProvider;
     }

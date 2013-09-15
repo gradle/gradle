@@ -29,7 +29,7 @@ import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetaDataCa
 import org.gradle.api.internal.externalresource.cached.CachedArtifact;
 import org.gradle.api.internal.externalresource.cached.CachedArtifactIndex;
 import org.gradle.api.internal.externalresource.ivy.ArtifactAtRepositoryKey;
-import org.gradle.internal.TimeProvider;
+import org.gradle.util.BuildCommencedTimeProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,12 +49,12 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
     private final CachePolicy cachePolicy;
 
     private final ModuleVersionRepository delegate;
-    private final TimeProvider timeProvider;
+    private final BuildCommencedTimeProvider timeProvider;
 
     public CachingModuleVersionRepository(ModuleVersionRepository delegate, ModuleResolutionCache moduleResolutionCache, ModuleMetaDataCache moduleMetaDataCache,
                                           CachedArtifactIndex artifactAtRepositoryCachedResolutionIndex,
                                           DependencyToModuleVersionResolver resolver,
-                                          CachePolicy cachePolicy, TimeProvider timeProvider) {
+                                          CachePolicy cachePolicy, BuildCommencedTimeProvider timeProvider) {
         this.delegate = delegate;
         this.moduleMetaDataCache = moduleMetaDataCache;
         this.moduleResolutionCache = moduleResolutionCache;

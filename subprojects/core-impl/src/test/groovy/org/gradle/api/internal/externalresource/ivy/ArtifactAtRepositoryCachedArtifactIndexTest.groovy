@@ -21,15 +21,15 @@ import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager
 import org.gradle.api.internal.externalresource.cached.CachedArtifact
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData
 import org.gradle.cache.PersistentIndexedCache
-import org.gradle.internal.TimeProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.BuildCommencedTimeProvider
 import org.junit.Rule
 import spock.lang.Specification
 
 class ArtifactAtRepositoryCachedArtifactIndexTest extends Specification {
 
     CacheLockingManager cacheLockingManager = Mock()
-    TimeProvider timeProvider = Mock()
+    BuildCommencedTimeProvider timeProvider = Mock()
     ArtifactAtRepositoryKey key = Mock()
     ExternalResourceMetaData metaData = Mock()
     @Rule TestNameTestDirectoryProvider folder = new TestNameTestDirectoryProvider();

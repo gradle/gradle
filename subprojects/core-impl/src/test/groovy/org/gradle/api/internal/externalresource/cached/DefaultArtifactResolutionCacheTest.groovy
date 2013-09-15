@@ -24,6 +24,7 @@ import org.gradle.cache.internal.DefaultCacheRepository
 import org.gradle.internal.TimeProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.InMemoryCacheFactory
+import org.gradle.util.BuildCommencedTimeProvider
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -32,9 +33,8 @@ class DefaultArtifactResolutionCacheTest extends Specification {
 
     @Rule TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider()
 
-    Date time = new Date(0)
-    TimeProvider timeProvider = new TimeProvider() {
-        long getCurrentTime() { time.getTime() }
+    BuildCommencedTimeProvider timeProvider = Stub(BuildCommencedTimeProvider) {
+        getCurrentTime() >> 0
     }
 
     CacheFactory cacheFactory = new InMemoryCacheFactory()

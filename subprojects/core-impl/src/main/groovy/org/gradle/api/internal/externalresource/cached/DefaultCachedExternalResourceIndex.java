@@ -19,17 +19,17 @@ package org.gradle.api.internal.externalresource.cached;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.externalresource.ivy.AbstractCachedIndex;
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
-import org.gradle.internal.TimeProvider;
 import org.gradle.messaging.serialize.DefaultSerializer;
+import org.gradle.util.BuildCommencedTimeProvider;
 
 import java.io.File;
 import java.io.Serializable;
 
 public class DefaultCachedExternalResourceIndex<K extends Serializable> extends AbstractCachedIndex<K, CachedExternalResource> implements CachedExternalResourceIndex<K> {
 
-    private final TimeProvider timeProvider;
+    private final BuildCommencedTimeProvider timeProvider;
 
-    public DefaultCachedExternalResourceIndex(File persistentCacheFile, Class<K> keyType, TimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
+    public DefaultCachedExternalResourceIndex(File persistentCacheFile, Class<K> keyType, BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
         super(persistentCacheFile, new DefaultSerializer<K>(keyType.getClassLoader()), new DefaultSerializer<CachedExternalResource>(CachedExternalResource.class.getClassLoader()), cacheLockingManager);
         this.timeProvider = timeProvider;
     }

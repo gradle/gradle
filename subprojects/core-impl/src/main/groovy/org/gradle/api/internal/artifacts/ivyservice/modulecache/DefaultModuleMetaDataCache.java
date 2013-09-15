@@ -28,27 +28,29 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionRepo
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyXmlModuleDescriptorParser;
 import org.gradle.api.internal.filestore.PathKeyFileStore;
 import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.internal.TimeProvider;
 import org.gradle.internal.resource.local.LocallyAvailableResource;
 import org.gradle.messaging.serialize.*;
+import org.gradle.util.BuildCommencedTimeProvider;
 import org.gradle.util.hash.HashValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.math.BigInteger;
 
 public class DefaultModuleMetaDataCache implements ModuleMetaDataCache {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultModuleMetaDataCache.class);
 
-    private final TimeProvider timeProvider;
+    private final BuildCommencedTimeProvider timeProvider;
     private final ArtifactCacheMetaData cacheMetadata;
     private final CacheLockingManager cacheLockingManager;
 
     private final ModuleDescriptorStore moduleDescriptorStore;
     private PersistentIndexedCache<RevisionKey, ModuleDescriptorCacheEntry> cache;
 
-    public DefaultModuleMetaDataCache(ArtifactCacheMetaData cacheMetadata, TimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
+    public DefaultModuleMetaDataCache(ArtifactCacheMetaData cacheMetadata, BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
         this.timeProvider = timeProvider;
         this.cacheLockingManager = cacheLockingManager;
         this.cacheMetadata = cacheMetadata;

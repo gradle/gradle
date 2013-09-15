@@ -17,13 +17,13 @@
 package org.gradle.api.internal.externalresource.cached;
 
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
-import org.gradle.internal.TimeProvider;
+import org.gradle.util.BuildCommencedTimeProvider;
 
 import java.io.File;
 
 public class ByUrlCachedExternalResourceIndex extends DefaultCachedExternalResourceIndex<String> {
 
-    public ByUrlCachedExternalResourceIndex(File persistentCacheFile, TimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
+    public ByUrlCachedExternalResourceIndex(File persistentCacheFile, BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
         super(persistentCacheFile, String.class, timeProvider, cacheLockingManager);
     }
 
