@@ -34,13 +34,16 @@ import java.util.*;
  *
  * <li>Calling {@link #add(ServiceRegistry)} to register a set of services.</li>
  *
- * <li>Calling {@link #addProvider(Object)} to register a service provider bean.</li>
+ * <li>Calling {@link #addProvider(Object)} to register a service provider bean. A provider bean may have factory, decorator and configuration methods.</li>
  *
  * <li>Adding a factory method. A factory method should have a name that starts with 'create', and have a non-void return type. For example, <code>protected SomeService
- * createSomeService() { .... }</code>. Parameters are injected using services from this registry.</li>
+ * createSomeService() { .... }</code>. Parameters are injected using services from this registry or its parents.</li>
  *
- * <li>Adding a decorator method. A decorator method should have a name that starts with 'decorate', take a single parameter, and a have a non-void return type. The before invoking the method, the
+ * <li>Adding a decorator method. A decorator method should have a name that starts with 'decorate', take a single parameter, and a have a non-void return type. Before invoking the method, the
  * parameter is located in the parent service registry and then passed to the method.</li>
+ *
+ * <li>Adding a configure method. A configure method should be called 'configure', take a {@link ServiceRegistration} parameter, and a have a void return type. Additional parameters
+ * are injected using services from this registry or its parents.</li>
  *
  * </ul>
  *
@@ -96,13 +99,49 @@ public class DefaultServiceRegistry implements ServiceRegistry {
             findDecoratorMethods(target, type, methods, ownServices);
             findFactoryMethods(target, type, methods, ownServices);
         }
+        findConfigureMethod(target);
+    }
+
+    private void findConfigureMethod(Object target) {
+        for (Class<?> type = target.getClass(); type != Object.class; type = type.getSuperclass()) {
+            for (Method method : type.getDeclaredMethods()) {
+                if (!method.getName().equals("configure")) {
+                    continue;
+                }
+                if (!method.getReturnType().equals(Void.TYPE)) {
+                    throw new ServiceLookupException(String.format("Method %s.%s() must return void.", type.getSimpleName(), method.getName()));
+                }
+                Object[] params = new Object[method.getGenericParameterTypes().length];
+                DefaultLookupContext context = new DefaultLookupContext();
+                for (int i = 0; i < method.getGenericParameterTypes().length; i++) {
+                    Type paramType = method.getGenericParameterTypes()[i];
+                    params[i] = paramType.equals(ServiceRegistration.class) ? newRegistration() : context.find(paramType, allServices);
+                    if (params[i] == null) {
+                        throw new ServiceLookupException(String.format("Cannot configure services using %s.%s() as required service of type %s is not available.",
+                                method.getDeclaringClass().getSimpleName(),
+                                method.getName(),
+                                format(paramType)));
+                    }
+                }
+                try {
+                    invoke(method, target, params);
+                } catch (Exception e) {
+                    throw new ServiceLookupException(String.format("Could not configure services using %s.%s().",
+                            method.getDeclaringClass().getSimpleName(),
+                            method.getName()), e);
+                }
+                return;
+            }
+        }
     }
 
     private void findFactoryMethods(Object target, Class<?> type, Set<String> factoryMethods, OwnServices ownServices) {
         for (Method method : type.getDeclaredMethods()) {
             if (method.getName().startsWith("create")
-                    && method.getReturnType() != Void.class
                     && !Modifier.isStatic(method.getModifiers())) {
+                if (method.getReturnType().equals(Void.TYPE)) {
+                    throw new ServiceLookupException(String.format("Method %s.%s() must not return void.", type.getSimpleName(), method.getName()));
+                }
                 if (factoryMethods.add(method.getName())) {
                     ownServices.add(new FactoryMethodService(target, method));
                 }
@@ -114,10 +153,12 @@ public class DefaultServiceRegistry implements ServiceRegistry {
         for (Method method : type.getDeclaredMethods()) {
             if (method.getName().startsWith("create")
                     && method.getParameterTypes().length == 1
-                    && method.getReturnType() != Void.class
                     && method.getParameterTypes()[0].equals(method.getReturnType())) {
                 if (parentServices == null) {
-                    throw new ServiceLookupException("Cannot use decorator methods when no parent registry is provided.");
+                    throw new ServiceLookupException(String.format("Cannot use decorator method %s.%s() when no parent registry is provided.", type.getSimpleName(), method.getName()));
+                }
+                if (method.getReturnType().equals(Void.TYPE)) {
+                    throw new ServiceLookupException(String.format("Method %s.%s() must not return void.", type.getSimpleName(), method.getName()));
                 }
                 if (decoratorMethods.add(method.getName())) {
                     ownServices.add(new DecoratorMethodService(target, method));
@@ -130,7 +171,11 @@ public class DefaultServiceRegistry implements ServiceRegistry {
      * Adds services to this container using the given action.
      */
     public void register(Action<? super ServiceRegistration> action) {
-        action.execute(new ServiceRegistration(){
+        action.execute(newRegistration());
+    }
+
+    private ServiceRegistration newRegistration() {
+        return new ServiceRegistration(){
             public <T> void add(Class<T> serviceType, T serviceInstance) {
                 DefaultServiceRegistry.this.add(serviceType, serviceInstance);
             }
@@ -138,7 +183,7 @@ public class DefaultServiceRegistry implements ServiceRegistry {
             public void addProvider(Object provider) {
                 DefaultServiceRegistry.this.addProvider(provider);
             }
-        });
+        };
     }
 
     /**
@@ -406,8 +451,8 @@ public class DefaultServiceRegistry implements ServiceRegistry {
     }
 
     private class FactoryMethodService extends SingletonService {
-        private final Object target;
-        private final Method method;
+        private Object target;
+        private Method method;
 
         public FactoryMethodService(Object target, Method method) {
             super(method.getGenericReturnType());
@@ -417,19 +462,25 @@ public class DefaultServiceRegistry implements ServiceRegistry {
 
         @Override
         protected Object create(LookupContext context) {
+            Object[] params = assembleParameters(context);
+            return invokeMethod(params);
+        }
+
+        private Object[] assembleParameters(LookupContext context) {
             Object[] params = new Object[method.getParameterTypes().length];
             for (int i = 0; i < method.getGenericParameterTypes().length; i++) {
                 Type paramType = method.getGenericParameterTypes()[i];
                 try {
                     params[i] = paramType.equals(ServiceRegistry.class) ? DefaultServiceRegistry.this : context.find(paramType, allServices);
-                } catch (ServiceDependencyCycle e) {
-                    throw new ServiceLookupException(String.format("Cannot create service of type %s using %s.%s() as there is a cycle in its dependencies.",
+                } catch (ServiceValidationException e) {
+                    throw new ServiceCreationException(String.format("Cannot create service of type %s using %s.%s() as there is a problem with required service of type %s.",
                             format(method.getGenericReturnType()),
                             method.getDeclaringClass().getSimpleName(),
-                            method.getName()), e);
+                            method.getName(),
+                            format(paramType)), e);
                 }
                 if (params[i] == null) {
-                    throw new ServiceLookupException(String.format("Cannot create service of type %s using %s.%s() as required service of type %s is not available.",
+                    throw new ServiceCreationException(String.format("Cannot create service of type %s using %s.%s() as required service of type %s is not available.",
                             format(method.getGenericReturnType()),
                             method.getDeclaringClass().getSimpleName(),
                             method.getName(),
@@ -437,23 +488,33 @@ public class DefaultServiceRegistry implements ServiceRegistry {
 
                 }
             }
+            return params;
+        }
+
+        private Object invokeMethod(Object[] params) {
             Object result;
             try {
                 result = invoke(method, target, params);
             } catch (Exception e) {
-                throw new ServiceLookupException(String.format("Could not create service of type %s using %s.%s().",
+                throw new ServiceCreationException(String.format("Could not create service of type %s using %s.%s().",
                         format(method.getGenericReturnType()),
                         method.getDeclaringClass().getSimpleName(),
                         method.getName()),
                         e);
             }
-            if (result == null) {
-                throw new ServiceLookupException(String.format("Could not create service of type %s using %s.%s() as this method returned null.",
-                        format(method.getGenericReturnType()),
-                        method.getDeclaringClass().getSimpleName(),
-                        method.getName()));
+            try {
+                if (result == null) {
+                    throw new ServiceCreationException(String.format("Could not create service of type %s using %s.%s() as this method returned null.",
+                            format(method.getGenericReturnType()),
+                            method.getDeclaringClass().getSimpleName(),
+                            method.getName()));
+                }
+                return result;
+            } finally {
+                // Can discard the target now
+                target = null;
+                method = null;
             }
-            return result;
         }
     }
 
@@ -470,8 +531,8 @@ public class DefaultServiceRegistry implements ServiceRegistry {
     }
 
     private class DecoratorMethodService extends SingletonService {
-        private final Object target;
-        private final Method method;
+        private Object target;
+        private Method method;
 
         public DecoratorMethodService(Object target, Method method) {
             super(method.getGenericReturnType());
@@ -484,7 +545,7 @@ public class DefaultServiceRegistry implements ServiceRegistry {
             Type paramType = method.getGenericParameterTypes()[0];
             Object value = new DefaultLookupContext().find(paramType, parentServices);
             if (value == null) {
-                throw new ServiceLookupException(String.format("Cannot create service of type %s using %s.%s() as required service of type %s is not available in parent registries.",
+                throw new ServiceCreationException(String.format("Cannot create service of type %s using %s.%s() as required service of type %s is not available in parent registries.",
                         format(method.getGenericReturnType()),
                         method.getDeclaringClass().getSimpleName(),
                         method.getName(),
@@ -494,19 +555,25 @@ public class DefaultServiceRegistry implements ServiceRegistry {
             try {
                 result = invoke(method, target, value);
             } catch (Exception e) {
-                throw new ServiceLookupException(String.format("Could not create service of type %s using %s.%s().",
+                throw new ServiceCreationException(String.format("Could not create service of type %s using %s.%s().",
                         format(method.getGenericReturnType()),
                         method.getDeclaringClass().getSimpleName(),
                         method.getName()),
                         e);
             }
-            if (result == null) {
-                throw new ServiceLookupException(String.format("Could not create service of type %s using %s.%s() as this method returned null.",
-                        format(method.getGenericReturnType()),
-                        method.getDeclaringClass().getSimpleName(),
-                        method.getName()));
+            try {
+                if (result == null) {
+                    throw new ServiceCreationException(String.format("Could not create service of type %s using %s.%s() as this method returned null.",
+                            format(method.getGenericReturnType()),
+                            method.getDeclaringClass().getSimpleName(),
+                            method.getName()));
+                }
+                return result;
+            } finally {
+                // Can discard target
+                target = null;
+                method = null;
             }
-            return result;
         }
     }
 
@@ -638,18 +705,12 @@ public class DefaultServiceRegistry implements ServiceRegistry {
         Object find(Type type, Provider provider);
     }
 
-    private static class ServiceDependencyCycle extends RuntimeException {
-        public ServiceDependencyCycle(String message) {
-            super(message);
-        }
-    }
-
     private static class DefaultLookupContext implements LookupContext {
         private final Set<Type> visiting = new HashSet<Type>();
 
         public Object find(Type serviceType, Provider provider) {
             if (!visiting.add(serviceType)) {
-                throw new ServiceDependencyCycle(String.format("Cycle in dependencies of service of type %s.", format(serviceType)));
+                throw new ServiceValidationException(String.format("Cycle in dependencies of service of type %s.", format(serviceType)));
             }
             try {
                 if (serviceType instanceof ParameterizedType) {
@@ -676,18 +737,18 @@ public class DefaultServiceRegistry implements ServiceRegistry {
                 } else if (serviceType instanceof Class) {
                     Class<?> serviceClass = (Class<?>) serviceType;
                     if (serviceType.equals(Factory.class)) {
-                        throw new IllegalArgumentException("Cannot locate service of raw type Factory.");
+                        throw new ServiceValidationException("Cannot locate service of raw type Factory.");
                     }
                     if (serviceClass.isArray()) {
-                        throw new IllegalArgumentException(String.format("Cannot locate service of array type %s[].", serviceClass.getComponentType().getSimpleName()));
+                        throw new ServiceValidationException(String.format("Cannot locate service of array type %s[].", serviceClass.getComponentType().getSimpleName()));
                     }
                     if (serviceClass.isAnnotation()) {
-                        throw new IllegalArgumentException(String.format("Cannot locate service of annotation type @%s.", serviceClass.getSimpleName()));
+                        throw new ServiceValidationException(String.format("Cannot locate service of annotation type @%s.", serviceClass.getSimpleName()));
                     }
                     return provider.getService(this, serviceClass);
                 }
 
-                throw new UnsupportedOperationException(String.format("Cannot locate service of type %s yet.", format(serviceType)));
+                throw new ServiceValidationException(String.format("Cannot locate service of type %s.", format(serviceType)));
             } finally {
                 visiting.remove(serviceType);
             }

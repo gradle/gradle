@@ -30,7 +30,7 @@ class DefaultServiceRegistryTest extends Specification {
         registry.get(StringBuilder.class)
 
         then:
-        IllegalArgumentException e = thrown()
+        UnknownServiceException e = thrown()
         e.message == "No service of type StringBuilder available in TestRegistry."
     }
 
@@ -77,7 +77,7 @@ class DefaultServiceRegistryTest extends Specification {
         registry.get(StringBuilder)
 
         then:
-        IllegalArgumentException e = thrown()
+        UnknownServiceException e = thrown()
         e.message == "No service of type StringBuilder available in TestRegistry."
     }
 
@@ -161,7 +161,7 @@ class DefaultServiceRegistryTest extends Specification {
         registry.get(String)
 
         then:
-        ServiceLookupException e = thrown()
+        ServiceCreationException e = thrown()
         e.message == "Cannot create service of type String using StringProvider.createString() as required service of type Runnable is not available."
 
         when:
@@ -180,7 +180,7 @@ class DefaultServiceRegistryTest extends Specification {
         registry.get(String)
 
         then:
-        ServiceLookupException e = thrown()
+        ServiceCreationException e = thrown()
         e.message == "Could not create service of type String using BrokenProvider.createString()."
         e.cause == BrokenProvider.failure
 
@@ -248,7 +248,7 @@ class DefaultServiceRegistryTest extends Specification {
 
         then:
         ServiceLookupException e = thrown()
-        e.message == "Cannot use decorator methods when no parent registry is provided."
+        e.message == "Cannot use decorator method TestDecoratingProvider.createLong() when no parent registry is provided."
     }
 
     def failsWhenProviderDecoratorMethodRequiresUnknownService() {
@@ -264,7 +264,7 @@ class DefaultServiceRegistryTest extends Specification {
         registry.get(Long)
 
         then:
-        ServiceLookupException e = thrown()
+        ServiceCreationException e = thrown()
         e.message == "Cannot create service of type Long using TestDecoratingProvider.createLong() as required service of type Long is not available in parent registries."
     }
 
@@ -281,7 +281,7 @@ class DefaultServiceRegistryTest extends Specification {
         registry.get(Long)
 
         then:
-        ServiceLookupException e = thrown()
+        ServiceCreationException e = thrown()
         e.message == "Could not create service of type Long using BrokenDecoratingProvider.createLong()."
         e.cause == BrokenDecoratingProvider.failure
     }
@@ -296,15 +296,17 @@ class DefaultServiceRegistryTest extends Specification {
         registry.get(String)
 
         then:
-        ServiceLookupException e = thrown()
-        e.message == "Cannot create service of type Integer using ProviderWithCycle.createInteger() as there is a cycle in its dependencies."
+        ServiceCreationException e = thrown()
+        e.message == "Cannot create service of type Integer using ProviderWithCycle.createInteger() as there is a problem with required service of type String."
+        e.cause.message == 'Cycle in dependencies of service of type String.'
 
         when:
         registry.getAll(Number)
 
         then:
         e = thrown()
-        e.message == "Cannot create service of type Integer using ProviderWithCycle.createInteger() as there is a cycle in its dependencies."
+        e.message == "Cannot create service of type Integer using ProviderWithCycle.createInteger() as there is a problem with required service of type String."
+        e.cause.message == 'Cycle in dependencies of service of type String.'
     }
 
     def failsWhenAProviderFactoryMethodReturnsNull() {
@@ -317,7 +319,7 @@ class DefaultServiceRegistryTest extends Specification {
         registry.get(String)
 
         then:
-        ServiceLookupException e = thrown()
+        ServiceCreationException e = thrown()
         e.message == "Could not create service of type String using NullProvider.createString() as this method returned null."
     }
 
@@ -334,7 +336,7 @@ class DefaultServiceRegistryTest extends Specification {
         registry.get(String)
 
         then:
-        ServiceLookupException e = thrown()
+        ServiceCreationException e = thrown()
         e.message == "Could not create service of type String using NullDecorator.createString() as this method returned null."
     }
 
@@ -381,8 +383,21 @@ class DefaultServiceRegistryTest extends Specification {
         registry.get(String[].class)
 
         then:
-        IllegalArgumentException e = thrown()
+        ServiceLookupException e = thrown()
         e.message == "Cannot locate service of array type String[]."
+    }
+
+    def cannotInjectAnArrayType() {
+        given:
+        registry.addProvider(new UnsupportedInjectionProvider())
+
+        when:
+        registry.get(Number)
+
+        then:
+        ServiceCreationException e = thrown()
+        e.message == "Cannot create service of type Number using UnsupportedInjectionProvider.create() as there is a problem with required service of type String[]."
+        e.cause.message == 'Cannot locate service of array type String[].'
     }
 
     def usesDecoratorMethodToDecorateParentServiceInstance() {
@@ -405,7 +420,7 @@ class DefaultServiceRegistryTest extends Specification {
 
         then:
         ServiceLookupException e = thrown()
-        e.message == "Cannot use decorator methods when no parent registry is provided."
+        e.message.matches(/Cannot use decorator method RegistryWithDecoratorMethods\..*() when no parent registry is provided./)
     }
 
     def canRegisterServicesUsingAction() {
@@ -426,6 +441,52 @@ class DefaultServiceRegistryTest extends Specification {
         registry.get(String) == "hi"
     }
 
+    def providerConfigureMethodCanRegisterServices() {
+        def registry = new DefaultServiceRegistry()
+
+        given:
+        registry.addProvider(new Object() {
+            void configure(ServiceRegistration registration, Number value) {
+                registration.addProvider(new Object() {
+                    String createString() {
+                        return value.toString()
+                    }
+                })
+            }
+
+            Integer createNumber() {
+                return 123
+            }
+        })
+
+        expect:
+        registry.get(Number) == 123
+        registry.get(String) == "123"
+    }
+
+    def failsWhenProviderConfigureMethodRequiresUnknownService() {
+        def registry = new DefaultServiceRegistry()
+
+        when:
+        registry.addProvider(new NoOpConfigureProvider())
+
+        then:
+        ServiceLookupException e = thrown()
+        e.message == 'Cannot configure services using NoOpConfigureProvider.configure() as required service of type String is not available.'
+    }
+
+    def failsWhenProviderConfigureMethodFails() {
+        def registry = new DefaultServiceRegistry()
+
+        when:
+        registry.addProvider(new BrokenConfigureProvider())
+
+        then:
+        ServiceLookupException e = thrown()
+        e.message == 'Could not configure services using BrokenConfigureProvider.configure().'
+        e.cause == BrokenConfigureProvider.failure
+    }
+
     def canGetAllServicesOfAGivenType() {
         registry.addProvider(new Object(){
             String createOtherString() {
@@ -438,12 +499,12 @@ class DefaultServiceRegistryTest extends Specification {
         registry.getAll(Number) == [12]
     }
 
-    def returnsEmptyCollectionWhenNoServicesOfGivenType() {
+    def allServicesReturnsEmptyCollectionWhenNoServicesOfGivenType() {
         expect:
         registry.getAll(Long).empty
     }
 
-    def includesServicesFromParents() {
+    def allServicesIncludesServicesFromParents() {
         def parent1 = Stub(ServiceRegistry)
         def parent2 = Stub(ServiceRegistry)
         def registry = new DefaultServiceRegistry(parent1, parent2)
@@ -511,7 +572,7 @@ class DefaultServiceRegistryTest extends Specification {
         registry.get(Factory)
 
         then:
-        IllegalArgumentException e = thrown()
+        ServiceLookupException e = thrown()
         e.message == "Cannot locate service of raw type Factory."
     }
 
@@ -527,7 +588,7 @@ class DefaultServiceRegistryTest extends Specification {
         registry.getFactory(String)
 
         then:
-        IllegalArgumentException e = thrown()
+        UnknownServiceException e = thrown()
         e.message == "No factory for objects of type String available in TestRegistry."
     }
 
@@ -599,7 +660,7 @@ class DefaultServiceRegistryTest extends Specification {
         registry.get(Runnable)
 
         then:
-        IllegalArgumentException e = thrown()
+        UnknownServiceException e = thrown()
         e.message == "No service of type Runnable available in TestRegistry."
     }
 
@@ -631,7 +692,7 @@ class DefaultServiceRegistryTest extends Specification {
         registry.getFactory(Runnable)
 
         then:
-        IllegalArgumentException e = thrown()
+        UnknownServiceException e = thrown()
         e.message == "No factory for objects of type Runnable available in TestRegistry."
     }
 
@@ -893,6 +954,25 @@ class DefaultServiceRegistryTest extends Specification {
     private static class NullProvider {
         String createString() {
             return null
+        }
+    }
+
+    private static class UnsupportedInjectionProvider {
+        Number create(String[] values) {
+            return values.length
+        }
+    }
+
+    private static class NoOpConfigureProvider {
+        void configure(ServiceRegistration registration, String value) {
+        }
+    }
+
+    private static class BrokenConfigureProvider {
+        static def failure = new RuntimeException()
+
+        void configure(ServiceRegistration registration) {
+            throw failure
         }
     }
 
