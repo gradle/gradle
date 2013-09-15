@@ -17,6 +17,7 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.initialization.GradleLauncherFactory;
+import org.gradle.internal.nativeplatform.services.NativeServices;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
 import org.gradle.logging.LoggingServiceRegistry;
@@ -24,9 +25,13 @@ import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 
 public class ConnectionScopeServices extends DefaultServiceRegistry {
     public ConnectionScopeServices() {
-        LoggingServiceRegistry loggingServices = LoggingServiceRegistry.newEmbeddableLogging();
+        this(LoggingServiceRegistry.newEmbeddableLogging());
+    }
+
+    private ConnectionScopeServices(LoggingServiceRegistry loggingServices) {
+        super(loggingServices, NativeServices.getInstance());
         add(LoggingServiceRegistry.class, loggingServices);
-        add(new GlobalScopeServices(loggingServices));
+        addProvider(new GlobalScopeServices());
     }
 
     protected ProviderConnection createProviderConnection() {

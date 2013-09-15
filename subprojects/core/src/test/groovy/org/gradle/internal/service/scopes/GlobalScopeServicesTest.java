@@ -33,9 +33,13 @@ import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.nativeplatform.ProcessEnvironment;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
+import org.gradle.internal.nativeplatform.services.NativeServices;
+import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.listener.DefaultListenerManager;
 import org.gradle.listener.ListenerManager;
 import org.gradle.logging.LoggingManagerInternal;
+import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.logging.internal.DefaultLoggingManagerFactory;
 import org.gradle.logging.internal.DefaultProgressLoggerFactory;
@@ -51,7 +55,7 @@ import static org.junit.Assert.assertThat;
 
 public class GlobalScopeServicesTest {
     @Shared
-    private final GlobalScopeServices registry = new GlobalScopeServices();
+    private final ServiceRegistry registry = new DefaultServiceRegistry(LoggingServiceRegistry.newEmbeddableLogging(), NativeServices.getInstance()).addProvider(new GlobalScopeServices());
 
     @Test
     public void providesAGradleLauncherFactory() {

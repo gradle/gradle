@@ -24,12 +24,15 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.groovy.scripts.StringScriptSource;
 import org.gradle.groovy.scripts.UriScriptSource;
 import org.gradle.internal.Factory;
+import org.gradle.internal.nativeplatform.services.NativeServices;
+import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.service.scopes.GlobalScopeServices;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.testfixtures.internal.TestBuildScopeServices;
 import org.gradle.testfixtures.internal.TestGlobalScopeServices;
 import org.gradle.util.JUnit4GroovyMockery;
-import org.gradle.internal.classloader.MultiParentClassLoader;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -47,7 +50,6 @@ import static org.junit.Assert.*;
 @RunWith(JMock.class)
 public class ProjectFactoryTest {
     private final JUnit4Mockery context = new JUnit4GroovyMockery();
-    private final MultiParentClassLoader buildScriptClassLoader = new MultiParentClassLoader(getClass().getClassLoader());
     @Rule
     public TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider();
     private final File rootDir = testDir.getTestDirectory();
@@ -55,8 +57,9 @@ public class ProjectFactoryTest {
     private Factory<RepositoryHandler> repositoryHandlerFactory = context.mock(Factory.class);
     private RepositoryHandler repositoryHandler = context.mock(RepositoryHandler.class);
     private StartParameter startParameterStub = new StartParameter();
-    private ServiceRegistryFactory serviceRegistryFactory = new TestBuildScopeServices(new TestGlobalScopeServices(), startParameterStub, rootDir);
-    private org.gradle.internal.reflect.Instantiator instantiatorMock = serviceRegistryFactory.get(org.gradle.internal.reflect.Instantiator.class);
+    private DefaultServiceRegistry globalServices = new DefaultServiceRegistry(new TestGlobalScopeServices.TestLoggingServices(), NativeServices.getInstance()).addProvider(new GlobalScopeServices());
+    private ServiceRegistryFactory serviceRegistryFactory = new TestBuildScopeServices(globalServices, startParameterStub, rootDir);
+    private Instantiator instantiatorMock = serviceRegistryFactory.get(Instantiator.class);
     private GradleInternal gradle = context.mock(GradleInternal.class);
 
     private ProjectFactory projectFactory;

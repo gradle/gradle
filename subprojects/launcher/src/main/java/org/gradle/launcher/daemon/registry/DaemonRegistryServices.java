@@ -18,12 +18,8 @@ package org.gradle.launcher.daemon.registry;
 import org.gradle.api.internal.cache.Cache;
 import org.gradle.api.internal.cache.CacheAccessSerializer;
 import org.gradle.api.internal.cache.MapBackedCache;
-import org.gradle.cache.internal.DefaultFileLockManager;
-import org.gradle.cache.internal.DefaultProcessMetaDataProvider;
 import org.gradle.cache.internal.FileLockManager;
-import org.gradle.cache.internal.locklistener.NoOpFileLockContentionHandler;
 import org.gradle.internal.Factory;
-import org.gradle.internal.nativeplatform.ProcessEnvironment;
 
 import java.io.File;
 import java.util.HashMap;
@@ -55,10 +51,6 @@ public class DaemonRegistryServices {
         return new DaemonDir(daemonBaseDir);
     }
 
-    FileLockManager createFileLockManager(ProcessEnvironment processEnvironment) {
-        return new DefaultFileLockManager(new DefaultProcessMetaDataProvider(processEnvironment), new NoOpFileLockContentionHandler());
-    }
-
     DaemonRegistry createDaemonRegistry(DaemonDir daemonDir, final FileLockManager fileLockManager) {
         final File daemonRegistryFile = daemonDir.getRegistry();
         return daemonRegistryCache.get(daemonRegistryFile, new Factory<DaemonRegistry>() {
@@ -68,7 +60,7 @@ public class DaemonRegistryServices {
         });
     }
     
-    protected Properties createProperties() {
+    Properties createProperties() {
         return System.getProperties();
     }
 }

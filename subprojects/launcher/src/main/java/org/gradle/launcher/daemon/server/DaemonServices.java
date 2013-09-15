@@ -19,7 +19,6 @@ import org.gradle.internal.service.scopes.GlobalScopeServices;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.initialization.GradleLauncherFactory;
-import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.nativeplatform.ProcessEnvironment;
 import org.gradle.internal.nativeplatform.services.NativeServices;
@@ -52,11 +51,7 @@ public class DaemonServices extends DefaultServiceRegistry {
         this.loggingManager = loggingManager;
 
         addProvider(new DaemonRegistryServices(configuration.getBaseDir()));
-        add(new GlobalScopeServices(loggingServices));
-    }
-
-    protected ExecutorFactory createExecutorFactory() {
-        return new DefaultExecutorFactory();
+        addProvider(new GlobalScopeServices());
     }
 
     protected DaemonContext createDaemonContext() {

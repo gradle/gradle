@@ -29,6 +29,10 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.groovy.scripts.StringScriptSource;
 import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.initialization.DefaultProjectDescriptorRegistry;
+import org.gradle.internal.nativeplatform.services.NativeServices;
+import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.scopes.GlobalScopeServices;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.invocation.BuildClassLoaderRegistry;
 import org.gradle.invocation.DefaultGradle;
@@ -37,7 +41,7 @@ import org.gradle.util.GFileUtils;
 import java.io.File;
 
 public class ProjectBuilderImpl {
-    private static final TestGlobalScopeServices GLOBAL_SERVICES = new TestGlobalScopeServices();
+    private static final ServiceRegistry GLOBAL_SERVICES = new DefaultServiceRegistry(new TestGlobalScopeServices.TestLoggingServices(), NativeServices.getInstance()).addProvider(new GlobalScopeServices());
     private static final AsmBackedClassGenerator CLASS_GENERATOR = new AsmBackedClassGenerator();
 
     public Project createChildProject(String name, Project parent, File projectDir) {

@@ -30,11 +30,7 @@ import org.gradle.logging.internal.OutputEventListener;
 import org.gradle.logging.internal.ProgressListener;
 
 public class TestGlobalScopeServices extends GlobalScopeServices {
-    public TestGlobalScopeServices() {
-        super(new TestLoggingServices());
-    }
-
-    private static class TestLoggingServices extends DefaultServiceRegistry {
+    public static class TestLoggingServices extends DefaultServiceRegistry {
         final ListenerManager listenerManager = new DefaultListenerManager();
 
         protected ProgressLoggerFactory createProgressLoggerFactory() {

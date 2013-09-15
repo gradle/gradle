@@ -15,8 +15,13 @@
  */
 package org.gradle.launcher.daemon.registry
 
-import org.gradle.internal.nativeplatform.services.NativeServices
+import org.gradle.cache.internal.DefaultFileLockManager
+import org.gradle.cache.internal.FileLock
+import org.gradle.cache.internal.FileLockManager
+import org.gradle.cache.internal.ProcessMetaDataProvider
+import org.gradle.cache.internal.locklistener.FileLockContentionHandler
 import org.gradle.internal.service.DefaultServiceRegistry
+import org.gradle.internal.service.ServiceRegistry
 import org.gradle.launcher.daemon.context.DefaultDaemonContext
 import org.gradle.messaging.remote.internal.inet.SocketInetAddress
 import org.gradle.test.fixtures.ConcurrentTestUtil
@@ -26,9 +31,12 @@ import spock.lang.Specification
 
 class DaemonRegistryServicesTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider()
+    def parent = Mock(ServiceRegistry) {
+        get(FileLockManager) >> new DefaultFileLockManager(Stub(ProcessMetaDataProvider), Stub(FileLockContentionHandler))
+    }
 
     def registry(baseDir) {
-        new DefaultServiceRegistry(NativeServices.instance).addProvider(new DaemonRegistryServices(tmp.createDir(baseDir)))
+        new DefaultServiceRegistry(parent).addProvider(new DaemonRegistryServices(tmp.createDir(baseDir)))
     }
 
     def "same daemon registry instance is used for same daemon registry file across service instances"() {

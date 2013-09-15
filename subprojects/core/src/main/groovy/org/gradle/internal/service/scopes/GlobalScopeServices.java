@@ -17,7 +17,6 @@
 package org.gradle.internal.service.scopes;
 
 import org.gradle.StartParameter;
-import org.gradle.api.Action;
 import org.gradle.api.internal.*;
 import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
@@ -38,16 +37,13 @@ import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.nativeplatform.ProcessEnvironment;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
-import org.gradle.internal.nativeplatform.services.NativeServices;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceLocator;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.listener.DefaultListenerManager;
 import org.gradle.listener.ListenerManager;
-import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.messaging.remote.MessagingServer;
 import org.gradle.messaging.remote.internal.MessagingServices;
 import org.gradle.messaging.remote.internal.inet.InetAddressFactory;
@@ -55,106 +51,99 @@ import org.gradle.messaging.remote.internal.inet.InetAddressFactory;
 import java.util.List;
 
 /**
- * Contains the services shared by all builds in a given process.
+ * Defines the services shared by all builds in a given process.
  */
-public class GlobalScopeServices extends DefaultServiceRegistry {
-    public GlobalScopeServices() {
-        this(LoggingServiceRegistry.newProcessLogging());
-    }
-
-    public GlobalScopeServices(ServiceRegistry loggingServices) {
-        super(loggingServices, NativeServices.getInstance());
-        ClassLoaderRegistry classLoaderRegistry = get(ClassLoaderRegistry.class);
+public class GlobalScopeServices {
+    void configure(ServiceRegistration registration, ClassLoaderRegistry classLoaderRegistry) {
         final List<PluginServiceRegistry> pluginServiceFactories = new ServiceLocator(classLoaderRegistry.getRuntimeClassLoader(), classLoaderRegistry.getCoreImplClassLoader()).getAll(PluginServiceRegistry.class);
-        register(new Action<ServiceRegistration>() {
-            public void execute(ServiceRegistration registration) {
-                for (PluginServiceRegistry pluginServiceRegistry : pluginServiceFactories) {
-                    registration.add(PluginServiceRegistry.class, pluginServiceRegistry);
-                    pluginServiceRegistry.registerGlobalServices(registration);
-                }
-            }
-        });
+        for (PluginServiceRegistry pluginServiceRegistry : pluginServiceFactories) {
+            registration.add(PluginServiceRegistry.class, pluginServiceRegistry);
+            pluginServiceRegistry.registerGlobalServices(registration);
+        }
     }
 
-    protected GradleLauncherFactory createGradleLauncherFactory() {
-        return new DefaultGradleLauncherFactory(this);
+    GradleLauncherFactory createGradleLauncherFactory(ServiceRegistry services) {
+        return new DefaultGradleLauncherFactory(services);
     }
 
-    protected CommandLineConverter<StartParameter> createCommandLine2StartParameterConverter() {
+    CommandLineConverter<StartParameter> createCommandLine2StartParameterConverter() {
         return new DefaultCommandLineConverter();
     }
 
-    protected ClassPathRegistry createClassPathRegistry() {
-        return new DefaultClassPathRegistry(new DefaultClassPathProvider(get(ModuleRegistry.class)), new DynamicModulesClassPathProvider(get(ModuleRegistry.class), get(PluginModuleRegistry.class)));
+    ClassPathRegistry createClassPathRegistry(ModuleRegistry moduleRegistry, PluginModuleRegistry pluginModuleRegistry) {
+        return new DefaultClassPathRegistry(
+                new DefaultClassPathProvider(moduleRegistry),
+                new DynamicModulesClassPathProvider(moduleRegistry,
+                        pluginModuleRegistry));
     }
 
-    protected DefaultModuleRegistry createModuleRegistry() {
+    DefaultModuleRegistry createModuleRegistry() {
         return new DefaultModuleRegistry();
     }
 
-    protected DocumentationRegistry createDocumentationRegistry() {
+    DocumentationRegistry createDocumentationRegistry() {
         return new DocumentationRegistry();
     }
 
-    protected PluginModuleRegistry createPluginModuleRegistry() {
-        return new DefaultPluginModuleRegistry(get(ModuleRegistry.class));
+    PluginModuleRegistry createPluginModuleRegistry(ModuleRegistry moduleRegistry) {
+        return new DefaultPluginModuleRegistry(moduleRegistry);
     }
 
-    protected Factory<CacheFactory> createCacheFactory() {
-        return new DefaultCacheFactory(get(FileLockManager.class));
+    Factory<CacheFactory> createCacheFactory(FileLockManager fileLockManager) {
+        return new DefaultCacheFactory(fileLockManager);
     }
 
-    protected ClassLoaderRegistry createClassLoaderRegistry() {
-        return new DefaultClassLoaderRegistry(get(ClassPathRegistry.class), get(ClassLoaderFactory.class));
+    ClassLoaderRegistry createClassLoaderRegistry(ClassPathRegistry classPathRegistry, ClassLoaderFactory classLoaderFactory) {
+        return new DefaultClassLoaderRegistry(classPathRegistry, classLoaderFactory);
     }
 
-    protected ListenerManager createListenerManager() {
+    ListenerManager createListenerManager() {
         return new DefaultListenerManager();
     }
    
-    protected ClassLoaderFactory createClassLoaderFactory() {
+    ClassLoaderFactory createClassLoaderFactory() {
         return new DefaultClassLoaderFactory();
     }
 
-    protected MessagingServices createMessagingServices() {
-        return new MessagingServices(get(ClassLoaderRegistry.class).getPluginsClassLoader());
+    MessagingServices createMessagingServices(ClassLoaderRegistry classLoaderRegistry) {
+        return new MessagingServices(classLoaderRegistry.getPluginsClassLoader());
     }
 
-    protected MessagingServer createMessagingServer() {
-        return get(MessagingServices.class).get(MessagingServer.class);
+    MessagingServer createMessagingServer(MessagingServices messagingServices) {
+        return messagingServices.get(MessagingServer.class);
     }
 
-    protected ClassGenerator createClassGenerator() {
+    ClassGenerator createClassGenerator() {
         return new AsmBackedClassGenerator();
     }
 
-    protected Instantiator createInstantiator() {
-        return new ClassGeneratorBackedInstantiator(get(ClassGenerator.class), new DirectInstantiator());
+    Instantiator createInstantiator(ClassGenerator classGenerator) {
+        return new ClassGeneratorBackedInstantiator(classGenerator, new DirectInstantiator());
     }
 
-    protected ExecutorFactory createExecutorFactory() {
+    ExecutorFactory createExecutorFactory() {
         return new DefaultExecutorFactory();
     }
 
-    protected FileLockManager createFileLockManager() {
+    FileLockManager createFileLockManager(ProcessEnvironment processEnvironment, FileLockContentionHandler fileLockContentionHandler) {
         return new DefaultFileLockManager(
                 new DefaultProcessMetaDataProvider(
-                        get(ProcessEnvironment.class)),
-                get(FileLockContentionHandler.class));
+                        processEnvironment),
+                fileLockContentionHandler);
     }
 
-    protected InMemoryTaskArtifactCache createInMemoryTaskArtifactCache() {
+    InMemoryTaskArtifactCache createInMemoryTaskArtifactCache() {
         return new InMemoryTaskArtifactCache();
     }
 
-    private DefaultFileLockContentionHandler createFileLockContentionHandler() {
+    DefaultFileLockContentionHandler createFileLockContentionHandler(ExecutorFactory executorFactory, MessagingServices messagingServices) {
         return new DefaultFileLockContentionHandler(
-                get(ExecutorFactory.class),
-                get(MessagingServices.class).get(InetAddressFactory.class)
+                executorFactory,
+                messagingServices.get(InetAddressFactory.class)
         );
     }
 
-    private FileResolver createFileResolver() {
-        return new IdentityFileResolver(get(FileSystem.class));
+    FileResolver createFileResolver(FileSystem fileSystem) {
+        return new IdentityFileResolver(fileSystem);
     }
 }

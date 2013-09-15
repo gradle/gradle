@@ -19,15 +19,20 @@ package org.gradle.launcher.cli;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.internal.Actions;
-import org.gradle.internal.DefaultStartParameter;
-import org.gradle.internal.service.scopes.GlobalScopeServices;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.cli.SystemPropertiesCommandLineConverter;
 import org.gradle.configuration.GradleLauncherMetaData;
-import org.gradle.initialization.*;
+import org.gradle.initialization.BuildLayoutParameters;
+import org.gradle.initialization.DefaultCommandLineConverter;
+import org.gradle.initialization.GradleLauncherFactory;
+import org.gradle.initialization.LayoutCommandLineConverter;
+import org.gradle.internal.DefaultStartParameter;
 import org.gradle.internal.SystemProperties;
+import org.gradle.internal.nativeplatform.services.NativeServices;
+import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.scopes.GlobalScopeServices;
 import org.gradle.launcher.bootstrap.ExecutionListener;
 import org.gradle.launcher.cli.converter.*;
 import org.gradle.launcher.daemon.bootstrap.ForegroundDaemonMain;
@@ -150,7 +155,7 @@ class BuildActionsFactory implements CommandLineAction {
     }
 
     private Action<? super ExecutionListener> runBuildInProcess(StartParameter startParameter, DaemonParameters daemonParameters, ServiceRegistry loggingServices) {
-        GlobalScopeServices globalServices = new GlobalScopeServices(loggingServices);
+        ServiceRegistry globalServices = new DefaultServiceRegistry(loggingServices, NativeServices.getInstance()).addProvider(new GlobalScopeServices());
         InProcessBuildActionExecuter executer = new InProcessBuildActionExecuter(globalServices.get(GradleLauncherFactory.class));
         return daemonBuildAction(startParameter, daemonParameters, executer);
     }

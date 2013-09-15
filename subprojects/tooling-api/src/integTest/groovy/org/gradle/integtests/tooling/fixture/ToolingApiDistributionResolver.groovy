@@ -23,9 +23,13 @@ import org.gradle.api.internal.artifacts.DependencyResolutionServices
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.internal.CompositeStoppable
+import org.gradle.internal.nativeplatform.services.NativeServices
+import org.gradle.internal.service.DefaultServiceRegistry
+import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.BuildScopeServices
 import org.gradle.internal.service.scopes.GlobalScopeServices
 import org.gradle.internal.service.scopes.ProjectScopeServices
+import org.gradle.logging.LoggingServiceRegistry
 import org.gradle.util.TestUtil
 
 class ToolingApiDistributionResolver {
@@ -69,7 +73,7 @@ class ToolingApiDistributionResolver {
     }
 
     private DependencyResolutionServices createResolutionServices() {
-        GlobalScopeServices globalRegistry = new GlobalScopeServices()
+        ServiceRegistry globalRegistry = new DefaultServiceRegistry(LoggingServiceRegistry.newProcessLogging(), NativeServices.getInstance()).addProvider(new GlobalScopeServices())
         StartParameter startParameter = new StartParameter()
         startParameter.gradleUserHomeDir = new IntegrationTestBuildContext().gradleUserHomeDir
         BuildScopeServices topLevelRegistry = new BuildScopeServices(globalRegistry, startParameter)
@@ -77,8 +81,7 @@ class ToolingApiDistributionResolver {
 
         stopLater.add(projectRegistry)
         stopLater.add(topLevelRegistry)
-        // TODO:ADAM - switch this back on
-//        stopLater.add(globalRegistry)
+        stopLater.add(globalRegistry)
 
         return projectRegistry.get(DependencyResolutionServices)
     }

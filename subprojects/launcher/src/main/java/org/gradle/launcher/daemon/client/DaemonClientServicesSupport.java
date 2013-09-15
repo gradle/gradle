@@ -15,9 +15,6 @@
  */
 package org.gradle.launcher.daemon.client;
 
-import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.internal.classpath.DefaultModuleRegistry;
-import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.id.CompositeIdGenerator;
 import org.gradle.internal.id.IdGenerator;
@@ -77,10 +74,6 @@ abstract public class DaemonClientServicesSupport extends DefaultServiceRegistry
         
     }
 
-    protected ExecutorFactory createExecuterFactory() {
-        return new DefaultExecutorFactory();
-    }
-
     protected IdGenerator<?> createIdGenerator() {
         return new CompositeIdGenerator(new UUIDGenerator().generateId(), new LongIdGenerator());
     }
@@ -91,13 +84,5 @@ abstract public class DaemonClientServicesSupport extends DefaultServiceRegistry
 
     protected DaemonConnector createDaemonConnector() {
         return new DefaultDaemonConnector(get(DaemonRegistry.class), get(OutgoingConnector.class), get(DaemonStarter.class));
-    }
-
-    protected DocumentationRegistry createDocumentationRegistry() {
-        return new DocumentationRegistry();
-    }
-
-    protected DefaultModuleRegistry createModuleRegistry() {
-        return new DefaultModuleRegistry();
     }
 }
