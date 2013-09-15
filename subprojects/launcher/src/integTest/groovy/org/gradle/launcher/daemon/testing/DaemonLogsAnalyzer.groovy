@@ -16,6 +16,9 @@
 
 package org.gradle.launcher.daemon.testing
 
+import org.gradle.internal.nativeplatform.services.NativeServices
+import org.gradle.internal.service.DefaultServiceRegistry
+import org.gradle.internal.service.ServiceRegistry
 import org.gradle.launcher.daemon.registry.DaemonRegistry
 import org.gradle.launcher.daemon.registry.DaemonRegistryServices
 
@@ -23,14 +26,14 @@ class DaemonLogsAnalyzer {
 
     private List<File> daemonLogs
     private File daemonBaseDir
-    private DaemonRegistryServices services
+    private ServiceRegistry services
 
     DaemonLogsAnalyzer(File daemonBaseDir) {
         this.daemonBaseDir = daemonBaseDir
         assert daemonBaseDir.listFiles().length == 1
         def daemonFiles = daemonBaseDir.listFiles()[0].listFiles()
         daemonLogs = daemonFiles.findAll { it.name.endsWith('.log') }
-        services = new DaemonRegistryServices(daemonBaseDir)
+        services = new DefaultServiceRegistry(NativeServices.instance).addProvider(new DaemonRegistryServices(daemonBaseDir))
     }
 
     List<TestableDaemon> getDaemons() {

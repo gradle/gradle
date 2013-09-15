@@ -34,7 +34,7 @@ public class DaemonClientServices extends DaemonClientServicesSupport {
     public DaemonClientServices(ServiceRegistry loggingServices, DaemonParameters daemonParameters, InputStream buildStandardInput) {
         super(loggingServices, buildStandardInput);
         this.daemonParameters = daemonParameters;
-        add(new DaemonRegistryServices(daemonParameters.getBaseDir()));
+        addProvider(new DaemonRegistryServices(daemonParameters.getBaseDir()));
     }
 
     public DaemonStarter createDaemonStarter() {

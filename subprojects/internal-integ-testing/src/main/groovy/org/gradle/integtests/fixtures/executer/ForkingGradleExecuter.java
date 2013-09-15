@@ -19,7 +19,9 @@ package org.gradle.integtests.fixtures.executer;
 import org.gradle.api.Action;
 import org.gradle.internal.Factory;
 import org.gradle.internal.nativeplatform.jna.WindowsHandlesManipulator;
+import org.gradle.internal.nativeplatform.services.NativeServices;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.registry.DaemonRegistryServices;
 import org.gradle.process.internal.ExecHandleBuilder;
@@ -42,7 +44,7 @@ class ForkingGradleExecuter extends AbstractGradleExecuter {
     }
 
     public DaemonRegistry getDaemonRegistry() {
-        return new DaemonRegistryServices(getDaemonBaseDir()).get(DaemonRegistry.class);
+        return new DefaultServiceRegistry(NativeServices.getInstance()).addProvider(new DaemonRegistryServices(getDaemonBaseDir())).get(DaemonRegistry.class);
     }
 
     public void assertCanExecute() throws AssertionError {

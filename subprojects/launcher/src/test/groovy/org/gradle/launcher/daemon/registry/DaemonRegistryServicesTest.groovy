@@ -15,6 +15,8 @@
  */
 package org.gradle.launcher.daemon.registry
 
+import org.gradle.internal.nativeplatform.services.NativeServices
+import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.launcher.daemon.context.DefaultDaemonContext
 import org.gradle.messaging.remote.internal.inet.SocketInetAddress
 import org.gradle.test.fixtures.ConcurrentTestUtil
@@ -26,7 +28,7 @@ class DaemonRegistryServicesTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider()
 
     def registry(baseDir) {
-        new DaemonRegistryServices(tmp.createDir(baseDir))
+        new DefaultServiceRegistry(NativeServices.instance).addProvider(new DaemonRegistryServices(tmp.createDir(baseDir)))
     }
 
     def "same daemon registry instance is used for same daemon registry file across service instances"() {
@@ -39,7 +41,7 @@ class DaemonRegistryServicesTest extends Specification {
     
     def "the registry can be concurrently written to"() {
         when:
-        def registry = registry("someDir").createDaemonRegistry()
+        def registry = registry("someDir").get(DaemonRegistry)
         5.times { idx ->
             concurrent.start {
                 def context = new DefaultDaemonContext("$idx", new File("$idx"), new File("$idx"), idx, 5000, [])

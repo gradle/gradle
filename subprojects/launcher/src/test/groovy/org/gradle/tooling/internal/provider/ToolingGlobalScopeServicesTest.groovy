@@ -20,7 +20,7 @@ import org.gradle.internal.service.DefaultServiceRegistry
 import spock.lang.Specification
 
 class ToolingGlobalScopeServicesTest extends Specification {
-    def services = new DefaultServiceRegistry().addProvider(new ToolingGlobalScopeServices())
+    def services = DefaultServiceRegistry.create(new ToolingGlobalScopeServices())
 
     def "provides a PayloadSerializer"() {
         expect:

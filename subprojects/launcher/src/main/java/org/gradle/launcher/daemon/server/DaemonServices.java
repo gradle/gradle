@@ -52,7 +52,7 @@ public class DaemonServices extends DefaultServiceRegistry {
         this.loggingManager = loggingManager;
 
         add(NativeServices.getInstance());
-        add(new DaemonRegistryServices(configuration.getBaseDir()));
+        addProvider(new DaemonRegistryServices(configuration.getBaseDir()));
         add(new GlobalScopeServices(loggingServices));
     }
 
