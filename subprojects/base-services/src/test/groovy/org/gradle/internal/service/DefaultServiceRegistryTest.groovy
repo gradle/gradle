@@ -49,6 +49,23 @@ class DefaultServiceRegistryTest extends Specification {
         1 * parent.get(BigDecimal) >> value
     }
 
+    def delegatesToParentsForUnknownService() {
+        def value = BigDecimal.TEN
+        def parent1 = Mock(ServiceRegistry)
+        def parent2 = Mock(ServiceRegistry)
+        def registry = new DefaultServiceRegistry(parent1, parent2)
+
+        when:
+        def result = registry.get(BigDecimal)
+
+        then:
+        result == value
+
+        and:
+        1 * parent1.get(BigDecimal) >> { throw new UnknownServiceException(BigDecimal, "fail") }
+        1 * parent2.get(BigDecimal) >> value
+    }
+
     def throwsExceptionForUnknownParentService() {
         def parent = Mock(ServiceRegistry);
         def registry = new TestRegistry(parent)
@@ -88,7 +105,15 @@ class DefaultServiceRegistryTest extends Specification {
 
     def injectsServicesIntoProviderFactoryMethod() {
         def registry = new DefaultServiceRegistry()
-        registry.addProvider(new TestProvider())
+        registry.addProvider(new Object() {
+            Integer createInteger() {
+                return 12
+            }
+
+            String createString(Integer integer) {
+                return integer.toString()
+            }
+        })
 
         expect:
         registry.get(String) == "12"
@@ -130,44 +155,56 @@ class DefaultServiceRegistryTest extends Specification {
 
     def failsWhenProviderFactoryMethodRequiresUnknownService() {
         def registry = new DefaultServiceRegistry()
-        def provider = new Object() {
-            String createString(Runnable r) {
-                return "hi"
-            }
-        }
-        registry.addProvider(provider)
+        registry.addProvider(new StringProvider())
 
         when:
         registry.get(String)
 
         then:
         ServiceLookupException e = thrown()
-        e.message == "Cannot create service String using ${provider.class.simpleName}.createString() as required service Runnable is not available."
-        e.cause instanceof UnknownServiceException
+        e.message == "Cannot create service of type String using StringProvider.createString() as required service of type Runnable is not available."
+
+        when:
+        registry.get(Number)
+
+        then:
+        e = thrown()
+        e.message == "Cannot create service of type String using StringProvider.createString() as required service of type Runnable is not available."
     }
 
     def failsWhenProviderFactoryMethodThrowsException() {
-        def failure = new RuntimeException()
         def registry = new DefaultServiceRegistry()
-        def provider = new Object() {
-            String createString() {
-                throw failure
-            }
-        }
-        registry.addProvider(provider)
+        registry.addProvider(new BrokenProvider())
 
         when:
         registry.get(String)
 
         then:
         ServiceLookupException e = thrown()
-        e.message == "Could not create service String using ${provider.class.simpleName}.createString()."
-        e.cause == failure
+        e.message == "Could not create service of type String using BrokenProvider.createString()."
+        e.cause == BrokenProvider.failure
+
+        when:
+        registry.get(Number)
+
+        then:
+        e = thrown()
+        e.message == "Could not create service of type String using BrokenProvider.createString()."
+        e.cause == BrokenProvider.failure
     }
 
     def cachesInstancesCreatedUsingAProviderFactoryMethod() {
         def registry = new DefaultServiceRegistry()
-        registry.addProvider(new TestProvider())
+        def provider = new Object() {
+            String createString(Number number) {
+                return number.toString()
+            }
+
+            Integer createInteger() {
+                return 12
+            }
+        }
+        registry.addProvider(provider)
 
         expect:
         registry.get(Integer).is(registry.get(Integer))
@@ -212,6 +249,93 @@ class DefaultServiceRegistryTest extends Specification {
         then:
         ServiceLookupException e = thrown()
         e.message == "Cannot use decorator methods when no parent registry is provided."
+    }
+
+    def failsWhenProviderDecoratorMethodRequiresUnknownService() {
+        def parent = Stub(ServiceRegistry) {
+            get(_) >> { throw new UnknownServiceException(it[0], "broken") }
+        }
+        def registry = new DefaultServiceRegistry(parent)
+
+        given:
+        registry.addProvider(new TestDecoratingProvider())
+
+        when:
+        registry.get(Long)
+
+        then:
+        ServiceLookupException e = thrown()
+        e.message == "Cannot create service of type Long using TestDecoratingProvider.createLong() as required service of type Long is not available in parent registries."
+    }
+
+    def failsWhenProviderDecoratorMethodThrowsException() {
+        def parent = Stub(ServiceRegistry) {
+            get(Long) >> 12L
+        }
+        def registry = new DefaultServiceRegistry(parent)
+
+        given:
+        registry.addProvider(new BrokenDecoratingProvider())
+
+        when:
+        registry.get(Long)
+
+        then:
+        ServiceLookupException e = thrown()
+        e.message == "Could not create service of type Long using BrokenDecoratingProvider.createLong()."
+        e.cause == BrokenDecoratingProvider.failure
+    }
+
+    def failsWhenThereIsACycleInDependenciesForProviderFactoryMethods() {
+        def registry = new DefaultServiceRegistry()
+
+        given:
+        registry.addProvider(new ProviderWithCycle())
+
+        when:
+        registry.get(String)
+
+        then:
+        ServiceLookupException e = thrown()
+        e.message == "Cannot create service of type Integer using ProviderWithCycle.createInteger() as there is a cycle in its dependencies."
+
+        when:
+        registry.getAll(Number)
+
+        then:
+        e = thrown()
+        e.message == "Cannot create service of type Integer using ProviderWithCycle.createInteger() as there is a cycle in its dependencies."
+    }
+
+    def failsWhenAProviderFactoryMethodReturnsNull() {
+        def registry = new DefaultServiceRegistry()
+
+        given:
+        registry.addProvider(new NullProvider())
+
+        when:
+        registry.get(String)
+
+        then:
+        ServiceLookupException e = thrown()
+        e.message == "Could not create service of type String using NullProvider.createString() as this method returned null."
+    }
+
+    def failsWhenAProviderDecoratorMethodReturnsNull() {
+        def parent = Stub(ServiceRegistry) {
+            get(String) >> "parent"
+        }
+        def registry = new DefaultServiceRegistry(parent)
+
+        given:
+        registry.addProvider(new NullDecorator())
+
+        when:
+        registry.get(String)
+
+        then:
+        ServiceLookupException e = thrown()
+        e.message == "Could not create service of type String using NullDecorator.createString() as this method returned null."
     }
 
     def usesFactoryMethodToCreateServiceInstance() {
@@ -303,8 +427,14 @@ class DefaultServiceRegistryTest extends Specification {
     }
 
     def canGetAllServicesOfAGivenType() {
+        registry.addProvider(new Object(){
+            String createOtherString() {
+                return "hi"
+            }
+        })
+
         expect:
-        registry.getAll(String) == ["12"]
+        registry.getAll(String) == ["12", "hi"]
         registry.getAll(Number) == [12]
     }
 
@@ -313,15 +443,22 @@ class DefaultServiceRegistryTest extends Specification {
         registry.getAll(Long).empty
     }
 
-    def includesServicesFromParent() {
-        def registry = new DefaultServiceRegistry(registry) {
+    def includesServicesFromParents() {
+        def parent1 = Stub(ServiceRegistry)
+        def parent2 = Stub(ServiceRegistry)
+        def registry = new DefaultServiceRegistry(parent1, parent2)
+        registry.addProvider(new Object() {
             Long createLong() {
-                return 123L;
+                return 12;
             }
-        };
+        });
+
+        given:
+        _ * parent1.getAll(Number) >> [123L]
+        _ * parent2.getAll(Number) >> [456]
 
         expect:
-        registry.getAll(Number) == [123L, 12]
+        registry.getAll(Number) == [12, 123L, 456]
     }
 
     def canGetServiceAsFactoryWhenTheServiceImplementsFactoryInterface() {
@@ -375,7 +512,7 @@ class DefaultServiceRegistryTest extends Specification {
 
         then:
         IllegalArgumentException e = thrown()
-        e.message == "Cannot locate service of raw type Factory. Use getFactory() or get(Type) instead."
+        e.message == "Cannot locate service of raw type Factory."
     }
 
     def usesAFactoryServiceToCreateInstances() {
@@ -733,9 +870,61 @@ class DefaultServiceRegistryTest extends Specification {
         }
     }
 
+    private static class StringProvider {
+        String createString(Runnable r) {
+            return "hi"
+        }
+
+        Integer createInteger(String value) {
+            return value.length()
+        }
+    }
+
+    private static class ProviderWithCycle {
+        String createString(Integer value) {
+            return value.toString()
+        }
+
+        Integer createInteger(String value) {
+            return value.length()
+        }
+    }
+
+    private static class NullProvider {
+        String createString() {
+            return null
+        }
+    }
+
+    private static class BrokenProvider {
+        static def failure = new RuntimeException()
+
+        String createString() {
+            throw failure.fillInStackTrace()
+        }
+
+        Integer createInteger(String value) {
+            return value.length()
+        }
+    }
+
     private static class TestDecoratingProvider {
         Long createLong(Long value) {
             return value + 2
+        }
+    }
+
+    private static class BrokenDecoratingProvider {
+        static def failure = new RuntimeException()
+
+        Long createLong(Long value) {
+            throw failure
+        }
+    }
+
+    private static class NullDecorator {
+        String createString(String value) {
+            return null
         }
     }
 
