@@ -19,7 +19,7 @@ import org.gradle.internal.service.DefaultServiceRegistry
 import spock.lang.Specification
 
 class DependencyManagementBuildScopeServicesTest extends Specification {
-    def services = new DefaultServiceRegistry().addProvider(new DependencyManagementBuildScopeServices())
+    def services = DefaultServiceRegistry.create(new DependencyManagementBuildScopeServices())
 
     def "provides a DependencyManagementServices"() {
         expect:

@@ -22,7 +22,7 @@ import org.gradle.internal.service.DefaultServiceRegistry
 import spock.lang.Specification
 
 class DependencyManagementGlobalScopeServicesTest extends Specification {
-    def services = new DefaultServiceRegistry().addProvider(new DependencyManagementGlobalScopeServices())
+    def services = DefaultServiceRegistry.create(new DependencyManagementGlobalScopeServices())
 
     def "provides an IvyContextManager"() {
         expect:
