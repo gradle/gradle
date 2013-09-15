@@ -18,9 +18,61 @@ package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyContextManager;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.*;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.*;
 
 class DependencyManagementGlobalScopeServices {
     IvyContextManager createIvyContextManager() {
         return new DefaultIvyContextManager();
     }
+
+    ModuleDescriptorFactory createModuleDescriptorFactory() {
+        return new DefaultModuleDescriptorFactory();
+    }
+
+    ExcludeRuleConverter createExcludeRuleConverter() {
+        return new DefaultExcludeRuleConverter();
+    }
+
+    ExternalModuleIvyDependencyDescriptorFactory createExternalModuleDependencyDescriptorFactory(ExcludeRuleConverter excludeRuleConverter) {
+        return new ExternalModuleIvyDependencyDescriptorFactory(excludeRuleConverter);
+    }
+
+    ConfigurationsToModuleDescriptorConverter createConfigurationsToModuleDescriptorConverter() {
+        return new DefaultConfigurationsToModuleDescriptorConverter();
+    }
+
+    DependencyDescriptorFactory createDependencyDescriptorFactory(ExcludeRuleConverter excludeRuleConverter, ExternalModuleIvyDependencyDescriptorFactory descriptorFactory) {
+        DefaultModuleDescriptorFactoryForClientModule clientModuleDescriptorFactory = new DefaultModuleDescriptorFactoryForClientModule();
+        DependencyDescriptorFactory dependencyDescriptorFactory = new DefaultDependencyDescriptorFactory(
+                new ClientModuleIvyDependencyDescriptorFactory(
+                        excludeRuleConverter,
+                        clientModuleDescriptorFactory
+                ),
+                new ProjectIvyDependencyDescriptorFactory(
+                        excludeRuleConverter),
+                descriptorFactory);
+        clientModuleDescriptorFactory.setDependencyDescriptorFactory(dependencyDescriptorFactory);
+        return dependencyDescriptorFactory;
+    }
+
+    ResolveModuleDescriptorConverter createResolveModuleDescriptorConverter(ModuleDescriptorFactory moduleDescriptorFactory,
+                                                                            ConfigurationsToModuleDescriptorConverter configurationsToModuleDescriptorConverter,
+                                                                            DependencyDescriptorFactory dependencyDescriptorFactory,
+                                                                            ExcludeRuleConverter excludeRuleConverter) {
+        return new ResolveModuleDescriptorConverter(
+                moduleDescriptorFactory,
+                configurationsToModuleDescriptorConverter,
+                new DefaultDependenciesToModuleDescriptorConverter(
+                        dependencyDescriptorFactory,
+                        excludeRuleConverter));
+
+    }
+
+    PublishModuleDescriptorConverter createPublishModuleDescriptorConverter(ResolveModuleDescriptorConverter moduleDescriptorConverter) {
+        return new PublishModuleDescriptorConverter(
+                moduleDescriptorConverter,
+                new DefaultArtifactsToModuleDescriptorConverter());
+    }
+
 }
