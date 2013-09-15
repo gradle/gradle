@@ -27,7 +27,6 @@ import spock.lang.Specification
 import static java.util.Arrays.asList
 
 class DaemonServicesTest extends Specification {
-
     @Rule TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider()
     final DaemonServices services = new DaemonServices(new DefaultDaemonServerConfiguration("uid", tmp.testDirectory, 100, asList()),
             LoggingServiceRegistry.newEmbeddableLogging(), Mock(LoggingManagerInternal))

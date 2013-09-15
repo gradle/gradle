@@ -70,7 +70,7 @@ class DaemonServerExceptionHandlingTest extends Specification {
         def services = new EmbeddedDaemonClientServices() {
             DaemonCommandExecuter createDaemonCommandExecuter() {
                 return new DefaultDaemonCommandExecuter(get(GradleLauncherFactory),
-                        get(ProcessEnvironment), loggingServices.getFactory(LoggingManagerInternal.class).create(),
+                        get(ProcessEnvironment), getFactory(LoggingManagerInternal.class).create(),
                         new File("dummy"), new NoOpDaemonCommandAction()) {
                     List<DaemonCommandAction> createActions(DaemonContext daemonContext) {
                         def actions = new LinkedList(super.createActions(daemonContext));

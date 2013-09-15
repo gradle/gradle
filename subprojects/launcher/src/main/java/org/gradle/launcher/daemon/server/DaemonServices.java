@@ -46,12 +46,11 @@ public class DaemonServices extends DefaultServiceRegistry {
     private final LoggingManagerInternal loggingManager;
     private final static Logger LOGGER = Logging.getLogger(DaemonServices.class);
 
-    public DaemonServices(DaemonServerConfiguration configuration, ServiceRegistry loggingServices,
-                          LoggingManagerInternal loggingManager) {
+    public DaemonServices(DaemonServerConfiguration configuration, ServiceRegistry loggingServices, LoggingManagerInternal loggingManager) {
+        super(NativeServices.getInstance(), loggingServices);
         this.configuration = configuration;
         this.loggingManager = loggingManager;
 
-        add(NativeServices.getInstance());
         addProvider(new DaemonRegistryServices(configuration.getBaseDir()));
         add(new GlobalScopeServices(loggingServices));
     }

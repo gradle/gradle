@@ -44,18 +44,11 @@ import java.io.InputStream;
  * @see EmbeddedDaemonClientServices
  */
 abstract public class DaemonClientServicesSupport extends DefaultServiceRegistry {
-
-    private final ServiceRegistry loggingServices;
     private final InputStream buildStandardInput;
 
     public DaemonClientServicesSupport(ServiceRegistry loggingServices, InputStream buildStandardInput) {
-        this.loggingServices = loggingServices;
+        super(NativeServices.getInstance(), loggingServices);
         this.buildStandardInput = buildStandardInput;
-        add(NativeServices.getInstance());
-    }
-
-    public ServiceRegistry getLoggingServices() {
-        return loggingServices;
     }
 
     protected InputStream getBuildStandardInput() {
@@ -82,10 +75,6 @@ abstract public class DaemonClientServicesSupport extends DefaultServiceRegistry
     // subclass hook, allowing us to fake the context for testing
     protected void configureDaemonContextBuilder(DaemonContextBuilder builder) {
         
-    }
-
-    protected OutputEventListener createOutputEventListener() {
-        return getLoggingServices().get(OutputEventListener.class);
     }
 
     protected ExecutorFactory createExecuterFactory() {

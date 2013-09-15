@@ -15,13 +15,13 @@
  */
 package org.gradle.launcher.daemon.client;
 
-import org.gradle.internal.service.scopes.GlobalScopeServices;
 import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.nativeplatform.ProcessEnvironment;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.scopes.GlobalScopeServices;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.context.DaemonContextBuilder;
@@ -31,7 +31,9 @@ import org.gradle.launcher.daemon.registry.EmbeddedDaemonRegistry;
 import org.gradle.launcher.daemon.server.Daemon;
 import org.gradle.launcher.daemon.server.DaemonServerConnector;
 import org.gradle.launcher.daemon.server.DaemonTcpServerConnector;
-import org.gradle.launcher.daemon.server.exec.*;
+import org.gradle.launcher.daemon.server.exec.DaemonCommandExecuter;
+import org.gradle.launcher.daemon.server.exec.DefaultDaemonCommandExecuter;
+import org.gradle.launcher.daemon.server.exec.NoOpDaemonCommandAction;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.logging.internal.OutputEvent;
@@ -44,11 +46,8 @@ import java.util.UUID;
  * Wires together the embedded daemon client.
  */
 public class EmbeddedDaemonClientServices extends DaemonClientServicesSupport {
-
-    private final boolean displayOutput;
-
     public EmbeddedDaemonClientServices() {
-        this(LoggingServiceRegistry.newProcessLogging(), false);
+        this(LoggingServiceRegistry.newProcessLogging());
     }
 
     private class EmbeddedDaemonFactory implements Factory<Daemon> {
@@ -65,14 +64,13 @@ public class EmbeddedDaemonClientServices extends DaemonClientServicesSupport {
     }
 
     protected DaemonCommandExecuter createDaemonCommandExecuter() {
-        LoggingManagerInternal mgr = getLoggingServices().getFactory(LoggingManagerInternal.class).create();
+        LoggingManagerInternal mgr = newInstance(LoggingManagerInternal.class);
         return new DefaultDaemonCommandExecuter(get(GradleLauncherFactory.class),
                 get(ProcessEnvironment.class), mgr, new File("dummy"), new NoOpDaemonCommandAction());
     }
 
-    public EmbeddedDaemonClientServices(ServiceRegistry loggingServices, boolean displayOutput) {
+    public EmbeddedDaemonClientServices(ServiceRegistry loggingServices) {
         super(loggingServices, System.in);
-        this.displayOutput = displayOutput;
         add(new GlobalScopeServices(loggingServices));
         add(EmbeddedDaemonFactory.class, new EmbeddedDaemonFactory());
     }
@@ -82,11 +80,7 @@ public class EmbeddedDaemonClientServices extends DaemonClientServicesSupport {
     }
 
     protected OutputEventListener createOutputEventListener() {
-        if (displayOutput) {
-            return super.createOutputEventListener();
-        } else {
-            return new OutputEventListener() { public void onOutput(OutputEvent event) {} };
-        }
+        return new OutputEventListener() { public void onOutput(OutputEvent event) {} };
     }
 
     @Override

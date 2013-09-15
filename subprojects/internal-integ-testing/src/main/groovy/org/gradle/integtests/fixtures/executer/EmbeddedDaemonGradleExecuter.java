@@ -33,8 +33,7 @@ import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import java.lang.management.ManagementFactory;
 
 class EmbeddedDaemonGradleExecuter extends AbstractGradleExecuter {
-
-    private final EmbeddedDaemonClientServices daemonClientServices = new EmbeddedDaemonClientServices(LoggingServiceRegistry.newEmbeddableLogging(), false);
+    private final EmbeddedDaemonClientServices daemonClientServices = new EmbeddedDaemonClientServices(LoggingServiceRegistry.newEmbeddableLogging());
 
     EmbeddedDaemonGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider) {
         super(distribution, testDirectoryProvider);
@@ -90,7 +89,7 @@ class EmbeddedDaemonGradleExecuter extends AbstractGradleExecuter {
     }
 
     private LoggingManagerInternal createLoggingManager(StringBuilder output, StringBuilder error) {
-        LoggingManagerInternal loggingManager = daemonClientServices.getLoggingServices().newInstance(LoggingManagerInternal.class);
+        LoggingManagerInternal loggingManager = daemonClientServices.newInstance(LoggingManagerInternal.class);
         loggingManager.addStandardOutputListener(new StreamBackedStandardOutputListener(output));
         loggingManager.addStandardErrorListener(new StreamBackedStandardOutputListener(error));
         return loggingManager;
