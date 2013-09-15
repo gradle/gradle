@@ -364,18 +364,22 @@ class DefaultServiceRegistryTest extends Specification {
         registry.get(String) == "overridden"
     }
 
-    public void failsWhenMultipleServiceFactoriesCanCreateRequestedServiceType() {
-        def registry = new RegistryWithAmbiguousFactoryMethods();
+    def failsWhenMultipleFactoryMethodsCanCreateRequestedServiceType() {
+        def registry = new DefaultServiceRegistry();
+        registry.addProvider(new TestProvider())
 
         expect:
-        registry.get(String) == "hello"
+        registry.get(String)
 
         when:
         registry.get(Object)
 
         then:
         ServiceLookupException e = thrown()
-        e.message == "Multiple services of type Object available in RegistryWithAmbiguousFactoryMethods."
+        e.message == """Multiple services of type Object available in DefaultServiceRegistry:
+   - Service Factory<BigDecimal> at TestProvider.createTestFactory()
+   - Service Integer at TestProvider.createInt()
+   - Service String at TestProvider.createString()"""
     }
 
     def failsWhenArrayClassRequested() {
@@ -629,71 +633,9 @@ class DefaultServiceRegistryTest extends Specification {
 
         then:
         ServiceLookupException e = thrown()
-        e.message == "Multiple factories for objects of type Object available in RegistryWithAmbiguousFactoryMethods."
-    }
-
-    def returnsServiceInstancesManagedByNestedServiceRegistry() {
-        def nested = Mock(ServiceRegistry)
-        def runnable = Mock(Runnable)
-
-        given:
-        registry.add(nested)
-
-        when:
-        def result = registry.get(Runnable)
-
-        then:
-        result == runnable
-
-        and:
-        1 * nested.get(Runnable) >> runnable
-    }
-
-    def throwsExceptionForUnknownServiceInNestedRegistry() {
-        def nested = Mock(ServiceRegistry)
-
-        given:
-        registry.add(nested)
-        _ * nested.get(Runnable) >> { throw new UnknownServiceException(Runnable, "fail") }
-
-        when:
-        registry.get(Runnable)
-
-        then:
-        UnknownServiceException e = thrown()
-        e.message == "No service of type Runnable available in TestRegistry."
-    }
-
-    def returnsServiceFactoriesManagedByNestedServiceRegistry() {
-        def nested = Mock(ServiceRegistry)
-        def factory = Mock(Factory)
-
-        given:
-        registry.add(nested)
-
-        when:
-        def result = registry.getFactory(Runnable)
-
-        then:
-        result == factory
-
-        and:
-        1 * nested.getFactory(Runnable) >> factory
-    }
-
-    def throwsExceptionForUnknownFactoryInNestedRegistry() {
-        def nested = Mock(ServiceRegistry)
-
-        given:
-        registry.add(nested)
-        _ * nested.getFactory(Runnable) >> { throw new UnknownServiceException(Runnable, "fail") }
-
-        when:
-        registry.getFactory(Runnable)
-
-        then:
-        UnknownServiceException e = thrown()
-        e.message == "No factory for objects of type Runnable available in TestRegistry."
+        e.message == """Multiple factories for objects of type Object available in RegistryWithAmbiguousFactoryMethods:
+   - Service Factory<Object> at RegistryWithAmbiguousFactoryMethods.createObjectFactory()
+   - Service Factory<String> at RegistryWithAmbiguousFactoryMethods.createStringFactory()"""
     }
 
     def servicesCreatedByFactoryMethodsAreVisibleWhenUsingASubClass() {
@@ -703,51 +645,6 @@ class DefaultServiceRegistryTest extends Specification {
         expect:
         registry.get(String) == "12"
         registry.get(Integer) == 12
-    }
-
-    def prefersServicesCreatedByFactoryMethodsOverNestedServices() {
-        def parent = Mock(ServiceRegistry)
-        def nested = Mock(ServiceRegistry)
-        def registry = new TestRegistry(parent)
-
-        given:
-        registry.add(nested)
-
-        expect:
-        registry.get(String) == "12"
-    }
-
-    def prefersRegisteredServicesOverNestedServices() {
-        def parent = Mock(ServiceRegistry)
-        def nested = Mock(ServiceRegistry)
-        def registry = new TestRegistry(parent)
-
-        given:
-        registry.add(nested)
-        registry.add(BigDecimal, BigDecimal.ONE)
-
-        expect:
-        registry.get(BigDecimal.class) == BigDecimal.ONE
-    }
-
-    def prefersNestedServicesOverParentServices() {
-        def parent = Mock(ServiceRegistry)
-        def nested = Mock(ServiceRegistry)
-        def registry = new TestRegistry(parent)
-        def runnable = Mock(Runnable)
-
-        given:
-        registry.add(nested);
-
-        when:
-        def result = registry.get(Runnable)
-
-        then:
-        result == runnable
-
-        and:
-        1 * nested.get(Runnable) >> runnable
-        0 * _._
     }
 
     def closeInvokesCloseMethodOnEachService() {
@@ -784,19 +681,6 @@ class DefaultServiceRegistryTest extends Specification {
 
         then:
         noExceptionThrown()
-    }
-
-    def closeInvokesCloseMethodOnEachNestedServiceRegistry() {
-        def nested = Mock(ClosableServiceRegistry)
-
-        given:
-        registry.add(nested)
-
-        when:
-        registry.close()
-
-        then:
-        1 * nested.close()
     }
 
     def closeInvokesCloseMethodOnEachServiceCreatedByProviderFactoryMethod() {
