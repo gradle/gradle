@@ -18,6 +18,7 @@ package org.gradle.internal.service
 
 import org.gradle.api.Action
 import org.gradle.internal.Factory
+import org.gradle.util.TextUtil
 import spock.lang.Specification
 
 import java.lang.reflect.Type
@@ -376,10 +377,10 @@ class DefaultServiceRegistryTest extends Specification {
 
         then:
         ServiceLookupException e = thrown()
-        e.message == """Multiple services of type Object available in DefaultServiceRegistry:
+        e.message == TextUtil.toPlatformLineSeparators("""Multiple services of type Object available in DefaultServiceRegistry:
    - Service Factory<BigDecimal> at TestProvider.createTestFactory()
    - Service Integer at TestProvider.createInt()
-   - Service String at TestProvider.createString()"""
+   - Service String at TestProvider.createString()""")
     }
 
     def failsWhenArrayClassRequested() {
@@ -633,9 +634,9 @@ class DefaultServiceRegistryTest extends Specification {
 
         then:
         ServiceLookupException e = thrown()
-        e.message == """Multiple factories for objects of type Object available in RegistryWithAmbiguousFactoryMethods:
+        e.message == TextUtil.toPlatformLineSeparators("""Multiple factories for objects of type Object available in RegistryWithAmbiguousFactoryMethods:
    - Service Factory<Object> at RegistryWithAmbiguousFactoryMethods.createObjectFactory()
-   - Service Factory<String> at RegistryWithAmbiguousFactoryMethods.createStringFactory()"""
+   - Service Factory<String> at RegistryWithAmbiguousFactoryMethods.createStringFactory()""")
     }
 
     def servicesCreatedByFactoryMethodsAreVisibleWhenUsingASubClass() {
