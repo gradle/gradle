@@ -197,7 +197,7 @@ class FindBugsPluginIntegrationTest extends WellBehavedPluginTest {
         file("build/reports/findbugs/test.xml").assertContents(containsClass("org.gradle.Class800Test"))
     }
 
-    def "is incremental for reporting settings when value is not changed"() {
+    def "is incremental for reporting settings"() {
         given:
         buildFile << """
             findbugsMain.reports {
@@ -223,37 +223,11 @@ class FindBugsPluginIntegrationTest extends WellBehavedPluginTest {
         file("build/reports/findbugs/main.xml").exists()
         !(":findbugsMain" in nonSkippedTasks)
         ":findbugsMain" in skippedTasks
-    }
-
-    def "is incremental for reporting settings when value is changed"() {
-        given:
-        buildFile << """
-            findbugsMain.reports {
-                xml.enabled true
-            }
-        """
-
-        and:
-        goodCode()
-
-        when:
-        succeeds "findbugsMain"
-
-        then:
-        file("build/reports/findbugs/main.xml").exists()
-        ":findbugsMain" in nonSkippedTasks
-        !(":findbugsMain" in skippedTasks)
 
         when:
         buildFile.delete()
+        writeBuildFile()
         buildFile << """
-            apply plugin: "java"
-            apply plugin: "findbugs"
-
-            repositories {
-                mavenCentral()
-            }
-
             findbugsMain.reports {
                 xml.enabled false
             }
@@ -267,23 +241,28 @@ class FindBugsPluginIntegrationTest extends WellBehavedPluginTest {
         !(":findbugsMain" in skippedTasks)
     }
 
-    def "is incremental for withMessage when value is not changed"() {
+    def "is incremental for withMessage"() {
         given:
         buildFile << """
-            findbugsMain.reports {
-                xml.enabled true
-                xml.withMessages true
+            findbugsMain {
+                reports {
+                    xml.enabled true
+                    xml.withMessages true
+                }
+
+                ignoreFailures true
             }
         """
 
         and:
-        goodCode()
+        badCode()
 
         when:
         succeeds "findbugsMain"
 
         then:
         file("build/reports/findbugs/main.xml").exists()
+        containsXmlMessages(file("build/reports/findbugs/main.xml"))
         ":findbugsMain" in nonSkippedTasks
         !(":findbugsMain" in skippedTasks)
 
@@ -292,43 +271,21 @@ class FindBugsPluginIntegrationTest extends WellBehavedPluginTest {
 
         then:
         file("build/reports/findbugs/main.xml").exists()
+        containsXmlMessages(file("build/reports/findbugs/main.xml"))
         !(":findbugsMain" in nonSkippedTasks)
         ":findbugsMain" in skippedTasks
-    }
-
-    def "is incremental for withMessage when value is changed"() {
-        given:
-        buildFile << """
-            findbugsMain.reports {
-                xml.enabled true
-                xml.withMessages true
-            }
-        """
-
-        and:
-        goodCode()
-
-        when:
-        succeeds "findbugsMain"
-
-        then:
-        file("build/reports/findbugs/main.xml").exists()
-        ":findbugsMain" in nonSkippedTasks
-        !(":findbugsMain" in skippedTasks)
 
         when:
         buildFile.delete()
+        writeBuildFile()
         buildFile << """
-            apply plugin: "java"
-            apply plugin: "findbugs"
+            findbugsMain {
+                reports {
+                    xml.enabled true
+                    xml.withMessages false
+                }
 
-            repositories {
-                mavenCentral()
-            }
-
-            findbugsMain.reports {
-                xml.enabled true
-                xml.withMessages false
+                ignoreFailures true
             }
         """
 
@@ -336,8 +293,38 @@ class FindBugsPluginIntegrationTest extends WellBehavedPluginTest {
 
         then:
         file("build/reports/findbugs/main.xml").exists()
+        !containsXmlMessages(file("build/reports/findbugs/main.xml"))
         ":findbugsMain" in nonSkippedTasks
         !(":findbugsMain" in skippedTasks)
+    }
+
+    def "is withMessage ignored for non-XML report setting"() {
+        given:
+        buildFile << """
+            findbugsMain {
+                reports {
+                    xml.enabled false
+                    xml.withMessages true
+                    html.enabled true
+                }
+
+                ignoreFailures true
+            }
+        """
+
+        and:
+        badCode()
+
+        when:
+        succeeds "findbugsMain"
+
+        then:
+        !file("build/reports/findbugs/main.xml").exists()
+        file("build/reports/findbugs/main.html").exists()
+    }
+
+    private boolean containsXmlMessages(File xmlReportFile) {
+        new XmlSlurper().parseText(xmlReportFile.text).BugInstance.children().collect { it.name() }.containsAll(['ShortMessage', 'LongMessage'])
     }
 
     private goodCode(int numberOfClasses = 1) {
