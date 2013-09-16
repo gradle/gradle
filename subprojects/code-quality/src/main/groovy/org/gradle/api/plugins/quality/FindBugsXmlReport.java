@@ -16,13 +16,14 @@
 
 package org.gradle.api.plugins.quality;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.reporting.SingleFileReport;
 
 /**
  * The single file XML report for FindBugs.
  */
+@Incubating
 public interface FindBugsXmlReport extends SingleFileReport {
-
     /**
      * Whether or not FindBugs should generate XML augmented with human-readable messages.
      * You should use this format if you plan to generate a report using an XSL stylesheet. 
