@@ -17,27 +17,24 @@
 package org.gradle.api.publication.maven.internal.ant
 
 import org.gradle.api.artifacts.maven.PomFilterContainer
-import org.junit.Before
+import org.gradle.api.publication.maven.internal.ArtifactPomContainer
+import org.gradle.logging.LoggingManagerInternal
+import org.gradle.util.JUnit4GroovyMockery
 import org.junit.Test
 import org.junit.runner.RunWith
 
 import static org.junit.Assert.assertEquals
 
 @RunWith (org.jmock.integration.junit4.JMock.class)
-class DefaultGroovyMavenDeployerTest extends BaseMavenDeployerTest {
-    private DefaultGroovyMavenDeployer groovyMavenDeployer;
+class DefaultGroovyMavenDeployerTest {
+    protected JUnit4GroovyMockery context = new JUnit4GroovyMockery()
+    protected ArtifactPomContainer artifactPomContainerMock = context.mock(ArtifactPomContainer)
+    protected PomFilterContainer pomFilterContainerMock = context.mock(PomFilterContainer);
+    protected LoggingManagerInternal loggingManagerMock = context.mock(LoggingManagerInternal);
+    private DefaultGroovyMavenDeployer groovyMavenDeployer = new DefaultGroovyMavenDeployer(pomFilterContainerMock, artifactPomContainerMock, loggingManagerMock)
 
     protected PomFilterContainer createPomFilterContainerMock() {
         context.mock(PomFilterContainer.class);
-    }
-
-    protected BaseMavenDeployer createMavenDeployer() {
-        groovyMavenDeployer = new DefaultGroovyMavenDeployer(pomFilterContainerMock, artifactPomContainerMock, loggingManagerMock)
-    }
-
-    @Before
-    void setUp() {
-        super.setUp();
     }
 
     @Test

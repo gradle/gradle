@@ -17,20 +17,17 @@
 package org.gradle.api.publish.maven.internal.publisher;
 
 import org.apache.maven.artifact.ant.InstallDeployTaskSupport;
+import org.apache.maven.artifact.ant.RemoteRepository;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.publication.maven.internal.ant.CustomInstallTask;
-import org.gradle.api.publication.maven.internal.ant.InstallTaskFactory;
 import org.gradle.internal.Factory;
 import org.gradle.logging.LoggingManagerInternal;
 
 import java.io.File;
 
 public class AntTaskBackedMavenLocalPublisher extends AbstractAntTaskBackedMavenPublisher {
-    private Factory<CustomInstallTask> deployTaskFactory;
-
     public AntTaskBackedMavenLocalPublisher(Factory<LoggingManagerInternal> loggingManagerFactory, Factory<File> temporaryDirFactory) {
         super(loggingManagerFactory, temporaryDirFactory);
-        deployTaskFactory = new InstallTaskFactory();
     }
 
     @Override
@@ -40,6 +37,13 @@ public class AntTaskBackedMavenLocalPublisher extends AbstractAntTaskBackedMaven
 
     @Override
     protected InstallDeployTaskSupport createDeployTask() {
-        return deployTaskFactory.create();
+        return new InstallTask();
+    }
+
+    private static class InstallTask extends CustomInstallTask {
+        @Override
+        protected void updateRepositoryWithSettings(RemoteRepository repository) {
+            // Do nothing
+        }
     }
 }

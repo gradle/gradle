@@ -35,7 +35,12 @@ public class BaseMavenInstallerTest extends AbstractMavenResolverTest {
     private CustomInstallTask installTaskMock;
 
     protected BaseMavenInstaller createMavenInstaller() {
-        return new BaseMavenInstaller(pomFilterContainerMock, artifactPomContainerMock, loggingManagerMock);
+        return new BaseMavenInstaller(pomFilterContainerMock, artifactPomContainerMock, loggingManagerMock) {
+            @Override
+            protected CustomInstallTask createTask() {
+                return installTaskMock;
+            }
+        };
     }
 
     protected PomFilterContainer createPomFilterContainerMock() {
@@ -54,7 +59,6 @@ public class BaseMavenInstallerTest extends AbstractMavenResolverTest {
         super.setUp();
         installTaskMock = context.mock(CustomInstallTask.class);
         mavenInstaller = createMavenInstaller();
-        mavenInstaller.setInstallTaskFactory(installTaskFactoryMock);
     }
 
     protected void checkTransaction(final Set<DefaultMavenDeployment> deployableUnits, AttachedArtifact attachedArtifact, PublishArtifact classifierArtifact) throws IOException, PlexusContainerException {

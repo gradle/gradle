@@ -20,28 +20,21 @@ import org.apache.maven.artifact.ant.InstallTask;
 import org.apache.tools.ant.Project;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
 import org.gradle.api.publication.maven.internal.ArtifactPomContainer;
-import org.gradle.internal.Factory;
 import org.gradle.logging.LoggingManagerInternal;
 
 public class BaseMavenInstaller extends AbstractMavenResolver {
-    private Factory<CustomInstallTask> installTaskFactory = new DefaultInstallTaskFactory();
-
     public BaseMavenInstaller(PomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer, LoggingManagerInternal loggingManager) {
         super(pomFilterContainer, artifactPomContainer, loggingManager);
         mavenSettingsSupplier = new MaybeUserMavenSettingsSupplier();
     }
 
     protected InstallDeployTaskSupport createPreConfiguredTask(Project project) {
-        InstallTask installTask = installTaskFactory.create();
+        InstallTask installTask = createTask();
         installTask.setProject(project);
         return installTask;
     }
 
-    public Factory<CustomInstallTask> getInstallTaskFactory() {
-        return installTaskFactory;
-    }
-
-    public void setInstallTaskFactory(Factory<CustomInstallTask> installTaskFactory) {
-        this.installTaskFactory = installTaskFactory;
+    protected CustomInstallTask createTask() {
+        return new CustomInstallTask();
     }
 }

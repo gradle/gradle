@@ -42,7 +42,6 @@ import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.jmock.Expectations;
-import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -65,11 +64,7 @@ public abstract class AbstractMavenResolverTest {
     protected PomFilterContainer pomFilterContainerMock;
     protected LoggingManagerInternal loggingManagerMock;
 
-    protected JUnit4GroovyMockery context = new JUnit4GroovyMockery() {
-        {
-            setImposteriser(ClassImposteriser.INSTANCE);
-        }
-    };
+    protected JUnit4GroovyMockery context = new JUnit4GroovyMockery();
     protected MavenPom pomMock;
 
     protected Settings mavenSettingsMock;

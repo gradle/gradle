@@ -43,7 +43,7 @@ public class BaseMavenDeployerTest extends AbstractMavenResolverTest {
 
     @SuppressWarnings("unchecked")
     private Factory<CustomDeployTask> deployTaskFactoryMock = context.mock(Factory.class);
-    private CustomDeployTask deployTaskMock = context.mock(CustomDeployTask.class);
+    CustomDeployTask deployTaskMock = context.mock(CustomDeployTask.class);
 
     private PlexusContainer plexusContainerMock = context.mock(PlexusContainer.class);
     private RemoteRepository testRepository = new RemoteRepository();
@@ -52,7 +52,12 @@ public class BaseMavenDeployerTest extends AbstractMavenResolverTest {
     private Configuration configurationStub = context.mock(Configuration.class);
 
     protected BaseMavenDeployer createMavenDeployer() {
-        return new BaseMavenDeployer(pomFilterContainerMock, artifactPomContainerMock, loggingManagerMock);
+        return new BaseMavenDeployer(pomFilterContainerMock, artifactPomContainerMock, loggingManagerMock) {
+            @Override
+            protected CustomDeployTask createTask() {
+                return deployTaskMock;
+            }
+        };
     }
 
     protected AbstractMavenResolver getMavenResolver() {
@@ -70,7 +75,6 @@ public class BaseMavenDeployerTest extends AbstractMavenResolverTest {
     public void setUp() {
         super.setUp();
         mavenDeployer = createMavenDeployer();
-        mavenDeployer.setDeployTaskFactory(deployTaskFactoryMock);
         mavenDeployer.setRepository(testRepository);
         mavenDeployer.setSnapshotRepository(testSnapshotRepository);
         mavenDeployer.setConfiguration(configurationStub);

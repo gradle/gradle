@@ -18,20 +18,19 @@ package org.gradle.api.publish.maven.internal.publisher;
 
 import org.apache.maven.artifact.ant.InstallDeployTaskSupport;
 import org.apache.maven.artifact.ant.RemoteRepository;
+import org.apache.maven.artifact.repository.ArtifactRepository;
+import org.apache.maven.artifact.repository.DefaultArtifactRepository;
+import org.apache.maven.artifact.repository.layout.ArtifactRepositoryLayout;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.publication.maven.internal.ant.CustomDeployTask;
-import org.gradle.api.publication.maven.internal.ant.DeployTaskFactory;
 import org.gradle.internal.Factory;
 import org.gradle.logging.LoggingManagerInternal;
 
 import java.io.File;
 
 public class AntTaskBackedMavenPublisher extends AbstractAntTaskBackedMavenPublisher {
-    private Factory<CustomDeployTask> deployTaskFactory;
-
     public AntTaskBackedMavenPublisher(Factory<LoggingManagerInternal> loggingManagerFactory, Factory<File> temporaryDirFactory) {
         super(loggingManagerFactory, temporaryDirFactory);
-        deployTaskFactory = new DeployTaskFactory(temporaryDirFactory);
     }
 
     protected void postConfigure(InstallDeployTaskSupport task, MavenArtifactRepository artifactRepository) {
@@ -40,7 +39,7 @@ public class AntTaskBackedMavenPublisher extends AbstractAntTaskBackedMavenPubli
     }
 
     protected InstallDeployTaskSupport createDeployTask() {
-        CustomDeployTask deployTask = deployTaskFactory.create();
+        CustomDeployTask deployTask = new DeployTask(temporaryDirFactory);
         deployTask.setUniqueVersion(true);
         return deployTask;
     }
@@ -50,4 +49,22 @@ public class AntTaskBackedMavenPublisher extends AbstractAntTaskBackedMavenPubli
         deployTask.addRemoteRepository(mavenRepository);
     }
 
+    private static class DeployTask extends CustomDeployTask {
+        private final Factory<File> tmpDirFactory;
+
+        public DeployTask(Factory<File> tmpDirFactory) {
+            this.tmpDirFactory = tmpDirFactory;
+        }
+
+        @Override
+        protected ArtifactRepository createLocalArtifactRepository() {
+            ArtifactRepositoryLayout repositoryLayout = (ArtifactRepositoryLayout) lookup(ArtifactRepositoryLayout.ROLE, getLocalRepository().getLayout());
+            return new DefaultArtifactRepository("local", tmpDirFactory.create().toURI().toString(), repositoryLayout);
+        }
+
+        @Override
+        protected void updateRepositoryWithSettings(RemoteRepository repository) {
+            // Do nothing
+        }
+    }
 }
