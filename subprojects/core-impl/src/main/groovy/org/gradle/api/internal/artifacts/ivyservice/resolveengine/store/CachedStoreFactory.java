@@ -31,7 +31,7 @@ public class CachedStoreFactory<T> {
 
     private static final Logger LOG = Logging.getLogger(CachedStoreFactory.class);
 
-    private final Cache<String, T> cache;
+    private final Cache<Object, T> cache;
     private final Stats stats;
     private String displayName;
 
@@ -41,7 +41,7 @@ public class CachedStoreFactory<T> {
         stats = new Stats();
     }
 
-    public Store<T> createCachedStore(final String id) {
+    public Store<T> createCachedStore(final Object id) {
         return new SimpleStore<T>(cache, id, stats);
     }
 
@@ -75,11 +75,11 @@ public class CachedStoreFactory<T> {
     }
 
     private static class SimpleStore<T> implements Store<T> {
-        private Cache<String, T> cache;
-        private final String id;
+        private Cache<Object, T> cache;
+        private final Object id;
         private Stats stats;
 
-        public SimpleStore(Cache<String, T> cache, String id, Stats stats) {
+        public SimpleStore(Cache<Object, T> cache, Object id, Stats stats) {
             this.cache = cache;
             this.id = id;
             this.stats = stats;

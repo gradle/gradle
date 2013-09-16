@@ -85,7 +85,7 @@ public class ResolutionResultsStoreFactory implements Closeable {
         stores.clear();
     }
 
-    public <T> Store<T> createOldModelCache(String id) {
+    public <T> Store<T> createOldModelCache(Object id) {
         if (oldModelCache == null) {
             oldModelCache = new CachedStoreFactory("Resolution result");
             cleanUpLater.add(oldModelCache);
@@ -93,7 +93,7 @@ public class ResolutionResultsStoreFactory implements Closeable {
         return oldModelCache.createCachedStore(id);
     }
 
-    public <T> Store<T> createNewModelCache(String id) {
+    public <T> Store<T> createNewModelCache(Object id) {
         if (newModelCache == null) {
             newModelCache = new CachedStoreFactory("Resolved configuration");
             cleanUpLater.add(newModelCache);
