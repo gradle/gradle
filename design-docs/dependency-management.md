@@ -28,19 +28,132 @@ Initial values: `l` = 1, `f` = 1, `m` = 27.
 
 - Update the existing caching test coverage for the new locations. No new coverage is required.
 
-## Story: Dependency result exposes components instead of module versions
+## Story: Dependency result models resolved components instead of module versions
 
 This story is a step in moving towards _components_ as the central dependency management concept, replacing the _module version_ concept.
 
-## Story: Dependency result exposes which project a local component belongs to
+1. Rename `ResolvedModuleVersionResult` to `ResolvedComponentResult`.
+    - Rename the `allModuleVersions` methods on `ResolutionResult` to `allComponents`.
+2. Rename `ModuleVersionSelectionReason` to `ComponentSelectionReason`.
+3. Introduce a `org.gradle.api.artifacts.component.ComponentIdentifier` type.
+    - `displayName` property returns some arbitrary human-consumable value.
+4. Introduce a `ModuleComponentIdentifier` type that extends `ComponentIdentifier` and add a private implementation.
+    - `group` property
+    - `name` property
+    - `version` property
+5. Introduce a `org.gradle.api.artifacts.component.ComponentSelector` type.
+    - `displayName` property returns some arbitrary human-consumable value.
+6. Introduce a `ModuleComponentSelector` type that extends `ComponentSelector` and add a private implementation.
+    - `group` property
+    - `name` property
+    - `version` property
+7. Change `ResolvedComponentResult`:
+    - Change `getId()` to return a `ComponentIdentifier`. Implementation should implement `ModuleComponentIdentifier`.
+    - Add `ModuleComponentIdentifier getPublishedAs()`. Mark method as `@Nullable`. Implementation should return the same as
+      value as `getId()` (for now).
+8. Change the methods of `DependencyResult` and `UnresolvedDependencyResult` to use `ComponentSelector` instead of `ModuleVersionSelector`.
 
-This story allows IDE integrations to map dependencies.
+### Test coverage
+
+- Nothing beyond some unit tests for the new methods and types.
+
+## Story: Dependency result exposes local components
+
+This story allows IDE integrations to map dependencies by exposing some information about the source of a resolved component.
+
+1. Introduce a `BuildComponentIdentifier` type that extends `ComponentIdentifier` and add a private implementation.
+    - `project` property
+2. Change `ModuleVersionMetaData` to add a `ComponentIdentifier getComponentId()` method.
+    - Default should be a `ModuleComponentIdentifier` with the same attributes as `getId()`.
+    - For project components (as resolved by `ProjectDependencyResolver`) this should return a `BuildComponentIdentifier` instance.
+3. Change `ResolvedComponentResult` implementations so that:
+    - `getId()` returns the identifier from `ModuleVersionMetaData.getComponentId()`.
+    - `getPublishedAs()` returns a `ModuleComponentIdentifier` with the same attributes as `ModuleVersionMetaData.getId()`.
+    - Add `<T extends ComponentIdentifier> T getId(Class<T> type)` that returns an id of the requested type.
+4. Introduce `BuildComponentSelector` type that extends `ComponentSelector and add a private implementation.
+    - `project` property
+5. Change `DependencyMetaData` to add a `ComponentSelector getSelector()`
+    - Default should be a `ModuleComponentSelector` with the same attributes as `getRequested()`.
+    - For project dependencies this should return a `BuildComponentSelector` instance.
+4. Change the dependency reports so that they render both `id` and `publishedAs` when they are not the equal.
+
+A consumer can extract the external and project components as follows:
+
+    def result = configurations.compile.incoming.resolve()
+    def projectComponents = result.root.dependencies.selected.findAll { it.id instanceof BuildComponentIdentifier }
+    def externalComponents = result.root.dependencies.selected.findAll { it.id instanceof ModuleComponentIdentifier }
+
+### Test coverage
+
+- Need to update the existing tests for the dependency tasks, as they will now render different values for projects and project dependencies.
+- Update existing integration test cases so that, for the resolution result:
+    - for the root component
+        - `id` is a `BuildComponentIdentifier` with `project` value referring to the consuming project.
+        - `publishedAs` is a `ModuleComponentIdentifier` with correct `group`, `module`, `version` values.
+        - `getId(BuildComponentIdentifier) == id`
+        - `getId(ModuleComponentIdentifier) == publishedAs`
+    - for a project dependency
+        - `requested` is a `BuildComponentSelector` with `project` value referring to the target project.
+    - for a resolved project component
+        - `id` is a `BuildComponentIdentifier` with `project` value referring to the target project.
+        - `publishedAs` is a `ModuleComponentIdentifier` with correct `group`, `module`, `version` values.
+        - `getId(BuildComponentIdentifier) == id`
+        - `getId(ModuleComponentIdentifier) == publishedAs`
+    - for an external dependency:
+        - `requested` is a `ModuleComponentSelector` with correct `group`, `module`, `version` values.
+    - for an external module component:
+        - `id` is a `ModuleComponentIdentifier` with correct `group`, `module`, `version` values.
+        - `publishedAs` == `id`.
+        - `getId(ModuleComponentIdentifier) == id`
+        - `getId(BuildComponentIdentifier) == null`
 
 ### Open issues
 
-* Expose this using different kind of component identifier, or as a component source, or both.
-* Need to expose different kinds of component selectors too.
-* IDE plugins should use this instead of the input dependency declarations.
+- Convenience for casting selector? Selecting things with a given id type or selector type?
+
+## Story: IDE plugins use resolution result to determine IDE classpaths
+
+TBD
+
+## Story: Dependency result does not expose local components that are not published
+
+This story improves the resolution result to distinguish between the local and external identifiers for a component, and
+associates an external identifier only with those components that are published.
+
+1. Change `ModuleVersionMetaData` to add a `ModuleComponentIdentifier getPublishedAs()`
+    - Default is to return the same as `getComponentId()`
+    - Change the implementation of `ResolvedComponentResult.getPublishedAs()` to return this value.
+2. Add a private `ProjectPublicationRegistry` service, which collects the outgoing publications for each project. This replaces `ProjectModuleRegistry`.
+   This service is basically a map from project path to something that can produce the component meta data for that project.
+    - When a project is configured, register an implicit component with a null `publishedAs`.
+    - When an `Upload` task is configured with an ivy repository, register a component with `publishedAs` = `(project.group, project.name, project.version)`
+    - When an `Upload` task is configured with a `MavenDeployer`, register a component with `publishedAs` = `(deployer.pom.groupId, deployer.pom.artifactId, deployer.pom.version)`
+    - When an `IvyPublication` is defined, register a component with `publishedAs` taken from the publication.
+    - When an `MavenPublication` is defined, register a component with `publishedAs` taken from the publication.
+3. Change `ProjectDependencyResolver` to use the identifier and metadata from this service.
+4. Change the dependency tasks so that they handle a component with null `publishedAs`.
+5. Change the `ivy-publish` and `maven-publish` plugins to use the `ProjectPublicationRegistry` service (TBD)
+
+### Test cases
+
+- Update the existing reporting task so that:
+    - An external module is rendered as the (group, module, version).
+    - A project that is not published is rendered as (project)
+    - A project that is published rendered as (project) and (group, module, version)
+- Update existing tests so that, for resolution result:
+    - For the root component and any dependency components:
+        - A project that is not published has null `publishedAs`.
+        - A project that is published using `uploadArchives` + Ivy has non-null `publishedAs`
+        - A project that is published using `uploadArchives` + Maven deployer has non-null `publishedAs`
+        - A project that is published using a Maven or Ivy publication has non-null `publishedAs`
+
+### Open issues
+
+* Need to expose component source.
+* Need to expose different kinds of component selectors.
+* Need to sync up with `ComponentMetadataDetails`.
+* Add Ivy and Maven specific ids and sources.
+* Rename and garbage internal types.
 
 ## Story: GRADLE-2713/GRADLE2678 Dependency management uses local component identity to when resolving project dependencies
 
