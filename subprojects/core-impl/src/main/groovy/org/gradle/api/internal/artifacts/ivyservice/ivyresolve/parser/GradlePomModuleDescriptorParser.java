@@ -77,7 +77,7 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
             if (parentDescr == null) {
                 throw new IOException("Impossible to load parent for " + resource.getName() + ". Parent=" + parentModRevID);
             }
-            Map parentPomProps = GradlePomModuleDescriptorBuilder.extractPomProperties(parentDescr.getPomProperties());
+            Map parentPomProps = mdBuilder.extractPomProperties();
             for (Object o : parentPomProps.entrySet()) {
                 Map.Entry prop = (Map.Entry) o;
                 pomReader.setProperty((String) prop.getKey(), (String) prop.getValue());

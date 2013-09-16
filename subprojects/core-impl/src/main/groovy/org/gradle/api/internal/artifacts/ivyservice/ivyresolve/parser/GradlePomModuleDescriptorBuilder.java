@@ -92,7 +92,7 @@ public class GradlePomModuleDescriptorBuilder {
     private static final String PROPERTIES = "m:properties";
     private static final String EXTRA_INFO_DELIMITER = "__";
     private static final Collection<String> JAR_PACKAGINGS = Arrays.asList("ejb", "bundle", "maven-plugin", "eclipse-plugin");
-    private static final Map<String, String> EXTRA_INFO = new HashMap<String, String>();
+    private final Map<String, String> extraInfo = new HashMap<String, String>();
 
     static interface ConfMapper {
         public void addMappingConfs(DefaultDependencyDescriptor dd, boolean isOptional);
@@ -350,7 +350,7 @@ public class GradlePomModuleDescriptorBuilder {
     public void addPlugin(PomDependencyMgt plugin) {
         String pluginValue = plugin.getGroupId() + EXTRA_INFO_DELIMITER + plugin.getArtifactId()
                 + EXTRA_INFO_DELIMITER + plugin.getVersion();
-        String pluginExtraInfo = EXTRA_INFO.get("m:maven.plugins");
+        String pluginExtraInfo = extraInfo.get("m:maven.plugins");
         if (pluginExtraInfo == null) {
             pluginExtraInfo = pluginValue;
         } else {
@@ -359,7 +359,7 @@ public class GradlePomModuleDescriptorBuilder {
         addExtraInfo("m:maven.plugins", pluginExtraInfo);
     }
 
-    public static List<PomDependencyMgt> getPlugins(ModuleDescriptor md) {
+    public List<PomDependencyMgt> getPlugins(ModuleDescriptor md) {
         List<PomDependencyMgt> result = new ArrayList<PomDependencyMgt>();
         String plugins = (String) md.getExtraInfo().get("m:maven.plugins");
         if (plugins == null) {
@@ -408,43 +408,43 @@ public class GradlePomModuleDescriptorBuilder {
 
     private String getDefaultVersion(PomReader.PomDependencyData dep) {
         String key = getDependencyMgtExtraInfoKeyForVersion(dep.getGroupId(), dep.getArtifactId());
-        return EXTRA_INFO.get(key);
+        return extraInfo.get(key);
     }
 
     private String getDefaultScope(PomReader.PomDependencyData dep) {
         String key = getDependencyMgtExtraInfoKeyForScope(dep.getGroupId(), dep.getArtifactId());
-        String result = EXTRA_INFO.get(key);
+        String result = extraInfo.get(key);
         if ((result == null) || !MAVEN2_CONF_MAPPING.containsKey(result)) {
             result = "compile";
         }
         return result;
     }
 
-    private static String getDependencyMgtExtraInfoKeyForVersion(
+    private String getDependencyMgtExtraInfoKeyForVersion(
             String groupId, String artifaceId) {
         return DEPENDENCY_MANAGEMENT + EXTRA_INFO_DELIMITER + groupId
                 + EXTRA_INFO_DELIMITER + artifaceId + EXTRA_INFO_DELIMITER + "version";
     }
 
-    private static String getDependencyMgtExtraInfoKeyForScope(String groupId, String artifaceId) {
+    private String getDependencyMgtExtraInfoKeyForScope(String groupId, String artifaceId) {
         return DEPENDENCY_MANAGEMENT + EXTRA_INFO_DELIMITER + groupId
                 + EXTRA_INFO_DELIMITER + artifaceId + EXTRA_INFO_DELIMITER + "scope";
     }
 
-    private static String getPropertyExtraInfoKey(String propertyName) {
+    private String getPropertyExtraInfoKey(String propertyName) {
         return PROPERTIES + EXTRA_INFO_DELIMITER + propertyName;
     }
 
-    private static String getDependencyMgtExtraInfoPrefixForExclusion(
+    private String getDependencyMgtExtraInfoPrefixForExclusion(
             String groupId, String artifaceId) {
         return DEPENDENCY_MANAGEMENT + EXTRA_INFO_DELIMITER + groupId
                 + EXTRA_INFO_DELIMITER + artifaceId + EXTRA_INFO_DELIMITER + "exclusion_";
     }
 
-    private static List<ModuleId> getDependencyMgtExclusions(String groupId, String artifactId) {
+    private List<ModuleId> getDependencyMgtExclusions(String groupId, String artifactId) {
         String exclusionPrefix = getDependencyMgtExtraInfoPrefixForExclusion(groupId, artifactId);
         List<ModuleId> exclusionIds = new LinkedList<ModuleId>();
-        Map<String, String> extras = EXTRA_INFO;
+        Map<String, String> extras = extraInfo;
         for (Entry<String, String> entry : extras.entrySet()) {
             String key = entry.getKey();
             if (key.startsWith(exclusionPrefix)) {
@@ -462,7 +462,7 @@ public class GradlePomModuleDescriptorBuilder {
         return exclusionIds;
     }
 
-    public static List getDependencyManagements(ModuleDescriptor md) {
+    public List getDependencyManagements(ModuleDescriptor md) {
         List result = new ArrayList();
 
         for (Iterator iterator = md.getExtraInfo().entrySet().iterator(); iterator.hasNext();) {
@@ -503,12 +503,12 @@ public class GradlePomModuleDescriptorBuilder {
     }
 
     private void addExtraInfo(String key, String value) {
-        if (!EXTRA_INFO.containsKey(key)) {
-            EXTRA_INFO.put(key, value);
+        if (!extraInfo.containsKey(key)) {
+            extraInfo.put(key, value);
         }
     }
 
-    public static Map extractPomProperties(Map extraInfo) {
+    public Map extractPomProperties() {
         Map r = new HashMap();
         for (Iterator it = extraInfo.entrySet().iterator(); it.hasNext();) {
             Entry extraInfoEntry = (Entry) it.next();
