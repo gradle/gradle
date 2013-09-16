@@ -64,6 +64,27 @@ executables {
     </tr>
 </table>
 
+### FindBugs plugin provides new reporting capabilities
+
+* If the plugin is configured to produce an XML report, the output can be augmented with human-readable messages. The follow example demonstrates its use:
+
+<pre>
+findbugsMain.reports {
+    xml.enabled true
+    xml.withMessages true
+}
+</pre>
+
+* Additionally, the plugin allows for generating text and Emacs report formats.
+
+<pre>
+findbugsMain.reports {
+    xml.enabled true
+    text.enabled true
+    emacs.enabled true
+}
+</pre>
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
