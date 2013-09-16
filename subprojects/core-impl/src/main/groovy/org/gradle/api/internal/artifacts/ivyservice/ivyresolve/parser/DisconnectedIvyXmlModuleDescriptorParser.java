@@ -20,6 +20,7 @@ import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
 import org.xml.sax.SAXException;
@@ -29,21 +30,26 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.ParseException;
 import java.util.Date;
+import java.util.Map;
 
 public class DisconnectedIvyXmlModuleDescriptorParser extends IvyXmlModuleDescriptorParser {
+    public DisconnectedIvyXmlModuleDescriptorParser(ResolverStrategy resolverStrategy) {
+        super(resolverStrategy);
+    }
+
     @Override
-    protected Parser createParser(DescriptorParseContext parseContext, LocallyAvailableExternalResource resource) throws MalformedURLException {
-        return new DisconnectedParser(parseContext, resource, resource.getLocalResource().getFile().toURI().toURL());
+    protected Parser createParser(DescriptorParseContext parseContext, LocallyAvailableExternalResource resource, Map<String, String> properties, ResolverStrategy resolverStrategy) throws MalformedURLException {
+        return new DisconnectedParser(parseContext, resource, resource.getLocalResource().getFile().toURI().toURL(), properties, resolverStrategy);
     }
 
     private static class DisconnectedParser extends Parser {
-        public DisconnectedParser(DescriptorParseContext parseContext, ExternalResource res, URL descriptorURL) {
-            super(parseContext, res, descriptorURL);
+        public DisconnectedParser(DescriptorParseContext parseContext, ExternalResource res, URL descriptorURL, Map<String, String> properties, ResolverStrategy resolverStrategy) {
+            super(parseContext, res, descriptorURL, properties, resolverStrategy);
         }
 
         @Override
         public Parser newParser(ExternalResource res, URL descriptorURL) {
-            Parser parser = new DisconnectedParser(getParseContext(), res, descriptorURL);
+            Parser parser = new DisconnectedParser(getParseContext(), res, descriptorURL, properties, resolverStrategy);
             parser.setValidate(isValidate());
             return parser;
         }

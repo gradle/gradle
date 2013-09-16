@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts;
 
-import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.gradle.StartParameter;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
@@ -37,7 +36,6 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.StartParameterResolutionOverride;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache.InMemoryDependencyMetadataCache;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestVersionStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetaDataCache;
@@ -45,7 +43,7 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.PublishModul
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectModuleRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.DefaultDependencyResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.ResolutionResultsStoreFactory;
-import org.gradle.api.internal.artifacts.mvnsettings.*;
+import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.repositories.DefaultBaseRepositoryFactory;
 import org.gradle.api.internal.artifacts.repositories.cachemanager.DownloadingRepositoryArtifactCache;
 import org.gradle.api.internal.artifacts.repositories.cachemanager.LocalFileRepositoryArtifactCache;
@@ -57,12 +55,10 @@ import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransp
 import org.gradle.api.internal.externalresource.cached.ByUrlCachedExternalResourceIndex;
 import org.gradle.api.internal.externalresource.ivy.ArtifactAtRepositoryCachedArtifactIndex;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
-import org.gradle.api.internal.externalresource.local.ivy.LocallyAvailableResourceFinderFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
 import org.gradle.api.internal.filestore.ivy.ArtifactRevisionIdFileStore;
 import org.gradle.api.internal.notations.api.NotationParser;
-import org.gradle.internal.SystemProperties;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
@@ -78,21 +74,6 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
 
     public DependencyResolutionServices create(FileResolver resolver, DependencyMetaDataProvider dependencyMetaDataProvider, ProjectFinder projectFinder, DomainObjectContext domainObjectContext) {
         return new DefaultDependencyResolutionServices(this, resolver, dependencyMetaDataProvider, projectFinder, domainObjectContext);
-    }
-
-    protected MavenSettingsProvider createMavenSettingsProvider() {
-        return new DefaultMavenSettingsProvider(new DefaultMavenFileLocations());
-    }
-
-    protected LocalMavenRepositoryLocator createLocalMavenRepositoryLocator() {
-        return new DefaultLocalMavenRepositoryLocator(get(MavenSettingsProvider.class), SystemProperties.asMap(), System.getenv());
-    }
-
-    protected LocallyAvailableResourceFinder<ArtifactRevisionId> createArtifactRevisionIdLocallyAvailableResourceFinder() {
-        LocallyAvailableResourceFinderFactory finderFactory = new LocallyAvailableResourceFinderFactory(
-                get(ArtifactCacheMetaData.class), get(LocalMavenRepositoryLocator.class), get(ArtifactRevisionIdFileStore.class)
-        );
-        return finderFactory.create();
     }
 
     protected LegacyDependencyResolverRepositoryFactory createCustomerResolverRepositoryFactory() {
@@ -167,14 +148,6 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
         return new ResolutionResultsStoreFactory(new TmpDirTemporaryFileProvider());
     }
 
-    protected VersionMatcher createVersionMatcher() {
-        return ResolverStrategy.INSTANCE.getVersionMatcher();
-    }
-
-    protected LatestStrategy createLatestStrategy() {
-        return new LatestVersionStrategy(get(VersionMatcher.class));
-    }
-
     private class DefaultDependencyResolutionServices implements DependencyResolutionServices {
         private final ServiceRegistry parent;
         private final FileResolver fileResolver;
@@ -216,7 +189,8 @@ public class DefaultDependencyManagementServices extends DefaultServiceRegistry 
                         getComponentMetadataHandler(),
                         get(LegacyDependencyResolverRepositoryFactory.class),
                         get(VersionMatcher.class),
-                        get(LatestStrategy.class)
+                        get(LatestStrategy.class),
+                        get(ResolverStrategy.class)
                 );
             }
 

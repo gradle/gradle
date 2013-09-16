@@ -23,16 +23,20 @@ import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvid
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache.InMemoryDependencyMetadataCache
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetaDataCache
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.PublishModuleDescriptorConverter
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy
+import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator
 import org.gradle.api.internal.externalresource.cached.ByUrlCachedExternalResourceIndex
 import org.gradle.api.internal.externalresource.ivy.ArtifactAtRepositoryCachedArtifactIndex
+import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.filestore.ivy.ArtifactRevisionIdFileStore
 import org.gradle.internal.reflect.Instantiator
@@ -61,9 +65,6 @@ class DefaultDependencyManagementServicesTest extends Specification {
         _ * parent.get(StartParameter) >> startParameter
         _ * parent.get(ListenerManager) >> listenerManager
         _ * parent.get(IvyContextManager) >> Stub(IvyContextManager)
-        _ * parent.get(ArtifactCacheMetaData) >> Stub(ArtifactCacheMetaData) {
-            getCacheDir() >> new File("cache")
-        }
         _ * parent.get(CacheLockingManager) >> Stub(CacheLockingManager)
         _ * parent.get(ArtifactRevisionIdFileStore) >> Stub(ArtifactRevisionIdFileStore)
         _ * parent.get(ModuleResolutionCache) >> Stub(ModuleResolutionCache)
@@ -74,6 +75,11 @@ class DefaultDependencyManagementServicesTest extends Specification {
         _ * parent.get(ByUrlCachedExternalResourceIndex) >> Stub(ByUrlCachedExternalResourceIndex)
         _ * parent.get(PublishModuleDescriptorConverter) >> Stub(PublishModuleDescriptorConverter)
         _ * parent.get(DependencyFactory) >> Stub(DependencyFactory)
+        _ * parent.get(LocalMavenRepositoryLocator) >> Stub(LocalMavenRepositoryLocator)
+        _ * parent.get(LocallyAvailableResourceFinder) >> Stub(LocallyAvailableResourceFinder)
+        _ * parent.get(VersionMatcher) >> Stub(VersionMatcher)
+        _ * parent.get(LatestStrategy) >> Stub(LatestStrategy)
+        _ * parent.get(ResolverStrategy) >> Stub(ResolverStrategy)
     }
 
     def "can create dependency resolution services"() {

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts;
 
+import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.gradle.StartParameter;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.ClassPathRegistry;
@@ -27,10 +28,17 @@ import org.gradle.api.internal.artifacts.ivyservice.DefaultCacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.SingleFileBackedModuleResolutionCache;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache.InMemoryDependencyMetadataCache;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestVersionStrategy;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.DefaultModuleMetaDataCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetaDataCache;
+import org.gradle.api.internal.artifacts.mvnsettings.*;
 import org.gradle.api.internal.externalresource.cached.ByUrlCachedExternalResourceIndex;
 import org.gradle.api.internal.externalresource.ivy.ArtifactAtRepositoryCachedArtifactIndex;
+import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
+import org.gradle.api.internal.externalresource.local.ivy.LocallyAvailableResourceFinderFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
 import org.gradle.api.internal.filestore.PathKeyFileStore;
@@ -40,6 +48,7 @@ import org.gradle.api.internal.notations.*;
 import org.gradle.api.internal.notations.api.NotationParser;
 import org.gradle.cache.CacheRepository;
 import org.gradle.initialization.ProjectAccessListener;
+import org.gradle.internal.SystemProperties;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.util.BuildCommencedTimeProvider;
@@ -101,11 +110,12 @@ class DependencyManagementBuildScopeServices {
         );
     }
 
-    ModuleMetaDataCache createModuleDescriptorCache(ArtifactCacheMetaData artifactCacheMetaData, BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
+    ModuleMetaDataCache createModuleDescriptorCache(ArtifactCacheMetaData artifactCacheMetaData, BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager, ResolverStrategy resolverStrategy) {
         return new DefaultModuleMetaDataCache(
                 artifactCacheMetaData,
                 timeProvider,
-                cacheLockingManager
+                cacheLockingManager,
+                resolverStrategy
         );
     }
 
@@ -131,6 +141,34 @@ class DependencyManagementBuildScopeServices {
 
     ArtifactRevisionIdFileStore createArtifactRevisionIdFileStore(PathKeyFileStore pathKeyFileStore) {
         return new ArtifactRevisionIdFileStore(pathKeyFileStore, new TmpDirTemporaryFileProvider());
+    }
+
+    MavenSettingsProvider createMavenSettingsProvider() {
+        return new DefaultMavenSettingsProvider(new DefaultMavenFileLocations());
+    }
+
+    LocalMavenRepositoryLocator createLocalMavenRepositoryLocator(MavenSettingsProvider mavenSettingsProvider) {
+        return new DefaultLocalMavenRepositoryLocator(mavenSettingsProvider, SystemProperties.asMap(), System.getenv());
+    }
+
+    LocallyAvailableResourceFinder<ArtifactRevisionId> createArtifactRevisionIdLocallyAvailableResourceFinder(ArtifactCacheMetaData artifactCacheMetaData, LocalMavenRepositoryLocator localMavenRepositoryLocator, ArtifactRevisionIdFileStore fileStore) {
+        LocallyAvailableResourceFinderFactory finderFactory = new LocallyAvailableResourceFinderFactory(
+                artifactCacheMetaData,
+                localMavenRepositoryLocator,
+                fileStore);
+        return finderFactory.create();
+    }
+
+    ResolverStrategy createResolverStrategy() {
+        return new ResolverStrategy();
+    }
+
+    VersionMatcher createVersionMatcher(ResolverStrategy resolverStrategy) {
+        return resolverStrategy.getVersionMatcher();
+    }
+
+    LatestStrategy createLatestStrategy(VersionMatcher versionMatcher) {
+        return new LatestVersionStrategy(versionMatcher);
     }
 
 }

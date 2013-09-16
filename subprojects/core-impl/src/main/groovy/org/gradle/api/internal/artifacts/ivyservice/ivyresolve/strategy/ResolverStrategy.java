@@ -22,12 +22,10 @@ import org.apache.ivy.plugins.matcher.*;
 import java.util.Map;
 
 public class ResolverStrategy {
-    public static final ResolverStrategy INSTANCE = new ResolverStrategy();
-
     private final VersionMatcher versionMatcher;
     private final Map<String, PatternMatcher> matchers = Maps.newHashMap();
 
-    private ResolverStrategy() {
+    public ResolverStrategy() {
         ChainVersionMatcher chain = new ChainVersionMatcher();
         chain.add(new VersionRangeMatcher(new ExactVersionMatcher()));
         chain.add(new SubVersionMatcher(new ExactVersionMatcher()));

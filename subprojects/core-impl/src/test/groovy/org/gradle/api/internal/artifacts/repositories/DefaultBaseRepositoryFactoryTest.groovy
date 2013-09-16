@@ -22,8 +22,8 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.artifacts.repositories.ArtifactRepository
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator
 import org.gradle.api.internal.artifacts.repositories.legacy.LegacyDependencyResolverRepositoryFactory
@@ -36,24 +36,21 @@ import spock.lang.Specification
 
 class DefaultBaseRepositoryFactoryTest extends Specification {
     static final URI RESOLVER_URL = new URI('http://a.b.c/')
-    static final String TEST_REPO = 'http://www.gradle.org'
-    static final URI TEST_REPO_URL = new URI('http://www.gradle.org/')
-    static final URI TEST_REPO2_URL = new URI('http://www.gradleware.com/')
 
     final LocalMavenRepositoryLocator localMavenRepoLocator = Mock()
     final FileResolver fileResolver = Mock()
     final RepositoryTransportFactory transportFactory = Mock()
     final LocallyAvailableResourceFinder locallyAvailableResourceFinder = Mock()
     final ProgressLoggerFactory progressLoggerFactory = Mock()
-    final MetaDataParser metaDataParser = Mock()
     final ModuleMetadataProcessor metadataProcessor = Mock()
     final LegacyDependencyResolverRepositoryFactory legacyDependencyResolverRepositoryFactory = Mock()
     final VersionMatcher versionMatcher = Mock()
     final LatestStrategy latestStrategy = Mock()
+    final ResolverStrategy resolverStrategy = Mock()
 
     final DefaultBaseRepositoryFactory factory = new DefaultBaseRepositoryFactory(
             localMavenRepoLocator, fileResolver, new DirectInstantiator(), transportFactory, locallyAvailableResourceFinder
-            , metadataProcessor, legacyDependencyResolverRepositoryFactory, versionMatcher, latestStrategy
+            , metadataProcessor, legacyDependencyResolverRepositoryFactory, versionMatcher, latestStrategy, resolverStrategy
     )
 
     def testCreateResolverWithStringDescription() {

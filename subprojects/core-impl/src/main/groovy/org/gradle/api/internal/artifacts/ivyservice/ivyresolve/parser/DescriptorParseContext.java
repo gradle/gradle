@@ -17,17 +17,9 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
 
 public interface DescriptorParseContext {
-
-    String substitute(String value);
-
-    PatternMatcher getMatcher(String matcherName);
-
-    String getDefaultStatus();
-
     boolean artifactExists(Artifact artifact);
 
     ModuleRevisionId getCurrentRevisionId();

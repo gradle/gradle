@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
@@ -37,8 +38,8 @@ public class MavenLocalResolver extends MavenResolver {
     public MavenLocalResolver(String name, URI rootUri, RepositoryTransport transport,
                               LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder,
                               ModuleMetadataProcessor metadataProcessor, VersionMatcher versionMatcher,
-                              LatestStrategy latestStrategy) {
-        super(name, rootUri, transport, locallyAvailableResourceFinder, metadataProcessor, versionMatcher, latestStrategy);
+                              LatestStrategy latestStrategy, ResolverStrategy resolverStrategy) {
+        super(name, rootUri, transport, locallyAvailableResourceFinder, metadataProcessor, versionMatcher, latestStrategy, resolverStrategy);
     }
 
     @Override

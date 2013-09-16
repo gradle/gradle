@@ -26,6 +26,7 @@ import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleVersionRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
 import org.gradle.api.internal.artifacts.repositories.layout.*;
 import org.gradle.api.internal.artifacts.repositories.resolver.IvyResolver;
@@ -54,14 +55,17 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     private final ModuleMetadataProcessor metadataProcessor;
     private final VersionMatcher versionMatcher;
     private final LatestStrategy latestStrategy;
+    private final ResolverStrategy resolverStrategy;
 
     public DefaultIvyArtifactRepository(FileResolver fileResolver, PasswordCredentials credentials, RepositoryTransportFactory transportFactory,
                                         LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder, Instantiator instantiator,
-                                        ModuleMetadataProcessor metadataProcessor, VersionMatcher versionMatcher, LatestStrategy latestStrategy) {
+                                        ModuleMetadataProcessor metadataProcessor, VersionMatcher versionMatcher, LatestStrategy latestStrategy,
+                                        ResolverStrategy resolverStrategy) {
         super(credentials);
         this.fileResolver = fileResolver;
         this.transportFactory = transportFactory;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
+        this.resolverStrategy = resolverStrategy;
         this.additionalPatternsLayout = new AdditionalPatternsRepositoryLayout(fileResolver);
         this.layout = new GradleRepositoryLayout();
         this.metaDataProvider = new MetaDataProvider();
@@ -120,7 +124,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
                 getName(), httpTransport,
                 locallyAvailableResourceFinder,
                 metadataProcessor, versionMatcher,
-                latestStrategy, metaDataProvider.dynamicResolve);
+                latestStrategy, metaDataProvider.dynamicResolve, resolverStrategy);
     }
 
     public URI getUrl() {

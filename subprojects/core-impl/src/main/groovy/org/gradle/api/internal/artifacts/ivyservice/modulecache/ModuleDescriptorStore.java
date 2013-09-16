@@ -65,7 +65,7 @@ public class ModuleDescriptorStore {
     }
 
     private ModuleDescriptor parseModuleDescriptorFile(File moduleDescriptorFile) {
-        DescriptorParseContext parserSettings = new CachedModuleDescriptorParseContext("integration");
+        DescriptorParseContext parserSettings = new CachedModuleDescriptorParseContext();
         return descriptorParser.parseMetaData(parserSettings, moduleDescriptorFile, false).getDescriptor();
     }
 

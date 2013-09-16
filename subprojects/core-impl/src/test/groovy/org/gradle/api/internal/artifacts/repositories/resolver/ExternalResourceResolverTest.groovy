@@ -24,6 +24,7 @@ import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResu
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder
 import org.gradle.api.internal.externalresource.transport.ExternalResourceRepository
@@ -39,6 +40,7 @@ class ExternalResourceResolverTest extends Specification {
     ModuleMetadataProcessor metadataProcessor = Mock()
     VersionMatcher versionMatcher = Mock()
     LatestStrategy latestStrategy = Mock()
+    final ResolverStrategy resolverStrategy = Mock()
     ArtifactIdentifier artifact = new DefaultArtifactIdentifier(DefaultModuleVersionIdentifier.newId("group", "module", "version"), "name", "type", "ext", "classifier")
     MavenResolver.TimestampedModuleSource moduleSource = Mock()
     File downloadedFile = Mock(File)
@@ -46,7 +48,7 @@ class ExternalResourceResolverTest extends Specification {
 
     def setup() {
         //We use a spy here to avoid dealing with all the overhead ivys basicresolver brings in here.
-        resolver = Spy(ExternalResourceResolver, constructorArgs: [name, repository, versionLister, locallyAvailableResourceFinder, parser, metadataProcessor, versionMatcher, latestStrategy])
+        resolver = Spy(ExternalResourceResolver, constructorArgs: [name, repository, versionLister, locallyAvailableResourceFinder, parser, metadataProcessor, resolverStrategy, versionMatcher, latestStrategy])
     }
 
     def reportsNotFoundArtifactResolveResult() {

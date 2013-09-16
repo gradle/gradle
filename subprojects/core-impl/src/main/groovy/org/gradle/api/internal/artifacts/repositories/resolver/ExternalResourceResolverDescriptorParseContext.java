@@ -33,7 +33,6 @@ public class ExternalResourceResolverDescriptorParseContext extends AbstractDesc
     private final ModuleRevisionId moduleRevisionId;
 
     public ExternalResourceResolverDescriptorParseContext(DependencyToModuleVersionResolver mainResolver, ExternalResourceResolver moduleResolver, ModuleRevisionId moduleRevisionId) {
-        super("integration");
         this.mainResolver = mainResolver;
         this.moduleResolver = moduleResolver;
         this.moduleRevisionId = moduleRevisionId;

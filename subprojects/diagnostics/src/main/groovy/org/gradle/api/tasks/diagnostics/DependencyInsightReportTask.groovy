@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.diagnostics;
-
+package org.gradle.api.tasks.diagnostics
 
 import org.gradle.api.Action
 import org.gradle.api.DefaultTask
@@ -24,26 +23,22 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.result.DependencyResult
 import org.gradle.api.artifacts.result.ResolutionResult
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher
 import org.gradle.api.internal.tasks.CommandLineOption
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskAction
-import org.gradle.internal.graph.GraphRenderer
 import org.gradle.api.tasks.diagnostics.internal.dsl.DependencyResultSpecNotationParser
 import org.gradle.api.tasks.diagnostics.internal.graph.DependencyGraphRenderer
 import org.gradle.api.tasks.diagnostics.internal.graph.NodeRenderer
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency
 import org.gradle.api.tasks.diagnostics.internal.insight.DependencyInsightReporter
+import org.gradle.internal.graph.GraphRenderer
 import org.gradle.logging.StyledTextOutput
 import org.gradle.logging.StyledTextOutputFactory
 
 import javax.inject.Inject
 
-import static org.gradle.logging.StyledTextOutput.Style.Info
-import static org.gradle.logging.StyledTextOutput.Style.Failure
-import static org.gradle.logging.StyledTextOutput.Style.Identifier
-import static org.gradle.logging.StyledTextOutput.Style.Description
+import static org.gradle.logging.StyledTextOutput.Style.*
 
 /**
  * Generates a report that attempts to answer questions like:
@@ -90,11 +85,10 @@ public class DependencyInsightReportTask extends DefaultTask {
     private final VersionMatcher versionMatcher;
 
     @Inject
-    DependencyInsightReportTask(StyledTextOutputFactory outputFactory) {
+    DependencyInsightReportTask(StyledTextOutputFactory outputFactory, VersionMatcher versionMatcher) {
         output = outputFactory.create(getClass());
-        renderer = new GraphRenderer(output);
-        // not sure how to get access to VersionMatcher service (defined in DefaultDependencyManagementServices) from here
-        this.versionMatcher = ResolverStrategy.INSTANCE.getVersionMatcher();
+        renderer = new GraphRenderer(output)
+        this.versionMatcher = versionMatcher
     }
 
     /**

@@ -15,15 +15,15 @@
  */
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
+
 import org.apache.ivy.core.module.descriptor.*
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher
 import org.apache.ivy.plugins.matcher.GlobPatternMatcher
 import org.apache.ivy.plugins.matcher.PatternMatcher
 import org.apache.ivy.plugins.matcher.RegexpPatternMatcher
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy
 import org.gradle.api.internal.externalresource.DefaultLocallyAvailableExternalResource
-import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource
 import org.gradle.internal.resource.local.DefaultLocallyAvailableResource
-import org.gradle.internal.resource.local.LocallyAvailableResource
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Resources
 import org.junit.Rule
@@ -37,14 +37,14 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
     public final Resources resources = new Resources()
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
-    IvyXmlModuleDescriptorParser parser = new IvyXmlModuleDescriptorParser()
+    ResolverStrategy resolverStrategy = Stub()
+    IvyXmlModuleDescriptorParser parser = new IvyXmlModuleDescriptorParser(resolverStrategy)
     DescriptorParseContext parseContext = Mock()
 
     def setup() {
-        parseContext.substitute(_ as String) >> {String value -> value}
-        parseContext.getMatcher("exact") >> ExactPatternMatcher.INSTANCE
-        parseContext.getMatcher("glob") >> GlobPatternMatcher.INSTANCE
-        parseContext.getMatcher("regexp") >> RegexpPatternMatcher.INSTANCE
+        resolverStrategy.getPatternMatcher("exact") >> ExactPatternMatcher.INSTANCE
+        resolverStrategy.getPatternMatcher("glob") >> GlobPatternMatcher.INSTANCE
+        resolverStrategy.getPatternMatcher("regexp") >> RegexpPatternMatcher.INSTANCE
     }
 
     def "parses Ivy descriptor with empty dependencies section"() throws Exception {

@@ -25,10 +25,6 @@ import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource
  * other resources from a DependencyResolver.
  */
 public class DisconnectedDescriptorParseContext extends AbstractDescriptorParseContext {
-    public DisconnectedDescriptorParseContext() {
-        super("integration");
-    }
-
     public boolean artifactExists(Artifact artifact) {
         return false;
     }

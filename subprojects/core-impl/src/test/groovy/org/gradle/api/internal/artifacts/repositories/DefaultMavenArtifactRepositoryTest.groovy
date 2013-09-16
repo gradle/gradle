@@ -19,6 +19,7 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenResolver
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
@@ -26,7 +27,6 @@ import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransp
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder
 import org.gradle.api.internal.externalresource.transport.ExternalResourceRepository
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.logging.ProgressLoggerFactory
 import spock.lang.Specification
 
 class DefaultMavenArtifactRepositoryTest extends Specification {
@@ -36,12 +36,12 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
     final LocallyAvailableResourceFinder locallyAvailableResourceFinder = Mock()
     final ExternalResourceRepository resourceRepository = Mock()
     final ModuleMetadataProcessor metadataProcessor = Mock()
-    final VersionMatcher versionMatcher
-    final LatestStrategy latestStrategy
+    final VersionMatcher versionMatcher = Stub()
+    final LatestStrategy latestStrategy = Stub()
+    final ResolverStrategy resolverStrategy = Stub()
 
     final DefaultMavenArtifactRepository repository = new DefaultMavenArtifactRepository(
-            resolver, credentials, transportFactory, locallyAvailableResourceFinder, metadataProcessor, versionMatcher, latestStrategy)
-    final ProgressLoggerFactory progressLoggerFactory = Mock();
+            resolver, credentials, transportFactory, locallyAvailableResourceFinder, metadataProcessor, versionMatcher, latestStrategy, resolverStrategy)
 
     def "creates local repository"() {
         given:

@@ -26,6 +26,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyXmlModuleDescriptorParser;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.api.internal.filestore.PathKeyFileStore;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.internal.resource.local.LocallyAvailableResource;
@@ -50,12 +51,12 @@ public class DefaultModuleMetaDataCache implements ModuleMetaDataCache {
     private final ModuleDescriptorStore moduleDescriptorStore;
     private PersistentIndexedCache<RevisionKey, ModuleDescriptorCacheEntry> cache;
 
-    public DefaultModuleMetaDataCache(ArtifactCacheMetaData cacheMetadata, BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
+    public DefaultModuleMetaDataCache(ArtifactCacheMetaData cacheMetadata, BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager, ResolverStrategy resolverStrategy) {
         this.timeProvider = timeProvider;
         this.cacheLockingManager = cacheLockingManager;
         this.cacheMetadata = cacheMetadata;
 
-        moduleDescriptorStore = new ModuleDescriptorStore(new PathKeyFileStore(cacheMetadata.getCacheDir()), new IvyXmlModuleDescriptorWriter(), new IvyXmlModuleDescriptorParser());
+        moduleDescriptorStore = new ModuleDescriptorStore(new PathKeyFileStore(cacheMetadata.getCacheDir()), new IvyXmlModuleDescriptorWriter(), new IvyXmlModuleDescriptorParser(resolverStrategy));
     }
 
     private PersistentIndexedCache<RevisionKey, ModuleDescriptorCacheEntry> getCache() {

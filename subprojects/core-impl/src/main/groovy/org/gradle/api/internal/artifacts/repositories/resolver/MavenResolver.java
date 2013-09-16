@@ -27,6 +27,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVe
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomModuleDescriptorParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
@@ -55,10 +56,10 @@ public class MavenResolver extends ExternalResourceResolver implements PatternBa
     public MavenResolver(String name, URI rootUri, RepositoryTransport transport,
                          LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder,
                          ModuleMetadataProcessor metadataProcessor, VersionMatcher versionMatcher,
-                         LatestStrategy latestStrategy) {
+                         LatestStrategy latestStrategy, ResolverStrategy resolverStrategy) {
         super(name, transport.getRepository(),
                 new ChainedVersionLister(new MavenVersionLister(transport.getRepository()), new ResourceVersionLister(transport.getRepository())),
-                locallyAvailableResourceFinder, new GradlePomModuleDescriptorParser(), metadataProcessor, versionMatcher, latestStrategy);
+                locallyAvailableResourceFinder, new GradlePomModuleDescriptorParser(), metadataProcessor, resolverStrategy, versionMatcher, latestStrategy);
         transport.configureCacheManager(this);
 
         this.mavenMetaDataLoader = new MavenMetadataLoader(transport.getRepository());

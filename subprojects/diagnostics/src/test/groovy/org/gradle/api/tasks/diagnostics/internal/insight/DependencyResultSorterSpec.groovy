@@ -26,7 +26,7 @@ import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.n
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 
 class DependencyResultSorterSpec extends Specification {
-    def matcher = ResolverStrategy.INSTANCE.versionMatcher
+    def matcher = new ResolverStrategy().versionMatcher
 
     def "sorts by requested version"() {
         def d1 = newDependency(newSelector("org.aha", "aha", "1.0"), newId("org.gradle", "zzzz", "3.0"))

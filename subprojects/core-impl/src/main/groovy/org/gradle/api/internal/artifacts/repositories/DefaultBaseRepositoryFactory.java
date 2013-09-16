@@ -25,6 +25,7 @@ import org.gradle.api.internal.artifacts.BaseRepositoryFactory;
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.repositories.legacy.LegacyDependencyResolverRepositoryFactory;
@@ -47,6 +48,7 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
     private final LegacyDependencyResolverRepositoryFactory legacyDependencyResolverRepositoryFactory;
     private final VersionMatcher versionMatcher;
     private final LatestStrategy latestStrategy;
+    private final ResolverStrategy resolverStrategy;
 
     public DefaultBaseRepositoryFactory(LocalMavenRepositoryLocator localMavenRepositoryLocator,
                                         FileResolver fileResolver,
@@ -55,7 +57,9 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
                                         LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder,
                                         ModuleMetadataProcessor metadataProcessor,
                                         LegacyDependencyResolverRepositoryFactory legacyDependencyResolverRepositoryFactory,
-                                        VersionMatcher versionMatcher, LatestStrategy latestStrategy) {
+                                        VersionMatcher versionMatcher,
+                                        LatestStrategy latestStrategy,
+                                        ResolverStrategy resolverStrategy) {
         this.localMavenRepositoryLocator = localMavenRepositoryLocator;
         this.fileResolver = fileResolver;
         this.instantiator = instantiator;
@@ -65,6 +69,7 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
         this.legacyDependencyResolverRepositoryFactory = legacyDependencyResolverRepositoryFactory;
         this.versionMatcher = versionMatcher;
         this.latestStrategy = latestStrategy;
+        this.resolverStrategy = resolverStrategy;
     }
 
     public ArtifactRepository createRepository(Object userDescription) {
@@ -91,12 +96,12 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
 
     public FlatDirectoryArtifactRepository createFlatDirRepository() {
         return instantiator.newInstance(DefaultFlatDirArtifactRepository.class, fileResolver, transportFactory,
-                locallyAvailableResourceFinder, metadataProcessor, versionMatcher, latestStrategy);
+                locallyAvailableResourceFinder, metadataProcessor, resolverStrategy, versionMatcher, latestStrategy);
     }
 
     public MavenArtifactRepository createMavenLocalRepository() {
         MavenArtifactRepository mavenRepository = instantiator.newInstance(DefaultMavenLocalArtifactRepository.class, fileResolver, createPasswordCredentials(), transportFactory,
-                locallyAvailableResourceFinder, metadataProcessor, versionMatcher, latestStrategy);
+                locallyAvailableResourceFinder, metadataProcessor, versionMatcher, latestStrategy, resolverStrategy);
         final File localMavenRepository = localMavenRepositoryLocator.getLocalMavenRepository();
         mavenRepository.setUrl(localMavenRepository);
         return mavenRepository;
@@ -116,12 +121,12 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
 
     public IvyArtifactRepository createIvyRepository() {
         return instantiator.newInstance(DefaultIvyArtifactRepository.class, fileResolver, createPasswordCredentials(), transportFactory,
-                locallyAvailableResourceFinder, instantiator, metadataProcessor, versionMatcher, latestStrategy);
+                locallyAvailableResourceFinder, instantiator, metadataProcessor, versionMatcher, latestStrategy, resolverStrategy);
     }
 
     public MavenArtifactRepository createMavenRepository() {
         return instantiator.newInstance(DefaultMavenArtifactRepository.class, fileResolver, createPasswordCredentials(), transportFactory,
-                locallyAvailableResourceFinder, metadataProcessor, versionMatcher, latestStrategy
+                locallyAvailableResourceFinder, metadataProcessor, versionMatcher, latestStrategy, resolverStrategy
         );
     }
 

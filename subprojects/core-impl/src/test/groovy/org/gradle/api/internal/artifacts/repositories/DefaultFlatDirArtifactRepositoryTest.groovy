@@ -19,6 +19,7 @@ import org.apache.ivy.core.module.id.ArtifactRevisionId
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher
 import org.gradle.api.internal.artifacts.repositories.resolver.IvyResolver
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
@@ -38,9 +39,10 @@ class DefaultFlatDirArtifactRepositoryTest extends Specification {
     final ModuleMetadataProcessor metadataProcessor = Mock()
     final VersionMatcher versionMatcher = Mock()
     final LatestStrategy latestStrategy = Mock()
+    final ResolverStrategy resolverStrategy = Stub()
 
     final DefaultFlatDirArtifactRepository repository = new DefaultFlatDirArtifactRepository(
-            fileResolver, transportFactory, locallyAvailableResourceFinder, metadataProcessor, versionMatcher, latestStrategy)
+            fileResolver, transportFactory, locallyAvailableResourceFinder, metadataProcessor, resolverStrategy, versionMatcher, latestStrategy)
 
     def "creates a repository with multiple root directories"() {
         given:

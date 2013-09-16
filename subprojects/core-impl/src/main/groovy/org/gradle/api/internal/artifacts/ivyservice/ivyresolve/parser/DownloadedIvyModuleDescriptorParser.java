@@ -17,8 +17,13 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 
 public class DownloadedIvyModuleDescriptorParser extends IvyXmlModuleDescriptorParser {
+    public DownloadedIvyModuleDescriptorParser(ResolverStrategy resolverStrategy) {
+        super(resolverStrategy);
+    }
+
     @Override
     protected void postProcess(DefaultModuleDescriptor moduleDescriptor) {
         moduleDescriptor.setDefault(false);

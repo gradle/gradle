@@ -84,6 +84,7 @@ public class ExternalResourceResolver implements ModuleVersionPublisher, Configu
     private final ExternalResourceRepository repository;
     private final LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder;
     private final LatestStrategy latestStrategy;
+    private final ResolverStrategy resolverStrategy;
     private final VersionMatcher versionMatcher;
 
     protected VersionLister versionLister;
@@ -100,14 +101,18 @@ public class ExternalResourceResolver implements ModuleVersionPublisher, Configu
                                     ExternalResourceRepository repository,
                                     VersionLister versionLister,
                                     LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder,
-                                    MetaDataParser metaDataParser, ModuleMetadataProcessor metadataProcessor,
-                                    VersionMatcher versionMatcher, LatestStrategy latestStrategy) {
+                                    MetaDataParser metaDataParser,
+                                    ModuleMetadataProcessor metadataProcessor,
+                                    ResolverStrategy resolverStrategy,
+                                    VersionMatcher versionMatcher,
+                                    LatestStrategy latestStrategy) {
         this.name = name;
         this.versionLister = versionLister;
         this.repository = repository;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
         this.metaDataParser = metaDataParser;
         this.metadataProcessor = metadataProcessor;
+        this.resolverStrategy = resolverStrategy;
         this.versionMatcher = versionMatcher;
         this.latestStrategy = latestStrategy;
     }
@@ -623,7 +628,7 @@ public class ExternalResourceResolver implements ModuleVersionPublisher, Configu
         if (changingMatcherName == null || changingPattern == null) {
             return false; // TODO: tell from module metadata (rule)
         }
-        PatternMatcher matcher = ResolverStrategy.INSTANCE.getPatternMatcher(changingMatcherName);
+        PatternMatcher matcher = resolverStrategy.getPatternMatcher(changingMatcherName);
         if (matcher == null) {
             throw new IllegalStateException("unknown matcher '" + changingMatcherName
                     + "'. It is set as changing matcher in " + this);
