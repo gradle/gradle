@@ -247,6 +247,20 @@ Potential solutions:
   to be built by any task) from the classes directory. Or perhaps when a task that contributes to the classes directory is scheduled to
   run and no history is available for that task, then remove the classes directory and schedule a `classes` task to run.
 
+## Story: Reporting tasks are incremental wrt the settings of enabled reports only
+
+- Allow @Nested to be applied to a property that returns a collection.
+- Change TaskReportContainer to return a property that contains only the enabled reports.
+- Mark the report subclasses with the appropriate annotations.
+- Remove the existing properties on TaskReportContainer and FindBugsReportsImpl.
+
+### Test cases
+
+- Task is considered up-to-date when the setting of a disabled report is changed.
+- Task is considered out-of-date when a setting on an enabled report is changed.
+- Task is considered out-of-date when the set of enabled reports changes.
+- Task validation is applied to the settings of enabled reports.
+
 ## Story: Copy task is incremental wrt its input files
 
 ## Story: Plugin author uses changes to output files to implement incremental task
