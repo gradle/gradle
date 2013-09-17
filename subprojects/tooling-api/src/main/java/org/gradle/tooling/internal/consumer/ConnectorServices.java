@@ -19,7 +19,6 @@ package org.gradle.tooling.internal.consumer;
 import org.gradle.StartParameter;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.service.SynchronizedServiceRegistry;
 import org.gradle.tooling.internal.consumer.loader.CachingToolingImplementationLoader;
 import org.gradle.tooling.internal.consumer.loader.DefaultToolingImplementationLoader;
 import org.gradle.tooling.internal.consumer.loader.SynchronizedToolingImplementationLoader;
@@ -27,7 +26,7 @@ import org.gradle.tooling.internal.consumer.loader.ToolingImplementationLoader;
 
 public class ConnectorServices {
 
-    private static ServiceRegistry singletonRegistry = new SynchronizedServiceRegistry(new ConnectorServiceRegistry());
+    private static ServiceRegistry singletonRegistry = new ConnectorServiceRegistry();
 
     public DefaultGradleConnector createConnector() {
         ConnectionFactory connectionFactory = new ConnectionFactory(singletonRegistry.get(ToolingImplementationLoader.class));
@@ -38,7 +37,7 @@ public class ConnectorServices {
      * Resets the state of connector services. Meant to be used only for testing!
      */
     public void reset() {
-        singletonRegistry = new SynchronizedServiceRegistry(new ConnectorServiceRegistry());
+        singletonRegistry = new ConnectorServiceRegistry();
     }
 
     private static class ConnectorServiceRegistry extends DefaultServiceRegistry {
