@@ -16,6 +16,8 @@
 
 package org.gradle.internal.concurrent;
 
+import org.gradle.internal.Factories;
+import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 
 import java.util.HashMap;
@@ -41,6 +43,10 @@ public class ServiceLifecycle implements AsyncStoppable {
     }
 
     public void use(Runnable runnable) {
+        use(Factories.toFactory(runnable));
+    }
+
+    public <T> T use(Factory<T> factory) {
         lock.lock();
         try {
             switch (state) {
@@ -60,7 +66,7 @@ public class ServiceLifecycle implements AsyncStoppable {
         }
 
         try {
-            runnable.run();
+            return factory.create();
         } finally {
             lock.lock();
             try {
@@ -100,6 +106,9 @@ public class ServiceLifecycle implements AsyncStoppable {
         try {
             if (usages.containsKey(Thread.currentThread())) {
                 throw new IllegalStateException(String.format("Cannot stop %s from a thread that is using it.", displayName));
+            }
+            if (state == State.RUNNING) {
+                state = State.STOPPING;
             }
             while (!usages.isEmpty()) {
                 try {

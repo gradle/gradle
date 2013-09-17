@@ -90,7 +90,7 @@ class ServiceLifecycleTest extends ConcurrentSpec {
         e.message == 'Cannot use [service] as it has been stopped.'
     }
 
-    def "throws exception when attempting to use service while it is stopping"() {
+    def "throws exception when attempting to use service while it is stopping due to request stop"() {
         when:
         async {
             start {
@@ -101,6 +101,28 @@ class ServiceLifecycleTest extends ConcurrentSpec {
                 }
             }
             thread.blockUntil.stopRequested
+            lifecycle.use {}
+        }
+
+        then:
+        IllegalStateException e = thrown()
+        e.message == 'Cannot use [service] as it is currently stopping.'
+    }
+
+    def "throws exception when attempting to use service while it is stopping"() {
+        when:
+        async {
+            start {
+                thread.blockUntil.running
+                lifecycle.stop()
+            }
+            start {
+                lifecycle.use {
+                    instant.running
+                    thread.block()
+                }
+            }
+            thread.blockUntil.running
             lifecycle.use {}
         }
 
@@ -126,6 +148,24 @@ class ServiceLifecycleTest extends ConcurrentSpec {
 
         then:
         instant.finished < instant.stopped
+    }
+
+    def "multiple threads can call stop() concurrently"() {
+        expect:
+        async {
+            start {
+                lifecycle.use {
+                    instant.running
+                    thread.block()
+                }
+            }
+            2.times {
+                start {
+                    thread.blockUntil.running
+                    lifecycle.stop()
+                }
+            }
+        }
     }
 
     def "requestStop() does not block while service is in use"() {
@@ -163,11 +203,11 @@ class ServiceLifecycleTest extends ConcurrentSpec {
         async {
             start {
                 lifecycle.use {
-                    instant.running
                     lifecycle.use {
-                        lifecycle.use { }
+                        instant.running
                         thread.block()
                     }
+                    thread.block()
                     instant.finished
                 }
             }
