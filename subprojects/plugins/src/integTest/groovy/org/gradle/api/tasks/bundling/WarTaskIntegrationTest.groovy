@@ -16,6 +16,9 @@
 
 package org.gradle.api.tasks.bundling
 
+import java.util.jar.JarFile
+import java.util.zip.ZipInputStream
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 import static org.hamcrest.Matchers.equalTo
@@ -69,6 +72,17 @@ class WarTaskIntegrationTest extends AbstractIntegrationSpec {
         when:
         run "war"
         then:
+        //check that manifest is first or second entry
+        //mimics java.util.jar.JarInputStream behavior
+        def zip = new ZipInputStream(new FileInputStream(file('build/test.war')))
+        def e = zip.getNextEntry()
+        if (e.getName().equalsIgnoreCase('META-INF/')) {
+            e = zip.getNextEntry()
+        }
+        def first = e.getName()
+        zip.close()
+        assert first.equalsIgnoreCase(JarFile.MANIFEST_NAME)
+        
         def expandDir = file('expanded')
         file('build/test.war').unzipTo(expandDir)
         expandDir.assertHasDescendants(
@@ -232,10 +246,10 @@ class WarTaskIntegrationTest extends AbstractIntegrationSpec {
         buildFile << '''
         task war(type: War) {
             into('WEB-INF') {
-                from 'bad'
+                from 'good'
             }
             webInf {
-                from 'good'
+                from 'bad'
             }
             destinationDir = buildDir
             archiveName = 'test.war'
