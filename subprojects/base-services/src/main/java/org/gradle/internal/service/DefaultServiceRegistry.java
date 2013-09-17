@@ -50,6 +50,7 @@ import java.util.*;
  * <p>Service registries are arranged in a hierarchy. If a service of a given type cannot be located, the registry uses its parent registry, if any, to locate the service.</p>
  */
 public class DefaultServiceRegistry implements ServiceRegistry {
+    private final Object lock = new Object();
     private final CompositeProvider allServices = new CompositeProvider();
     private final OwnServices ownServices;
     private final CompositeProvider parentServices;
@@ -204,13 +205,15 @@ public class DefaultServiceRegistry implements ServiceRegistry {
     }
 
     /**
-     * Closes all services for this registry. For each service, if the service has a public void close() method, that method is called to close the service.
+     * Closes all services for this registry. For each service, if the service has a public void close() or stop() method, that method is called to close the service.
      */
     public void close() {
-        try {
-            CompositeStoppable.stoppable(allServices).stop();
-        } finally {
-            closed = true;
+        synchronized (lock) {
+            try {
+                CompositeStoppable.stoppable(allServices).stop();
+            } finally {
+                closed = true;
+            }
         }
     }
 
@@ -238,13 +241,15 @@ public class DefaultServiceRegistry implements ServiceRegistry {
     }
 
     public <T> List<T> getAll(Class<T> serviceType) throws ServiceLookupException {
-        if (closed) {
-            throw new IllegalStateException(String.format("Cannot locate service of type %s, as %s has been closed.", format(serviceType), this));
+        synchronized (lock) {
+            if (closed) {
+                throw new IllegalStateException(String.format("Cannot locate service of type %s, as %s has been closed.", format(serviceType), this));
+            }
+            List<T> result = new ArrayList<T>();
+            DefaultLookupContext context = new DefaultLookupContext();
+            allServices.getAll(context, serviceType, result);
+            return result;
         }
-        List<T> result = new ArrayList<T>();
-        DefaultLookupContext context = new DefaultLookupContext();
-        allServices.getAll(context, serviceType, result);
-        return result;
     }
 
     public <T> T get(Class<T> serviceType) throws UnknownServiceException, ServiceLookupException {
@@ -256,31 +261,35 @@ public class DefaultServiceRegistry implements ServiceRegistry {
     }
 
     private Object doGet(Type serviceType) throws IllegalArgumentException {
-        if (closed) {
-            throw new IllegalStateException(String.format("Cannot locate service of type %s, as %s has been closed.", format(serviceType), this));
-        }
+        synchronized (lock) {
+            if (closed) {
+                throw new IllegalStateException(String.format("Cannot locate service of type %s, as %s has been closed.", format(serviceType), this));
+            }
 
-        DefaultLookupContext context = new DefaultLookupContext();
-        ServiceProvider provider = context.find(serviceType, allServices);
-        if (provider != null) {
-            return provider.get();
-        }
+            DefaultLookupContext context = new DefaultLookupContext();
+            ServiceProvider provider = context.find(serviceType, allServices);
+            if (provider != null) {
+                return provider.get();
+            }
 
-        throw new UnknownServiceException(serviceType, String.format("No service of type %s available in %s.", format(serviceType), this));
+            throw new UnknownServiceException(serviceType, String.format("No service of type %s available in %s.", format(serviceType), this));
+        }
     }
 
     public <T> Factory<T> getFactory(Class<T> type) {
-        if (closed) {
-            throw new IllegalStateException(String.format("Cannot locate factory for objects of type %s, as %s has been closed.", format(type), this));
-        }
+        synchronized (lock) {
+            if (closed) {
+                throw new IllegalStateException(String.format("Cannot locate factory for objects of type %s, as %s has been closed.", format(type), this));
+            }
 
-        DefaultLookupContext context = new DefaultLookupContext();
-        ServiceProvider factory = allServices.getFactory(context, type);
-        if (factory != null) {
-            return (Factory<T>) factory.get();
-        }
+            DefaultLookupContext context = new DefaultLookupContext();
+            ServiceProvider factory = allServices.getFactory(context, type);
+            if (factory != null) {
+                return (Factory<T>) factory.get();
+            }
 
-        throw new UnknownServiceException(type, String.format("No factory for objects of type %s available in %s.", format(type), this));
+            throw new UnknownServiceException(type, String.format("No factory for objects of type %s available in %s.", format(type), this));
+        }
     }
 
     public <T> T newInstance(Class<T> type) {

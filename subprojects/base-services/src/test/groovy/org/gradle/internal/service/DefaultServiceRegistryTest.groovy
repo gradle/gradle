@@ -676,6 +676,7 @@ class DefaultServiceRegistryTest extends Specification {
 
     def closeIgnoresServiceWithNoCloseOrStopMethod() {
         registry.add(String, "service")
+        registry.getAll(Object)
 
         when:
         registry.close()
@@ -790,9 +791,29 @@ class DefaultServiceRegistryTest extends Specification {
         0 * service.stop()
     }
 
-    def discardsServicesOnClose() {
+    def canStopMultipleTimes() {
+        def service = Mock(TestCloseService)
+
+        given:
+        registry.add(TestCloseService, service)
+
+        when:
+        registry.close()
+
+        then:
+        1 * service.close()
+
+        when:
+        registry.close()
+
+        then:
+        0 * service._
+    }
+
+    def cannotLookupServicesWhenClosed() {
         given:
         registry.get(String)
+        registry.getAll(String)
         registry.close()
 
         when:
@@ -801,9 +822,16 @@ class DefaultServiceRegistryTest extends Specification {
         then:
         IllegalStateException e = thrown()
         e.message == "Cannot locate service of type String, as TestRegistry has been closed."
+
+        when:
+        registry.getAll(String)
+
+        then:
+        e = thrown()
+        e.message == "Cannot locate service of type String, as TestRegistry has been closed."
     }
 
-    def discardsFactoriesOnClose() {
+    def cannotLookupFactoriesWhenClosed() {
         given:
         registry.getFactory(BigDecimal)
         registry.close()
