@@ -17,27 +17,30 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.initialization.GradleLauncherFactory;
-import org.gradle.internal.nativeplatform.services.NativeServices;
-import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
 import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 
-public class ConnectionScopeServices extends DefaultServiceRegistry {
-    public ConnectionScopeServices() {
-        this(LoggingServiceRegistry.newEmbeddableLogging());
+/**
+ * Shared services for a tooling API provider connection.
+ */
+public class ConnectionScopeServices {
+    private final LoggingServiceRegistry loggingServices;
+
+    public ConnectionScopeServices(LoggingServiceRegistry loggingServices) {
+        this.loggingServices = loggingServices;
     }
 
-    private ConnectionScopeServices(LoggingServiceRegistry loggingServices) {
-        super(loggingServices, NativeServices.getInstance());
-        add(LoggingServiceRegistry.class, loggingServices);
-        addProvider(new GlobalScopeServices());
+    void configure(ServiceRegistration serviceRegistration) {
+        serviceRegistration.add(LoggingServiceRegistry.class, loggingServices);
+        serviceRegistration.addProvider(new GlobalScopeServices());
     }
 
-    protected ProviderConnection createProviderConnection() {
+    ProviderConnection createProviderConnection(GradleLauncherFactory gradleLauncherFactory) {
         return new ProviderConnection(
-                get(LoggingServiceRegistry.class),
-                get(GradleLauncherFactory.class),
+                loggingServices,
+                gradleLauncherFactory,
                 new PayloadSerializer(
                         new ClientSidePayloadClassLoaderRegistry(
                                 new DefaultPayloadClassLoaderRegistry(
@@ -46,7 +49,7 @@ public class ConnectionScopeServices extends DefaultServiceRegistry {
         );
     }
 
-    protected ProtocolToModelAdapter createProtocolToModelAdapter() {
+    ProtocolToModelAdapter createProtocolToModelAdapter() {
         return new ProtocolToModelAdapter();
     }
 }

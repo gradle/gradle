@@ -15,6 +15,10 @@
  */
 package org.gradle.tooling.internal.provider;
 
+import org.gradle.internal.nativeplatform.services.NativeServices;
+import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.protocol.*;
@@ -27,7 +31,7 @@ import org.slf4j.LoggerFactory;
 public class DefaultConnection implements InternalConnection, BuildActionRunner, ConfigurableConnection, ModelBuilder, InternalBuildActionExecutor {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultConnection.class);
     private final ProtocolToModelAdapter adapter;
-    private final ConnectionScopeServices services;
+    private final ServiceRegistry services;
     private final ProviderConnection connection;
 
     /**
@@ -35,7 +39,8 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
      */
     public DefaultConnection() {
         LOGGER.debug("Tooling API provider {} created.", GradleVersion.current().getVersion());
-        services = new ConnectionScopeServices();
+        LoggingServiceRegistry loggingServices = LoggingServiceRegistry.newEmbeddableLogging();
+        services = new DefaultServiceRegistry(loggingServices, NativeServices.getInstance()).addProvider(new ConnectionScopeServices(loggingServices));
         adapter = services.get(ProtocolToModelAdapter.class);
         connection = services.get(ProviderConnection.class);
     }

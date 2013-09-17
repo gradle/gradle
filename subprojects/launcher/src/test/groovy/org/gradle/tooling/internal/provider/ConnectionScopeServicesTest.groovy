@@ -16,11 +16,14 @@
 
 package org.gradle.tooling.internal.provider
 
+import org.gradle.internal.service.DefaultServiceRegistry
+import org.gradle.logging.LoggingServiceRegistry
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
 import spock.lang.Specification
 
 class ConnectionScopeServicesTest extends Specification {
-    def services = new ConnectionScopeServices()
+    def logging = LoggingServiceRegistry.newEmbeddableLogging()
+    def services = new DefaultServiceRegistry(logging).addProvider(new ConnectionScopeServices(logging))
 
     def "provides a ProviderConnection implementation"() {
         expect:
