@@ -22,11 +22,11 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData;
-import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
-import org.gradle.api.internal.artifacts.ivyservice.DefaultCacheLockingManager;
+import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.SingleFileBackedModuleResolutionCache;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.StartParameterResolutionOverride;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache.InMemoryDependencyMetadataCache;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestVersionStrategy;
@@ -34,12 +34,24 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Resolver
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.DefaultModuleMetaDataCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetaDataCache;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.PublishModuleDescriptorConverter;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectModuleRegistry;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.DefaultDependencyResolver;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.ResolutionResultsStoreFactory;
 import org.gradle.api.internal.artifacts.mvnsettings.*;
+import org.gradle.api.internal.artifacts.repositories.cachemanager.DownloadingRepositoryArtifactCache;
+import org.gradle.api.internal.artifacts.repositories.cachemanager.LocalFileRepositoryArtifactCache;
+import org.gradle.api.internal.artifacts.repositories.legacy.CustomIvyResolverRepositoryFactory;
+import org.gradle.api.internal.artifacts.repositories.legacy.DownloadingRepositoryCacheManager;
+import org.gradle.api.internal.artifacts.repositories.legacy.LegacyDependencyResolverRepositoryFactory;
+import org.gradle.api.internal.artifacts.repositories.legacy.LocalFileRepositoryCacheManager;
+import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.externalresource.cached.ByUrlCachedExternalResourceIndex;
 import org.gradle.api.internal.externalresource.ivy.ArtifactAtRepositoryCachedArtifactIndex;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
 import org.gradle.api.internal.externalresource.local.ivy.LocallyAvailableResourceFinderFactory;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
 import org.gradle.api.internal.filestore.PathKeyFileStore;
 import org.gradle.api.internal.filestore.UniquePathKeyFileStore;
@@ -51,12 +63,16 @@ import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.util.BuildCommencedTimeProvider;
 
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * The set of dependency management services that are created per build.
+ */
 class DependencyManagementBuildScopeServices {
     InMemoryDependencyMetadataCache createInMemoryDependencyMetadataCache() {
         return new InMemoryDependencyMetadataCache();
@@ -169,6 +185,87 @@ class DependencyManagementBuildScopeServices {
 
     LatestStrategy createLatestStrategy(VersionMatcher versionMatcher) {
         return new LatestVersionStrategy(versionMatcher);
+    }
+
+    LocalFileRepositoryArtifactCache createLocalRepositoryArtifactCache() {
+        return new LocalFileRepositoryArtifactCache();
+    }
+
+    DownloadingRepositoryArtifactCache createDownloadingRepositoryArtifactCache(ArtifactRevisionIdFileStore artifactRevisionIdFileStore, ByUrlCachedExternalResourceIndex externalResourceIndex,
+                                                                                TemporaryFileProvider temporaryFileProvider, CacheLockingManager cacheLockingManager) {
+        return new DownloadingRepositoryArtifactCache(artifactRevisionIdFileStore,
+                externalResourceIndex,
+                temporaryFileProvider,
+                cacheLockingManager);
+    }
+
+    RepositoryTransportFactory createRepositoryTransportFactory(ProgressLoggerFactory progressLoggerFactory, LocalFileRepositoryArtifactCache localFileRepositoryArtifactCache,
+                                                                DownloadingRepositoryArtifactCache downloadingRepositoryArtifactCache, TemporaryFileProvider temporaryFileProvider,
+                                                                ByUrlCachedExternalResourceIndex externalResourceIndex) {
+        return new RepositoryTransportFactory(
+                progressLoggerFactory,
+                localFileRepositoryArtifactCache,
+                downloadingRepositoryArtifactCache,
+                temporaryFileProvider,
+                externalResourceIndex
+        );
+    }
+
+    LegacyDependencyResolverRepositoryFactory createCustomerResolverRepositoryFactory(ProgressLoggerFactory progressLoggerFactory, ArtifactRevisionIdFileStore artifactRevisionIdFileStore,
+                                                                                      TemporaryFileProvider temporaryFileProvider, CacheLockingManager cacheLockingManager) {
+        return new CustomIvyResolverRepositoryFactory(
+                progressLoggerFactory,
+                new LocalFileRepositoryCacheManager("local"),
+                new DownloadingRepositoryCacheManager(
+                        "downloading",
+                        artifactRevisionIdFileStore,
+                        temporaryFileProvider,
+                        cacheLockingManager
+                )
+        );
+    }
+
+    ResolveIvyFactory createResolveIvyFactory(StartParameter startParameter, ModuleResolutionCache moduleResolutionCache, ModuleMetaDataCache moduleMetaDataCache,
+                                              ArtifactAtRepositoryCachedArtifactIndex artifactAtRepositoryCachedArtifactIndex, CacheLockingManager cacheLockingManager,
+                                              BuildCommencedTimeProvider buildCommencedTimeProvider, InMemoryDependencyMetadataCache inMemoryDependencyMetadataCache,
+                                              VersionMatcher versionMatcher, LatestStrategy latestStrategy) {
+        StartParameterResolutionOverride startParameterResolutionOverride = new StartParameterResolutionOverride(startParameter);
+        return new ResolveIvyFactory(
+                moduleResolutionCache,
+                moduleMetaDataCache,
+                artifactAtRepositoryCachedArtifactIndex,
+                cacheLockingManager,
+                startParameterResolutionOverride,
+                buildCommencedTimeProvider,
+                inMemoryDependencyMetadataCache,
+                versionMatcher,
+                latestStrategy);
+    }
+
+    ArtifactDependencyResolver createArtifactDependencyResolver(ResolveIvyFactory resolveIvyFactory, PublishModuleDescriptorConverter publishModuleDescriptorConverter,
+                                                                CacheLockingManager cacheLockingManager, IvyContextManager ivyContextManager, ResolutionResultsStoreFactory resolutionResultsStoreFactory) {
+        ArtifactDependencyResolver resolver = new DefaultDependencyResolver(
+                resolveIvyFactory,
+                publishModuleDescriptorConverter,
+                new ResolvedArtifactFactory(
+                        cacheLockingManager,
+                        ivyContextManager
+                ),
+                new DefaultProjectModuleRegistry(
+                        publishModuleDescriptorConverter),
+                cacheLockingManager,
+                ivyContextManager,
+                resolutionResultsStoreFactory);
+        return new ErrorHandlingArtifactDependencyResolver(
+                new ShortcircuitEmptyConfigsArtifactDependencyResolver(
+                        new SelfResolvingDependencyResolver(
+                                new CacheLockingArtifactDependencyResolver(
+                                        cacheLockingManager,
+                                        resolver))));
+    }
+
+    ResolutionResultsStoreFactory createResolutionResultsStoreFactory(TemporaryFileProvider temporaryFileProvider) {
+        return new ResolutionResultsStoreFactory(temporaryFileProvider);
     }
 
 }

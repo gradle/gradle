@@ -25,6 +25,8 @@ import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.classpath.PluginModuleRegistry;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.IdentityFileResolver;
+import org.gradle.api.internal.file.TemporaryFileProvider;
+import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
 import org.gradle.cache.internal.*;
 import org.gradle.cache.internal.locklistener.DefaultFileLockContentionHandler;
 import org.gradle.cache.internal.locklistener.FileLockContentionHandler;
@@ -64,6 +66,10 @@ public class GlobalScopeServices {
 
     GradleLauncherFactory createGradleLauncherFactory(ServiceRegistry services) {
         return new DefaultGradleLauncherFactory(services);
+    }
+
+    TemporaryFileProvider createTemporaryFileProvider() {
+        return new TmpDirTemporaryFileProvider();
     }
 
     CommandLineConverter<StartParameter> createCommandLine2StartParameterConverter() {
