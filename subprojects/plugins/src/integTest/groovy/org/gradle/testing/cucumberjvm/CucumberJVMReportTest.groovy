@@ -33,26 +33,8 @@ class CucumberJVMReportTest extends AbstractIntegrationSpec {
     @Issue("http://issues.gradle.org/browse/GRADLE-2739")
     @Requires(TestPrecondition.NOT_JDK5)
     def testReportingSupportsCucumberStepsWithSlashes() {
-        given:
-        buildFile << """
-            apply plugin: 'java'
-            repositories { mavenCentral() }
-            dependencies {
-               testCompile "junit:junit:4.11"
-               testCompile "info.cukes:cucumber-java:1.1.2"
-               testCompile "info.cukes:cucumber-junit:1.1.2"
-            }
-            test {
-               testLogging.showStandardStreams = true
-               testLogging.events  'started', 'passed', 'skipped', 'failed', 'standardOut', 'standardError'
-               reports.junitXml.enabled = true
-               reports.html.enabled = true
-            }
-        """
         when:
         run "test"
-
-        println testDirectory.absolutePath
         then:
         ":test" in nonSkippedTasks
         and:
