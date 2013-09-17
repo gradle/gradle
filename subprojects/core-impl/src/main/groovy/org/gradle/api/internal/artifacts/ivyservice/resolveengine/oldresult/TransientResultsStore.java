@@ -33,6 +33,8 @@ import org.gradle.util.Clock;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 
 import static com.google.common.collect.Sets.newHashSet;
 
@@ -54,6 +56,9 @@ public class TransientResultsStore {
     private final ResolvedConfigurationIdentifierSerializer resolvedConfigurationIdentifierSerializer = new ResolvedConfigurationIdentifierSerializer();
     private BinaryStore.BinaryData binaryData;
 
+    // TODO:ADAM - remove this
+    private final Set<ResolvedConfigurationIdentifier> visitedNodes = new HashSet<ResolvedConfigurationIdentifier>();
+
     public TransientResultsStore(BinaryStore binaryStore, Store<TransientConfigurationResults> cache) {
         this.binaryStore = binaryStore;
         this.cache = cache;
@@ -71,24 +76,43 @@ public class TransientResultsStore {
     }
 
     public void resolvedDependency(ResolvedConfigurationIdentifier id) {
+        visitedNodes.add(id);
         writeId(NEW_DEP, id);
     }
 
     public void done(ResolvedConfigurationIdentifier id) {
+        if (!visitedNodes.contains(id)) {
+            throw new IllegalArgumentException(String.format("Unexpected root id %s. Seen ids: %s", id, visitedNodes));
+        }
         writeId(ROOT, id);
         LOG.debug("Flushing resolved configuration data in {}. Wrote root {}.", binaryStore, id);
         binaryData = binaryStore.done();
     }
 
     public void firstLevelDependency(ResolvedConfigurationIdentifier id) {
+        if (!visitedNodes.contains(id)) {
+            throw new IllegalArgumentException(String.format("Unexpected first level dependency id %s. Seen ids: %s", id, visitedNodes));
+        }
         writeId(FIRST_LVL, id);
     }
 
     public void parentChildMapping(ResolvedConfigurationIdentifier parent, ResolvedConfigurationIdentifier child) {
+        if (!visitedNodes.contains(parent)) {
+            throw new IllegalArgumentException(String.format("Unexpected parent dependency id %s. Seen ids: %s", parent, visitedNodes));
+        }
+        if (!visitedNodes.contains(child)) {
+            throw new IllegalArgumentException(String.format("Unexpected child dependency id %s. Seen ids: %s", parent, visitedNodes));
+        }
         writeId(PARENT_CHILD, parent, child);
     }
 
     public void parentSpecificArtifact(ResolvedConfigurationIdentifier child, ResolvedConfigurationIdentifier parent, final long artifactId) {
+        if (!visitedNodes.contains(parent)) {
+            throw new IllegalArgumentException(String.format("Unexpected parent artifact id %s. Seen ids: %s", parent, visitedNodes));
+        }
+        if (!visitedNodes.contains(child)) {
+            throw new IllegalArgumentException(String.format("Unexpected child artifact id %s. Seen ids: %s", parent, visitedNodes));
+        }
         writeId(PARENT_ARTIFACT, child, parent);
         binaryStore.write(new BinaryStore.WriteAction() {
             public void write(DataOutputStream output) throws IOException {
@@ -134,29 +158,52 @@ public class TransientResultsStore {
                     case ROOT:
                         id = resolvedConfigurationIdentifierSerializer.read(decoder);
                         results.root = results.allDependencies.get(id);
+                        if (results.root == null) {
+                            throw new IllegalStateException(String.format("Unexpected root id %s. Seen ids: %s", id, results.allDependencies.keySet()));
+                        }
                         //root should be the last
                         LOG.debug("Loaded resolved configuration results ({}) from {}", clock.getTime(), binaryStore);
                         return results;
                     case FIRST_LVL:
                         id = resolvedConfigurationIdentifierSerializer.read(decoder);
-                        results.firstLevelDependencies.put(mapping.getModuleDependency(id), results.allDependencies.get(id));
+                        DefaultResolvedDependency dependency = results.allDependencies.get(id);
+                        if (dependency == null) {
+                            throw new IllegalStateException(String.format("Unexpected first level id %s. Seen ids: %s", id, results.allDependencies.keySet()));
+                        }
+                        results.firstLevelDependencies.put(mapping.getModuleDependency(id), dependency);
                         break;
                     case PARENT_CHILD:
-                        DefaultResolvedDependency parent = results.allDependencies.get(resolvedConfigurationIdentifierSerializer.read(decoder));
-                        DefaultResolvedDependency child = results.allDependencies.get(resolvedConfigurationIdentifierSerializer.read(decoder));
+                        ResolvedConfigurationIdentifier parentId = resolvedConfigurationIdentifierSerializer.read(decoder);
+                        ResolvedConfigurationIdentifier childId = resolvedConfigurationIdentifierSerializer.read(decoder);
+                        DefaultResolvedDependency parent = results.allDependencies.get(parentId);
+                        DefaultResolvedDependency child = results.allDependencies.get(childId);
+                        if (parent == null) {
+                            throw new IllegalStateException(String.format("Unexpected parent dependency id %s. Seen ids: %s", parentId, results.allDependencies.keySet()));
+                        }
+                        if (child == null) {
+                            throw new IllegalStateException(String.format("Unexpected child dependency id %s. Seen ids: %s", childId, results.allDependencies.keySet()));
+                        }
                         parent.addChild(child);
                         break;
                     case PARENT_ARTIFACT:
-                        DefaultResolvedDependency c = results.allDependencies.get(resolvedConfigurationIdentifierSerializer.read(decoder));
-                        DefaultResolvedDependency p = results.allDependencies.get(resolvedConfigurationIdentifierSerializer.read(decoder));
-                        c.addParentSpecificArtifacts(p, newHashSet(mapping.getArtifact(decoder.readLong())));
+                        ResolvedConfigurationIdentifier artifactParentId = resolvedConfigurationIdentifierSerializer.read(decoder);
+                        ResolvedConfigurationIdentifier artifactChildId = resolvedConfigurationIdentifierSerializer.read(decoder);
+                        DefaultResolvedDependency artifactParent = results.allDependencies.get(artifactParentId);
+                        DefaultResolvedDependency artifactChild = results.allDependencies.get(artifactChildId);
+                        if (artifactParent == null) {
+                            throw new IllegalStateException(String.format("Unexpected parent dependency id %s. Seen ids: %s", artifactParentId, results.allDependencies.keySet()));
+                        }
+                        if (artifactChild == null) {
+                            throw new IllegalStateException(String.format("Unexpected child dependency id %s. Seen ids: %s", artifactChildId, results.allDependencies.keySet()));
+                        }
+                        artifactParent.addParentSpecificArtifacts(artifactChild, newHashSet(mapping.getArtifact(decoder.readLong())));
                         break;
                     default:
                         throw new IOException("Unknown value type read from stream: " + type);
                 }
             }
         } catch (IOException e) {
-            throw new RuntimeException("Problems loading (" + clock.getTime() + ") the resolved configuration. Read " + valuesRead + " values, last was: " + type, e);
+            throw new RuntimeException("Problems loading the resolved configuration. Read " + valuesRead + " values, last was: " + type, e);
         }
     }
 }

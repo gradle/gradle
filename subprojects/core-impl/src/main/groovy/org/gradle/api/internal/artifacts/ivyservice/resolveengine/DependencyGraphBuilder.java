@@ -153,6 +153,7 @@ public class DependencyGraphBuilder {
         // Visit the nodes
         for (ConfigurationNode resolvedConfiguration : resolveState.getConfigurationNodes()) {
             if (resolvedConfiguration.isSelected()) {
+                resolvedConfiguration.validate();
                 result.newResolvedDependency(resolvedConfiguration.getResult());
                 resolvedConfiguration.collectFailures(failureState);
                 listener.resolvedModuleVersion(resolvedConfiguration.moduleRevision);
@@ -845,6 +846,16 @@ public class DependencyGraphBuilder {
 
         private ModuleVersionIdentifier toId() {
             return moduleRevision.id;
+        }
+
+        // TODO:ADAM - remove this
+        public void validate() {
+            for (DependencyEdge incomingEdge : incomingEdges) {
+                ModuleState state = incomingEdge.from.moduleRevision.state;
+                if (state != ModuleState.Selected) {
+                    throw new IllegalStateException(String.format("Unexpected state %s for parent node for dependency from %s to %s.", state, incomingEdge.from, this));
+                }
+            }
         }
     }
 
