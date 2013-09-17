@@ -50,7 +50,7 @@ public class ResolvedConfigurationIdentifier {
 
     @Override
     public String toString() {
-        return String.format("%s:%s:%s:%s", getModuleGroup(), getModuleVersion(), getModuleName(), configuration);
+        return String.format("%s:%s:%s:%s", getModuleGroup(), getModuleName(), getModuleVersion(), configuration);
     }
 
     @Override
