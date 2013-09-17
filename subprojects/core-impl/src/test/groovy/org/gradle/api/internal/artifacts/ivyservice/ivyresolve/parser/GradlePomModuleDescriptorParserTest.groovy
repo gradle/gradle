@@ -70,6 +70,8 @@ class GradlePomModuleDescriptorParserTest extends Specification {
         descriptor.dependencies.length == 1
         descriptor.dependencies.first().dependencyRevisionId == moduleId('group-two', 'artifact-two', 'version-two')
         hasDefaultDependencyArtifact(descriptor.dependencies.first())
+        parser.typeName == 'POM'
+        parser.toString() == 'gradle pom parser'
     }
 
     def "uses dependency management section to provide default values for a dependency"() {
@@ -311,6 +313,70 @@ class GradlePomModuleDescriptorParserTest extends Specification {
         descriptor.allArtifacts.length == 0
         descriptor.dependencies.length == 0
         metaData.metaDataOnly
+    }
+
+    def "pom with project coordinates defined by custom properties"() {
+        given:
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>\${some.group}</groupId>
+    <artifactId>\${some.artifact}</artifactId>
+    <version>\${some.version}</version>
+    <properties>
+        <some.group>group-one</some.group>
+        <some.artifact>artifact-one</some.artifact>
+        <some.version>version-one</some.version>
+    </properties>
+</project>
+"""
+        and:
+        parseContext.currentRevisionId >> moduleId('group-one', 'artifact-one', 'version-one')
+
+        when:
+        def descriptor = parsePom()
+
+        then:
+        descriptor.moduleRevisionId == moduleId('group-one', 'artifact-one', 'version-one')
+        hasArtifact(descriptor, 'artifact-one', 'jar', 'jar')
+        descriptor.dependencies.length == 0
+    }
+
+    def "pom with dependency coordinates defined by custom properties"() {
+        given:
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+    <properties>
+        <some.group>group-two</some.group>
+        <some.artifact>artifact-two</some.artifact>
+        <some.version>version-two</some.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>\${some.group}</groupId>
+            <artifactId>\${some.artifact}</artifactId>
+            <version>\${some.version}</version>
+        </dependency>
+    </dependencies>
+</project>
+"""
+        and:
+        parseContext.currentRevisionId >> moduleId('group-one', 'artifact-one', 'version-one')
+
+        when:
+        def descriptor = parsePom()
+
+        then:
+        descriptor.moduleRevisionId == moduleId('group-one', 'artifact-one', 'version-one')
+        hasArtifact(descriptor, 'artifact-one', 'jar', 'jar')
+        descriptor.dependencies.length == 1
+        descriptor.dependencies.first().dependencyRevisionId == moduleId('group-two', 'artifact-two', 'version-two')
+        hasDefaultDependencyArtifact(descriptor.dependencies.first())
     }
 
     private ModuleDescriptor parsePom() {

@@ -91,6 +91,10 @@ public class PomReader {
             throw new SAXParseException("project must be the root tag", systemId, systemId, 0, 0);
         }
         parentElement = getFirstChildElement(projectElement, PARENT);
+
+        for(Map.Entry<String, String> pomProperty : getPomProperties().entrySet()) {
+            setProperty(pomProperty.getKey(), pomProperty.getValue());
+        }
     }
 
     public static Document parseToDom(InputStream stream, String systemId) throws IOException, SAXException {
@@ -123,6 +127,9 @@ public class PomReader {
         }
     }
 
+    public Map<String, String> getProperties() {
+        return properties;
+    }
 
     public String getGroupId() {
         String groupId = getFirstChildText(projectElement , GROUP_ID);

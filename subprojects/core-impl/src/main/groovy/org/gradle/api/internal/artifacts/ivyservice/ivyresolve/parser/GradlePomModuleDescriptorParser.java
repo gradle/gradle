@@ -58,13 +58,6 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
         pomReader.setProperty("project.parent.version", pomReader.getParentVersion());
         pomReader.setProperty("project.parent.groupId", pomReader.getParentGroupId());
 
-        Map pomProperties = pomReader.getPomProperties();
-        for (Object o : pomProperties.entrySet()) {
-            Map.Entry prop = (Map.Entry) o;
-            pomReader.setProperty((String) prop.getKey(), (String) prop.getValue());
-            mdBuilder.addProperty((String) prop.getKey(), (String) prop.getValue());
-        }
-
         PomReader parentDescr = null;
         if (pomReader.hasParent()) {
             //Is there any other parent properties?
