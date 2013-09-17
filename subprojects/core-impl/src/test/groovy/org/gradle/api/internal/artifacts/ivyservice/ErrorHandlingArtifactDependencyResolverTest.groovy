@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice;
+package org.gradle.api.internal.artifacts.ivyservice
 
-
+import org.gradle.api.artifacts.LenientConfiguration;
 import org.gradle.api.artifacts.ResolveException
 import org.gradle.api.artifacts.ResolvedConfiguration
 import org.gradle.api.artifacts.result.ResolutionResult
@@ -46,12 +46,13 @@ public class ErrorHandlingArtifactDependencyResolverTest extends Specification {
         outerResults.resolvedConfiguration.hasError()
         outerResults.resolvedConfiguration.rethrowFailure()
         outerResults.resolvedConfiguration.getFiles(Specs.satisfyAll())
+        outerResults.resolutionResult.getRoot()
 
         then:
         1 * resolvedConfiguration.hasError()
         1 * resolvedConfiguration.rethrowFailure()
         1 * resolvedConfiguration.getFiles(Specs.satisfyAll())
-        outerResults.resolutionResult == resolutionResult
+        1 * resolutionResult.getRoot()
     }
 
     void "wraps operations with the failure"() {
@@ -79,19 +80,63 @@ public class ErrorHandlingArtifactDependencyResolverTest extends Specification {
         resolvedConfiguration.rethrowFailure() >> { throw failure }
         resolvedConfiguration.getFiles(Specs.satisfyAll()) >> { throw failure }
         resolvedConfiguration.getFirstLevelModuleDependencies() >> { throw failure }
+        resolvedConfiguration.getFirstLevelModuleDependencies(_) >> { throw failure }
         resolvedConfiguration.getResolvedArtifacts() >> { throw failure }
+        resolvedConfiguration.getLenientConfiguration() >> { throw failure }
 
         delegate.resolve(configuration, repositories) >> { new ResolverResults(resolvedConfiguration, resolutionResult) }
 
         when:
-        ResolverResults results = resolver.resolve(configuration, repositories);
+        def result = resolver.resolve(configuration, repositories).resolvedConfiguration
 
         then:
         failsWith(failure)
-                .when { results.resolvedConfiguration.rethrowFailure(); }
-                .when { results.resolvedConfiguration.getFiles(Specs.satisfyAll()); }
-                .when { results.resolvedConfiguration.getFirstLevelModuleDependencies(); }
-                .when { results.resolvedConfiguration.getResolvedArtifacts(); }
+                .when { result.rethrowFailure() }
+                .when { result.getFiles(Specs.satisfyAll()) }
+                .when { result.firstLevelModuleDependencies }
+                .when { result.getFirstLevelModuleDependencies(Specs.satisfyAll()) }
+                .when { result.resolvedArtifacts }
+                .when { result.lenientConfiguration }
+    }
+
+    void "wraps exceptions thrown by resolved lenient configuration"() {
+        given:
+        def failure = new RuntimeException()
+        def lenientConfiguration = Stub(LenientConfiguration)
+
+        resolvedConfiguration.getLenientConfiguration() >> lenientConfiguration
+        lenientConfiguration.getFiles(_) >> { throw failure }
+        lenientConfiguration.getFirstLevelModuleDependencies(_) >> { throw failure }
+        lenientConfiguration.getArtifacts(_) >> { throw failure }
+        lenientConfiguration.getUnresolvedModuleDependencies() >> { throw failure }
+
+        delegate.resolve(configuration, repositories) >> { new ResolverResults(resolvedConfiguration, resolutionResult) }
+
+        when:
+        def result = resolver.resolve(configuration, repositories).resolvedConfiguration.lenientConfiguration
+
+        then:
+        failsWith(failure)
+                .when { result.getFiles(Specs.satisfyAll()) }
+                .when { result.getFirstLevelModuleDependencies(Specs.satisfyAll()) }
+                .when { result.getArtifacts(Specs.satisfyAll()) }
+                .when { result.unresolvedModuleDependencies }
+    }
+
+    void "wraps exceptions thrown by resolution result"() {
+        given:
+        def failure = new RuntimeException()
+
+        resolutionResult.root >> { throw failure }
+
+        delegate.resolve(configuration, repositories) >> { new ResolverResults(resolvedConfiguration, resolutionResult) }
+
+        when:
+        def result = resolver.resolve(configuration, repositories).resolutionResult
+
+        then:
+        failsWith(failure)
+                .when { result.root }
     }
 
     ExceptionFixture failsWith(Throwable failure) {

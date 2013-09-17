@@ -15,7 +15,12 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
+import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.artifacts.*;
+import org.gradle.api.artifacts.result.DependencyResult;
+import org.gradle.api.artifacts.result.ResolutionResult;
+import org.gradle.api.artifacts.result.ResolvedModuleVersionResult;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
@@ -40,8 +45,9 @@ public class ErrorHandlingArtifactDependencyResolver implements ArtifactDependen
         } catch (final Throwable e) {
             return new ResolverResults(new BrokenResolvedConfiguration(e, configuration), wrapException(e, configuration));
         }
-        ResolvedConfiguration withErrorHandling = new ErrorHandlingResolvedConfiguration(results.getResolvedConfiguration(), configuration);
-        return results.withResolvedConfiguration(withErrorHandling);
+        ResolvedConfiguration wrappedConfiguration = new ErrorHandlingResolvedConfiguration(results.getResolvedConfiguration(), configuration);
+        ResolutionResult wrappedResult = new ErrorHandlingResolutionResult(results.getResolutionResult(), configuration);
+        return new ResolverResults(wrappedConfiguration, wrappedResult);
     }
 
     private static ResolveException wrapException(Throwable e, Configuration configuration) {
@@ -51,6 +57,98 @@ public class ErrorHandlingArtifactDependencyResolver implements ArtifactDependen
         return new ResolveException(configuration, e);
     }
 
+    private static class ErrorHandlingLenientConfiguration implements LenientConfiguration {
+        private final LenientConfiguration lenientConfiguration;
+        private final Configuration configuration;
+
+        private ErrorHandlingLenientConfiguration(LenientConfiguration lenientConfiguration, Configuration configuration) {
+            this.lenientConfiguration = lenientConfiguration;
+            this.configuration = configuration;
+        }
+
+        public Set<ResolvedArtifact> getArtifacts(Spec<? super Dependency> dependencySpec) {
+            try {
+                return lenientConfiguration.getArtifacts(dependencySpec);
+            } catch (Throwable e) {
+                throw wrapException(e, configuration);
+            }
+        }
+
+        public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec) {
+            try {
+                return lenientConfiguration.getFirstLevelModuleDependencies(dependencySpec);
+            } catch (Throwable e) {
+                throw wrapException(e, configuration);
+            }
+        }
+
+        public Set<UnresolvedDependency> getUnresolvedModuleDependencies() {
+            try {
+                return lenientConfiguration.getUnresolvedModuleDependencies();
+            } catch (Throwable e) {
+                throw wrapException(e, configuration);
+            }
+        }
+
+        public Set<File> getFiles(Spec<? super Dependency> dependencySpec) {
+            try {
+                return lenientConfiguration.getFiles(dependencySpec);
+            } catch (Throwable e) {
+                throw wrapException(e, configuration);
+            }
+        }
+    }
+
+    private static class ErrorHandlingResolutionResult implements ResolutionResult {
+        private final ResolutionResult resolutionResult;
+        private final Configuration configuration;
+
+        public ErrorHandlingResolutionResult(ResolutionResult resolutionResult, Configuration configuration) {
+            this.resolutionResult = resolutionResult;
+            this.configuration = configuration;
+        }
+
+        public ResolvedModuleVersionResult getRoot() {
+            try {
+                return resolutionResult.getRoot();
+            } catch (Throwable e) {
+                throw wrapException(e, configuration);
+            }
+        }
+
+        public void allDependencies(Action<? super DependencyResult> action) {
+            resolutionResult.allDependencies(action);
+        }
+
+        public Set<? extends DependencyResult> getAllDependencies() {
+            try {
+                return resolutionResult.getAllDependencies();
+            } catch (Throwable e) {
+                throw wrapException(e, configuration);
+            }
+        }
+
+        public void allDependencies(Closure closure) {
+            resolutionResult.allDependencies(closure);
+        }
+
+        public Set<ResolvedModuleVersionResult> getAllModuleVersions() {
+            try {
+                return resolutionResult.getAllModuleVersions();
+            } catch (Throwable e) {
+                throw wrapException(e, configuration);
+            }
+        }
+
+        public void allModuleVersions(Action<? super ResolvedModuleVersionResult> action) {
+            resolutionResult.allModuleVersions(action);
+        }
+
+        public void allModuleVersions(Closure closure) {
+            resolutionResult.allModuleVersions(closure);
+        }
+    }
+    
     private static class ErrorHandlingResolvedConfiguration implements ResolvedConfiguration {
         private final ResolvedConfiguration resolvedConfiguration;
         private final Configuration configuration;
@@ -66,7 +164,11 @@ public class ErrorHandlingArtifactDependencyResolver implements ArtifactDependen
         }
 
         public LenientConfiguration getLenientConfiguration() {
-            return resolvedConfiguration.getLenientConfiguration();
+            try {
+                return new ErrorHandlingLenientConfiguration(resolvedConfiguration.getLenientConfiguration(), configuration);
+            } catch (Throwable e) {
+                throw wrapException(e, configuration);
+            }
         }
 
         public void rethrowFailure() throws ResolveException {
