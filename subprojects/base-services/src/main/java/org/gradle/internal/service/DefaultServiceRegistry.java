@@ -17,6 +17,7 @@ package org.gradle.internal.service;
 
 import org.gradle.api.Action;
 import org.gradle.api.Nullable;
+import org.gradle.api.specs.Spec;
 import org.gradle.internal.CompositeStoppable;
 import org.gradle.internal.Factory;
 import org.gradle.internal.Stoppable;
@@ -319,7 +320,7 @@ public class DefaultServiceRegistry implements ServiceRegistry {
         /**
          * Locates a service instance of the given type. Returns null if this provider does not provide a service of this type.
          */
-        ServiceProvider getService(LookupContext context, Class<?> serviceType);
+        ServiceProvider getService(LookupContext context, TypeSpec serviceType);
 
         /**
          * Locates a factory for services of the given type. Returns null if this provider does not provide any services of this type.
@@ -361,7 +362,7 @@ public class DefaultServiceRegistry implements ServiceRegistry {
             throw new ServiceLookupException(formatter.toString());
         }
 
-        public ServiceProvider getService(LookupContext context, Class<?> serviceType) {
+        public ServiceProvider getService(LookupContext context, TypeSpec serviceType) {
             List<ServiceProvider> candidates = new ArrayList<ServiceProvider>();
             for (Provider provider : providers) {
                 ServiceProvider service = provider.getService(context, serviceType);
@@ -383,7 +384,7 @@ public class DefaultServiceRegistry implements ServiceRegistry {
             }
 
             Formatter formatter = new Formatter();
-            formatter.format("Multiple services of type %s available in %s:", format(serviceType), DefaultServiceRegistry.this.toString());
+            formatter.format("Multiple services of type %s available in %s:", format(serviceType.getType()), DefaultServiceRegistry.this.toString());
             for (String description : descriptions) {
                 formatter.format("%n   - %s", description);
             }
@@ -470,8 +471,8 @@ public class DefaultServiceRegistry implements ServiceRegistry {
         protected void bind(LookupContext context) {
         }
 
-        public ServiceProvider getService(LookupContext context, Class<?> serviceType) {
-            if (!serviceType.isAssignableFrom(this.serviceClass)) {
+        public ServiceProvider getService(LookupContext context, TypeSpec serviceType) {
+            if (!serviceType.isSatisfiedBy(this.serviceType)) {
                 return null;
             }
             return prepare(context);
@@ -564,10 +565,11 @@ public class DefaultServiceRegistry implements ServiceRegistry {
                         paramProvider.requiredBy(this);
                     }
                 } catch (ServiceValidationException e) {
-                    throw new ServiceCreationException(String.format("Cannot create service of type %s using %s.%s() as there is a problem with required service of type %s.",
+                    throw new ServiceCreationException(String.format("Cannot create service of type %s using %s.%s() as there is a problem with parameter #%s of type %s.",
                             format(method.getGenericReturnType()),
                             method.getDeclaringClass().getSimpleName(),
                             method.getName(),
+                            i+1,
                             format(paramType)), e);
                 }
             }
@@ -707,7 +709,7 @@ public class DefaultServiceRegistry implements ServiceRegistry {
     private class CompositeProvider implements Provider {
         private final List<Provider> providers = new LinkedList<Provider>();
 
-        public ServiceProvider getService(LookupContext context, Class<?> serviceType) {
+        public ServiceProvider getService(LookupContext context, TypeSpec serviceType) {
             for (Provider provider : providers) {
                 ServiceProvider service = provider.getService(context, serviceType);
                 if (service != null) {
@@ -762,13 +764,13 @@ public class DefaultServiceRegistry implements ServiceRegistry {
             return null;
         }
 
-        public ServiceProvider getService(LookupContext context, Class<?> serviceType) {
+        public ServiceProvider getService(LookupContext context, TypeSpec serviceType) {
             try {
-                Object service = parent.get(serviceType);
-                assert service != null : String.format("parent returned null for service type '%s'", serviceType.getName());
+                Object service = parent.get(serviceType.getType());
+                assert service != null : String.format("parent returned null for service type %s", format(serviceType.getType()));
                 return wrap(service);
             } catch (UnknownServiceException e) {
-                if (!e.getType().equals(serviceType)) {
+                if (!e.getType().equals(serviceType.getType())) {
                     throw e;
                 }
             }
@@ -804,6 +806,68 @@ public class DefaultServiceRegistry implements ServiceRegistry {
         ServiceProvider find(Type type, Provider provider);
     }
 
+    interface TypeSpec extends Spec<Type> {
+        Type getType();
+    }
+
+    private static class ClassSpec implements TypeSpec {
+        private final Class<?> type;
+
+        private ClassSpec(Class<?> type) {
+            this.type = type;
+        }
+
+        public Type getType() {
+            return type;
+        }
+
+        public boolean isSatisfiedBy(Type element) {
+            if (element instanceof ParameterizedType) {
+                ParameterizedType parameterizedType = (ParameterizedType) element;
+                if (parameterizedType.getRawType() instanceof Class) {
+                    return type.isAssignableFrom((Class) parameterizedType.getRawType());
+                }
+            } else if(element instanceof Class) {
+                Class<?> other = (Class<?>) element;
+                return type.isAssignableFrom(other);
+            }
+            return false;
+        }
+    }
+
+    private static class ParameterizedTypeSpec implements TypeSpec {
+        private final Type type;
+        private final TypeSpec rawType;
+        private final List<TypeSpec> paramSpecs;
+
+        private ParameterizedTypeSpec(Type type, TypeSpec rawType, List<TypeSpec> paramSpecs) {
+            this.type = type;
+            this.rawType = rawType;
+            this.paramSpecs = paramSpecs;
+        }
+
+        public Type getType() {
+            return type;
+        }
+
+        public boolean isSatisfiedBy(Type element) {
+            if (element instanceof ParameterizedType) {
+                ParameterizedType parameterizedType = (ParameterizedType) element;
+                if (!rawType.isSatisfiedBy(parameterizedType.getRawType())) {
+                    return false;
+                }
+                for (int i = 0; i < parameterizedType.getActualTypeArguments().length; i++) {
+                    Type type = parameterizedType.getActualTypeArguments()[i];
+                    if (!paramSpecs.get(i).isSatisfiedBy(type)) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+            return false;
+        }
+    }
+
     private static class DefaultLookupContext implements LookupContext {
         private final Set<Type> visiting = new HashSet<Type>();
 
@@ -833,24 +897,34 @@ public class DefaultServiceRegistry implements ServiceRegistry {
                             }
                         }
                     }
-                } else if (serviceType instanceof Class) {
-                    Class<?> serviceClass = (Class<?>) serviceType;
-                    if (serviceType.equals(Factory.class)) {
-                        throw new ServiceValidationException("Cannot locate service of raw type Factory.");
-                    }
-                    if (serviceClass.isArray()) {
-                        throw new ServiceValidationException(String.format("Cannot locate service of array type %s[].", serviceClass.getComponentType().getSimpleName()));
-                    }
-                    if (serviceClass.isAnnotation()) {
-                        throw new ServiceValidationException(String.format("Cannot locate service of annotation type @%s.", serviceClass.getSimpleName()));
-                    }
-                    return provider.getService(this, serviceClass);
                 }
 
-                throw new ServiceValidationException(String.format("Cannot locate service of type %s.", format(serviceType)));
+                return provider.getService(this, toSpec(serviceType));
             } finally {
                 visiting.remove(serviceType);
             }
+        }
+
+        TypeSpec toSpec(Type serviceType) {
+            if (serviceType instanceof ParameterizedType) {
+                ParameterizedType parameterizedType = (ParameterizedType) serviceType;
+                List<TypeSpec> paramSpecs = new ArrayList<TypeSpec>();
+                for (Type paramType : parameterizedType.getActualTypeArguments()) {
+                    paramSpecs.add(toSpec(paramType));
+                }
+                return new ParameterizedTypeSpec(serviceType, toSpec(parameterizedType.getRawType()), paramSpecs);
+            } else if (serviceType instanceof Class) {
+                Class<?> serviceClass = (Class<?>) serviceType;
+                if (serviceClass.isArray()) {
+                    throw new ServiceValidationException("Locating services with array type is not supported.");
+                }
+                if (serviceClass.isAnnotation()) {
+                    throw new ServiceValidationException("Locating services with annotation type is not supported.");
+                }
+                return new ClassSpec(serviceClass);
+            }
+
+            throw new ServiceValidationException(String.format("Locating services with type %s is not supported.", format(serviceType)));
         }
     }
 }

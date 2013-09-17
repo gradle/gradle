@@ -22,6 +22,7 @@ import org.gradle.util.TextUtil
 import spock.lang.Specification
 
 import java.lang.reflect.Type
+import java.util.concurrent.Callable
 
 class DefaultServiceRegistryTest extends Specification {
     def TestRegistry registry = new TestRegistry()
@@ -120,6 +121,68 @@ class DefaultServiceRegistryTest extends Specification {
         registry.get(String) == "12"
     }
 
+    def injectsGenericTypesIntoProviderFactoryMethod() {
+        def registry = new DefaultServiceRegistry()
+        registry.addProvider(new Object() {
+            Integer createInteger(Factory<String> factory) {
+                return factory.create().length()
+            }
+
+            Factory<String> createString(Callable<String> action) {
+                return { action.call() } as Factory
+            }
+
+            Callable<String> createAction() {
+                return { "hi" }
+            }
+        })
+
+        expect:
+        registry.get(Integer) == 2
+    }
+
+    def handlesInheritanceInGenericTypes() {
+        def registry = new DefaultServiceRegistry()
+        registry.addProvider(new Object() {
+            Integer createInteger(Runnable action) {
+                action.run()
+                return 123
+            }
+
+            GenericRunnable<String> createString() {
+                return { } as GenericRunnable
+            }
+        })
+
+        expect:
+        registry.get(Integer) == 123
+    }
+
+    def canHaveMultipleServicesWithParameterizedTypesAndSameRawType() {
+        def registry = new DefaultServiceRegistry()
+        registry.addProvider(new Object() {
+            Integer createInteger(Callable<Integer> factory) {
+                return factory.call()
+            }
+
+            String createString(Callable<String> factory) {
+                return factory.call()
+            }
+
+            Callable<Integer> createIntFactory() {
+                return { 123 }
+            }
+
+            Callable<String> createStringFactory() {
+                return { "hi" }
+            }
+        })
+
+        expect:
+        registry.get(Integer) == 123
+        registry.get(String) == "hi"
+    }
+
     def injectsParentServicesIntoProviderFactoryMethod() {
         def parent = Mock(ServiceRegistry)
         def registry = new DefaultServiceRegistry(parent)
@@ -137,6 +200,26 @@ class DefaultServiceRegistryTest extends Specification {
 
         and:
         1 * parent.get(Number) >> 123
+    }
+
+    def injectsGenericTypesFromParentIntoProviderFactoryMethod() {
+        def parent = new DefaultServiceRegistry() {
+            Callable<String> createStringCallable() {
+                return { "hello" }
+            }
+            Factory<String> createStringFactory() {
+                return { "world" } as Factory
+            }
+        }
+        def registry = new DefaultServiceRegistry(parent)
+        registry.addProvider(new Object() {
+            String createString(Callable<String> callable, Factory<String> factory) {
+                return callable.call() + ' ' + factory.create()
+            }
+        })
+
+        expect:
+        registry.get(String) == 'hello world'
     }
 
     def injectsServiceRegistryIntoProviderFactoryMethod() {
@@ -298,7 +381,7 @@ class DefaultServiceRegistryTest extends Specification {
 
         then:
         ServiceCreationException e = thrown()
-        e.message == "Cannot create service of type Integer using ProviderWithCycle.createInteger() as there is a problem with required service of type String."
+        e.message == "Cannot create service of type Integer using ProviderWithCycle.createInteger() as there is a problem with parameter #1 of type String."
         e.cause.message == 'Cycle in dependencies of service of type String.'
 
         when:
@@ -306,7 +389,7 @@ class DefaultServiceRegistryTest extends Specification {
 
         then:
         e = thrown()
-        e.message == "Cannot create service of type Integer using ProviderWithCycle.createInteger() as there is a problem with required service of type String."
+        e.message == "Cannot create service of type Integer using ProviderWithCycle.createInteger() as there is a problem with parameter #1 of type String."
         e.cause.message == 'Cycle in dependencies of service of type String.'
     }
 
@@ -378,6 +461,7 @@ class DefaultServiceRegistryTest extends Specification {
         then:
         ServiceLookupException e = thrown()
         e.message == TextUtil.toPlatformLineSeparators("""Multiple services of type Object available in DefaultServiceRegistry:
+   - Service Callable<BigDecimal> at TestProvider.createCallable()
    - Service Factory<BigDecimal> at TestProvider.createTestFactory()
    - Service Integer at TestProvider.createInt()
    - Service String at TestProvider.createString()""")
@@ -389,7 +473,7 @@ class DefaultServiceRegistryTest extends Specification {
 
         then:
         ServiceLookupException e = thrown()
-        e.message == "Cannot locate service of array type String[]."
+        e.message == "Locating services with array type is not supported."
     }
 
     def cannotInjectAnArrayType() {
@@ -401,8 +485,8 @@ class DefaultServiceRegistryTest extends Specification {
 
         then:
         ServiceCreationException e = thrown()
-        e.message == "Cannot create service of type Number using UnsupportedInjectionProvider.create() as there is a problem with required service of type String[]."
-        e.cause.message == 'Cannot locate service of array type String[].'
+        e.message == "Cannot create service of type Number using UnsupportedInjectionProvider.create() as there is a problem with parameter #1 of type String[]."
+        e.cause.message == 'Locating services with array type is not supported.'
     }
 
     def usesDecoratorMethodToDecorateParentServiceInstance() {
@@ -504,6 +588,25 @@ class DefaultServiceRegistryTest extends Specification {
         registry.getAll(Number) == [12]
     }
 
+    def canGetAllServicesOfARawType() {
+        def registry = new DefaultServiceRegistry()
+        registry.addProvider(new Object(){
+            String createString() {
+                return "hi"
+            }
+            Factory<String> createFactory() {
+                return {} as Factory
+            }
+            Callable<String> createCallable() {
+                return {}
+            }
+        })
+
+        expect:
+        registry.getAll(Factory).size() == 1
+        registry.getAll(Object).size() == 3
+    }
+
     def allServicesReturnsEmptyCollectionWhenNoServicesOfGivenType() {
         expect:
         registry.getAll(Long).empty
@@ -570,15 +673,6 @@ class DefaultServiceRegistryTest extends Specification {
 
         def extendsNumberFactory = registry.get(extendsNumberFactoryType)
         extendsNumberFactory.create() == BigDecimal.valueOf(2)
-    }
-
-    def cannotGetAFactoryUsingRawFactoryType() {
-        when:
-        registry.get(Factory)
-
-        then:
-        ServiceLookupException e = thrown()
-        e.message == "Cannot locate service of raw type Factory."
     }
 
     def usesAFactoryServiceToCreateInstances() {
@@ -880,6 +974,9 @@ class DefaultServiceRegistryTest extends Specification {
     private interface StringFactory extends Factory<String> {
     }
 
+    private interface GenericRunnable<T> extends Runnable {
+    }
+
     private static class TestRegistry extends DefaultServiceRegistry {
         public TestRegistry() {
         }
@@ -912,6 +1009,10 @@ class DefaultServiceRegistryTest extends Specification {
 
         Factory<BigDecimal> createTestFactory() {
             return new TestFactory()
+        }
+
+        Callable<BigDecimal> createCallable() {
+            return { 12 }
         }
     }
 
