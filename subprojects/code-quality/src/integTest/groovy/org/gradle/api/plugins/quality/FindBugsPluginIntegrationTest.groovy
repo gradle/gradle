@@ -155,16 +155,18 @@ class FindBugsPluginIntegrationTest extends WellBehavedPluginTest {
                 xml.withMessages true
                 html.enabled false
             }
+            findbugsMain.ignoreFailures true
         """
 
         and:
-        goodCode()
+        badCode()
 
         when:
         run "findbugsMain"
 
         then:
         file("build/reports/findbugs/main.xml").exists()
+        containsXmlMessages(file("build/reports/findbugs/main.xml"))
     }
 
     def "can generate no reports"() {
@@ -225,8 +227,6 @@ class FindBugsPluginIntegrationTest extends WellBehavedPluginTest {
         ":findbugsMain" in skippedTasks
 
         when:
-        buildFile.delete()
-        writeBuildFile()
         buildFile << """
             findbugsMain.reports {
                 xml.enabled false
@@ -276,8 +276,6 @@ class FindBugsPluginIntegrationTest extends WellBehavedPluginTest {
         ":findbugsMain" in skippedTasks
 
         when:
-        buildFile.delete()
-        writeBuildFile()
         buildFile << """
             findbugsMain {
                 reports {
@@ -307,13 +305,11 @@ class FindBugsPluginIntegrationTest extends WellBehavedPluginTest {
                     xml.withMessages true
                     html.enabled true
                 }
-
-                ignoreFailures true
             }
         """
 
         and:
-        badCode()
+        goodCode()
 
         when:
         succeeds "findbugsMain"
@@ -321,6 +317,22 @@ class FindBugsPluginIntegrationTest extends WellBehavedPluginTest {
         then:
         !file("build/reports/findbugs/main.xml").exists()
         file("build/reports/findbugs/main.html").exists()
+
+        when:
+        buildFile << """
+            findbugsMain.reports {
+                xml.withMessages false
+            }
+        """
+
+        and:
+        succeeds "findbugsMain"
+
+        then:
+        !file("build/reports/findbugs/main.xml").exists()
+        file("build/reports/findbugs/main.html").exists()
+        !(":findbugsMain" in nonSkippedTasks)
+        ":findbugsMain" in skippedTasks
     }
 
     private boolean containsXmlMessages(File xmlReportFile) {
