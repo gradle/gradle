@@ -169,6 +169,37 @@ task checkDeps << {
         run("checkDeps")
     }
 
+    @Issue("GRADLE-2890")
+    void "selects latest from multiple conflicts"() {
+        mavenRepo.module("org", "child", '1').publish()
+        mavenRepo.module("org", "child", '2').publish()
+        mavenRepo.module("org", "parent", '1').dependsOn("org", "child", "1").publish()
+        mavenRepo.module("org", "parent", '2').dependsOn("org", "child", "2").publish()
+        mavenRepo.module("org", "dep", '2').dependsOn("org", "parent", "2").publish()
+
+        buildFile << """
+repositories {
+    maven { url "${mavenRepo.uri}" }
+}
+configurations {
+    compile
+}
+dependencies {
+    compile 'org:parent:1'
+    compile 'org:child:2'
+    compile 'org:dep:2'
+}
+task checkDeps(dependsOn: configurations.compile) << {
+    assert configurations.compile*.name == ['child-2.jar', 'dep-2.jar', 'parent-2.jar']
+    configurations.compile.resolvedConfiguration.firstLevelModuleDependencies*.name
+    configurations.compile.incoming.resolutionResult.allModuleVersions*.id
+}
+"""
+
+        expect:
+        run("checkDeps")
+    }
+
     void "resolves dynamic dependency before resolving conflict"() {
         mavenRepo.module("org", "external", "1.2").publish()
         mavenRepo.module("org", "external", "1.4").publish()
@@ -563,6 +594,43 @@ task checkDeps(dependsOn: configurations.compile) << {
 
     assert root.dependencies*.selected == [other]
     assert other.dependencies*.selected == [root]
+}
+"""
+
+        expect:
+        run("checkDeps")
+    }
+
+    void "module is required only by selected conflicting version and in turn requires evicted conflicting version"() {
+        /*
+            a2 -> b1 -> c1
+            a1
+            c2
+         */
+        mavenRepo.module("org", "a", "1").publish()
+        mavenRepo.module("org", "a", "2").dependsOn("org", "b", "1").publish()
+        mavenRepo.module("org", "b", "1").dependsOn("org", "c", "1").publish()
+        mavenRepo.module("org", "c", "1").publish()
+        mavenRepo.module("org", "c", "2").publish()
+
+        settingsFile << "rootProject.name= 'test'"
+
+        buildFile << """
+repositories {
+    maven { url "${mavenRepo.uri}" }
+}
+configurations {
+    compile
+}
+dependencies {
+    compile "org:a:2"
+    compile "org:a:1"
+    compile "org:c:2"
+}
+
+task checkDeps(dependsOn: configurations.compile) << {
+    assert configurations.compile*.name == ['a-2.jar', 'c-2.jar', 'b-1.jar']
+    assert configurations.compile.incoming.resolutionResult.allModuleVersions.find { it.id.name == 'b' }.dependencies.size() == 1
 }
 """
 

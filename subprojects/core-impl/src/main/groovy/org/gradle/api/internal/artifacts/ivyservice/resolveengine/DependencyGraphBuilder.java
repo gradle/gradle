@@ -324,10 +324,12 @@ public class DependencyGraphBuilder {
                 targetConfiguration.removeIncomingEdge(this);
             }
             targetConfigurations.clear();
+            if (targetModuleRevision != null) {
+                selector.getSelectedModule().removeUnattachedDependency(this);
+            }
         }
 
         public void restart(ModuleVersionResolveState selected) {
-            selector.restart(selected);
             targetModuleRevision = selected;
             attachToTargetConfigurations();
         }
@@ -519,6 +521,7 @@ public class DependencyGraphBuilder {
         final ModuleIdentifier id;
         final Set<DependencyEdge> unattachedDependencies = new LinkedHashSet<DependencyEdge>();
         final Map<ModuleVersionIdentifier, ModuleVersionResolveState> versions = new LinkedHashMap<ModuleVersionIdentifier, ModuleVersionResolveState>();
+        final Set<ModuleVersionSelectorResolveState> selectors = new HashSet<ModuleVersionSelectorResolveState>();
         final ResolveState resolveState;
         ModuleVersionResolveState selected;
 
@@ -559,6 +562,9 @@ public class DependencyGraphBuilder {
             for (ModuleVersionResolveState version : versions.values()) {
                 version.restart(selected);
             }
+            for (ModuleVersionSelectorResolveState selector : selectors) {
+                selector.restart(selected);
+            }
             for (DependencyEdge dependency : new ArrayList<DependencyEdge>(unattachedDependencies)) {
                 dependency.restart(selected);
             }
@@ -581,6 +587,10 @@ public class DependencyGraphBuilder {
             }
 
             return moduleRevision;
+        }
+
+        public void addSelector(ModuleVersionSelectorResolveState selector) {
+            selectors.add(selector);
         }
     }
 
@@ -920,6 +930,7 @@ public class DependencyGraphBuilder {
             targetModuleRevision.addResolver(this);
             targetModuleRevision.selectionReason = idResolveResult.getSelectionReason();
             targetModule = targetModuleRevision.module;
+            targetModule.addSelector(this);
 
             return targetModuleRevision;
         }
