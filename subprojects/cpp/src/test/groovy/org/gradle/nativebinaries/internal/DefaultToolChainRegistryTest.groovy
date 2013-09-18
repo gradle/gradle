@@ -44,7 +44,6 @@ class DefaultToolChainRegistryTest extends Specification {
 
         then:
         registry.asList() == [defaultToolChain2]
-        registry.availableToolChains == [defaultToolChain2]
     }
 
     def "can add default tool chain when some configured"() {
@@ -62,6 +61,29 @@ class DefaultToolChainRegistryTest extends Specification {
 
         then:
         registry.asList() == [configuredToolChain, defaultToolChain]
+    }
+
+    def "adds unavailable tool chain as default when no tool chain available"() {
+        unavailableToolChain("test", "nope")
+        unavailableToolChain("test2", "not me")
+        unavailableToolChain("test3", "not me either")
+
+        when:
+        registry.registerDefaultToolChain("test", TestToolChain)
+        registry.registerDefaultToolChain("test2", TestToolChain)
+        registry.registerDefaultToolChain("test3", TestToolChain)
+        registry.addDefaultToolChain()
+
+        then:
+        registry.size() == 1
+
+        when:
+        def tc = registry.iterator().next()
+        tc.target(Stub(Platform))
+
+        then:
+        IllegalStateException e = thrown()
+        e.message == "No tool chain is available: [Could not load 'test': nope, Could not load 'test2': not me, Could not load 'test3': not me either]"
     }
 
     def "can use DSL to configure toolchains"() {
@@ -90,8 +112,8 @@ class DefaultToolChainRegistryTest extends Specification {
         registry.asList() == [anotherToolChain, defaultToolChain]
     }
 
-    def "returns all available toolchains from configured in name order"() {
-        unavailableToolChain("test")
+    def "tool chains are returned in name order"() {
+        def test = unavailableToolChain("test")
         def tc2 = availableToolChain("test2")
         def tcFirst = availableToolChain("first")
 
@@ -101,26 +123,7 @@ class DefaultToolChainRegistryTest extends Specification {
         registry.create("first", TestToolChain)
 
         then:
-        registry.availableToolChains == [tcFirst, tc2]
-    }
-
-    def "reports unavailability when no tool chain available"() {
-        unavailableToolChain("test", "nope")
-        unavailableToolChain("test2", "not me")
-        unavailableToolChain("test3", "not me either")
-
-        given:
-        registry.create("test", TestToolChain)
-        registry.create("test2", TestToolChain)
-        registry.create("test3", TestToolChain)
-
-        when:
-        def defaultToolChain = registry.defaultToolChain
-        defaultToolChain.target(Stub(Platform))
-
-        then:
-        IllegalStateException e = thrown()
-        e.message == "No tool chain is available: [Could not load 'test': nope, Could not load 'test2': not me, Could not load 'test3': not me either]"
+        registry.toList() == [tcFirst, test, tc2]
     }
 
     def availableToolChain(String name) {

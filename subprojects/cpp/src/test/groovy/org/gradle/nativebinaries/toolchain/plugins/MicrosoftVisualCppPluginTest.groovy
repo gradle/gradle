@@ -25,15 +25,6 @@ class MicrosoftVisualCppPluginTest extends Specification {
     def project = TestUtil.createRootProject()
 
     @Requires(TestPrecondition.NOT_WINDOWS)
-    def "no default tool chain when not windows"() {
-        when:
-        project.plugins.apply(MicrosoftVisualCppPlugin)
-
-        then:
-        project.toolChains.findByName("visualCpp") == null
-    }
-
-    @Requires(TestPrecondition.NOT_WINDOWS)
     def "installs an unavailable tool chain when not windows"() {
         when:
         project.plugins.apply(MicrosoftVisualCppPlugin)

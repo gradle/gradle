@@ -18,8 +18,6 @@ package org.gradle.nativebinaries;
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Incubating;
 
-import java.util.List;
-
 /**
  * A container for {@link ToolChain}s.
  */
@@ -34,14 +32,4 @@ public interface ToolChainRegistry extends ExtensiblePolymorphicDomainObjectCont
      * Adds the first available default tool chain to the registry.
      */
     void addDefaultToolChain();
-
-    /**
-     * Returns all registered {@link ToolChain}s that are available.
-     */
-    List<? extends ToolChain> getAvailableToolChains();
-
-    /**
-     * Returns the first registered {@link ToolChain} that is available.
-     */
-    ToolChain getDefaultToolChain();
 }

@@ -58,26 +58,6 @@ public class DefaultToolChainRegistry extends DefaultPolymorphicDomainObjectCont
         add(new UnavailableToolChain(messages));
     }
 
-    public List<ToolChainInternal> getAvailableToolChains() {
-        List<ToolChainInternal> availableToolChains = new ArrayList<ToolChainInternal>();
-        List<String> messages = new ArrayList<String>();
-        for (ToolChainInternal toolChain : this.withType(ToolChainInternal.class)) {
-            ToolChainAvailability availability = toolChain.getAvailability();
-            if (availability.isAvailable()) {
-                availableToolChains.add(toolChain);
-            }
-            messages.add(String.format("Could not load '%s': %s", toolChain.getName(), availability.getUnavailableMessage()));
-        }
-        if (availableToolChains.isEmpty()) {
-            availableToolChains.add(new UnavailableToolChain(messages));
-        }
-        return availableToolChains;
-    }
-
-    public ToolChainInternal getDefaultToolChain() {
-        return getAvailableToolChains().get(0);
-    }
-
     private static class UnavailableToolChain implements ToolChainInternal {
         private final List<String> messages;
         private final OperatingSystem operatingSystem = OperatingSystem.current();
