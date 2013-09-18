@@ -46,6 +46,7 @@ Adding a Windows VM to a CI server should be easy and repeatable. The installati
 * OpenJDK 5, 6, 7
 * IBM JDK 5, 6, 7
 * Visual C++ 2010 express
+* Microsoft Windows SDK 7
 * Cygwin
 * MinGW
 
@@ -59,7 +60,7 @@ Adding a Mac OS X VM to a CI server should be easy and repeatable. The installat
 * Oracle JDK 5, 6, 7 (perhaps also 8 developer preview)
 * OpenJDK 5, 6, 7
 * IBM JDK 5, 6, 7
-* TODO: which C++ setup?
+* XCode v4+ with 'Command Line Tools' component
 
 It should be possible to create variations of the installation recipe, e.g. to add VMs that have different software installed.
 
