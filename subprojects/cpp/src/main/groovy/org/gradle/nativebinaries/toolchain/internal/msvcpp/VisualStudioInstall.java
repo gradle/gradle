@@ -26,22 +26,16 @@ import java.util.*;
 public class VisualStudioInstall {
     private final File visualStudioDir;
     private final File visualCppDir;
-    private final File windowsSdkDir;
+    private final WindowsSdk windowsSdk;
 
-    public VisualStudioInstall(File visualStudioDir, File windowsSdkDir) {
+    public VisualStudioInstall(File visualStudioDir, WindowsSdk windowsSdk) {
         this.visualStudioDir = visualStudioDir;
         visualCppDir = new File(visualStudioDir, "VC");
-
-        // TODO:DAZ Should the windows SDK be part of the tool chain? How should we deal with system libraries?
-        this.windowsSdkDir = windowsSdkDir;
+        this.windowsSdk = windowsSdk;
     }
 
     public File getVisualStudioDir() {
         return visualStudioDir;
-    }
-
-    public File getWindowsSdkDir() {
-        return windowsSdkDir;
     }
 
     public void configureTools(ToolRegistry tools, Platform platform) {
@@ -50,10 +44,13 @@ public class VisualStudioInstall {
                 new File(visualStudioDir, "Common7/Tools"),
                 getVisualCppTools(platform),
                 new File(visualCppDir, "VCPackages"),
-                new File(windowsSdkDir, "Bin")
+                windowsSdk.getBinDir()
         ));
         tools.getEnvironment().put("INCLUDE", new File(visualCppDir, "include").getAbsolutePath());
-        tools.getEnvironment().put("LIB", getSystemStubs(platform));
+        tools.getEnvironment().put("LIB",
+                getVisualCppLibs(platform).getAbsolutePath()
+                + File.pathSeparator
+                + windowsSdk.getLibDir(platform).getAbsolutePath());
 
         configureAssembler(tools, platform);
     }
@@ -67,16 +64,12 @@ public class VisualStudioInstall {
         }
     }
 
-    private String getSystemStubs(Platform platform) {
+    private File getVisualCppLibs(Platform platform) {
         switch (platform.getArchitecture()) {
             case AMD64:
-                return new File(visualCppDir, "lib/amd64").getAbsolutePath()
-                        + File.pathSeparator
-                        + new File(windowsSdkDir, "lib/x64").getAbsolutePath();
+                return new File(visualCppDir, "lib/amd64");
             default:
-                return new File(visualCppDir, "lib").getAbsolutePath()
-                        + File.pathSeparator
-                        + new File(windowsSdkDir, "lib").getAbsolutePath();
+                return new File(visualCppDir, "lib");
         }
     }
 

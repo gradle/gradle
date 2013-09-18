@@ -18,32 +18,8 @@ package org.gradle.nativebinaries.toolchain.internal.msvcpp;
 
 import java.io.File;
 
-public class VisualStudioLocation {
-    private final File installDir;
-    private final File visualStudioDir;
-    private final File windowsSdkDir;
-
-    public static VisualStudioLocation findByCandidate(File candidate) {
-        return new VisualStudioLocation(candidate);
-    }
-
-    public static VisualStudioLocation findDefault() {
-        return new VisualStudioLocation();
-    }
-
-    private VisualStudioLocation(File candidate) {
-        installDir = candidate;
-        visualStudioDir = locateVisualStudio(candidate);
-        windowsSdkDir = locateWindowsSdk(visualStudioDir);
-    }
-
-    private VisualStudioLocation() {
-        installDir = null;
-        visualStudioDir = locateDefaultVisualStudio();
-        windowsSdkDir = locateWindowsSdk(visualStudioDir);
-    }
-
-    private File locateVisualStudio(File candidate) {
+public class VisualStudioLocator {
+    public File locateVisualStudio(File candidate) {
         while (candidate != null) {
             if (isVisualStudio(candidate)) {
                 return candidate;
@@ -53,7 +29,7 @@ public class VisualStudioLocation {
         return null;
     }
 
-    private File locateDefaultVisualStudio() {
+    public File locateDefaultVisualStudio() {
         // TODO:DAZ Iterate over all local drives?
         String[] candidateLocations = new String[] {
                 "C:/Program Files (x86)/Microsoft Visual Studio 10.0",
@@ -72,18 +48,11 @@ public class VisualStudioLocation {
         return new File(candidate, "VC/bin/cl.exe").isFile();
     }
 
-    private File locateWindowsSdk(File visualStudioDir) {
-        if (visualStudioDir == null) {
-            return null;
-        }
-        // Locate Windows SDK relative to VisualStudio install, as well as in standard locations
+    public File locateWindowsSdk() {
         // TODO:DAZ Iterate over all local drives?
-        String visualStudioPrograms = visualStudioDir.getParent();
         String[] candidateLocations = new String[] {
-                visualStudioPrograms + "/Microsoft SDKs/Windows/v7.1",
                 "C:/Program Files (x86)/Microsoft SDKs/Windows/v7.1",
                 "C:/Program Files/Microsoft SDKs/Windows/v7.1",
-                visualStudioPrograms + "/Microsoft SDKs/Windows/v7.0A",
                 "C:/Program Files (x86)/Microsoft SDKs/Windows/v7.0A",
                 "C:/Program Files/Microsoft SDKs/Windows/v7.0A",
         };
@@ -98,21 +67,5 @@ public class VisualStudioLocation {
 
     private boolean isWindowsSdk(File candidate) {
         return new File(candidate, "bin/rc.exe").isFile();
-    }
-
-    public File getInstallDir() {
-        return installDir;
-    }
-
-    public File getVisualStudioDir() {
-        return visualStudioDir;
-    }
-
-    public File getWindowsSdkDir() {
-        return windowsSdkDir;
-    }
-
-    public boolean isFound() {
-        return visualStudioDir != null;
     }
 }

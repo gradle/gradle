@@ -40,7 +40,7 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
     public static final String DEFAULT_NAME = "visualCpp";
 
     private final Factory<ExecAction> execActionFactory;
-
+    private final VisualStudioLocator visualStudioLocator = new VisualStudioLocator();
     private File installDir;
 
     public VisualCppToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, Factory<ExecAction> execActionFactory) {
@@ -66,9 +66,8 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
             return;
         }
         if (installDir != null) {
-            VisualStudioLocation visualStudio = VisualStudioLocation.findByCandidate(installDir);
-            availability.mustExist("Visual Studio installation", visualStudio.getVisualStudioDir());
-            availability.mustExist("Windows SDK", visualStudio.getWindowsSdkDir());
+            availability.mustExist("Visual Studio installation", visualStudioLocator.locateVisualStudio(installDir));
+            availability.mustExist("Windows SDK", visualStudioLocator.locateWindowsSdk());
         } else {
             // Locate tools in the path
             for (ToolType key : ToolType.values()) {
@@ -88,6 +87,8 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
     public PlatformToolChain target(Platform targetPlatform) {
         checkAvailable();
 
+        // TODO:DAZ This is a mess. Need to decide on a good behaviour that honours current environment if required, but isn't inconsistent.
+
         if (installDir == null && targetPlatform.getArchitecture() == Platform.Architecture.TOOL_CHAIN_DEFAULT) {
             // Just build with whatever is in the path
             return new VisualCppPlatformToolChain();
@@ -95,13 +96,17 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
 
         // We either have an installDir specified, or we have a CPP compiler in the path
         File cppExe = tools.locate(ToolType.CPP_COMPILER);
-        VisualStudioLocation vsLocation = VisualStudioLocation.findByCandidate(GUtil.elvis(installDir, cppExe));
-        if (!vsLocation.isFound()) {
+        File visualStudioDir = visualStudioLocator.locateVisualStudio(GUtil.elvis(installDir, cppExe));
+        if (visualStudioDir == null) {
             throw new IllegalStateException("Could not find visual studio install, so cannot target platform " + targetPlatform.getArchitecture());
+        }
+        File windowsSdkDir = visualStudioLocator.locateWindowsSdk();
+        if (windowsSdkDir == null) {
+            throw new IllegalStateException("Could not find Windows SDK, so cannot target platform " + targetPlatform.getArchitecture());
         }
 
         // TODO:DAZ Definitely shouldn't overwrite the tools here
-        VisualStudioInstall install = new VisualStudioInstall(vsLocation.getVisualStudioDir(), vsLocation.getWindowsSdkDir());
+        VisualStudioInstall install = new VisualStudioInstall(visualStudioDir, new WindowsSdk(windowsSdkDir));
         install.configureTools(tools, targetPlatform);
         return new VisualCppPlatformToolChain();
     }
