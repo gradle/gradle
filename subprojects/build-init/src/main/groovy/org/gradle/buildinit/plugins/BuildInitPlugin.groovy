@@ -21,7 +21,6 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.internal.DocumentationRegistry
-import org.gradle.api.internal.artifacts.DependencyManagementServices
 import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.buildinit.plugins.internal.ProjectLayoutSetupRegistry
@@ -40,10 +39,10 @@ class BuildInitPlugin implements Plugin<Project> {
     private final FileResolver fileResolver
 
     @Inject
-    BuildInitPlugin(DependencyManagementServices dependencyManagementServices, DocumentationRegistry documentationRegistry, FileResolver fileResolver) {
+    BuildInitPlugin(MavenSettingsProvider mavenSettingsProvider, DocumentationRegistry documentationRegistry, FileResolver fileResolver) {
         this.fileResolver = fileResolver
         this.documentationRegistry = documentationRegistry
-        this.mavenSettingsProvider = dependencyManagementServices.get(MavenSettingsProvider)
+        this.mavenSettingsProvider = mavenSettingsProvider
     }
 
     void apply(Project project) {
