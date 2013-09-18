@@ -386,7 +386,6 @@ Note that this story does not include support for including the transitive depen
 - Install and run an executable that:
     - Uses a mix of static and shared libraries.
     - Uses a mix of libraries from the same project, same build and from different builds.
-    - Use a (static, shared) library that depends on another (static, shared) library.
     - In each case, verify that only shared libraries are included in the install image.
     - In each case, remove the original binaries before running the install image.
 - A dependency on a binary overrides a dependency on the library that produced the binary.
@@ -407,11 +406,6 @@ Note that this story does not include support for including the transitive depen
 - Merge `CppSourceSet.lib()` and `CppSourceSet.dependency()`.
 - Allow a `Binary` to be attached to a publication.
 - Update publication so that a binary's include, link and runtime files are published.
-- Need to be able to deal with the fact that only position-independent binaries can be linked into position-independent binaries
-    - Make it possible to build a position-independent variant of a static library binary
-    - Add the '-fPIC' flag when compiling to ensure that the static library can be included in a shared library
-    - Change dependency resolution to choose the position-indepenent variant of a static library when linking into a shared library
-
 
 ## Open issues
 
@@ -446,6 +440,10 @@ are created automatically for each component.
 ### Test cases
 
 - Programmatically create the functional source set prior to adding the matching component.
+
+### Open issues
+
+- Make it easy to _not_ have this convention applied when the naming scheme is different
 
 ## Story: Build different variants of a native component
 
@@ -720,9 +718,20 @@ Given a library `a` that uses another library `b` as input:
     - Configure a binary completely before defining tasks for it.
     - Configure a component completely before defining tasks for it.
 
+### Test cases
+
+- Install and run an executable that:
+    - Use a (static, shared) library that depends on another (static, shared) library.
+    - In each case, verify that only shared libraries are included in the install image.
+    - In each case, remove the original binaries before running the install image.
+
 ### Open issues
 
 - Need to apply conflict resolution as we can't include the static and shared binaries for a given library at link time.
+- Need to be able to deal with the fact that only position-independent binaries can be linked into position-independent binaries
+    - Make it possible to build a position-independent variant of a static library binary
+    - Add the '-fPIC' flag when compiling to ensure that the static library can be included in a shared library
+    - Change dependency resolution to choose the position-indepenent variant of a static library when linking into a shared library
 
 ## Story: Simplify configuration of a binary based on its properties
 
