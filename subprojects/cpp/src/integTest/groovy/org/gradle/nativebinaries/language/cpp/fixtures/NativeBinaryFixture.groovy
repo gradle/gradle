@@ -64,4 +64,9 @@ class NativeBinaryFixture {
     private TestFile getDebugFile() {
         return file.withExtension("pdb")
     }
+
+    boolean assertExistsAndDelete() {
+        assertExists()
+        file.delete()
+    }
 }
