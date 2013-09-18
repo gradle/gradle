@@ -20,31 +20,17 @@ import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
+import org.gradle.api.internal.artifacts.dsl.DefaultComponentMetadataHandler
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
-import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager
-import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager
-import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache.InMemoryDependencyMetadataCache
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher
-import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetaDataCache
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.PublishModuleDescriptorConverter
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy
-import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator
-import org.gradle.api.internal.externalresource.cached.ByUrlCachedExternalResourceIndex
-import org.gradle.api.internal.externalresource.ivy.ArtifactAtRepositoryCachedArtifactIndex
-import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.filestore.ivy.ArtifactRevisionIdFileStore
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.listener.ListenerManager
-import org.gradle.logging.ProgressLoggerFactory
-import org.gradle.util.BuildCommencedTimeProvider
 import spock.lang.Specification
+
+import java.lang.reflect.ParameterizedType
 
 class DefaultDependencyManagementServicesTest extends Specification {
     final ServiceRegistry parent = Mock()
@@ -60,26 +46,11 @@ class DefaultDependencyManagementServicesTest extends Specification {
     final DefaultDependencyManagementServices services = new DefaultDependencyManagementServices(parent)
 
     def setup() {
-        _ * parent.get(ProgressLoggerFactory) >> Stub(ProgressLoggerFactory)
         _ * parent.get(Instantiator) >> instantiator
         _ * parent.get(StartParameter) >> startParameter
         _ * parent.get(ListenerManager) >> listenerManager
-        _ * parent.get(IvyContextManager) >> Stub(IvyContextManager)
-        _ * parent.get(CacheLockingManager) >> Stub(CacheLockingManager)
-        _ * parent.get(ArtifactRevisionIdFileStore) >> Stub(ArtifactRevisionIdFileStore)
-        _ * parent.get(ModuleResolutionCache) >> Stub(ModuleResolutionCache)
-        _ * parent.get(ModuleMetaDataCache) >> Stub(ModuleMetaDataCache)
-        _ * parent.get(ArtifactAtRepositoryCachedArtifactIndex) >> Stub(ArtifactAtRepositoryCachedArtifactIndex)
-        _ * parent.get(BuildCommencedTimeProvider) >> Stub(BuildCommencedTimeProvider)
-        _ * parent.get(InMemoryDependencyMetadataCache) >> Stub(InMemoryDependencyMetadataCache)
-        _ * parent.get(ByUrlCachedExternalResourceIndex) >> Stub(ByUrlCachedExternalResourceIndex)
-        _ * parent.get(PublishModuleDescriptorConverter) >> Stub(PublishModuleDescriptorConverter)
-        _ * parent.get(DependencyFactory) >> Stub(DependencyFactory)
-        _ * parent.get(LocalMavenRepositoryLocator) >> Stub(LocalMavenRepositoryLocator)
-        _ * parent.get(LocallyAvailableResourceFinder) >> Stub(LocallyAvailableResourceFinder)
-        _ * parent.get(VersionMatcher) >> Stub(VersionMatcher)
-        _ * parent.get(LatestStrategy) >> Stub(LatestStrategy)
-        _ * parent.get(ResolverStrategy) >> Stub(ResolverStrategy)
+        _ * parent.get({it instanceof Class}) >> { Class t -> Stub(t) }
+        _ * parent.get({it instanceof ParameterizedType}) >> { ParameterizedType t -> Stub(t.rawType) }
     }
 
     def "can create dependency resolution services"() {
@@ -87,6 +58,7 @@ class DefaultDependencyManagementServicesTest extends Specification {
         1 * instantiator.newInstance(DefaultRepositoryHandler, _, _) >> repositoryHandler
         1 * instantiator.newInstance(DefaultConfigurationContainer, !null, instantiator,
                 domainObjectContext, listenerManager, dependencyMetaDataProvider) >> configurationContainer
+        1 * instantiator.newInstance(DefaultComponentMetadataHandler, _) >> Stub(DefaultComponentMetadataHandler)
         def strategy = new DefaultResolutionStrategy()
         instantiator.newInstance(DefaultResolutionStrategy) >> strategy
 
@@ -107,21 +79,25 @@ class DefaultDependencyManagementServicesTest extends Specification {
         given:
         _ * parent.get(Instantiator) >> instantiator
         _ * instantiator.newInstance(DefaultRepositoryHandler, _, _) >> publishRepositoryHandler
+        _ * instantiator.newInstance(DefaultComponentMetadataHandler, _) >> Stub(DefaultComponentMetadataHandler)
 
         when:
         def resolutionServices = services.create(fileResolver, dependencyMetaDataProvider, projectFinder, domainObjectContext)
-        def publishResolverHandler = resolutionServices.createArtifactPublicationServices().createRepositoryHandler()
+        def publishServices = resolutionServices.createArtifactPublicationServices()
 
         then:
+        def publishResolverHandler = publishServices.createRepositoryHandler()
         publishResolverHandler == publishRepositoryHandler
     }
 
     def "publish services provide an ArtifactPublisher"() {
         when:
         def resolutionServices = services.create(fileResolver, dependencyMetaDataProvider, projectFinder, domainObjectContext)
-        def ivyService = resolutionServices.createArtifactPublicationServices().createArtifactPublisher()
+        def publishServices = resolutionServices.createArtifactPublicationServices()
 
         then:
+        def ivyService = publishServices.createArtifactPublisher()
         ivyService != null
+        ivyService != publishServices.createArtifactPublisher()
     }
 }
