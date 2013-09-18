@@ -64,6 +64,7 @@ class BinaryPlatformIntegrationTest extends AbstractIntegrationSpec {
         """
 
         and:
+        executer.withArgument("--debug")
         succeeds "installX86MainExecutable", "installX86_64MainExecutable"
 
         then:
