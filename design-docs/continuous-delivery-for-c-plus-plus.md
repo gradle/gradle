@@ -390,23 +390,6 @@ Note that this story does not include support for including the transitive depen
     - In each case, remove the original binaries before running the install image.
 - A dependency on a binary overrides a dependency on the library that produced the binary.
 
-### Open issues
-
-- Need a new name for `NativeDependencySet`.
-- Need some way to convert a `NativeDependencySet` to a read-only library.
-- Need to apply a lifecycle to the resolved libs of `CppSourceSet` and `NativeBinary`.
-- Improve consumption of libraries from other projects.
-- Some mechanism to use the static binary as default for a library.
-- Some mechanism to select static or dynamic linkage for each dependency of a binary.
-- Infer incoming libraries from component dependencies.
-- Samples that demonstrates how to link a static library into an executable.
-- Move Component and Binary interfaces to new packages.
-- Add some way to create ad hoc `NativeDependencySet` instances, for example, a library produced by another build tool.
-- Need to be able to fine-tune compile time, link time and runtime inputs.
-- Merge `CppSourceSet.lib()` and `CppSourceSet.dependency()`.
-- Allow a `Binary` to be attached to a publication.
-- Update publication so that a binary's include, link and runtime files are published.
-
 ## Open issues
 
 ### Language plugins
@@ -732,6 +715,20 @@ Given a library `a` that uses another library `b` as input:
     - Make it possible to build a position-independent variant of a static library binary
     - Add the '-fPIC' flag when compiling to ensure that the static library can be included in a shared library
     - Change dependency resolution to choose the position-indepenent variant of a static library when linking into a shared library
+- Need a new name for `NativeDependencySet`.
+- Need some way to convert a `NativeDependencySet` to a read-only library.
+- Need to apply a lifecycle to the resolved libs of `CppSourceSet` and `NativeBinary`.
+- Improve consumption of libraries from other projects.
+- Some mechanism to use the static binary as default for a library.
+- Some mechanism to select static or dynamic linkage for each dependency of a binary.
+- Infer incoming libraries from component dependencies.
+- Samples that demonstrates how to link a static library into an executable.
+- Move Component and Binary interfaces to new packages.
+- Add some way to create ad hoc `NativeDependencySet` instances, for example, a library produced by another build tool.
+- Need to be able to fine-tune compile time, link time and runtime inputs.
+- Merge `CppSourceSet.lib()` and `CppSourceSet.dependency()`.
+- Allow a `Binary` to be attached to a publication.
+- Update publication so that a binary's include, link and runtime files are published.
 
 ## Story: Simplify configuration of a binary based on its properties
 
