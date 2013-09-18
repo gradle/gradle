@@ -65,7 +65,7 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider {
             classpath = classpath.plus(moduleRegistry.getExternalModule("logback-classic").getClasspath());
             classpath = classpath.plus(moduleRegistry.getExternalModule("logback-core").getClasspath());
             classpath = classpath.plus(moduleRegistry.getExternalModule("jul-to-slf4j").getClasspath());
-            classpath = classpath.plus(moduleRegistry.getExternalModule("guava").getClasspath());
+            classpath = classpath.plus(moduleRegistry.getExternalModule("guava-jdk5").getClasspath());
             return classpath;
         }
         if (name.equals("WORKER_MAIN")) {

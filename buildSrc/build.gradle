@@ -27,7 +27,7 @@ repositories {
 
 dependencies {
     compile gradleApi()
-    compile 'com.google.guava:guava:11.0.2@jar'
+    compile 'com.google.guava:guava-jdk5:14.0.1@jar'
     compile 'commons-lang:commons-lang:2.6@jar'
     compile localGroovy()
     testCompile 'junit:junit:4.11@jar'
