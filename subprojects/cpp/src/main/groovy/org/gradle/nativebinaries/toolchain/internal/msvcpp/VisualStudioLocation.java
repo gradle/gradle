@@ -81,9 +81,9 @@ public class VisualStudioLocation {
         String visualStudioPrograms = visualStudioDir.getParent();
         String[] candidateLocations = new String[] {
                 visualStudioPrograms + "/Microsoft SDKs/Windows/v7.1",
-                visualStudioPrograms + "/Microsoft SDKs/Windows/v7.0A",
                 "C:/Program Files (x86)/Microsoft SDKs/Windows/v7.1",
                 "C:/Program Files/Microsoft SDKs/Windows/v7.1",
+                visualStudioPrograms + "/Microsoft SDKs/Windows/v7.0A",
                 "C:/Program Files (x86)/Microsoft SDKs/Windows/v7.0A",
                 "C:/Program Files/Microsoft SDKs/Windows/v7.0A",
         };
