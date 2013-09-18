@@ -54,11 +54,10 @@ public class VisualStudioLocation {
     }
 
     private File locateDefaultVisualStudio() {
+        // TODO:DAZ Iterate over all local drives?
         String[] candidateLocations = new String[] {
                 "C:/Program Files (x86)/Microsoft Visual Studio 10.0",
                 "C:/Program Files/Microsoft Visual Studio 10.0",
-                "D:/Program Files (x86)/Microsoft Visual Studio 10.0",
-                "D:/Program Files/Microsoft Visual Studio 10.0"
         };
         for (String candidateLocation : candidateLocations) {
             File candidate = new File(candidateLocation);
@@ -77,12 +76,28 @@ public class VisualStudioLocation {
         if (visualStudioDir == null) {
             return null;
         }
-        File programFiles = visualStudioDir.getParentFile();
-        File winsdk71 = new File(programFiles, "Microsoft SDKs/Windows/v7.1");
-        if (winsdk71.isDirectory()) {
-            return winsdk71;
+        // Locate Windows SDK relative to VisualStudio install, as well as in standard locations
+        // TODO:DAZ Iterate over all local drives?
+        String visualStudioPrograms = visualStudioDir.getParent();
+        String[] candidateLocations = new String[] {
+                visualStudioPrograms + "/Microsoft SDKs/Windows/v7.1",
+                visualStudioPrograms + "/Microsoft SDKs/Windows/v7.0A",
+                "C:/Program Files (x86)/Microsoft SDKs/Windows/v7.1",
+                "C:/Program Files/Microsoft SDKs/Windows/v7.1",
+                "C:/Program Files (x86)/Microsoft SDKs/Windows/v7.0A",
+                "C:/Program Files/Microsoft SDKs/Windows/v7.0A",
+        };
+        for (String candidateLocation : candidateLocations) {
+            File candidate = new File(candidateLocation);
+            if (isWindowsSdk(candidate)) {
+                return candidate;
+            }
         }
-        return new File(programFiles, "Microsoft SDKs/Windows/v7.0A");
+        return null;
+    }
+
+    private boolean isWindowsSdk(File candidate) {
+        return new File(candidate, "bin/rc.exe").isFile();
     }
 
     public File getInstallDir() {
