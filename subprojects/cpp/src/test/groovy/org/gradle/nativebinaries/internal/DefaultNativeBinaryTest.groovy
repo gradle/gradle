@@ -32,6 +32,9 @@ class DefaultNativeBinaryTest extends Specification {
     def platform1 = Stub(Platform) {
         getArchitecture() >> Platform.Architecture.AMD64
     }
+    def buildType1 = Stub(BuildType) {
+        getName() >> "BuildType1"
+    }
 
     def "binary uses source from its owner component"() {
         given:
@@ -79,6 +82,7 @@ class DefaultNativeBinaryTest extends Specification {
         resolver.withFlavor(flavor1) >> resolver
         resolver.withToolChain(toolChain1) >> resolver
         resolver.withPlatform(platform1) >> resolver
+        resolver.withBuildType(buildType1) >> resolver
         resolver.resolve() >> dependency
 
         when:
@@ -118,13 +122,13 @@ class DefaultNativeBinaryTest extends Specification {
     }
 
     def testBinary(NativeComponent owner, Flavor flavor = Flavor.DEFAULT) {
-        return new TestBinary(owner, flavor, toolChain1, platform1, new DefaultBinaryNamingScheme("baseName"))
+        return new TestBinary(owner, flavor, toolChain1, platform1, buildType1, new DefaultBinaryNamingScheme("baseName"))
     }
 
     class TestBinary extends DefaultNativeBinary {
         def owner
-        TestBinary(NativeComponent owner, Flavor flavor, ToolChainInternal toolChain, Platform targetPlatform, DefaultBinaryNamingScheme namingScheme) {
-            super(owner, flavor, toolChain, targetPlatform, namingScheme)
+        TestBinary(NativeComponent owner, Flavor flavor, ToolChainInternal toolChain, Platform targetPlatform, BuildType buildType, DefaultBinaryNamingScheme namingScheme) {
+            super(owner, flavor, toolChain, targetPlatform, buildType, namingScheme)
             this.owner = owner
         }
 

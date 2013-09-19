@@ -54,6 +54,7 @@ public class ResolvableNativeDependencySet {
                     .withFlavor(target.getFlavor())
                     .withToolChain(target.getToolChain())
                     .withPlatform(target.getTargetPlatform())
+                    .withBuildType(target.getBuildType())
                     .resolve();
         }
         if (lib instanceof LibraryResolver) {

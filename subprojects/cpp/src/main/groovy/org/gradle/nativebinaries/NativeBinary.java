@@ -71,9 +71,14 @@ public interface NativeBinary extends Binary {
     ToolChain getToolChain();
 
     /**
-     * Returns the {@link ToolChain} that will be used to build this binary.
+     * Returns the {@link Platform} that this binary is targeted to run on.
      */
     Platform getTargetPlatform();
+
+    /**
+     * Returns the {@link BuildType} used to construct this binary.
+     */
+    BuildType getBuildType();
 
     /**
      * The libraries that should be linked into this binary.

@@ -31,8 +31,8 @@ import java.util.Set;
 public class DefaultSharedLibraryBinary extends DefaultNativeBinary implements SharedLibraryBinary {
     private final Library library;
 
-    public DefaultSharedLibraryBinary(Library library, Flavor flavor, ToolChainInternal toolChain, Platform platform, DefaultBinaryNamingScheme namingScheme) {
-        super(library, flavor, toolChain, platform, namingScheme.withTypeString("SharedLibrary"));
+    public DefaultSharedLibraryBinary(Library library, Flavor flavor, ToolChainInternal toolChain, Platform platform, BuildType buildType, DefaultBinaryNamingScheme namingScheme) {
+        super(library, flavor, toolChain, platform, buildType, namingScheme.withTypeString("SharedLibrary"));
         this.library = library;
     }
 

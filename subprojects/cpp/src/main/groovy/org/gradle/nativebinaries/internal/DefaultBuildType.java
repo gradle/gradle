@@ -13,19 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.nativebinaries.internal;
 
-import org.gradle.nativebinaries.*;
+import org.gradle.nativebinaries.BuildType;
 
-public interface ContextualLibraryResolver extends LibraryResolver {
-    ContextualLibraryResolver withType(Class<? extends LibraryBinary> type);
+public class DefaultBuildType implements BuildType {
+    private final String name;
+    private boolean debug;
 
-    ContextualLibraryResolver withFlavor(Flavor flavor);
+    public DefaultBuildType(String name) {
+        this.name = name;
+    }
 
-    ContextualLibraryResolver withToolChain(ToolChain toolChain);
+    public String getName() {
+        return name;
+    }
 
-    ContextualLibraryResolver withPlatform(Platform platform);
+    public boolean isDebug() {
+        return debug;
+    }
 
-    ContextualLibraryResolver withBuildType(BuildType buildType);
+    public void setDebug(boolean debug) {
+        this.debug = debug;
+    }
 }

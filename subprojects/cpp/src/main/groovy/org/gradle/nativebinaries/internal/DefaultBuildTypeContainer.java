@@ -16,16 +16,18 @@
 
 package org.gradle.nativebinaries.internal;
 
-import org.gradle.nativebinaries.*;
+import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
+import org.gradle.internal.reflect.Instantiator;
+import org.gradle.nativebinaries.BuildType;
+import org.gradle.nativebinaries.BuildTypeContainer;
 
-public interface ContextualLibraryResolver extends LibraryResolver {
-    ContextualLibraryResolver withType(Class<? extends LibraryBinary> type);
+public class DefaultBuildTypeContainer extends AbstractNamedDomainObjectContainer<BuildType> implements BuildTypeContainer {
+    public DefaultBuildTypeContainer(Instantiator instantiator) {
+        super(BuildType.class, instantiator);
+    }
 
-    ContextualLibraryResolver withFlavor(Flavor flavor);
-
-    ContextualLibraryResolver withToolChain(ToolChain toolChain);
-
-    ContextualLibraryResolver withPlatform(Platform platform);
-
-    ContextualLibraryResolver withBuildType(BuildType buildType);
+    @Override
+    protected BuildType doCreate(String name) {
+        return getInstantiator().newInstance(DefaultBuildType.class, name);
+    }
 }

@@ -637,8 +637,7 @@ Standard build types (debug/release) and build type compatibility will be handle
     - With a single defined (or default) build type, the binary task names and output directories will NOT contain the build type.
     - With multiple defined build types, task names and output directories for each variant will include the build type.
 - When resolving the dependencies of a binary `b`, for a dependency on library `l`:
-    - Prefer a binary for library `l` that has a build type with a matching name.
-    - Otherwise, select a library `l` that has a build type with a matching `debug` flag.
+    - Select a binary for library `l` that has a build type with a matching name.
 
 ## Story: Automatically specify standard debug and release flags for build type
 
@@ -646,6 +645,9 @@ Standard build types (debug/release) and build type compatibility will be handle
 - Visual C++ should
     - Compile sources for `debug` build types with `/Zi /DDEBUG` and non-debug build types with `/DNDEBUG`.
     - Link binaries for `debug` build types with `/DEBUG` and non-debug build types with `/RELEASE`.
+- When resolving the dependencies of a binary `b`, for a dependency on library `l`:
+    - Prefer a binary for library `l` that has a build type with a matching name.
+    - Otherwise, select a library `l` that has a build type with a matching `debug` flag.
 
 ## Story: Cross-compile for multiple operating systems
 

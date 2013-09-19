@@ -17,6 +17,7 @@
 package org.gradle.nativebinaries.internal.configure
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.nativebinaries.BuildType
 import org.gradle.nativebinaries.Flavor
 import org.gradle.nativebinaries.Platform
 import org.gradle.nativebinaries.internal.DefaultExecutable
@@ -30,6 +31,7 @@ class NativeBinaryFactoryTest extends Specification {
 
     def toolChain = Mock(ToolChainInternal)
     def platform = Mock(Platform)
+    def buildType = Mock(BuildType)
 
     def flavor1 = new DefaultFlavor("flavor1")
     def component = new DefaultExecutable("name", new DirectInstantiator())
@@ -40,8 +42,8 @@ class NativeBinaryFactoryTest extends Specification {
         component.flavors.add(flavor1)
 
         and:
-        def factory = new NativeBinaryFactory(new DirectInstantiator(), project, [], [])
-        def binary = factory.createNativeBinary(DefaultExecutableBinary, component, toolChain, platform, flavor1)
+        def factory = new NativeBinaryFactory(new DirectInstantiator(), project, [], [], [])
+        def binary = factory.createNativeBinary(DefaultExecutableBinary, component, toolChain, platform, buildType, flavor1)
 
         then:
         binary.namingScheme.lifecycleTaskName == 'nameExecutable'
@@ -56,8 +58,8 @@ class NativeBinaryFactoryTest extends Specification {
         component.flavors.add(flavor1)
 
         and:
-        def factory = new NativeBinaryFactory(new DirectInstantiator(), project, [], [])
-        def binary = factory.createNativeBinary(DefaultExecutableBinary, component, toolChain, platform, flavor1)
+        def factory = new NativeBinaryFactory(new DirectInstantiator(), project, [], [], [])
+        def binary = factory.createNativeBinary(DefaultExecutableBinary, component, toolChain, platform, buildType, flavor1)
 
         then:
         binary.namingScheme.lifecycleTaskName == 'flavor1NameExecutable'
@@ -77,8 +79,8 @@ class NativeBinaryFactoryTest extends Specification {
         }
 
         and:
-        def factory = new NativeBinaryFactory(new DirectInstantiator(), project, [toolChain, toolChain2], [])
-        def binary = factory.createNativeBinary(DefaultExecutableBinary, component, toolChain2, platform, flavor1)
+        def factory = new NativeBinaryFactory(new DirectInstantiator(), project, [toolChain, toolChain2], [], [])
+        def binary = factory.createNativeBinary(DefaultExecutableBinary, component, toolChain2, platform, buildType, flavor1)
 
         then:
         binary.namingScheme.lifecycleTaskName == 'toolChain2Flavor1NameExecutable'
@@ -98,13 +100,34 @@ class NativeBinaryFactoryTest extends Specification {
         }
 
         and:
-        def factory = new NativeBinaryFactory(new DirectInstantiator(), project, [], [platform, platform2])
-        def binary = factory.createNativeBinary(DefaultExecutableBinary, component, toolChain, platform2, flavor1)
+        def factory = new NativeBinaryFactory(new DirectInstantiator(), project, [], [platform, platform2], [])
+        def binary = factory.createNativeBinary(DefaultExecutableBinary, component, toolChain, platform2, buildType, flavor1)
 
         then:
         binary.namingScheme.lifecycleTaskName == 'platform2Flavor1NameExecutable'
         binary.namingScheme.outputDirectoryBase == 'nameExecutable/platform2Flavor1'
         binary.namingScheme.getTaskName("link") == 'linkPlatform2Flavor1NameExecutable'
         binary.namingScheme.getTaskName("compile", "cpp") == 'compilePlatform2Flavor1NameExecutableCpp'
+    }
+
+    def "includes buildType in names when targeting multiple build types"() {
+        when:
+        component.flavors.add(Flavor.DEFAULT)
+        component.flavors.add(flavor1)
+
+        and:
+        def buildType2 = Stub(BuildType) {
+            getName() >> "buildType2"
+        }
+
+        and:
+        def factory = new NativeBinaryFactory(new DirectInstantiator(), project, [], [platform], [buildType, buildType2])
+        def binary = factory.createNativeBinary(DefaultExecutableBinary, component, toolChain, platform, buildType2, flavor1)
+
+        then:
+        binary.namingScheme.lifecycleTaskName == 'buildType2Flavor1NameExecutable'
+        binary.namingScheme.outputDirectoryBase == 'nameExecutable/buildType2Flavor1'
+        binary.namingScheme.getTaskName("link") == 'linkBuildType2Flavor1NameExecutable'
+        binary.namingScheme.getTaskName("compile", "cpp") == 'compileBuildType2Flavor1NameExecutableCpp'
     }
 }

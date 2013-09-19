@@ -14,18 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries.internal;
+package org.gradle.nativebinaries;
 
-import org.gradle.nativebinaries.*;
+import org.gradle.api.NamedDomainObjectSet;
 
-public interface ContextualLibraryResolver extends LibraryResolver {
-    ContextualLibraryResolver withType(Class<? extends LibraryBinary> type);
-
-    ContextualLibraryResolver withFlavor(Flavor flavor);
-
-    ContextualLibraryResolver withToolChain(ToolChain toolChain);
-
-    ContextualLibraryResolver withPlatform(Platform platform);
-
-    ContextualLibraryResolver withBuildType(BuildType buildType);
+/**
+ * A container of native executables.
+ */
+public interface BuildTypeContainer extends NamedDomainObjectSet<BuildType> {
 }

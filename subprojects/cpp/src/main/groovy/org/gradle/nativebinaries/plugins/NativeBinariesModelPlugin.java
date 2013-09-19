@@ -24,14 +24,8 @@ import org.gradle.api.plugins.BasePlugin;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.plugins.LanguageBasePlugin;
-import org.gradle.nativebinaries.internal.DefaultExecutableContainer;
-import org.gradle.nativebinaries.internal.DefaultLibraryContainer;
-import org.gradle.nativebinaries.internal.DefaultPlatformContainer;
-import org.gradle.nativebinaries.internal.DefaultToolChainRegistry;
-import org.gradle.nativebinaries.internal.configure.CreateDefaultFlavors;
-import org.gradle.nativebinaries.internal.configure.CreateDefaultPlatform;
-import org.gradle.nativebinaries.internal.configure.CreateDefaultToolChain;
-import org.gradle.nativebinaries.internal.configure.CreateNativeBinaries;
+import org.gradle.nativebinaries.internal.*;
+import org.gradle.nativebinaries.internal.configure.*;
 
 import javax.inject.Inject;
 
@@ -63,6 +57,10 @@ public class NativeBinariesModelPlugin implements Plugin<Project> {
                 DefaultPlatformContainer.class,
                 instantiator
         );
+        project.getExtensions().create("buildTypes",
+                DefaultBuildTypeContainer.class,
+                instantiator
+        );
 
         project.getExtensions().create(
                 "executables",
@@ -81,6 +79,7 @@ public class NativeBinariesModelPlugin implements Plugin<Project> {
         configurationActions.add(Actions.composite(
                 new CreateDefaultToolChain(),
                 new CreateDefaultPlatform(),
+                new CreateDefaultBuildTypes(),
                 new CreateDefaultFlavors(),
                 new CreateNativeBinaries(instantiator))
         );

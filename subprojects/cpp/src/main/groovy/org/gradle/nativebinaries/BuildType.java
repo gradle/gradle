@@ -13,19 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.nativebinaries;
 
-package org.gradle.nativebinaries.internal;
+import org.gradle.api.Named;
 
-import org.gradle.nativebinaries.*;
+/**
+ * Specifies a build-type for a native binary. Common build types are 'debug' and 'release', but others may be defined.
+ */
+public interface BuildType extends Named {
+    /**
+     * Should binaries for this build type contain debug information?
+     */
+    boolean isDebug();
 
-public interface ContextualLibraryResolver extends LibraryResolver {
-    ContextualLibraryResolver withType(Class<? extends LibraryBinary> type);
-
-    ContextualLibraryResolver withFlavor(Flavor flavor);
-
-    ContextualLibraryResolver withToolChain(ToolChain toolChain);
-
-    ContextualLibraryResolver withPlatform(Platform platform);
-
-    ContextualLibraryResolver withBuildType(BuildType buildType);
+    /**
+     * Specify if binaries for this build type should contain debug information.
+     */
+    void setDebug(boolean debug);
 }

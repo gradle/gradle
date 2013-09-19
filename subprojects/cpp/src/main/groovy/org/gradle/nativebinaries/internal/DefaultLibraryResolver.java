@@ -25,6 +25,7 @@ class DefaultLibraryResolver implements ContextualLibraryResolver {
     private Flavor flavor = Flavor.DEFAULT;
     private ToolChain toolChain;
     private Platform platform = new DefaultPlatform("default");
+    private BuildType buildType;
     private Class<? extends LibraryBinary> type = SharedLibraryBinary.class;
 
     public DefaultLibraryResolver(Library library) {
@@ -46,6 +47,11 @@ class DefaultLibraryResolver implements ContextualLibraryResolver {
         return this;
     }
 
+    public ContextualLibraryResolver withBuildType(BuildType buildType) {
+        this.buildType = buildType;
+        return this;
+    }
+
     public ContextualLibraryResolver withType(Class<? extends LibraryBinary> type) {
         this.type = type;
         return this;
@@ -63,6 +69,9 @@ class DefaultLibraryResolver implements ContextualLibraryResolver {
                 continue;
             }
             if (platform.getArchitecture() != candidate.getTargetPlatform().getArchitecture()) {
+                continue;
+            }
+            if (buildType != null && !buildType.getName().equals(candidate.getBuildType().getName())) {
                 continue;
             }
 
