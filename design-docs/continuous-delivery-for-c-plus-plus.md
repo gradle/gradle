@@ -616,13 +616,36 @@ Each variant has a platform associated with it.
 - Infer the default platform and architecture.
 - Define some conventions for architecture names.
     - Intel 32bit: `ia-32`, `i386`, `x86`
-    - Intel 64bit: `x86-64`, `x64` (Windows), `amb64` (BSD and Debian linux distributions, Solaris), `x86_64` (linux kernel, OS X, Fedora, GCC tools)
+    - Intel 64bit: `x86-64`, `x64` (Windows), `amd64` (BSD and Debian linux distributions, Solaris), `x86_64` (linux kernel, OS X, Fedora, GCC tools)
     - Intel Itanium: `ia-64`
     - PowerPC 32bit: `ppc`
     - PowerPC 64bit: `ppc64`
     - Sparc: ??
     - ARM: ??
 - VisualCppToolChain should automatically switch between different executables for different target architectures.
+
+## Story: Build debug and release variants of a native component
+
+This story adds support for building variants of a native component based on 'build type'.
+The set of build types is user configurable, and for the purpose of this story, all build type customisations are specified in the build script.
+Standard build types (debug/release) and build type compatibility will be handled in a subsequent story.
+
+- NativeBinaries plugin adds a `buildTypes` container to the project.
+- `BuildType` is a simple type extending `Named` with a single boolean property `debug`.
+- If no build types are configured, add a single default build type named `debug`, with `debug.debug == true`
+- Build a variant Native Binary for each defined build type. Add a property to NativeBinary to allow navigation to the defined `buildType`.
+    - With a single defined (or default) build type, the binary task names and output directories will NOT contain the build type.
+    - With multiple defined build types, task names and output directories for each variant will include the build type.
+- When resolving the dependencies of a binary `b`, for a dependency on library `l`:
+    - Prefer a binary for library `l` that has a build type with a matching name.
+    - Otherwise, select a library `l` that has a build type with a matching `debug` flag.
+
+## Story: Automatically specify standard debug and release flags for build type
+
+- Gcc should compile sources for `debug` build types with the `-g` flag
+- Visual C++ should
+    - Compile sources for `debug` build types with `/Zi /DDEBUG` and non-debug build types with `/DNDEBUG`.
+    - Link binaries for `debug` build types with `/DEBUG` and non-debug build types with `/RELEASE`.
 
 ## Story: Cross-compile for multiple operating systems
 
@@ -671,10 +694,6 @@ This story adds support for cross-compilation. Add the concept of an operating s
 - Need to discover which platforms a tool chain can build for.
 - Define some conventions for operating system names.
 - Add some opt-in way to define variants using a matrix of (flavour, tool chain, architecture, operating system).
-
-## Story: Build debug and release variants of a native component
-
-TBD
 
 ## Story: Allow sources to be specified that apply to a particular Target Platform
 
