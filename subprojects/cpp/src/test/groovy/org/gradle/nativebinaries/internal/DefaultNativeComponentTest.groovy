@@ -61,7 +61,7 @@ class DefaultNativeComponentTest extends Specification {
         component.flavors.create("flavor3")
 
         then:
-        component.flavors == [flavor("flavor1"), flavor("flavor2"), flavor("flavor3")] as Set
+        component.flavors.collect { it.name } as Set == ["flavor1", "flavor2", "flavor3"] as Set
     }
 
     def flavor(String name) {

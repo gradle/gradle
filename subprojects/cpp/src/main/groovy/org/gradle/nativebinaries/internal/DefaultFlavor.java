@@ -43,23 +43,4 @@ public class DefaultFlavor implements Flavor {
     public String toString() {
         return String.format("flavor '%s'", name);
     }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (!(o instanceof DefaultFlavor)) {
-            return false;
-        }
-
-        DefaultFlavor that = (DefaultFlavor) o;
-        return name.equals(that.name);
-
-    }
-
-    @Override
-    public int hashCode() {
-        return name.hashCode();
-    }
 }

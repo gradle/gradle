@@ -15,10 +15,8 @@
  */
 
 package org.gradle.nativebinaries.internal.configure
-
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.nativebinaries.Flavor
-import org.gradle.nativebinaries.internal.DefaultFlavor
 import org.gradle.nativebinaries.internal.DefaultFlavorContainer
 import spock.lang.Specification
 
@@ -45,9 +43,7 @@ class CreateDefaultFlavorsTest extends Specification {
         action.configureDefaultFlavor(flavorContainer)
 
         then:
-        flavorContainer.size() == 2
-        flavorContainer == [new DefaultFlavor("flavor1"), new DefaultFlavor("flavor2")] as Set
-
+        flavorNames == ["flavor1", "flavor2"] as Set
     }
 
     def "can explicitly add flavor named 'default'"() {
@@ -61,8 +57,11 @@ class CreateDefaultFlavorsTest extends Specification {
         action.configureDefaultFlavor(flavorContainer)
 
         then:
-        flavorContainer.size() == 3
-        flavorContainer == [new DefaultFlavor("flavor1"), new DefaultFlavor("flavor2"), Flavor.DEFAULT] as Set
+        flavorNames == [Flavor.DEFAULT.getName(), "flavor1", "flavor2"] as Set
 
+    }
+
+    def getFlavorNames() {
+        return flavorContainer.collect { it.name } as Set
     }
 }

@@ -25,14 +25,4 @@ class DefaultFlavorTest extends Specification {
         expect:
         flavor.toString() == "flavor 'someFlavor'"
     }
-
-    def "has well behaved equals and hashcode"() {
-        def one = new DefaultFlavor("one")
-        def same = new DefaultFlavor("one")
-        def different = new DefaultFlavor("two")
-
-        expect:
-        one == same
-        one != different
-    }
 }

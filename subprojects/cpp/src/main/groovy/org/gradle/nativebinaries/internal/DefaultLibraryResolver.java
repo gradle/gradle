@@ -54,7 +54,7 @@ class DefaultLibraryResolver implements ContextualLibraryResolver {
     public NativeDependencySet resolve() {
         for (LibraryBinary candidate : library.getBinaries().withType(type)) {
             // If the library has > 1 flavor, then flavor must match
-            if (library.getFlavors().size() > 1 && !flavor.equals(candidate.getFlavor())) {
+            if (library.getFlavors().size() > 1 && !flavor.getName().equals(candidate.getFlavor().getName())) {
                 continue;
             }
             // ToolChains and Platforms are global within project, so can always compare directly
