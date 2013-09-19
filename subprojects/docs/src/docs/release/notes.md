@@ -119,8 +119,9 @@ The following are the newly deprecated items in this Gradle release. If you have
 ### Renamings in incubating BuildSetup plugin
 
 * The ´BuildSetup´ task was renamed to ´InitBuild´.
-* The plugin ´build-setup was renamed to ´build-init´
+* The plugin ´build-setup was renamed to ´build-init´.
 * The task ´setupBuild´ provided by the auto-applied BuildInit plugin was renamed to ´init´.
+* The package name for the ´build-init´ related classes has changed from ´org.gradle.buildsetup´ to ´org.gradle.buildinit´.
 
 ### Changes to incubating Native Binary support
 
