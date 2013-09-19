@@ -8,7 +8,7 @@
                 </tr>
             </thead>
             <tr>
-                <td>componentMetadata</td>
+                <td>components</td>
             </tr>
         </table>
     </section>
@@ -39,7 +39,7 @@
                 <td>localGroovy</td>
             </tr>
             <tr>
-                <td>componentMetadata</td>
+                <td>components</td>
             </tr>
         </table>
     </section>

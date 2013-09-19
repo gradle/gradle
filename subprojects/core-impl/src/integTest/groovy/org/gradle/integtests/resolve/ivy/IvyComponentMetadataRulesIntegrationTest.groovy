@@ -47,7 +47,7 @@ task resolve(type: Sync) {
         buildFile <<
 """
 dependencies {
-    componentMetadata {
+    components {
         eachComponent { details ->
             assert details.id.group == "org.test"
             assert details.id.name == "projectA"
@@ -74,7 +74,7 @@ dependencies {
         buildFile <<
 """
 dependencies {
-    componentMetadata {
+    components {
         eachComponent { details ->
             details.statusScheme = ["gold", "silver", "bronze"]
         }
@@ -100,7 +100,7 @@ dependencies {
         buildFile <<
 """
 dependencies {
-    componentMetadata {
+    components {
         eachComponent { details ->
             details.statusScheme = ["gold", "bronze"]
         }
@@ -118,7 +118,7 @@ dependencies {
         buildFile <<
 """
 dependencies {
-    componentMetadata {
+    components {
         eachComponent { details ->
             details.status = "milestone"
         }

@@ -328,7 +328,7 @@ public interface DependencyHandler {
      * @since 1.8
      */
     @Incubating
-    ComponentMetadataHandler getComponentMetadata();
+    ComponentMetadataHandler getComponents();
 
     /**
      * Configures module metadata for this project.
@@ -340,5 +340,5 @@ public interface DependencyHandler {
      * @since 1.8
      */
     @Incubating
-    void componentMetadata(Closure configureClosure);
+    void components(Closure configureClosure);
 }
