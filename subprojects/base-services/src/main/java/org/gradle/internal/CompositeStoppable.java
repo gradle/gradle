@@ -73,9 +73,6 @@ public class CompositeStoppable implements Stoppable {
                 }
             };
         }
-        if (object instanceof Iterable) {
-            throw new UnsupportedOperationException("Not implemented yet.");
-        }
         if (object instanceof Stoppable) {
             return (Stoppable) object;
         }
