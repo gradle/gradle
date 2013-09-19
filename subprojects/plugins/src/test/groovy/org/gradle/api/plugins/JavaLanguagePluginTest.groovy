@@ -45,6 +45,6 @@ class JavaLanguagePluginTest extends Specification {
         then:
         def task = project.tasks.findByName("compileIntegTestJava")
         task instanceof JavaCompile
-        task.description == "Compiles source set 'model:java'."
+        task.description == "Compiles Java source 'model.java'."
     }
 }

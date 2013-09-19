@@ -63,7 +63,7 @@ class JavaBasePluginTest extends Specification {
         set.output.classesDir == new File(project.buildDir, 'classes/custom')
 
         def processResources = project.tasks['processCustomResources']
-        processResources.description == "Processes source set 'custom:resources'."
+        processResources.description == "Processes resources 'custom.resources'."
         processResources instanceof Copy
         Matchers.dependsOn().matches(processResources)
         processResources.destinationDir == project.sourceSets.custom.output.resourcesDir
@@ -71,7 +71,7 @@ class JavaBasePluginTest extends Specification {
         resources sameCollection(project.sourceSets.custom.resources)
 
         def compileJava = project.tasks['compileCustomJava']
-        compileJava.description == "Compiles source set 'custom:java'."
+        compileJava.description == "Compiles Java source 'custom.java'."
         compileJava instanceof JavaCompile
         Matchers.dependsOn().matches(compileJava)
         compileJava.classpath.is(project.sourceSets.custom.compileClasspath)
