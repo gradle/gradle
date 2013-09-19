@@ -46,6 +46,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.notations.api.NotationParser;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.listener.ListenerManager;
 
@@ -57,8 +58,18 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         this.parent = parent;
     }
 
-    public DependencyResolutionServices create(FileResolver resolver, DependencyMetaDataProvider dependencyMetaDataProvider, ProjectFinder projectFinder, DomainObjectContext domainObjectContext) {
-        return new DefaultDependencyResolutionServices(parent, resolver, dependencyMetaDataProvider, projectFinder, domainObjectContext);
+    public DependencyResolutionServices create(FileResolver fileResolver, DependencyMetaDataProvider dependencyMetaDataProvider, ProjectFinder projectFinder, DomainObjectContext domainObjectContext) {
+        DefaultServiceRegistry services = new DefaultServiceRegistry(parent);
+        services.add(FileResolver.class, fileResolver);
+        services.add(DependencyMetaDataProvider.class, dependencyMetaDataProvider);
+        services.add(ProjectFinder.class, projectFinder);
+        services.add(DomainObjectContext.class, domainObjectContext);
+        services.addProvider(new DependencyResolutionScopeServices());
+        return services.get(DependencyResolutionServices.class);
+    }
+
+    public void addDslServices(ServiceRegistration registration) {
+        registration.addProvider(new DependencyResolutionScopeServices());
     }
 
     private static class DependencyResolutionScopeServices {
@@ -115,26 +126,25 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                     artifactDependencyResolver,
                     repositories);
         }
+
+        ArtifactPublicationServices createArtifactPublicationServices(ServiceRegistry services) {
+            return new DefaultArtifactPublicationServices(services);
+        }
+
+        DependencyResolutionServices createDependencyResolutionServices(ServiceRegistry services) {
+            return new DefaultDependencyResolutionServices(services);
+        }
     }
 
-    private class DefaultDependencyResolutionServices implements DependencyResolutionServices {
-        private final DefaultServiceRegistry services;
+    private static class DefaultDependencyResolutionServices implements DependencyResolutionServices {
+        private final ServiceRegistry services;
 
-        private DefaultDependencyResolutionServices(ServiceRegistry parent, FileResolver fileResolver, DependencyMetaDataProvider dependencyMetaDataProvider, ProjectFinder projectFinder, DomainObjectContext domainObjectContext) {
-            services = new DefaultServiceRegistry(parent);
-            services.add(FileResolver.class, fileResolver);
-            services.add(DependencyMetaDataProvider.class, dependencyMetaDataProvider);
-            services.add(ProjectFinder.class, projectFinder);
-            services.add(DomainObjectContext.class, domainObjectContext);
-            services.addProvider(new DependencyResolutionScopeServices());
+        private DefaultDependencyResolutionServices(ServiceRegistry services) {
+            this.services = services;
         }
 
         public RepositoryHandler getResolveRepositoryHandler() {
             return services.get(RepositoryHandler.class);
-        }
-
-        public BaseRepositoryFactory getBaseRepositoryFactory() {
-            return services.get(BaseRepositoryFactory.class);
         }
 
         public ConfigurationContainerInternal getConfigurationContainer() {
@@ -143,18 +153,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
 
         public DependencyHandler getDependencyHandler() {
             return services.get(DependencyHandler.class);
-        }
-
-        public ComponentMetadataHandler getComponentMetadataHandler() {
-            return services.get(ComponentMetadataHandler.class);
-        }
-
-        public ArtifactHandler getArtifactHandler() {
-            return services.get(ArtifactHandler.class);
-        }
-
-        public ArtifactPublicationServices createArtifactPublicationServices() {
-            return new DefaultArtifactPublicationServices(services);
         }
     }
 

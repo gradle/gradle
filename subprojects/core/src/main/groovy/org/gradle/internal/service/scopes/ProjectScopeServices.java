@@ -16,22 +16,13 @@
 
 package org.gradle.internal.service.scopes;
 
+import org.gradle.api.Action;
 import org.gradle.api.AntBuilder;
 import org.gradle.api.artifacts.Module;
-import org.gradle.api.artifacts.dsl.ArtifactHandler;
-import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
-import org.gradle.api.artifacts.dsl.DependencyHandler;
-import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.component.SoftwareComponentContainer;
-import org.gradle.api.internal.ClassGenerator;
-import org.gradle.api.internal.ClassGeneratorBackedInstantiator;
-import org.gradle.api.internal.DependencyInjectingInstantiator;
-import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.artifacts.ArtifactPublicationServices;
+import org.gradle.api.internal.*;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
-import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.ProjectBackedModule;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.component.DefaultSoftwareComponentContainer;
@@ -56,6 +47,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.invocation.BuildClassLoaderRegistry;
 import org.gradle.logging.LoggingManagerInternal;
@@ -74,9 +66,15 @@ import java.io.File;
 public class ProjectScopeServices extends DefaultServiceRegistry implements ServiceRegistryFactory {
     private final ProjectInternal project;
 
-    public ProjectScopeServices(ServiceRegistry parent, final ProjectInternal project) {
+    public ProjectScopeServices(final ServiceRegistry parent, final ProjectInternal project) {
         super(parent);
         this.project = project;
+        register(new Action<ServiceRegistration>() {
+            public void execute(ServiceRegistration registration) {
+                registration.add(DomainObjectContext.class, project);
+                parent.get(DependencyManagementServices.class).addDslServices(registration);
+            }
+        });
     }
 
     protected PluginRegistry createPluginRegistry(PluginRegistry parentRegistry) {
@@ -127,33 +125,9 @@ public class ProjectScopeServices extends DefaultServiceRegistry implements Serv
         return new DefaultTaskContainerFactory(get(Instantiator.class), get(ITaskFactory.class), project, get(ProjectAccessListener.class));
     }
 
-    protected ArtifactPublicationServices createArtifactPublicationServices() {
-        return get(DependencyResolutionServices.class).createArtifactPublicationServices();
-    }
-
-    protected RepositoryHandler createRepositoryHandler() {
-        return get(DependencyResolutionServices.class).getResolveRepositoryHandler();
-    }
-
-    protected ConfigurationContainerInternal createConfigurationContainer() {
-        return get(DependencyResolutionServices.class).getConfigurationContainer();
-    }
-
     protected SoftwareComponentContainer createSoftwareComponentContainer() {
         Instantiator instantiator = get(Instantiator.class);
         return instantiator.newInstance(DefaultSoftwareComponentContainer.class, instantiator);
-    }
-
-    protected DependencyResolutionServices createDependencyResolutionServices() {
-        return newDependencyResolutionServices();
-    }
-
-    private DependencyResolutionServices newDependencyResolutionServices() {
-        return get(DependencyManagementServices.class).create(get(FileResolver.class), get(DependencyMetaDataProvider.class), get(ProjectFinder.class), project);
-    }
-
-    protected ArtifactHandler createArtifactHandler() {
-        return get(DependencyResolutionServices.class).getArtifactHandler();
     }
 
     protected ProjectFinder createProjectFinder() {
@@ -162,14 +136,6 @@ public class ProjectScopeServices extends DefaultServiceRegistry implements Serv
                 return project.project(path);
             }
         };
-    }
-
-    protected DependencyHandler createDependencyHandler() {
-        return get(DependencyResolutionServices.class).getDependencyHandler();
-    }
-
-    protected ComponentMetadataHandler createModuleHandler() {
-        return get(DependencyResolutionServices.class).getComponentMetadataHandler();
     }
 
     protected ModelRegistry createModelRegistry() {

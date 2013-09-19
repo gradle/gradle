@@ -17,12 +17,8 @@
 package org.gradle.internal.service.scopes
 
 import org.gradle.api.AntBuilder
-import org.gradle.api.artifacts.dsl.ArtifactHandler
-import org.gradle.api.artifacts.dsl.DependencyHandler
-import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.*
-import org.gradle.api.internal.artifacts.ArtifactPublicationServices
 import org.gradle.api.internal.artifacts.DependencyManagementServices
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal
@@ -44,15 +40,15 @@ import org.gradle.configuration.project.ProjectConfigurationActionContainer
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.Factory
+import org.gradle.internal.nativeplatform.filesystem.FileSystem
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.internal.nativeplatform.filesystem.FileSystem
 import org.gradle.invocation.BuildClassLoaderRegistry
 import org.gradle.logging.LoggingManagerInternal
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry
-
 import spock.lang.Specification
 
 class ProjectScopeServicesTest extends Specification {
@@ -63,13 +59,9 @@ class ProjectScopeServicesTest extends Specification {
     ITaskFactory taskFactory = Mock()
     DependencyFactory dependencyFactory = Mock()
     ServiceRegistry parent = Stub()
-    ProjectScopeServices registry = new ProjectScopeServices(parent, project)
+    ProjectScopeServices registry
     PluginRegistry pluginRegistry = Mock()
     DependencyResolutionServices dependencyResolutionServices = Stub()
-    RepositoryHandler repositoryHandler = Mock()
-    ArtifactPublicationServices publicationServices = Mock()
-    DependencyHandler dependencyHandler = Mock()
-    ArtifactHandler artifactHandler = Mock()
 
     def setup() {
         project.gradle >> gradle
@@ -86,6 +78,7 @@ class ProjectScopeServicesTest extends Specification {
         parent.get(BuildClassLoaderRegistry) >> Stub(BuildClassLoaderRegistry) {
             getScriptClassLoader() >> new ClassLoader() { }
         }
+        registry = new ProjectScopeServices(parent, project)
     }
 
     def "creates a registry for a task"() {
@@ -114,42 +107,20 @@ class ProjectScopeServicesTest extends Specification {
         provides(ToolingModelBuilderRegistry, DefaultToolingModelBuilderRegistry)
     }
 
-    def "provides an ArtifactPublicationServices factory"() {
-        expectDependencyResolutionServicesCreated()
+    def "provides dependency management DSL services"() {
+        def testDslService = Stub(Runnable)
 
-        expect:
-        registry.get(ArtifactPublicationServices).is publicationServices
-    }
+        when:
+        def registry = new ProjectScopeServices(parent, project)
+        def service = registry.get(Runnable)
 
-    def "provides a RepositoryHandler"() {
-        expectDependencyResolutionServicesCreated()
+        then:
+        service.is(testDslService)
 
-        expect:
-        registry.get(RepositoryHandler).is repositoryHandler
-        registry.get(RepositoryHandler).is registry.get(RepositoryHandler)
-    }
-
-    def "provides a ConfigurationContainer"() {
-        expectDependencyResolutionServicesCreated()
-
-        expect:
-        registry.get(ConfigurationContainerInternal).is configurationContainer
-        registry.get(ConfigurationContainerInternal).is registry.get(ConfigurationContainerInternal)
-    }
-
-    def "provides an ArtifactHandler"() {
-        expectDependencyResolutionServicesCreated()
-
-        registry.get(ArtifactHandler).is artifactHandler
-        registry.get(ArtifactHandler).is registry.get(ArtifactHandler)
-    }
-
-    def "provides a DependencyHandler"() {
-        expectDependencyResolutionServicesCreated()
-
-        expect:
-        registry.get(DependencyHandler).is dependencyHandler
-        registry.get(DependencyHandler).is registry.get(DependencyHandler)
+        and:
+        1 * dependencyManagementServices.addDslServices(_) >> { ServiceRegistration registration ->
+            registration.add(Runnable, testDslService)
+        }
     }
 
     def "provides an AntBuilder factory"() {
@@ -209,14 +180,5 @@ class ProjectScopeServicesTest extends Specification {
         1 * dependencyManagementServices.create(!null, !null, !null, !null) >> dependencyResolutionServices
         // return mock rather than stub; workaround for fact that Spock doesn't substitute generic method return type as it should
         dependencyResolutionServices.configurationContainer >> Mock(ConfigurationContainerInternal)
-    }
-
-    private void expectDependencyResolutionServicesCreated() {
-        1 * dependencyManagementServices.create(!null, !null, !null, !null) >> dependencyResolutionServices
-        dependencyResolutionServices.resolveRepositoryHandler >> repositoryHandler
-        dependencyResolutionServices.createArtifactPublicationServices() >> publicationServices
-        dependencyResolutionServices.configurationContainer >> configurationContainer
-        dependencyResolutionServices.dependencyHandler >> dependencyHandler
-        dependencyResolutionServices.artifactHandler >> artifactHandler
     }
 }

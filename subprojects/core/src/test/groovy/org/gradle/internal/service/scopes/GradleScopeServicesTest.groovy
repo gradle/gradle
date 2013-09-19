@@ -17,6 +17,7 @@ package org.gradle.internal.service.scopes
 
 import org.gradle.StartParameter
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.artifacts.DependencyManagementServices
 import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache
 import org.gradle.api.internal.plugins.DefaultPluginContainer
 import org.gradle.api.internal.plugins.PluginRegistry
@@ -29,7 +30,6 @@ import org.gradle.execution.BuildExecuter
 import org.gradle.execution.DefaultBuildExecuter
 import org.gradle.execution.TaskGraphExecuter
 import org.gradle.execution.taskgraph.DefaultTaskGraphExecuter
-import org.gradle.internal.classloader.MultiParentClassLoader
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.invocation.BuildClassLoaderRegistry
 import org.gradle.listener.ListenerManager
@@ -54,8 +54,8 @@ public class GradleScopeServicesTest extends Specification {
         parent.get(CacheRepository) >> cacheRepository
         parent.get(PluginRegistry) >> pluginRegistryParent
         parent.get(BuildClassLoaderRegistry) >> Stub(BuildClassLoaderRegistry)
+        parent.get(DependencyManagementServices) >> Stub(DependencyManagementServices)
         gradle.getStartParameter() >> startParameter
-        gradle.getScriptClassLoader() >> new MultiParentClassLoader()
         pluginRegistryParent.createChild(_, _) >> pluginRegistryChild
     }
 

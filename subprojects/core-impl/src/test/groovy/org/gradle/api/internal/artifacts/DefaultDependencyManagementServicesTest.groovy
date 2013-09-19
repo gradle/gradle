@@ -15,89 +15,78 @@
  */
 package org.gradle.api.internal.artifacts
 
-import org.gradle.StartParameter
-import org.gradle.api.internal.DomainObjectContext
-import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal
+import org.gradle.api.Action
+import org.gradle.api.artifacts.dsl.ArtifactHandler
+import org.gradle.api.artifacts.dsl.ComponentMetadataHandler
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer
-import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
+import org.gradle.api.internal.artifacts.dsl.DefaultArtifactHandler
 import org.gradle.api.internal.artifacts.dsl.DefaultComponentMetadataHandler
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler
-import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
-import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy
-import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler
+import org.gradle.api.internal.artifacts.ivyservice.IvyBackedArtifactPublisher
+import org.gradle.api.internal.artifacts.repositories.DefaultBaseRepositoryFactory
+import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.internal.service.DefaultServiceRegistry
+import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.listener.ListenerManager
 import spock.lang.Specification
 
 import java.lang.reflect.ParameterizedType
 
 class DefaultDependencyManagementServicesTest extends Specification {
     final ServiceRegistry parent = Mock()
-    final FileResolver fileResolver = Mock()
-    final DependencyMetaDataProvider dependencyMetaDataProvider = Mock()
-    final ProjectFinder projectFinder = Mock()
-    final Instantiator instantiator = Mock()
-    final DomainObjectContext domainObjectContext = Mock()
-    final DefaultRepositoryHandler repositoryHandler = Mock()
-    final ConfigurationContainerInternal configurationContainer = Mock()
-    final StartParameter startParameter = Mock()
-    final ListenerManager listenerManager = Mock()
+    final Instantiator instantiator = new DirectInstantiator()
     final DefaultDependencyManagementServices services = new DefaultDependencyManagementServices(parent)
 
     def setup() {
         _ * parent.get(Instantiator) >> instantiator
-        _ * parent.get(StartParameter) >> startParameter
-        _ * parent.get(ListenerManager) >> listenerManager
         _ * parent.get({it instanceof Class}) >> { Class t -> Stub(t) }
         _ * parent.get({it instanceof ParameterizedType}) >> { ParameterizedType t -> Stub(t.rawType) }
     }
 
-    def "can create dependency resolution services"() {
+    def "can create dependency resolution DSL services"() {
         given:
-        1 * instantiator.newInstance(DefaultRepositoryHandler, _, _) >> repositoryHandler
-        1 * instantiator.newInstance(DefaultConfigurationContainer, !null, instantiator,
-                domainObjectContext, listenerManager, dependencyMetaDataProvider) >> configurationContainer
-        1 * instantiator.newInstance(DefaultComponentMetadataHandler, _) >> Stub(DefaultComponentMetadataHandler)
-        def strategy = new DefaultResolutionStrategy()
-        instantiator.newInstance(DefaultResolutionStrategy) >> strategy
+        def registry = new DefaultServiceRegistry(parent)
 
         when:
-        def resolutionServices = services.create(fileResolver, dependencyMetaDataProvider, projectFinder, domainObjectContext)
+        registry.register({ ServiceRegistration registration -> services.addDslServices(registration) } as Action)
+        def resolutionServices = registry.get(DependencyResolutionServices)
 
         then:
-        resolutionServices.resolveRepositoryHandler
-        resolutionServices.configurationContainer
-        resolutionServices.dependencyHandler
-        resolutionServices.artifactHandler
-        resolutionServices.createArtifactPublicationServices()
+        resolutionServices.resolveRepositoryHandler instanceof DefaultRepositoryHandler
+        resolutionServices.configurationContainer instanceof DefaultConfigurationContainer
+        resolutionServices.dependencyHandler instanceof DefaultDependencyHandler
+        registry.get(ComponentMetadataHandler) instanceof DefaultComponentMetadataHandler
+        registry.get(ArtifactHandler) instanceof DefaultArtifactHandler
+        registry.get(BaseRepositoryFactory) instanceof DefaultBaseRepositoryFactory
     }
 
     def "publish services provide a repository handler"() {
-        DefaultRepositoryHandler publishRepositoryHandler = Mock()
-
         given:
-        _ * parent.get(Instantiator) >> instantiator
-        _ * instantiator.newInstance(DefaultRepositoryHandler, _, _) >> publishRepositoryHandler
-        _ * instantiator.newInstance(DefaultComponentMetadataHandler, _) >> Stub(DefaultComponentMetadataHandler)
+        def registry = new DefaultServiceRegistry(parent)
 
         when:
-        def resolutionServices = services.create(fileResolver, dependencyMetaDataProvider, projectFinder, domainObjectContext)
-        def publishServices = resolutionServices.createArtifactPublicationServices()
+        registry.register({ ServiceRegistration registration -> services.addDslServices(registration) } as Action)
+        def publishServices = registry.get(ArtifactPublicationServices)
 
         then:
         def publishResolverHandler = publishServices.createRepositoryHandler()
-        publishResolverHandler == publishRepositoryHandler
+        publishResolverHandler instanceof DefaultRepositoryHandler
+        !publishResolverHandler.is(publishServices.createRepositoryHandler())
     }
 
     def "publish services provide an ArtifactPublisher"() {
+        given:
+        def registry = new DefaultServiceRegistry(parent)
+
         when:
-        def resolutionServices = services.create(fileResolver, dependencyMetaDataProvider, projectFinder, domainObjectContext)
-        def publishServices = resolutionServices.createArtifactPublicationServices()
+        registry.register({ ServiceRegistration registration -> services.addDslServices(registration) } as Action)
+        def publishServices = registry.get(ArtifactPublicationServices)
 
         then:
         def ivyService = publishServices.createArtifactPublisher()
-        ivyService != null
-        ivyService != publishServices.createArtifactPublisher()
+        ivyService instanceof IvyBackedArtifactPublisher
+        !ivyService.is(publishServices.createArtifactPublisher())
     }
 }

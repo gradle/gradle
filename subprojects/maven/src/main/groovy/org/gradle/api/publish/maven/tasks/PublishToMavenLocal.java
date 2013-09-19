@@ -20,10 +20,12 @@ import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.ArtifactRepositoryContainer;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.internal.artifacts.BaseRepositoryFactory;
-import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.publish.internal.PublishOperation;
 import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal;
-import org.gradle.api.publish.maven.internal.publisher.*;
+import org.gradle.api.publish.maven.internal.publisher.AntTaskBackedMavenLocalPublisher;
+import org.gradle.api.publish.maven.internal.publisher.MavenPublisher;
+import org.gradle.api.publish.maven.internal.publisher.StaticLockingMavenPublisher;
+import org.gradle.api.publish.maven.internal.publisher.ValidatingMavenPublisher;
 import org.gradle.internal.Factory;
 import org.gradle.logging.LoggingManagerInternal;
 
@@ -40,9 +42,9 @@ public class PublishToMavenLocal extends PublishToMavenRepository {
     private final BaseRepositoryFactory baseRepositoryFactory;
 
     @Inject
-    public PublishToMavenLocal(Factory<LoggingManagerInternal> loggingManagerFactory, DependencyResolutionServices dependencyResolutionServices) {
+    public PublishToMavenLocal(Factory<LoggingManagerInternal> loggingManagerFactory, BaseRepositoryFactory baseRepositoryFactory) {
         super(loggingManagerFactory);
-        this.baseRepositoryFactory = dependencyResolutionServices.getBaseRepositoryFactory();
+        this.baseRepositoryFactory = baseRepositoryFactory;
     }
 
     @Override
