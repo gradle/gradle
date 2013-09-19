@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,15 +19,16 @@ package org.gradle.testing.cucumberjvm
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Timeout
-import org.gradle.util.TestPrecondition
-import org.gradle.util.Requires
 
-class CucumberJVMReportTest extends AbstractIntegrationSpec {
+class CucumberJVMReportIntegrationTest extends AbstractIntegrationSpec {
 
-    @Rule public final TestResources resources = new TestResources(temporaryFolder)
+    @Rule
+    public final TestResources resources = new TestResources(temporaryFolder)
 
     @Timeout(30)
     @Issue("http://issues.gradle.org/browse/GRADLE-2739")
@@ -41,5 +42,8 @@ class CucumberJVMReportTest extends AbstractIntegrationSpec {
         DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted("RunCukesTest", "Scenario: Say hello /two/three")
         result.testClass("Scenario: Say hello /two/three").assertTestPassed("Given I have a hello app with Howdy and /four")
+        result.testClass("Scenario: Say hello /two/three").assertTestPassed("Given I have a hello app with Howdy and /four")
+        result.testClass("Scenario: Say hello /two/three").assertTestPassed("Then it should answer with Howdy World")
+        result.testClass("Scenario: Say hello /two/three").assertTestPassed("When I ask it to say hi and /five/six/seven")
     }
 }
