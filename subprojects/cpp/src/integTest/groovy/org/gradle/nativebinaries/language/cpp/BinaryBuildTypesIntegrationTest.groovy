@@ -22,6 +22,64 @@ import org.gradle.util.TestPrecondition
 class BinaryBuildTypesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def helloWorldApp = new CppHelloWorldApp()
 
+    def "creates debug and release variants"() {
+        when:
+        helloWorldApp.writeSources(file("src/main"))
+        and:
+        buildFile << """
+            apply plugin: 'cpp'
+            buildTypes {
+                debug {
+                    debug = true
+                }
+                integration {
+                    debug = true
+                }
+                release {}
+            }
+            binaries.all { binary ->
+                if (toolChain in Gcc && buildType.debug) {
+                    cppCompiler.args "-g"
+                }
+                if (toolChain in VisualCpp) {
+                    // Apply to all debug build types: 'debug' and 'integration'
+                    if (buildType.debug) {
+                        cppCompiler.args '/Zi'
+                        cppCompiler.define 'DEBUG'
+                        linker.args '/DEBUG'
+                    }
+                }
+                // Apply to 'integration' type binaries only
+                if (buildType == buildTypes['integration']) {
+                    cppCompiler.define "FRENCH"
+                }
+            }
+            executables {
+                main {}
+            }
+        """
+        and:
+        executer.withArgument("--debug")
+        succeeds "debugMainExecutable", "integrationMainExecutable", "releaseMainExecutable"
+
+        then:
+        with(executable("build/binaries/mainExecutable/debug/main")) {
+            it.assertExists()
+            it.assertDebugFileExists()
+            it.exec().out == helloWorldApp.englishOutput
+        }
+        with (executable("build/binaries/mainExecutable/integration/main")) {
+            it.assertExists()
+            it.assertDebugFileExists()
+            it.exec().out == helloWorldApp.frenchOutput
+        }
+        with (executable("build/binaries/mainExecutable/release/main")) {
+            it.assertExists()
+            it.assertDebugFileDoesNotExist()
+            it.exec().out == helloWorldApp.englishOutput
+        }
+    }
+
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
     def "executable with build type depends on library with matching build type"() {
         when:
