@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 package org.gradle.nativebinaries.language.cpp
-
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativebinaries.language.cpp.fixtures.app.CppCallingCHelloWorldApp
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
+@Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
 class LibraryBinariesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def helloWorldApp = new CppCallingCHelloWorldApp()
 
