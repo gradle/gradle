@@ -399,10 +399,10 @@ Note that this story does not include support for including the transitive depen
 ### Source sets
 
 - Declare a dependency on another source set.
-- Need a 'cross-platform' and 'platform-specific' source set.
 - Add compile dependencies to each source set.
 - Add link dependencies to each source set, use these to infer the link dependencies of the binary.
 - Change `NativeDependencySet` to handle separate C and C++ headers.
+- Conventional source directories should be defaults only: explicit source directories replace conventional defaults
 - Replace `SourceDirectorySet` with something that is actually a set of source directories.
     - Use this for sources and headers
     - Can access as a set of directories, a set of files or a file tree
@@ -423,10 +423,6 @@ are created automatically for each component.
 ### Test cases
 
 - Programmatically create the functional source set prior to adding the matching component.
-
-### Open issues
-
-- Make it easy to _not_ have this convention applied when the naming scheme is different
 
 ## Story: Build different variants of a native component
 
@@ -473,8 +469,6 @@ This will define 4 binaries:
 - Add a 'development' assemble task, which chooses a single binary for each component.
 - Need to make standard 'build', 'check' lifecycle tasks available too.
 - Formalise the concept of a naming scheme for binary names, tasks and file paths.
-- Add a convention to give each binary a separate output directory (as the name of each variant binary can be the same).
-- Add a convention to give each binary a separate object file directory.
 - Need to be able to build a single variant or all variants.
 - Need to consume locally and between projects and between builds.
 - Need a hook to infer the default variant.
@@ -682,6 +676,15 @@ This story adds support for cross-compilation. Add the concept of an operating s
 ## Story: Build debug and release variants of a native component
 
 TBD
+
+## Story: Allow sources to be specified that apply to a particular Target Platform
+
+In some cases, different sources should be used depending on ToolChain or Target Platform. Assembler sources are almost always different
+for different platforms. This story will allow different sources to be used to build a Native Binary depending on the target platform.
+
+## Story: Allow definition of custom architecture and custom GCC Tool Chain to build for that architecture
+
+## Story: Build native binaries with Visual C++ that target different Windows SDK versions
 
 ## Story: Allow library binaries to be used as input to other libraries
 
