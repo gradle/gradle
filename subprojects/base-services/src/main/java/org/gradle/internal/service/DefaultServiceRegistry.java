@@ -445,8 +445,7 @@ public class DefaultServiceRegistry implements ServiceRegistry {
         public void stop() {
             try {
                 if (instance != null) {
-                    CompositeStoppable.stoppable(dependents).stop();
-                    CompositeStoppable.stoppable(instance).stop();
+                    CompositeStoppable.stoppable(dependents).add(instance).stop();
                 }
             } finally {
                 dependents.clear();

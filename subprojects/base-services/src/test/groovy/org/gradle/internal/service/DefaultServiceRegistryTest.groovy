@@ -143,16 +143,7 @@ class DefaultServiceRegistryTest extends Specification {
 
     def handlesInheritanceInGenericTypes() {
         def registry = new DefaultServiceRegistry()
-        registry.addProvider(new Object() {
-            Integer createInteger(Runnable action) {
-                action.run()
-                return 123
-            }
-
-            GenericRunnable<String> createString() {
-                return { } as GenericRunnable
-            }
-        })
+        registry.addProvider(new ProviderWithGenericTypes())
 
         expect:
         registry.get(Integer) == 123
@@ -1050,6 +1041,17 @@ class DefaultServiceRegistryTest extends Specification {
 
     private static class NoOpConfigureProvider {
         void configure(ServiceRegistration registration, String value) {
+        }
+    }
+
+    private static class ProviderWithGenericTypes {
+        Integer createInteger(Runnable action) {
+            action.run()
+            return 123
+        }
+
+        GenericRunnable<String> createString() {
+            return { } as GenericRunnable
         }
     }
 

@@ -119,11 +119,14 @@ class ServiceLifecycleTest extends ConcurrentSpec {
             start {
                 lifecycle.use {
                     instant.running
-                    thread.block()
+                    thread.blockUntil.failure
                 }
             }
-            thread.blockUntil.running
-            lifecycle.use {}
+            operation.failure {
+                thread.blockUntil.running
+                thread.block()
+                lifecycle.use {}
+            }
         }
 
         then:
