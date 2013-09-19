@@ -132,7 +132,7 @@ associates an external identifier only with those components that are published.
     - When an `MavenPublication` is defined, register a component with `publishedAs` taken from the publication.
 3. Change `ProjectDependencyResolver` to use the identifier and metadata from this service.
 4. Change the dependency tasks so that they handle a component with null `publishedAs`.
-5. Change the `ivy-publish` and `maven-publish` plugins to use the `ProjectPublicationRegistry` service (TBD)
+5. Change `ProjectDependencyPublicationResolver` to use the `ProjectPublicationRegistry` service.
 
 ### Test cases
 

@@ -15,7 +15,7 @@ The following features are currently out of scope for this spec, but certainly m
 
 - Building a Play application for multiple Scala versions. For now, the build for a given Play application will target a single Scala version.
   It will be possible to declare which version of Scala to build for.
-- Building on Java 6. For now, building using Java 7 and later will be supported. It will be possible to cross-compile for Java 6.
+- Using continuous mode with JVMs older than Java 7. For now, this will work only with Java 7 and later will be supported. It will be possible to build and run for Java 6.
 - Any specific IDE integration, beyond Gradle's current general purpose IDE integration for Java and Scala.
 - Any specific support for publishing and resolving Play applications, beyond Gradle's current general purpose capabilities.
 - Installing the Play tools on the build machine.

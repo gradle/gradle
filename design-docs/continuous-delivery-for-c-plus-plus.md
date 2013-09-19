@@ -1228,5 +1228,4 @@ TBD
 * Understand the various output file types: PE, ELF, Mach-O, COFF
 * Bare-bones tool chain using GNU binutils
 * Should be able to run the C preprocessor on assembler source file.
-
-
+* Should use the registry to find visual C++ and SDK.
