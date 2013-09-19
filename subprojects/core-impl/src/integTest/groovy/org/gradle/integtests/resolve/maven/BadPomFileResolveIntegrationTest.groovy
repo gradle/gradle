@@ -77,7 +77,6 @@ class BadPomFileResolveIntegrationTest extends AbstractDependencyResolutionTest 
         parent.pom.expectGet()
         module.pom.expectGet()
         module.artifact.expectGet()
-        parent.pom.expectHead()
 
         expect:
         // have to run twice to trigger the failure, to parse the descriptor from the cache

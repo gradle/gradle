@@ -17,6 +17,7 @@
 package org.gradle.api.internal.externalresource.transfer
 
 import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex
+import org.gradle.util.BuildCommencedTimeProvider
 import spock.lang.Specification
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceCandidates
 import org.gradle.api.internal.externalresource.cached.CachedExternalResource
@@ -28,7 +29,8 @@ import org.gradle.api.internal.externalresource.DefaultLocallyAvailableExternalR
 class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
     final accessor = Mock(ExternalResourceAccessor)
     final index = Mock(CachedExternalResourceIndex)
-    final cache = new DefaultCacheAwareExternalResourceAccessor(accessor, index)
+    final timeProvider = Mock(BuildCommencedTimeProvider)
+    final cache = new DefaultCacheAwareExternalResourceAccessor(accessor, index, timeProvider)
 
     def "will use sha1 from metadata for finding candidates if available"() {
         given:
@@ -50,6 +52,8 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         def foundResource = cache.getResource("location", localCandidates)
 
         then:
+        1 * timeProvider.currentTime >> new Date().time
+        1 * cached.cachedAt >> new Date().time + 2
         0 * accessor.getResourceSha1(_)
         1 * localCandidates.findByHashValue(sha1) >> localCandidate
 

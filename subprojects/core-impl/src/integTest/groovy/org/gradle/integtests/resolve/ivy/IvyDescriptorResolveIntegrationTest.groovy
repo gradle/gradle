@@ -122,7 +122,6 @@ task check << {
         and:
         module.ivy.expectGet()
         parentModule.ivy.expectGet()
-        parentModule.ivy.expectHead()
         depModule.ivy.expectGet()
         module.jar.expectGet()
         depModule.jar.expectGet()

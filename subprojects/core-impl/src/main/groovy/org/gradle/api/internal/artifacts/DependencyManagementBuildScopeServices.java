@@ -201,13 +201,14 @@ class DependencyManagementBuildScopeServices {
 
     RepositoryTransportFactory createRepositoryTransportFactory(ProgressLoggerFactory progressLoggerFactory, LocalFileRepositoryArtifactCache localFileRepositoryArtifactCache,
                                                                 DownloadingRepositoryArtifactCache downloadingRepositoryArtifactCache, TemporaryFileProvider temporaryFileProvider,
-                                                                ByUrlCachedExternalResourceIndex externalResourceIndex) {
+                                                                ByUrlCachedExternalResourceIndex externalResourceIndex, BuildCommencedTimeProvider buildCommencedTimeProvider) {
         return new RepositoryTransportFactory(
                 progressLoggerFactory,
                 localFileRepositoryArtifactCache,
                 downloadingRepositoryArtifactCache,
                 temporaryFileProvider,
-                externalResourceIndex
+                externalResourceIndex,
+                buildCommencedTimeProvider
         );
     }
 

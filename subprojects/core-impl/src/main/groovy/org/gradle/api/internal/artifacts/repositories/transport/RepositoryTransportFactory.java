@@ -22,6 +22,7 @@ import org.gradle.api.internal.externalresource.transport.file.FileTransport;
 import org.gradle.api.internal.externalresource.transport.http.HttpTransport;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.logging.ProgressLoggerFactory;
+import org.gradle.util.BuildCommencedTimeProvider;
 
 public class RepositoryTransportFactory {
     private final RepositoryArtifactCache downloadingCacheManager;
@@ -29,21 +30,24 @@ public class RepositoryTransportFactory {
     private final CachedExternalResourceIndex<String> cachedExternalResourceIndex;
     private final RepositoryArtifactCache localCacheManager;
     private final ProgressLoggerFactory progressLoggerFactory;
+    private final BuildCommencedTimeProvider timeProvider;
 
     public RepositoryTransportFactory(ProgressLoggerFactory progressLoggerFactory,
                                       RepositoryArtifactCache localCacheManager,
                                       RepositoryArtifactCache downloadingCacheManager,
                                       TemporaryFileProvider temporaryFileProvider,
-                                      CachedExternalResourceIndex<String> cachedExternalResourceIndex) {
+                                      CachedExternalResourceIndex<String> cachedExternalResourceIndex,
+                                      BuildCommencedTimeProvider timeProvider) {
         this.progressLoggerFactory = progressLoggerFactory;
         this.localCacheManager = localCacheManager;
         this.downloadingCacheManager = downloadingCacheManager;
         this.temporaryFileProvider = temporaryFileProvider;
         this.cachedExternalResourceIndex = cachedExternalResourceIndex;
+        this.timeProvider = timeProvider;
     }
 
     public RepositoryTransport createHttpTransport(String name, PasswordCredentials credentials) {
-        return new HttpTransport(name, credentials, downloadingCacheManager, progressLoggerFactory, temporaryFileProvider, cachedExternalResourceIndex);
+        return new HttpTransport(name, credentials, downloadingCacheManager, progressLoggerFactory, temporaryFileProvider, cachedExternalResourceIndex, timeProvider);
     }
 
     public RepositoryTransport createFileTransport(String name) {

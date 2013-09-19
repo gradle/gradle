@@ -27,6 +27,7 @@ import org.gradle.api.internal.externalresource.transport.DefaultExternalResourc
 import org.gradle.api.internal.externalresource.transport.ExternalResourceRepository;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.logging.ProgressLoggerFactory;
+import org.gradle.util.BuildCommencedTimeProvider;
 
 import java.net.URI;
 
@@ -37,10 +38,10 @@ public class HttpTransport implements RepositoryTransport {
 
     public HttpTransport(String name, PasswordCredentials credentials, RepositoryArtifactCache repositoryCacheManager,
                          ProgressLoggerFactory progressLoggerFactory, TemporaryFileProvider temporaryFileProvider,
-                         CachedExternalResourceIndex<String> cachedExternalResourceIndex) {
+                         CachedExternalResourceIndex<String> cachedExternalResourceIndex, BuildCommencedTimeProvider timeProvider) {
         this.name = name;
         this.repositoryCacheManager = repositoryCacheManager;
-        repository = createRepository(credentials, progressLoggerFactory, temporaryFileProvider, cachedExternalResourceIndex);
+        repository = createRepository(credentials, progressLoggerFactory, temporaryFileProvider, cachedExternalResourceIndex, timeProvider);
     }
 
     public ExternalResourceRepository getRepository() {
@@ -48,7 +49,7 @@ public class HttpTransport implements RepositoryTransport {
     }
 
     private ExternalResourceRepository createRepository(PasswordCredentials credentials, ProgressLoggerFactory progressLoggerFactory,
-                                                        TemporaryFileProvider temporaryFileProvider, CachedExternalResourceIndex<String> cachedExternalResourceIndex) {
+                                                        TemporaryFileProvider temporaryFileProvider, CachedExternalResourceIndex<String> cachedExternalResourceIndex, BuildCommencedTimeProvider timeProvider) {
         HttpClientHelper http = new HttpClientHelper(new DefaultHttpSettings(credentials));
         HttpResourceAccessor accessor = new HttpResourceAccessor(http);
         HttpResourceUploader uploader = new HttpResourceUploader(http);
@@ -59,7 +60,7 @@ public class HttpTransport implements RepositoryTransport {
                 new ProgressLoggingExternalResourceUploader(uploader, progressLoggerFactory),
                 new HttpResourceLister(accessor),
                 temporaryFileProvider,
-                new DefaultCacheAwareExternalResourceAccessor(loggingAccessor, cachedExternalResourceIndex)
+                new DefaultCacheAwareExternalResourceAccessor(loggingAccessor, cachedExternalResourceIndex, timeProvider)
         );
     }
 

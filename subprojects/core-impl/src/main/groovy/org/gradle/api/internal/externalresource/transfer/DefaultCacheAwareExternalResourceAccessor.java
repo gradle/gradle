@@ -17,16 +17,19 @@
 package org.gradle.api.internal.externalresource.transfer;
 
 import org.gradle.api.Nullable;
+import org.gradle.api.internal.artifacts.configurations.dynamicversion.ExternalResourceCachePolicy;
+import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultExternalResourceCachePolicy;
 import org.gradle.api.internal.externalresource.DefaultLocallyAvailableExternalResource;
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.cached.CachedExternalResource;
 import org.gradle.api.internal.externalresource.cached.CachedExternalResourceAdapter;
 import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex;
-import org.gradle.internal.resource.local.LocallyAvailableResource;
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceCandidates;
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaDataCompare;
 import org.gradle.internal.Factory;
+import org.gradle.internal.resource.local.LocallyAvailableResource;
+import org.gradle.util.BuildCommencedTimeProvider;
 import org.gradle.util.hash.HashValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,10 +42,13 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
 
     private final ExternalResourceAccessor delegate;
     private final CachedExternalResourceIndex<String> cachedExternalResourceIndex;
+    private final BuildCommencedTimeProvider timeProvider;
+    private final ExternalResourceCachePolicy externalResourceCachePolicy = new DefaultExternalResourceCachePolicy();
 
-    public DefaultCacheAwareExternalResourceAccessor(ExternalResourceAccessor delegate, CachedExternalResourceIndex<String> cachedExternalResourceIndex) {
+    public DefaultCacheAwareExternalResourceAccessor(ExternalResourceAccessor delegate, CachedExternalResourceIndex<String> cachedExternalResourceIndex, BuildCommencedTimeProvider timeProvider) {
         this.delegate = delegate;
         this.cachedExternalResourceIndex = cachedExternalResourceIndex;
+        this.timeProvider = timeProvider;
     }
 
     public ExternalResource getResource(final String location, @Nullable LocallyAvailableResourceCandidates localCandidates) throws IOException {
@@ -55,6 +61,9 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
         }
 
         // We might be able to use a cached/locally available version
+        if (cached != null && !externalResourceCachePolicy.mustRefreshExternalResource(getAgeMillis(timeProvider, cached))) {
+            return new CachedExternalResourceAdapter(location, cached, delegate, cached.getExternalResourceMetaData());
+        }
 
         // Get the metadata first to see if it's there
         final ExternalResourceMetaData remoteMetaData = delegate.getMetaData(location);
@@ -103,4 +112,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
         return delegate.getResource(location);
     }
 
+    public long getAgeMillis(BuildCommencedTimeProvider timeProvider, CachedExternalResource cached) {
+        return timeProvider.getCurrentTime() - cached.getCachedAt();
+    }
 }
