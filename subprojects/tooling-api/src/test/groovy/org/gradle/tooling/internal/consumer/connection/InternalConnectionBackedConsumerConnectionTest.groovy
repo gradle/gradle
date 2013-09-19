@@ -25,10 +25,12 @@ import org.gradle.tooling.internal.consumer.versioning.CustomModel
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping
 import org.gradle.tooling.internal.protocol.ConnectionMetaDataVersion1
 import org.gradle.tooling.internal.protocol.InternalConnection
+import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject
+import org.gradle.tooling.model.gradle.GradleBuild
 import org.gradle.tooling.model.idea.BasicIdeaProject
 import org.gradle.tooling.model.idea.IdeaProject
 import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes
@@ -65,6 +67,22 @@ class InternalConnectionBackedConsumerConnectionTest extends Specification {
         and:
         !details.isModelSupported(ProjectOutcomes)
         !details.isModelSupported(CustomModel)
+    }
+
+    def "builds GradleBuild model"() {
+        def model = Stub(GradleBuild.class)
+
+        when:
+        def result = connection.run(GradleBuild.class, parameters)
+
+        then:
+        result == model
+
+        and:
+        0 * modelMapping.getProtocolType(_)
+        1 * target.getModel(EclipseProjectVersion3.class, parameters) >> Stub(EclipseProjectVersion3.class)
+        1 * adapter.adapt(GradleBuild.class, _, _) >> model
+        0 * target._
     }
 
     def "builds model using connection's getTheModel() method"() {

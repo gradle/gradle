@@ -26,14 +26,14 @@ import org.gradle.tooling.internal.protocol.ModelBuilder
 import org.gradle.tooling.internal.protocol.ModelIdentifier
 import spock.lang.Specification
 
-class ConsumerConnectionBackedModelProducerTest extends Specification {
+class ModelBuilderBackedModelProducerTest extends Specification {
 
     ProtocolToModelAdapter adapter = Mock(ProtocolToModelAdapter);
     VersionDetails versionDetails = Mock(VersionDetails);
     ModelMapping mapping = Mock(ModelMapping);
     ModelBuilder builder = Mock(ModelBuilder);
 
-    ConsumerConnectionBackedModelProducer modelProducer = new ConsumerConnectionBackedModelProducer(adapter, versionDetails, mapping, builder);
+    ModelBuilderBackedModelProducer modelProducer = new ModelBuilderBackedModelProducer(adapter, versionDetails, mapping, builder);
 
     def setup() {
         _ * versionDetails.getVersion() >> "X.Y"

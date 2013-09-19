@@ -25,10 +25,10 @@ import org.gradle.tooling.internal.protocol.ModelBuilder;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.model.internal.Exceptions;
 
-public class ConsumerConnectionBackedModelProducer extends AbstractModelProducer{
+public class ModelBuilderBackedModelProducer extends AbstractModelProducer{
     private final ModelBuilder builder;
 
-    public ConsumerConnectionBackedModelProducer(ProtocolToModelAdapter adapter, VersionDetails versionDetails, ModelMapping modelMapping, ModelBuilder builder) {
+    public ModelBuilderBackedModelProducer(ProtocolToModelAdapter adapter, VersionDetails versionDetails, ModelMapping modelMapping, ModelBuilder builder) {
         super(adapter, versionDetails, modelMapping);
         this.builder = builder;
     }

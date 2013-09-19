@@ -49,7 +49,7 @@ public class InternalConnectionBackedConsumerConnection extends AbstractPre12Con
     @Override
     protected Object doGetModel(Class<?> modelType, ConsumerOperationParameters operationParameters) {
         VersionDetails versionDetails = getVersionDetails();
-        if (modelType == GradleBuild.class && !versionDetails.isModelSupported(GradleBuild.class)) {
+        if (modelType.equals(GradleBuild.class)) {
             EclipseProjectVersion3 project = (EclipseProjectVersion3) getDelegate().getModel(EclipseProjectVersion3.class, operationParameters);
             return new GradleBuildConverter().convert(project);
         }
