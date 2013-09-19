@@ -70,12 +70,12 @@ public class GccToolChain extends AbstractToolChain implements Gcc {
         return "GNU G++";
     }
 
-    public List<File> getPaths() {
+    public List<File> getPath() {
         return tools.getPath();
     }
 
-    public void path(Object... paths) {
-        for (Object path : paths) {
+    public void path(Object... pathEntries) {
+        for (Object path : pathEntries) {
             tools.path(resolve(path));
         }
     }
@@ -178,7 +178,7 @@ public class GccToolChain extends AbstractToolChain implements Gcc {
 
         private <T extends BinaryToolSpec> CommandLineTool<T> commandLineTool(ToolType key) {
             CommandLineTool<T> commandLineTool = new CommandLineTool<T>(key.getToolName(), tools.locate(key), execActionFactory);
-            commandLineTool.withPath(getPaths());
+            commandLineTool.withPath(getPath());
             targetToPlatform(commandLineTool, key);
             return commandLineTool;
         }

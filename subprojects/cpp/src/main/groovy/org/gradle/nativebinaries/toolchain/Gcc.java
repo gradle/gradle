@@ -17,6 +17,7 @@
 package org.gradle.nativebinaries.toolchain;
 
 import org.gradle.api.Incubating;
+import org.gradle.nativebinaries.ToolChain;
 
 import java.io.File;
 import java.util.List;
@@ -25,16 +26,42 @@ import java.util.List;
  * The GCC tool chain.
  */
 @Incubating
-public interface Gcc extends ConfigurableToolChain {
+public interface Gcc extends ToolChain {
     /**
      * The paths setting required for executing the tool chain.
+     * These are used to locate tools for this tool chain, and are prepended to the system PATH when executing these tools.
      */
-    List<File> getPaths();
-    // TODO:DAZ Add a setter
+    List<File> getPath();
 
     /**
-     * Add an entry or entries to the tool chain path.
+     * Append an entry or entries to the tool chain path.
+     *
+     * @param pathEntries The path values to append. These are evaluated as per {@link org.gradle.api.Project#files(Object...)}
      */
-    void path(Object... pathEntry);
+    void path(Object... pathEntries);
 
+    /**
+     * The C++ compiler.
+     */
+    Tool getCCompiler();
+
+    /**
+     * The C compiler.
+     */
+    Tool getCppCompiler();
+
+    /**
+     * The assembler.
+     */
+    Tool getAssembler();
+
+    /**
+     * The linker.
+     */
+    Tool getLinker();
+
+    /**
+     * The static library archiver.
+     */
+    Tool getStaticLibArchiver();
 }

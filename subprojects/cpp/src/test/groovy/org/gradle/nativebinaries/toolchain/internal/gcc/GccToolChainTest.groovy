@@ -62,6 +62,6 @@ class GccToolChainTest extends Specification {
         fileResolver.resolve("Path2") >> testDir.file("three")
 
         and:
-        toolChain.paths == [testDir.file("one"), testDir.file("two"), testDir.file("three")]
+        toolChain.path == [testDir.file("one"), testDir.file("two"), testDir.file("three")]
     }
 }

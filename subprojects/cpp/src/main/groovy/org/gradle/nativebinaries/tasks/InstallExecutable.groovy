@@ -101,8 +101,8 @@ public class InstallExecutable extends DefaultTask {
         if (toolChain in Gcc) {
             // Gcc on windows requires the path to be set
             toolChainPath.append("SET PATH=")
-            for (File path : ((Gcc) toolChain).paths) {
-                toolChainPath.append(path.absolutePath).append(";")
+            for (File pathEntry : ((Gcc) toolChain).path) {
+                toolChainPath.append(pathEntry.absolutePath).append(";")
             }
             toolChainPath.append("%PATH%")
         }

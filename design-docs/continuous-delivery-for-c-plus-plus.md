@@ -503,7 +503,7 @@ This story adds support for building a native component using multiple tool chai
             path "C:/MinGW/bin"
         }
         gccCrossCompiler(Gcc) {
-            path "/opt/gcc/4.0/bin" // Needed to update the path
+            path "/opt/gcc/4.0/bin"
 
             // Custom binary file paths and arguments
             cCompiler.executable "gccCustom_gcc"
@@ -513,13 +513,12 @@ This story adds support for building a native component using multiple tool chai
             staticLibArchiver.executable "ar"
         }
         
-        // Path already setup and binaries available
+        // Locate Visual Studio installation by path or in default locations
         visualCpp(VisualCpp) {} 
         
-        // Setup paths based on installation directory
+        // Explicit configuration of Visual Studio installation directory
         visualCpp(VisualCpp) {
             installDir "D:/Programs/Microsoft Visual Studio 10.0"
-            assembler.executable "ml64.exe"
         }
     }
 
