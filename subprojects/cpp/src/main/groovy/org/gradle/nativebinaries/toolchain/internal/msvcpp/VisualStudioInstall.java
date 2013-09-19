@@ -26,12 +26,10 @@ import java.util.*;
 public class VisualStudioInstall {
     private final File visualStudioDir;
     private final File visualCppDir;
-    private final WindowsSdk windowsSdk;
 
-    public VisualStudioInstall(File visualStudioDir, WindowsSdk windowsSdk) {
+    public VisualStudioInstall(File visualStudioDir) {
         this.visualStudioDir = visualStudioDir;
         visualCppDir = new File(visualStudioDir, "VC");
-        this.windowsSdk = windowsSdk;
     }
 
     public File getVisualStudioDir() {
@@ -42,20 +40,16 @@ public class VisualStudioInstall {
         tools.setPath(Arrays.asList(
                 new File(visualStudioDir, "Common7/IDE"),
                 new File(visualStudioDir, "Common7/Tools"),
-                getVisualCppTools(platform),
-                new File(visualCppDir, "VCPackages"),
-                windowsSdk.getBinDir()
+                getVisualCppBin(platform),
+                new File(visualCppDir, "VCPackages")
         ));
-        tools.getEnvironment().put("INCLUDE", new File(visualCppDir, "include").getAbsolutePath());
-        tools.getEnvironment().put("LIB",
-                getVisualCppLibs(platform).getAbsolutePath()
-                + File.pathSeparator
-                + windowsSdk.getLibDir(platform).getAbsolutePath());
+        tools.getEnvironment().put("INCLUDE", getVisualCppInclude().getAbsolutePath());
+        tools.getEnvironment().put("LIB", getVisualCppLib(platform).getAbsolutePath());
 
-        configureAssembler(tools, platform);
+        tools.setExeName(ToolType.ASSEMBLER, getAssemblerExe(platform));
     }
 
-    private File getVisualCppTools(Platform platform) {
+    private File getVisualCppBin(Platform platform) {
         switch (platform.getArchitecture()) {
             case AMD64:
                 return new File(visualCppDir, "bin/x86_amd64");
@@ -64,7 +58,11 @@ public class VisualStudioInstall {
         }
     }
 
-    private File getVisualCppLibs(Platform platform) {
+    private File getVisualCppInclude() {
+        return new File(visualCppDir, "include");
+    }
+
+    private File getVisualCppLib(Platform platform) {
         switch (platform.getArchitecture()) {
             case AMD64:
                 return new File(visualCppDir, "lib/amd64");
@@ -73,14 +71,12 @@ public class VisualStudioInstall {
         }
     }
 
-    private void configureAssembler(ToolRegistry tools, Platform platform) {
-        // TODO:DAZ This isn't great: should really track user-configured exe names separate from implicit names
-        if (platform.getArchitecture() == Platform.Architecture.AMD64) {
-            // If the named assembler is found in configured path, just use it. This permits user to point to alternative assembler.
-            if (tools.locate(ToolType.ASSEMBLER) == null) {
-                // Otherwise, use standard visual studio 64-bit assembler
-                tools.setExeName(ToolType.ASSEMBLER, "ml64.exe");
-            }
+    private String getAssemblerExe(Platform platform) {
+        switch (platform.getArchitecture()) {
+            case AMD64:
+                return "ml64.exe";
+            default:
+                return "ml.exe";
         }
     }
 }

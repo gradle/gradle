@@ -18,6 +18,7 @@ package org.gradle.nativebinaries.toolchain.internal.msvcpp;
 
 import org.gradle.api.Named;
 import org.gradle.nativebinaries.Platform;
+import org.gradle.nativebinaries.toolchain.internal.ToolRegistry;
 
 import java.io.File;
 
@@ -56,4 +57,13 @@ public class WindowsSdk implements Named {
                 return new File(baseDir, "lib");
         }
     }
+
+    public void configureTools(ToolRegistry tools, Platform platform) {
+        tools.path(getBinDir());
+        tools.getEnvironment().put("LIB",
+                tools.getEnvironment().get("LIB")
+                + File.pathSeparator
+                + getLibDir(platform).getAbsolutePath());
+    }
+
 }

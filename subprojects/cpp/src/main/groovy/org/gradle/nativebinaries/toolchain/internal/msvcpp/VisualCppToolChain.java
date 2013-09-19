@@ -31,7 +31,6 @@ import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
 import org.gradle.nativebinaries.toolchain.internal.ToolRegistry;
 import org.gradle.nativebinaries.toolchain.internal.ToolType;
 import org.gradle.process.internal.ExecAction;
-import org.gradle.util.GUtil;
 
 import java.io.File;
 
@@ -40,12 +39,13 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
     public static final String DEFAULT_NAME = "visualCpp";
 
     private final Factory<ExecAction> execActionFactory;
-    private final VisualStudioLocator visualStudioLocator = new VisualStudioLocator();
+    private final VisualStudioLocator visualStudioLocator;
     private File installDir;
 
     public VisualCppToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, Factory<ExecAction> execActionFactory) {
         super(name, operatingSystem, new ToolRegistry(operatingSystem), fileResolver);
         this.execActionFactory = execActionFactory;
+        visualStudioLocator = new VisualStudioLocator(operatingSystem);
 
         tools.setExeName(ToolType.CPP_COMPILER, "cl.exe");
         tools.setExeName(ToolType.C_COMPILER, "cl.exe");
@@ -65,15 +65,20 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
             availability.unavailable("Not available on this operating system.");
             return;
         }
+        // TODO:DAZ Report on how we searched
+        availability.mustExist("Visual Studio installation", locateVisualStudio());
+        availability.mustExist("Windows SDK", locateWindowsSdk());
+    }
+
+    private File locateVisualStudio() {
         if (installDir != null) {
-            availability.mustExist("Visual Studio installation", visualStudioLocator.locateVisualStudio(installDir));
-            availability.mustExist("Windows SDK", visualStudioLocator.locateWindowsSdk());
-        } else {
-            // Locate tools in the path
-            for (ToolType key : ToolType.values()) {
-                availability.mustExist(key.getToolName(), tools.locate(key));
-            }
+            return visualStudioLocator.locateVisualStudio(installDir);
         }
+        return visualStudioLocator.locateDefaultVisualStudio();
+    }
+
+    private File locateWindowsSdk() {
+        return visualStudioLocator.locateDefaultWindowsSdk();
     }
 
     public File getInstallDir() {
@@ -87,27 +92,8 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
     public PlatformToolChain target(Platform targetPlatform) {
         checkAvailable();
 
-        // TODO:DAZ This is a mess. Need to decide on a good behaviour that honours current environment if required, but isn't inconsistent.
-
-        if (installDir == null && targetPlatform.getArchitecture() == Platform.Architecture.TOOL_CHAIN_DEFAULT) {
-            // Just build with whatever is in the path
-            return new VisualCppPlatformToolChain();
-        }
-
-        // We either have an installDir specified, or we have a CPP compiler in the path
-        File cppExe = tools.locate(ToolType.CPP_COMPILER);
-        File visualStudioDir = visualStudioLocator.locateVisualStudio(GUtil.elvis(installDir, cppExe));
-        if (visualStudioDir == null) {
-            throw new IllegalStateException("Could not find visual studio install, so cannot target platform " + targetPlatform.getArchitecture());
-        }
-        File windowsSdkDir = visualStudioLocator.locateWindowsSdk();
-        if (windowsSdkDir == null) {
-            throw new IllegalStateException("Could not find Windows SDK, so cannot target platform " + targetPlatform.getArchitecture());
-        }
-
-        // TODO:DAZ Definitely shouldn't overwrite the tools here
-        VisualStudioInstall install = new VisualStudioInstall(visualStudioDir, new WindowsSdk(windowsSdkDir));
-        install.configureTools(tools, targetPlatform);
+        new VisualStudioInstall(locateVisualStudio()).configureTools(tools, targetPlatform);
+        new WindowsSdk(locateWindowsSdk()).configureTools(tools, targetPlatform);
         return new VisualCppPlatformToolChain();
     }
 

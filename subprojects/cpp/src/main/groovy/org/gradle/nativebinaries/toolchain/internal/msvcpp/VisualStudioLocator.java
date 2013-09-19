@@ -16,9 +16,21 @@
 
 package org.gradle.nativebinaries.toolchain.internal.msvcpp;
 
+import org.gradle.internal.os.OperatingSystem;
+
 import java.io.File;
 
 public class VisualStudioLocator {
+    private final OperatingSystem os;
+
+    public VisualStudioLocator() {
+        this(OperatingSystem.current());
+    }
+
+    public VisualStudioLocator(OperatingSystem os) {
+        this.os = os;
+    }
+
     public File locateVisualStudio(File candidate) {
         while (candidate != null) {
             if (isVisualStudio(candidate)) {
@@ -30,7 +42,13 @@ public class VisualStudioLocator {
     }
 
     public File locateDefaultVisualStudio() {
-        // TODO:DAZ Iterate over all local drives?
+        // If cl.exe is on the path, assume it is contained within a visual studio install
+        File compilerInPath = os.findInPath("cl.exe");
+        if (compilerInPath != null) {
+            return locateVisualStudio(compilerInPath);
+        }
+
+        // TODO:DAZ Use %PROGRAMFILES% environment variable
         String[] candidateLocations = new String[] {
                 "C:/Program Files (x86)/Microsoft Visual Studio 10.0",
                 "C:/Program Files/Microsoft Visual Studio 10.0",
@@ -48,8 +66,8 @@ public class VisualStudioLocator {
         return new File(candidate, "VC/bin/cl.exe").isFile();
     }
 
-    public File locateWindowsSdk() {
-        // TODO:DAZ Iterate over all local drives?
+    public File locateDefaultWindowsSdk() {
+        // TODO:DAZ Use %PROGRAMFILES% environment variable
         String[] candidateLocations = new String[] {
                 "C:/Program Files (x86)/Microsoft SDKs/Windows/v7.1",
                 "C:/Program Files/Microsoft SDKs/Windows/v7.1",

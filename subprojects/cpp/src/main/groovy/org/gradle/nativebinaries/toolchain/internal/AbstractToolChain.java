@@ -20,12 +20,10 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativebinaries.internal.ToolChainAvailability;
 import org.gradle.nativebinaries.internal.ToolChainInternal;
-import org.gradle.nativebinaries.toolchain.ConfigurableToolChain;
-import org.gradle.nativebinaries.toolchain.Tool;
 
 import java.io.File;
 
-public abstract class AbstractToolChain implements ToolChainInternal, ConfigurableToolChain {
+public abstract class AbstractToolChain implements ToolChainInternal {
     private final String name;
     protected final OperatingSystem operatingSystem;
     protected final ToolRegistry tools;
@@ -89,41 +87,5 @@ public abstract class AbstractToolChain implements ToolChainInternal, Configurab
 
     protected File resolve(Object path) {
         return fileResolver.resolve(path);
-    }
-
-    public Tool getCppCompiler() {
-        return new DefaultTool(ToolType.CPP_COMPILER);
-    }
-
-    public Tool getCCompiler() {
-        return new DefaultTool(ToolType.C_COMPILER);
-    }
-
-    public Tool getAssembler() {
-        return new DefaultTool(ToolType.ASSEMBLER);
-    }
-
-    public Tool getLinker() {
-        return new DefaultTool(ToolType.LINKER);
-    }
-
-    public Tool getStaticLibArchiver() {
-        return new DefaultTool(ToolType.STATIC_LIB_ARCHIVER);
-    }
-
-    private class DefaultTool implements Tool {
-        private final ToolType toolType;
-
-        private DefaultTool(ToolType toolType) {
-            this.toolType = toolType;
-        }
-
-        public String getExecutable() {
-            return tools.getExeName(toolType);
-        }
-
-        public void setExecutable(String file) {
-            tools.setExeName(toolType, file);
-        }
     }
 }

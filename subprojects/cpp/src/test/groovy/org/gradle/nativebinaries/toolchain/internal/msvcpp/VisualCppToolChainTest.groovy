@@ -46,10 +46,7 @@ class VisualCppToolChainTest extends Specification {
         final os = Stub(OperatingSystem) {
             isWindows() >> true
             getExecutableName(_ as String) >> { String exeName -> exeName }
-            findInPath("cl.exe") >> file('cl.exe')
-            findInPath("link.exe") >> file('link.exe')
-            findInPath("lib.exe") >> file('lib.exe')
-            findInPath("ml.exe") >> file('ml.exe')
+            findInPath("cl.exe") >> file('VC/bin/cl.exe')
         }
 
         def cppToolChain = new VisualCppToolChain("test", os, fileResolver, Stub(Factory))
@@ -60,12 +57,10 @@ class VisualCppToolChainTest extends Specification {
 
         then:
         !availability.available
-        availability.unavailableMessage == "C++ compiler does not exist (${file("cl.exe")})"
+        availability.unavailableMessage == "Visual Studio installation cannot be found"
 
         when:
-        createFile('cl.exe')
-        createFile('link.exe')
-        createFile('ml.exe')
+        createFile('VC/bin/cl.exe')
 
         and:
         def availability2 = new ToolChainAvailability()
@@ -73,34 +68,7 @@ class VisualCppToolChainTest extends Specification {
 
         then:
         !availability2.available
-        availability2.unavailableMessage == "Static library archiver does not exist (${file('lib.exe')})"
-
-        when:
-        createFile('lib.exe')
-
-        and:
-        def availability3 = new ToolChainAvailability()
-        cppToolChain.checkAvailable(availability3);
-
-        then:
-        availability3.available
-    }
-
-    def "has default tool names"() {
-        expect:
-        toolChain.cppCompiler.executable == "cl.exe"
-        toolChain.CCompiler.executable == "cl.exe"
-        toolChain.assembler.executable == "ml.exe"
-        toolChain.linker.executable == "link.exe"
-        toolChain.staticLibArchiver.executable == "lib.exe"
-    }
-
-    def "can update tool names"() {
-        when:
-        toolChain.assembler.executable = "foo"
-
-        then:
-        toolChain.assembler.executable == "foo"
+        availability2.unavailableMessage == "Windows SDK cannot be found"
     }
 
     def "resolves install directory"() {

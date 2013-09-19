@@ -27,7 +27,6 @@ import org.gradle.nativebinaries.toolchain.internal.ToolRegistry;
 import org.gradle.nativebinaries.toolchain.internal.gcc.version.GccVersionDeterminer;
 import org.gradle.nativebinaries.toolchain.internal.msvcpp.VisualStudioInstall;
 import org.gradle.nativebinaries.toolchain.internal.msvcpp.VisualStudioLocator;
-import org.gradle.nativebinaries.toolchain.internal.msvcpp.WindowsSdk;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.util.TextUtil;
 
@@ -71,9 +70,8 @@ public class AvailableToolChains {
 
         VisualStudioLocator vsLocator = new VisualStudioLocator();
         File visualStudioDir = vsLocator.locateDefaultVisualStudio();
-        File windowsSdkDir = vsLocator.locateWindowsSdk();
-        if (visualStudioDir != null && windowsSdkDir != null) {
-            VisualStudioInstall install = new VisualStudioInstall(visualStudioDir, new WindowsSdk(windowsSdkDir));
+        if (visualStudioDir != null) {
+            VisualStudioInstall install = new VisualStudioInstall(visualStudioDir);
             return new InstalledVisualCpp("visual c++").withInstall(install);
         }
 
