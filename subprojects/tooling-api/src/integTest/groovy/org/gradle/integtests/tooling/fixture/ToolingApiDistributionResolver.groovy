@@ -24,8 +24,8 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.internal.CompositeStoppable
 import org.gradle.internal.nativeplatform.services.NativeServices
-import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.internal.service.ServiceRegistryBuilder
 import org.gradle.internal.service.scopes.BuildScopeServices
 import org.gradle.internal.service.scopes.GlobalScopeServices
 import org.gradle.internal.service.scopes.ProjectScopeServices
@@ -73,7 +73,11 @@ class ToolingApiDistributionResolver {
     }
 
     private DependencyResolutionServices createResolutionServices() {
-        ServiceRegistry globalRegistry = new DefaultServiceRegistry(LoggingServiceRegistry.newProcessLogging(), NativeServices.getInstance()).addProvider(new GlobalScopeServices())
+        ServiceRegistry globalRegistry = ServiceRegistryBuilder.builder()
+                .parent(LoggingServiceRegistry.newEmbeddableLogging())
+                .parent(NativeServices.getInstance())
+                .provider(new GlobalScopeServices())
+                .build()
         StartParameter startParameter = new StartParameter()
         startParameter.gradleUserHomeDir = new IntegrationTestBuildContext().gradleUserHomeDir
         BuildScopeServices topLevelRegistry = new BuildScopeServices(globalRegistry, startParameter)

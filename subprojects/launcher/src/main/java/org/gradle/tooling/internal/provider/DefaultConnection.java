@@ -16,8 +16,8 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.internal.nativeplatform.services.NativeServices;
-import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
@@ -40,7 +40,11 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
     public DefaultConnection() {
         LOGGER.debug("Tooling API provider {} created.", GradleVersion.current().getVersion());
         LoggingServiceRegistry loggingServices = LoggingServiceRegistry.newEmbeddableLogging();
-        services = new DefaultServiceRegistry(loggingServices, NativeServices.getInstance()).addProvider(new ConnectionScopeServices(loggingServices));
+        services = ServiceRegistryBuilder.builder()
+                .displayName("Connection services")
+                .parent(loggingServices)
+                .parent(NativeServices.getInstance())
+                .provider(new ConnectionScopeServices(loggingServices)).build();
         adapter = services.get(ProtocolToModelAdapter.class);
         connection = services.get(ProviderConnection.class);
     }
@@ -72,7 +76,7 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
      * This is used by consumers 1.0-milestone-3 and later
      */
     public void stop() {
-        // TODO:ADAM - switch this on again
+        // TODO:ADAM - switch this on again. Need to add a new protocol method, as older consumers call `stop()` at the end of every operation.
 //        services.close();
     }
 

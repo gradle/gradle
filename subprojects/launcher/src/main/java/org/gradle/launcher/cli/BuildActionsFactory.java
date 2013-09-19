@@ -30,8 +30,8 @@ import org.gradle.initialization.LayoutCommandLineConverter;
 import org.gradle.internal.DefaultStartParameter;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.nativeplatform.services.NativeServices;
-import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
 import org.gradle.launcher.bootstrap.ExecutionListener;
 import org.gradle.launcher.cli.converter.*;
@@ -155,7 +155,12 @@ class BuildActionsFactory implements CommandLineAction {
     }
 
     private Action<? super ExecutionListener> runBuildInProcess(StartParameter startParameter, DaemonParameters daemonParameters, ServiceRegistry loggingServices) {
-        ServiceRegistry globalServices = new DefaultServiceRegistry(loggingServices, NativeServices.getInstance()).addProvider(new GlobalScopeServices());
+        ServiceRegistry globalServices = ServiceRegistryBuilder.builder()
+                .displayName("Global services")
+                .parent(loggingServices)
+                .parent(NativeServices.getInstance())
+                .provider(new GlobalScopeServices())
+                .build();
         InProcessBuildActionExecuter executer = new InProcessBuildActionExecuter(globalServices.get(GradleLauncherFactory.class));
         return daemonBuildAction(startParameter, daemonParameters, executer);
     }
