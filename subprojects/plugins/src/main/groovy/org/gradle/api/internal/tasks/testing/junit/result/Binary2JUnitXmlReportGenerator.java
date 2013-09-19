@@ -22,7 +22,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.util.Clock;
-import org.gradle.util.GFileUtils;
+import org.gradle.util.FileUtils;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -65,7 +65,7 @@ public class Binary2JUnitXmlReportGenerator {
     }
 
     private String getReportFileName(TestClassResult result) {
-        return "TEST-" + GFileUtils.toSafeFileName(result.getClassName()) + ".xml";
+        return "TEST-" + FileUtils.toSafeFileName(result.getClassName()) + ".xml";
     }
 
     private static String getHostname() {

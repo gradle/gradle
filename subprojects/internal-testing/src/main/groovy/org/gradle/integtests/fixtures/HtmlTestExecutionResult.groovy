@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.fixtures
 
+import org.gradle.util.FileUtils
 import org.hamcrest.Matcher
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
@@ -47,35 +48,12 @@ class HtmlTestExecutionResult implements TestExecutionResult {
 
     def assertHtmlReportForTestClassExists(String... classNames) {
         classNames.each {
-            assertTrue new File(htmlReportDirectory, "${toSafeFileName(it)}.html").exists();
+            assertTrue new File(htmlReportDirectory, "${FileUtils.toSafeFileName(it)}.html").exists();
         }
-    }
-
-    /*
-     * duplicate from core:GFileUtils to avoid dependencies on core in internal-testing project.
-     */
-    public static String toSafeFileName(String name) {
-        int size = name.length();
-        StringBuffer rc = new StringBuffer(size * 2);
-        for (int i = 0; i < size; i++) {
-            char c = name.charAt(i);
-            boolean valid = c >= 'a' && c <= 'z';
-            valid = valid || (c >= 'A' && c <= 'Z');
-            valid = valid || (c >= '0' && c <= '9');
-            valid = valid || (c == '_') || (c == '-') || (c == '.') || (c == '#') || (c == '$');
-            if (valid) {
-                rc.append(c);
-            } else {
-                // Encode the character using hex notation
-                rc.append('#');
-                rc.append(Integer.toHexString((int)c));
-            }
-        }
-        return rc.toString();
     }
 
     TestClassExecutionResult testClass(String testClass) {
-        return new HtmlTestClassExecutionResult(new File(htmlReportDirectory, "${toSafeFileName(testClass)}.html"));
+        return new HtmlTestClassExecutionResult(new File(htmlReportDirectory, "${FileUtils.toSafeFileName(testClass)}.html"));
     }
 
     private static class HtmlTestClassExecutionResult implements TestClassExecutionResult {

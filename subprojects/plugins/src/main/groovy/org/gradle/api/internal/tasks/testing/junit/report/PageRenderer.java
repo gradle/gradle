@@ -21,7 +21,7 @@ import org.gradle.api.internal.html.SimpleHtmlWriter;
 import org.gradle.reporting.ReportRenderer;
 import org.gradle.reporting.TabbedPageRenderer;
 import org.gradle.reporting.TabsRenderer;
-import org.gradle.util.GFileUtils;
+import org.gradle.util.FileUtils;
 
 import java.io.IOException;
 
@@ -147,6 +147,6 @@ abstract class PageRenderer<T extends CompositeTestResults> extends TabbedPageRe
     }
 
     protected String asHtmlLinkEncoded(String rawLink) {
-        return GFileUtils.toSafeFileName(rawLink).replaceAll("#", "%23");
+        return FileUtils.toSafeFileName(rawLink).replaceAll("#", "%23");
     }
 }
