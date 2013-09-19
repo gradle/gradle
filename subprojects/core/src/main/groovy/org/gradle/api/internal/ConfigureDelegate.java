@@ -36,6 +36,11 @@ public class ConfigureDelegate extends GroovyObjectSupport {
         _delegate = DynamicObjectUtil.asDynamicObject(delegate);
     }
 
+    @Override
+    public String toString() {
+        return _delegate.toString();
+    }
+
     protected boolean _isConfigureMethod(String name, Object[] params) {
         return params.length == 1 && params[0] instanceof Closure;
     }
