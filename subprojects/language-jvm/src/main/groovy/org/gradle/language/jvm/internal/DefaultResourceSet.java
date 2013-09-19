@@ -15,46 +15,25 @@
  */
 package org.gradle.language.jvm.internal;
 
-import org.apache.commons.lang.StringUtils;
-import org.gradle.api.Action;
 import org.gradle.api.file.SourceDirectorySet;
-import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.language.base.internal.LanguageSourceSetInternal;
+import org.gradle.language.base.FunctionalSourceSet;
+import org.gradle.language.base.internal.AbstractLanguageSourceSet;
 import org.gradle.language.jvm.ResourceSet;
 
-public class DefaultResourceSet implements ResourceSet, LanguageSourceSetInternal {
-    private final String name;
+public class DefaultResourceSet extends AbstractLanguageSourceSet implements ResourceSet {
     private final SourceDirectorySet source;
-    private final FunctionalSourceSet parent;
 
     public DefaultResourceSet(String name, SourceDirectorySet source, FunctionalSourceSet parent) {
-        this.name = name;
+        super(name, parent, "resources");
         this.source = source;
-        this.parent = parent;
     }
 
     public SourceDirectorySet getSource() {
         return source;
     }
 
-    public void source(Action<? super SourceDirectorySet> config) {
-        config.execute(getSource());
-    }
-
     public TaskDependency getBuildDependencies() {
         return source.getBuildDependencies();
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getFullName() {
-        return parent.getName() + StringUtils.capitalize(name);
-    }
-
-    public String toString() {
-        return String.format("source set '%s:%s'", parent.getName(), name);
     }
 }

@@ -23,6 +23,6 @@ import org.gradle.language.cpp.CppSourceSet;
 
 public class DefaultCppSourceSet extends AbstractBaseSourceSet implements CppSourceSet {
     public DefaultCppSourceSet(String name, FunctionalSourceSet parent, ProjectInternal project) {
-        super(name, parent, project, "C++");
+        super(name, parent, project, "C++ source");
     }
 }

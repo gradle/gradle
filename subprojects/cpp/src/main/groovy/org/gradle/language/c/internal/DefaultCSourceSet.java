@@ -26,6 +26,6 @@ import javax.inject.Inject;
 public class DefaultCSourceSet extends AbstractBaseSourceSet implements CSourceSet {
     @Inject
     public DefaultCSourceSet(String name, FunctionalSourceSet parent, ProjectInternal project) {
-        super(name, parent, project, "C");
+        super(name, parent, project, "C source");
     }
 }
