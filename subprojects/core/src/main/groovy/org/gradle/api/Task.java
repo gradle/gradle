@@ -633,5 +633,14 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      */
     @Incubating
     TaskDependency getFinalizedBy();
+
+    @Incubating
+    TaskDependency shouldRunAfter(Object... paths);
+
+    @Incubating
+    void setShouldRunAfter(Iterable<?> shouldRunAfter);
+
+    @Incubating
+    TaskDependency getShouldRunAfter();
 }
 
