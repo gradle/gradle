@@ -80,7 +80,7 @@ public abstract class AbstractBaseSourceSet implements LanguageSourceSetInternal
         return exportedHeaders;
     }
 
-    public void exportedHeaders(Action<SourceDirectorySet> config) {
+    public void exportedHeaders(Action<? super SourceDirectorySet> config) {
         config.execute(getExportedHeaders());
     }
 
@@ -88,7 +88,7 @@ public abstract class AbstractBaseSourceSet implements LanguageSourceSetInternal
         return source;
     }
 
-    public void source(Action<SourceDirectorySet> config) {
+    public void source(Action<? super SourceDirectorySet> config) {
         config.execute(getSource());
     }
 

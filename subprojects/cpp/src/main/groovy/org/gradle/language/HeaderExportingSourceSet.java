@@ -29,7 +29,7 @@ public interface HeaderExportingSourceSet extends LanguageSourceSet {
     /**
      * Configure the exported header directories.
      */
-    void exportedHeaders(Action<SourceDirectorySet> config);
+    void exportedHeaders(Action<? super SourceDirectorySet> config);
 
     /**
      * The headers as a directory set.

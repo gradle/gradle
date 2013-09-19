@@ -38,7 +38,7 @@ public class DefaultResourceSet implements ResourceSet, LanguageSourceSetInterna
         return source;
     }
 
-    public void source(Action<SourceDirectorySet> config) {
+    public void source(Action<? super SourceDirectorySet> config) {
         config.execute(getSource());
     }
 

@@ -49,7 +49,7 @@ public class DefaultJavaSourceSet implements JavaSourceSet, LanguageSourceSetInt
         return source;
     }
 
-    public void source(Action<SourceDirectorySet> config) {
+    public void source(Action<? super SourceDirectorySet> config) {
         config.execute(getSource());
     }
 

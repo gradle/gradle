@@ -40,6 +40,6 @@ public interface LanguageSourceSet extends Named, Buildable {
     /**
      * Configure the sources
      */
-    void source(Action<SourceDirectorySet> config);
+    void source(Action<? super SourceDirectorySet> config);
 
 }
