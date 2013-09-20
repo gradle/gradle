@@ -13,20 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.language.jvm.internal
 
-import org.gradle.api.file.SourceDirectorySet
-import org.gradle.language.base.FunctionalSourceSet
+package org.gradle.language.base.internal
+
+import org.gradle.internal.reflect.Instantiator
 import spock.lang.Specification
 
-class DefaultResourceSetTest extends Specification {
-    def "has useful String representation"() {
-        def functionalSourceSet = Stub(FunctionalSourceSet) {
-            getName() >> "mainX"
-        }
-        def resourceSet = new DefaultResourceSet("resourcesX", Stub(SourceDirectorySet), functionalSourceSet)
+class DefaultFunctionalSourceSetTest extends Specification {
+    def "has reasonable string representation"() {
+        def sourceSet = new DefaultFunctionalSourceSet("main", Stub(Instantiator))
 
         expect:
-        resourceSet.toString() == "resources 'mainX:resourcesX'"
+        sourceSet.toString() == /source set 'main'/
     }
 }

@@ -28,6 +28,6 @@ class DefaultJavaSourceSetTest extends Specification {
         def resourceSet = new DefaultJavaSourceSet("javaX", Stub(SourceDirectorySet), Stub(Classpath), functionalSourceSet)
 
         expect:
-        resourceSet.toString() == "Java source 'mainX.javaX'"
+        resourceSet.toString() == "Java source 'mainX:javaX'"
     }
 }

@@ -29,7 +29,7 @@ public abstract class AbstractLanguageSourceSet implements LanguageSourceSetInte
     public AbstractLanguageSourceSet(String name, FunctionalSourceSet parent, String typeName) {
         this.name = name;
         this.fullName = parent.getName() + StringUtils.capitalize(name);
-        this.displayName = String.format("%s '%s.%s'", typeName, parent.getName(), name);
+        this.displayName = String.format("%s '%s:%s'", typeName, parent.getName(), name);
     }
 
     public String getName() {

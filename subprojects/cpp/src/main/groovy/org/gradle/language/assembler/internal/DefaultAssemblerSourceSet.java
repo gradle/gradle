@@ -23,6 +23,6 @@ import org.gradle.language.internal.AbstractBaseSourceSet;
 
 public class DefaultAssemblerSourceSet extends AbstractBaseSourceSet implements AssemblerSourceSet {
     public DefaultAssemblerSourceSet(String name, FunctionalSourceSet parent, ProjectInternal project) {
-        super(name, parent, project, "Assembler source");
+        super(name, parent, project, "assembler source");
     }
 }

@@ -28,6 +28,11 @@ public class DefaultFunctionalSourceSet extends DefaultPolymorphicDomainObjectCo
         this.name = name;
     }
 
+    @Override
+    public String toString() {
+        return String.format("source set '%s'", name);
+    }
+
     public String getName() {
         return name;
     }

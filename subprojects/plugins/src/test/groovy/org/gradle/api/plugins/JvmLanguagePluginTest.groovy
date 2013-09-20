@@ -66,7 +66,7 @@ class JvmLanguagePluginTest extends Specification {
         project.tasks.size() == old(project.tasks.size()) + 1
         def task = project.tasks.findByName("processProdResources")
         task instanceof ProcessResources
-        task.description == "Processes resources 'main.resources'."
+        task.description == "Processes resources 'main:resources'."
     }
 
     def "adds tasks based on short name when ClassDirectoryBinary has name ending in Classes"() {
@@ -84,6 +84,6 @@ class JvmLanguagePluginTest extends Specification {
         and:
         def resourcesTask = project.tasks.findByName("processFooResources")
         resourcesTask instanceof ProcessResources
-        resourcesTask.description == "Processes resources 'main.resources'."
+        resourcesTask.description == "Processes resources 'main:resources'."
     }
 }
