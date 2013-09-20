@@ -27,7 +27,7 @@ import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class MicrosoftVisualCppPluginTest extends Specification {
-    static ProcessEnvironment PROCESS_ENVIRONMENT = NativeServices.getInstance().get(ProcessEnvironment.class);
+    def ProcessEnvironment processEnvironment = NativeServices.getInstance().get(ProcessEnvironment.class);
     def pathVar = OperatingSystem.current().getPathVar()
     TestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
     def project = TestUtil.createRootProject()
@@ -53,7 +53,7 @@ class MicrosoftVisualCppPluginTest extends Specification {
 
         and:
         def dummyCompiler = file("dummy/cl.exe").createFile()
-        PROCESS_ENVIRONMENT.setEnvironmentVariable(pathVar, dummyCompiler.getParentFile().absolutePath);
+        processEnvironment.setEnvironmentVariable(pathVar, dummyCompiler.getParentFile().absolutePath);
 
         when:
         project.plugins.apply(MicrosoftVisualCppPlugin)
@@ -66,7 +66,7 @@ class MicrosoftVisualCppPluginTest extends Specification {
         visualCpp.toString() == "ToolChain 'vc' (Visual C++)"
 
         cleanup:
-        PROCESS_ENVIRONMENT.setEnvironmentVariable(pathVar, originalPath)
+        processEnvironment.setEnvironmentVariable(pathVar, originalPath)
     }
 
     def file(String name) {
