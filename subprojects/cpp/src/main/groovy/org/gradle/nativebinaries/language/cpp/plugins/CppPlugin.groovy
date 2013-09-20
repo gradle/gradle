@@ -72,7 +72,7 @@ class CppPlugin implements Plugin<ProjectInternal> {
 
     private def createCompileTask(ProjectInternal project, NativeBinaryInternal binary, def sourceSet) {
         def compileTask = project.task(binary.namingScheme.getTaskName("compile", sourceSet.fullName), type: CppCompile) {
-            description = "Compiles the $sourceSet sources of $binary"
+            description = "Compiles the $sourceSet of $binary"
         }
 
         compileTask.toolChain = binary.toolChain

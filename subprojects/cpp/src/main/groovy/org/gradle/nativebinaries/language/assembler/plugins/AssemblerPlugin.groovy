@@ -69,7 +69,7 @@ class AssemblerPlugin implements Plugin<ProjectInternal> {
 
     private def createAssembleTask(ProjectInternal project, NativeBinaryInternal binary, def sourceSet) {
         def assembleTask = project.task(binary.namingScheme.getTaskName("assemble", sourceSet.fullName), type: Assemble) {
-            description = "Assembles the $sourceSet sources of $binary"
+            description = "Assembles the $sourceSet of $binary"
         }
 
         assembleTask.toolChain = binary.toolChain
