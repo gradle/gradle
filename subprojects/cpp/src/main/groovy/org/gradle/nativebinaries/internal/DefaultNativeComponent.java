@@ -71,7 +71,7 @@ public class DefaultNativeComponent implements NativeComponent {
         return flavors;
     }
 
-    public void flavors(Action<FlavorContainer> config) {
+    public void flavors(Action<? super FlavorContainer> config) {
         config.execute(flavors);
     }
 }

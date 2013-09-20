@@ -68,6 +68,6 @@ public interface NativeComponent extends Named {
     /**
      * Configure the flavors for this component.
      */
-    void flavors(Action<FlavorContainer> config);
+    void flavors(Action<? super FlavorContainer> config);
 
 }
