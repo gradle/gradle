@@ -54,8 +54,8 @@ public class ResolutionResultsStoreFactory implements Closeable {
     private final Map<String, DefaultBinaryStore> stores = new HashMap<String, DefaultBinaryStore>();
     private final CompositeStoppable cleanUpLater = new CompositeStoppable();
 
-    public DefaultBinaryStore createBinaryStore(String id) {
-        String storeKey = Thread.currentThread().getId() + id; //one store per thread
+    private DefaultBinaryStore createBinaryStore(int id) {
+        String storeKey = Thread.currentThread().getId() + "-" + id; //one store per thread
         DefaultBinaryStore store = stores.get(storeKey);
         if (store == null || isFull(store)) {
             File storeFile = temp.createTemporaryFile("gradle", ".bin");
@@ -65,6 +65,15 @@ public class ResolutionResultsStoreFactory implements Closeable {
             cleanUpLater.add(store);
         }
         return store;
+    }
+
+    public BinaryStores createBinaryStores() {
+        return new BinaryStores() {
+            int id;
+            public DefaultBinaryStore next() {
+                return createBinaryStore(id++);
+            }
+        };
     }
 
     //offset based implementation is only safe up to certain figure
