@@ -23,7 +23,6 @@ import org.gradle.tooling.internal.consumer.versioning.VersionDetails
 import org.gradle.tooling.internal.protocol.ModelBuilder
 import org.gradle.tooling.model.DomainObjectSet
 import org.gradle.tooling.model.GradleProject
-import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.gradle.GradleBuild
 import spock.lang.Specification
 
@@ -48,17 +47,17 @@ class GradleBuildAdapterProducerTest extends Specification {
         model == gradleBuild
     }
 
-    def "requests EclipseProject on delegate when unsupported GradleBuild requested"() {
+    def "requests GradleProject on delegate when unsupported GradleBuild requested"() {
         setup:
         1 * versionDetails.isModelSupported(GradleBuild) >> false
-        EclipseProject eclipseProject = eclipseProject()
+        GradleProject gradleProject = gradleProject()
         ConsumerOperationParameters mock = Mock(ConsumerOperationParameters)
-        adapter.adapt(EclipseProject, eclipseProject) >> eclipseProject
+        adapter.adapt(GradleProject, gradleProject) >> gradleProject
         adapter.adapt(GradleBuild, _) >> Mock(GradleBuild)
         when:
         def model = modelProducer.produceModel(GradleBuild, mock)
         then:
-        1 * delegate.produceModel(EclipseProject, mock) >> eclipseProject
+        1 * delegate.produceModel(GradleProject, mock) >> gradleProject
         model instanceof GradleBuild
     }
 
@@ -75,20 +74,15 @@ class GradleBuildAdapterProducerTest extends Specification {
         0 * adapter.adapt(_, _)
     }
 
-    def eclipseProject() {
-        EclipseProject eclipseProject = Mock(EclipseProject)
+    def gradleProject() {
         GradleProject gradleProject = Mock(GradleProject)
-        1 * eclipseProject.children >> ([] as DomainObjectSet<GradleProject>)
+        1 * gradleProject.children >> ([] as DomainObjectSet<GradleProject>)
         1 * gradleProject.name >> "SomeProject"
         1 * gradleProject.path >> ":"
-        1 * eclipseProject.getGradleProject() >> gradleProject
-        1 * eclipseProject.getProjectDirectory() >> (Mock(File))
-        eclipseProject
+        gradleProject
     }
 
     static class SomeModel {
-
     }
-
 }
 

@@ -29,6 +29,7 @@ import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject
+import org.gradle.tooling.model.gradle.GradleBuild
 import org.gradle.tooling.model.idea.BasicIdeaProject
 import org.gradle.tooling.model.idea.IdeaProject
 import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes
@@ -93,6 +94,25 @@ class BuildActionRunnerBackedConsumerConnectionTest extends Specification {
         1 * target.run(Integer.class, parameters) >> result
         _ * result.model >> 12
         1 * adapter.adapt(GradleProject.class, 12) >> adapted
+        0 * target._
+    }
+
+    def "can builds GradleBuild model by converting EclipseProject"() {
+        BuildResult<GradleProject> result = Stub()
+        GradleProject adapted = Stub()
+        GradleBuild adaptedGradleBuild = Stub()
+
+        when:
+        def model = connection.run(GradleBuild.class, parameters)
+        then:
+        model == adaptedGradleBuild
+
+        and:
+        _ * modelMapping.getProtocolType(GradleProject.class) >> GradleProject.class
+        1 * target.run(GradleProject.class, parameters) >> result
+        _ * result.model >> Stub(GradleProject.class)
+        1 * adapter.adapt(GradleProject.class, _) >> adapted
+        1 * adapter.adapt(GradleBuild.class, _) >> adaptedGradleBuild
         0 * target._
     }
 

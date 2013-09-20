@@ -39,20 +39,33 @@ allprojects {
     }
 
     //TODO implement mapping of 1.0- versions
-    @TargetGradleVersion(">=1.0-milestone-5")
+    @TargetGradleVersion("<1.8 >=1.0-milestone-5")
     def "can request GradleBuild model"() {
         when:
         GradleBuild model = withConnection { connection -> connection.getModel(GradleBuild) }
-
         then:
-        model.rootProject.name == 'test'
-        model.rootProject.path == ':'
-        model.rootProject.parent == null
-        model.rootProject.projectDirectory == projectDir
-        model.rootProject.children.size() == 2
-        model.rootProject.children.every { it.parent == model.rootProject }
-        model.projects*.name == ['test', 'a', 'b', 'c']
-        model.projects*.path == [':', ':a', ':b', ':b:c']
-        model.projects*.projectDirectory == [projectDir, file('a'),file('b'),file('b/c')]
+        validateModel(model)
+    }
+
+    @TargetGradleVersion(">=1.8")
+    def "can request GradleBuild model including projectDirectory"() {
+        when:
+        GradleBuild model = withConnection { connection -> connection.getModel(GradleBuild) }
+        then:
+        validateModel(model)
+        model.projects*.projectDirectory == [projectDir, file('a'), file('b'), file('b/c')]
+
+    }
+
+    def validateModel(GradleBuild model) {
+        assert model.rootProject.name == 'test'
+        assert model.rootProject.path == ':'
+        assert model.rootProject.parent == null
+        assert model.rootProject.projectDirectory == projectDir
+        assert model.rootProject.children.size() == 2
+        assert model.rootProject.children.every { it.parent == model.rootProject }
+        assert model.projects*.name == ['test', 'a', 'b', 'c']
+        assert model.projects*.path == [':', ':a', ':b', ':b:c']
+        model
     }
 }

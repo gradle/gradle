@@ -18,7 +18,6 @@ package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.tooling.internal.adapter.CompatibleIntrospector;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
-import org.gradle.tooling.internal.consumer.converters.PropertyHandlerFactory;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerConnectionParameters;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
@@ -29,11 +28,8 @@ import org.gradle.tooling.model.internal.Exceptions;
  * An adapter to a pre 1.2 provider.
  */
 public abstract class AbstractPre12ConsumerConnection extends AbstractConsumerConnection {
-    private final ProtocolToModelAdapter adapter;
-
     public AbstractPre12ConsumerConnection(ConnectionVersion4 delegate, VersionDetails providerMetaData, ProtocolToModelAdapter adapter) {
         super(delegate, providerMetaData);
-        this.adapter = adapter;
     }
 
     public void configure(ConsumerConnectionParameters connectionParameters) {
@@ -48,13 +44,11 @@ public abstract class AbstractPre12ConsumerConnection extends AbstractConsumerCo
             if (operationParameters.getTasks() != null) {
                 throw Exceptions.unsupportedOperationConfiguration("modelBuilder.forTasks()", getVersionDetails().getVersion());
             }
-
-            Object model = doGetModel(type, operationParameters);
-            return adapter.adapt(type, model, new PropertyHandlerFactory().forVersion(getVersionDetails()));
+            return doGetModel(type, operationParameters);
         }
     }
 
-    protected abstract Object doGetModel(Class<?> modelType, ConsumerOperationParameters operationParameters);
+    protected abstract <T> T doGetModel(Class<T> modelType, ConsumerOperationParameters operationParameters);
 
     protected void doRunBuild(ConsumerOperationParameters operationParameters) {
         getDelegate().executeBuild(operationParameters, operationParameters);

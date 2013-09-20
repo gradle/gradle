@@ -17,54 +17,65 @@
 package org.gradle.tooling.internal.consumer.converters
 
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
 import org.gradle.tooling.internal.gradle.DefaultGradleBuild
-import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion3
+import org.gradle.tooling.model.DomainObjectSet
 import org.gradle.tooling.model.GradleProject
-import org.gradle.tooling.model.eclipse.EclipseProject
-import spock.lang.Shared
+import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class GradleBuildConverterTest extends Specification {
-    @Shared
-    TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+
+
+    @Rule
+    final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+
+    ConsumerOperationParameters operationParameters = Mock(ConsumerOperationParameters)
 
     DefaultGradleBuild gradleBuild;
 
-    @Unroll
-    def "converts rootproject from model #model"() {
+    def "converts rootproject"() {
+        setup:
+        1 * operationParameters.getProjectDir() >> temporaryFolder.testDirectory
+        GradleProject project = gradleProject()
+        _ * project.children >> ([] as DomainObjectSet)
         when:
-        gradleBuild = new GradleBuildConverter().convert(rootProject)
+
+        gradleBuild = new GradleBuildConverter().convert(project, operationParameters)
         then:
         rootProjectMapped()
         gradleBuild.rootProject.children.size() == 0
-        where:
-        rootProject << [eclipseProject("rootProject", ":"), eclipseProjectVersion3("rootProject", ":")]
-        model << [EclipseProject.class.simpleName, EclipseProjectVersion3.class.simpleName]
     }
 
-    @Unroll
-    def "converts child projects with model #model"() {
+    def "converts child projects"() {
+        setup:
+        1 * operationParameters.getProjectDir() >> temporaryFolder.testDirectory
+        GradleProject rootProject = gradleProject()
+        GradleProject sub1 = gradleProject("sub1", ":sub1")
+        GradleProject sub2 = gradleProject("sub2", ":sub2")
+        _ * sub1.children >> ([] as DomainObjectSet)
+        _ * sub2.children >> ([] as DomainObjectSet)
+        _ * rootProject.children >> ([sub1, sub2] as DomainObjectSet)
         when:
-        gradleBuild = new GradleBuildConverter().convert(rootProject)
+        gradleBuild = new GradleBuildConverter().convert(rootProject, operationParameters)
         then:
         rootProjectMapped()
         gradleBuild.rootProject.children.size() == 2
         gradleBuild.rootProject.children*.name == ["sub1", "sub2"]
         gradleBuild.rootProject.children*.path == [":sub1", ":sub2"]
-        gradleBuild.rootProject.children*.projectDirectory == [relativeProjectDir("sub1"), relativeProjectDir("sub2")]
-        where:
-        rootProject << [
-                eclipseProject("rootProject", ":", eclipseProject("sub1", ":sub1"), eclipseProject("sub2", ":sub2")),
-                eclipseProjectVersion3("rootProject", ":", eclipseProjectVersion3("sub1", ":sub1"), eclipseProjectVersion3("sub2", ":sub2"))]
-        model << [EclipseProject.class.simpleName, EclipseProjectVersion3.class.simpleName]
-
     }
 
-    @Unroll
-    def "converts nested child projects with model #model"() {
+    def "converts nested child projects"() {
+        setup:
+        1 * operationParameters.getProjectDir() >> temporaryFolder.testDirectory
+        GradleProject rootProject = gradleProject()
+        GradleProject sub1 = gradleProject("sub1", ":sub1")
+        GradleProject sub2 = gradleProject("sub2", ":sub1:sub2")
+        _ * sub2.children >> ([] as DomainObjectSet)
+        _ * sub1.children >> ([sub2] as DomainObjectSet)
+        _ * rootProject.children >> ([sub1] as DomainObjectSet)
         when:
-        gradleBuild = new GradleBuildConverter().convert(rootProject)
+        gradleBuild = new GradleBuildConverter().convert(rootProject, operationParameters)
         then:
         rootProjectMapped()
         gradleBuild.rootProject.children.size() == 1
@@ -73,16 +84,6 @@ class GradleBuildConverterTest extends Specification {
         gradleBuild.rootProject.children.asList()[0].children.size() == 1
         gradleBuild.rootProject.children.asList()[0].children*.name == ['sub2']
         gradleBuild.rootProject.children.asList()[0].children*.path == [':sub1:sub2']
-        gradleBuild.rootProject.children.asList()[0].children*.projectDirectory == [relativeProjectDir('sub1/sub2')]
-        where:
-        rootProject << [eclipseProject("rootProject", ":", eclipseProject("sub1", ":sub1", eclipseProject("sub2", ":sub1:sub2"))),
-                eclipseProjectVersion3("rootProject", ":", eclipseProjectVersion3("sub1", ":sub1", eclipseProjectVersion3("sub2", ":sub1:sub2")))]
-        model << [EclipseProject.class.simpleName, EclipseProjectVersion3.class.simpleName]
-
-    }
-
-    def relativeProjectDir(String path) {
-        temporaryFolder.testDirectory.file(path)
     }
 
     def rootProjectMapped() {
@@ -92,33 +93,10 @@ class GradleBuildConverterTest extends Specification {
         gradleBuild
     }
 
-    EclipseProject eclipseProject(String projectName, String path, EclipseProject... children) {
-        GradleProject gradleProject = Mock() {
-            getPath() >> path
-            getName() >> projectName
-        }
-
-        EclipseProject eclipseProject = Mock(EclipseProject)
-        _ * eclipseProject.getGradleProject() >> gradleProject
-        if (path == ":") {
-            _ * eclipseProject.getProjectDirectory() >> temporaryFolder.testDirectory
-        } else {
-            _ * eclipseProject.getProjectDirectory() >> temporaryFolder.testDirectory.file(path.substring(1).replace(":", "/"))
-        }
-        eclipseProject.children >> (Arrays.asList(children) as org.gradle.tooling.model.DomainObjectSet)
-        eclipseProject
-    }
-
-    EclipseProjectVersion3 eclipseProjectVersion3(String projectName, String path, EclipseProjectVersion3... children) {
-        EclipseProjectVersion3 eclipseProject = Mock(EclipseProjectVersion3)
-        _ * eclipseProject.name >> projectName
-        _ * eclipseProject.path >> path
-        if (path == ":") {
-            _ * eclipseProject.getProjectDirectory() >> temporaryFolder.testDirectory
-        } else {
-            _ * eclipseProject.getProjectDirectory() >> temporaryFolder.testDirectory.file(path.substring(1).replace(":", "/"))
-        }
-        eclipseProject.children >> Arrays.asList(children)
-        eclipseProject
+    GradleProject gradleProject(projectName = "rootProject", path = ":") {
+        GradleProject gradleProject = Mock(GradleProject)
+        _ * gradleProject.path >> path
+        _ * gradleProject.name >> projectName
+        gradleProject
     }
 }

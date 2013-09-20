@@ -22,7 +22,7 @@ import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParamete
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.gradle.DefaultGradleBuild;
-import org.gradle.tooling.model.eclipse.EclipseProject;
+import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.gradle.GradleBuild;
 
 public class GradleBuildAdapterProducer extends AbstractModelProducer {
@@ -35,8 +35,8 @@ public class GradleBuildAdapterProducer extends AbstractModelProducer {
 
     public <T> T produceModel(Class<T> type, ConsumerOperationParameters operationParameters) {
         if (type.getName().equals(GradleBuild.class.getName()) && !versionDetails.isModelSupported(type)) {
-            EclipseProject eclipseProject = delegate.produceModel(EclipseProject.class, operationParameters);
-            final DefaultGradleBuild convert = new GradleBuildConverter().convert(eclipseProject);
+            GradleProject gradleProject = delegate.produceModel(GradleProject.class, operationParameters);
+            final DefaultGradleBuild convert = new GradleBuildConverter().convert(gradleProject, operationParameters);
             return adapter.adapt(type, convert);
         }
         return delegate.produceModel(type, operationParameters);
