@@ -965,9 +965,6 @@ class DefaultServiceRegistryTest extends Specification {
     private interface StringFactory extends Factory<String> {
     }
 
-    private interface GenericRunnable<T> extends Runnable {
-    }
-
     private static class TestRegistry extends DefaultServiceRegistry {
         public TestRegistry() {
         }
@@ -1041,17 +1038,6 @@ class DefaultServiceRegistryTest extends Specification {
 
     private static class NoOpConfigureProvider {
         void configure(ServiceRegistration registration, String value) {
-        }
-    }
-
-    private static class ProviderWithGenericTypes {
-        Integer createInteger(Runnable action) {
-            action.run()
-            return 123
-        }
-
-        GenericRunnable<String> createString() {
-            return { } as GenericRunnable
         }
     }
 
