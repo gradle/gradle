@@ -52,6 +52,7 @@ executables {
 
 * Replaced `compilerArgs`, `assemblerArgs` and `linkerArgs` with language-specific extensions.
     * Note that the language-specific element is only present if the appropriate plugin has been applied.
+    * Linker arguments are no longer automatically escaped with '-Xlinker' on GCC.
 
 <table>
     <tr><th>Gradle 1.8</th><th>Gradle 1.9</th></tr>
@@ -69,7 +70,7 @@ executables {
     </tr>
     <tr>
     <td>linkerArgs "-no_pie"</td>
-    <td>linker.args "-no_pie"</td>
+    <td>linker.args "-Xlinker", "-no_pie"</td>
     </tr>
     <tr>
     <td>staticLibArgs "-v"</td>
@@ -148,6 +149,7 @@ The following are the newly deprecated items in this Gradle release. If you have
 * Object files generated from the assembly of Assembler sources are no longer named '<file>.s.o'.
 * Renamed method: BuildableModelElement.dependsOn() -> BuildableModelElement.builtBy()
 * The `gpp-compiler` plugin was renamed to `gcc`. Class name was change to `GccCompilerPlugin`.
+* Linker arguments are no longer automatically escaped with '-Xlinker' on GCC.
 
 
 ## External contributions

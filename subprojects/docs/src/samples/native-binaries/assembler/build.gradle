@@ -45,7 +45,7 @@ executables {
         binaries.all {
             assembler.args "-arch", "i386"
             cCompiler.args "-m32"
-            linker.args "-no_pie", "-arch", "i386"
+            linker.args "-m32"
         }
         // END SNIPPET assembler-args
         }
