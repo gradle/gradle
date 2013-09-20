@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal
 
+import org.gradle.util.GUtil
 import spock.lang.Specification
 
 class AbstractMultiCauseExceptionTest extends Specification {
@@ -87,6 +88,31 @@ class AbstractMultiCauseExceptionTest extends Specification {
         then:
         outstr.toString().contains("${TestMultiCauseException.name}: message")
         outstr.toString().contains("Caused by: ${RuntimeException.name}: cause1")
+    }
+
+    def canSerializeAndDeserializeException() {
+        def cause1 = new RuntimeException("cause1")
+        def cause2 = new RuntimeException("cause2")
+        def failure = new TestMultiCauseException("message", [cause1, cause2])
+
+        when:
+        def bytes = GUtil.serialize(failure)
+        def result = new ObjectInputStream(new ByteArrayInputStream(bytes)).readObject()
+
+        then:
+        result instanceof TestMultiCauseException
+        result.message == "message"
+        result.causes.size() == 2
+        result.causes*.message == ["cause1", "cause2"]
+
+        when:
+        def outstr = new StringWriter()
+        outstr.withPrintWriter { result.printStackTrace(it) }
+
+        then:
+        outstr.toString().contains("${TestMultiCauseException.name}: message")
+        outstr.toString().contains("Cause 1: ${RuntimeException.name}: cause1")
+        outstr.toString().contains("Cause 2: ${RuntimeException.name}: cause2")
     }
 }
 

@@ -17,6 +17,8 @@ package org.gradle.api.internal;
 
 import org.gradle.api.GradleException;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.util.Arrays;
@@ -25,12 +27,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 public class AbstractMultiCauseException extends GradleException implements MultiCauseException {
     private final List<Throwable> causes = new CopyOnWriteArrayList<Throwable>();
-    private final ThreadLocal<Boolean> hideCause = new ThreadLocal<Boolean>() {
-        @Override
-        protected Boolean initialValue() {
-            return false;
-        }
-    };
+    private transient ThreadLocal<Boolean> hideCause = threadLocal();
 
     public AbstractMultiCauseException(String message) {
         super(message);
@@ -44,6 +41,20 @@ public class AbstractMultiCauseException extends GradleException implements Mult
     public AbstractMultiCauseException(String message, Iterable<? extends Throwable> causes) {
         super(message);
         initCauses(causes);
+    }
+
+    private void readObject(ObjectInputStream inputStream) throws IOException, ClassNotFoundException {
+        inputStream.defaultReadObject();
+        hideCause = threadLocal();
+    }
+
+    private ThreadLocal<Boolean> threadLocal() {
+        return new ThreadLocal<Boolean>() {
+            @Override
+            protected Boolean initialValue() {
+                return false;
+            }
+        };
     }
 
     public List<? extends Throwable> getCauses() {
