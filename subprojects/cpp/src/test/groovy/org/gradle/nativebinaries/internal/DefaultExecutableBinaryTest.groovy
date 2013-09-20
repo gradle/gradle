@@ -15,7 +15,7 @@
  */
 
 package org.gradle.nativebinaries.internal
-import org.gradle.internal.reflect.DirectInstantiator
+
 import org.gradle.language.base.internal.DefaultBinaryNamingScheme
 import org.gradle.nativebinaries.BuildType
 import org.gradle.nativebinaries.Executable
@@ -24,20 +24,15 @@ import spock.lang.Specification
 
 class DefaultExecutableBinaryTest extends Specification {
     def namingScheme = new DefaultBinaryNamingScheme("bigOne")
-    def flavorContainer = new DefaultFlavorContainer(new DirectInstantiator())
 
     def "has useful string representation"() {
         given:
-        def executable = Stub(Executable) {
-            getName() >> "bigOne"
-            getFlavors() >> flavorContainer
-        }
-        flavorContainer.add(new DefaultFlavor("flavorOne"))
+        def executable = Stub(Executable)
 
         when:
         def binary = new DefaultExecutableBinary(executable, new DefaultFlavor("flavorOne"), Stub(ToolChainInternal), Stub(Platform), Stub(BuildType), namingScheme)
 
         then:
-        binary.toString() == "executable 'bigOneExecutable'"
+        binary.toString() == "executable 'bigOne:executable'"
     }
 }

@@ -35,7 +35,7 @@ class DefaultSharedLibraryBinaryTest extends Specification {
 
     def "has useful string representation"() {
         expect:
-        sharedLibrary.toString() == "shared library 'mainSharedLibrary'"
+        sharedLibrary.toString() == "shared library 'main:sharedLibrary'"
     }
 
     def "can convert binary to a native dependency"() {
@@ -60,12 +60,12 @@ class DefaultSharedLibraryBinaryTest extends Specification {
         and:
         nativeDependency.linkFiles.files == [linkFile] as Set
         nativeDependency.linkFiles.buildDependencies.getDependencies(Stub(Task)) == [lifecycleTask] as Set
-        nativeDependency.linkFiles.toString() == "shared library 'mainSharedLibrary'"
+        nativeDependency.linkFiles.toString() == "shared library 'main:sharedLibrary'"
 
         and:
         nativeDependency.runtimeFiles.files == [binaryFile] as Set
         nativeDependency.runtimeFiles.buildDependencies.getDependencies(Stub(Task)) == [lifecycleTask] as Set
-        nativeDependency.runtimeFiles.toString() == "shared library 'mainSharedLibrary'"
+        nativeDependency.runtimeFiles.toString() == "shared library 'main:sharedLibrary'"
     }
 
     private DefaultSharedLibraryBinary getSharedLibrary() {

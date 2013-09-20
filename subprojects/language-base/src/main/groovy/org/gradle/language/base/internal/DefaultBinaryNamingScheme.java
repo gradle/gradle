@@ -23,27 +23,27 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DefaultBinaryNamingScheme implements BinaryNamingScheme {
-    private final String baseName;
+    private final String parentName;
     private final String typeString;
     private final String dimensionPrefix;
     private final List<String> dimensions;
 
-    public DefaultBinaryNamingScheme(String baseName) {
-        this(baseName, "", new ArrayList<String>());
+    public DefaultBinaryNamingScheme(String parentName) {
+        this(parentName, "", new ArrayList<String>());
     }
 
     public DefaultBinaryNamingScheme withTypeString(String newTypeString) {
-        return new DefaultBinaryNamingScheme(baseName, newTypeString, dimensions);
+        return new DefaultBinaryNamingScheme(parentName, newTypeString, dimensions);
     }
 
     public DefaultBinaryNamingScheme withVariantDimension(String dimension) {
         List<String> newDimensions = new ArrayList<String>(dimensions);
         newDimensions.add(dimension);
-        return new DefaultBinaryNamingScheme(baseName, typeString, newDimensions);
+        return new DefaultBinaryNamingScheme(parentName, typeString, newDimensions);
     }
 
-    private DefaultBinaryNamingScheme(String baseName, String typeString, List<String> dimensions) {
-        this.baseName = baseName;
+    private DefaultBinaryNamingScheme(String parentName, String typeString, List<String> dimensions) {
+        this.parentName = parentName;
         this.typeString = typeString;
         this.dimensions = dimensions;
         this.dimensionPrefix = createPrefix(dimensions);
@@ -61,7 +61,7 @@ public class DefaultBinaryNamingScheme implements BinaryNamingScheme {
     }
 
     public String getOutputDirectoryBase() {
-        StringBuilder builder = new StringBuilder(makeName(baseName, typeString));
+        StringBuilder builder = new StringBuilder(makeName(parentName, typeString));
         if (dimensionPrefix.length() > 0) {
             builder.append('/');
             builder.append(dimensionPrefix);
@@ -70,7 +70,18 @@ public class DefaultBinaryNamingScheme implements BinaryNamingScheme {
     }
 
     public String getDescription() {
-        return String.format("%s '%s'", GUtil.toWords(typeString), getLifecycleTaskName());
+        StringBuilder builder = new StringBuilder();
+        builder.append(GUtil.toWords(typeString));
+        builder.append(" '");
+        builder.append(parentName);
+        for (String dimension : dimensions) {
+            builder.append(':');
+            builder.append(dimension);
+        }
+        builder.append(':');
+        appendUncapitalized(builder, typeString);
+        builder.append("'");
+        return builder.toString();
     }
 
     public String getTaskName(@Nullable String verb) {
@@ -78,7 +89,7 @@ public class DefaultBinaryNamingScheme implements BinaryNamingScheme {
     }
 
     public String getTaskName(@Nullable String verb, @Nullable String target) {
-        return makeName(verb, dimensionPrefix, baseName, typeString, target);
+        return makeName(verb, dimensionPrefix, parentName, typeString, target);
     }
 
     public String makeName(String... words) {

@@ -32,7 +32,7 @@ class DefaultStaticLibraryBinaryTest extends Specification {
 
     def "has useful string representation"() {  
         expect:
-        staticLibrary.toString() == "static library 'mainStaticLibrary'"
+        staticLibrary.toString() == "static library 'main:staticLibrary'"
     }
 
     def getStaticLibrary() {
@@ -55,11 +55,11 @@ class DefaultStaticLibraryBinaryTest extends Specification {
         and:
         nativeDependency.linkFiles.files == [binary.outputFile] as Set
         nativeDependency.linkFiles.buildDependencies.getDependencies(Stub(Task)) == [lifecycleTask] as Set
-        nativeDependency.linkFiles.toString() == "static library 'mainStaticLibrary'"
+        nativeDependency.linkFiles.toString() == "static library 'main:staticLibrary'"
 
         and:
         nativeDependency.runtimeFiles.files.isEmpty()
         nativeDependency.runtimeFiles.buildDependencies.getDependencies(Stub(Task)).isEmpty()
-        nativeDependency.runtimeFiles.toString() == "static library 'mainStaticLibrary'"
+        nativeDependency.runtimeFiles.toString() == "static library 'main:staticLibrary'"
     }
 }
