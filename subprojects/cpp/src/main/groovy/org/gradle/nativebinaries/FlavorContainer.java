@@ -16,12 +16,14 @@
 
 package org.gradle.nativebinaries;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectContainer;
 
 /**
  * A container of flavors.
- * If now flavor is explicitly configured, will contain a single {@link Flavor#DEFAULT}.
+ * If no flavor is explicitly configured, will contain a single {@link Flavor#DEFAULT}.
  * Any flavors explicitly configured will overwrite the default flavor.
  */
+@Incubating
 public interface FlavorContainer extends NamedDomainObjectContainer<Flavor> {
 }
