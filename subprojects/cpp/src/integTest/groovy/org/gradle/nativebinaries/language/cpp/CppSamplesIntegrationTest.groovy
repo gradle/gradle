@@ -30,7 +30,7 @@ class CppSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
     @Rule public final Sample cppExe = new Sample(temporaryFolder, 'native-binaries/cpp-exe')
     @Rule public final Sample cppLib = new Sample(temporaryFolder, 'native-binaries/cpp-lib')
     @Rule public final Sample multiProject = new Sample(temporaryFolder, 'native-binaries/multi-project')
-    @Rule public final Sample variants = new Sample(temporaryFolder, 'native-binaries/variants')
+    @Rule public final Sample flavors = new Sample(temporaryFolder, 'native-binaries/flavors')
     @Rule public final Sample dependencies = new Sample(temporaryFolder, 'native-binaries/dependencies')
 
     def "assembler"() {
@@ -136,9 +136,9 @@ class CppSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         staticLibrary("native-binaries/cpp-lib/build/binaries/mainStaticLibrary/sampleLib").assertExists()
     }
 
-    def "variants"() {
+    def flavors() {
         when:
-        sample variants
+        sample flavors
         run "installEnglishMainExecutable"
 
         then:
@@ -146,14 +146,14 @@ class CppSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         executedAndNotSkipped ":compileEnglishMainExecutableExeCpp", ":linkEnglishMainExecutable", ":englishMainExecutable"
 
         and:
-        executable("native-binaries/variants/build/binaries/mainExecutable/english/main").assertExists()
-        sharedLibrary("native-binaries/variants/build/binaries/helloSharedLibrary/english/hello").assertExists()
+        executable("native-binaries/flavors/build/binaries/mainExecutable/english/main").assertExists()
+        sharedLibrary("native-binaries/flavors/build/binaries/helloSharedLibrary/english/hello").assertExists()
 
         and:
-        installation("native-binaries/variants/build/install/mainExecutable/english").exec().out == "Hello world!\n"
+        installation("native-binaries/flavors/build/install/mainExecutable/english").exec().out == "Hello world!\n"
 
         when:
-        sample variants
+        sample flavors
         run "installFrenchMainExecutable"
 
         then:
@@ -161,11 +161,11 @@ class CppSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         executedAndNotSkipped ":compileFrenchMainExecutableExeCpp", ":linkFrenchMainExecutable", ":frenchMainExecutable"
 
         and:
-        executable("native-binaries/variants/build/binaries/mainExecutable/french/main").assertExists()
-        sharedLibrary("native-binaries/variants/build/binaries/helloSharedLibrary/french/hello").assertExists()
+        executable("native-binaries/flavors/build/binaries/mainExecutable/french/main").assertExists()
+        sharedLibrary("native-binaries/flavors/build/binaries/helloSharedLibrary/french/hello").assertExists()
 
         and:
-        installation("native-binaries/variants/build/install/mainExecutable/french").exec().out == "Bonjour monde!\n"
+        installation("native-binaries/flavors/build/install/mainExecutable/french").exec().out == "Bonjour monde!\n"
     }
 
     def multiProject() {
