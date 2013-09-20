@@ -32,10 +32,10 @@ class DefaultLibraryResolverTest extends Specification {
         getName() >> "ToolChain2"
     }
     final platform1 = Stub(Platform) {
-        getArchitecture() >> Platform.Architecture.I386
+        getName() >> "Platform1"
     }
     final platform2 = Stub(Platform) {
-        getArchitecture() >> Platform.Architecture.AMD64
+        getName() >> "Platform2"
     }
 
     def library = Mock(Library)
@@ -127,7 +127,7 @@ class DefaultLibraryResolverTest extends Specification {
 
         then:
         def e = thrown InvalidUserDataException
-        e.message == "No shared library binary available for $library with [flavor: 'flavor1', toolChain: 'ToolChain2', platform: 'I386']"
+        e.message == "No shared library binary available for $library with [flavor: 'flavor1', toolChain: 'ToolChain2', platform: 'Platform1']"
     }
 
     def staticBinary(def flavor, def toolChain, def platform, def deps) {

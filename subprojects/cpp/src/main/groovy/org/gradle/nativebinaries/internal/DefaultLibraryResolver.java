@@ -24,7 +24,7 @@ class DefaultLibraryResolver implements ContextualLibraryResolver {
 
     private Flavor flavor = Flavor.DEFAULT;
     private ToolChain toolChain;
-    private Platform platform = new DefaultPlatform("default");
+    private Platform platform;
     private BuildType buildType;
     private Class<? extends LibraryBinary> type = SharedLibraryBinary.class;
 
@@ -63,12 +63,11 @@ class DefaultLibraryResolver implements ContextualLibraryResolver {
             if (library.getFlavors().size() > 1 && !flavor.getName().equals(candidate.getFlavor().getName())) {
                 continue;
             }
-            // ToolChains and Platforms are global within project, so can always compare directly
-            // TODO:DAZ Need a better way to perform tool chain equality
+            // TODO:DAZ Matching should be more sophisticated for toolChain, platform and buildType
             if (toolChain != null && !toolChain.getName().equals(candidate.getToolChain().getName())) {
                 continue;
             }
-            if (platform.getArchitecture() != candidate.getTargetPlatform().getArchitecture()) {
+            if (platform != null && !platform.getName().equals(candidate.getTargetPlatform().getName())) {
                 continue;
             }
             if (buildType != null && !buildType.getName().equals(candidate.getBuildType().getName())) {
@@ -80,6 +79,6 @@ class DefaultLibraryResolver implements ContextualLibraryResolver {
 
         String typeName = type == SharedLibraryBinary.class ? "shared" : "static";
         throw new InvalidUserDataException(String.format("No %s library binary available for %s with [flavor: '%s', toolChain: '%s', platform: '%s']",
-                typeName, library, flavor.getName(), toolChain.getName(), platform.getArchitecture()));
+                typeName, library, flavor.getName(), toolChain.getName(), platform.getName()));
     }
 }
