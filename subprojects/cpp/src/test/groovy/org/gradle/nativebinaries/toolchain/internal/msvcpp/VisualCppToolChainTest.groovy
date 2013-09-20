@@ -42,11 +42,12 @@ class VisualCppToolChainTest extends Specification {
         toolChain.getSharedLibraryName("test.dll") == "test.dll"
     }
 
-    def "checks availability of required executables"() {
+    def "locates visual studio installation and windows SDK based on executables in path"() {
         final os = Stub(OperatingSystem) {
             isWindows() >> true
             getExecutableName(_ as String) >> { String exeName -> exeName }
-            findInPath("cl.exe") >> file('VC/bin/cl.exe')
+            findInPath("cl.exe") >> file('VisualStudio/VC/bin/cl.exe')
+            findInPath("rc.exe") >> file("SDK/bin/rc.exe")
         }
 
         def cppToolChain = new VisualCppToolChain("test", os, fileResolver, Stub(Factory))
@@ -60,7 +61,7 @@ class VisualCppToolChainTest extends Specification {
         availability.unavailableMessage == "Visual Studio installation cannot be found"
 
         when:
-        createFile('VC/bin/cl.exe')
+        createFile('VisualStudio/VC/bin/cl.exe')
 
         and:
         def availability2 = new ToolChainAvailability()
@@ -69,6 +70,17 @@ class VisualCppToolChainTest extends Specification {
         then:
         !availability2.available
         availability2.unavailableMessage == "Windows SDK cannot be found"
+
+        when:
+        createFile('SDK/bin/rc.exe')
+        createFile('SDK/lib/kernel32.lib')
+
+        and:
+        def availability3 = new ToolChainAvailability()
+        cppToolChain.checkAvailable(availability3);
+
+        then:
+        availability3.available
     }
 
     def "resolves install directory"() {
