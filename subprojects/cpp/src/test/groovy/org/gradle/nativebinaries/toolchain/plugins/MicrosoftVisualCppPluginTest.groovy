@@ -15,13 +15,21 @@
  */
 
 package org.gradle.nativebinaries.toolchain.plugins
+import org.gradle.internal.nativeplatform.ProcessEnvironment
+import org.gradle.internal.nativeplatform.services.NativeServices
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.toolchain.VisualCpp
+import org.gradle.test.fixtures.file.TestDirectoryProvider
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class MicrosoftVisualCppPluginTest extends Specification {
+    static ProcessEnvironment PROCESS_ENVIRONMENT = NativeServices.getInstance().get(ProcessEnvironment.class);
+    def pathVar = OperatingSystem.current().getPathVar()
+    TestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
     def project = TestUtil.createRootProject()
 
     @Requires(TestPrecondition.NOT_WINDOWS)
@@ -39,16 +47,29 @@ class MicrosoftVisualCppPluginTest extends Specification {
     }
 
     @Requires(TestPrecondition.WINDOWS)
-    def "installs an unavailable tool chain when on windows but Visual C++ not in path"() {
+    def "installs an unavailable tool chain when on windows but Visual Studio install not located"() {
+        given:
+        def originalPath = System.getenv(pathVar)
+
+        and:
+        def dummyCompiler = file("dummy/cl.exe").createFile()
+        PROCESS_ENVIRONMENT.setEnvironmentVariable(pathVar, dummyCompiler.getParentFile().absolutePath);
+
         when:
         project.plugins.apply(MicrosoftVisualCppPlugin)
-
         project.toolChains.create("vc", VisualCpp)
 
         then:
         def visualCpp = project.toolChains.vc
         !visualCpp.availability.available
-        visualCpp.availability.unavailableMessage == 'C++ compiler cannot be found'
+        visualCpp.availability.unavailableMessage == 'Visual Studio installation cannot be found'
         visualCpp.toString() == "ToolChain 'vc' (Visual C++)"
+
+        cleanup:
+        PROCESS_ENVIRONMENT.setEnvironmentVariable(pathVar, originalPath)
+    }
+
+    def file(String name) {
+        testDirectoryProvider.testDirectory.file(name)
     }
 }
