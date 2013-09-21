@@ -603,7 +603,7 @@ public class GradlePluginLord {
             if (failure instanceof LocationAwareException) {
                 LocationAwareException scriptException = (LocationAwareException) failure;
                 formatter.format("%s%n%n", scriptException.getLocation());
-                formatter.format("%s", scriptException.getOriginalMessage());
+                formatter.format("%s", scriptException.getTarget().getMessage());
 
                 for (Throwable cause : scriptException.getReportableCauses()) {
                     formatter.format("%nCause: %s", getMessage(cause));
