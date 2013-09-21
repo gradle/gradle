@@ -24,7 +24,6 @@ import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.plugins.DeferredConfigurable;
 import org.gradle.internal.UncheckedException;
 import org.gradle.listener.ActionBroadcast;
-import org.gradle.listener.ListenerNotificationException;
 
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -182,8 +181,8 @@ public class ExtensionsStorage {
                 configured = true;
                 try {
                     actions.execute(extension);
-                } catch (ListenerNotificationException e) {
-                    configureFailure = e.getCause();
+                } catch (Throwable t) {
+                    configureFailure = t;
                 }
                 actions = null;
             }
