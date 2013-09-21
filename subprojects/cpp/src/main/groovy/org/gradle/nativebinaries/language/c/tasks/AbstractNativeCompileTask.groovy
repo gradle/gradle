@@ -34,6 +34,9 @@ import javax.inject.Inject
 abstract class AbstractNativeCompileTask extends DefaultTask {
     private FileCollection source
 
+    /**
+     * The tool chain used for compilation.
+     */
     ToolChain toolChain
 
     /**

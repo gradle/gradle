@@ -32,6 +32,9 @@
             <tr>
                 <td>toolChain</td>
             </tr>
+            <tr>
+                <td>staticLibArgs</td>
+            </tr>
         </table>
     </section>
     <section>
