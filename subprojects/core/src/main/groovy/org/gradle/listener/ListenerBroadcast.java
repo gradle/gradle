@@ -78,17 +78,6 @@ public class ListenerBroadcast<T> implements Dispatch<MethodInvocation> {
             broadcast.add(listener);
         }
     }
-    
-    /**
-     * Adds the given listener if it is an instance of the listener type.
-     *
-     * @param listener The listener
-     */
-    public void maybeAdd(Object listener) {
-        if (type.isInstance(listener)) {
-            add(type.cast(listener));
-        }
-    }
 
     /**
      * Adds a {@link org.gradle.messaging.dispatch.Dispatch} to receive events from this broadcast.

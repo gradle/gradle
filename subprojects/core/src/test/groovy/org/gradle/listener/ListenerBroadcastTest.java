@@ -185,40 +185,19 @@ public class ListenerBroadcastTest {
     }
 
     @Test
-    public void wrapsExceptionThrownByListener() {
+    public void wrapsCheckedExceptionThrownByListener() throws Exception {
         final TestListener listener = context.mock(TestListener.class);
-        final RuntimeException failure = new RuntimeException();
+        final Exception failure = new Exception();
 
         context.checking(new Expectations() {{
-            one(listener).event1("param");
+            one(listener).event3();
             will(throwException(failure));
         }});
 
         broadcast.add(listener);
 
         try {
-            broadcast.getSource().event1("param");
-            fail();
-        } catch (ListenerNotificationException e) {
-            assertThat(e.getMessage(), equalTo("Failed to notify test listener."));
-            assertThat(e.getCause(), sameInstance((Throwable) failure));
-        }
-    }
-
-    @Test
-    public void dispatchWrapsExceptionThrownByListener() throws NoSuchMethodException {
-        final TestListener listener = context.mock(TestListener.class);
-        final RuntimeException failure = new RuntimeException();
-
-        context.checking(new Expectations() {{
-            one(listener).event1("param");
-            will(throwException(failure));
-        }});
-
-        broadcast.add(listener);
-
-        try {
-            broadcast.dispatch(new MethodInvocation(TestListener.class.getMethod("event1", String.class), new Object[]{"param"}));
+            broadcast.getSource().event3();
             fail();
         } catch (ListenerNotificationException e) {
             assertThat(e.getMessage(), equalTo("Failed to notify test listener."));
@@ -245,7 +224,7 @@ public class ListenerBroadcastTest {
             broadcast.getSource().event1("param");
             fail();
         } catch (ListenerNotificationException e) {
-            assertThat(e.getCause(), sameInstance((Throwable) failure));
+            assertThat(e.getCause(), sameInstance((Throwable)failure));
         }
     }
 
@@ -254,13 +233,14 @@ public class ListenerBroadcastTest {
         final TestListener listener1 = context.mock(TestListener.class);
         final TestListener listener2 = context.mock(TestListener.class);
         final TestListener listener3 = context.mock(TestListener.class);
-        final RuntimeException failure = new RuntimeException();
+        final RuntimeException failure1 = new RuntimeException();
+        final RuntimeException failure2 = new RuntimeException();
 
         context.checking(new Expectations() {{
             one(listener1).event1("param");
-            will(throwException(failure));
+            will(throwException(failure1));
             one(listener2).event1("param");
-            will(throwException(new RuntimeException()));
+            will(throwException(failure2));
             one(listener3).event1("param");
         }});
 
@@ -272,7 +252,9 @@ public class ListenerBroadcastTest {
             broadcast.getSource().event1("param");
             fail();
         } catch (ListenerNotificationException e) {
-            assertThat(e.getCause(), sameInstance((Throwable) failure));
+            assertThat(e.getCauses().size(), equalTo(2));
+            assertThat(e.getCauses().get(0), sameInstance((Throwable) failure1));
+            assertThat(e.getCauses().get(1), sameInstance((Throwable) failure2));
         }
     }
 
@@ -280,5 +262,7 @@ public class ListenerBroadcastTest {
         void event1(String param);
 
         void event2(int value, String other);
+
+        void event3() throws Exception;
     }
 }
