@@ -83,6 +83,9 @@ public class BroadcastDispatch<T> implements Dispatch<MethodInvocation> {
                 failures.add(t);
             }
         }
+        if (failures.size() == 1 && failures.get(0) instanceof RuntimeException) {
+            throw (RuntimeException) failures.get(0);
+        }
         if (!failures.isEmpty()) {
             throw new ListenerNotificationException(getErrorMessage(), failures);
         }

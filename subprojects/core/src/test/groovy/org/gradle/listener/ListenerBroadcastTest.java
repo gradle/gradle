@@ -223,8 +223,8 @@ public class ListenerBroadcastTest {
         try {
             broadcast.getSource().event1("param");
             fail();
-        } catch (ListenerNotificationException e) {
-            assertThat(e.getCause(), sameInstance((Throwable)failure));
+        } catch (RuntimeException e) {
+            assertThat(e, sameInstance(failure));
         }
     }
 
