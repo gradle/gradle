@@ -122,6 +122,8 @@ class IvyPublishDescriptorCustomizationIntegTest extends AbstractIntegrationSpec
 
         then:
         failure.assertHasDescription("Execution failed for task ':generateDescriptorFileForIvyPublication'.")
+        failure.assertHasFileName("Build file '${buildFile}'")
+        failure.assertHasLineNumber(23)
         failure.assertHasCause("Could not apply withXml() to Ivy module descriptor")
         failure.assertHasCause("No such property: foo for class: groovy.util.Node")
     }

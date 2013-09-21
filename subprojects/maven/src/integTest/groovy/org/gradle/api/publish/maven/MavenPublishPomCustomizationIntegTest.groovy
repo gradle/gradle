@@ -140,6 +140,8 @@ class MavenPublishPomCustomizationIntegTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasDescription("Execution failed for task ':generatePomFileForMavenPublication'.")
+        failure.assertHasFileName("Build file '$buildFile'")
+        failure.assertHasLineNumber(15)
         failure.assertHasCause("Could not apply withXml() to generated POM")
         failure.assertHasCause("No such property: foo for class: groovy.util.Node")
     }
