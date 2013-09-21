@@ -843,7 +843,7 @@ public class DependencyGraphBuilder {
         public void restart(ModuleVersionResolveState selected) {
             // Restarting this configuration after conflict resolution.
             // If this configuration belongs to the select version, queue ourselves up for traversal.
-            // If not, then move our incoming edges across to the selected configuration
+            // If not, then remove our incoming edges, which triggers them to be moved across to the selected configuration
             if (moduleRevision == selected) {
                 resolveState.onMoreSelected(this);
             } else {
