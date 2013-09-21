@@ -16,9 +16,10 @@
 package org.gradle
 
 import org.gradle.api.GradleException
+import org.gradle.api.internal.AbstractMultiCauseException
 import org.gradle.api.internal.LocationAwareException
 import org.gradle.api.logging.LogLevel
-import org.gradle.api.internal.AbstractMultiCauseException
+import org.gradle.execution.MultipleBuildFailures
 import org.gradle.execution.TaskSelectionException
 import org.gradle.initialization.BuildClientMetaData
 import org.gradle.logging.LoggingConfiguration
@@ -26,9 +27,7 @@ import org.gradle.logging.ShowStacktrace
 import org.gradle.logging.StyledTextOutputFactory
 import org.gradle.logging.TestStyledTextOutput
 import org.gradle.util.TreeVisitor
-
 import spock.lang.Specification
-import org.gradle.execution.MultipleBuildFailures
 
 class BuildExceptionReporterTest extends Specification {
     final TestStyledTextOutput output = new TestStyledTextOutput()
@@ -46,26 +45,6 @@ class BuildExceptionReporterTest extends Specification {
         expect:
         reporter.buildFinished(result(null))
         output.value == ''
-    }
-
-    def reportsInternalFailure() {
-        final RuntimeException exception = new RuntimeException("<message>");
-
-        expect:
-        reporter.buildFinished(result(exception))
-        output.value == '''
-{failure}FAILURE: {normal}{failure}Build aborted because of an internal error.{normal}
-
-* What went wrong:
-Build aborted because of an unexpected internal error. Please file an issue at: http://forums.gradle.org.
-
-* Try:
-Run with {userinput}--debug{normal} option to get additional debug info.
-
-* Exception is:
-java.lang.RuntimeException: <message>
-{stacktrace}
-'''
     }
 
     def reportsBuildFailure() {
@@ -114,6 +93,26 @@ Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with
 * What went wrong:
 <message>
 {info}> {normal}<cause>
+
+* Try:
+Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output.
+'''
+    }
+
+    def reportsLocationAwareExceptionWithNoMessage() {
+        Throwable exception = exception("<location>", null, new IOException());
+
+        expect:
+        reporter.buildFinished(result(exception))
+        output.value == '''
+{failure}FAILURE: {normal}{failure}Build failed with an exception.{normal}
+
+* Where:
+<location>
+
+* What went wrong:
+java.lang.RuntimeException (no error message)
+{info}> {normal}java.io.IOException (no error message)
 
 * Try:
 Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output.
@@ -262,17 +261,13 @@ Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with
 Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output.
 ==============================================================================
 
-{failure}3: {normal}{failure}Build aborted because of an internal error.{normal}
+{failure}3: {normal}{failure}Task failed with an exception.{normal}
 -----------
 * What went wrong:
-Build aborted because of an unexpected internal error. Please file an issue at: http://forums.gradle.org.
+<error>
 
 * Try:
-Run with {userinput}--debug{normal} option to get additional debug info.
-
-* Exception is:
-java.lang.RuntimeException: <error>
-{stacktrace}
+Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output.
 ==============================================================================
 ''';
     }
@@ -351,9 +346,10 @@ org.gradle.api.GradleException: <message>
     }
     
     def exception(String location, String message, Throwable... causes) {
+        RuntimeException target = new RuntimeException(message)
         LocationAwareException exception = Mock()
         exception.location >> location
-        exception.originalMessage >> message
+        exception.target >> target
         exception.cause >> causes[0]
         exception.visitReportableCauses(!null) >> { TreeVisitor visitor ->
             visitor.node(exception)

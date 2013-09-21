@@ -48,15 +48,6 @@ public class LocationAwareException extends GradleException {
     }
 
     /**
-     * <p>Returns the undecorated message of this exception.</p>
-     *
-     * @return The undecorated message. May return null.
-     */
-    public String getOriginalMessage() {
-        return target.getMessage();
-    }
-
-    /**
      * <p>Returns the source of the script where this exception occurred.</p>
      *
      * @return The source. May return null.
