@@ -15,8 +15,8 @@
  */
 
 package org.gradle.api
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Ignore
 
 public class ProjectConfigureEventsErrorIntegrationTest extends AbstractIntegrationSpec {
 
@@ -74,41 +74,5 @@ public class ProjectConfigureEventsErrorIntegrationTest extends AbstractIntegrat
                 .assertHasCause("afterEvaluate failure")
                 .assertHasFileName("Build file '${buildFile.path}'")
                 .assertHasLineNumber(3)
-    }
-
-    def "produces reasonable error message when taskGraph.whenReady action fails"() {
-        buildFile << """
-    gradle.taskGraph.whenReady {
-        throw new RuntimeException('broken closure')
-    }
-    task a
-"""
-
-        when:
-        fails()
-
-        then:
-        failure.assertHasDescription("broken closure")
-                .assertHasNoCause()
-                .assertHasFileName("Build file '$buildFile'")
-                .assertHasLineNumber(3);
-    }
-
-    @Ignore
-    def "produces reasonable error message when task dependency closure throws exception"() {
-        buildFile << """
-    task a
-    a.dependsOn {
-        throw new RuntimeException('broken')
-    }
-"""
-        when:
-        fails "a"
-
-        then:
-        failure.assertHasDescription("Could not determine the dependencies of task ':a'.")
-                .assertHasCause('broken')
-                .assertHasFileName("Build file '$buildFile'")
-                .assertHasLineNumber(4)
     }
 }
