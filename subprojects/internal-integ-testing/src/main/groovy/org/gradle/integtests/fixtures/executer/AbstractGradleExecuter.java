@@ -73,7 +73,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private boolean stackTraceChecksOn = true;
 
     private final ActionBroadcast<GradleExecuter> beforeExecute = new ActionBroadcast<GradleExecuter>();
-    private final Set<Action> afterExecute = new LinkedHashSet<Action>();
+    private final Set<Action<? super GradleExecuter>> afterExecute = new LinkedHashSet<Action<? super GradleExecuter>>();
 
     private final TestDirectoryProvider testDirectoryProvider;
     private final GradleDistribution distribution;
