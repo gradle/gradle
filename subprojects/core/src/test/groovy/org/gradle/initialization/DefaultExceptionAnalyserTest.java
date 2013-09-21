@@ -59,11 +59,17 @@ public class DefaultExceptionAnalyserTest {
     }
 
     @Test
-    public void usesOriginalExceptionWhenItIsNotAContextualException() {
+    public void wrapsOriginalExceptionWhenItIsNotAContextualException() {
         Throwable failure = new RuntimeException();
 
         DefaultExceptionAnalyser analyser = analyser();
-        assertThat(analyser.transform(failure), sameInstance(failure));
+        Throwable transformed = analyser.transform(failure);
+        assertThat(transformed, instanceOf(LocationAwareException.class));
+
+        LocationAwareException gse = (LocationAwareException) transformed;
+        assertThat(gse.getTarget(), sameInstance(failure));
+        assertThat(gse.getCause(), sameInstance(failure));
+        assertThat(gse.getReportableCauses(), isEmpty());
     }
 
     @Test
@@ -160,7 +166,7 @@ public class DefaultExceptionAnalyserTest {
     @Test
     public void unpacksListenerNotificationException() {
         Throwable cause = new RuntimeException();
-        Throwable failure = new ListenerNotificationException("broken", cause);
+        Throwable failure = new ListenerNotificationException("broken", toList(cause));
 
         Throwable transformedFailure = analyser().transform(failure);
         assertThat(transformedFailure, instanceOf(LocationAwareException.class));
@@ -225,6 +231,23 @@ public class DefaultExceptionAnalyserTest {
         DefaultExceptionAnalyser analyser = analyser();
 
         assertThat(analyser.transform(failure), sameInstance(cause));
+    }
+
+    @Test
+    public void wrapsArbitraryFailureWithLocationInformation() {
+        Throwable failure = new RuntimeException();
+        failure.setStackTrace(toArray(element, otherElement, callerElement));
+
+        DefaultExceptionAnalyser analyser = analyser();
+        notifyAnalyser(analyser, source);
+
+        Throwable transformedFailure = analyser.transform(failure);
+        assertThat(transformedFailure, instanceOf(LocationAwareException.class));
+
+        LocationAwareException gse = (LocationAwareException) transformedFailure;
+        assertThat(gse.getScriptSource(), sameInstance(source));
+        assertThat(gse.getLineNumber(), equalTo(7));
+        assertThat(gse.getCause(), sameInstance(failure));
     }
 
     private Throwable locationAwareException(final Throwable cause) {

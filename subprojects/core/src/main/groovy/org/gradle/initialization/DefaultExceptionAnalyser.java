@@ -20,6 +20,7 @@ import org.gradle.api.internal.Contextual;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.LocationAwareException;
 import org.gradle.api.tasks.TaskExecutionException;
+import org.gradle.execution.TaskSelectionException;
 import org.gradle.groovy.scripts.Script;
 import org.gradle.groovy.scripts.ScriptCompilationException;
 import org.gradle.groovy.scripts.ScriptExecutionListener;
@@ -46,10 +47,12 @@ public class DefaultExceptionAnalyser implements ExceptionAnalyser, ScriptExecut
     }
 
     public Throwable transform(Throwable exception) {
-        Throwable actualException = findDeepestRootException(exception);
-        if (actualException == null) {
+        // TODO: remove this special case
+        if (exception instanceof TaskSelectionException) {
             return exception;
         }
+
+        Throwable actualException = findDeepestRootException(exception);
         if (actualException instanceof LocationAwareException) {
             return actualException;
         }
@@ -58,7 +61,7 @@ public class DefaultExceptionAnalyser implements ExceptionAnalyser, ScriptExecut
         Integer lineNumber = null;
         Throwable target = actualException;
 
-        // todo - remove these special cases
+        // TODO: remove these special cases
         if (actualException instanceof ScriptCompilationException) {
             ScriptCompilationException scriptCompilationException = (ScriptCompilationException) actualException;
             source = scriptCompilationException.getScriptSource();
@@ -103,8 +106,10 @@ public class DefaultExceptionAnalyser implements ExceptionAnalyser, ScriptExecut
             return locationAware;
         } else if (result != null) {
             return result;
-        } else {
+        } else if (contextMatch != null) {
             return contextMatch;
+        } else {
+            return exception;
         }
     }
 }
