@@ -16,22 +16,27 @@
 package org.gradle.listener;
 
 import org.gradle.api.Action;
+import org.gradle.util.CollectionUtils;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ActionBroadcast<T> implements Action<T> {
-    private final ListenerBroadcast<Action> broadcast = new ListenerBroadcast<Action>(Action.class);
+    private final List<Action<? super T>> actions = new ArrayList<Action<? super T>>();
 
     public ActionBroadcast() {}
 
-    public ActionBroadcast(Iterable<Action> actions) {
-        broadcast.addAll(actions);
-    }
-
-    public void execute(T t) {
-        broadcast.getSource().execute(t);
+    public ActionBroadcast(Iterable<Action<? super T>> actions) {
+        CollectionUtils.addAll(this.actions, actions);
     }
 
     public void add(Action<? super T> action) {
-        broadcast.add(action);
+        actions.add(action);
     }
 
+    public void execute(T t) {
+        for (Action<? super T> action : new ArrayList<Action<? super T>>(actions)) {
+            action.execute(t);
+        }
+    }
 }
