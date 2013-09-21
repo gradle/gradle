@@ -22,7 +22,7 @@ class LocationAwareExceptionTest extends Specification {
     def "visit reportable causes does not visit direct cause"() {
         TreeVisitor visitor = Mock()
         def cause = new RuntimeException()
-        def e = new LocationAwareException(cause, cause, null, 100)
+        def e = new LocationAwareException(cause, null, 100)
 
         when:
         e.visitReportableCauses(visitor)
@@ -39,7 +39,7 @@ class LocationAwareExceptionTest extends Specification {
         TreeVisitor visitor = Mock()
         def childCause = new RuntimeException()
         def cause = new RuntimeException(childCause)
-        def e = new LocationAwareException(cause, cause, null, 100)
+        def e = new LocationAwareException(cause, null, 100)
 
         when:
         e.visitReportableCauses(visitor)
@@ -65,7 +65,7 @@ class LocationAwareExceptionTest extends Specification {
         TreeVisitor visitor = Mock()
         def childCause = new RuntimeException()
         def cause = new TestContextualException(childCause)
-        def e = new LocationAwareException(cause, cause, null, 100)
+        def e = new LocationAwareException(cause, null, 100)
 
         when:
         e.visitReportableCauses(visitor)
@@ -96,7 +96,7 @@ class LocationAwareExceptionTest extends Specification {
         def contextual = new TestContextualException(interveningUnreported)
         def interveningUnreported2 = new RuntimeException(contextual)
         def cause = new TestContextualException(interveningUnreported2)
-        def e = new LocationAwareException(cause, cause, null, 100)
+        def e = new LocationAwareException(cause, null, 100)
 
         when:
         e.visitReportableCauses(visitor)
@@ -121,7 +121,7 @@ class LocationAwareExceptionTest extends Specification {
         def childCause1 = new RuntimeException()
         def childCause2 = new RuntimeException()
         def cause = new AbstractMultiCauseException("broken", childCause1, childCause2)
-        def e = new LocationAwareException(cause, cause, null, 100)
+        def e = new LocationAwareException(cause, null, 100)
 
         when:
         e.visitReportableCauses(visitor)
@@ -154,7 +154,7 @@ class LocationAwareExceptionTest extends Specification {
         def childCause3 = new TestContextualException(childCause2)
         def childCause4 = new TestContextualException(childCause3)
         def cause = new AbstractMultiCauseException("broken", childCause1, childCause4)
-        def e = new LocationAwareException(cause, cause, null, 100)
+        def e = new LocationAwareException(cause, null, 100)
 
         when:
         e.visitReportableCauses(visitor)

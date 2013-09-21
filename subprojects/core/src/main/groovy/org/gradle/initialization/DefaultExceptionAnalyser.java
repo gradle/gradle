@@ -26,7 +26,6 @@ import org.gradle.groovy.scripts.ScriptCompilationException;
 import org.gradle.groovy.scripts.ScriptExecutionListener;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.listener.ListenerManager;
-import org.gradle.listener.ListenerNotificationException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -59,16 +58,12 @@ public class DefaultExceptionAnalyser implements ExceptionAnalyser, ScriptExecut
 
         ScriptSource source = null;
         Integer lineNumber = null;
-        Throwable target = actualException;
 
         // TODO: remove these special cases
         if (actualException instanceof ScriptCompilationException) {
             ScriptCompilationException scriptCompilationException = (ScriptCompilationException) actualException;
             source = scriptCompilationException.getScriptSource();
             lineNumber = scriptCompilationException.getLineNumber();
-        }
-        if (actualException instanceof ListenerNotificationException && actualException.getCause() != null) {
-            target = actualException.getCause();
         }
 
         if (source == null) {
@@ -85,7 +80,7 @@ public class DefaultExceptionAnalyser implements ExceptionAnalyser, ScriptExecut
             }
         }
 
-        return new LocationAwareException(actualException, target, source, lineNumber);
+        return new LocationAwareException(actualException, source, lineNumber);
     }
 
     private Throwable findDeepestRootException(Throwable exception) {

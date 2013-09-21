@@ -41,7 +41,7 @@ class BuildExceptionReporterTest extends Specification {
         clientMetaData.describeCommand(!null, !null) >> { args -> args[0].append("[gradle ${args[1].join(' ')}]")}
     }
 
-    def doesNothingWheBuildIsSuccessful() {
+    def doesNothingWhenBuildIsSuccessful() {
         expect:
         reporter.buildFinished(result(null))
         output.value == ''
@@ -80,7 +80,7 @@ Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with
     }
 
     def reportsLocationAwareException() {
-        Throwable exception = exception("<location>", "<message>", new RuntimeException("<cause>"));
+        Throwable exception = exception("<location>", new RuntimeException("<message>"), new RuntimeException("<cause>"));
 
         expect:
         reporter.buildFinished(result(exception))
@@ -100,7 +100,7 @@ Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with
     }
 
     def reportsLocationAwareExceptionWithNoMessage() {
-        Throwable exception = exception("<location>", null, new IOException());
+        Throwable exception = exception("<location>", new RuntimeException(), new IOException());
 
         expect:
         reporter.buildFinished(result(exception))
@@ -120,7 +120,7 @@ Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with
     }
 
     def reportsLocationAwareExceptionWithMultipleCauses() {
-        Throwable exception = exception("<location>", "<message>", new RuntimeException("<cause1>"), new RuntimeException("<cause2>"));
+        Throwable exception = exception("<location>", new RuntimeException("<message>"), new RuntimeException("<cause1>"), new RuntimeException("<cause2>"));
 
         expect:
         reporter.buildFinished(result(exception))
@@ -143,7 +143,7 @@ Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with
     def reportsLocationAwareExceptionWithMultipleNestedCauses() {
         def cause1 = nested("<cause1>", new RuntimeException("<cause1.1>"), new RuntimeException("<cause1.2>"))
         def cause2 = nested("<cause2>", new RuntimeException("<cause2.1>"))
-        Throwable exception = exception("<location>", "<message>", cause1, cause2);
+        Throwable exception = exception("<location>", new RuntimeException("<message>"), cause1, cause2);
 
         expect:
         reporter.buildFinished(result(exception))
@@ -167,7 +167,7 @@ Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with
     }
 
     def reportsLocationAwareExceptionWhenCauseHasNoMessage() {
-        Throwable exception = exception("<location>", "<message>", new RuntimeException());
+        Throwable exception = exception("<location>", new RuntimeException("<message>"), new RuntimeException());
 
         expect:
         reporter.buildFinished(result(exception))
@@ -189,7 +189,7 @@ Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with
     def showsStacktraceOfCauseOfLocationAwareException() {
         configuration.showStacktrace = ShowStacktrace.ALWAYS
 
-        Throwable exception = exception("<location>", "<message>", new GradleException('<failure>'))
+        Throwable exception = exception("<location>", new GradleException("<message>"), new GradleException('<failure>'))
 
         expect:
         reporter.buildFinished(result(exception))
@@ -207,7 +207,7 @@ Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with
 Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output.
 
 * Exception is:
-org.gradle.api.GradleException: <failure>
+org.gradle.api.GradleException: <message>
 {stacktrace}
 '''
     }
@@ -229,7 +229,7 @@ Run {userinput}[gradle tasks]{normal} to get a list of available tasks.
     }
 
     def reportsMultipleBuildFailures() {
-        def failure1 = exception("<location>", "<message>", new RuntimeException("<cause>"))
+        def failure1 = exception("<location>", new RuntimeException("<message>"), new RuntimeException("<cause>"))
         def failure2 = new GradleException("<failure>")
         def failure3 = new RuntimeException("<error>")
         Throwable exception = new MultipleBuildFailures([failure1, failure2, failure3])
@@ -345,12 +345,10 @@ org.gradle.api.GradleException: <message>
         return new TestException(message, causes)
     }
     
-    def exception(String location, String message, Throwable... causes) {
-        RuntimeException target = new RuntimeException(message)
+    def exception(String location, RuntimeException target, Throwable... causes) {
         LocationAwareException exception = Mock()
         exception.location >> location
-        exception.target >> target
-        exception.cause >> causes[0]
+        exception.cause >> target
         exception.visitReportableCauses(!null) >> { TreeVisitor visitor ->
             visitor.node(exception)
             visitor.startChildren()

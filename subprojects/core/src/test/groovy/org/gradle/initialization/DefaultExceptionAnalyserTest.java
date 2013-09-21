@@ -23,7 +23,6 @@ import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.groovy.scripts.Script;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.listener.ListenerManager;
-import org.gradle.listener.ListenerNotificationException;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
@@ -67,7 +66,6 @@ public class DefaultExceptionAnalyserTest {
         assertThat(transformed, instanceOf(LocationAwareException.class));
 
         LocationAwareException gse = (LocationAwareException) transformed;
-        assertThat(gse.getTarget(), sameInstance(failure));
         assertThat(gse.getCause(), sameInstance(failure));
         assertThat(gse.getReportableCauses(), isEmpty());
     }
@@ -82,7 +80,6 @@ public class DefaultExceptionAnalyserTest {
         assertThat(transformedFailure, instanceOf(LocationAwareException.class));
 
         LocationAwareException gse = (LocationAwareException) transformedFailure;
-        assertThat(gse.getTarget(), sameInstance(failure));
         assertThat(gse.getCause(), sameInstance(failure));
         assertThat(gse.getReportableCauses(), isEmpty());
     }
@@ -98,7 +95,6 @@ public class DefaultExceptionAnalyserTest {
         assertThat(transformedFailure, instanceOf(LocationAwareException.class));
 
         LocationAwareException gse = (LocationAwareException) transformedFailure;
-        assertThat(gse.getTarget(), sameInstance(failure));
         assertThat(gse.getCause(), sameInstance(failure));
         assertThat(gse.getReportableCauses(), equalTo(toList(cause)));
     }
@@ -158,23 +154,8 @@ public class DefaultExceptionAnalyserTest {
         assertThat(transformedFailure, instanceOf(LocationAwareException.class));
 
         LocationAwareException gse = (LocationAwareException) transformedFailure;
-        assertThat(gse.getTarget(), sameInstance(failure));
         assertThat(gse.getCause(), sameInstance(failure));
         assertThat(gse.getReportableCauses(), equalTo(toList(cause1, cause2)));
-    }
-
-    @Test
-    public void unpacksListenerNotificationException() {
-        Throwable cause = new RuntimeException();
-        Throwable failure = new ListenerNotificationException("broken", toList(cause));
-
-        Throwable transformedFailure = analyser().transform(failure);
-        assertThat(transformedFailure, instanceOf(LocationAwareException.class));
-
-        LocationAwareException gse = (LocationAwareException) transformedFailure;
-        assertThat(gse.getTarget(), sameInstance(cause));
-        assertThat(gse.getCause(), sameInstance(failure));
-        assertThat(gse.getReportableCauses(), isEmpty());
     }
 
     @Test
@@ -196,7 +177,6 @@ public class DefaultExceptionAnalyserTest {
         assertThat(transformedFailure, instanceOf(LocationAwareException.class));
 
         LocationAwareException gse = (LocationAwareException) transformedFailure;
-        assertThat(gse.getTarget(), sameInstance(cause));
         assertThat(gse.getCause(), sameInstance(cause));
     }
 
@@ -219,7 +199,6 @@ public class DefaultExceptionAnalyserTest {
         assertThat(transformedFailure, instanceOf(LocationAwareException.class));
 
         LocationAwareException gse = (LocationAwareException) transformedFailure;
-        assertThat(gse.getTarget(), sameInstance(cause));
         assertThat(gse.getCause(), sameInstance(cause));
     }
 
@@ -299,19 +278,12 @@ public class DefaultExceptionAnalyserTest {
         public List<? extends Throwable> getCauses() {
             return causes;
         }
-
-        public void initCauses(Iterable<? extends Throwable> causes) {
-            this.causes.clear();
-            for (Throwable cause : causes) {
-                this.causes.add(cause);
-            }
-        }
     }
 
     @Contextual
     public abstract static class TestException extends LocationAwareException {
         protected TestException(Throwable cause, ScriptSource source, Integer lineNumber) {
-            super(cause, cause, source, lineNumber);
+            super(cause, source, lineNumber);
         }
     }
 }

@@ -156,7 +156,7 @@ public class BuildExceptionReporter extends BuildAdapter implements Action<Throw
                 @Override
                 public void node(final Throwable node) {
                     if (node == scriptException) {
-                        details.details.text(getMessage(scriptException.getTarget()));
+                        details.details.text(getMessage(scriptException.getCause()));
                     } else {
                         details.details.format("%n");
                         StringBuilder prefix = new StringBuilder();

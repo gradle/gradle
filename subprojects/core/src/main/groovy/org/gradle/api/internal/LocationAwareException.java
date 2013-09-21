@@ -27,24 +27,13 @@ import java.util.List;
  * A {@code LocationAwareException} is an exception which can be annotated with a location in a script.
  */
 public class LocationAwareException extends GradleException {
-    private final Throwable target;
     private final ScriptSource source;
     private final Integer lineNumber;
 
-    public LocationAwareException(Throwable cause, Throwable target, ScriptSource source, Integer lineNumber) {
+    public LocationAwareException(Throwable cause, ScriptSource source, Integer lineNumber) {
         this.source = source;
         this.lineNumber = lineNumber;
-        this.target = target;
         initCause(cause);
-    }
-
-    /**
-     * Returns the target exception.
-     *
-     * @return The target exception. Not null
-     */
-    public Throwable getTarget() {
-        return target;
     }
 
     /**
@@ -88,7 +77,7 @@ public class LocationAwareException extends GradleException {
      */
     public String getMessage() {
         String location = getLocation();
-        String message = target.getMessage();
+        String message = getCause().getMessage();
         if (location == null && message == null) {
             return null;
         }
@@ -108,7 +97,7 @@ public class LocationAwareException extends GradleException {
      */
     public List<Throwable> getReportableCauses() {
         final List<Throwable> causes = new ArrayList<Throwable>();
-        visitCauses(target, new TreeVisitor<Throwable>(){
+        visitCauses(getCause(), new TreeVisitor<Throwable>(){
             @Override
             public void node(Throwable node) {
                 causes.add(node);
@@ -122,7 +111,7 @@ public class LocationAwareException extends GradleException {
      */
     public void visitReportableCauses(TreeVisitor<? super Throwable> visitor) {
         visitor.node(this);
-        visitCauses(target, visitor);
+        visitCauses(getCause(), visitor);
     }
 
     private void visitCauses(Throwable t, TreeVisitor<? super Throwable> visitor) {
