@@ -18,9 +18,9 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfigurationMetaData;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DependencyMetaData;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionMetaData;
+import org.gradle.api.internal.artifacts.metadata.ConfigurationMetaData;
+import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
 
 import java.util.*;
 

@@ -13,22 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
+
+package org.gradle.api.internal.artifacts.metadata;
+
+import org.apache.ivy.core.module.descriptor.Artifact;
+import org.apache.ivy.core.module.descriptor.ExcludeRule;
 
 import java.util.List;
+import java.util.Set;
 
-public interface MutableModuleVersionMetaData extends ModuleVersionMetaData {
+public interface ConfigurationMetaData {
     /**
-     * Creates a deep copy of this meta-data.
+     * The set of configurations that this configuration extends. Includes this configuration.
      */
-    MutableModuleVersionMetaData copy();
+    Set<String> getHierarchy();
 
-    void setChanging(boolean changing);
-    void setStatus(String status);
-    void setStatusScheme(List<String> statusScheme);
+    String getName();
 
-    /**
-     * Replaces the dependencies of this module version.
-     */
-    void setDependencies(Iterable<? extends DependencyMetaData> dependencies);
+    ModuleVersionMetaData getModuleVersion();
+
+    List<DependencyMetaData> getDependencies();
+
+    Set<Artifact> getArtifacts();
+
+    Set<ExcludeRule> getExcludeRules();
+
+    boolean isTransitive();
 }

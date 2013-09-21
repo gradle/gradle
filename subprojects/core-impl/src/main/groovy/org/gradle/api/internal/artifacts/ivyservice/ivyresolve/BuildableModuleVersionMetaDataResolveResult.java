@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.Nullable;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
+import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData;
 
 /**
  * The result of attempting to resolve a dependency descriptor to the meta-data for a module version.

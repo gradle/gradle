@@ -38,6 +38,7 @@ import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultBuildableArtifactResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultBuildableModuleVersionResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionNotFoundException;
+import org.gradle.api.internal.artifacts.metadata.DefaultDependencyMetaData;
 import org.gradle.internal.Factory;
 
 import java.io.File;

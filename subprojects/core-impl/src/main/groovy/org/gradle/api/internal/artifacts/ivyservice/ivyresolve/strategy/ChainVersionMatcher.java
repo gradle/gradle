@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
 
 import com.google.common.collect.Lists;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionMetaData;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
 
 import java.util.*;
 

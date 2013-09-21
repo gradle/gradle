@@ -19,7 +19,7 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.ComponentMetadataDetails;
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionMetaData;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.repositories.resolver.ComponentMetadataDetailsAdapter;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.listener.ActionBroadcast;

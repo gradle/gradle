@@ -22,7 +22,7 @@ import org.gradle.api.internal.artifacts.ModuleVersionPublishMetaData
 import org.gradle.api.internal.artifacts.ivyservice.BuildableModuleVersionResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver
 import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DependencyMetaData
+import org.gradle.api.internal.artifacts.metadata.DependencyMetaData
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ProjectDependencyDescriptor
 import org.gradle.api.internal.project.ProjectInternal
 import spock.lang.Specification

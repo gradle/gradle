@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DependencyMetaData;
+import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
 
 /**
  * Resolves a dependency to the id for a module.
