@@ -244,7 +244,8 @@ class DependencyManagementBuildScopeServices {
     }
 
     ArtifactDependencyResolver createArtifactDependencyResolver(ResolveIvyFactory resolveIvyFactory, PublishModuleDescriptorConverter publishModuleDescriptorConverter,
-                                                                CacheLockingManager cacheLockingManager, IvyContextManager ivyContextManager, ResolutionResultsStoreFactory resolutionResultsStoreFactory) {
+                                                                CacheLockingManager cacheLockingManager, IvyContextManager ivyContextManager, ResolutionResultsStoreFactory resolutionResultsStoreFactory,
+                                                                VersionMatcher versionMatcher, LatestStrategy latestStrategy) {
         ArtifactDependencyResolver resolver = new DefaultDependencyResolver(
                 resolveIvyFactory,
                 publishModuleDescriptorConverter,
@@ -256,7 +257,9 @@ class DependencyManagementBuildScopeServices {
                         publishModuleDescriptorConverter),
                 cacheLockingManager,
                 ivyContextManager,
-                resolutionResultsStoreFactory);
+                resolutionResultsStoreFactory,
+                versionMatcher,
+                latestStrategy);
         return new ErrorHandlingArtifactDependencyResolver(
                 new ShortcircuitEmptyConfigsArtifactDependencyResolver(
                         new SelfResolvingDependencyResolver(

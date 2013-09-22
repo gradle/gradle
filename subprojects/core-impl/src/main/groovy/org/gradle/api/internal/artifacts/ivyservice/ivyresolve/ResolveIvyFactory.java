@@ -63,7 +63,7 @@ public class ResolveIvyFactory {
         this.latestStrategy = latestStrategy;
     }
 
-    public IvyAdapter create(ConfigurationInternal configuration, Iterable<? extends ResolutionAwareRepository> repositories) {
+    public DependencyToModuleVersionResolver create(ConfigurationInternal configuration, Iterable<? extends ResolutionAwareRepository> repositories) {
         ResolutionRules resolutionRules = configuration.getResolutionStrategy().getResolutionRules();
         startParameterResolutionOverride.addResolutionRules(resolutionRules);
 
@@ -97,7 +97,7 @@ public class ResolveIvyFactory {
             userResolverChain.add(localAwareRepository);
         }
 
-        return new DefaultIvyAdapter(versionMatcher, latestStrategy, userResolverChain);
+        return userResolverChain;
     }
 
     private void ivyContextualize(IvyAwareModuleVersionRepository ivyAwareRepository, UserResolverChain userResolverChain, String configurationName) {
