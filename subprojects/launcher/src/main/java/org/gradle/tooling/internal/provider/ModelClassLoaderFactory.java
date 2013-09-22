@@ -57,6 +57,15 @@ public class ModelClassLoaderFactory {
         }
 
         @Override
+        protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+            //TODO:ADAM - remove this.
+            if (name.startsWith("com.sun.jdi.")) {
+                System.out.println(String.format("=> Loading JDI class %s in provider client ClassLoader. Should not be.", name));
+            }
+            return super.loadClass(name, resolve);
+        }
+
+        @Override
         protected byte[] transform(byte[] bytes) {
             // First scan for annotation, and short circuit transformation if not present
             ClassReader classReader = new ClassReader(bytes);

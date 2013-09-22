@@ -67,6 +67,9 @@ public class ClientSidePayloadClassLoaderRegistry implements PayloadClassLoaderR
         final DeserializeMap deserializeMap = delegate.newDeserializeSession();
         return new DeserializeMap() {
             public Class<?> resolveClass(ClassLoaderDetails classLoaderDetails, String className) throws ClassNotFoundException {
+                if (className.startsWith("com.sun.jdi.")) {
+                    System.out.println(String.format("=> Looking for JDI class %s in client ClassLoader registry. Should not be.", className));
+                }
                 Set<ClassLoader> candidates;
                 lock.lock();
                 try {
