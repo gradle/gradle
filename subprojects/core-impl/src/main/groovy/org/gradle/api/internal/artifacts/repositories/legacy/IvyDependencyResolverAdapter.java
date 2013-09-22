@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
+package org.gradle.api.internal.artifacts.repositories.legacy;
 
 import org.apache.ivy.core.IvyContext;
 import org.apache.ivy.core.module.descriptor.Artifact;
@@ -27,10 +27,9 @@ import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.*;
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleDescriptorAdapter;
-import org.gradle.api.internal.artifacts.repositories.legacy.EnhancedArtifactDownloadReport;
-import org.gradle.api.internal.artifacts.repositories.legacy.LocalFileRepositoryCacheManager;
 import org.gradle.internal.UncheckedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +38,7 @@ import java.io.File;
 import java.text.ParseException;
 
 /**
- * A {@link ModuleVersionRepository} wrapper around an Ivy {@link DependencyResolver}.
+ * A {@link org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionRepository} wrapper around an Ivy {@link DependencyResolver}.
  */
 public class IvyDependencyResolverAdapter implements ConfiguredModuleVersionRepository, IvyAwareModuleVersionRepository {
     private static final Logger LOGGER = LoggerFactory.getLogger(IvyDependencyResolverAdapter.class);

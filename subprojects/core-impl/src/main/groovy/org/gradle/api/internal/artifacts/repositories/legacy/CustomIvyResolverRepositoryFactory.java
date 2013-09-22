@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.repositories.legacy;
 import org.apache.ivy.core.cache.RepositoryCacheManager;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
-import org.gradle.api.internal.artifacts.repositories.CustomResolverArtifactRepository;
 import org.gradle.logging.ProgressLoggerFactory;
 
 public class CustomIvyResolverRepositoryFactory implements LegacyDependencyResolverRepositoryFactory {

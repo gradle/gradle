@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.repositories;
+package org.gradle.api.internal.artifacts.repositories.legacy;
 
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.IvyResolverBackedModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleVersionRepository;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.IvyDependencyResolverAdapter;
+import org.gradle.api.internal.artifacts.repositories.AbstractArtifactRepository;
+import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 
 public class FixedResolverArtifactRepository extends AbstractArtifactRepository {
     protected final DependencyResolver resolver;
