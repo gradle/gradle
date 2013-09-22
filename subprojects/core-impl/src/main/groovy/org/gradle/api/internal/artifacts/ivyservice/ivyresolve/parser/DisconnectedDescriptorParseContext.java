@@ -24,7 +24,7 @@ import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource
  * An implementation of {@link DescriptorParseContext} that is useful for parsing an ivy.xml file without attempting to download
  * other resources from a DependencyResolver.
  */
-public class DisconnectedDescriptorParseContext extends AbstractDescriptorParseContext {
+public class DisconnectedDescriptorParseContext implements DescriptorParseContext {
     public boolean artifactExists(Artifact artifact) {
         return false;
     }

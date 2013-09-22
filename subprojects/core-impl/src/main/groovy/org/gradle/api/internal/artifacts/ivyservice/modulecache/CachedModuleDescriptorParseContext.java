@@ -18,14 +18,14 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.AbstractDescriptorParseContext;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
 import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
 
 /**
  * Context used for parsing cached module descriptor files.
  * Will only be used for parsing ivy.xml files, as pom files are converted before caching.
  */
-class CachedModuleDescriptorParseContext extends AbstractDescriptorParseContext {
+class CachedModuleDescriptorParseContext implements DescriptorParseContext {
     public ModuleRevisionId getCurrentRevisionId() {
         throw new UnsupportedOperationException();
     }

@@ -17,17 +17,24 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.apache.ivy.core.cache.ArtifactOrigin;
 import org.apache.ivy.core.module.descriptor.Artifact;
+import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.AbstractDescriptorParseContext;
+import org.gradle.api.internal.artifacts.ivyservice.*;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
+import org.gradle.api.internal.artifacts.metadata.DefaultDependencyMetaData;
+import org.gradle.api.internal.externalresource.DefaultLocallyAvailableExternalResource;
 import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
+import org.gradle.internal.resource.local.DefaultLocallyAvailableResource;
+import org.gradle.internal.resource.local.LocallyAvailableResource;
+
+import java.io.File;
 
 /**
  * ParserSettings that control the scope of searches carried out during parsing.
  * If the parser asks for a resolver for the currently resolving revision, the resolver scope is only the repository where the module was resolved.
  * If the parser asks for a resolver for a different revision, the resolver scope is all repositories.
  */
-public class ExternalResourceResolverDescriptorParseContext extends AbstractDescriptorParseContext {
+public class ExternalResourceResolverDescriptorParseContext implements DescriptorParseContext {
     private final DependencyToModuleVersionResolver mainResolver;
     private final ExternalResourceResolver moduleResolver;
     private final ModuleRevisionId moduleRevisionId;
@@ -44,6 +51,24 @@ public class ExternalResourceResolverDescriptorParseContext extends AbstractDesc
 
     public boolean artifactExists(Artifact artifact) {
         return !ArtifactOrigin.isUnknown(moduleResolver.locate(artifact));
+    }
+
+    private LocallyAvailableExternalResource resolveArtifact(Artifact artifact, DependencyToModuleVersionResolver resolver) {
+        File resolvedArtifactFile = resolveArtifactFile(artifact, resolver);
+        LocallyAvailableResource localResource = new DefaultLocallyAvailableResource(resolvedArtifactFile);
+        return new DefaultLocallyAvailableExternalResource(resolvedArtifactFile.toURI().toString(), localResource);
+    }
+
+    private File resolveArtifactFile(Artifact artifact, DependencyToModuleVersionResolver resolver) {
+        BuildableArtifactResolveResult artifactResolveResult = new DefaultBuildableArtifactResolveResult();
+        resolveModuleVersionResolveResult(artifact, resolver).getArtifactResolver().resolve(artifact, artifactResolveResult);
+        return artifactResolveResult.getFile();
+    }
+
+    private BuildableModuleVersionResolveResult resolveModuleVersionResolveResult(Artifact artifact, DependencyToModuleVersionResolver resolver) {
+        BuildableModuleVersionResolveResult moduleVersionResolveResult = new DefaultBuildableModuleVersionResolveResult();
+        resolver.resolve(new DefaultDependencyMetaData(new DefaultDependencyDescriptor(artifact.getModuleRevisionId(), true)), moduleVersionResolveResult);
+        return moduleVersionResolveResult;
     }
 
     public LocallyAvailableExternalResource getArtifact(Artifact artifact) {
