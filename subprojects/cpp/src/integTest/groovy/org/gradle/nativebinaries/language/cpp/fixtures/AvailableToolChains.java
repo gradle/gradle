@@ -17,6 +17,7 @@
 package org.gradle.nativebinaries.language.cpp.fixtures;
 
 import com.google.common.base.Joiner;
+import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.internal.nativeplatform.ProcessEnvironment;
 import org.gradle.internal.nativeplatform.services.NativeServices;
 import org.gradle.internal.os.OperatingSystem;
@@ -27,6 +28,9 @@ import org.gradle.nativebinaries.toolchain.internal.ToolRegistry;
 import org.gradle.nativebinaries.toolchain.internal.gcc.version.GccVersionDeterminer;
 import org.gradle.nativebinaries.toolchain.internal.msvcpp.VisualStudioInstall;
 import org.gradle.nativebinaries.toolchain.internal.msvcpp.VisualStudioLocator;
+import org.gradle.process.internal.DefaultExecAction;
+import org.gradle.process.internal.ExecAction;
+import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.util.TextUtil;
 
@@ -100,7 +104,11 @@ public class AvailableToolChains {
 
     static private ToolChainCandidate findGpp(String versionPrefix, String hardcodedFallback) {
         String name = String.format("g++ %s", versionPrefix);
-        GccVersionDeterminer versionDeterminer = new GccVersionDeterminer();
+        GccVersionDeterminer versionDeterminer = new GccVersionDeterminer(new ExecActionFactory() {
+            public ExecAction newExecAction() {
+                return new DefaultExecAction(new IdentityFileResolver());
+            }
+        });
 
         List<File> gppCandidates = OperatingSystem.current().findAllInPath("g++");
         for (int i = 0; i < gppCandidates.size(); i++) {

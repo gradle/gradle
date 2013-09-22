@@ -18,7 +18,6 @@ package org.gradle.nativebinaries.toolchain.internal.msvcpp;
 
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.compile.Compiler;
-import org.gradle.internal.Factory;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativebinaries.Platform;
 import org.gradle.nativebinaries.internal.*;
@@ -30,7 +29,7 @@ import org.gradle.nativebinaries.toolchain.internal.AbstractToolChain;
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
 import org.gradle.nativebinaries.toolchain.internal.ToolRegistry;
 import org.gradle.nativebinaries.toolchain.internal.ToolType;
-import org.gradle.process.internal.ExecAction;
+import org.gradle.process.internal.ExecActionFactory;
 
 import java.io.File;
 
@@ -38,11 +37,11 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
 
     public static final String DEFAULT_NAME = "visualCpp";
 
-    private final Factory<ExecAction> execActionFactory;
+    private final ExecActionFactory execActionFactory;
     private final VisualStudioLocator visualStudioLocator;
     private File installDir;
 
-    public VisualCppToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, Factory<ExecAction> execActionFactory) {
+    public VisualCppToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory) {
         super(name, operatingSystem, new ToolRegistry(operatingSystem), fileResolver);
         this.execActionFactory = execActionFactory;
         visualStudioLocator = new VisualStudioLocator(operatingSystem);

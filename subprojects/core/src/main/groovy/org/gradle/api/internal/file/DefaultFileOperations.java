@@ -37,10 +37,7 @@ import org.gradle.api.resources.ReadableResource;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.process.ExecResult;
-import org.gradle.process.internal.DefaultExecAction;
-import org.gradle.process.internal.DefaultJavaExecAction;
-import org.gradle.process.internal.ExecAction;
-import org.gradle.process.internal.JavaExecAction;
+import org.gradle.process.internal.*;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GFileUtils;
 
@@ -51,7 +48,7 @@ import java.util.Map;
 
 import static org.gradle.util.ConfigureUtil.configure;
 
-public class DefaultFileOperations implements FileOperations, ProcessOperations {
+public class DefaultFileOperations implements FileOperations, ProcessOperations, ExecActionFactory {
     private final FileResolver fileResolver;
     private final TaskResolver taskResolver;
     private final TemporaryFileProvider temporaryFileProvider;
@@ -177,6 +174,10 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations 
     public ExecResult exec(Closure cl) {
         ExecAction execAction = ConfigureUtil.configure(cl, instantiator.newInstance(DefaultExecAction.class, fileResolver));
         return execAction.execute();
+    }
+
+    public ExecAction newExecAction() {
+        return new DefaultExecAction(fileResolver);
     }
 
     public DefaultResourceHandler getResources() {

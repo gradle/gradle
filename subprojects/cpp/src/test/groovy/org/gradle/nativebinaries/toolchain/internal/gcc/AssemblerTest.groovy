@@ -19,19 +19,18 @@ package org.gradle.nativebinaries.toolchain.internal.gcc
 import org.gradle.nativebinaries.language.assembler.internal.AssembleSpec
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool
 import org.gradle.process.internal.ExecAction
+import org.gradle.process.internal.ExecActionFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
-import org.gradle.internal.Factory
 
 class AssemblerTest extends Specification {
     @Rule final TestNameTestDirectoryProvider tmpDirProvider = new TestNameTestDirectoryProvider()
 
     def executable = new File("executable")
-    Factory<ExecAction> execActionFactory = Mock(Factory)
+    def execActionFactory = Mock(ExecActionFactory)
     CommandLineTool<AssembleSpec> commandLineTool = new CommandLineTool<AssembleSpec>("assembler", executable, execActionFactory)
     Assembler assembler = new Assembler(commandLineTool);
-
 
     def "assembles each source file independently"() {
         given:
@@ -51,7 +50,7 @@ class AssemblerTest extends Specification {
         assembler.execute(assembleSpec)
 
         then:
-        1 * execActionFactory.create() >> execAction1
+        1 * execActionFactory.newExecAction() >> execAction1
         1 * execAction1.executable(executable)
         1 * execAction1.workingDir(objectFileDir)
         1 * execAction1.args(["-firstArg"])
@@ -62,7 +61,7 @@ class AssemblerTest extends Specification {
         1 * execAction1.execute()
         0 * execAction1._
 
-        1 * execActionFactory.create() >> execAction2
+        1 * execActionFactory.newExecAction() >> execAction2
         1 * execAction2.executable(executable)
         1 * execAction2.workingDir(objectFileDir)
         1 * execAction2.args(["-firstArg"])

@@ -23,9 +23,9 @@ import org.gradle.api.internal.tasks.compile.CompileSpec;
 import org.gradle.api.internal.tasks.compile.CompileSpecToArguments;
 import org.gradle.api.internal.tasks.compile.ExecSpecBackedArgCollector;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.internal.Factory;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.process.internal.ExecAction;
+import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.process.internal.ExecException;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
@@ -39,14 +39,14 @@ import java.util.Map;
 public class CommandLineTool<T extends CompileSpec> {
     private final String action;
     private final File executable;
-    private final Factory<ExecAction> execActionFactory;
+    private final ExecActionFactory execActionFactory;
     private final Map<String, String> environment = new HashMap<String, String>();
     private List<String> arguments = new ArrayList<String>();
     private CompileSpecToArguments<T> toArguments;
     private File workDir;
     private String path;
 
-    public CommandLineTool(String action, File executable, Factory<ExecAction> execActionFactory) {
+    public CommandLineTool(String action, File executable, ExecActionFactory execActionFactory) {
         this.action = action;
         this.executable = executable;
         this.execActionFactory = execActionFactory;
@@ -79,7 +79,7 @@ public class CommandLineTool<T extends CompileSpec> {
     }
 
     public WorkResult execute(T spec) {
-        ExecAction compiler = execActionFactory.create();
+        ExecAction compiler = execActionFactory.newExecAction();
         compiler.executable(executable);
         if (workDir != null) {
             compiler.workingDir(workDir);

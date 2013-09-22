@@ -24,6 +24,7 @@ import org.gradle.external.javadoc.MinimalJavadocOptions;
 import org.gradle.external.javadoc.StandardJavadocDocletOptions;
 import org.gradle.external.javadoc.internal.JavadocExecHandleBuilder;
 import org.gradle.process.internal.ExecAction;
+import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.process.internal.ExecException;
 import org.gradle.util.GUtil;
 
@@ -68,7 +69,7 @@ import java.util.List;
  * </pre>
  */
 public class Javadoc extends SourceTask {
-    private JavadocExecHandleBuilder javadocExecHandleBuilder = new JavadocExecHandleBuilder();
+    private JavadocExecHandleBuilder javadocExecHandleBuilder = new JavadocExecHandleBuilder(getServices().get(ExecActionFactory.class));
 
     private File destinationDir;
 

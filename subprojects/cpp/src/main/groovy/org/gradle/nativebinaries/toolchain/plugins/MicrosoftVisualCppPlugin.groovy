@@ -17,29 +17,31 @@
 
 
 package org.gradle.nativebinaries.toolchain.plugins
+
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.internal.Factory
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.ToolChainRegistry
 import org.gradle.nativebinaries.plugins.NativeBinariesPlugin
 import org.gradle.nativebinaries.toolchain.VisualCpp
 import org.gradle.nativebinaries.toolchain.internal.msvcpp.VisualCppToolChain
-import org.gradle.process.internal.DefaultExecAction
-import org.gradle.process.internal.ExecAction
+import org.gradle.process.internal.ExecActionFactory
 
 import javax.inject.Inject
+
 /**
  * A {@link Plugin} which makes the Microsoft Visual C++ compiler available to compile C/C++ code.
  */
 @Incubating
 class MicrosoftVisualCppPlugin implements Plugin<Project> {
     private final FileResolver fileResolver;
+    private final ExecActionFactory execActionFactory
 
     @Inject
-    MicrosoftVisualCppPlugin(FileResolver fileResolver) {
+    MicrosoftVisualCppPlugin(FileResolver fileResolver, ExecActionFactory execActionFactory) {
+        this.execActionFactory = execActionFactory
         this.fileResolver = fileResolver
     }
 
@@ -49,11 +51,7 @@ class MicrosoftVisualCppPlugin implements Plugin<Project> {
         def toolChainRegistry = project.extensions.getByType(ToolChainRegistry)
 
         toolChainRegistry.registerFactory(VisualCpp, { String name ->
-            return new VisualCppToolChain(name, OperatingSystem.current(), fileResolver, new Factory<ExecAction>() {
-                ExecAction create() {
-                    return new DefaultExecAction(fileResolver)
-                }
-            })
+            return new VisualCppToolChain(name, OperatingSystem.current(), fileResolver, execActionFactory)
         })
         toolChainRegistry.registerDefaultToolChain(VisualCppToolChain.DEFAULT_NAME, VisualCpp)
     }

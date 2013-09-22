@@ -19,18 +19,23 @@ package org.gradle.external.javadoc.internal;
 import org.gradle.api.GradleException;
 import org.gradle.external.javadoc.MinimalJavadocOptions;
 import org.gradle.internal.jvm.Jvm;
-import org.gradle.process.internal.DefaultExecAction;
 import org.gradle.process.internal.ExecAction;
+import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.util.GUtil;
 
 import java.io.File;
 import java.io.IOException;
 
 public class JavadocExecHandleBuilder {
+    private final ExecActionFactory execActionFactory;
     private File execDirectory;
     private MinimalJavadocOptions options;
     private File optionsFile;
     private String executable;
+
+    public JavadocExecHandleBuilder(ExecActionFactory execActionFactory) {
+        this.execActionFactory = execActionFactory;
+    }
 
     public JavadocExecHandleBuilder execDirectory(File directory) {
         if (directory == null) {
@@ -65,10 +70,10 @@ public class JavadocExecHandleBuilder {
         try {
             options.write(optionsFile);
         } catch (IOException e) {
-            throw new GradleException("Faild to store javadoc options.", e);
+            throw new GradleException("Failed to store javadoc options.", e);
         }
 
-        ExecAction execAction = new DefaultExecAction();
+        ExecAction execAction = execActionFactory.newExecAction();
         execAction.workingDir(execDirectory);
         execAction.executable(GUtil.elvis(executable, Jvm.current().getJavadocExecutable()));
         execAction.args("@" + optionsFile.getAbsolutePath());

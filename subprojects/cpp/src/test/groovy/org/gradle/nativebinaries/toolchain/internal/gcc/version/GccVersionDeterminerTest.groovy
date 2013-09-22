@@ -17,14 +17,14 @@
 package org.gradle.nativebinaries.toolchain.internal.gcc.version
 
 import org.gradle.api.Transformer
-import org.gradle.internal.Factory
-import org.gradle.process.internal.ExecHandleBuilder
+import org.gradle.process.ExecResult
+import org.gradle.process.internal.ExecAction
+import org.gradle.process.internal.ExecActionFactory
 import spock.lang.Specification
 import spock.lang.Unroll
-import org.gradle.process.internal.ExecHandle
-import org.gradle.process.ExecResult
 
 class GccVersionDeterminerTest extends Specification {
+    def execActionFactory = Mock(ExecActionFactory)
 
     @Unroll
     "can scrape ok output"() {
@@ -35,81 +35,40 @@ class GccVersionDeterminerTest extends Specification {
         [version, output] << OUTPUTS.collect { [it.value, it.key] }
     }
 
-    def "null output (errored execution) ok"() {
+    def "handles gcc output that cannot be parsed"() {
         expect:
-        output(null) == null
-    }
-
-    def "null scraped ok (can't parse output)"() {
-        expect:
-        scraped(null) == null
+        output("not sure what version this is") == null
+        output("") == null
     }
 
     def "g++ -v execution error ok"() {
         given:
-        def builder = Mock(ExecHandleBuilder)
-        def handle = Mock(ExecHandle)
+        def action = Mock(ExecAction)
         def result = Mock(ExecResult)
 
         and:
-        def determiner = new GccVersionDeterminer(producer(builder), new GccVersionDeterminer.GccVersionOutputScraper())
+        def determiner = new GccVersionDeterminer(execActionFactory)
         def binary = new File("g++")
         
         when:
         String version = determiner.transform(binary)
         
         then:
-        1 * builder.build() >> handle
-        1 * handle.start() >> handle
-        1 * handle.waitForFinish() >> result
+        1 * execActionFactory.newExecAction() >> action
+        1 * action.execute() >> result
         1 * result.getExitValue() >> 1
 
         and:
         version == null
     }
 
-    def "happy day case"() {
-        given:
-        def builder = Mock(ExecHandleBuilder)
-        def handle = Mock(ExecHandle)
-        def result = Mock(ExecResult)
-        def output = """Reading specs from /opt/gcc/3.4.6/usr/local/bin/../lib/gcc/i686-pc-linux-gnu/3.4.6/specs
-Configured with: /home/ld/Downloads/gcc-3.4.6/configure
-Thread model: posix
-gcc version 3.4.6"""
-
-        and:
-        def determiner = new GccVersionDeterminer(producer(builder), new GccVersionDeterminer.GccVersionOutputScraper())
-        def binary = new File("g++")
-
-        when:
-        String version = determiner.transform(binary)
-
-        then:
-        1 * builder.build() >> handle
-        1 * builder.setErrorOutput(_) >> { OutputStream out -> out << output; builder }
-        1 * handle.start() >> handle
-        1 * handle.waitForFinish() >> result
-        1 * result.getExitValue() >> 0
-
-        and:
-        version == "3.4.6"
-    }
-
-    Transformer<String, File> producer(ExecHandleBuilder builder) {
-        new GccVersionDeterminer.GccVersionOutputProducer(new Factory() {
-            def create() {
-                builder
-            }
-        })
-    }
-
     String output(String output) {
-        new GccVersionDeterminer(transformer(output), new GccVersionDeterminer.GccVersionOutputScraper()).transform(new File("."))
-    }
-
-    String scraped(String scraped) {
-        new GccVersionDeterminer(transformer("doesntmatter"), transformer(scraped)).transform(new File("."))
+        def action = Mock(ExecAction)
+        def result = Mock(ExecResult)
+        1 * execActionFactory.newExecAction() >> action
+        1 * action.setErrorOutput(_) >> { OutputStream outstr -> outstr << output; action }
+        1 * action.execute() >> result
+        new GccVersionDeterminer(execActionFactory).transform(new File("."))
     }
 
     Transformer transformer(constant) {

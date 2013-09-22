@@ -20,6 +20,7 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.Factory
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.internal.ToolChainAvailability
+import org.gradle.process.internal.ExecActionFactory
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import spock.lang.Specification
@@ -27,34 +28,35 @@ import spock.lang.Specification
 class VisualCppToolChainTest extends Specification {
     TestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
     final FileResolver fileResolver = Mock(FileResolver)
-    final toolChain = new VisualCppToolChain("visualCpp", new OperatingSystem.Windows(), fileResolver, Stub(Factory))
-
+    final ExecActionFactory execActionFactory = Mock(ExecActionFactory)
+    final OperatingSystem operatingSystem = Stub(OperatingSystem) {
+        isWindows() >> true
+        getExecutableName(_ as String) >> { String exeName -> exeName }
+        findInPath("cl.exe") >> file('VisualStudio/VC/bin/cl.exe')
+        findInPath("rc.exe") >> file("SDK/bin/rc.exe")
+    }
+    final toolChain = new VisualCppToolChain("visualCpp", operatingSystem, fileResolver, execActionFactory)
 
     def "uses .lib file for shared library at link time"() {
+        given:
+        operatingSystem.getSharedLibraryName("test") >> "test.dll"
+
         expect:
         toolChain.getSharedLibraryLinkFileName("test") == "test.lib"
-        toolChain.getSharedLibraryLinkFileName("test.dll") == "test.lib"
     }
 
     def "uses .dll file for shared library at runtime time"() {
+        given:
+        operatingSystem.getSharedLibraryName("test") >> "test.dll"
+
         expect:
         toolChain.getSharedLibraryName("test") == "test.dll"
-        toolChain.getSharedLibraryName("test.dll") == "test.dll"
     }
 
     def "locates visual studio installation and windows SDK based on executables in path"() {
-        final os = Stub(OperatingSystem) {
-            isWindows() >> true
-            getExecutableName(_ as String) >> { String exeName -> exeName }
-            findInPath("cl.exe") >> file('VisualStudio/VC/bin/cl.exe')
-            findInPath("rc.exe") >> file("SDK/bin/rc.exe")
-        }
-
-        def cppToolChain = new VisualCppToolChain("test", os, fileResolver, Stub(Factory))
-
         when:
         def availability = new ToolChainAvailability()
-        cppToolChain.checkAvailable(availability)
+        toolChain.checkAvailable(availability)
 
         then:
         !availability.available
@@ -65,7 +67,7 @@ class VisualCppToolChainTest extends Specification {
 
         and:
         def availability2 = new ToolChainAvailability()
-        cppToolChain.checkAvailable(availability2);
+        toolChain.checkAvailable(availability2);
 
         then:
         !availability2.available
@@ -77,7 +79,7 @@ class VisualCppToolChainTest extends Specification {
 
         and:
         def availability3 = new ToolChainAvailability()
-        cppToolChain.checkAvailable(availability3);
+        toolChain.checkAvailable(availability3);
 
         then:
         availability3.available

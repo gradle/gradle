@@ -17,11 +17,9 @@
 package org.gradle.nativebinaries.toolchain.internal.gcc.version;
 
 import org.gradle.api.Transformer;
-import org.gradle.api.internal.file.IdentityFileResolver;
-import org.gradle.internal.Factory;
 import org.gradle.process.ExecResult;
-import org.gradle.process.internal.ExecHandle;
-import org.gradle.process.internal.ExecHandleBuilder;
+import org.gradle.process.internal.ExecAction;
+import org.gradle.process.internal.ExecActionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,17 +38,9 @@ public class GccVersionDeterminer implements Transformer<String, File> {
     private final Transformer<String, String> outputScraper;
     private final Transformer<String, File> outputProducer;
 
-    public GccVersionDeterminer() {
-        this(new GccVersionOutputProducer(new Factory<ExecHandleBuilder>() {
-            public ExecHandleBuilder create() {
-                return new ExecHandleBuilder(new IdentityFileResolver());
-            }
-        }), new GccVersionOutputScraper());
-    }
-
-    GccVersionDeterminer(Transformer<String, File> outputProducer, Transformer<String, String> outputScraper) {
-        this.outputProducer = outputProducer;
-        this.outputScraper = outputScraper;
+    public GccVersionDeterminer(ExecActionFactory execActionFactory) {
+        this.outputProducer = new GccVersionOutputProducer(execActionFactory);
+        this.outputScraper = new GccVersionOutputScraper();
     }
 
     static class GccVersionOutputScraper implements Transformer<String, String> {
@@ -70,21 +60,21 @@ public class GccVersionDeterminer implements Transformer<String, File> {
 
     static class GccVersionOutputProducer implements Transformer<String, File> {
         
-        private final Factory<ExecHandleBuilder> execHandleBuilderFactory;
+        private final ExecActionFactory execActionFactory;
 
-        GccVersionOutputProducer(Factory<ExecHandleBuilder> execHandleBuilderFactory) {
-            this.execHandleBuilderFactory = execHandleBuilderFactory;
+        GccVersionOutputProducer(ExecActionFactory execActionFactory) {
+            this.execActionFactory = execActionFactory;
         }
 
         public String transform(File gccBinary) {
-            ExecHandleBuilder exec = execHandleBuilderFactory.create();
+            ExecAction exec = execActionFactory.newExecAction();
             exec.executable(gccBinary.getAbsolutePath());
             exec.setWorkingDir(gccBinary.getParentFile());
             exec.args("-v");
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             exec.setErrorOutput(baos);
-            ExecHandle handle = exec.build();
-            ExecResult result = handle.start().waitForFinish();
+            exec.setIgnoreExitValue(true);
+            ExecResult result = exec.execute();
 
             int exitValue = result.getExitValue();
             if (exitValue == 0) {

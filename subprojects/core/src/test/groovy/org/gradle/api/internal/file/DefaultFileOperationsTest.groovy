@@ -28,14 +28,16 @@ import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollectio
 import org.gradle.api.internal.file.collections.FileTreeAdapter
 import org.gradle.api.internal.file.copy.DefaultCopySpec
 import org.gradle.api.internal.tasks.TaskResolver
-import org.gradle.internal.os.OperatingSystem
+import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.process.ExecResult
+import org.gradle.process.internal.DefaultExecAction
 import org.gradle.process.internal.ExecException
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.internal.classloader.ClasspathUtil
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import org.junit.Test
 import spock.lang.Specification
@@ -281,11 +283,8 @@ public class DefaultFileOperationsTest extends Specification {
         result.exitValue != 0
     }
 
+    @Requires(TestPrecondition.NOT_WINDOWS)
     def exec() {
-        if (OperatingSystem.current().isWindows()) {
-            return
-        }
-
         fileOperations = new DefaultFileOperations(resolver(), taskResolver, temporaryFileProvider, instantiator)
         File testFile = tmpDir.file("someFile")
 
@@ -301,10 +300,8 @@ public class DefaultFileOperationsTest extends Specification {
         result.exitValue == 0
     }
 
+    @Requires(TestPrecondition.NOT_WINDOWS)
     def execWithNonZeroExitValueShouldThrowException() {
-        if (OperatingSystem.current().isWindows()) {
-            return
-        }
         fileOperations = new DefaultFileOperations(resolver(), taskResolver, temporaryFileProvider, instantiator)
 
         when:
@@ -318,10 +315,8 @@ public class DefaultFileOperationsTest extends Specification {
         thrown(ExecException)
     }
 
+    @Requires(TestPrecondition.NOT_WINDOWS)
     def execWithNonZeroExitValueAndIgnoreExitValueShouldNotThrowException() {
-        if (OperatingSystem.current().isWindows()) {
-            return
-        }
         fileOperations = new DefaultFileOperations(resolver(), taskResolver, temporaryFileProvider, instantiator)
 
         when:
@@ -334,6 +329,11 @@ public class DefaultFileOperationsTest extends Specification {
 
         then:
         result.exitValue != 0
+    }
+
+    def createsExecAction() {
+        expect:
+        fileOperations.newExecAction() instanceof DefaultExecAction
     }
 
     def resolver() {

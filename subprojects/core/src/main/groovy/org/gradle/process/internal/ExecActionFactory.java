@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,6 @@
 
 package org.gradle.process.internal;
 
-import org.gradle.api.internal.file.FileResolver;
-import org.gradle.process.ExecResult;
-
-public class DefaultExecAction extends ExecHandleBuilder implements ExecAction {
-    public DefaultExecAction(FileResolver fileResolver) {
-        super(fileResolver);
-    }
-
-    public ExecResult execute() {
-        ExecHandle execHandle = build();
-        ExecResult execResult = execHandle.start().waitForFinish();
-        if (!isIgnoreExitValue()) {
-            execResult.assertNormalExitValue();
-        }
-        return execResult;
-    }
+public interface ExecActionFactory {
+    ExecAction newExecAction();
 }

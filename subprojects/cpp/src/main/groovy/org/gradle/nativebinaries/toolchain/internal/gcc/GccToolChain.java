@@ -18,7 +18,6 @@ package org.gradle.nativebinaries.toolchain.internal.gcc;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.compile.Compiler;
-import org.gradle.internal.Factory;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativebinaries.Platform;
 import org.gradle.nativebinaries.internal.*;
@@ -31,7 +30,7 @@ import org.gradle.nativebinaries.toolchain.internal.AbstractToolChain;
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
 import org.gradle.nativebinaries.toolchain.internal.ToolType;
 import org.gradle.nativebinaries.toolchain.internal.gcc.version.GccVersionDeterminer;
-import org.gradle.process.internal.ExecAction;
+import org.gradle.process.internal.ExecActionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,15 +47,15 @@ public class GccToolChain extends AbstractToolChain implements Gcc {
 
     public static final String DEFAULT_NAME = "gcc";
 
-    private final Factory<ExecAction> execActionFactory;
+    private final ExecActionFactory execActionFactory;
     private final Transformer<String, File> versionDeterminer;
 
     private String version;
 
-    public GccToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, Factory<ExecAction> execActionFactory) {
+    public GccToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory) {
         super(name, operatingSystem, new GccToolRegistry(operatingSystem), fileResolver);
         this.execActionFactory = execActionFactory;
-        this.versionDeterminer = new GccVersionDeterminer();
+        this.versionDeterminer = new GccVersionDeterminer(execActionFactory);
 
         tools.setExeName(ToolType.CPP_COMPILER, "g++");
         tools.setExeName(ToolType.C_COMPILER, "gcc");
