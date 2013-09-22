@@ -68,9 +68,6 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
                     pomReader.getParentArtifactId(),
                     pomReader.getParentVersion());
             parentDescr = parseOtherPom(parserSettings, parentModRevID);
-            if (parentDescr == null) {
-                throw new IOException("Impossible to load parent for " + resource.getName() + ". Parent=" + parentModRevID);
-            }
             Map parentPomProps = mdBuilder.extractPomProperties();
             for (Object o : parentPomProps.entrySet()) {
                 Map.Entry prop = (Map.Entry) o;
@@ -98,12 +95,6 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
                 LOGGER.warn("Please update your dependency to directly use the correct version '{}'.", relocation);
                 LOGGER.warn("Resolution will only pick dependencies of the relocated element.  Artifacts and other metadata will be ignored.");
                 PomReader relocatedModule = parseOtherPom(parserSettings, relocation);
-                if (relocatedModule == null) {
-                    throw new ParseException("impossible to load module "
-                            + relocation + " to which "
-                            + mdBuilder.getModuleDescriptor().getModuleRevisionId()
-                            + " has been relocated", 0);
-                }
 
                 List<PomDependencyData> pomDependencyDataList = relocatedModule.getDependencies();
                 for(PomDependencyData pomDependencyData : pomDependencyDataList) {
@@ -160,10 +151,6 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
                             dep.getArtifactId(),
                             dep.getVersion());
                     PomReader importDescr = parseOtherPom(parserSettings, importModRevID);
-                    if (importDescr == null) {
-                        throw new IOException("Impossible to import module for " + resource.getName() + "."
-                                + " Import=" + importModRevID);
-                    }
                     // add dependency management info from imported module
                     List<PomDependencyMgt> depMgt = importDescr.getDependencyMgt();
                     for (PomDependencyMgt aDepMgt : depMgt) {
