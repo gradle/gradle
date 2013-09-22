@@ -1,0 +1,12 @@
+task taskX << {
+    println 'taskX'
+}
+task taskY << {
+    println 'taskY'
+}
+task taskZ << {
+    println 'taskZ'
+}
+taskX.dependsOn taskY
+taskY.dependsOn taskZ
+taskZ.shouldRunAfter taskX
