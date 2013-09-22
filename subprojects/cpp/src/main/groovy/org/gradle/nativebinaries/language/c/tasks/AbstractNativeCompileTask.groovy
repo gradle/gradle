@@ -57,9 +57,15 @@ abstract class AbstractNativeCompileTask extends DefaultTask {
     @OutputDirectory
     File objectFileDir
 
+    /**
+     * Returns the header directories to be used for compilation.
+     */
     @InputFiles
     FileCollection includes
 
+    /**
+     * Returns the source files to be compiled.
+     */
     @InputFiles @SkipWhenEmpty // Workaround for GRADLE-2026
     FileCollection getSource() {
         source
