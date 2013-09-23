@@ -29,7 +29,7 @@ import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
 
 import java.io.File;
 
-class GccLinker implements Compiler<LinkerSpec> {
+public class GccLinker implements Compiler<LinkerSpec> {
 
     private final CommandLineTool<LinkerSpec> commandLineTool;
 

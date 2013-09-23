@@ -25,6 +25,7 @@ import org.gradle.nativebinaries.internal.NativeBinaryInternal
 import org.gradle.nativebinaries.plugins.NativeBinariesPlugin
 import org.gradle.language.assembler.AssemblerSourceSet
 import org.gradle.nativebinaries.language.assembler.tasks.Assemble
+import org.gradle.nativebinaries.toolchain.plugins.ClangCompilerPlugin
 import org.gradle.nativebinaries.toolchain.plugins.GccCompilerPlugin
 import org.gradle.nativebinaries.toolchain.plugins.MicrosoftVisualCppPlugin
 
@@ -43,6 +44,7 @@ class AssemblerPlugin implements Plugin<ProjectInternal> {
         project.plugins.apply(NativeBinariesPlugin)
         project.plugins.apply(MicrosoftVisualCppPlugin)
         project.plugins.apply(GccCompilerPlugin)
+        project.plugins.apply(ClangCompilerPlugin)
 
         project.plugins.apply(AssemblerLangPlugin)
 

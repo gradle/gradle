@@ -24,12 +24,14 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.gradle.util.TestUtil
+import org.junit.Rule
 import spock.lang.Specification
 
 class MicrosoftVisualCppPluginTest extends Specification {
     def ProcessEnvironment processEnvironment = NativeServices.getInstance().get(ProcessEnvironment.class);
     def pathVar = OperatingSystem.current().getPathVar()
-    TestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
+    @Rule
+    TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
     def project = TestUtil.createRootProject()
 
     @Requires(TestPrecondition.NOT_WINDOWS)

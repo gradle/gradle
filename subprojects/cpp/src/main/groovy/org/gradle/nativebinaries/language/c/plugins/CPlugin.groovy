@@ -24,6 +24,7 @@ import org.gradle.nativebinaries.internal.NativeBinaryInternal
 import org.gradle.nativebinaries.language.c.tasks.CCompile
 import org.gradle.nativebinaries.language.internal.PreprocessorTool
 import org.gradle.nativebinaries.plugins.NativeBinariesPlugin
+import org.gradle.nativebinaries.toolchain.plugins.ClangCompilerPlugin
 import org.gradle.nativebinaries.toolchain.plugins.GccCompilerPlugin
 import org.gradle.nativebinaries.toolchain.plugins.MicrosoftVisualCppPlugin
 /**
@@ -41,6 +42,7 @@ class CPlugin implements Plugin<ProjectInternal> {
         project.plugins.apply(NativeBinariesPlugin)
         project.plugins.apply(MicrosoftVisualCppPlugin)
         project.plugins.apply(GccCompilerPlugin)
+        project.plugins.apply(ClangCompilerPlugin)
 
         project.plugins.apply(CLangPlugin)
 

@@ -107,6 +107,7 @@ public class GccToolChain extends AbstractToolChain implements Gcc {
         checkAvailable();
         return new GccPlatformToolChain(targetPlatform);
     }
+
     public Tool getCppCompiler() {
         return new DefaultTool(ToolType.CPP_COMPILER);
     }

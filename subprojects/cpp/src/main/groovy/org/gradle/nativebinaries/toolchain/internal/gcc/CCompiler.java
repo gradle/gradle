@@ -22,7 +22,7 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.nativebinaries.language.c.internal.CCompileSpec;
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
 
-class CCompiler implements Compiler<CCompileSpec> {
+public class CCompiler implements Compiler<CCompileSpec> {
 
     private final CommandLineTool<CCompileSpec> commandLineTool;
 
