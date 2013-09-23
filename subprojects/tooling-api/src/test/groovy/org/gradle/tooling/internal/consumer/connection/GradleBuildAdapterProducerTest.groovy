@@ -39,11 +39,11 @@ class GradleBuildAdapterProducerTest extends Specification {
         setup:
         1 * versionDetails.isModelSupported(GradleBuild.class) >> true
         GradleBuild gradleBuild = Mock(GradleBuild)
-        ConsumerOperationParameters mock = Mock(ConsumerOperationParameters)
+        ConsumerOperationParameters operationParameters = Mock(ConsumerOperationParameters)
         when:
-        def model = modelProducer.produceModel(GradleBuild.class, mock)
+        def model = modelProducer.produceModel(GradleBuild.class, operationParameters)
         then:
-        1 * delegate.produceModel(GradleBuild, mock) >> gradleBuild
+        1 * delegate.produceModel(GradleBuild, operationParameters) >> gradleBuild
         model == gradleBuild
     }
 
@@ -51,24 +51,24 @@ class GradleBuildAdapterProducerTest extends Specification {
         setup:
         1 * versionDetails.isModelSupported(GradleBuild) >> false
         GradleProject gradleProject = gradleProject()
-        ConsumerOperationParameters mock = Mock(ConsumerOperationParameters)
+        ConsumerOperationParameters operationParameters = Mock(ConsumerOperationParameters)
         adapter.adapt(GradleProject, gradleProject) >> gradleProject
         adapter.adapt(GradleBuild, _) >> Mock(GradleBuild)
         when:
-        def model = modelProducer.produceModel(GradleBuild, mock)
+        def model = modelProducer.produceModel(GradleBuild, operationParameters)
         then:
-        1 * delegate.produceModel(GradleProject, mock) >> gradleProject
+        1 * delegate.produceModel(GradleProject, operationParameters) >> gradleProject
         model instanceof GradleBuild
     }
 
     def "non GradleBuild model requests passed to delegate"() {
         setup:
-        ConsumerOperationParameters mock = Mock(ConsumerOperationParameters)
+        ConsumerOperationParameters operationParameters = Mock(ConsumerOperationParameters)
         SomeModel someModel = new SomeModel()
         when:
-        def returnValue = modelProducer.produceModel(SomeModel, mock)
+        def returnValue = modelProducer.produceModel(SomeModel, operationParameters)
         then:
-        1 * delegate.produceModel(SomeModel, mock) >> someModel
+        1 * delegate.produceModel(SomeModel, operationParameters) >> someModel
         returnValue == someModel
         0 * versionDetails.isModelSupported(_)
         0 * adapter.adapt(_, _)

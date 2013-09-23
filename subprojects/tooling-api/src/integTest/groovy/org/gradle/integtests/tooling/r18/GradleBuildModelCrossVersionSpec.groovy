@@ -19,6 +19,7 @@ package org.gradle.integtests.tooling.r18
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.gradle.GradleBuild
 
 @ToolingApiVersion(">=1.8")
@@ -45,6 +46,10 @@ allprojects {
         GradleBuild model = withConnection { connection -> connection.getModel(GradleBuild) }
         then:
         validateModel(model)
+        when:
+        model.rootProject.projectDirectory
+        then:
+        def e = thrown(UnsupportedMethodException)
     }
 
     @TargetGradleVersion(">=1.8")
@@ -54,14 +59,12 @@ allprojects {
         then:
         validateModel(model)
         model.projects*.projectDirectory == [projectDir, file('a'), file('b'), file('b/c')]
-
     }
 
     def validateModel(GradleBuild model) {
         assert model.rootProject.name == 'test'
         assert model.rootProject.path == ':'
         assert model.rootProject.parent == null
-        assert model.rootProject.projectDirectory == projectDir
         assert model.rootProject.children.size() == 2
         assert model.rootProject.children.every { it.parent == model.rootProject }
         assert model.projects*.name == ['test', 'a', 'b', 'c']

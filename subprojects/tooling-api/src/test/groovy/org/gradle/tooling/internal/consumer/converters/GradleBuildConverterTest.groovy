@@ -17,8 +17,7 @@
 package org.gradle.tooling.internal.consumer.converters
 
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
-import org.gradle.tooling.internal.gradle.DefaultGradleBuild
+import org.gradle.tooling.internal.gradle.PartialGradleBuild
 import org.gradle.tooling.model.DomainObjectSet
 import org.gradle.tooling.model.GradleProject
 import org.junit.Rule
@@ -30,18 +29,15 @@ class GradleBuildConverterTest extends Specification {
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
-    ConsumerOperationParameters operationParameters = Mock(ConsumerOperationParameters)
-
-    DefaultGradleBuild gradleBuild;
+    PartialGradleBuild gradleBuild;
 
     def "converts rootproject"() {
         setup:
-        1 * operationParameters.getProjectDir() >> temporaryFolder.testDirectory
         GradleProject project = gradleProject()
         _ * project.children >> ([] as DomainObjectSet)
         when:
 
-        gradleBuild = new GradleBuildConverter().convert(project, operationParameters)
+        gradleBuild = new GradleBuildConverter().convert(project)
         then:
         rootProjectMapped()
         gradleBuild.rootProject.children.size() == 0
@@ -49,7 +45,6 @@ class GradleBuildConverterTest extends Specification {
 
     def "converts child projects"() {
         setup:
-        1 * operationParameters.getProjectDir() >> temporaryFolder.testDirectory
         GradleProject rootProject = gradleProject()
         GradleProject sub1 = gradleProject("sub1", ":sub1")
         GradleProject sub2 = gradleProject("sub2", ":sub2")
@@ -57,7 +52,7 @@ class GradleBuildConverterTest extends Specification {
         _ * sub2.children >> ([] as DomainObjectSet)
         _ * rootProject.children >> ([sub1, sub2] as DomainObjectSet)
         when:
-        gradleBuild = new GradleBuildConverter().convert(rootProject, operationParameters)
+        gradleBuild = new GradleBuildConverter().convert(rootProject)
         then:
         rootProjectMapped()
         gradleBuild.rootProject.children.size() == 2
@@ -67,7 +62,6 @@ class GradleBuildConverterTest extends Specification {
 
     def "converts nested child projects"() {
         setup:
-        1 * operationParameters.getProjectDir() >> temporaryFolder.testDirectory
         GradleProject rootProject = gradleProject()
         GradleProject sub1 = gradleProject("sub1", ":sub1")
         GradleProject sub2 = gradleProject("sub2", ":sub1:sub2")
@@ -75,7 +69,7 @@ class GradleBuildConverterTest extends Specification {
         _ * sub1.children >> ([sub2] as DomainObjectSet)
         _ * rootProject.children >> ([sub1] as DomainObjectSet)
         when:
-        gradleBuild = new GradleBuildConverter().convert(rootProject, operationParameters)
+        gradleBuild = new GradleBuildConverter().convert(rootProject)
         then:
         rootProjectMapped()
         gradleBuild.rootProject.children.size() == 1
@@ -89,7 +83,6 @@ class GradleBuildConverterTest extends Specification {
     def rootProjectMapped() {
         assert gradleBuild.rootProject.name == "rootProject"
         assert gradleBuild.rootProject.path == ":"
-        assert gradleBuild.rootProject.projectDirectory == temporaryFolder.testDirectory
         gradleBuild
     }
 

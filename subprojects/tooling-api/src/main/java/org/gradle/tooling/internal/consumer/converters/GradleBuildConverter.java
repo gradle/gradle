@@ -16,9 +16,8 @@
 
 package org.gradle.tooling.internal.consumer.converters;
 
-import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
-import org.gradle.tooling.internal.gradle.BasicGradleProject;
-import org.gradle.tooling.internal.gradle.DefaultGradleBuild;
+import org.gradle.tooling.internal.gradle.PartialBasicGradleProject;
+import org.gradle.tooling.internal.gradle.PartialGradleBuild;
 import org.gradle.tooling.model.GradleProject;
 
 import java.util.ArrayList;
@@ -27,17 +26,16 @@ import java.util.Comparator;
 import java.util.List;
 
 public class GradleBuildConverter {
-    public DefaultGradleBuild convert(GradleProject project, ConsumerOperationParameters operationParameters) {
-        DefaultGradleBuild gradleBuild = new DefaultGradleBuild();
-        BasicGradleProject rootProject = toBasicGradleProject(project);
-        rootProject.setProjectDirectory(operationParameters.getProjectDir());
+    public PartialGradleBuild convert(GradleProject project) {
+        PartialGradleBuild gradleBuild = new PartialGradleBuild();
+        PartialBasicGradleProject rootProject = toPartialGradleProject(project);
         gradleBuild.setRootProject(rootProject);
         gradleBuild.addProject(rootProject);
         convertChildren(gradleBuild, rootProject, project);
         return gradleBuild;
     }
 
-    private void convertChildren(DefaultGradleBuild gradleBuild, BasicGradleProject rootProject, GradleProject project) {
+    private void convertChildren(PartialGradleBuild gradleBuild, PartialBasicGradleProject rootProject, GradleProject project) {
         final List<? extends GradleProject> childProjects = new ArrayList<GradleProject>(project.getChildren());
         Collections.sort(childProjects, new Comparator<GradleProject>() {
             public int compare(GradleProject gp1, GradleProject gp2) {
@@ -45,7 +43,7 @@ public class GradleBuildConverter {
             }
         });
         for (GradleProject childProject : childProjects) {
-            BasicGradleProject basicGradleProject = toBasicGradleProject(childProject);
+            PartialBasicGradleProject basicGradleProject = toPartialGradleProject(childProject);
             gradleBuild.addProject(basicGradleProject);
             basicGradleProject.setParent(rootProject);
             rootProject.addChild(basicGradleProject);
@@ -53,8 +51,8 @@ public class GradleBuildConverter {
         }
     }
 
-    private BasicGradleProject toBasicGradleProject(GradleProject childProject) {
-        BasicGradleProject basicGradleProject = new BasicGradleProject();
+    private PartialBasicGradleProject toPartialGradleProject(GradleProject childProject) {
+        PartialBasicGradleProject basicGradleProject = new PartialBasicGradleProject();
         basicGradleProject.setPath(childProject.getPath());
         basicGradleProject.setName(childProject.getName());
         return basicGradleProject;

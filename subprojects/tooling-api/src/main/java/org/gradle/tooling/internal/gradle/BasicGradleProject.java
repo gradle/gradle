@@ -17,48 +17,13 @@
 package org.gradle.tooling.internal.gradle;
 
 import java.io.File;
-import java.io.Serializable;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public class BasicGradleProject implements Serializable, GradleProjectIdentity {
-    private String name;
-    private String path;
+public class BasicGradleProject extends PartialBasicGradleProject {
     private File projectDirectory;
-    private BasicGradleProject parent;
     private Set<BasicGradleProject> children = new LinkedHashSet<BasicGradleProject>();
 
-    @Override
-    public String toString() {
-        return "GradleProject{path='" + path + "\'}";
-    }
-
-    public String getPath() {
-        return path;
-    }
-
-    public BasicGradleProject setPath(String path) {
-        this.path = path;
-        return this;
-    }
-
-    public BasicGradleProject getParent() {
-        return parent;
-    }
-
-    public BasicGradleProject setParent(BasicGradleProject parent) {
-        this.parent = parent;
-        return this;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public BasicGradleProject setName(String name) {
-        this.name = name;
-        return this;
-    }
 
     public File getProjectDirectory() {
         return projectDirectory;
@@ -66,6 +31,16 @@ public class BasicGradleProject implements Serializable, GradleProjectIdentity {
 
     public BasicGradleProject setProjectDirectory(File projectDirectory) {
         this.projectDirectory = projectDirectory;
+        return this;
+    }
+
+    public BasicGradleProject setPath(String path) {
+        super.setPath(path);
+        return this;
+    }
+
+    public BasicGradleProject setName(String name) {
+        super.setName(name);
         return this;
     }
 
