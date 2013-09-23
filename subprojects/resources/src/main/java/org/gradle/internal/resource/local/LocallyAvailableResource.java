@@ -15,7 +15,7 @@
  */
 package org.gradle.internal.resource.local;
 
-import org.gradle.util.hash.HashValue;
+import org.gradle.internal.hash.HashValue;
 
 import java.io.File;
 

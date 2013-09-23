@@ -17,8 +17,8 @@
 package org.gradle.api.internal.externalresource.cached;
 
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
-import org.gradle.util.hash.HashUtil;
-import org.gradle.util.hash.HashValue;
+import org.gradle.internal.hash.HashUtil;
+import org.gradle.internal.hash.HashValue;
 
 import java.io.File;
 import java.io.Serializable;

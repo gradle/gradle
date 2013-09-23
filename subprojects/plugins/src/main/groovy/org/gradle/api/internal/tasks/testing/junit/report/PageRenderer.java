@@ -21,7 +21,7 @@ import org.gradle.api.internal.html.SimpleHtmlWriter;
 import org.gradle.reporting.ReportRenderer;
 import org.gradle.reporting.TabbedPageRenderer;
 import org.gradle.reporting.TabsRenderer;
-import org.gradle.util.FileUtils;
+import org.gradle.internal.FileUtils;
 
 import java.io.IOException;
 

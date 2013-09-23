@@ -19,8 +19,8 @@ import org.gradle.api.internal.externalresource.ExternalResource
 import org.gradle.api.internal.externalresource.metadata.DefaultExternalResourceMetaData
 import org.gradle.api.internal.externalresource.transfer.ExternalResourceAccessor
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.hash.HashUtil
-import org.gradle.util.hash.HashValue
+import org.gradle.internal.hash.HashUtil
+import org.gradle.internal.hash.HashValue
 import org.junit.Rule
 import spock.lang.Specification
 

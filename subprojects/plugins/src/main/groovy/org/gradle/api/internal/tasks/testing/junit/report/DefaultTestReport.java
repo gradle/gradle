@@ -24,7 +24,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.reporting.HtmlReportRenderer;
 import org.gradle.util.Clock;
-import org.gradle.util.FileUtils;
+import org.gradle.internal.FileUtils;
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;

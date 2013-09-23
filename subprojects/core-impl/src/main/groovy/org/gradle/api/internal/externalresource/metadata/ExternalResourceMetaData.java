@@ -17,7 +17,7 @@
 package org.gradle.api.internal.externalresource.metadata;
 
 import org.gradle.api.Nullable;
-import org.gradle.util.hash.HashValue;
+import org.gradle.internal.hash.HashValue;
 
 import java.util.Date;
 

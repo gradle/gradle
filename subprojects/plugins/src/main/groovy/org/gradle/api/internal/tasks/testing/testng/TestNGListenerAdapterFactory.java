@@ -16,7 +16,7 @@
 package org.gradle.api.internal.tasks.testing.testng;
 
 import org.gradle.internal.reflect.JavaReflectionUtil;
-import org.gradle.util.JavaMethod;
+import org.gradle.internal.reflect.JavaMethod;
 import org.testng.ITestListener;
 
 import java.lang.reflect.InvocationHandler;

@@ -18,7 +18,7 @@ package org.gradle.api.internal.externalresource.local
 
 import org.gradle.internal.resource.local.LocallyAvailableResource
 import spock.lang.Specification
-import org.gradle.util.hash.HashUtil
+import org.gradle.internal.hash.HashUtil
 
 class CompositeLocallyAvailableResourceFinderTest extends Specification {
     

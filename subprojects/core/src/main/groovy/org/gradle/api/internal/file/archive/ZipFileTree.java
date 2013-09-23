@@ -29,7 +29,7 @@ import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.internal.file.collections.MinimalFileTree;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.util.DeprecationLogger;
-import org.gradle.util.hash.HashUtil;
+import org.gradle.internal.hash.HashUtil;
 
 import java.io.File;
 import java.io.IOException;

@@ -32,7 +32,7 @@ import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.internal.resource.local.LocallyAvailableResource;
 import org.gradle.messaging.serialize.*;
 import org.gradle.util.BuildCommencedTimeProvider;
-import org.gradle.util.hash.HashValue;
+import org.gradle.internal.hash.HashValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

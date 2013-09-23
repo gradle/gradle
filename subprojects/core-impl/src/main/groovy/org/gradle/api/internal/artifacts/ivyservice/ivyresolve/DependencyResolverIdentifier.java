@@ -19,7 +19,7 @@ import org.apache.ivy.plugins.resolver.AbstractPatternsBasedResolver;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver;
 import org.gradle.util.CollectionUtils;
-import org.gradle.util.hash.HashUtil;
+import org.gradle.internal.hash.HashUtil;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.util.hash.HashUtil;
+import org.gradle.internal.hash.HashUtil;
 
 import java.io.File;
 

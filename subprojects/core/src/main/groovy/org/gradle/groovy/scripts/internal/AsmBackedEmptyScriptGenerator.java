@@ -17,7 +17,7 @@ package org.gradle.groovy.scripts.internal;
 
 import groovy.lang.Script;
 import org.gradle.internal.reflect.JavaReflectionUtil;
-import org.gradle.util.JavaMethod;
+import org.gradle.internal.reflect.JavaMethod;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;

@@ -21,7 +21,7 @@ import org.apache.http.util.EntityUtils;
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
 import org.gradle.api.internal.externalresource.transfer.ExternalResourceAccessor;
-import org.gradle.util.hash.HashValue;
+import org.gradle.internal.hash.HashValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

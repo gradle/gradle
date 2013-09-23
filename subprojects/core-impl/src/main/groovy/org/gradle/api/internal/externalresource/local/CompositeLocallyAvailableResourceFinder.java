@@ -17,7 +17,7 @@
 package org.gradle.api.internal.externalresource.local;
 
 import org.gradle.internal.resource.local.LocallyAvailableResource;
-import org.gradle.util.hash.HashValue;
+import org.gradle.internal.hash.HashValue;
 
 import java.util.LinkedList;
 import java.util.List;

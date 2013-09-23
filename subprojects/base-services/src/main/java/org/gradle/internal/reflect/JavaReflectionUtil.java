@@ -20,7 +20,6 @@ import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.UncheckedException;
 import org.gradle.util.CollectionUtils;
-import org.gradle.util.JavaMethod;
 
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Inherited;

@@ -15,8 +15,8 @@
  */
 package org.gradle.internal.resource.local;
 
-import org.gradle.util.hash.HashUtil;
-import org.gradle.util.hash.HashValue;
+import org.gradle.internal.hash.HashUtil;
+import org.gradle.internal.hash.HashValue;
 
 public abstract class AbstractLocallyAvailableResource implements LocallyAvailableResource {
     // Calculated on demand

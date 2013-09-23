@@ -19,7 +19,7 @@ package org.gradle.api.internal.externalresource.transfer;
 import org.gradle.api.Nullable;
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
-import org.gradle.util.hash.HashValue;
+import org.gradle.internal.hash.HashValue;
 
 import java.io.IOException;
 

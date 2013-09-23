@@ -18,7 +18,7 @@ package org.gradle.test.fixtures.server.http
 import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.test.matchers.UserAgentMatcher
 import org.gradle.util.GFileUtils
-import org.gradle.util.hash.HashUtil
+import org.gradle.internal.hash.HashUtil
 import org.hamcrest.Matcher
 import org.junit.rules.ExternalResource
 import org.mortbay.jetty.*

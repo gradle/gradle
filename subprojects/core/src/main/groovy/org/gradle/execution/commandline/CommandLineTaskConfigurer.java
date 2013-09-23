@@ -24,7 +24,7 @@ import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.cli.ParsedCommandLineOption;
 import org.gradle.internal.reflect.JavaReflectionUtil;
-import org.gradle.util.JavaMethod;
+import org.gradle.internal.reflect.JavaMethod;
 
 import java.lang.reflect.Method;
 import java.util.Collection;

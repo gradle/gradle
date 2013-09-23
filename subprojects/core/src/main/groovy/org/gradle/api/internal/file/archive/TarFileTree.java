@@ -31,7 +31,7 @@ import org.gradle.api.resources.ReadableResource;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GFileUtils;
-import org.gradle.util.hash.HashUtil;
+import org.gradle.internal.hash.HashUtil;
 
 import java.io.File;
 import java.io.IOException;

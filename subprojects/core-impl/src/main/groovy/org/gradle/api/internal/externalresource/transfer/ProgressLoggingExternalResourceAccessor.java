@@ -22,7 +22,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
 import org.gradle.logging.ProgressLoggerFactory;
-import org.gradle.util.hash.HashValue;
+import org.gradle.internal.hash.HashValue;
 
 import java.io.*;
 

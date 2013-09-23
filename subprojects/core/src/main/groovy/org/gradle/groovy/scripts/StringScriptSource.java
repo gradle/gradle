@@ -17,7 +17,7 @@ package org.gradle.groovy.scripts;
 
 import org.gradle.api.internal.resource.Resource;
 import org.gradle.api.internal.resource.StringResource;
-import org.gradle.util.hash.HashUtil;
+import org.gradle.internal.hash.HashUtil;
 
 public class StringScriptSource implements ScriptSource {
     private final Resource resource;

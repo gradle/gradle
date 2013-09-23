@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.util
+package org.gradle.internal
 
 import spock.lang.Specification
 
-import static org.gradle.util.FileUtils.toSafeFileName
+import static FileUtils.toSafeFileName
 
 
 class FileUtilsTest extends Specification {

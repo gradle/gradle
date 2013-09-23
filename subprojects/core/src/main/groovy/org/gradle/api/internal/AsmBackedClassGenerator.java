@@ -22,7 +22,7 @@ import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.util.CollectionUtils;
-import org.gradle.util.JavaMethod;
+import org.gradle.internal.reflect.JavaMethod;
 import org.objectweb.asm.*;
 import org.objectweb.asm.Type;
 

@@ -21,7 +21,7 @@ import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.internal.filestore.FileStore;
 import org.gradle.internal.filestore.FileStoreSearcher;
 import org.gradle.internal.resource.local.LocallyAvailableResource;
-import org.gradle.util.hash.HashUtil;
+import org.gradle.internal.hash.HashUtil;
 
 import java.io.File;
 import java.util.Set;

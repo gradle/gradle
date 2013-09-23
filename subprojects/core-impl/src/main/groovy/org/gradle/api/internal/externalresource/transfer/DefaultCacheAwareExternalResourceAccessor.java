@@ -30,7 +30,7 @@ import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaDat
 import org.gradle.internal.Factory;
 import org.gradle.internal.resource.local.LocallyAvailableResource;
 import org.gradle.util.BuildCommencedTimeProvider;
-import org.gradle.util.hash.HashValue;
+import org.gradle.internal.hash.HashValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -15,7 +15,7 @@
  */
 package org.gradle.integtests.fixtures
 
-import org.gradle.util.FileUtils
+import org.gradle.internal.FileUtils
 import org.hamcrest.Matcher
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document

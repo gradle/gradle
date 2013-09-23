@@ -18,7 +18,7 @@ package org.gradle.api.internal.externalresource.local
 
 import org.gradle.internal.Factory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.hash.HashUtil
+import org.gradle.internal.hash.HashUtil
 import org.junit.Rule
 import spock.lang.Specification
 

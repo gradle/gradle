@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.util.hash;
+package org.gradle.internal.hash;
 
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.UncheckedException;

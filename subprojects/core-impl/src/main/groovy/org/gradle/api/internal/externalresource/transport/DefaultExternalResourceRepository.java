@@ -28,8 +28,8 @@ import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.util.GFileUtils;
-import org.gradle.util.hash.HashUtil;
-import org.gradle.util.hash.HashValue;
+import org.gradle.internal.hash.HashUtil;
+import org.gradle.internal.hash.HashValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

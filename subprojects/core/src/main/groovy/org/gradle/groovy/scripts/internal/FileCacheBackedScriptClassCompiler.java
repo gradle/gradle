@@ -22,7 +22,7 @@ import org.gradle.cache.CacheValidator;
 import org.gradle.cache.PersistentCache;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.Transformer;
-import org.gradle.util.hash.HashUtil;
+import org.gradle.internal.hash.HashUtil;
 
 import java.io.File;
 import java.util.HashMap;

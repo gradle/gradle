@@ -25,7 +25,7 @@ import org.gradle.api.internal.externalresource.transfer.ExternalResourceUploade
 import org.gradle.internal.Factory;
 import org.gradle.internal.resource.local.DefaultLocallyAvailableResource;
 import org.gradle.util.GFileUtils;
-import org.gradle.util.hash.HashValue;
+import org.gradle.internal.hash.HashValue;
 
 import java.io.File;
 import java.io.FileOutputStream;

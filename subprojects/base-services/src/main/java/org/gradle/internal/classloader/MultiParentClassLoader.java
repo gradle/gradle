@@ -16,7 +16,7 @@
 package org.gradle.internal.classloader;
 
 import org.gradle.internal.reflect.JavaReflectionUtil;
-import org.gradle.util.JavaMethod;
+import org.gradle.internal.reflect.JavaMethod;
 
 import java.io.IOException;
 import java.net.URL;

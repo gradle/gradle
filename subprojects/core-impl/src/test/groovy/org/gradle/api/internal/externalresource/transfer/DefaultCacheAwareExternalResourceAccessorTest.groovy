@@ -22,7 +22,7 @@ import spock.lang.Specification
 import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceCandidates
 import org.gradle.api.internal.externalresource.cached.CachedExternalResource
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData
-import org.gradle.util.hash.HashValue
+import org.gradle.internal.hash.HashValue
 import org.gradle.internal.resource.local.LocallyAvailableResource
 import org.gradle.api.internal.externalresource.DefaultLocallyAvailableExternalResource
 

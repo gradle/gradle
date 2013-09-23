@@ -18,7 +18,7 @@ package org.gradle.api.internal.externalresource;
 
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.local.LocallyAvailableResource;
-import org.gradle.util.hash.HashValue;
+import org.gradle.internal.hash.HashValue;
 
 public class DefaultLocallyAvailableExternalResource extends LocalFileStandInExternalResource implements LocallyAvailableExternalResource {
     private final LocallyAvailableResource locallyAvailableResource;

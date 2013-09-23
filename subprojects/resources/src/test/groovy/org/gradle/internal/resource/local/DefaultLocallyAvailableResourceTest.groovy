@@ -16,7 +16,7 @@
 package org.gradle.internal.resource.local
 
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.hash.HashUtil
+import org.gradle.internal.hash.HashUtil
 import org.junit.Rule
 import spock.lang.Specification
 

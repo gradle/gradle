@@ -17,7 +17,7 @@
 package org.gradle.api.internal.externalresource.metadata
 
 import spock.lang.Specification
-import org.gradle.util.hash.HashValue
+import org.gradle.internal.hash.HashValue
 
 class DefaultExternalResourceMetaDataTest extends Specification {
 
