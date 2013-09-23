@@ -42,7 +42,6 @@ class CucumberJVMReportIntegrationTest extends AbstractIntegrationSpec {
         DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted("RunCukesTest", "Scenario: Say hello /two/three")
         result.testClass("Scenario: Say hello /two/three").assertTestPassed("Given I have a hello app with Howdy and /four")
-        result.testClass("Scenario: Say hello /two/three").assertTestPassed("Given I have a hello app with Howdy and /four")
         result.testClass("Scenario: Say hello /two/three").assertTestPassed("Then it should answer with Howdy World")
         result.testClass("Scenario: Say hello /two/three").assertTestPassed("When I ask it to say hi and /five/six/seven")
     }
