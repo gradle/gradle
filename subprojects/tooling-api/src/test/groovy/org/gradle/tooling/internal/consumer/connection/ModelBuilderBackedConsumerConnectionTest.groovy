@@ -28,23 +28,24 @@ import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject
+import org.gradle.tooling.model.gradle.GradleBuild
 import org.gradle.tooling.model.idea.BasicIdeaProject
 import org.gradle.tooling.model.idea.IdeaProject
 import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes
 import spock.lang.Specification
 
 class ModelBuilderBackedConsumerConnectionTest extends Specification {
+    final metaData = Stub(ConnectionMetaDataVersion1)
     final target = Mock(TestModelBuilder) {
-        getMetaData() >> Mock(ConnectionMetaDataVersion1) {
-            getVersion() >> '1.2'
-        }
+        getMetaData() >> metaData
     }
     final adapter = Stub(ProtocolToModelAdapter)
     final modelMapping = Mock(ModelMapping)
-    final connection = new ModelBuilderBackedConsumerConnection(target, modelMapping, adapter)
 
-    def "describes capabilities of the provider"() {
+    def "describes capabilities of a pre 1.8-rc-1 provider"() {
         given:
+        metaData.version >> "1.2"
+        def connection = new ModelBuilderBackedConsumerConnection(target, modelMapping, adapter)
         def details = connection.versionDetails
 
         expect:
@@ -60,11 +61,40 @@ class ModelBuilderBackedConsumerConnectionTest extends Specification {
         details.isModelSupported(ProjectOutcomes)
         details.isModelSupported(Void)
         details.isModelSupported(CustomModel)
+
+        and:
+        !details.isModelSupported(GradleBuild)
+    }
+
+    def "describes capabilities of a post 1.8-rc-1 provider"() {
+        given:
+        metaData.version >> "1.8-rc-1"
+        def connection = new ModelBuilderBackedConsumerConnection(target, modelMapping, adapter)
+        def details = connection.versionDetails
+
+        expect:
+        details.supportsGradleProjectModel()
+
+        and:
+        details.isModelSupported(HierarchicalEclipseProject)
+        details.isModelSupported(EclipseProject)
+        details.isModelSupported(IdeaProject)
+        details.isModelSupported(BasicIdeaProject)
+        details.isModelSupported(GradleProject)
+        details.isModelSupported(BuildEnvironment)
+        details.isModelSupported(ProjectOutcomes)
+        details.isModelSupported(Void)
+        details.isModelSupported(CustomModel)
+        details.isModelSupported(GradleBuild)
     }
 
     def "maps model type to model identifier"() {
         def parameters = Stub(ConsumerOperationParameters)
         def modelIdentifier = Stub(ModelIdentifier)
+
+        given:
+        metaData.version >> "1.2"
+        def connection = new ModelBuilderBackedConsumerConnection(target, modelMapping, adapter)
 
         when:
         connection.run(GradleProject, parameters)
@@ -81,6 +111,8 @@ class ModelBuilderBackedConsumerConnectionTest extends Specification {
         given:
         _ * modelMapping.getModelIdentifierFromModelType(GradleProject) >> modelIdentifier
         _ * target.getModel(modelIdentifier, parameters) >> { throw new InternalUnsupportedModelException() }
+        _ * metaData.version >> "1.2"
+        def connection = new ModelBuilderBackedConsumerConnection(target, modelMapping, adapter)
 
         when:
         connection.run(GradleProject, parameters)
@@ -95,6 +127,8 @@ class ModelBuilderBackedConsumerConnectionTest extends Specification {
 
         given:
         parameters.tasks >> ['a']
+        metaData.version >> "1.2"
+        def connection = new ModelBuilderBackedConsumerConnection(target, modelMapping, adapter)
 
         when:
         connection.run(Stub(BuildAction), parameters)

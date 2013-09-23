@@ -26,7 +26,9 @@ import spock.lang.Specification
 
 class ActionAwareConsumerConnectionTest extends Specification {
     final target = Mock(TestModelBuilder) {
-        getMetaData() >> Mock(ConnectionMetaDataVersion1)
+        getMetaData() >> Stub(ConnectionMetaDataVersion1) {
+            getVersion() >> "1.8"
+        }
     }
     final adapter = Mock(ProtocolToModelAdapter)
     final modelMapping = Stub(ModelMapping)

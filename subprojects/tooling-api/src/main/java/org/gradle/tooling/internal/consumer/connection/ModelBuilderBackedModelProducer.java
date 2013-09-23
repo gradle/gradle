@@ -21,11 +21,12 @@ import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParamete
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.BuildResult;
+import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.internal.protocol.ModelBuilder;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.model.internal.Exceptions;
 
-public class ModelBuilderBackedModelProducer extends AbstractModelProducer{
+public class ModelBuilderBackedModelProducer extends AbstractModelProducer {
     private final ModelBuilder builder;
 
     public ModelBuilderBackedModelProducer(ProtocolToModelAdapter adapter, VersionDetails versionDetails, ModelMapping modelMapping, ModelBuilder builder) {
@@ -34,11 +35,16 @@ public class ModelBuilderBackedModelProducer extends AbstractModelProducer{
     }
 
     public <T> T produceModel(Class<T> type, ConsumerOperationParameters operationParameters) {
-        if(!versionDetails.isModelSupported(type)){
+        if (!versionDetails.isModelSupported(type)) {
             throw Exceptions.unsupportedModel(type, versionDetails.getVersion());
         }
         final ModelIdentifier modelIdentifier = modelMapping.getModelIdentifierFromModelType(type);
-        BuildResult<?> result = builder.getModel(modelIdentifier, operationParameters);
+        BuildResult<?> result;
+        try {
+            result = builder.getModel(modelIdentifier, operationParameters);
+        } catch (InternalUnsupportedModelException e) {
+            throw Exceptions.unknownModel(type, e);
+        }
         return adapter.adapt(type, result.getModel());
     }
 }

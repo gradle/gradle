@@ -17,7 +17,6 @@
 package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
-import org.gradle.tooling.internal.consumer.converters.PropertyHandlerFactory;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
@@ -35,7 +34,7 @@ import org.gradle.tooling.model.internal.Exceptions;
  * An adapter for a {@link InternalConnection} based provider.
  */
 public class InternalConnectionBackedConsumerConnection extends AbstractPre12ConsumerConnection {
-    private final GradleBuildAdapterProducer modelProducer;
+    private final ModelProducer modelProducer;
 
     public InternalConnectionBackedConsumerConnection(ConnectionVersion4 delegate, ModelMapping modelMapping, ProtocolToModelAdapter adapter) {
         super(delegate, new R10M8VersionDetails(delegate.getMetaData().getVersion()), adapter);
@@ -84,7 +83,7 @@ public class InternalConnectionBackedConsumerConnection extends AbstractPre12Con
                 throw Exceptions.unsupportedModel(type, versionDetails.getVersion());
             }
             Class<?> protocolType = modelMapping.getProtocolType(type);
-            return adapter.adapt(type, delegate.getTheModel(protocolType, operationParameters), new PropertyHandlerFactory().forVersion(versionDetails));
+            return adapter.adapt(type, delegate.getTheModel(protocolType, operationParameters));
         }
     }
 }

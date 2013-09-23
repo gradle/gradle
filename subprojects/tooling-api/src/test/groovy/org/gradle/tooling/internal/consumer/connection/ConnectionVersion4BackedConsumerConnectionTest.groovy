@@ -32,6 +32,7 @@ import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject
+import org.gradle.tooling.model.gradle.GradleBuild
 import org.gradle.tooling.model.idea.BasicIdeaProject
 import org.gradle.tooling.model.idea.IdeaProject
 import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes
@@ -67,6 +68,7 @@ class ConnectionVersion4BackedConsumerConnectionTest extends Specification {
         !details.isModelSupported(BuildEnvironment)
         !details.isModelSupported(ProjectOutcomes)
         !details.isModelSupported(CustomModel)
+        !details.isModelSupported(GradleBuild)
     }
 
     def "describes capabilities of a 1.0-m5 provider"() {
@@ -90,6 +92,7 @@ class ConnectionVersion4BackedConsumerConnectionTest extends Specification {
         !details.isModelSupported(BuildEnvironment)
         !details.isModelSupported(ProjectOutcomes)
         !details.isModelSupported(CustomModel)
+        !details.isModelSupported(GradleBuild)
     }
 
     def "builds model using connection's getModel() method"() {

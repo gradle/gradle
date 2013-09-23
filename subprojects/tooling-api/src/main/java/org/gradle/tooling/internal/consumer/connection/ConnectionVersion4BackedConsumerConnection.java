@@ -113,14 +113,15 @@ public class ConnectionVersion4BackedConsumerConnection extends AbstractPre12Con
 
     private class ConnectionVersion4BackedModelProducer extends AbstractModelProducer {
         private final ConnectionVersion4 delegate;
+        private final Action<SourceObjectMapping> mapper;
 
         public ConnectionVersion4BackedModelProducer(ProtocolToModelAdapter adapter, VersionDetails versionDetails, ModelMapping modelMapping, ConnectionVersion4 delegate) {
             super(adapter, versionDetails, modelMapping);
             this.delegate = delegate;
+            mapper = new PropertyHandlerFactory().forVersion(versionDetails);
         }
 
         public <T> T produceModel(Class<T> modelType, ConsumerOperationParameters operationParameters) {
-            final Action<SourceObjectMapping> mapper = new PropertyHandlerFactory().forVersion(versionDetails);
             if (modelType == BuildEnvironment.class && !versionDetails.isModelSupported(BuildEnvironment.class)) {
                 //early versions of provider do not support BuildEnvironment model
                 //since we know the gradle version at least we can give back some result
