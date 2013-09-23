@@ -18,7 +18,6 @@ package org.gradle.api.internal.externalresource.cached;
 
 import org.gradle.api.Nullable;
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
-import org.gradle.internal.hash.HashValue;
 
 import java.util.Date;
 
@@ -36,13 +35,6 @@ public interface CachedExternalResource extends CachedItem {
      * @return The content length of the cached file.
      */
     long getContentLength();
-
-    /**
-     * Always the actual checksum of the cached file, not the external source.
-     *
-     * @return The hash of the cached file.
-     */
-    HashValue getSha1();
 
     @Nullable
     ExternalResourceMetaData getExternalResourceMetaData();

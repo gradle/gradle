@@ -19,8 +19,6 @@ import org.gradle.api.internal.externalresource.ExternalResource
 import org.gradle.api.internal.externalresource.metadata.DefaultExternalResourceMetaData
 import org.gradle.api.internal.externalresource.transfer.ExternalResourceAccessor
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.internal.hash.HashUtil
-import org.gradle.internal.hash.HashValue
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -36,7 +34,6 @@ public class CachedExternalResourceAdapterTest extends Specification {
 
     def setup() {
         cachedExternalResource.cachedFile >> origin
-        cachedExternalResource.sha1 >> { HashUtil.createHash(origin, "SHA1") }
         cachedResource = new CachedExternalResourceAdapter("resource-source", cachedExternalResource, accessor)
     }
 
@@ -73,7 +70,6 @@ public class CachedExternalResourceAdapterTest extends Specification {
 
         then:
         cachedExternalResource.cachedFile >> origin
-        cachedExternalResource.sha1 >> new HashValue("1234")
 
         and:
         accessor.getResource("resource-source") >> resource
