@@ -152,7 +152,9 @@ class ConnectionVersion4BackedConsumerConnectionTest extends Specification {
         result == model
 
         and:
+        _ * modelMapping.getProtocolType(EclipseProjectVersion3) >> EclipseProjectVersion3.class
         1 * target.getModel(EclipseProjectVersion3.class, parameters) >> protocolModel
+        1 * adapter.adapt(EclipseProjectVersion3.class, _, _) >> protocolModel
         1 * adapter.adapt(GradleProject.class, _, _) >> model
         0 * target._
     }

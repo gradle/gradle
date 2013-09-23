@@ -40,7 +40,7 @@ allprojects {
     }
 
     //TODO implement mapping of 1.0- versions
-    @TargetGradleVersion("<1.8 >=1.0-milestone-5")
+    @TargetGradleVersion("<1.8")
     def "can request GradleBuild model"() {
         when:
         GradleBuild model = withConnection { connection -> connection.getModel(GradleBuild) }

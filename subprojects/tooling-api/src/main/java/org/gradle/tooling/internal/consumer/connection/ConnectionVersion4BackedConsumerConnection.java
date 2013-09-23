@@ -46,7 +46,8 @@ public class ConnectionVersion4BackedConsumerConnection extends AbstractPre12Con
     public ConnectionVersion4BackedConsumerConnection(ConnectionVersion4 delegate, ModelMapping modelMapping, ProtocolToModelAdapter adapter) {
         super(delegate, getMetaData(delegate), adapter);
         ModelProducer consumerConnectionBackedModelProducer = new ConnectionVersion4BackedModelProducer(adapter, getVersionDetails(), modelMapping, delegate);
-        modelProducer = new GradleBuildAdapterProducer(adapter, getVersionDetails(), modelMapping, consumerConnectionBackedModelProducer);
+        ModelProducer gradleProjectAdapterProducer = new GradleProjectAdapterProducer(adapter, getVersionDetails(), modelMapping, consumerConnectionBackedModelProducer);
+        modelProducer = new GradleBuildAdapterProducer(adapter, getVersionDetails(), modelMapping, gradleProjectAdapterProducer);
     }
 
     private static VersionDetails getMetaData(final ConnectionVersion4 delegate) {
@@ -85,7 +86,7 @@ public class ConnectionVersion4BackedConsumerConnection extends AbstractPre12Con
 
         @Override
         public boolean isModelSupported(Class<?> modelType) {
-            return modelType.equals(HierarchicalEclipseProject.class) || modelType.equals(EclipseProject.class) || modelType.equals(Void.class);
+            return modelType.equals(HierarchicalEclipseProject.class) || modelType.equals(EclipseProjectVersion3.class) || modelType.equals(EclipseProject.class) || modelType.equals(Void.class);
         }
     }
 
@@ -125,18 +126,33 @@ public class ConnectionVersion4BackedConsumerConnection extends AbstractPre12Con
                 //since we know the gradle version at least we can give back some result
                 return adapter.adapt(modelType, new VersionOnlyBuildEnvironment(versionDetails.getVersion()), mapper);
             }
-            if (modelType == GradleProject.class && !versionDetails.isModelSupported(GradleProject.class)) {
-                //we broke compatibility around M9 wrt getting the tasks of a project (issue GRADLE-1875)
-                //this patch enables getting gradle tasks for target gradle version pre M5
-                EclipseProjectVersion3 project = (EclipseProjectVersion3) delegate.getModel(EclipseProjectVersion3.class, operationParameters);
-                return adapter.adapt(modelType, new GradleProjectConverter().convert(project), mapper);
-            }
             if (!versionDetails.isModelSupported(modelType)) {
                 //don't bother asking the provider for this model
                 throw Exceptions.unsupportedModel(modelType, versionDetails.getVersion());
             }
             Class<? extends ProjectVersion3> protocolType = modelMapping.getProtocolType(modelType).asSubclass(ProjectVersion3.class);
-            return adapter.adapt(modelType, delegate.getModel(protocolType, operationParameters), mapper);
+            final ProjectVersion3 model = delegate.getModel(protocolType, operationParameters);
+            return adapter.adapt(modelType, model, mapper);
+        }
+    }
+
+    private class GradleProjectAdapterProducer extends AbstractModelProducer {
+        private final ModelProducer delegate;
+
+        public GradleProjectAdapterProducer(ProtocolToModelAdapter adapter, VersionDetails versionDetails, ModelMapping modelMapping, ModelProducer delegate) {
+            super(adapter, versionDetails, modelMapping);
+            this.delegate = delegate;
+        }
+
+        public <T> T produceModel(Class<T> modelType, ConsumerOperationParameters operationParameters) {
+            final Action<SourceObjectMapping> mapper = new PropertyHandlerFactory().forVersion(versionDetails);
+            if (modelType == GradleProject.class && !versionDetails.isModelSupported(GradleProject.class)) {
+                //we broke compatibility around M9 wrt getting the tasks of a project (issue GRADLE-1875)
+                //this patch enables getting gradle tasks for target gradle version pre M5
+                EclipseProjectVersion3 project = delegate.produceModel(EclipseProjectVersion3.class, operationParameters);
+                return adapter.adapt(modelType, new GradleProjectConverter().convert(project), mapper);
+            }
+            return delegate.produceModel(modelType, operationParameters);
         }
     }
 }
