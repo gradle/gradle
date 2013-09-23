@@ -54,6 +54,21 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
         GradlePomModuleDescriptorBuilder mdBuilder = new GradlePomModuleDescriptorBuilder(resource, parserSettings);
 
         PomReader pomReader = new PomReader(resource);
+
+        doParsePom(parserSettings, mdBuilder, pomReader);
+
+        String artifactId = pomReader.getArtifactId();
+        mdBuilder.addMainArtifact(artifactId, pomReader.getPackaging());
+
+        DefaultModuleDescriptor moduleDescriptor = mdBuilder.getModuleDescriptor();
+        ModuleDescriptorAdapter adapter = new ModuleDescriptorAdapter(moduleDescriptor.getModuleRevisionId(), moduleDescriptor);
+        if ("pom".equals(pomReader.getPackaging())) {
+            adapter.setMetaDataOnly(true);
+        }
+        return adapter;
+    }
+
+    private void doParsePom(DescriptorParseContext parserSettings, GradlePomModuleDescriptorBuilder mdBuilder, PomReader pomReader) throws IOException, SAXException {
         pomReader.setProperty("parent.version", pomReader.getParentVersion());
         pomReader.setProperty("parent.groupId", pomReader.getParentGroupId());
         pomReader.setProperty("project.parent.version", pomReader.getParentVersion());
@@ -163,7 +178,7 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
             }
 
             for (Object o : pomReader.getDependencies()) {
-                PomReader.PomDependencyData dep = (PomReader.PomDependencyData) o;
+                PomDependencyData dep = (PomDependencyData) o;
                 mdBuilder.addDependency(dep);
             }
 
@@ -174,25 +189,19 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
             }
 
             for (Object o : pomReader.getPlugins()) {
-                PomReader.PomPluginElement plugin = (PomReader.PomPluginElement) o;
+                PomPluginElement plugin = (PomPluginElement) o;
                 mdBuilder.addPlugin(plugin);
             }
-
-            mdBuilder.addMainArtifact(artifactId, pomReader.getPackaging());
         }
-
-        DefaultModuleDescriptor moduleDescriptor = mdBuilder.getModuleDescriptor();
-        ModuleDescriptorAdapter adapter = new ModuleDescriptorAdapter(moduleDescriptor.getModuleRevisionId(), moduleDescriptor);
-        if ("pom".equals(pomReader.getPackaging())) {
-            adapter.setMetaDataOnly(true);
-        }
-        return adapter;
     }
 
-    private PomReader parseOtherPom(DescriptorParseContext ivySettings,
-                                           ModuleRevisionId parentModRevID) throws IOException, SAXException {
+    private PomReader parseOtherPom(DescriptorParseContext parseContext,
+                                    ModuleRevisionId parentModRevID) throws IOException, SAXException {
         Artifact pomArtifact = DefaultArtifact.newPomArtifact(parentModRevID, new Date());
-        LocallyAvailableExternalResource localResource = ivySettings.getArtifact(pomArtifact);
-        return new PomReader(localResource);
+        LocallyAvailableExternalResource localResource = parseContext.getArtifact(pomArtifact);
+        GradlePomModuleDescriptorBuilder mdBuilder = new GradlePomModuleDescriptorBuilder(localResource, parseContext);
+        PomReader pomReader = new PomReader(localResource);
+        doParsePom(parseContext, mdBuilder, pomReader);
+        return pomReader;
     }
 }

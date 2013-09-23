@@ -181,6 +181,63 @@ class GradlePomModuleDescriptorParserTest extends Specification {
         hasDefaultDependencyArtifact(dep)
     }
 
+    def "replaces variable placeholders in parent pom"() {
+        given:
+        def parent = tmpDir.file("parent.xlm") << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>parent</artifactId>
+    <version>version-one</version>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>\${project.groupId}</groupId>
+                <artifactId>artifact-two</artifactId>
+                <version>\${project.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+</project>
+"""
+
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+
+    <parent>
+        <groupId>group-one</groupId>
+        <artifactId>parent</artifactId>
+        <version>version-one</version>
+    </parent>
+
+    <dependencies>
+        <dependency>
+            <groupId>\${project.groupId}</groupId>
+            <artifactId>artifact-two</artifactId>
+        </dependency>
+    </dependencies>
+</project>
+"""
+        and:
+        parseContext.currentRevisionId >> moduleId('group-one', 'artifact-one', 'version-one')
+        parseContext.getArtifact(_) >> { new DefaultLocallyAvailableExternalResource(parent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(parent)) }
+
+        when:
+        def descriptor = parsePom()
+
+        then:
+        descriptor.dependencies.length == 1
+        def dep = descriptor.dependencies.first()
+        dep.dependencyRevisionId == moduleId('group-one', 'artifact-two', 'version-one')
+        dep.moduleConfigurations == ['compile', 'runtime']
+        hasDefaultDependencyArtifact(dep)
+    }
+
     def "pom with dependency with classifier"() {
         given:
         pomFile << """
