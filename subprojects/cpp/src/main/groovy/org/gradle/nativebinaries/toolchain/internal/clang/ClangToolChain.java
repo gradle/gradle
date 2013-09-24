@@ -39,10 +39,10 @@ public class ClangToolChain extends AbstractToolChain {
         super(name, operatingSystem, new ToolRegistry(operatingSystem), fileResolver);
         this.execActionFactory = execActionFactory;
 
-        tools.setExeName(ToolType.CPP_COMPILER, "clang");
+        tools.setExeName(ToolType.CPP_COMPILER, "clang++");
         tools.setExeName(ToolType.C_COMPILER, "clang");
         tools.setExeName(ToolType.ASSEMBLER, "as");
-        tools.setExeName(ToolType.LINKER, "clang");
+        tools.setExeName(ToolType.LINKER, "clang++");
         tools.setExeName(ToolType.STATIC_LIB_ARCHIVER, "ar");
     }
 
