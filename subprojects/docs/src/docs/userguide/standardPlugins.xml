@@ -92,7 +92,31 @@
             </thead>
             <tr>
                 <td>
-                    <link linkend='cpp'>
+                    <link linkend='nativeBinaries'>
+                        <literal>assembler</literal>
+                    </link>
+                </td>
+                <td>-</td>
+                <td>-</td>
+                <td>
+                    <para>Adds native assembly language capabilities to a project.</para>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <link linkend='nativeBinaries'>
+                        <literal>c</literal>
+                    </link>
+                </td>
+                <td>-</td>
+                <td>-</td>
+                <td>
+                    <para>Adds C source compilation capabilities to a project.</para>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <link linkend='nativeBinaries'>
                         <literal>cpp</literal>
                     </link>
                 </td>
@@ -548,7 +572,7 @@
             <tr>
                 <td>
                     <link linkend="build_setup_plugin">
-                        <literal>build-setup</literal>
+                        <literal>build-init</literal>
                     </link>
                 </td>
                 <td>wrapper</td>
