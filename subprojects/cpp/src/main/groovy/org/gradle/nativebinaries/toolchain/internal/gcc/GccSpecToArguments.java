@@ -25,11 +25,11 @@ import org.gradle.nativebinaries.toolchain.internal.CommandLineCompilerArguments
 /**
  * Some GCC options do not function correctly when included in an option file, so only use the option file for include paths and source files.
  */
-public class GccCompileSpecToArguments<T extends BinaryToolSpec> implements CompileSpecToArguments<T> {
+public class GccSpecToArguments<T extends BinaryToolSpec> implements CompileSpecToArguments<T> {
     private final CompileSpecToArguments<T> optionsToArguments;
     private final CompileSpecToArguments<T> sourcesToArguments;
 
-    public GccCompileSpecToArguments(CompileSpecToArguments<T> optionsToArguments, CompileSpecToArguments<T> sourcesToArguments, boolean useOptionFile) {
+    public GccSpecToArguments(CompileSpecToArguments<T> optionsToArguments, CompileSpecToArguments<T> sourcesToArguments, boolean useOptionFile) {
         this.optionsToArguments = optionsToArguments;
 
         // Only use an option file for header paths and source files (some other options don't function correctly in option file

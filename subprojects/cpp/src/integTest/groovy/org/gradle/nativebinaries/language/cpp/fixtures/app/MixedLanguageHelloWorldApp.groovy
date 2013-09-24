@@ -34,7 +34,7 @@ public class MixedLanguageHelloWorldApp extends HelloWorldApp {
                         cCompiler.args "-m32"
                         cppCompiler.args "-m32"
                         assembler.args "-arch", "i386"
-                        linker.args "-no_pie", "-arch", "i386"
+                        linker.args "-m32"
                 """
             }
             // 32bit gcc assembly on windows

@@ -17,14 +17,12 @@
 package org.gradle.nativebinaries.toolchain.internal.gcc;
 
 import org.gradle.api.internal.tasks.compile.ArgCollector;
-import org.gradle.api.internal.tasks.compile.ArgWriter;
 import org.gradle.api.internal.tasks.compile.CompileSpecToArguments;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativebinaries.internal.LinkerSpec;
 import org.gradle.nativebinaries.internal.SharedLibraryLinkerSpec;
-import org.gradle.nativebinaries.toolchain.internal.CommandLineCompilerArgumentsToOptionFile;
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
 
 import java.io.File;
@@ -34,24 +32,31 @@ public class GccLinker implements Compiler<LinkerSpec> {
     private final CommandLineTool<LinkerSpec> commandLineTool;
 
     public GccLinker(CommandLineTool<LinkerSpec> commandLineTool, boolean useCommandFile) {
-        this.commandLineTool = commandLineTool.withArguments(useCommandFile ? viaCommandFile() : withoutCommandFile());
-    }
-
-    private static GccLinkerSpecToArguments withoutCommandFile() {
-        return new GccLinkerSpecToArguments();
-    }
-
-    private static CommandLineCompilerArgumentsToOptionFile<LinkerSpec> viaCommandFile() {
-        return new CommandLineCompilerArgumentsToOptionFile<LinkerSpec>(
-            ArgWriter.unixStyleFactory(), new GccLinkerSpecToArguments()
+        GccSpecToArguments<LinkerSpec> specToArguments = new GccSpecToArguments<LinkerSpec>(
+                new GccLinkerSpecOptionsToArguments(),
+                new GccLinkerSpecSourcesToArguments(),
+                useCommandFile
         );
+        this.commandLineTool = commandLineTool.withArguments(specToArguments);
     }
 
     public WorkResult execute(LinkerSpec spec) {
         return commandLineTool.execute(spec);
     }
 
-    private static class GccLinkerSpecToArguments implements CompileSpecToArguments<LinkerSpec> {
+    private static class GccLinkerSpecSourcesToArguments implements CompileSpecToArguments<LinkerSpec> {
+
+        public void collectArguments(LinkerSpec spec, ArgCollector collector) {
+            for (File file : spec.getSource()) {
+                collector.args(file.getAbsolutePath());
+            }
+            for (File file : spec.getLibs()) {
+                collector.args(file.getAbsolutePath());
+            }
+        }
+    }
+
+    private static class GccLinkerSpecOptionsToArguments implements CompileSpecToArguments<LinkerSpec> {
 
         public void collectArguments(LinkerSpec spec, ArgCollector collector) {
             collector.args(spec.getArgs());
@@ -67,12 +72,6 @@ public class GccLinker implements Compiler<LinkerSpec> {
                 }
             }
             collector.args("-o", spec.getOutputFile().getAbsolutePath());
-            for (File file : spec.getSource()) {
-                collector.args(file.getAbsolutePath());
-            }
-            for (File file : spec.getLibs()) {
-                collector.args(file.getAbsolutePath());
-            }
         }
     }
 }

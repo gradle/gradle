@@ -27,7 +27,7 @@ public class CppCompiler implements Compiler<CppCompileSpec> {
     private final CommandLineTool<CppCompileSpec> commandLineTool;
 
     public CppCompiler(CommandLineTool<CppCompileSpec> commandLineTool, boolean useCommandFile) {
-        GccCompileSpecToArguments<CppCompileSpec> specToArguments = new GccCompileSpecToArguments<CppCompileSpec>(
+        GccSpecToArguments<CppCompileSpec> specToArguments = new GccSpecToArguments<CppCompileSpec>(
                 new CppCompileOptionsToArguments(),
                 new GccCompileSourcesToArguments<CppCompileSpec>(),
                 useCommandFile

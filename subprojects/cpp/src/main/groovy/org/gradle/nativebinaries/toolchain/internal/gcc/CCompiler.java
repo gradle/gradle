@@ -27,7 +27,7 @@ public class CCompiler implements Compiler<CCompileSpec> {
     private final CommandLineTool<CCompileSpec> commandLineTool;
 
     public CCompiler(CommandLineTool<CCompileSpec> commandLineTool, boolean useCommandFile) {
-        GccCompileSpecToArguments<CCompileSpec> specToArguments = new GccCompileSpecToArguments<CCompileSpec>(
+        GccSpecToArguments<CCompileSpec> specToArguments = new GccSpecToArguments<CCompileSpec>(
                 new CCompileOptionsToArguments(),
                 new GccCompileSourcesToArguments<CCompileSpec>(),
                 useCommandFile
