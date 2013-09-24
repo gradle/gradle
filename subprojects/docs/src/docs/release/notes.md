@@ -2,6 +2,19 @@
 
 Here are the new features introduced in this Gradle release.
 
+### Faster builds with the daemon
+
+TODO SF: mention the task artifact in-memory caching and memory impact
+
+### Faster parallel builds with forked java compiler
+
+Java code can be compiled in a [forked process](dsl/org.gradle.api.tasks.compile.JavaCompile.html).
+This is generally safer and allows fine grained control of the jvm options of the compilation process.
+It will be the default in some future version.
+Gradle 1.9 brings improvements to the parallel build that use forked java compilation.
+A separate compiler daemon process can now be forked per each parallel worker thread.
+Basically it means that parallel builds that compile java code in a forked process may get faster.
+
 ### Improvements to support for building native binaries from C/C++/Assembler (i)
 
 <!-- TODO:DAZ Flesh these out -->
