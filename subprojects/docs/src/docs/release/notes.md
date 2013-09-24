@@ -145,7 +145,9 @@ We would like to thank the following community members for making contributions 
     - Existence of pom file requires that declared artifacts can be found in the same repository (GRADLE-2034).
     - Fix publishing to Maven Local to follow Maven rules (GRADLE-2762).
 * [Valdis Rigdon](https://github.com/valdisrigdon) - Adds the ability to specify xml:withMessages, text, or emacs for the FindBugs report.
-* [Robert Kühne](https://github.com/sponiro) - Documentation fixes.
+* [Robert Kühne](https://github.com/sponiro)
+    - Documentation fixes and fixing
+    - Fix a regression when adding Action instances to tasks (GRADLE-2774).
 * [Mark Petrovic](https://github.com/ae6rt) - Cucumber test report file formation is failing (GRADLE-2739).
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
