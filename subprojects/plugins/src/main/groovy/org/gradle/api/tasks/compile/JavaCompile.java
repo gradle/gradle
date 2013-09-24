@@ -18,6 +18,14 @@ package org.gradle.api.tasks.compile;
 
 /**
  * Compiles Java source files.
+ *
+ * <pre autoTested=''>
+ *     apply plugin: 'java'
+ *     compileJava {
+ *         //enable compilation in a separate daemon process
+ *         options.fork = true
+ *     }
+ * </pre>
  */
 public class JavaCompile extends Compile {
 }
