@@ -28,7 +28,7 @@ import java.io.File;
 
 class CompilerDaemonStarter {
 
-    private static Logger LOG = Logging.getLogger(CompilerDaemonStarter.class);
+    private final static Logger LOG = Logging.getLogger(CompilerDaemonStarter.class);
 
     public CompilerDaemonClient startDaemon(ProjectInternal project, DaemonForkOptions forkOptions) {
         LOG.debug("Starting Gradle compiler daemon with fork options {}.", forkOptions);

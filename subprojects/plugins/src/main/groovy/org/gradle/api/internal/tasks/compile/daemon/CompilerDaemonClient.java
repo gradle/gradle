@@ -35,7 +35,7 @@ public class CompilerDaemonClient implements CompilerDaemon, CompilerDaemonClien
     private final CompilerDaemonServerProtocol server;
     private final BlockingQueue<CompileResult> compileResults = new SynchronousQueue<CompileResult>();
     private final Lock lock = new ReentrantLock(true);
-    private boolean idle = false;
+    private boolean idle;
 
     public CompilerDaemonClient(DaemonForkOptions forkOptions, WorkerProcess workerProcess, CompilerDaemonServerProtocol server) {
         this.forkOptions = forkOptions;
