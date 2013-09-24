@@ -200,9 +200,9 @@ public class GccToolChain extends AbstractToolChain implements Gcc {
         private List<String> gccSwitches() {
             switch (targetPlatform.getArchitecture()) {
                 case I386:
-                    return args("-m32", "-v");
+                    return args("-m32");
                 case AMD64:
-                    return args("-m64", "-v");
+                    return args("-m64");
                 default:
                     return args();
             }
