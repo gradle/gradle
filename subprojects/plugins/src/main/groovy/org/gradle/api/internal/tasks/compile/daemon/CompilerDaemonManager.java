@@ -16,7 +16,6 @@
 package org.gradle.api.internal.tasks.compile.daemon;
 
 import net.jcip.annotations.ThreadSafe;
-
 import org.gradle.BuildAdapter;
 import org.gradle.BuildResult;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -33,6 +32,8 @@ import java.util.List;
 @ThreadSafe
 public class CompilerDaemonManager implements CompilerDaemonFactory {
     private static final Logger LOGGER = Logging.getLogger(CompilerDaemonManager.class);
+    private final Object lock = new Object();
+
     private static final CompilerDaemonManager INSTANCE = new CompilerDaemonManager(new CompilerDaemonStarter());
     
     private final List<CompilerDaemonClient> clients = new ArrayList<CompilerDaemonClient>();
@@ -46,27 +47,38 @@ public class CompilerDaemonManager implements CompilerDaemonFactory {
         return INSTANCE;
     }
 
-    public synchronized CompilerDaemon getDaemon(ProjectInternal project, DaemonForkOptions forkOptions) {
-        if (clients.isEmpty()) {
-            registerStopOnBuildFinished(project);
-        }
+    public CompilerDaemon getDaemon(ProjectInternal project, DaemonForkOptions forkOptions) {
+        synchronized (lock) {
+            if (clients.isEmpty()) {
+                registerStopOnBuildFinished(project);
+            }
 
-        for (CompilerDaemonClient client: clients) {
-            if (client.isCompatibleWith(forkOptions)) {
-                return client;
+            for (CompilerDaemonClient client: clients) {
+                if (client.isCompatibleWith(forkOptions) && client.isIdle()) {
+                    client.setIdle(false);
+                    return client;
+                }
             }
         }
 
-        CompilerDaemonClient client = compilerDaemonStarter.startDaemon(project, forkOptions);
-        clients.add(client);
+        //allow the daemon to be started concurrently
+        CompilerDaemonClient client =
+                compilerDaemonStarter.startDaemon(project, forkOptions)
+                .setIdle(false);
+
+        synchronized (lock) {
+            clients.add(client);
+        }
         return client;
     }
 
-    public synchronized void stop() {
-        LOGGER.info("Stopping {} Gradle compiler daemon(s).", clients.size());
-        CompositeStoppable.stoppable(clients).stop();
-        LOGGER.info("Stopped {} Gradle compiler daemon(s).", clients.size());
-        clients.clear();
+    public void stop() {
+        synchronized (lock) {
+            LOGGER.debug("Stopping {} Gradle compiler daemon(s).", clients.size());
+            CompositeStoppable.stoppable(clients).stop();
+            LOGGER.info("Stopped {} Gradle compiler daemon(s).", clients.size());
+            clients.clear();
+        }
     }
 
     private void registerStopOnBuildFinished(ProjectInternal project) {
