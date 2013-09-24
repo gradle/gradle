@@ -20,6 +20,8 @@ import org.gradle.api.specs.Spec;
 import org.gradle.internal.os.OperatingSystem;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 public class VisualStudioLocator {
     private final OperatingSystem os;
@@ -44,10 +46,7 @@ public class VisualStudioLocator {
             return locateInHierarchy(compilerInPath, isVisualStudio);
         }
 
-        // TODO:DAZ Use %PROGRAMFILES% environment variable
-        return locateInCandidates(isVisualStudio,
-                "C:/Program Files (x86)/Microsoft Visual Studio 10.0",
-                "C:/Program Files/Microsoft Visual Studio 10.0");
+        return locateInProgramFiles(isVisualStudio, "/Microsoft Visual Studio 10.0");
     }
 
     private Spec<File> isVisualStudio() {
@@ -65,12 +64,9 @@ public class VisualStudioLocator {
             return locateInHierarchy(resourceCompilerInPath, isWindowsSdk());
         }
 
-        // TODO:DAZ Use %PROGRAMFILES% environment variable
-        return locateInCandidates(isWindowsSdk(),
-                "C:/Program Files (x86)/Microsoft SDKs/Windows/v7.1",
-                "C:/Program Files/Microsoft SDKs/Windows/v7.1",
-                "C:/Program Files (x86)/Microsoft SDKs/Windows/v7.0A",
-                "C:/Program Files/Microsoft SDKs/Windows/v7.0A");
+        return locateInProgramFiles(isWindowsSdk(),
+                "Microsoft SDKs/Windows/v7.1",
+                "Microsoft SDKs/Windows/v7.0A");
     }
 
     private Spec<File> isWindowsSdk() {
@@ -85,14 +81,25 @@ public class VisualStudioLocator {
         return new File(candidate, "bin/rc.exe").isFile() && new File(candidate, "lib/kernel32.lib").isFile();
     }
 
-    private File locateInCandidates(Spec<File> condition, String... candidateLocations) {
-        for (String candidateLocation : candidateLocations) {
-            File candidate = new File(candidateLocation);
+    private File locateInProgramFiles(Spec<File> condition, String... candidateLocations) {
+        for (File candidate : programFileCandidates(candidateLocations)) {
             if (condition.isSatisfiedBy(candidate)) {
                 return candidate;
             }
         }
         return null;
+    }
+
+    private List<File> programFileCandidates(String... candidateDirectory) {
+        String programFiles = System.getenv("PROGRAMFILES");
+        String programFilesX86 = programFiles + " (x86)";
+
+        List<File> candidates = new ArrayList<File>(candidateDirectory.length * 2);
+        for (String candidateLocation : candidateDirectory) {
+            candidates.add(new File(programFilesX86, candidateLocation));
+            candidates.add(new File(programFiles, candidateLocation));
+        }
+        return candidates;
     }
 
     private File locateInHierarchy(File candidate, Spec<File> condition) {
