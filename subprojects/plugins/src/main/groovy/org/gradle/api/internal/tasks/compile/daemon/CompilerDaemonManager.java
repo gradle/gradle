@@ -23,12 +23,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.CompositeStoppable;
-import org.gradle.internal.jvm.Jvm;
-import org.gradle.process.internal.JavaExecHandleBuilder;
-import org.gradle.process.internal.WorkerProcess;
-import org.gradle.process.internal.WorkerProcessBuilder;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,9 +33,14 @@ import java.util.List;
 @ThreadSafe
 public class CompilerDaemonManager implements CompilerDaemonFactory {
     private static final Logger LOGGER = Logging.getLogger(CompilerDaemonManager.class);
-    private static final CompilerDaemonManager INSTANCE = new CompilerDaemonManager();
+    private static final CompilerDaemonManager INSTANCE = new CompilerDaemonManager(new CompilerDaemonStarter());
     
     private final List<CompilerDaemonClient> clients = new ArrayList<CompilerDaemonClient>();
+    private CompilerDaemonStarter compilerDaemonStarter;
+
+    CompilerDaemonManager(CompilerDaemonStarter compilerDaemonStarter) {
+        this.compilerDaemonStarter = compilerDaemonStarter;
+    }
 
     public static CompilerDaemonManager getInstance() {
         return INSTANCE;
@@ -57,7 +57,7 @@ public class CompilerDaemonManager implements CompilerDaemonFactory {
             }
         }
 
-        CompilerDaemonClient client = startDaemon(project, forkOptions);
+        CompilerDaemonClient client = compilerDaemonStarter.startDaemon(project, forkOptions);
         clients.add(client);
         return client;
     }
@@ -76,35 +76,5 @@ public class CompilerDaemonManager implements CompilerDaemonFactory {
                 stop();
             }
         });
-    }
-
-    private CompilerDaemonClient startDaemon(ProjectInternal project, DaemonForkOptions forkOptions) {
-        LOGGER.info("Starting Gradle compiler daemon with fork options {}.", forkOptions);
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug(forkOptions.toString());
-        }
-
-        WorkerProcessBuilder builder = project.getServices().getFactory(WorkerProcessBuilder.class).create();
-        builder.setLogLevel(project.getGradle().getStartParameter().getLogLevel()); // NOTE: might make sense to respect per-compile-task log level
-        builder.applicationClasspath(forkOptions.getClasspath());
-        builder.sharedPackages(forkOptions.getSharedPackages());
-        File toolsJar = Jvm.current().getToolsJar();
-        if (toolsJar != null) {
-            builder.getApplicationClasspath().add(toolsJar); // for SunJavaCompiler
-        }
-        JavaExecHandleBuilder javaCommand = builder.getJavaCommand();
-        javaCommand.setMinHeapSize(forkOptions.getMinHeapSize());
-        javaCommand.setMaxHeapSize(forkOptions.getMaxHeapSize());
-        javaCommand.setJvmArgs(forkOptions.getJvmArgs());
-        javaCommand.setWorkingDir(project.getRootProject().getProjectDir());
-        WorkerProcess process = builder.worker(new CompilerDaemonServer()).build();
-        process.start();
-        CompilerDaemonServerProtocol server = process.getConnection().addOutgoing(CompilerDaemonServerProtocol.class);
-        CompilerDaemonClient client = new CompilerDaemonClient(forkOptions, process, server);
-        process.getConnection().addIncoming(CompilerDaemonClientProtocol.class, client);
-
-        LOGGER.info("Started Gradle compiler daemon with fork options {}.", forkOptions);
-
-        return client;
     }
 }
