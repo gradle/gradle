@@ -203,7 +203,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
             lock.unlock();
         }
 
-        LOGGER.info("Process '{}' finished with exit value {} (state: {})", displayName, exitValue, newState);
+        LOGGER.debug("Process '{}' finished with exit value {} (state: {})", displayName, exitValue, newState);
 
         if (currentState != ExecHandleState.DETACHED && newState != ExecHandleState.DETACHED) {
             broadcast.getSource().executionFinished(this, result);
