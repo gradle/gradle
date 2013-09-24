@@ -17,11 +17,7 @@
 package org.gradle.api.internal
 
 import com.google.common.collect.Lists
-import org.gradle.api.Action
-import org.gradle.api.DefaultTask
-import org.gradle.api.InvalidUserDataException
-import org.gradle.api.Project
-import org.gradle.api.Task
+import org.gradle.api.*
 import org.gradle.api.tasks.AbstractTaskTest
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.TaskExecutionException
@@ -49,13 +45,15 @@ class DefaultTaskTest extends AbstractTaskTest {
 
     Object testCustomPropValue;
 
-    @Before public void setUp() {
+    @Before
+    public void setUp() {
         testCustomPropValue = new Object()
         defaultTask = createTask(DefaultTask.class)
         cl = Thread.currentThread().contextClassLoader
     }
 
-    @After public void cleanup() {
+    @After
+    public void cleanup() {
         Thread.currentThread().contextClassLoader = cl
     }
 
@@ -63,17 +61,20 @@ class DefaultTaskTest extends AbstractTaskTest {
         defaultTask
     }
 
-    @Test public void testDefaultTask() {
+    @Test
+    public void testDefaultTask() {
         DefaultTask task = AbstractTask.injectIntoNewInstance(project, TEST_TASK_NAME, { new DefaultTask() } as Callable)
         assertThat(task.dependsOn, isEmpty())
         assertEquals([], task.actions)
     }
 
-    @Test public void testHasUsefulToString() {
+    @Test
+    public void testHasUsefulToString() {
         assertEquals('task \':testTask\'', task.toString())
     }
 
-    @Test public void testCanInjectValuesIntoTaskWhenUsingNoArgsConstructor() {
+    @Test
+    public void testCanInjectValuesIntoTaskWhenUsingNoArgsConstructor() {
         DefaultTask task = AbstractTask.injectIntoNewInstance(project, TEST_TASK_NAME, { new DefaultTask() } as Callable)
         assertThat(task.project, sameInstance(project))
         assertThat(task.name, equalTo(TEST_TASK_NAME))
@@ -161,7 +162,8 @@ class DefaultTaskTest extends AbstractTaskTest {
         assertSame(action2, defaultTask.actions[1].action)
     }
 
-    @Test public void testSetsContextClassLoaderWhenExecutingAction() {
+    @Test
+    public void testSetsContextClassLoaderWhenExecutingAction() {
         Action<Task> testAction = context.mock(Action)
         context.checking {
             one(testAction).execute(defaultTask)
@@ -176,7 +178,8 @@ class DefaultTaskTest extends AbstractTaskTest {
         defaultTask.actions[0].execute(defaultTask)
     }
 
-    @Test public void testClosureActionDelegatesToTask() {
+    @Test
+    public void testClosureActionDelegatesToTask() {
         Closure testAction = {
             assert delegate == defaultTask
             assert resolveStrategy == Closure.DELEGATE_FIRST
@@ -185,7 +188,8 @@ class DefaultTaskTest extends AbstractTaskTest {
         defaultTask.actions[0].execute(defaultTask)
     }
 
-    @Test public void testSetsContextClassLoaderWhenRunningClosureAction() {
+    @Test
+    public void testSetsContextClassLoaderWhenRunningClosureAction() {
         Closure testAction = {
             assert Thread.currentThread().contextClassLoader == getClass().classLoader
         }
@@ -196,10 +200,11 @@ class DefaultTaskTest extends AbstractTaskTest {
         defaultTask.actions[0].execute(defaultTask)
     }
 
-    @Test public void testDoFirstWithClosureAddsActionToTheStartOfActionsList() {
-        Closure testAction1 = { }
-        Closure testAction2 = { }
-        Closure testAction3 = { }
+    @Test
+    public void testDoFirstWithClosureAddsActionToTheStartOfActionsList() {
+        Closure testAction1 = {}
+        Closure testAction2 = {}
+        Closure testAction3 = {}
         defaultTask.doLast(testAction1)
         defaultTask.doLast(testAction2)
         defaultTask.doLast(testAction3)
@@ -209,10 +214,11 @@ class DefaultTaskTest extends AbstractTaskTest {
         assertSame(defaultTask.actions[2].closure, testAction3)
     }
 
-    @Test public void testDoLastWithClosureAddsActionToTheEndOfActionsList() {
-        Closure testAction1 = { }
-        Closure testAction2 = { }
-        Closure testAction3 = { }
+    @Test
+    public void testDoLastWithClosureAddsActionToTheEndOfActionsList() {
+        Closure testAction1 = {}
+        Closure testAction2 = {}
+        Closure testAction3 = {}
         defaultTask.doFirst(testAction1)
         defaultTask.doFirst(testAction2)
         defaultTask.doFirst(testAction3)
@@ -222,10 +228,9 @@ class DefaultTaskTest extends AbstractTaskTest {
         assertSame(defaultTask.actions[2].closure, testAction1)
     }
 
-    /**
-     * see GRADLE-2774
-     */
-    @Test public void testActionToActionsAndExecute() {
+    @Issue("GRADLE-2774")
+    @Test
+    public void testActionToActionsAndExecute() {
         def closureAction = { t -> } as Action
 
         defaultTask.actions.add(closureAction)
@@ -233,10 +238,9 @@ class DefaultTaskTest extends AbstractTaskTest {
         defaultTask.execute()
     }
 
-    /**
-     * see GRADLE-2774
-     */
-    @Test public void testAddAllActionToActionsAndExecute() {
+    @Issue("GRADLE-2774")
+    @Test
+    public void testAddAllActionToActionsAndExecute() {
         def closureAction = { t -> } as Action
 
         defaultTask.actions.addAll(Lists.newArrayList(closureAction))
@@ -244,10 +248,9 @@ class DefaultTaskTest extends AbstractTaskTest {
         defaultTask.execute()
     }
 
-    /**
-     * see GRADLE-2774
-     */
-    @Test public void testAddAllActionToActionsWithIndexAndExecute() {
+    @Issue("GRADLE-2774")
+    @Test
+    public void testAddAllActionToActionsWithIndexAndExecute() {
         def closureAction = { t -> } as Action
 
         defaultTask.actions.addAll(0, Lists.newArrayList(closureAction))
@@ -255,10 +258,9 @@ class DefaultTaskTest extends AbstractTaskTest {
         defaultTask.execute()
     }
 
-    /**
-     * see GRADLE-2774
-     */
-    @Test public void testAddActionToActionsWithIteratorAndExecute() {
+    @Issue("GRADLE-2774")
+    @Test
+    public void testAddActionToActionsWithIteratorAndExecute() {
         def closureAction = { t -> } as Action
 
         defaultTask.actions.listIterator().add(closureAction)
@@ -266,34 +268,53 @@ class DefaultTaskTest extends AbstractTaskTest {
         defaultTask.execute()
     }
 
+    @Test
+    public void testAddedActionCanBeRemoved() {
+        def closureAction = { t -> } as Action
+
+        defaultTask.actions.add(closureAction)
+        defaultTask.actions.remove(closureAction)
+        assertTrue(defaultTask.actions.isEmpty())
+
+        defaultTask.actions.add(closureAction)
+        defaultTask.actions.removeAll([closureAction])
+        assertTrue(defaultTask.actions.isEmpty())
+    }
+
+
     @Rule
     public ExpectedException thrown = ExpectedException.none()
 
-    @Test public void testAddNullToActionsAndExecute() {
+    @Test
+    public void testAddNullToActionsAndExecute() {
         thrown.expect(InvalidUserDataException.class)
 
         defaultTask.actions.add(null);
     }
 
-    @Test public void testAddNullToActionsWithIndexAndExecute() {
+    @Test
+    public void testAddNullToActionsWithIndexAndExecute() {
         thrown.expect(InvalidUserDataException.class)
 
         defaultTask.actions.add(0, null);
     }
 
-    @Test public void testAddAllNullToActionsAndExecute() {
+    @Test
+    public void testAddAllNullToActionsAndExecute() {
         thrown.expect(InvalidUserDataException.class)
 
         defaultTask.actions.addAll(null);
     }
 
-    @Test public void testAddAllNullToActionsWithIndexAndExecute() {
+    @Test
+    public void testAddAllNullToActionsWithIndexAndExecute() {
         thrown.expect(InvalidUserDataException.class)
 
         defaultTask.actions.addAll(0, null);
     }
 
-    @Test public void testExecuteThrowsExecutionFailure() {
+    @Test
+    public void testExecuteThrowsExecutionFailure() {
         def failure = new RuntimeException()
         defaultTask.doFirst { throw failure }
 
@@ -308,7 +329,8 @@ class DefaultTaskTest extends AbstractTaskTest {
         assertThat(defaultTask.state.failure.cause, sameInstance(failure))
     }
 
-    @Test public void testExecuteWithoutThrowingTaskFailureThrowsExecutionFailure() {
+    @Test
+    public void testExecuteWithoutThrowingTaskFailureThrowsExecutionFailure() {
         def failure = new RuntimeException()
         defaultTask.doFirst { throw failure }
 
@@ -359,16 +381,18 @@ class DefaultTaskTest extends AbstractTaskTest {
         final Task task2 = context.mock(Task.class, "task2");
         final TaskDependency dependencyMock = context.mock(TaskDependency.class);
         getTask().dependsOn(dependencyMock);
-        context.checking(new Expectations() {{
-            allowing(dependencyMock).getDependencies(getTask());
-            will(returnValue(WrapUtil.toSet(task1, task2)));
+        context.checking(new Expectations() {
+            {
+                allowing(dependencyMock).getDependencies(getTask());
+                will(returnValue(WrapUtil.toSet(task1, task2)));
 
-            exactly(2).of(task1).getDidWork();
-            will(returnValue(false));
+                exactly(2).of(task1).getDidWork();
+                will(returnValue(false));
 
-            exactly(2).of(task2).getDidWork();
-            will(onConsecutiveCalls(returnValue(false), returnValue(true)));
-        }});
+                exactly(2).of(task2).getDidWork();
+                will(onConsecutiveCalls(returnValue(false), returnValue(true)));
+            }
+        });
 
         assertFalse(getTask().dependsOnTaskDidWork());
 

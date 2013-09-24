@@ -532,6 +532,29 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
                 Thread.currentThread().setContextClassLoader(original);
             }
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (!(o instanceof TaskActionWrapper)) {
+                return false;
+            }
+
+            TaskActionWrapper that = (TaskActionWrapper) o;
+
+            if (action != null ? !action.equals(that.action) : that.action != null) {
+                return false;
+            }
+
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            return action != null ? action.hashCode() : 0;
+        }
     }
 
     public void setMustRunAfter(Iterable<?> mustRunAfterTasks) {
@@ -599,6 +622,16 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
                 throw new InvalidUserDataException("Actions must not be null!");
             }
             return super.addAll(index, transformToContextAwareTaskActions(actions));
+        }
+
+        @Override
+        public boolean removeAll(Collection actions) {
+            return super.removeAll(transformToContextAwareTaskActions(actions));
+        }
+
+        @Override
+        public boolean remove(Object action) {
+            return super.remove(wrap((Action<? super Task>)action));
         }
 
         private Collection<ContextAwareTaskAction> transformToContextAwareTaskActions(Collection<Object> c) {
