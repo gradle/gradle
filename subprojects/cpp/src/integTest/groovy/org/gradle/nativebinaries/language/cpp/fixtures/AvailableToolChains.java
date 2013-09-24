@@ -22,6 +22,7 @@ import org.gradle.internal.nativeplatform.ProcessEnvironment;
 import org.gradle.internal.nativeplatform.services.NativeServices;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativebinaries.internal.DefaultPlatform;
+import org.gradle.nativebinaries.toolchain.Clang;
 import org.gradle.nativebinaries.toolchain.Gcc;
 import org.gradle.nativebinaries.toolchain.VisualCpp;
 import org.gradle.nativebinaries.toolchain.internal.ToolRegistry;
@@ -61,8 +62,22 @@ public class AvailableToolChains {
             }
 
             // TODO:DAZ Make a GCC3 install available for testing
+
+            // TODO:ADAM Make this non-optional and also check on windows
+            ToolChainCandidate clang = findClang();
+            if (clang.isAvailable()) {
+                compilers.add(clang);
+            }
         }
         return compilers;
+    }
+
+    static private ToolChainCandidate findClang() {
+        File compilerExe = OperatingSystem.current().findInPath("clang");
+        if (compilerExe != null) {
+            return new InstalledClangToolChain();
+        }
+        return new UnavailableToolChain("clang");
     }
 
     static private ToolChainCandidate findVisualCpp() {
@@ -300,6 +315,22 @@ public class AvailableToolChains {
         @Override
         public TestFile objectFile(Object path) {
             return new TestFile(path.toString() + ".obj");
+        }
+    }
+
+    private static class InstalledClangToolChain extends InstalledToolChain {
+        public InstalledClangToolChain() {
+            super("clang");
+        }
+
+        @Override
+        public String getBuildScriptConfig() {
+            return "clang(Clang)";
+        }
+
+        @Override
+        public String getImplementationClass() {
+            return Clang.class.getSimpleName();
         }
     }
 
