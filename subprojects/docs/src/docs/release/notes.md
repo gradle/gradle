@@ -68,6 +68,7 @@ executables {
 * Define multiple tool chains to build native binary variants
 * Build binary variants for different custom flavors
 * Build binary variants for different target architectures
+* Support for the [Clang](http://clang.llvm.org) compiler.
 
 ### FindBugs plugin provides new reporting capabilities
 

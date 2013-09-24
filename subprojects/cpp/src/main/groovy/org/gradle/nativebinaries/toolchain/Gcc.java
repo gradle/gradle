@@ -23,7 +23,7 @@ import java.io.File;
 import java.util.List;
 
 /**
- * The GCC tool chain.
+ * The <a href="http://gcc.gnu.org/">GNU GCC</a> tool chain.
  */
 @Incubating
 public interface Gcc extends ToolChain {

@@ -29,7 +29,7 @@ import org.gradle.process.internal.ExecActionFactory
 import javax.inject.Inject
 
 /**
- * A {@link Plugin} which makes the Clang compiler available for compiling C/C++ code.
+ * A {@link Plugin} which makes the <a href="http://clang.llvm.org">Clang</a> compiler available for compiling C/C++ code.
  */
 @Incubating
 class ClangCompilerPlugin implements Plugin<Project> {

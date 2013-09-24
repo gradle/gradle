@@ -20,7 +20,7 @@ import org.gradle.api.Incubating;
 import org.gradle.nativebinaries.ToolChain;
 
 /**
- * The Clang tool chain.
+ * The <a href="http://clang.llvm.org">Clang</a> tool chain.
  */
 @Incubating
 public interface Clang extends ToolChain {

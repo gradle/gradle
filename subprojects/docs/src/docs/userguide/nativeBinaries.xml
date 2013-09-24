@@ -43,13 +43,22 @@
                 <td>Linux</td><td><ulink url="http://gcc.gnu.org/">GCC</ulink></td><td></td>
             </tr>
             <tr>
+                <td>Linux</td><td><ulink url="http://clang.llvm.org">Clang</ulink></td><td></td>
+            </tr>
+            <tr>
                 <td>Mac OS X</td><td><ulink url="http://gcc.gnu.org/">GCC</ulink></td><td>Using GCC distributed with XCode.</td>
+            </tr>
+            <tr>
+                <td>Mac OS X</td><td><ulink url="http://clang.llvm.org">Clang</ulink></td><td>Using Clang distributed with XCode.</td>
+            </tr>
+            <tr>
+                <td>Windows</td><td><ulink url="http://www.microsoft.com/visualstudio/en-us">Visual C++</ulink></td><td>Windows XP and later, Visual C++ 2010 and later.</td>
             </tr>
             <tr>
                 <td>Windows</td><td><ulink url="http://gcc.gnu.org/">GCC</ulink></td><td>Windows XP and later, using GCC distributed with Cygwin.</td>
             </tr>
             <tr>
-                <td>Windows</td><td><ulink url="http://www.microsoft.com/visualstudio/en-us">Visual C++</ulink></td><td>Windows XP and later, Visual C++ 2010 and later.</td>
+                <td>Windows</td><td><ulink url="http://gcc.gnu.org/">Clang</ulink></td><td>Windows XP and later, using Clang distributed with Cygwin.</td>
             </tr>
             <tr>
                 <td>Windows</td><td><ulink url="http://www.mingw.org/">MinGW</ulink></td><td>Windows XP and later.</td>
