@@ -35,6 +35,7 @@ class CompilerDetectingHelloWorldApp extends HelloWorldApp {
         return [
             sourceFile("cpp", "detector.cpp", """
                 #include <stdio.h>
+                #include "detector.h"
 
                 void detectCompiler() {
                 #if defined(__cplusplus)
