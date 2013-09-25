@@ -20,7 +20,8 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.util.ConcurrentSpecification
 import org.gradle.util.TestUtil
 
-import java.util.concurrent.CountDownLatch
+import java.util.concurrent.CopyOnWriteArraySet
+import java.util.concurrent.locks.ReentrantLock
 
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
@@ -60,7 +61,7 @@ class CompilerDaemonManagerTest extends ConcurrentSpecification {
         def m = new CompilerDaemonManager(starter)
 
         when: //2 threads asking for daemons
-        Set daemons = []
+        Set daemons = new CopyOnWriteArraySet()
         start { daemons << m.getDaemon(project, forkOptions) }
         start { daemons << m.getDaemon(project, forkOptions) }
 
@@ -79,7 +80,7 @@ class CompilerDaemonManagerTest extends ConcurrentSpecification {
         def m = new CompilerDaemonManager(new DummyCompilerDaemonStarter())
 
         when: //2 threads asking for daemons
-        Set daemons = []
+        Set daemons = new CopyOnWriteArraySet()
         start { daemons << m.getDaemon(project, forkOptions) }
         start { daemons << m.getDaemon(project, forkOptions) }
 
@@ -100,22 +101,42 @@ class CompilerDaemonManagerTest extends ConcurrentSpecification {
     }
 
     private static class DummyCompilerDaemonStarter extends CompilerDaemonStarter {
-        def latch = new CountDownLatch(0)
+        def lock = new ReentrantLock()
+        def condition = lock.newCondition()
+        def boolean blocked
         def awaitingCreation = 0
 
         CompilerDaemonClient startDaemon(ProjectInternal project, DaemonForkOptions forkOptions) {
-            awaitingCreation++
-            latch.await()
+            lock.lock()
+            try {
+                awaitingCreation++
+                while (blocked) {
+                    condition.await()
+                }
+            } finally {
+                lock.unlock()
+            }
             new CompilerDaemonClient(forkOptions, null, null)
         }
 
         DummyCompilerDaemonStarter blockCreation() {
-            latch = new CountDownLatch(1)
+            lock.lock()
+            try {
+                blocked = true
+            } finally {
+                lock.unlock()
+            }
             this
         }
 
         void unblockCreation() {
-            latch.countDown()
+            lock.lock()
+            try {
+                blocked = false
+                condition.signalAll()
+            } finally {
+                lock.unlock()
+            }
         }
     }
 }
