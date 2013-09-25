@@ -83,6 +83,10 @@ Add some command line interface for discovering available command-line options.
 
 Running `gradle help --task test` shows a usage message for the `test` task.
 
+Eventually available commandline properties of the task passed to help are listed including a description.
+
+Furthermore the Task Author can provide details about available values for a commandline property.
+
 The resolution message (ie the `*Try: ....` console output) for a problem configuring tasks from the command-line options should suggest that the user
 run `${app-name} --help <broken-task>` or `${app-name} --help`
 
@@ -91,19 +95,29 @@ run `${app-name} --help <broken-task>` or `${app-name} --help`
 * integration tests
     * `gradle help --task nonExistingTask
     * `gradle help --task taskWithNotCommandLineProperties`
-    * `gradle help --task init`
+    * `gradle help --task init` (should list available --type values)
     * `gradle help --task :someProj:dependencies`
     * `gradle help --tassk help` (should print hint to `gradle help --task help`)
     * `gradle help --task help`
-
+    *
 ### Implementation approach
+
+- Introduce new marker annotation `CommandLineOptionDetails` to mark provider methods for available values for task options that returns
+ a List<CommandLineOptionValue>. This allows a dynamic value lookup in the task implementation itself.
 
 - Change the `help` task:
     - add `--task` commandline property
     - change displayHelp implementation to print task details when --task is set
     - task details (task name, task type, commandline options)
+    - lookup project tasks and implicit tasks
     - throw error when requested task cannot be found
-- Change resolution message in `CommandLineTaskConfigurer` to run `gradle help <broken-task>` or `gradle --help`
+
+- Change resolution message in `CommandLineTaskConfigurer` to run `gradle help <broken-task>` or `gradle --help`.
+
+- Adapt InitBuild task to use CommandLineOptionDetails to map possible values for the `--type` command line option.
+
+- Update userguide/docs
+
 
 ## Add command-line options to other tasks
 
