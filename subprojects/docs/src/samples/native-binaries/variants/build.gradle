@@ -49,19 +49,19 @@ binaries.all {
 
 // Apply custom arguments for different target platforms
 binaries.all {
-	if (toolChain in Gcc && targetPlatform == targetPlatforms.x86) {
-		cppCompiler.args '-O3'
-	}
+    if (toolChain in Gcc && targetPlatform == targetPlatforms.x86) {
+        cppCompiler.args '-O3'
+    }
 }
 
 // Tasks to build all binaries for a tool chain
 task gccExecutables {
-	dependsOn binaries.withType(ExecutableBinary).matching {
-		it.toolChain in Gcc
-	}
+    dependsOn binaries.withType(ExecutableBinary).matching {
+        it.toolChain in Gcc
+    }
 }
 task visualCppExecutables {
-	dependsOn binaries.withType(ExecutableBinary).matching {
-		it.toolChain in VisualCpp
-	}
+    dependsOn binaries.withType(ExecutableBinary).matching {
+        it.toolChain in VisualCpp
+    }
 }
