@@ -198,7 +198,7 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         Set<TaskInfo> visitingNodes = new HashSet<TaskInfo>();
         Stack<TaskDependencyGraphEdge> walkedShouldRunAfterEdges = new Stack<TaskDependencyGraphEdge>();
         Stack<TaskInfo> path = new Stack<TaskInfo>();
-        HashMap<TaskInfo, LinkedHashMap<Task, TaskInfo>> planBeforeVisiting = new HashMap<TaskInfo, LinkedHashMap<Task, TaskInfo>>();
+        HashMap<TaskInfo, Integer> planBeforeVisiting = new HashMap<TaskInfo, Integer>();
         while (!nodeQueue.isEmpty()) {
             TaskInfo taskNode = nodeQueue.get(0);
 
@@ -211,8 +211,8 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 // Have not seen this task before - add its dependencies to the head of the queue and leave this
                 // task in the queue
                 recordEdgeIfArrivedViaShouldRunAfter(walkedShouldRunAfterEdges, path, taskNode);
-                takePlanSnapshotIfCanBeRestoredToCurrentTask(planBeforeVisiting, taskNode);
                 removeShouldRunAfterSuccessorsIfTheyImposeACycle(visitingNodes, taskNode);
+                takePlanSnapshotIfCanBeRestoredToCurrentTask(planBeforeVisiting, taskNode);
                 ArrayList<TaskInfo> successors = new ArrayList<TaskInfo>();
                 addAllSuccessorsInReverseOrder(taskNode, successors);
                 for (TaskInfo successor : successors) {
@@ -249,16 +249,25 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         }
     }
 
-    private void restoreExecutionPlan(HashMap<TaskInfo, LinkedHashMap<Task, TaskInfo>> planBeforeVisiting, TaskDependencyGraphEdge toBeRemoved) {
-        executionPlan.clear();
-        executionPlan.putAll(planBeforeVisiting.get(toBeRemoved.getFrom()));
+    private void restoreExecutionPlan(HashMap<TaskInfo, Integer> planBeforeVisiting, TaskDependencyGraphEdge toBeRemoved) {
+        Iterator<Map.Entry<Task, TaskInfo>> executionPlanIterator = executionPlan.entrySet().iterator();
+        for (int i = 0; i < planBeforeVisiting.get(toBeRemoved.getFrom()); i++) {
+            executionPlanIterator.next();
+        }
+        while (executionPlanIterator.hasNext()) {
+            executionPlanIterator.next();
+            executionPlanIterator.remove();
+        }
     }
 
     private void restoreQueue(List<TaskInfo> nodeQueue, Set<TaskInfo> visitingNodes, TaskDependencyGraphEdge toBeRemoved) {
-        TaskInfo removedFromQueue = null;
-        while (!toBeRemoved.getFrom().equals(removedFromQueue)) {
-            visitingNodes.remove(nodeQueue.get(0));
-            removedFromQueue = nodeQueue.remove(0);
+        TaskInfo nextInQueue = null;
+        while (!toBeRemoved.getFrom().equals(nextInQueue)) {
+            nextInQueue = nodeQueue.get(0);
+            visitingNodes.remove(nextInQueue);
+            if (!toBeRemoved.getFrom().equals(nextInQueue)) {
+                nodeQueue.remove(0);
+            }
         }
     }
 
@@ -283,9 +292,9 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         }
     }
 
-    private void takePlanSnapshotIfCanBeRestoredToCurrentTask(HashMap<TaskInfo, LinkedHashMap<Task, TaskInfo>> planBeforeVisiting, TaskInfo taskNode) {
+    private void takePlanSnapshotIfCanBeRestoredToCurrentTask(HashMap<TaskInfo, Integer> planBeforeVisiting, TaskInfo taskNode) {
         if (taskNode.getShouldSuccessors().size() > 0) {
-            planBeforeVisiting.put(taskNode, (LinkedHashMap<Task, TaskInfo>) executionPlan.clone());
+            planBeforeVisiting.put(taskNode, executionPlan.size());
         }
     }
 

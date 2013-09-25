@@ -430,17 +430,21 @@ public class DefaultTaskExecutionPlanTest extends Specification {
     }
 
     def "should run after ordering is ignored if it is in a middle of a circular reference"() {
-        Task a = createTask("a")
-        Task b = task("b", dependsOn: [a])
-        Task c = task("c", dependsOn: [b])
-        Task d = task("d", dependsOn: [a, c])
-        relationships(a, shouldRunAfter: [b])
+        Task a = task("a")
+        Task b = task("b")
+        Task c = task("c")
+        Task d = createTask("d")
+        Task e = task("e", dependsOn: [a, d])
+        Task f = task("f", dependsOn: [e])
+        Task g = task("g", dependsOn: [c, f])
+        Task h = task("h", dependsOn: [b, g])
+        relationships(d, shouldRunAfter: [g])
 
         when:
-        addToGraphAndPopulate([d])
+        addToGraphAndPopulate([e, h])
 
         then:
-        executedTasks == [a, b, c, d]
+        executedTasks == [a, d, e, b, c, f, g, h]
     }
 
     def "should run after ordering is ignored if it is at the end of a circular reference"() {
