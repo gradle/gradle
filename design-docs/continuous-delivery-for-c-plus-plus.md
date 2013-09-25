@@ -234,6 +234,12 @@ This story adds support for C source files as inputs to native binaries.
 - Manually define C++ and C source sets.
 - Can build a binary from C sources with `gcc` when `g++` and `as` are not installed
 
+### Open issues
+
+- Cpp source set should include only files with a C++ extension.
+- C source set should include only files with a C extension.
+- Assembler source set should include only files with an assembler extension.
+
 ## Story: Build a binary from assembler source files
 
 This story adds support for using assembler source files as inputs to a native binary.
@@ -461,7 +467,16 @@ This will define 4 binaries:
 
 ### Test cases
 
+- Executable with flavors depends on a library with matching flavors.
+    - Verify that each flavor of the executable can be built and is linked against the correct flavor of the library
+- Executable with flavors depends on a library with no flavors
+- Executable with flavors depends on a library with a single non-default flavor
+- Executable depends on a library depends on another library. All have the same set of flavors
+    - Verify that each flavor of the executable can be built and is linked against the correct flavor of the libraries.
 - Executable with flavors depends on a library with a single flavor which depends on a library with flavors.
+- Reasonable error message when:
+    - Executable depends on a library with multiple flavors
+    - Executable with flavors depends on a library with multiple flavors that do not match the executable's flavors.
 
 ### Open issues
 
@@ -737,7 +752,7 @@ Given a library `a` that uses another library `b` as input:
 - Need to be able to deal with the fact that only position-independent binaries can be linked into position-independent binaries
     - Make it possible to build a position-independent variant of a static library binary
     - Add the '-fPIC' flag when compiling to ensure that the static library can be included in a shared library
-    - Change dependency resolution to choose the position-indepenent variant of a static library when linking into a shared library
+    - Change dependency resolution to choose the position-independent variant of a static library when linking into a shared library
 - Need a new name for `NativeDependencySet`.
 - Need some way to convert a `NativeDependencySet` to a read-only library.
 - Need to apply a lifecycle to the resolved libs of `CppSourceSet` and `NativeBinary`.
@@ -752,6 +767,18 @@ Given a library `a` that uses another library `b` as input:
 - Merge `CppSourceSet.lib()` and `CppSourceSet.dependency()`.
 - Allow a `Binary` to be attached to a publication.
 - Update publication so that a binary's include, link and runtime files are published.
+
+## Story: Variant aware dependency resolution
+
+Depends on a number of stories in [dependency-resolution.md](dependency-resolution.md). The plan is roughly:
+
+- Dependency resolution is based on resolving a graph of components.
+- Model native components as a `SoftwareComponent`.
+- Model dependencies on native components as a dependency declaration.
+- Introduce a way to create a set of dependency declarations, and a way to resolve a set to a graph of components.
+- Allow a the native language plugins to provide the rules for selecting the dependencies and artifacts for a native component.
+- Replace `DependentSourceSet.libs` and `dependency` with a set of dependency declarations.
+- Replace `LibraryResolver` and `NativeDependencySet` with the above.
 
 ## Story: Simplify configuration of a binary based on its properties
 
@@ -807,6 +834,13 @@ Given a library `a` that uses another library `b` as input:
     - Build `debug` variant where possible
     - Build shared library variants
     - Build for the current Operating System and architecture
+
+## Story: Support Clang compiler
+
+### Test cases
+
+- Build all types of binaries from all supported languages using Clang.
+- Change test apps to detect which compiler is used to compile and assert that the correct compiler is being used.
 
 ## Story: Defer creation of binaries
 
@@ -1233,6 +1267,10 @@ TBD
 
 # Open issues
 
+* Add 'position independent' setting to 'NativeBinary'.
+* Add a position independent variant for all static libraries.
+* Model shared/static linkage as another dimension for library components.
+* Decouple SourceSet and SourceDirectorySet, and make it easy to add individual source files and directories.
 * General purpose tree artifact.
 * Handling for system libraries.
 * Building for multiple chipsets.
