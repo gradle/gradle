@@ -111,14 +111,14 @@ public class AvailableToolChains {
         // Search in the standard installation locations
         File compilerExe = new File("C:/cygwin/bin/g++.exe");
         if (compilerExe.isFile()) {
-            return new InstalledGcc("g++ cygwin").inPath(compilerExe.getParentFile()).withVisualCppHidden();
+            return new InstalledGcc("gcc cygwin").inPath(compilerExe.getParentFile()).withVisualCppHidden();
         }
 
-        return new UnavailableToolChain("g++ cygwin");
+        return new UnavailableToolChain("gcc cygwin");
     }
 
     static private ToolChainCandidate findGpp(String versionPrefix, String hardcodedFallback) {
-        String name = String.format("g++ %s", versionPrefix);
+        String name = String.format("gcc %s", versionPrefix);
         GccVersionDeterminer versionDeterminer = new GccVersionDeterminer(new ExecActionFactory() {
             public ExecAction newExecAction() {
                 return new DefaultExecAction(new IdentityFileResolver());
@@ -155,7 +155,7 @@ public class AvailableToolChains {
         }
 
         public abstract String getDisplayName();
-        
+
         public abstract boolean isAvailable();
 
         public abstract void initialiseEnvironment();
@@ -183,13 +183,13 @@ public class AvailableToolChains {
         private static final ProcessEnvironment PROCESS_ENVIRONMENT = NativeServices.getInstance().get(ProcessEnvironment.class);
         protected final List<File> pathEntries = new ArrayList<File>();
         protected final Map<String, String> environmentVars = new HashMap<String, String>();
-        private final String name;
+        private final String displayName;
         private final String pathVarName;
         private final Map<String, String> originalEnvrionmentVars = new HashMap<String, String>();
         private String originalPath;
 
-        public InstalledToolChain(String name) {
-            this.name = name;
+        public InstalledToolChain(String displayName) {
+            this.displayName = displayName;
             this.pathVarName = OperatingSystem.current().getPathVar();
         }
 
@@ -206,12 +206,16 @@ public class AvailableToolChains {
 
         @Override
         public String getDisplayName() {
-            return name;
+            return displayName;
         }
 
         @Override
         public boolean isAvailable() {
             return true;
+        }
+
+        public String getTypeDisplayName() {
+            return getDisplayName().replaceAll("\\s+\\d+(\\.\\d+)*$", "");
         }
 
         public void initialiseEnvironment() {
@@ -268,7 +272,7 @@ public class AvailableToolChains {
         }
 
         public String getId() {
-            return name.replaceAll("\\W", "");
+            return displayName.replaceAll("\\W", "");
         }
     }
 

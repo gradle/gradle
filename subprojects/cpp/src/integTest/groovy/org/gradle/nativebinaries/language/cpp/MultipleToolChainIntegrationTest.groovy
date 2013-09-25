@@ -20,12 +20,12 @@ package org.gradle.nativebinaries.language.cpp
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.language.cpp.fixtures.AvailableToolChains
-import org.gradle.nativebinaries.language.cpp.fixtures.app.CppHelloWorldApp
+import org.gradle.nativebinaries.language.cpp.fixtures.app.CompilerDetectingHelloWorldApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 class MultipleToolChainIntegrationTest extends AbstractIntegrationSpec {
-    def helloWorld = new CppHelloWorldApp()
+    def helloWorld = new CompilerDetectingHelloWorldApp()
 
     def setup() {
         buildFile << """
@@ -72,7 +72,7 @@ ${toolChainConfig}
 
         and:
         installedToolChains.each { toolChain ->
-            checkInstall("build/install/mainExecutable/${toolChain.id}/main", toolChain.runtimeEnv)
+            checkInstall("build/install/mainExecutable/${toolChain.id}/main", toolChain)
         }
     }
 
@@ -117,13 +117,13 @@ ${toolChain.buildScriptConfig}
         succeeds "install${toolChain.id.capitalize()}MainExecutable"
 
         then:
-        checkInstall("build/install/mainExecutable/${toolChain.id}/main", toolChain.runtimeEnv)
+        checkInstall("build/install/mainExecutable/${toolChain.id}/main", toolChain)
     }
 
-    def checkInstall(String path, List runtimeEnv) {
+    def checkInstall(String path, AvailableToolChains.InstalledToolChain toolChain) {
         def executable = file(OperatingSystem.current().getScriptName(path))
         executable.assertExists()
-        assert executable.execute([], runtimeEnv).out == helloWorld.englishOutput
+        assert executable.execute([], toolChain.runtimeEnv).out == "C++ ${toolChain.typeDisplayName}"
         return true
     }
 }
