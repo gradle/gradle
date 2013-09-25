@@ -81,18 +81,29 @@ Add some command line interface for discovering available command-line options.
 
 ### User visible changes
 
-Running `gradle --help test` shows a usage message for the `test` task.
+Running `gradle help --task test` shows a usage message for the `test` task.
 
 The resolution message (ie the `*Try: ....` console output) for a problem configuring tasks from the command-line options should suggest that the user
 run `${app-name} --help <broken-task>` or `${app-name} --help`
 
 ### Test coverage
 
-TBD
+* integration tests
+    * `gradle help --task nonExistingTask
+    * `gradle help --task taskWithNotCommandLineProperties`
+    * `gradle help --task init`
+    * `gradle help --task :someProj:dependencies`
+    * `gradle help --tassk help` (should print hint to `gradle help --task help`)
+    * `gradle help --task help`
 
 ### Implementation approach
 
-TBD
+- Change the `help` task:
+    - add `--task` commandline property
+    - change displayHelp implementation to print task details when --task is set
+    - task details (task name, task type, commandline options)
+    - throw error when requested task cannot be found
+- Change resolution message in `CommandLineTaskConfigurer` to run `gradle help <broken-task>` or `gradle --help`
 
 ## Add command-line options to other tasks
 
