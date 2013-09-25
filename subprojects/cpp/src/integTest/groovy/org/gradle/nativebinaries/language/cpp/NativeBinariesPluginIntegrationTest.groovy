@@ -175,7 +175,7 @@ class NativeBinariesPluginIntegrationTest extends AbstractInstalledToolChainInte
         buildFile << """
             apply plugin: "cpp-lib"
             binaries.all {
-                linker.args "--not-an-option"
+                linker.args "-Xlinker", "--not-an-option"
             }
         """
 
