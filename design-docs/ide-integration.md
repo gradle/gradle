@@ -1,8 +1,12 @@
-This spec defines a number of stories to improve IDE integration in Gradle
+This spec defines a number of stories to improve IDE experience with Gradle. It covers changes in Gradle to improve those features that
+directly affect the IDE user experience. This includes the tooling API and tooling models, the Gradle daemon, and the Gradle IDE plugins
+(i.e. the plugins that run inside Gradle to provide the IDE models).
 
-# Candidates
+This spec does not cover more general features such as improving dependency resolution or configuration performance.
 
-Below is a list of candidates to work on, in approximate priority order:
+# Implementation plan
+
+Below is a list of stories, in approximate priority order:
 
 ## GRADLE-2434 - IDE visualises and runs aggregate tasks
 
@@ -21,12 +25,6 @@ The implementation will do the same thing as if the daemon client is disconnecte
 Later stories incrementally add more graceful cancellation handling.
 
 See [tooling-api-improvements.md](tooling-api-improvements.md#story-tooling-api-client-cancels-an-operation)
-
-## IDE hides implementation tasks
-
-On the command-line I can run `gradle tasks` and see the 'main' tasks for the build, and `gradle tasks --all` to see all the tasks.
-
-Expose some information to allow the IDE to visualise this.
 
 ## Expose build script compilation details
 
@@ -53,11 +51,10 @@ Fix the ClassLoading implementation to avoid locking these Jars on Windows.
 
 Fix GRADLE-2275.
 
-## Expose the publications of a project
+## Prefer a single daemon instance
 
-See [tooling-api-improvements.md](tooling-api-improvements.md):
-
-Expose the publications of a project so that the IDE can wire together Gradle and Maven builds.
+Improve daemon expiration algorithm so that when there are multiple daemon instances running, one instance is
+selected as the survivor and the others expire quickly (say, as soon as they become idle).
 
 ## Expose Java components to the IDE
 
@@ -81,6 +78,12 @@ Expose Scala language level and other details about a Scala component.
 
 Expose the corresponding Eclipse and IDEA model.
 
+## Expose the publications of a project
+
+See [tooling-api-improvements.md](tooling-api-improvements.md):
+
+Expose the publications of a project so that the IDE can wire together Gradle and Maven builds.
+
 ## Expose Web components to the IDE
 
 Expose Web content, servlet API version, web.xml descriptor, runtime and container classpaths, and other details about a web application.
@@ -93,24 +96,25 @@ Expose Ear content, J2EE API versions, deployment descriptor and other details a
 
 Expose the corresponding Eclipse and IDEA model.
 
+## IDE hides implementation tasks
+
+On the command-line I can run `gradle tasks` and see the 'main' tasks for the build, and `gradle tasks --all` to see all the tasks.
+
+Expose some information to allow the IDE to visualise this.
+
 ## Expose artifacts to IDEA
 
 Expose details to allow IDEA to build various artifacts: http://www.jetbrains.com/idea/webhelp/configuring-artifacts.html
 
-## Handle more immutable system properties
+## Daemon handles more immutable system properties
 
 Some system properties are immutable, and must be defined when the JVM is started. When these properties change,
-a new daemon instance must be started. Currently, `file.encoding` is supported.
+a new daemon instance must be started. Currently, only `file.encoding` is treated as an immutable system property.
 
 Add support for the following properties:
 
 - The jmxremote system properties (GRADLE-2629)
 - The SSL system properties (GRADLE-2367)
-
-## Prefer a single daemon instance
-
-Improve daemon expiration algorithm so that when there are multiple daemon instances running, one instance is
-selected as the survivor and the others expire quickly (say, as soon as they become idle).
 
 ## Daemon process expires when a memory pool is exhausted
 
@@ -122,7 +126,15 @@ Daemon management, such as `gradle --stop` and the daemon expiration algorithm s
 
 ## Reduce the default daemon maximum heap and permgen sizes
 
-Needs to be done in a backwards compatible way.
+Should be done in a backwards compatible way.
+
+## Tooling API client listens for changes to a tooling model
+
+Provide a subscription mechanism to allow a tooling API client to listen for changes to the model it is interested in.
+
+## Tooling API client receives test execution events
+
+Allow a tooling API client to be notified as tests are executed
 
 ## Support interactive builds from the command-line
 
@@ -140,14 +152,24 @@ Improve cancellation so that the build is given an opportunity to finish up clea
 
 Some more features to mix into the above plan:
 
+- Richer events during execution:
+    - Task execution
+    - Custom events
+- Richer build results:
+    - Test results
+    - Custom results
+    - Compilation and other verification failures
+    - Task failures
+    - Build configuration failures
 - Expose unresolved dependencies.
 - Expose dependency graph.
-- Provide notifications when model has changed.
 - Provide some way to search repositories, to offer content assistance with dependency notations.
 - Don't configure the projects when `GradleBuild` model is requested.
 - Configure projects as required when using configure-on-demand.
 - Don't configure tasks when they are not requested.
 - Deal with non-standard wrapper meta-data location.
 - More accurate content assistance.
+- User provides input to build execution.
 - User edits dependencies via some UI.
 - User upgrades Gradle version via some UI.
+- User creates a new build via some UI.
