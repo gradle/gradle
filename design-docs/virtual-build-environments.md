@@ -34,6 +34,7 @@ Adding an Ubuntu VM to a CI server should be easy and repeatable. The installati
 * OpenJDK 5, 6, 7
 * IBM JDK 5, 6, 7
 * GCC 3 and 4 (may require separate VMs or Linux containers)
+* Clang
 
 It should be possible to create variations of the installation recipe, e.g. to add VMs that have different software installed.
 
