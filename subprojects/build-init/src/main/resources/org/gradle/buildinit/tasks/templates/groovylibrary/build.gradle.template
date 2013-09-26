@@ -7,7 +7,7 @@
  * user guide available at ${ref_userguide_groovy_tutorial.groovyComment}
  */
 
-// Apply the java plugin to add support for Java
+// Apply the groovy plugin to add support for Groovy
 apply plugin: 'groovy'
 
 // In this section you declare where to find the dependencies of your project
@@ -21,8 +21,11 @@ repositories {
 dependencies {
     // The production code uses the SLF4J logging API at compile time
     compile 'org.slf4j:slf4j-api:1.7.5'
+
+    // We use the latest groovy 2.x version for building this library
     compile 'org.codehaus.groovy:groovy-all:2.+'
 
-    testCompile 'junit:junit:4.11'
+    // We use the awesome Spock testing and specification framework
     testCompile 'org.spockframework:spock-core:0.7-groovy-2.0'
+    testCompile 'junit:junit:4.11'
 }
