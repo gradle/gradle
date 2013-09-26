@@ -161,7 +161,7 @@ We would like to thank the following community members for making contributions 
     - Fix publishing to Maven Local to follow Maven rules (GRADLE-2762).
 * [Valdis Rigdon](https://github.com/valdisrigdon) - Adds the ability to specify xml:withMessages, text, or emacs for the FindBugs report.
 * [Robert Kühne](https://github.com/sponiro)
-    - Documentation fixes and fixing
+    - Documentation fixes.
     - Fix a regression when adding Action instances to tasks (GRADLE-2774).
 * [Mark Petrovic](https://github.com/ae6rt) - Cucumber test report file formation is failing (GRADLE-2739).
 
