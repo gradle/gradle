@@ -21,16 +21,17 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestExecutionResult
 
-class JavaLibrarySetupIntegrationTest extends AbstractIntegrationSpec {
 
-    public static final String SAMPLE_LIBRARY_CLASS = "src/main/java/Library.java"
-    public static final String SAMPLE_LIBRARY_TEST_CLASS = "src/test/java/LibraryTest.java"
+class GroovyLibrarySetupIntegrationTest extends AbstractIntegrationSpec {
+
+    public static final String SAMPLE_LIBRARY_CLASS = "src/main/groovy/Library.groovy"
+    public static final String SAMPLE_LIBRARY_TEST_CLASS = "src/test/groovy/LibraryTest.groovy"
 
     final wrapper = new WrapperTestFixture(testDirectory)
 
     def "creates sample source if no source present"() {
         when:
-        succeeds('init', '--type', 'java-library')
+        succeeds('init', '--type', 'groovy-library')
 
         then:
         file(SAMPLE_LIBRARY_CLASS).exists()
@@ -45,25 +46,25 @@ class JavaLibrarySetupIntegrationTest extends AbstractIntegrationSpec {
         then:
         TestExecutionResult testResult = new DefaultTestExecutionResult(testDirectory)
         testResult.assertTestClassesExecuted("LibraryTest")
-        testResult.testClass("LibraryTest").assertTestPassed("testSomeLibraryMethod")
+        testResult.testClass("LibraryTest").assertTestPassed("someLibraryMethod returns true")
     }
 
-    def "setupProjectLayout is skipped when java sources detected"() {
+    def "setupProjectLayout is skipped when groovy sources detected"() {
         setup:
-        file("src/main/java/org/acme/SampleMain.java") << """
-        package org.acme;
+        file("src/main/groovy/org/acme/SampleMain.groovy") << """
+            package org.acme;
 
-        public class SampleMain{
-        }
-"""
-        file("src/test/java/org/acme/SampleMainTest.java") << """
-                package org.acme;
+            class SampleMain{
+            }
+    """
+        file("src/test/groovy/org/acme/SampleMainTest.groovy") << """
+                    package org.acme;
 
-                public class SampleMain{
-                }
-        """
+                    class SampleMain{
+                    }
+            """
         when:
-        succeeds('init', '--type', 'java-library')
+        succeeds('init', '--type', 'groovy-library')
 
         then:
         !file(SAMPLE_LIBRARY_CLASS).exists()

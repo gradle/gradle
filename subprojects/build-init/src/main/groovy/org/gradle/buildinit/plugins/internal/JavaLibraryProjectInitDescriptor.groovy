@@ -19,25 +19,10 @@ package org.gradle.buildinit.plugins.internal
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.file.FileResolver
 
-class JavaLibraryProjectInitDescriptor extends TemplateBasedProjectInitDescriptor {
-
-    private final FileResolver fileResolver
+class JavaLibraryProjectInitDescriptor extends LanguageLibraryProjectInitDescriptor {
 
     public JavaLibraryProjectInitDescriptor(FileResolver fileResolver, DocumentationRegistry documentationRegistry) {
-        super(fileResolver, documentationRegistry);
-        this.fileResolver = fileResolver;
-    }
-
-    String getId() {
-        BuildInitTypeIds.JAVA_LIBRARY
-    }
-
-    URL getBuildFileTemplate() {
-        return JavaLibraryProjectInitDescriptor.class.getResource("/org/gradle/buildinit/tasks/templates/java-library-build.gradle.template");
-    }
-
-    URL getSettingsTemplate() {
-        return JavaLibraryProjectInitDescriptor.class.getResource("/org/gradle/buildinit/tasks/templates/settings.gradle.template")
+        super(BuildInitTypeIds.JAVA_LIBRARY, fileResolver, documentationRegistry);
     }
 
     void generateProjectSources() {
@@ -47,11 +32,4 @@ class JavaLibraryProjectInitDescriptor extends TemplateBasedProjectInitDescripto
         }
     }
 
-    def generateClass(String sourceRoot, String clazzFileName) {
-        File sourceRootFolder = fileResolver.resolve(sourceRoot)
-        sourceRootFolder.mkdirs()
-        File clazzFile = new File(sourceRootFolder, clazzFileName)
-        URL productionClazzFileTemplate = JavaLibraryProjectInitDescriptor.class.getResource("/org/gradle/buildinit/tasks/templates/${clazzFileName}.template");
-        generateFileFromTemplate(productionClazzFileTemplate, clazzFile, [:])
-    }
 }

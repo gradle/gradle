@@ -26,8 +26,8 @@ import java.text.DateFormat
 
 abstract class TemplateBasedProjectInitDescriptor implements ProjectInitDescriptor {
 
-    private final DocumentationRegistry documentationRegistry
-    private final FileResolver fileResolver
+    protected final DocumentationRegistry documentationRegistry
+    protected final FileResolver fileResolver
 
     TemplateBasedProjectInitDescriptor(FileResolver fileResolver, DocumentationRegistry documentationRegistry) {
         this.fileResolver = fileResolver
