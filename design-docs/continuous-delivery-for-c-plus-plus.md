@@ -407,6 +407,7 @@ Note that this story does not include support for including the transitive depen
 - Declare a dependency on another source set.
 - Add compile dependencies to each source set.
 - Add link dependencies to each source set, use these to infer the link dependencies of the binary.
+- AssemblerSourceSet should implement DependentSourceSet (has source dependencies)
 - Change `NativeDependencySet` to handle separate C and C++ headers.
 - Conventional source directories should be defaults only: explicit source directories replace conventional defaults
 - Replace `SourceDirectorySet` with something that is actually a set of source directories.
