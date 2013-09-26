@@ -19,27 +19,28 @@ package org.gradle.buildinit.plugins.internal;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.FileResolver;
 
-public class LanguageLibraryProjectInitDescriptor extends TemplateBasedProjectInitDescriptor {
+class LanguageLibraryProjectInitDescriptor extends TemplateBasedProjectInitDescriptor {
 
     protected final String id;
     protected final String templatepackage
 
-    public LanguageLibraryProjectInitDescriptor(String id, FileResolver fileResolver, DocumentationRegistry documentationRegistry){
+    LanguageLibraryProjectInitDescriptor(String id, FileResolver fileResolver, DocumentationRegistry documentationRegistry){
         super(fileResolver, documentationRegistry);
         this.id = id;
-        this.templatepackage = id-"-"
+        this.templatepackage = id.replaceAll("-", "") // - IS Not allowed as packagename so remove it
     }
-    public String getId() {
+
+    String getId() {
         return id;
     }
 
     @Override
-    public URL getBuildFileTemplate() {
+    URL getBuildFileTemplate() {
         return getClass().getResource("/org/gradle/buildinit/tasks/templates/${templatepackage}/build.gradle.template");
     }
 
     @Override
-    public URL getSettingsTemplate() {
+    URL getSettingsTemplate() {
         return getClass().getResource("/org/gradle/buildinit/tasks/templates/settings.gradle.template")
     }
 
