@@ -25,7 +25,7 @@ import org.gradle.language.base.LanguageSourceSet;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class SourceSetNotationParser {
@@ -67,7 +67,7 @@ public class SourceSetNotationParser {
 
         @Override
         protected Set<LanguageSourceSet> parseType(Collection<LanguageSourceSet> notation) {
-            return new HashSet<LanguageSourceSet>(notation);
+            return new LinkedHashSet<LanguageSourceSet>(notation);
         }
     }
 }

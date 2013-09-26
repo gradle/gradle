@@ -26,7 +26,7 @@ class SourceSetNotationParserTest extends Specification {
 
     def "translates single LanguageSourceSet"() {
         expect:
-        parser.parseNotation(languageSourceSet1) == [languageSourceSet1] as Set
+        parser.parseNotation(languageSourceSet1) as List == [languageSourceSet1]
     }
 
     def "collects all LanguageSourceSets for a FunctionalSourceSet"() {
@@ -36,12 +36,13 @@ class SourceSetNotationParserTest extends Specification {
         functionalSourceSet.add(languageSourceSet2)
 
         then:
-        parser.parseNotation(functionalSourceSet) == [languageSourceSet1, languageSourceSet2] as Set
+        parser.parseNotation(functionalSourceSet) as List == [languageSourceSet1, languageSourceSet2]
     }
 
     def "collects all LanguageSourceSets in a collection"() {
         expect:
-        parser.parseNotation([languageSourceSet1, languageSourceSet2]) == [languageSourceSet1, languageSourceSet2] as Set
+        parser.parseNotation([languageSourceSet1, languageSourceSet2]) as List == [languageSourceSet1, languageSourceSet2]
+        parser.parseNotation([languageSourceSet2, languageSourceSet1]) as List == [languageSourceSet2, languageSourceSet1]
     }
 
     private LanguageSourceSet languageSourceSet(def name) {
