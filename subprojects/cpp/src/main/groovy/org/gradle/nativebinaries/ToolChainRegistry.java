@@ -23,13 +23,4 @@ import org.gradle.api.Incubating;
  */
 @Incubating
 public interface ToolChainRegistry extends ExtensiblePolymorphicDomainObjectContainer<ToolChain> {
-    /**
-     * Registers a default ToolChain, which may later be added to the registry via {@link #addDefaultToolChain()}.
-     */
-    void registerDefaultToolChain(String name, Class<? extends ToolChain> type);
-
-    /**
-     * Adds the first available default tool chain to the registry.
-     */
-    void addDefaultToolChain();
 }

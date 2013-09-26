@@ -13,18 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.nativebinaries.internal;
 
-package org.gradle.nativebinaries.internal.configure;
+import org.gradle.nativebinaries.ToolChain;
+import org.gradle.nativebinaries.ToolChainRegistry;
 
-import org.gradle.api.Action;
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.nativebinaries.internal.ToolChainRegistryInternal;
+public interface ToolChainRegistryInternal extends ToolChainRegistry {
+    /**
+     * Registers a default ToolChain, which may later be added to the registry via {@link #addDefaultToolChain()}.
+     */
+    void registerDefaultToolChain(String name, Class<? extends ToolChain> type);
 
-public class CreateDefaultToolChain implements Action<ProjectInternal> {
-    public void execute(ProjectInternal project) {
-        ToolChainRegistryInternal toolChains = project.getExtensions().getByType(ToolChainRegistryInternal.class);
-        if (toolChains.isEmpty()) {
-            toolChains.addDefaultToolChain();
-        }
-    }
+    /**
+     * Adds the first available default tool chain to the registry.
+     */
+    void addDefaultToolChain();
 }

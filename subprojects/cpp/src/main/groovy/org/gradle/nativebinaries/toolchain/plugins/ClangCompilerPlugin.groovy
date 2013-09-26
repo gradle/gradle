@@ -14,20 +14,18 @@
  * limitations under the License.
  */
 package org.gradle.nativebinaries.toolchain.plugins
-
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.nativebinaries.ToolChainRegistry
+import org.gradle.nativebinaries.internal.ToolChainRegistryInternal
 import org.gradle.nativebinaries.plugins.NativeBinariesPlugin
 import org.gradle.nativebinaries.toolchain.Clang
 import org.gradle.nativebinaries.toolchain.internal.clang.ClangToolChain
 import org.gradle.process.internal.ExecActionFactory
 
 import javax.inject.Inject
-
 /**
  * A {@link Plugin} which makes the <a href="http://clang.llvm.org">Clang</a> compiler available for compiling C/C++ code.
  */
@@ -45,7 +43,7 @@ class ClangCompilerPlugin implements Plugin<Project> {
     void apply(Project project) {
         project.plugins.apply(NativeBinariesPlugin)
 
-        final toolChainRegistry = project.extensions.getByType(ToolChainRegistry)
+        final toolChainRegistry = project.extensions.getByType(ToolChainRegistryInternal)
         toolChainRegistry.registerFactory(Clang, { String name ->
             return new ClangToolChain(name, OperatingSystem.current(), fileResolver, execActionFactory)
         })

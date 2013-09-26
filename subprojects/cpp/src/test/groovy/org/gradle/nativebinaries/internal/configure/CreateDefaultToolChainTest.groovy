@@ -17,7 +17,7 @@
 package org.gradle.nativebinaries.internal.configure
 import org.gradle.api.internal.plugins.ExtensionContainerInternal
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.nativebinaries.ToolChainRegistry
+import org.gradle.nativebinaries.internal.ToolChainRegistryInternal
 import spock.lang.Specification
 
 class CreateDefaultToolChainTest extends Specification {
@@ -25,11 +25,11 @@ class CreateDefaultToolChainTest extends Specification {
 
     def project = Mock(ProjectInternal)
     def extensions = Mock(ExtensionContainerInternal)
-    def toolChains = Mock(ToolChainRegistry)
+    def toolChains = Mock(ToolChainRegistryInternal)
 
     def "setup"() {
         _ * project.getExtensions() >> extensions
-        _ * extensions.getByType(ToolChainRegistry) >> toolChains
+        _ * extensions.getByType(ToolChainRegistryInternal) >> toolChains
     }
 
     def "adds default tool chains when none configured"() {
