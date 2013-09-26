@@ -34,7 +34,7 @@ public abstract class DefaultNativeBinary extends AbstractBuildableModelElement 
     private final NotationParser<Set<LanguageSourceSet>> sourcesNotationParser = SourceSetNotationParser.parser();
     private final ResolvableNativeDependencySet libs = new ResolvableNativeDependencySet();
     private final DomainObjectSet<LanguageSourceSet> source = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class);
-    private final ToolChainTool linker = new ToolChainTool();
+    private final DefaultTool linker = new DefaultTool();
     private final NativeBinaryTasks tasks = new DefaultNativeBinaryTasks();
     private final BinaryNamingScheme namingScheme;
     private final Flavor flavor;
@@ -97,7 +97,7 @@ public abstract class DefaultNativeBinary extends AbstractBuildableModelElement 
         source.addAll(sourcesNotationParser.parseNotation(sources));
     }
 
-    public ToolChainTool getLinker() {
+    public Tool getLinker() {
         return linker;
     }
 

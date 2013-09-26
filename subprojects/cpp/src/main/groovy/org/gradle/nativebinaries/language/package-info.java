@@ -14,23 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries.toolchain;
-
-import org.gradle.api.Incubating;
-
 /**
- * An executable tool that forms part of a tool chain.
+ * Classes for building sources for a native runtime.
  */
-@Incubating
-public interface Tool {
-    /**
-     * The name of the executable file for this tool.
-     */
-    String getExecutable();
-
-    /**
-     * Set the name of the executable file for this tool.
-     * The executable will be located in the tool chain path.
-     */
-    void setExecutable(String file);
-}
+package org.gradle.nativebinaries.language;

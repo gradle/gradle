@@ -16,13 +16,13 @@
 
 package org.gradle.nativebinaries.language.internal;
 
-import org.gradle.nativebinaries.PreprocessorConfig;
-import org.gradle.nativebinaries.ToolChainTool;
+import org.gradle.nativebinaries.internal.DefaultTool;
+import org.gradle.nativebinaries.language.PreprocessingTool;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class PreprocessorTool extends ToolChainTool implements PreprocessorConfig {
+public class DefaultPreprocessingTool extends DefaultTool implements PreprocessingTool {
     private final Map<String, String> definitions = new LinkedHashMap<String, String>();
 
     public Map<String, String> getMacros() {

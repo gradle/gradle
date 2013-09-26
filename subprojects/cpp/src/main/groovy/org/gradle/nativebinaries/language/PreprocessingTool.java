@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries;
+package org.gradle.nativebinaries.language;
+
+import org.gradle.nativebinaries.Tool;
 
 import java.util.Map;
 
 /**
- * Configuration for the C preprocessor.
+ * A tool that permits configuration of the C preprocessor.
  */
-public interface PreprocessorConfig {
+public interface PreprocessingTool extends Tool {
     /**
      * The set of preprocessor macros to define when compiling this binary.
      */

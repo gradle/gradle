@@ -22,7 +22,7 @@ import org.gradle.language.c.plugins.CLangPlugin
 import org.gradle.nativebinaries.*
 import org.gradle.nativebinaries.internal.NativeBinaryInternal
 import org.gradle.nativebinaries.language.c.tasks.CCompile
-import org.gradle.nativebinaries.language.internal.PreprocessorTool
+import org.gradle.nativebinaries.language.internal.DefaultPreprocessingTool
 import org.gradle.nativebinaries.plugins.NativeBinariesPlugin
 import org.gradle.nativebinaries.toolchain.plugins.ClangCompilerPlugin
 import org.gradle.nativebinaries.toolchain.plugins.GccCompilerPlugin
@@ -65,7 +65,7 @@ class CPlugin implements Plugin<ProjectInternal> {
 
     private def addLanguageExtensionsToComponent(NativeComponent component) {
         component.binaries.all { binary ->
-            binary.ext.cCompiler = new PreprocessorTool()
+            binary.extensions.create("cCompiler", DefaultPreprocessingTool)
         }
     }
 

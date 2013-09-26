@@ -14,18 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries;
+package org.gradle.nativebinaries.toolchain;
 
 import org.gradle.api.Incubating;
 
 /**
- * A {@link Library} that has been compiled and archived into a static library.
+ * An executable tool that forms part of a tool chain.
  */
 @Incubating
-public interface StaticLibraryBinary extends LibraryBinary {
+public interface GccTool {
+    /**
+     * The name of the executable file for this tool.
+     */
+    String getExecutable();
 
     /**
-     * The static archiver settings used for creating this binary.
+     * Set the name of the executable file for this tool.
+     * The executable will be located in the tool chain path.
      */
-    Tool getStaticLibArchiver();
+    void setExecutable(String file);
 }

@@ -13,19 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.nativebinaries;
 
-import org.gradle.api.Incubating;
+import java.util.List;
 
+// TODO:DAZ Possibly merge with org.gradle.nativecode.toolchain.GccTool
+// Need to work out if it makes sense to set the args when configuring a tool chain, or set the tool exe for a binary.
+// Seems like merging the 2 might work.
 /**
- * A {@link Library} that has been compiled and archived into a static library.
+ * Configuration of the arguments of a ToolChain executable.
  */
-@Incubating
-public interface StaticLibraryBinary extends LibraryBinary {
+public interface Tool {
+    /**
+     * The arguments passed when executing this tool.
+     */
+    List<String> getArgs();
 
     /**
-     * The static archiver settings used for creating this binary.
+     * Adds a number of arguments to be passed to the tool.
      */
-    Tool getStaticLibArchiver();
+    void args(String... args);
 }

@@ -13,31 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.nativebinaries;
+package org.gradle.nativebinaries.internal;
+
+import org.gradle.nativebinaries.Tool;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-// TODO:DAZ Give this a better name, and possibly merge with org.gradle.nativecode.toolchain.Tool
-// Need to work out if it makes sense to set the args when configuring a tool chain, or set the tool exe for a binary.
-// Seems like merging the 2 might work.
 /**
  * A tool that is part of a tool chain (compiler, linker, assembler, etc).
  */
-public class ToolChainTool {
+public class DefaultTool implements Tool {
     private final ArrayList<String> args = new ArrayList<String>();
 
-    /**
-     * The arguments passed when executing this tool.
-     */
     public List<String> getArgs() {
         return args;
     }
 
-    /**
-     * Adds a number of arguments to be passed to the tool.
-     */
     public void args(String... args) {
         Collections.addAll(this.args, args);
     }

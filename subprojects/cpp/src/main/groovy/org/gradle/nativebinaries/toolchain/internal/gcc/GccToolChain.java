@@ -25,7 +25,7 @@ import org.gradle.nativebinaries.language.assembler.internal.AssembleSpec;
 import org.gradle.nativebinaries.language.c.internal.CCompileSpec;
 import org.gradle.nativebinaries.language.cpp.internal.CppCompileSpec;
 import org.gradle.nativebinaries.toolchain.Gcc;
-import org.gradle.nativebinaries.toolchain.Tool;
+import org.gradle.nativebinaries.toolchain.GccTool;
 import org.gradle.nativebinaries.toolchain.internal.AbstractToolChain;
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
 import org.gradle.nativebinaries.toolchain.internal.ToolType;
@@ -108,27 +108,27 @@ public class GccToolChain extends AbstractToolChain implements Gcc {
         return new GccPlatformToolChain(targetPlatform);
     }
 
-    public Tool getCppCompiler() {
+    public GccTool getCppCompiler() {
         return new DefaultTool(ToolType.CPP_COMPILER);
     }
 
-    public Tool getCCompiler() {
+    public GccTool getCCompiler() {
         return new DefaultTool(ToolType.C_COMPILER);
     }
 
-    public Tool getAssembler() {
+    public GccTool getAssembler() {
         return new DefaultTool(ToolType.ASSEMBLER);
     }
 
-    public Tool getLinker() {
+    public GccTool getLinker() {
         return new DefaultTool(ToolType.LINKER);
     }
 
-    public Tool getStaticLibArchiver() {
+    public GccTool getStaticLibArchiver() {
         return new DefaultTool(ToolType.STATIC_LIB_ARCHIVER);
     }
 
-    private class DefaultTool implements Tool {
+    private class DefaultTool implements GccTool {
         private final ToolType toolType;
 
         private DefaultTool(ToolType toolType) {

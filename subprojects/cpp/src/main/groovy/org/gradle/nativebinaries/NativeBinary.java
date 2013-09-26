@@ -101,7 +101,7 @@ public interface NativeBinary extends Binary {
     /**
      * The settings used for linking this binary.
      */
-    ToolChainTool getLinker();
+    Tool getLinker();
 
     NativeBinaryTasks getTasks();
 }

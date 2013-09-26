@@ -14,21 +14,19 @@
  * limitations under the License.
  */
 package org.gradle.nativebinaries.language.assembler.plugins
-
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.language.assembler.plugins.AssemblerLangPlugin
-import org.gradle.nativebinaries.NativeBinary
-import org.gradle.nativebinaries.ToolChainTool
-import org.gradle.nativebinaries.internal.NativeBinaryInternal
-import org.gradle.nativebinaries.plugins.NativeBinariesPlugin
 import org.gradle.language.assembler.AssemblerSourceSet
+import org.gradle.language.assembler.plugins.AssemblerLangPlugin
+import org.gradle.nativebinaries.*
+import org.gradle.nativebinaries.internal.DefaultTool
+import org.gradle.nativebinaries.internal.NativeBinaryInternal
 import org.gradle.nativebinaries.language.assembler.tasks.Assemble
+import org.gradle.nativebinaries.plugins.NativeBinariesPlugin
 import org.gradle.nativebinaries.toolchain.plugins.ClangCompilerPlugin
 import org.gradle.nativebinaries.toolchain.plugins.GccCompilerPlugin
 import org.gradle.nativebinaries.toolchain.plugins.MicrosoftVisualCppPlugin
-
 /**
  * A plugin for projects wishing to build native binary components from Assembly language sources.
  *
@@ -49,15 +47,11 @@ class AssemblerPlugin implements Plugin<ProjectInternal> {
         project.plugins.apply(AssemblerLangPlugin)
 
         // TODO:DAZ Clean this up
-        project.executables.all {
-            it.binaries.all {
-                ext.assembler = new ToolChainTool()
-            }
+        project.executables.all { Executable executable ->
+            addLanguageExtensionsToComponent(executable)
         }
-        project.libraries.all {
-            it.binaries.all {
-                ext.assembler = new ToolChainTool()
-            }
+        project.libraries.all { Library library ->
+            addLanguageExtensionsToComponent(library)
         }
 
         project.binaries.withType(NativeBinary) { NativeBinaryInternal binary ->
@@ -66,6 +60,12 @@ class AssemblerPlugin implements Plugin<ProjectInternal> {
                 binary.tasks.add assembleTask
                 binary.tasks.builder.source assembleTask.outputs.files.asFileTree.matching { include '**/*.obj', '**/*.o' }
             }
+        }
+    }
+
+    private def addLanguageExtensionsToComponent(NativeComponent component) {
+        component.binaries.all { binary ->
+            binary.extensions.create("assembler", DefaultTool)
         }
     }
 

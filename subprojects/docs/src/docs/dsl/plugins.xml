@@ -84,12 +84,12 @@
         <extends targetClass="org.gradle.api.Project" id="binaries" extensionClass="org.gradle.language.base.BinaryContainer"/>
     </plugin>
     <plugin id="cpp" description="C++ Plugin">
-        <extends targetClass="org.gradle.nativebinaries.NativeBinary" id="cppCompiler" extensionClass="org.gradle.nativebinaries.ToolChainTool"/>
+        <extends targetClass="org.gradle.nativebinaries.NativeBinary" id="cppCompiler" extensionClass="org.gradle.nativebinaries.language.PreprocessingTool"/>
     </plugin>
     <plugin id="c" description="C Plugin">
-        <extends targetClass="org.gradle.nativebinaries.NativeBinary" id="cCompiler" extensionClass="org.gradle.nativebinaries.ToolChainTool"/>
+        <extends targetClass="org.gradle.nativebinaries.NativeBinary" id="cCompiler" extensionClass="org.gradle.nativebinaries.language.PreprocessingTool"/>
     </plugin>
     <plugin id="assembler" description="Assembler Plugin">
-        <extends targetClass="org.gradle.nativebinaries.NativeBinary" id="assembler" extensionClass="org.gradle.nativebinaries.ToolChainTool"/>
+        <extends targetClass="org.gradle.nativebinaries.NativeBinary" id="assembler" extensionClass="org.gradle.nativebinaries.Tool"/>
     </plugin>
 </plugins>

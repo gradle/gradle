@@ -43,25 +43,25 @@ public interface Gcc extends ToolChain {
     /**
      * The C++ compiler.
      */
-    Tool getCCompiler();
+    GccTool getCCompiler();
 
     /**
      * The C compiler.
      */
-    Tool getCppCompiler();
+    GccTool getCppCompiler();
 
     /**
      * The assembler.
      */
-    Tool getAssembler();
+    GccTool getAssembler();
 
     /**
      * The linker.
      */
-    Tool getLinker();
+    GccTool getLinker();
 
     /**
      * The static library archiver.
      */
-    Tool getStaticLibArchiver();
+    GccTool getStaticLibArchiver();
 }

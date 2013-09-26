@@ -23,7 +23,7 @@ import org.gradle.language.cpp.plugins.CppLangPlugin
 import org.gradle.nativebinaries.*
 import org.gradle.nativebinaries.internal.NativeBinaryInternal
 import org.gradle.nativebinaries.language.cpp.tasks.CppCompile
-import org.gradle.nativebinaries.language.internal.PreprocessorTool
+import org.gradle.nativebinaries.language.internal.DefaultPreprocessingTool
 import org.gradle.nativebinaries.plugins.NativeBinariesPlugin
 import org.gradle.nativebinaries.toolchain.plugins.ClangCompilerPlugin
 import org.gradle.nativebinaries.toolchain.plugins.GccCompilerPlugin
@@ -68,7 +68,7 @@ class CppPlugin implements Plugin<ProjectInternal> {
 
     private def addLanguageExtensionsToComponent(NativeComponent component) {
         component.binaries.all { binary ->
-            binary.ext.cppCompiler = new PreprocessorTool()
+            binary.extensions.create("cppCompiler", DefaultPreprocessingTool)
         }
     }
 
