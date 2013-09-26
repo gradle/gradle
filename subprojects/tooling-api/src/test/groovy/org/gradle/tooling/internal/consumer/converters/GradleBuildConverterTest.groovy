@@ -17,7 +17,7 @@
 package org.gradle.tooling.internal.consumer.converters
 
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.tooling.internal.gradle.PartialGradleBuild
+import org.gradle.tooling.internal.gradle.DefaultGradleBuild
 import org.gradle.tooling.model.DomainObjectSet
 import org.gradle.tooling.model.GradleProject
 import org.junit.Rule
@@ -29,7 +29,7 @@ class GradleBuildConverterTest extends Specification {
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
-    PartialGradleBuild gradleBuild;
+    DefaultGradleBuild gradleBuild;
 
     def "converts rootproject"() {
         setup:

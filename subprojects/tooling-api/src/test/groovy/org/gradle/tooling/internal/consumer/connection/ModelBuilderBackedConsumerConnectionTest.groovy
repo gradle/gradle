@@ -36,10 +36,11 @@ import spock.lang.Specification
 
 class ModelBuilderBackedConsumerConnectionTest extends Specification {
     final metaData = Stub(ConnectionMetaDataVersion1)
+    final parameters = Stub(ConsumerOperationParameters)
     final target = Mock(TestModelBuilder) {
         getMetaData() >> metaData
     }
-    final adapter = Stub(ProtocolToModelAdapter)
+    final adapter = Mock(ProtocolToModelAdapter)
     final modelMapping = Mock(ModelMapping)
 
     def "describes capabilities of a pre 1.8-rc-1 provider"() {
@@ -89,7 +90,6 @@ class ModelBuilderBackedConsumerConnectionTest extends Specification {
     }
 
     def "maps model type to model identifier"() {
-        def parameters = Stub(ConsumerOperationParameters)
         def modelIdentifier = Stub(ModelIdentifier)
 
         given:
@@ -105,7 +105,6 @@ class ModelBuilderBackedConsumerConnectionTest extends Specification {
     }
 
     def "maps internal unknown model exception to API exception"() {
-        def parameters = Stub(ConsumerOperationParameters)
         def modelIdentifier = Stub(ModelIdentifier)
 
         given:
@@ -122,9 +121,30 @@ class ModelBuilderBackedConsumerConnectionTest extends Specification {
         e.message == /No model of type 'GradleProject' is available in this build./
     }
 
-    def "fails when build action requested"() {
-        def parameters = Stub(ConsumerOperationParameters)
+    def "builds GradleBuild model by converting GradleProject"() {
+        def modelIdentifier = Stub(ModelIdentifier)
+        def model = Stub(GradleBuild.class)
+        def gradleProject = Stub(GradleProject.class)
 
+        given:
+        _ * metaData.version >> "1.2"
+        _ * modelMapping.getModelIdentifierFromModelType(GradleProject) >> modelIdentifier
+        def connection = new ModelBuilderBackedConsumerConnection(target, modelMapping, adapter)
+
+        when:
+        def result = connection.run(GradleBuild.class, parameters)
+
+        then:
+        result == model
+
+        and:
+        1 * target.getModel(modelIdentifier, parameters) >> Stub(BuildResult) { getModel() >> gradleProject }
+        1 * adapter.adapt(GradleProject.class, gradleProject) >> gradleProject
+        1 * adapter.adapt(GradleBuild.class, _) >> model
+        0 * target._
+    }
+
+    def "fails when build action requested"() {
         given:
         parameters.tasks >> ['a']
         metaData.version >> "1.2"

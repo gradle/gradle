@@ -97,7 +97,7 @@ class BuildActionRunnerBackedConsumerConnectionTest extends Specification {
         0 * target._
     }
 
-    def "can builds GradleBuild model by converting EclipseProject"() {
+    def "builds GradleBuild model by converting GradleProject"() {
         BuildResult<GradleProject> result = Stub()
         GradleProject adapted = Stub()
         GradleBuild adaptedGradleBuild = Stub()

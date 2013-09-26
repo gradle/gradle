@@ -24,6 +24,8 @@ import org.gradle.tooling.internal.build.VersionOnlyBuildEnvironment
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
 import org.gradle.tooling.internal.consumer.versioning.CustomModel
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping
+import org.gradle.tooling.internal.gradle.DefaultGradleBuild
+import org.gradle.tooling.internal.gradle.PartialGradleProject
 import org.gradle.tooling.internal.protocol.ConnectionMetaDataVersion1
 import org.gradle.tooling.internal.protocol.ConnectionVersion4
 import org.gradle.tooling.internal.protocol.ProjectVersion3
@@ -159,6 +161,29 @@ class ConnectionVersion4BackedConsumerConnectionTest extends Specification {
         1 * target.getModel(EclipseProjectVersion3.class, parameters) >> protocolModel
         1 * adapter.adapt(EclipseProjectVersion3.class, _, _) >> protocolModel
         1 * adapter.adapt(GradleProject.class, _, _) >> model
+        0 * target._
+    }
+
+    def "builds partial GradleBuild model using the Eclipse model for a 1.0-m3 provider"() {
+        metaData.version >> "1.0-milestone-3"
+        def connection = new ConnectionVersion4BackedConsumerConnection(target, modelMapping, adapter)
+        EclipseProjectVersion3 protocolModel = Stub()
+        GradleProject gradleProject = Stub()
+        GradleBuild model = Stub()
+
+        when:
+        def result = connection.run(GradleBuild.class, parameters)
+
+        then:
+        result == model
+
+        and:
+        _ * modelMapping.getProtocolType(EclipseProjectVersion3) >> EclipseProjectVersion3.class
+        1 * target.getModel(EclipseProjectVersion3.class, parameters) >> protocolModel
+        1 * adapter.adapt(EclipseProjectVersion3.class, _, _) >> protocolModel
+        1 * adapter.adapt(GradleProject.class, { it instanceof PartialGradleProject }, _) >> gradleProject
+        1 * adapter.adapt(GradleBuild.class, { it instanceof DefaultGradleBuild }) >> model
+        0 * adapter._
         0 * target._
     }
 

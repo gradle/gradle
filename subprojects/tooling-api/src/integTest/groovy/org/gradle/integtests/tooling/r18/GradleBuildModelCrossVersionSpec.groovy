@@ -39,15 +39,17 @@ allprojects {
 """
     }
 
-    //TODO implement mapping of 1.0- versions
     @TargetGradleVersion("<1.8")
     def "can request GradleBuild model"() {
         when:
         GradleBuild model = withConnection { connection -> connection.getModel(GradleBuild) }
+
         then:
         validateModel(model)
+
         when:
         model.rootProject.projectDirectory
+
         then:
         def e = thrown(UnsupportedMethodException)
     }
@@ -56,6 +58,7 @@ allprojects {
     def "can request GradleBuild model including projectDirectory"() {
         when:
         GradleBuild model = withConnection { connection -> connection.getModel(GradleBuild) }
+
         then:
         validateModel(model)
         model.projects*.projectDirectory == [projectDir, file('a'), file('b'), file('b/c')]

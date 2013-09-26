@@ -69,7 +69,7 @@ class InternalConnectionBackedConsumerConnectionTest extends Specification {
         !details.isModelSupported(GradleBuild)
     }
 
-    def "builds GradleBuild model"() {
+    def "builds GradleBuild model by converting GradleProject"() {
         def model = Stub(GradleBuild.class)
         def gradleProject = Stub(GradleProject.class)
         when:

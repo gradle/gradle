@@ -16,8 +16,8 @@
 
 package org.gradle.tooling.internal.consumer.converters;
 
+import org.gradle.tooling.internal.gradle.DefaultGradleBuild;
 import org.gradle.tooling.internal.gradle.PartialBasicGradleProject;
-import org.gradle.tooling.internal.gradle.PartialGradleBuild;
 import org.gradle.tooling.model.GradleProject;
 
 import java.util.ArrayList;
@@ -26,8 +26,8 @@ import java.util.Comparator;
 import java.util.List;
 
 public class GradleBuildConverter {
-    public PartialGradleBuild convert(GradleProject project) {
-        PartialGradleBuild gradleBuild = new PartialGradleBuild();
+    public DefaultGradleBuild convert(GradleProject project) {
+        DefaultGradleBuild gradleBuild = new DefaultGradleBuild();
         PartialBasicGradleProject rootProject = toPartialGradleProject(project);
         gradleBuild.setRootProject(rootProject);
         gradleBuild.addProject(rootProject);
@@ -35,7 +35,7 @@ public class GradleBuildConverter {
         return gradleBuild;
     }
 
-    private void convertChildren(PartialGradleBuild gradleBuild, PartialBasicGradleProject rootProject, GradleProject project) {
+    private void convertChildren(DefaultGradleBuild gradleBuild, PartialBasicGradleProject rootProject, GradleProject project) {
         final List<? extends GradleProject> childProjects = new ArrayList<GradleProject>(project.getChildren());
         Collections.sort(childProjects, new Comparator<GradleProject>() {
             public int compare(GradleProject gp1, GradleProject gp2) {
