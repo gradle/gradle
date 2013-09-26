@@ -96,6 +96,11 @@ class CppHelloWorldApp extends IncrementalHelloWorldApp {
             void DLL_FUNC sayHello() {
                 std::cout << "[${HELLO_WORLD} - ${HELLO_WORLD_FRENCH}]" << std::endl;
             }
+
+            // Extra function to ensure library has different size
+            int anotherFunction() {
+                return 1000;
+            }
         """),
         sourceFile("cpp", "sum.cpp", """
             #include "hello.h"

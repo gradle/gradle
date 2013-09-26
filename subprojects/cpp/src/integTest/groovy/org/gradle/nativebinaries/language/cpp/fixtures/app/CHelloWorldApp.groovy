@@ -98,6 +98,11 @@ class CHelloWorldApp extends IncrementalHelloWorldApp {
                     printf("[${HELLO_WORLD} - ${HELLO_WORLD_FRENCH}]\\n");
                     fflush(stdout);
                 }
+
+                // Extra function to ensure library has different size
+                int anotherFunction() {
+                    return 1000;
+                }
             """),
             sourceFile("c", "sum.c","""
                 #include "hello.h"
