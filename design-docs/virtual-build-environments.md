@@ -21,14 +21,22 @@ implemented, developers will already be able to run private builds in any CI bui
 
 # Implementation plan
 
-## Automate base installation of a CI server
+## Used technologies
 
-Regardless of the virtualization technology used, a hypervisor will have to be installed on each CI server.
+For server virtualization, [KVM](http://www.linux-kvm.org/) will be used. (At some point, we might want to combine KVM with Linux
+containers in order to have a light-weight way to isolate Linux environments.) As a configuration management tool,
+[Salt](http://saltstack.com) will be used.
 
-## Automate installation of an Ubuntu VM on a CI server
+## Automate base installation of a CI machine
+
+The base installation will be Ubuntu 12.04 LTS with a KVM hypervisor and a Salt minion. The configuration steps to automate will be similar
+to what's currently documented on the Wiki page for setting up dev servers. The base installation should be as minimal as possible.
+
+## Automate installation of an Ubuntu VM on a CI machine
 
 Adding an Ubuntu VM to a CI server should be easy and repeatable. The installation should include the following software:
 
+* Salt minion
 * TeamCity agent
 * Oracle JDK 5, 6, 7 (perhaps also 8 developer preview)
 * OpenJDK 5, 6, 7
@@ -38,10 +46,11 @@ Adding an Ubuntu VM to a CI server should be easy and repeatable. The installati
 
 It should be possible to create variations of the installation recipe, e.g. to add VMs that have different software installed.
 
-## Automate installation of a Windows VM on a CI server
+## Automate installation of a Windows VM on a CI machine
 
 Adding a Windows VM to a CI server should be easy and repeatable. The installation should include the following software:
 
+* Salt minion
 * TeamCity agent
 * Oracle JDK 5, 6, 7 (perhaps also 8 developer preview)
 * OpenJDK 5, 6, 7
@@ -53,10 +62,11 @@ Adding a Windows VM to a CI server should be easy and repeatable. The installati
 
 It should be possible to create variations of the installation recipe, e.g. to add VMs that have different software installed.
 
-## Automate installation of a Mac OS X VM on a CI server
+## Automate installation of a Mac OS X VM on a CI machine
 
 Adding a Mac OS X VM to a CI server should be easy and repeatable. The installation should include the following software:
 
+* Salt minion
 * TeamCity agent
 * Oracle JDK 5, 6, 7 (perhaps also 8 developer preview)
 * OpenJDK 5, 6, 7
@@ -65,12 +75,15 @@ Adding a Mac OS X VM to a CI server should be easy and repeatable. The installat
 
 It should be possible to create variations of the installation recipe, e.g. to add VMs that have different software installed.
 
+## Managing and monitoring VMs
+
+As far as possible, Salt's KVM module should be used to manage VMs. Initially, it will be good enough to monitor
+availability of VMs via TeamCity's agent page.
+
 # Open issues
 
-* Do we bake our own VM images, or is it good enough to automate the VM/OS/software installation process?
-* How do we control the lifecycle of VMs? Which VM management/monitoring solution do we use?
 * How can we keep VMs secure, in particular if they run insecure or outdated OSes (e.g. Windows XP)?
-* How do we deal with OS updates, in particular security updates?
+* How do we deal with Windows OS updates, in particular security updates?
 * How do we allocate VMs to physical machines? Do all machines run the same number and type of VMs, or do we have specialized machines (e.g. Linux VMs vs. Windows VMs)?
 
 
