@@ -17,72 +17,22 @@ package org.gradle.nativebinaries.language.assembler.plugins
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.language.assembler.AssemblerSourceSet
-import org.gradle.language.assembler.plugins.AssemblerLangPlugin
-import org.gradle.nativebinaries.*
-import org.gradle.nativebinaries.internal.DefaultTool
-import org.gradle.nativebinaries.internal.NativeBinaryInternal
-import org.gradle.nativebinaries.language.assembler.tasks.Assemble
-import org.gradle.nativebinaries.plugins.NativeBinariesPlugin
 import org.gradle.nativebinaries.toolchain.plugins.ClangCompilerPlugin
 import org.gradle.nativebinaries.toolchain.plugins.GccCompilerPlugin
 import org.gradle.nativebinaries.toolchain.plugins.MicrosoftVisualCppPlugin
 /**
  * A plugin for projects wishing to build native binary components from Assembly language sources.
  *
- * <p>Automatically includes the {@link AssemblerLangPlugin} for core Assembler support and the {@link NativeBinariesPlugin} for native binary support,
- * together with the {@link MicrosoftVisualCppPlugin} and {@link GccCompilerPlugin} for core toolchain support.</p>
- *
- * <li>Creates a {@link Assemble} task for each {@link AssemblerSourceSet} to assemble the sources.</li>
+ * <p>Adds core tool chain support to the {@link AssemblerNativeBinariesPlugin}.</p>
  */
 @Incubating
 class AssemblerPlugin implements Plugin<ProjectInternal> {
 
     void apply(ProjectInternal project) {
-        project.plugins.apply(NativeBinariesPlugin)
         project.plugins.apply(MicrosoftVisualCppPlugin)
         project.plugins.apply(GccCompilerPlugin)
         project.plugins.apply(ClangCompilerPlugin)
 
-        project.plugins.apply(AssemblerLangPlugin)
-
-        // TODO:DAZ Clean this up
-        project.executables.all { Executable executable ->
-            addLanguageExtensionsToComponent(executable)
-        }
-        project.libraries.all { Library library ->
-            addLanguageExtensionsToComponent(library)
-        }
-
-        project.binaries.withType(NativeBinary) { NativeBinaryInternal binary ->
-            binary.source.withType(AssemblerSourceSet).all { AssemblerSourceSet sourceSet ->
-                def assembleTask = createAssembleTask(project, binary, sourceSet)
-                binary.tasks.add assembleTask
-                binary.tasks.builder.source assembleTask.outputs.files.asFileTree.matching { include '**/*.obj', '**/*.o' }
-            }
-        }
+        project.plugins.apply(AssemblerNativeBinariesPlugin)
     }
-
-    private def addLanguageExtensionsToComponent(NativeComponent component) {
-        component.binaries.all { binary ->
-            binary.extensions.create("assembler", DefaultTool)
-        }
-    }
-
-    private def createAssembleTask(ProjectInternal project, NativeBinaryInternal binary, def sourceSet) {
-        def assembleTask = project.task(binary.namingScheme.getTaskName("assemble", sourceSet.fullName), type: Assemble) {
-            description = "Assembles the $sourceSet of $binary"
-        }
-
-        assembleTask.toolChain = binary.toolChain
-        assembleTask.targetPlatform = binary.targetPlatform
-
-        assembleTask.source sourceSet.source
-
-        assembleTask.conventionMapping.objectFileDir = { project.file("${project.buildDir}/objectFiles/${binary.namingScheme.outputDirectoryBase}/${sourceSet.fullName}") }
-        assembleTask.assemblerArgs = binary.assembler.args
-
-        assembleTask
-    }
-
 }
