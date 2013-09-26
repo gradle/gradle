@@ -18,7 +18,11 @@ package org.gradle.nativebinaries.internal.configure;
 
 import org.gradle.api.Action;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.nativebinaries.*;
+import org.gradle.nativebinaries.ExecutableContainer;
+import org.gradle.nativebinaries.FlavorContainer;
+import org.gradle.nativebinaries.LibraryContainer;
+import org.gradle.nativebinaries.NativeComponent;
+import org.gradle.nativebinaries.internal.DefaultFlavor;
 
 import java.util.Set;
 
@@ -37,7 +41,7 @@ public class CreateDefaultFlavors implements Action<ProjectInternal> {
 
     protected void configureDefaultFlavor(FlavorContainer flavors) {
         if (flavors.isEmpty()) {
-            flavors.add(Flavor.DEFAULT);
+            flavors.create(DefaultFlavor.DEFAULT);
         }
     }
 

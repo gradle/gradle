@@ -18,17 +18,10 @@ package org.gradle.nativebinaries;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
-import org.gradle.nativebinaries.internal.DefaultFlavor;
 
 /**
  * Defines a custom variant that can be built for a {@link NativeComponent}.
  */
 @Incubating
 public interface Flavor extends Named {
-    Flavor DEFAULT = new DefaultFlavor("default", true);
-
-    /**
-     * Is this the automatically created default flavor for the component?
-     */
-    boolean isDefault();
 }

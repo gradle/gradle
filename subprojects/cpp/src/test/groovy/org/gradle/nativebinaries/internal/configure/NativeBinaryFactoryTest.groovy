@@ -18,7 +18,6 @@ package org.gradle.nativebinaries.internal.configure
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.nativebinaries.BuildType
-import org.gradle.nativebinaries.Flavor
 import org.gradle.nativebinaries.Platform
 import org.gradle.nativebinaries.internal.DefaultExecutable
 import org.gradle.nativebinaries.internal.DefaultExecutableBinary
@@ -33,6 +32,7 @@ class NativeBinaryFactoryTest extends Specification {
     def platform = Mock(Platform)
     def buildType = Mock(BuildType)
 
+    def defaultFlavor = new DefaultFlavor(DefaultFlavor.DEFAULT)
     def flavor1 = new DefaultFlavor("flavor1")
     def component = new DefaultExecutable("name", new DirectInstantiator())
 
@@ -54,7 +54,7 @@ class NativeBinaryFactoryTest extends Specification {
 
     def "includes flavor in names when component has multiple flavors"() {
         when:
-        component.flavors.add(Flavor.DEFAULT)
+        component.flavors.add(defaultFlavor)
         component.flavors.add(flavor1)
 
         and:
@@ -70,7 +70,7 @@ class NativeBinaryFactoryTest extends Specification {
 
     def "includes tool chain in names when building with multiple tool chains"() {
         when:
-        component.flavors.add(Flavor.DEFAULT)
+        component.flavors.add(defaultFlavor)
         component.flavors.add(flavor1)
 
         and:
@@ -91,7 +91,7 @@ class NativeBinaryFactoryTest extends Specification {
 
     def "includes platform in names when targeting multiple platforms"() {
         when:
-        component.flavors.add(Flavor.DEFAULT)
+        component.flavors.add(defaultFlavor)
         component.flavors.add(flavor1)
 
         and:
@@ -112,7 +112,7 @@ class NativeBinaryFactoryTest extends Specification {
 
     def "includes buildType in names when targeting multiple build types"() {
         when:
-        component.flavors.add(Flavor.DEFAULT)
+        component.flavors.add(defaultFlavor)
         component.flavors.add(flavor1)
 
         and:

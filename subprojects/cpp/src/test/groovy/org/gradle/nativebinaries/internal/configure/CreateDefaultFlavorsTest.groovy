@@ -16,7 +16,7 @@
 
 package org.gradle.nativebinaries.internal.configure
 import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.nativebinaries.Flavor
+import org.gradle.nativebinaries.internal.DefaultFlavor
 import org.gradle.nativebinaries.internal.DefaultFlavorContainer
 import spock.lang.Specification
 
@@ -30,7 +30,7 @@ class CreateDefaultFlavorsTest extends Specification {
 
         then:
         flavorContainer.size() == 1
-        flavorContainer == [Flavor.DEFAULT] as Set
+        flavorNames == [DefaultFlavor.DEFAULT] as Set
     }
 
     def "configured flavors overwrite default flavor"() {
@@ -57,7 +57,7 @@ class CreateDefaultFlavorsTest extends Specification {
         action.configureDefaultFlavor(flavorContainer)
 
         then:
-        flavorNames == [Flavor.DEFAULT.getName(), "flavor1", "flavor2"] as Set
+        flavorNames == [DefaultFlavor.DEFAULT, "flavor1", "flavor2"] as Set
 
     }
 

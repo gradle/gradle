@@ -22,7 +22,7 @@ import org.gradle.nativebinaries.*;
 class DefaultLibraryResolver implements ContextualLibraryResolver {
     private final Library library;
 
-    private Flavor flavor = Flavor.DEFAULT;
+    private Flavor flavor = new DefaultFlavor(DefaultFlavor.DEFAULT);
     private ToolChain toolChain;
     private Platform platform;
     private BuildType buildType;

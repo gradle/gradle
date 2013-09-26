@@ -21,7 +21,7 @@ import org.gradle.api.NamedDomainObjectContainer;
 
 /**
  * A container of flavors.
- * If no flavor is explicitly configured, will contain a single {@link Flavor#DEFAULT}.
+ * If no flavor is explicitly configured, will contain a single {@link Flavor} named 'default'.
  * Any flavors explicitly configured will overwrite the default flavor.
  */
 @Incubating

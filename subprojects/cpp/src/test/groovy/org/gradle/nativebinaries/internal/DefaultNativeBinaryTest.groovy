@@ -121,7 +121,7 @@ class DefaultNativeBinaryTest extends Specification {
         binary.libs.contains(dependency)
     }
 
-    def testBinary(NativeComponent owner, Flavor flavor = Flavor.DEFAULT) {
+    def testBinary(NativeComponent owner, Flavor flavor = new DefaultFlavor(DefaultFlavor.DEFAULT)) {
         return new TestBinary(owner, flavor, toolChain1, platform1, buildType1, new DefaultBinaryNamingScheme("baseName"))
     }
 

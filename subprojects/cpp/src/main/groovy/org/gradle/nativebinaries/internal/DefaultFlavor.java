@@ -19,24 +19,15 @@ package org.gradle.nativebinaries.internal;
 import org.gradle.nativebinaries.Flavor;
 
 public class DefaultFlavor implements Flavor {
+    public static final String DEFAULT = "default";
     private final String name;
-    private final boolean isDefault;
 
     public DefaultFlavor(String name) {
-        this(name, false);
-    }
-
-    public DefaultFlavor(String name, boolean isDefault) {
         this.name = name;
-        this.isDefault = isDefault;
     }
 
     public String getName() {
         return name;
-    }
-
-    public boolean isDefault() {
-        return isDefault;
     }
 
     @Override
