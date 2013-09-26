@@ -33,7 +33,6 @@ import org.gradle.process.internal.DefaultExecAction;
 import org.gradle.process.internal.ExecAction;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.test.fixtures.file.TestFile;
-import org.gradle.util.TextUtil;
 
 import java.io.File;
 import java.util.*;
@@ -285,7 +284,7 @@ public class AvailableToolChains {
         public String getBuildScriptConfig() {
             String config = String.format("%s(%s)\n", getId(), getImplementationClass());
             for (File pathEntry : getPathEntries()) {
-                config += String.format("%s.path file('%s')", getId(), TextUtil.normaliseFileSeparators(pathEntry.getAbsolutePath()));
+                config += String.format("%s.path file('%s')", getId(), pathEntry.toURI());
             }
             return config;
         }
@@ -316,7 +315,7 @@ public class AvailableToolChains {
         public String getBuildScriptConfig() {
             String config = String.format("%s(%s)\n", getId(), getImplementationClass());
             if (installDir != null) {
-                config += String.format("%s.installDir = file('%s')", getId(), TextUtil.normaliseFileSeparators(installDir.getAbsolutePath()));
+                config += String.format("%s.installDir = file('%s')", getId(), installDir.toURI());
             }
             return config;
         }
