@@ -34,7 +34,7 @@ public abstract class HelloWorldApp {
         return HELLO_WORLD_FRENCH + "\n12";
     }
 
-    public String getCustomArgs() {
+    public String getTargetPlatforms() {
         return "";
     }
 

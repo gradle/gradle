@@ -191,7 +191,8 @@ public class GccToolChain extends AbstractToolChain implements Gcc {
                     tool.withArguments(gccSwitches());
                     return;
                 case ASSEMBLER:
-                    // TODO:DAZ
+                    tool.withArguments(asSwitches());
+                    return;
                 case STATIC_LIB_ARCHIVER:
                     // TODO:DAZ
             }
@@ -203,6 +204,18 @@ public class GccToolChain extends AbstractToolChain implements Gcc {
                     return args("-m32");
                 case AMD64:
                     return args("-m64");
+                default:
+                    return args();
+            }
+        }
+
+        private List<String> asSwitches() {
+            String archFlag = operatingSystem.isMacOsX() ? "-arch" : "-march";
+            switch (targetPlatform.getArchitecture()) {
+                case I386:
+                    return args(archFlag, "i386");
+                case AMD64:
+                    return args(archFlag, "x86_64");
                 default:
                     return args();
             }

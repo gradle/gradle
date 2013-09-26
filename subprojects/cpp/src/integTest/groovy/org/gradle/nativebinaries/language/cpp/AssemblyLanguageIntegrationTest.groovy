@@ -26,7 +26,7 @@ class AssemblyLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
 
     HelloWorldApp helloWorldApp = new AssemblerWithCHelloWorldApp(toolChain)
 
-    def "build fails when compilation fails"() {
+    def "build fails when assemble fails"() {
         given:
         buildFile << """
             apply plugin: "cpp"

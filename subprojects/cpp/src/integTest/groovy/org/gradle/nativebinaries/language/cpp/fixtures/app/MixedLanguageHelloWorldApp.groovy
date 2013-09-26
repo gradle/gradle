@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries.language.cpp.fixtures.app;
+package org.gradle.nativebinaries.language.cpp.fixtures.app
 
-import org.gradle.internal.os.OperatingSystem
-import org.gradle.nativebinaries.language.cpp.fixtures.AvailableToolChains;
+import org.gradle.nativebinaries.language.cpp.fixtures.AvailableToolChains
 
 public class MixedLanguageHelloWorldApp extends HelloWorldApp {
     private final AvailableToolChains.InstalledToolChain toolChain
@@ -26,27 +25,14 @@ public class MixedLanguageHelloWorldApp extends HelloWorldApp {
         this.toolChain = toolChain
     }
 
-    String getCustomArgs() {
-        if (!toolChain.isVisualCpp()) {
-            // 32bit assembly on osx
-            if (OperatingSystem.current().isMacOsX()) {
-                return """
-                        cCompiler.args "-m32"
-                        cppCompiler.args "-m32"
-                        assembler.args "-arch", "i386"
-                        linker.args "-m32"
-                """
+    String getTargetPlatforms() {
+        return """
+            targetPlatforms {
+                x86 {
+                    architecture Platform.Architecture.I386
+                }
             }
-            // 32bit gcc assembly on windows
-            if (OperatingSystem.current().isWindows()) {
-                return """
-                        cCompiler.args "-m32"
-                        cppCompiler.args "-m32"
-                        assembler.args "-march", "i386"
-                """
-            }
-        }
-        return super.getCustomArgs()
+"""
     }
 
     SourceFile getMainSource() {
@@ -102,31 +88,11 @@ public class MixedLanguageHelloWorldApp extends HelloWorldApp {
     }
 
     protected def getAsmSource() {
-        def os = OperatingSystem.current()
-        if (os.isMacOsX()) {
-            return osxAsmSource
-        } else if (os.isWindows()) {
-            if (toolChain.isVisualCpp()) {
-                return windowsMasmSource
-            } else {
-                return i386GnuAsmSource;
-            }
-        } else {
-            return x64GnuAsmSource
+        if (toolChain.isVisualCpp()) {
+            return windowsMasmSource
         }
+        return i386GnuAsmSource
     }
-
-    private static String osxAsmSource = '''
-.section    __TEXT,__text,regular,pure_instructions
-.globl  _sumx
-.align  4
-_sumx:
-movl    8(%esp), %eax
-addl    4(%esp), %eax
-ret
-
-.subsections_via_symbols
-'''
 
     private static String windowsMasmSource = '''
 .386
@@ -152,6 +118,7 @@ _sumx:
     ret
 '''
 
+    // TODO:DAZ test 64 bit assembler generation (on all tool chains)
     private static String x64GnuAsmSource = '''
     .text
     .p2align 4,,15

@@ -34,6 +34,8 @@ class AssemblyLanguageIncrementalBuildIntegrationTest extends AbstractInstalledT
             apply plugin: 'c'
             apply plugin: 'cpp'
 
+            $app.targetPlatforms
+
             libraries {
                 hello {}
             }
@@ -43,9 +45,6 @@ class AssemblyLanguageIncrementalBuildIntegrationTest extends AbstractInstalledT
                         lib libraries.hello
                     }
                 }
-            }
-            binaries.all {
-                $app.customArgs
             }
         """
         settingsFile << "rootProject.name = 'test'"

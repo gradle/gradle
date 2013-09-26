@@ -32,9 +32,7 @@ abstract class AbstractLanguageIntegrationTest extends AbstractInstalledToolChai
             apply plugin: 'c'
             apply plugin: 'cpp'
 
-            binaries.all {
-                $helloWorldApp.customArgs
-            }
+            $helloWorldApp.targetPlatforms
 """
     }
 
