@@ -19,6 +19,7 @@ dependencies {
 	compile project(':plugins')
 	compile project(':wrapper')
     integTestRuntime project(':maven')
+    integTestRuntime project(':scala')
 }
 
 useTestFixtures()

@@ -22,16 +22,16 @@ import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestExecutionResult
 
 
-class GroovyLibrarySetupIntegrationTest extends AbstractIntegrationSpec {
+class ScalaLibraryInitIntegrationTest extends AbstractIntegrationSpec {
 
-    public static final String SAMPLE_LIBRARY_CLASS = "src/main/groovy/Library.groovy"
-    public static final String SAMPLE_LIBRARY_TEST_CLASS = "src/test/groovy/LibraryTest.groovy"
+    public static final String SAMPLE_LIBRARY_CLASS = "src/main/scala/Library.scala"
+    public static final String SAMPLE_LIBRARY_TEST_CLASS = "src/test/scala/LibrarySuite.scala"
 
     final wrapper = new WrapperTestFixture(testDirectory)
 
     def "creates sample source if no source present"() {
         when:
-        succeeds('init', '--type', 'groovy-library')
+        succeeds('init', '--type', 'scala-library')
 
         then:
         file(SAMPLE_LIBRARY_CLASS).exists()
@@ -45,26 +45,26 @@ class GroovyLibrarySetupIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         TestExecutionResult testResult = new DefaultTestExecutionResult(testDirectory)
-        testResult.assertTestClassesExecuted("LibraryTest")
-        testResult.testClass("LibraryTest").assertTestPassed("someLibraryMethod returns true")
+        testResult.assertTestClassesExecuted("LibrarySuite")
+        testResult.testClass("LibrarySuite").assertTestPassed("someLibraryMethod is always true")
     }
 
-    def "setupProjectLayout is skipped when groovy sources detected"() {
+    def "setupProjectLayout is skipped when scala sources detected"() {
         setup:
-        file("src/main/groovy/org/acme/SampleMain.groovy") << """
+        file("src/main/scala/org/acme/SampleMain.scala") << """
             package org.acme;
 
             class SampleMain{
             }
     """
-        file("src/test/groovy/org/acme/SampleMainTest.groovy") << """
+        file("src/test/scala/org/acme/SampleMainTest.scala") << """
                     package org.acme;
 
-                    class SampleMain{
+                    class SampleMainTest{
                     }
             """
         when:
-        succeeds('init', '--type', 'groovy-library')
+        succeeds('init', '--type', 'scala-library')
 
         then:
         !file(SAMPLE_LIBRARY_CLASS).exists()

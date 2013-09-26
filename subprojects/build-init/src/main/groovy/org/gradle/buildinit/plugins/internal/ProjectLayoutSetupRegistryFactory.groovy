@@ -42,6 +42,7 @@ class ProjectLayoutSetupRegistryFactory {
         registry.add(new JavaLibraryProjectInitDescriptor(fileResolver, documentationRegistry));
         registry.add(new PomProjectInitDescriptor(fileResolver, mavenSettingsProvider))
         registry.add(new GroovyLibraryProjectInitDescriptor(fileResolver, documentationRegistry))
+        registry.add(new ScalaLibraryProjectInitDescriptor(fileResolver, documentationRegistry))
         return registry
     }
 

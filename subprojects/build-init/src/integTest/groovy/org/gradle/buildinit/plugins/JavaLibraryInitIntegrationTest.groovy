@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestExecutionResult
 
-class JavaLibrarySetupIntegrationTest extends AbstractIntegrationSpec {
+class JavaLibraryInitIntegrationTest extends AbstractIntegrationSpec {
 
     public static final String SAMPLE_LIBRARY_CLASS = "src/main/java/Library.java"
     public static final String SAMPLE_LIBRARY_TEST_CLASS = "src/test/java/LibraryTest.java"
