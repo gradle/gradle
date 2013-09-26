@@ -93,13 +93,15 @@ run `${app-name} --help <broken-task>` or `${app-name} --help`
 ### Test coverage
 
 * integration tests
-    * `gradle help --task nonExistingTask
-    * `gradle help --task taskWithNotCommandLineProperties`
-    * `gradle help --task init` (should list available --type values)
-    * `gradle help --task :someProj:dependencies`
+    * `gradle help` on task with no commandline properties
+    * `gradle help` on task with commandline properties but not provided values
+    * `gradle help` on task with commandline properties and provided values
+    * `gradle help` on implicit task with commandline properties
+    * `gradle help` on implicit task with no commandline properties
+    * `gradle help` on non existing task
+    * `gradle help` on task with project path (e.g.) `:someProj:dependencies`
     * `gradle help --tassk help` (should print hint to `gradle help --task help`)
-    * `gradle help --task help`
-    *
+
 ### Implementation approach
 
 - Introduce new marker annotation `CommandLineOptionDetails` to mark provider methods for available values for task options that returns
