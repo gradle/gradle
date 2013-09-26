@@ -24,6 +24,7 @@ import org.gradle.nativebinaries.internal.*;
 import org.gradle.nativebinaries.language.assembler.internal.AssembleSpec;
 import org.gradle.nativebinaries.language.c.internal.CCompileSpec;
 import org.gradle.nativebinaries.language.cpp.internal.CppCompileSpec;
+import org.gradle.nativebinaries.toolchain.Clang;
 import org.gradle.nativebinaries.toolchain.internal.AbstractToolChain;
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
 import org.gradle.nativebinaries.toolchain.internal.ToolRegistry;
@@ -31,7 +32,7 @@ import org.gradle.nativebinaries.toolchain.internal.ToolType;
 import org.gradle.nativebinaries.toolchain.internal.gcc.*;
 import org.gradle.process.internal.ExecActionFactory;
 
-public class ClangToolChain extends AbstractToolChain {
+public class ClangToolChain extends AbstractToolChain implements Clang {
     public static final String DEFAULT_NAME = "clang";
     private final ExecActionFactory execActionFactory;
 

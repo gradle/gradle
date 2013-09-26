@@ -59,7 +59,6 @@ class BinaryBuildTypesIntegrationTest extends AbstractInstalledToolChainIntegrat
             }
         """
         and:
-        executer.withArgument("--debug")
         succeeds "debugMainExecutable", "integrationMainExecutable", "releaseMainExecutable"
 
         then:

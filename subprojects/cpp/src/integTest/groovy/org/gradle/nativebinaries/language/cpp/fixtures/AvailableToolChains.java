@@ -29,6 +29,9 @@ import org.gradle.nativebinaries.toolchain.internal.ToolRegistry;
 import org.gradle.nativebinaries.toolchain.internal.gcc.version.GccVersionDeterminer;
 import org.gradle.nativebinaries.toolchain.internal.msvcpp.VisualStudioInstall;
 import org.gradle.nativebinaries.toolchain.internal.msvcpp.VisualStudioLocator;
+import org.gradle.nativebinaries.toolchain.plugins.ClangCompilerPlugin;
+import org.gradle.nativebinaries.toolchain.plugins.GccCompilerPlugin;
+import org.gradle.nativebinaries.toolchain.plugins.MicrosoftVisualCppPlugin;
 import org.gradle.process.internal.DefaultExecAction;
 import org.gradle.process.internal.ExecAction;
 import org.gradle.process.internal.ExecActionFactory;
@@ -238,6 +241,8 @@ public class AvailableToolChains {
 
         public abstract String getImplementationClass();
 
+        public abstract String getPluginClass();
+
         public boolean isVisualCpp() {
             return false;
         }
@@ -281,6 +286,11 @@ public class AvailableToolChains {
         public String getImplementationClass() {
             return Gcc.class.getSimpleName();
         }
+
+        @Override
+        public String getPluginClass() {
+            return GccCompilerPlugin.class.getSimpleName();
+        }
     }
 
     public static class InstalledVisualCpp extends InstalledToolChain {
@@ -313,6 +323,11 @@ public class AvailableToolChains {
             return VisualCpp.class.getSimpleName();
         }
 
+        @Override
+        public String getPluginClass() {
+            return MicrosoftVisualCppPlugin.class.getSimpleName();
+        }
+
         public boolean isVisualCpp() {
             return true;
         }
@@ -336,6 +351,11 @@ public class AvailableToolChains {
         @Override
         public String getImplementationClass() {
             return Clang.class.getSimpleName();
+        }
+
+        @Override
+        public String getPluginClass() {
+            return ClangCompilerPlugin.class.getSimpleName();
         }
     }
 

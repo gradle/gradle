@@ -26,6 +26,15 @@ import org.junit.runner.RunWith
 abstract class AbstractInstalledToolChainIntegrationSpec extends AbstractIntegrationSpec {
     static AvailableToolChains.InstalledToolChain toolChain
 
+    def setup() {
+        buildFile << """
+            apply plugin: ${toolChain.pluginClass}
+            toolChains {
+                ${toolChain.buildScriptConfig}
+            }
+"""
+    }
+
     def NativeInstallationFixture installation(Object installDir) {
         return new NativeInstallationFixture(file(installDir))
     }

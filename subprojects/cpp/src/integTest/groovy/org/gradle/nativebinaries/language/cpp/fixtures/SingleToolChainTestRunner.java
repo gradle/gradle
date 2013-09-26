@@ -66,13 +66,7 @@ public class SingleToolChainTestRunner extends AbstractMultiTestRunner {
         @Override
         protected void before() {
             System.out.println(String.format("Using tool chain %s", toolChain.getDisplayName()));
-            toolChain.initialiseEnvironment();
             AbstractInstalledToolChainIntegrationSpec.setToolChain((AvailableToolChains.InstalledToolChain) toolChain);
-        }
-
-        @Override
-        protected void after() {
-            toolChain.resetEnvironment();
         }
     }
 }
