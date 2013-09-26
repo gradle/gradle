@@ -59,14 +59,37 @@ The inference can evolve over time:
 The result of the inference can potentially be presented to the user to confirm (or they can just edit the generated build file). When nothing
 useful can be inferred, the user can select from a list or assemble the model interactively.
 
-# Story: specify target gradle version via commandline when running auto applied wrapper task
+# Story: Add further project types
 
-This story adds a commandline property "--gradle-version") to the `wrapper` task to specifiy the desired Gradle version:
+Add the following types:
+
+- `groovy-library`
+    - Include a spock unit test
+- `scala-library`
+    - Include a unit test - test framework TBD
+- `gradle-plugin`
+- `web-application`
+- `java-application`
+- `cpp-library`
+- `cpp-application`
+
+## Implementation
+
+- Allow a build template to depend on another template. For example, there is a base template that generates the `settings.gradle`
+
+## Test coverage
+
+- For each build type, generate and execute the build.
+
+# Story: User specifies target gradle version when generating the wrapper
+
+This story adds a commandline property `--gradle-version` to the `wrapper` task to specify the desired Gradle version:
 
 * Add `--gradle-version` command-line option to `wrapper`.
 
 ## Test coverage
-* Running `gradle wrapper --gradle-version 1.6` generates valid wrapper.properties with correct URL.
+
+* Running `gradle wrapper --gradle-version 1.6` generates valid `wrapper.properties` with correct URL.
 
 # Story: Update the user guide Java tutorial to use the `init` task
 
@@ -107,7 +130,11 @@ This story adds the ability for the user to easily update the build to use the m
 
 # Story: Users updates wrapper
 
-* Make it convenient to update the wrapper (as opposed to the Gradle runtime that the wrapper uses). Currently, you need to run the `wrapper` task twice.
+Make it convenient to update the wrapper implementation (not the Gradle runtime that the wrapper uses). Currently, you need to run the `wrapper` task twice.
+
+* Publish the wrapper jar as part of the release process.
+* Change the wrapper task to download and install a wrapper implementation. Should probably default to the wrapper from the target Gradle version or
+  possibly the most recent wrapper that is compatible with the target Gradle version.
 
 # Story: Handle existing Gradle build files
 
@@ -126,6 +153,23 @@ TBD - fix issues with POM conversion to make it more accurate
 
 * Decent error message for badly formed `pom.xml`.
 
+# Story: Build initialisation prompts user for inputs
+
+Some build templates are configurable (eg project names, packages, etc). Add an interactive mechanism for the user to
+provide these inputs.
+
+# Story: User adds a project to an existing build
+
+TBD
+
+# Story: Create a project with custom convention from scratch
+
+Add a resolution mechanism which can resolve build type to an implementation plugin, similar to the plugin resolution mechanism.
+
+# Story: Create an organisation specific project from scratch
+
+Allow the resolution mechanism to search an organisation-specific repository.
+
 # Story: User manually completes migration with help from the build comparison plugin
 
 * Preconfigure the build comparison plugin, as appropriate.
@@ -137,20 +181,6 @@ TBD - fix issues with POM conversion to make it more accurate
 * Add the `init build` action. When invoked it:
     * Determines the most recent Gradle release.
     * Uses it to run the `init build` action.
-
-# Story: Create a library project from scratch
-
-* The user specifies the type of library project to create
-* As for Java library project creation
-* Add support for prompting from the command-line and tooling API
-
-## User interaction
-
-1. User downloads and installs a Gradle distribution.
-2. User runs `gradle init` from an empty directory.
-3. The user is prompted for the type of project they would like to create. Alternatively,
-   the user can specify the project type as a command-line option.
-4. User modifies generated build scripts and source, as appropriate.
 
 # Story: Migrating from Ant to Gradle
 
@@ -196,19 +226,3 @@ As for the Ant to Gradle case.
 # Story: Migrating from IDEA to Gradle
 
 As for the Eclipse to Gradle case.
-
-# Story: Add further project types
-
-Add `groovy`, `scala`, `web-application`, `c++-library` and `c++-application` project types.
-
-# Story: Create a project with custom convention from scratch
-
-TBD
-
-# Story: Create an organisation specific project from scratch
-
-TBD
-
-# Open issues
-
-- Extensibility: need to be able to add more types of projects.
