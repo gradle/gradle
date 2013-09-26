@@ -16,24 +16,13 @@
 package org.gradle.language.jvm.internal;
 
 import org.gradle.api.file.SourceDirectorySet;
-import org.gradle.api.tasks.TaskDependency;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.internal.AbstractLanguageSourceSet;
 import org.gradle.language.jvm.ResourceSet;
 
 public class DefaultResourceSet extends AbstractLanguageSourceSet implements ResourceSet {
-    private final SourceDirectorySet source;
 
     public DefaultResourceSet(String name, SourceDirectorySet source, FunctionalSourceSet parent) {
-        super(name, parent, "resources");
-        this.source = source;
-    }
-
-    public SourceDirectorySet getSource() {
-        return source;
-    }
-
-    public TaskDependency getBuildDependencies() {
-        return source.getBuildDependencies();
+        super(name, parent, "resources", source);
     }
 }

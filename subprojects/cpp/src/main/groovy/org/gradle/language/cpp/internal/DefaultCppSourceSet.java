@@ -16,13 +16,14 @@
 
 package org.gradle.language.cpp.internal;
 
+import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.language.base.FunctionalSourceSet;
-import org.gradle.language.internal.AbstractBaseSourceSet;
+import org.gradle.language.internal.AbstractHeaderExportingDependentSourceSet;
 import org.gradle.language.cpp.CppSourceSet;
 
-public class DefaultCppSourceSet extends AbstractBaseSourceSet implements CppSourceSet {
+public class DefaultCppSourceSet extends AbstractHeaderExportingDependentSourceSet implements CppSourceSet {
     public DefaultCppSourceSet(String name, FunctionalSourceSet parent, ProjectInternal project) {
-        super(name, parent, project, "C++ source");
+        super(name, parent, project, "C++ source", new DefaultSourceDirectorySet("source", project.getFileResolver()));
     }
 }

@@ -19,8 +19,10 @@ import org.gradle.api.Action;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.tasks.TaskDependency;
+import org.gradle.language.DependentSourceSet;
+import org.gradle.language.HeaderExportingSourceSet;
 import org.gradle.language.base.FunctionalSourceSet;
+import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.AbstractLanguageSourceSet;
 
 import java.util.ArrayList;
@@ -29,29 +31,22 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * A convenience base class for implementing language source sets.
- * Note that this class 'implements' all required methods for {@link org.gradle.language.HeaderExportingSourceSet}
- * and {@link org.gradle.language.DependentSourceSet} but does not add those types to the API.
+ * A convenience base class for implementing language source sets with dependencies and exported headers.
  */
-public abstract class AbstractBaseSourceSet extends AbstractLanguageSourceSet {
+public abstract class AbstractHeaderExportingDependentSourceSet extends AbstractLanguageSourceSet
+        implements HeaderExportingSourceSet, LanguageSourceSet, DependentSourceSet {
+
     private final DefaultSourceDirectorySet exportedHeaders;
-    private final DefaultSourceDirectorySet source;
     private final List<Object> libs = new ArrayList<Object>();
     private final ConfigurationBasedNativeDependencySet configurationDependencySet;
 
-    public AbstractBaseSourceSet(String name, FunctionalSourceSet parent, ProjectInternal project, String typeName) {
-        super(name, parent, typeName);
+    public AbstractHeaderExportingDependentSourceSet(String name, FunctionalSourceSet parent, ProjectInternal project, String typeName, SourceDirectorySet source) {
+        super(name, parent, typeName, source);
 
         this.exportedHeaders = new DefaultSourceDirectorySet("exported headers", project.getFileResolver());
-        this.source = new DefaultSourceDirectorySet("source", project.getFileResolver());
         this.configurationDependencySet = new ConfigurationBasedNativeDependencySet(project, getFullName());
 
         libs.add(configurationDependencySet);
-    }
-
-    public TaskDependency getBuildDependencies() {
-        // TODO -
-        return source.getBuildDependencies();
     }
 
     public SourceDirectorySet getExportedHeaders() {
@@ -60,10 +55,6 @@ public abstract class AbstractBaseSourceSet extends AbstractLanguageSourceSet {
 
     public void exportedHeaders(Action<? super SourceDirectorySet> config) {
         config.execute(getExportedHeaders());
-    }
-
-    public SourceDirectorySet getSource() {
-        return source;
     }
 
     public Collection<?> getLibs() {

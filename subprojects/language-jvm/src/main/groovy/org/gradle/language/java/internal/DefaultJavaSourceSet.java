@@ -27,12 +27,10 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class DefaultJavaSourceSet extends AbstractLanguageSourceSet implements JavaSourceSet {
-    private final SourceDirectorySet source;
     private final Classpath compileClasspath;
 
     public DefaultJavaSourceSet(String name, SourceDirectorySet source, Classpath compileClasspath, FunctionalSourceSet parent) {
-        super(name, parent, "Java source");
-        this.source = source;
+        super(name, parent, "Java source", source);
         this.compileClasspath = compileClasspath;
     }
 
@@ -40,16 +38,13 @@ public class DefaultJavaSourceSet extends AbstractLanguageSourceSet implements J
         return compileClasspath;
     }
 
-    public SourceDirectorySet getSource() {
-        return source;
-    }
 
     public TaskDependency getBuildDependencies() {
         return new TaskDependency() {
             public Set<? extends Task> getDependencies(Task task) {
                 Set<Task> dependencies = new HashSet<Task>();
                 dependencies.addAll(compileClasspath.getBuildDependencies().getDependencies(task));
-                dependencies.addAll(source.getBuildDependencies().getDependencies(task));
+                dependencies.addAll(getSource().getBuildDependencies().getDependencies(task));
                 return dependencies;
             }
         };

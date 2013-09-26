@@ -19,17 +19,20 @@ package org.gradle.language.base.internal;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.file.SourceDirectorySet;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.language.base.FunctionalSourceSet;
 
 public abstract class AbstractLanguageSourceSet implements LanguageSourceSetInternal {
     private final String name;
     private final String fullName;
     private final String displayName;
+    private final SourceDirectorySet source;
 
-    public AbstractLanguageSourceSet(String name, FunctionalSourceSet parent, String typeName) {
+    public AbstractLanguageSourceSet(String name, FunctionalSourceSet parent, String typeName, SourceDirectorySet source) {
         this.name = name;
         this.fullName = parent.getName() + StringUtils.capitalize(name);
         this.displayName = String.format("%s '%s:%s'", typeName, parent.getName(), name);
+        this.source = source;
     }
 
     public String getName() {
@@ -47,5 +50,13 @@ public abstract class AbstractLanguageSourceSet implements LanguageSourceSetInte
 
     public void source(Action<? super SourceDirectorySet> config) {
         config.execute(getSource());
+    }
+
+    public SourceDirectorySet getSource() {
+        return source;
+    }
+
+    public TaskDependency getBuildDependencies() {
+        return getSource().getBuildDependencies();
     }
 }

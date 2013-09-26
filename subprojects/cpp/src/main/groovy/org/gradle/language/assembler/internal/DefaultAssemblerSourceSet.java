@@ -16,13 +16,14 @@
 
 package org.gradle.language.assembler.internal;
 
+import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.assembler.AssemblerSourceSet;
-import org.gradle.language.internal.AbstractBaseSourceSet;
+import org.gradle.language.base.FunctionalSourceSet;
+import org.gradle.language.base.internal.AbstractLanguageSourceSet;
 
-public class DefaultAssemblerSourceSet extends AbstractBaseSourceSet implements AssemblerSourceSet {
+public class DefaultAssemblerSourceSet extends AbstractLanguageSourceSet implements AssemblerSourceSet {
     public DefaultAssemblerSourceSet(String name, FunctionalSourceSet parent, ProjectInternal project) {
-        super(name, parent, project, "assembler source");
+        super(name, parent, "assembler source", new DefaultSourceDirectorySet("source", project.getFileResolver()));
     }
 }
