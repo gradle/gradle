@@ -66,7 +66,7 @@ Add the following types:
 - `groovy-library`
     - Include a spock unit test
 - `scala-library`
-    - Include a unit test - test framework TBD
+    - Include a scalatest suite
 - `gradle-plugin`
 - `web-application`
 - `java-application`
