@@ -49,24 +49,13 @@ public class AvailableToolChains {
             compilers.add(findCygwin());
         } else {
             // GCC4.x must be on the path
-            compilers.add(findGpp("4", null));
-            // CI servers have GCC4.4 installed additionally
-            compilers.add(findGpp("4.4", "/opt/gcc/4.4/bin/g++"));
+            compilers.add(findGcc("4", null));
 
-            // It's easy to get GCC4.8 installed on OSX, and symlink to this location
-            // Not available on CI servers, so only add it if it's available
-            ToolChainCandidate gpp48 = findGpp("4.8", "/opt/gcc/4.8/bin/g++");
-            if (gpp48.isAvailable()) {
-                compilers.add(gpp48);
-            }
+            // Clang must be on the path
+            // TODO:ADAM Also check on windows
+            compilers.add(findClang());
 
             // TODO:DAZ Make a GCC3 install available for testing
-
-            // TODO:ADAM Make this non-optional and also check on windows
-            ToolChainCandidate clang = findClang();
-            if (clang.isAvailable()) {
-                compilers.add(clang);
-            }
         }
         return compilers;
     }
@@ -116,7 +105,7 @@ public class AvailableToolChains {
         return new UnavailableToolChain("gcc cygwin");
     }
 
-    static private ToolChainCandidate findGpp(String versionPrefix, String hardcodedFallback) {
+    static private ToolChainCandidate findGcc(String versionPrefix, String hardcodedFallback) {
         String name = String.format("gcc %s", versionPrefix);
         GccVersionDeterminer versionDeterminer = new GccVersionDeterminer(new ExecActionFactory() {
             public ExecAction newExecAction() {
