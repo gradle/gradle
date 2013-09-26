@@ -231,41 +231,44 @@ class DefaultTaskTest extends AbstractTaskTest {
     @Issue("GRADLE-2774")
     @Test
     public void testActionToActionsAndExecute() {
-        def closureAction = { t -> } as Action
-
+        def actionExecuted = false
+        def closureAction = { t -> actionExecuted = true } as Action
         defaultTask.actions.add(closureAction)
-
         defaultTask.execute()
+        assertTrue(actionExecuted)
+
     }
 
     @Issue("GRADLE-2774")
     @Test
     public void testAddAllActionToActionsAndExecute() {
-        def closureAction = { t -> } as Action
-
+        def actionExecuted = false
+        def closureAction = { t -> actionExecuted = true } as Action
         defaultTask.actions.addAll(Lists.newArrayList(closureAction))
-
         defaultTask.execute()
+
+        assertTrue(actionExecuted)
     }
 
     @Issue("GRADLE-2774")
     @Test
     public void testAddAllActionToActionsWithIndexAndExecute() {
-        def closureAction = { t -> } as Action
-
+        def actionExecuted = false
+        def closureAction = { t -> actionExecuted = true } as Action
         defaultTask.actions.addAll(0, Lists.newArrayList(closureAction))
-
         defaultTask.execute()
+        assertTrue(actionExecuted)
+
     }
 
     @Issue("GRADLE-2774")
     @Test
     public void testAddActionToActionsWithIteratorAndExecute() {
-        def closureAction = { t -> } as Action
-
+        def actionExecuted = false
+        def closureAction = { t -> actionExecuted = true } as Action
         defaultTask.actions.listIterator().add(closureAction)
-
         defaultTask.execute()
+        assertTrue(actionExecuted)
     }
 
     @Test
@@ -288,28 +291,24 @@ class DefaultTaskTest extends AbstractTaskTest {
     @Test
     public void testAddNullToActionsAndExecute() {
         thrown.expect(InvalidUserDataException.class)
-
         defaultTask.actions.add(null);
     }
 
     @Test
     public void testAddNullToActionsWithIndexAndExecute() {
         thrown.expect(InvalidUserDataException.class)
-
         defaultTask.actions.add(0, null);
     }
 
     @Test
     public void testAddAllNullToActionsAndExecute() {
         thrown.expect(InvalidUserDataException.class)
-
         defaultTask.actions.addAll(null);
     }
 
     @Test
     public void testAddAllNullToActionsWithIndexAndExecute() {
         thrown.expect(InvalidUserDataException.class)
-
         defaultTask.actions.addAll(0, null);
     }
 
