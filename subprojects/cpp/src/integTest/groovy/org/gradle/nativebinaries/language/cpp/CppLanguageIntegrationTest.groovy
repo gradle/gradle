@@ -16,6 +16,7 @@
 
 package org.gradle.nativebinaries.language.cpp
 
+import org.gradle.nativebinaries.language.cpp.fixtures.app.CompilerDetectingHelloWorldApp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.CppHelloWorldApp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.HelloWorldApp
 
@@ -46,17 +47,11 @@ class CppLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
     }
 
     def "sources are compiled with C++ compiler"() {
-        given:
-        file("src/main/cpp/main.cpp") << """
-            #include <stdio.h>
+        def app = new CompilerDetectingHelloWorldApp()
 
-            int main () {
-                #ifdef __cplusplus
-                printf("SUCCESS");
-                #endif
-                return 0;
-            }
-"""
+        given:
+        app.writeSources(file('src/main'))
+
         and:
         buildFile << """
              executables {
@@ -66,7 +61,7 @@ class CppLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
 
         expect:
         succeeds "mainExecutable"
-        executable("build/binaries/mainExecutable/main").exec().out == "SUCCESS"
+        executable("build/binaries/mainExecutable/main").exec().out == app.expectedOutput(toolChain)
     }
 
     def "can manually define C++ source sets"() {

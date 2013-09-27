@@ -123,7 +123,7 @@ ${toolChain.buildScriptConfig}
     def checkInstall(String path, AvailableToolChains.InstalledToolChain toolChain) {
         def executable = file(OperatingSystem.current().getScriptName(path))
         executable.assertExists()
-        assert executable.execute([], toolChain.runtimeEnv).out == "C++ ${toolChain.typeDisplayName}"
+        assert executable.execute([], toolChain.runtimeEnv).out == helloWorld.expectedOutput(toolChain)
         return true
     }
 }
