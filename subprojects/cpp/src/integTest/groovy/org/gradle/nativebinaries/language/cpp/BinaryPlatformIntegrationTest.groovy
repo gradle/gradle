@@ -49,6 +49,11 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
 
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
     def "build binary for multiple target platforms"() {
+        // Don't yet have test environments to build 64-bit binaries on MinGW or cygwin
+        if (OperatingSystem.current().windows && !toolChain.visualCpp) {
+            return
+        }
+
         when:
         buildFile << """
             targetPlatforms {
