@@ -36,6 +36,7 @@ class CacheLayoutTest extends Specification {
         then:
         cacheLayout.key == 'files-1.1'
         cacheLayout.majorVersion == 1
+        cacheLayout.minorVersion == 1
         cacheLayout.formattedVersion == '1.1'
         cacheLayout.getPath(new File('some/dir')) == new File('some/dir/files-1.1')
     }
@@ -45,9 +46,10 @@ class CacheLayoutTest extends Specification {
         CacheLayout cacheLayout = CacheLayout.META_DATA
 
         then:
-        cacheLayout.key == 'metadata-1.27'
+        cacheLayout.key == 'metadata-1.29'
         cacheLayout.majorVersion == 1
-        cacheLayout.formattedVersion == '1.27'
-        cacheLayout.getPath(new File('some/dir')) == new File('some/dir/metadata-1.27')
+        cacheLayout.minorVersion == 29
+        cacheLayout.formattedVersion == '1.29'
+        cacheLayout.getPath(new File('some/dir')) == new File('some/dir/metadata-1.29')
     }
 }

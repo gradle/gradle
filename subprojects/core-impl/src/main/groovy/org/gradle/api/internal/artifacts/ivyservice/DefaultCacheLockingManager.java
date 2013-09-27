@@ -33,7 +33,7 @@ public class DefaultCacheLockingManager implements CacheLockingManager {
 
     // If you update this, also update DefaultGradleDistribution.getArtifactCacheLayoutVersion() (which is the historical record)
     // You should also update LocallyAvailableResourceFinderFactory
-    public static final int CACHE_LAYOUT_VERSION = CacheLayout.ROOT.getMajorVersion();
+    public static final int CACHE_LAYOUT_VERSION = CacheLayout.META_DATA.getMinorVersion();
 
     private final PersistentCache cache;
 
