@@ -118,11 +118,13 @@ public class JavaVersionSpec extends Specification {
         JavaVersion.current().java5
         !JavaVersion.current().java6
         !JavaVersion.current().java7
+        !JavaVersion.current().java8
 
         and:
         JavaVersion.current().java5Compatible
         !JavaVersion.current().java6Compatible
         !JavaVersion.current().java7Compatible
+        !JavaVersion.current().java8Compatible
     }
 
     def "uses system property to determine if compatible with Java 6"() {
@@ -132,11 +134,13 @@ public class JavaVersionSpec extends Specification {
         !JavaVersion.current().java5
         JavaVersion.current().java6
         !JavaVersion.current().java7
+        !JavaVersion.current().java8
 
         and:
         JavaVersion.current().java5Compatible
         JavaVersion.current().java6Compatible
         !JavaVersion.current().java7Compatible
+        !JavaVersion.current().java8Compatible
     }
 
     def "uses system property to determine if compatible with Java 7"() {
@@ -146,11 +150,13 @@ public class JavaVersionSpec extends Specification {
         !JavaVersion.current().java5
         !JavaVersion.current().java6
         JavaVersion.current().java7
+        !JavaVersion.current().java8
 
         and:
         JavaVersion.current().java5Compatible
         JavaVersion.current().java6Compatible
         JavaVersion.current().java7Compatible
+        !JavaVersion.current().java8Compatible
     }
 
     def "uses system property to determine if compatible with Java 8"() {

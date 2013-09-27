@@ -22,7 +22,7 @@ import org.gradle.util.TestPrecondition
 import spock.lang.Specification
 import static java.nio.file.attribute.PosixFilePermission.*
 
-@Requires(TestPrecondition.JDK7)
+@Requires(TestPrecondition.JDK7_OR_LATER)
 class PosixFilePermissionConverterTest extends Specification {
     def "converts Set<PosixFilePermission to int representation"() {
 

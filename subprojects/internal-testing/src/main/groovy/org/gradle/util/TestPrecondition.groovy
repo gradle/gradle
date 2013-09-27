@@ -15,6 +15,7 @@
  */
 package org.gradle.util
 
+import org.gradle.api.JavaVersion
 import org.gradle.internal.os.OperatingSystem
 
 enum TestPrecondition {
@@ -82,22 +83,19 @@ enum TestPrecondition {
         !UNKNOWN_OS.fulfilled
     }),
     JDK5({
-        System.getProperty("java.version").startsWith("1.5")
+        JavaVersion.current().java5
     }),
-    JDK6({
-        System.getProperty("java.version").startsWith("1.6")
+    JDK6_OR_LATER({
+        JavaVersion.current() >= JavaVersion.VERSION_1_6
     }),
-    JDK7({
-        System.getProperty("java.version").startsWith("1.7")
+    JDK6_OR_EARLIER({
+        JavaVersion.current() <= JavaVersion.VERSION_1_6
     }),
-    NOT_JDK5({
-        !JDK5.fulfilled
-    }),
-    NOT_JDK7({
-        !JDK7.fulfilled
+    JDK7_OR_LATER({
+        JavaVersion.current() >= JavaVersion.VERSION_1_7
     }),
     JDK7_POSIX({
-        JDK7.fulfilled && NOT_WINDOWS.fulfilled
+        JDK7_OR_LATER.fulfilled && NOT_WINDOWS.fulfilled
     }),
     ONLINE({
         try {

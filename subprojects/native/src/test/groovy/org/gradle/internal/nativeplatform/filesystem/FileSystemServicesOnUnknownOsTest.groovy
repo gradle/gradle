@@ -28,25 +28,25 @@ public class FileSystemServicesOnUnknownOsTest extends Specification {
     final Stat stat = FileSystemServices.services.get(Stat)
     final Symlink symlink = FileSystemServices.services.get(Symlink)
 
-    @Requires(TestPrecondition.NOT_JDK7)
+    @Requires(TestPrecondition.JDK6_OR_EARLIER)
     def "creates EmptyChmod when not on JDK7"() {
         expect:
         chmod instanceof EmptyChmod
     }
 
-    @Requires(TestPrecondition.NOT_JDK7)
+    @Requires(TestPrecondition.JDK6_OR_EARLIER)
     def "creates FallbackStat when not on JDK7"() {
         expect:
         stat instanceof FallbackStat
     }
 
-    @Requires(TestPrecondition.NOT_JDK7)
+    @Requires(TestPrecondition.JDK6_OR_EARLIER)
     def "creates FallbackSymlink when not on JDK7"() {
         expect:
         symlink instanceof FallbackSymlink
     }
 
-    @Requires(TestPrecondition.JDK7)
+    @Requires(TestPrecondition.JDK7_OR_LATER)
     def "creates Jdk7PosixFilePermissionHandler on JDK7"() {
         expect:
         chmod.class.name == "org.gradle.internal.nativeplatform.filesystem.jdk7.PosixJdk7FilePermissionHandler"

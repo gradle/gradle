@@ -91,19 +91,19 @@ public enum JavaVersion {
     }
 
     public boolean isJava5Compatible() {
-        return isJava5() || isJava6Compatible();
+        return this.compareTo(VERSION_1_5) >= 0;
     }
 
     public boolean isJava6Compatible() {
-        return isJava6() || isJava7Compatible();
+        return this.compareTo(VERSION_1_6) >= 0;
     }
 
     public boolean isJava7Compatible() {
-        return isJava7() || isJava8Compatible();
+        return this.compareTo(VERSION_1_7) >= 0;
     }
 
     public boolean isJava8Compatible() {
-        return isJava8();
+        return this.compareTo(VERSION_1_8) >= 0;
     }
 
     @Override
