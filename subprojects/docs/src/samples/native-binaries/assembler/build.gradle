@@ -19,39 +19,42 @@ apply plugin: 'assembler'
 // END SNIPPET apply-plugin
 apply plugin: 'c'
 
-def osName = System.getProperty("os.name").toLowerCase();
-def osx = osName.contains("mac os x") || osName.contains("darwin")
-def linux = osName.contains("linux")
-def platform = osx ? "i386_osx"
-             : linux ? "x64_gcc"
-             : "i386_masm"
+targetPlatforms {
+    x86 {
+        architecture Platform.Architecture.I386
+    }
+}
 
-// START SNIPPET sources
 sources {
-    main {
+    i386_masm {
         asm {
-            source.srcDir "src/main/asm_${platform}"
+            source.srcDir "src/main/asm_i386_masm"
+        }
+    }
+    i386_gcc {
+        asm {
+            source.srcDir "src/main/asm_i386_gcc"
         }
     }
 }
-// END SNIPPET sources
 
 // START SNIPPET assembler-args
 executables {
     main {
-        // END SNIPPET assembler-args
-        if (osx) {
-        // START SNIPPET assembler-args
         binaries.all {
-            assembler.args "-arch", "i386"
-            cCompiler.args "-m32"
-            linker.args "-m32"
+            if (toolChain in VisualCpp) {
+// END SNIPPET assembler-args
+                source sources.i386_masm
+// START SNIPPET assembler-args
+                assembler.args "/Zi"
+            } else {
+// END SNIPPET assembler-args
+                source sources.i386_gcc
+// START SNIPPET assembler-args
+                assembler.args "-g"
+            }
         }
-        // END SNIPPET assembler-args
-        }
-        // START SNIPPET assembler-args
     }
 }
 // END SNIPPET assembler-args
-
 
