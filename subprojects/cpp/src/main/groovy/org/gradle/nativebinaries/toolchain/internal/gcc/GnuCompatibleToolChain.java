@@ -108,12 +108,12 @@ public class GnuCompatibleToolChain implements PlatformToolChain {
     }
 
     private List<String> asSwitches() {
-        String archFlag = operatingSystem.isMacOsX() ? "-arch" : "-march";
+        boolean osx = operatingSystem.isMacOsX();
         switch (targetPlatform.getArchitecture()) {
             case I386:
-                return args(archFlag, "i386");
+                return osx ? args("-arch", "i386") : args("--32");
             case AMD64:
-                return args(archFlag, "x86_64");
+                return osx ? args("-arch", "x86_64") : args("--64");
             default:
                 return args();
         }
