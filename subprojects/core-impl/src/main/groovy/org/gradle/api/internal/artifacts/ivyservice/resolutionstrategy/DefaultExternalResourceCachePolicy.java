@@ -15,8 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy;
 
-import org.gradle.api.internal.artifacts.configurations.dynamicversion.ExternalResourceCachePolicy;
-
 public class DefaultExternalResourceCachePolicy extends DefaultCachePolicy implements ExternalResourceCachePolicy {
     public boolean mustRefreshExternalResource(long ageMillis) {
         return ageMillis != 0 ? true : false;

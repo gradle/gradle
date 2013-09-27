@@ -17,8 +17,8 @@
 package org.gradle.api.internal.externalresource.transfer;
 
 import org.gradle.api.Nullable;
-import org.gradle.api.internal.artifacts.configurations.dynamicversion.ExternalResourceCachePolicy;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultExternalResourceCachePolicy;
+import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.ExternalResourceCachePolicy;
 import org.gradle.api.internal.externalresource.DefaultLocallyAvailableExternalResource;
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.cached.CachedExternalResource;
@@ -28,9 +28,9 @@ import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceCa
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaDataCompare;
 import org.gradle.internal.Factory;
+import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.resource.local.LocallyAvailableResource;
 import org.gradle.util.BuildCommencedTimeProvider;
-import org.gradle.internal.hash.HashValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
