@@ -153,22 +153,7 @@ public class AvailableToolChains {
 
         public abstract void resetEnvironment();
 
-        public ExecutableFixture executable(Object path) {
-            return new ExecutableFixture(new TestFile(OperatingSystem.current().getExecutableName(path.toString())), this);
-        }
-
-        public TestFile objectFile(Object path) {
-            return new TestFile(path.toString() + ".o");
-        }
-
-        public SharedLibraryFixture sharedLibrary(Object path) {
-            return new SharedLibraryFixture(new TestFile(OperatingSystem.current().getSharedLibraryName(path.toString())), this);
-        }
-
-        public NativeBinaryFixture staticLibrary(Object path) {
-            return new NativeBinaryFixture(new TestFile(OperatingSystem.current().getStaticLibraryName(path.toString())), this);
-        }
-    }
+   }
     
     public abstract static class InstalledToolChain extends ToolChainCandidate {
         private static final ProcessEnvironment PROCESS_ENVIRONMENT = NativeServices.getInstance().get(ProcessEnvironment.class);
@@ -207,6 +192,22 @@ public class AvailableToolChains {
 
         public String getTypeDisplayName() {
             return getDisplayName().replaceAll("\\s+\\d+(\\.\\d+)*$", "");
+        }
+
+        public ExecutableFixture executable(Object path) {
+            return new ExecutableFixture(new TestFile(OperatingSystem.current().getExecutableName(path.toString())), this);
+        }
+
+        public TestFile objectFile(Object path) {
+            return new TestFile(path.toString() + ".o");
+        }
+
+        public SharedLibraryFixture sharedLibrary(Object path) {
+            return new SharedLibraryFixture(new TestFile(OperatingSystem.current().getSharedLibraryName(path.toString())), this);
+        }
+
+        public NativeBinaryFixture staticLibrary(Object path) {
+            return new NativeBinaryFixture(new TestFile(OperatingSystem.current().getStaticLibraryName(path.toString())), this);
         }
 
         public void initialiseEnvironment() {

@@ -15,17 +15,17 @@
  */
 
 package org.gradle.nativebinaries.language.cpp.fixtures
-import org.gradle.nativebinaries.language.cpp.fixtures.AvailableToolChains.ToolChainCandidate
+
 import org.gradle.test.fixtures.file.ExecOutput
 import org.gradle.test.fixtures.file.TestFile
 
 class ExecutableFixture extends NativeBinaryFixture {
-    ExecutableFixture(TestFile file, ToolChainCandidate toolChain) {
+    ExecutableFixture(TestFile file, AvailableToolChains.InstalledToolChain toolChain) {
         super(file, toolChain)
     }
 
     public ExecOutput exec(Object... args) {
         assertExists()
-        return file.exec(args)
+        return file.execute(args as List, toolChain.runtimeEnv)
     }
 }

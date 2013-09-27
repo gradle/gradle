@@ -19,7 +19,7 @@ package org.gradle.nativebinaries.language.cpp.fixtures
 import org.gradle.test.fixtures.file.TestFile
 
 class SharedLibraryFixture extends NativeBinaryFixture {
-    SharedLibraryFixture(TestFile file, AvailableToolChains.ToolChainCandidate toolChain) {
+    SharedLibraryFixture(TestFile file, AvailableToolChains.InstalledToolChain toolChain) {
         super(file, toolChain)
     }
 
