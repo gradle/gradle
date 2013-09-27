@@ -15,6 +15,9 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
+import org.gradle.api.UncheckedIOException;
+import org.gradle.api.internal.filestore.PathKeyFileStore;
+import org.gradle.api.internal.filestore.UniquePathKeyFileStore;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
@@ -30,17 +33,33 @@ public class DefaultCacheLockingManager implements CacheLockingManager {
 
     // If you update this, also update DefaultGradleDistribution.getArtifactCacheLayoutVersion() (which is the historical record)
     // You should also update LocallyAvailableResourceFinderFactory
-    public static final int CACHE_LAYOUT_VERSION = 28;
+    public static final int CACHE_LAYOUT_VERSION = CacheLayout.ROOT.getMajorVersion();
 
     private final PersistentCache cache;
 
     public DefaultCacheLockingManager(CacheRepository cacheRepository) {
         cache = cacheRepository
-                .store(String.format("artifacts-%d", CACHE_LAYOUT_VERSION))
+                .store(CacheLayout.ROOT.getKey())
                 .withDisplayName("artifact cache")
                 .withVersionStrategy(CacheBuilder.VersionStrategy.SharedCache)
                 .withLockMode(FileLockManager.LockMode.None) // Don't need to lock anything until we use the caches
                 .open();
+
+        initMetaDataStoreDir();
+    }
+
+    private void initMetaDataStoreDir() {
+        File metaDataStoreDir = getMetaDataStoreDir();
+
+        if(!metaDataStoreDir.exists()) {
+            if(!metaDataStoreDir.mkdirs()) {
+                throw new UncheckedIOException(String.format("Unable to create directory '%s'", metaDataStoreDir.getName()));
+            }
+        }
+    }
+
+    private File getMetaDataStoreDir() {
+        return CacheLayout.META_DATA.getPath(cache.getBaseDir());
     }
 
     public File getCacheDir() {
@@ -63,7 +82,20 @@ public class DefaultCacheLockingManager implements CacheLockingManager {
         return cache.longRunningOperation(operationDisplayName, action);
     }
 
-    public <K, V> PersistentIndexedCache<K, V> createCache(File cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
-        return cache.createCache(new PersistentIndexedCacheParameters<K, V>(cacheFile, keySerializer, valueSerializer));
+    public <K, V> PersistentIndexedCache<K, V> createCache(String cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
+        File cacheFileInMetaDataStore = new File(getMetaDataStoreDir(), cacheFile);
+        return cache.createCache(new PersistentIndexedCacheParameters<K, V>(cacheFileInMetaDataStore, keySerializer, valueSerializer));
+    }
+
+    public PathKeyFileStore createFileStore() {
+        return createCacheRelativeStore(CacheLayout.FILE_STORE);
+    }
+
+    public PathKeyFileStore createMetaDataStore() {
+        return createCacheRelativeStore(CacheLayout.META_DATA);
+    }
+
+    private PathKeyFileStore createCacheRelativeStore(CacheLayout cacheLayout) {
+        return new UniquePathKeyFileStore(cacheLayout.getPath(cache.getBaseDir()));
     }
 }

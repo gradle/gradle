@@ -54,7 +54,6 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
 import org.gradle.api.internal.filestore.PathKeyFileStore;
-import org.gradle.api.internal.filestore.UniquePathKeyFileStore;
 import org.gradle.api.internal.filestore.ivy.ArtifactRevisionIdFileStore;
 import org.gradle.api.internal.notations.*;
 import org.gradle.api.internal.notations.api.NotationParser;
@@ -66,7 +65,6 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.util.BuildCommencedTimeProvider;
 
-import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
@@ -118,41 +116,39 @@ class DependencyManagementBuildScopeServices {
         return new BuildCommencedTimeProvider();
     }
 
-    ModuleResolutionCache createModuleResolutionCache(ArtifactCacheMetaData artifactCacheMetaData, BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
+    ModuleResolutionCache createModuleResolutionCache(BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
         return new SingleFileBackedModuleResolutionCache(
-                artifactCacheMetaData,
                 timeProvider,
                 cacheLockingManager
         );
     }
 
-    ModuleMetaDataCache createModuleDescriptorCache(ArtifactCacheMetaData artifactCacheMetaData, BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager, ResolverStrategy resolverStrategy) {
+    ModuleMetaDataCache createModuleDescriptorCache(BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager, ResolverStrategy resolverStrategy) {
         return new DefaultModuleMetaDataCache(
-                artifactCacheMetaData,
                 timeProvider,
                 cacheLockingManager,
                 resolverStrategy
         );
     }
 
-    ArtifactAtRepositoryCachedArtifactIndex createArtifactAtRepositoryCachedResolutionIndex(ArtifactCacheMetaData artifactCacheMetaData, BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
+    ArtifactAtRepositoryCachedArtifactIndex createArtifactAtRepositoryCachedResolutionIndex(BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
         return new ArtifactAtRepositoryCachedArtifactIndex(
-                new File(artifactCacheMetaData.getCacheDir(), "artifact-at-repository.bin"),
+                "artifact-at-repository.bin",
                 timeProvider,
                 cacheLockingManager
         );
     }
 
-    ByUrlCachedExternalResourceIndex createArtifactUrlCachedResolutionIndex(ArtifactCacheMetaData artifactCacheMetaData, BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
+    ByUrlCachedExternalResourceIndex createArtifactUrlCachedResolutionIndex(BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
         return new ByUrlCachedExternalResourceIndex(
-                new File(artifactCacheMetaData.getCacheDir(), "artifact-at-url.bin"),
+                "artifact-at-url.bin",
                 timeProvider,
                 cacheLockingManager
         );
     }
 
-    PathKeyFileStore createUniquePathFileStore(ArtifactCacheMetaData artifactCacheMetaData) {
-        return new UniquePathKeyFileStore(new File(artifactCacheMetaData.getCacheDir(), "filestore"));
+    PathKeyFileStore createUniquePathFileStore(CacheLockingManager cacheLockingManager) {
+        return cacheLockingManager.createFileStore();
     }
 
     ArtifactRevisionIdFileStore createArtifactRevisionIdFileStore(PathKeyFileStore pathKeyFileStore) {
@@ -167,7 +163,7 @@ class DependencyManagementBuildScopeServices {
         return new DefaultLocalMavenRepositoryLocator(mavenSettingsProvider, SystemProperties.asMap(), System.getenv());
     }
 
-    LocallyAvailableResourceFinder<ArtifactRevisionId> createArtifactRevisionIdLocallyAvailableResourceFinder(ArtifactCacheMetaData artifactCacheMetaData, LocalMavenRepositoryLocator localMavenRepositoryLocator, ArtifactRevisionIdFileStore fileStore) {
+    LocallyAvailableResourceFinder<ArtifactRevisionId> createArtifactRevisionIdLocallyAvailableResourceFinder(ArtifactCacheMetaData artifactCacheMetaData, LocalMavenRepositoryLocator localMavenRepositoryLocator, ArtifactRevisionIdFileStore  fileStore) {
         LocallyAvailableResourceFinderFactory finderFactory = new LocallyAvailableResourceFinderFactory(
                 artifactCacheMetaData,
                 localMavenRepositoryLocator,

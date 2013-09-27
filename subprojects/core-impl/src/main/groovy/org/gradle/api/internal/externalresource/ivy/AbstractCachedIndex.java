@@ -25,14 +25,14 @@ import org.gradle.messaging.serialize.Serializer;
 import java.io.File;
 
 abstract public class AbstractCachedIndex<K, V extends CachedItem> {
-    private final File persistentCacheFile;
+    private final String persistentCacheFile;
     private final Serializer<K> keySerializer;
     private final Serializer<V> valueSerializer;
     private final CacheLockingManager cacheLockingManager;
 
     private PersistentIndexedCache<K, V> persistentCache;
 
-    public AbstractCachedIndex(File persistentCacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer, CacheLockingManager cacheLockingManager) {
+    public AbstractCachedIndex(String persistentCacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer, CacheLockingManager cacheLockingManager) {
 
         this.persistentCacheFile = persistentCacheFile;
         this.keySerializer = keySerializer;
@@ -52,7 +52,7 @@ abstract public class AbstractCachedIndex<K, V extends CachedItem> {
     }
 
     private String operationName(String action) {
-        return String.format("%s artifact resolution cache '%s'", action, persistentCacheFile.getName());
+        return String.format("%s artifact resolution cache '%s'", action, persistentCacheFile);
     }
 
     public V lookup(final K key) {

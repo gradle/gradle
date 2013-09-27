@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ModuleVersionIdentifierSerializer;
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver;
 import org.gradle.api.internal.artifacts.ivyservice.IvyXmlModuleDescriptorWriter;
@@ -27,7 +26,6 @@ import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyXmlModuleDescriptorParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
-import org.gradle.api.internal.filestore.PathKeyFileStore;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.internal.resource.local.LocallyAvailableResource;
 import org.gradle.messaging.serialize.*;
@@ -38,25 +36,22 @@ import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.math.BigInteger;
 
 public class DefaultModuleMetaDataCache implements ModuleMetaDataCache {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultModuleMetaDataCache.class);
 
     private final BuildCommencedTimeProvider timeProvider;
-    private final ArtifactCacheMetaData cacheMetadata;
     private final CacheLockingManager cacheLockingManager;
 
     private final ModuleDescriptorStore moduleDescriptorStore;
     private PersistentIndexedCache<RevisionKey, ModuleDescriptorCacheEntry> cache;
 
-    public DefaultModuleMetaDataCache(ArtifactCacheMetaData cacheMetadata, BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager, ResolverStrategy resolverStrategy) {
+    public DefaultModuleMetaDataCache(BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager, ResolverStrategy resolverStrategy) {
         this.timeProvider = timeProvider;
         this.cacheLockingManager = cacheLockingManager;
-        this.cacheMetadata = cacheMetadata;
 
-        moduleDescriptorStore = new ModuleDescriptorStore(new PathKeyFileStore(cacheMetadata.getCacheDir()), new IvyXmlModuleDescriptorWriter(), new IvyXmlModuleDescriptorParser(resolverStrategy));
+        moduleDescriptorStore = new ModuleDescriptorStore(cacheLockingManager.createMetaDataStore(), new IvyXmlModuleDescriptorWriter(), new IvyXmlModuleDescriptorParser(resolverStrategy));
     }
 
     private PersistentIndexedCache<RevisionKey, ModuleDescriptorCacheEntry> getCache() {
@@ -67,8 +62,7 @@ public class DefaultModuleMetaDataCache implements ModuleMetaDataCache {
     }
 
     private PersistentIndexedCache<RevisionKey, ModuleDescriptorCacheEntry> initCache() {
-        File artifactResolutionCacheFile = new File(cacheMetadata.getCacheDir(), "module-metadata.bin");
-        return cacheLockingManager.createCache(artifactResolutionCacheFile, new RevisionKeySerializer(), new ModuleDescriptorCacheEntrySerializer());
+        return cacheLockingManager.createCache("module-metadata.bin", new RevisionKeySerializer(), new ModuleDescriptorCacheEntrySerializer());
     }
 
     public CachedMetaData getCachedModuleDescriptor(ModuleVersionRepository repository, ModuleVersionIdentifier moduleVersionIdentifier, DependencyToModuleVersionResolver resolver) {

@@ -18,6 +18,7 @@ package org.gradle.plugins.ide.idea
 
 import org.custommonkey.xmlunit.Diff
 import org.custommonkey.xmlunit.ElementNameAndAttributeQualifier
+import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.plugins.ide.AbstractIdeIntegrationTest
@@ -370,7 +371,7 @@ idea.project {
         def expectedXml = expectedFile.text
 
         def homeDir = executer.gradleUserHomeDir.absolutePath.replace(File.separator, '/')
-        def pattern = Pattern.compile(Pattern.quote(homeDir) + "/caches/artifacts-\\d+/filestore/([^/]+/[^/]+/[^/]+/[^/]+)/[a-z0-9]+/")
+        def pattern = Pattern.compile(Pattern.quote(homeDir) + "/caches/${CacheLayout.ROOT.getKey()}/${CacheLayout.FILE_STORE.getKey()}/([^/]+/[^/]+/[^/]+/[^/]+)/[a-z0-9]+/")
         def actualXml = file.text.replaceAll(pattern, '@CACHE_DIR@/$1/@SHA1@/')
 
         Diff diff = new Diff(expectedXml, actualXml)

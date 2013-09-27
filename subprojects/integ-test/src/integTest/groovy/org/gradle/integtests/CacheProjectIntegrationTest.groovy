@@ -16,7 +16,7 @@
 
 package org.gradle.integtests
 
-import org.gradle.api.internal.artifacts.ivyservice.DefaultCacheLockingManager
+import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.UriScriptSource
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
@@ -142,8 +142,7 @@ public class CacheProjectIntegrationTest extends AbstractIntegrationTest {
     }
 
     private TestFile findDependencyCacheDir() {
-        def cacheVersion = DefaultCacheLockingManager.CACHE_LAYOUT_VERSION
-        def resolverArtifactCache = new TestFile(userHomeDir.file("caches/artifacts-${cacheVersion}/filestore"))
+        def resolverArtifactCache = new TestFile(userHomeDir.file("caches/${CacheLayout.ROOT.getKey()}/${CacheLayout.FILE_STORE.getKey()}"))
         return resolverArtifactCache.file("commons-io/commons-io/")
     }
 

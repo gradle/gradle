@@ -31,20 +31,20 @@ import java.io.File;
 
 public class ModuleDescriptorStore {
 
-    public static final String FILE_PATH_PATTERN = "module-metadata/%s/%s/%s/%s/ivy.xml";
+    public static final String FILE_PATH_PATTERN = "%s/%s/%s/%s/ivy.xml";
     private final IvyXmlModuleDescriptorParser descriptorParser;
-    private final PathKeyFileStore pathKeyFileStore;
+    private final PathKeyFileStore metaDataStore;
     private final IvyModuleDescriptorWriter descriptorWriter;
 
-    public ModuleDescriptorStore(PathKeyFileStore pathKeyFileStore, IvyModuleDescriptorWriter descriptorWriter, IvyXmlModuleDescriptorParser ivyXmlModuleDescriptorParser) {
-        this.pathKeyFileStore = pathKeyFileStore;
+    public ModuleDescriptorStore(PathKeyFileStore metaDataStore, IvyModuleDescriptorWriter descriptorWriter, IvyXmlModuleDescriptorParser ivyXmlModuleDescriptorParser) {
+        this.metaDataStore = metaDataStore;
         this.descriptorWriter = descriptorWriter;
         this.descriptorParser = ivyXmlModuleDescriptorParser;
     }
 
     public ModuleDescriptor getModuleDescriptor(ModuleVersionRepository repository, ModuleVersionIdentifier moduleVersionIdentifier) {
         String filePath = getFilePath(repository, moduleVersionIdentifier);
-        final LocallyAvailableResource resource = pathKeyFileStore.get(filePath);
+        final LocallyAvailableResource resource = metaDataStore.get(filePath);
         if (resource != null) {
             return parseModuleDescriptorFile(resource.getFile());
         }
@@ -53,7 +53,7 @@ public class ModuleDescriptorStore {
 
     public LocallyAvailableResource putModuleDescriptor(ModuleVersionRepository repository, final ModuleDescriptor moduleDescriptor) {
         String filePath = getFilePath(repository, moduleDescriptor.getModuleRevisionId());
-        return pathKeyFileStore.add(filePath, new Action<File>() {
+        return metaDataStore.add(filePath, new Action<File>() {
             public void execute(File moduleDescriptorFile) {
                 try {
                     descriptorWriter.write(moduleDescriptor, moduleDescriptorFile);

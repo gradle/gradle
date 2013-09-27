@@ -46,7 +46,7 @@ class DefaultArtifactResolutionCacheTest extends Specification {
     def setup() {
         cacheRepository = new DefaultCacheRepository(tmp.createDir('user-home'), tmp.createDir('project-cache'), CacheUsage.ON, cacheFactory)
         cacheLockingManager = new DefaultCacheLockingManager(cacheRepository)
-        index = new DefaultCachedExternalResourceIndex(tmp.createFile("index"), String, timeProvider, cacheLockingManager)
+        index = new DefaultCachedExternalResourceIndex("index", String, timeProvider, cacheLockingManager)
     }
 
     @Unroll "stores entry - lastModified = #lastModified, artifactUrl = #artifactUrl"() {

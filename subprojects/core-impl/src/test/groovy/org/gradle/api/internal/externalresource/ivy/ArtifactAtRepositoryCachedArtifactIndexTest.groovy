@@ -37,12 +37,12 @@ class ArtifactAtRepositoryCachedArtifactIndexTest extends Specification {
     PersistentIndexedCache persistentIndexedCache = Mock()
 
     ArtifactAtRepositoryCachedArtifactIndex index
-    File persistentCacheFile
+    String persistentCacheFile
     CachedArtifact cachedArtifact = Mock()
 
 
     def setup() {
-        persistentCacheFile = folder.createFile("cacheFile")
+        persistentCacheFile = "cacheFile"
         index = new ArtifactAtRepositoryCachedArtifactIndex(persistentCacheFile, timeProvider, cacheLockingManager)
     }
 

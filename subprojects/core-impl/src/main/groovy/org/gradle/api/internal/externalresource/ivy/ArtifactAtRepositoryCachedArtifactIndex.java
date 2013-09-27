@@ -35,7 +35,7 @@ import java.math.BigInteger;
 public class ArtifactAtRepositoryCachedArtifactIndex extends AbstractCachedIndex<ArtifactAtRepositoryKey, CachedArtifact> implements CachedArtifactIndex {
     private final BuildCommencedTimeProvider timeProvider;
 
-    public ArtifactAtRepositoryCachedArtifactIndex(File persistentCacheFile, BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
+    public ArtifactAtRepositoryCachedArtifactIndex(String persistentCacheFile, BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
         super(persistentCacheFile, new ArtifactAtRepositoryKeySerializer(), new CachedArtifactSerializer(), cacheLockingManager);
         this.timeProvider = timeProvider;
     }

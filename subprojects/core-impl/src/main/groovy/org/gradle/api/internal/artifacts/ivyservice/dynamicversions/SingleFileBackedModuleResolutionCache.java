@@ -19,7 +19,6 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ModuleVersionIdentifierSerializer;
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionRepository;
 import org.gradle.cache.PersistentIndexedCache;
@@ -30,20 +29,16 @@ import org.gradle.util.BuildCommencedTimeProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-
 public class SingleFileBackedModuleResolutionCache implements ModuleResolutionCache {
     private static final Logger LOGGER = LoggerFactory.getLogger(SingleFileBackedModuleResolutionCache.class);
 
     private final BuildCommencedTimeProvider timeProvider;
-    private final ArtifactCacheMetaData cacheMetadata;
     private final CacheLockingManager cacheLockingManager;
     private PersistentIndexedCache<RevisionKey, ModuleResolutionCacheEntry> cache;
 
-    public SingleFileBackedModuleResolutionCache(ArtifactCacheMetaData cacheMetadata, BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
+    public SingleFileBackedModuleResolutionCache(BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
         this.timeProvider = timeProvider;
         this.cacheLockingManager = cacheLockingManager;
-        this.cacheMetadata = cacheMetadata;
     }
 
     private PersistentIndexedCache<RevisionKey, ModuleResolutionCacheEntry> getCache() {
@@ -54,8 +49,7 @@ public class SingleFileBackedModuleResolutionCache implements ModuleResolutionCa
     }
 
     private PersistentIndexedCache<RevisionKey, ModuleResolutionCacheEntry> initCache() {
-        File dynamicRevisionsFile = new File(cacheMetadata.getCacheDir(), "dynamic-revisions.bin");
-        return cacheLockingManager.createCache(dynamicRevisionsFile, new RevisionKeySerializer(), new ModuleResolutionCacheEntrySerializer());
+        return cacheLockingManager.createCache("dynamic-revisions.bin", new RevisionKeySerializer(), new ModuleResolutionCacheEntrySerializer());
     }
 
     public void cacheModuleResolution(ModuleVersionRepository repository, ModuleVersionSelector requestedVersion, ModuleVersionIdentifier resolvedVersion) {

@@ -15,7 +15,7 @@
  */
 package org.gradle.plugins.ide.eclipse
 
-import org.gradle.api.internal.artifacts.ivyservice.DefaultCacheLockingManager
+import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.test.fixtures.file.TestFile
 
 import java.util.regex.Pattern
@@ -100,11 +100,7 @@ class EclipseClasspathFixture {
         }
 
         private String cachePath(String group, String module, String version, String type) {
-            return Pattern.quote("${userHomeDir.absolutePath.replace(File.separator, '/')}") + "/caches/artifacts-${artifactCacheVersion}/filestore/" + Pattern.quote("${group}/${module}/${version}/${type}/") + "\\w+/"
-        }
-
-        private def getArtifactCacheVersion() {
-            return DefaultCacheLockingManager.CACHE_LAYOUT_VERSION;
+            return Pattern.quote("${userHomeDir.absolutePath.replace(File.separator, '/')}") + "/caches/${CacheLayout.ROOT.getKey()}/${CacheLayout.FILE_STORE.getKey()}/" + Pattern.quote("${group}/${module}/${version}/${type}/") + "\\w+/"
         }
 
         void assertHasNoSource() {
