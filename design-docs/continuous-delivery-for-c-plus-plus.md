@@ -432,6 +432,10 @@ are created automatically for each component.
 
 - Programmatically create the functional source set prior to adding the matching component.
 
+### Open issues
+
+- Only do this if no source sets have been explicitly attached to the component.
+
 ## Story: Build different variants of a native component
 
 This story adds initial support for building multiple variants of a native component. For each variant of a component, a binary of the appropriate type is defined.
