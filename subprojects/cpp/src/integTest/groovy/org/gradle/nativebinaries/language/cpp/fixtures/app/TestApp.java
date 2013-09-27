@@ -21,7 +21,7 @@ import org.gradle.test.fixtures.file.TestFile;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class TestApp {
+public abstract class TestApp extends TestComponent {
     public abstract SourceFile getMainSource();
     public abstract SourceFile getLibraryHeader();
     public abstract List<SourceFile> getLibrarySources();
@@ -32,14 +32,6 @@ public abstract class TestApp {
         sourceFiles.add(getLibraryHeader());
         sourceFiles.addAll(getLibrarySources());
         return sourceFiles;
-    }
-
-    protected SourceFile sourceFile(String path, String name, String content) {
-        return new SourceFile(path, name, content);
-    }
-
-    public void writeSources(TestFile mainSourceDir) {
-        writeSources(mainSourceDir, mainSourceDir);
     }
 
     public void writeSources(TestFile mainSourceDir, TestFile librarySourceDir) {

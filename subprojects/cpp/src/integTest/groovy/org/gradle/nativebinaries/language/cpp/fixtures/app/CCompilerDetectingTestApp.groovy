@@ -18,34 +18,34 @@ package org.gradle.nativebinaries.language.cpp.fixtures.app
 
 import org.gradle.nativebinaries.language.cpp.fixtures.AvailableToolChains.InstalledToolChain
 
-class CppCompilerDetectingTestApp extends TestApp {
+class CCompilerDetectingTestApp extends TestApp {
     String expectedOutput(InstalledToolChain toolChain) {
-        "C++ ${toolChain.typeDisplayName}"
+        "C ${toolChain.typeDisplayName}"
     }
 
     @Override
     SourceFile getLibraryHeader() {
-        sourceFile("headers", "cpp-detector.h", """
+        sourceFile("headers", "c-detector.h", """
             #ifdef _WIN32
             #define DLL_FUNC __declspec(dllexport)
             #else
             #define DLL_FUNC
             #endif
 
-            void DLL_FUNC detectCppCompiler();
+            void DLL_FUNC detectCCompiler();
         """);
     }
 
     @Override
     List<SourceFile> getLibrarySources() {
         return [
-            sourceFile("cpp", "cpp-detector.cpp", """
+            sourceFile("c", "c-detector.c", """
                 #include <stdio.h>
-                #include "cpp-detector.h"
+                #include "c-detector.h"
 
-                void detectCppCompiler() {
-                #if defined(__cplusplus)
-                    printf("C++ ");
+                void detectCCompiler() {
+                #if !defined(__cplusplus)
+                    printf("C ");
                 #endif
                 #if defined(__clang__)
                     printf("clang");
@@ -67,12 +67,12 @@ class CppCompilerDetectingTestApp extends TestApp {
 
     @Override
     SourceFile getMainSource() {
-        return new SourceFile("cpp", "main.cpp", """
+        return new SourceFile("c", "main.c", """
 #include <stdio.h>
-#include "cpp-detector.h"
+#include "c-detector.h"
 
 int main () {
-    detectCppCompiler();
+    detectCCompiler();
     return 0;
 }
 """)

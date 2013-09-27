@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 package org.gradle.nativebinaries.language.cpp
+
+import org.gradle.nativebinaries.language.cpp.fixtures.app.CCompilerDetectingTestApp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.CHelloWorldApp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.HelloWorldApp
 
@@ -43,18 +45,11 @@ class CLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
     }
 
     def "sources are compiled with C compiler"() {
-        given:
-        file("src/main/c/main.c") << """
-            #include <stdio.h>
+        def app = new CCompilerDetectingTestApp()
 
-            int main () {
-                #ifdef __cplusplus
-                    This code will not compile
-                #endif
-                printf("SUCCESS");
-                return 0;
-            }
-"""
+        given:
+        app.writeSources(file('src/main'))
+
         and:
         buildFile << """
              executables {
@@ -64,7 +59,7 @@ class CLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
 
         expect:
         succeeds "mainExecutable"
-        executable("build/binaries/mainExecutable/main").exec().out == "SUCCESS"
+        executable("build/binaries/mainExecutable/main").exec().out == app.expectedOutput(toolChain)
     }
 
     def "can manually define C source sets"() {
