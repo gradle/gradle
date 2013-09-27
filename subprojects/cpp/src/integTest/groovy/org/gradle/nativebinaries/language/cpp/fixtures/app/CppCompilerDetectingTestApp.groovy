@@ -18,7 +18,7 @@ package org.gradle.nativebinaries.language.cpp.fixtures.app
 
 import org.gradle.nativebinaries.language.cpp.fixtures.AvailableToolChains.InstalledToolChain
 
-class CompilerDetectingHelloWorldApp extends TestApp {
+class CppCompilerDetectingTestApp extends TestApp {
     String expectedOutput(InstalledToolChain toolChain) {
         "C++ ${toolChain.typeDisplayName}"
     }

@@ -16,7 +16,7 @@
 
 package org.gradle.nativebinaries.language.cpp
 
-import org.gradle.nativebinaries.language.cpp.fixtures.app.CompilerDetectingHelloWorldApp
+import org.gradle.nativebinaries.language.cpp.fixtures.app.CppCompilerDetectingTestApp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.CppHelloWorldApp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.HelloWorldApp
 
@@ -47,7 +47,7 @@ class CppLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
     }
 
     def "sources are compiled with C++ compiler"() {
-        def app = new CompilerDetectingHelloWorldApp()
+        def app = new CppCompilerDetectingTestApp()
 
         given:
         app.writeSources(file('src/main'))

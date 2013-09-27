@@ -20,12 +20,12 @@ package org.gradle.nativebinaries.language.cpp
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.language.cpp.fixtures.AvailableToolChains
-import org.gradle.nativebinaries.language.cpp.fixtures.app.CompilerDetectingHelloWorldApp
+import org.gradle.nativebinaries.language.cpp.fixtures.app.CppCompilerDetectingTestApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 class MultipleToolChainIntegrationTest extends AbstractIntegrationSpec {
-    def helloWorld = new CompilerDetectingHelloWorldApp()
+    def helloWorld = new CppCompilerDetectingTestApp()
 
     def setup() {
         buildFile << """
