@@ -32,6 +32,13 @@ class CppSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
     @Rule public final Sample flavors = new Sample(temporaryFolder, 'native-binaries/flavors')
     @Rule public final Sample dependencies = new Sample(temporaryFolder, 'native-binaries/dependencies')
 
+    def setup() {
+        toolChain.initialiseEnvironment()
+    }
+    def cleanup() {
+        toolChain.resetEnvironment()
+    }
+
     def "assembler"() {
         given:
         sample assembler
