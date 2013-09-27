@@ -47,7 +47,8 @@ class CppSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         run "installMainExecutable"
 
         then:
-        executedAndNotSkipped ":assembleMainExecutableMainAsm", ":compileMainExecutableMainC", ":linkMainExecutable", ":mainExecutable"
+        nonSkippedTasks.count { it.startsWith(":assembleMainExecutable") } == 1
+        executedAndNotSkipped ":compileMainExecutableMainC", ":linkMainExecutable", ":mainExecutable"
 
         and:
         installation("native-binaries/assembler/build/install/mainExecutable").exec().out == "5 + 7 = 12\n"

@@ -80,7 +80,9 @@ public class MixedLanguageHelloWorldApp extends HelloWorldApp {
             }
 
             // Ensure consistent asm name mapping on all platforms
-            extern int sumx(int a, int b) asm("sumx");
+            #if !defined(_MSC_VER)
+            extern int sumx(int a, int b) asm("_sumx");
+            #endif
 
             int DLL_FUNC sum(int a, int b) {
                 return sumx(a, b);
@@ -114,8 +116,8 @@ END
 
     private static String i386GnuAsmSource = '''
     .text
-    .globl  sumx
-sumx:
+    .globl  _sumx
+_sumx:
     movl    8(%esp), %eax
     addl    4(%esp), %eax
     ret
