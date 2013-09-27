@@ -28,9 +28,6 @@ import org.gradle.nativebinaries.internal.DefaultTool
 import org.gradle.nativebinaries.internal.NativeBinaryInternal
 import org.gradle.nativebinaries.language.assembler.tasks.Assemble
 import org.gradle.nativebinaries.plugins.NativeBinariesPlugin
-import org.gradle.nativebinaries.toolchain.plugins.ClangCompilerPlugin
-import org.gradle.nativebinaries.toolchain.plugins.GccCompilerPlugin
-import org.gradle.nativebinaries.toolchain.plugins.MicrosoftVisualCppPlugin
 
 /**
  * A plugin for projects wishing to build native binary components from Assembly language sources.
