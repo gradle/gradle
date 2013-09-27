@@ -174,21 +174,18 @@ class NativeBinariesPluginIntegrationTest extends AbstractInstalledToolChainInte
         given:
         buildFile << """
             apply plugin: "cpp-lib"
-            binaries.all {
-                linker.args "-Xlinker", "--not-an-option"
-            }
         """
 
         and:
-        file("src/main/cpp/hello.cpp") << """
-            #include "test.h"
+        file("src/main/cpp/hello1.cpp") << """
             void hello() {
-                test();
             }
 """
-        // Header file available, but no implementation to link
-        file("src/main/cpp/test.h") << """
-            int test();
+
+        and:
+        file("src/main/cpp/hello2.cpp") << """
+            void hello() {
+            }
 """
 
         when:
