@@ -15,6 +15,8 @@
  */
 package org.gradle.nativebinaries;
 
+import org.gradle.api.Incubating;
+
 import java.util.List;
 
 // TODO:DAZ Possibly merge with org.gradle.nativecode.toolchain.GccTool
@@ -23,6 +25,7 @@ import java.util.List;
 /**
  * Configuration of the arguments of a ToolChain executable.
  */
+@Incubating
 public interface Tool {
     /**
      * The arguments passed when executing this tool.

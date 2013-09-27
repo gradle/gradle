@@ -16,11 +16,13 @@
 
 package org.gradle.nativebinaries;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 
 /**
  * A target platform for building native binaries.
  */
+@Incubating
 public interface Platform extends Named {
 
     /**

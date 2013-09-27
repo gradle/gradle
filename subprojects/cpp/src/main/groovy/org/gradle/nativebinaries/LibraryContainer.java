@@ -16,10 +16,12 @@
 
 package org.gradle.nativebinaries;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectSet;
 
 /**
  * A container of native libraries.
  */
+@Incubating
 public interface LibraryContainer extends NamedDomainObjectSet<Library> {
 }

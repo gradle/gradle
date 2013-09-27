@@ -15,11 +15,13 @@
  */
 package org.gradle.nativebinaries;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 
 /**
  * Specifies a build-type for a native binary. Common build types are 'debug' and 'release', but others may be defined.
  */
+@Incubating
 public interface BuildType extends Named {
     /**
      * Should binaries for this build type contain debug information?
