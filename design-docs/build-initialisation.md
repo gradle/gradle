@@ -158,6 +158,14 @@ TBD - fix issues with POM conversion to make it more accurate
 Some build templates are configurable (eg project names, packages, etc). Add an interactive mechanism for the user to
 provide these inputs.
 
+Some candidates for input:
+
+- Which build type to use
+- Project name
+- Package name
+- Version of Java/Groovy/Scala to use
+- Which test framework to use
+
 # Story: User adds a project to an existing build
 
 TBD

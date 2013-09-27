@@ -173,3 +173,5 @@ Some more features to mix into the above plan:
 - User edits dependencies via some UI.
 - User upgrades Gradle version via some UI.
 - User creates a new build via some UI.
+- Provide some way to define additional JVM args and system properties (possibly via command-line args)
+- Provide some way to locate Gradle builds, eg to allow the user to select which build to import.

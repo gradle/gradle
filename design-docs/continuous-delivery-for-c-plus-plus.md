@@ -239,6 +239,7 @@ This story adds support for C source files as inputs to native binaries.
 - Cpp source set should include only files with a C++ extension.
 - C source set should include only files with a C extension.
 - Assembler source set should include only files with an assembler extension.
+- Don't fail if assembler/C++/C compiler is not available if they are not required.
 
 ## Story: Build a binary from assembler source files
 
