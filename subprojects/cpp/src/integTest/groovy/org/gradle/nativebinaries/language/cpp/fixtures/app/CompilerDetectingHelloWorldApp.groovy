@@ -16,7 +16,13 @@
 
 package org.gradle.nativebinaries.language.cpp.fixtures.app
 
-class CompilerDetectingHelloWorldApp extends HelloWorldApp {
+import org.gradle.nativebinaries.language.cpp.fixtures.AvailableToolChains.InstalledToolChain
+
+class CompilerDetectingHelloWorldApp extends TestApp {
+    String expectedOutput(InstalledToolChain toolChain) {
+        "C++ ${toolChain.typeDisplayName}"
+    }
+
     @Override
     SourceFile getLibraryHeader() {
         sourceFile("headers", "detector.h", """

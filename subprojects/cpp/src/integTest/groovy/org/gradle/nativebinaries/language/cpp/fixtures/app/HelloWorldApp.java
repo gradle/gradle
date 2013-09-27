@@ -16,13 +16,9 @@
 
 package org.gradle.nativebinaries.language.cpp.fixtures.app;
 
-import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.util.GUtil;
 
-import java.util.ArrayList;
-import java.util.List;
-
-public abstract class HelloWorldApp {
+public abstract class HelloWorldApp extends TestApp {
     public static final String HELLO_WORLD = "Hello, World!";
     public static final String HELLO_WORLD_FRENCH = "Bonjour, Monde!";
 
@@ -41,33 +37,4 @@ public abstract class HelloWorldApp {
     public String getSourceType() {
         return GUtil.toCamelCase(getMainSource().getPath());
     }
-
-    public abstract SourceFile getMainSource();
-    public abstract SourceFile getLibraryHeader();
-    public abstract List<SourceFile> getLibrarySources();
-
-    public List<SourceFile> getSourceFiles() {
-        ArrayList<SourceFile> sourceFiles = new ArrayList<SourceFile>();
-        sourceFiles.add(getMainSource());
-        sourceFiles.add(getLibraryHeader());
-        sourceFiles.addAll(getLibrarySources());
-        return sourceFiles;
-    }
-
-    protected SourceFile sourceFile(String path, String name, String content) {
-        return new SourceFile(path, name, content);
-    }
-
-    public void writeSources(TestFile mainSourceDir) {
-        writeSources(mainSourceDir, mainSourceDir);
-    }
-
-    public void writeSources(TestFile mainSourceDir, TestFile librarySourceDir) {
-        getMainSource().writeToDir(mainSourceDir);
-        getLibraryHeader().writeToDir(librarySourceDir);
-        for (SourceFile sourceFile : getLibrarySources()) {
-            sourceFile.writeToDir(librarySourceDir);
-        }
-    }
-
 }
