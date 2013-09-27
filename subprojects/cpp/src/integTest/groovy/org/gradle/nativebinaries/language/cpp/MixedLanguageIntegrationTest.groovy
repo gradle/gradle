@@ -72,5 +72,92 @@ class MixedLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
         mainExecutable.exec().out == helloWorldApp.englishOutput
     }
 
+    def "build and execute program with non-conventional source layout"() {
+        given:
+        buildFile << """
+            sources {
+                main {
+                    cpp {
+                        source {
+                            srcDirs "src"
+                            include "**/*.cpp"
+                        }
+                        exportedHeaders {
+                            srcDirs "src/hello", "include"
+                        }
+                    }
+                    c {
+                        source {
+                            srcDirs "src", "include"
+                            include "**/*.c"
+                        }
+                        exportedHeaders {
+                            srcDirs "src/hello", "include"
+                        }
+                    }
+                }
+            }
+            executables {
+                main {}
+            }
+        """
+        settingsFile << "rootProject.name = 'test'"
+
+        and:
+        file("src", "hello", "hello.cpp") << """
+            #include <iostream>
+
+            void hello () {
+              std::cout << "${HelloWorldApp.HELLO_WORLD}";
+            }
+        """
+
+        and:
+        file("src", "hello", "french", "bonjour.c") << """
+            #include <stdio.h>
+            #include "otherProject/bonjour.h"
+
+            void bonjour() {
+                printf("${HelloWorldApp.HELLO_WORLD_FRENCH}");
+            }
+        """
+
+        and:
+        file("src", "hello", "hello.h") << """
+            void hello();
+        """
+
+        and:
+        file("src", "app", "main", "main.cpp") << """
+            #include "hello.h"
+            extern "C" {
+                #include "otherProject/bonjour.h"
+            }
+
+            int main () {
+              hello();
+              bonjour();
+              return 0;
+            }
+        """
+
+        and:
+        file("include", "otherProject", "bonjour.h") << """
+            void bonjour();
+        """
+
+        and:
+        file("include", "otherProject", "bonjour.cpp") << """
+            THIS FILE WON'T BE COMPILED
+        """
+
+        when:
+        run "mainExecutable"
+
+        then:
+        executable("build/binaries/mainExecutable/main").exec().out == HelloWorldApp.HELLO_WORLD + HelloWorldApp.HELLO_WORLD_FRENCH
+    }
+
+
 }
 
