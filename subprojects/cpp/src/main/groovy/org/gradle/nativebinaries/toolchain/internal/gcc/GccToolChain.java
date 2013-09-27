@@ -17,17 +17,12 @@ package org.gradle.nativebinaries.toolchain.internal.gcc;
 
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativebinaries.Platform;
 import org.gradle.nativebinaries.internal.*;
-import org.gradle.nativebinaries.language.assembler.internal.AssembleSpec;
-import org.gradle.nativebinaries.language.c.internal.CCompileSpec;
-import org.gradle.nativebinaries.language.cpp.internal.CppCompileSpec;
 import org.gradle.nativebinaries.toolchain.Gcc;
 import org.gradle.nativebinaries.toolchain.GccTool;
 import org.gradle.nativebinaries.toolchain.internal.AbstractToolChain;
-import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
 import org.gradle.nativebinaries.toolchain.internal.ToolType;
 import org.gradle.nativebinaries.toolchain.internal.gcc.version.GccVersionDeterminer;
 import org.gradle.process.internal.ExecActionFactory;
@@ -35,7 +30,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -105,7 +99,7 @@ public class GccToolChain extends AbstractToolChain implements Gcc {
 
     public PlatformToolChain target(Platform targetPlatform) {
         checkAvailable();
-        return new GccPlatformToolChain(targetPlatform);
+        return new GnuCompatibleToolChain(tools, operatingSystem, execActionFactory, targetPlatform, canUseCommandFile());
     }
 
     public GccTool getCppCompiler() {
@@ -128,6 +122,17 @@ public class GccToolChain extends AbstractToolChain implements Gcc {
         return new DefaultTool(ToolType.STATIC_LIB_ARCHIVER);
     }
 
+    private boolean canUseCommandFile() {
+        String[] components = version.split("\\.");
+        int majorVersion;
+        try {
+            majorVersion = Integer.valueOf(components[0]);
+        } catch (NumberFormatException e) {
+            throw new IllegalStateException(String.format("Unable to determine major g++ version from version number %s.", version), e);
+        }
+        return majorVersion >= 4;
+    }
+
     private class DefaultTool implements GccTool {
         private final ToolType toolType;
 
@@ -141,103 +146,6 @@ public class GccToolChain extends AbstractToolChain implements Gcc {
 
         public void setExecutable(String file) {
             tools.setExeName(toolType, file);
-        }
-    }
-
-    private class GccPlatformToolChain implements PlatformToolChain {
-        private final Platform targetPlatform;
-
-        public GccPlatformToolChain(Platform targetPlatform) {
-            this.targetPlatform = targetPlatform;
-        }
-
-        public <T extends BinaryToolSpec> Compiler<T> createCppCompiler() {
-            CommandLineTool<CppCompileSpec> commandLineTool = commandLineTool(ToolType.CPP_COMPILER);
-            return (Compiler<T>) new CppCompiler(commandLineTool, canUseCommandFile());
-        }
-
-        public <T extends BinaryToolSpec> Compiler<T> createCCompiler() {
-            CommandLineTool<CCompileSpec> commandLineTool = commandLineTool(ToolType.C_COMPILER);
-            return (Compiler<T>) new CCompiler(commandLineTool, canUseCommandFile());
-        }
-
-        public <T extends BinaryToolSpec> Compiler<T> createAssembler() {
-            CommandLineTool<AssembleSpec> commandLineTool = commandLineTool(ToolType.ASSEMBLER);
-            return (Compiler<T>) new Assembler(commandLineTool);
-        }
-
-        public <T extends LinkerSpec> Compiler<T> createLinker() {
-            CommandLineTool<LinkerSpec> commandLineTool = commandLineTool(ToolType.LINKER);
-            return (Compiler<T>) new GccLinker(commandLineTool, canUseCommandFile());
-        }
-
-        public <T extends StaticLibraryArchiverSpec> Compiler<T> createStaticLibraryArchiver() {
-            CommandLineTool<StaticLibraryArchiverSpec> commandLineTool = commandLineTool(ToolType.STATIC_LIB_ARCHIVER);
-            return (Compiler<T>) new ArStaticLibraryArchiver(commandLineTool);
-        }
-
-        private <T extends BinaryToolSpec> CommandLineTool<T> commandLineTool(ToolType key) {
-            CommandLineTool<T> commandLineTool = new CommandLineTool<T>(key.getToolName(), tools.locate(key), execActionFactory);
-            commandLineTool.withPath(getPath());
-            targetToPlatform(commandLineTool, key);
-            return commandLineTool;
-        }
-
-        private void targetToPlatform(CommandLineTool tool, ToolType key) {
-            switch (key) {
-                case CPP_COMPILER:
-                case C_COMPILER:
-                case LINKER:
-                    tool.withArguments(gccSwitches());
-                    return;
-                case ASSEMBLER:
-                    tool.withArguments(asSwitches());
-                    return;
-                case STATIC_LIB_ARCHIVER:
-                    // TODO:DAZ
-            }
-        }
-
-        private List<String> gccSwitches() {
-            switch (targetPlatform.getArchitecture()) {
-                case I386:
-                    return args("-m32");
-                case AMD64:
-                    return args("-m64");
-                default:
-                    return args();
-            }
-        }
-
-        private List<String> asSwitches() {
-            String archFlag = operatingSystem.isMacOsX() ? "-arch" : "-march";
-            switch (targetPlatform.getArchitecture()) {
-                case I386:
-                    return args(archFlag, "i386");
-                case AMD64:
-                    return args(archFlag, "x86_64");
-                default:
-                    return args();
-            }
-        }
-
-        private List<String> args(String... values) {
-            return Arrays.asList(values);
-        }
-
-        public String getOutputType() {
-            return String.format("%s-%s-%s", getName(), targetPlatform.getArchitecture().name(), operatingSystem.getName());
-        }
-
-        private boolean canUseCommandFile() {
-            String[] components = version.split("\\.");
-            int majorVersion;
-            try {
-                majorVersion = Integer.valueOf(components[0]);
-            } catch (NumberFormatException e) {
-                throw new IllegalStateException(String.format("Unable to determine major g++ version from version number %s.", version), e);
-            }
-            return majorVersion >= 4;
         }
     }
 

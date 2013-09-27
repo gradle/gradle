@@ -15,10 +15,8 @@
  */
 
 package org.gradle.nativebinaries.language.cpp
-
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.nativebinaries.language.cpp.fixtures.AvailableToolChains
+import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativebinaries.language.cpp.fixtures.ExecutableFixture
 import org.gradle.nativebinaries.language.cpp.fixtures.app.CppHelloWorldApp
 import org.gradle.nativebinaries.language.cpp.fixtures.binaryinfo.BinaryInfo
@@ -29,9 +27,8 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
-class BinaryPlatformIntegrationTest extends AbstractIntegrationSpec {
+class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def helloWorldApp = new CppHelloWorldApp()
-    private AvailableToolChains.InstalledToolChain toolChain
 
     def setup() {
         buildFile << """
@@ -47,14 +44,8 @@ class BinaryPlatformIntegrationTest extends AbstractIntegrationSpec {
         """
 
         helloWorldApp.writeSources(file("src/main"), file("src/hello"))
-
-        toolChain = AvailableToolChains.getToolChains().get(0) as AvailableToolChains.InstalledToolChain
-        toolChain.initialiseEnvironment()
     }
 
-    def cleanup() {
-       toolChain.resetEnvironment()
-    }
 
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
     def "build binary for multiple target platforms"() {

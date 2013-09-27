@@ -17,19 +17,15 @@
 package org.gradle.nativebinaries.toolchain.internal.clang;
 
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativebinaries.Platform;
-import org.gradle.nativebinaries.internal.*;
-import org.gradle.nativebinaries.language.assembler.internal.AssembleSpec;
-import org.gradle.nativebinaries.language.c.internal.CCompileSpec;
-import org.gradle.nativebinaries.language.cpp.internal.CppCompileSpec;
+import org.gradle.nativebinaries.internal.PlatformToolChain;
+import org.gradle.nativebinaries.internal.ToolChainAvailability;
 import org.gradle.nativebinaries.toolchain.Clang;
 import org.gradle.nativebinaries.toolchain.internal.AbstractToolChain;
-import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
 import org.gradle.nativebinaries.toolchain.internal.ToolRegistry;
 import org.gradle.nativebinaries.toolchain.internal.ToolType;
-import org.gradle.nativebinaries.toolchain.internal.gcc.*;
+import org.gradle.nativebinaries.toolchain.internal.gcc.GnuCompatibleToolChain;
 import org.gradle.process.internal.ExecActionFactory;
 
 public class ClangToolChain extends AbstractToolChain implements Clang {
@@ -61,35 +57,6 @@ public class ClangToolChain extends AbstractToolChain implements Clang {
 
     public PlatformToolChain target(Platform targetPlatform) {
         checkAvailable();
-        return new PlatformToolChain() {
-            public <T extends BinaryToolSpec> Compiler<T> createCppCompiler() {
-                CommandLineTool<CppCompileSpec> commandLineTool = commandLineTool(ToolType.CPP_COMPILER);
-                return (Compiler<T>) new CppCompiler(commandLineTool, true);
-            }
-
-            public <T extends BinaryToolSpec> Compiler<T> createCCompiler() {
-                CommandLineTool<CCompileSpec> commandLineTool = commandLineTool(ToolType.C_COMPILER);
-                return (Compiler<T>) new CCompiler(commandLineTool, true);
-            }
-
-            public <T extends BinaryToolSpec> Compiler<T> createAssembler() {
-                CommandLineTool<AssembleSpec> commandLineTool = commandLineTool(ToolType.ASSEMBLER);
-                return (Compiler<T>) new Assembler(commandLineTool);
-            }
-
-            public <T extends LinkerSpec> Compiler<T> createLinker() {
-                CommandLineTool<LinkerSpec> commandLineTool = commandLineTool(ToolType.LINKER);
-                return (Compiler<T>) new GccLinker(commandLineTool, true);
-            }
-
-            public <T extends StaticLibraryArchiverSpec> Compiler<T> createStaticLibraryArchiver() {
-                CommandLineTool<StaticLibraryArchiverSpec> commandLineTool = commandLineTool(ToolType.STATIC_LIB_ARCHIVER);
-                return (Compiler<T>) new ArStaticLibraryArchiver(commandLineTool);
-            }
-
-            private <T extends BinaryToolSpec> CommandLineTool<T> commandLineTool(ToolType key) {
-                return new CommandLineTool<T>(key.getToolName(), tools.locate(key), execActionFactory);
-            }
-        };
+        return new GnuCompatibleToolChain(tools, operatingSystem, execActionFactory, targetPlatform, true);
     }
 }
