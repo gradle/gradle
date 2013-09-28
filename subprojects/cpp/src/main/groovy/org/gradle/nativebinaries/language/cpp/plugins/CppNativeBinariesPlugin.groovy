@@ -77,7 +77,7 @@ class CppNativeBinariesPlugin implements Plugin<ProjectInternal> {
             compileTask.includes deps.includeRoots
         }
 
-        compileTask.conventionMapping.objectFileDir = { project.file("${project.buildDir}/objectFiles/${binary.namingScheme.outputDirectoryBase}/${sourceSet.fullName}") }
+        compileTask.objectFileDir = project.file("${project.buildDir}/objectFiles/${binary.namingScheme.outputDirectoryBase}/${sourceSet.fullName}")
         compileTask.macros = binary.cppCompiler.macros
         compileTask.compilerArgs = binary.cppCompiler.args
 

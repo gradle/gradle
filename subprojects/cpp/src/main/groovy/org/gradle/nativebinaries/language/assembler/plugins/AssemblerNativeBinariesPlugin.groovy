@@ -76,7 +76,7 @@ class AssemblerNativeBinariesPlugin implements Plugin<ProjectInternal> {
 
         assembleTask.source sourceSet.source
 
-        assembleTask.conventionMapping.objectFileDir = { project.file("${project.buildDir}/objectFiles/${binary.namingScheme.outputDirectoryBase}/${sourceSet.fullName}") }
+        assembleTask.objectFileDir = project.file("${project.buildDir}/objectFiles/${binary.namingScheme.outputDirectoryBase}/${sourceSet.fullName}")
         assembleTask.assemblerArgs = binary.assembler.args
 
         assembleTask
