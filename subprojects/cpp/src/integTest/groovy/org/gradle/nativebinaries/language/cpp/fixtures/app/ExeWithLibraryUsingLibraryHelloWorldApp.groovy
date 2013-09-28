@@ -21,7 +21,8 @@ import org.gradle.test.fixtures.file.TestFile;
 public class ExeWithLibraryUsingLibraryHelloWorldApp extends HelloWorldApp {
 
     void writeSources(TestFile mainSourceDir, TestFile librarySourceDir, TestFile greetingsLibrarySourceDir) {
-        super.writeSources(mainSourceDir, librarySourceDir)
+        getExecutable().writeSources(mainSourceDir)
+        getLibrary().writeSources(librarySourceDir)
         getGreetingsHeader().writeToDir(greetingsLibrarySourceDir);
         for (SourceFile sourceFile : getGreetingsSources()) {
             sourceFile.writeToDir(greetingsLibrarySourceDir);

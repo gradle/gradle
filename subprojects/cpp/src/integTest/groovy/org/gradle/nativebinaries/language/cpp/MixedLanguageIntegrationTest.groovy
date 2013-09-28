@@ -59,7 +59,7 @@ class MixedLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
         """
 
         and:
-        helloWorldApp.sourceFiles.each { SourceFile sourceFile ->
+        helloWorldApp.allFiles.each { SourceFile sourceFile ->
             file("src/main/flat/${sourceFile.name}") << sourceFile.content
         }
 

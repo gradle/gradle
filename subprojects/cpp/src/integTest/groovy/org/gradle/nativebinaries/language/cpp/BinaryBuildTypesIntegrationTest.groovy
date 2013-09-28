@@ -82,7 +82,9 @@ class BinaryBuildTypesIntegrationTest extends AbstractInstalledToolChainIntegrat
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
     def "executable with build type depends on library with matching build type"() {
         when:
-        helloWorldApp.writeSources(file("src/main"), file("src/hello"))
+        helloWorldApp.executable.writeSources(file("src/main"))
+        helloWorldApp.library.writeSources(file("src/hello"))
+
         and:
         buildFile << """
             apply plugin: 'cpp'

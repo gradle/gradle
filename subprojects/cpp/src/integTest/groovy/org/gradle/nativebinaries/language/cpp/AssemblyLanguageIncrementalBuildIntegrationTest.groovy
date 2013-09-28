@@ -49,7 +49,8 @@ class AssemblyLanguageIncrementalBuildIntegrationTest extends AbstractInstalledT
         """
         settingsFile << "rootProject.name = 'test'"
 
-        app.writeSources(file("src/main"), file("src/hello"))
+        app.executable.writeSources(file("src/main"))
+        app.library.writeSources(file("src/hello"))
         asmSourceFile = file("src/hello/asm/sum.s")
 
         run "installMainExecutable"

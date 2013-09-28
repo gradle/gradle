@@ -16,9 +16,9 @@
 
 package org.gradle.nativebinaries.language.cpp.fixtures.app;
 
-import org.gradle.test.fixtures.file.TestFile;
-
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public abstract class TestApp extends TestComponent {
@@ -26,20 +26,47 @@ public abstract class TestApp extends TestComponent {
     public abstract SourceFile getLibraryHeader();
     public abstract List<SourceFile> getLibrarySources();
 
+    public TestComponent getLibrary() {
+        return new TestComponent() {
+            @Override
+            public List<SourceFile> getSourceFiles() {
+                return getLibrarySources();
+            }
+
+            @Override
+            public List<SourceFile> getHeaderFiles() {
+                return Arrays.asList(getLibraryHeader());
+            }
+        };
+    }
+
+    public TestComponent getExecutable() {
+        return new TestComponent() {
+            @Override
+            public List<SourceFile> getHeaderFiles() {
+                return Collections.emptyList();
+            }
+
+            @Override
+            public List<SourceFile> getSourceFiles() {
+                return Arrays.asList(getMainSource());
+            }
+        };
+    }
+
+    @Override
+    public List<SourceFile> getHeaderFiles() {
+        ArrayList<SourceFile> headerFiles = new ArrayList<SourceFile>();
+        headerFiles.addAll(getExecutable().getHeaderFiles());
+        headerFiles.addAll(getLibrary().getHeaderFiles());
+        return headerFiles;
+    }
+
+    @Override
     public List<SourceFile> getSourceFiles() {
         ArrayList<SourceFile> sourceFiles = new ArrayList<SourceFile>();
-        sourceFiles.add(getMainSource());
-        sourceFiles.add(getLibraryHeader());
-        sourceFiles.addAll(getLibrarySources());
+        sourceFiles.addAll(getExecutable().getSourceFiles());
+        sourceFiles.addAll(getLibrary().getSourceFiles());
         return sourceFiles;
     }
-
-    public void writeSources(TestFile mainSourceDir, TestFile librarySourceDir) {
-        getMainSource().writeToDir(mainSourceDir);
-        getLibraryHeader().writeToDir(librarySourceDir);
-        for (SourceFile sourceFile : getLibrarySources()) {
-            sourceFile.writeToDir(librarySourceDir);
-        }
-    }
-
 }

@@ -40,7 +40,8 @@ class MultipleToolChainIntegrationTest extends AbstractIntegrationSpec {
             sources.main.cpp.lib libraries.hello
         """
 
-        helloWorld.writeSources(file("src/main"), file("src/hello"))
+        helloWorld.executable.writeSources(file("src/main"))
+        helloWorld.library.writeSources(file("src/hello"))
     }
 
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)

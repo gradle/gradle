@@ -19,14 +19,20 @@ package org.gradle.nativebinaries.language.cpp.fixtures.app
 import org.gradle.test.fixtures.file.TestFile
 
 abstract class TestComponent {
+    List<SourceFile> getAllFiles() {
+        return sourceFiles + headerFiles
+    }
+
     abstract List<SourceFile> getSourceFiles()
+
+    abstract List<SourceFile> getHeaderFiles()
 
     protected SourceFile sourceFile(String path, String name, String content) {
         return new SourceFile(path, name, content);
     }
 
     public void writeSources(TestFile sourceDir) {
-        for (SourceFile srcFile : sourceFiles) {
+        for (SourceFile srcFile : allFiles) {
             srcFile.writeToDir(sourceDir)
         }
     }

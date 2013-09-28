@@ -43,9 +43,9 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
             sources.main.cpp.lib libraries.hello
         """
 
-        helloWorldApp.writeSources(file("src/main"), file("src/hello"))
+        helloWorldApp.executable.writeSources(file("src/main"))
+        helloWorldApp.library.writeSources(file("src/hello"))
     }
-
 
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
     def "build binary for multiple target platforms"() {

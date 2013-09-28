@@ -120,7 +120,8 @@ abstract class AbstractLanguageIntegrationTest extends AbstractInstalledToolChai
         """
 
         and:
-        helloWorldApp.writeSources(file("src/main"), file("src/hello"))
+        helloWorldApp.executable.writeSources(file("src/main"))
+        helloWorldApp.library.writeSources(file("src/hello"))
 
         when:
         run "installMainExecutable"
@@ -154,7 +155,8 @@ abstract class AbstractLanguageIntegrationTest extends AbstractInstalledToolChai
         """
 
         and:
-        helloWorldApp.writeSources(file("src/main"), file("src/hello"))
+        helloWorldApp.executable.writeSources(file("src/main"))
+        helloWorldApp.library.writeSources(file("src/hello"))
 
         when:
         run "installMainExecutable"
