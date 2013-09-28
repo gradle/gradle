@@ -57,7 +57,10 @@ Adding a Windows VM to a CI server should be easy and repeatable. The installati
 * IBM JDK 5, 6, 7
 * Visual C++ 2010 express
 * Microsoft Windows SDK 7
-* Cygwin
+* Cygwin-32 with the following packages:
+    * gcc
+    * gcc-g++
+    * clang
 * MinGW
 
 It should be possible to create variations of the installation recipe, e.g. to add VMs that have different software installed.
