@@ -1269,6 +1269,7 @@ TBD
 
 # Open issues
 
+* Output of any custom post link task should be treated as input to anything that depends on the binary.
 * Add 'position independent' setting to 'NativeBinary'.
 * Add a position independent variant for all static libraries.
 * Model shared/static linkage as another dimension for library components.
@@ -1292,3 +1293,7 @@ TBD
 * Bare-bones tool chain using GNU binutils
 * Should be able to run the C preprocessor on assembler source file.
 * Should use the registry to find visual C++ and SDK.
+* Add support for cygwin-64 (uses a different data model to windows) and mingw under cygwin.
+* Install task should generate a shell script as well as a batch script when running under cygwin.
+* GCC and Clang under cygwin target the cygwin runtime, not the windows runtime.
+* Add language level to C and C++ source sets.
