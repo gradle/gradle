@@ -80,8 +80,10 @@ executables {
 
 // TODO:DAZ Expand on these
 * Define multiple tool chains to build native binary variants
+    * This means you can build for multiple versions of the same tool chain.
 * Build binary variants for different custom flavors
 * Build binary variants for different target architectures
+* Discovers Visual studio and Windows SDK installations, which means you can compile using the Visual C++ tools from the cygwin command prompt.
 * Support for the [Clang](http://clang.llvm.org) compiler.
 
 ### FindBugs plugin provides new reporting capabilities
