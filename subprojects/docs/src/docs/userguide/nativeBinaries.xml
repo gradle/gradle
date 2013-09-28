@@ -58,9 +58,6 @@
                 <td>Windows</td><td><ulink url="http://gcc.gnu.org/">GCC</ulink></td><td>Windows XP and later, using GCC distributed with Cygwin.</td>
             </tr>
             <tr>
-                <td>Windows</td><td><ulink url="http://gcc.gnu.org/">Clang</ulink></td><td>Windows XP and later, using Clang distributed with Cygwin.</td>
-            </tr>
-            <tr>
                 <td>Windows</td><td><ulink url="http://www.mingw.org/">MinGW</ulink></td><td>Windows XP and later.</td>
             </tr>
         </table>
