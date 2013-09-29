@@ -5,7 +5,7 @@
 		<dependent-module deploy-path="/WEB-INF/lib" handle="module:/resource/api/api">
 			<dependency-type>uses</dependency-type>
 		</dependent-module>
-		<dependent-module deploy-path="/WEB-INF/lib" handle="module:/classpath/lib/@CACHE_DIR@/commons-lang/commons-lang/2.5/jar/@SHA1@/commons-lang-2.5.jar">
+		<dependent-module deploy-path="/WEB-INF/lib" handle="module:/classpath/lib/@CACHE_DIR@/commons-lang/commons-lang/2.5/@SHA1@/commons-lang-2.5.jar">
 			<dependency-type>uses</dependency-type>
 		</dependent-module>
 	</wb-module>

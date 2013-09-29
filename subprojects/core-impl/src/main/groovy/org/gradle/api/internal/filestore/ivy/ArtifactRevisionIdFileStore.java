@@ -26,7 +26,7 @@ import org.gradle.api.internal.filestore.PathKeyFileStore;
 
 public class ArtifactRevisionIdFileStore extends GroupedAndNamedUniqueFileStore<ArtifactRevisionId> {
 
-    private static final String GROUP_PATTERN = "[organisation]/[module](/[branch])/[revision]/[type]";
+    private static final String GROUP_PATTERN = "[organisation]/[module](/[branch])/[revision]";
     private static final String NAME_PATTERN = "[artifact]-[revision](-[classifier])(.[ext])";
 
     public ArtifactRevisionIdFileStore(PathKeyFileStore pathKeyFileStore, TemporaryFileProvider temporaryFileProvider) {
