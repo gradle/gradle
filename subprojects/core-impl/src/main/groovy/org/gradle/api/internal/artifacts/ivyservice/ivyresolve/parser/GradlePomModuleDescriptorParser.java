@@ -58,7 +58,9 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
         doParsePom(parserSettings, mdBuilder, pomReader);
 
         String artifactId = pomReader.getArtifactId();
-        mdBuilder.addMainArtifact(artifactId, pomReader.getPackaging());
+        if (pomReader.getRelocation() == null) {
+            mdBuilder.addMainArtifact(artifactId, pomReader.getPackaging());
+        }
 
         DefaultModuleDescriptor moduleDescriptor = mdBuilder.getModuleDescriptor();
         ModuleDescriptorAdapter adapter = new ModuleDescriptorAdapter(moduleDescriptor.getModuleRevisionId(), moduleDescriptor);
@@ -69,11 +71,6 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
     }
 
     private void doParsePom(DescriptorParseContext parserSettings, GradlePomModuleDescriptorBuilder mdBuilder, PomReader pomReader) throws IOException, SAXException {
-        pomReader.setProperty("parent.version", pomReader.getParentVersion());
-        pomReader.setProperty("parent.groupId", pomReader.getParentGroupId());
-        pomReader.setProperty("project.parent.version", pomReader.getParentVersion());
-        pomReader.setProperty("project.parent.groupId", pomReader.getParentGroupId());
-
         PomReader parentDescr = null;
         if (pomReader.hasParent()) {
             //Is there any other parent properties?
@@ -83,12 +80,12 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
                     pomReader.getParentArtifactId(),
                     pomReader.getParentVersion());
             parentDescr = parseOtherPom(parserSettings, parentModRevID);
-            Map parentPomProps = mdBuilder.extractPomProperties();
-            for (Object o : parentPomProps.entrySet()) {
-                Map.Entry prop = (Map.Entry) o;
-                pomReader.setProperty((String) prop.getKey(), (String) prop.getValue());
+            Map<String, String> parentPomProps = parentDescr.getProperties();
+            for (Map.Entry<String, String> entry : parentPomProps.entrySet()) {
+                pomReader.setProperty(entry.getKey(), entry.getValue());
             }
         }
+        pomReader.resolveGAV();
 
         String groupId = pomReader.getGroupId();
         String artifactId = pomReader.getArtifactId();
@@ -132,19 +129,7 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
                 mdBuilder.addDependency(dd);
             }
         } else {
-            pomReader.setProperty("project.groupId", groupId);
-            pomReader.setProperty("pom.groupId", groupId);
-            pomReader.setProperty("groupId", groupId);
-            pomReader.setProperty("project.artifactId", artifactId);
-            pomReader.setProperty("pom.artifactId", artifactId);
-            pomReader.setProperty("artifactId", artifactId);
-            pomReader.setProperty("project.version", version);
-            pomReader.setProperty("pom.version", version);
-            pomReader.setProperty("version", version);
-
             if (parentDescr != null) {
-                mdBuilder.addExtraInfos(parentDescr.getPomProperties());
-
                 // add dependency management info from parent
                 List<PomDependencyMgt> depMgt = parentDescr.getDependencyMgt();
                 for (PomDependencyMgt aDepMgt : depMgt) {

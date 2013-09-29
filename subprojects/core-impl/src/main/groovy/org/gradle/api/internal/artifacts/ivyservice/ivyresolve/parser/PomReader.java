@@ -92,9 +92,19 @@ public class PomReader {
         }
         parentElement = getFirstChildElement(projectElement, PARENT);
 
+        setProperty("parent.version", getParentVersion());
+        setProperty("parent.groupId", getParentGroupId());
+        setProperty("project.parent.version", getParentVersion());
+        setProperty("project.parent.groupId", getParentGroupId());
+
         for(Map.Entry<String, String> pomProperty : getPomProperties().entrySet()) {
             setProperty(pomProperty.getKey(), pomProperty.getValue());
         }
+    }
+
+    @Override
+    public String toString() {
+        return projectElement.getOwnerDocument().getDocumentURI();
     }
 
     public static Document parseToDom(InputStream stream, String systemId) throws IOException, SAXException {
@@ -283,6 +293,22 @@ public class PomReader {
             }
         }
         return dependencies;
+    }
+
+    public void resolveGAV() {
+        String groupId = getGroupId();
+        String artifactId = getArtifactId();
+        String version = getVersion();
+
+        properties.put("project.groupId", groupId);
+        properties.put("pom.groupId", groupId);
+        properties.put("groupId", groupId);
+        properties.put("project.artifactId", artifactId);
+        properties.put("pom.artifactId", artifactId);
+        properties.put("artifactId", artifactId);
+        properties.put("project.version", version);
+        properties.put("pom.version", version);
+        properties.put("version", version);
     }
 
     public class PomDependencyMgtElement implements PomDependencyMgt {

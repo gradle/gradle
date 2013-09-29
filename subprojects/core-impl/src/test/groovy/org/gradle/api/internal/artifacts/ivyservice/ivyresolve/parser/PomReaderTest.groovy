@@ -110,7 +110,7 @@ class PomReaderTest extends Specification {
         pomReader.licenses[0].url == 'http://www.apache.org/licenses/LICENSE-2.0.txt'
         !pomReader.hasParent()
         pomReader.pomProperties.size() == 0
-        pomReader.getProperties().size() == 0
+        pomReader.properties.size() == 4
     }
 
     def "use custom properties in POM project coordinates"() {
@@ -141,12 +141,12 @@ class PomReaderTest extends Specification {
         pomReader.description == 'The first test artifact'
         pomReader.packaging == 'jar'
         !pomReader.hasParent()
-        pomReader.getPomProperties().size() == 5
-        pomReader.getPomProperties().containsKey('some.prop1')
-        pomReader.getPomProperties().containsKey('some.prop2')
-        pomReader.getProperties().size() == 5
-        pomReader.getProperties().containsKey('some.prop1')
-        pomReader.getProperties().containsKey('some.prop2')
+        pomReader.pomProperties.size() == 5
+        pomReader.pomProperties.containsKey('some.prop1')
+        pomReader.pomProperties.containsKey('some.prop2')
+        pomReader.properties.size() == 9
+        pomReader.properties.containsKey('some.prop1')
+        pomReader.properties.containsKey('some.prop2')
     }
 
     def "get dependencies without custom properties"() {

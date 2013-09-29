@@ -181,8 +181,81 @@ class GradlePomModuleDescriptorParserTest extends Specification {
         hasDefaultDependencyArtifact(dep)
     }
 
-    def "replaces variable placeholders in parent pom"() {
+    def "uses properties from parent pom to replace variable placeholders in pom"() {
         given:
+        def parent = tmpDir.file("parent.xlm") << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+
+    <properties>
+        <artifact-two.version>v2</artifact-two.version>
+        <artifact-three.version>ignore-me</artifact-three.version>
+    </properties>
+</project>
+"""
+
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+
+    <parent>
+        <groupId>group-one</groupId>
+        <artifactId>parent</artifactId>
+        <version>version-one</version>
+    </parent>
+
+    <properties>
+        <artifact-three.version>v3</artifact-three.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>group-two</groupId>
+            <artifactId>artifact-two</artifactId>
+            <version>\${artifact-two.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>group-three</groupId>
+            <artifactId>artifact-three</artifactId>
+            <version>\${artifact-three.version}</version>
+        </dependency>
+    </dependencies>
+</project>
+"""
+        and:
+        parseContext.currentRevisionId >> moduleId('group-one', 'artifact-one', 'version-one')
+        parseContext.getArtifact(_) >> { new DefaultLocallyAvailableExternalResource(parent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(parent)) }
+
+        when:
+        def descriptor = parsePom()
+
+        then:
+        descriptor.dependencies.length == 2
+        def artifactTwo = descriptor.dependencies[0]
+        artifactTwo.dependencyRevisionId == moduleId('group-two', 'artifact-two', 'v2')
+        hasDefaultDependencyArtifact(artifactTwo)
+        def artifactThree = descriptor.dependencies[1]
+        artifactThree.dependencyRevisionId == moduleId('group-three', 'artifact-three', 'v3')
+        hasDefaultDependencyArtifact(artifactThree)
+    }
+
+    def "replaces variable placeholders in parent pom dependency management section"() {
+        given:
+        def grandParent = tmpDir.file("grand-parent.xlm") << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>different-group</groupId>
+    <artifactId>grandparent</artifactId>
+    <version>different-version</version>
+</project>
+"""
+
         def parent = tmpDir.file("parent.xlm") << """
 <project>
     <modelVersion>4.0.0</modelVersion>
@@ -190,11 +263,22 @@ class GradlePomModuleDescriptorParserTest extends Specification {
     <artifactId>parent</artifactId>
     <version>version-one</version>
 
+    <parent>
+        <groupId>different-group</groupId>
+        <artifactId>grandparent</artifactId>
+        <version>different-version</version>
+    </parent>
+
     <dependencyManagement>
         <dependencies>
             <dependency>
                 <groupId>\${project.groupId}</groupId>
                 <artifactId>artifact-two</artifactId>
+                <version>\${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>\${project.groupId}</groupId>
+                <artifactId>artifact-three</artifactId>
                 <version>\${project.version}</version>
             </dependency>
         </dependencies>
@@ -220,22 +304,31 @@ class GradlePomModuleDescriptorParserTest extends Specification {
             <groupId>\${project.groupId}</groupId>
             <artifactId>artifact-two</artifactId>
         </dependency>
+        <dependency>
+            <groupId>group-one</groupId>
+            <artifactId>artifact-three</artifactId>
+        </dependency>
     </dependencies>
 </project>
 """
         and:
         parseContext.currentRevisionId >> moduleId('group-one', 'artifact-one', 'version-one')
-        parseContext.getArtifact(_) >> { new DefaultLocallyAvailableExternalResource(parent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(parent)) }
+        parseContext.getArtifact({it.moduleRevisionId.name == 'parent' }) >> { new DefaultLocallyAvailableExternalResource(parent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(parent)) }
+        parseContext.getArtifact({it.moduleRevisionId.name == 'grandparent' }) >> { new DefaultLocallyAvailableExternalResource(grandParent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(grandParent)) }
 
         when:
         def descriptor = parsePom()
 
         then:
-        descriptor.dependencies.length == 1
-        def dep = descriptor.dependencies.first()
-        dep.dependencyRevisionId == moduleId('group-one', 'artifact-two', 'version-one')
-        dep.moduleConfigurations == ['compile', 'runtime']
-        hasDefaultDependencyArtifact(dep)
+        descriptor.dependencies.length == 2
+        def artifactTwo = descriptor.dependencies[0]
+        artifactTwo.dependencyRevisionId == moduleId('group-one', 'artifact-two', 'version-one')
+        artifactTwo.moduleConfigurations == ['compile', 'runtime']
+        hasDefaultDependencyArtifact(artifactTwo)
+        def artifactThree = descriptor.dependencies[1]
+        artifactThree.dependencyRevisionId == moduleId('group-one', 'artifact-three', 'version-one')
+        artifactThree.moduleConfigurations == ['compile', 'runtime']
+        hasDefaultDependencyArtifact(artifactThree)
     }
 
     def "pom with dependency with classifier"() {

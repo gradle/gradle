@@ -23,7 +23,6 @@ import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
-import org.apache.ivy.plugins.parser.m2.DefaultPomDependencyMgt;
 import org.apache.ivy.plugins.parser.m2.PomDependencyMgt;
 import org.apache.ivy.plugins.parser.xml.XmlModuleDescriptorParser;
 import org.gradle.api.internal.externalresource.ExternalResource;
@@ -41,8 +40,6 @@ import java.util.Map.Entry;
  */
 public class GradlePomModuleDescriptorBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(GradlePomModuleDescriptorBuilder.class);
-
-    private static final int DEPENDENCY_MANAGEMENT_KEY_PARTS_COUNT = 4;
 
     public static final Configuration[] MAVEN2_CONFIGURATIONS = new Configuration[]{
             new Configuration("default", Visibility.PUBLIC,
@@ -89,7 +86,6 @@ public class GradlePomModuleDescriptorBuilder {
     static final Map<String, ConfMapper> MAVEN2_CONF_MAPPING = new HashMap<String, ConfMapper>();
 
     private static final String DEPENDENCY_MANAGEMENT = "m:dependency.management";
-    private static final String PROPERTIES = "m:properties";
     private static final String EXTRA_INFO_DELIMITER = "__";
     private static final Collection<String> JAR_PACKAGINGS = Arrays.asList("ejb", "bundle", "maven-plugin", "eclipse-plugin");
     private final Map<String, String> extraInfo = new HashMap<String, String>();
@@ -310,7 +306,7 @@ public class GradlePomModuleDescriptorBuilder {
     }
 
     public void addDependency(DependencyDescriptor descriptor) {
-        // Some POMs depend on theirselfves through their parent POM, don't add this dependency
+        // Some POMs depend on themselves through their parent POM, don't add this dependency
         // since Ivy doesn't allow this!
         // Example: http://repo2.maven.org/maven2/com/atomikos/atomikos-util/3.6.4/atomikos-util-3.6.4.pom
         ModuleId dependencyId = descriptor.getDependencyId();
@@ -336,7 +332,7 @@ public class GradlePomModuleDescriptorBuilder {
             for (Object o : dep.getExcludedModules()) {
                 final ModuleId excludedModule = (ModuleId) o;
                 addExtraInfo(exclusionPrefix + index,
-                          excludedModule.getOrganisation() + EXTRA_INFO_DELIMITER + excludedModule.getName());
+                        excludedModule.getOrganisation() + EXTRA_INFO_DELIMITER + excludedModule.getName());
                 index += 1;
             }
         }
@@ -431,10 +427,6 @@ public class GradlePomModuleDescriptorBuilder {
                 + EXTRA_INFO_DELIMITER + artifaceId + EXTRA_INFO_DELIMITER + "scope";
     }
 
-    private String getPropertyExtraInfoKey(String propertyName) {
-        return PROPERTIES + EXTRA_INFO_DELIMITER + propertyName;
-    }
-
     private String getDependencyMgtExtraInfoPrefixForExclusion(
             String groupId, String artifaceId) {
         return DEPENDENCY_MANAGEMENT + EXTRA_INFO_DELIMITER + groupId
@@ -462,67 +454,9 @@ public class GradlePomModuleDescriptorBuilder {
         return exclusionIds;
     }
 
-    public List getDependencyManagements(ModuleDescriptor md) {
-        List result = new ArrayList();
-
-        for (Iterator iterator = md.getExtraInfo().entrySet().iterator(); iterator.hasNext();) {
-            Entry entry = (Entry) iterator.next();
-            String key = (String) entry.getKey();
-            if (key.startsWith(DEPENDENCY_MANAGEMENT)) {
-                String[] parts = key.split(EXTRA_INFO_DELIMITER);
-                if (parts.length != DEPENDENCY_MANAGEMENT_KEY_PARTS_COUNT) {
-                    LOGGER.warn("Dependency management extra info doesn't match expected pattern: {}", key);
-                } else {
-                    String versionKey = DEPENDENCY_MANAGEMENT + EXTRA_INFO_DELIMITER + parts[1]
-                            + EXTRA_INFO_DELIMITER + parts[2]
-                            + EXTRA_INFO_DELIMITER + "version";
-                    String scopeKey = DEPENDENCY_MANAGEMENT + EXTRA_INFO_DELIMITER + parts[1]
-                            + EXTRA_INFO_DELIMITER + parts[2]
-                            + EXTRA_INFO_DELIMITER + "scope";
-
-                    String version = (String) md.getExtraInfo().get(versionKey);
-                    String scope = (String) md.getExtraInfo().get(scopeKey);
-
-                    List<ModuleId> exclusions = getDependencyMgtExclusions(parts[1], parts[2]);
-                    result.add(new DefaultPomDependencyMgt(parts[1], parts[2], version, scope, exclusions));
-                }
-            }
-        }
-
-        return result;
-    }
-
-
-    public void addExtraInfos(Map extraAttributes) {
-        for (Iterator it = extraAttributes.entrySet().iterator(); it.hasNext();) {
-            Entry entry = (Entry) it.next();
-            String key = (String) entry.getKey();
-            String value = (String) entry.getValue();
-            addExtraInfo(key, value);
-        }
-    }
-
     private void addExtraInfo(String key, String value) {
         if (!extraInfo.containsKey(key)) {
             extraInfo.put(key, value);
         }
-    }
-
-    public Map extractPomProperties() {
-        Map r = new HashMap();
-        for (Iterator it = extraInfo.entrySet().iterator(); it.hasNext();) {
-            Entry extraInfoEntry = (Entry) it.next();
-            if (((String) extraInfoEntry.getKey()).startsWith(PROPERTIES)) {
-                String prop = ((String) extraInfoEntry.getKey()).substring(PROPERTIES.length()
-                        + EXTRA_INFO_DELIMITER.length());
-                r.put(prop, extraInfoEntry.getValue());
-            }
-        }
-        return r;
-    }
-
-
-    public void addProperty(String propertyName, String value) {
-        addExtraInfo(getPropertyExtraInfoKey(propertyName), value);
     }
 }

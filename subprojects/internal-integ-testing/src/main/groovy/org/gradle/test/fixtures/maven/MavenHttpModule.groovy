@@ -54,6 +54,11 @@ class MavenHttpModule implements MavenModule {
         return this
     }
 
+    MavenHttpModule publishPom() {
+        backingModule.publishPom()
+        return this
+    }
+
     MavenHttpModule publishWithChangedContent() {
         backingModule.publishWithChangedContent()
         return this

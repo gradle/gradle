@@ -25,6 +25,11 @@ interface MavenModule {
     MavenModule publish()
 
     /**
+     * Publishes the pom.xml only
+     */
+    MavenModule publishPom()
+
+    /**
      * Publishes the pom.xml plus main artifact, plus any additional artifacts for this module, with different content (and size) to any
      * previous publication.
      */
