@@ -49,25 +49,26 @@ public class NativeBinariesModelPlugin implements Plugin<Project> {
         project.getPlugins().apply(BasePlugin.class);
         project.getPlugins().apply(LanguageBasePlugin.class);
 
-        project.getExtensions().create("toolChains",
+        project.getExtensions().create(
+                "toolChains",
                 DefaultToolChainRegistry.class,
                 instantiator
         );
-        project.getExtensions().create("targetPlatforms",
+        project.getExtensions().create(
+                "targetPlatforms",
                 DefaultPlatformContainer.class,
                 instantiator
         );
-        project.getExtensions().create("buildTypes",
+        project.getExtensions().create(
+                "buildTypes",
                 DefaultBuildTypeContainer.class,
                 instantiator
         );
-
         project.getExtensions().create(
                 "executables",
                 DefaultExecutableContainer.class,
                 instantiator
         );
-
         project.getExtensions().create(
                 "libraries",
                 DefaultLibraryContainer.class,

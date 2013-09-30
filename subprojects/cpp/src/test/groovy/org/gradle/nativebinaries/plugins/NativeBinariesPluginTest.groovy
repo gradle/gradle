@@ -15,101 +15,97 @@
  */
 
 package org.gradle.nativebinaries.plugins
-import org.gradle.api.Task
-import org.gradle.api.plugins.BasePlugin
-import org.gradle.api.tasks.TaskDependency
-import org.gradle.internal.os.OperatingSystem
-import org.gradle.nativebinaries.ExecutableBinary
-import org.gradle.nativebinaries.toolchain.plugins.GccCompilerPlugin
+import org.gradle.language.base.LanguageSourceSet
+import org.gradle.nativebinaries.tasks.CreateStaticLibrary
+import org.gradle.nativebinaries.tasks.InstallExecutable
+import org.gradle.nativebinaries.tasks.LinkExecutable
+import org.gradle.nativebinaries.tasks.LinkSharedLibrary
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class NativeBinariesPluginTest extends Specification {
     final def project = TestUtil.createRootProject()
 
-    def "creates domain objects and lifecycle task for executable"() {
-        given:
-        dsl {
-            apply plugin: NativeBinariesPlugin
-            apply plugin: GccCompilerPlugin
-
-            executables {
-                test {
-                }
-            }
-        }
-
-        expect:
-        def executable = project.executables.test
-
-        and:
-        ExecutableBinary executableBinary = project.binaries.testExecutable
-        executableBinary.component == executable
-        executableBinary.toolChain
-        executableBinary.outputFile == project.file("build/binaries/testExecutable/${executableBinary.toolChain.getExecutableName('test')}")
-
-        and:
-        executable.binaries.contains executableBinary
-
-        and:
-        with (oneTask(executableBinary.buildDependencies)) {
-            name == executableBinary.name
-            group == BasePlugin.BUILD_GROUP
-        }
+    def setup() {
+        project.plugins.apply(NativeBinariesPlugin)
     }
 
-    def "creates domain objects and lifecycle tasks for library"() {
+    def "creates link and install task for executable"() {
         when:
-        dsl {
-            apply plugin: NativeBinariesPlugin
-            apply plugin: GccCompilerPlugin
-            libraries {
-                test {
-                }
-            }
-        }
+        project.executables.create "test"
+        project.evaluate()
 
         then:
-        def sharedLibName = OperatingSystem.current().getSharedLibraryName("test")
-        def staticLibName = OperatingSystem.current().getStaticLibraryName("test")
-        def library = project.libraries.test
-
-        and:
-        def sharedLibraryBinary = project.binaries.testSharedLibrary
-        sharedLibraryBinary.toolChain
-        sharedLibraryBinary.outputFile == project.file("build/binaries/testSharedLibrary/$sharedLibName")
-        sharedLibraryBinary.component == project.libraries.test
-
-        and:
-        def staticLibraryBinary = project.binaries.testStaticLibrary
-        staticLibraryBinary.toolChain
-        staticLibraryBinary.outputFile == project.file("build/binaries/testStaticLibrary/$staticLibName")
-        staticLibraryBinary.component == project.libraries.test
-
-        and:
-        library.binaries.contains(sharedLibraryBinary)
-        library.binaries.contains(staticLibraryBinary)
-
-        and:
-        with (oneTask(sharedLibraryBinary.buildDependencies)) {
-            name == sharedLibraryBinary.name
-            group == BasePlugin.BUILD_GROUP
+        def testExecutable = project.binaries.testExecutable
+        with (project.tasks.linkTestExecutable) {
+            it instanceof LinkExecutable
+            it == testExecutable.tasks.link
+            it.toolChain == testExecutable.toolChain
+            it.targetPlatform == testExecutable.targetPlatform
+            it.linkerArgs == testExecutable.linker.args
         }
-        with (oneTask(staticLibraryBinary.buildDependencies)) {
-            name == staticLibraryBinary.name
-            group == BasePlugin.BUILD_GROUP
-        }
+        testExecutable.tasks.createStaticLib == null
+
+        and:
+        project.tasks.installTestExecutable instanceof InstallExecutable
     }
 
-    def dsl(Closure closure) {
-        closure.delegate = project
-        closure()
+    def "creates link task and static archive task for library"() {
+        when:
+        project.libraries.create "test"
         project.evaluate()
+
+        then:
+        def sharedLibraryBinary = project.binaries.testSharedLibrary
+        with (project.tasks.linkTestSharedLibrary) {
+            it instanceof LinkSharedLibrary
+            it == sharedLibraryBinary.tasks.link
+            it.toolChain == sharedLibraryBinary.toolChain
+            it.targetPlatform == sharedLibraryBinary.targetPlatform
+            it.linkerArgs == sharedLibraryBinary.linker.args
+        }
+        sharedLibraryBinary.tasks.createStaticLib == null
+
+        def staticLibraryBinary = project.binaries.testStaticLibrary
+        with (project.tasks.createTestStaticLibrary) {
+            it instanceof  CreateStaticLibrary
+            it == staticLibraryBinary.tasks.createStaticLib
+            it.toolChain == staticLibraryBinary.toolChain
+            it.targetPlatform == staticLibraryBinary.targetPlatform
+            it.staticLibArgs == staticLibraryBinary.staticLibArchiver.args
+        }
+        staticLibraryBinary.tasks.link == null
     }
 
-    Task oneTask(TaskDependency dependencies) {
-        def tasks = dependencies.getDependencies(Stub(Task))
-        assert tasks.size() == 1
-        return tasks.asList()[0]
+    def "attaches existing functional source set with same name to component"() {
+        def languageSourceSet = Stub(LanguageSourceSet) {
+            getName() >> "languageSourceSet"
+        }
+
+        when:
+        project.sources.create "testExe"
+        project.sources.testExe.add languageSourceSet
+
+        project.executables.create "testExe"
+
+        then:
+        project.executables.testExe.source == [languageSourceSet] as Set
+    }
+
+    def "creates and attaches functional source set with same name to component"() {
+        def languageSourceSet = Stub(LanguageSourceSet) {
+            getName() >> "languageSourceSet"
+        }
+
+        when:
+        // Ensure that any created functional source set has a language source set
+        project.sources.all { functionalSourceSet ->
+            functionalSourceSet.add languageSourceSet
+        }
+
+        project.executables.create "testExe"
+
+        then:
+        project.executables.testExe.source == [languageSourceSet] as Set
     }
 }

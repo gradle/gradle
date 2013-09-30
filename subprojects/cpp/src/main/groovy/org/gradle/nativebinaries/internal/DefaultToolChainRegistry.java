@@ -54,6 +54,9 @@ public class DefaultToolChainRegistry extends DefaultPolymorphicDomainObjectCont
             }
             messages.add(String.format("Could not load '%s': %s", toolChain.getName(), availability.getUnavailableMessage()));
         }
+        if (messages.isEmpty()) {
+            messages.add("No tool chain plugin applied");
+        }
         add(new UnavailableToolChain(messages));
     }
 
