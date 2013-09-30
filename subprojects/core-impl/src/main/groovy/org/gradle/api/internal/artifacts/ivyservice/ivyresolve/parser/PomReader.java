@@ -92,13 +92,42 @@ public class PomReader {
         }
         parentElement = getFirstChildElement(projectElement, PARENT);
 
-        setProperty("parent.version", getParentVersion());
-        setProperty("parent.groupId", getParentGroupId());
-        setProperty("project.parent.version", getParentVersion());
-        setProperty("project.parent.groupId", getParentGroupId());
+        setDefaultParentGavProperties();
+        setPomProperties();
+    }
 
+    private void setPomProperties() {
         for(Map.Entry<String, String> pomProperty : getPomProperties().entrySet()) {
             setProperty(pomProperty.getKey(), pomProperty.getValue());
+        }
+    }
+
+    private void setDefaultParentGavProperties() {
+        setGavPropertyValueWithoutReplacement(GavProperty.PARENT_GROUP_ID, getParentGroupId());
+        setGavPropertyValueWithoutReplacement(GavProperty.PARENT_VERSION, getParentVersion());
+    }
+
+    private void setGavPropertyValueWithoutReplacement(GavProperty gavProperty, String propertyValue) {
+        for(String name : gavProperty.getNames()) {
+            setProperty(name, propertyValue);
+        }
+    }
+
+    private enum GavProperty {
+        PARENT_VERSION(new String[] {"parent.version", "project.parent.version"}),
+        PARENT_GROUP_ID(new String[] {"parent.groupId", "project.parent.groupId"}),
+        GROUP_ID(new String[] {"project.groupId", "pom.groupId", "groupId"}),
+        ARTIFACT_ID(new String[] {"project.artifactId", "pom.artifactId", "artifactId"}),
+        VERSION(new String[] {"project.version", "pom.version", "version"});
+
+        private final String[] names;
+
+        private GavProperty(String[] names) {
+            this.names = names;
+        }
+
+        public String[] getNames() {
+            return names;
         }
     }
 
@@ -211,7 +240,7 @@ public class PomReader {
     }
 
     public String getDescription() {
-        String val = getFirstChildText(projectElement , DESCRIPTION);
+        String val = getFirstChildText(projectElement, DESCRIPTION);
         if (val == null) {
             val = "";
         }
@@ -296,19 +325,15 @@ public class PomReader {
     }
 
     public void resolveGAV() {
-        String groupId = getGroupId();
-        String artifactId = getArtifactId();
-        String version = getVersion();
+        setGavPropertyValue(GavProperty.GROUP_ID, getGroupId());
+        setGavPropertyValue(GavProperty.ARTIFACT_ID, getArtifactId());
+        setGavPropertyValue(GavProperty.VERSION, getVersion());
+    }
 
-        properties.put("project.groupId", groupId);
-        properties.put("pom.groupId", groupId);
-        properties.put("groupId", groupId);
-        properties.put("project.artifactId", artifactId);
-        properties.put("pom.artifactId", artifactId);
-        properties.put("artifactId", artifactId);
-        properties.put("project.version", version);
-        properties.put("pom.version", version);
-        properties.put("version", version);
+    private void setGavPropertyValue(GavProperty gavProperty, String propertyValue) {
+        for(String name : gavProperty.getNames()) {
+            properties.put(name, propertyValue);
+        }
     }
 
     public class PomDependencyMgtElement implements PomDependencyMgt {

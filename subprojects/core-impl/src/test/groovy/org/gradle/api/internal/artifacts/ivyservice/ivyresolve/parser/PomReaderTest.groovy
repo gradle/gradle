@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
 
+import org.apache.ivy.core.module.descriptor.License
 import org.gradle.api.internal.externalresource.DefaultLocallyAvailableExternalResource
 import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource
 import org.gradle.internal.resource.local.DefaultLocallyAvailableResource
@@ -111,6 +112,10 @@ class PomReaderTest extends Specification {
         !pomReader.hasParent()
         pomReader.pomProperties.size() == 0
         pomReader.properties.size() == 4
+        pomReader.properties['parent.version'] == 'version-one'
+        pomReader.properties['parent.groupId'] == 'group-one'
+        pomReader.properties['project.parent.version'] == 'version-one'
+        pomReader.properties['project.parent.groupId'] == 'group-one'
     }
 
     def "use custom properties in POM project coordinates"() {
@@ -210,5 +215,69 @@ class PomReaderTest extends Specification {
         pomReader.getDependencies().get(0).groupId == 'group-two'
         pomReader.getDependencies().get(0).artifactId == 'artifact-two'
         pomReader.getDependencies().get(0).version == 'version-two'
+    }
+
+    def "parse POM with parent POM"() {
+        when:
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>artifact-one</artifactId>
+
+    <parent>
+        <groupId>group-two</groupId>
+        <artifactId>artifact-two</artifactId>
+        <version>version-two</version>
+    </parent>
+</project>
+"""
+        pomReader = new PomReader(locallyAvailableExternalResource)
+
+        then:
+        pomReader.groupId == 'group-two'
+        pomReader.artifactId == 'artifact-one'
+        pomReader.version == 'version-two'
+        pomReader.parentGroupId == 'group-two'
+        pomReader.parentArtifactId == 'artifact-two'
+        pomReader.parentVersion == 'version-two'
+    }
+
+    def "Parse minimal POM and resolve GAV"() {
+        when:
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+</project>
+"""
+        pomReader = new PomReader(locallyAvailableExternalResource)
+        pomReader.resolveGAV()
+
+        then:
+        pomReader.groupId == 'group-one'
+        pomReader.artifactId == 'artifact-one'
+        pomReader.version == 'version-one'
+        pomReader.packaging == 'jar'
+        pomReader.homePage == ''
+        pomReader.description == ''
+        pomReader.licenses == new License[0]
+        !pomReader.hasParent()
+        pomReader.pomProperties.size() == 0
+        pomReader.properties.size() == 13
+        pomReader.properties['parent.version'] == 'version-one'
+        pomReader.properties['parent.groupId'] == 'group-one'
+        pomReader.properties['project.parent.version'] == 'version-one'
+        pomReader.properties['project.parent.groupId'] == 'group-one'
+        pomReader.properties['project.groupId'] == 'group-one'
+        pomReader.properties['pom.groupId'] == 'group-one'
+        pomReader.properties['groupId'] == 'group-one'
+        pomReader.properties['project.artifactId'] == 'artifact-one'
+        pomReader.properties['pom.artifactId'] == 'artifact-one'
+        pomReader.properties['artifactId'] == 'artifact-one'
+        pomReader.properties['project.version'] == 'version-one'
+        pomReader.properties['pom.version'] == 'version-one'
+        pomReader.properties['version'] == 'version-one'
     }
 }
