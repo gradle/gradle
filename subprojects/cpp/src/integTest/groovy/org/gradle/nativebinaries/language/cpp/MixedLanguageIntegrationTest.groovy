@@ -79,20 +79,20 @@ class MixedLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
                 main {
                     cpp {
                         source {
-                            srcDirs "src"
+                            srcDirs "source"
                             include "**/*.cpp"
                         }
                         exportedHeaders {
-                            srcDirs "src/hello", "include"
+                            srcDirs "source/hello", "include"
                         }
                     }
                     c {
                         source {
-                            srcDirs "src", "include"
+                            srcDirs "source", "include"
                             include "**/*.c"
                         }
                         exportedHeaders {
-                            srcDirs "src/hello", "include"
+                            srcDirs "source/hello", "include"
                         }
                     }
                 }
@@ -104,7 +104,7 @@ class MixedLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
         settingsFile << "rootProject.name = 'test'"
 
         and:
-        file("src", "hello", "hello.cpp") << """
+        file("source", "hello", "hello.cpp") << """
             #include <iostream>
 
             void hello () {
@@ -113,7 +113,7 @@ class MixedLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
         """
 
         and:
-        file("src", "hello", "french", "bonjour.c") << """
+        file("source", "hello", "french", "bonjour.c") << """
             #include <stdio.h>
             #include "otherProject/bonjour.h"
 
@@ -123,12 +123,12 @@ class MixedLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
         """
 
         and:
-        file("src", "hello", "hello.h") << """
+        file("source", "hello", "hello.h") << """
             void hello();
         """
 
         and:
-        file("src", "app", "main", "main.cpp") << """
+        file("source", "app", "main", "main.cpp") << """
             #include "hello.h"
             extern "C" {
                 #include "otherProject/bonjour.h"
@@ -149,6 +149,12 @@ class MixedLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
         and:
         file("include", "otherProject", "bonjour.cpp") << """
             THIS FILE WON'T BE COMPILED
+        """
+        file("src", "main", "cpp", "bad.cpp") << """
+            THIS FILE WON'T BE COMPILED
+        """
+        file("src", "main", "headers", "hello.h") << """
+            THIS FILE WON'T BE INCLUDED
         """
 
         when:
