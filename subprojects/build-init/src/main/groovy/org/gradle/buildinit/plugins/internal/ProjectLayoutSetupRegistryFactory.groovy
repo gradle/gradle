@@ -34,15 +34,15 @@ class ProjectLayoutSetupRegistryFactory {
     }
 
     ProjectLayoutSetupRegistry createProjectLayoutSetupRegistry() {
+        DefaultTemplateLibraryVersionProvider libraryVersionProvider = new DefaultTemplateLibraryVersionProvider();
         ProjectLayoutSetupRegistry registry = new ProjectLayoutSetupRegistry()
-
         // TODO maybe referencing the implementation class here is enough and instantiation
         // should be defererred when descriptor is requested.
         registry.add(new BasicProjectInitDescriptor(fileResolver, documentationRegistry));
-        registry.add(new JavaLibraryProjectInitDescriptor(fileResolver, documentationRegistry));
+        registry.add(new JavaLibraryProjectInitDescriptor(libraryVersionProvider, fileResolver, documentationRegistry));
         registry.add(new PomProjectInitDescriptor(fileResolver, mavenSettingsProvider))
-        registry.add(new GroovyLibraryProjectInitDescriptor(fileResolver, documentationRegistry))
-        registry.add(new ScalaLibraryProjectInitDescriptor(fileResolver, documentationRegistry))
+        registry.add(new GroovyLibraryProjectInitDescriptor(libraryVersionProvider, fileResolver, documentationRegistry))
+        registry.add(new ScalaLibraryProjectInitDescriptor(libraryVersionProvider, fileResolver, documentationRegistry))
         return registry
     }
 

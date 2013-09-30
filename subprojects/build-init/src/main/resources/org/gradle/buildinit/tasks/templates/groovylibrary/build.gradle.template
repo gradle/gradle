@@ -20,9 +20,9 @@ repositories {
 // In this section you declare the dependencies for your production and test code
 dependencies {
     // We use the latest groovy 2.x version for building this library
-    compile 'org.codehaus.groovy:groovy-all:2.+'
+    compile 'org.codehaus.groovy:groovy-all:${groovyAllVersion.groovyString}'
 
     // We use the awesome Spock testing and specification framework
     testCompile 'org.spockframework:spock-core:0.7-groovy-2.0'
-    testCompile 'junit:junit:4.11'
+    testCompile 'junit:junit:${junitVersion.groovyString}'
 }

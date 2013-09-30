@@ -14,18 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.buildinit.plugins.internal;
+package org.gradle.buildinit.plugins.internal
 
-import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.api.internal.file.FileResolver
 
 class LanguageLibraryProjectInitDescriptor extends TemplateBasedProjectInitDescriptor {
 
     protected final String id;
     protected final String templatepackage
+    protected final TemplateLibraryVersionProvider libraryVersionProvider
 
-    LanguageLibraryProjectInitDescriptor(String id, FileResolver fileResolver, DocumentationRegistry documentationRegistry){
+    LanguageLibraryProjectInitDescriptor(String id, TemplateLibraryVersionProvider libraryVersionProvider, FileResolver fileResolver, DocumentationRegistry documentationRegistry) {
         super(fileResolver, documentationRegistry);
+        this.libraryVersionProvider = libraryVersionProvider
         this.id = id;
         this.templatepackage = id.replaceAll("-", "") // - IS Not allowed as packagename so remove it
     }

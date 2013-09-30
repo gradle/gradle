@@ -47,7 +47,9 @@ abstract class TemplateBasedProjectInitDescriptor implements ProjectInitDescript
     }
 
     def generateGradleFiles() {
-        generateFileFromTemplate(getBuildFileTemplate(), fileResolver.resolve("build.gradle"), getAdditionalBuildFileTemplateBindings())
+        LinkedHashMap<String,String> specificBindings = getAdditionalBuildFileTemplateBindings()
+        println specificBindings
+        generateFileFromTemplate(getBuildFileTemplate(), fileResolver.resolve("build.gradle"), specificBindings)
         generateFileFromTemplate(getSettingsTemplate(), fileResolver.resolve("settings.gradle"), getAdditionalSettingsFileTemplateBindings())
     }
 

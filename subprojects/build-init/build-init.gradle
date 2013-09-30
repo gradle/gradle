@@ -14,13 +14,61 @@
  * limitations under the License.
  */
 dependencies {
-	compile libraries.groovy
-	compile project(':core')
-	compile project(':plugins')
-	compile project(':wrapper')
+    compile libraries.groovy
+    compile project(':core')
+    compile project(':plugins')
+    compile project(':wrapper')
     integTestRuntime project(':maven')
     integTestRuntime project(':scala')
 }
+
+
+task generateTemplateVersionFile(type: GenerateVersionProperties) {
+    outputFile = file("src/main/generated-resources/org/gradle/buildinit/tasks/templates/library-versions.properties")
+    library 'org.scalatest:scalatest_2.10:+'
+    library 'org.scala-lang:scala-library:2.10.+'
+    library 'org.codehaus.groovy:groovy-all:2.+'
+    library 'junit:junit:4.+'
+}
+
+sourceSets.main.resources.srcDir file("src/main/generated-resources")
+processResources.dependsOn generateTemplateVersionFile
+
+eclipseClasspath.dependsOn generateTemplateVersionFile
+ideaModule.dependsOn generateTemplateVersionFile
+
+class GenerateVersionProperties extends DefaultTask {
+
+    @OutputFile
+    File outputFile
+
+    @Input
+    def libraryDefinitions = []
+
+    @TaskAction
+    void generateFile() {
+        resolveFiles()
+    }
+
+    def resolveFiles() {
+        def libDependencies = libraryDefinitions.collect { project.dependencies.create(it) }
+        def templateVersionConfiguration = project.configurations.detachedConfiguration(libDependencies.toArray(new Dependency[libDependencies.size()]))
+        templateVersionConfiguration.transitive = false
+        outputFile.withWriter { writer ->
+            templateVersionConfiguration.incoming.afterResolve { ResolvableDependencies deps ->
+                deps.resolutionResult.allDependencies.each { ResolvedDependencyResult result ->
+                    writer.append("${result.selected.id.name}=${result.selected.id.version}\n")
+                }
+            }
+            templateVersionConfiguration.resolve()
+        }
+    }
+
+    def library(Object dependencyNotation) {
+        libraryDefinitions << dependencyNotation
+    }
+}
+
 
 useTestFixtures()
 useClassycle()

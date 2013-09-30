@@ -6,6 +6,6 @@
  */
 class Library {
     boolean someLibraryMethod() {
-        true;
+        true
     }
 }

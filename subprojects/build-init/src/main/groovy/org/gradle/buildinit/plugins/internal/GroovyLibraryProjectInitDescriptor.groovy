@@ -21,12 +21,18 @@ import org.gradle.api.internal.file.FileResolver
 
 class GroovyLibraryProjectInitDescriptor extends LanguageLibraryProjectInitDescriptor {
 
-    public GroovyLibraryProjectInitDescriptor(FileResolver fileResolver, DocumentationRegistry documentationRegistry) {
-        super(BuildInitTypeIds.GROOVY_LIBRARY, fileResolver, documentationRegistry);
+    public GroovyLibraryProjectInitDescriptor(DefaultTemplateLibraryVersionProvider libraryVersionProvider, FileResolver fileResolver, DocumentationRegistry documentationRegistry) {
+        super(BuildInitTypeIds.GROOVY_LIBRARY, libraryVersionProvider, fileResolver, documentationRegistry);
     }
 
     protected Map getAdditionalBuildFileTemplateBindings() {
-        return [ref_userguide_groovy_tutorial: documentationRegistry.getDocumentationFor("tutorial_groovy_projects")]
+        def groovyTemplateBinding = [groovyAllVersion:libraryVersionProvider.getVersion("groovy-all"),
+               junitVersion:libraryVersionProvider.getVersion("junit"),
+               ref_userguide_groovy_tutorial:documentationRegistry.getDocumentationFor("tutorial_groovy_projects")]
+
+        println "groovyBindings"
+        println groovyTemplateBinding
+        return groovyTemplateBinding
     }
 
     void generateProjectSources() {
