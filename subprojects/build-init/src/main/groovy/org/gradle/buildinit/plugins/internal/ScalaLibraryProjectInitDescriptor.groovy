@@ -23,20 +23,18 @@ import org.gradle.api.internal.file.FileResolver
 class ScalaLibraryProjectInitDescriptor extends LanguageLibraryProjectInitDescriptor {
 
     public ScalaLibraryProjectInitDescriptor(DefaultTemplateLibraryVersionProvider libraryVersionProvider, FileResolver fileResolver, DocumentationRegistry documentationRegistry) {
-        super(BuildInitTypeIds.SCALA_LIBRARY, libraryVersionProvider, fileResolver, documentationRegistry);
+        super(BuildInitTypeIds.SCALA_LIBRARY, "scala", libraryVersionProvider, fileResolver, documentationRegistry);
     }
 
     protected Map getAdditionalBuildFileTemplateBindings() {
-        return [scalaTestVersion:libraryVersionProvider.getVersion("scalatest_2.10"),
-                scalaVersion:libraryVersionProvider.getVersion("scala-library"),
-                junitVersion:libraryVersionProvider.getVersion("junit"),
+        return [scalaTestVersion: libraryVersionProvider.getVersion("scalatest_2.10"),
+                scalaVersion: libraryVersionProvider.getVersion("scala-library"),
+                junitVersion: libraryVersionProvider.getVersion("junit"),
                 ref_userguide_scala_plugin: documentationRegistry.getDocumentationFor("scala_plugin")]
     }
 
     void generateProjectSources() {
-        if (fileResolver.resolveFilesAsTree("src/main/scala").empty || fileResolver.resolveFilesAsTree("src/test/scala").empty) {
-            generateClass("src/main/scala", "Library.scala")
-            generateClass("src/test/scala", "LibrarySuite.scala")
-        }
+        generateClass("src/main/scala", "Library.scala")
+        generateClass("src/test/scala", "LibrarySuite.scala")
     }
 }

@@ -24,9 +24,11 @@ class LanguageLibraryProjectInitDescriptor extends TemplateBasedProjectInitDescr
     protected final String id;
     protected final String templatepackage
     protected final TemplateLibraryVersionProvider libraryVersionProvider
+    private final String languageId
 
-    LanguageLibraryProjectInitDescriptor(String id, TemplateLibraryVersionProvider libraryVersionProvider, FileResolver fileResolver, DocumentationRegistry documentationRegistry) {
+    LanguageLibraryProjectInitDescriptor(String id, String languageId, TemplateLibraryVersionProvider libraryVersionProvider, FileResolver fileResolver, DocumentationRegistry documentationRegistry) {
         super(fileResolver, documentationRegistry);
+        this.languageId = languageId
         this.libraryVersionProvider = libraryVersionProvider
         this.id = id;
         this.templatepackage = id.replaceAll("-", "") // - IS Not allowed as packagename so remove it
@@ -47,11 +49,13 @@ class LanguageLibraryProjectInitDescriptor extends TemplateBasedProjectInitDescr
     }
 
     protected generateClass(String sourceRoot, String clazzFileName) {
-        File sourceRootFolder = fileResolver.resolve(sourceRoot)
-        sourceRootFolder.mkdirs()
-        File clazzFile = new File(sourceRootFolder, clazzFileName)
-        URL productionClazzFileTemplate = getClass().getResource("/org/gradle/buildinit/tasks/templates/${templatepackage}/${clazzFileName}.template");
-        generateFileFromTemplate(productionClazzFileTemplate, clazzFile, [:])
+        if (fileResolver.resolveFilesAsTree("src/main/$languageId").empty || fileResolver.resolveFilesAsTree("src/test/$languageId").empty) {
+            File sourceRootFolder = fileResolver.resolve(sourceRoot)
+            sourceRootFolder.mkdirs()
+            File clazzFile = new File(sourceRootFolder, clazzFileName)
+            URL productionClazzFileTemplate = getClass().getResource("/org/gradle/buildinit/tasks/templates/${templatepackage}/${clazzFileName}.template");
+            generateFileFromTemplate(productionClazzFileTemplate, clazzFile, [:])
+        }
     }
 
 }

@@ -25,8 +25,8 @@ class LanguageLibraryProjectInitDescriptorTest extends Specification {
 
     def "points to default settings file template"(){
         when:
-        def descriptor1 = new LanguageLibraryProjectInitDescriptor("someId", Mock(TemplateLibraryVersionProvider), Mock(FileResolver), Mock(DocumentationRegistry))
-        def descriptor2 = new LanguageLibraryProjectInitDescriptor("someOtherId", Mock(TemplateLibraryVersionProvider), Mock(FileResolver), Mock(DocumentationRegistry))
+        def descriptor1 = new LanguageLibraryProjectInitDescriptor("someId", "somelang", Mock(TemplateLibraryVersionProvider), Mock(FileResolver), Mock(DocumentationRegistry))
+        def descriptor2 = new LanguageLibraryProjectInitDescriptor("someOtherId", "somelang", Mock(TemplateLibraryVersionProvider), Mock(FileResolver), Mock(DocumentationRegistry))
         then:
         descriptor1.settingsTemplate != null
         descriptor1.settingsTemplate.toExternalForm().endsWith("org/gradle/buildinit/tasks/templates/settings.gradle.template")
