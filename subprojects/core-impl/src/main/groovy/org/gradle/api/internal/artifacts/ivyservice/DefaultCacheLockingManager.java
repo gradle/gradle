@@ -92,10 +92,18 @@ public class DefaultCacheLockingManager implements CacheLockingManager {
     }
 
     public PathKeyFileStore createMetaDataStore() {
-        return createCacheRelativeStore(CacheLayout.META_DATA);
+        return createCacheRelativeStore(CacheLayout.META_DATA, "descriptors");
     }
 
     private PathKeyFileStore createCacheRelativeStore(CacheLayout cacheLayout) {
-        return new UniquePathKeyFileStore(cacheLayout.getPath(cache.getBaseDir()));
+        return new UniquePathKeyFileStore(createCacheRelativeDir(cacheLayout));
+    }
+
+    private PathKeyFileStore createCacheRelativeStore(CacheLayout cacheLayout, String appendedPath) {
+        return new UniquePathKeyFileStore(new File(createCacheRelativeDir(cacheLayout), appendedPath));
+    }
+
+    private File createCacheRelativeDir(CacheLayout cacheLayout) {
+        return cacheLayout.getPath(cache.getBaseDir());
     }
 }
