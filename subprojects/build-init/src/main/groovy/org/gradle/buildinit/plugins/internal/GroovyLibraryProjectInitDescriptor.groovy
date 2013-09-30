@@ -29,9 +29,6 @@ class GroovyLibraryProjectInitDescriptor extends LanguageLibraryProjectInitDescr
         def groovyTemplateBinding = [groovyAllVersion:libraryVersionProvider.getVersion("groovy-all"),
                junitVersion:libraryVersionProvider.getVersion("junit"),
                ref_userguide_groovy_tutorial:documentationRegistry.getDocumentationFor("tutorial_groovy_projects")]
-
-        println "groovyBindings"
-        println groovyTemplateBinding
         return groovyTemplateBinding
     }
 
