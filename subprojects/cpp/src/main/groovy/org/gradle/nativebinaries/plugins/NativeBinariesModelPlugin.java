@@ -78,6 +78,7 @@ public class NativeBinariesModelPlugin implements Plugin<Project> {
 
         // TODO:DAZ Lazy configuration actions: need a better way to accomplish these.
         configurationActions.add(Actions.composite(
+                new ApplySourceSetConventions(),
                 new CreateDefaultToolChain(),
                 new CreateDefaultPlatform(),
                 new CreateDefaultBuildTypes(),

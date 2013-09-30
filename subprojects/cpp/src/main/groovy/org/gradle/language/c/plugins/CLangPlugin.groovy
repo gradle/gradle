@@ -55,19 +55,9 @@ class CLangPlugin implements Plugin<ProjectInternal> {
                     instantiator.newInstance(DefaultCSourceSet, name, functionalSourceSet, project)
                 }
 
-                applyConventions(functionalSourceSet)
+                // Create a single C source set
+                functionalSourceSet.create "c", CSourceSet
             }
         });
-    }
-
-    private void applyConventions(FunctionalSourceSet functionalSourceSet) {
-        // Defaults for all C source sets
-        functionalSourceSet.withType(CSourceSet).all { CSourceSet sourceSet ->
-            sourceSet.exportedHeaders.srcDir "src/${functionalSourceSet.name}/headers"
-            sourceSet.source.srcDir "src/${functionalSourceSet.name}/${sourceSet.name}"
-        }
-
-        // Create a single C source set
-        functionalSourceSet.create "c", CSourceSet
     }
 }

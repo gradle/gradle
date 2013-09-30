@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,18 +54,9 @@ class AssemblerLangPlugin implements Plugin<ProjectInternal> {
                     instantiator.newInstance(DefaultAssemblerSourceSet, name, functionalSourceSet, project)
                 }
 
-                applyConventions(functionalSourceSet)
+                // Create a single assembler source set
+                functionalSourceSet.create "asm", AssemblerSourceSet
             }
         });
-    }
-
-    private void applyConventions(FunctionalSourceSet functionalSourceSet) {
-        // Defaults for all assembler source sets
-        functionalSourceSet.withType(AssemblerSourceSet).all { AssemblerSourceSet sourceSet ->
-            sourceSet.source.srcDir "src/${functionalSourceSet.name}/${sourceSet.name}"
-        }
-
-        // Create a single assembler source set
-        functionalSourceSet.create "asm", AssemblerSourceSet
     }
 }

@@ -152,6 +152,8 @@ The following are the newly deprecated items in this Gradle release. If you have
 * Renamed method: BuildableModelElement.dependsOn() -> BuildableModelElement.builtBy()
 * The `gpp-compiler` plugin was renamed to `gcc`. Class name was change to `GccCompilerPlugin`.
 * Linker arguments are no longer automatically escaped with '-Xlinker' on GCC.
+* The conventional source directories eg: `src/main/cpp` and `src/main/headers` are only applied if no source directories are explicitly
+  configured. If you wish to define custom source locations, you must define _all_ of the source locations.
 
 
 ## External contributions

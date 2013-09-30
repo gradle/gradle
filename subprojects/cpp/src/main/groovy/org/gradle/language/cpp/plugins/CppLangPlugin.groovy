@@ -54,19 +54,9 @@ class CppLangPlugin implements Plugin<ProjectInternal> {
                 functionalSourceSet.registerFactory(CppSourceSet) { name ->
                     instantiator.newInstance(DefaultCppSourceSet, name, functionalSourceSet, project)
                 }
-                applyConventions(functionalSourceSet)
+                // Add a single C++ source set
+                functionalSourceSet.create "cpp", CppSourceSet
             }
         });
-    }
-
-    private void applyConventions(FunctionalSourceSet functionalSourceSet) {
-        // Establish defaults for all cpp source sets
-        functionalSourceSet.withType(CppSourceSet).all { CppSourceSet sourceSet ->
-            sourceSet.exportedHeaders.srcDir "src/${functionalSourceSet.name}/headers"
-            sourceSet.source.srcDir "src/${functionalSourceSet.name}/${sourceSet.name}"
-        }
-
-        // Add a single C++ source set
-        functionalSourceSet.create "cpp", CppSourceSet
     }
 }

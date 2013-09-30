@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,6 +63,8 @@ class CppPluginTest extends Specification {
         sourceSets*.name == ["s1", "s2"]
         sourceSets.s1 instanceof FunctionalSourceSet
         sourceSets.s1.cpp instanceof CppSourceSet
+        sourceSets.s1.cpp.source.srcDirs*.name == ["cpp"]
+        sourceSets.s1.cpp.exportedHeaders.srcDirs*.name == ["headers"]
     }
 
     def "configure source sets"() {
@@ -98,13 +100,11 @@ class CppPluginTest extends Specification {
         def ss1 = sourceSets.ss1.cpp
         def ss2 = sourceSets.ss2.cpp
 
-        // cpp dir automatically added by convention
-        ss1.source.srcDirs*.name == ["cpp", "d1", "d2"]
-        ss2.source.srcDirs*.name == ["cpp", "d3"]
+        ss1.source.srcDirs*.name == ["d1", "d2"]
+        ss2.source.srcDirs*.name == ["d3"]
 
-        // headers dir automatically added by convention
-        ss1.exportedHeaders.srcDirs*.name == ["headers", "h1", "h2"]
-        ss2.exportedHeaders.srcDirs*.name == ["headers", "h3"]
+        ss1.exportedHeaders.srcDirs*.name == ["h1", "h2"]
+        ss2.exportedHeaders.srcDirs*.name == ["h3"]
     }
 
     def "creates source sets and tasks for each executable"() {
