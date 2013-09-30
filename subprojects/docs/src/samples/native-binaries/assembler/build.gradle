@@ -44,12 +44,12 @@ executables {
         binaries.all {
             if (toolChain in VisualCpp) {
 // END SNIPPET assembler-args
-                source sources.i386_masm
+                source sources.i386_masm.asm
 // START SNIPPET assembler-args
                 assembler.args "/Zi"
             } else {
 // END SNIPPET assembler-args
-                source sources.i386_gcc
+                source sources.i386_gcc.asm
 // START SNIPPET assembler-args
                 assembler.args "-g"
             }
