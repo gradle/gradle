@@ -20,6 +20,7 @@ import org.gradle.nativebinaries.tasks.CreateStaticLibrary
 import org.gradle.nativebinaries.tasks.InstallExecutable
 import org.gradle.nativebinaries.tasks.LinkExecutable
 import org.gradle.nativebinaries.tasks.LinkSharedLibrary
+import org.gradle.util.Matchers
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -47,6 +48,10 @@ class NativeBinariesPluginTest extends Specification {
         testExecutable.tasks.createStaticLib == null
 
         and:
+        def lifecycleTask = project.tasks.testExecutable
+        lifecycleTask Matchers.dependsOn("linkTestExecutable")
+
+        and:
         project.tasks.installTestExecutable instanceof InstallExecutable
     }
 
@@ -66,6 +71,11 @@ class NativeBinariesPluginTest extends Specification {
         }
         sharedLibraryBinary.tasks.createStaticLib == null
 
+        and:
+        def sharedLibTask = project.tasks.testSharedLibrary
+        sharedLibTask Matchers.dependsOn("linkTestSharedLibrary")
+
+        and:
         def staticLibraryBinary = project.binaries.testStaticLibrary
         with (project.tasks.createTestStaticLibrary) {
             it instanceof  CreateStaticLibrary
@@ -75,6 +85,10 @@ class NativeBinariesPluginTest extends Specification {
             it.staticLibArgs == staticLibraryBinary.staticLibArchiver.args
         }
         staticLibraryBinary.tasks.link == null
+
+        and:
+        def staticLibTask = project.tasks.testStaticLibrary
+        staticLibTask Matchers.dependsOn("createTestStaticLibrary")
     }
 
     def "attaches existing functional source set with same name to component"() {
