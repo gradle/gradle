@@ -25,6 +25,7 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.internal.ToolChainRegistryInternal
 import org.gradle.nativebinaries.plugins.NativeBinariesPlugin
 import org.gradle.nativebinaries.toolchain.VisualCpp
+import org.gradle.nativebinaries.toolchain.internal.msvcpp.DefaultVisualStudioLocator
 import org.gradle.nativebinaries.toolchain.internal.msvcpp.VisualCppToolChain
 import org.gradle.process.internal.ExecActionFactory
 
@@ -49,7 +50,7 @@ class MicrosoftVisualCppPlugin implements Plugin<Project> {
         def toolChainRegistry = project.extensions.getByType(ToolChainRegistryInternal)
 
         toolChainRegistry.registerFactory(VisualCpp, { String name ->
-            return new VisualCppToolChain(name, OperatingSystem.current(), fileResolver, execActionFactory)
+            return new VisualCppToolChain(name, OperatingSystem.current(), fileResolver, execActionFactory, new DefaultVisualStudioLocator())
         })
         toolChainRegistry.registerDefaultToolChain(VisualCppToolChain.DEFAULT_NAME, VisualCpp)
     }

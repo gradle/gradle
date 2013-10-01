@@ -27,6 +27,7 @@ import org.gradle.nativebinaries.toolchain.Gcc;
 import org.gradle.nativebinaries.toolchain.VisualCpp;
 import org.gradle.nativebinaries.toolchain.internal.ToolRegistry;
 import org.gradle.nativebinaries.toolchain.internal.gcc.version.GccVersionDeterminer;
+import org.gradle.nativebinaries.toolchain.internal.msvcpp.DefaultVisualStudioLocator;
 import org.gradle.nativebinaries.toolchain.internal.msvcpp.VisualStudioInstall;
 import org.gradle.nativebinaries.toolchain.internal.msvcpp.VisualStudioLocator;
 import org.gradle.nativebinaries.toolchain.plugins.ClangCompilerPlugin;
@@ -78,8 +79,8 @@ public class AvailableToolChains {
             return new InstalledVisualCpp("visual c++");
         }
 
-        VisualStudioLocator vsLocator = new VisualStudioLocator();
-        File visualStudioDir = vsLocator.locateDefaultVisualStudio();
+        VisualStudioLocator vsLocator = new DefaultVisualStudioLocator();
+        File visualStudioDir = vsLocator.locateDefaultVisualStudio().getResult();
         if (visualStudioDir != null) {
             VisualStudioInstall install = new VisualStudioInstall(visualStudioDir);
             return new InstalledVisualCpp("visual c++").withInstall(install);

@@ -15,9 +15,7 @@
  */
 
 package org.gradle.nativebinaries.toolchain.internal.msvcpp
-
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.internal.Factory
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.internal.ToolChainAvailability
 import org.gradle.process.internal.ExecActionFactory
@@ -29,13 +27,18 @@ class VisualCppToolChainTest extends Specification {
     TestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
     final FileResolver fileResolver = Mock(FileResolver)
     final ExecActionFactory execActionFactory = Mock(ExecActionFactory)
-    final OperatingSystem operatingSystem = Stub(OperatingSystem) {
-        isWindows() >> true
-        getExecutableName(_ as String) >> { String exeName -> exeName }
-        findInPath("cl.exe") >> file('VisualStudio/VC/bin/cl.exe')
-        findInPath("rc.exe") >> file("SDK/bin/rc.exe")
+    final VisualStudioLocator.SearchResult visualStudio = Mock(VisualStudioLocator.SearchResult)
+    final VisualStudioLocator.SearchResult windowsSdk = Mock(VisualStudioLocator.SearchResult)
+    final candidate = file('test')
+    final VisualStudioLocator visualStudioLocator = Stub(VisualStudioLocator) {
+        locateDefaultVisualStudio() >> visualStudio
+        locateDefaultWindowsSdk() >> windowsSdk
     }
-    final toolChain = new VisualCppToolChain("visualCpp", operatingSystem, fileResolver, execActionFactory)
+    final OperatingSystem operatingSystem = Mock(OperatingSystem) {
+        isWindows() >> true
+    }
+    final toolChain = new VisualCppToolChain("visualCpp", operatingSystem, fileResolver, execActionFactory, visualStudioLocator)
+
 
     def "uses .lib file for shared library at link time"() {
         given:
@@ -53,36 +56,47 @@ class VisualCppToolChainTest extends Specification {
         toolChain.getSharedLibraryName("test") == "test.dll"
     }
 
-    def "locates visual studio installation and windows SDK based on executables in path"() {
+    def "is unavailable when visual studio installation cannot be located"() {
         when:
+        visualStudio.found >> false
+        visualStudio.searchLocations >> [candidate]
+        windowsSdk.found >> false
+
+        and:
         def availability = new ToolChainAvailability()
         toolChain.checkAvailable(availability)
 
         then:
         !availability.available
-        availability.unavailableMessage == "Visual Studio installation cannot be found"
+        availability.unavailableMessage == "Visual Studio installation cannot be located. Searched in [${candidate}]."
+    }
 
+    def "is unavailable when windows SDK cannot be located"() {
         when:
-        createFile('VisualStudio/VC/bin/cl.exe')
+        visualStudio.found >> true
+        windowsSdk.found >> false
+        windowsSdk.searchLocations >> [candidate]
 
         and:
-        def availability2 = new ToolChainAvailability()
-        toolChain.checkAvailable(availability2);
+        def availability = new ToolChainAvailability()
+        toolChain.checkAvailable(availability);
 
         then:
-        !availability2.available
-        availability2.unavailableMessage == "Windows SDK cannot be found"
+        !availability.available
+        availability.unavailableMessage == "Windows SDK cannot be located. Searched in [${candidate}]."
+    }
 
+    def "is available when visual studio installation and windows SDK can be located"() {
         when:
-        createFile('SDK/bin/rc.exe')
-        createFile('SDK/lib/kernel32.lib')
+        visualStudio.found >> true
+        windowsSdk.found >> true
 
         and:
-        def availability3 = new ToolChainAvailability()
-        toolChain.checkAvailable(availability3);
+        def availability = new ToolChainAvailability()
+        toolChain.checkAvailable(availability);
 
         then:
-        availability3.available
+        availability.available
     }
 
     def "resolves install directory"() {

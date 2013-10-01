@@ -41,10 +41,11 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
     private final VisualStudioLocator visualStudioLocator;
     private File installDir;
 
-    public VisualCppToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory) {
+    public VisualCppToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory,
+                              VisualStudioLocator visualStudioLocator) {
         super(name, operatingSystem, new ToolRegistry(operatingSystem), fileResolver);
         this.execActionFactory = execActionFactory;
-        visualStudioLocator = new VisualStudioLocator(operatingSystem);
+        this.visualStudioLocator = visualStudioLocator;
 
         tools.setExeName(ToolType.CPP_COMPILER, "cl.exe");
         tools.setExeName(ToolType.C_COMPILER, "cl.exe");
@@ -64,19 +65,24 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
             availability.unavailable("Not available on this operating system.");
             return;
         }
-        // TODO:DAZ Report on how we searched
-        availability.mustExist("Visual Studio installation", locateVisualStudio());
-        availability.mustExist("Windows SDK", locateWindowsSdk());
+        checkFound("Visual Studio installation", locateVisualStudio(), availability);
+        checkFound("Windows SDK", locateWindowsSdk(), availability);
     }
 
-    private File locateVisualStudio() {
+    private void checkFound(String name, VisualStudioLocator.SearchResult visualStudio, ToolChainAvailability availability) {
+        if (!visualStudio.isFound()) {
+            availability.unavailable(String.format("%s cannot be located. Searched in %s.", name, visualStudio.getSearchLocations()));
+        }
+    }
+
+    private VisualStudioLocator.SearchResult locateVisualStudio() {
         if (installDir != null) {
             return visualStudioLocator.locateVisualStudio(installDir);
         }
         return visualStudioLocator.locateDefaultVisualStudio();
     }
 
-    private File locateWindowsSdk() {
+    private VisualStudioLocator.SearchResult locateWindowsSdk() {
         return visualStudioLocator.locateDefaultWindowsSdk();
     }
 
@@ -91,8 +97,8 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
     public PlatformToolChain target(Platform targetPlatform) {
         checkAvailable();
 
-        new VisualStudioInstall(locateVisualStudio()).configureTools(tools, targetPlatform);
-        new WindowsSdk(locateWindowsSdk()).configureTools(tools, targetPlatform);
+        new VisualStudioInstall(locateVisualStudio().getResult()).configureTools(tools, targetPlatform);
+        new WindowsSdk(locateWindowsSdk().getResult()).configureTools(tools, targetPlatform);
         return new VisualCppPlatformToolChain();
     }
 
