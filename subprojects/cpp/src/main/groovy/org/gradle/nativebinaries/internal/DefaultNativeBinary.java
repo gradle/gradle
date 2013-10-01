@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.notations.api.NotationParser;
+import org.gradle.language.DependentSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.AbstractBuildableModelElement;
 import org.gradle.language.base.internal.BinaryNamingScheme;
@@ -28,11 +29,13 @@ import org.gradle.nativebinaries.*;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 public abstract class DefaultNativeBinary extends AbstractBuildableModelElement implements NativeBinaryInternal {
     private final NotationParser<Set<LanguageSourceSet>> sourcesNotationParser = SourceSetNotationParser.parser();
-    private final ResolvableNativeDependencySet libs = new ResolvableNativeDependencySet();
+    private final Set<? super Object> libs = new LinkedHashSet<Object>();
     private final DomainObjectSet<LanguageSourceSet> source = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class);
     private final DefaultTool linker = new DefaultTool();
     private final NativeBinaryTasks tasks = new DefaultNativeBinaryTasks();
@@ -110,7 +113,11 @@ public abstract class DefaultNativeBinary extends AbstractBuildableModelElement 
     }
 
     public Collection<NativeDependencySet> getLibs() {
-        return libs.resolve(this);
+        Set<? super Object> allLibs = new HashSet<Object>(libs);
+        for (DependentSourceSet dependentSourceSet : source.withType(DependentSourceSet.class)) {
+            allLibs.addAll(dependentSourceSet.getLibs());
+        }
+        return new NativeDependencyResolver().resolve(this, allLibs);
     }
 
     public void lib(Object notation) {

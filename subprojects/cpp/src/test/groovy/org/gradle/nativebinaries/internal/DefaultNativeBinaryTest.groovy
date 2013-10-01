@@ -17,6 +17,7 @@
 package org.gradle.nativebinaries.internal
 
 import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.language.DependentSourceSet
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.internal.DefaultBinaryNamingScheme
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet
@@ -119,6 +120,21 @@ class DefaultNativeBinaryTest extends Specification {
         then:
         binary.libs.size() == 1
         binary.libs.contains(dependency)
+    }
+
+    def "binary libs include source set dependencies"() {
+        def binary = testBinary(component)
+        def dependency = Stub(NativeDependencySet)
+
+        when:
+        def sourceSet = Stub(DependentSourceSet)
+        binary.source sourceSet
+
+        and:
+        sourceSet.getLibs() >> [dependency]
+
+        then:
+        binary.libs == [dependency]
     }
 
     def testBinary(NativeComponent owner, Flavor flavor = new DefaultFlavor(DefaultFlavor.DEFAULT)) {

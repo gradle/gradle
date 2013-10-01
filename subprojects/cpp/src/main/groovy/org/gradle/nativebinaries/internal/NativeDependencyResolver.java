@@ -26,14 +26,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-public class ResolvableNativeDependencySet {
-    private final List<Object> libs = new ArrayList<Object>();
-
-    public void add(Object lib) {
-        this.libs.add(lib);
-    }
-
-    public Collection<NativeDependencySet> resolve(NativeBinary target) {
+public class NativeDependencyResolver {
+    public Collection<NativeDependencySet> resolve(NativeBinary target, Collection<?> libs) {
         List<NativeDependencySet> result = new ArrayList<NativeDependencySet>();
         for (Object lib : libs) {
             result.add(resolve(target, lib));
