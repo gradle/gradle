@@ -28,10 +28,7 @@ import org.gradle.language.base.internal.DefaultBinaryNamingScheme;
 import org.gradle.nativebinaries.*;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.*;
 
 public abstract class DefaultNativeBinary extends AbstractBuildableModelElement implements NativeBinaryInternal {
     private final NotationParser<Set<LanguageSourceSet>> sourcesNotationParser = SourceSetNotationParser.parser();
@@ -112,9 +109,18 @@ public abstract class DefaultNativeBinary extends AbstractBuildableModelElement 
         return namingScheme;
     }
 
+    // TODO:DAZ Dependency resolution shouldn't be done in the model
     public Collection<NativeDependencySet> getLibs() {
+        return getLibs(source.withType(DependentSourceSet.class));
+    }
+
+    public Collection<NativeDependencySet> getLibs(DependentSourceSet sourceSet) {
+        return getLibs(Collections.singleton(sourceSet));
+    }
+
+    private Collection<NativeDependencySet> getLibs(Collection<? extends DependentSourceSet> sourceSets) {
         Set<? super Object> allLibs = new HashSet<Object>(libs);
-        for (DependentSourceSet dependentSourceSet : source.withType(DependentSourceSet.class)) {
+        for (DependentSourceSet dependentSourceSet : sourceSets) {
             allLibs.addAll(dependentSourceSet.getLibs());
         }
         return new NativeDependencyResolver().resolve(this, allLibs);

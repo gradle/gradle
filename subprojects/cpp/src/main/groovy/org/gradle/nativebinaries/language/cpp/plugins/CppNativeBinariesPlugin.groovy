@@ -62,7 +62,7 @@ class CppNativeBinariesPlugin implements Plugin<ProjectInternal> {
         }
     }
 
-    private def createCompileTask(ProjectInternal project, NativeBinaryInternal binary, def sourceSet) {
+    private def createCompileTask(ProjectInternal project, NativeBinaryInternal binary, CppSourceSet sourceSet) {
         def compileTask = project.task(binary.namingScheme.getTaskName("compile", sourceSet.fullName), type: CppCompile) {
             description = "Compiles the $sourceSet of $binary"
         }
@@ -73,7 +73,7 @@ class CppNativeBinariesPlugin implements Plugin<ProjectInternal> {
 
         compileTask.includes sourceSet.exportedHeaders
         compileTask.source sourceSet.source
-        binary.libs.each { NativeDependencySet deps ->
+        binary.getLibs(sourceSet).each { deps ->
             compileTask.includes deps.includeRoots
         }
 

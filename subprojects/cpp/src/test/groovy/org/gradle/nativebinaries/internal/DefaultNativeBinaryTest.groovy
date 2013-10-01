@@ -135,6 +135,7 @@ class DefaultNativeBinaryTest extends Specification {
 
         then:
         binary.libs == [dependency]
+        binary.getLibs(sourceSet) == [dependency]
     }
 
     def testBinary(NativeComponent owner, Flavor flavor = new DefaultFlavor(DefaultFlavor.DEFAULT)) {

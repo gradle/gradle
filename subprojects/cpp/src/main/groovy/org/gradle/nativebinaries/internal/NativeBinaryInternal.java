@@ -16,8 +16,13 @@
 
 package org.gradle.nativebinaries.internal;
 
+import org.gradle.language.DependentSourceSet;
 import org.gradle.language.base.internal.BinaryInternal;
 import org.gradle.nativebinaries.NativeBinary;
+import org.gradle.nativebinaries.NativeDependencySet;
+
+import java.util.Collection;
 
 public interface NativeBinaryInternal extends NativeBinary, BinaryInternal {
+    Collection<NativeDependencySet> getLibs(DependentSourceSet sourceSet);
 }

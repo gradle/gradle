@@ -15,18 +15,14 @@
  */
 package org.gradle.nativebinaries.language.cpp
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
-import org.gradle.nativebinaries.language.cpp.fixtures.app.CppCallingCHelloWorldApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
 class LibraryBinariesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
-    def helloWorldApp = new CppCallingCHelloWorldApp()
-
     def "setup"() {
         settingsFile << "rootProject.name = 'test'"
     }
-
     def "executable can use a mix of static and shared libraries"() {
         given:
         buildFile << """
@@ -191,5 +187,86 @@ include 'exe', 'lib'
         installation("exe/build/install/mainExecutable")
                 .assertIncludesLibraries("helloLib", "helloMain")
                 .exec().out == "Hello libHello main"
+    }
+
+    def "source set library dependencies are not shared with other source sets"() {
+        given:
+        buildFile << """
+            apply plugin: "cpp"
+            apply plugin: "c"
+            executables {
+                main {}
+            }
+            libraries {
+                libCpp {}
+                libC {}
+            }
+            sources.main.cpp.lib libraries.libCpp.static
+            sources.main.c.lib libraries.libC.static
+        """
+
+        and:
+        file("src/main/headers/head.h") << """
+            void cppOut();
+
+            extern "C" {
+                void cOut();
+            }
+"""
+
+        file("src/main/cpp/main.cpp") << """
+            #include "head.h"
+
+            int main () {
+                cppOut();
+                cOut();
+                return 0;
+            }
+"""
+        and: "C and CPP sources sets depend on header file with same name"
+
+        file("src/main/cpp/test.cpp") << """
+            #include <iostream>
+            #include "output.h"
+
+            void cppOut() {
+                std::cout << OUTPUT << "_";
+            }
+"""
+
+        file("src/main/c/test.c") << """
+            #include <stdio.h>
+            #include "output.h"
+
+            void cOut() {
+                printf(OUTPUT);
+            }
+"""
+
+        and: "Library header files define different OUTPUT values"
+
+        file("src/libCpp/headers/output.h") << """
+            #define OUTPUT "CPP"
+"""
+
+        file("src/libC/headers/output.h") << """
+            #define OUTPUT "C"
+"""
+
+        // TODO:DAZ Should deal with header-only libraries
+        file("src/libCpp/cpp/main.cpp") << """
+            void neverUsed() {
+            }
+"""
+        file("src/libC/c/main.c") << """
+            void neverUsed() {
+            }
+"""
+
+        when:
+        succeeds "installMainExecutable"
+
+        then:
+        installation("build/install/mainExecutable").exec().out == "CPP_C"
     }
 }
