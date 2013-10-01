@@ -32,9 +32,6 @@ class GeneralVisualCppCompileSpecToArguments<T extends NativeCompileSpec> implem
         }
         collector.args(spec.getArgs());
         collector.args("/c");
-        if (spec.isPositionIndependentCode()) {
-            collector.args("/LD"); // TODO:DAZ Not sure if this has any effect at compile time
-        }
         for (File file : spec.getIncludeRoots()) {
             collector.args("/I", file.getAbsolutePath());
         }
