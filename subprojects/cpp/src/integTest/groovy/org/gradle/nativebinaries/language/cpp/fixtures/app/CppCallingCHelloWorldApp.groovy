@@ -18,6 +18,11 @@ package org.gradle.nativebinaries.language.cpp.fixtures.app;
 
 public class CppCallingCHelloWorldApp extends HelloWorldApp {
     @Override
+    List<String> getPluginList() {
+        return ['c', 'cpp']
+    }
+
+    @Override
     SourceFile getMainSource() {
         sourceFile("cpp", "main.cpp", """
             #include <iostream>

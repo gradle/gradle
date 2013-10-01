@@ -25,7 +25,12 @@ public class MixedLanguageHelloWorldApp extends HelloWorldApp {
         this.toolChain = toolChain
     }
 
-    String getTargetPlatforms() {
+    @Override
+    List<String> getPluginList() {
+        return ['c', 'cpp', 'assembler']
+    }
+
+    String getTargetPlatformsScript() {
         return """
             targetPlatforms {
                 x86 {

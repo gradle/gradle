@@ -29,7 +29,6 @@ class AssemblyLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
     def "build fails when assemble fails"() {
         given:
         buildFile << """
-            apply plugin: "cpp"
             executables {
                 main {}
             }
@@ -86,6 +85,11 @@ pushl
     static class AssemblerWithCHelloWorldApp extends MixedLanguageHelloWorldApp {
         AssemblerWithCHelloWorldApp(AvailableToolChains.InstalledToolChain toolChain) {
             super(toolChain)
+        }
+
+        @Override
+        List<String> getPluginList() {
+            return ['c', 'assembler']
         }
 
         @Override

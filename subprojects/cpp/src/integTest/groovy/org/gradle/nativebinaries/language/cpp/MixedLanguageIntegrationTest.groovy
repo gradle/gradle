@@ -27,7 +27,6 @@ class MixedLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
     def "can have all source files co-located in a common directory"() {
         given:
         buildFile << """
-            apply plugin: "cpp"
             sources {
                 main {
                     cpp {

@@ -27,7 +27,6 @@ class CppLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
     def "build fails when compilation fails"() {
         given:
         buildFile << """
-             apply plugin: "cpp"
              executables {
                  main {}
              }

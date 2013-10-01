@@ -18,6 +18,11 @@ package org.gradle.nativebinaries.language.cpp.fixtures.app;
 
 public class CCallingMixedCAndCppHelloWorldApp extends HelloWorldApp {
     @Override
+    List<String> getPluginList() {
+        return ['c', 'cpp']
+    }
+
+    @Override
     SourceFile getMainSource() {
         sourceFile("c", "main.c", """
                 #include <stdio.h>

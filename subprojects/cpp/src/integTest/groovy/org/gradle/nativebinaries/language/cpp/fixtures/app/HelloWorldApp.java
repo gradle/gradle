@@ -16,7 +16,8 @@
 
 package org.gradle.nativebinaries.language.cpp.fixtures.app;
 
-import org.gradle.util.GUtil;
+import java.util.Collections;
+import java.util.List;
 
 public abstract class HelloWorldApp extends TestApp {
     public static final String HELLO_WORLD = "Hello, World!";
@@ -30,11 +31,41 @@ public abstract class HelloWorldApp extends TestApp {
         return HELLO_WORLD_FRENCH + "\n12";
     }
 
-    public String getTargetPlatforms() {
+    public String getTargetPlatformsScript() {
         return "";
     }
 
     public String getSourceType() {
-        return GUtil.toCamelCase(getMainSource().getPath());
+        return getMainSource().getPath();
+    }
+
+    public List<String> getPluginList() {
+        return Collections.singletonList(getSourceType());
+    }
+
+    public String getPluginScript() {
+        StringBuilder builder = new StringBuilder();
+        for (String plugin : getPluginList()) {
+            builder.append("apply plugin: '").append(plugin).append("'\n");
+        }
+        return builder.toString();
+    }
+
+    public String compilerArgs(String arg) {
+        return compilerConfig("args", arg);
+    }
+
+    public String compilerDefine(String define) {
+        return compilerConfig("define", define);
+    }
+
+    private String compilerConfig(String action, String arg) {
+        StringBuilder builder = new StringBuilder();
+        for (String plugin : getPluginList()) {
+            if (plugin.equals("c") || plugin.equals("cpp")) {
+                builder.append(plugin).append("Compiler.").append(action).append(" '").append(arg).append("'\n");
+            }
+        }
+        return builder.toString();
     }
 }

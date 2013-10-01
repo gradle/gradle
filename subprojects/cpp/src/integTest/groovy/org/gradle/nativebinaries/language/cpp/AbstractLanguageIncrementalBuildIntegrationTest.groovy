@@ -18,11 +18,11 @@
 
 
 package org.gradle.nativebinaries.language.cpp
-
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativebinaries.language.cpp.fixtures.app.IncrementalHelloWorldApp
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.GUtil
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -38,29 +38,35 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
 
     abstract IncrementalHelloWorldApp getHelloWorldApp();
 
+    String getCompilerTool() {
+        "${app.sourceType}Compiler"
+    }
+
+    String getSourceType() {
+        GUtil.toCamelCase(app.sourceType)
+    }
+
     def "setup"() {
         app = getHelloWorldApp()
-        mainCompileTask = ":compileMainExecutableMain${app.sourceType}"
-        libraryCompileTask = ":compileHelloSharedLibraryHello${app.sourceType}"
+        mainCompileTask = ":compileMainExecutableMain${sourceType}"
+        libraryCompileTask = ":compileHelloSharedLibraryHello${sourceType}"
 
-        // TODO:DAZ Only apply required language plugins
+        buildFile << app.pluginScript
         buildFile << """
-            apply plugin: 'assembler'
-            apply plugin: 'c'
-            apply plugin: 'cpp'
-
             executables {
-                main {}
+                main {
+                    binaries.all {
+                        lib libraries.hello
+                    }
+                }
             }
             libraries {
                 hello {
                     binaries.withType(SharedLibraryBinary) {
-                        cppCompiler.define "DLL_EXPORT"
-                        cCompiler.define "DLL_EXPORT"
+                        ${app.compilerDefine("DLL_EXPORT")}
                     }
                 }
             }
-            sources.main.cpp.lib libraries.hello
         """
         settingsFile << "rootProject.name = 'test'"
 
@@ -164,8 +170,7 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
             libraries {
                 hello {
                     binaries.all {
-                        cCompiler.args '-DFRENCH'
-                        cppCompiler.args '-DFRENCH'
+                        ${helloWorldApp.compilerArgs("-DFRENCH")}
                     }
                 }
             }
@@ -201,8 +206,7 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
                 }
             }
 """
-
-        run "installMainExecutable"
+        run "mainExecutable"
 
         then:
         skipped libraryCompileTask
@@ -211,7 +215,6 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         skipped mainCompileTask
         executedAndNotSkipped ":linkMainExecutable"
         executedAndNotSkipped ":mainExecutable"
-        executedAndNotSkipped ":installMainExecutable"
 
         and:
         executable.assertHasChangedSince(snapshot)
@@ -268,8 +271,8 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
     }
 
     def "cleans up stale object files when source file renamed"() {
-        def oldObjFile = objectFile("build/objectFiles/mainExecutable/main${app.sourceType}/main")
-        def newObjFile = objectFile("build/objectFiles/mainExecutable/main${app.sourceType}/changed_main")
+        def oldObjFile = objectFile("build/objectFiles/mainExecutable/main${sourceType}/main")
+        def newObjFile = objectFile("build/objectFiles/mainExecutable/main${sourceType}/changed_main")
         assert oldObjFile.file
         assert !newObjFile.file
 
@@ -297,7 +300,7 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
 
         given:
         buildFile << """
-            binaries.all { cppCompiler.args '/Zi'; cCompiler.args '/Zi'; linker.args '/DEBUG'; }
+            binaries.all { ${compilerTool}.args '/Zi'; linker.args '/DEBUG'; }
         """
         run "mainExecutable"
 
@@ -306,7 +309,7 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
 
         when:
         buildFile << """
-            binaries.all { cCompiler.args.clear(); cppCompiler.args.clear(); linker.args.clear(); }
+            binaries.all { ${compilerTool}.args.clear(); linker.args.clear(); }
         """
         run "mainExecutable"
 

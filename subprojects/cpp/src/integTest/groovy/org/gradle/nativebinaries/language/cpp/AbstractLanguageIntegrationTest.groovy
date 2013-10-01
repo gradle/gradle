@@ -26,14 +26,8 @@ abstract class AbstractLanguageIntegrationTest extends AbstractInstalledToolChai
     abstract HelloWorldApp getHelloWorldApp()
 
     def "setup"() {
-        // TODO:DAZ Only apply the required language plugins
-        buildFile << """
-            apply plugin: 'assembler'
-            apply plugin: 'c'
-            apply plugin: 'cpp'
-
-            $helloWorldApp.targetPlatforms
-"""
+        buildFile << helloWorldApp.pluginScript
+        buildFile << helloWorldApp.targetPlatformsScript
     }
 
     def "compile and link executable"() {
@@ -62,8 +56,7 @@ abstract class AbstractLanguageIntegrationTest extends AbstractInstalledToolChai
             executables {
                 main {
                     binaries.all {
-                        cppCompiler.args "-DFRENCH"
-                        cCompiler.args "-DFRENCH"
+                        ${helloWorldApp.compilerArgs("-DFRENCH")}
                     }
                 }
             }
@@ -87,8 +80,7 @@ abstract class AbstractLanguageIntegrationTest extends AbstractInstalledToolChai
             executables {
                 main {
                     binaries.all {
-                        cppCompiler.define "FRENCH"
-                        cCompiler.define "FRENCH"
+                        ${helloWorldApp.compilerDefine("FRENCH")}
                     }
                 }
             }
@@ -116,7 +108,7 @@ abstract class AbstractLanguageIntegrationTest extends AbstractInstalledToolChai
             libraries {
                 hello {}
             }
-            sources.main.c.lib libraries.hello
+            sources.main.${helloWorldApp.sourceType}.lib libraries.hello
         """
 
         and:
@@ -146,12 +138,11 @@ abstract class AbstractLanguageIntegrationTest extends AbstractInstalledToolChai
             libraries {
                 hello {
                     binaries.withType(StaticLibraryBinary) {
-                        cppCompiler.define "FRENCH"
-                        cCompiler.define "FRENCH"
+                        ${helloWorldApp.compilerDefine("FRENCH")}
                     }
                 }
             }
-            sources.main.c.lib libraries.hello.static
+            sources.main.${helloWorldApp.sourceType}.lib libraries.hello.static
         """
 
         and:
