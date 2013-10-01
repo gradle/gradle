@@ -32,7 +32,6 @@ import javax.inject.Inject;
  */
 @Incubating
 public class LanguageBasePlugin implements Plugin<Project> {
-    // TODO:DAZ Find a good way to share this with the BuildPlugin, without introducing dependency on plugins module
     public static final String BUILD_GROUP = "build";
 
     private final Instantiator instantiator;

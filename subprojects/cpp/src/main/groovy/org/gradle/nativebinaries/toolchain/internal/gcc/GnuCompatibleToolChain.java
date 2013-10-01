@@ -92,7 +92,6 @@ public class GnuCompatibleToolChain implements PlatformToolChain {
                 tool.withArguments(asSwitches());
                 return;
             case STATIC_LIB_ARCHIVER:
-                // TODO:DAZ
         }
     }
 

@@ -32,6 +32,7 @@ import org.gradle.api.internal.plugins.UploadRule;
 import org.gradle.api.tasks.Delete;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.api.tasks.bundling.Jar;
+import org.gradle.language.base.plugins.LanguageBasePlugin;
 
 import java.io.File;
 import java.util.concurrent.Callable;
@@ -42,7 +43,7 @@ import java.util.concurrent.Callable;
 public class BasePlugin implements Plugin<Project> {
     public static final String CLEAN_TASK_NAME = "clean";
     public static final String ASSEMBLE_TASK_NAME = "assemble";
-    public static final String BUILD_GROUP = "build";
+    public static final String BUILD_GROUP = LanguageBasePlugin.BUILD_GROUP;
     public static final String UPLOAD_GROUP = "upload";
 
     public void apply(Project project) {
