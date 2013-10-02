@@ -16,11 +16,80 @@
 
 package org.gradle.api.tasks
 
-class CopyTest extends AbstractCopyTaskContractTest {
+import org.apache.commons.io.FileUtils
+import org.junit.Before
+import org.junit.Test
+import spock.lang.Issue
 
-    private Copy task = project.tasks.create(TEST_TASK_NAME, Copy)
+import static junit.framework.TestCase.fail
+
+class CopyTest extends AbstractCopyTaskContractTest {
+    private Copy copy
 
     AbstractCopyTask getTask() {
-        return task
+        return copy
+    }
+
+    @Before
+    public void setUp() {
+        copy = createTask(Copy.class)
+    }
+
+    @Test
+    @Issue("GRADLE-2906")
+    void "each file does not execute action for directories"() {
+        File fromSrcDir = createDir(project.projectDir, 'src')
+        File fromConfDir = createDir(fromSrcDir, 'conf')
+        File fromPropertiesFile = createFile(fromConfDir, 'file.properties')
+        fromPropertiesFile.text << 'foo'
+        File intoBuildDir = createDir(project.projectDir, 'build')
+
+        copy.from fromSrcDir
+        copy.into intoBuildDir
+        copy.eachFile {
+            assert it.file.canonicalPath == fromPropertiesFile.canonicalPath
+        }
+        copy.execute()
+
+        File intoConfDir = new File(intoBuildDir, 'conf')
+        File intoPropertiesFile = new File(intoConfDir, 'file.properties')
+        assert intoPropertiesFile.exists()
+        assert FileUtils.contentEquals(intoPropertiesFile, fromPropertiesFile)
+    }
+
+    @Test
+    @Issue("GRADLE-2900")
+    void "each file does not execute action for directories after filtering file tree"() {
+        File fromSrcDir = createDir(project.projectDir, 'src')
+        File fromConfDir = createDir(fromSrcDir, 'conf')
+        File fromPropertiesFile = createFile(fromConfDir, 'file.properties')
+        fromPropertiesFile.text << 'foo'
+        File intoBuildDir = createDir(project.projectDir, 'build')
+
+        copy.from(project.fileTree(dir: fromSrcDir).matching { include 'conf/file.properties' }) { eachFile { assert it.file.canonicalPath == fromPropertiesFile.canonicalPath } }
+        copy.into intoBuildDir
+        copy.execute()
+
+        File intoConfDir = new File(intoBuildDir, 'conf')
+        File intoPropertiesFile = new File(intoConfDir, 'file.properties')
+        assert intoPropertiesFile.exists()
+        assert FileUtils.contentEquals(intoPropertiesFile, fromPropertiesFile)
+    }
+
+    private File createDir(File parentDir, String path) {
+        File newDir = new File(parentDir, path)
+        boolean success = newDir.mkdirs()
+
+        if(!success) {
+            fail "Failed to create directory $newDir"
+        }
+
+        newDir
+    }
+
+    private File createFile(File parent, String filename) {
+        File file = new File(parent, filename)
+        file.createNewFile()
+        file
     }
 }

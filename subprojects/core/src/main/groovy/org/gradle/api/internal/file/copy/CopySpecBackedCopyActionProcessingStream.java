@@ -43,15 +43,25 @@ public class CopySpecBackedCopyActionProcessingStream implements CopyActionProce
                 FileTree source = spec.getSource();
                 source.visit(new FileVisitor() {
                     public void visitDir(FileVisitDetails dirDetails) {
-                        visit(dirDetails);
+                        processDir(dirDetails);
                     }
 
                     public void visitFile(FileVisitDetails fileDetails) {
-                        visit(fileDetails);
+                        processFile(fileDetails);
                     }
 
-                    private void visit(FileVisitDetails visitDetails) {
-                        DefaultFileCopyDetails details = instantiator.newInstance(DefaultFileCopyDetails.class, visitDetails, spec, fileSystem);
+                    private void processDir(FileVisitDetails visitDetails) {
+                        DefaultFileCopyDetails details = createDefaultFileCopyDetails(visitDetails);
+
+                        if (details.isExcluded()) {
+                            return;
+                        }
+
+                        action.processFile(details);
+                    }
+
+                    private void processFile(FileVisitDetails visitDetails) {
+                        DefaultFileCopyDetails details = createDefaultFileCopyDetails(visitDetails);
                         for (Action<? super FileCopyDetails> action : spec.getAllCopyActions()) {
                             action.execute(details);
                             if (details.isExcluded()) {
@@ -59,6 +69,10 @@ public class CopySpecBackedCopyActionProcessingStream implements CopyActionProce
                             }
                         }
                         action.processFile(details);
+                    }
+
+                    private DefaultFileCopyDetails createDefaultFileCopyDetails(FileVisitDetails visitDetails) {
+                        return instantiator.newInstance(DefaultFileCopyDetails.class, visitDetails, spec, fileSystem);
                     }
                 });
             }
