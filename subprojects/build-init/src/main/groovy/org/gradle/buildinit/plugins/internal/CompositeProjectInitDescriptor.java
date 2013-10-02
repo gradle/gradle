@@ -13,20 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.buildinit.plugins.internal;
 
-package org.gradle.buildinit.plugins.internal
+import java.util.Arrays;
+import java.util.List;
 
-import org.gradle.api.internal.DocumentationRegistry
-import org.gradle.api.internal.file.FileResolver
+class CompositeProjectInitDescriptor implements ProjectInitDescriptor {
 
-class BasicProjectInitDescriptor extends TemplateBasedProjectInitDescriptor{
+    private List<ProjectInitDescriptor> descriptors;
 
-    public BasicProjectInitDescriptor(FileResolver fileResolver, DocumentationRegistry documentationRegistry, ProjectInitDescriptor... delegates) {
-        super(fileResolver, documentationRegistry, delegates)
+    public CompositeProjectInitDescriptor(ProjectInitDescriptor... composites) {
+        this.descriptors = Arrays.asList(composites);
     }
 
-    @Override
-    URL getBuildFileTemplate() {
-        return BasicProjectInitDescriptor.class.getResource("/org/gradle/buildinit/tasks/templates/build.gradle.template");
+    public void generateProject() {
+        for (ProjectInitDescriptor descriptor : descriptors) {
+            descriptor.generateProject();
+        }
     }
 }

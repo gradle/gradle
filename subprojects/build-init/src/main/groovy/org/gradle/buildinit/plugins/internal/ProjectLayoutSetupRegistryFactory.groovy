@@ -38,11 +38,12 @@ class ProjectLayoutSetupRegistryFactory {
         ProjectLayoutSetupRegistry registry = new ProjectLayoutSetupRegistry()
         // TODO maybe referencing the implementation class here is enough and instantiation
         // should be defererred when descriptor is requested.
-        registry.add(new BasicProjectInitDescriptor(fileResolver, documentationRegistry));
-        registry.add(new JavaLibraryProjectInitDescriptor(libraryVersionProvider, fileResolver, documentationRegistry));
-        registry.add(new PomProjectInitDescriptor(fileResolver, mavenSettingsProvider))
-        registry.add(new GroovyLibraryProjectInitDescriptor(libraryVersionProvider, fileResolver, documentationRegistry))
-        registry.add(new ScalaLibraryProjectInitDescriptor(libraryVersionProvider, fileResolver, documentationRegistry))
+        SingleBuildSettingsInitDescriptor singleProjectSettingsDescriptor = new SingleBuildSettingsInitDescriptor(fileResolver, documentationRegistry)
+        registry.add(BuildInitTypeIds.BASIC, new BasicProjectInitDescriptor(fileResolver, documentationRegistry, singleProjectSettingsDescriptor));
+        registry.add(BuildInitTypeIds.JAVA_LIBRARY, new JavaLibraryProjectInitDescriptor(libraryVersionProvider, fileResolver, documentationRegistry, singleProjectSettingsDescriptor));
+        registry.add(BuildInitTypeIds.POM, new PomProjectInitDescriptor(fileResolver, mavenSettingsProvider))
+        registry.add(BuildInitTypeIds.GROOVY_LIBRARY, new GroovyLibraryProjectInitDescriptor(libraryVersionProvider, fileResolver, documentationRegistry, singleProjectSettingsDescriptor))
+        registry.add(BuildInitTypeIds.SCALA_LIBRARY, new ScalaLibraryProjectInitDescriptor(libraryVersionProvider, fileResolver, documentationRegistry, singleProjectSettingsDescriptor))
         return registry
     }
 

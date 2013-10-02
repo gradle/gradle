@@ -17,9 +17,5 @@
 package org.gradle.buildinit.plugins.internal
 
 interface ProjectInitDescriptor {
-
-    String getId()
-
     void generateProject()
-
 }

@@ -39,15 +39,13 @@ class InitBuildSpec extends Specification {
         projectSetupDescriptor1 = Mock()
         projectSetupDescriptor2 = Mock()
         projectSetupDescriptor3 = Mock()
-        _ * projectSetupDescriptor2.id >> "supported-type"
-        _ * projectSetupDescriptor3.id >> "another-supported-type"
         init.projectLayoutRegistry = projectLayoutRegistry
     }
 
     def "throws GradleException if requested setupDescriptor not supported"() {
         setup:
         _ * projectLayoutRegistry.get("aType") >> null
-        _ * projectLayoutRegistry.all >> [projectSetupDescriptor2, projectSetupDescriptor3]
+        _ * projectLayoutRegistry.getSupportedTypes() >> ["supported-type", 'another-supported-type']
         when:
         init.type = "aType"
         init.setupProjectLayout()

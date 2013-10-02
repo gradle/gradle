@@ -21,21 +21,19 @@ import org.gradle.api.internal.file.FileResolver
 
 class LanguageLibraryProjectInitDescriptor extends TemplateBasedProjectInitDescriptor {
 
-    protected final String id;
     protected final String templatepackage
     protected final TemplateLibraryVersionProvider libraryVersionProvider
     private final String languageId
 
-    LanguageLibraryProjectInitDescriptor(String id, String languageId, TemplateLibraryVersionProvider libraryVersionProvider, FileResolver fileResolver, DocumentationRegistry documentationRegistry) {
-        super(fileResolver, documentationRegistry);
+    LanguageLibraryProjectInitDescriptor(String templatepackage, String languageId,
+                                         TemplateLibraryVersionProvider libraryVersionProvider,
+                                         FileResolver fileResolver,
+                                         DocumentationRegistry documentationRegistry,
+                                         ProjectInitDescriptor... delegates) {
+        super(fileResolver, documentationRegistry, delegates);
         this.languageId = languageId
         this.libraryVersionProvider = libraryVersionProvider
-        this.id = id;
-        this.templatepackage = id.replaceAll("-", "") // - IS Not allowed as packagename so remove it
-    }
-
-    String getId() {
-        return id;
+        this.templatepackage = templatepackage
     }
 
     @Override
@@ -43,19 +41,12 @@ class LanguageLibraryProjectInitDescriptor extends TemplateBasedProjectInitDescr
         return getClass().getResource("/org/gradle/buildinit/tasks/templates/${templatepackage}/build.gradle.template");
     }
 
-    @Override
-    URL getSettingsTemplate() {
-        return getClass().getResource("/org/gradle/buildinit/tasks/templates/settings.gradle.template")
-    }
-
     protected generateClass(String sourceRoot, String clazzFileName) {
         if (fileResolver.resolveFilesAsTree("src/main/$languageId").empty || fileResolver.resolveFilesAsTree("src/test/$languageId").empty) {
             File sourceRootFolder = fileResolver.resolve(sourceRoot)
-            sourceRootFolder.mkdirs()
             File clazzFile = new File(sourceRootFolder, clazzFileName)
             URL productionClazzFileTemplate = getClass().getResource("/org/gradle/buildinit/tasks/templates/${templatepackage}/${clazzFileName}.template");
             generateFileFromTemplate(productionClazzFileTemplate, clazzFile, [:])
         }
     }
-
 }

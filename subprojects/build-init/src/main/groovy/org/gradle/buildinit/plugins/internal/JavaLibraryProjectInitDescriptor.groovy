@@ -21,8 +21,10 @@ import org.gradle.api.internal.file.FileResolver
 
 class JavaLibraryProjectInitDescriptor extends LanguageLibraryProjectInitDescriptor {
 
-    public JavaLibraryProjectInitDescriptor(DefaultTemplateLibraryVersionProvider libraryVersionProvider, FileResolver fileResolver, DocumentationRegistry documentationRegistry) {
-        super(BuildInitTypeIds.JAVA_LIBRARY, "java", libraryVersionProvider, fileResolver, documentationRegistry);
+    public JavaLibraryProjectInitDescriptor(DefaultTemplateLibraryVersionProvider libraryVersionProvider,
+                                            FileResolver fileResolver,
+                                            DocumentationRegistry documentationRegistry, ProjectInitDescriptor... delegates) {
+        super("javalibrary", "java", libraryVersionProvider, fileResolver, documentationRegistry, delegates);
     }
 
     protected Map getAdditionalBuildFileTemplateBindings() {
@@ -35,5 +37,4 @@ class JavaLibraryProjectInitDescriptor extends LanguageLibraryProjectInitDescrip
         generateClass("src/main/java", "Library.java")
         generateClass("src/test/java", "LibraryTest.java")
     }
-
 }

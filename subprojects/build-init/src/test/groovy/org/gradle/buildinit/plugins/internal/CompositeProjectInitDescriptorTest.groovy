@@ -16,17 +16,21 @@
 
 package org.gradle.buildinit.plugins.internal
 
-import org.gradle.api.internal.DocumentationRegistry
-import org.gradle.api.internal.file.FileResolver
+import spock.lang.Specification
 
-class BasicProjectInitDescriptor extends TemplateBasedProjectInitDescriptor{
+class CompositeProjectInitDescriptorTest extends Specification {
 
-    public BasicProjectInitDescriptor(FileResolver fileResolver, DocumentationRegistry documentationRegistry, ProjectInitDescriptor... delegates) {
-        super(fileResolver, documentationRegistry, delegates)
-    }
+  def "can compose initdescriptors"(){
+        setup:
+        ProjectInitDescriptor delegate1 = Mock(ProjectInitDescriptor)
+        ProjectInitDescriptor delegate2 = Mock(ProjectInitDescriptor)
 
-    @Override
-    URL getBuildFileTemplate() {
-        return BasicProjectInitDescriptor.class.getResource("/org/gradle/buildinit/tasks/templates/build.gradle.template");
-    }
+        def composableDescriptor = new CompositeProjectInitDescriptor(delegate1, delegate2)
+
+        when:
+        composableDescriptor.generateProject()
+        then:
+        1 * delegate1.generateProject()
+        1 * delegate2.generateProject()
+  }
 }

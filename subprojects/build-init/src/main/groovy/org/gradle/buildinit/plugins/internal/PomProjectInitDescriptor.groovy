@@ -33,10 +33,6 @@ class PomProjectInitDescriptor implements ProjectInitDescriptor {
         this.settingsProvider = mavenSettingsProvider
     }
 
-    String getId() {
-        BuildInitTypeIds.POM
-    }
-
     void generateProject() {
         SingleMessageLogger.incubatingFeatureUsed("Maven to Gradle conversion")
         def pom = fileResolver.resolve("pom.xml")

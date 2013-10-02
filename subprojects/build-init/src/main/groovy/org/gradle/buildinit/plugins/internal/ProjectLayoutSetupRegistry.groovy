@@ -25,12 +25,12 @@ class ProjectLayoutSetupRegistry {
     private final Logger logger = Logging.getLogger(ProjectLayoutSetupRegistry.class);
     private final Map<String, ProjectInitDescriptor> registeredProjectDescriptors = new HashMap<String, ProjectInitDescriptor>();
 
-    void add(ProjectInitDescriptor descriptor) {
-        if (registeredProjectDescriptors.containsKey(descriptor.id)) {
-            throw new GradleException("ProjectDescriptor with ID '${descriptor.id}' already registered.")
+    void add(String descriptorID, ProjectInitDescriptor descriptor) {
+        if (registeredProjectDescriptors.containsKey(descriptorID)) {
+            throw new GradleException("ProjectDescriptor with ID '${descriptorID}' already registered.")
         }
-        registeredProjectDescriptors.put(descriptor.id, descriptor)
-        logger.debug("registered setupDescriptor {}", descriptor.id)
+        registeredProjectDescriptors.put(descriptorID, descriptor)
+        logger.debug("registered setupDescriptor {}", descriptorID)
     }
 
     ProjectInitDescriptor get(String type) {
@@ -39,6 +39,10 @@ class ProjectLayoutSetupRegistry {
 
     List<ProjectInitDescriptor> getAll() {
         return Arrays.asList(registeredProjectDescriptors.values())
+    }
+
+    List<ProjectInitDescriptor> getSupportedTypes() {
+        return Arrays.asList(registeredProjectDescriptors.keySet())
     }
 
     boolean supports(String type) {

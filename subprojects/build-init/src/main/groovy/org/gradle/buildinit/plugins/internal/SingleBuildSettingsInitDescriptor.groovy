@@ -19,14 +19,19 @@ package org.gradle.buildinit.plugins.internal
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.file.FileResolver
 
-class BasicProjectInitDescriptor extends TemplateBasedProjectInitDescriptor{
 
-    public BasicProjectInitDescriptor(FileResolver fileResolver, DocumentationRegistry documentationRegistry, ProjectInitDescriptor... delegates) {
-        super(fileResolver, documentationRegistry, delegates)
+class SingleBuildSettingsInitDescriptor extends TemplateBasedProjectInitDescriptor{
+    SingleBuildSettingsInitDescriptor(FileResolver fileResolver, DocumentationRegistry documentationRegistry) {
+        super(fileResolver, documentationRegistry)
     }
 
     @Override
-    URL getBuildFileTemplate() {
-        return BasicProjectInitDescriptor.class.getResource("/org/gradle/buildinit/tasks/templates/build.gradle.template");
+    String getId() {
+        throw UnsupportedOperationException();
+    }
+
+    @Override
+    URL getSettingsTemplate() {
+        return BasicProjectInitDescriptor.class.getResource("/org/gradle/buildinit/tasks/templates/settings.gradle.template")
     }
 }

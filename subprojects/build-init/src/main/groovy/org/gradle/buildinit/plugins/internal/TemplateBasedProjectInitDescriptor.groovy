@@ -16,29 +16,36 @@
 
 package org.gradle.buildinit.plugins.internal
 
-import groovy.text.SimpleTemplateEngine
-import groovy.text.Template
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.util.GradleVersion
 
-import java.text.DateFormat
-
-abstract class TemplateBasedProjectInitDescriptor implements ProjectInitDescriptor {
+abstract class TemplateBasedProjectInitDescriptor extends CompositeProjectInitDescriptor {
 
     protected final DocumentationRegistry documentationRegistry
     protected final FileResolver fileResolver
 
-    TemplateBasedProjectInitDescriptor(FileResolver fileResolver, DocumentationRegistry documentationRegistry) {
+    protected TemplateBasedFileGenerator fileGenerator = new TemplateBasedFileGenerator()
+
+    TemplateBasedProjectInitDescriptor(FileResolver fileResolver, DocumentationRegistry documentationRegistry, ProjectInitDescriptor... delegates) {
+        super(delegates)
         this.fileResolver = fileResolver
         this.documentationRegistry = documentationRegistry
     }
 
-    abstract URL getBuildFileTemplate()
+    TemplateBasedProjectInitDescriptor(FileResolver fileResolver, DocumentationRegistry documentationRegistry) {
+        this(fileResolver, documentationRegistry, new ProjectInitDescriptor[0])
+    }
 
-    abstract URL getSettingsTemplate()
+    URL getBuildFileTemplate() {
+        null
+    }
+
+    URL getSettingsTemplate() {
+        null
+    }
 
     void generateProject() {
+        super.generateProject()
         generateGradleFiles()
         generateProjectSources()
     }
@@ -47,10 +54,15 @@ abstract class TemplateBasedProjectInitDescriptor implements ProjectInitDescript
     }
 
     def generateGradleFiles() {
-        LinkedHashMap<String,String> specificBindings = getAdditionalBuildFileTemplateBindings()
-        println specificBindings
-        generateFileFromTemplate(getBuildFileTemplate(), fileResolver.resolve("build.gradle"), specificBindings)
-        generateFileFromTemplate(getSettingsTemplate(), fileResolver.resolve("settings.gradle"), getAdditionalSettingsFileTemplateBindings())
+        LinkedHashMap<String, String> specificBindings = getAdditionalBuildFileTemplateBindings()
+        URL buildFileTemplate = getBuildFileTemplate()
+        if (buildFileTemplate != null) {
+            generateFileFromTemplate(buildFileTemplate, fileResolver.resolve("build.gradle"), specificBindings)
+        }
+        URL settingsTemplate = getSettingsTemplate()
+        if (settingsTemplate != null) {
+            generateFileFromTemplate(settingsTemplate, fileResolver.resolve("settings.gradle"), getAdditionalSettingsFileTemplateBindings())
+        }
     }
 
     protected Map getAdditionalBuildFileTemplateBindings() {
@@ -61,15 +73,7 @@ abstract class TemplateBasedProjectInitDescriptor implements ProjectInitDescript
         return [ref_userguide_multiproject: documentationRegistry.getDocumentationFor("multi_project_builds"), rootProjectName: fileResolver.resolve(".").name]
     }
 
-    protected generateFileFromTemplate(URL templateURL, File targetFile, Map additionalBindings) {
-        SimpleTemplateEngine templateEngine = new SimpleTemplateEngine()
-        String now = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT).format(new Date())
-        def bindings = [genDate: now, genUser: System.getProperty("user.name"), genGradleVersion: GradleVersion.current().toString()]
-        bindings += additionalBindings
-        Template template = templateEngine.createTemplate(templateURL.text)
-        Map wrappedBindings = bindings.collectEntries { key, value -> [key, new TemplateValue(value.toString())] }
-        targetFile.withWriter("utf-8") { writer ->
-            template.make(wrappedBindings).writeTo(writer)
-        }
+    protected generateFileFromTemplate(URL templateURL, File targetFile, Map specificBindings) {
+        fileGenerator.generate(templateURL, targetFile, specificBindings)
     }
 }

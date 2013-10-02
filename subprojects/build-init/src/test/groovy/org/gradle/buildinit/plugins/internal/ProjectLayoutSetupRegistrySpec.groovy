@@ -27,9 +27,9 @@ class ProjectLayoutSetupRegistrySpec extends Specification {
 
     def "can add multiple projectlayoutdescriptors"() {
         when:
-        registry.add(descriptor("desc1"))
-        registry.add(descriptor("desc2"))
-        registry.add(descriptor("desc3"))
+        registry.add("desc1", Mock(ProjectInitDescriptor))
+        registry.add("desc2", Mock(ProjectInitDescriptor))
+        registry.add("desc3", Mock(ProjectInitDescriptor))
         then:
         registry.supports("desc1")
         registry.get("desc1") != null
@@ -43,16 +43,10 @@ class ProjectLayoutSetupRegistrySpec extends Specification {
 
     def "cannot add multiple descriptors with same id"() {
         when:
-        registry.add(descriptor("desc1"))
-        registry.add(descriptor("desc1"))
+        registry.add("desc1", Mock(ProjectInitDescriptor))
+        registry.add("desc1", Mock(ProjectInitDescriptor))
         then:
         def e = thrown(GradleException)
         e.message == "ProjectDescriptor with ID 'desc1' already registered."
-    }
-
-    ProjectInitDescriptor descriptor(String descrName) {
-        ProjectInitDescriptor descriptor = Mock()
-        _ * descriptor.id >> descrName
-        descriptor
     }
 }

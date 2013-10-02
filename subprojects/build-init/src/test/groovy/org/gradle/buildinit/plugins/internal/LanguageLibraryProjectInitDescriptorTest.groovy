@@ -16,20 +16,57 @@
 
 package org.gradle.buildinit.plugins.internal
 
+import org.gradle.api.file.FileTree
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.file.FileResolver
 import spock.lang.Specification
 
-
 class LanguageLibraryProjectInitDescriptorTest extends Specification {
 
-    def "points to default settings file template"(){
+    FileResolver fileresolver = Mock(FileResolver)
+
+    LanguageLibraryProjectInitDescriptor descriptor
+    TemplateBasedFileGenerator fileGenerator = Mock(TemplateBasedFileGenerator)
+
+    def setup(){
+        descriptor = new LanguageLibraryProjectInitDescriptor("somepackage", "somelang", Mock(TemplateLibraryVersionProvider), fileresolver, Mock(DocumentationRegistry))
+        descriptor.fileGenerator = fileGenerator
+    }
+
+    def "skipsClassGenerationIfSourcesExist"() {
+        setup:
         when:
-        def descriptor1 = new LanguageLibraryProjectInitDescriptor("someId", "somelang", Mock(TemplateLibraryVersionProvider), Mock(FileResolver), Mock(DocumentationRegistry))
-        def descriptor2 = new LanguageLibraryProjectInitDescriptor("someOtherId", "somelang", Mock(TemplateLibraryVersionProvider), Mock(FileResolver), Mock(DocumentationRegistry))
+        withSources()
+        descriptor.generateClass("src/main", "SomeClass.java")
         then:
-        descriptor1.settingsTemplate != null
-        descriptor1.settingsTemplate.toExternalForm().endsWith("org/gradle/buildinit/tasks/templates/settings.gradle.template")
-        descriptor1.settingsTemplate == descriptor2.settingsTemplate
+        0 * fileresolver.resolve(_)
+        0 * fileGenerator.generate(_, _, _)
+    }
+
+    def "generatesSourcesIfSourcesNotExistYet"() {
+        when:
+        withNoSources()
+        descriptor.generateClass("src/main", "SomeClass.java")
+        then:
+        1 * fileresolver.resolve(_) >> new File("someFile")
+        1 * fileGenerator.generate(_, _, _)
+    }
+
+    def withNoSources() {
+        resolve("src/main/somelang", true)
+        resolve("src/test/somelang", true)
+    }
+
+    def withSources() {
+        resolve("src/main/somelang", false)
+        resolve("src/test/somelang", false)
+    }
+
+    def resolve(String path, empty) {
+        _ * fileresolver.resolveFilesAsTree(path) >> {
+            def tree = Mock(FileTree)
+            _ * tree.empty >> empty
+            return tree
+        }
     }
 }

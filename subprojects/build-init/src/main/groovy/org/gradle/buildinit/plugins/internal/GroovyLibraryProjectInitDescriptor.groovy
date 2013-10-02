@@ -21,8 +21,10 @@ import org.gradle.api.internal.file.FileResolver
 
 class GroovyLibraryProjectInitDescriptor extends LanguageLibraryProjectInitDescriptor {
 
-    public GroovyLibraryProjectInitDescriptor(DefaultTemplateLibraryVersionProvider libraryVersionProvider, FileResolver fileResolver, DocumentationRegistry documentationRegistry) {
-        super(BuildInitTypeIds.GROOVY_LIBRARY, "groovy", libraryVersionProvider, fileResolver, documentationRegistry);
+    public GroovyLibraryProjectInitDescriptor(DefaultTemplateLibraryVersionProvider libraryVersionProvider,
+                                              FileResolver fileResolver,
+                                              DocumentationRegistry documentationRegistry, ProjectInitDescriptor... delegates) {
+        super("groovylibrary", "groovy", libraryVersionProvider, fileResolver, documentationRegistry, delegates);
     }
 
     protected Map getAdditionalBuildFileTemplateBindings() {
