@@ -57,6 +57,11 @@ public class ModuleDescriptorAdapter implements MutableModuleVersionMetaData {
         return copy;
     }
 
+    @Override
+    public String toString() {
+        return moduleVersionIdentifier.toString();
+    }
+
     public ModuleVersionIdentifier getId() {
         return moduleVersionIdentifier;
     }
@@ -126,22 +131,29 @@ public class ModuleDescriptorAdapter implements MutableModuleVersionMetaData {
             for (String parent : descriptor.getExtends()) {
                 hierarchy.addAll(getConfiguration(parent).hierarchy);
             }
-            configuration = new DefaultConfigurationMetaData(descriptor, hierarchy);
+            configuration = new DefaultConfigurationMetaData(name, descriptor, hierarchy);
             configurations.put(name, configuration);
         }
         return configuration;
     }
 
     private class DefaultConfigurationMetaData implements ConfigurationMetaData {
+        private final String name;
         private final Configuration descriptor;
         private final Set<String> hierarchy;
         private List<DependencyMetaData> dependencies;
         private Set<Artifact> artifacts;
         private LinkedHashSet<ExcludeRule> excludeRules;
 
-        private DefaultConfigurationMetaData(Configuration descriptor, Set<String> hierarchy) {
+        private DefaultConfigurationMetaData(String name, Configuration descriptor, Set<String> hierarchy) {
+            this.name = name;
             this.descriptor = descriptor;
             this.hierarchy = hierarchy;
+        }
+
+        @Override
+        public String toString() {
+            return String.format("%s:%s", moduleVersionIdentifier, name);
         }
 
         public ModuleVersionMetaData getModuleVersion() {
@@ -149,7 +161,7 @@ public class ModuleDescriptorAdapter implements MutableModuleVersionMetaData {
         }
 
         public String getName() {
-            return descriptor.getName();
+            return name;
         }
 
         public Set<String> getHierarchy() {

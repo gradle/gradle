@@ -28,6 +28,17 @@ class ModuleDescriptorAdapterTest extends Specification {
     def moduleDescriptor = Mock(ModuleDescriptor)
     def metaData = new ModuleDescriptorAdapter(id, moduleDescriptor)
 
+    def "has useful string representation"() {
+        given:
+        def config = Stub(Configuration)
+        moduleDescriptor.getConfiguration('config') >> config
+        id.toString() >> 'group:module:version'
+
+        expect:
+        metaData.toString() == 'group:module:version'
+        metaData.getConfiguration('config').toString() == 'group:module:version:config'
+    }
+
     def "builds and caches the dependency meta-data from the module descriptor"() {
         def dependency1 = new DefaultDependencyDescriptor(ModuleRevisionId.newInstance("org", "module", "1.2"), false)
         def dependency2 = new DefaultDependencyDescriptor(ModuleRevisionId.newInstance("org", "module", "1.2"), false)
