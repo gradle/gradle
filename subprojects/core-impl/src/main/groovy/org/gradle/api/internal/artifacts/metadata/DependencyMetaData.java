@@ -22,6 +22,10 @@ import org.gradle.api.artifacts.ModuleVersionSelector;
 public interface DependencyMetaData {
     ModuleVersionSelector getRequested();
 
+    /**
+     * Returns this dependency as an Ivy DependencyDescriptor. This method is here to allow us to migrate away from the Ivy types
+     * and will be removed.
+     */
     DependencyDescriptor getDescriptor();
 
     boolean isChanging();

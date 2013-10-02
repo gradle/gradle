@@ -27,6 +27,10 @@ import java.util.List;
 public interface ModuleVersionMetaData {
     ModuleVersionIdentifier getId();
 
+    /**
+     * Returns this module version as an Ivy ModuleDescriptor. This method is here to allow us to migrate away from the Ivy types
+     * and will be removed.
+     */
     ModuleDescriptor getDescriptor();
 
     List<DependencyMetaData> getDependencies();
