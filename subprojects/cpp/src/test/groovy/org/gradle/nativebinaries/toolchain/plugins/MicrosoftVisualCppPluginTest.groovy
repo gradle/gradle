@@ -18,8 +18,8 @@ package org.gradle.nativebinaries.toolchain.plugins
 import org.gradle.internal.nativeplatform.ProcessEnvironment
 import org.gradle.internal.nativeplatform.services.NativeServices
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.nativebinaries.internal.ToolChainAvailability
 import org.gradle.nativebinaries.toolchain.VisualCpp
-import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -62,10 +62,9 @@ class MicrosoftVisualCppPluginTest extends Specification {
         project.toolChains.create("vc", VisualCpp)
 
         then:
-        def visualCpp = project.toolChains.vc
-        !visualCpp.availability.available
-        visualCpp.availability.unavailableMessage == 'Visual Studio installation cannot be found'
-        visualCpp.toString() == "ToolChain 'vc' (Visual C++)"
+        ToolChainAvailability availability = project.toolChains.vc.availability
+        !availability.available
+        availability.unavailableMessage.startsWith 'Visual Studio installation cannot be located. Searched in ['
 
         cleanup:
         processEnvironment.setEnvironmentVariable(pathVar, originalPath)
