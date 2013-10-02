@@ -151,7 +151,7 @@ include 'exe', 'lib'
             #include "hellomain.h"
 
             void DLL_FUNC helloMain() {
-                std::cout << "Hello main";
+                std::cout << "Hello main" << std::endl;
             }
         """
 
@@ -172,8 +172,8 @@ include 'exe', 'lib'
             #include "hellomain.h"
 
             int main () {
-                helloLib();
                 helloMain();
+                helloLib();
                 return 0;
             }
         """
@@ -186,7 +186,7 @@ include 'exe', 'lib'
         sharedLibrary("exe/build/binaries/helloMainSharedLibrary/helloMain").assertExistsAndDelete()
         installation("exe/build/install/mainExecutable")
                 .assertIncludesLibraries("helloLib", "helloMain")
-                .exec().out == "Hello libHello main"
+                .exec().out == "Hello main\nHello lib"
     }
 
     def "source set library dependencies are not shared with other source sets"() {
