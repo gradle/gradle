@@ -364,7 +364,7 @@
                 <para>The Maven dependency management has the notion of classifiers.
                     <footnote>
                         <para>
-                            <ulink url='http://www.sonatype.com/books/maven-book/reference/pom-relationships-sect-project-relationships.html'/>
+                            <ulink url='http://books.sonatype.com/mvnref-book/reference/pom-relationships-sect-project-relationships.html'/>
                         </para>
                     </footnote>
                     Gradle supports this. To retrieve classified dependencies from a Maven repository you can write:
