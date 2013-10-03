@@ -19,6 +19,8 @@ package org.gradle.api.internal.artifacts.metadata;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 
+import java.util.Set;
+
 public interface DependencyMetaData {
     ModuleVersionSelector getRequested();
 
@@ -31,6 +33,12 @@ public interface DependencyMetaData {
     boolean isChanging();
 
     boolean isTransitive();
+
+    /**
+     * Returns the artifacts defined by this dependency, if any.
+     */
+    // TODO:ADAM - fromConfiguration should be implicit in this metadata
+    Set<ModuleVersionArtifactMetaData> getArtifacts(ConfigurationMetaData fromConfiguration, ConfigurationMetaData toConfiguration);
 
     /**
      * Returns a copy of this dependency with the given requested version.

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.metadata
 
+import org.apache.ivy.core.module.descriptor.DefaultDependencyArtifactDescriptor
 import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
@@ -73,5 +74,44 @@ class DefaultDependencyMetaDataTest extends Specification {
 
         expect:
         metaData.withChanging().is(metaData)
+    }
+
+    def "returns empty set of artifacts when dependency descriptor does not declare any artifacts"() {
+        def descriptor = new DefaultDependencyDescriptor(requestedModuleId, false, false)
+        def metaData = new DefaultDependencyMetaData(descriptor)
+        def fromConfiguration = Stub(ConfigurationMetaData)
+        def toConfiguration = Stub(ConfigurationMetaData)
+
+        expect:
+        metaData.getArtifacts(fromConfiguration, toConfiguration).empty
+    }
+
+    def "returns empty set of artifacts when dependency descriptor does not declare any artifacts for source configuration"() {
+        def descriptor = new DefaultDependencyDescriptor(requestedModuleId, false, false)
+        def metaData = new DefaultDependencyMetaData(descriptor)
+        def fromConfiguration = Stub(ConfigurationMetaData)
+        def toConfiguration = Stub(ConfigurationMetaData)
+
+        given:
+        descriptor.addDependencyArtifact("other", new DefaultDependencyArtifactDescriptor(descriptor, "art", "type", "ext", null, [:]))
+
+        expect:
+        metaData.getArtifacts(fromConfiguration, toConfiguration).empty
+    }
+
+    def "uses artifacts defined by dependency descriptor"() {
+        def descriptor = new DefaultDependencyDescriptor(requestedModuleId, false, false)
+        def metaData = new DefaultDependencyMetaData(descriptor)
+        def fromConfiguration = Stub(ConfigurationMetaData)
+        def toConfiguration = Stub(ConfigurationMetaData)
+
+        given:
+        fromConfiguration.hierarchy >> (['config', 'super'] as LinkedHashSet)
+        descriptor.addDependencyArtifact("config", new DefaultDependencyArtifactDescriptor(descriptor, "art1", "type", "ext", null, [:]))
+        descriptor.addDependencyArtifact("other", new DefaultDependencyArtifactDescriptor(descriptor, "art2", "type", "ext", null, [:]))
+        descriptor.addDependencyArtifact("super", new DefaultDependencyArtifactDescriptor(descriptor, "art3", "type", "ext", null, [:]))
+
+        expect:
+        metaData.getArtifacts(fromConfiguration, toConfiguration)*.name == ['art1', 'art3']
     }
 }

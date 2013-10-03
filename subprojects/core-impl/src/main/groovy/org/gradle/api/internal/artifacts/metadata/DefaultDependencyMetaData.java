@@ -16,8 +16,7 @@
 
 package org.gradle.api.internal.artifacts.metadata;
 
-import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
+import org.apache.ivy.core.module.descriptor.*;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
@@ -25,6 +24,9 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies
 import org.gradle.internal.UncheckedException;
 
 import java.lang.reflect.Field;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 public class DefaultDependencyMetaData implements DependencyMetaData {
     private final DependencyDescriptor dependencyDescriptor;
@@ -55,6 +57,21 @@ public class DefaultDependencyMetaData implements DependencyMetaData {
 
     public DependencyDescriptor getDescriptor() {
         return dependencyDescriptor;
+    }
+
+    public Set<ModuleVersionArtifactMetaData> getArtifacts(ConfigurationMetaData fromConfiguration, ConfigurationMetaData toConfiguration) {
+        String[] targetConfigurations = fromConfiguration.getHierarchy().toArray(new String[fromConfiguration.getHierarchy().size()]);
+        DependencyArtifactDescriptor[] dependencyArtifacts = dependencyDescriptor.getDependencyArtifacts(targetConfigurations);
+        if (dependencyArtifacts.length == 0) {
+            return Collections.emptySet();
+        }
+        Set<ModuleVersionArtifactMetaData> artifacts = new LinkedHashSet<ModuleVersionArtifactMetaData>();
+        for (DependencyArtifactDescriptor artifactDescriptor : dependencyArtifacts) {
+            ModuleRevisionId id = toConfiguration.getModuleVersion().getDescriptor().getModuleRevisionId();
+            Artifact artifact = new DefaultArtifact(id, null, artifactDescriptor.getName(), artifactDescriptor.getType(), artifactDescriptor.getExt(), artifactDescriptor.getUrl(), artifactDescriptor.getQualifiedExtraAttributes());
+            artifacts.add(new DefaultModuleVersionArtifactMetaData(toConfiguration.getModuleVersion().getId(), artifact));
+        }
+        return artifacts;
     }
 
     public DependencyMetaData withRequestedVersion(String requestedVersion) {

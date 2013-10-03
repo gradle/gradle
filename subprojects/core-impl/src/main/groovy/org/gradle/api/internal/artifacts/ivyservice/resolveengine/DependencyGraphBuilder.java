@@ -15,28 +15,24 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.core.module.descriptor.DefaultArtifact;
-import org.apache.ivy.core.module.descriptor.DependencyArtifactDescriptor;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.id.ModuleId;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.*;
-import org.gradle.api.internal.artifacts.metadata.ConfigurationMetaData;
-import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.EnhancedDependencyDescriptor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolvedConfigurationBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.InternalDependencyResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ModuleVersionSelection;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
+import org.gradle.api.internal.artifacts.metadata.ConfigurationMetaData;
+import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -351,16 +347,13 @@ public class DependencyGraphBuilder {
         }
 
         private Set<ResolvedArtifact> getArtifacts(ConfigurationNode childConfiguration) {
-            String[] targetConfigurations = from.metaData.getHierarchy().toArray(new String[from.metaData.getHierarchy().size()]);
-            DependencyArtifactDescriptor[] dependencyArtifacts = dependencyDescriptor.getDependencyArtifacts(targetConfigurations);
-            if (dependencyArtifacts.length == 0) {
+            Set<ModuleVersionArtifactMetaData> dependencyArtifacts = dependencyMetaData.getArtifacts(from.metaData, childConfiguration.metaData);
+            if (dependencyArtifacts.isEmpty()) {
                 return Collections.emptySet();
             }
             Set<ResolvedArtifact> artifacts = new LinkedHashSet<ResolvedArtifact>();
-            for (DependencyArtifactDescriptor artifactDescriptor : dependencyArtifacts) {
-                ModuleRevisionId id = childConfiguration.moduleRevision.metaData.getDescriptor().getModuleRevisionId();
-                Artifact artifact = new DefaultArtifact(id, null, artifactDescriptor.getName(), artifactDescriptor.getType(), artifactDescriptor.getExt(), artifactDescriptor.getUrl(), artifactDescriptor.getQualifiedExtraAttributes());
-                artifacts.add(resolveState.builder.newArtifact(childConfiguration.getResult(), artifact, targetModuleRevision.resolve().getArtifactResolver()));
+            for (ModuleVersionArtifactMetaData artifact : dependencyArtifacts) {
+                artifacts.add(resolveState.builder.newArtifact(childConfiguration.getResult(), artifact.getArtifact(), targetModuleRevision.resolve().getArtifactResolver()));
             }
             return artifacts;
         }
