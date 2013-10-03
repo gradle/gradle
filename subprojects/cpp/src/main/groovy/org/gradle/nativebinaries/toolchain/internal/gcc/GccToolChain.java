@@ -23,6 +23,7 @@ import org.gradle.nativebinaries.internal.*;
 import org.gradle.nativebinaries.toolchain.Gcc;
 import org.gradle.nativebinaries.toolchain.GccTool;
 import org.gradle.nativebinaries.toolchain.internal.AbstractToolChain;
+import org.gradle.nativebinaries.toolchain.internal.ToolRegistry;
 import org.gradle.nativebinaries.toolchain.internal.ToolType;
 import org.gradle.nativebinaries.toolchain.internal.gcc.version.GccVersionDeterminer;
 import org.gradle.process.internal.ExecActionFactory;
@@ -43,11 +44,13 @@ public class GccToolChain extends AbstractToolChain implements Gcc {
 
     private final ExecActionFactory execActionFactory;
     private final Transformer<String, File> versionDeterminer;
+    private final ToolRegistry tools;
 
     private String version;
 
     public GccToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory) {
-        super(name, operatingSystem, new GccToolRegistry(operatingSystem), fileResolver);
+        super(name, operatingSystem, fileResolver);
+        this.tools = new GccToolRegistry(operatingSystem);
         this.execActionFactory = execActionFactory;
         this.versionDeterminer = new GccVersionDeterminer(execActionFactory);
 

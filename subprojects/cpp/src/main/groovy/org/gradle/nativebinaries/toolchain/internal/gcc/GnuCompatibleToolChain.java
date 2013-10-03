@@ -30,9 +30,6 @@ import org.gradle.nativebinaries.toolchain.internal.ToolRegistry;
 import org.gradle.nativebinaries.toolchain.internal.ToolType;
 import org.gradle.process.internal.ExecActionFactory;
 
-import java.util.Arrays;
-import java.util.List;
-
 public class GnuCompatibleToolChain implements PlatformToolChain {
     private final ToolRegistry tools;
     private final OperatingSystem operatingSystem;
@@ -76,7 +73,6 @@ public class GnuCompatibleToolChain implements PlatformToolChain {
 
     private <T extends BinaryToolSpec> CommandLineTool<T> commandLineTool(ToolType key) {
         CommandLineTool<T> commandLineTool = new CommandLineTool<T>(key.getToolName(), tools.locate(key), execActionFactory);
-        commandLineTool.withPath(tools.getPath());
         targetToPlatform(commandLineTool, key);
         return commandLineTool;
     }
@@ -86,39 +82,42 @@ public class GnuCompatibleToolChain implements PlatformToolChain {
             case CPP_COMPILER:
             case C_COMPILER:
             case LINKER:
-                tool.withArguments(gccSwitches());
-                return;
+                gccSwitches(tool);
+                break;
             case ASSEMBLER:
-                tool.withArguments(asSwitches());
-                return;
+                asSwitches(tool);
+                break;
             case STATIC_LIB_ARCHIVER:
         }
     }
 
-    private List<String> gccSwitches() {
+    private void gccSwitches(CommandLineTool tool) {
         switch (targetPlatform.getArchitecture()) {
             case I386:
-                return args("-m32");
+                tool.withArguments("-m32");
+                break;
             case AMD64:
-                return args("-m64");
-            default:
-                return args();
+                tool.withArguments("-m64");
+                break;
         }
     }
 
-    private List<String> asSwitches() {
+    private void asSwitches(CommandLineTool tool) {
         boolean osx = operatingSystem.isMacOsX();
         switch (targetPlatform.getArchitecture()) {
             case I386:
-                return osx ? args("-arch", "i386") : args("--32");
+                if (osx) {
+                    tool.withArguments("-arch", "i386");
+                } else {
+                    tool.withArguments("--32");
+                }
+                break;
             case AMD64:
-                return osx ? args("-arch", "x86_64") : args("--64");
-            default:
-                return args();
+                if (osx) {
+                    tool.withArguments("-arch", "x86_64");
+                } else {
+                    tool.withArguments("--64");
+                }
         }
-    }
-
-    private List<String> args(String... values) {
-        return Arrays.asList(values);
     }
 }

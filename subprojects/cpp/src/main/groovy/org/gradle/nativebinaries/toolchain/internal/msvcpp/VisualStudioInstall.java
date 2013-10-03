@@ -17,11 +17,8 @@
 package org.gradle.nativebinaries.toolchain.internal.msvcpp;
 
 import org.gradle.nativebinaries.Platform;
-import org.gradle.nativebinaries.toolchain.internal.ToolRegistry;
-import org.gradle.nativebinaries.toolchain.internal.ToolType;
 
 import java.io.File;
-import java.util.*;
 
 public class VisualStudioInstall {
     private final File visualStudioDir;
@@ -36,20 +33,23 @@ public class VisualStudioInstall {
         return visualStudioDir;
     }
 
-    public void configureTools(ToolRegistry tools, Platform platform) {
-        tools.setPath(Arrays.asList(
-                new File(visualStudioDir, "Common7/IDE"),
-                new File(visualStudioDir, "Common7/Tools"),
-                getVisualCppBin(platform),
-                new File(visualCppDir, "VCPackages")
-        ));
-        tools.getEnvironment().put("INCLUDE", getVisualCppInclude().getAbsolutePath());
-        tools.getEnvironment().put("LIB", getVisualCppLib(platform).getAbsolutePath());
-
-        tools.setExeName(ToolType.ASSEMBLER, getAssemblerExe(platform));
+    public File getCompiler(Platform targetPlatform) {
+        return new File(getVisualCppBin(targetPlatform), "cl.exe");
     }
 
-    private File getVisualCppBin(Platform platform) {
+    public File getLinker(Platform targetPlatform) {
+        return new File(getVisualCppBin(targetPlatform), "link.exe");
+    }
+
+    public File getAssembler(Platform targetPlatform) {
+        return new File(getVisualCppBin(targetPlatform), getAssemblerExe(targetPlatform));
+    }
+
+    public File getStaticLibArchiver(Platform targetPlatform) {
+        return new File(getVisualCppBin(targetPlatform), "lib.exe");
+    }
+
+    public File getVisualCppBin(Platform platform) {
         switch (platform.getArchitecture()) {
             case AMD64:
                 return new File(visualCppDir, "bin/x86_amd64");
@@ -58,11 +58,15 @@ public class VisualStudioInstall {
         }
     }
 
-    private File getVisualCppInclude() {
+    public File getCommonIdeBin() {
+        return new File(visualStudioDir, "Common7/IDE");
+    }
+
+    public File getVisualCppInclude() {
         return new File(visualCppDir, "include");
     }
 
-    private File getVisualCppLib(Platform platform) {
+    public File getVisualCppLib(Platform platform) {
         switch (platform.getArchitecture()) {
             case AMD64:
                 return new File(visualCppDir, "lib/amd64");

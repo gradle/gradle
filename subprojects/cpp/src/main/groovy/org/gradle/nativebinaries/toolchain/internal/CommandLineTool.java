@@ -31,10 +31,7 @@ import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class CommandLineTool<T extends CompileSpec> {
     private final String action;
@@ -58,8 +55,9 @@ public class CommandLineTool<T extends CompileSpec> {
         return this;
     }
 
-    public CommandLineTool<T> withPath(List<File> pathEntries) {
+    public CommandLineTool<T> withPath(File... pathEntries) {
         path = Joiner.on(File.pathSeparator).join(pathEntries);
+        System.out.println(String.format("PATH=%s", path));
         return this;
     }
 
@@ -73,8 +71,8 @@ public class CommandLineTool<T extends CompileSpec> {
         return this;
     }
 
-    public CommandLineTool<T> withArguments(List<String> arguments) {
-        this.arguments.addAll(arguments);
+    public CommandLineTool<T> withArguments(String... arguments) {
+        Collections.addAll(this.arguments, arguments);
         return this;
     }
 

@@ -27,11 +27,11 @@ import org.gradle.nativebinaries.language.cpp.internal.CppCompileSpec;
 import org.gradle.nativebinaries.toolchain.VisualCpp;
 import org.gradle.nativebinaries.toolchain.internal.AbstractToolChain;
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
-import org.gradle.nativebinaries.toolchain.internal.ToolRegistry;
 import org.gradle.nativebinaries.toolchain.internal.ToolType;
 import org.gradle.process.internal.ExecActionFactory;
 
 import java.io.File;
+import java.util.Collections;
 
 public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
 
@@ -43,15 +43,9 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
 
     public VisualCppToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory,
                               VisualStudioLocator visualStudioLocator) {
-        super(name, operatingSystem, new ToolRegistry(operatingSystem), fileResolver);
+        super(name, operatingSystem, fileResolver);
         this.execActionFactory = execActionFactory;
         this.visualStudioLocator = visualStudioLocator;
-
-        tools.setExeName(ToolType.CPP_COMPILER, "cl.exe");
-        tools.setExeName(ToolType.C_COMPILER, "cl.exe");
-        tools.setExeName(ToolType.ASSEMBLER, "ml.exe");
-        tools.setExeName(ToolType.LINKER, "link.exe");
-        tools.setExeName(ToolType.STATIC_LIB_ARCHIVER, "lib.exe");
     }
 
     @Override
@@ -97,9 +91,9 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
     public PlatformToolChain target(Platform targetPlatform) {
         checkAvailable();
 
-        new VisualStudioInstall(locateVisualStudio().getResult()).configureTools(tools, targetPlatform);
-        new WindowsSdk(locateWindowsSdk().getResult()).configureTools(tools, targetPlatform);
-        return new VisualCppPlatformToolChain();
+        VisualStudioInstall visualStudioInstall = new VisualStudioInstall(locateVisualStudio().getResult());
+        WindowsSdk windowsSdk = new WindowsSdk(locateWindowsSdk().getResult());
+        return new VisualCppPlatformToolChain(visualStudioInstall, windowsSdk, targetPlatform);
     }
 
     @Override
@@ -108,36 +102,55 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
     }
 
     private class VisualCppPlatformToolChain implements PlatformToolChain {
+        private final VisualStudioInstall install;
+        private final WindowsSdk sdk;
+        private final Platform targetPlatform;
+
+        private VisualCppPlatformToolChain(VisualStudioInstall install, WindowsSdk sdk, Platform targetPlatform) {
+            this.install = install;
+            this.sdk = sdk;
+            this.targetPlatform = targetPlatform;
+        }
+
         public <T extends BinaryToolSpec> Compiler<T> createCppCompiler() {
-            CommandLineTool<CppCompileSpec> commandLineTool = commandLineTool(ToolType.CPP_COMPILER);
+            CommandLineTool<CppCompileSpec> commandLineTool = commandLineTool(ToolType.CPP_COMPILER, install.getCompiler(targetPlatform));
             return (Compiler<T>) new CppCompiler(commandLineTool);
         }
 
         public <T extends BinaryToolSpec> Compiler<T> createCCompiler() {
-            CommandLineTool<CCompileSpec> commandLineTool = commandLineTool(ToolType.C_COMPILER);
+            CommandLineTool<CCompileSpec> commandLineTool = commandLineTool(ToolType.C_COMPILER, install.getCompiler(targetPlatform));
             return (Compiler<T>) new CCompiler(commandLineTool);
         }
 
         public <T extends BinaryToolSpec> Compiler<T> createAssembler() {
-            CommandLineTool<AssembleSpec> commandLineTool = commandLineTool(ToolType.ASSEMBLER);
+            CommandLineTool<AssembleSpec> commandLineTool = commandLineTool(ToolType.ASSEMBLER, install.getAssembler(targetPlatform));
             return (Compiler<T>) new Assembler(commandLineTool);
         }
 
         public <T extends LinkerSpec> Compiler<T> createLinker() {
-            CommandLineTool<LinkerSpec> commandLineTool = commandLineTool(ToolType.LINKER);
+            CommandLineTool<LinkerSpec> commandLineTool = commandLineTool(ToolType.LINKER, install.getLinker(targetPlatform));
             return (Compiler<T>) new LinkExeLinker(commandLineTool);
         }
 
         public <T extends StaticLibraryArchiverSpec> Compiler<T> createStaticLibraryArchiver() {
-            CommandLineTool<StaticLibraryArchiverSpec> commandLineTool = commandLineTool(ToolType.STATIC_LIB_ARCHIVER);
+            CommandLineTool<StaticLibraryArchiverSpec> commandLineTool = commandLineTool(ToolType.STATIC_LIB_ARCHIVER, install.getStaticLibArchiver(targetPlatform));
             return (Compiler<T>) new LibExeStaticLibraryArchiver(commandLineTool);
         }
 
-        private <T extends BinaryToolSpec> CommandLineTool<T> commandLineTool(ToolType key) {
-            CommandLineTool<T> commandLineTool = new CommandLineTool<T>(key.getToolName(), tools.locate(key), execActionFactory);
-            commandLineTool.withPath(tools.getPath());
-            commandLineTool.withEnvironment(tools.getEnvironment());
-            return commandLineTool;
+        private <T extends BinaryToolSpec> CommandLineTool<T> commandLineTool(ToolType key, File exe) {
+            CommandLineTool<T> tool = new CommandLineTool<T>(key.getToolName(), exe, execActionFactory);
+
+            // The visual C++ tools use the path to find other executables
+            tool.withPath(install.getVisualCppBin(targetPlatform), sdk.getBinDir(), install.getCommonIdeBin());
+
+            // TODO:DAZ Use command-line args for these
+            tool.withEnvironment(Collections.singletonMap("INCLUDE",
+                    install.getVisualCppInclude().getAbsolutePath()));
+            tool.withEnvironment(Collections.singletonMap("LIB",
+                    install.getVisualCppLib(targetPlatform).getAbsolutePath() + File.pathSeparator + sdk.getLibDir(targetPlatform).getAbsolutePath()
+            ));
+
+            return tool;
         }
 
         public String getOutputType() {

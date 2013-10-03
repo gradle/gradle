@@ -31,9 +31,11 @@ import org.gradle.process.internal.ExecActionFactory;
 public class ClangToolChain extends AbstractToolChain implements Clang {
     public static final String DEFAULT_NAME = "clang";
     private final ExecActionFactory execActionFactory;
+    private final ToolRegistry tools;
 
     public ClangToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory) {
-        super(name, operatingSystem, new ToolRegistry(operatingSystem), fileResolver);
+        super(name, operatingSystem, fileResolver);
+        this.tools = new ToolRegistry(operatingSystem);
         this.execActionFactory = execActionFactory;
 
         tools.setExeName(ToolType.CPP_COMPILER, "clang++");

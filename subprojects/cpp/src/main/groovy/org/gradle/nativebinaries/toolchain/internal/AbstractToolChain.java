@@ -26,14 +26,12 @@ import java.io.File;
 public abstract class AbstractToolChain implements ToolChainInternal {
     private final String name;
     protected final OperatingSystem operatingSystem;
-    protected final ToolRegistry tools;
     private final FileResolver fileResolver;
     private ToolChainAvailability availability;
 
-    protected AbstractToolChain(String name, OperatingSystem operatingSystem, ToolRegistry tools, FileResolver fileResolver) {
+    protected AbstractToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver) {
         this.name = name;
         this.operatingSystem = operatingSystem;
-        this.tools = tools;
         this.fileResolver = fileResolver;
     }
 
