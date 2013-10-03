@@ -97,7 +97,7 @@ ${toolChainConfig}
         failure.assertHasCause("Tool chain bad is not available")
     }
 
-    @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+    @Requires([TestPrecondition.CAN_INSTALL_EXECUTABLE, TestPrecondition.CPP_TOOLCHAINS_AVAILABLE])
     def "includes tool chain in task names and binary paths with two defined and one available"() {
         AvailableToolChains.InstalledToolChain toolChain = AvailableToolChains.getToolChains().get(0) as AvailableToolChains.InstalledToolChain
 
