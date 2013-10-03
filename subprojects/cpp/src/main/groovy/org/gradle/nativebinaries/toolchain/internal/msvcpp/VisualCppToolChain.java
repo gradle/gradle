@@ -16,6 +16,7 @@
 
 package org.gradle.nativebinaries.toolchain.internal.msvcpp;
 
+import org.gradle.api.Action;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.internal.os.OperatingSystem;
@@ -27,6 +28,7 @@ import org.gradle.nativebinaries.language.cpp.internal.CppCompileSpec;
 import org.gradle.nativebinaries.toolchain.VisualCpp;
 import org.gradle.nativebinaries.toolchain.internal.AbstractToolChain;
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
+import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec;
 import org.gradle.nativebinaries.toolchain.internal.ToolType;
 import org.gradle.process.internal.ExecActionFactory;
 
@@ -114,11 +116,13 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
 
         public <T extends BinaryToolSpec> Compiler<T> createCppCompiler() {
             CommandLineTool<CppCompileSpec> commandLineTool = commandLineTool(ToolType.CPP_COMPILER, install.getCompiler(targetPlatform));
+            commandLineTool.withAction(addIncludePath());
             return (Compiler<T>) new CppCompiler(commandLineTool);
         }
 
         public <T extends BinaryToolSpec> Compiler<T> createCCompiler() {
             CommandLineTool<CCompileSpec> commandLineTool = commandLineTool(ToolType.C_COMPILER, install.getCompiler(targetPlatform));
+            commandLineTool.withAction(addIncludePath());
             return (Compiler<T>) new CCompiler(commandLineTool);
         }
 
@@ -144,8 +148,6 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
             tool.withPath(install.getVisualCppBin(targetPlatform), sdk.getBinDir(), install.getCommonIdeBin());
 
             // TODO:DAZ Use command-line args for these
-            tool.withEnvironment(Collections.singletonMap("INCLUDE",
-                    install.getVisualCppInclude().getAbsolutePath()));
             tool.withEnvironment(Collections.singletonMap("LIB",
                     install.getVisualCppLib(targetPlatform).getAbsolutePath() + File.pathSeparator + sdk.getLibDir(targetPlatform).getAbsolutePath()
             ));
@@ -155,6 +157,14 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
 
         public String getOutputType() {
             return String.format("%s-%s", getName(), operatingSystem.getName());
+        }
+
+        private Action<NativeCompileSpec> addIncludePath() {
+            return new Action<NativeCompileSpec>() {
+                public void execute(NativeCompileSpec nativeCompileSpec) {
+                    nativeCompileSpec.include(install.getVisualCppInclude());
+                }
+            };
         }
     }
 }
