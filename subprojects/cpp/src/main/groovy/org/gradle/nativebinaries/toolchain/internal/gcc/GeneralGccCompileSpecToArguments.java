@@ -22,10 +22,12 @@ import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativebinaries.toolchain.internal.MacroArgsConverter;
 import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec;
 
+import java.io.File;
+
 /**
  * Maps common options for C/C++ compiling with GCC
  */
-class GeneralGccCompileOptionsToArguments<T extends NativeCompileSpec> implements CompileSpecToArguments<T> {
+class GeneralGccCompileSpecToArguments<T extends NativeCompileSpec> implements CompileSpecToArguments<T> {
     public void collectArguments(T spec, ArgCollector collector) {
         for (String macroArg : new MacroArgsConverter().transform(spec.getMacros())) {
             collector.args("-D", macroArg);
@@ -38,5 +40,14 @@ class GeneralGccCompileOptionsToArguments<T extends NativeCompileSpec> implement
                 collector.args("-fPIC");
             }
         }
+
+        for (File file : spec.getIncludeRoots()) {
+            collector.args("-I");
+            collector.args(file.getAbsolutePath());
+        }
+        for (File file : spec.getSourceFiles()) {
+            collector.args(file.getAbsolutePath());
+        }
+
     }
 }

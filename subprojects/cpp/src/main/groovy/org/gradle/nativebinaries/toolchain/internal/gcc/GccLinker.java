@@ -33,8 +33,7 @@ public class GccLinker implements Compiler<LinkerSpec> {
 
     public GccLinker(CommandLineTool<LinkerSpec> commandLineTool, boolean useCommandFile) {
         GccSpecToArguments<LinkerSpec> specToArguments = new GccSpecToArguments<LinkerSpec>(
-                new GccLinkerSpecOptionsToArguments(),
-                new GccLinkerSpecSourcesToArguments(),
+                new GccLinkerSpecToArguments(),
                 useCommandFile
         );
         this.commandLineTool = commandLineTool.withArguments(specToArguments);
@@ -44,9 +43,23 @@ public class GccLinker implements Compiler<LinkerSpec> {
         return commandLineTool.execute(spec);
     }
 
-    private static class GccLinkerSpecSourcesToArguments implements CompileSpecToArguments<LinkerSpec> {
+    private static class GccLinkerSpecToArguments implements CompileSpecToArguments<LinkerSpec> {
 
         public void collectArguments(LinkerSpec spec, ArgCollector collector) {
+            collector.args(spec.getArgs());
+
+            if (spec instanceof SharedLibraryLinkerSpec) {
+                collector.args("-shared");
+                if (!OperatingSystem.current().isWindows()) {
+                    String installName = ((SharedLibraryLinkerSpec) spec).getInstallName();
+                    if (OperatingSystem.current().isMacOsX()) {
+                        collector.args("-Wl,-install_name," + installName);
+                    } else {
+                        collector.args("-Wl,-soname," + installName);
+                    }
+                }
+            }
+            collector.args("-o", spec.getOutputFile().getAbsolutePath());
             for (File file : spec.getObjectFiles()) {
                 collector.args(file.getAbsolutePath());
             }
@@ -60,25 +73,6 @@ public class GccLinker implements Compiler<LinkerSpec> {
 //                collector.args("-Wl,-rpath," + pathEntry.getAbsolutePath());
                 throw new UnsupportedOperationException("Library Path not yet supported on GCC");
             }
-        }
-    }
-
-    private static class GccLinkerSpecOptionsToArguments implements CompileSpecToArguments<LinkerSpec> {
-
-        public void collectArguments(LinkerSpec spec, ArgCollector collector) {
-            collector.args(spec.getArgs());
-            if (spec instanceof SharedLibraryLinkerSpec) {
-                collector.args("-shared");
-                if (!OperatingSystem.current().isWindows()) {
-                    String installName = ((SharedLibraryLinkerSpec) spec).getInstallName();
-                    if (OperatingSystem.current().isMacOsX()) {
-                        collector.args("-Wl,-install_name," + installName);
-                    } else {
-                        collector.args("-Wl,-soname," + installName);
-                    }
-                }
-            }
-            collector.args("-o", spec.getOutputFile().getAbsolutePath());
         }
     }
 }

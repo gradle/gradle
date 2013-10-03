@@ -28,8 +28,4 @@ public interface StaticLibraryArchiverSpec extends BinaryToolSpec {
     List<File> getObjectFiles();
 
     void objectFiles(Iterable<File> source);
-
-    List<String> getArgs();
-
-    void args(List<String> args);
 }

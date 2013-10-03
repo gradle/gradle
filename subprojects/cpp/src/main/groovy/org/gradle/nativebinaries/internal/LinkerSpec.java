@@ -37,10 +37,6 @@ public interface LinkerSpec extends BinaryToolSpec {
 
     void libraryPath(File... libraryPath);
 
-    List<String> getArgs();
-
-    void args(List<String> args);
-
     File getOutputFile();
 
     void setOutputFile(File outputFile);

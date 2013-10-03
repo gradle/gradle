@@ -19,9 +19,15 @@ package org.gradle.nativebinaries.internal;
 import org.gradle.api.internal.tasks.compile.CompileSpec;
 
 import java.io.File;
+import java.util.List;
 
 public interface BinaryToolSpec extends CompileSpec {
     File getTempDir();
 
     void setTempDir(File tempDir);
+
+    List<String> getArgs();
+
+    void args(List<String> args);
+
 }

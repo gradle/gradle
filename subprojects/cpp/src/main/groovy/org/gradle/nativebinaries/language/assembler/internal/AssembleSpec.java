@@ -32,8 +32,4 @@ public interface AssembleSpec extends BinaryToolSpec {
     List<File> getSourceFiles();
 
     void source(Iterable<File> sources);
-
-    List<String> getArgs();
-
-    void args(List<String> args);
 }

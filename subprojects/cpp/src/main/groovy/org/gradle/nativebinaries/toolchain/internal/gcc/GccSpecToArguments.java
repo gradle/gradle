@@ -22,22 +22,22 @@ import org.gradle.api.internal.tasks.compile.CompileSpecToArguments;
 import org.gradle.nativebinaries.internal.BinaryToolSpec;
 import org.gradle.nativebinaries.toolchain.internal.CommandLineCompilerArgumentsToOptionFile;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * Some GCC options do not function correctly when included in an option file, so only use the option file for include paths and source files.
  */
 public class GccSpecToArguments<T extends BinaryToolSpec> implements CompileSpecToArguments<T> {
-    private final CompileSpecToArguments<T> optionsToArguments;
-    private final CompileSpecToArguments<T> sourcesToArguments;
 
-    public GccSpecToArguments(CompileSpecToArguments<T> optionsToArguments, CompileSpecToArguments<T> sourcesToArguments, boolean useOptionFile) {
-        this.optionsToArguments = optionsToArguments;
+    private final CompileSpecToArguments<BinaryToolSpec> commandLineOnlyArguments = new CommandLinkOnlyArguments();
+    private final CompileSpecToArguments<T> generalArguments;
+    private final boolean useOptionFile;
 
-        // Only use an option file for header paths and source files (some other options don't function correctly in option file
-        if (useOptionFile) {
-            this.sourcesToArguments = withOptionFile(sourcesToArguments);
-        } else {
-            this.sourcesToArguments = sourcesToArguments;
-        }
+    public GccSpecToArguments(CompileSpecToArguments<T> generalArguments, boolean useOptionFile) {
+        this.generalArguments = generalArguments;
+        this.useOptionFile = useOptionFile;
     }
 
     private CommandLineCompilerArgumentsToOptionFile<T> withOptionFile(CompileSpecToArguments<T> sourcesToArguments) {
@@ -45,7 +45,22 @@ public class GccSpecToArguments<T extends BinaryToolSpec> implements CompileSpec
     }
 
     public void collectArguments(T spec, ArgCollector collector) {
-        optionsToArguments.collectArguments(spec, collector);
-        sourcesToArguments.collectArguments(spec, collector);
+        if (useOptionFile) {
+            commandLineOnlyArguments.collectArguments(spec, collector);
+            withOptionFile(generalArguments).collectArguments(spec, collector);
+        } else {
+            generalArguments.collectArguments(spec, collector);
+        }
+    }
+
+    // Certain options do not function correctly via an option file
+    private static class CommandLinkOnlyArguments implements CompileSpecToArguments<BinaryToolSpec> {
+        private static final List<String> CLI_ONLY_ARGS = Arrays.asList("-m32", "-m64");
+
+        public void collectArguments(BinaryToolSpec spec, ArgCollector collector) {
+            List<String> commandLineOnlyArgs = new ArrayList<String>(spec.getArgs());
+            commandLineOnlyArgs.retainAll(CLI_ONLY_ARGS);
+            collector.args(commandLineOnlyArgs);
+        }
     }
 }

@@ -28,8 +28,7 @@ public class CppCompiler implements Compiler<CppCompileSpec> {
 
     public CppCompiler(CommandLineTool<CppCompileSpec> commandLineTool, boolean useCommandFile) {
         GccSpecToArguments<CppCompileSpec> specToArguments = new GccSpecToArguments<CppCompileSpec>(
-                new CppCompileOptionsToArguments(),
-                new GccCompileSourcesToArguments<CppCompileSpec>(),
+                new CppCompileSpecToArguments(),
                 useCommandFile
         );
         this.commandLineTool = commandLineTool.withArguments(specToArguments);
@@ -39,8 +38,7 @@ public class CppCompiler implements Compiler<CppCompileSpec> {
         return commandLineTool.inWorkDirectory(spec.getObjectFileDir()).execute(spec);
     }
 
-    // Certain options do not function correctly via an option file, so only use option file for headers and sources
-    private static class CppCompileOptionsToArguments extends GeneralGccCompileOptionsToArguments<CppCompileSpec> {
+    private static class CppCompileSpecToArguments extends GeneralGccCompileSpecToArguments<CppCompileSpec> {
         @Override
         public void collectArguments(CppCompileSpec spec, ArgCollector collector) {
             // C++-compiling options

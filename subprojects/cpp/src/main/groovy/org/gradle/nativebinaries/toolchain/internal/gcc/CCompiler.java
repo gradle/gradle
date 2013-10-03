@@ -28,8 +28,7 @@ public class CCompiler implements Compiler<CCompileSpec> {
 
     public CCompiler(CommandLineTool<CCompileSpec> commandLineTool, boolean useCommandFile) {
         GccSpecToArguments<CCompileSpec> specToArguments = new GccSpecToArguments<CCompileSpec>(
-                new CCompileOptionsToArguments(),
-                new GccCompileSourcesToArguments<CCompileSpec>(),
+                new CCompileSpecToArguments(),
                 useCommandFile
         );
         this.commandLineTool = commandLineTool.withArguments(specToArguments);
@@ -39,7 +38,7 @@ public class CCompiler implements Compiler<CCompileSpec> {
         return commandLineTool.inWorkDirectory(spec.getObjectFileDir()).execute(spec);
     }
 
-    private static class CCompileOptionsToArguments extends GeneralGccCompileOptionsToArguments<CCompileSpec> {
+    private static class CCompileSpecToArguments extends GeneralGccCompileSpecToArguments<CCompileSpec> {
         public void collectArguments(CCompileSpec spec, ArgCollector collector) {
             // C-compiling options
             collector.args("-x", "c");

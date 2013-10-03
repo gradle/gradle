@@ -146,7 +146,7 @@ The following are the newly deprecated items in this Gradle release. If you have
 * Replaced `compilerArgs` and `linkerArgs` with `cppCompiler.args` and `linker.args`.
 * Renamed and restructure package organisation for domain, plugin and task classes. If you are referencing
   these classes directly you may need to update your build script for this reorganisation.
-* The temporary file generated for compiler/linker input has been renamed from "compiler-options.txt" to "input.txt".
+* The temporary file generated for compiler/linker input has been renamed from "compiler-options.txt" to "options.txt".
     * This file now only contains file inputs to the tool - all other options are supplied directly via the command line.
 * Object files generated from the assembly of Assembler sources are no longer named '<file>.s.o'.
 * Renamed method: BuildableModelElement.dependsOn() -> BuildableModelElement.builtBy()
