@@ -387,6 +387,44 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         dependency10.getDependencyConfigurations("b", "requested") == ["b"]
     }
 
+    def "parses artifact config mappings"() {
+        given:
+        def file = temporaryFolder.createFile("ivy.xml")
+        file.text = """
+           <ivy-module version="2.0">
+                <info organisation="myorg"
+                      module="mymodule"
+                      revision="myrev">
+                </info>
+                <configurations>
+                    <conf name="a" />
+                    <conf name="b" />
+                    <conf name="c" extends="a"/>
+                    <conf name="d" />
+                </configurations>
+                <publications>
+                    <artifact/>
+                    <artifact name='art2' type='type' ext='ext' conf='*'/>
+                    <artifact name='art3' type='type2' conf='a, b'/>
+                </publications>
+            </ivy-module>
+        """
+
+        when:
+        def descriptor = parser.parseMetaData(parseContext, file, false).descriptor
+
+        then:
+        descriptor.allArtifacts.length == 3
+        descriptor.getArtifacts("a")*.name == ['mymodule', 'art2', 'art3']
+        descriptor.getArtifacts("a")*.type == ['jar', 'type', 'type2']
+        descriptor.getArtifacts("a")*.ext == ['jar', 'ext', 'type2']
+
+        and:
+        descriptor.getArtifacts("b")*.name == ['mymodule', 'art2', 'art3']
+        descriptor.getArtifacts("c")*.name == ['mymodule', 'art2']
+        descriptor.getArtifacts("d")*.name == ['mymodule', 'art2']
+    }
+
     def verifyFullDependencies(DependencyDescriptor[] dependencies) {
         // no conf def => equivalent to *->*
         DependencyDescriptor dd = getDependency(dependencies, "mymodule2")
