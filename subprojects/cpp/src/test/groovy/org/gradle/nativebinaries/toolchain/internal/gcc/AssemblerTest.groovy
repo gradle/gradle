@@ -44,7 +44,7 @@ class AssemblerTest extends Specification {
         AssembleSpec assembleSpec = Mock(AssembleSpec)
         assembleSpec.getObjectFileDir() >> objectFileDir
         assembleSpec.getArgs() >> ["-firstArg", "-secondArg"]
-        assembleSpec.getSource() >> [testDir.file("one.s"), testDir.file("two.s")]
+        assembleSpec.getSourceFiles() >> [testDir.file("one.s"), testDir.file("two.s")]
 
         and:
         assembler.execute(assembleSpec)
