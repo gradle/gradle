@@ -305,6 +305,7 @@ public class AvailableToolChains {
             DefaultPlatform targetPlatform = new DefaultPlatform("default");
             installDir = install.getVisualStudioDir();
             pathEntries.add(install.getVisualCppBin(targetPlatform));
+            pathEntries.add(install.getCommonIdeBin());
             return this;
         }
 
