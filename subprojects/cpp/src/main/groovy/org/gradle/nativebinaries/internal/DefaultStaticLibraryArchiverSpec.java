@@ -25,12 +25,13 @@ public class DefaultStaticLibraryArchiverSpec implements StaticLibraryArchiverSp
     private final List<File> objectFiles = new ArrayList<File>();
     private final List<String> args = new ArrayList<String>();
     private File outputFile;
+    private File tempDir;
 
     public List<File> getObjectFiles() {
         return objectFiles;
     }
 
-    public void objectFiles(Iterable<File> source) {
+    public void objectFiles(Iterable<File> objectFiles) {
         for (File objectFile : objectFiles) {
             this.objectFiles.add(objectFile);
         }
@@ -53,9 +54,10 @@ public class DefaultStaticLibraryArchiverSpec implements StaticLibraryArchiverSp
     }
 
     public File getTempDir() {
-        return null;
+        return tempDir;
     }
 
     public void setTempDir(File tempDir) {
+        this.tempDir = tempDir;
     }
 }
