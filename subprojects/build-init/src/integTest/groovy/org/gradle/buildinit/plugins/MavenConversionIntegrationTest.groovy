@@ -306,9 +306,8 @@ Root project 'webinar-parent'
     }
 
     def libRequest(MavenHttpRepository repo, String group, String name, Object version) {
-        MavenHttpModule commonsLang = repo.module(group, name, version)
-        commonsLang.pom.expectHeadMissing()
-        commonsLang.artifact([:]).expectHeadMissing()
+        MavenHttpModule module = repo.module(group, name, version)
+        module.allowAll()
     }
 
     def expectModule(MavenHttpRepository repo, String group, String name, String version) {
