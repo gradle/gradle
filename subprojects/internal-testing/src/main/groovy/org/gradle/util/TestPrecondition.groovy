@@ -107,7 +107,13 @@ enum TestPrecondition {
     }),
     CAN_INSTALL_EXECUTABLE({
         FILE_PERMISSIONS.fulfilled || WINDOWS.fulfilled
+    }),
+    CPP_TOOLCHAINS_AVAILABLE({
+        String value = System.getProperty(TOOLCHAINS_SYSPROP_NAME);
+         !("none".equals(value))
     });
+
+    private static final String TOOLCHAINS_SYSPROP_NAME = "org.gradle.integtest.cpp.toolChains";
 
     /**
      * A predicate for testing whether the precondition is fulfilled.
