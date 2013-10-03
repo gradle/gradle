@@ -109,7 +109,7 @@ abstract class AbstractNativeCompileTask extends DefaultTask {
         spec.includeRoots = getIncludes()
         spec.source = getSource()
         spec.macros = getMacros()
-        spec.args = getCompilerArgs()
+        spec.args getCompilerArgs()
         spec.positionIndependentCode = isPositionIndependentCode()
 
         PlatformToolChain platformToolChain = toolChain.target(targetPlatform)

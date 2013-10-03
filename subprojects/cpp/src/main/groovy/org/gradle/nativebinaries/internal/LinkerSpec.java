@@ -17,6 +17,7 @@
 package org.gradle.nativebinaries.internal;
 
 import java.io.File;
+import java.util.List;
 
 /**
  * A high level interface to the compiler, specifying what is to be compiled and how.
@@ -31,9 +32,9 @@ public interface LinkerSpec extends BinaryToolSpec {
 
     void setLibs(Iterable<File> libs);
 
-    Iterable<String> getArgs();
+    List<String> getArgs();
 
-    void setArgs(Iterable<String> args);
+    void args(List<String> args);
 
     File getOutputFile();
 

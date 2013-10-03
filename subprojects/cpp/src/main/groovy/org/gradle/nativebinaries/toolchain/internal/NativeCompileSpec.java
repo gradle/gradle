@@ -19,6 +19,7 @@ package org.gradle.nativebinaries.toolchain.internal;
 import org.gradle.nativebinaries.internal.BinaryToolSpec;
 
 import java.io.File;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -41,9 +42,9 @@ public interface NativeCompileSpec extends BinaryToolSpec {
 
     void setMacros(Map<String, String> macros);
 
-    Iterable<String> getArgs();
+    List<String> getArgs();
 
-    void setArgs(Iterable<String> args);
+    void args(List<String> args);
 
     boolean isPositionIndependentCode();
 

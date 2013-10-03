@@ -80,7 +80,7 @@ class Assemble extends DefaultTask {
 
         spec.objectFileDir = getObjectFileDir()
         spec.source = getSource()
-        spec.args = getAssemblerArgs()
+        spec.args getAssemblerArgs()
 
         def result = toolChain.target(targetPlatform).createAssembler().execute(spec)
         didWork = result.didWork

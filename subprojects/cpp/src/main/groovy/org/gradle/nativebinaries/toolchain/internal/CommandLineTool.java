@@ -17,6 +17,7 @@
 package org.gradle.nativebinaries.toolchain.internal;
 
 import com.google.common.base.Joiner;
+import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.internal.tasks.compile.CompileSpec;
@@ -38,8 +39,8 @@ public class CommandLineTool<T extends CompileSpec> {
     private final File executable;
     private final ExecActionFactory execActionFactory;
     private final Map<String, String> environment = new HashMap<String, String>();
-    private List<String> arguments = new ArrayList<String>();
     private CompileSpecToArguments<T> toArguments;
+    private Action<? super T> specModifier;
     private File workDir;
     private String path;
 
@@ -52,6 +53,11 @@ public class CommandLineTool<T extends CompileSpec> {
     public CommandLineTool<T> inWorkDirectory(File workDir) {
         GFileUtils.mkdirs(workDir);
         this.workDir = workDir;
+        return this;
+    }
+
+    public CommandLineTool<T> withAction(Action<? super T> specAction) {
+        this.specModifier = specAction;
         return this;
     }
 
@@ -71,11 +77,6 @@ public class CommandLineTool<T extends CompileSpec> {
         return this;
     }
 
-    public CommandLineTool<T> withArguments(String... arguments) {
-        Collections.addAll(this.arguments, arguments);
-        return this;
-    }
-
     public WorkResult execute(T spec) {
         ExecAction compiler = execActionFactory.newExecAction();
         compiler.executable(executable);
@@ -83,8 +84,8 @@ public class CommandLineTool<T extends CompileSpec> {
             compiler.workingDir(workDir);
         }
 
-        if (!arguments.isEmpty()) {
-            compiler.args(arguments);
+        if (specModifier != null) {
+            specModifier.execute(spec);
         }
         toArguments.collectArguments(spec, new ExecSpecBackedArgCollector(compiler));
 

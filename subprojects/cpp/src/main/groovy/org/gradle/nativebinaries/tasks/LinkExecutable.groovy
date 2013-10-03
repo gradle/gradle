@@ -35,6 +35,10 @@ class LinkExecutable extends AbstractLinkTask {
         Iterable<File> source;
         File outputFile;
         File tempDir;
-        Iterable<String> args = new ArrayList<String>();
+        List<String> args = new ArrayList<String>();
+
+        void args(List<String> args) {
+            this.args.addAll(args)
+        }
     }
 }

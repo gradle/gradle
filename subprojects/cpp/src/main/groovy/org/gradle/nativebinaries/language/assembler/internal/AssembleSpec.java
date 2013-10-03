@@ -19,6 +19,7 @@ package org.gradle.nativebinaries.language.assembler.internal;
 import org.gradle.nativebinaries.internal.BinaryToolSpec;
 
 import java.io.File;
+import java.util.List;
 
 /**
  * A compile spec that will be used to generate object files for combining into a native binary.
@@ -32,7 +33,7 @@ public interface AssembleSpec extends BinaryToolSpec {
 
     void setSource(Iterable<File> source);
 
-    Iterable<String> getArgs();
+    List<String> getArgs();
 
-    void setArgs(Iterable<String> args);
+    void args(List<String> args);
 }

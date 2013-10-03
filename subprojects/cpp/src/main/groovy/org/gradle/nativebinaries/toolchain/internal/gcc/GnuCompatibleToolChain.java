@@ -15,6 +15,7 @@
  */
 package org.gradle.nativebinaries.toolchain.internal.gcc;
 
+import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativebinaries.Platform;
@@ -26,9 +27,13 @@ import org.gradle.nativebinaries.language.assembler.internal.AssembleSpec;
 import org.gradle.nativebinaries.language.c.internal.CCompileSpec;
 import org.gradle.nativebinaries.language.cpp.internal.CppCompileSpec;
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
+import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec;
 import org.gradle.nativebinaries.toolchain.internal.ToolRegistry;
 import org.gradle.nativebinaries.toolchain.internal.ToolType;
 import org.gradle.process.internal.ExecActionFactory;
+import org.gradle.util.CollectionUtils;
+
+import java.util.List;
 
 public class GnuCompatibleToolChain implements PlatformToolChain {
     private final ToolRegistry tools;
@@ -48,21 +53,41 @@ public class GnuCompatibleToolChain implements PlatformToolChain {
 
     public <T extends BinaryToolSpec> org.gradle.api.internal.tasks.compile.Compiler<T> createCppCompiler() {
         CommandLineTool<CppCompileSpec> commandLineTool = commandLineTool(ToolType.CPP_COMPILER);
+        commandLineTool.withAction(new Action<NativeCompileSpec>() {
+            public void execute(NativeCompileSpec compileSpec) {
+                compileSpec.args(gccPlatformArguments());
+            }
+        });
         return (Compiler<T>) new CppCompiler(commandLineTool, useCommandFile);
     }
 
     public <T extends BinaryToolSpec> Compiler<T> createCCompiler() {
         CommandLineTool<CCompileSpec> commandLineTool = commandLineTool(ToolType.C_COMPILER);
+        commandLineTool.withAction(new Action<NativeCompileSpec>() {
+            public void execute(NativeCompileSpec compileSpec) {
+                compileSpec.args(gccPlatformArguments());
+            }
+        });
         return (Compiler<T>) new CCompiler(commandLineTool, useCommandFile);
     }
 
     public <T extends BinaryToolSpec> Compiler<T> createAssembler() {
         CommandLineTool<AssembleSpec> commandLineTool = commandLineTool(ToolType.ASSEMBLER);
+        commandLineTool.withAction(new Action<AssembleSpec>() {
+            public void execute(AssembleSpec assembleSpec) {
+                assembleSpec.args(asPlatformArguments());
+            }
+        });
         return (Compiler<T>) new Assembler(commandLineTool);
     }
 
     public <T extends LinkerSpec> Compiler<T> createLinker() {
         CommandLineTool<LinkerSpec> commandLineTool = commandLineTool(ToolType.LINKER);
+        commandLineTool.withAction(new Action<LinkerSpec>() {
+            public void execute(LinkerSpec linkerSpec) {
+                linkerSpec.args(gccPlatformArguments());
+            }
+        });
         return (Compiler<T>) new GccLinker(commandLineTool, useCommandFile);
     }
 
@@ -73,51 +98,41 @@ public class GnuCompatibleToolChain implements PlatformToolChain {
 
     private <T extends BinaryToolSpec> CommandLineTool<T> commandLineTool(ToolType key) {
         CommandLineTool<T> commandLineTool = new CommandLineTool<T>(key.getToolName(), tools.locate(key), execActionFactory);
-        targetToPlatform(commandLineTool, key);
         return commandLineTool;
     }
 
-    private void targetToPlatform(CommandLineTool tool, ToolType key) {
-        switch (key) {
-            case CPP_COMPILER:
-            case C_COMPILER:
-            case LINKER:
-                gccSwitches(tool);
-                break;
-            case ASSEMBLER:
-                asSwitches(tool);
-                break;
-            case STATIC_LIB_ARCHIVER:
-        }
-    }
-
-    private void gccSwitches(CommandLineTool tool) {
+    private List<String> gccPlatformArguments() {
         switch (targetPlatform.getArchitecture()) {
             case I386:
-                tool.withArguments("-m32");
-                break;
+                return args("-m32");
             case AMD64:
-                tool.withArguments("-m64");
-                break;
+                return args("-m64");
+            default:
+                return args();
         }
     }
 
-    private void asSwitches(CommandLineTool tool) {
+    private List<String> asPlatformArguments() {
         boolean osx = operatingSystem.isMacOsX();
         switch (targetPlatform.getArchitecture()) {
             case I386:
                 if (osx) {
-                    tool.withArguments("-arch", "i386");
+                    return args("-arch", "i386");
                 } else {
-                    tool.withArguments("--32");
+                    return args("--32");
                 }
-                break;
             case AMD64:
                 if (osx) {
-                    tool.withArguments("-arch", "x86_64");
+                    return args("-arch", "x86_64");
                 } else {
-                    tool.withArguments("--64");
+                    return args("--64");
                 }
+            default:
+                return args();
         }
+    }
+
+    private List<String> args(String... args) {
+        return CollectionUtils.toList(args);
     }
 }
