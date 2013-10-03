@@ -18,12 +18,14 @@ package org.gradle.nativebinaries.internal;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class DefaultLinkerSpec implements LinkerSpec {
 
     private final List<File> objectFiles = new ArrayList<File>();
     private final List<File> libraries = new ArrayList<File>();
+    private final List<File> libraryPath = new ArrayList<File>();
     private final List<String> args = new ArrayList<String>();
     private File outputFile;
     private File tempDir;
@@ -42,6 +44,14 @@ public class DefaultLinkerSpec implements LinkerSpec {
 
     public void libraries(Iterable<File> libraries) {
         addAll(this.libraries, libraries);
+    }
+
+    public List<File> getLibraryPath() {
+        return libraryPath;
+    }
+
+    public void libraryPath(File... libraryPath) {
+        Collections.addAll(this.libraryPath, libraryPath);
     }
 
     public List<String> getArgs() {

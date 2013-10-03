@@ -133,6 +133,7 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
 
         public <T extends LinkerSpec> Compiler<T> createLinker() {
             CommandLineTool<LinkerSpec> commandLineTool = commandLineTool(ToolType.LINKER, install.getLinker(targetPlatform));
+            commandLineTool.withAction(addLibraryPath());
             return (Compiler<T>) new LinkExeLinker(commandLineTool);
         }
 
@@ -147,11 +148,6 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
             // The visual C++ tools use the path to find other executables
             tool.withPath(install.getVisualCppBin(targetPlatform), sdk.getBinDir(), install.getCommonIdeBin());
 
-            // TODO:DAZ Use command-line args for these
-            tool.withEnvironment(Collections.singletonMap("LIB",
-                    install.getVisualCppLib(targetPlatform).getAbsolutePath() + File.pathSeparator + sdk.getLibDir(targetPlatform).getAbsolutePath()
-            ));
-
             return tool;
         }
 
@@ -163,6 +159,14 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
             return new Action<NativeCompileSpec>() {
                 public void execute(NativeCompileSpec nativeCompileSpec) {
                     nativeCompileSpec.include(install.getVisualCppInclude());
+                }
+            };
+        }
+
+        private Action<LinkerSpec> addLibraryPath() {
+            return new Action<LinkerSpec>() {
+                public void execute(LinkerSpec linkerSpec) {
+                    linkerSpec.libraryPath(install.getVisualCppLib(targetPlatform), sdk.getLibDir(targetPlatform));
                 }
             };
         }

@@ -52,6 +52,9 @@ class LinkExeLinker implements Compiler<LinkerSpec> {
             if (spec instanceof SharedLibraryLinkerSpec) {
                 collector.args("/DLL");
             }
+            for (File pathEntry : spec.getLibraryPath()) {
+                collector.args("/LIBPATH:" + pathEntry.getAbsolutePath());
+            }
             for (File file : spec.getObjectFiles()) {
                 collector.args(file.getAbsolutePath());
             }
