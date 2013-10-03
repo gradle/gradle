@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.metadata;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.ExcludeRule;
 
 import java.util.List;
@@ -34,7 +33,7 @@ public interface ConfigurationMetaData {
 
     List<DependencyMetaData> getDependencies();
 
-    Set<Artifact> getArtifacts();
+    Set<ModuleVersionArtifactMetaData> getArtifacts();
 
     Set<ExcludeRule> getExcludeRules();
 

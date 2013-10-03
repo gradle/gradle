@@ -142,7 +142,7 @@ public class ModuleDescriptorAdapter implements MutableModuleVersionMetaData {
         private final Configuration descriptor;
         private final Set<String> hierarchy;
         private List<DependencyMetaData> dependencies;
-        private Set<Artifact> artifacts;
+        private Set<ModuleVersionArtifactMetaData> artifacts;
         private LinkedHashSet<ExcludeRule> excludeRules;
 
         private DefaultConfigurationMetaData(String name, Configuration descriptor, Set<String> hierarchy) {
@@ -222,12 +222,15 @@ public class ModuleDescriptorAdapter implements MutableModuleVersionMetaData {
             return excludeRules;
         }
 
-        public Set<Artifact> getArtifacts() {
+        public Set<ModuleVersionArtifactMetaData> getArtifacts() {
             if (artifacts == null) {
-                artifacts = new LinkedHashSet<Artifact>();
+                Set<Artifact> seen = new HashSet<Artifact>();
+                artifacts = new LinkedHashSet<ModuleVersionArtifactMetaData>();
                 for (String ancestor : hierarchy) {
                     for (Artifact artifact : moduleDescriptor.getArtifacts(ancestor)) {
-                        artifacts.add(artifact);
+                        if (seen.add(artifact)) {
+                            artifacts.add(new DefaultModuleVersionArtifactMetaData(moduleVersionIdentifier, artifact));
+                        }
                     }
                 }
             }

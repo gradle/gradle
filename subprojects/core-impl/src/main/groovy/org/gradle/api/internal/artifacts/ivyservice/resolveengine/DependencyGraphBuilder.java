@@ -29,6 +29,7 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.metadata.ConfigurationMetaData;
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.EnhancedDependencyDescriptor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolvedConfigurationBuilder;
@@ -720,8 +721,8 @@ public class DependencyGraphBuilder {
         public Set<ResolvedArtifact> getArtifacts() {
             if (artifacts == null) {
                 artifacts = new LinkedHashSet<ResolvedArtifact>();
-                for (Artifact artifact : metaData.getArtifacts()) {
-                    artifacts.add(resolveState.builder.newArtifact(getResult(), artifact, moduleRevision.resolve().getArtifactResolver()));
+                for (ModuleVersionArtifactMetaData artifact : metaData.getArtifacts()) {
+                    artifacts.add(resolveState.builder.newArtifact(getResult(), artifact.getArtifact(), moduleRevision.resolve().getArtifactResolver()));
                 }
             }
             return artifacts;
