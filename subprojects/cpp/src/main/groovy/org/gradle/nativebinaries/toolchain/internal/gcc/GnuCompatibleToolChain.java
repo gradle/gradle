@@ -15,7 +15,7 @@
  */
 package org.gradle.nativebinaries.toolchain.internal.gcc;
 
-import org.gradle.api.Action;
+import org.gradle.api.Transformer;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativebinaries.Platform;
@@ -53,41 +53,27 @@ public class GnuCompatibleToolChain implements PlatformToolChain {
 
     public <T extends BinaryToolSpec> org.gradle.api.internal.tasks.compile.Compiler<T> createCppCompiler() {
         CommandLineTool<CppCompileSpec> commandLineTool = commandLineTool(ToolType.CPP_COMPILER);
-        commandLineTool.withAction(new Action<NativeCompileSpec>() {
-            public void execute(NativeCompileSpec compileSpec) {
-                compileSpec.args(gccPlatformArguments());
-            }
-        });
+        Transformer<CppCompileSpec, CppCompileSpec> specTransformer = targetCompiler();
+        commandLineTool.withSpecTransformer(specTransformer);
         return (Compiler<T>) new CppCompiler(commandLineTool, useCommandFile);
     }
 
     public <T extends BinaryToolSpec> Compiler<T> createCCompiler() {
         CommandLineTool<CCompileSpec> commandLineTool = commandLineTool(ToolType.C_COMPILER);
-        commandLineTool.withAction(new Action<NativeCompileSpec>() {
-            public void execute(NativeCompileSpec compileSpec) {
-                compileSpec.args(gccPlatformArguments());
-            }
-        });
+        Transformer<CCompileSpec, CCompileSpec> specTransformer = targetCompiler();
+        commandLineTool.withSpecTransformer(specTransformer);
         return (Compiler<T>) new CCompiler(commandLineTool, useCommandFile);
     }
 
     public <T extends BinaryToolSpec> Compiler<T> createAssembler() {
         CommandLineTool<AssembleSpec> commandLineTool = commandLineTool(ToolType.ASSEMBLER);
-        commandLineTool.withAction(new Action<AssembleSpec>() {
-            public void execute(AssembleSpec assembleSpec) {
-                assembleSpec.args(asPlatformArguments());
-            }
-        });
+        commandLineTool.withSpecTransformer(targetAssembler());
         return (Compiler<T>) new Assembler(commandLineTool);
     }
 
     public <T extends LinkerSpec> Compiler<T> createLinker() {
         CommandLineTool<LinkerSpec> commandLineTool = commandLineTool(ToolType.LINKER);
-        commandLineTool.withAction(new Action<LinkerSpec>() {
-            public void execute(LinkerSpec linkerSpec) {
-                linkerSpec.args(gccPlatformArguments());
-            }
-        });
+        commandLineTool.withSpecTransformer(targetLinker());
         return (Compiler<T>) new GccLinker(commandLineTool, useCommandFile);
     }
 
@@ -101,6 +87,24 @@ public class GnuCompatibleToolChain implements PlatformToolChain {
         return commandLineTool;
     }
 
+    private <T extends NativeCompileSpec> Transformer<T, T> targetCompiler() {
+        return new Transformer<T, T>() {
+            public T transform(T original) {
+                original.args(gccPlatformArguments());
+                return original;
+            }
+        };
+    }
+
+    private Transformer<LinkerSpec, LinkerSpec> targetLinker() {
+        return new Transformer<LinkerSpec, LinkerSpec>() {
+            public LinkerSpec transform(LinkerSpec original) {
+                original.args(gccPlatformArguments());
+                return original;
+            }
+        };
+    }
+
     private List<String> gccPlatformArguments() {
         switch (targetPlatform.getArchitecture()) {
             case I386:
@@ -110,6 +114,15 @@ public class GnuCompatibleToolChain implements PlatformToolChain {
             default:
                 return args();
         }
+    }
+
+    private Transformer<AssembleSpec, AssembleSpec> targetAssembler() {
+        return new Transformer<AssembleSpec, AssembleSpec>() {
+            public AssembleSpec transform(AssembleSpec original) {
+                original.args(asPlatformArguments());
+                return original;
+            }
+        };
     }
 
     private List<String> asPlatformArguments() {

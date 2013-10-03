@@ -17,8 +17,8 @@
 package org.gradle.nativebinaries.toolchain.internal;
 
 import com.google.common.base.Joiner;
-import org.gradle.api.Action;
 import org.gradle.api.GradleException;
+import org.gradle.api.Transformer;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.internal.tasks.compile.CompileSpec;
 import org.gradle.api.internal.tasks.compile.CompileSpecToArguments;
@@ -32,7 +32,8 @@ import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
 
 import java.io.File;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 public class CommandLineTool<T extends CompileSpec> {
     private final String action;
@@ -40,7 +41,7 @@ public class CommandLineTool<T extends CompileSpec> {
     private final ExecActionFactory execActionFactory;
     private final Map<String, String> environment = new HashMap<String, String>();
     private CompileSpecToArguments<T> toArguments;
-    private Action<? super T> specModifier;
+    private Transformer<T, T> specTransformer = new IdentityTransformer<T>();
     private File workDir;
     private String path;
 
@@ -56,19 +57,14 @@ public class CommandLineTool<T extends CompileSpec> {
         return this;
     }
 
-    public CommandLineTool<T> withAction(Action<? super T> specAction) {
-        this.specModifier = specAction;
+    public CommandLineTool<T> withSpecTransformer(Transformer<T, T> specAction) {
+        this.specTransformer = specAction;
         return this;
     }
 
     public CommandLineTool<T> withPath(File... pathEntries) {
         path = Joiner.on(File.pathSeparator).join(pathEntries);
         System.out.println(String.format("PATH=%s", path));
-        return this;
-    }
-
-    public CommandLineTool<T> withEnvironment(Map<String, String> environment) {
-        this.environment.putAll(environment);
         return this;
     }
 
@@ -84,10 +80,7 @@ public class CommandLineTool<T extends CompileSpec> {
             compiler.workingDir(workDir);
         }
 
-        if (specModifier != null) {
-            specModifier.execute(spec);
-        }
-        toArguments.collectArguments(spec, new ExecSpecBackedArgCollector(compiler));
+        toArguments.collectArguments(specTransformer.transform(spec), new ExecSpecBackedArgCollector(compiler));
 
         if (GUtil.isTrue(path)) {
             String pathVar = OperatingSystem.current().getPathVar();
@@ -103,5 +96,11 @@ public class CommandLineTool<T extends CompileSpec> {
             throw new GradleException(String.format("%s failed; see the error output for details.", action), e);
         }
         return new SimpleWorkResult(true);
+    }
+
+    static class IdentityTransformer<T> implements Transformer<T, T> {
+        public T transform(T original) {
+            return original;
+        }
     }
 }

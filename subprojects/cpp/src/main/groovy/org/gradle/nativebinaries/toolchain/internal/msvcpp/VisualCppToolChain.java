@@ -16,7 +16,7 @@
 
 package org.gradle.nativebinaries.toolchain.internal.msvcpp;
 
-import org.gradle.api.Action;
+import org.gradle.api.Transformer;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.internal.os.OperatingSystem;
@@ -33,7 +33,6 @@ import org.gradle.nativebinaries.toolchain.internal.ToolType;
 import org.gradle.process.internal.ExecActionFactory;
 
 import java.io.File;
-import java.util.Collections;
 
 public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
 
@@ -116,13 +115,15 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
 
         public <T extends BinaryToolSpec> Compiler<T> createCppCompiler() {
             CommandLineTool<CppCompileSpec> commandLineTool = commandLineTool(ToolType.CPP_COMPILER, install.getCompiler(targetPlatform));
-            commandLineTool.withAction(addIncludePath());
+            Transformer<CppCompileSpec, CppCompileSpec> specTransformer = addIncludePath();
+            commandLineTool.withSpecTransformer(specTransformer);
             return (Compiler<T>) new CppCompiler(commandLineTool);
         }
 
         public <T extends BinaryToolSpec> Compiler<T> createCCompiler() {
             CommandLineTool<CCompileSpec> commandLineTool = commandLineTool(ToolType.C_COMPILER, install.getCompiler(targetPlatform));
-            commandLineTool.withAction(addIncludePath());
+            Transformer<CCompileSpec, CCompileSpec> specTransformer = addIncludePath();
+            commandLineTool.withSpecTransformer(specTransformer);
             return (Compiler<T>) new CCompiler(commandLineTool);
         }
 
@@ -133,7 +134,7 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
 
         public <T extends LinkerSpec> Compiler<T> createLinker() {
             CommandLineTool<LinkerSpec> commandLineTool = commandLineTool(ToolType.LINKER, install.getLinker(targetPlatform));
-            commandLineTool.withAction(addLibraryPath());
+            commandLineTool.withSpecTransformer(addLibraryPath());
             return (Compiler<T>) new LinkExeLinker(commandLineTool);
         }
 
@@ -155,18 +156,20 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
             return String.format("%s-%s", getName(), operatingSystem.getName());
         }
 
-        private Action<NativeCompileSpec> addIncludePath() {
-            return new Action<NativeCompileSpec>() {
-                public void execute(NativeCompileSpec nativeCompileSpec) {
-                    nativeCompileSpec.include(install.getVisualCppInclude());
+        private <T extends NativeCompileSpec> Transformer<T, T> addIncludePath() {
+            return new Transformer<T, T>() {
+                public T transform(T original) {
+                    original.include(install.getVisualCppInclude());
+                    return original;
                 }
             };
         }
 
-        private Action<LinkerSpec> addLibraryPath() {
-            return new Action<LinkerSpec>() {
-                public void execute(LinkerSpec linkerSpec) {
-                    linkerSpec.libraryPath(install.getVisualCppLib(targetPlatform), sdk.getLibDir(targetPlatform));
+        private Transformer<LinkerSpec, LinkerSpec> addLibraryPath() {
+            return new Transformer<LinkerSpec, LinkerSpec>() {
+                public LinkerSpec transform(LinkerSpec original) {
+                    original.libraryPath(install.getVisualCppLib(targetPlatform), sdk.getLibDir(targetPlatform));
+                    return original;
                 }
             };
         }
