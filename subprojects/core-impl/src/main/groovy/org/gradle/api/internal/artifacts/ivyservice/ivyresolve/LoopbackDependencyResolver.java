@@ -39,6 +39,7 @@ import org.gradle.api.internal.artifacts.ivyservice.DefaultBuildableArtifactReso
 import org.gradle.api.internal.artifacts.ivyservice.DefaultBuildableModuleVersionResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionNotFoundException;
 import org.gradle.api.internal.artifacts.metadata.DefaultDependencyMetaData;
+import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactMetaData;
 import org.gradle.internal.Factory;
 
 import java.io.File;
@@ -95,7 +96,7 @@ public class LoopbackDependencyResolver implements DependencyResolver {
                     DefaultDependencyMetaData dependency = new DefaultDependencyMetaData(dependencyDescriptor);
                     userResolverChain.resolve(dependency, resolveResult);
                     DefaultBuildableArtifactResolveResult artifactResolveResult = new DefaultBuildableArtifactResolveResult();
-                    resolveResult.getArtifactResolver().resolve(artifact, artifactResolveResult);
+                    resolveResult.getArtifactResolver().resolve(new DefaultModuleVersionArtifactMetaData(resolveResult.getId(), artifact), artifactResolveResult);
                     File artifactFile = artifactResolveResult.getFile();
                     return new ArtifactOrigin(artifact, false, artifactFile.getAbsolutePath());
                 } catch (ModuleVersionNotFoundException e) {

@@ -15,11 +15,11 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 
 public interface ArtifactResolver {
     /**
      * Resolves the given artifact. Any failures are packaged up in the result.
      */
-    void resolve(Artifact artifact, BuildableArtifactResolveResult result);
+    void resolve(ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result);
 }

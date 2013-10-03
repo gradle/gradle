@@ -22,6 +22,7 @@ import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
 import org.gradle.api.internal.artifacts.metadata.DefaultDependencyMetaData;
+import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactMetaData;
 import org.gradle.api.internal.externalresource.DefaultLocallyAvailableExternalResource;
 import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.local.DefaultLocallyAvailableResource;
@@ -60,15 +61,11 @@ public class ExternalResourceResolverDescriptorParseContext implements Descripto
     }
 
     private File resolveArtifactFile(Artifact artifact, DependencyToModuleVersionResolver resolver) {
-        BuildableArtifactResolveResult artifactResolveResult = new DefaultBuildableArtifactResolveResult();
-        resolveModuleVersionResolveResult(artifact, resolver).getArtifactResolver().resolve(artifact, artifactResolveResult);
-        return artifactResolveResult.getFile();
-    }
-
-    private BuildableModuleVersionResolveResult resolveModuleVersionResolveResult(Artifact artifact, DependencyToModuleVersionResolver resolver) {
         BuildableModuleVersionResolveResult moduleVersionResolveResult = new DefaultBuildableModuleVersionResolveResult();
         resolver.resolve(new DefaultDependencyMetaData(new DefaultDependencyDescriptor(artifact.getModuleRevisionId(), true)), moduleVersionResolveResult);
-        return moduleVersionResolveResult;
+        BuildableArtifactResolveResult artifactResolveResult = new DefaultBuildableArtifactResolveResult();
+        moduleVersionResolveResult.getArtifactResolver().resolve(new DefaultModuleVersionArtifactMetaData(moduleVersionResolveResult.getId(), artifact), artifactResolveResult);
+        return artifactResolveResult.getFile();
     }
 
     public LocallyAvailableExternalResource getArtifact(Artifact artifact) {

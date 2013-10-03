@@ -16,8 +16,8 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.ivy.Ivy;
-import org.apache.ivy.core.module.descriptor.Artifact;
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 import org.gradle.internal.Factory;
 
 import java.io.File;
@@ -32,7 +32,7 @@ public class ResolvedArtifactFactory {
         this.ivyContextManager = ivyContextManager;
     }
 
-    public Factory<File> artifactSource(final Artifact artifact, final ArtifactResolver resolver) {
+    public Factory<File> artifactSource(final ModuleVersionArtifactMetaData artifact, final ArtifactResolver resolver) {
         return new Factory<File>() {
             public File create() {
                 return lockingManager.useCache(String.format("resolve %s", artifact), new Factory<File>() {

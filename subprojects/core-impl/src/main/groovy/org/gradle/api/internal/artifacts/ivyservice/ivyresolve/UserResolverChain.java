@@ -16,13 +16,13 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -160,8 +160,8 @@ public class UserResolverChain implements DependencyToModuleVersionResolver {
             this.moduleSource = moduleSource;
         }
 
-        public void resolve(Artifact artifact, BuildableArtifactResolveResult result) {
-            delegate.resolve(new DefaultArtifactIdentifier(artifact), result, moduleSource);
+        public void resolve(ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result) {
+            delegate.resolve(new DefaultArtifactIdentifier(artifact.getArtifact()), result, moduleSource);
         }
     }
 

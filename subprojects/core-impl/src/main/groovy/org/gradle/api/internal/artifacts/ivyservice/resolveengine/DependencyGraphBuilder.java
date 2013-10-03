@@ -353,7 +353,7 @@ public class DependencyGraphBuilder {
             }
             Set<ResolvedArtifact> artifacts = new LinkedHashSet<ResolvedArtifact>();
             for (ModuleVersionArtifactMetaData artifact : dependencyArtifacts) {
-                artifacts.add(resolveState.builder.newArtifact(childConfiguration.getResult(), artifact.getArtifact(), targetModuleRevision.resolve().getArtifactResolver()));
+                artifacts.add(resolveState.builder.newArtifact(childConfiguration.getResult(), artifact, targetModuleRevision.resolve().getArtifactResolver()));
             }
             return artifacts;
         }
@@ -715,7 +715,7 @@ public class DependencyGraphBuilder {
             if (artifacts == null) {
                 artifacts = new LinkedHashSet<ResolvedArtifact>();
                 for (ModuleVersionArtifactMetaData artifact : metaData.getArtifacts()) {
-                    artifacts.add(resolveState.builder.newArtifact(getResult(), artifact.getArtifact(), moduleRevision.resolve().getArtifactResolver()));
+                    artifacts.add(resolveState.builder.newArtifact(getResult(), artifact, moduleRevision.resolve().getArtifactResolver()));
                 }
             }
             return artifacts;

@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.Configuration;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -26,6 +25,7 @@ import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
 
 /**
@@ -57,11 +57,11 @@ public class LazyDependencyToModuleResolver implements DependencyToModuleVersion
             this.resolver = resolver;
         }
 
-        public void resolve(Artifact artifact, BuildableArtifactResolveResult result) {
+        public void resolve(ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result) {
             try {
                 resolver.resolve(artifact, result);
             } catch (Throwable t) {
-                result.failed(new ArtifactResolveException(artifact, t));
+                result.failed(new ArtifactResolveException(artifact.getArtifact(), t));
             }
         }
     }

@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedDependency;
@@ -26,6 +25,7 @@ import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ResolvedArtifactFactory;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 import org.gradle.internal.Factory;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.id.LongIdGenerator;
@@ -79,11 +79,11 @@ public class DefaultResolvedConfigurationBuilder implements
         builder.resolvedDependency(id);
     }
 
-    public ResolvedArtifact newArtifact(final ResolvedConfigurationIdentifier owner, Artifact artifact, ArtifactResolver artifactResolver) {
+    public ResolvedArtifact newArtifact(ResolvedConfigurationIdentifier owner, ModuleVersionArtifactMetaData artifact, ArtifactResolver artifactResolver) {
         Factory<File> artifactSource = resolvedArtifactFactory.artifactSource(artifact, artifactResolver);
         Factory<ResolvedDependency> dependencySource = new ResolvedDependencyFactory(owner, builder, this);
         long id = idGenerator.generateId();
-        ResolvedArtifact newArtifact = new DefaultResolvedArtifact(new DefaultResolvedModuleVersion(owner.getId()), dependencySource, artifact, artifactSource, id);
+        ResolvedArtifact newArtifact = new DefaultResolvedArtifact(new DefaultResolvedModuleVersion(owner.getId()), dependencySource, artifact.getArtifact(), artifactSource, id);
         artifacts.put(id, newArtifact);
         return newArtifact;
     }

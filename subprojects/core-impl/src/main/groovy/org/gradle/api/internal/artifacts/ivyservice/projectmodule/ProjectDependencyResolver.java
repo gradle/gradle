@@ -26,6 +26,7 @@ import org.gradle.api.internal.artifacts.ModuleVersionPublishMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ProjectDependencyDescriptor;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 
 import java.io.File;
 import java.util.Map;
@@ -69,14 +70,14 @@ public class ProjectDependencyResolver implements DependencyToModuleVersionResol
             this.publishMetaData = publishMetaData;
         }
 
-        public void resolve(Artifact artifact, BuildableArtifactResolveResult result) {
+        public void resolve(ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result) {
             for (Map.Entry<Artifact, File> entry : publishMetaData.getArtifacts().entrySet()) {
-                if (entry.getKey().getId().equals(artifact.getId())) {
+                if (entry.getKey().getId().equals(artifact.getArtifact().getId())) {
                     result.resolved(entry.getValue());
                     return;
                 }
             }
-            result.notFound(new DefaultArtifactIdentifier(artifact));
+            result.notFound(new DefaultArtifactIdentifier(artifact.getArtifact()));
         }
     }
 }
