@@ -35,7 +35,7 @@ class GeneralVisualCppCompileSpecToArguments<T extends NativeCompileSpec> implem
         for (File file : spec.getIncludeRoots()) {
             collector.args("/I", file.getAbsolutePath());
         }
-        for (File file : spec.getSource()) {
+        for (File file : spec.getSourceFiles()) {
             collector.args(file);
         }
     }

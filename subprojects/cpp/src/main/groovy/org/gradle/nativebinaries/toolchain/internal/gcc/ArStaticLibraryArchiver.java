@@ -47,7 +47,7 @@ public class ArStaticLibraryArchiver implements Compiler<StaticLibraryArchiverSp
             collector.args("-rcs");
             collector.args(spec.getArgs());
             collector.args(spec.getOutputFile().getAbsolutePath());
-            for (File file : spec.getSource()) {
+            for (File file : spec.getObjectFiles()) {
                 collector.args(file.getAbsolutePath());
             }
         }

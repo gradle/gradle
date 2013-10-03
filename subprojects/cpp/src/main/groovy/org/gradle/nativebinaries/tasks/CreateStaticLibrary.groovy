@@ -21,7 +21,7 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.*
 import org.gradle.nativebinaries.Platform
 import org.gradle.nativebinaries.ToolChain
-import org.gradle.nativebinaries.internal.StaticLibraryArchiverSpec
+import org.gradle.nativebinaries.internal.DefaultStaticLibraryArchiverSpec
 
 import javax.inject.Inject
 /**
@@ -84,21 +84,14 @@ class CreateStaticLibrary extends DefaultTask implements BuildBinaryTask {
 
     @TaskAction
     void link() {
-        def spec = new Spec()
+        def spec = new DefaultStaticLibraryArchiverSpec()
         spec.tempDir = getTemporaryDir()
-
         spec.outputFile = getOutputFile()
-        spec.source = getSource()
-        spec.args = getStaticLibArgs()
+        spec.objectFiles getSource()
+        spec.args getStaticLibArgs()
 
         def result = toolChain.target(targetPlatform).createStaticLibraryArchiver().execute(spec)
         didWork = result.didWork
     }
 
-    private static class Spec implements StaticLibraryArchiverSpec {
-        Iterable<File> source;
-        File outputFile;
-        File tempDir;
-        Iterable<String> args = new ArrayList<String>();
-    }
 }

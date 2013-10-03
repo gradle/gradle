@@ -24,13 +24,13 @@ import java.util.List;
  */
 public interface LinkerSpec extends BinaryToolSpec {
 
-    Iterable<File> getSource();
+    List<File> getObjectFiles();
 
-    void setSource(Iterable<File> source);
+    void objectFiles(Iterable<File> objectFiles);
 
-    Iterable<File> getLibs();
+    List<File> getLibraries();
 
-    void setLibs(Iterable<File> libs);
+    void libraries(Iterable<File> libraries);
 
     List<String> getArgs();
 

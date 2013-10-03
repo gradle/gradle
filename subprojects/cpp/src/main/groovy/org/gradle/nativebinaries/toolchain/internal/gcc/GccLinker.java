@@ -47,10 +47,10 @@ public class GccLinker implements Compiler<LinkerSpec> {
     private static class GccLinkerSpecSourcesToArguments implements CompileSpecToArguments<LinkerSpec> {
 
         public void collectArguments(LinkerSpec spec, ArgCollector collector) {
-            for (File file : spec.getSource()) {
+            for (File file : spec.getObjectFiles()) {
                 collector.args(file.getAbsolutePath());
             }
-            for (File file : spec.getLibs()) {
+            for (File file : spec.getLibraries()) {
                 collector.args(file.getAbsolutePath());
             }
         }

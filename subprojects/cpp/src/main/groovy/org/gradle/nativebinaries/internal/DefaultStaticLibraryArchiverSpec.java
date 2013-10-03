@@ -14,43 +14,34 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries.language.assembler.internal;
+package org.gradle.nativebinaries.internal;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DefaultAssembleSpec implements AssembleSpec {
+public class DefaultStaticLibraryArchiverSpec implements StaticLibraryArchiverSpec {
 
-    private List<File> source = new ArrayList<File>();
-    private List<String> args = new ArrayList<String>();
-    private File objectFileDir;
-    private File tempDir;
+    private final List<File> objectFiles = new ArrayList<File>();
+    private final List<String> args = new ArrayList<String>();
+    private File outputFile;
 
-    public List<File> getSourceFiles() {
-        return source;
+    public List<File> getObjectFiles() {
+        return objectFiles;
     }
 
-    public void source(Iterable<File> sources) {
-        for (File file : sources) {
-            this.source.add(file);
+    public void objectFiles(Iterable<File> source) {
+        for (File objectFile : objectFiles) {
+            this.objectFiles.add(objectFile);
         }
     }
 
-    public File getObjectFileDir() {
-        return objectFileDir;
+    public File getOutputFile() {
+        return outputFile;
     }
 
-    public void setObjectFileDir(File objectFileDir) {
-        this.objectFileDir = objectFileDir;
-    }
-
-    public File getTempDir() {
-        return tempDir;
-    }
-
-    public void setTempDir(File tempDir) {
-        this.tempDir = tempDir;
+    public void setOutputFile(File outputFile) {
+        this.outputFile = outputFile;
     }
 
     public List<String> getArgs() {
@@ -61,4 +52,10 @@ public class DefaultAssembleSpec implements AssembleSpec {
         this.args.addAll(args);
     }
 
+    public File getTempDir() {
+        return null;
+    }
+
+    public void setTempDir(File tempDir) {
+    }
 }

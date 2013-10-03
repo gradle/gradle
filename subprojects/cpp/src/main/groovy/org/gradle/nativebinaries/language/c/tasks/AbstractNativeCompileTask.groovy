@@ -106,8 +106,8 @@ abstract class AbstractNativeCompileTask extends DefaultTask {
         spec.tempDir = getTemporaryDir()
 
         spec.objectFileDir = getObjectFileDir()
-        spec.includeRoots = getIncludes()
-        spec.source = getSource()
+        spec.include getIncludes()
+        spec.source getSource()
         spec.macros = getMacros()
         spec.args getCompilerArgs()
         spec.positionIndependentCode = isPositionIndependentCode()

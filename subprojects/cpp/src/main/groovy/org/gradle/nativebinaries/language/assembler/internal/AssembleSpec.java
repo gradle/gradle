@@ -29,9 +29,9 @@ public interface AssembleSpec extends BinaryToolSpec {
 
     void setObjectFileDir(File objectFileDir);
 
-    Iterable<File> getSource();
+    List<File> getSourceFiles();
 
-    void setSource(Iterable<File> source);
+    void source(Iterable<File> sources);
 
     List<String> getArgs();
 

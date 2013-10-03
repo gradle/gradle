@@ -16,9 +16,8 @@
 
 package org.gradle.nativebinaries.tasks
 import org.gradle.api.Incubating
-import org.gradle.nativebinaries.internal.ExecutableLinkerSpec
+import org.gradle.nativebinaries.internal.DefaultLinkerSpec
 import org.gradle.nativebinaries.internal.LinkerSpec
-
 /**
  * Links a binary executable from object files and libraries.
  */
@@ -27,18 +26,6 @@ class LinkExecutable extends AbstractLinkTask {
 
     @Override
     protected LinkerSpec createLinkerSpec() {
-        return new Spec()
-    }
-
-    private static class Spec implements ExecutableLinkerSpec {
-        Iterable<File> libs;
-        Iterable<File> source;
-        File outputFile;
-        File tempDir;
-        List<String> args = new ArrayList<String>();
-
-        void args(List<String> args) {
-            this.args.addAll(args)
-        }
+        return new DefaultLinkerSpec()
     }
 }

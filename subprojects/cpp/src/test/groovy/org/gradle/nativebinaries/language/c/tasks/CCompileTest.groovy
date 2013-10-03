@@ -51,7 +51,7 @@ class CCompileTest extends Specification {
         1 * toolChain.target(platform) >> platformToolChain
         1 * platformToolChain.createCCompiler() >> cCompiler
         1 * cCompiler.execute({ CCompileSpec spec ->
-            assert spec.source.collect {it.name} == ["sourceFile"]
+            assert spec.sourceFiles*.name== ["sourceFile"]
             assert spec.args == ['arg']
             assert spec.macros == [def: 'value']
             assert spec.objectFileDir.name == "outputFile"

@@ -27,7 +27,7 @@ class GccCompileSourcesToArguments<T extends NativeCompileSpec> implements Compi
             collector.args("-I");
             collector.args(file.getAbsolutePath());
         }
-        for (File file : spec.getSource()) {
+        for (File file : spec.getSourceFiles()) {
             collector.args(file.getAbsolutePath());
         }
     }

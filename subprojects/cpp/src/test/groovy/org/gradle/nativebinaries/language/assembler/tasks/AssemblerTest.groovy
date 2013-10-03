@@ -49,7 +49,7 @@ class AssemblerTest extends Specification {
         1 * toolChain.target(platform) >> platformToolChain
         1 * platformToolChain.createAssembler() >> assembler
         1 * assembler.execute({ AssembleSpec spec ->
-            assert spec.source.collect {it.name} == ["sourceFile"]
+            assert spec.sourceFiles*.name == ["sourceFile"]
             assert spec.args == ['arg']
             assert spec.objectFileDir.name == "outputFile"
             true

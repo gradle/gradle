@@ -30,13 +30,15 @@ public interface NativeCompileSpec extends BinaryToolSpec {
 
     void setObjectFileDir(File objectFileDir);
 
-    Iterable<File> getIncludeRoots();
+    List<File> getIncludeRoots();
 
-    void setIncludeRoots(Iterable<File> includeRoots);
+    void include(Iterable<File> includeRoots);
 
-    Iterable<File> getSource();
+    void include(File... includeRoots);
 
-    void setSource(Iterable<File> source);
+    List<File> getSourceFiles();
+
+    void source(Iterable<File> sources);
 
     Map<String, String> getMacros();
 

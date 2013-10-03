@@ -16,32 +16,39 @@
 
 package org.gradle.nativebinaries.language.internal;
 
+import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec;
+
 import java.io.File;
 import java.util.*;
 
-public abstract class AbstractBaseCompileSpec {
+public abstract class AbstractNativeCompileSpec implements NativeCompileSpec {
 
-    private Iterable<File> includeRoots;
-    private Iterable<File> source;
-    private Map<String, String> macros = new LinkedHashMap<String, String>();
+    private List<File> includeRoots = new ArrayList<File>();
+    private List<File> sourceFiles = new ArrayList<File>();
     private List<String> args = new ArrayList<String>();
+    private Map<String, String> macros = new LinkedHashMap<String, String>();
     private File objectFileDir;
     private File tempDir;
+    private boolean positionIndependentCode;
 
-    public Iterable<File> getIncludeRoots() {
+    public List<File> getIncludeRoots() {
         return includeRoots;
     }
 
-    public void setIncludeRoots(Iterable<File> includeRoots) {
-        this.includeRoots = includeRoots;
+    public void include(File... includeRoots) {
+        Collections.addAll(this.includeRoots, includeRoots);
     }
 
-    public Iterable<File> getSource() {
-        return source;
+    public void include(Iterable<File> includeRoots) {
+        addAll(this.includeRoots, includeRoots);
     }
 
-    public void setSource(Iterable<File> source) {
-        this.source = source;
+    public List<File> getSourceFiles() {
+        return sourceFiles;
+    }
+
+    public void source(Iterable<File> sources) {
+        addAll(sourceFiles, sources);
     }
 
     public File getObjectFileDir() {
@@ -60,14 +67,6 @@ public abstract class AbstractBaseCompileSpec {
         this.tempDir = tempDir;
     }
 
-    public Map<String, String> getMacros() {
-        return macros;
-    }
-
-    public void setMacros(Map<String, String> macros) {
-        this.macros = macros;
-    }
-
     public List<String> getArgs() {
         return args;
     }
@@ -76,4 +75,25 @@ public abstract class AbstractBaseCompileSpec {
         this.args.addAll(args);
     }
 
+    public Map<String, String> getMacros() {
+        return macros;
+    }
+
+    public void setMacros(Map<String, String> macros) {
+        this.macros = macros;
+    }
+
+    public boolean isPositionIndependentCode() {
+        return positionIndependentCode;
+    }
+
+    public void setPositionIndependentCode(boolean positionIndependentCode) {
+        this.positionIndependentCode = positionIndependentCode;
+    }
+
+    private void addAll(List<File> list, Iterable<File> iterable) {
+        for (File file : iterable) {
+            list.add(file);
+        }
+    }
 }

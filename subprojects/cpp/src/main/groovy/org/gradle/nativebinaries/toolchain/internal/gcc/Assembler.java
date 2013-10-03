@@ -38,7 +38,7 @@ public class Assembler implements Compiler<AssembleSpec> {
     public WorkResult execute(AssembleSpec spec) {
         boolean didWork = false;
         CommandLineTool<AssembleSpec> commandLineAssembler = commandLineTool.inWorkDirectory(spec.getObjectFileDir());
-        for (File sourceFile : spec.getSource()) {
+        for (File sourceFile : spec.getSourceFiles()) {
             WorkResult result = commandLineAssembler.withArguments(new AssemblerSpecToArguments(sourceFile)).execute(spec);
             didWork = didWork || result.getDidWork();
         }

@@ -16,16 +16,7 @@
 
 package org.gradle.nativebinaries.language.cpp.internal;
 
-import org.gradle.nativebinaries.language.internal.AbstractBaseCompileSpec;
+import org.gradle.nativebinaries.language.internal.AbstractNativeCompileSpec;
 
-public class DefaultCppCompileSpec extends AbstractBaseCompileSpec implements CppCompileSpec {
-    private boolean positionIndependentCode;
-
-    public boolean isPositionIndependentCode() {
-        return positionIndependentCode;
-    }
-
-    public void setPositionIndependentCode(boolean positionIndependentCode) {
-        this.positionIndependentCode = positionIndependentCode;
-    }
+public class DefaultCppCompileSpec extends AbstractNativeCompileSpec implements CppCompileSpec {
 }

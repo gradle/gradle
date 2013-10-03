@@ -50,7 +50,7 @@ class CppCompileTest extends Specification {
         1 * toolChain.target(platform) >> platformToolChain
         1 * platformToolChain.createCppCompiler() >> cppCompiler
         1 * cppCompiler.execute({ CppCompileSpec spec ->
-            assert spec.source.collect {it.name} == ["sourceFile"]
+            assert spec.sourceFiles*.name == ["sourceFile"]
             assert spec.args == ['arg']
             assert spec.macros == [def: 'value']
             assert spec.objectFileDir.name == "outputFile"

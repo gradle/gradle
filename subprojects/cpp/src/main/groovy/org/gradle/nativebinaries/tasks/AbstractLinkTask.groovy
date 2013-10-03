@@ -105,11 +105,11 @@ abstract class AbstractLinkTask extends DefaultTask implements BuildBinaryTask {
 
         def spec = createLinkerSpec()
         spec.tempDir = getTemporaryDir()
-
         spec.outputFile = getOutputFile()
-        spec.source = getSource()
-        spec.libs = getLibs()
-        spec.args = getLinkerArgs()
+
+        spec.objectFiles getSource()
+        spec.libraries getLibs()
+        spec.args getLinkerArgs()
 
         def result = toolChain.target(targetPlatform).createLinker().execute(spec)
         didWork = result.didWork

@@ -52,10 +52,10 @@ class LinkExeLinker implements Compiler<LinkerSpec> {
             if (spec instanceof SharedLibraryLinkerSpec) {
                 collector.args("/DLL");
             }
-            for (File file : spec.getSource()) {
+            for (File file : spec.getObjectFiles()) {
                 collector.args(file.getAbsolutePath());
             }
-            for (File file : spec.getLibs()) {
+            for (File file : spec.getLibraries()) {
                 collector.args(file.getAbsolutePath());
             }
         }

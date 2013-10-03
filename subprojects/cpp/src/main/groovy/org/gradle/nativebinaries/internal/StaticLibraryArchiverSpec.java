@@ -17,18 +17,19 @@
 package org.gradle.nativebinaries.internal;
 
 import java.io.File;
+import java.util.List;
 
 public interface StaticLibraryArchiverSpec extends BinaryToolSpec {
-
-    Iterable<File> getSource();
-
-    void setSource(Iterable<File> source);
 
     File getOutputFile();
 
     void setOutputFile(File outputFile);
 
-    Iterable<String> getArgs();
+    List<File> getObjectFiles();
 
-    void setArgs(Iterable<String> args);
+    void objectFiles(Iterable<File> source);
+
+    List<String> getArgs();
+
+    void args(List<String> args);
 }
