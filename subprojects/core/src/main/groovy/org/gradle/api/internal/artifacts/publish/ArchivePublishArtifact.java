@@ -64,8 +64,9 @@ public class ArchivePublishArtifact extends AbstractPublishArtifact {
         return archiveTask;
     }
 
-    public void setName(String name) {
+    public ArchivePublishArtifact setName(String name) {
         this.name = name;
+        return this;
     }
 
     public void setExtension(String extension) {

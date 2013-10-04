@@ -46,9 +46,14 @@ class TestUtil {
 
     private static void hackInTaskProperties(Class type, Task task, Map args) {
         args.each { k, v ->
-            def field = type.getDeclaredField(k)
-            field.setAccessible(true)
-            field.set(task, v)
+            def field = type.getDeclaredFields().find { it.name == k }
+            if (field) {
+                field.setAccessible(true)
+                field.set(task, v)
+            } else {
+                //I'm feeling lucky
+                task."$k" = v
+            }
         }
     }
 

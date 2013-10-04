@@ -15,66 +15,38 @@
  */
 package org.gradle.api.internal.artifacts.publish
 
+import org.gradle.api.tasks.bundling.Jar
+import org.gradle.util.TestUtil
+import spock.lang.Specification
 
-import org.gradle.api.artifacts.PublishArtifact
-import org.gradle.api.tasks.bundling.AbstractArchiveTask
-import org.gradle.util.WrapUtil
-import org.jmock.Expectations
-import org.junit.Test
+public class ArchivePublishArtifactTest extends Specification {
 
-import static org.hamcrest.Matchers.equalTo
-import static org.hamcrest.Matchers.sameInstance
-import static org.junit.Assert.assertThat
+    def "provides sensible default values for quite empty archive tasks"() {
+        def quiteEmptyJar = TestUtil.createTask(Jar)
 
-public class ArchivePublishArtifactTest extends AbstractPublishArtifactTest {
-    private AbstractArchiveTask archiveTask = context.mock(AbstractArchiveTask.class)
+        when:
+        def a = new ArchivePublishArtifact(quiteEmptyJar)
 
-    @Override
-    protected PublishArtifact createPublishArtifact(final String classifier) {
-        prepareMocks(classifier, "")
-        return new ArchivePublishArtifact(archiveTask)
+        then:
+        a.archiveTask == quiteEmptyJar
+        a.classifier == ""
+        a.date.time == quiteEmptyJar.archivePath.lastModified()
+        a.extension == "jar"
+        a.file == quiteEmptyJar.archivePath
+        a.type == "jar"
     }
 
-    private void prepareMocks(final String classifier, final String appendix) {
-        context.checking(new Expectations() {
-            {
-                allowing(archiveTask).getExtension()
-                will(returnValue(getTestExt()))
+    def "configures name correctly"() {
+        def noName = TestUtil.createTask(Jar)
+        def withBaseName = TestUtil.createTask(Jar, [baseName: "foo"])
+        def withAppendix = TestUtil.createTask(Jar, [baseName: "foo", appendix: "javadoc"])
+        def withAppendixOnly = TestUtil.createTask(Jar, [appendix: "javadoc"])
 
-                allowing(archiveTask).getBaseName()
-                will(returnValue(getTestName()))
-
-                allowing(archiveTask).getAppendix()
-                will(returnValue(appendix))
-
-                allowing(archiveTask).getArchivePath()
-                will(returnValue(getTestFile()))
-
-                allowing(archiveTask).getClassifier()
-                will(returnValue(classifier))
-            }
-        })
+        expect:
+        new ArchivePublishArtifact(noName).name == "null" //juck!
+        new ArchivePublishArtifact(withBaseName).name == "foo"
+        new ArchivePublishArtifact(withBaseName).setName("haha").name == "haha"
+        new ArchivePublishArtifact(withAppendix).name == "foo-javadoc"
+        new ArchivePublishArtifact(withAppendixOnly).name == "null-javadoc"
     }
-
-    @Override
-    protected String getTestType() {
-        return getTestExt()
-    }
-
-    @Test
-    public void init() {
-        ArchivePublishArtifact publishArtifact = (ArchivePublishArtifact) createPublishArtifact(getTestClassifier())
-        assertThat((Set<AbstractArchiveTask>) publishArtifact.getBuildDependencies().getDependencies(null), equalTo(WrapUtil.toSet(archiveTask)))
-        assertCommonPropertiesAreSet(publishArtifact, true)
-        assertThat(publishArtifact.getArchiveTask(), sameInstance(archiveTask))
-    }
-
-    @Test
-    public void nameWithAppendix() {
-        String testAppendix = "appendix"
-        prepareMocks(getTestClassifier(), testAppendix)
-        PublishArtifact publishArtifact = new ArchivePublishArtifact(archiveTask)
-        assertThat(publishArtifact.getName(), equalTo(getTestName() + "-" + testAppendix))
-    }
-
 }
