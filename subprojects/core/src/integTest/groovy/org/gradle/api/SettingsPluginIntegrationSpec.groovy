@@ -57,9 +57,12 @@ class SettingsPluginIntegrationSpec extends AbstractIntegrationSpec {
             }
 
             """
+        file("settings/buildSrc/src/main/resources/META-INF/gradle-plugins/simple-plugin.properties").createFile().text = """
+        implementation-class=test.SimpleSettingsPlugin
+        """
 
         when:
-        settingsFile << "apply plugin: test.SimpleSettingsPlugin"
+        settingsFile << "apply plugin: 'simple-plugin'"
 
         then:
         succeeds(':moduleA:dependencies')
