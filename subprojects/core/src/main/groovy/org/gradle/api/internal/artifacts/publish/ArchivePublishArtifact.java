@@ -37,7 +37,17 @@ public class ArchivePublishArtifact extends AbstractPublishArtifact {
     }
 
     public String getName() {
-        return GUtil.elvis(name, archiveTask.getBaseName() + (GUtil.isTrue(archiveTask.getAppendix()) ? "-" + archiveTask.getAppendix() : ""));
+        if (name != null) {
+            return name;
+        }
+        if (archiveTask.getBaseName() != null) {
+            return withAppendix(archiveTask.getBaseName());
+        }
+        return archiveTask.getArchiveName();
+    }
+
+    private String withAppendix(String baseName) {
+        return baseName + (GUtil.isTrue(archiveTask.getAppendix())? "-" + archiveTask.getAppendix() : "");
     }
 
     public String getExtension() {
@@ -88,5 +98,4 @@ public class ArchivePublishArtifact extends AbstractPublishArtifact {
     public void setFile(File file) {
         this.file = file;
     }
-
 }

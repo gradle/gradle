@@ -15,14 +15,15 @@
  */
 package org.gradle.api.internal.artifacts.publish
 
-import org.gradle.api.tasks.bundling.Jar
+import org.gradle.api.internal.file.copy.CopyAction
+import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 public class ArchivePublishArtifactTest extends Specification {
 
     def "provides sensible default values for quite empty archive tasks"() {
-        def quiteEmptyJar = TestUtil.createTask(Jar)
+        def quiteEmptyJar = TestUtil.createTask(DummyJar)
 
         when:
         def a = new ArchivePublishArtifact(quiteEmptyJar)
@@ -37,16 +38,28 @@ public class ArchivePublishArtifactTest extends Specification {
     }
 
     def "configures name correctly"() {
-        def noName = TestUtil.createTask(Jar)
-        def withBaseName = TestUtil.createTask(Jar, [baseName: "foo"])
-        def withAppendix = TestUtil.createTask(Jar, [baseName: "foo", appendix: "javadoc"])
-        def withAppendixOnly = TestUtil.createTask(Jar, [appendix: "javadoc"])
+        def noName = TestUtil.createTask(DummyJar)
+        def withArchiveName = TestUtil.createTask(DummyJar, [archiveName: "hey"])
+        def withBaseName = TestUtil.createTask(DummyJar, [baseName: "foo"])
+        def withAppendix = TestUtil.createTask(DummyJar, [baseName: "foo", appendix: "javadoc"])
+        def withAppendixOnly = TestUtil.createTask(DummyJar, [appendix: "javadoc"])
 
         expect:
-        new ArchivePublishArtifact(noName).name == "null" //juck!
+        new ArchivePublishArtifact(noName).name == ".jar" //hmmm, unlikely
+        new ArchivePublishArtifact(withArchiveName).name == "hey"
         new ArchivePublishArtifact(withBaseName).name == "foo"
         new ArchivePublishArtifact(withBaseName).setName("haha").name == "haha"
         new ArchivePublishArtifact(withAppendix).name == "foo-javadoc"
-        new ArchivePublishArtifact(withAppendixOnly).name == "null-javadoc"
+        new ArchivePublishArtifact(withAppendixOnly).name == "javadoc.jar" //hmmm, unlikely
+    }
+
+    static class DummyJar extends AbstractArchiveTask {
+        DummyJar() {
+            extension = "jar"
+        }
+
+        protected CopyAction createCopyAction() {
+            return null
+        }
     }
 }
