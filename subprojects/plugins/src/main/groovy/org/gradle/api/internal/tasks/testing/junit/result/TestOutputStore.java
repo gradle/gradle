@@ -232,7 +232,7 @@ public class TestOutputStore {
 
             if (outputsFile.exists()) {
                 if (!indexFile.exists()) {
-                    throw new IllegalStateException(String.format("Test outputs data file '{}' exists but the index file '{}' does not", outputsFile, indexFile));
+                    throw new IllegalStateException(String.format("Test outputs data file '%s' exists but the index file '%s' does not", outputsFile, indexFile));
                 }
 
                 Input input;
