@@ -86,6 +86,21 @@ executables {
 * Discovers Visual studio and Windows SDK installations, which means you can compile using the Visual C++ tools from the cygwin command prompt.
 * Support for the [Clang](http://clang.llvm.org) compiler.
 
+### Initializing `Groovy` or a `Scala` project
+
+It was never easier to setup a `Java`, `Scala` or `Groovy` project with Gradle. The `build-init` ships with
+two additional templates for initializing a new project
+
+* `groovy-library` creates a simple Groovy project with spock as testing framework
+* `scala-library` creates a simple Scala project with `scalatest` as testing framework
+
+To initialize a new project just run
+<pre>
+gradle init --type groovy-library
+</pre>
+
+on the commandline.
+
 ### FindBugs plugin provides new reporting capabilities
 
 * If the plugin is configured to produce an XML report, the output can be augmented with human-readable messages. The follow example demonstrates its use:

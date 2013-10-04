@@ -75,20 +75,6 @@ TBD
     * Annotation is missing 'options' value.
     * Annotation is missing 'description' value.
 
-## Support camel-case matching for task commandline properties
-
-### User visible changes
-
-The user can run `gradle init --type java-lib` instead of `gradle init --type java-library`
-
-### Test coverage
-
-TBD
-
-### Implementation approach
-
-- Use NameMatcher in commandline configuration.
-
 ## Help task shows basic details about a task
 
 Add some command line interface for discovering details about a task (name, type, path, description)
@@ -168,6 +154,20 @@ The usage message of running `gradle help --task init` includes the available va
 - Introduce marker annotation `OptionValues("optionName")` to to allow a dynamic value lookup in the task implementation itself.
 - Adapt InitBuild task to use @OptionValues to map values for the `--type` command line option.
 - Update userguide/docs
+
+## Support camel-case matching for task commandline properties
+
+### User visible changes
+
+The user can run `gradle init --type java-lib` instead of `gradle init --type java-library`
+
+### Test coverage
+
+TBD
+
+### Implementation approach
+
+- Use NameMatcher in commandline configuration.
 
 ## Add command-line options to other tasks
 
