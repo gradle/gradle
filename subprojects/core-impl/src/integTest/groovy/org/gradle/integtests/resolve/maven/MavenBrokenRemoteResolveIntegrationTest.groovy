@@ -87,7 +87,7 @@ task retrieve(type: Sync) {
 
         then:
         fails "retrieve"
-        failure.assertHasCause("Could not download artifact 'group:projectA:1.2@jar'")
+        failure.assertHasCause("Could not download artifact 'group:projectA:1.2:projectA.jar'")
         failure.assertHasCause("Could not GET '${module.artifact.uri}'. Received status code 500 from server: broken")
 
         when:

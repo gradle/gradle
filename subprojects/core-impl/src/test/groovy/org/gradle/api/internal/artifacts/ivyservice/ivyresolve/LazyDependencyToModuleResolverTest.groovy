@@ -25,6 +25,7 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.ivyservice.*
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactIdentifier
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData
 import spock.lang.Specification
 
@@ -255,7 +256,7 @@ class LazyDependencyToModuleResolverTest extends Specification {
 
         then:
         1 * result.failed(_) >> { ArtifactResolveException e ->
-            assert e.message == "Could not download artifact 'group:module:1.0@zip'"
+            assert e.message == "Could not download artifact 'artifact.zip'"
             assert e.cause == failure
         }
 
@@ -281,12 +282,14 @@ class LazyDependencyToModuleResolverTest extends Specification {
 
     def artifact() {
         Artifact artifact = Mock()
-        ModuleRevisionId id = ModuleRevisionId.newInstance("group", "module", "1.0")
-        _ * artifact.moduleRevisionId >> id
+        _ * artifact.moduleRevisionId >> ModuleRevisionId.newInstance("group", "module", "1.0")
         _ * artifact.name >> 'artifact'
         _ * artifact.ext >> 'zip'
         return Stub(ModuleVersionArtifactMetaData) {
             getArtifact() >> artifact
+            getId() >> Stub(ModuleVersionArtifactIdentifier) {
+                getDisplayName() >> "artifact.zip"
+            }
         }
     }
 }

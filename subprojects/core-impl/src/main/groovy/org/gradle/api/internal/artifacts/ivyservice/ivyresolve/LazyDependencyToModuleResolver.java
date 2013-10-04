@@ -61,7 +61,7 @@ public class LazyDependencyToModuleResolver implements DependencyToModuleVersion
             try {
                 resolver.resolve(artifact, result);
             } catch (Throwable t) {
-                result.failed(new ArtifactResolveException(artifact.getArtifact(), t));
+                result.failed(new ArtifactResolveException(artifact.getId(), t));
             }
         }
     }

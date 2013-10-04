@@ -16,28 +16,9 @@
 
 package org.gradle.api.internal.artifacts.metadata;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
-import org.gradle.api.Nullable;
-
 /**
- * Meta-data for an artifact that belongs to some module version.
+ * An immutable identifier for an artifact in a module version.
  */
-public interface ModuleVersionArtifactMetaData {
-    ModuleVersionArtifactIdentifier getId();
-
-    /**
-     * Returns this artifact as an Ivy Artifact. This method is here to allow us to migrate away from the Ivy types
-     * and will be removed.
-     */
-    Artifact getArtifact();
-
-    String getName();
-
-    String getType();
-
-    @Nullable
-    String getExtension();
-
-    @Nullable
-    String getClassifier();
+public interface ModuleVersionArtifactIdentifier {
+    String getDisplayName();
 }

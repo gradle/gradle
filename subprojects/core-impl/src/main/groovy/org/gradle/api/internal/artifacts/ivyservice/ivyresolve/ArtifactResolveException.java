@@ -15,12 +15,11 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.Contextual;
-import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactIdentifier;
 import org.gradle.util.GUtil;
 
 @Contextual
@@ -29,8 +28,8 @@ public class ArtifactResolveException extends GradleException {
         super(message);
     }
 
-    public ArtifactResolveException(Artifact artifact, Throwable cause) {
-        this(new DefaultArtifactIdentifier(artifact), cause);
+    public ArtifactResolveException(ModuleVersionArtifactIdentifier artifact, Throwable cause) {
+        super(format(artifact, ""), cause);
     }
 
     public ArtifactResolveException(ArtifactIdentifier artifact, Throwable cause) {
@@ -39,6 +38,18 @@ public class ArtifactResolveException extends GradleException {
 
     public ArtifactResolveException(ArtifactIdentifier artifact, String message) {
         super(format(artifact, message));
+    }
+
+    private static String format(ModuleVersionArtifactIdentifier artifact, String message) {
+        StringBuilder builder = new StringBuilder();
+        builder.append("Could not download artifact '");
+        builder.append(artifact.getDisplayName());
+        builder.append("'");
+        if (GUtil.isTrue(message)) {
+            builder.append(": ");
+            builder.append(message);
+        }
+        return builder.toString();
     }
 
     private static String format(ArtifactIdentifier artifact, String message) {
