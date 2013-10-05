@@ -24,9 +24,11 @@ import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.apache.ivy.util.ChecksumHelper;
-import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.internal.artifacts.*;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
+import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
+import org.gradle.api.internal.artifacts.ModuleVersionPublishMetaData;
+import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
@@ -34,13 +36,10 @@ import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveExceptio
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.*;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParseException;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
-import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
-import org.gradle.api.internal.artifacts.metadata.ModuleDescriptorAdapter;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
-import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData;
+import org.gradle.api.internal.artifacts.metadata.*;
 import org.gradle.api.internal.artifacts.repositories.cachemanager.RepositoryArtifactCache;
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
@@ -401,21 +400,21 @@ public class ExternalResourceResolver implements ModuleVersionPublisher, Configu
         }
     }
 
-    public void resolve(ArtifactIdentifier artifact, BuildableArtifactResolveResult result, ModuleSource moduleSource) {
-        Artifact ivyArtifact = DefaultArtifactIdentifier.toArtifact(artifact);
+    public void resolve(ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result, ModuleSource moduleSource) {
+        Artifact ivyArtifact = artifact.getArtifact();
 
         File localFile;
         try {
             localFile = download(ivyArtifact, moduleSource);
         } catch (IOException e) {
-            result.failed(new ArtifactResolveException(artifact, e));
+            result.failed(new ArtifactResolveException(artifact.getId(), e));
             return;
         }
 
         if (localFile != null) {
             result.resolved(localFile);
         } else {
-            result.notFound(artifact);
+            result.notFound(artifact.getId());
         }
     }
 

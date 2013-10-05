@@ -16,14 +16,13 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache
 
-import org.gradle.api.artifacts.ArtifactIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactIdentifier
 import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData
 import spock.lang.Specification
 
-import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 
 class DependencyMetadataCacheTest extends Specification {
@@ -122,25 +121,25 @@ class DependencyMetadataCacheTest extends Specification {
     }
 
     def "caches and supplies artifacts"() {
-        def foo = Stub(ArtifactIdentifier) { getModuleVersionIdentifier() >> newId("org", "foo", "1.0") }
+        def fooId = Stub(ModuleVersionArtifactIdentifier)
         def fooFile = new File("foo")
         def fooResult = Mock(BuildableArtifactResolveResult) { getFile() >> fooFile }
         def anotherFooResult = Mock(BuildableArtifactResolveResult)
 
-        def different = Stub(ArtifactIdentifier) { getModuleVersionIdentifier() >> newId("org", "XXX", "1.0") }
+        def differentId = Stub(ModuleVersionArtifactIdentifier)
         def differentResult = Mock(BuildableArtifactResolveResult)
 
-        cache.newArtifact(foo, fooResult)
+        cache.newArtifact(fooId, fooResult)
 
         when:
-        def differentCached = cache.supplyArtifact(different, differentResult )
+        def differentCached = cache.supplyArtifact(differentId, differentResult )
 
         then:
         !differentCached
         0 * differentResult._
 
         when:
-        def fooCached = cache.supplyArtifact(foo, anotherFooResult )
+        def fooCached = cache.supplyArtifact(fooId, anotherFooResult )
 
         then:
         fooCached

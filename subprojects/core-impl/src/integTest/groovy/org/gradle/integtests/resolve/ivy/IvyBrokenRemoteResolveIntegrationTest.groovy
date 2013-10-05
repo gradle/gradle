@@ -126,14 +126,14 @@ task retrieve(type: Sync) {
         then:
         fails "retrieve"
 
-        failure.assertThatCause(containsString("Artifact 'group:projectA:1.2@jar' not found"))
+        failure.assertThatCause(containsString("Artifact 'group:projectA:1.2:projectA.jar' not found"))
 
         when:
         server.resetExpectations()
 
         then:
         fails "retrieve"
-        failure.assertThatCause(containsString("Artifact 'group:projectA:1.2@jar' not found"))
+        failure.assertThatCause(containsString("Artifact 'group:projectA:1.2:projectA.jar' not found"))
     }
 
     public void "reports and recovers from failed artifact download"() {

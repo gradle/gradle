@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice
 import org.gradle.api.artifacts.ArtifactIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactNotFoundException
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ArtifactResolveException
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactIdentifier
 import spock.lang.Specification
 
 class DefaultBuildableArtifactResolveResultTest extends Specification {
@@ -56,7 +57,7 @@ class DefaultBuildableArtifactResolveResultTest extends Specification {
 
     def "fails with not found exception when artifact not found"() {
         when:
-        result.notFound(Stub(ArtifactIdentifier))
+        result.notFound(Stub(ModuleVersionArtifactIdentifier))
 
         then:
         result.failure instanceof ArtifactNotFoundException

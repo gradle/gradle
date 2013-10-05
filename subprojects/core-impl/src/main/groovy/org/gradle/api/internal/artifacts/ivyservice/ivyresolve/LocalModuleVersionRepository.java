@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 
 public class LocalModuleVersionRepository implements LocalAwareModuleVersionRepository {
     private final ModuleVersionRepository delegate;
@@ -27,7 +27,7 @@ public class LocalModuleVersionRepository implements LocalAwareModuleVersionRepo
         this.delegate = delegate;
     }
 
-    public void resolve(ArtifactIdentifier artifact, BuildableArtifactResolveResult result, ModuleSource moduleSource) {
+    public void resolve(ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result, ModuleSource moduleSource) {
         delegate.resolve(artifact, result, moduleSource);
     }
 

@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
@@ -161,7 +160,7 @@ public class UserResolverChain implements DependencyToModuleVersionResolver {
         }
 
         public void resolve(ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result) {
-            delegate.resolve(new DefaultArtifactIdentifier(artifact.getArtifact()), result, moduleSource);
+            delegate.resolve(artifact, result, moduleSource);
         }
     }
 

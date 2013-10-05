@@ -113,7 +113,7 @@ task check << {
 
         expect:
         fails 'check'
-        failureHasCause("Could not download artifact 'group:module:1.2@jar'")
+        failureHasCause("Could not download artifact 'group:module:1.2:module.jar'")
         failureHasCause("invalid sha1: expected=1234 computed=2ee22701c9bd9af023ed20917897da5ce77336bc")
     }
 

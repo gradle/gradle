@@ -16,9 +16,9 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
@@ -27,6 +27,7 @@ import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionRes
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetaDataCache;
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData;
 import org.gradle.api.internal.externalresource.cached.CachedArtifact;
 import org.gradle.api.internal.externalresource.cached.CachedArtifactIndex;
@@ -162,8 +163,9 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
         result.resolved(cachedMetaData.getMetaData(), new CachingModuleSource(cachedMetaData.getDescriptorHash(), cachedMetaData.getMetaData().isChanging(), cachedMetaData.getModuleSource()));
     }
 
-    public void resolve(ArtifactIdentifier artifact, BuildableArtifactResolveResult result, ModuleSource moduleSource) {
-        ArtifactAtRepositoryKey resolutionCacheIndexKey = new ArtifactAtRepositoryKey(delegate.getId(), artifact);
+    public void resolve(ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result, ModuleSource moduleSource) {
+        DefaultArtifactIdentifier artifactIdentifier = new DefaultArtifactIdentifier(artifact.getArtifact());
+        ArtifactAtRepositoryKey resolutionCacheIndexKey = new ArtifactAtRepositoryKey(delegate.getId(), artifactIdentifier);
         // Look in the cache for this resolver
         CachedArtifact cached = artifactAtRepositoryCachedResolutionIndex.lookup(resolutionCacheIndexKey);
         final CachingModuleSource cachedModuleSource = (CachingModuleSource) moduleSource;
@@ -172,14 +174,14 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
             long age = timeProvider.getCurrentTime() - cached.getCachedAt();
             final boolean isChangingModule = cachedModuleSource.isChangingModule();
             if (cached.isMissing()) {
-                if (!cachePolicy.mustRefreshArtifact(artifact, null, age, isChangingModule, descriptorHash.equals(cached.getDescriptorHash()))) {
+                if (!cachePolicy.mustRefreshArtifact(artifactIdentifier, null, age, isChangingModule, descriptorHash.equals(cached.getDescriptorHash()))) {
                     LOGGER.debug("Detected non-existence of artifact '{}' in resolver cache", artifact);
-                    result.notFound(artifact);
+                    result.notFound(artifact.getId());
                     return;
                 }
             } else {
                 File cachedArtifactFile = cached.getCachedFile();
-                if (!cachePolicy.mustRefreshArtifact(artifact, cachedArtifactFile, age, isChangingModule, descriptorHash.equals(cached.getDescriptorHash()))) {
+                if (!cachePolicy.mustRefreshArtifact(artifactIdentifier, cachedArtifactFile, age, isChangingModule, descriptorHash.equals(cached.getDescriptorHash()))) {
                     LOGGER.debug("Found artifact '{}' in resolver cache: {}", artifact, cachedArtifactFile);
                     result.resolved(cachedArtifactFile);
                     return;

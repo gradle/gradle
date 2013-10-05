@@ -16,12 +16,13 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache;
 
-import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult;
-import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.LocalAwareModuleVersionRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource;
+import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactIdentifier;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 
 class CachedRepository implements LocalAwareModuleVersionRepository {
     final DependencyMetadataCache cache;
@@ -56,10 +57,11 @@ class CachedRepository implements LocalAwareModuleVersionRepository {
         }
     }
 
-    public void resolve(ArtifactIdentifier artifact, BuildableArtifactResolveResult result, ModuleSource moduleSource) {
-        if(!cache.supplyArtifact(artifact, result)) {
+    public void resolve(ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result, ModuleSource moduleSource) {
+        ModuleVersionArtifactIdentifier artifactId = artifact.getId();
+        if(!cache.supplyArtifact(artifactId, result)) {
             delegate.resolve(artifact, result, moduleSource);
-            cache.newArtifact(artifact, result);
+            cache.newArtifact(artifactId, result);
         }
     }
 }

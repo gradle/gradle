@@ -15,18 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.gradle.api.artifacts.ArtifactIdentifier;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactIdentifier;
 
 public class ArtifactNotFoundException extends ArtifactResolveException {
-    public ArtifactNotFoundException(ArtifactIdentifier artifact) {
-        super(format(artifact));
-    }
-
-    private static String format(ArtifactIdentifier artifact) {
-        StringBuilder builder = new StringBuilder();
-        builder.append("Artifact '");
-        formatTo(artifact, builder);
-        builder.append("' not found.");
-        return builder.toString();
+    public ArtifactNotFoundException(ModuleVersionArtifactIdentifier artifact) {
+        super(String.format("Artifact '%s' not found.", artifact.getDisplayName()));
     }
 }

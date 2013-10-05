@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache;
 
-import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVersionMetaDataResolveResult;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactIdentifier;
 
 import java.io.File;
 import java.util.HashMap;
@@ -28,7 +28,7 @@ import java.util.Map;
 class DependencyMetadataCache {
     private final Map<ModuleVersionSelector, CachedModuleVersionResult> localMetaData = new HashMap<ModuleVersionSelector, CachedModuleVersionResult>();
     private final Map<ModuleVersionSelector, CachedModuleVersionResult> metaData = new HashMap<ModuleVersionSelector, CachedModuleVersionResult>();
-    private final Map<ArtifactIdentifier, File> artifacts = new HashMap<ArtifactIdentifier, File>();
+    private final Map<ModuleVersionArtifactIdentifier, File> artifacts = new HashMap<ModuleVersionArtifactIdentifier, File>();
     private DependencyMetadataCacheStats stats;
 
     DependencyMetadataCache(DependencyMetadataCacheStats stats) {
@@ -68,7 +68,7 @@ class DependencyMetadataCache {
         }
     }
 
-    public boolean supplyArtifact(ArtifactIdentifier id, BuildableArtifactResolveResult result) {
+    public boolean supplyArtifact(ModuleVersionArtifactIdentifier id, BuildableArtifactResolveResult result) {
         File fromCache = artifacts.get(id);
         if (fromCache != null) {
             result.resolved(fromCache);
@@ -78,7 +78,7 @@ class DependencyMetadataCache {
         return false;
     }
 
-    public void newArtifact(ArtifactIdentifier id, BuildableArtifactResolveResult result) {
+    public void newArtifact(ModuleVersionArtifactIdentifier id, BuildableArtifactResolveResult result) {
         artifacts.put(id, result.getFile());
     }
 }

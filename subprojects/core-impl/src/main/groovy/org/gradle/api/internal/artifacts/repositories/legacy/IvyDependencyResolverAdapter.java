@@ -24,12 +24,11 @@ import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.core.resolve.ResolvedModuleRevision;
 import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.gradle.api.artifacts.ArtifactIdentifier;
-import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.*;
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleDescriptorAdapter;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 import org.gradle.internal.UncheckedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -99,15 +98,15 @@ public class IvyDependencyResolverAdapter implements ConfiguredModuleVersionRepo
         }
     }
 
-    public void resolve(ArtifactIdentifier artifact, BuildableArtifactResolveResult result, ModuleSource moduleSource) {
-        Artifact ivyArtifact = DefaultArtifactIdentifier.toArtifact(artifact);
+    public void resolve(ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result, ModuleSource moduleSource) {
+        Artifact ivyArtifact = artifact.getArtifact();
         ArtifactDownloadReport artifactDownloadReport = resolver.download(new Artifact[]{ivyArtifact}, downloadOptions).getArtifactReport(ivyArtifact);
         if (downloadFailed(artifactDownloadReport)) {
             if (artifactDownloadReport instanceof EnhancedArtifactDownloadReport) {
                 EnhancedArtifactDownloadReport enhancedReport = (EnhancedArtifactDownloadReport) artifactDownloadReport;
-                result.failed(new ArtifactResolveException(artifact, enhancedReport.getFailure()));
+                result.failed(new ArtifactResolveException(artifact.getId(), enhancedReport.getFailure()));
             } else {
-                result.failed(new ArtifactResolveException(artifact, artifactDownloadReport.getDownloadDetails()));
+                result.failed(new ArtifactResolveException(artifact.getId(), artifactDownloadReport.getDownloadDetails()));
             }
             return;
         }
@@ -116,7 +115,7 @@ public class IvyDependencyResolverAdapter implements ConfiguredModuleVersionRepo
         if (localFile != null) {
             result.resolved(localFile);
         } else {
-            result.notFound(artifact);
+            result.notFound(artifact.getId());
         }
     }
 

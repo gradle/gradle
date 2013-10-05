@@ -31,6 +31,11 @@ public class DefaultModuleVersionArtifactMetaData implements ModuleVersionArtifa
         this.id = new DefaultModuleVersionArtifactIdentifier(moduleVersionIdentifier, artifact.getName(), artifact.getType(), artifact.getExt(), artifact.getQualifiedExtraAttributes());
     }
 
+    @Override
+    public String toString() {
+        return id.toString();
+    }
+
     public Artifact getArtifact() {
         return artifact;
     }

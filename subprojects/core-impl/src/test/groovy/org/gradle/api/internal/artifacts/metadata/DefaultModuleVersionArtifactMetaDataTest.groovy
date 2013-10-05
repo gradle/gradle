@@ -21,6 +21,12 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier
 import spock.lang.Specification
 
 class DefaultModuleVersionArtifactMetaDataTest extends Specification {
+    def "has reasonable string representation"() {
+        expect:
+        def artifact = new DefaultModuleVersionArtifactMetaData(Stub(ModuleVersionIdentifier), ivyArtifact("name", "type", "ext", ['m:classifier': 'classifier']))
+        artifact.toString() == artifact.id.toString()
+    }
+
     def "extracts attributes from provided artifact instance"() {
         expect:
         def artifact = new DefaultModuleVersionArtifactMetaData(Stub(ModuleVersionIdentifier), ivyArtifact("name", "type", "ext", ['m:classifier': 'classifier']))

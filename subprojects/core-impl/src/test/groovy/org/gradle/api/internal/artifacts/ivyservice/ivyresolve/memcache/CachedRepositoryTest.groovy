@@ -21,6 +21,8 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.BuildableModuleVe
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.LocalAwareModuleVersionRepository
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleSource
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactIdentifier
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
@@ -90,28 +92,34 @@ class CachedRepositoryTest extends Specification {
 
     def "retrieves and caches artifacts"() {
         def result = Mock(BuildableArtifactResolveResult)
-        def artifact = Stub(ArtifactIdentifier)
+        def artifactId = Stub(ModuleVersionArtifactIdentifier)
+        def artifact = Stub(ModuleVersionArtifactMetaData) {
+            getId() >> artifactId
+        }
         def source = Mock(ModuleSource)
 
         when:
         repo.resolve(artifact, result, source)
 
         then:
-        1 * cache.supplyArtifact(artifact, result) >> false
+        1 * cache.supplyArtifact(artifactId, result) >> false
         1 * delegate.resolve(artifact, result, source)
-        1 * cache.newArtifact(artifact, result)
+        1 * cache.newArtifact(artifactId, result)
         0 * _
     }
 
     def "uses artifacts from cache"() {
         def result = Mock(BuildableArtifactResolveResult)
-        def artifact = Stub(ArtifactIdentifier)
+        def artifactId = Stub(ModuleVersionArtifactIdentifier)
+        def artifact = Stub(ModuleVersionArtifactMetaData) {
+            getId() >> artifactId
+        }
 
         when:
         repo.resolve(artifact, result, Mock(ModuleSource))
 
         then:
-        1 * cache.supplyArtifact(artifact, result) >> true
+        1 * cache.supplyArtifact(artifactId, result) >> true
         0 * _
     }
 }
