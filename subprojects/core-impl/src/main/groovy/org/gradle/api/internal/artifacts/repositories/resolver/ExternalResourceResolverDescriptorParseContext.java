@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
-import org.apache.ivy.core.cache.ArtifactOrigin;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
@@ -51,7 +50,7 @@ public class ExternalResourceResolverDescriptorParseContext implements Descripto
     }
 
     public boolean artifactExists(Artifact artifact) {
-        return !ArtifactOrigin.isUnknown(moduleResolver.locate(artifact));
+        return moduleResolver.artifactExists(artifact);
     }
 
     private LocallyAvailableExternalResource resolveArtifact(Artifact artifact, DependencyToModuleVersionResolver resolver) {

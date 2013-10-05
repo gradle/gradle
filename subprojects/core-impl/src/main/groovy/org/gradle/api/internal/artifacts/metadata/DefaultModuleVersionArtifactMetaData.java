@@ -17,8 +17,10 @@
 package org.gradle.api.internal.artifacts.metadata;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
+import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier;
 
 public class DefaultModuleVersionArtifactMetaData implements ModuleVersionArtifactMetaData {
     private final ModuleVersionIdentifier moduleVersionIdentifier;
@@ -46,6 +48,10 @@ public class DefaultModuleVersionArtifactMetaData implements ModuleVersionArtifa
 
     public ModuleVersionIdentifier getModuleVersion() {
         return moduleVersionIdentifier;
+    }
+
+    public ArtifactIdentifier toArtifactIdentifier() {
+        return new DefaultArtifactIdentifier(artifact);
     }
 
     public String getClassifier() {

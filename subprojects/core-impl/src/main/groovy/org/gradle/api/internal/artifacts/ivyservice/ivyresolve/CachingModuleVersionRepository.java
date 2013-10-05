@@ -16,9 +16,9 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
@@ -164,8 +164,7 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
     }
 
     public void resolve(ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result, ModuleSource moduleSource) {
-        DefaultArtifactIdentifier artifactIdentifier = new DefaultArtifactIdentifier(artifact.getArtifact());
-        ArtifactAtRepositoryKey resolutionCacheIndexKey = new ArtifactAtRepositoryKey(delegate.getId(), artifactIdentifier);
+        ArtifactAtRepositoryKey resolutionCacheIndexKey = new ArtifactAtRepositoryKey(delegate.getId(), artifact.getId());
         // Look in the cache for this resolver
         CachedArtifact cached = artifactAtRepositoryCachedResolutionIndex.lookup(resolutionCacheIndexKey);
         final CachingModuleSource cachedModuleSource = (CachingModuleSource) moduleSource;
@@ -173,6 +172,7 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
         if (cached != null) {
             long age = timeProvider.getCurrentTime() - cached.getCachedAt();
             final boolean isChangingModule = cachedModuleSource.isChangingModule();
+            ArtifactIdentifier artifactIdentifier = artifact.toArtifactIdentifier();
             if (cached.isMissing()) {
                 if (!cachePolicy.mustRefreshArtifact(artifactIdentifier, null, age, isChangingModule, descriptorHash.equals(cached.getDescriptorHash()))) {
                     LOGGER.debug("Detected non-existence of artifact '{}' in resolver cache", artifact);

@@ -16,18 +16,18 @@
 
 package org.gradle.api.internal.externalresource.ivy;
 
-import org.gradle.api.artifacts.ArtifactIdentifier;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactIdentifier;
 
 public class ArtifactAtRepositoryKey {
     private final String repositoryId;
-    private final ArtifactIdentifier artifactId;
+    private final ModuleVersionArtifactIdentifier artifactId;
 
-    public ArtifactAtRepositoryKey(String repositoryId, ArtifactIdentifier artifactId) {
+    public ArtifactAtRepositoryKey(String repositoryId, ModuleVersionArtifactIdentifier artifactId) {
         this.repositoryId = repositoryId;
         this.artifactId = artifactId;
     }
 
-    public ArtifactIdentifier getArtifactId() {
+    public ModuleVersionArtifactIdentifier getArtifactId() {
         return artifactId;
     }
 

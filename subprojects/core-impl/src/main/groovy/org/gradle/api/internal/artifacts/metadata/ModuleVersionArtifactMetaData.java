@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.metadata;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.gradle.api.Nullable;
+import org.gradle.api.artifacts.ArtifactIdentifier;
 
 /**
  * Meta-data for an artifact that belongs to some module version.
@@ -30,6 +31,11 @@ public interface ModuleVersionArtifactMetaData {
      * and will be removed.
      */
     Artifact getArtifact();
+
+    /**
+     * Produces an ArtifactIdentifier for this artifact (it's not actually an identifier - just a bucket of attributes).
+     */
+    ArtifactIdentifier toArtifactIdentifier();
 
     String getName();
 

@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.util.GUtil;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -37,7 +38,7 @@ public class DefaultModuleVersionArtifactIdentifier implements ModuleVersionArti
         this.name = name;
         this.type = type;
         this.extension = extension;
-        this.attributes = new HashMap<String, String>(attributes);
+        this.attributes = attributes.isEmpty() ? Collections.<String, String>emptyMap() : new HashMap<String, String>(attributes);
     }
 
     public String getDisplayName() {
@@ -56,6 +57,27 @@ public class DefaultModuleVersionArtifactIdentifier implements ModuleVersionArti
         }
 
         return result.toString();
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public ModuleVersionIdentifier getModuleVersionIdentifier() {
+        return moduleVersionIdentifier;
+    }
+
+    @Nullable
+    public String getExtension() {
+        return extension;
+    }
+
+    public Map<String, String> getAttributes() {
+        return attributes;
     }
 
     @Override

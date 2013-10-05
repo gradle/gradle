@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import com.google.common.base.Joiner;
-import org.apache.ivy.core.cache.ArtifactOrigin;
 import org.apache.ivy.core.module.descriptor.*;
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
@@ -290,13 +289,9 @@ public class ExternalResourceResolver implements ModuleVersionPublisher, Configu
         return null;
     }
 
-    public ArtifactOrigin locate(Artifact artifact) {
+    public boolean artifactExists(Artifact artifact) {
         ResolvedArtifact artifactRef = getArtifactRef(artifact, false);
-        if (artifactRef != null && artifactRef.resource.exists()) {
-            ExternalResource resource = artifactRef.resource;
-            return new ArtifactOrigin(artifact, resource.isLocal(), resource.getName());
-        }
-        return null;
+        return artifactRef != null && artifactRef.resource.exists();
     }
 
     private ResolvedArtifact getArtifactRef(Artifact artifact, boolean forDownload) {

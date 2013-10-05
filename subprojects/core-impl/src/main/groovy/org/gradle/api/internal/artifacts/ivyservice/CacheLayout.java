@@ -22,7 +22,7 @@ import java.util.List;
 public enum CacheLayout {
     ROOT("modules", "%d", 1, null),
     FILE_STORE("files", "%d.%d", ROOT.majorVersion, 1),
-    META_DATA("metadata", "%d.%d", ROOT.majorVersion, 29);
+    META_DATA("metadata", "%d.%d", ROOT.majorVersion, 30);
 
     private final String name;
     private final String versionPattern;

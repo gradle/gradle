@@ -16,14 +16,12 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
-import org.apache.ivy.core.module.descriptor.DefaultArtifact
-import org.apache.ivy.core.module.id.ModuleRevisionId
-import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetaDataCache
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactIdentifier
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData
 import org.gradle.api.internal.externalresource.cached.CachedArtifactIndex
 import org.gradle.api.internal.externalresource.ivy.ArtifactAtRepositoryKey
@@ -52,10 +50,9 @@ class CachingModuleVersionRepositoryTest extends Specification {
         ExternalResourceMetaData externalResourceMetaData = new DefaultExternalResourceMetaData("remote url", lastModified, -1, null, null)
         File file = new File("local")
         BuildableArtifactResolveResult result = Mock()
-        def ivyArtifact = new DefaultArtifact(ModuleRevisionId.newInstance("group", "module", "version"), null, "artifact", "type", "ext")
-        def artifactId = new DefaultArtifactIdentifier(ivyArtifact)
+        def artifactId = Stub(ModuleVersionArtifactIdentifier)
         def artifact = Stub(ModuleVersionArtifactMetaData) {
-            getArtifact() >> ivyArtifact
+            getId() >> artifactId
         }
         ArtifactAtRepositoryKey atRepositoryKey = new ArtifactAtRepositoryKey("repo-id", artifactId)
 

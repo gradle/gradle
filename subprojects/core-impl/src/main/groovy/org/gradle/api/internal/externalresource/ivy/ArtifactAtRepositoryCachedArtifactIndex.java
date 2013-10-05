@@ -16,11 +16,10 @@
 
 package org.gradle.api.internal.externalresource.ivy;
 
-import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ModuleVersionIdentifierSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
+import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactIdentifier;
 import org.gradle.api.internal.externalresource.cached.CachedArtifact;
 import org.gradle.api.internal.externalresource.cached.CachedArtifactIndex;
 import org.gradle.api.internal.externalresource.cached.DefaultCachedArtifact;
@@ -31,6 +30,9 @@ import org.gradle.util.BuildCommencedTimeProvider;
 
 import java.io.File;
 import java.math.BigInteger;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ArtifactAtRepositoryCachedArtifactIndex extends AbstractCachedIndex<ArtifactAtRepositoryKey, CachedArtifact> implements CachedArtifactIndex {
     private final BuildCommencedTimeProvider timeProvider;
@@ -63,22 +65,38 @@ public class ArtifactAtRepositoryCachedArtifactIndex extends AbstractCachedIndex
 
         public void write(Encoder encoder, ArtifactAtRepositoryKey value) throws Exception {
             encoder.writeString(value.getRepositoryId());
-            ArtifactIdentifier artifact = value.getArtifactId();
+            DefaultModuleVersionArtifactIdentifier artifact = (DefaultModuleVersionArtifactIdentifier) value.getArtifactId();
             modIdSerializer.write(encoder, artifact.getModuleVersionIdentifier());
             encoder.writeString(artifact.getName());
+            encoder.writeString(artifact.getType());
             encoder.writeNullableString(artifact.getExtension());
-            encoder.writeNullableString(artifact.getClassifier());
-            encoder.writeNullableString(artifact.getType());
+            Map<String, String> attributes = artifact.getAttributes();
+            encoder.writeSizeInt(attributes.size());
+            for (Map.Entry<String, String> entry : attributes.entrySet()) {
+                encoder.writeString(entry.getKey());
+                encoder.writeString(entry.getValue());
+            }
         }
 
         public ArtifactAtRepositoryKey read(Decoder decoder) throws Exception {
             String repositoryId = decoder.readString();
             ModuleVersionIdentifier moduleVersionIdentifier = modIdSerializer.read(decoder);
             String artifactName = decoder.readString();
+            String type = decoder.readString();
             String extension = decoder.readNullableString();
-            String classifier = decoder.readNullableString();
-            String type = decoder.readNullableString();
-            return new ArtifactAtRepositoryKey(repositoryId, new DefaultArtifactIdentifier(moduleVersionIdentifier, artifactName, type, extension, classifier));
+            int attrCount = decoder.readSizeInt();
+            Map<String, String> attributes;
+            if (attrCount == 0) {
+                attributes = Collections.emptyMap();
+            } else {
+                attributes = new HashMap<String, String>(attrCount);
+                for (int i = 0; i < attrCount; i++) {
+                    String key = decoder.readString();
+                    String value = decoder.readString();
+                    attributes.put(key, value);
+                }
+            }
+            return new ArtifactAtRepositoryKey(repositoryId, new DefaultModuleVersionArtifactIdentifier(moduleVersionIdentifier, artifactName, type, extension, attributes));
         }
     }
 

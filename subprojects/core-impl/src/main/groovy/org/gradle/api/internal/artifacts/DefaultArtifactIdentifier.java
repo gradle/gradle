@@ -16,13 +16,8 @@
 package org.gradle.api.internal.artifacts;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.core.module.descriptor.DefaultArtifact;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-
-import java.util.Collections;
-import java.util.Map;
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId;
 
@@ -43,13 +38,6 @@ public class DefaultArtifactIdentifier implements ArtifactIdentifier {
 
     public DefaultArtifactIdentifier(Artifact artifact) {
         this(newId(artifact.getModuleRevisionId()), artifact.getName(), artifact.getType(), artifact.getExt(), artifact.getExtraAttribute("classifier"));
-    }
-
-    public static Artifact toArtifact(ArtifactIdentifier artifactIdentifier) {
-        ModuleVersionIdentifier moduleVersionIdentifier = artifactIdentifier.getModuleVersionIdentifier();
-        Map<String, String> extraAttributes = artifactIdentifier.getClassifier() == null ? Collections.<String, String>emptyMap() : Collections.singletonMap("classifier", artifactIdentifier.getClassifier());
-        ModuleRevisionId moduleRevisionId = ModuleRevisionId.newInstance(moduleVersionIdentifier.getGroup(), moduleVersionIdentifier.getName(), moduleVersionIdentifier.getVersion());
-        return new DefaultArtifact(moduleRevisionId, null, artifactIdentifier.getName(), artifactIdentifier.getType(), artifactIdentifier.getExtension(), extraAttributes);
     }
 
     public ModuleVersionIdentifier getModuleVersionIdentifier() {
