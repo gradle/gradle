@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.metadata;
 
+import com.google.common.base.Objects;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -24,7 +25,6 @@ import org.gradle.util.GUtil;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 public class DefaultModuleVersionArtifactIdentifier implements ModuleVersionArtifactIdentifier {
     private final ModuleVersionIdentifier moduleVersionIdentifier;
@@ -102,7 +102,7 @@ public class DefaultModuleVersionArtifactIdentifier implements ModuleVersionArti
         return other.moduleVersionIdentifier.equals(moduleVersionIdentifier)
                 && other.name.equals(name)
                 && other.type.equals(type)
-                && Objects.equals(other.extension, extension)
+                && Objects.equal(other.extension, extension)
                 && other.attributes.equals(attributes);
     }
 }
