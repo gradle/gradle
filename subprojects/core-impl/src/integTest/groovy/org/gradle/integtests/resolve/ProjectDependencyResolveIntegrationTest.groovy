@@ -16,6 +16,8 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Ignore
+import spock.lang.Issue
 
 class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec {
     public void "project dependency includes artifacts and transitive dependencies of default configuration in target project"() {
@@ -92,6 +94,51 @@ project(":b") {
     }
     task check(dependsOn: configurations.compile) << {
         assert configurations.compile.collect { it.name } == ['a.jar', 'externalA-1.2.jar']
+    }
+}
+"""
+
+        expect:
+        succeeds "check"
+    }
+
+    @Issue("GRADLE-2899")
+    @Ignore("not fixed yet")
+    public void "consuming project can refer to multiple configurations of target project"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b'"
+
+        and:
+        buildFile << """
+project(':a') {
+    configurations {
+        configA1
+        configA2
+    }
+    task A1jar(type: Jar) {
+        archiveName = 'A1.jar'
+    }
+    task A2jar(type: Jar) {
+        archiveName = 'A2.jar'
+    }
+    artifacts {
+        configA1 A1jar
+        configA2 A2jar
+    }
+}
+
+project(':b') {
+    configurations {
+        configB1
+        configB2
+    }
+    dependencies {
+        configB1 project(path:':a', configuration:'configA1')
+        configB2 project(path:':a', configuration:'configA2')
+    }
+    task check << {
+        assert configurations.configB1.collect { it.name } == ['A1.jar']
+        assert configurations.configB2.collect { it.name } == ['A2.jar']
     }
 }
 """
@@ -198,7 +245,7 @@ project(":b") {
         fails 'test'
 
         and:
-        failure.assertResolutionFailure(":b:compile").assertHasCause("Artifact 'test:a:unspecified@jar' not found.")
+        failure.assertResolutionFailure(":b:compile").assertHasCause("Artifact 'test:a:unspecified:b.jar' not found.")
     }
 
     public void "non-transitive project dependency includes only the artifacts of the target configuration"() {
