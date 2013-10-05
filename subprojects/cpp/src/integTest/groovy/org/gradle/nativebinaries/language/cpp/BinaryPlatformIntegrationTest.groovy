@@ -15,6 +15,8 @@
  */
 
 package org.gradle.nativebinaries.language.cpp
+
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativebinaries.language.cpp.fixtures.ExecutableFixture
@@ -51,6 +53,9 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
     def "build binary for multiple target platforms"() {
         // Don't yet have test environments to build 64-bit binaries on MinGW or cygwin
         if (OperatingSystem.current().windows && !toolChain.visualCpp) {
+            return
+        }
+        if (OperatingSystem.current().windows && GradleContextualExecuter.daemon) {
             return
         }
 
