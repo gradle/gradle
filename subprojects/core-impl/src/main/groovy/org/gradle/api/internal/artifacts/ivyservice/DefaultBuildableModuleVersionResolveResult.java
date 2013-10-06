@@ -19,8 +19,8 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleDescriptorAdapter;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
 
 public class DefaultBuildableModuleVersionResolveResult implements BuildableModuleVersionResolveResult {
     private ModuleVersionMetaData metaData;
@@ -46,11 +46,9 @@ public class DefaultBuildableModuleVersionResolveResult implements BuildableModu
         this.artifactResolver = artifactResolver;
     }
 
-    public void setMetaData(ModuleDescriptor descriptor) {
+    public void setMetaData(ModuleVersionMetaData metaData) {
         assertResolved();
-        ModuleDescriptorAdapter newMetaData = new ModuleDescriptorAdapter(metaData.getId(), descriptor);
-        newMetaData.setChanging(metaData.isChanging());
-        this.metaData = newMetaData;
+        this.metaData = metaData;
     }
 
     public void setArtifactResolver(ArtifactResolver artifactResolver) {

@@ -189,7 +189,7 @@ public class ExternalResourceResolver implements ModuleVersionPublisher, Configu
                 generatedModuleDescriptor.setResolvedModuleRevisionId(artifactRef.artifact.getModuleRevisionId());
             }
 
-            ModuleDescriptorAdapter metaData = new ModuleDescriptorAdapter(generatedModuleDescriptor.getModuleRevisionId(), generatedModuleDescriptor);
+            ModuleDescriptorAdapter metaData = new ModuleDescriptorAdapter(generatedModuleDescriptor);
             metaData.setChanging(isChanging(generatedModuleDescriptor));
 
             result.resolved(metaData, null);
@@ -243,7 +243,7 @@ public class ExternalResourceResolver implements ModuleVersionPublisher, Configu
             // Create dummy metadata where no metadata artifact exists
             DefaultModuleDescriptor md = DefaultModuleDescriptor.newDefaultInstance(artifact.getModuleRevisionId());
             md.setStatus("integration");
-            return new ModuleDescriptorAdapter(artifact.getModuleRevisionId(), md);
+            return new ModuleDescriptorAdapter(md);
         }
     }
 

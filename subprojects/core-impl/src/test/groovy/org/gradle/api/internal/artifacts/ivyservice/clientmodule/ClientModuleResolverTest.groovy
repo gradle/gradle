@@ -17,21 +17,18 @@
 package org.gradle.api.internal.artifacts.ivyservice.clientmodule
 
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor
-import org.apache.ivy.core.module.id.ModuleId
-import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.internal.artifacts.ivyservice.BuildableModuleVersionResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException
-import org.gradle.api.internal.artifacts.metadata.DependencyMetaData
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ClientModuleDependencyDescriptor
+import org.gradle.api.internal.artifacts.metadata.DependencyMetaData
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 
 class ClientModuleResolverTest extends Specification {
-    final ModuleDescriptor module = Mock()
-    final ModuleRevisionId moduleId = new ModuleRevisionId(new ModuleId("org", "name"), "1.0")
+    final ModuleVersionMetaData moduleMetaData = Mock()
     final DependencyToModuleVersionResolver target = Mock()
     final ClientModuleResolver resolver = new ClientModuleResolver(target)
 
@@ -42,15 +39,14 @@ class ClientModuleResolverTest extends Specification {
 
         given:
         _ * dependencyMetaData.descriptor >> dependencyDescriptor
-        _ * dependencyDescriptor.targetModule >> module
-        _ * module.moduleRevisionId >> moduleId
+        _ * dependencyDescriptor.targetModule >> moduleMetaData
 
         when:
         resolver.resolve(dependencyMetaData, result)
 
         then:
         1 * target.resolve(dependencyMetaData, result)
-        1 * result.setMetaData(module)
+        1 * result.setMetaData(moduleMetaData)
         _ * result.failure >> null
         0 * result._
     }

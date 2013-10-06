@@ -18,10 +18,11 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencie
 import org.apache.ivy.core.module.descriptor.Configuration;
 import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleDependency;
+import org.gradle.api.internal.artifacts.metadata.ModuleDescriptorAdapter;
+import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData;
 
 import java.util.Set;
 
@@ -29,14 +30,14 @@ public class DefaultModuleDescriptorFactoryForClientModule implements ModuleDesc
     // Because of bidirectional dependencies we need setter injection
     private DependencyDescriptorFactory dependencyDescriptorFactory;
 
-    public ModuleDescriptor createModuleDescriptor(ModuleRevisionId moduleRevisionId, Set<ModuleDependency> dependencies) {
+    public MutableModuleVersionMetaData createModuleDescriptor(ModuleRevisionId moduleRevisionId, Set<ModuleDependency> dependencies) {
         DefaultModuleDescriptor moduleDescriptor = new DefaultModuleDescriptor(moduleRevisionId,
                 "release", null);
         moduleDescriptor.addConfiguration(new Configuration(Dependency.DEFAULT_CONFIGURATION));
         addDependencyDescriptors(moduleDescriptor, dependencies, dependencyDescriptorFactory);
         moduleDescriptor.addArtifact(Dependency.DEFAULT_CONFIGURATION,
                 new DefaultArtifact(moduleRevisionId, null, moduleRevisionId.getName(), "jar", "jar"));
-        return moduleDescriptor;
+        return new ModuleDescriptorAdapter(moduleDescriptor);
     }
 
     private void addDependencyDescriptors(DefaultModuleDescriptor moduleDescriptor, Set<ModuleDependency> dependencies,
@@ -45,10 +46,6 @@ public class DefaultModuleDescriptorFactoryForClientModule implements ModuleDesc
             dependencyDescriptorFactory.addDependencyDescriptor(Dependency.DEFAULT_CONFIGURATION, moduleDescriptor,
                     dependency);
         }
-    }
-
-    public DependencyDescriptorFactory getDependencyDescriptorFactory() {
-        return dependencyDescriptorFactory;
     }
 
     public void setDependencyDescriptorFactory(DependencyDescriptorFactory dependencyDescriptorFactory) {

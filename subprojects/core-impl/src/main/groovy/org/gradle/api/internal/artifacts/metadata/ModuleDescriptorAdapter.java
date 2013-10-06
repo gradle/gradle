@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.metadata;
 
 import org.apache.ivy.core.module.descriptor.*;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.util.CollectionUtils;
@@ -36,8 +35,8 @@ public class ModuleDescriptorAdapter implements MutableModuleVersionMetaData {
     private List<DependencyMetaData> dependencies;
     private Map<String, DefaultConfigurationMetaData> configurations = new HashMap<String, DefaultConfigurationMetaData>();
 
-    public ModuleDescriptorAdapter(ModuleRevisionId moduleRevisionId, ModuleDescriptor moduleDescriptor) {
-        this(DefaultModuleVersionIdentifier.newId(moduleRevisionId), moduleDescriptor);
+    public ModuleDescriptorAdapter(ModuleDescriptor moduleDescriptor) {
+        this(DefaultModuleVersionIdentifier.newId(moduleDescriptor.getModuleRevisionId()), moduleDescriptor);
     }
 
     public ModuleDescriptorAdapter(ModuleVersionIdentifier identifier, ModuleDescriptor moduleDescriptor) {

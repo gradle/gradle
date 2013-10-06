@@ -45,7 +45,7 @@ public interface BuildableModuleVersionResolveResult extends ModuleVersionResolv
     /**
      * Replaces the meta-data in the result. Result must already be resolved.
      */
-    void setMetaData(ModuleDescriptor descriptor);
+    void setMetaData(ModuleVersionMetaData metaData);
 
     /**
      * Replaces the artifact resolver in the result. Result must already be resolved.

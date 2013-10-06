@@ -88,7 +88,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         parser.parse();
         DefaultModuleDescriptor moduleDescriptor = parser.getModuleDescriptor();
         postProcess(moduleDescriptor);
-        return new ModuleDescriptorAdapter(moduleDescriptor.getModuleRevisionId(), moduleDescriptor);
+        return new ModuleDescriptorAdapter(moduleDescriptor);
     }
 
     protected void postProcess(DefaultModuleDescriptor moduleDescriptor) {

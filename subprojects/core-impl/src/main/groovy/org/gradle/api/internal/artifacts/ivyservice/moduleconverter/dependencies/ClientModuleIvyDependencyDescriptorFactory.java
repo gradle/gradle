@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.ClientModule;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ExcludeRuleConverter;
+import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData;
 
 public class ClientModuleIvyDependencyDescriptorFactory extends AbstractIvyDependencyDescriptorFactory {
     private ModuleDescriptorFactoryForClientModule moduleDescriptorFactoryForClientModule;
@@ -37,13 +38,13 @@ public class ClientModuleIvyDependencyDescriptorFactory extends AbstractIvyDepen
     public EnhancedDependencyDescriptor createDependencyDescriptor(String configuration, ModuleDependency dependency, ModuleDescriptor parent) {
         ModuleRevisionId moduleRevisionId = createModuleRevisionId(dependency);
         ClientModule clientModule = getClientModule(dependency);
-        ModuleDescriptor moduleDescriptor = moduleDescriptorFactoryForClientModule.createModuleDescriptor(
+        MutableModuleVersionMetaData moduleVersionMetaData = moduleDescriptorFactoryForClientModule.createModuleDescriptor(
                 moduleRevisionId, clientModule.getDependencies());
 
         EnhancedDependencyDescriptor dependencyDescriptor = new ClientModuleDependencyDescriptor(
                 clientModule,
                 parent,
-                moduleDescriptor,
+                moduleVersionMetaData,
                 moduleRevisionId,
                 clientModule.isForce(),
                 false,

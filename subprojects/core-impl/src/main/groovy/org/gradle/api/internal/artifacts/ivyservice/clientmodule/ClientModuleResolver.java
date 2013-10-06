@@ -17,11 +17,11 @@
 package org.gradle.api.internal.artifacts.ivyservice.clientmodule;
 
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableModuleVersionResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver;
-import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ClientModuleDependencyDescriptor;
+import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
 
 public class ClientModuleResolver implements DependencyToModuleVersionResolver {
     private final DependencyToModuleVersionResolver resolver;
@@ -39,8 +39,8 @@ public class ClientModuleResolver implements DependencyToModuleVersionResolver {
         }
 
         ClientModuleDependencyDescriptor clientModuleDependencyDescriptor = (ClientModuleDependencyDescriptor) descriptor;
-        ModuleDescriptor moduleDescriptor = clientModuleDependencyDescriptor.getTargetModule();
+        ModuleVersionMetaData moduleVersionMetaData = clientModuleDependencyDescriptor.getTargetModule();
 
-        result.setMetaData(moduleDescriptor);
+        result.setMetaData(moduleVersionMetaData);
     }
 }

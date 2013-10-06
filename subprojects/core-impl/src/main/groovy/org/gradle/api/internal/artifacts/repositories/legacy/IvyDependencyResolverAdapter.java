@@ -89,7 +89,7 @@ public class IvyDependencyResolverAdapter implements ConfiguredModuleVersionRepo
                 result.missing();
             } else {
                 LOGGER.debug("Performed resolved of module '{}' in repository '{}': found", dependency.getRequested(), getName());
-                ModuleDescriptorAdapter metaData = new ModuleDescriptorAdapter(revision.getDescriptor().getModuleRevisionId(), revision.getDescriptor());
+                ModuleDescriptorAdapter metaData = new ModuleDescriptorAdapter(revision.getDescriptor());
                 metaData.setChanging(isChanging(revision));
                 result.resolved(metaData, null);
             }

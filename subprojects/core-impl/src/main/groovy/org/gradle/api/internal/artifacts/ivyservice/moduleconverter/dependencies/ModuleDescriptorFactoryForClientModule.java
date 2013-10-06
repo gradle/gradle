@@ -15,12 +15,12 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies;
 
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.ModuleDependency;
+import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData;
 
 import java.util.Set;
 
 public interface ModuleDescriptorFactoryForClientModule {
-    ModuleDescriptor createModuleDescriptor(ModuleRevisionId moduleRevisionId, Set<ModuleDependency> dependencies);
+    MutableModuleVersionMetaData createModuleDescriptor(ModuleRevisionId moduleRevisionId, Set<ModuleDependency> dependencies);
 }

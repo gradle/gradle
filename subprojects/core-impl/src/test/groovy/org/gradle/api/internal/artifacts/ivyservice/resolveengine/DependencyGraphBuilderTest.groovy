@@ -849,7 +849,7 @@ class DependencyGraphBuilderTest extends Specification {
 
     def revision(String name, String revision = '1.0') {
         DefaultModuleDescriptor descriptor = new DefaultModuleDescriptor(new ModuleRevisionId(new ModuleId("group", name), revision), "release", new Date())
-        ModuleVersionMetaData metaData = new ModuleDescriptorAdapter(descriptor.moduleRevisionId, descriptor)
+        ModuleVersionMetaData metaData = new ModuleDescriptorAdapter(descriptor)
         config(metaData, 'default')
         descriptor.addArtifact('default', new DefaultArtifact(descriptor.moduleRevisionId, new Date(), "art1", "art", "zip"))
         return metaData
