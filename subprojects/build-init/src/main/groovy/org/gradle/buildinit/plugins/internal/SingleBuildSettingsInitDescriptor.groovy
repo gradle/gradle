@@ -26,11 +26,6 @@ class SingleBuildSettingsInitDescriptor extends TemplateBasedProjectInitDescript
     }
 
     @Override
-    String getId() {
-        throw UnsupportedOperationException();
-    }
-
-    @Override
     URL getSettingsTemplate() {
         return BasicProjectInitDescriptor.class.getResource("/org/gradle/buildinit/tasks/templates/settings.gradle.template")
     }
