@@ -29,6 +29,7 @@ class DependencyReportPerformanceTest extends AbstractPerformanceTest {
         runner.testProject = testProject
         runner.tasksToRun = ['dependencyReport']
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
+        runner.targetVersions = ['1.0', '1.8', 'last']
 
         when:
         def result = runner.run()

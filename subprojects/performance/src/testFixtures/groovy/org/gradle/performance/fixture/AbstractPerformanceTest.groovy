@@ -35,7 +35,7 @@ class AbstractPerformanceTest extends Specification {
             current: new UnderDevelopmentGradleDistribution(),
             runs: 5,
             warmUpRuns: 1,
-            targetVersions: ['1.0', '1.4', '1.7', 'last'],
+            targetVersions: ['1.0', '1.4', '1.8', 'last'],
             maxExecutionTimeRegression: Duration.millis(500),
             // Our performance tests on Windows seem to need more heap
             // TODO - find out if this is a real problem

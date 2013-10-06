@@ -33,6 +33,7 @@ class FirstBuildPerformanceTest extends AbstractPerformanceTest {
         runner.args = ['--recompile-scripts']
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
         runner.maxMemoryRegression = maxMemoryRegression
+        runner.targetVersions = ['1.0', '1.4', '1.8', 'last']
 
         when:
         def result = runner.run()

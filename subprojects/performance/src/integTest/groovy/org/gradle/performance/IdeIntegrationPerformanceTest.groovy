@@ -29,6 +29,7 @@ class IdeIntegrationPerformanceTest extends AbstractPerformanceTest {
         runner.testProject = testProject
         runner.tasksToRun = ['eclipse']
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
+        runner.targetVersions = ['1.0', '1.4', '1.8', 'last']
 
         when:
         def result = runner.run()
@@ -50,6 +51,7 @@ class IdeIntegrationPerformanceTest extends AbstractPerformanceTest {
         runner.testProject = testProject
         runner.tasksToRun = ['idea']
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
+        runner.targetVersions = ['1.0', '1.4', '1.8', 'last']
 
         when:
         def result = runner.run()

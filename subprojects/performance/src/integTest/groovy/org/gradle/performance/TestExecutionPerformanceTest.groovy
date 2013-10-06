@@ -30,6 +30,7 @@ class TestExecutionPerformanceTest extends AbstractPerformanceTest {
         runner.tasksToRun = ['cleanTest', 'test']
         runner.args = ['-q']
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
+        runner.targetVersions = ['1.0', '1.4', '1.8', 'last']
 
         when:
         def result = runner.run()

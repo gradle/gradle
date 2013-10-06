@@ -29,6 +29,7 @@ class UpToDateBuildPerformanceTest extends AbstractPerformanceTest {
         runner.testProject = testProject
         runner.tasksToRun = ['build']
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
+        runner.targetVersions = ['1.0', '1.4', '1.8', 'last']
 
         when:
         def result = runner.run()
