@@ -36,7 +36,7 @@ import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.PublishModuleDescriptorConverter;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.PublishLocalComponentFactory;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.repositories.DefaultBaseRepositoryFactory;
 import org.gradle.api.internal.artifacts.repositories.legacy.LegacyDependencyResolverRepositoryFactory;
@@ -171,7 +171,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
 
         public ArtifactPublisher createArtifactPublisher() {
             return new IvyBackedArtifactPublisher(
-                    services.get(PublishModuleDescriptorConverter.class),
+                    services.get(PublishLocalComponentFactory.class),
                     services.get(IvyContextManager.class),
                     new DefaultIvyDependencyPublisher(),
                     new IvyXmlModuleDescriptorWriter()

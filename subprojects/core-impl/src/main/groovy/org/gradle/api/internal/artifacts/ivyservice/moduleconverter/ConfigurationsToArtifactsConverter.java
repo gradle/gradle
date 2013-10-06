@@ -18,6 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.artifacts.metadata.MutableLocalComponentMetaData;
 
-public interface ArtifactsToModuleDescriptorConverter {
+public interface ConfigurationsToArtifactsConverter {
     void addArtifacts(MutableLocalComponentMetaData metaData, Iterable<? extends Configuration> configurations);
 }

@@ -27,8 +27,8 @@ import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet
 import org.gradle.api.internal.artifacts.metadata.MutableLocalComponentMetaData
 import spock.lang.Specification
 
-class DefaultArtifactsToModuleDescriptorConverterTest extends Specification {
-    def converter = new DefaultArtifactsToModuleDescriptorConverter()
+class DefaultConfigurationsToArtifactsConverterTest extends Specification {
+    def converter = new DefaultConfigurationsToArtifactsConverter()
 
     def "adds artifacts from each configuration"() {
         def metaData = Mock(MutableLocalComponentMetaData)

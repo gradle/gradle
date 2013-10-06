@@ -19,29 +19,29 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Module;
-import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
+import org.gradle.api.internal.artifacts.ivyservice.LocalComponentFactory;
 import org.gradle.api.internal.artifacts.metadata.MutableLocalComponentMetaData;
 
 import java.util.Set;
 
-public class PublishModuleDescriptorConverter implements ModuleDescriptorConverter {
+public class PublishLocalComponentFactory implements LocalComponentFactory {
     static final String IVY_MAVEN_NAMESPACE = "http://ant.apache.org/ivy/maven";
     static final String IVY_MAVEN_NAMESPACE_PREFIX = "m";
 
-    private ModuleDescriptorConverter resolveModuleDescriptorConverter;
-    private ArtifactsToModuleDescriptorConverter artifactsToModuleDescriptorConverter;
+    private LocalComponentFactory resolveLocalComponentFactory;
+    private ConfigurationsToArtifactsConverter configurationsToArtifactsConverter;
 
-    public PublishModuleDescriptorConverter(ModuleDescriptorConverter resolveModuleDescriptorConverter,
-                                            ArtifactsToModuleDescriptorConverter artifactsToModuleDescriptorConverter) {
-        this.resolveModuleDescriptorConverter = resolveModuleDescriptorConverter;
-        this.artifactsToModuleDescriptorConverter = artifactsToModuleDescriptorConverter;
+    public PublishLocalComponentFactory(LocalComponentFactory resolveLocalComponentFactory,
+                                        ConfigurationsToArtifactsConverter configurationsToArtifactsConverter) {
+        this.resolveLocalComponentFactory = resolveLocalComponentFactory;
+        this.configurationsToArtifactsConverter = configurationsToArtifactsConverter;
     }
 
     public MutableLocalComponentMetaData convert(Set<? extends Configuration> configurations, Module module) {
-        MutableLocalComponentMetaData publishMetaData = resolveModuleDescriptorConverter.convert(configurations, module);
+        MutableLocalComponentMetaData publishMetaData = resolveLocalComponentFactory.convert(configurations, module);
         DefaultModuleDescriptor moduleDescriptor = publishMetaData.getModuleDescriptor();
         moduleDescriptor.addExtraAttributeNamespace(IVY_MAVEN_NAMESPACE_PREFIX, IVY_MAVEN_NAMESPACE);
-        artifactsToModuleDescriptorConverter.addArtifacts(publishMetaData, configurations);
+        configurationsToArtifactsConverter.addArtifacts(publishMetaData, configurations);
         return publishMetaData;
     }
 }

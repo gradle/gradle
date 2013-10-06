@@ -43,7 +43,7 @@ class DependencyManagementGlobalScopeServices {
     }
 
     DependencyDescriptorFactory createDependencyDescriptorFactory(ExcludeRuleConverter excludeRuleConverter, ExternalModuleIvyDependencyDescriptorFactory descriptorFactory) {
-        DefaultModuleDescriptorFactoryForClientModule clientModuleDescriptorFactory = new DefaultModuleDescriptorFactoryForClientModule();
+        DefaultClientModuleMetaDataFactory clientModuleDescriptorFactory = new DefaultClientModuleMetaDataFactory();
         DependencyDescriptorFactory dependencyDescriptorFactory = new DefaultDependencyDescriptorFactory(
                 new ClientModuleIvyDependencyDescriptorFactory(
                         excludeRuleConverter,
@@ -56,11 +56,11 @@ class DependencyManagementGlobalScopeServices {
         return dependencyDescriptorFactory;
     }
 
-    ResolveModuleDescriptorConverter createResolveModuleDescriptorConverter(ModuleDescriptorFactory moduleDescriptorFactory,
+    ResolveLocalComponentFactory createResolveModuleDescriptorConverter(ModuleDescriptorFactory moduleDescriptorFactory,
                                                                             ConfigurationsToModuleDescriptorConverter configurationsToModuleDescriptorConverter,
                                                                             DependencyDescriptorFactory dependencyDescriptorFactory,
                                                                             ExcludeRuleConverter excludeRuleConverter) {
-        return new ResolveModuleDescriptorConverter(
+        return new ResolveLocalComponentFactory(
                 moduleDescriptorFactory,
                 configurationsToModuleDescriptorConverter,
                 new DefaultDependenciesToModuleDescriptorConverter(
@@ -69,10 +69,10 @@ class DependencyManagementGlobalScopeServices {
 
     }
 
-    PublishModuleDescriptorConverter createPublishModuleDescriptorConverter(ResolveModuleDescriptorConverter moduleDescriptorConverter) {
-        return new PublishModuleDescriptorConverter(
+    PublishLocalComponentFactory createPublishModuleDescriptorConverter(ResolveLocalComponentFactory moduleDescriptorConverter) {
+        return new PublishLocalComponentFactory(
                 moduleDescriptorConverter,
-                new DefaultArtifactsToModuleDescriptorConverter());
+                new DefaultConfigurationsToArtifactsConverter());
     }
 
 }

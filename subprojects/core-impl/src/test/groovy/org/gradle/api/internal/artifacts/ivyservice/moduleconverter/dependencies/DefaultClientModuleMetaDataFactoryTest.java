@@ -29,15 +29,15 @@ import org.junit.Test;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 
-public class DefaultModuleDescriptorFactoryForClientModuleTest {
+public class DefaultClientModuleMetaDataFactoryTest {
     private JUnit4Mockery context = new JUnit4Mockery();
 
     @Test
     public void testCreateModuleDescriptor() {
         DependencyDescriptor dependencyDescriptorDummy = context.mock(DependencyDescriptor.class);
         DependencyDescriptorFactorySpy dependencyDescriptorFactorySpy = new DependencyDescriptorFactorySpy(dependencyDescriptorDummy);
-        DefaultModuleDescriptorFactoryForClientModule clientModuleDescriptorFactory =
-                new DefaultModuleDescriptorFactoryForClientModule();
+        DefaultClientModuleMetaDataFactory clientModuleDescriptorFactory =
+                new DefaultClientModuleMetaDataFactory();
         clientModuleDescriptorFactory.setDependencyDescriptorFactory(dependencyDescriptorFactorySpy);
         ModuleDependency dependencyMock = context.mock(ModuleDependency.class);
         final ModuleRevisionId moduleRevisionId = ModuleRevisionId.newInstance("org", "name", "version");

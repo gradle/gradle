@@ -32,13 +32,13 @@ import org.junit.Test;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.*;
 
-public class ClientModuleDependencyDescriptorFactoryTest extends AbstractDependencyDescriptorFactoryInternalTest {
+public class ClientModuleIvyDependencyDescriptorFactoryTest extends AbstractDependencyDescriptorFactoryInternalTest {
     private JUnit4Mockery context = new JUnit4Mockery();
 
-    private ModuleDescriptorFactoryForClientModule moduleDescriptorFactoryForClientModule = context.mock(ModuleDescriptorFactoryForClientModule.class);
+    private ClientModuleMetaDataFactory clientModuleMetaDataFactory = context.mock(ClientModuleMetaDataFactory.class);
     private ClientModuleIvyDependencyDescriptorFactory clientModuleDependencyDescriptorFactory = new ClientModuleIvyDependencyDescriptorFactory(
             excludeRuleConverterStub,
-            moduleDescriptorFactoryForClientModule
+            clientModuleMetaDataFactory
     );
 
     @Test
@@ -57,7 +57,7 @@ public class ClientModuleDependencyDescriptorFactoryTest extends AbstractDepende
         clientModule.addDependency(dependencyDependency);
         final MutableModuleVersionMetaData moduleVersionMetaData = context.mock(MutableModuleVersionMetaData.class);
         context.checking(new Expectations() {{
-            allowing(moduleDescriptorFactoryForClientModule).createModuleDescriptor(
+            allowing(clientModuleMetaDataFactory).createModuleDescriptor(
                     testModuleRevisionId,
                     WrapUtil.toSet(dependencyDependency)
             );
@@ -76,7 +76,7 @@ public class ClientModuleDependencyDescriptorFactoryTest extends AbstractDepende
         final ModuleRevisionId testModuleRevisionId = IvyUtil.createModuleRevisionId(clientModule);
         final MutableModuleVersionMetaData moduleVersionMetaData = context.mock(MutableModuleVersionMetaData.class);
         context.checking(new Expectations() {{
-            allowing(moduleDescriptorFactoryForClientModule).createModuleDescriptor(
+            allowing(clientModuleMetaDataFactory).createModuleDescriptor(
                     testModuleRevisionId,
                     WrapUtil.<ModuleDependency>toSet()
             );

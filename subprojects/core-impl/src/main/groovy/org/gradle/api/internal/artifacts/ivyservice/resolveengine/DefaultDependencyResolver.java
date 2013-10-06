@@ -48,7 +48,7 @@ import java.util.List;
 
 public class DefaultDependencyResolver implements ArtifactDependencyResolver {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultDependencyResolver.class);
-    private final ModuleDescriptorConverter moduleDescriptorConverter;
+    private final LocalComponentFactory localComponentFactory;
     private final ResolvedArtifactFactory resolvedArtifactFactory;
     private final ResolveIvyFactory ivyFactory;
     private final ProjectModuleRegistry projectModuleRegistry;
@@ -58,11 +58,11 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
     private final VersionMatcher versionMatcher;
     private final LatestStrategy latestStrategy;
 
-    public DefaultDependencyResolver(ResolveIvyFactory ivyFactory, ModuleDescriptorConverter moduleDescriptorConverter, ResolvedArtifactFactory resolvedArtifactFactory,
+    public DefaultDependencyResolver(ResolveIvyFactory ivyFactory, LocalComponentFactory localComponentFactory, ResolvedArtifactFactory resolvedArtifactFactory,
                                      ProjectModuleRegistry projectModuleRegistry, CacheLockingManager cacheLockingManager, IvyContextManager ivyContextManager,
                                      ResolutionResultsStoreFactory storeFactory, VersionMatcher versionMatcher, LatestStrategy latestStrategy) {
         this.ivyFactory = ivyFactory;
-        this.moduleDescriptorConverter = moduleDescriptorConverter;
+        this.localComponentFactory = localComponentFactory;
         this.resolvedArtifactFactory = resolvedArtifactFactory;
         this.projectModuleRegistry = projectModuleRegistry;
         this.cacheLockingManager = cacheLockingManager;
@@ -79,7 +79,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
                 DependencyToModuleVersionResolver dependencyResolver = ivyFactory.create(configuration, repositories);
 
                 dependencyResolver = new ClientModuleResolver(dependencyResolver);
-                ProjectDependencyResolver projectDependencyResolver = new ProjectDependencyResolver(projectModuleRegistry, dependencyResolver, moduleDescriptorConverter);
+                ProjectDependencyResolver projectDependencyResolver = new ProjectDependencyResolver(projectModuleRegistry, dependencyResolver, localComponentFactory);
                 dependencyResolver = projectDependencyResolver;
                 DependencyToModuleVersionIdResolver idResolver = new LazyDependencyToModuleResolver(dependencyResolver, versionMatcher);
                 idResolver = new VersionForcingDependencyToModuleResolver(idResolver, configuration.getResolutionStrategy().getDependencyResolveRule());

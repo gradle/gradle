@@ -26,7 +26,7 @@ import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData;
 
 import java.util.Set;
 
-public class DefaultModuleDescriptorFactoryForClientModule implements ModuleDescriptorFactoryForClientModule {
+public class DefaultClientModuleMetaDataFactory implements ClientModuleMetaDataFactory {
     // Because of bidirectional dependencies we need setter injection
     private DependencyDescriptorFactory dependencyDescriptorFactory;
 

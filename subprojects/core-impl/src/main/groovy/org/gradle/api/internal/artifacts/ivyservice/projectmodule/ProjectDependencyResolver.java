@@ -30,12 +30,12 @@ import java.util.Set;
 public class ProjectDependencyResolver implements DependencyToModuleVersionResolver, ModuleToModuleVersionResolver {
     private final ProjectModuleRegistry projectModuleRegistry;
     private final DependencyToModuleVersionResolver resolver;
-    private final ModuleDescriptorConverter moduleDescriptorConverter;
+    private final LocalComponentFactory localComponentFactory;
 
-    public ProjectDependencyResolver(ProjectModuleRegistry projectModuleRegistry, DependencyToModuleVersionResolver resolver, ModuleDescriptorConverter moduleDescriptorConverter) {
+    public ProjectDependencyResolver(ProjectModuleRegistry projectModuleRegistry, DependencyToModuleVersionResolver resolver, LocalComponentFactory localComponentFactory) {
         this.projectModuleRegistry = projectModuleRegistry;
         this.resolver = resolver;
-        this.moduleDescriptorConverter = moduleDescriptorConverter;
+        this.localComponentFactory = localComponentFactory;
     }
 
     public void resolve(DependencyMetaData dependency, BuildableModuleVersionResolveResult result) {
@@ -50,7 +50,7 @@ public class ProjectDependencyResolver implements DependencyToModuleVersionResol
     }
 
     public void resolve(Module module, Set<? extends Configuration> configurations, BuildableModuleVersionResolveResult result) {
-        LocalComponentMetaData componentMetaData = moduleDescriptorConverter.convert(configurations, module);
+        LocalComponentMetaData componentMetaData = localComponentFactory.convert(configurations, module);
         result.resolved(componentMetaData.toResolveMetaData(), new ProjectArtifactResolver(componentMetaData));
     }
 

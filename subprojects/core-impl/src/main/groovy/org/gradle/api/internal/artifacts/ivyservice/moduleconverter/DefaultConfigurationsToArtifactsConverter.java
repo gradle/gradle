@@ -28,7 +28,7 @@ import org.gradle.util.GUtil;
 import java.util.HashMap;
 import java.util.Map;
 
-public class DefaultArtifactsToModuleDescriptorConverter implements ArtifactsToModuleDescriptorConverter {
+public class DefaultConfigurationsToArtifactsConverter implements ConfigurationsToArtifactsConverter {
 
     public void addArtifacts(MutableLocalComponentMetaData metaData, Iterable<? extends Configuration> configurations) {
         DefaultModuleDescriptor moduleDescriptor = metaData.getModuleDescriptor();
