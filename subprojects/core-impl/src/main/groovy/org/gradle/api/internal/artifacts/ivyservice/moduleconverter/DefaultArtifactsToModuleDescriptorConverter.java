@@ -22,7 +22,7 @@ import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.internal.artifacts.BuildableModuleVersionPublishMetaData;
+import org.gradle.api.internal.artifacts.metadata.BuildableModuleVersionPublishMetaData;
 import org.gradle.util.GUtil;
 
 import java.util.HashMap;

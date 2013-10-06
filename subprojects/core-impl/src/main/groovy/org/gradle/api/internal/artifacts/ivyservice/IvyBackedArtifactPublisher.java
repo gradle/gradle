@@ -24,7 +24,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.PublishException;
 import org.gradle.api.internal.artifacts.ArtifactPublisher;
-import org.gradle.api.internal.artifacts.BuildableModuleVersionPublishMetaData;
+import org.gradle.api.internal.artifacts.metadata.BuildableModuleVersionPublishMetaData;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository;
 
@@ -57,7 +57,7 @@ public class IvyBackedArtifactPublisher implements ArtifactPublisher {
                 if (descriptor != null) {
                     ModuleDescriptor moduleDescriptor = publishMetaData.getModuleDescriptor();
                     ivyModuleDescriptorWriter.write(moduleDescriptor, descriptor);
-                    Artifact artifact = MDArtifact.newIvyArtifact(publishMetaData.getModuleDescriptor());
+                    Artifact artifact = MDArtifact.newIvyArtifact(moduleDescriptor);
                     publishMetaData.addArtifact(artifact, descriptor);
                 }
 

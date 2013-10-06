@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts;
 
 import org.apache.ivy.core.settings.IvySettings;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionPublishMetaData;
 
 import java.io.IOException;
 

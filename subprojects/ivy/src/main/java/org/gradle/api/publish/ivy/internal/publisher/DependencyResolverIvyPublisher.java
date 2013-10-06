@@ -22,7 +22,7 @@ import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionPublishMetaData;
+import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionPublishMetaData;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository;

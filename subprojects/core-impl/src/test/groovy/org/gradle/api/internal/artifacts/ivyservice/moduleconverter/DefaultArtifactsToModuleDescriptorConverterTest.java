@@ -23,7 +23,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.PublishArtifactSet;
-import org.gradle.api.internal.artifacts.BuildableModuleVersionPublishMetaData;
+import org.gradle.api.internal.artifacts.metadata.BuildableModuleVersionPublishMetaData;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
 import org.gradle.util.TestUtil;
 import org.gradle.util.JUnit4GroovyMockery;
