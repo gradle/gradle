@@ -20,8 +20,6 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 
-import java.util.Collection;
-
 public interface LocalComponentMetaData {
     ModuleVersionIdentifier getId();
 
@@ -35,9 +33,7 @@ public interface LocalComponentMetaData {
     /**
      * Converts this component to publication meta-data.
      */
-    ModuleVersionPublishMetaData toPublishMetaData();
-
-    Collection<? extends LocalArtifactMetaData> getArtifacts();
+    BuildableModuleVersionPublishMetaData toPublishMetaData();
 
     @Nullable
     LocalArtifactMetaData getArtifact(ModuleVersionArtifactIdentifier artifactIdentifier);

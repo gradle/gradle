@@ -24,5 +24,5 @@ import java.io.File;
 public interface MutableLocalComponentMetaData extends LocalComponentMetaData {
     DefaultModuleDescriptor getModuleDescriptor();
 
-    void addArtifact(Artifact artifact, File file);
+    void addArtifact(String configuration, Artifact artifact, File file);
 }

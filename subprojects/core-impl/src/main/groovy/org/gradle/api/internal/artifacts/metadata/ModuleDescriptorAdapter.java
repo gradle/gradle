@@ -136,6 +136,19 @@ public class ModuleDescriptorAdapter implements MutableModuleVersionMetaData {
         return configuration;
     }
 
+    protected Set<ModuleVersionArtifactMetaData> getArtifactsForConfiguration(ConfigurationMetaData configurationMetaData) {
+        Set<Artifact> seen = new HashSet<Artifact>();
+        Set<ModuleVersionArtifactMetaData> artifacts = new LinkedHashSet<ModuleVersionArtifactMetaData>();
+        for (String ancestor : configurationMetaData.getHierarchy()) {
+            for (Artifact artifact : moduleDescriptor.getArtifacts(ancestor)) {
+                if (seen.add(artifact)) {
+                    artifacts.add(new DefaultModuleVersionArtifactMetaData(moduleVersionIdentifier, artifact));
+                }
+            }
+        }
+        return artifacts;
+    }
+
     private class DefaultConfigurationMetaData implements ConfigurationMetaData {
         private final String name;
         private final Configuration descriptor;
@@ -223,15 +236,7 @@ public class ModuleDescriptorAdapter implements MutableModuleVersionMetaData {
 
         public Set<ModuleVersionArtifactMetaData> getArtifacts() {
             if (artifacts == null) {
-                Set<Artifact> seen = new HashSet<Artifact>();
-                artifacts = new LinkedHashSet<ModuleVersionArtifactMetaData>();
-                for (String ancestor : hierarchy) {
-                    for (Artifact artifact : moduleDescriptor.getArtifacts(ancestor)) {
-                        if (seen.add(artifact)) {
-                            artifacts.add(new DefaultModuleVersionArtifactMetaData(moduleVersionIdentifier, artifact));
-                        }
-                    }
-                }
+                artifacts = getArtifactsForConfiguration(this);
             }
             return artifacts;
         }

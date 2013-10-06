@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.metadata;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
+import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -54,6 +55,7 @@ public class DefaultModuleVersionArtifactMetaData implements ModuleVersionArtifa
         return new DefaultArtifactIdentifier(artifact);
     }
 
+    @Nullable
     public String getClassifier() {
         return (String) artifact.getQualifiedExtraAttributes().get(Dependency.CLASSIFIER);
     }
@@ -66,6 +68,7 @@ public class DefaultModuleVersionArtifactMetaData implements ModuleVersionArtifa
         return artifact.getType();
     }
 
+    @Nullable
     public String getExtension() {
         return artifact.getExt();
     }

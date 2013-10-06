@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.PublishException;
 import org.gradle.api.internal.artifacts.ArtifactPublisher;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
+import org.gradle.api.internal.artifacts.metadata.BuildableModuleVersionPublishMetaData;
 import org.gradle.api.internal.artifacts.metadata.MutableLocalComponentMetaData;
 import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository;
 
@@ -55,15 +56,17 @@ public class IvyBackedArtifactPublisher implements ArtifactPublisher {
                 Set<Configuration> allConfigurations = configuration.getAll();
                 Set<Configuration> configurationsToPublish = configuration.getHierarchy();
 
-                MutableLocalComponentMetaData publishMetaData = publishModuleDescriptorConverter.convert(allConfigurations, module);
+                MutableLocalComponentMetaData componentMetaData = publishModuleDescriptorConverter.convert(allConfigurations, module);
                 if (descriptor != null) {
-                    ModuleDescriptor moduleDescriptor = publishMetaData.getModuleDescriptor();
+                    ModuleDescriptor moduleDescriptor = componentMetaData.getModuleDescriptor();
                     ivyModuleDescriptorWriter.write(moduleDescriptor, descriptor);
                 }
 
-                publishMetaData = publishModuleDescriptorConverter.convert(configurationsToPublish, module);
+                // Need to convert a second time, to determine which artifacts to publish
+                componentMetaData = publishModuleDescriptorConverter.convert(configurationsToPublish, module);
+                BuildableModuleVersionPublishMetaData publishMetaData = componentMetaData.toPublishMetaData();
                 if (descriptor != null) {
-                    Artifact artifact = MDArtifact.newIvyArtifact(publishMetaData.getModuleDescriptor());
+                    Artifact artifact = MDArtifact.newIvyArtifact(componentMetaData.getModuleDescriptor());
                     publishMetaData.addArtifact(artifact, descriptor);
                 }
 
@@ -74,7 +77,7 @@ public class IvyBackedArtifactPublisher implements ArtifactPublisher {
                     publishResolvers.add(publisher);
                 }
 
-                dependencyPublisher.publish(publishResolvers, publishMetaData.toPublishMetaData());
+                dependencyPublisher.publish(publishResolvers, publishMetaData);
             }
         });
     }

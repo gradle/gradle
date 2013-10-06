@@ -35,8 +35,7 @@ public class DefaultArtifactsToModuleDescriptorConverter implements ArtifactsToM
         for (Configuration configuration : configurations) {
             for (PublishArtifact publishArtifact : configuration.getArtifacts()) {
                 Artifact ivyArtifact = createIvyArtifact(publishArtifact, moduleDescriptor.getModuleRevisionId());
-                moduleDescriptor.addArtifact(configuration.getName(), ivyArtifact);
-                metaData.addArtifact(ivyArtifact, publishArtifact.getFile());
+                metaData.addArtifact(configuration.getName(), ivyArtifact, publishArtifact.getFile());
             }
         }
     }
@@ -46,10 +45,14 @@ public class DefaultArtifactsToModuleDescriptorConverter implements ArtifactsToM
         if (GUtil.isTrue(publishArtifact.getClassifier())) {
             extraAttributes.put(Dependency.CLASSIFIER, publishArtifact.getClassifier());
         }
+        String name = publishArtifact.getName();
+        if (!GUtil.isTrue(name)) {
+            name = moduleRevisionId.getName();
+        }
         return new DefaultArtifact(
                 moduleRevisionId,
                 publishArtifact.getDate(),
-                publishArtifact.getName(),
+                name,
                 publishArtifact.getType(),
                 publishArtifact.getExtension(),
                 extraAttributes);

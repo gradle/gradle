@@ -23,49 +23,6 @@ import spock.lang.Issue
 
 class ProjectDependenciesIntegrationTest extends AbstractDependencyResolutionTest {
 
-    @Issue("GRADLE-2899")
-    def "resolves artifacts from different configurations"() {
-        settingsFile << "include 'a', 'b'"
-        file("a/build.gradle") << """
-            configurations {
-                configA1
-                configA2
-            }
-            task A1jar(type: Jar) {
-                archiveName = 'A1.jar'
-                destinationDir = file("build/tmplibs")
-            }
-            task A2jar(type: Jar) {
-                archiveName = 'A2.jar'
-                destinationDir = file("build/tmplibs")
-            }
-            artifacts {
-                configA1 A1jar
-                configA2 A2jar
-            }
-        """
-
-        file("b/build.gradle") << """
-            configurations {
-                configB1
-                configB2
-            }
-
-            dependencies {
-                configB1 project(path:':a', configuration:'configA1')
-                configB2 project(path:':a', configuration:'configA2')
-            }
-
-            task assertDependencies << {
-                assert configurations.configB1.files*.name == ['A1.jar']
-                assert configurations.configB2.files*.name == ['A2.jar']
-            }
-        """
-
-        expect:
-        run "assertDependencies"
-    }
-
     @Issue("GRADLE-2477") //this is a feature on its own but also covers one of the reported issues
     def "resolving project dependency triggers configuration of the target project"() {
         settingsFile << "include 'impl'"

@@ -43,7 +43,7 @@ public class ArchivePublishArtifact extends AbstractPublishArtifact {
         if (archiveTask.getBaseName() != null) {
             return withAppendix(archiveTask.getBaseName());
         }
-        return archiveTask.getArchiveName();
+        return archiveTask.getAppendix();
     }
 
     private String withAppendix(String baseName) {

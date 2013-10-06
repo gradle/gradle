@@ -16,7 +16,6 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Ignore
 import spock.lang.Issue
 
 class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec {
@@ -103,7 +102,6 @@ project(":b") {
     }
 
     @Issue("GRADLE-2899")
-    @Ignore("not fixed yet")
     public void "consuming project can refer to multiple configurations of target project"() {
         given:
         file('settings.gradle') << "include 'a', 'b'"

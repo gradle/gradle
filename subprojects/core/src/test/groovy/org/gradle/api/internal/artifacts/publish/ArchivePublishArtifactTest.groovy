@@ -45,12 +45,12 @@ public class ArchivePublishArtifactTest extends Specification {
         def withAppendixOnly = TestUtil.createTask(DummyJar, [appendix: "javadoc"])
 
         expect:
-        new ArchivePublishArtifact(noName).name == ".jar" //hmmm, unlikely
-        new ArchivePublishArtifact(withArchiveName).name == "hey"
+        new ArchivePublishArtifact(noName).name == null
+        new ArchivePublishArtifact(withArchiveName).name == null
         new ArchivePublishArtifact(withBaseName).name == "foo"
         new ArchivePublishArtifact(withBaseName).setName("haha").name == "haha"
         new ArchivePublishArtifact(withAppendix).name == "foo-javadoc"
-        new ArchivePublishArtifact(withAppendixOnly).name == "javadoc.jar" //hmmm, unlikely
+        new ArchivePublishArtifact(withAppendixOnly).name == "javadoc"
     }
 
     static class DummyJar extends AbstractArchiveTask {

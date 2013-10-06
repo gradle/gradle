@@ -16,19 +16,25 @@
 
 package org.gradle.api.internal.artifacts.metadata
 
-import org.apache.ivy.core.module.descriptor.Artifact
+import org.apache.ivy.core.module.descriptor.Configuration
+import org.apache.ivy.core.module.descriptor.DefaultArtifact
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
+import org.apache.ivy.core.module.id.ModuleRevisionId
 import spock.lang.Specification
 
 class DefaultLocalComponentMetaDataTest extends Specification {
-    def metaData = new DefaultLocalComponentMetaData(Stub(DefaultModuleDescriptor))
+    def moduleDescriptor = DefaultModuleDescriptor.newDefaultInstance(ModuleRevisionId.newInstance("group", "module", "version"))
+    def metaData = new DefaultLocalComponentMetaData(moduleDescriptor)
 
     def "can add artifacts"() {
-        def artifact = Stub(Artifact)
+        def artifact = artifact()
         def file = new File("artifact.zip")
 
+        given:
+        moduleDescriptor.addConfiguration(new Configuration("conf"))
+
         when:
-        metaData.addArtifact(artifact, file)
+        metaData.addArtifact("conf", artifact, file)
 
         then:
         metaData.artifacts.size() == 1
@@ -39,14 +45,52 @@ class DefaultLocalComponentMetaDataTest extends Specification {
 
         and:
         metaData.getArtifact(publishArtifact.id) == publishArtifact
+
+        and:
+        moduleDescriptor.getArtifacts("conf") == [artifact]
+    }
+
+    def "handles artifacts with duplicate attributes and different files"() {
+        def artifact1 = artifact()
+        def artifact2 = artifact()
+        def file1 = new File("artifact-1.zip")
+        def file2 = new File("artifact-2.zip")
+
+        given:
+        moduleDescriptor.addConfiguration(new Configuration("conf1"))
+        moduleDescriptor.addConfiguration(new Configuration("conf2"))
+        metaData.addArtifact("conf1", artifact1, file1)
+        metaData.addArtifact("conf2", artifact2, file2)
+
+        when:
+        def resolveMetaData = metaData.toResolveMetaData()
+
+        then:
+        def conf1Artifacts = resolveMetaData.getConfiguration("conf1").artifacts as List
+        conf1Artifacts.size() == 1
+        def artifactMetadata1 = conf1Artifacts[0]
+        artifactMetadata1.artifact.is(artifact1)
+
+        def conf2Artifacts = resolveMetaData.getConfiguration("conf2").artifacts as List
+        conf2Artifacts.size() == 1
+        def artifactMetadata2 = conf2Artifacts[0]
+        artifactMetadata2.artifact.is(artifact2)
+
+        and:
+        artifactMetadata1.id != artifactMetadata2.id
+
+        and:
+        metaData.getArtifact(artifactMetadata1.id).file == file1
+        metaData.getArtifact(artifactMetadata2.id).file == file2
     }
 
     def "can convert to publish meta-data"() {
-        def artifact = Stub(Artifact)
+        def artifact = artifact()
         def file = new File("artifact.zip")
 
         given:
-        metaData.addArtifact(artifact, file)
+        moduleDescriptor.addConfiguration(new Configuration("conf"))
+        metaData.addArtifact("conf", artifact, file)
 
         when:
         def publishMetaData = metaData.toPublishMetaData()
@@ -60,5 +104,9 @@ class DefaultLocalComponentMetaDataTest extends Specification {
         def publishArtifact = artifacts[0]
         publishArtifact.artifact == artifact
         publishArtifact.file == file
+    }
+
+    def artifact() {
+        return new DefaultArtifact(moduleDescriptor.getModuleRevisionId(), null, "artifact", "type", "ext")
     }
 }
