@@ -98,26 +98,28 @@ If multiple tasks match, details of the matching tasks are shown
     * `gradle help --task` on task referenced by full path  (e.g. `:someProj:dependencies`)
     * `gradle help --task` on implicit task task
     * `gradle help --task` on task defined via placeholder
-    * `gradle help --task` on non existing task
+    * `gradle help --task` on non existing task displays reasonable error message, including candidate matches
     * `gradle help --task` on multiple matching tasks
+    * `gradle help --task` using camel-case matching to select task
 
 ### Implementation approach
+
 - Change the `help` task:
     - add `--task` commandline property
-    - change displayHelp implementation to print task details when --task is set
-    - task details (task name, task type, path, commandline options)
-    - lookup project tasks and implicit tasks
+    - change displayHelp implementation to print task details when `--task` is set
+    - lookup project tasks and implicit tasks using the task selector
     - throw decent error message when requested task cannot be found
+    - task details (task name, task type, path)
 
-- Change resolution message in `CommandLineTaskConfigurer` to run `gradle help <broken-task>` or `gradle --help`.
+- Update the 'using Gradle from the command-line' user guide chapter to mention the help task.
 
 ## Help task shows command-line options for a task (but not the legal values for each option)
 
-Eventually available commandline properties of the task passed to help are listed including a description.
+Commandline options of the task passed to help are listed including a description.
 
 ### User visible changes
 
-The usage message of running `gradle help --task init` includes commandline options (--type)
+The usage message of running `gradle help --task <task>` lists commandline options of the selected tasks.
 
 ### Test coverage
 
@@ -127,6 +129,11 @@ The usage message of running `gradle help --task init` includes commandline opti
     * `gradle help` on implicit task no commandline properties
     * `gradle help` on implicit task with no commandline properties
     * `gradle help --tassk help` (should print hint to `gradle help --task help`)
+
+### Implementation approach
+
+- Change configuration error message in `CommandLineTaskConfigurer` to suggest that the user run `gradle help --task <broken-task>`.
+- Update the 'using Gradle from the command-line' user guide chapter.
 
 ## Help task shows legal values for each command-line option.
 
@@ -142,6 +149,10 @@ The usage message of running `gradle help --task init` includes the available va
     * `gradle help` on task with String property mapped to commandline option
     * `gradle help --task init` shows all available init types
 
+- A reasonable error message is provided when user specified an illegal value for an enum property from the command-line.
+- A reasonable error message is provided when user specified an illegal value for an string property from the command-line.
+- A reasonable error message is provided when a string property is configured with an illegal value in the build script.
+
 ### Implementation approach
 
 - Introduce marker annotation `Option("optionName")` to mark a task property mapped to a commandline option.
@@ -152,8 +163,9 @@ The usage message of running `gradle help --task init` includes the available va
 - `@Option("optionName")` annotated on a getter method evaluates the available options from the parameter type)
 
 - Introduce marker annotation `OptionValues("optionName")` to to allow a dynamic value lookup in the task implementation itself.
-- Adapt InitBuild task to use @OptionValues to map values for the `--type` command line option.
-- Update userguide/docs
+- Adapt InitBuild task to use `@OptionValues` to map values for the `--type` command line option.
+- Add a task validator that validates a string property has a legal value at execution time.
+- Update the 'using Gradle from the command-line' user guide chapter.
 
 ## Support camel-case matching for task commandline properties
 
@@ -163,13 +175,16 @@ The user can run `gradle init --type java-lib` instead of `gradle init --type ja
 
 ### Test coverage
 
-TBD
+- Use camel-case matching for a commandline property that accepts an enum type
+- Use camel-case matching for a commandline property that accepts an string type
+- Error message for illegal enum value includes candidate matches
+- Error message for illegal string value includes candidate matches
 
 ### Implementation approach
 
 - Use NameMatcher in commandline configuration.
 
-## Add command-line options to other tasks
+## Add command-line options to more tasks
 
 ### User visible changes
 
