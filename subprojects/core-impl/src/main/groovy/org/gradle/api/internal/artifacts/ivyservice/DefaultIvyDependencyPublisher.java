@@ -17,8 +17,8 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
-import org.apache.ivy.core.module.descriptor.MDArtifact;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.internal.artifacts.BuildableModuleVersionPublishMetaData;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionPublishMetaData;
 import org.gradle.api.internal.artifacts.ModuleVersionPublishMetaData;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
@@ -30,17 +30,18 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class DefaultIvyDependencyPublisher implements IvyDependencyPublisher {
     private static Logger logger = LoggerFactory.getLogger(DefaultIvyDependencyPublisher.class);
 
-    public void publish(Set<String> configurations,
-                        List<ModuleVersionPublisher> publishResolvers,
-                        ModuleVersionPublishMetaData publishMetaData,
-                        File descriptorDestination) {
+    public void publish(List<ModuleVersionPublisher> publishResolvers,
+                        ModuleVersionPublishMetaData publishMetaData) {
         try {
-            Publication publication = new Publication(publishMetaData, descriptorDestination);
+            // Make a copy of the publication and filter missing artifacts
+            DefaultModuleVersionPublishMetaData publication = new DefaultModuleVersionPublishMetaData((DefaultModuleDescriptor) publishMetaData.getModuleDescriptor());
+            for (Map.Entry<Artifact, File> entry : publishMetaData.getArtifacts().entrySet()) {
+                addPublishedArtifact(entry.getKey(), entry.getValue(), publication);
+            }
             for (ModuleVersionPublisher publisher : publishResolvers) {
                 logger.info("Publishing to {}", publisher);
                 publisher.publish(publication);
@@ -50,47 +51,25 @@ public class DefaultIvyDependencyPublisher implements IvyDependencyPublisher {
         }
     }
 
-    private static class Publication extends DefaultModuleVersionPublishMetaData {
-        private final File descriptorFile;
-
-        private Publication(ModuleVersionPublishMetaData metaData, File descriptorFile) {
-            super((DefaultModuleDescriptor) metaData.getModuleDescriptor());
-            this.descriptorFile = descriptorFile;
-            for (Map.Entry<Artifact, File> entry : metaData.getArtifacts().entrySet()) {
-                addPublishedArtifact(entry.getKey(), entry.getValue());
-            }
-            if (descriptorFile != null) {
-                addPublishedDescriptor();
-            }
+    private void addPublishedArtifact(Artifact artifact, File artifactFile, BuildableModuleVersionPublishMetaData publication) {
+        if (checkArtifactFileExists(artifact, artifactFile)) {
+            publication.addArtifact(artifact, artifactFile);
         }
+    }
 
-        private void addPublishedDescriptor() {
-            Artifact artifact = MDArtifact.newIvyArtifact(getModuleDescriptor());
-            if (checkArtifactFileExists(artifact, descriptorFile)) {
-                addArtifact(artifact, descriptorFile);
-            }
+    private boolean checkArtifactFileExists(Artifact artifact, File artifactFile) {
+        if (artifactFile.exists()) {
+            return true;
         }
+        // TODO:DAZ This hack is required so that we don't log a warning when the Signing plugin is used. We need to allow conditional configurations so we can remove this.
+        if (!isSigningArtifact(artifact)) {
+            String message = String.format("Attempted to publish an artifact '%s' that does not exist '%s'", artifact.getModuleRevisionId(), artifactFile);
+            DeprecationLogger.nagUserOfDeprecatedBehaviour(message);
+        }
+        return false;
+    }
 
-        private void addPublishedArtifact(Artifact artifact, File artifactFile) {
-            if (checkArtifactFileExists(artifact, artifactFile)) {
-                addArtifact(artifact, artifactFile);
-            }
-        }
-
-        private boolean checkArtifactFileExists(Artifact artifact, File artifactFile) {
-            if (artifactFile.exists()) {
-                return true;
-            }
-            // TODO:DAZ This hack is required so that we don't log a warning when the Signing plugin is used. We need to allow conditional configurations so we can remove this.
-            if (!isSigningArtifact(artifact)) {
-                String message = String.format("Attempted to publish an artifact '%s' that does not exist '%s'", artifact.getModuleRevisionId(), artifactFile);
-                DeprecationLogger.nagUserOfDeprecatedBehaviour(message);
-            }
-            return false;
-        }
-
-        private boolean isSigningArtifact(Artifact artifact) {
-            return artifact.getType().endsWith(".asc") || artifact.getType().endsWith(".sig");
-        }
+    private boolean isSigningArtifact(Artifact artifact) {
+        return artifact.getType().endsWith(".asc") || artifact.getType().endsWith(".sig");
     }
 }

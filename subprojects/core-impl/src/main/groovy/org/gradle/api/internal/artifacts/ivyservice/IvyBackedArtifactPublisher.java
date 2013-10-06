@@ -16,15 +16,16 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.ivy.Ivy;
+import org.apache.ivy.core.module.descriptor.Artifact;
+import org.apache.ivy.core.module.descriptor.MDArtifact;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.PublishException;
 import org.gradle.api.internal.artifacts.ArtifactPublisher;
-import org.gradle.api.internal.artifacts.ModuleVersionPublishMetaData;
+import org.gradle.api.internal.artifacts.BuildableModuleVersionPublishMetaData;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
-import org.gradle.api.internal.artifacts.configurations.Configurations;
 import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository;
 
 import java.io.File;
@@ -52,10 +53,12 @@ public class IvyBackedArtifactPublisher implements ArtifactPublisher {
         ivyContextManager.withIvy(new Action<Ivy>() {
             public void execute(Ivy ivy) {
                 Set<Configuration> allConfigurations = configurations.iterator().next().getAll();
-                ModuleVersionPublishMetaData publishMetaData = publishModuleDescriptorConverter.convert(allConfigurations, module);
+                BuildableModuleVersionPublishMetaData publishMetaData = publishModuleDescriptorConverter.convert(allConfigurations, module);
                 if (descriptor != null) {
                     ModuleDescriptor moduleDescriptor = publishMetaData.getModuleDescriptor();
                     ivyModuleDescriptorWriter.write(moduleDescriptor, descriptor);
+                    Artifact artifact = MDArtifact.newIvyArtifact(publishMetaData.getModuleDescriptor());
+                    publishMetaData.addArtifact(artifact, descriptor);
                 }
 
                 List<ModuleVersionPublisher> publishResolvers = new ArrayList<ModuleVersionPublisher>();
@@ -66,12 +69,7 @@ public class IvyBackedArtifactPublisher implements ArtifactPublisher {
                 }
 
                 publishMetaData = publishModuleDescriptorConverter.convert(configurations, module);
-                Set<String> confs = Configurations.getNames(configurations, false);
-                dependencyPublisher.publish(
-                        confs,
-                        publishResolvers,
-                        publishMetaData,
-                        descriptor);
+                dependencyPublisher.publish(publishResolvers, publishMetaData);
             }
         });
     }
