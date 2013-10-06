@@ -1,3 +1,10 @@
+
+This release of Gradle is mostly a bug fix release. However, it still contains some nice new features.
+
+Faster incremental builds and parallel compilation.
+
+Variants for native binaries.
+
 ## New and noteworthy
 
 Here are the new features introduced in this Gradle release.
@@ -88,13 +95,14 @@ executables {
 
 ### Initializing `Groovy` or a `Scala` project
 
-It was never easier to setup a `Java`, `Scala` or `Groovy` project with Gradle. The `build-init` ships with
-two additional templates for initializing a new project
+It was never easier to setup a Java, Scala or Groovy project with Gradle. The `build-init` plugin now ships with
+two additional templates for initializing a new project:
 
-* `groovy-library` creates a simple Groovy project with spock as testing framework
-* `scala-library` creates a simple Scala project with `scalatest` as testing framework
+* `groovy-library` creates a simple Groovy project with Spock as testing framework.
+* `scala-library` creates a simple Scala project with scalatest as testing framework.
 
 To initialize a new project just run
+
 <pre>
 gradle init --type groovy-library
 </pre>
@@ -148,7 +156,7 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ## Potential breaking changes
 
-### Renamings in incubating BuildSetup plugin
+### Renames in incubating BuildSetup plugin
 
 * The ´BuildSetup´ task was renamed to ´InitBuild´.
 * The plugin ´build-setup was renamed to ´build-init´.
