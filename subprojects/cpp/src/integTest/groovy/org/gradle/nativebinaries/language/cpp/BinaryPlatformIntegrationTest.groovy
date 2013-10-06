@@ -55,9 +55,6 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
         if (OperatingSystem.current().windows && !toolChain.visualCpp) {
             return
         }
-        if (OperatingSystem.current().windows && GradleContextualExecuter.daemon) {
-            return
-        }
 
         when:
         buildFile << """
