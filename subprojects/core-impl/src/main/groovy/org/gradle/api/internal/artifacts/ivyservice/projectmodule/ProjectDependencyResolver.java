@@ -15,20 +15,18 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionPublishMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ProjectDependencyDescriptor;
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactPublishMetaData;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionPublishMetaData;
 
-import java.io.File;
-import java.util.Map;
 import java.util.Set;
 
 public class ProjectDependencyResolver implements DependencyToModuleVersionResolver, ModuleToModuleVersionResolver {
@@ -70,13 +68,12 @@ public class ProjectDependencyResolver implements DependencyToModuleVersionResol
         }
 
         public void resolve(ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result) {
-            for (Map.Entry<Artifact, File> entry : publishMetaData.getArtifacts().entrySet()) {
-                if (entry.getKey().getId().equals(artifact.getArtifact().getId())) {
-                    result.resolved(entry.getValue());
-                    return;
-                }
+            ModuleVersionArtifactPublishMetaData publishArtifact = publishMetaData.getArtifact(artifact.getId());
+            if (publishArtifact != null) {
+                result.resolved(publishArtifact.getFile());
+            } else {
+                result.notFound(artifact.getId());
             }
-            result.notFound(artifact.getId());
         }
     }
 }

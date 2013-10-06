@@ -16,19 +16,18 @@
 
 package org.gradle.api.internal.artifacts.metadata;
 
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.gradle.api.Nullable;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.apache.ivy.core.module.descriptor.Artifact;
 
-import java.util.Collection;
+import java.io.File;
 
-public interface ModuleVersionPublishMetaData {
-    ModuleVersionIdentifier getId();
+public interface ModuleVersionArtifactPublishMetaData {
+    ModuleVersionArtifactIdentifier getId();
 
-    ModuleDescriptor getModuleDescriptor();
+    /**
+     * Returns this artifact as an Ivy Artifact. This method is here to allow us to migrate away from the Ivy types
+     * and will be removed.
+     */
+    Artifact getArtifact();
 
-    Collection<ModuleVersionArtifactPublishMetaData> getArtifacts();
-
-    @Nullable
-    ModuleVersionArtifactPublishMetaData getArtifact(ModuleVersionArtifactIdentifier artifactIdentifier);
+    File getFile();
 }

@@ -22,11 +22,12 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class DefaultModuleVersionPublishMetaData implements BuildableModuleVersionPublishMetaData {
-    private final Map<Artifact, File> artifacts = new LinkedHashMap<Artifact, File>();
+    private final Map<ModuleVersionArtifactIdentifier, ModuleVersionArtifactPublishMetaData> artifactsById = new LinkedHashMap<ModuleVersionArtifactIdentifier, ModuleVersionArtifactPublishMetaData>();
     private final DefaultModuleDescriptor moduleDescriptor;
     private final ModuleVersionIdentifier id;
 
@@ -44,10 +45,39 @@ public class DefaultModuleVersionPublishMetaData implements BuildableModuleVersi
     }
 
     public void addArtifact(Artifact artifact, File file) {
-        artifacts.put(artifact, file);
+        DefaultModuleVersionArtifactPublishMetaData publishMetaData = new DefaultModuleVersionArtifactPublishMetaData(id, artifact, file);
+        artifactsById.put(publishMetaData.getId(), publishMetaData);
     }
 
-    public Map<Artifact, File> getArtifacts() {
-        return artifacts;
+    public Collection<ModuleVersionArtifactPublishMetaData> getArtifacts() {
+        return artifactsById.values();
+    }
+
+    public ModuleVersionArtifactPublishMetaData getArtifact(ModuleVersionArtifactIdentifier artifactIdentifier) {
+        return artifactsById.get(artifactIdentifier);
+    }
+
+    private static class DefaultModuleVersionArtifactPublishMetaData implements ModuleVersionArtifactPublishMetaData {
+        private final ModuleVersionArtifactIdentifier id;
+        private final Artifact artifact;
+        private final File file;
+
+        private DefaultModuleVersionArtifactPublishMetaData(ModuleVersionIdentifier moduleVersionIdentifier, Artifact artifact, File file) {
+            this.id = new DefaultModuleVersionArtifactIdentifier(moduleVersionIdentifier, artifact.getName(), artifact.getType(), artifact.getExt(), artifact.getQualifiedExtraAttributes());
+            this.artifact = artifact;
+            this.file = file;
+        }
+
+        public Artifact getArtifact() {
+            return artifact;
+        }
+
+        public ModuleVersionArtifactIdentifier getId() {
+            return id;
+        }
+
+        public File getFile() {
+            return file;
+        }
     }
 }

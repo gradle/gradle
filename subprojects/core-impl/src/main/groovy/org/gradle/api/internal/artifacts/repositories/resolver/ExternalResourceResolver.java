@@ -26,7 +26,6 @@ import org.apache.ivy.util.ChecksumHelper;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionPublishMetaData;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver;
@@ -59,7 +58,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import static org.gradle.api.internal.artifacts.repositories.cachemanager.RepositoryArtifactCache.ExternalResourceDownloader;
 
@@ -490,8 +488,8 @@ public class ExternalResourceResolver implements ModuleVersionPublisher, Configu
     }
 
     public void publish(ModuleVersionPublishMetaData moduleVersion) throws IOException {
-        for (Map.Entry<Artifact, File> entry : moduleVersion.getArtifacts().entrySet()) {
-            publish(entry.getKey(), entry.getValue());
+        for (ModuleVersionArtifactPublishMetaData artifact : moduleVersion.getArtifacts()) {
+            publish(artifact.getArtifact(), artifact.getFile());
         }
     }
 

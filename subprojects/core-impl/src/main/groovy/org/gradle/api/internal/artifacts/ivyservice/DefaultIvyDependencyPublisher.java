@@ -18,10 +18,11 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.metadata.BuildableModuleVersionPublishMetaData;
 import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionPublishMetaData;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactPublishMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionPublishMetaData;
-import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.util.DeprecationLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +30,6 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
 public class DefaultIvyDependencyPublisher implements IvyDependencyPublisher {
     private static Logger logger = LoggerFactory.getLogger(DefaultIvyDependencyPublisher.class);
@@ -39,8 +39,8 @@ public class DefaultIvyDependencyPublisher implements IvyDependencyPublisher {
         try {
             // Make a copy of the publication and filter missing artifacts
             DefaultModuleVersionPublishMetaData publication = new DefaultModuleVersionPublishMetaData((DefaultModuleDescriptor) publishMetaData.getModuleDescriptor());
-            for (Map.Entry<Artifact, File> entry : publishMetaData.getArtifacts().entrySet()) {
-                addPublishedArtifact(entry.getKey(), entry.getValue(), publication);
+            for (ModuleVersionArtifactPublishMetaData artifact: publishMetaData.getArtifacts()) {
+                addPublishedArtifact(artifact, publication);
             }
             for (ModuleVersionPublisher publisher : publishResolvers) {
                 logger.info("Publishing to {}", publisher);
@@ -51,7 +51,9 @@ public class DefaultIvyDependencyPublisher implements IvyDependencyPublisher {
         }
     }
 
-    private void addPublishedArtifact(Artifact artifact, File artifactFile, BuildableModuleVersionPublishMetaData publication) {
+    private void addPublishedArtifact(ModuleVersionArtifactPublishMetaData metaData, BuildableModuleVersionPublishMetaData publication) {
+        Artifact artifact = metaData.getArtifact();
+        File artifactFile = metaData.getFile();
         if (checkArtifactFileExists(artifact, artifactFile)) {
             publication.addArtifact(artifact, artifactFile);
         }

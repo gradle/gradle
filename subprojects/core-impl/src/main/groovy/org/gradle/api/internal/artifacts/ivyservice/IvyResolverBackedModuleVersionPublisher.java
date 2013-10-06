@@ -21,12 +21,12 @@ import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionPublishMetaData;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactPublishMetaData;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionPublishMetaData;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Map;
 
 public class IvyResolverBackedModuleVersionPublisher implements ModuleVersionPublisher {
     private final DependencyResolver resolver;
@@ -50,9 +50,9 @@ public class IvyResolverBackedModuleVersionPublisher implements ModuleVersionPub
             ModuleVersionIdentifier id = moduleVersion.getId();
             ModuleRevisionId ivyId = ModuleRevisionId.newInstance(id.getGroup(), id.getName(), id.getVersion());
             resolver.beginPublishTransaction(ivyId, true);
-            for (Map.Entry<Artifact, File> entry : moduleVersion.getArtifacts().entrySet()) {
-                Artifact artifact = entry.getKey();
-                File artifactFile = entry.getValue();
+            for (ModuleVersionArtifactPublishMetaData artifactMetaData : moduleVersion.getArtifacts()) {
+                Artifact artifact = artifactMetaData.getArtifact();
+                File artifactFile = artifactMetaData.getFile();
                 resolver.publish(artifact, artifactFile, true);
             }
             resolver.commitPublishTransaction();
