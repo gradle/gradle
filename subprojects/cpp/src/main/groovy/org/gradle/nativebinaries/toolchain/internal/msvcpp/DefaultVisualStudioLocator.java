@@ -94,13 +94,23 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
     }
 
     private List<File> programFileCandidates(String... candidateDirectory) {
-        String programFiles = System.getenv("PROGRAMFILES");
-        String programFilesX86 = programFiles + " (x86)";
+        String[] programFilesDirectories;
+
+        // On 64-bit windows, PROGRAMFILES doesn't return a consistent location:
+        // depends on whether the process requesting the environment variable is itself 32-bit or 64-bit.
+        String programFilesX64 = System.getenv("ProgramW6432");
+        String programFilesX86 = System.getenv("PROGRAMFILES(x86)");
+        if (programFilesX64 != null && programFilesX86 != null) {
+            programFilesDirectories = new String[]{programFilesX64, programFilesX86};
+        } else {
+            programFilesDirectories = new String[]{System.getenv("PROGRAMFILES")};
+        }
 
         List<File> candidates = new ArrayList<File>(candidateDirectory.length * 2);
         for (String candidateLocation : candidateDirectory) {
-            candidates.add(new File(programFilesX86, candidateLocation));
-            candidates.add(new File(programFiles, candidateLocation));
+            for (String programFilesDirectory : programFilesDirectories) {
+                candidates.add(new File(programFilesDirectory, candidateLocation));
+            }
         }
         return candidates;
     }
