@@ -18,20 +18,20 @@ package org.gradle.api.publish.ivy.internal.publisher;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultArtifact;
-import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionPublishMetaData;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
+import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionPublishMetaData;
 import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.util.GUtil;
 
 import java.io.IOException;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -42,8 +42,8 @@ public class DependencyResolverIvyPublisher implements IvyPublisher {
         IvyPublicationIdentity projectIdentity = publication.getProjectIdentity();
         Map<String, String> extraAttributes = Collections.emptyMap();
         ModuleRevisionId moduleRevisionId = IvyUtil.createModuleRevisionId(projectIdentity.getOrganisation(), projectIdentity.getModule(), projectIdentity.getRevision(), extraAttributes);
-        DefaultModuleDescriptor moduleDescriptor = new DefaultModuleDescriptor(moduleRevisionId, "integration", new Date());
-        DefaultModuleVersionPublishMetaData publishMetaData = new DefaultModuleVersionPublishMetaData(moduleDescriptor);
+        ModuleVersionIdentifier moduleVersionIdentifier = DefaultModuleVersionIdentifier.newId(moduleRevisionId);
+        DefaultModuleVersionPublishMetaData publishMetaData = new DefaultModuleVersionPublishMetaData(moduleVersionIdentifier);
 
         try {
             for (IvyArtifact publishArtifact : publication.getArtifacts()) {

@@ -23,9 +23,9 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ProjectDependencyDescriptor;
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
+import org.gradle.api.internal.artifacts.metadata.LocalComponentMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactPublishMetaData;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionPublishMetaData;
 
 import java.util.Set;
 
@@ -44,7 +44,7 @@ public class ProjectDependencyResolver implements DependencyToModuleVersionResol
         DependencyDescriptor descriptor = dependency.getDescriptor();
         if (descriptor instanceof ProjectDependencyDescriptor) {
             ProjectDependencyDescriptor desc = (ProjectDependencyDescriptor) descriptor;
-            ModuleVersionPublishMetaData publishMetaData = projectModuleRegistry.findProject(desc);
+            LocalComponentMetaData publishMetaData = projectModuleRegistry.findProject(desc);
             ModuleDescriptor moduleDescriptor = publishMetaData.getModuleDescriptor();
             ModuleVersionIdentifier moduleVersionIdentifier = publishMetaData.getId();
             result.resolved(moduleVersionIdentifier, moduleDescriptor, new ProjectArtifactResolver(publishMetaData));
@@ -54,16 +54,16 @@ public class ProjectDependencyResolver implements DependencyToModuleVersionResol
     }
 
     public void resolve(Module module, Set<? extends Configuration> configurations, BuildableModuleVersionResolveResult result) {
-        ModuleVersionPublishMetaData publishMetaData = moduleDescriptorConverter.convert(configurations, module);
+        LocalComponentMetaData publishMetaData = moduleDescriptorConverter.convert(configurations, module);
         ModuleDescriptor moduleDescriptor = publishMetaData.getModuleDescriptor();
         ModuleVersionIdentifier moduleVersionIdentifier = publishMetaData.getId();
         result.resolved(moduleVersionIdentifier, moduleDescriptor, new ProjectArtifactResolver(publishMetaData));
     }
 
     private static class ProjectArtifactResolver implements ArtifactResolver {
-        private final ModuleVersionPublishMetaData publishMetaData;
+        private final LocalComponentMetaData publishMetaData;
 
-        public ProjectArtifactResolver(ModuleVersionPublishMetaData publishMetaData) {
+        public ProjectArtifactResolver(LocalComponentMetaData publishMetaData) {
             this.publishMetaData = publishMetaData;
         }
 

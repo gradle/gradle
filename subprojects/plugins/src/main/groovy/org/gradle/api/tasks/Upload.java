@@ -33,7 +33,6 @@ import org.gradle.util.ConfigureUtil;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.List;
-import java.util.Set;
 
 import static org.gradle.util.CollectionUtils.collect;
 
@@ -59,14 +58,13 @@ public class Upload extends ConventionTask {
     protected void upload() {
         getLogger().info("Publishing configuration: " + configuration);
         Module module = ((ConfigurationInternal) configuration).getModule();
-        Set<Configuration> configurationsToPublish = configuration.getHierarchy();
 
         ArtifactPublisher artifactPublisher = publicationServices.createArtifactPublisher();
         File descriptorDestination = isUploadDescriptor() ? getDescriptorDestination() : null;
         List<PublicationAwareRepository> publishRepositories = collect(repositories, Transformers.cast(PublicationAwareRepository.class));
 
         try {
-            artifactPublisher.publish(publishRepositories, module, configurationsToPublish, descriptorDestination);
+            artifactPublisher.publish(publishRepositories, module, configuration, descriptorDestination);
         } catch (Exception e) {
             throw new PublishException(String.format("Could not publish configuration '%s'", configuration.getName()), e);
         }

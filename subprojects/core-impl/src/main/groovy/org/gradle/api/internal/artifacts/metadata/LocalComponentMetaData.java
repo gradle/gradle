@@ -16,12 +16,24 @@
 
 package org.gradle.api.internal.artifacts.metadata;
 
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
+import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 
 import java.util.Collection;
 
-public interface ModuleVersionPublishMetaData {
+public interface LocalComponentMetaData {
     ModuleVersionIdentifier getId();
 
+    ModuleDescriptor getModuleDescriptor();
+
+    /**
+     * Converts this component to publication meta-data.
+     */
+    BuildableModuleVersionPublishMetaData toPublishMetaData();
+
     Collection<ModuleVersionArtifactPublishMetaData> getArtifacts();
+
+    @Nullable
+    ModuleVersionArtifactPublishMetaData getArtifact(ModuleVersionArtifactIdentifier artifactIdentifier);
 }

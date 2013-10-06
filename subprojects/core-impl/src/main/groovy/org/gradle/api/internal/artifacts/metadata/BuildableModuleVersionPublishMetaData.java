@@ -17,12 +17,9 @@
 package org.gradle.api.internal.artifacts.metadata;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 
 import java.io.File;
 
 public interface BuildableModuleVersionPublishMetaData extends ModuleVersionPublishMetaData {
-    DefaultModuleDescriptor getModuleDescriptor();
-
     void addArtifact(Artifact artifact, File file);
 }

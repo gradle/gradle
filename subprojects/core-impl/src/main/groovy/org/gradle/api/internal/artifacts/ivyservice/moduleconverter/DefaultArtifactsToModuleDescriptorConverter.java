@@ -22,7 +22,7 @@ import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.internal.artifacts.metadata.BuildableModuleVersionPublishMetaData;
+import org.gradle.api.internal.artifacts.metadata.MutableLocalComponentMetaData;
 import org.gradle.util.GUtil;
 
 import java.util.HashMap;
@@ -30,7 +30,7 @@ import java.util.Map;
 
 public class DefaultArtifactsToModuleDescriptorConverter implements ArtifactsToModuleDescriptorConverter {
 
-    public void addArtifacts(BuildableModuleVersionPublishMetaData metaData, Iterable<? extends Configuration> configurations) {
+    public void addArtifacts(MutableLocalComponentMetaData metaData, Iterable<? extends Configuration> configurations) {
         DefaultModuleDescriptor moduleDescriptor = metaData.getModuleDescriptor();
         for (Configuration configuration : configurations) {
             for (PublishArtifact publishArtifact : configuration.getArtifacts()) {

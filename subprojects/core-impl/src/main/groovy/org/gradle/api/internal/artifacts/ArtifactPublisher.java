@@ -21,8 +21,7 @@ import org.gradle.api.artifacts.PublishException;
 import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository;
 
 import java.io.File;
-import java.util.Set;
 
 public interface ArtifactPublisher {
-    void publish(Iterable<? extends PublicationAwareRepository> repositories, Module module, Set<? extends Configuration> configurations, File descriptor) throws PublishException;
+    void publish(Iterable<? extends PublicationAwareRepository> repositories, Module module, Configuration configuration, File descriptor) throws PublishException;
 }

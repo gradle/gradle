@@ -16,9 +16,9 @@
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
 import org.gradle.api.artifacts.Module;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionPublishMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ProjectDependencyDescriptor;
+import org.gradle.api.internal.artifacts.metadata.LocalComponentMetaData;
 import org.gradle.api.internal.project.ProjectInternal;
 
 public class DefaultProjectModuleRegistry implements ProjectModuleRegistry {
@@ -28,7 +28,7 @@ public class DefaultProjectModuleRegistry implements ProjectModuleRegistry {
         this.moduleDescriptorConverter = moduleDescriptorConverter;
     }
 
-    public ModuleVersionPublishMetaData findProject(ProjectDependencyDescriptor descriptor) {
+    public LocalComponentMetaData findProject(ProjectDependencyDescriptor descriptor) {
         ProjectInternal project = descriptor.getTargetProject();
         Module projectModule = project.getModule();
         return moduleDescriptorConverter.convert(project.getConfigurations(), projectModule);

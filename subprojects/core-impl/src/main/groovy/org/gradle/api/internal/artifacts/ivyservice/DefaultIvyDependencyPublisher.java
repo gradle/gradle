@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.metadata.BuildableModuleVersionPublishMetaData;
@@ -38,7 +37,7 @@ public class DefaultIvyDependencyPublisher implements IvyDependencyPublisher {
                         ModuleVersionPublishMetaData publishMetaData) {
         try {
             // Make a copy of the publication and filter missing artifacts
-            DefaultModuleVersionPublishMetaData publication = new DefaultModuleVersionPublishMetaData((DefaultModuleDescriptor) publishMetaData.getModuleDescriptor());
+            DefaultModuleVersionPublishMetaData publication = new DefaultModuleVersionPublishMetaData(publishMetaData.getId());
             for (ModuleVersionArtifactPublishMetaData artifact: publishMetaData.getArtifacts()) {
                 addPublishedArtifact(artifact, publication);
             }

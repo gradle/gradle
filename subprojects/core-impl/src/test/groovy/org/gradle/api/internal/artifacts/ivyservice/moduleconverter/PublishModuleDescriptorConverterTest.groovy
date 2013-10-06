@@ -19,8 +19,8 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Module
-import org.gradle.api.internal.artifacts.metadata.BuildableModuleVersionPublishMetaData
 import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter
+import org.gradle.api.internal.artifacts.metadata.MutableLocalComponentMetaData
 import spock.lang.Specification
 
 public class PublishModuleDescriptorConverterTest extends Specification {
@@ -30,7 +30,7 @@ public class PublishModuleDescriptorConverterTest extends Specification {
         def configurationsDummy = [Mock(Configuration)] as Set
         def moduleDummy = Mock(Module)
         def moduleDescriptorDummy = Mock(DefaultModuleDescriptor)
-        def publishMetaDataDummy = Mock(BuildableModuleVersionPublishMetaData)
+        def componentMetaDataDummy = Mock(MutableLocalComponentMetaData)
         def artifactsToModuleDescriptorConverter = Mock(ArtifactsToModuleDescriptorConverter)
         def resolveModuleDescriptorConverter = Mock(ModuleDescriptorConverter)
 
@@ -39,8 +39,8 @@ public class PublishModuleDescriptorConverterTest extends Specification {
                 artifactsToModuleDescriptorConverter);
 
         and:
-        publishMetaDataDummy.moduleDescriptor >> moduleDescriptorDummy
-        resolveModuleDescriptorConverter.convert(configurationsDummy, moduleDummy) >> publishMetaDataDummy
+        componentMetaDataDummy.moduleDescriptor >> moduleDescriptorDummy
+        resolveModuleDescriptorConverter.convert(configurationsDummy, moduleDummy) >> componentMetaDataDummy
 
         when:
         def actualMetaData = publishModuleDescriptorConverter.convert(configurationsDummy, moduleDummy);
@@ -48,9 +48,9 @@ public class PublishModuleDescriptorConverterTest extends Specification {
         then:
         1 * moduleDescriptorDummy.addExtraAttributeNamespace(PublishModuleDescriptorConverter.IVY_MAVEN_NAMESPACE_PREFIX,
                     PublishModuleDescriptorConverter.IVY_MAVEN_NAMESPACE);
-        1 * artifactsToModuleDescriptorConverter.addArtifacts(publishMetaDataDummy, configurationsDummy)
+        1 * artifactsToModuleDescriptorConverter.addArtifacts(componentMetaDataDummy, configurationsDummy)
 
         and:
-        actualMetaData == publishMetaDataDummy
+        actualMetaData == componentMetaDataDummy
     }
 }

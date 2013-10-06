@@ -23,10 +23,10 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.PublishArtifactSet;
-import org.gradle.api.internal.artifacts.metadata.BuildableModuleVersionPublishMetaData;
+import org.gradle.api.internal.artifacts.metadata.MutableLocalComponentMetaData;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
-import org.gradle.util.TestUtil;
 import org.gradle.util.JUnit4GroovyMockery;
+import org.gradle.util.TestUtil;
 import org.gradle.util.WrapUtil;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
@@ -54,7 +54,7 @@ public class DefaultArtifactsToModuleDescriptorConverterTest {
         Configuration configurationStub2 = createConfigurationStub(publishArtifactConf2);
         final DefaultModuleDescriptor moduleDescriptor = TestUtil.createModuleDescriptor(WrapUtil.toSet(configurationStub1.getName(),
                 configurationStub2.getName()));
-        final BuildableModuleVersionPublishMetaData publishMetaData = context.mock(BuildableModuleVersionPublishMetaData.class);
+        final MutableLocalComponentMetaData publishMetaData = context.mock(MutableLocalComponentMetaData.class);
         context.checking(new Expectations() {{
             allowing(publishMetaData).getModuleDescriptor();
             will(returnValue(moduleDescriptor));

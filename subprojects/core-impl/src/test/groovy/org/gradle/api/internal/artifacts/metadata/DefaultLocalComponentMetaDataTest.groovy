@@ -17,11 +17,11 @@
 package org.gradle.api.internal.artifacts.metadata
 
 import org.apache.ivy.core.module.descriptor.Artifact
-import org.gradle.api.artifacts.ModuleVersionIdentifier
+import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
 import spock.lang.Specification
 
-class DefaultModuleVersionPublishMetaDataTest extends Specification {
-    def metaData = new DefaultModuleVersionPublishMetaData(Stub(ModuleVersionIdentifier))
+class DefaultLocalComponentMetaDataTest extends Specification {
+    def metaData = new DefaultLocalComponentMetaData(Stub(DefaultModuleDescriptor))
 
     def "can add artifacts"() {
         def artifact = Stub(Artifact)
@@ -32,6 +32,26 @@ class DefaultModuleVersionPublishMetaDataTest extends Specification {
 
         then:
         metaData.artifacts.size() == 1
+        def publishArtifact = metaData.artifacts.iterator().next()
+        publishArtifact.artifact == artifact
+        publishArtifact.file == file
+
+        and:
+        metaData.getArtifact(publishArtifact.id) == publishArtifact
+    }
+
+    def "can convert to publish meta-data"() {
+        def artifact = Stub(Artifact)
+        def file = new File("artifact.zip")
+
+        given:
+        metaData.addArtifact(artifact, file)
+
+        when:
+        def publishMetaData = metaData.toPublishMetaData()
+
+        then:
+        publishMetaData.artifacts.size() == 1
         def publishArtifact = metaData.artifacts.iterator().next()
         publishArtifact.artifact == artifact
         publishArtifact.file == file

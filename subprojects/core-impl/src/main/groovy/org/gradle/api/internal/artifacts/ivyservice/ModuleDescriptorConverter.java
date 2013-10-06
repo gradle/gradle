@@ -17,10 +17,10 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Module;
-import org.gradle.api.internal.artifacts.metadata.BuildableModuleVersionPublishMetaData;
+import org.gradle.api.internal.artifacts.metadata.MutableLocalComponentMetaData;
 
 import java.util.Set;
 
 public interface ModuleDescriptorConverter {
-    BuildableModuleVersionPublishMetaData convert(Set<? extends Configuration> configurations, Module module);
+    MutableLocalComponentMetaData convert(Set<? extends Configuration> configurations, Module module);
 }

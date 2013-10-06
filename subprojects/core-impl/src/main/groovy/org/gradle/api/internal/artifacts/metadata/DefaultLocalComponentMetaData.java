@@ -17,23 +17,31 @@
 package org.gradle.api.internal.artifacts.metadata;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
+import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 
 import java.io.File;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class DefaultModuleVersionPublishMetaData implements BuildableModuleVersionPublishMetaData {
+public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaData {
     private final Map<ModuleVersionArtifactIdentifier, ModuleVersionArtifactPublishMetaData> artifactsById = new LinkedHashMap<ModuleVersionArtifactIdentifier, ModuleVersionArtifactPublishMetaData>();
+    private final DefaultModuleDescriptor moduleDescriptor;
     private final ModuleVersionIdentifier id;
 
-    public DefaultModuleVersionPublishMetaData(ModuleVersionIdentifier id) {
-        this.id = id;
+    public DefaultLocalComponentMetaData(DefaultModuleDescriptor moduleDescriptor) {
+        this.moduleDescriptor = moduleDescriptor;
+        id = DefaultModuleVersionIdentifier.newId(moduleDescriptor.getModuleRevisionId());
     }
 
     public ModuleVersionIdentifier getId() {
         return id;
+    }
+
+    public DefaultModuleDescriptor getModuleDescriptor() {
+        return moduleDescriptor;
     }
 
     public void addArtifact(Artifact artifact, File file) {
@@ -47,6 +55,14 @@ public class DefaultModuleVersionPublishMetaData implements BuildableModuleVersi
 
     public ModuleVersionArtifactPublishMetaData getArtifact(ModuleVersionArtifactIdentifier artifactIdentifier) {
         return artifactsById.get(artifactIdentifier);
+    }
+
+    public BuildableModuleVersionPublishMetaData toPublishMetaData() {
+        DefaultModuleVersionPublishMetaData publishMetaData = new DefaultModuleVersionPublishMetaData(id);
+        for (ModuleVersionArtifactPublishMetaData artifact : artifactsById.values()) {
+            publishMetaData.addArtifact(artifact.getArtifact(), artifact.getFile());
+        }
+        return publishMetaData;
     }
 
     private static class DefaultModuleVersionArtifactPublishMetaData implements ModuleVersionArtifactPublishMetaData {

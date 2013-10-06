@@ -20,8 +20,8 @@ import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Module
-import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionPublishMetaData
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependenciesToModuleDescriptorConverter
+import org.gradle.api.internal.artifacts.metadata.DefaultLocalComponentMetaData
 import spock.lang.Specification
 
 public class ResolveModuleDescriptorConverterTest extends Specification {
@@ -52,7 +52,7 @@ public class ResolveModuleDescriptorConverterTest extends Specification {
         1 * dependenciesConverter.addDependencyDescriptors(moduleDescriptor, configurations)
 
         and:
-        actualDescriptor instanceof DefaultModuleVersionPublishMetaData
+        actualDescriptor instanceof DefaultLocalComponentMetaData
         actualDescriptor.moduleDescriptor == moduleDescriptor
     }
 }
