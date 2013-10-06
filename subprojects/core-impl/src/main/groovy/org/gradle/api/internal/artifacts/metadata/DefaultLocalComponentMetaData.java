@@ -24,10 +24,11 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import java.io.File;
 import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 
 public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaData {
-    private final Map<ModuleVersionArtifactIdentifier, ModuleVersionArtifactPublishMetaData> artifactsById = new LinkedHashMap<ModuleVersionArtifactIdentifier, ModuleVersionArtifactPublishMetaData>();
+    private final Map<ModuleVersionArtifactIdentifier, DefaultLocalArtifactMetaData> artifactsById = new LinkedHashMap<ModuleVersionArtifactIdentifier, DefaultLocalArtifactMetaData>();
     private final DefaultModuleDescriptor moduleDescriptor;
     private final ModuleVersionIdentifier id;
 
@@ -45,39 +46,35 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
     }
 
     public void addArtifact(Artifact artifact, File file) {
-        DefaultModuleVersionArtifactPublishMetaData publishMetaData = new DefaultModuleVersionArtifactPublishMetaData(id, artifact, file);
+        DefaultLocalArtifactMetaData publishMetaData = new DefaultLocalArtifactMetaData(id, artifact, file);
         artifactsById.put(publishMetaData.getId(), publishMetaData);
     }
 
-    public Collection<ModuleVersionArtifactPublishMetaData> getArtifacts() {
-        return artifactsById.values();
+    public Collection<LocalArtifactMetaData> getArtifacts() {
+        return new LinkedHashSet<LocalArtifactMetaData>(artifactsById.values());
     }
 
-    public ModuleVersionArtifactPublishMetaData getArtifact(ModuleVersionArtifactIdentifier artifactIdentifier) {
+    public LocalArtifactMetaData getArtifact(ModuleVersionArtifactIdentifier artifactIdentifier) {
         return artifactsById.get(artifactIdentifier);
     }
 
     public BuildableModuleVersionPublishMetaData toPublishMetaData() {
         DefaultModuleVersionPublishMetaData publishMetaData = new DefaultModuleVersionPublishMetaData(id);
-        for (ModuleVersionArtifactPublishMetaData artifact : artifactsById.values()) {
-            publishMetaData.addArtifact(artifact.getArtifact(), artifact.getFile());
+        for (DefaultLocalArtifactMetaData artifact : artifactsById.values()) {
+            publishMetaData.addArtifact(artifact.artifact, artifact.file);
         }
         return publishMetaData;
     }
 
-    private static class DefaultModuleVersionArtifactPublishMetaData implements ModuleVersionArtifactPublishMetaData {
+    private static class DefaultLocalArtifactMetaData implements LocalArtifactMetaData {
         private final ModuleVersionArtifactIdentifier id;
         private final Artifact artifact;
         private final File file;
 
-        private DefaultModuleVersionArtifactPublishMetaData(ModuleVersionIdentifier moduleVersionIdentifier, Artifact artifact, File file) {
-            this.id = new DefaultModuleVersionArtifactIdentifier(moduleVersionIdentifier, artifact.getName(), artifact.getType(), artifact.getExt(), artifact.getQualifiedExtraAttributes());
+        private DefaultLocalArtifactMetaData(ModuleVersionIdentifier moduleVersionIdentifier, Artifact artifact, File file) {
+            this.id = new DefaultModuleVersionArtifactIdentifier(moduleVersionIdentifier, artifact);
             this.artifact = artifact;
             this.file = file;
-        }
-
-        public Artifact getArtifact() {
-            return artifact;
         }
 
         public ModuleVersionArtifactIdentifier getId() {

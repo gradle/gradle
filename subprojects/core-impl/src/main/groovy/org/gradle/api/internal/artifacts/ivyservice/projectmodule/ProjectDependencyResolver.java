@@ -22,10 +22,7 @@ import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ProjectDependencyDescriptor;
-import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
-import org.gradle.api.internal.artifacts.metadata.LocalComponentMetaData;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
-import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactPublishMetaData;
+import org.gradle.api.internal.artifacts.metadata.*;
 
 import java.util.Set;
 
@@ -68,9 +65,9 @@ public class ProjectDependencyResolver implements DependencyToModuleVersionResol
         }
 
         public void resolve(ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result) {
-            ModuleVersionArtifactPublishMetaData publishArtifact = publishMetaData.getArtifact(artifact.getId());
-            if (publishArtifact != null) {
-                result.resolved(publishArtifact.getFile());
+            LocalArtifactMetaData artifactMetaData = publishMetaData.getArtifact(artifact.getId());
+            if (artifactMetaData != null) {
+                result.resolved(artifactMetaData.getFile());
             } else {
                 result.notFound(artifact.getId());
             }

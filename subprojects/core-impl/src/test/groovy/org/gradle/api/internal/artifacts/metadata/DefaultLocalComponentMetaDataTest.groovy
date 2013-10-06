@@ -32,8 +32,9 @@ class DefaultLocalComponentMetaDataTest extends Specification {
 
         then:
         metaData.artifacts.size() == 1
-        def publishArtifact = metaData.artifacts.iterator().next()
-        publishArtifact.artifact == artifact
+        def artifacts = metaData.artifacts as List
+        def publishArtifact = artifacts[0]
+        publishArtifact.id
         publishArtifact.file == file
 
         and:
@@ -51,12 +52,13 @@ class DefaultLocalComponentMetaDataTest extends Specification {
         def publishMetaData = metaData.toPublishMetaData()
 
         then:
-        publishMetaData.artifacts.size() == 1
-        def publishArtifact = metaData.artifacts.iterator().next()
-        publishArtifact.artifact == artifact
-        publishArtifact.file == file
+        publishMetaData.id == metaData.id
 
         and:
-        metaData.getArtifact(publishArtifact.id) == publishArtifact
+        publishMetaData.artifacts.size() == 1
+        def artifacts = publishMetaData.artifacts as List
+        def publishArtifact = artifacts[0]
+        publishArtifact.artifact == artifact
+        publishArtifact.file == file
     }
 }

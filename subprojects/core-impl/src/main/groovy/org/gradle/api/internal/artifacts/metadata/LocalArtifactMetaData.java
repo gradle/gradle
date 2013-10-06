@@ -16,19 +16,10 @@
 
 package org.gradle.api.internal.artifacts.metadata;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
-
 import java.io.File;
 
-// TODO:ADAM - This is actually Ivy artifact publish meta data
-public interface ModuleVersionArtifactPublishMetaData {
+public interface LocalArtifactMetaData {
     ModuleVersionArtifactIdentifier getId();
-
-    /**
-     * Returns this artifact as an Ivy Artifact. This method is here to allow us to migrate away from the Ivy types
-     * and will be removed.
-     */
-    Artifact getArtifact();
 
     File getFile();
 }

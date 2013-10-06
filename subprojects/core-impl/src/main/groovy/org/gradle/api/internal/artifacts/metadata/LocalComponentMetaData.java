@@ -32,8 +32,8 @@ public interface LocalComponentMetaData {
      */
     BuildableModuleVersionPublishMetaData toPublishMetaData();
 
-    Collection<ModuleVersionArtifactPublishMetaData> getArtifacts();
+    Collection<LocalArtifactMetaData> getArtifacts();
 
     @Nullable
-    ModuleVersionArtifactPublishMetaData getArtifact(ModuleVersionArtifactIdentifier artifactIdentifier);
+    LocalArtifactMetaData getArtifact(ModuleVersionArtifactIdentifier artifactIdentifier);
 }

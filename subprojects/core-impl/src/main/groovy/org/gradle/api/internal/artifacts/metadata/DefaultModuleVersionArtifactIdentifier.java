@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.metadata;
 
 import com.google.common.base.Objects;
+import org.apache.ivy.core.module.descriptor.Artifact;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -32,6 +33,10 @@ public class DefaultModuleVersionArtifactIdentifier implements ModuleVersionArti
     private final String type;
     private final String extension;
     private final Map<String, String> attributes;
+
+    public DefaultModuleVersionArtifactIdentifier(ModuleVersionIdentifier moduleVersionIdentifier, Artifact artifact) {
+        this(moduleVersionIdentifier, artifact.getName(), artifact.getType(), artifact.getExt(), artifact.getQualifiedExtraAttributes());
+    }
 
     public DefaultModuleVersionArtifactIdentifier(ModuleVersionIdentifier moduleVersionIdentifier, String name, String type, @Nullable String extension, Map<String, String> attributes) {
         this.moduleVersionIdentifier = moduleVersionIdentifier;

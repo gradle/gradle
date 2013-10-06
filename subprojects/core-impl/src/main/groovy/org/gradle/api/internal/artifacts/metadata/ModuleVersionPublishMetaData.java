@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 
 import java.util.Collection;
 
+// TODO:ADAM - This is actually Ivy module publish meta data
 public interface ModuleVersionPublishMetaData {
     ModuleVersionIdentifier getId();
 

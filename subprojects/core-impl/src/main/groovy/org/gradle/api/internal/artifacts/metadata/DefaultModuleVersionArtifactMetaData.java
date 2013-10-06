@@ -30,7 +30,7 @@ public class DefaultModuleVersionArtifactMetaData implements ModuleVersionArtifa
     public DefaultModuleVersionArtifactMetaData(ModuleVersionIdentifier moduleVersionIdentifier, Artifact artifact) {
         this.moduleVersionIdentifier = moduleVersionIdentifier;
         this.artifact = artifact;
-        this.id = new DefaultModuleVersionArtifactIdentifier(moduleVersionIdentifier, artifact.getName(), artifact.getType(), artifact.getExt(), artifact.getQualifiedExtraAttributes());
+        this.id = new DefaultModuleVersionArtifactIdentifier(moduleVersionIdentifier, artifact);
     }
 
     @Override
