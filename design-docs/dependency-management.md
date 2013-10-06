@@ -8,7 +8,7 @@ This specification defines some improvements to dependency management.
 
 # Implementation plan
 
-## Story: Restructure Gradle cache layout to give file store and metadata separate versions
+## Story: Restructure Gradle cache layout to give file store and metadata separate versions (DONE)
 
 This story separates the file store and meta-data cache versions so that they can evolve separately.
 

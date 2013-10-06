@@ -287,6 +287,7 @@ Use it:
 - Use to order the various parts of the IDE plugins.
 - Use in the sonar-runner plugin to determine the sonar properties.
 - Allow tasks to be attached to a model object, for each action that can be performed on that object.
+- Use to apply command-line overrides.
 - Ensure target of project dependency is closed when the dependency is used:
     - When resolving
     - When calculating task dependencies
