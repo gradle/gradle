@@ -24,7 +24,6 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import java.io.File;
 import java.util.Collection;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.Map;
 
 public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaData {
@@ -50,12 +49,17 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
         artifactsById.put(publishMetaData.getId(), publishMetaData);
     }
 
-    public Collection<LocalArtifactMetaData> getArtifacts() {
-        return new LinkedHashSet<LocalArtifactMetaData>(artifactsById.values());
+    public Collection<? extends LocalArtifactMetaData> getArtifacts() {
+        return artifactsById.values();
     }
 
     public LocalArtifactMetaData getArtifact(ModuleVersionArtifactIdentifier artifactIdentifier) {
         return artifactsById.get(artifactIdentifier);
+    }
+
+    public ModuleVersionMetaData toResolveMetaData() {
+        // TODO:ADAM - need to clone the descriptor
+        return new ModuleDescriptorAdapter(id, moduleDescriptor);
     }
 
     public BuildableModuleVersionPublishMetaData toPublishMetaData() {

@@ -16,17 +16,10 @@
 
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
 
 public interface BuildableModuleVersionResolveResult extends ModuleVersionResolveResult {
-    /**
-     * Marks the module version as resolved, with the given meta-data and artifact resolver.
-     */
-    void resolved(ModuleVersionIdentifier moduleVersionId, ModuleDescriptor descriptor, ArtifactResolver artifactResolver);
-
     /**
      * Marks the module version as resolved, with the given meta-data and artifact resolver.
      */

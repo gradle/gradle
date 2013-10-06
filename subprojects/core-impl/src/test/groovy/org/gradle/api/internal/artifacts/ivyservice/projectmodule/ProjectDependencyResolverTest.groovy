@@ -15,14 +15,13 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule
 
-import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor
-import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.BuildableModuleVersionResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver
 import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ProjectDependencyDescriptor
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData
 import org.gradle.api.internal.artifacts.metadata.MutableLocalComponentMetaData
 import org.gradle.api.internal.project.ProjectInternal
 import spock.lang.Specification
@@ -35,11 +34,9 @@ class ProjectDependencyResolverTest extends Specification {
 
     def "resolves project dependency"() {
         setup:
-        def ModuleVersionIdentifier moduleId = Stub(ModuleVersionIdentifier)
-        def moduleDescriptor = Stub(DefaultModuleDescriptor)
+        def resolveMetaData = Stub(ModuleVersionMetaData)
         def componentMetaData = Stub(MutableLocalComponentMetaData) {
-            getId() >> moduleId
-            getModuleDescriptor() >> moduleDescriptor
+            toResolveMetaData() >> resolveMetaData
         }
         def result = Mock(BuildableModuleVersionResolveResult)
         def dependencyProject = Stub(ProjectInternal)
@@ -55,7 +52,7 @@ class ProjectDependencyResolverTest extends Specification {
 
         then:
         1 * registry.findProject(dependencyDescriptor) >> componentMetaData
-        1 * result.resolved(moduleId, moduleDescriptor, _)
+        1 * result.resolved(resolveMetaData, _)
         0 * result._
     }
 

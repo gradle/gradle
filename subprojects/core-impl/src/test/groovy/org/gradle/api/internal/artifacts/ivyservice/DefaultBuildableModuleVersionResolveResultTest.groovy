@@ -16,11 +16,11 @@
 
 package org.gradle.api.internal.artifacts.ivyservice
 
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData
 import spock.lang.Specification
+
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 
 class DefaultBuildableModuleVersionResolveResultTest extends Specification {
@@ -40,22 +40,6 @@ class DefaultBuildableModuleVersionResolveResultTest extends Specification {
         result.id == id
         result.artifactResolver == resolver
         result.metaData == metaData
-    }
-
-    def "can resolve using id and ivy descriptor"() {
-        ModuleVersionIdentifier id = Mock()
-        ModuleDescriptor descriptor = Mock()
-        ArtifactResolver resolver = Mock()
-
-        when:
-        result.resolved(id, descriptor, resolver)
-
-        then:
-        result.id == id
-        result.artifactResolver == resolver
-        result.metaData.id == id
-        result.metaData.descriptor == descriptor
-        !result.metaData.changing
     }
 
     def "cannot get id when no result has been specified"() {
@@ -132,7 +116,7 @@ class DefaultBuildableModuleVersionResolveResultTest extends Specification {
 
     def "failure is null when successfully resolved"() {
         when:
-        result.resolved(Mock(ModuleVersionIdentifier), Mock(ModuleDescriptor), Mock(ArtifactResolver))
+        result.resolved(Mock(ModuleVersionMetaData), Mock(ArtifactResolver))
 
         then:
         result.failure == null

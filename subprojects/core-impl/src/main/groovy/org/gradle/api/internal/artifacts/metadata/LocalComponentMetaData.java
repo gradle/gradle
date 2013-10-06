@@ -28,11 +28,16 @@ public interface LocalComponentMetaData {
     ModuleDescriptor getModuleDescriptor();
 
     /**
+     * Converts this component to resolve meta-data.
+     */
+    ModuleVersionMetaData toResolveMetaData();
+
+    /**
      * Converts this component to publication meta-data.
      */
-    BuildableModuleVersionPublishMetaData toPublishMetaData();
+    ModuleVersionPublishMetaData toPublishMetaData();
 
-    Collection<LocalArtifactMetaData> getArtifacts();
+    Collection<? extends LocalArtifactMetaData> getArtifacts();
 
     @Nullable
     LocalArtifactMetaData getArtifact(ModuleVersionArtifactIdentifier artifactIdentifier);

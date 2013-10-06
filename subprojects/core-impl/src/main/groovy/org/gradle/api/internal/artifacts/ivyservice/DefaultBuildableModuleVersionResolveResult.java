@@ -16,10 +16,8 @@
 
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.internal.artifacts.metadata.ModuleDescriptorAdapter;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData;
 
 public class DefaultBuildableModuleVersionResolveResult implements BuildableModuleVersionResolveResult {
@@ -35,10 +33,6 @@ public class DefaultBuildableModuleVersionResolveResult implements BuildableModu
 
     public void notFound(ModuleVersionSelector versionSelector) {
         failed(new ModuleVersionNotFoundException(versionSelector));
-    }
-
-    public void resolved(ModuleVersionIdentifier moduleVersionId, ModuleDescriptor descriptor, ArtifactResolver artifactResolver) {
-        resolved(new ModuleDescriptorAdapter(moduleVersionId, descriptor), artifactResolver);
     }
 
     public void resolved(ModuleVersionMetaData metaData, ArtifactResolver artifactResolver) {

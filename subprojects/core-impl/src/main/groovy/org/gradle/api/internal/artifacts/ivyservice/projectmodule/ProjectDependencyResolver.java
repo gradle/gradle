@@ -16,13 +16,14 @@
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Module;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ProjectDependencyDescriptor;
-import org.gradle.api.internal.artifacts.metadata.*;
+import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
+import org.gradle.api.internal.artifacts.metadata.LocalArtifactMetaData;
+import org.gradle.api.internal.artifacts.metadata.LocalComponentMetaData;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 
 import java.util.Set;
 
@@ -41,20 +42,16 @@ public class ProjectDependencyResolver implements DependencyToModuleVersionResol
         DependencyDescriptor descriptor = dependency.getDescriptor();
         if (descriptor instanceof ProjectDependencyDescriptor) {
             ProjectDependencyDescriptor desc = (ProjectDependencyDescriptor) descriptor;
-            LocalComponentMetaData publishMetaData = projectModuleRegistry.findProject(desc);
-            ModuleDescriptor moduleDescriptor = publishMetaData.getModuleDescriptor();
-            ModuleVersionIdentifier moduleVersionIdentifier = publishMetaData.getId();
-            result.resolved(moduleVersionIdentifier, moduleDescriptor, new ProjectArtifactResolver(publishMetaData));
+            LocalComponentMetaData componentMetaData = projectModuleRegistry.findProject(desc);
+            result.resolved(componentMetaData.toResolveMetaData(), new ProjectArtifactResolver(componentMetaData));
         } else {
             resolver.resolve(dependency, result);
         }
     }
 
     public void resolve(Module module, Set<? extends Configuration> configurations, BuildableModuleVersionResolveResult result) {
-        LocalComponentMetaData publishMetaData = moduleDescriptorConverter.convert(configurations, module);
-        ModuleDescriptor moduleDescriptor = publishMetaData.getModuleDescriptor();
-        ModuleVersionIdentifier moduleVersionIdentifier = publishMetaData.getId();
-        result.resolved(moduleVersionIdentifier, moduleDescriptor, new ProjectArtifactResolver(publishMetaData));
+        LocalComponentMetaData componentMetaData = moduleDescriptorConverter.convert(configurations, module);
+        result.resolved(componentMetaData.toResolveMetaData(), new ProjectArtifactResolver(componentMetaData));
     }
 
     private static class ProjectArtifactResolver implements ArtifactResolver {
