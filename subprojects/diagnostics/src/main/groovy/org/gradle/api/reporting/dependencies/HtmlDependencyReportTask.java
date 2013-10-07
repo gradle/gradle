@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.diagnostics;
+package org.gradle.api.reporting.dependencies;
 
 import org.gradle.api.*;
 import org.gradle.api.internal.ConventionTask;

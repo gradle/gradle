@@ -248,7 +248,7 @@
                 <td>org.gradle.api.tasks.diagnostics.DependencyInsightReportTask</td>
             </tr>
             <tr>
-                <td>org.gradle.api.tasks.diagnostics.HtmlDependencyReportTask</td>
+                <td>org.gradle.api.reporting.dependencies.HtmlDependencyReportTask</td>
             </tr>
             <tr>
                 <td>org.gradle.api.tasks.diagnostics.PropertyReportTask</td>

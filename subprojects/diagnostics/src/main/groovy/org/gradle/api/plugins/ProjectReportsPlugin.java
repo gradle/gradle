@@ -19,7 +19,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.tasks.diagnostics.DependencyReportTask;
-import org.gradle.api.tasks.diagnostics.HtmlDependencyReportTask;
+import org.gradle.api.reporting.dependencies.HtmlDependencyReportTask;
 import org.gradle.api.tasks.diagnostics.PropertyReportTask;
 import org.gradle.api.tasks.diagnostics.TaskReportTask;
 
