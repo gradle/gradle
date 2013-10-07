@@ -19,13 +19,12 @@ package org.gradle.nativebinaries.internal.configure;
 import org.gradle.api.Action;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.nativebinaries.BuildTypeContainer;
-import org.gradle.nativebinaries.internal.DefaultBuildType;
 
 public class CreateDefaultBuildTypes implements Action<ProjectInternal> {
     public void execute(ProjectInternal project) {
         BuildTypeContainer buildTypes = project.getExtensions().getByType(BuildTypeContainer.class);
         if (buildTypes.isEmpty()) {
-            buildTypes.add(new DefaultBuildType("debug"));
+            buildTypes.create("debug");
         }
     }
 }

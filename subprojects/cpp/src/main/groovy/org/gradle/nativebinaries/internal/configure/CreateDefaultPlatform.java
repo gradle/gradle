@@ -19,13 +19,12 @@ package org.gradle.nativebinaries.internal.configure;
 import org.gradle.api.Action;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.nativebinaries.PlatformContainer;
-import org.gradle.nativebinaries.internal.DefaultPlatform;
 
 public class CreateDefaultPlatform implements Action<ProjectInternal> {
     public void execute(ProjectInternal project) {
         PlatformContainer platforms = project.getExtensions().getByType(PlatformContainer.class);
         if (platforms.isEmpty()) {
-            platforms.add(new DefaultPlatform("current"));
+            platforms.create("current");
         }
     }
 }

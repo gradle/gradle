@@ -17,11 +17,11 @@
 package org.gradle.nativebinaries;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.NamedDomainObjectSet;
+import org.gradle.api.NamedDomainObjectContainer;
 
 /**
  * A container of native executables.
  */
 @Incubating
-public interface BuildTypeContainer extends NamedDomainObjectSet<BuildType> {
+public interface BuildTypeContainer extends NamedDomainObjectContainer<BuildType> {
 }
