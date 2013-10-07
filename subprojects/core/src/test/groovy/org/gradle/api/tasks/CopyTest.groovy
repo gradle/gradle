@@ -17,6 +17,7 @@
 package org.gradle.api.tasks
 
 import org.apache.commons.io.FileUtils
+import org.gradle.test.fixtures.file.TestFile
 import org.junit.Before
 import org.junit.Test
 import spock.lang.Issue
@@ -77,7 +78,7 @@ class CopyTest extends AbstractCopyTaskContractTest {
     }
 
     private File createDir(File parentDir, String path) {
-        File newDir = new File(parentDir, path)
+        TestFile newDir = new TestFile(parentDir, path)
         boolean success = newDir.mkdirs()
 
         if(!success) {
@@ -88,7 +89,7 @@ class CopyTest extends AbstractCopyTaskContractTest {
     }
 
     private File createFile(File parent, String filename) {
-        File file = new File(parent, filename)
+        TestFile file = new TestFile(parent, filename)
         file.createNewFile()
         file
     }
