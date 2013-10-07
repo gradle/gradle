@@ -16,8 +16,8 @@
 
 package org.gradle.nativebinaries.language.cpp.fixtures.binaryinfo;
 
-public interface BinaryInfo {
-    enum Architecture { I386, X86_64 }
+import org.gradle.nativebinaries.internal.ArchitectureInternal;
 
-    Architecture getArch();
+public interface BinaryInfo {
+    ArchitectureInternal getArch();
 }

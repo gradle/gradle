@@ -51,8 +51,11 @@ public class VisualStudioInstall {
     }
 
     public File getVisualCppBin(Platform platform) {
-        if (isAmd64(platform)) {
+        if (architecture(platform).isAmd64()) {
             return new File(visualCppDir, "bin/x86_amd64");
+        }
+        if (architecture(platform).isIa64()) {
+            return new File(visualCppDir, "bin/x86_ia64");
         }
         return new File(visualCppDir, "bin");
     }
@@ -66,23 +69,26 @@ public class VisualStudioInstall {
     }
 
     public File getVisualCppLib(Platform platform) {
-        if (isAmd64(platform)) {
+        if (architecture(platform).isAmd64()) {
             return new File(visualCppDir, "lib/amd64");
+        }
+        if (architecture(platform).isIa64()) {
+            return new File(visualCppDir, "lib/ia64");
         }
         return new File(visualCppDir, "lib");
     }
 
     private String getAssemblerExe(Platform platform) {
-        if (isAmd64(platform)) {
+        if (architecture(platform).isAmd64()) {
             return "ml64.exe";
+        }
+        if (architecture(platform).isIa64()) {
+            return "ias.exe";
         }
         return "ml.exe";
     }
 
-    private boolean isAmd64(Platform platform) {
-        // TODO:DAZ Add support for Itanium and fail for other architectures
-        ArchitectureInternal architecture = (ArchitectureInternal) platform.getArchitecture();
-        return architecture.getInstructionSet() == ArchitectureInternal.InstructionSet.X86
-                && architecture.getRegisterSize() == 64;
+    private ArchitectureInternal architecture(Platform platform) {
+        return (ArchitectureInternal) platform.getArchitecture();
     }
 }

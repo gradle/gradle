@@ -46,16 +46,17 @@ public class WindowsSdk implements Named {
     }
 
     public File getLibDir(Platform platform) {
-        if (isAmd64(platform)) {
+        if (architecture(platform).isAmd64()) {
             return new File(baseDir, "lib/x64");
+        }
+        if (architecture(platform).isIa64()) {
+            return new File(baseDir, "lib/IA64");
         }
         return new File(baseDir, "lib");
     }
 
-    private boolean isAmd64(Platform platform) {
-        ArchitectureInternal architecture = (ArchitectureInternal) platform.getArchitecture();
-        return architecture.getInstructionSet() == ArchitectureInternal.InstructionSet.X86
-                && architecture.getRegisterSize() == 64;
+    private ArchitectureInternal architecture(Platform platform) {
+        return (ArchitectureInternal) platform.getArchitecture();
     }
 
 }

@@ -15,12 +15,10 @@
  */
 
 package org.gradle.nativebinaries.language.cpp
-
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativebinaries.language.cpp.fixtures.ExecutableFixture
 import org.gradle.nativebinaries.language.cpp.fixtures.app.CppHelloWorldApp
-import org.gradle.nativebinaries.language.cpp.fixtures.binaryinfo.BinaryInfo
 import org.gradle.nativebinaries.language.cpp.fixtures.binaryinfo.DumpbinBinaryInfo
 import org.gradle.nativebinaries.language.cpp.fixtures.binaryinfo.OtoolBinaryInfo
 import org.gradle.nativebinaries.language.cpp.fixtures.binaryinfo.ReadelfBinaryInfo
@@ -72,11 +70,36 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
         succeeds "installX86MainExecutable", "installX86_64MainExecutable"
 
         then:
-        binaryInfo(executable("build/binaries/mainExecutable/x86/main").file).arch == BinaryInfo.Architecture.I386
-        binaryInfo(objectFile("build/objectFiles/mainExecutable/x86/mainCpp/main")).arch == BinaryInfo.Architecture.I386
+        binaryInfo(executable("build/binaries/mainExecutable/x86/main").file).arch.name == "x86"
+        binaryInfo(objectFile("build/objectFiles/mainExecutable/x86/mainCpp/main")).arch.name == "x86"
 
-        binaryInfo(executable("build/binaries/mainExecutable/x86_64/main").file).arch == BinaryInfo.Architecture.X86_64
-        binaryInfo(objectFile("build/objectFiles/mainExecutable/x86_64/mainCpp/main")).arch == BinaryInfo.Architecture.X86_64
+        binaryInfo(executable("build/binaries/mainExecutable/x86_64/main").file).arch.name == "x86_64"
+        binaryInfo(objectFile("build/objectFiles/mainExecutable/x86_64/mainCpp/main")).arch.name == "x86_64"
+    }
+
+    @Requires(TestPrecondition.WINDOWS)
+    def "build binary for itanium architecture"() {
+        // Don't yet have test environments to build Itanium binaries on MinGW or cygwin
+        if (!toolChain.visualCpp) {
+            return
+        }
+
+        when:
+        buildFile << """
+            targetPlatforms {
+                itanium {
+                    architecture "ia-64"
+                }
+            }
+        """
+
+        and:
+        executer.withArgument("--debug")
+        succeeds "installMainExecutable"
+
+        then:
+        binaryInfo(executable("build/binaries/mainExecutable/main").file).arch.name == "ia-64"
+        binaryInfo(objectFile("build/objectFiles/mainExecutable/mainCpp/main")).arch.name == "ia-64"
     }
 
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)

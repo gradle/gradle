@@ -25,4 +25,10 @@ public interface ArchitectureInternal extends Architecture {
     InstructionSet getInstructionSet();
 
     int getRegisterSize();
+
+    boolean isI386();
+
+    boolean isAmd64();
+
+    boolean isIa64();
 }

@@ -16,6 +16,9 @@
 
 package org.gradle.nativebinaries.language.cpp.fixtures.binaryinfo
 
+import org.gradle.nativebinaries.internal.ArchitectureInternal
+import org.gradle.nativebinaries.internal.DefaultArchitecture
+
 class OtoolBinaryInfo implements BinaryInfo {
     def archString
 
@@ -25,12 +28,12 @@ class OtoolBinaryInfo implements BinaryInfo {
         archString = lines[3].split()[1]
     }
 
-    BinaryInfo.Architecture getArch() {
+    ArchitectureInternal getArch() {
         switch (archString) {
             case "I386":
-                return BinaryInfo.Architecture.I386
+                return new DefaultArchitecture("x86", ArchitectureInternal.InstructionSet.X86, 32)
             case "X86_64":
-                return BinaryInfo.Architecture.X86_64
+                return new DefaultArchitecture("x86_64", ArchitectureInternal.InstructionSet.X86, 64)
             default:
                 throw new RuntimeException("Cannot determine architecture for ${archString}")
         }

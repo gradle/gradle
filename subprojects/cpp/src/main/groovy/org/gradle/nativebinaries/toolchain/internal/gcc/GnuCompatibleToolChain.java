@@ -109,13 +109,11 @@ public class GnuCompatibleToolChain implements PlatformToolChain {
         if (architecture == ArchitectureInternal.TOOL_CHAIN_DEFAULT) {
             return args();
         }
-        ArchitectureInternal.InstructionSet is = architecture.getInstructionSet();
-        int rs = architecture.getRegisterSize();
 
-        if (is == ArchitectureInternal.InstructionSet.X86 && rs == 32) {
+        if (architecture.isI386()) {
             return args("-m32");
         }
-        if (is == ArchitectureInternal.InstructionSet.X86 && rs == 64) {
+        if (architecture.isAmd64()) {
             return args("-m64");
         }
 
@@ -142,14 +140,14 @@ public class GnuCompatibleToolChain implements PlatformToolChain {
         ArchitectureInternal.InstructionSet is = architecture.getInstructionSet();
         int rs = architecture.getRegisterSize();
 
-        if (is == ArchitectureInternal.InstructionSet.X86 && rs == 32) {
+        if (architecture.isI386()) {
             if (osx) {
                 return args("-arch", "i386");
             } else {
                 return args("--32");
             }
         }
-        if (is == ArchitectureInternal.InstructionSet.X86 && rs == 64) {
+        if (architecture.isAmd64()) {
             if (osx) {
                 return args("-arch", "x86_64");
             } else {

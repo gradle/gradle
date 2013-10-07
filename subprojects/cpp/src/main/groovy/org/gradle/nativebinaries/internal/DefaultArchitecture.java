@@ -37,4 +37,16 @@ public class DefaultArchitecture implements ArchitectureInternal {
     public int getRegisterSize() {
         return registerSize;
     }
+
+    public boolean isI386() {
+        return instructionSet == InstructionSet.X86 && registerSize == 32;
+    }
+
+    public boolean isAmd64() {
+        return instructionSet == InstructionSet.X86 && registerSize == 64;
+    }
+
+    public boolean isIa64() {
+        return instructionSet == InstructionSet.ITANIUM && registerSize == 64;
+    }
 }

@@ -15,7 +15,8 @@
  */
 
 package org.gradle.nativebinaries.language.cpp.fixtures.binaryinfo
-
+import org.gradle.nativebinaries.internal.ArchitectureInternal
+import org.gradle.nativebinaries.internal.DefaultArchitecture
 import org.gradle.nativebinaries.language.cpp.fixtures.AvailableToolChains.InstalledToolChain
 
 class DumpbinBinaryInfo implements BinaryInfo {
@@ -46,12 +47,14 @@ class DumpbinBinaryInfo implements BinaryInfo {
         }
     }
 
-    BinaryInfo.Architecture getArch() {
+    ArchitectureInternal getArch() {
         switch (archString) {
             case "x86":
-                return BinaryInfo.Architecture.I386
+                return new DefaultArchitecture("x86", ArchitectureInternal.InstructionSet.X86, 32)
             case "x64":
-                return BinaryInfo.Architecture.X86_64
+                return new DefaultArchitecture("x86_64", ArchitectureInternal.InstructionSet.X86, 64)
+            case "IA64":
+                return new DefaultArchitecture("ia-64", ArchitectureInternal.InstructionSet.ITANIUM, 64)
             default:
                 throw new RuntimeException("Cannot determine architecture for ${archString}")
         }
