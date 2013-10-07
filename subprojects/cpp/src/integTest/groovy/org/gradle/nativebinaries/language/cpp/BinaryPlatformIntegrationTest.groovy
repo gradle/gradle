@@ -49,7 +49,7 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
     }
 
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
-    def "build binary for multiple target platforms"() {
+    def "build binary for multiple target architectures"() {
         // Don't yet have test environments to build 64-bit binaries on MinGW or cygwin
         if (OperatingSystem.current().windows && !toolChain.visualCpp) {
             return
@@ -77,6 +77,32 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
 
         binaryInfo(executable("build/binaries/mainExecutable/x86_64/main").file).arch == BinaryInfo.Architecture.X86_64
         binaryInfo(objectFile("build/objectFiles/mainExecutable/x86_64/mainCpp/main")).arch == BinaryInfo.Architecture.X86_64
+    }
+
+    @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+    def "can configure binary for multiple target operating systems"() {
+        when:
+        buildFile << """
+            targetPlatforms {
+                solaris {
+                    operatingSystem "solaris"
+                }
+                windows {
+                    operatingSystem "windows"
+                }
+            }
+
+            binaries.matching({ it.targetPlatform.operatingSystem.windows }).all {
+                cppCompiler.define "FRENCH"
+            }
+        """
+
+        and:
+        succeeds "installSolarisMainExecutable", "installWindowsMainExecutable"
+
+        then:
+        installation("build/install/mainExecutable/solaris").exec().out ==  helloWorldApp.englishOutput
+        installation("build/install/mainExecutable/windows").exec().out ==  helloWorldApp.frenchOutput
     }
 
     def binaryInfo(TestFile file) {

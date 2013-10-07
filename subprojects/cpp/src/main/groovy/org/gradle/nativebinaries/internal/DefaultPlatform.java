@@ -18,16 +18,20 @@ package org.gradle.nativebinaries.internal;
 
 import org.gradle.api.internal.notations.api.NotationParser;
 import org.gradle.nativebinaries.Architecture;
+import org.gradle.nativebinaries.OperatingSystem;
 import org.gradle.nativebinaries.Platform;
 
 public class DefaultPlatform implements Platform {
     private final NotationParser<ArchitectureInternal> architectureNotationParser = ArchitectureNotationParser.parser();
+    private final NotationParser<OperatingSystem> osNotationParser = OperatingSystemNotationParser.parser();
     private final String name;
     private Architecture architecture;
+    private OperatingSystem operatingSystem;
 
     public DefaultPlatform(String name) {
         this.name = name;
         this.architecture = ArchitectureInternal.TOOL_CHAIN_DEFAULT;
+        this.operatingSystem = DefaultOperatingSystem.TOOL_CHAIN_DEFAULT;
     }
 
     public String getName() {
@@ -39,6 +43,14 @@ public class DefaultPlatform implements Platform {
     }
 
     public void architecture(Object notation) {
-        this.architecture = architectureNotationParser.parseNotation(notation);
+        architecture = architectureNotationParser.parseNotation(notation);
+    }
+
+    public OperatingSystem getOperatingSystem() {
+        return operatingSystem;
+    }
+
+    public void operatingSystem(Object notation) {
+        operatingSystem = osNotationParser.parseNotation(notation);
     }
 }

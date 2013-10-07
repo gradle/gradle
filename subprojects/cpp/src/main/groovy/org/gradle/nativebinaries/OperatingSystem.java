@@ -13,36 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.nativebinaries;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 
 /**
- * A target platform for building native binaries.
+ * A machine operating system.
  */
 @Incubating
-public interface Platform extends Named {
-
-    /**
-     * The cpu architecture being targeted.
-     */
-    Architecture getArchitecture();
-
-    /**
-     * Sets the cpu architecture being targeted.
-     */
-    void architecture(Object notation);
-
-    /**
-     * The operating system being targeted.
-     */
-    OperatingSystem getOperatingSystem();
-
-    /**
-     * Sets the operating system being targeted.
-     */
-    void operatingSystem(Object notation);
-
+public interface OperatingSystem extends Named {
+    boolean isWindows();
+    boolean isMacOsX();
+    boolean isLinux();
+    boolean isSolaris();
 }
