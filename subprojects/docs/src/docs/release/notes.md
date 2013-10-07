@@ -186,6 +186,7 @@ We would like to thank the following community members for making contributions 
 * [John Engelman](https://github.com/johnrengelman)
     - Existence of pom file requires that declared artifacts can be found in the same repository (GRADLE-2034).
     - Fix publishing to Maven Local to follow Maven rules (GRADLE-2762).
+* [Jean-Baptiste Nizet](https://github.com/jnizet) - Added an HTML dependency report.
 * [Valdis Rigdon](https://github.com/valdisrigdon) - Adds the ability to specify xml:withMessages, text, or emacs for the FindBugs report.
 * [Robert Kühne](https://github.com/sponiro)
     - Documentation fixes.
