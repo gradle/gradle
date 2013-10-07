@@ -18,9 +18,8 @@ package org.gradle.api.tasks.diagnostics.internal.html
 
 import org.gradle.api.Project
 import org.gradle.api.Transformer
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher
 import org.gradle.util.GFileUtils
-
-import java.nio.charset.StandardCharsets
 
 /**
  * Class responsible for the generation of an HTML dependency report.
@@ -43,8 +42,12 @@ import java.nio.charset.StandardCharsets
 class HtmlDependencyReporter {
 
     File outputDirectory;
-    JsonProjectDependencyRenderer renderer = new JsonProjectDependencyRenderer()
+    JsonProjectDependencyRenderer renderer
     JsonDependencyReportIndexRenderer indexRenderer = new JsonDependencyReportIndexRenderer()
+
+    HtmlDependencyReporter(VersionMatcher versionMatcher) {
+        renderer = new JsonProjectDependencyRenderer(versionMatcher)
+    }
 
     /**
      * Sets the output directory of the report. This directory contains the generated HTML file,
@@ -83,7 +86,7 @@ class HtmlDependencyReporter {
     private void generateJsFile(Project project, String fileName) {
         String json = renderer.render(project)
         String content = "var projectDependencyReport = " + json + ";";
-        GFileUtils.writeFile(content, new File(outputDirectory, fileName), StandardCharsets.UTF_8.name())
+        GFileUtils.writeFile(content, new File(outputDirectory, fileName), "utf-8")
     }
 
     private void generateIndexJsFile(Set<Project> projects, String fileName) {
@@ -94,12 +97,12 @@ class HtmlDependencyReporter {
         })
 
         String content = "var mainDependencyReport = " + json.toString() + ";";
-        GFileUtils.writeFile(content, new File(outputDirectory, fileName), StandardCharsets.UTF_8.name())
+        GFileUtils.writeFile(content, new File(outputDirectory, fileName), "utf-8")
     }
 
     private void generateHtmlFile(String template, String fileName, String jsFileName) {
         String content = template.replace('@js@', jsFileName);
-        GFileUtils.writeFile(content, new File(outputDirectory, fileName), StandardCharsets.UTF_8.name())
+        GFileUtils.writeFile(content, new File(outputDirectory, fileName), "utf-8")
     }
 
     private copyReportFile(String fileName) {

@@ -24,7 +24,6 @@ import org.gradle.api.specs.Spec;
 /**
  * A DependencyResultSpec that matches requested and selected modules if their
  * group and name match strictly with the given group and name
- * @author JB
  */
 public class StrictDependencyResultSpec implements Spec<DependencyResult> {
     private final ModuleIdentifier moduleIdentifier;

@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.result.DependencyResult
 import org.gradle.api.artifacts.result.ResolutionResult
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableModuleResult
@@ -92,6 +93,11 @@ import org.gradle.util.GradleVersion
  * @author JB Nizet
  */
 class JsonProjectDependencyRenderer {
+    private final VersionMatcher versionMatcher
+
+    JsonProjectDependencyRenderer(VersionMatcher versionMatcher) {
+        this.versionMatcher = versionMatcher
+    }
 
     /**
      * Generates the project dependency report structure
@@ -197,7 +203,7 @@ class JsonProjectDependencyRenderer {
             }
         }
 
-        Collection<RenderableDependency> sortedDeps = new DependencyInsightReporter().prepare(selectedDependencies)
+        Collection<RenderableDependency> sortedDeps = new DependencyInsightReporter().prepare(selectedDependencies, versionMatcher)
         return sortedDeps.collect { dependency ->
             String name = replaceArrow(dependency.name);
             [

@@ -19,8 +19,6 @@ import groovy.json.JsonSlurper
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 
-import java.nio.charset.StandardCharsets
-
 /**
  * Integration tests for the HTML dependency report generation task
  * @author JB Nizet
@@ -396,7 +394,7 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
 
     private def readGeneratedJson(fileNameWithoutExtension) {
         TestFile htmlReport = file("build/reports/project/dependencies/" + fileNameWithoutExtension + ".js")
-        String content = htmlReport.getText(StandardCharsets.UTF_8.name());
+        String content = htmlReport.getText("utf-8");
         // remove the variable declaration
         int equalSignIndex = content.indexOf('=');
         String jsonAsString = content.substring(equalSignIndex + 1);

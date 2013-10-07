@@ -16,10 +16,9 @@
 
 package org.gradle.api.tasks.diagnostics;
 
-import org.gradle.api.Project;
-import org.gradle.api.Task;
-import org.gradle.api.UncheckedIOException;
+import org.gradle.api.*;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
@@ -49,14 +48,12 @@ import java.util.Set;
  * The report is generated in the <code>build/reports/project/dependencies</code> directory by default.
  * This can also be changed by setting the <code>outputDirectory</code>
  * property.
- * @author JB Nizet
  */
+@Incubating
 public class HtmlDependencyReportTask extends ConventionTask {
 
     private Set<Project> projects;
     private File outputDirectory;
-
-    private HtmlDependencyReporter reporter = new HtmlDependencyReporter();
 
     public HtmlDependencyReportTask() {
         getOutputs().upToDateWhen(new Spec<Task>() {
@@ -69,6 +66,7 @@ public class HtmlDependencyReportTask extends ConventionTask {
     @TaskAction
     public void generate() {
         try {
+            HtmlDependencyReporter reporter = new HtmlDependencyReporter(getServices().get(VersionMatcher.class));
             reporter.setOutputDirectory(getOutputDirectory());
             reporter.generate(getProjects());
         } catch (IOException e) {
