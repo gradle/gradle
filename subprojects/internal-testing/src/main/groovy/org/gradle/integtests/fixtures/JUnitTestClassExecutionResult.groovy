@@ -148,13 +148,21 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
             checked = true
         }
         Map testMethods = [:]
-        testClassNode.testcase.each { testMethods[it.@name.text()] = it }
+        testClassNode.testcase.each {
+            if (it.skipped.size()==0) {
+                testMethods[it.@name.text()] = it
+            }
+        }
         return testMethods
     }
 
     private def findIgnoredTests() {
         Map testMethods = [:]
-        testClassNode."ignored-testcase".each { testMethods[it.@name.text()] = it }
+        testClassNode."testcase".each { 
+            if (it.skipped.size()!=0) {
+                testMethods[it.@name.text()] = it 
+            }
+        }
         return testMethods
     }
 }
