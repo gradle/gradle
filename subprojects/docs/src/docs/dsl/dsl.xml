@@ -248,9 +248,6 @@
                 <td>org.gradle.api.tasks.diagnostics.DependencyInsightReportTask</td>
             </tr>
             <tr>
-                <td>org.gradle.api.reporting.dependencies.HtmlDependencyReportTask</td>
-            </tr>
-            <tr>
                 <td>org.gradle.api.tasks.diagnostics.PropertyReportTask</td>
             </tr>
         </table>
@@ -311,6 +308,9 @@
             </tr>
             <tr>
                 <td>org.gradle.api.tasks.javadoc.Groovydoc</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.reporting.dependencies.HtmlDependencyReportTask</td>
             </tr>
             <tr>
                 <td>org.gradle.testing.jacoco.tasks.JacocoReport</td>
