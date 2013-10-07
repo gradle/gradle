@@ -13,11 +13,11 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<chapter id='build_setup_plugin'>
+<chapter id='build_init_plugin'>
     <title>Build Init Plugin</title>
     <note>
         <para>
-            The Build Init plugin is currently <link linkend="feature_lifecycle">incubating</link>. Please be aware that the DSL and other configuration may change in later Gradle versions.
+            The Build Init plugin is currently<link linkend="feature_lifecycle">incubating</link>. Please be aware that the DSL and other configuration may change in later Gradle versions.
         </para>
     </note>
     <para>
@@ -27,7 +27,7 @@
     <para>
         Gradle plugins typically need to be
         <firstterm>applied</firstterm>
-        to a project before they can be used (see <xref linkend="sec:using_plugins"/>).
+        to a project before they can be used (see<xref linkend="sec:using_plugins"/>).
         The Build Init plugin is an automatically applied plugin, which means you do not need to apply it explicitly.
         To use the plugin, simply execute the task named
         <literal>init</literal>
@@ -39,12 +39,12 @@
     <para>
         It also leverages the
         <literal>wrapper</literal>
-        task from the Wrapper plugin (see <xref linkend='wrapper_plugin'/>),
+        task from the Wrapper plugin (see<xref linkend='wrapper_plugin'/>),
         which means that the Gradle Wrapper will also be installed into the project.
     </para>
     <section>
         <title>Tasks</title>
-        <para>The  plugin adds the following tasks to the project:</para>
+        <para>The plugin adds the following tasks to the project:</para>
         <table>
             <title>Build Init plugin - tasks</title>
             <thead>
@@ -84,7 +84,7 @@
         <title>What to set up</title>
         <para>The
             <literal>init</literal>
-            supports different build setup <firstterm>types</firstterm>. The type is specified by supplying a
+            supports different build setup<firstterm>types</firstterm>. The type is specified by supplying a
             <literal>--type</literal>
             argument value. For example, to create a Java library project simply execute:
             <literal>gradle init --type java-library</literal>.
@@ -105,30 +105,9 @@
     <section>
         <title>Build init types</title>
         <note>
-            As this plugin is currently <link linkend="feature_lifecycle">incubating</link>, only 3 build init types are currently supported.
+            As this plugin is currently<link linkend="feature_lifecycle">incubating</link>, only 3 build init types are currently supported.
             More types will be added in future Gradle releases.
         </note>
-        <section>
-            <title>"<literal>java-library</literal>"
-            </title>
-            <para>
-                The "<literal>java-library</literal>" build init type is not inferable. It must be explicitly specified.
-            </para>
-            <para>
-                It has the following features:
-            </para>
-            <itemizedlist>
-                <listitem>Uses the "<literal>java</literal>" plugin
-                </listitem>
-                <listitem>Uses the "
-                    <literal>mavenCentral()</literal>
-                    dependency repository
-                </listitem>
-                <listitem>Uses JUnit for testing</listitem>
-                <listitem>Has directories in the conventional locations for source code</listitem>
-                <listitem>Contains a sample class and unit test, if there are no existing source or test files</listitem>
-            </itemizedlist>
-        </section>
         <section>
             <title>"<literal>pom</literal>" (Maven conversion)
             </title>
@@ -161,6 +140,72 @@
                 <listitem>Supports packaging of sources and tests</listitem>
                 <listitem>Supports TestNG runner</listitem>
                 <listitem>Generates global exclusions from Maven enforcer plugin settings</listitem>
+            </itemizedlist>
+        </section>
+        <section>
+            <title>"<literal>java-library</literal>"
+            </title>
+            <para>
+                The "<literal>java-library</literal>" build init type is not inferable. It must be explicitly specified.
+            </para>
+            <para>
+                It has the following features:
+            </para>
+            <itemizedlist>
+                <listitem>Uses the "<literal>java</literal>" plugin
+                </listitem>
+                <listitem>Uses the "
+                    <literal>mavenCentral()</literal>
+                    dependency repository
+                </listitem>
+                <listitem>Uses <ulink url="http://junit.org">JUnit</ulink>
+                 for testing</listitem>
+                <listitem>Has directories in the conventional locations for source code</listitem>
+                <listitem>Contains a sample class and unit test, if there are no existing source or test files</listitem>
+            </itemizedlist>
+        </section>
+        <section>
+            <title>"<literal>scala-library</literal>"
+            </title>
+            <para>
+                The "<literal>scala-library</literal>" build init type is not inferable. It must be explicitly specified.
+            </para>
+            <para>
+                It has the following features:
+            </para>
+            <itemizedlist>
+                <listitem>Uses the "<literal>scala</literal>" plugin
+                </listitem>
+                <listitem>Uses the "
+                    <literal>mavenCentral()</literal>
+                    dependency repository
+                </listitem>
+                <listitem>Uses Scala 2.10</listitem>
+                <listitem>Uses <ulink url="http://www.scalatest.org">ScalaTest</ulink> is used for testing</listitem>
+                <listitem>Has directories in the conventional locations for source code</listitem>
+                <listitem>Contains a sample scala class and an according ScalaTest test suite, if there are no existing source or test files</listitem>
+            </itemizedlist>
+        </section>
+        <section>
+            <title>"<literal>groovy-library</literal>"
+            </title>
+            <para>
+                The "<literal>groovy-library</literal>" build init type is not inferable. It must be explicitly specified.
+            </para>
+            <para>
+                It has the following features:
+            </para>
+            <itemizedlist>
+                <listitem>Uses the "<literal>groovy</literal>" plugin
+                </listitem>
+                <listitem>Uses the "
+                    <literal>mavenCentral()</literal>
+                    dependency repository
+                </listitem>
+                <listitem>Uses Groovy 2.x </listitem>
+                <listitem>Uses <ulink url="http://code.google.com/p/spock/">Spock testing framework</ulink> for testing</listitem>
+                <listitem>Has directories in the conventional locations for source code</listitem>
+                <listitem>Contains a sample groovy class and an according Spock specification, if there are no existing source or test files</listitem>
             </itemizedlist>
         </section>
         <section>

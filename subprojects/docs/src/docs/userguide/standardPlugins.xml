@@ -571,7 +571,7 @@
             </tr>
             <tr>
                 <td>
-                    <link linkend="build_setup_plugin">
+                    <link linkend="build_init_plugin">
                         <literal>build-init</literal>
                     </link>
                 </td>
