@@ -9,10 +9,6 @@
                 </tr>
             </thead>
             <tr>
-                <td>outputDirectory</td>
-                <td><filename><replaceable>${project.projectReportDir}</replaceable>/dependencies</filename></td>
-            </tr>
-            <tr>
                 <td>projects</td>
                 <td><literal>[project]</literal></td>
             </tr>

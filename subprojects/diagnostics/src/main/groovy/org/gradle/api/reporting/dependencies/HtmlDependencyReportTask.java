@@ -16,15 +16,20 @@
 
 package org.gradle.api.reporting.dependencies;
 
-import org.gradle.api.*;
+import groovy.lang.Closure;
+import org.gradle.api.Incubating;
+import org.gradle.api.Project;
+import org.gradle.api.Task;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
+import org.gradle.api.reporting.Reporting;
+import org.gradle.api.reporting.dependencies.internal.DefaultDependencyReportContainer;
 import org.gradle.api.specs.Spec;
-import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.diagnostics.internal.html.HtmlDependencyReporter;
+import org.gradle.internal.reflect.Instantiator;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Set;
 
@@ -50,12 +55,13 @@ import java.util.Set;
  * property.
  */
 @Incubating
-public class HtmlDependencyReportTask extends ConventionTask {
-
+public class HtmlDependencyReportTask extends ConventionTask implements Reporting<DependencyReportContainer> {
     private Set<Project> projects;
-    private File outputDirectory;
+    private final DefaultDependencyReportContainer reports;
 
     public HtmlDependencyReportTask() {
+        reports = getServices().get(Instantiator.class).newInstance(DefaultDependencyReportContainer.class, this);
+        reports.getHtml().setEnabled(true);
         getOutputs().upToDateWhen(new Spec<Task>() {
             public boolean isSatisfiedBy(Task element) {
                 return false;
@@ -63,33 +69,29 @@ public class HtmlDependencyReportTask extends ConventionTask {
         });
     }
 
+    public DependencyReportContainer getReports() {
+        return reports;
+    }
+
+    public DependencyReportContainer reports(Closure closure) {
+        reports.configure(closure);
+        return reports;
+    }
+
     @TaskAction
     public void generate() {
+        if (!reports.getHtml().isEnabled()) {
+            setDidWork(false);
+            return;
+        }
+
         try {
             HtmlDependencyReporter reporter = new HtmlDependencyReporter(getServices().get(VersionMatcher.class));
-            reporter.setOutputDirectory(getOutputDirectory());
+            reporter.setOutputDirectory(reports.getHtml().getDestination());
             reporter.generate(getProjects());
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-    }
-
-    /**
-     * Returns the directory which the report will be written to.
-     *
-     * @return The output directory. May not be null.
-     */
-    @OutputDirectory
-    public File getOutputDirectory() {
-        return outputDirectory;
-    }
-
-    /**
-     * Sets the diretcory which the report will be written to.
-     * @param outputDirectory The output directory. May not be null.
-     */
-    public void setOutputDirectory(File outputDirectory) {
-        this.outputDirectory = outputDirectory;
     }
 
     /**
