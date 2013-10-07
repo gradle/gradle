@@ -18,12 +18,9 @@ package org.gradle.nativebinaries.toolchain.internal.gcc;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.nativebinaries.Platform;
-import org.gradle.nativebinaries.internal.*;
+import org.gradle.nativebinaries.internal.ToolChainAvailability;
 import org.gradle.nativebinaries.toolchain.Gcc;
 import org.gradle.nativebinaries.toolchain.GccTool;
-import org.gradle.nativebinaries.toolchain.internal.AbstractToolChain;
-import org.gradle.nativebinaries.toolchain.internal.ToolRegistry;
 import org.gradle.nativebinaries.toolchain.internal.ToolType;
 import org.gradle.nativebinaries.toolchain.internal.gcc.version.GccVersionDeterminer;
 import org.gradle.process.internal.ExecActionFactory;
@@ -36,22 +33,18 @@ import java.util.List;
 /**
  * Compiler adapter for GCC.
  */
-public class GccToolChain extends AbstractToolChain implements Gcc {
+public class GccToolChain extends GccCompatibleToolChain implements Gcc {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GccToolChain.class);
 
     public static final String DEFAULT_NAME = "gcc";
 
-    private final ExecActionFactory execActionFactory;
     private final Transformer<String, File> versionDeterminer;
-    private final ToolRegistry tools;
 
     private String version;
 
     public GccToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory) {
-        super(name, operatingSystem, fileResolver);
-        this.tools = new GccToolRegistry(operatingSystem);
-        this.execActionFactory = execActionFactory;
+        super(name, operatingSystem, fileResolver, execActionFactory, new GccToolRegistry(operatingSystem));
         this.versionDeterminer = new GccVersionDeterminer(execActionFactory);
 
         tools.setExeName(ToolType.CPP_COMPILER, "g++");
@@ -78,9 +71,7 @@ public class GccToolChain extends AbstractToolChain implements Gcc {
 
     @Override
     protected void checkAvailable(ToolChainAvailability availability) {
-        for (ToolType key : ToolType.values()) {
-            availability.mustExist(key.getToolName(), tools.locate(key));
-        }
+        super.checkAvailable(availability);
         determineVersion();
         if (version == null) {
             availability.unavailable("Could not determine G++ version");
@@ -98,11 +89,6 @@ public class GccToolChain extends AbstractToolChain implements Gcc {
 
     private String determineVersion(File executable) {
         return executable == null ? null : versionDeterminer.transform(executable);
-    }
-
-    public PlatformToolChain target(Platform targetPlatform) {
-        checkAvailable();
-        return new GnuCompatibleToolChain(tools, operatingSystem, execActionFactory, targetPlatform, canUseCommandFile());
     }
 
     public GccTool getCppCompiler() {
@@ -125,7 +111,7 @@ public class GccToolChain extends AbstractToolChain implements Gcc {
         return new DefaultTool(ToolType.STATIC_LIB_ARCHIVER);
     }
 
-    private boolean canUseCommandFile() {
+    protected boolean canUseCommandFile() {
         String[] components = version.split("\\.");
         int majorVersion;
         try {

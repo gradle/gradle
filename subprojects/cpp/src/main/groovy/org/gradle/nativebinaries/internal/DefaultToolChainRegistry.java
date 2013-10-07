@@ -76,6 +76,10 @@ public class DefaultToolChainRegistry extends DefaultPolymorphicDomainObjectCont
             throw failure();
         }
 
+        public void targetNativeBinaryForPlatform(NativeBinaryInternal nativeBinary) {
+            nativeBinary.setBuildable(false);
+        }
+
         private IllegalStateException failure() {
             return new IllegalStateException(String.format("No tool chain is available: %s", messages));
         }

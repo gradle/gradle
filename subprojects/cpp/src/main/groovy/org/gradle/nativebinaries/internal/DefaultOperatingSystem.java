@@ -18,7 +18,8 @@ package org.gradle.nativebinaries.internal;
 import org.gradle.nativebinaries.OperatingSystem;
 
 public class DefaultOperatingSystem implements OperatingSystem {
-    public static final OperatingSystem TOOL_CHAIN_DEFAULT = new DefaultOperatingSystem("default", org.gradle.internal.os.OperatingSystem.current());
+    private static final org.gradle.internal.os.OperatingSystem CURRENT_OS = org.gradle.internal.os.OperatingSystem.current();
+    public static final OperatingSystem TOOL_CHAIN_DEFAULT = new DefaultOperatingSystem("default", CURRENT_OS);
 
     private final String name;
     private final org.gradle.internal.os.OperatingSystem internalOs;
@@ -30,6 +31,10 @@ public class DefaultOperatingSystem implements OperatingSystem {
 
     public String getName() {
         return name;
+    }
+
+    public boolean isCurrent() {
+        return internalOs == CURRENT_OS;
     }
 
     public boolean isWindows() {

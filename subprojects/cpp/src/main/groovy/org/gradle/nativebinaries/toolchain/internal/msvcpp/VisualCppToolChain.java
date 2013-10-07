@@ -91,10 +91,26 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
 
     public PlatformToolChain target(Platform targetPlatform) {
         checkAvailable();
+        // TODO:DAZ Fail when targeting an unsupported platform
 
         VisualStudioInstall visualStudioInstall = new VisualStudioInstall(locateVisualStudio().getResult());
         WindowsSdk windowsSdk = new WindowsSdk(locateWindowsSdk().getResult());
         return new VisualCppPlatformToolChain(visualStudioInstall, windowsSdk, targetPlatform);
+    }
+
+    public void targetNativeBinaryForPlatform(NativeBinaryInternal nativeBinary) {
+        org.gradle.nativebinaries.OperatingSystem targetOs = nativeBinary.getTargetPlatform().getOperatingSystem();
+        ArchitectureInternal targetArch = (ArchitectureInternal) nativeBinary.getTargetPlatform().getArchitecture();
+
+        if (targetOs.isWindows()) {
+            if (targetArch == ArchitectureInternal.TOOL_CHAIN_DEFAULT) {
+                return;
+            }
+            if (targetArch.isI386() || targetArch.isAmd64() || targetArch.isIa64()) {
+                return;
+            }
+        }
+        nativeBinary.setBuildable(false);
     }
 
     @Override

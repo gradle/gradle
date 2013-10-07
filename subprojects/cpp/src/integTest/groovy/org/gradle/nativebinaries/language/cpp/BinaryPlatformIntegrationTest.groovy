@@ -46,7 +46,6 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
         helloWorldApp.library.writeSources(file("src/hello"))
     }
 
-    @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
     def "build binary for multiple target architectures"() {
         // Don't yet have test environments to build 64-bit binaries on MinGW or cygwin
         if (OperatingSystem.current().windows && !toolChain.visualCpp) {
@@ -62,12 +61,24 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
                 x86_64 {
                     architecture "x86_64"
                 }
+                itanium {
+                    architecture "ia-64"
+                }
+                arm {
+                    // ARM is not yet supported on any tool chain
+                    architecture "arm"
+                }
             }
-        """
+            task buildExecutables {
+                dependsOn binaries.withType(ExecutableBinary).matching {
+                    it.buildable
+                }
+            }
+"""
 
         and:
         executer.withArgument("--debug")
-        succeeds "installX86MainExecutable", "installX86_64MainExecutable"
+        succeeds "buildExecutables"
 
         then:
         binaryInfo(executable("build/binaries/mainExecutable/x86/main").file).arch.name == "x86"
@@ -75,31 +86,15 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
 
         binaryInfo(executable("build/binaries/mainExecutable/x86_64/main").file).arch.name == "x86_64"
         binaryInfo(objectFile("build/objectFiles/mainExecutable/x86_64/mainCpp/main")).arch.name == "x86_64"
-    }
 
-    @Requires(TestPrecondition.WINDOWS)
-    def "build binary for itanium architecture"() {
-        // Don't yet have test environments to build Itanium binaries on MinGW or cygwin
-        if (!toolChain.visualCpp) {
-            return
+        if (toolChain.visualCpp) {
+            binaryInfo(executable("build/binaries/mainExecutable/itanium/main").file).arch.name == "ia-64"
+            binaryInfo(objectFile("build/objectFiles/mainExecutable/itanium/mainCpp/main")).arch.name == "ia-64"
+        } else {
+            executable("build/binaries/mainExecutable/itanium/main").assertDoesNotExist()
         }
 
-        when:
-        buildFile << """
-            targetPlatforms {
-                itanium {
-                    architecture "ia-64"
-                }
-            }
-        """
-
-        and:
-        executer.withArgument("--debug")
-        succeeds "installMainExecutable"
-
-        then:
-        binaryInfo(executable("build/binaries/mainExecutable/main").file).arch.name == "ia-64"
-        binaryInfo(objectFile("build/objectFiles/mainExecutable/mainCpp/main")).arch.name == "ia-64"
+        executable("build/binaries/mainExecutable/amd/main").assertDoesNotExist()
     }
 
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)

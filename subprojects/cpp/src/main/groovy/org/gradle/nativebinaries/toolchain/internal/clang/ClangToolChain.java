@@ -18,25 +18,17 @@ package org.gradle.nativebinaries.toolchain.internal.clang;
 
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.nativebinaries.Platform;
-import org.gradle.nativebinaries.internal.PlatformToolChain;
-import org.gradle.nativebinaries.internal.ToolChainAvailability;
 import org.gradle.nativebinaries.toolchain.Clang;
-import org.gradle.nativebinaries.toolchain.internal.AbstractToolChain;
 import org.gradle.nativebinaries.toolchain.internal.ToolRegistry;
 import org.gradle.nativebinaries.toolchain.internal.ToolType;
-import org.gradle.nativebinaries.toolchain.internal.gcc.GnuCompatibleToolChain;
+import org.gradle.nativebinaries.toolchain.internal.gcc.GccCompatibleToolChain;
 import org.gradle.process.internal.ExecActionFactory;
 
-public class ClangToolChain extends AbstractToolChain implements Clang {
+public class ClangToolChain extends GccCompatibleToolChain implements Clang {
     public static final String DEFAULT_NAME = "clang";
-    private final ExecActionFactory execActionFactory;
-    private final ToolRegistry tools;
 
     public ClangToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory) {
-        super(name, operatingSystem, fileResolver);
-        this.tools = new ToolRegistry(operatingSystem);
-        this.execActionFactory = execActionFactory;
+        super(name, operatingSystem, fileResolver, execActionFactory, new ToolRegistry(operatingSystem));
 
         tools.setExeName(ToolType.CPP_COMPILER, "clang++");
         tools.setExeName(ToolType.C_COMPILER, "clang");
@@ -46,19 +38,8 @@ public class ClangToolChain extends AbstractToolChain implements Clang {
     }
 
     @Override
-    protected void checkAvailable(ToolChainAvailability availability) {
-        for (ToolType key : ToolType.values()) {
-            availability.mustExist(key.getToolName(), tools.locate(key));
-        }
-    }
-
-    @Override
     protected String getTypeName() {
         return "Clang";
     }
 
-    public PlatformToolChain target(Platform targetPlatform) {
-        checkAvailable();
-        return new GnuCompatibleToolChain(tools, operatingSystem, execActionFactory, targetPlatform, true);
-    }
 }

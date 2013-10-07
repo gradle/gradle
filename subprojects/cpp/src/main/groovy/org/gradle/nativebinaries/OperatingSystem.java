@@ -23,6 +23,8 @@ import org.gradle.api.Named;
  */
 @Incubating
 public interface OperatingSystem extends Named {
+    boolean isCurrent();
+
     boolean isWindows();
     boolean isMacOsX();
     boolean isLinux();

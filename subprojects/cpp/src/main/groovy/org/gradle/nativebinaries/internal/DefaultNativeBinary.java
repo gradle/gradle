@@ -42,6 +42,7 @@ public abstract class DefaultNativeBinary extends AbstractBuildableModelElement 
     private final Platform targetPlatform;
     private final BuildType buildType;
     private File outputFile;
+    private boolean buildable;
 
     protected DefaultNativeBinary(NativeComponent owner, Flavor flavor, ToolChainInternal toolChain, Platform targetPlatform, BuildType buildType, DefaultBinaryNamingScheme namingScheme) {
         this.namingScheme = namingScheme;
@@ -49,6 +50,7 @@ public abstract class DefaultNativeBinary extends AbstractBuildableModelElement 
         this.toolChain = toolChain;
         this.targetPlatform = targetPlatform;
         this.buildType = buildType;
+        this.buildable = true;
         owner.getSource().all(new Action<LanguageSourceSet>() {
             public void execute(LanguageSourceSet sourceSet) {
                 source.add(sourceSet);
@@ -128,6 +130,14 @@ public abstract class DefaultNativeBinary extends AbstractBuildableModelElement 
 
     public void lib(Object notation) {
         libs.add(notation);
+    }
+
+    public boolean isBuildable() {
+        return buildable;
+    }
+
+    public void setBuildable(boolean buildable) {
+        this.buildable = buildable;
     }
 
     public abstract String getOutputFileName();
