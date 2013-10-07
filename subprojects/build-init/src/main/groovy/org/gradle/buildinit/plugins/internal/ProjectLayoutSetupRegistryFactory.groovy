@@ -31,7 +31,7 @@ class ProjectLayoutSetupRegistryFactory {
 
         // TODO maybe referencing the implementation class here is enough and instantiation
         // should be defererred when descriptor is requested.
-        TemplateOperationBuilder templateOperationBuilder = new TemplateOperationBuilder("/org/gradle/buildinit/tasks/templates/", fileResolver, documentationRegistry)
+        TemplateOperationBuilder templateOperationBuilder = new TemplateOperationBuilder("/org/gradle/buildinit/tasks/templates", fileResolver, documentationRegistry)
 
         TemplateOperation settingsTemplateOperation = templateOperationBuilder.newTemplateOperation()
                 .withTemplate("settings.gradle.template")

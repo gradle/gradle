@@ -50,7 +50,7 @@ class TemplateOperationBuilder {
     }
 
     TemplateOperationBuilder withTemplate(String relativeTemplatePath) {
-        this.templateUrl = getClass() getResource("${templatepackage}/${relativeTemplatePath}")
+        this.templateUrl = getClass().getResource("${templatepackage}/${relativeTemplatePath}")
         this
     }
 
