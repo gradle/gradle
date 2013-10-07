@@ -46,7 +46,7 @@
     <section>
         <title>Locating tasks</title>
         <para>You often need to locate the tasks that you have defined in the build file, for example, to configure them
-            or use them for dependencies. There are a number of ways you can do this. Firstly, each task is available as
+            or use them for dependencies. There are a number of ways of doing this. Firstly, each task is available as
             a property of the project, using the task name as the property name:
         </para>
         <sample id="accessAsProperty" dir="userguide/tasks/accessAsProperty" title="Accessing tasks as properties">
@@ -104,7 +104,7 @@
             <literal>tasks.getByName()</literal> method. It is important to note that if you pass a closure to the
             <literal>getByName()</literal> method, this closure is applied to <emphasis>configure</emphasis> the task.
         </para>
-        <para>There is a slightly different ways of doing this.</para>
+        <para>There is a slightly different way of doing this.</para>
         <sample id="configureUsingConfigure" dir="userguide/tasks/configureUsingConfigure" title="Configuring a task - with configure() method">
             <sourcefile file="build.gradle"/>
         </sample>
@@ -339,7 +339,7 @@
 
     <section>
         <title>Task rules</title>
-        <para>Sometimes you want to have a task which behavior depends on a large or infinite number value range
+        <para>Sometimes you want to have a task whose behavior depends on a large or infinite number value range
             of parameters. A very nice and expressive way to provide such tasks are task rules:
         </para>
         <sample id="taskRule" dir="userguide/tasks/addRules" title="Task rule">
@@ -349,7 +349,7 @@
         <para>The String parameter is used as a description for the rule. This description is shown when running
             for example <userinput>gradle tasks</userinput>.
         </para>
-        <para>Rules not just work for calling tasks from the command line. You can also create dependsOn relations
+        <para>Rules not just work when calling tasks from the command line. You can also create dependsOn relations
             on rule based tasks:
         </para>
         <sample id="taskRuleDependsOn" dir="userguide/tasks/addRules" title="Dependency on rule based tasks">
