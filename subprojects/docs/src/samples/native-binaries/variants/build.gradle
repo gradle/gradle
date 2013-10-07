@@ -1,16 +1,5 @@
 apply plugin: 'cpp'
 
-toolChains {
-    visualCpp(VisualCpp) {
-        // Uncomment if Visual Studio cannot be located by default
-        // installDir "C:/Program Files/Microsoft Visual Studio 10.0
-    }
-    gcc(Gcc) {
-        // Uncomment to use a GCC install that is not in the PATH
-        // path "/usr/bin/gcc"
-    }
-}
-
 buildTypes {
     debug {}
     release {}
@@ -20,8 +9,11 @@ targetPlatforms {
     x86 {
         architecture "x86"
     }
-    x86_64 {
+    x64 {
         architecture "x86_64"
+    }
+    itanium {
+        architecture "ia-64"
     }
 }
 
@@ -35,10 +27,10 @@ sources.main.cpp.lib libraries.hello.static
 
 // Apply arguments for debug binaries (these options are not yet set automatically)
 binaries.all {
-    if (toolChain in Gcc && buildType.debug) {
+    if (toolChain in Gcc && buildType == buildTypes.debug) {
         cppCompiler.args "-g"
     }
-    if (toolChain in VisualCpp && buildType.debug) {
+    if (toolChain in VisualCpp && buildType == buildTypes.debug) {
         cppCompiler.args '/Zi'
         cppCompiler.define 'DEBUG'
         linker.args '/DEBUG'
@@ -61,5 +53,10 @@ task gccExecutables {
 task visualCppExecutables {
     dependsOn binaries.withType(ExecutableBinary).matching {
         it.toolChain in VisualCpp
+    }
+}
+task buildExecutables {
+    dependsOn binaries.withType(ExecutableBinary).matching {
+        it.buildable
     }
 }

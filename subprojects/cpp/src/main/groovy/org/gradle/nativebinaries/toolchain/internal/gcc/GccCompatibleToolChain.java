@@ -64,9 +64,20 @@ public abstract class GccCompatibleToolChain extends AbstractToolChain implement
             throw new IllegalStateException(String.format("Tool chain %s cannot build for os: %s", getName(), targetPlatform.getOperatingSystem().getName()));
         }
         ArchitectureInternal arch = (ArchitectureInternal) targetPlatform.getArchitecture();
-        if (arch != ArchitectureInternal.TOOL_CHAIN_DEFAULT && !arch.isI386() && !arch.isAmd64()) {
+        if (!isSupportedArchitecture(arch)) {
             throw new IllegalStateException(String.format("Tool chain %s cannot build for architecture: %s", getName(), targetPlatform.getArchitecture().getName()));
         }
+    }
+
+    private boolean isSupportedArchitecture(ArchitectureInternal arch) {
+        if (arch == ArchitectureInternal.TOOL_CHAIN_DEFAULT) {
+            return true;
+        }
+        if (OperatingSystem.current().isWindows()) {
+            // Cygwin and MinGW don't yet support 64-bit binaries
+            return arch.isI386();
+        }
+        return arch.isI386() || arch.isAmd64();
     }
 
     protected boolean canUseCommandFile() {

@@ -30,6 +30,7 @@ class CppSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
     @Rule public final Sample cppLib = new Sample(temporaryFolder, 'native-binaries/cpp-lib')
     @Rule public final Sample multiProject = new Sample(temporaryFolder, 'native-binaries/multi-project')
     @Rule public final Sample flavors = new Sample(temporaryFolder, 'native-binaries/flavors')
+    @Rule public final Sample variants = new Sample(temporaryFolder, 'native-binaries/variants')
     @Rule public final Sample dependencies = new Sample(temporaryFolder, 'native-binaries/dependencies')
 
     def setup() {
@@ -168,6 +169,46 @@ class CppSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
 
         and:
         installation("native-binaries/flavors/build/install/mainExecutable/french").exec().out == "Bonjour monde!\n"
+    }
+
+    def variants() {
+        when:
+        sample variants
+        run "buildExecutables"
+
+        then:
+        final debugX86 = executable("native-binaries/variants/build/binaries/mainExecutable/x86Debug/main")
+        final releaseX86 = executable("native-binaries/variants/build/binaries/mainExecutable/x86Release/main")
+        final debugX64 = executable("native-binaries/variants/build/binaries/mainExecutable/x64Debug/main")
+        final releaseX64 = executable("native-binaries/variants/build/binaries/mainExecutable/x64Release/main")
+        final debugIA64 = executable("native-binaries/variants/build/binaries/mainExecutable/itaniumDebug/main")
+        final releaseIA64 = executable("native-binaries/variants/build/binaries/mainExecutable/itaniumRelease/main")
+
+        debugX86.binaryInfo.arch.name == "x86"
+        debugX86.assertDebugFileExists()
+        debugX86.exec().out == "Hello world!\n"
+
+        releaseX86.binaryInfo.arch.name == "x86"
+        releaseX86.assertDebugFileDoesNotExist()
+        releaseX86.exec().out == "Hello world!\n"
+
+        // x86_64 binaries not supported on MinGW or cygwin
+        if (toolChain.id == "mingw" || toolChain.id == "gcccygwin") {
+            debugX64.assertDoesNotExist()
+            releaseX64.assertDoesNotExist()
+        } else {
+            debugX64.binaryInfo.arch.name == "x86_64"
+            releaseX64.binaryInfo.arch.name == "x86_64"
+        }
+
+        // Itanium only supported on visualCpp
+        if (toolChain.visualCpp) {
+            debugIA64.binaryInfo.arch.name == "ia-64"
+            releaseIA64.binaryInfo.arch.name == "ia-64"
+        } else {
+            debugIA64.assertDoesNotExist()
+            releaseIA64.assertDoesNotExist()
+        }
     }
 
     def multiProject() {

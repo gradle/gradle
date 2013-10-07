@@ -47,11 +47,6 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
     }
 
     def "build binary for multiple target architectures"() {
-        // Don't yet have test environments to build 64-bit binaries on MinGW or cygwin
-        if (OperatingSystem.current().windows && !toolChain.visualCpp) {
-            return
-        }
-
         when:
         buildFile << """
             targetPlatforms {
@@ -81,20 +76,27 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
         succeeds "buildExecutables"
 
         then:
-        binaryInfo(executable("build/binaries/mainExecutable/x86/main").file).arch.name == "x86"
+        executable("build/binaries/mainExecutable/x86/main").binaryInfo.arch.name == "x86"
         binaryInfo(objectFile("build/objectFiles/mainExecutable/x86/mainCpp/main")).arch.name == "x86"
 
-        binaryInfo(executable("build/binaries/mainExecutable/x86_64/main").file).arch.name == "x86_64"
-        binaryInfo(objectFile("build/objectFiles/mainExecutable/x86_64/mainCpp/main")).arch.name == "x86_64"
+        // x86_64 binaries not supported on MinGW or cygwin
+        if (toolChain.id == "mingw" || toolChain.id == "gcccygwin") {
+            executable("build/binaries/mainExecutable/x86_64/main").assertDoesNotExist()
+        } else {
+            executable("build/binaries/mainExecutable/x86_64/main").binaryInfo.arch.name == "x86_64"
+            binaryInfo(objectFile("build/objectFiles/mainExecutable/x86_64/mainCpp/main")).arch.name == "x86_64"
+        }
 
+        // Itanium only supported on visualCpp
         if (toolChain.visualCpp) {
-            binaryInfo(executable("build/binaries/mainExecutable/itanium/main").file).arch.name == "ia-64"
+            executable("build/binaries/mainExecutable/itanium/main").binaryInfo.arch.name == "ia-64"
             binaryInfo(objectFile("build/objectFiles/mainExecutable/itanium/mainCpp/main")).arch.name == "ia-64"
         } else {
             executable("build/binaries/mainExecutable/itanium/main").assertDoesNotExist()
         }
 
-        executable("build/binaries/mainExecutable/amd/main").assertDoesNotExist()
+        // ARM not supported on any platform
+        executable("build/binaries/mainExecutable/arm/main").assertDoesNotExist()
     }
 
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)

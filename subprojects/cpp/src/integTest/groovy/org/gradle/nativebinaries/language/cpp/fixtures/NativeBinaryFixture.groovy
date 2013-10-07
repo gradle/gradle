@@ -16,6 +16,11 @@
 
 package org.gradle.nativebinaries.language.cpp.fixtures
 
+import org.gradle.internal.os.OperatingSystem
+import org.gradle.nativebinaries.language.cpp.fixtures.binaryinfo.BinaryInfo
+import org.gradle.nativebinaries.language.cpp.fixtures.binaryinfo.DumpbinBinaryInfo
+import org.gradle.nativebinaries.language.cpp.fixtures.binaryinfo.OtoolBinaryInfo
+import org.gradle.nativebinaries.language.cpp.fixtures.binaryinfo.ReadelfBinaryInfo
 import org.gradle.test.fixtures.file.TestFile
 
 class NativeBinaryFixture {
@@ -68,5 +73,16 @@ class NativeBinaryFixture {
     boolean assertExistsAndDelete() {
         assertExists()
         file.delete()
+    }
+
+    BinaryInfo getBinaryInfo() {
+        file.assertExists()
+        if (OperatingSystem.current().isMacOsX()) {
+            return new OtoolBinaryInfo(file);
+        }
+        if (OperatingSystem.current().isWindows()) {
+            return new DumpbinBinaryInfo(file, toolChain);
+        }
+        return new ReadelfBinaryInfo(file);
     }
 }
