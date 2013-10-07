@@ -17,6 +17,7 @@
 package org.gradle.nativebinaries.toolchain.internal.msvcpp;
 
 import org.gradle.nativebinaries.Platform;
+import org.gradle.nativebinaries.internal.ArchitectureInternal;
 
 import java.io.File;
 
@@ -50,12 +51,10 @@ public class VisualStudioInstall {
     }
 
     public File getVisualCppBin(Platform platform) {
-        switch (platform.getArchitecture()) {
-            case AMD64:
-                return new File(visualCppDir, "bin/x86_amd64");
-            default:
-                return new File(visualCppDir, "bin");
+        if (isAmd64(platform)) {
+            return new File(visualCppDir, "bin/x86_amd64");
         }
+        return new File(visualCppDir, "bin");
     }
 
     public File getCommonIdeBin() {
@@ -67,20 +66,23 @@ public class VisualStudioInstall {
     }
 
     public File getVisualCppLib(Platform platform) {
-        switch (platform.getArchitecture()) {
-            case AMD64:
-                return new File(visualCppDir, "lib/amd64");
-            default:
-                return new File(visualCppDir, "lib");
+        if (isAmd64(platform)) {
+            return new File(visualCppDir, "lib/amd64");
         }
+        return new File(visualCppDir, "lib");
     }
 
     private String getAssemblerExe(Platform platform) {
-        switch (platform.getArchitecture()) {
-            case AMD64:
-                return "ml64.exe";
-            default:
-                return "ml.exe";
+        if (isAmd64(platform)) {
+            return "ml64.exe";
         }
+        return "ml.exe";
+    }
+
+    private boolean isAmd64(Platform platform) {
+        // TODO:DAZ Add support for Itanium and fail for other architectures
+        ArchitectureInternal architecture = (ArchitectureInternal) platform.getArchitecture();
+        return architecture.getInstructionSet() == ArchitectureInternal.InstructionSet.X86
+                && architecture.getRegisterSize() == 64;
     }
 }

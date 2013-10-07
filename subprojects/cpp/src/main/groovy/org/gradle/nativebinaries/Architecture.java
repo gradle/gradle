@@ -13,26 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.nativebinaries;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
+import org.gradle.api.internal.HasInternalProtocol;
 
 /**
- * A target platform for building native binaries.
+ * A cpu architecture.
  */
 @Incubating
-public interface Platform extends Named {
-
-    /**
-     * The cpu architecture being targeted.
-     */
-    Architecture getArchitecture();
-
-    /**
-     * Sets the cpu architecture being targeted.
-     */
-    void architecture(Object notation);
-
+@HasInternalProtocol
+public interface Architecture extends Named {
 }

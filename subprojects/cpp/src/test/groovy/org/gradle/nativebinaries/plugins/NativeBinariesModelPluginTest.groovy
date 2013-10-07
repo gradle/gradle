@@ -20,6 +20,7 @@ import org.gradle.api.Task
 import org.gradle.api.plugins.BasePlugin
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.nativebinaries.*
+import org.gradle.nativebinaries.internal.ArchitectureInternal
 import org.gradle.nativebinaries.internal.DefaultFlavor
 import org.gradle.nativebinaries.internal.ToolChainInternal
 import org.gradle.util.TestUtil
@@ -49,7 +50,7 @@ class NativeBinariesModelPluginTest extends Specification {
         one(project.toolChains).name == 'unavailable'
         with (one(project.targetPlatforms)) {
             name == 'current'
-            architecture == Platform.Architecture.TOOL_CHAIN_DEFAULT
+            architecture == ArchitectureInternal.TOOL_CHAIN_DEFAULT
         }
         with (one(project.buildTypes)) {
             name == 'debug'

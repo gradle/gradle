@@ -13,32 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.nativebinaries.internal;
 
-import org.gradle.api.internal.notations.api.NotationParser;
-import org.gradle.nativebinaries.Architecture;
-import org.gradle.nativebinaries.Platform;
-
-public class DefaultPlatform implements Platform {
-    private final NotationParser<ArchitectureInternal> architectureNotationParser = ArchitectureNotationParser.parser();
+public class DefaultArchitecture implements ArchitectureInternal {
     private final String name;
-    private Architecture architecture;
+    private final InstructionSet instructionSet;
+    private final int registerSize;
 
-    public DefaultPlatform(String name) {
+    public DefaultArchitecture(String name, InstructionSet instructionSet, int registerSize) {
         this.name = name;
-        this.architecture = ArchitectureInternal.TOOL_CHAIN_DEFAULT;
+        this.instructionSet = instructionSet;
+        this.registerSize = registerSize;
     }
 
     public String getName() {
         return name;
     }
 
-    public Architecture getArchitecture() {
-        return architecture;
+    public InstructionSet getInstructionSet() {
+        return instructionSet;
     }
 
-    public void architecture(Object notation) {
-        this.architecture = architectureNotationParser.parseNotation(notation);
+    public int getRegisterSize() {
+        return registerSize;
     }
 }

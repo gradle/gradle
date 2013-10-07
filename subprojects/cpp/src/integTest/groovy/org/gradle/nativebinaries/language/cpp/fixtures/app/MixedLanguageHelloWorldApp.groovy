@@ -34,7 +34,7 @@ public class MixedLanguageHelloWorldApp extends HelloWorldApp {
         return """
             targetPlatforms {
                 x86 {
-                    architecture Platform.Architecture.I386
+                    architecture "i386"
                 }
             }
 """

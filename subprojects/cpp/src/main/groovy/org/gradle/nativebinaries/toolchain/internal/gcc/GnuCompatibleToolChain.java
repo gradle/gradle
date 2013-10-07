@@ -19,10 +19,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativebinaries.Platform;
-import org.gradle.nativebinaries.internal.BinaryToolSpec;
-import org.gradle.nativebinaries.internal.LinkerSpec;
-import org.gradle.nativebinaries.internal.PlatformToolChain;
-import org.gradle.nativebinaries.internal.StaticLibraryArchiverSpec;
+import org.gradle.nativebinaries.internal.*;
 import org.gradle.nativebinaries.language.assembler.internal.AssembleSpec;
 import org.gradle.nativebinaries.language.c.internal.CCompileSpec;
 import org.gradle.nativebinaries.language.cpp.internal.CppCompileSpec;
@@ -108,14 +105,22 @@ public class GnuCompatibleToolChain implements PlatformToolChain {
     }
 
     private List<String> gccPlatformArguments() {
-        switch (targetPlatform.getArchitecture()) {
-            case I386:
-                return args("-m32");
-            case AMD64:
-                return args("-m64");
-            default:
-                return args();
+        ArchitectureInternal architecture = (ArchitectureInternal) targetPlatform.getArchitecture();
+        if (architecture == ArchitectureInternal.TOOL_CHAIN_DEFAULT) {
+            return args();
         }
+        ArchitectureInternal.InstructionSet is = architecture.getInstructionSet();
+        int rs = architecture.getRegisterSize();
+
+        if (is == ArchitectureInternal.InstructionSet.X86 && rs == 32) {
+            return args("-m32");
+        }
+        if (is == ArchitectureInternal.InstructionSet.X86 && rs == 64) {
+            return args("-m64");
+        }
+
+        // TODO:DAZ Add support for other architectures and fail if not supported
+        return args();
     }
 
     private Transformer<AssembleSpec, AssembleSpec> targetAssembler() {
@@ -129,22 +134,31 @@ public class GnuCompatibleToolChain implements PlatformToolChain {
 
     private List<String> asPlatformArguments() {
         boolean osx = operatingSystem.isMacOsX();
-        switch (targetPlatform.getArchitecture()) {
-            case I386:
-                if (osx) {
-                    return args("-arch", "i386");
-                } else {
-                    return args("--32");
-                }
-            case AMD64:
-                if (osx) {
-                    return args("-arch", "x86_64");
-                } else {
-                    return args("--64");
-                }
-            default:
-                return args();
+        ArchitectureInternal architecture = (ArchitectureInternal) targetPlatform.getArchitecture();
+        if (architecture == ArchitectureInternal.TOOL_CHAIN_DEFAULT) {
+            return args();
         }
+
+        ArchitectureInternal.InstructionSet is = architecture.getInstructionSet();
+        int rs = architecture.getRegisterSize();
+
+        if (is == ArchitectureInternal.InstructionSet.X86 && rs == 32) {
+            if (osx) {
+                return args("-arch", "i386");
+            } else {
+                return args("--32");
+            }
+        }
+        if (is == ArchitectureInternal.InstructionSet.X86 && rs == 64) {
+            if (osx) {
+                return args("-arch", "x86_64");
+            } else {
+                return args("--64");
+            }
+        }
+
+        // TODO:DAZ Add support for other architectures and fail if not supported
+        return args();
     }
 
     private List<String> args(String... args) {

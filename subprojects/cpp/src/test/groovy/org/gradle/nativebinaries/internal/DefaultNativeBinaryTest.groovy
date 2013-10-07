@@ -31,7 +31,7 @@ class DefaultNativeBinaryTest extends Specification {
         getName() >> "ToolChain1"
     }
     def platform1 = Stub(Platform) {
-        getArchitecture() >> Platform.Architecture.AMD64
+        getArchitecture() >> new DefaultArchitecture("i386", ArchitectureInternal.InstructionSet.X86, 64)
     }
     def buildType1 = Stub(BuildType) {
         getName() >> "BuildType1"

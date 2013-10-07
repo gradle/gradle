@@ -18,6 +18,7 @@ package org.gradle.nativebinaries.toolchain.internal.msvcpp;
 
 import org.gradle.api.Named;
 import org.gradle.nativebinaries.Platform;
+import org.gradle.nativebinaries.internal.ArchitectureInternal;
 
 import java.io.File;
 
@@ -45,11 +46,16 @@ public class WindowsSdk implements Named {
     }
 
     public File getLibDir(Platform platform) {
-        switch (platform.getArchitecture()) {
-            case AMD64:
-                return new File(baseDir, "lib/x64");
-            default:
-                return new File(baseDir, "lib");
+        if (isAmd64(platform)) {
+            return new File(baseDir, "lib/x64");
         }
+        return new File(baseDir, "lib");
     }
+
+    private boolean isAmd64(Platform platform) {
+        ArchitectureInternal architecture = (ArchitectureInternal) platform.getArchitecture();
+        return architecture.getInstructionSet() == ArchitectureInternal.InstructionSet.X86
+                && architecture.getRegisterSize() == 64;
+    }
+
 }

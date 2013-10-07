@@ -59,10 +59,10 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
         buildFile << """
             targetPlatforms {
                 x86 {
-                    architecture Platform.Architecture.I386
+                    architecture "x86"
                 }
                 x86_64 {
-                    architecture Platform.Architecture.AMD64
+                    architecture "x86_64"
                 }
             }
         """

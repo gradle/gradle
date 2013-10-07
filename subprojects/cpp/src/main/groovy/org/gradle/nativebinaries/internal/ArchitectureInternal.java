@@ -13,26 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.nativebinaries.internal;
 
-package org.gradle.nativebinaries;
+import org.gradle.nativebinaries.Architecture;
 
-import org.gradle.api.Incubating;
-import org.gradle.api.Named;
+public interface ArchitectureInternal extends Architecture {
+    static final Architecture TOOL_CHAIN_DEFAULT = new DefaultArchitecture("default", null, 0);
 
-/**
- * A target platform for building native binaries.
- */
-@Incubating
-public interface Platform extends Named {
+    enum InstructionSet { X86, ITANIUM, PPC, SPARC, ARM }
 
-    /**
-     * The cpu architecture being targeted.
-     */
-    Architecture getArchitecture();
+    InstructionSet getInstructionSet();
 
-    /**
-     * Sets the cpu architecture being targeted.
-     */
-    void architecture(Object notation);
-
+    int getRegisterSize();
 }
