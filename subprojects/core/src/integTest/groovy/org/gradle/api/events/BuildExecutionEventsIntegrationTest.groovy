@@ -18,7 +18,7 @@ package org.gradle.api.events
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-class BuildExecutionEventsTest extends AbstractIntegrationSpec {
+class BuildExecutionEventsIntegrationTest extends AbstractIntegrationSpec {
 
     def "events passed to any task execution listener are synchronised"() {
         settingsFile << "include 'a', 'b', 'c'"
