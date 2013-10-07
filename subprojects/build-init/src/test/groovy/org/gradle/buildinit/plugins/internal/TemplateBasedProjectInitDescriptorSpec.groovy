@@ -16,17 +16,21 @@
 
 package org.gradle.buildinit.plugins.internal
 
-import org.gradle.api.internal.DocumentationRegistry
-import org.gradle.api.internal.file.FileResolver
+import spock.lang.Specification
 
-class BasicProjectInitDescriptor extends TemplateBasedProjectInitDescriptor{
+class TemplateBasedProjectInitDescriptorSpec extends Specification {
 
-    public BasicProjectInitDescriptor(FileResolver fileResolver, DocumentationRegistry documentationRegistry, ProjectInitDescriptor... delegates) {
-        super(fileResolver, documentationRegistry, delegates)
-    }
+    def "executes all passed in template operations when generating project"() {
+        setup:
+        TemplateOperation templateOperation1 = Mock(TemplateOperation)
+        TemplateOperation templateOperation2 = Mock(TemplateOperation)
+        TemplateBasedProjectInitDescriptor descriptor = new TemplateBasedProjectInitDescriptor(templateOperation1, templateOperation2)
+        when:
+        descriptor.generateProject()
+        then:
 
-    @Override
-    URL getBuildFileTemplate() {
-        return BasicProjectInitDescriptor.class.getResource("/org/gradle/buildinit/tasks/templates/build.gradle.template");
+        then:
+        1 * templateOperation1.generate()
+        1 * templateOperation2.generate()
     }
 }

@@ -16,6 +16,25 @@
 
 package org.gradle.buildinit.plugins.internal
 
-public interface TemplateLibraryVersionProvider {
-    String getVersion(String module)
+import spock.lang.Specification
+
+
+class ConditionalTemplateOperationSpec extends Specification {
+
+    def "triggers delegates depending on condition"(){
+        TemplateOperation operation1 = Mock(TemplateOperation)
+        TemplateOperation operation2 = Mock(TemplateOperation)
+
+        when:
+        new ConditionalTemplateOperation({true}, operation1, operation2).generate()
+        then:
+        1 * operation1.generate()
+        1 * operation2.generate()
+
+        when:
+        new ConditionalTemplateOperation({false}, operation1, operation2).generate()
+        then:
+        0 * operation1.generate()
+        0 * operation2.generate()
+    }
 }

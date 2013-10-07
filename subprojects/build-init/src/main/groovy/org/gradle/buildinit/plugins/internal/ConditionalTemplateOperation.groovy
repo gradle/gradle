@@ -16,21 +16,22 @@
 
 package org.gradle.buildinit.plugins.internal
 
-import spock.lang.Specification
+class ConditionalTemplateOperation implements TemplateOperation {
 
-class CompositeProjectInitDescriptorTest extends Specification {
+    private final TemplateOperation[] optionalOperations
+    private final Closure<Boolean> condition
 
-  def "can compose initdescriptors"(){
-        setup:
-        ProjectInitDescriptor delegate1 = Mock(ProjectInitDescriptor)
-        ProjectInitDescriptor delegate2 = Mock(ProjectInitDescriptor)
+    ConditionalTemplateOperation(Closure<Boolean> precondition, TemplateOperation... optionalOperations){
+        this.condition = precondition
+        this.optionalOperations = optionalOperations
+    }
 
-        def composableDescriptor = new CompositeProjectInitDescriptor(delegate1, delegate2)
-
-        when:
-        composableDescriptor.generateProject()
-        then:
-        1 * delegate1.generateProject()
-        1 * delegate2.generateProject()
-  }
+    @Override
+    void generate() {
+        if(condition.call()){
+            optionalOperations.each {
+                it.generate()
+            }
+        }
+    }
 }

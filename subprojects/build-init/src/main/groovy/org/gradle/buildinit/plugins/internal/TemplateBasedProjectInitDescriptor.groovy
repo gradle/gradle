@@ -16,64 +16,17 @@
 
 package org.gradle.buildinit.plugins.internal
 
-import org.gradle.api.internal.DocumentationRegistry
-import org.gradle.api.internal.file.FileResolver
+class TemplateBasedProjectInitDescriptor implements ProjectInitDescriptor{
+     List<TemplateOperation> templateOperations
 
-abstract class TemplateBasedProjectInitDescriptor extends CompositeProjectInitDescriptor {
-
-    protected final DocumentationRegistry documentationRegistry
-    protected final FileResolver fileResolver
-
-    protected TemplateBasedFileGenerator fileGenerator = new TemplateBasedFileGenerator()
-
-    TemplateBasedProjectInitDescriptor(FileResolver fileResolver, DocumentationRegistry documentationRegistry, ProjectInitDescriptor... delegates) {
-        super(delegates)
-        this.fileResolver = fileResolver
-        this.documentationRegistry = documentationRegistry
+    public TemplateBasedProjectInitDescriptor(TemplateOperation... templateOperations){
+        this.templateOperations = Arrays.asList(templateOperations)
     }
 
-    TemplateBasedProjectInitDescriptor(FileResolver fileResolver, DocumentationRegistry documentationRegistry) {
-        this(fileResolver, documentationRegistry, new ProjectInitDescriptor[0])
-    }
-
-    URL getBuildFileTemplate() {
-        null
-    }
-
-    URL getSettingsTemplate() {
-        null
-    }
-
+    @Override
     void generateProject() {
-        super.generateProject()
-        generateGradleFiles()
-        generateProjectSources()
-    }
-
-    void generateProjectSources() {
-    }
-
-    def generateGradleFiles() {
-        LinkedHashMap<String, String> specificBindings = getAdditionalBuildFileTemplateBindings()
-        URL buildFileTemplate = getBuildFileTemplate()
-        if (buildFileTemplate != null) {
-            generateFileFromTemplate(buildFileTemplate, fileResolver.resolve("build.gradle"), specificBindings)
+        templateOperations.each {templateOperation ->
+            templateOperation.generate()
         }
-        URL settingsTemplate = getSettingsTemplate()
-        if (settingsTemplate != null) {
-            generateFileFromTemplate(settingsTemplate, fileResolver.resolve("settings.gradle"), getAdditionalSettingsFileTemplateBindings())
-        }
-    }
-
-    protected Map getAdditionalBuildFileTemplateBindings() {
-        return [ref_userguide_java_tutorial: documentationRegistry.getDocumentationFor("tutorial_java_projects")]
-    }
-
-    protected Map getAdditionalSettingsFileTemplateBindings() {
-        return [ref_userguide_multiproject: documentationRegistry.getDocumentationFor("multi_project_builds"), rootProjectName: fileResolver.resolve(".").name]
-    }
-
-    protected generateFileFromTemplate(URL templateURL, File targetFile, Map specificBindings) {
-        fileGenerator.generate(templateURL, targetFile, specificBindings)
     }
 }

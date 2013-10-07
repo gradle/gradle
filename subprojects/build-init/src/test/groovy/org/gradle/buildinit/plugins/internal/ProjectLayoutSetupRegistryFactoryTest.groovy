@@ -31,22 +31,20 @@ class ProjectLayoutSetupRegistryFactoryTest extends Specification {
 
     def setup() {
         fileResolver = Mock()
+        documentationRegistry = Mock()
         projectLayoutSetupRegistry = new ProjectLayoutSetupRegistryFactory(mavenSettingsProvider, documentationRegistry, fileResolver);
+        _ * documentationRegistry.getDocumentationFor(_) >> "SomeDocId"
+        _ * fileResolver.resolve(_) >> new File("someFile")
     }
 
     @Unroll
     def "supports '#type' project descriptor type"() {
         when:
+        projectLayoutSetupRegistry.createProjectLayoutSetupRegistry().supports(type)
         ProjectInitDescriptor descriptor = projectLayoutSetupRegistry.createProjectLayoutSetupRegistry().get(type)
-
         then:
         descriptor != null
-        descriptor.class == clazz
-
         where:
-        type                           | clazz
-        BuildInitTypeIds.POM          | PomProjectInitDescriptor.class
-        BuildInitTypeIds.BASIC        | BasicProjectInitDescriptor.class
-        BuildInitTypeIds.JAVA_LIBRARY | JavaLibraryProjectInitDescriptor.class
+        type << [BuildInitTypeIds.POM, BuildInitTypeIds.BASIC, BuildInitTypeIds.JAVA_LIBRARY, BuildInitTypeIds.SCALA_LIBRARY, BuildInitTypeIds.GROOVY_LIBRARY]
     }
 }

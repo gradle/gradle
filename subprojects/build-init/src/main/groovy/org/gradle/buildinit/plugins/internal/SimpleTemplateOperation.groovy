@@ -18,20 +18,30 @@ package org.gradle.buildinit.plugins.internal
 
 import groovy.text.SimpleTemplateEngine
 import groovy.text.Template
-import org.gradle.util.GradleVersion
-import java.text.DateFormat
 
-class TemplateBasedFileGenerator {
-    def generate(URL templateURL, File targetFile, Map specificBindings) {
-        targetFile.parentFile.mkdirs()
+class SimpleTemplateOperation implements TemplateOperation {
+    private final URL templateURL
+    private final File target
+    private final Map<String, TemplateValue> bindings
+
+    public SimpleTemplateOperation(URL templateURL, File target, Map<String, TemplateValue>  bindings) {
+        if (templateURL == null) {
+            throw new BuildInitException("Template URL must not be null")
+        }
+        if (target == null) {
+            throw new BuildInitException("Target file must not be null")
+        }
+        this.templateURL = templateURL
+        this.bindings = bindings
+        this.target = target
+    }
+
+    void generate() {
+        target.parentFile.mkdirs()
         SimpleTemplateEngine templateEngine = new SimpleTemplateEngine()
-        String now = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT).format(new Date())
-        def bindings = [genDate: now, genUser: System.getProperty("user.name"), genGradleVersion: GradleVersion.current().toString()]
-        bindings += specificBindings
         Template template = templateEngine.createTemplate(templateURL.text)
-        Map wrappedBindings = bindings.collectEntries { key, value -> [key, new TemplateValue(value.toString())] }
-        targetFile.withWriter("utf-8") { writer ->
-            template.make(wrappedBindings).writeTo(writer)
+        target.withWriter("utf-8") { writer ->
+            template.make(bindings).writeTo(writer)
         }
     }
 }

@@ -13,22 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.buildinit.plugins.internal;
 
-import java.util.Arrays;
-import java.util.List;
+import org.gradle.api.GradleException;
 
-class CompositeProjectInitDescriptor implements ProjectInitDescriptor {
-
-    private List<ProjectInitDescriptor> descriptors;
-
-    public CompositeProjectInitDescriptor(ProjectInitDescriptor... composites) {
-        this.descriptors = Arrays.asList(composites);
-    }
-
-    public void generateProject() {
-        for (ProjectInitDescriptor descriptor : descriptors) {
-            descriptor.generateProject();
-        }
+class BuildInitException extends GradleException{
+    BuildInitException(String message){
+        super(message);
     }
 }
