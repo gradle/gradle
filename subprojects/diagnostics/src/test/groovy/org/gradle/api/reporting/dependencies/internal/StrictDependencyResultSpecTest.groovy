@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.tasks.diagnostics.internal.html
+package org.gradle.api.reporting.dependencies.internal
 
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import spock.lang.Specification

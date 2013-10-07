@@ -27,7 +27,7 @@ import org.gradle.api.reporting.Reporting;
 import org.gradle.api.reporting.dependencies.internal.DefaultDependencyReportContainer;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.api.tasks.diagnostics.internal.html.HtmlDependencyReporter;
+import org.gradle.api.reporting.dependencies.internal.HtmlDependencyReporter;
 import org.gradle.internal.reflect.Instantiator;
 
 import java.io.IOException;

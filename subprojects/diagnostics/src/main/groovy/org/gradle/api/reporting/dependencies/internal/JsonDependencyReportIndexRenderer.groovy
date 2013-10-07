@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.diagnostics.internal.html
+package org.gradle.api.reporting.dependencies.internal
 import groovy.json.JsonBuilder
 import org.gradle.api.Project
 import org.gradle.api.Transformer
