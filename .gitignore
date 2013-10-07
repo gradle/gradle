@@ -27,7 +27,6 @@
 *.project
 *.settings
 /bin
-/subprojects/build-init/src/main/generated-resources
 /subprojects/*/bin
 .DS_Store
 /performanceTest/lib

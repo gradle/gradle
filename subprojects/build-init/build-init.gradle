@@ -24,14 +24,14 @@ dependencies {
 
 
 task generateTemplateVersionFile(type: GenerateVersionProperties) {
-    outputFile = file("src/main/generated-resources/org/gradle/buildinit/tasks/templates/library-versions.properties")
-    library 'org.scalatest:scalatest_2.10:+'
+    outputFile = new File(generatedResourcesDir, "org/gradle/buildinit/tasks/templates/library-versions.properties")
+    library 'org.scalatest:scalatest_2.10:1.9.2'
     library 'org.scala-lang:scala-library:2.10.+'
-    library 'org.codehaus.groovy:groovy-all:2.+'
+    library 'org.codehaus.groovy:groovy:2.1.7'
     library 'junit:junit:4.+'
 }
 
-sourceSets.main.resources.srcDir file("src/main/generated-resources")
+sourceSets.main.resources.srcDir generatedResourcesDir
 processResources.dependsOn generateTemplateVersionFile
 
 eclipseClasspath.dependsOn generateTemplateVersionFile
@@ -54,13 +54,16 @@ class GenerateVersionProperties extends DefaultTask {
         def libDependencies = libraryDefinitions.collect { project.dependencies.create(it) }
         def templateVersionConfiguration = project.configurations.detachedConfiguration(libDependencies.toArray(new Dependency[libDependencies.size()]))
         templateVersionConfiguration.transitive = false
-        outputFile.withWriter { writer ->
-            templateVersionConfiguration.incoming.afterResolve { ResolvableDependencies deps ->
-                deps.resolutionResult.allDependencies.each { ResolvedDependencyResult result ->
-                    writer.append("${result.selected.id.name}=${result.selected.id.version}\n")
-                }
+        Properties versionProperties = new Properties()
+
+        ResolutionResult resolutionResult = templateVersionConfiguration.incoming.resolutionResult
+        resolutionResult.allModuleVersions { result ->
+            resolutionResult.root.dependencies.each{ dep->
+                versionProperties.put(dep.requested.name, dep.selected.id.version)
             }
-            templateVersionConfiguration.resolve()
+        }
+        outputFile.withWriter { writer ->
+            versionProperties.store(writer, "Version values used in build-init templates")
         }
     }
 
