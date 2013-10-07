@@ -109,6 +109,16 @@ gradle init --type groovy-library
 
 on the commandline.
 
+### HTML dependency report
+
+Thanks to a contribution by Jean-Baptiste Nizet, the `project-report` plugin can now generate an HTML dependency report.
+
+To use the report just apply the plugin:
+
+    apply plugin: `project-report`
+
+And run `gradle htmlDependencyReport` or `gradle projectReport`
+
 ### FindBugs plugin provides new reporting capabilities
 
 * If the plugin is configured to produce an XML report, the output can be augmented with human-readable messages. The follow example demonstrates its use:
