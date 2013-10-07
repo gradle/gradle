@@ -55,8 +55,18 @@ public abstract class GccCompatibleToolChain extends AbstractToolChain implement
 
     public PlatformToolChain target(Platform targetPlatform) {
         checkAvailable();
-        // TODO:DAZ Fail when targeting an unsupported platform
+        checkPlatform(targetPlatform);
         return this;
+    }
+
+    private void checkPlatform(Platform targetPlatform) {
+        if (!targetPlatform.getOperatingSystem().isCurrent()) {
+            throw new IllegalStateException(String.format("Tool chain %s cannot build for os: %s", getName(), targetPlatform.getOperatingSystem().getName()));
+        }
+        ArchitectureInternal arch = (ArchitectureInternal) targetPlatform.getArchitecture();
+        if (arch != ArchitectureInternal.TOOL_CHAIN_DEFAULT && !arch.isI386() && !arch.isAmd64()) {
+            throw new IllegalStateException(String.format("Tool chain %s cannot build for architecture: %s", getName(), targetPlatform.getArchitecture().getName()));
+        }
     }
 
     protected boolean canUseCommandFile() {

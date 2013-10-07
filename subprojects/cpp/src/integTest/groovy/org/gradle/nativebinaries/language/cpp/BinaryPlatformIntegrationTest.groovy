@@ -39,7 +39,7 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
             libraries {
                 hello {}
             }
-            sources.main.cpp.lib libraries.hello
+            sources.main.cpp.lib libraries.hello.static
         """
 
         helloWorldApp.executable.writeSources(file("src/main"))
@@ -102,25 +102,77 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
         when:
         buildFile << """
             targetPlatforms {
-                solaris {
-                    operatingSystem "solaris"
-                }
                 windows {
                     operatingSystem "windows"
+                }
+                linux {
+                    operatingSystem "linux"
+                }
+                osx {
+                    operatingSystem "osx"
                 }
             }
 
             binaries.matching({ it.targetPlatform.operatingSystem.windows }).all {
                 cppCompiler.define "FRENCH"
             }
+            task buildExecutables {
+                dependsOn binaries.withType(ExecutableBinary).matching {
+                    it.buildable
+                }
+            }
         """
 
         and:
-        succeeds "installSolarisMainExecutable", "installWindowsMainExecutable"
+        succeeds "buildExecutables"
 
         then:
-        installation("build/install/mainExecutable/solaris").exec().out ==  helloWorldApp.englishOutput
-        installation("build/install/mainExecutable/windows").exec().out ==  helloWorldApp.frenchOutput
+        final os = OperatingSystem.current()
+        if (os.windows) {
+            executable("build/binaries/mainExecutable/windows/main").exec().out ==  helloWorldApp.frenchOutput
+        }
+        if (os.linux) {
+            executable("build/binaries/mainExecutable/linux/main").exec().out ==  helloWorldApp.englishOutput
+        }
+        if (os.macOsX) {
+            executable("build/binaries/mainExecutable/osx/main").exec().out ==  helloWorldApp.englishOutput
+        }
+    }
+
+    def "fails with reasonable error message when trying to build for an unavailable architecture"() {
+        when:
+        buildFile << """
+            targetPlatforms {
+                arm {
+                    architecture "arm"
+                }
+            }
+"""
+
+        and:
+        fails "mainExecutable"
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainCpp'.")
+        failure.assertHasCause("Tool chain ${toolChain.id} cannot build for architecture: arm")
+    }
+
+    def "fails with reasonable error message when trying to build for a different operating system"() {
+        when:
+        buildFile << """
+            targetPlatforms {
+                solaris {
+                    operatingSystem "solaris"
+                }
+            }
+"""
+
+        and:
+        fails "mainExecutable"
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainCpp'.")
+        failure.assertHasCause("Tool chain ${toolChain.id} cannot build for os: solaris")
     }
 
     def binaryInfo(TestFile file) {

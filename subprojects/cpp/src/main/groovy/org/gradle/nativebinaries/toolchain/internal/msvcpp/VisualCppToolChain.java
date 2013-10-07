@@ -91,26 +91,37 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
 
     public PlatformToolChain target(Platform targetPlatform) {
         checkAvailable();
-        // TODO:DAZ Fail when targeting an unsupported platform
+        checkPlatform(targetPlatform);
 
         VisualStudioInstall visualStudioInstall = new VisualStudioInstall(locateVisualStudio().getResult());
         WindowsSdk windowsSdk = new WindowsSdk(locateWindowsSdk().getResult());
         return new VisualCppPlatformToolChain(visualStudioInstall, windowsSdk, targetPlatform);
     }
 
+    private void checkPlatform(Platform targetPlatform) {
+        if (!targetPlatform.getOperatingSystem().isWindows()) {
+            throw new IllegalStateException(String.format("Tool chain %s cannot build for os: %s", getName(), targetPlatform.getOperatingSystem().getName()));
+        }
+        ArchitectureInternal arch = (ArchitectureInternal) targetPlatform.getArchitecture();
+        if (!isSupportedArchitecture(arch)) {
+            throw new IllegalStateException(String.format("Tool chain %s cannot build for architecture: %s", getName(), targetPlatform.getArchitecture().getName()));
+        }
+    }
+
     public void targetNativeBinaryForPlatform(NativeBinaryInternal nativeBinary) {
         org.gradle.nativebinaries.OperatingSystem targetOs = nativeBinary.getTargetPlatform().getOperatingSystem();
         ArchitectureInternal targetArch = (ArchitectureInternal) nativeBinary.getTargetPlatform().getArchitecture();
 
-        if (targetOs.isWindows()) {
-            if (targetArch == ArchitectureInternal.TOOL_CHAIN_DEFAULT) {
-                return;
-            }
-            if (targetArch.isI386() || targetArch.isAmd64() || targetArch.isIa64()) {
-                return;
-            }
+        if (!(targetOs.isWindows() && isSupportedArchitecture(targetArch))) {
+            nativeBinary.setBuildable(false);
         }
-        nativeBinary.setBuildable(false);
+    }
+
+    private boolean isSupportedArchitecture(ArchitectureInternal targetArch) {
+        return targetArch == ArchitectureInternal.TOOL_CHAIN_DEFAULT
+                || targetArch.isI386()
+                || targetArch.isAmd64()
+                || targetArch.isIa64();
     }
 
     @Override
