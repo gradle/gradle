@@ -18,16 +18,14 @@ package org.gradle.nativebinaries.internal;
 import org.gradle.nativebinaries.OperatingSystem;
 
 public class DefaultOperatingSystem implements OperatingSystem {
-    public static final OperatingSystem TOOL_CHAIN_DEFAULT = new DefaultOperatingSystem("default", null);
-
-    enum OsFamily { WINDOWS, LINUX, OSX, SOLARIS }
+    public static final OperatingSystem TOOL_CHAIN_DEFAULT = new DefaultOperatingSystem("default", org.gradle.internal.os.OperatingSystem.current());
 
     private final String name;
-    private final OsFamily family;
+    private final org.gradle.internal.os.OperatingSystem internalOs;
 
-    public DefaultOperatingSystem(String name, OsFamily family) {
+    public DefaultOperatingSystem(String name, org.gradle.internal.os.OperatingSystem internalOs) {
         this.name = name;
-        this.family = family;
+        this.internalOs = internalOs;
     }
 
     public String getName() {
@@ -35,18 +33,18 @@ public class DefaultOperatingSystem implements OperatingSystem {
     }
 
     public boolean isWindows() {
-        return family == OsFamily.WINDOWS;
+        return internalOs.isWindows();
     }
 
     public boolean isLinux() {
-        return family == OsFamily.LINUX;
+        return internalOs.isLinux();
     }
 
     public boolean isMacOsX() {
-        return family == OsFamily.OSX;
+        return internalOs.isMacOsX();
     }
 
     public boolean isSolaris() {
-        return family == OsFamily.SOLARIS;
+        return internalOs.isSolaris();
     }
 }

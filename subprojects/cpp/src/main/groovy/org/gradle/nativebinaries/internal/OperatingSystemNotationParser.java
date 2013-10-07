@@ -47,16 +47,16 @@ public class OperatingSystemNotationParser {
         @Override
         protected OperatingSystem parseType(String notation) {
             if (WINDOWS_ALIASES.contains(notation.toLowerCase())) {
-                return new DefaultOperatingSystem(notation, DefaultOperatingSystem.OsFamily.WINDOWS);
+                return new DefaultOperatingSystem(notation, org.gradle.internal.os.OperatingSystem.WINDOWS);
             }
             if (OSX_ALIASES.contains(notation.toLowerCase())) {
-                return new DefaultOperatingSystem(notation, DefaultOperatingSystem.OsFamily.OSX);
+                return new DefaultOperatingSystem(notation, org.gradle.internal.os.OperatingSystem.MAC_OS);
             }
             if (LINUX_ALIASES.contains(notation.toLowerCase())) {
-                return new DefaultOperatingSystem(notation, DefaultOperatingSystem.OsFamily.LINUX);
+                return new DefaultOperatingSystem(notation, org.gradle.internal.os.OperatingSystem.LINUX);
             }
             if (SOLARIS_ALIASES.contains(notation.toLowerCase())) {
-                return new DefaultOperatingSystem(notation, DefaultOperatingSystem.OsFamily.SOLARIS);
+                return new DefaultOperatingSystem(notation, org.gradle.internal.os.OperatingSystem.SOLARIS);
             }
             throw new UnsupportedNotationException(notation);
         }
