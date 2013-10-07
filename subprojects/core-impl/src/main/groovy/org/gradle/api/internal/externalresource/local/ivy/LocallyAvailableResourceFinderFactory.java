@@ -22,11 +22,14 @@ import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator
 import org.gradle.api.internal.artifacts.repositories.resolver.IvyResourcePattern;
 import org.gradle.api.internal.artifacts.repositories.resolver.M2ResourcePattern;
 import org.gradle.api.internal.artifacts.repositories.resolver.ResourcePattern;
-import org.gradle.api.internal.externalresource.local.*;
-import org.gradle.internal.filestore.FileStoreSearcher;
+import org.gradle.api.internal.externalresource.local.CompositeLocallyAvailableResourceFinder;
+import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceCandidates;
+import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder;
+import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinderSearchableFileStoreAdapter;
 import org.gradle.internal.Factory;
-import org.gradle.internal.resource.local.LocallyAvailableResource;
+import org.gradle.internal.filestore.FileStoreSearcher;
 import org.gradle.internal.hash.HashValue;
+import org.gradle.internal.resource.local.LocallyAvailableResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,38 +60,38 @@ public class LocallyAvailableResourceFinderFactory implements Factory<LocallyAva
         finders.add(new LocallyAvailableResourceFinderSearchableFileStoreAdapter<ArtifactRevisionId>(fileStore));
 
         // 1.9
-        //addForPattern(finders, "modules-1", "files-1.1/[organisation]/[module](/[branch])/[revision]/[type]/*/[artifact]-[revision](-[classifier])(.[ext])");
+//        addForPattern(finders, "modules-1/files-1.1/[organisation]/[module](/[branch])/[revision]/*/[artifact]-[revision](-[classifier])(.[ext])");
 
         // 1.8
-        addForPattern(finders, "artifacts-26", "filestore/[organisation]/[module](/[branch])/[revision]/[type]/*/[artifact]-[revision](-[classifier])(.[ext])");
+        addForPattern(finders, "artifacts-26/filestore/[organisation]/[module](/[branch])/[revision]/[type]/*/[artifact]-[revision](-[classifier])(.[ext])");
 
         // 1.5
-        addForPattern(finders, "artifacts-24", "filestore/[organisation]/[module](/[branch])/[revision]/[type]/*/[artifact]-[revision](-[classifier])(.[ext])");
+        addForPattern(finders, "artifacts-24/filestore/[organisation]/[module](/[branch])/[revision]/[type]/*/[artifact]-[revision](-[classifier])(.[ext])");
 
         // 1.4
-        addForPattern(finders, "artifacts-23", "filestore/[organisation]/[module](/[branch])/[revision]/[type]/*/[artifact]-[revision](-[classifier])(.[ext])");
+        addForPattern(finders, "artifacts-23/filestore/[organisation]/[module](/[branch])/[revision]/[type]/*/[artifact]-[revision](-[classifier])(.[ext])");
 
         // 1.3
-        addForPattern(finders, "artifacts-15", "filestore/[organisation]/[module](/[branch])/[revision]/[type]/*/[artifact]-[revision](-[classifier])(.[ext])");
+        addForPattern(finders, "artifacts-15/filestore/[organisation]/[module](/[branch])/[revision]/[type]/*/[artifact]-[revision](-[classifier])(.[ext])");
 
         // 1.1, 1.2
-        addForPattern(finders, "artifacts-14", "filestore/[organisation]/[module](/[branch])/[revision]/[type]/*/[artifact]-[revision](-[classifier])(.[ext])");
+        addForPattern(finders, "artifacts-14/filestore/[organisation]/[module](/[branch])/[revision]/[type]/*/[artifact]-[revision](-[classifier])(.[ext])");
 
         // rc-1, 1.0
-        addForPattern(finders, "artifacts-13", "filestore/[organisation]/[module](/[branch])/[revision]/[type]/*/[artifact]-[revision](-[classifier])(.[ext])");
+        addForPattern(finders, "artifacts-13/filestore/[organisation]/[module](/[branch])/[revision]/[type]/*/[artifact]-[revision](-[classifier])(.[ext])");
 
         // Milestone 8 and 9
-        addForPattern(finders, "artifacts-8", "filestore/[organisation]/[module](/[branch])/[revision]/[type]/*/[artifact]-[revision](-[classifier])(.[ext])");
+        addForPattern(finders, "artifacts-8/filestore/[organisation]/[module](/[branch])/[revision]/[type]/*/[artifact]-[revision](-[classifier])(.[ext])");
 
         // Milestone 7
-        addForPattern(finders, "artifacts-7", "artifacts/*/[organisation]/[module](/[branch])/[revision]/[type]/[artifact]-[revision](-[classifier])(.[ext])");
+        addForPattern(finders, "artifacts-7/artifacts/*/[organisation]/[module](/[branch])/[revision]/[type]/[artifact]-[revision](-[classifier])(.[ext])");
 
         // Milestone 6
-        addForPattern(finders, "artifacts-4", "[organisation]/[module](/[branch])/*/[type]s/[artifact]-[revision](-[classifier])(.[ext])");
-        addForPattern(finders, "artifacts-4", "[organisation]/[module](/[branch])/*/pom.originals/[artifact]-[revision](-[classifier])(.[ext])");
+        addForPattern(finders, "artifacts-4/[organisation]/[module](/[branch])/*/[type]s/[artifact]-[revision](-[classifier])(.[ext])");
+        addForPattern(finders, "artifacts-4/[organisation]/[module](/[branch])/*/pom.originals/[artifact]-[revision](-[classifier])(.[ext])");
 
         // Milestone 3
-        addForPattern(finders, "../cache", "[organisation]/[module](/[branch])/[type]s/[artifact]-[revision](-[classifier])(.[ext])");
+        addForPattern(finders, "../cache/[organisation]/[module](/[branch])/[type]s/[artifact]-[revision](-[classifier])(.[ext])");
 
         // Maven local
         try {
@@ -102,8 +105,23 @@ public class LocallyAvailableResourceFinderFactory implements Factory<LocallyAva
         return new CompositeLocallyAvailableResourceFinder<ArtifactRevisionId>(finders);
     }
 
-    private void addForPattern(List<LocallyAvailableResourceFinder<ArtifactRevisionId>> finders, String path, String pattern) {
-        addForPattern(finders, new File(rootCachesDirectory, path), new IvyResourcePattern(pattern));
+    private void addForPattern(List<LocallyAvailableResourceFinder<ArtifactRevisionId>> finders, String pattern) {
+        int wildcardPos = pattern.indexOf("/*/");
+        int patternPos = pattern.indexOf("/[");
+        if (wildcardPos < 0 && patternPos < 0) {
+            throw new IllegalArgumentException(String.format("Unsupported pattern '%s'", pattern));
+        }
+        int chopAt;
+        if (wildcardPos >= 0 && patternPos >= 0) {
+            chopAt = Math.min(wildcardPos, patternPos);
+        } else if (wildcardPos >= 0) {
+            chopAt = wildcardPos;
+        } else {
+            chopAt = patternPos;
+        }
+        String pathPart = pattern.substring(0, chopAt);
+        String patternPart = pattern.substring(chopAt + 1);
+        addForPattern(finders, new File(rootCachesDirectory, pathPart), new IvyResourcePattern(patternPart));
     }
 
     private void addForPattern(List<LocallyAvailableResourceFinder<ArtifactRevisionId>> finders, File baseDir, ResourcePattern pattern) {
