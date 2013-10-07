@@ -28,6 +28,9 @@ class BinaryBuildTypesIntegrationTest extends AbstractInstalledToolChainIntegrat
         and:
         buildFile << """
             apply plugin: 'cpp'
+            buildTypes.all {
+                ext.debug = false
+            }
             buildTypes {
                 debug {
                     debug = true
@@ -89,13 +92,11 @@ class BinaryBuildTypesIntegrationTest extends AbstractInstalledToolChainIntegrat
         buildFile << """
             apply plugin: 'cpp'
             buildTypes {
-                debug {
-                    debug = true
-                }
+                debug { }
                 release {}
             }
             binaries.all {
-                if (buildType.debug) {
+                if (buildType == buildTypes.debug) {
                     cppCompiler.define "FRENCH" // Equate 'debug' to 'french' for this test
                 }
             }

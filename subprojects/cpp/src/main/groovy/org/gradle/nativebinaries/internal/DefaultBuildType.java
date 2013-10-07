@@ -19,7 +19,6 @@ import org.gradle.nativebinaries.BuildType;
 
 public class DefaultBuildType implements BuildType {
     private final String name;
-    private boolean debug;
 
     public DefaultBuildType(String name) {
         this.name = name;
@@ -27,13 +26,5 @@ public class DefaultBuildType implements BuildType {
 
     public String getName() {
         return name;
-    }
-
-    public boolean isDebug() {
-        return debug;
-    }
-
-    public void setDebug(boolean debug) {
-        this.debug = debug;
     }
 }

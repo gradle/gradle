@@ -25,9 +25,7 @@ public class CreateDefaultBuildTypes implements Action<ProjectInternal> {
     public void execute(ProjectInternal project) {
         BuildTypeContainer buildTypes = project.getExtensions().getByType(BuildTypeContainer.class);
         if (buildTypes.isEmpty()) {
-            DefaultBuildType defaultBuildType = new DefaultBuildType("debug");
-            defaultBuildType.setDebug(true);
-            buildTypes.add(defaultBuildType);
+            buildTypes.add(new DefaultBuildType("debug"));
         }
     }
 }

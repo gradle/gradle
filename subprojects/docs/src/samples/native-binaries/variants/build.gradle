@@ -12,9 +12,7 @@ toolChains {
 }
 
 buildTypes {
-    debug {
-        debug = true
-    }
+    debug {}
     release {}
 }
 

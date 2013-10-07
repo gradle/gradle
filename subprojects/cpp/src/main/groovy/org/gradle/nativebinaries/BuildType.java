@@ -23,13 +23,4 @@ import org.gradle.api.Named;
  */
 @Incubating
 public interface BuildType extends Named {
-    /**
-     * Should binaries for this build type contain debug information?
-     */
-    boolean isDebug();
-
-    /**
-     * Specify if binaries for this build type should contain debug information.
-     */
-    void setDebug(boolean debug);
 }

@@ -53,7 +53,6 @@ class NativeBinariesModelPluginTest extends Specification {
         }
         with (one(project.buildTypes)) {
             name == 'debug'
-            debug == true
         }
     }
 

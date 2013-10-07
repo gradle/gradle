@@ -644,30 +644,20 @@ Each variant has a platform associated with it.
     - ARM: ??
 - VisualCppToolChain should automatically switch between different executables for different target architectures.
 
-## Story: Build debug and release variants of a native component
+## Story: Produce build type variants of a native component
 
 This story adds support for building variants of a native component based on 'build type'.
 The set of build types is user configurable, and for the purpose of this story, all build type customisations are specified in the build script.
 Standard build types (debug/release) and build type compatibility will be handled in a subsequent story.
 
 - NativeBinaries plugin adds a `buildTypes` container to the project.
-- `BuildType` is a simple type extending `Named` with a single boolean property `debug`.
-- If no build types are configured, add a single default build type named `debug`, with `debug.debug == true`
+- `BuildType` is a simple type extending `Named` with no additional properties.
+- If no build types are configured, add a single default build type named `debug`
 - Build a variant Native Binary for each defined build type. Add a property to NativeBinary to allow navigation to the defined `buildType`.
     - With a single defined (or default) build type, the binary task names and output directories will NOT contain the build type.
     - With multiple defined build types, task names and output directories for each variant will include the build type.
 - When resolving the dependencies of a binary `b`, for a dependency on library `l`:
     - Select a binary for library `l` that has a build type with a matching name.
-
-## Story: Automatically specify standard debug and release flags for build type
-
-- Gcc should compile sources for `debug` build types with the `-g` flag
-- Visual C++ should
-    - Compile sources for `debug` build types with `/Zi /DDEBUG` and non-debug build types with `/DNDEBUG`.
-    - Link binaries for `debug` build types with `/DEBUG` and non-debug build types with `/RELEASE`.
-- When resolving the dependencies of a binary `b`, for a dependency on library `l`:
-    - Prefer a binary for library `l` that has a build type with a matching name.
-    - Otherwise, select a library `l` that has a build type with a matching `debug` flag.
 
 ## Story: Cross-compile for multiple operating systems
 
@@ -1035,6 +1025,17 @@ TBD
 * Add hooks for customizing the generated XML.
 
 # Milestone 4
+
+## Story: Automatically include debug symbols in 'debug' build types
+
+- Add a `debug` property to `BuildType`. The default 'debug' build type should have `debug == true`.
+- Gcc should compile sources for `debug` build types with the `-g` flag
+- Visual C++ should
+    - Compile sources for `debug` build types with `/Zi /DDEBUG` and non-debug build types with `/DNDEBUG`.
+    - Link binaries for `debug` build types with `/DEBUG` and non-debug build types with `/RELEASE`.
+- When resolving the dependencies of a binary `b`, for a dependency on library `l`:
+    - Prefer a binary for library `l` that has a build type with a matching name.
+    - Otherwise, select a library `l` that has a build type with a matching `debug` flag.
 
 ## Story: Publish and resolve shared libraries
 
