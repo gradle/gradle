@@ -15,10 +15,14 @@
  */
 package org.gradle.nativebinaries.internal
 
+import org.gradle.api.internal.notations.api.NotationParser
+import org.gradle.nativebinaries.OperatingSystem
 import spock.lang.Specification
 
 class DefaultPlatformTest extends Specification {
-    def platform = new DefaultPlatform("platform")
+    def archParser = Mock(NotationParser)
+    def osParser = Mock(NotationParser)
+    def platform = new DefaultPlatform("platform", archParser, osParser)
 
     def "has default architecture and operating system"() {
         expect:
@@ -27,22 +31,26 @@ class DefaultPlatformTest extends Specification {
     }
 
     def "can configure architecture"() {
+        def arch = Mock(ArchitectureInternal)
         when:
         platform.architecture "ppc64"
 
         then:
-        platform.architecture.name == "ppc64"
-        platform.architecture.instructionSet == ArchitectureInternal.InstructionSet.PPC
-        platform.architecture.registerSize == 64
+        1 * archParser.parseNotation("ppc64") >> arch
+
+        and:
+        platform.architecture == arch
     }
 
     def "can configure operating system"() {
+        def os = Mock(OperatingSystem)
         when:
-        platform.operatingSystem "sunos"
+        platform.operatingSystem "the-os"
 
         then:
-        platform.operatingSystem.name == "sunos"
-        platform.operatingSystem.solaris
-        !platform.operatingSystem.macOsX
+        1 * osParser.parseNotation("the-os") >> os
+
+        and:
+        platform.operatingSystem == os
     }
 }

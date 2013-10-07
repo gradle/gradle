@@ -17,17 +17,22 @@
 package org.gradle.nativebinaries.internal;
 
 import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
+import org.gradle.api.internal.notations.api.NotationParser;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.nativebinaries.OperatingSystem;
 import org.gradle.nativebinaries.Platform;
 import org.gradle.nativebinaries.PlatformContainer;
 
 public class DefaultPlatformContainer extends AbstractNamedDomainObjectContainer<Platform> implements PlatformContainer {
+    private final NotationParser<ArchitectureInternal> archParser = ArchitectureNotationParser.parser();
+    private final NotationParser<OperatingSystem> osParser = OperatingSystemNotationParser.parser();
+
     public DefaultPlatformContainer(Instantiator instantiator) {
         super(Platform.class, instantiator);
     }
 
     @Override
     protected Platform doCreate(String name) {
-        return getInstantiator().newInstance(DefaultPlatform.class, name);
+        return getInstantiator().newInstance(DefaultPlatform.class, name, archParser, osParser);
     }
 }
