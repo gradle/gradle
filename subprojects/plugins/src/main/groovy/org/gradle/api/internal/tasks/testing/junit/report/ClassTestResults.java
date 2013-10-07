@@ -16,6 +16,7 @@
 package org.gradle.api.internal.tasks.testing.junit.report;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.internal.FileUtils;
 
 import java.util.Collection;
 import java.util.Set;
@@ -44,6 +45,11 @@ public class ClassTestResults extends CompositeTestResults {
     @Override
     public String getTitle() {
         return String.format("Class %s", name);
+    }
+
+    @Override
+    public String getBaseUrl() {
+        return String.format("classes/%s.html", FileUtils.toSafeFileName(name));
     }
 
     public String getName() {

@@ -24,7 +24,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.reporting.HtmlReportRenderer;
 import org.gradle.util.Clock;
-import org.gradle.internal.FileUtils;
+
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -92,9 +92,9 @@ public class DefaultTestReport implements TestReporter {
         try {
             generatePage(model, new OverviewPageRenderer(), new File(reportDir, "index.html"));
             for (PackageTestResults packageResults : model.getPackages()) {
-                generatePage(packageResults, new PackagePageRenderer(), new File(reportDir, packageResults.getName() + ".html"));
+                generatePage(packageResults, new PackagePageRenderer(), new File(reportDir, packageResults.getBaseUrl()));
                 for (ClassTestResults classResults : packageResults.getClasses()) {
-                    generatePage(classResults, new ClassPageRenderer(classResults.getId(), resultsProvider), new File(reportDir, FileUtils.toSafeFileName(classResults.getName()) + ".html"));
+                    generatePage(classResults, new ClassPageRenderer(classResults.getId(), resultsProvider), new File(reportDir, classResults.getBaseUrl()));
                 }
             }
         } catch (Exception e) {

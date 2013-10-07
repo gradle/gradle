@@ -37,6 +37,10 @@ public class PackageTestResults extends CompositeTestResults {
         return name.equals(DEFAULT_PACKAGE) ? "Default package" : String.format("Package %s", name);
     }
 
+    public String getBaseUrl() {
+        return String.format("packages/%s.html", name);
+    }
+
     public String getName() {
         return name;
     }

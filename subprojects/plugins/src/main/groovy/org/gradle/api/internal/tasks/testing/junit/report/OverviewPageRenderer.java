@@ -17,7 +17,6 @@ package org.gradle.api.internal.tasks.testing.junit.report;
 
 import org.gradle.api.internal.ErroringAction;
 import org.gradle.api.internal.html.SimpleHtmlWriter;
-import org.gradle.internal.FileUtils;
 
 import java.io.IOException;
 
@@ -60,7 +59,7 @@ class OverviewPageRenderer extends PageRenderer<AllTestResults> {
         for (PackageTestResults testPackage : getResults().getPackages()) {
             htmlWriter.startElement("tr");
             htmlWriter.startElement("td").attribute("class", testPackage.getStatusClass());
-            htmlWriter.startElement("a").attribute("href", String.format("%s.html", testPackage.getName())).characters(testPackage.getName()).endElement();
+            htmlWriter.startElement("a").attribute("href", testPackage.getBaseUrl()).characters(testPackage.getName()).endElement();
             htmlWriter.endElement();
             htmlWriter.startElement("td").characters(Integer.toString(testPackage.getTestCount())).endElement();
             htmlWriter.startElement("td").characters(Integer.toString(testPackage.getFailureCount())).endElement();
@@ -89,7 +88,7 @@ class OverviewPageRenderer extends PageRenderer<AllTestResults> {
             for (ClassTestResults testClass : testPackage.getClasses()) {
                 htmlWriter.startElement("tr");
                 htmlWriter.startElement("td").attribute("class", testClass.getStatusClass()).endElement();
-                htmlWriter.startElement("a").attribute("href", String.format("%s.html", asHtmlLinkEncoded(FileUtils.toSafeFileName(testClass.getName())))).characters(testClass.getName()).endElement();
+                htmlWriter.startElement("a").attribute("href", asHtmlLinkEncoded(testClass.getBaseUrl())).characters(testClass.getName()).endElement();
                 htmlWriter.startElement("td").characters(Integer.toString(testClass.getTestCount())).endElement();
                 htmlWriter.startElement("td").characters(Integer.toString(testClass.getFailureCount())).endElement();
                 htmlWriter.startElement("td").characters(testClass.getFormattedDuration()).endElement();

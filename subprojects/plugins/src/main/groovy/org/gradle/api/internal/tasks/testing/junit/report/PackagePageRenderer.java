@@ -25,7 +25,7 @@ class PackagePageRenderer extends PageRenderer<PackageTestResults> {
     @Override
     protected void renderBreadcrumbs(SimpleHtmlWriter htmlWriter) throws IOException {
         htmlWriter.startElement("div").attribute("class", "breadcrumbs");
-        htmlWriter.startElement("a").attribute("href", "index.html").characters("all").endElement();
+        htmlWriter.startElement("a").attribute("href", getResults().getUrlTo(getResults().getParent())).characters("all").endElement();
         htmlWriter.characters(String.format(" > %s", getResults().getName()));
         htmlWriter.endElement();
     }
@@ -47,7 +47,7 @@ class PackagePageRenderer extends PageRenderer<PackageTestResults> {
         for (ClassTestResults testClass : getResults().getClasses()) {
             htmlWriter.startElement("tr");
             htmlWriter.startElement("td").attribute("class", testClass.getStatusClass());
-                htmlWriter.startElement("a").attribute("href", String.format("%s.html", asHtmlLinkEncoded(testClass.getName()))).characters(testClass.getSimpleName()).endElement();
+                htmlWriter.startElement("a").attribute("href", asHtmlLinkEncoded(getResults().getUrlTo(testClass))).characters(testClass.getSimpleName()).endElement();
             htmlWriter.endElement();
             htmlWriter.startElement("td").characters(Integer.toString(testClass.getTestCount())).endElement();
             htmlWriter.startElement("td").characters(Integer.toString(testClass.getFailureCount())).endElement();

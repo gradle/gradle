@@ -79,29 +79,32 @@ class DefaultTestReportTest extends Specification {
         index.assertHasFailures(0)
         index.assertHasSuccessRate(100)
         index.assertHasDuration("0.400s")
-        index.assertHasLinkTo('org.gradle')
-        index.assertHasLinkTo('org.gradle.sub')
-        index.assertHasLinkTo('org.gradle.Test', 'org.gradle.Test')
+        index.assertHasLinkTo('packages/org.gradle', 'org.gradle')
+        index.assertHasLinkTo('packages/org.gradle.sub', 'org.gradle.sub')
+        index.assertHasLinkTo('classes/org.gradle.Test', 'org.gradle.Test')
         index.packageDetails("org.gradle").assertSuccessRate(100)
         index.packageDetails("org.gradle.sub").assertSuccessRate(100)
 
-        reportDir.file("style.css").assertIsFile()
+        reportDir.file("css/style.css").assertIsFile()
 
-        def packageFile = results(reportDir.file('org.gradle.html'))
+        def packageFile = results(reportDir.file('packages/org.gradle.html'))
         packageFile.assertHasTests(3)
         packageFile.assertHasFailures(0)
         packageFile.assertHasSuccessRate(100)
         packageFile.assertHasDuration("0.300s")
-        packageFile.assertHasLinkTo('org.gradle.Test', 'Test')
-        packageFile.assertHasLinkTo('org.gradle.Test2', 'Test2')
+        packageFile.assertHasLinkTo('../index', 'all')
+        packageFile.assertHasLinkTo('../classes/org.gradle.Test', 'Test')
+        packageFile.assertHasLinkTo('../classes/org.gradle.Test2', 'Test2')
 
-        def testClassFile = results(reportDir.file('org.gradle.Test.html'))
+        def testClassFile = results(reportDir.file('classes/org.gradle.Test.html'))
         testClassFile.assertHasTests(2)
         testClassFile.assertHasFailures(0)
         testClassFile.assertHasSuccessRate(100)
         testClassFile.assertHasDuration("0.200s")
         testClassFile.assertHasTest('test1')
         testClassFile.assertHasTest('test2')
+        testClassFile.assertHasLinkTo('../index', 'all')
+        testClassFile.assertHasLinkTo('../packages/org.gradle', 'org.gradle')
         testClassFile.assertHasStandardOutput('this is\nstandard output')
         testClassFile.assertHasStandardError('this is\nstandard error')
     }
@@ -142,17 +145,17 @@ class DefaultTestReportTest extends Specification {
         index.assertHasTests(4)
         index.assertHasFailures(2)
         index.assertHasSuccessRate(50)
-        index.assertHasFailedTest('org.gradle.Test', 'test1')
+        index.assertHasFailedTest('classes/org.gradle.Test', 'test1')
         index.packageDetails("org.gradle").assertSuccessRate(33)
         index.packageDetails("org.gradle.sub").assertSuccessRate(100)
 
-        def packageFile = results(reportDir.file('org.gradle.html'))
+        def packageFile = results(reportDir.file('packages/org.gradle.html'))
         packageFile.assertHasTests(3)
         packageFile.assertHasFailures(2)
         packageFile.assertHasSuccessRate(33)
-        packageFile.assertHasFailedTest('org.gradle.Test', 'test1')
+        packageFile.assertHasFailedTest('../classes/org.gradle.Test', 'test1')
 
-        def testClassFile = results(reportDir.file('org.gradle.Test.html'))
+        def testClassFile = results(reportDir.file('classes/org.gradle.Test.html'))
         testClassFile.assertHasTests(2)
         testClassFile.assertHasFailures(2)
         testClassFile.assertHasSuccessRate(0)
@@ -180,12 +183,12 @@ class DefaultTestReportTest extends Specification {
         index.assertHasFailures(0)
         index.assertHasSuccessRate(100)
 
-        def packageFile = results(reportDir.file('org.gradle.html'))
+        def packageFile = results(reportDir.file('packages/org.gradle.html'))
         packageFile.assertHasTests(1)
         packageFile.assertHasFailures(0)
         packageFile.assertHasSuccessRate(100)
 
-        def testClassFile = results(reportDir.file('org.gradle.Test.html'))
+        def testClassFile = results(reportDir.file('classes/org.gradle.Test.html'))
         testClassFile.assertHasTests(1)
         testClassFile.assertHasFailures(0)
         testClassFile.assertHasSuccessRate(100)
@@ -207,11 +210,11 @@ class DefaultTestReportTest extends Specification {
 
         then:
         def index = results(indexFile)
-        index.assertHasLinkTo('default-package')
-        index.assertHasLinkTo('Test')
+        index.assertHasLinkTo('packages/default-package', 'default-package')
+        index.assertHasLinkTo('classes/Test', 'Test')
 
-        def packageFile = results(reportDir.file('default-package.html'))
-        packageFile.assertHasLinkTo('Test')
+        def packageFile = results(reportDir.file('packages/default-package.html'))
+        packageFile.assertHasLinkTo('../classes/Test', 'Test')
     }
 
     def escapesHtmlContentInReport() {
@@ -230,7 +233,7 @@ class DefaultTestReportTest extends Specification {
         report.generateReport(testTestResults, reportDir)
 
         then:
-        def testClassFile = results(reportDir.file('org.gradle.Test.html'))
+        def testClassFile = results(reportDir.file('classes/org.gradle.Test.html'))
         testClassFile.assertHasTest('test1 < test2')
         testClassFile.assertHasFailure('test1 < test2', '<a failure>')
         testClassFile.assertHasStandardOutput('</html> & ')
@@ -252,7 +255,7 @@ class DefaultTestReportTest extends Specification {
         report.generateReport(testTestResults, reportDir)
 
         then:
-        def testClassFile = results(reportDir.file('org.gradle.Test.html'))
+        def testClassFile = results(reportDir.file('classes/org.gradle.Test.html'))
         testClassFile.assertHasTest('\u0107')
         testClassFile.assertHasStandardOutput('out:\u0256')
         testClassFile.assertHasStandardError('err:\u0102')

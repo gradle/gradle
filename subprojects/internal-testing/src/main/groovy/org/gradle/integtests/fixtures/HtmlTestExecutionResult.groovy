@@ -48,12 +48,12 @@ class HtmlTestExecutionResult implements TestExecutionResult {
 
     def assertHtmlReportForTestClassExists(String... classNames) {
         classNames.each {
-            assertTrue new File(htmlReportDirectory, "${FileUtils.toSafeFileName(it)}.html").exists();
+            assertTrue new File(htmlReportDirectory, "classes/${FileUtils.toSafeFileName(it)}.html").exists();
         }
     }
 
     TestClassExecutionResult testClass(String testClass) {
-        return new HtmlTestClassExecutionResult(new File(htmlReportDirectory, "${FileUtils.toSafeFileName(testClass)}.html"));
+        return new HtmlTestClassExecutionResult(new File(htmlReportDirectory, "classes/${FileUtils.toSafeFileName(testClass)}.html"));
     }
 
     private static class HtmlTestClassExecutionResult implements TestClassExecutionResult {

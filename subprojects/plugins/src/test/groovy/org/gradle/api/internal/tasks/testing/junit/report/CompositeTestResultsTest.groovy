@@ -23,6 +23,11 @@ class CompositeTestResultsTest extends Specification {
         String getTitle() {
             throw new UnsupportedOperationException()
         }
+
+        @Override
+        String getBaseUrl() {
+            return "test/page.html"
+        }
     }
 
     def formatsSuccessRateWhenNoTests() {
@@ -60,6 +65,22 @@ class CompositeTestResultsTest extends Specification {
 
         expect:
         results.formattedDuration == '0.045s'
+    }
+
+    def calculatesRelativePath() {
+        def other = Stub(CompositeTestResults) {
+            getBaseUrl() >> fromUrl
+        }
+
+        expect:
+        results.getUrlTo(other) == relativeUrl
+
+        where:
+        fromUrl                  | relativeUrl
+        "test/other.html"        | "other.html"
+        "other/other.html"       | "../other/other.html"
+        "index.html"             | "../index.html"
+        "test/subdir/other.html" | "subdir/other.html"
     }
 
     private TestResult test() {

@@ -34,6 +34,11 @@ public class AllTestResults extends CompositeTestResults {
         return "Test Summary";
     }
 
+    @Override
+    public String getBaseUrl() {
+        return "index.html";
+    }
+
     public Collection<PackageTestResults> getPackages() {
         return packages.values();
     }

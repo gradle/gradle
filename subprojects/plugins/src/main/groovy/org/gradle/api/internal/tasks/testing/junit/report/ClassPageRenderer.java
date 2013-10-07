@@ -36,9 +36,9 @@ class ClassPageRenderer extends PageRenderer<ClassTestResults> {
     @Override
     protected void renderBreadcrumbs(SimpleHtmlWriter htmlWriter) throws IOException {
         htmlWriter.startElement("div").attribute("class", "breadcrumbs")
-            .startElement("a").attribute("href", "index.html").characters("all").endElement()
+            .startElement("a").attribute("href", getResults().getUrlTo(getResults().getParent().getParent())).characters("all").endElement()
             .characters(" > ")
-            .startElement("a").attribute("href", String.format("%s.html", getResults().getPackageResults().getName())).characters(getResults().getPackageResults().getName()).endElement()
+            .startElement("a").attribute("href", getResults().getUrlTo(getResults().getPackageResults())).characters(getResults().getPackageResults().getName()).endElement()
             .characters(String.format(" > %s", getResults().getSimpleName()))
         .endElement();
     }

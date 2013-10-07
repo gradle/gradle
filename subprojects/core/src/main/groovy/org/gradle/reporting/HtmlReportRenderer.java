@@ -56,8 +56,10 @@ public class HtmlReportRenderer {
                 super.writeTo(model, file);
                 for (URL resource : resources) {
                     String name = StringUtils.substringAfterLast(resource.getPath(), "/");
-                    File destFile = new File(file.getParentFile(), name);
+                    String type = StringUtils.substringAfterLast(resource.getPath(), ".");
+                    File destFile = new File(file.getParentFile(), String.format("%s/%s", type, name));
                     if (!destFile.exists()) {
+                        destFile.getParentFile().mkdirs();
                         GFileUtils.copyURLToFile(resource, destFile);
                     }
                 }

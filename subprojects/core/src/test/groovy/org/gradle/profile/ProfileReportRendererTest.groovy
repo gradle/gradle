@@ -67,9 +67,9 @@ class ProfileReportRendererTest extends Specification {
 <head>
 <meta httpEquiv="Content-Type" content="text/html; charset=utf-8"/>
 <title>Profile report</title>
-<link href="base-style.css" rel="stylesheet" type="text/css"/>
-<link href="style.css" rel="stylesheet" type="text/css"/>
-<script src="report.js" type="text/javascript"></script>
+<link href="css/base-style.css" rel="stylesheet" type="text/css"/>
+<link href="css/style.css" rel="stylesheet" type="text/css"/>
+<script src="js/report.js" type="text/javascript"></script>
 </head>
 <body>
 <div id="content">

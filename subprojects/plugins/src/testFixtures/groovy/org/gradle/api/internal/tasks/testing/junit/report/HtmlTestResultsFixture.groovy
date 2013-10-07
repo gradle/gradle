@@ -86,10 +86,10 @@ class HtmlTestResultsFixture {
         assert content.select("a[href=${target}.html]").find { it.text() == display }
     }
 
-    void assertHasFailedTest(String className, String testName) {
+    void assertHasFailedTest(String target, String testName) {
         def tab = findTab('Failed tests')
         assert tab != null
-        assert tab.select("a[href=${className}.html#$testName]").find { it.text() == testName }
+        assert tab.select("a[href=${target}.html#$testName]").find { it.text() == testName }
     }
 
     void assertHasTest(String testName) {

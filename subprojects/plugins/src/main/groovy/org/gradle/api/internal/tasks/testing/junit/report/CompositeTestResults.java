@@ -31,6 +31,45 @@ public abstract class CompositeTestResults extends TestResultModel {
         this.parent = parent;
     }
 
+    public CompositeTestResults getParent() {
+        return parent;
+    }
+
+    public abstract String getBaseUrl();
+
+    public String getUrlTo(CompositeTestResults model) {
+        String otherUrl = model.getBaseUrl();
+        String thisUrl = getBaseUrl();
+
+        int maxPos = Math.min(thisUrl.length(), otherUrl.length());
+        int endPrefix = 0;
+        while (endPrefix < maxPos) {
+            int endA = thisUrl.indexOf('/', endPrefix);
+            int endB = otherUrl.indexOf('/', endPrefix);
+            if (endA != endB || endA < 0) {
+                break;
+            }
+            if (!thisUrl.regionMatches(endPrefix, otherUrl, endPrefix, endA - endPrefix)) {
+                break;
+            }
+            endPrefix = endA + 1;
+        }
+
+        StringBuilder result = new StringBuilder();
+        int endA = endPrefix;
+        while (endA < thisUrl.length()) {
+            int pos = thisUrl.indexOf('/', endA);
+            if (pos < 0) {
+                break;
+            }
+            result.append("../");
+            endA = pos + 1;
+        }
+        result.append(otherUrl.substring(endPrefix));
+
+        return result.toString();
+    }
+
     public int getTestCount() {
         return tests;
     }

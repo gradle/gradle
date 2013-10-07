@@ -55,6 +55,6 @@ class HtmlReportRendererTest extends Specification {
         renderer.renderer(abstractHtmlReportRenderer).writeTo("test", destFile)
 
         then:
-        tmpDir.file("base-style.css").file
+        tmpDir.file("css/base-style.css").file
     }
 }
