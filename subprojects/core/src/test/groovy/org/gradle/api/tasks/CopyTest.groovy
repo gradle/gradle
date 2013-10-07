@@ -44,18 +44,19 @@ class CopyTest extends AbstractCopyTaskContractTest {
         File fromPropertiesFile = createFile(fromConfDir, 'file.properties')
         fromPropertiesFile.text << 'foo'
         File intoBuildDir = createDir(project.projectDir, 'build')
+        def closure = { assert it.file.canonicalPath == fromPropertiesFile.canonicalPath }
+        EachFileClosureInvocation closureInvocation = new EachFileClosureInvocation(closure)
 
         copy.from fromSrcDir
         copy.into intoBuildDir
-        copy.eachFile {
-            assert it.file.canonicalPath == fromPropertiesFile.canonicalPath
-        }
+        copy.eachFile closureInvocation.closure
         copy.execute()
 
         File intoConfDir = new File(intoBuildDir, 'conf')
         File intoPropertiesFile = new File(intoConfDir, 'file.properties')
         assert intoPropertiesFile.exists()
         assert FileUtils.contentEquals(intoPropertiesFile, fromPropertiesFile)
+        assert closureInvocation.wasCalled(1)
     }
 
     @Test
@@ -66,8 +67,10 @@ class CopyTest extends AbstractCopyTaskContractTest {
         File fromPropertiesFile = createFile(fromConfDir, 'file.properties')
         fromPropertiesFile.text << 'foo'
         File intoBuildDir = createDir(project.projectDir, 'build')
+        def closure = { assert it.file.canonicalPath == fromPropertiesFile.canonicalPath }
+        EachFileClosureInvocation closureInvocation = new EachFileClosureInvocation(closure)
 
-        copy.from(project.fileTree(dir: fromSrcDir).matching { include 'conf/file.properties' }) { eachFile { assert it.file.canonicalPath == fromPropertiesFile.canonicalPath } }
+        copy.from(project.fileTree(dir: fromSrcDir).matching { include 'conf/file.properties' }) { eachFile closureInvocation.closure }
         copy.into intoBuildDir
         copy.execute()
 
@@ -75,6 +78,7 @@ class CopyTest extends AbstractCopyTaskContractTest {
         File intoPropertiesFile = new File(intoConfDir, 'file.properties')
         assert intoPropertiesFile.exists()
         assert FileUtils.contentEquals(intoPropertiesFile, fromPropertiesFile)
+        assert closureInvocation.wasCalled(1)
     }
 
     private File createDir(File parentDir, String path) {
@@ -92,5 +96,29 @@ class CopyTest extends AbstractCopyTaskContractTest {
         TestFile file = new TestFile(parent, filename)
         file.createNewFile()
         file
+    }
+
+    private class EachFileClosureInvocation {
+        private int calls = 0
+        private final Closure closure
+
+        public EachFileClosureInvocation(Closure delegateClosure) {
+            closure = {
+                ++calls
+                delegateClosure(it)
+            }
+        }
+
+        Closure getClosure() {
+            closure
+        }
+
+        int getCalls() {
+            calls
+        }
+
+        boolean wasCalled(int times) {
+            calls == times
+        }
     }
 }
