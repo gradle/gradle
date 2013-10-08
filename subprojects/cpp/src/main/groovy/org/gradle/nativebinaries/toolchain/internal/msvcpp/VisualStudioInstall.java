@@ -50,6 +50,10 @@ public class VisualStudioInstall {
         return new File(getVisualCppBin(targetPlatform), "lib.exe");
     }
 
+    public File getVisualCppBin() {
+        return new File(visualCppDir, "bin");
+    }
+
     public File getVisualCppBin(Platform platform) {
         if (architecture(platform).isAmd64()) {
             return new File(visualCppDir, "bin/x86_amd64");
