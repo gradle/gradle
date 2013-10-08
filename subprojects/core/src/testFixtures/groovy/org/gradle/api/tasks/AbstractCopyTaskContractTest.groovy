@@ -19,8 +19,12 @@ package org.gradle.api.tasks
 import org.gradle.api.Action
 import org.gradle.api.file.FileCopyDetails
 import org.gradle.api.internal.DynamicObject
+import org.gradle.test.fixtures.file.TestFile
 import org.junit.Test
+import spock.lang.Issue
 import spock.lang.Unroll
+
+import static junit.framework.TestCase.fail
 
 /**
  * Tests that different types of copy tasks correctly expose DSL enhanced objects.
@@ -28,6 +32,10 @@ import spock.lang.Unroll
 abstract class AbstractCopyTaskContractTest extends AbstractConventionTaskTest {
 
     abstract AbstractCopyTask getTask()
+
+    protected List<File> getInitalFiles() {
+        []
+    }
 
     @Unroll
     @Test
@@ -40,5 +48,85 @@ abstract class AbstractCopyTaskContractTest extends AbstractConventionTaskTest {
                 assert fcd instanceof DynamicObject
             }
         })
+    }
+
+    @Test
+    @Issue("GRADLE-2906")
+    void "each file does not execute action for directories"() {
+        File fromSrcDir = createDir(project.projectDir, 'src')
+        File fromConfDir = createDir(fromSrcDir, 'conf')
+        File fromPropertiesFile = createFile(fromConfDir, 'file.properties')
+        fromPropertiesFile.text << 'foo'
+        File intoBuildDir = createDir(project.projectDir, 'build')
+        EachFileClosureInvocation closureInvocation = new EachFileClosureInvocation()
+
+        task.from fromSrcDir
+        task.into intoBuildDir
+        task.eachFile closureInvocation.closure
+        task.execute()
+
+        List<File> expectedFiles = getInitalFiles() << fromPropertiesFile
+        assert closureInvocation.wasCalled(expectedFiles.size())
+        assert closureInvocation.files.containsAll(expectedFiles)
+    }
+
+    @Test
+    @Issue("GRADLE-2900")
+    void "each file does not execute action for directories after filtering file tree"() {
+        File fromSrcDir = createDir(project.projectDir, 'src')
+        File fromConfDir = createDir(fromSrcDir, 'conf')
+        File fromPropertiesFile = createFile(fromConfDir, 'file.properties')
+        fromPropertiesFile.text << 'foo'
+        File intoBuildDir = createDir(project.projectDir, 'build')
+        EachFileClosureInvocation closureInvocation = new EachFileClosureInvocation()
+
+        task.from(project.fileTree(dir: fromSrcDir).matching { include 'conf/file.properties' }) { eachFile closureInvocation.closure }
+        task.into intoBuildDir
+        task.execute()
+
+        assert closureInvocation.wasCalled(1)
+        assert closureInvocation.files.contains(fromPropertiesFile)
+    }
+
+    private File createDir(File parentDir, String path) {
+        TestFile newDir = new TestFile(parentDir, path)
+        boolean success = newDir.mkdirs()
+
+        if(!success) {
+            fail "Failed to create directory $newDir"
+        }
+
+        newDir
+    }
+
+    private File createFile(File parent, String filename) {
+        TestFile file = new TestFile(parent, filename)
+        file.createNewFile()
+        file
+    }
+
+    private class EachFileClosureInvocation {
+        private int calls = 0
+        private final Closure closure
+        private final List<String> files = []
+
+        public EachFileClosureInvocation() {
+            closure = {
+                ++calls
+                files << it.file
+            }
+        }
+
+        Closure getClosure() {
+            closure
+        }
+
+        boolean wasCalled(int times) {
+            calls == times
+        }
+
+        List<String> getFiles() {
+            files
+        }
     }
 }
