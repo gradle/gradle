@@ -21,7 +21,7 @@ import org.gradle.api.internal.file.FileResolver;
 
 import java.io.File;
 
-public class DestinationRootCopySpec extends DelegatingCopySpec {
+public class DestinationRootCopySpec extends DelegatingCopySpecInternal {
 
     private final FileResolver fileResolver;
     private final CopySpecInternal delegate;

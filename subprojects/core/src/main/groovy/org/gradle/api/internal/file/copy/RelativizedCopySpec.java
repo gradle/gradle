@@ -21,7 +21,7 @@ import org.gradle.api.file.RelativePath;
 
 import static org.gradle.util.CollectionUtils.collect;
 
-public class RelativizedCopySpec extends DelegatingCopySpec {
+public class RelativizedCopySpec extends DelegatingCopySpecInternal {
 
     private final CopySpecInternal parent;
     private final CopySpecInternal child;

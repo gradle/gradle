@@ -27,7 +27,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-abstract public class DelegatingCopySpec implements CopySpecInternal {
+abstract public class DelegatingCopySpecInternal implements CopySpecInternal {
 
     abstract protected CopySpecInternal getDelegateCopySpec();
 
