@@ -156,4 +156,36 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         destinationDir.listFiles().findAll { it.directory }*.name.toSet() == ["dirA", "dirB"].toSet()
     }
 
+    @Issue("http://issues.gradle.org/browse/GRADLE-2902")
+    def "internal copy spec methods are not visible to users"() {
+        when:
+        file("res/foo.txt") << "bar"
+
+        buildScript """
+            task copyAction {
+                ext.source = 'res'
+                doLast {
+                    copy {
+                        from source
+                        into 'action'
+                    }
+                }
+            }
+            task copyTask(type: Copy) {
+                ext.children = 'res'
+                into "task"
+                into "dir", {
+                    from children
+                }
+            }
+        """
+
+        then:
+        succeeds "copyAction", "copyTask"
+
+        and:
+        file("action/foo.txt").exists()
+        file("task/dir/foo.txt").exists()
+    }
+
 }

@@ -99,7 +99,7 @@ public class DefaultCopySpec implements CopySpecInternal {
         } else {
             DefaultCopySpec child = addChild();
             child.from(sourcePath);
-            ConfigureUtil.configure(c, child);
+            ConfigureUtil.configure(c, instantiator.newInstance(CopySpecWrapper.class, child));
             return child;
         }
     }
@@ -147,7 +147,7 @@ public class DefaultCopySpec implements CopySpecInternal {
         } else {
             DefaultCopySpec child = addChild();
             child.into(destPath);
-            ConfigureUtil.configure(configureClosure, child);
+            ConfigureUtil.configure(configureClosure, instantiator.newInstance(CopySpecWrapper.class, child));
             return child;
         }
     }
