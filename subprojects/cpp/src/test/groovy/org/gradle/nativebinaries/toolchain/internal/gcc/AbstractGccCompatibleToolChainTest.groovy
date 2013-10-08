@@ -28,6 +28,8 @@ import org.gradle.nativebinaries.internal.NativeBinaryInternal
 import org.gradle.nativebinaries.toolchain.ToolChainPlatformConfiguration
 import org.gradle.nativebinaries.toolchain.internal.ToolType
 import org.gradle.process.internal.ExecActionFactory
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import spock.lang.Specification
 
 import static org.gradle.nativebinaries.internal.ArchitectureInternal.InstructionSet.X86
@@ -88,6 +90,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         0 * nativeBinary._
     }
 
+    @Requires(TestPrecondition.NOT_WINDOWS)
     def "targets native binary for architecture"() {
         when:
         nativeBinary.getTargetPlatform() >> platform
@@ -114,6 +117,45 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         arch     | instructionSet | registerSize | linkerArg | compilerArg | assemblerArg | osxAssemblerArg
         "i386"   | X86            | 32           | "-m32"    | "-m32"      | "--32"       | ["-arch", "i386"]
         "x86_64" | X86            | 64           | "-m64"    | "-m64"      | "--64"       | ["-arch", "x86_64"]
+    }
+
+    @Requires(TestPrecondition.WINDOWS)
+    def "targets native binary for i386 architecture on windows"() {
+        when:
+        nativeBinary.getTargetPlatform() >> platform
+        platform.getOperatingSystem() >> DefaultOperatingSystem.TOOL_CHAIN_DEFAULT
+        platform.getArchitecture() >> new DefaultArchitecture("i386", X86, 32)
+
+        and:
+        toolChain.targetNativeBinaryForPlatform(nativeBinary)
+
+        then:
+        1 * nativeBinary.getLinker() >> linker
+        1 * linker.args("-m32")
+        1 * extensions.findByName("cppCompiler") >> cppCompiler
+        1 * cppCompiler.args("-m32")
+        1 * extensions.findByName("cCompiler") >> null
+        1 * extensions.findByName("assembler") >> assembler
+        1 * assembler.args("--32")
+    }
+
+    @Requires(TestPrecondition.WINDOWS)
+    def "cannot target x86_64 architecture on windows"() {
+        when:
+        toolRegistry.locate(_) >> tool
+        tool.exists() >> true
+
+        and:
+        platform.getName() >> "x64"
+        platform.getOperatingSystem() >> DefaultOperatingSystem.TOOL_CHAIN_DEFAULT
+        platform.getArchitecture() >> new DefaultArchitecture("x64", X86, 64)
+
+        and:
+        toolChain.target(platform)
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == "Tool chain test cannot build for platform: x64"
     }
 
     def "uses supplied platform configurations in order to target binary"() {

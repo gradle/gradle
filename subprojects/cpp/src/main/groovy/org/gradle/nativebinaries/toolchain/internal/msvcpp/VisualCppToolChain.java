@@ -99,12 +99,11 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
     }
 
     private void checkPlatform(Platform targetPlatform) {
-        if (!targetPlatform.getOperatingSystem().isWindows()) {
-            throw new IllegalStateException(String.format("Tool chain %s cannot build for os: %s", getName(), targetPlatform.getOperatingSystem().getName()));
-        }
-        ArchitectureInternal arch = (ArchitectureInternal) targetPlatform.getArchitecture();
-        if (!isSupportedArchitecture(arch)) {
-            throw new IllegalStateException(String.format("Tool chain %s cannot build for architecture: %s", getName(), targetPlatform.getArchitecture().getName()));
+        ArchitectureInternal targetArch = (ArchitectureInternal) targetPlatform.getArchitecture();
+        org.gradle.nativebinaries.OperatingSystem targetOs = targetPlatform.getOperatingSystem();
+
+        if (!targetOs.isWindows() || !isSupportedArchitecture(targetArch)) {
+            throw new IllegalStateException(String.format("Tool chain %s cannot build for platform: %s", getName(), targetPlatform.getName()));
         }
     }
 
