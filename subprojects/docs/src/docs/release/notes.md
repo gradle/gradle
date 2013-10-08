@@ -202,6 +202,7 @@ We would like to thank the following community members for making contributions 
     - Documentation fixes.
     - Fix a regression when adding Action instances to tasks (GRADLE-2774).
 * [Mark Petrovic](https://github.com/ae6rt) - Cucumber test report file formation is failing (GRADLE-2739).
+* [Bryan Keller](https://github.com/bryanck) - JAR manifest should be first entry in a archive file (GRADLE-2886).
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
