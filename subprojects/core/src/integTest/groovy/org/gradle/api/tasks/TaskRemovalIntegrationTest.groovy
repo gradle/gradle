@@ -14,25 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.model;
+package org.gradle.api.tasks
 
-import org.gradle.api.Action;
-import org.gradle.internal.Factory;
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.hamcrest.Matchers
 
-/**
- * A service for registering model rules.
- *
- * Plugins can inject an instance of this.
- */
-public interface ModelRules {
+class TaskRemovalIntegrationTest extends AbstractIntegrationSpec {
 
-    <T> void register(String path, T model);
+    def "can remove task"() {
+        given:
+        buildScript """
+            task foo {}
+            tasks.remove(foo)
+        """
 
-    <T> void register(String path, Class<T> type, Factory<? extends T> model);
+        when:
+        fails "foo"
 
-    <T> void config(String path, Action<T> action);
+        then:
+        failure.assertThatDescription(Matchers.startsWith("Task 'foo' not found in root project"))
+    }
 
-    void rule(ModelRule rule);
-
-    void remove(String path);
 }

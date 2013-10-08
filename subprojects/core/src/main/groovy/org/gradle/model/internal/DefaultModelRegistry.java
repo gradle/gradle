@@ -91,6 +91,12 @@ public class DefaultModelRegistry implements ModelRegistry {
         modelCreationListeners.add(listener);
     }
 
+    public void remove(String path) {
+        if (creations.remove(ModelPath.path(path)) == null) {
+            throw new RuntimeException("Tried to remove model " + path + " but it is not registered");
+        }
+    }
+
     private Set<ModelPath> getPromisedPaths() {
         return ImmutableSet.<ModelPath>builder().addAll(creations.keySet()).build();
     }

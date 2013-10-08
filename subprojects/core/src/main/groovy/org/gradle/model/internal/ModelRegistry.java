@@ -30,4 +30,5 @@ public interface ModelRegistry {
 
     public void registerListener(ModelCreationListener listener);
 
+    void remove(String path);
 }

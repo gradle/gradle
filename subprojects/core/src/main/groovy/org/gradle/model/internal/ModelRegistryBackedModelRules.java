@@ -57,6 +57,10 @@ public class ModelRegistryBackedModelRules implements ModelRules {
         });
     }
 
+    public void remove(String path) {
+        modelRegistry.remove(path);
+    }
+
     public void rule(ModelRule rule) {
         ReflectiveRule.rule(modelRegistry, rule);
     }

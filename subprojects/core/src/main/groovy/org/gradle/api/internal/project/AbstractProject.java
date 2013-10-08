@@ -227,6 +227,11 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
                 }
             }
         });
+        taskContainer.whenObjectRemoved(new Action<Task>() {
+            public void execute(Task task) {
+                modelRules.remove(tasksModelPath.child(task.getName()).toString());
+            }
+        });
     }
 
     private static class TaskFactory implements Factory<Task> {
