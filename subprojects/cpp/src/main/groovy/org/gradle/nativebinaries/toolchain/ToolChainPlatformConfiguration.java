@@ -13,14 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.nativebinaries.toolchain;
 
 import org.gradle.api.Incubating;
+import org.gradle.nativebinaries.NativeBinary;
+import org.gradle.nativebinaries.Platform;
 
 /**
- * The <a href="http://clang.llvm.org">Clang</a> tool chain.
+ * Configuration to add support for a target platform to a {@link PlatformConfigurableToolChain}.
  */
 @Incubating
-public interface Clang extends PlatformConfigurableToolChain {
+public interface ToolChainPlatformConfiguration {
+    /**
+     * Matches the platform that this configuration supports.
+     */
+    boolean supportsPlatform(Platform element);
+
+    /**
+     * Configure the binary to build for this platform.
+     */
+    void configureBinaryForPlatform(NativeBinary binary);
 }

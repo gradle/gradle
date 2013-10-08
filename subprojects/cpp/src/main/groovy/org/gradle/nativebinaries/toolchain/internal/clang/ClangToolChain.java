@@ -21,10 +21,10 @@ import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativebinaries.toolchain.Clang;
 import org.gradle.nativebinaries.toolchain.internal.ToolRegistry;
 import org.gradle.nativebinaries.toolchain.internal.ToolType;
-import org.gradle.nativebinaries.toolchain.internal.gcc.GccCompatibleToolChain;
+import org.gradle.nativebinaries.toolchain.internal.gcc.AbstractPlatformConfigurableToolChain;
 import org.gradle.process.internal.ExecActionFactory;
 
-public class ClangToolChain extends GccCompatibleToolChain implements Clang {
+public class ClangToolChain extends AbstractPlatformConfigurableToolChain implements Clang {
     public static final String DEFAULT_NAME = "clang";
 
     public ClangToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory) {
