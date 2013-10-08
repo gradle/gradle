@@ -33,7 +33,7 @@ import java.util.List;
 /**
  * Compiler adapter for GCC.
  */
-public class GccToolChain extends AbstractPlatformConfigurableToolChain implements Gcc {
+public class GccToolChain extends AbstractGccCompatibleToolChain implements Gcc {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GccToolChain.class);
 

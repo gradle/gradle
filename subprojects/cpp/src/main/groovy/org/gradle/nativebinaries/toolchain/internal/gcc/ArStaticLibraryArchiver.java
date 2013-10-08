@@ -28,7 +28,7 @@ import java.io.File;
 /**
  * A static library archiver based on the GNU 'ar' utility
  */
-public class ArStaticLibraryArchiver implements Compiler<StaticLibraryArchiverSpec> {
+class ArStaticLibraryArchiver implements Compiler<StaticLibraryArchiverSpec> {
     private final CommandLineTool<StaticLibraryArchiverSpec> commandLineTool;
 
     public ArStaticLibraryArchiver(CommandLineTool<StaticLibraryArchiverSpec> commandLineTool) {

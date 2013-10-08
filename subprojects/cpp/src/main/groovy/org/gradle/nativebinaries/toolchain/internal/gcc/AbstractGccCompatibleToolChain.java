@@ -16,7 +16,6 @@
 package org.gradle.nativebinaries.toolchain.internal.gcc;
 
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.internal.os.OperatingSystem;
@@ -24,14 +23,9 @@ import org.gradle.nativebinaries.NativeBinary;
 import org.gradle.nativebinaries.Platform;
 import org.gradle.nativebinaries.Tool;
 import org.gradle.nativebinaries.internal.*;
-import org.gradle.nativebinaries.language.assembler.internal.AssembleSpec;
-import org.gradle.nativebinaries.language.c.internal.CCompileSpec;
-import org.gradle.nativebinaries.language.cpp.internal.CppCompileSpec;
 import org.gradle.nativebinaries.toolchain.PlatformConfigurableToolChain;
 import org.gradle.nativebinaries.toolchain.ToolChainPlatformConfiguration;
 import org.gradle.nativebinaries.toolchain.internal.AbstractToolChain;
-import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
-import org.gradle.nativebinaries.toolchain.internal.ToolRegistry;
 import org.gradle.nativebinaries.toolchain.internal.ToolType;
 import org.gradle.process.internal.ExecActionFactory;
 
@@ -41,13 +35,14 @@ import java.util.List;
 /**
  * A tool chain that has GCC semantics, where all platform variants are produced by varying the tool args.
  */
-public abstract class AbstractPlatformConfigurableToolChain extends AbstractToolChain implements PlatformConfigurableToolChain, PlatformToolChain {
+public abstract class AbstractGccCompatibleToolChain extends AbstractToolChain implements PlatformConfigurableToolChain {
     private final ExecActionFactory execActionFactory;
     protected final ToolRegistry tools;
 
     private final List<ToolChainPlatformConfiguration> platformConfigs = new ArrayList<ToolChainPlatformConfiguration>();
+    private int configInsertLocation;
 
-    public AbstractPlatformConfigurableToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory, ToolRegistry tools) {
+    public AbstractGccCompatibleToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory, ToolRegistry tools) {
         super(name, operatingSystem, fileResolver);
         this.execActionFactory = execActionFactory;
         this.tools = tools;
@@ -55,6 +50,7 @@ public abstract class AbstractPlatformConfigurableToolChain extends AbstractTool
         addPlatformConfiguration(new ToolChainDefaultArchitecture());
         addPlatformConfiguration(new Intel32Architecture());
         addPlatformConfiguration(new Intel64Architecture());
+        configInsertLocation = 0;
     }
 
     @Override
@@ -65,13 +61,14 @@ public abstract class AbstractPlatformConfigurableToolChain extends AbstractTool
     }
 
     public void addPlatformConfiguration(ToolChainPlatformConfiguration platformConfig) {
-        platformConfigs.add(platformConfig);
+        platformConfigs.add(configInsertLocation, platformConfig);
+        configInsertLocation++;
     }
 
     public PlatformToolChain target(Platform targetPlatform) {
         checkAvailable();
         checkPlatform(targetPlatform);
-        return this;
+        return new GccPlatformToolChain(tools, execActionFactory, canUseCommandFile());
     }
 
     private void checkPlatform(Platform targetPlatform) {
@@ -87,40 +84,7 @@ public abstract class AbstractPlatformConfigurableToolChain extends AbstractTool
         return true;
     }
 
-    public <T extends BinaryToolSpec> org.gradle.api.internal.tasks.compile.Compiler<T> createCppCompiler() {
-        CommandLineTool<CppCompileSpec> commandLineTool = commandLineTool(ToolType.CPP_COMPILER);
-        return (org.gradle.api.internal.tasks.compile.Compiler<T>) new CppCompiler(commandLineTool, canUseCommandFile());
-    }
-
-    public <T extends BinaryToolSpec> Compiler<T> createCCompiler() {
-        CommandLineTool<CCompileSpec> commandLineTool = commandLineTool(ToolType.C_COMPILER);
-        return (Compiler<T>) new CCompiler(commandLineTool, canUseCommandFile());
-    }
-
-    public <T extends BinaryToolSpec> Compiler<T> createAssembler() {
-        CommandLineTool<AssembleSpec> commandLineTool = commandLineTool(ToolType.ASSEMBLER);
-        return (Compiler<T>) new Assembler(commandLineTool);
-    }
-
-    public <T extends LinkerSpec> Compiler<T> createLinker() {
-        CommandLineTool<LinkerSpec> commandLineTool = commandLineTool(ToolType.LINKER);
-        return (Compiler<T>) new GccLinker(commandLineTool, canUseCommandFile());
-    }
-
-    public <T extends StaticLibraryArchiverSpec> Compiler<T> createStaticLibraryArchiver() {
-        CommandLineTool<StaticLibraryArchiverSpec> commandLineTool = commandLineTool(ToolType.STATIC_LIB_ARCHIVER);
-        return (Compiler<T>) new ArStaticLibraryArchiver(commandLineTool);
-    }
-
-    private <T extends BinaryToolSpec> CommandLineTool<T> commandLineTool(ToolType key) {
-        CommandLineTool<T> commandLineTool = new CommandLineTool<T>(key.getToolName(), tools.locate(key), execActionFactory);
-        // MinGW requires the path to be set
-        commandLineTool.withPath(tools.getPath());
-        return commandLineTool;
-    }
-
     public void targetNativeBinaryForPlatform(NativeBinaryInternal nativeBinary) {
-
         for (ToolChainPlatformConfiguration platformConfig : platformConfigs) {
             if (platformConfig.supportsPlatform(nativeBinary.getTargetPlatform())) {
                 platformConfig.configureBinaryForPlatform(nativeBinary);

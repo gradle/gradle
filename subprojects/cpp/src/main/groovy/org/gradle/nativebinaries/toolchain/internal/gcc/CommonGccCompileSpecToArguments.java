@@ -27,7 +27,7 @@ import java.io.File;
 /**
  * Maps common options for C/C++ compiling with GCC
  */
-class GeneralGccCompileSpecToArguments<T extends NativeCompileSpec> implements CompileSpecToArguments<T> {
+class CommonGccCompileSpecToArguments<T extends NativeCompileSpec> implements CompileSpecToArguments<T> {
     public void collectArguments(T spec, ArgCollector collector) {
         for (String macroArg : new MacroArgsConverter().transform(spec.getMacros())) {
             collector.args("-D", macroArg);

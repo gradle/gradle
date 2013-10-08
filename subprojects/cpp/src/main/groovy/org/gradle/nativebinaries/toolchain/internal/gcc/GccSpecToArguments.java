@@ -27,11 +27,12 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Some GCC options do not function correctly when included in an option file, so only use the option file for include paths and source files.
+ * Uses an option file for arguments passed to GCC if possible.
+ * Certain GCC options do not function correctly when included in an option file, so include these directly on the command line as well.
  */
-public class GccSpecToArguments<T extends BinaryToolSpec> implements CompileSpecToArguments<T> {
+class GccSpecToArguments<T extends BinaryToolSpec> implements CompileSpecToArguments<T> {
 
-    private final CompileSpecToArguments<BinaryToolSpec> commandLineOnlyArguments = new CommandLinkOnlyArguments();
+    private final CompileSpecToArguments<BinaryToolSpec> commandLineOnlyArguments = new CommandLineOnlyArguments();
     private final CompileSpecToArguments<T> generalArguments;
     private final boolean useOptionFile;
 
@@ -54,7 +55,7 @@ public class GccSpecToArguments<T extends BinaryToolSpec> implements CompileSpec
     }
 
     // Certain options do not function correctly via an option file
-    private static class CommandLinkOnlyArguments implements CompileSpecToArguments<BinaryToolSpec> {
+    private static class CommandLineOnlyArguments implements CompileSpecToArguments<BinaryToolSpec> {
         private static final List<String> CLI_ONLY_ARGS = Arrays.asList("-m32", "-m64");
 
         public void collectArguments(BinaryToolSpec spec, ArgCollector collector) {
