@@ -62,8 +62,8 @@ class GenerateVersionProperties extends DefaultTask {
                 versionProperties.put(dep.requested.name, dep.selected.id.version)
             }
         }
-        outputFile.withWriter { writer ->
-            versionProperties.store(writer, "Version values used in build-init templates")
+        outputFile.withOutputStream { outputStream ->
+            versionProperties.store(outputStream, "Version values used in build-init templates")
         }
     }
 
