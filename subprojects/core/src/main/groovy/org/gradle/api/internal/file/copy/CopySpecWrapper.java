@@ -18,6 +18,7 @@ package org.gradle.api.internal.file.copy;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.NonExtensible;
 import org.gradle.api.Nullable;
 import org.gradle.api.file.*;
 import org.gradle.api.specs.Spec;
@@ -32,6 +33,7 @@ import java.util.regex.Pattern;
  *
  * Prevents users from accessing "internal" methods on implementations.
  */
+@NonExtensible
 public class CopySpecWrapper implements CopySpec {
 
     private final CopySpec delegate;
