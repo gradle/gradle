@@ -103,5 +103,13 @@ public interface NativeBinary extends Binary {
      */
     Tool getLinker();
 
+    /**
+     * The set of tasks associated with this binary.
+     */
     NativeBinaryTasks getTasks();
+
+    /**
+     * Can this binary be built in the current environment?
+     */
+    boolean isBuildable();
 }

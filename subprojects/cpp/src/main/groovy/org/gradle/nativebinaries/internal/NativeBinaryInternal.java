@@ -26,8 +26,5 @@ import java.util.Collection;
 public interface NativeBinaryInternal extends NativeBinary, BinaryInternal {
     Collection<NativeDependencySet> getLibs(DependentSourceSet sourceSet);
 
-    // TODO:DAZ Push these up to BuildableModelElement
-    boolean isBuildable();
-
     void setBuildable(boolean buildable);
 }
