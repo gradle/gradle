@@ -22,7 +22,7 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.nativebinaries.language.cpp.internal.CppCompileSpec;
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
 
-public class CppCompiler implements Compiler<CppCompileSpec> {
+class CppCompiler implements Compiler<CppCompileSpec> {
 
     private final CommandLineTool<CppCompileSpec> commandLineTool;
 
@@ -38,7 +38,7 @@ public class CppCompiler implements Compiler<CppCompileSpec> {
         return commandLineTool.inWorkDirectory(spec.getObjectFileDir()).execute(spec);
     }
 
-    private static class CppCompileSpecToArguments extends GeneralGccCompileSpecToArguments<CppCompileSpec> {
+    private static class CppCompileSpecToArguments extends CommonGccCompileSpecToArguments<CppCompileSpec> {
         @Override
         public void collectArguments(CppCompileSpec spec, ArgCollector collector) {
             // C++-compiling options

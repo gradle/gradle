@@ -19,12 +19,12 @@ package org.gradle.nativebinaries.toolchain.internal.clang;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativebinaries.toolchain.Clang;
-import org.gradle.nativebinaries.toolchain.internal.ToolRegistry;
+import org.gradle.nativebinaries.toolchain.internal.gcc.ToolRegistry;
 import org.gradle.nativebinaries.toolchain.internal.ToolType;
-import org.gradle.nativebinaries.toolchain.internal.gcc.AbstractPlatformConfigurableToolChain;
+import org.gradle.nativebinaries.toolchain.internal.gcc.AbstractGccCompatibleToolChain;
 import org.gradle.process.internal.ExecActionFactory;
 
-public class ClangToolChain extends AbstractPlatformConfigurableToolChain implements Clang {
+public class ClangToolChain extends AbstractGccCompatibleToolChain implements Clang {
     public static final String DEFAULT_NAME = "clang";
 
     public ClangToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory) {

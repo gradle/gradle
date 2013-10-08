@@ -17,13 +17,12 @@
 package org.gradle.nativebinaries.toolchain.internal.gcc;
 
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.nativebinaries.toolchain.internal.ToolRegistry;
 
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
-public class GccToolRegistry extends ToolRegistry {
+class GccToolRegistry extends ToolRegistry {
     public GccToolRegistry(OperatingSystem operatingSystem) {
         super(operatingSystem);
     }

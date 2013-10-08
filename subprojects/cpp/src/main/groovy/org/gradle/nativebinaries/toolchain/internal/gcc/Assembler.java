@@ -27,7 +27,7 @@ import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
 
 import java.io.File;
 
-public class Assembler implements Compiler<AssembleSpec> {
+class Assembler implements Compiler<AssembleSpec> {
 
     private final CommandLineTool<AssembleSpec> commandLineTool;
 
