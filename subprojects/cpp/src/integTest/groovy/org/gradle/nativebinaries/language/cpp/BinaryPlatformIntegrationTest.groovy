@@ -17,7 +17,6 @@
 package org.gradle.nativebinaries.language.cpp
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
-import org.gradle.nativebinaries.language.cpp.fixtures.ExecutableFixture
 import org.gradle.nativebinaries.language.cpp.fixtures.app.CppHelloWorldApp
 import org.gradle.nativebinaries.language.cpp.fixtures.binaryinfo.DumpbinBinaryInfo
 import org.gradle.nativebinaries.language.cpp.fixtures.binaryinfo.OtoolBinaryInfo
@@ -99,7 +98,6 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
         executable("build/binaries/mainExecutable/arm/main").assertDoesNotExist()
     }
 
-    @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
     def "can configure binary for multiple target operating systems"() {
         when:
         buildFile << """
@@ -141,6 +139,46 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
         }
     }
 
+    @Requires(TestPrecondition.NOT_WINDOWS)
+    def "can add binary configuration to target a platform"() {
+        when:
+        buildFile << """
+            toolChains {
+                crossCompiler(Gcc) {
+                    addPlatformConfiguration(new ToolChainPlatformConfiguration() {
+                        public boolean supportsPlatform(Platform element) {
+                            return element.getArchitecture().name == "arm"
+                        }
+
+                        // Treat 'arm' as 'i386' (since we don't have a real cross compiler)
+                        public void configureBinaryForPlatform(NativeBinary binary) {
+                            binary.cppCompiler.args "-m32"
+                            binary.linker.args "-m32"
+                        }
+                    })
+                }
+            }
+            targetPlatforms {
+                arm {
+                    architecture "arm"
+                }
+                x64 {
+                    architecture "x86_64"
+                }
+            }
+"""
+
+        and:
+        succeeds "crossCompilerArmMainExecutable", "crossCompilerX64MainExecutable"
+
+        then:
+        executable("build/binaries/mainExecutable/crossCompilerArm/main").binaryInfo.arch.name == "x86"
+        executable("build/binaries/mainExecutable/crossCompilerArm/main").exec().out ==  helloWorldApp.englishOutput
+
+        executable("build/binaries/mainExecutable/crossCompilerX64/main").binaryInfo.arch.name == "x86_64"
+        executable("build/binaries/mainExecutable/crossCompilerX64/main").exec().out ==  helloWorldApp.englishOutput
+    }
+
     def "fails with reasonable error message when trying to build for an unavailable architecture"() {
         when:
         buildFile << """
@@ -156,7 +194,7 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
 
         then:
         failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainCpp'.")
-        failure.assertHasCause("Tool chain ${toolChain.id} cannot build for architecture: arm")
+        failure.assertHasCause("Tool chain ${toolChain.id} cannot build for platform: arm")
     }
 
     def "fails with reasonable error message when trying to build for a different operating system"() {
@@ -174,7 +212,7 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
 
         then:
         failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainCpp'.")
-        failure.assertHasCause("Tool chain ${toolChain.id} cannot build for os: solaris")
+        failure.assertHasCause("Tool chain ${toolChain.id} cannot build for platform: solaris")
     }
 
     def binaryInfo(TestFile file) {
@@ -186,14 +224,6 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
             return new DumpbinBinaryInfo(file, toolChain)
         }
         return new ReadelfBinaryInfo(file)
-    }
-
-    def ExecutableFixture executable(Object path) {
-        return toolChain.executable(file(path))
-    }
-
-    def TestFile objectFile(Object path) {
-        return toolChain.objectFile(file(path));
     }
 
 }

@@ -27,23 +27,34 @@ import org.gradle.nativebinaries.internal.*;
 import org.gradle.nativebinaries.language.assembler.internal.AssembleSpec;
 import org.gradle.nativebinaries.language.c.internal.CCompileSpec;
 import org.gradle.nativebinaries.language.cpp.internal.CppCompileSpec;
+import org.gradle.nativebinaries.toolchain.PlatformConfigurableToolChain;
+import org.gradle.nativebinaries.toolchain.ToolChainPlatformConfiguration;
 import org.gradle.nativebinaries.toolchain.internal.AbstractToolChain;
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
 import org.gradle.nativebinaries.toolchain.internal.ToolRegistry;
 import org.gradle.nativebinaries.toolchain.internal.ToolType;
 import org.gradle.process.internal.ExecActionFactory;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * A tool chain that has GCC semantics, where all platform variants are produced by varying the tool args.
  */
-public abstract class GccCompatibleToolChain extends AbstractToolChain implements PlatformToolChain {
+public abstract class AbstractPlatformConfigurableToolChain extends AbstractToolChain implements PlatformConfigurableToolChain, PlatformToolChain {
     private final ExecActionFactory execActionFactory;
     protected final ToolRegistry tools;
 
-    public GccCompatibleToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory, ToolRegistry tools) {
+    private final List<ToolChainPlatformConfiguration> platformConfigs = new ArrayList<ToolChainPlatformConfiguration>();
+
+    public AbstractPlatformConfigurableToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory, ToolRegistry tools) {
         super(name, operatingSystem, fileResolver);
         this.execActionFactory = execActionFactory;
         this.tools = tools;
+
+        addPlatformConfiguration(new ToolChainDefaultArchitecture());
+        addPlatformConfiguration(new Intel32Architecture());
+        addPlatformConfiguration(new Intel64Architecture());
     }
 
     @Override
@@ -53,6 +64,10 @@ public abstract class GccCompatibleToolChain extends AbstractToolChain implement
         }
     }
 
+    public void addPlatformConfiguration(ToolChainPlatformConfiguration platformConfig) {
+        platformConfigs.add(platformConfig);
+    }
+
     public PlatformToolChain target(Platform targetPlatform) {
         checkAvailable();
         checkPlatform(targetPlatform);
@@ -60,24 +75,12 @@ public abstract class GccCompatibleToolChain extends AbstractToolChain implement
     }
 
     private void checkPlatform(Platform targetPlatform) {
-        if (!targetPlatform.getOperatingSystem().isCurrent()) {
-            throw new IllegalStateException(String.format("Tool chain %s cannot build for os: %s", getName(), targetPlatform.getOperatingSystem().getName()));
+        for (ToolChainPlatformConfiguration platformConfig : platformConfigs) {
+            if (platformConfig.supportsPlatform(targetPlatform)) {
+                return;
+            }
         }
-        ArchitectureInternal arch = (ArchitectureInternal) targetPlatform.getArchitecture();
-        if (!isSupportedArchitecture(arch)) {
-            throw new IllegalStateException(String.format("Tool chain %s cannot build for architecture: %s", getName(), targetPlatform.getArchitecture().getName()));
-        }
-    }
-
-    private boolean isSupportedArchitecture(ArchitectureInternal arch) {
-        if (arch == ArchitectureInternal.TOOL_CHAIN_DEFAULT) {
-            return true;
-        }
-        if (OperatingSystem.current().isWindows()) {
-            // Cygwin and MinGW don't yet support 64-bit binaries
-            return arch.isI386();
-        }
-        return arch.isI386() || arch.isAmd64();
+        throw new IllegalStateException(String.format("Tool chain %s cannot build for platform: %s", getName(), targetPlatform.getName()));
     }
 
     protected boolean canUseCommandFile() {
@@ -116,44 +119,13 @@ public abstract class GccCompatibleToolChain extends AbstractToolChain implement
         return commandLineTool;
     }
 
-    // TODO:DAZ Make this a composite where actions are user-extensible
     public void targetNativeBinaryForPlatform(NativeBinaryInternal nativeBinary) {
-        org.gradle.nativebinaries.OperatingSystem targetOs = nativeBinary.getTargetPlatform().getOperatingSystem();
-        ArchitectureInternal targetArch = (ArchitectureInternal) nativeBinary.getTargetPlatform().getArchitecture();
 
-        // Can only build for currentOS
-        if (!targetOs.isCurrent()) {
-            nativeBinary.setBuildable(false);
-            return;
-        }
-
-        // Allow the tool chain defaults to apply
-        if (targetArch == ArchitectureInternal.TOOL_CHAIN_DEFAULT) {
-            return;
-        }
-        // Target for i386 on current os
-        if (targetArch.isI386()) {
-            nativeBinary.getLinker().args("-m32");
-            toolArgs(nativeBinary, "cCompiler", "-m32");
-            toolArgs(nativeBinary, "cppCompiler", "-m32");
-            if (targetOs.isMacOsX()) {
-                toolArgs(nativeBinary, "assembler", "-arch", "i386");
-            } else {
-                toolArgs(nativeBinary, "assembler", "--32");
+        for (ToolChainPlatformConfiguration platformConfig : platformConfigs) {
+            if (platformConfig.supportsPlatform(nativeBinary.getTargetPlatform())) {
+                platformConfig.configureBinaryForPlatform(nativeBinary);
+                return;
             }
-            return;
-        }
-        // Target for amd64 on current os
-        if (targetArch.isAmd64()) {
-            nativeBinary.getLinker().args("-m64");
-            toolArgs(nativeBinary, "cCompiler", "-m64");
-            toolArgs(nativeBinary, "cppCompiler", "-m64");
-            if (targetOs.isMacOsX()) {
-                toolArgs(nativeBinary, "assembler", "-arch", "x86_64");
-            } else {
-                toolArgs(nativeBinary, "assembler", "--64");
-            }
-            return;
         }
 
         // Cannot build for any other architectures
@@ -165,6 +137,52 @@ public abstract class GccCompatibleToolChain extends AbstractToolChain implement
         Tool tool = (Tool) extensions.findByName(toolName);
         if (tool != null) {
             tool.args(args);
+        }
+    }
+
+    private class ToolChainDefaultArchitecture implements ToolChainPlatformConfiguration {
+        public boolean supportsPlatform(Platform element) {
+            return element.getOperatingSystem().isCurrent()
+                && element.getArchitecture() == ArchitectureInternal.TOOL_CHAIN_DEFAULT;
+        }
+
+        public void configureBinaryForPlatform(NativeBinary binary) {
+        }
+    }
+
+    private class Intel32Architecture implements ToolChainPlatformConfiguration {
+        public boolean supportsPlatform(Platform element) {
+            return element.getOperatingSystem().isCurrent()
+                    && ((ArchitectureInternal) element.getArchitecture()).isI386();
+        }
+
+        public void configureBinaryForPlatform(NativeBinary nativeBinary) {
+            nativeBinary.getLinker().args("-m32");
+            toolArgs(nativeBinary, "cCompiler", "-m32");
+            toolArgs(nativeBinary, "cppCompiler", "-m32");
+            if (OperatingSystem.current().isMacOsX()) {
+                toolArgs(nativeBinary, "assembler", "-arch", "i386");
+            } else {
+                toolArgs(nativeBinary, "assembler", "--32");
+            }
+        }
+    }
+
+    private class Intel64Architecture implements ToolChainPlatformConfiguration {
+        public boolean supportsPlatform(Platform element) {
+            return element.getOperatingSystem().isCurrent()
+                    && ((ArchitectureInternal) element.getArchitecture()).isAmd64();
+        }
+
+        public void configureBinaryForPlatform(NativeBinary nativeBinary) {
+            nativeBinary.getLinker().args("-m64");
+            toolArgs(nativeBinary, "cCompiler", "-m64");
+            toolArgs(nativeBinary, "cppCompiler", "-m64");
+            if (OperatingSystem.current().isMacOsX()) {
+                toolArgs(nativeBinary, "assembler", "-arch", "x86_64");
+            } else {
+                toolArgs(nativeBinary, "assembler", "--64");
+            }
         }
     }
 
