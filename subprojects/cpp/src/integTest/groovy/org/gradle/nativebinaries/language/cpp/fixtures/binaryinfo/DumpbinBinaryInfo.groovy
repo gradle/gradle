@@ -18,24 +18,32 @@ package org.gradle.nativebinaries.language.cpp.fixtures.binaryinfo
 import org.gradle.nativebinaries.internal.ArchitectureInternal
 import org.gradle.nativebinaries.internal.DefaultArchitecture
 import org.gradle.nativebinaries.language.cpp.fixtures.AvailableToolChains.InstalledToolChain
+import org.gradle.nativebinaries.toolchain.internal.msvcpp.DefaultVisualStudioLocator
+import org.gradle.nativebinaries.toolchain.internal.msvcpp.VisualStudioInstall
 
 class DumpbinBinaryInfo implements BinaryInfo {
     def output
     def archString
 
     DumpbinBinaryInfo(File binaryFile, InstalledToolChain tc) {
-        def dumpbin = findDumpBin(tc.pathEntries)
-        def process = [dumpbin.absolutePath, '/HEADERS', binaryFile.absolutePath].execute(tc.getRuntimeEnv(), null)
+        VisualStudioInstall vsInstall = findVisualStudio()
+        final binDir = vsInstall.getVisualCppBin()
+        final commonBin = vsInstall.getCommonIdeBin()
+
+        def dumpbin = findDumpBin(binDir)
+        def process = [dumpbin.absolutePath, '/HEADERS', binaryFile.absolutePath].execute(["PATH=$binDir;$commonBin"], null)
         output = process.inputStream.text
         archString = readArch(output)
     }
 
-    static findDumpBin(List<File> pathEntries) {
-        for (File pathEntry : pathEntries) {
-            final candidate = new File(pathEntry, "dumpbin.exe")
-            if (candidate.exists()) {
-                return candidate
-            }
+    static VisualStudioInstall findVisualStudio() {
+        new VisualStudioInstall(new DefaultVisualStudioLocator().locateDefaultVisualStudio().result)
+    }
+
+    static findDumpBin(File binDir) {
+        final candidate = new File(binDir, "dumpbin.exe")
+        if (candidate.exists()) {
+            return candidate
         }
         throw new RuntimeException("dumpbin.exe not found")
     }

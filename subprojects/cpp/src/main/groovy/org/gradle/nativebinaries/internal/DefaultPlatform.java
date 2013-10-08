@@ -36,6 +36,10 @@ public class DefaultPlatform implements Platform {
         this.osParser = osParser;
     }
 
+    public DefaultPlatform(String name) {
+        this(name, ArchitectureNotationParser.parser(), OperatingSystemNotationParser.parser());
+    }
+
     public String getName() {
         return name;
     }
