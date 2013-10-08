@@ -16,10 +16,18 @@
 
 package org.gradle.test.fixtures.archive
 
+import org.apache.commons.io.IOUtils
+
+import java.util.jar.JarFile
+import java.util.zip.ZipEntry
+import java.util.zip.ZipInputStream
+
 class JarTestFixture extends ZipTestFixture {
+    File file
 
     JarTestFixture(File file) {
         super(file)
+        this.file = file
     }
 
     /**
@@ -27,5 +35,27 @@ class JarTestFixture extends ZipTestFixture {
      */
     def hasService(String serviceName, String serviceImpl) {
         assertFilePresent("META-INF/services/$serviceName", serviceImpl)
+    }
+
+    /**
+     * Asserts that the manifest file is present and first entry in this jar file.
+     */
+    void isManifestPresentAndFirstEntry() {
+        ZipInputStream zip
+
+        try {
+            zip = new ZipInputStream(new FileInputStream(file))
+            ZipEntry zipEntry = zip.getNextEntry()
+
+            if (zipEntry.getName().equalsIgnoreCase("META-INF/")) {
+                zipEntry = zip.getNextEntry()
+            }
+
+            String firstEntryName = zipEntry.getName()
+            assert firstEntryName.equalsIgnoreCase(JarFile.MANIFEST_NAME)
+        }
+        finally {
+            IOUtils.closeQuietly(zip)
+        }
     }
 }

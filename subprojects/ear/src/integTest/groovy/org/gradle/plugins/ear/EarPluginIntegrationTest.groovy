@@ -16,10 +16,8 @@
 
 package org.gradle.plugins.ear
 
-import java.util.jar.JarFile
-import java.util.zip.ZipInputStream
-
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.gradle.test.fixtures.archive.JarTestFixture
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.Test
@@ -50,21 +48,11 @@ dependencies {
 """)
         //when
         executer.withTasks('assemble').run()
-        
-        //check that manifest is first or second entry
-        //mimics java.util.jar.JarInputStream behavior
-        def zip = new ZipInputStream(new FileInputStream(file("build/libs/root.ear")))
-        def e = zip.getNextEntry()
-        if (e.getName().equalsIgnoreCase("META-INF/")) {
-            e = zip.getNextEntry()
-        }
-        def first = e.getName()
-        zip.close()
-        assert first.equalsIgnoreCase(JarFile.MANIFEST_NAME)
-
         file("build/libs/root.ear").unzipTo(file("unzipped"))
         
         //then
+        def ear = new JarTestFixture(file('build/libs/root.ear'))
+        ear.isManifestPresentAndFirstEntry()
         file("unzipped/rootLib.jar").assertExists()
         file("unzipped/META-INF/MANIFEST.MF").assertExists()
         file("unzipped/META-INF/application.xml").assertExists()
