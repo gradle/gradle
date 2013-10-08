@@ -112,6 +112,28 @@ public class LoggingTest {
         new HtmlTestExecutionResult(testDirectory, "tr").assertTestClassesExecuted("Thing")
     }
 
+    @Issue("http://issues.gradle.org//browse/GRADLE-2915")
+    def "test report task can handle tests tasks not having been executed"() {
+        when:
+        buildScript """
+            apply plugin: 'java'
+
+             $junitSetup
+
+            task testReport(type: TestReport) {
+                testResultDirs = [test.binResultsDir]
+                destinationDir reporting.file("tr")
+            }
+        """
+
+        and:
+        testClass("Thing")
+
+        then:
+        succeeds "testReport"
+        succeeds "testReport"
+    }
+
     def "test report task is skipped when there are no results"() {
         given:
         buildScript """

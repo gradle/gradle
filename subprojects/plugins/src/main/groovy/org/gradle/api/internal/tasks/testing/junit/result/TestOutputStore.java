@@ -266,27 +266,33 @@ public class TestOutputStore {
                 }
 
                 index = rootBuilder.build();
+
+                try {
+                    dataFile = new RandomAccessFile(getOutputsFile(), "r");
+                } catch (FileNotFoundException e) {
+                    throw new UncheckedIOException(e);
+                }
             } else { // no outputs file
                 if (indexFile.exists()) {
                     throw new IllegalStateException(String.format("Test outputs data file '{}' does not exist but the index file '{}' does", outputsFile, indexFile));
                 }
 
-                GFileUtils.touch(getOutputsFile());
-                index = new Index();
-            }
-
-            try {
-                dataFile = new RandomAccessFile(getOutputsFile(), "r");
-            } catch (FileNotFoundException e) {
-                throw new UncheckedIOException(e);
+                index = null;
+                dataFile = null;
             }
         }
 
         public void close() throws IOException {
-            dataFile.close();
+            if (dataFile != null) {
+                dataFile.close();
+            }
         }
 
         public boolean hasOutput(long classId, TestOutputEvent.Destination destination) {
+            if (dataFile == null) {
+                return false;
+            }
+
             Index classIndex = index.children.get(classId);
             if (classIndex == null) {
                 return false;
@@ -309,6 +315,10 @@ public class TestOutputStore {
         }
 
         private void doRead(long classId, long testId, boolean allClassOutput, TestOutputEvent.Destination destination, java.io.Writer writer) {
+            if (dataFile == null) {
+                return;
+            }
+
             Index targetIndex = index.children.get(classId);
             if (targetIndex != null && testId != 0) {
                 targetIndex = targetIndex.children.get(testId);
