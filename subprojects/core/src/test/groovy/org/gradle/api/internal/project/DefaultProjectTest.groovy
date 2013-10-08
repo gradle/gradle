@@ -130,6 +130,7 @@ class DefaultProjectTest {
             allowing(serviceRegistryMock).newInstance(TaskContainerInternal); will(returnValue(taskContainerMock))
             allowing(taskContainerMock).getTasksAsDynamicObject(); will(returnValue(new BeanDynamicObject(new TaskContainerDynamicObject(someTask: testTask))))
             allowing(taskContainerMock).all(withParam(notNullValue()))
+            allowing(taskContainerMock).whenObjectRemoved(withParam(notNullValue()))
             allowing(serviceRegistryMock).get(RepositoryHandler); will(returnValue(repositoryHandlerMock))
             allowing(serviceRegistryMock).get(ConfigurationContainerInternal); will(returnValue(configurationContainerMock))
             allowing(serviceRegistryMock).get(ArtifactHandler); will(returnValue(context.mock(ArtifactHandler)))
