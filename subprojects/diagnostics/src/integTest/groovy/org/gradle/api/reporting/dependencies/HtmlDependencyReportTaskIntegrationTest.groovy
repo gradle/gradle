@@ -61,38 +61,38 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         json.gradleVersion != null
         json.project.name == "fooProject"
         json.project.description == "dummy description"
-        json.project.configurations.size == 2
+        json.project.configurations.size() == 2
         json.project.configurations[0].name == "compile"
-        json.project.configurations[0].dependencies.size == 1
+        json.project.configurations[0].dependencies.size() == 1
         json.project.configurations[0].dependencies[0].module == "foo:baz"
         json.project.configurations[0].dependencies[0].name == "foo:baz:1.0"
         json.project.configurations[0].dependencies[0].resolvable == true
         json.project.configurations[0].dependencies[0].alreadyRendered == false
         json.project.configurations[0].dependencies[0].hasConflict == false
-        json.project.configurations[0].dependencies[0].children.size == 2
+        json.project.configurations[0].dependencies[0].children.size() == 2
 
         json.project.configurations[0].dependencies[0].children[0].module == "foo:bar"
         json.project.configurations[0].dependencies[0].children[0].name == "foo:bar:1.0"
         json.project.configurations[0].dependencies[0].children[0].resolvable == true
         json.project.configurations[0].dependencies[0].children[0].alreadyRendered == false
         json.project.configurations[0].dependencies[0].children[0].hasConflict == false
-        json.project.configurations[0].dependencies[0].children[0].children.size == 0
+        json.project.configurations[0].dependencies[0].children[0].children.empty
 
         json.project.configurations[0].dependencies[0].children[1].module == "foo:qix"
         json.project.configurations[0].dependencies[0].children[1].name == "foo:qix:1.0"
         json.project.configurations[0].dependencies[0].children[1].resolvable == true
         json.project.configurations[0].dependencies[0].children[1].alreadyRendered == false
         json.project.configurations[0].dependencies[0].children[1].hasConflict == false
-        json.project.configurations[0].dependencies[0].children[1].children.size == 0
+        json.project.configurations[0].dependencies[0].children[1].children.empty
 
         json.project.configurations[1].name == "testCompile"
-        json.project.configurations[1].dependencies.size == 1
+        json.project.configurations[1].dependencies.size() == 1
         json.project.configurations[1].dependencies[0].module == "foo:bar"
         json.project.configurations[1].dependencies[0].name == "foo:bar:1.0"
         json.project.configurations[1].dependencies[0].resolvable == true
         json.project.configurations[1].dependencies[0].alreadyRendered == false
         json.project.configurations[1].dependencies[0].hasConflict == false
-        json.project.configurations[1].dependencies[0].children.size == 0
+        json.project.configurations[1].dependencies[0].children.empty
     }
 
     def "already rendered dependencies are marked as such"() {
@@ -122,7 +122,7 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         def json = readGeneratedJson("root")
 
         then:
-        json.project.configurations[0].dependencies.size == 2
+        json.project.configurations[0].dependencies.size() == 2
         json.project.configurations[0].dependencies[0].name == "foo:qix:1.0"
         json.project.configurations[0].dependencies[0].children[0].name == "foo:bar:1.0"
 
@@ -157,7 +157,7 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         def json = readGeneratedJson("root")
 
         then:
-        json.project.configurations[0].dependencies.size == 2
+        json.project.configurations[0].dependencies.size() == 2
         json.project.configurations[0].dependencies[0].name == "foo:bar:1.0"
         json.project.configurations[0].dependencies[0].children[0].name == "foo:qix:1.0"
         json.project.configurations[0].dependencies[0].children[0].resolvable == false
@@ -188,7 +188,7 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         def json = readGeneratedJson("root")
 
         then:
-        json.project.configurations[0].dependencies.size == 2
+        json.project.configurations[0].dependencies.size() == 2
         json.project.configurations[0].dependencies[0].name == "foo:baz:1.0"
         json.project.configurations[0].dependencies[0].children[0].name == "foo:bar:1.0 \u27A1 2.0"
         json.project.configurations[0].dependencies[0].children[0].hasConflict == true
@@ -318,16 +318,16 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         def json = readGeneratedJson("root")
 
         then:
-        json.project.configurations[0].moduleInsights.size == 2
+        json.project.configurations[0].moduleInsights.size() == 2
         json.project.configurations[0].moduleInsights.any { it.module == 'foo:bar' }
         json.project.configurations[0].moduleInsights.any { it.module == 'foo:baz' }
         def barInsight = json.project.configurations[0].moduleInsights.find({ it.module == 'foo:bar' }).insight
-        barInsight.size == 2
+        barInsight.size() == 2
         barInsight[0].name == 'foo:bar:2.0'
         barInsight[0].resolvable == true
         barInsight[0].hasConflict == false
         barInsight[0].description == 'conflict resolution'
-        barInsight[0].children.size == 1
+        barInsight[0].children.size() == 1
         barInsight[0].children[0].name == 'compile'
         barInsight[0].children[0].resolvable == true
         barInsight[0].children[0].hasConflict == false
@@ -338,31 +338,31 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         barInsight[1].name == "foo:bar:1.0 \u27A1 2.0"
         barInsight[1].resolvable == true
         barInsight[1].hasConflict == true
-        barInsight[1].children.size == 1
+        barInsight[1].children.size() == 1
         barInsight[1].children[0].name == 'foo:baz:1.0'
         barInsight[1].children[0].resolvable == true
         barInsight[1].children[0].isLeaf == false
         barInsight[1].children[0].alreadyRendered == false
-        barInsight[1].children[0].children.size == 1
+        barInsight[1].children[0].children.size() == 1
         barInsight[1].children[0].children[0].name == 'compile'
         barInsight[1].children[0].children[0].resolvable == true
         barInsight[1].children[0].children[0].hasConflict == false
         barInsight[1].children[0].children[0].isLeaf == true
         barInsight[1].children[0].children[0].alreadyRendered == false
-        barInsight[1].children[0].children[0].children.size == 0
+        barInsight[1].children[0].children[0].children.size() == 0
 
         def bazInsight = json.project.configurations[0].moduleInsights.find({ it.module == 'foo:baz' }).insight
-        bazInsight.size == 1
+        bazInsight.size() == 1
         bazInsight[0].name == 'foo:baz:1.0'
         bazInsight[0].resolvable == true
         bazInsight[0].hasConflict == false
-        bazInsight[0].children.size == 1
+        bazInsight[0].children.size() == 1
         bazInsight[0].children[0].name == 'compile'
         bazInsight[0].children[0].resolvable == true
         bazInsight[0].children[0].hasConflict == false
         bazInsight[0].children[0].isLeaf == true
         bazInsight[0].children[0].alreadyRendered == false
-        bazInsight[0].children[0].children.size == 0
+        bazInsight[0].children[0].children.empty
     }
 
     def "doesn't add insight for dependency with same prefix"() {
@@ -388,7 +388,7 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         def barInsight = json.project.configurations[0].moduleInsights.find({ it.module == 'foo:bar' }).insight
-        barInsight.size == 1
+        barInsight.size() == 1
         barInsight[0].name == 'foo:bar:1.0'
     }
 
