@@ -16,6 +16,9 @@
 
 package org.gradle.api.tasks.bundling
 
+import java.util.jar.JarFile
+import java.util.zip.ZipInputStream
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.archive.JarTestFixture
 
@@ -68,6 +71,17 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         when:
         run 'jar'
         then:
+        //check that manifest is first or second entry
+        //mimics java.util.jar.JarInputStream behavior
+        def zip = new ZipInputStream(new FileInputStream(file('build/test.jar')))
+        def e = zip.getNextEntry()
+        if (e.getName().equalsIgnoreCase('META-INF/')) {
+            e = zip.getNextEntry()
+        }
+        def first = e.getName()
+        zip.close()
+        assert first.equalsIgnoreCase(JarFile.MANIFEST_NAME)
+        
         def expandDir = file('expanded')
         file('build/test.jar').unzipTo(expandDir)
         expandDir.assertHasDescendants('META-INF/MANIFEST.MF', 'META-INF/file1.txt', 'META-INF/dir2/file2.txt', 'dir1/file1.txt')

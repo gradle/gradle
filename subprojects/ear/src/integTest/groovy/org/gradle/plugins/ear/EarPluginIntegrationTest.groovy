@@ -16,6 +16,9 @@
 
 package org.gradle.plugins.ear
 
+import java.util.jar.JarFile
+import java.util.zip.ZipInputStream
+
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.junit.Before
 import org.junit.Ignore
@@ -47,8 +50,20 @@ dependencies {
 """)
         //when
         executer.withTasks('assemble').run()
-        file("build/libs/root.ear").unzipTo(file("unzipped"))
+        
+        //check that manifest is first or second entry
+        //mimics java.util.jar.JarInputStream behavior
+        def zip = new ZipInputStream(new FileInputStream(file("build/libs/root.ear")))
+        def e = zip.getNextEntry()
+        if (e.getName().equalsIgnoreCase("META-INF/")) {
+            e = zip.getNextEntry()
+        }
+        def first = e.getName()
+        zip.close()
+        assert first.equalsIgnoreCase(JarFile.MANIFEST_NAME)
 
+        file("build/libs/root.ear").unzipTo(file("unzipped"))
+        
         //then
         file("unzipped/rootLib.jar").assertExists()
         file("unzipped/META-INF/MANIFEST.MF").assertExists()
@@ -202,10 +217,10 @@ apply plugin: 'ear'
 ear {
    duplicatesStrategy = 'exclude'
    into('lib') {
-       from 'bad-lib'
+       from 'good-lib'
    }
    lib {
-       from 'good-lib'
+       from 'bad-lib'
    }
 }''')
 
@@ -214,7 +229,7 @@ ear {
         file('build/libs/root.ear').unzipTo(file('unzipped'))
 
         // then
-        assertEquals('good', file('unzipped/lib/file.txt').text)
+        assertEquals(file('unzipped/lib/file.txt').text, 'good')
 
     }
 
