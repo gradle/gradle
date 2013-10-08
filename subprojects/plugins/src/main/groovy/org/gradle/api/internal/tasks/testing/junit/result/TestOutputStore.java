@@ -22,7 +22,6 @@ import com.google.common.collect.ImmutableMap;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.internal.UncheckedException;
-import org.gradle.util.GFileUtils;
 
 import java.io.*;
 import java.nio.charset.Charset;
