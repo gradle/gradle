@@ -135,6 +135,7 @@ public abstract class AbstractGccCompatibleToolChain extends AbstractToolChain i
     private class Intel64Architecture implements ToolChainPlatformConfiguration {
         public boolean supportsPlatform(Platform element) {
             return element.getOperatingSystem().isCurrent()
+                    && !OperatingSystem.current().isWindows() // Currently don't support building 64-bit binaries on GCC/Windows
                     && ((ArchitectureInternal) element.getArchitecture()).isAmd64();
         }
 
