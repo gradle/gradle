@@ -59,7 +59,7 @@ public class DaemonScalaCompiler implements org.gradle.api.internal.tasks.compil
 
     public WorkResult execute(ScalaJavaJointCompileSpec spec) {
         DaemonForkOptions daemonForkOptions = createDaemonForkOptions(spec);
-        CompilerDaemon daemon = daemonFactory.getDaemon(project, daemonForkOptions);
+        CompilerDaemon daemon = daemonFactory.getDaemon(project.getRootProject().getProjectDir(), daemonForkOptions);
         CompileResult result = daemon.execute(delegate, spec);
         if (result.isSuccess()) {
             return result;

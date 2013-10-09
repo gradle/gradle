@@ -18,7 +18,6 @@ package org.gradle.api.tasks.scala;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-
 import org.gradle.api.AntBuilder;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
@@ -26,6 +25,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.compile.Compiler;
+import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
 import org.gradle.api.internal.tasks.scala.*;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -60,7 +60,8 @@ public class ScalaCompile extends AbstractCompile {
         ProjectInternal projectInternal = (ProjectInternal) getProject();
         IsolatedAntBuilder antBuilder = getServices().get(IsolatedAntBuilder.class);
         Factory<AntBuilder> antBuilderFactory = getServices().getFactory(AntBuilder.class);
-        ScalaCompilerFactory scalaCompilerFactory = new ScalaCompilerFactory(projectInternal, antBuilder, antBuilderFactory);
+        CompilerDaemonManager compilerDaemonManager = getServices().get(CompilerDaemonManager.class);
+        ScalaCompilerFactory scalaCompilerFactory = new ScalaCompilerFactory(projectInternal, antBuilder, antBuilderFactory, compilerDaemonManager);
         Compiler<ScalaJavaJointCompileSpec> delegatingCompiler = new DelegatingScalaCompiler(scalaCompilerFactory);
         compiler = new IncrementalScalaCompiler(delegatingCompiler, getOutputs());
     }

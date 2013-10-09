@@ -16,6 +16,7 @@
 package org.gradle.api.internal.tasks.compile
 
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager
 import org.gradle.api.internal.tasks.compile.daemon.DaemonJavaCompiler
 import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.internal.Factory
@@ -25,7 +26,7 @@ import spock.lang.Specification
 class DefaultJavaCompilerFactoryTest extends Specification {
     def inProcessCompiler = Mock(Compiler)
     def inProcessCompilerFactory = Mock(JavaCompilerFactory)
-    def factory = new DefaultJavaCompilerFactory(Mock(ProjectInternal), Mock(Factory), inProcessCompilerFactory)
+    def factory = new DefaultJavaCompilerFactory(Mock(ProjectInternal), Mock(Factory), inProcessCompilerFactory, Mock(CompilerDaemonManager))
     def options = new CompileOptions()
     
     def setup() {

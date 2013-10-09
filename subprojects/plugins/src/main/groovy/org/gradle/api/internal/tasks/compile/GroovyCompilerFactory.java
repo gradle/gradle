@@ -36,12 +36,17 @@ public class GroovyCompilerFactory {
     private final IsolatedAntBuilder antBuilder;
     private final ClassPathRegistry classPathRegistry;
     private final DefaultJavaCompilerFactory javaCompilerFactory;
+    private final CompilerDaemonManager compilerDaemonManager;
+    private final InProcessCompilerDaemonFactory inProcessCompilerDaemonFactory;
 
-    public GroovyCompilerFactory(ProjectInternal project, IsolatedAntBuilder antBuilder, ClassPathRegistry classPathRegistry, DefaultJavaCompilerFactory javaCompilerFactory) {
+    public GroovyCompilerFactory(ProjectInternal project, IsolatedAntBuilder antBuilder, ClassPathRegistry classPathRegistry, DefaultJavaCompilerFactory javaCompilerFactory,
+                                 CompilerDaemonManager compilerDaemonManager, InProcessCompilerDaemonFactory inProcessCompilerDaemonFactory) {
         this.project = project;
         this.antBuilder = antBuilder;
         this.classPathRegistry = classPathRegistry;
         this.javaCompilerFactory = javaCompilerFactory;
+        this.compilerDaemonManager = compilerDaemonManager;
+        this.inProcessCompilerDaemonFactory = inProcessCompilerDaemonFactory;
     }
 
     Compiler<GroovyJavaJointCompileSpec> create(final GroovyCompileOptions groovyOptions, final CompileOptions javaOptions) {
@@ -65,9 +70,9 @@ public class GroovyCompilerFactory {
                 Compiler<GroovyJavaJointCompileSpec> groovyCompiler = new ApiGroovyCompiler(javaCompiler);
                 CompilerDaemonFactory daemonFactory;
                 if (groovyOptions.isFork()) {
-                    daemonFactory = CompilerDaemonManager.getInstance();
+                    daemonFactory = compilerDaemonManager;
                 } else {
-                    daemonFactory = InProcessCompilerDaemonFactory.getInstance();
+                    daemonFactory = inProcessCompilerDaemonFactory;
                 }
                 groovyCompiler = new DaemonGroovyCompiler(project, groovyCompiler, daemonFactory);
                 return new NormalizingGroovyCompiler(groovyCompiler);

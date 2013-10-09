@@ -19,6 +19,7 @@ import org.gradle.api.AntBuilder;
 import org.gradle.api.internal.file.DefaultTemporaryFileProvider;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
 import org.gradle.api.internal.tasks.compile.daemon.DaemonJavaCompiler;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -34,12 +35,14 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
     private final ProjectInternal project;
     private final Factory<AntBuilder> antBuilderFactory;
     private final JavaCompilerFactory inProcessCompilerFactory;
+    private final CompilerDaemonManager compilerDaemonManager;
     private boolean jointCompilation;
 
-    public DefaultJavaCompilerFactory(ProjectInternal project, Factory<AntBuilder> antBuilderFactory, JavaCompilerFactory inProcessCompilerFactory){
+    public DefaultJavaCompilerFactory(ProjectInternal project, Factory<AntBuilder> antBuilderFactory, JavaCompilerFactory inProcessCompilerFactory, CompilerDaemonManager compilerDaemonManager){
         this.project = project;
         this.antBuilderFactory = antBuilderFactory;
         this.inProcessCompilerFactory = inProcessCompilerFactory;
+        this.compilerDaemonManager = compilerDaemonManager;
     }
 
     /**
@@ -81,7 +84,7 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
 
         Compiler<JavaCompileSpec> compiler = inProcessCompilerFactory.create(options);
         if (options.isFork() && !jointCompilation) {
-            return new DaemonJavaCompiler(project, compiler);
+            return new DaemonJavaCompiler(project, compiler, compilerDaemonManager);
         }
 
         return compiler;

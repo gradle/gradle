@@ -16,13 +16,11 @@
 package org.gradle.api.internal.tasks.compile.daemon;
 
 import net.jcip.annotations.ThreadSafe;
-import org.gradle.BuildAdapter;
-import org.gradle.BuildResult;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.CompositeStoppable;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,26 +31,15 @@ import java.util.List;
 public class CompilerDaemonManager implements CompilerDaemonFactory {
     private static final Logger LOGGER = Logging.getLogger(CompilerDaemonManager.class);
     private final Object lock = new Object();
-
-    private static final CompilerDaemonManager INSTANCE = new CompilerDaemonManager(new CompilerDaemonStarter());
-    
     private final List<CompilerDaemonClient> clients = new ArrayList<CompilerDaemonClient>();
     private CompilerDaemonStarter compilerDaemonStarter;
 
-    CompilerDaemonManager(CompilerDaemonStarter compilerDaemonStarter) {
+    public CompilerDaemonManager(CompilerDaemonStarter compilerDaemonStarter) {
         this.compilerDaemonStarter = compilerDaemonStarter;
     }
 
-    public static CompilerDaemonManager getInstance() {
-        return INSTANCE;
-    }
-
-    public CompilerDaemon getDaemon(ProjectInternal project, DaemonForkOptions forkOptions) {
+    public CompilerDaemon getDaemon(File workingDir, DaemonForkOptions forkOptions) {
         synchronized (lock) {
-            if (clients.isEmpty()) {
-                registerStopOnBuildFinished(project);
-            }
-
             for (CompilerDaemonClient client: clients) {
                 if (client.isCompatibleWith(forkOptions) && client.isIdle()) {
                     client.setIdle(false);
@@ -63,7 +50,7 @@ public class CompilerDaemonManager implements CompilerDaemonFactory {
 
         //allow the daemon to be started concurrently
         CompilerDaemonClient client =
-                compilerDaemonStarter.startDaemon(project, forkOptions)
+                compilerDaemonStarter.startDaemon(workingDir, forkOptions)
                 .setIdle(false);
 
         synchronized (lock) {
@@ -72,19 +59,10 @@ public class CompilerDaemonManager implements CompilerDaemonFactory {
         return client;
     }
 
-    private void stop() {
+    public void stop() {
         LOGGER.debug("Stopping {} Gradle compiler daemon(s).", clients.size());
         CompositeStoppable.stoppable(clients).stop();
         LOGGER.info("Stopped {} Gradle compiler daemon(s).", clients.size());
         clients.clear();
-    }
-
-    private void registerStopOnBuildFinished(ProjectInternal project) {
-        project.getGradle().addBuildListener(new BuildAdapter() {
-            @Override
-            public void buildFinished(BuildResult result) {
-                stop();
-            }
-        });
     }
 }
