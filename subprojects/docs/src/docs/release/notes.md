@@ -22,15 +22,147 @@ Gradle 1.9 brings improvements to the parallel build that use forked java compil
 A separate compiler daemon process can now be forked per each parallel worker thread.
 Basically it means that parallel builds that compile java code in a forked process may get faster.
 
-### Improvements to support for building native binaries from C/C++/Assembler (i)
+### Build multiple variants of a native binary (i)
 
-<!-- TODO:DAZ Flesh these out -->
+Gradle is rapidly becoming a capable build system for 'native' code projects.
 
-* New 'assembler' and 'c' plugins to provide separate language support.
-    * The 'cpp' plugin now only provides support for C++ sources.
-    * Separately apply the 'assembler' or 'c' plugins for additional language support.
+A key goal of the native binary support in Gradle is to make it easy to create multiple different variants of a native binary
+from the same (or similar) set of sources. In Gradle 1.8 is was trivial to generate a shared and static version of the same
+library, but in Gradle 1.9 this concept has been taken a lot further. It is now simple to create 'debug' and 'release' variants,
+binaries targeting different cpu architectures, or variants built using different tool chains.
 
-* Source set for component (executable or library) is automatically created.
+Here's an example creating 'debug' and 'release' variants targeting 'i386' and 'x86_64' cpu architectures:
+
+    buildTypes {
+        debug {}
+        release {}
+    }
+
+    targetPlatforms {
+        x86 {
+            architecture "i386"
+        }
+        x64 {
+            architecture "x86_64"
+        }
+    }
+
+    binaries.all {
+        if (buildType == buildTypes.debug) {
+            cppCompiler.args "-g"
+        }
+    }
+
+Four native binary variants will be produced: 'debugX86', 'releaseX86', 'debugX64' and 'releaseX64'.
+
+As well as `buildTypes` and `targetPlatforms`, it's also possible to define variants based on `toolChains` and custom `flavors`.
+
+Please check out the [user guide section on variants](./userguide/nativeBinaries.html#native_binaries:variants) for complete details
+on how to define the set of variants to be produced.
+
+### Improved native binary tool chain support (i)
+
+Gradle 1.9 makes it easier to build native binaries using a variety of tool chains.
+
+New features include:
+
+* A build file can define the set of tool chains used to build
+* Visual Studio and Windows SDK installations are automatically discovered and do not need to be in the path
+* Use multiple different versions of GCC within the same build invocation
+* Build binaries using the [Clang](http://clang.llvm.org) compiler
+
+#### A build file can define the set of tool chains used to build.
+
+    toolChains {
+        visualCpp(VisualCpp)
+        gcc(Gcc)
+    }
+
+#### Visual Studio and Windows SDK installations are automatically discovered and do not need to be in the path
+
+This means you can compile using the Visual C++ tools from the cygwin command prompt. If Visual Studio is installed into
+  a non-standard location, you can provide the installation directory directly.
+
+    toolChains {
+        visualCpp(VisualCpp) {
+            installDir "C:/Apps/MSVS10"
+        }
+    }
+
+#### Use multiple versions of GCC within the same build invocation
+
+Different `Gcc` tool chain instances can be added with different 'path' values.
+
+    toolChains {
+        // Use GCC found on the PATH
+        gcc4(Gcc)
+
+        // Use GCC at the specified location
+        gcc3(Gcc) {
+            path '/opt/gcc/3.4.6/bin'
+        }
+    }
+
+#### Build binaries using the [Clang](http://clang.llvm.org) compiler
+
+    toolChains {
+        clang(Clang)
+    }
+
+### Better support for building binaries from C/C++/Assembler (i)
+
+This release improves the support for building binaries from C, C++ and Assembly Language source code. Improvements include:
+
+* Separate plugins for C, C++ and Assembler support
+* Separate compiler options for C++ and C sources
+* Automatic configuration of source sets for native components
+
+Be sure to check out the [user guide section](./userguide/nativeBinaries.html#native_binaries:languages) for even more details.
+
+#### New 'assembler' and 'c' plugins provide separate language support.
+
+In this release, the 'cpp' plugin now only provides support for compiling and linking from C++ sources. If your project
+contains C or Assembly language sources, you will need to apply the 'c' or 'assembler' plugins respectively.
+
+By splitting the support for different languages into separate plugins, this release paves the way for adding
+more supported languages in the future.
+
+To complement this change, the `compilerArgs`, `assemblerArgs` and `linkerArgs` on NativeBinary have been
+ replaced with language-specific extensions.
+
+<table>
+    <tr><th>Gradle 1.8</th><th>Gradle 1.9</th></tr>
+    <tr>
+    <td>compilerArgs "-W"</td>
+    <td>cppCompiler.args "-W"</td>
+    </tr>
+    <tr>
+    <td>compilerArgs "-W"</td>
+    <td>cCompiler.args "-W"</td>
+    </tr>
+    <tr>
+    <td>assemblerArgs "-arch", "i386"</td>
+    <td>assembler.args "-arch", "i386"</td>
+    </tr>
+    <tr>
+    <td>linkerArgs "-no_pie"</td>
+    <td>linker.args "-Xlinker", "-no_pie"</td>
+    </tr>
+    <tr>
+    <td>staticLibArgs "-v"</td>
+    <td>staticLibArchiver.args "-v"</td>
+    </tr>
+</table>
+
+Note that the language-specific element is only present if the appropriate plugin has been applied. So the 'cCompiler' extension
+is only available if the 'c' plugin has been applied.
+
+(Also note that linker arguments are no longer automatically escaped with '-Xlinker' on GCC)
+
+#### Source sets for a native component (executable or library) are automatically configured
+
+In earlier versions, a native component was not automatically associated with any source sets.
+To simplify configuration, Gradle now creates and attaches the relevant source sets for every defined `executable` or `library`.
 
 <table>
     <tr><th>Gradle 1.8</th><th>Gradle 1.9</th></tr>
@@ -57,41 +189,14 @@ executables {
     </tr>
 </table>
 
-* Replaced `compilerArgs`, `assemblerArgs` and `linkerArgs` with language-specific extensions.
-    * Note that the language-specific element is only present if the appropriate plugin has been applied.
-    * Linker arguments are no longer automatically escaped with '-Xlinker' on GCC.
+This means that given a executable named 'main', a functional source set named 'main' will be created, with a language source
+set added for each supported language. So applying the 'assembler' plugin would result in the 'sources.main.asm'
+language source set being added, with the conventional source directory `src/main/asm`.
 
-<table>
-    <tr><th>Gradle 1.8</th><th>Gradle 1.9</th></tr>
-    <tr>
-    <td>compilerArgs "-W"</td>
-    <td>cppCompiler.args "-W"</td>
-    </tr>
-    <tr>
-    <td>compilerArgs "-W"</td>
-    <td>cCompiler.args "-W"</td>
-    </tr>
-    <tr>
-    <td>assemblerArgs "-arch", "i386"</td>
-    <td>assembler.args "-arch", "i386"</td>
-    </tr>
-    <tr>
-    <td>linkerArgs "-no_pie"</td>
-    <td>linker.args "-Xlinker", "-no_pie"</td>
-    </tr>
-    <tr>
-    <td>staticLibArgs "-v"</td>
-    <td>staticLibArchiver.args "-v"</td>
-    </tr>
-</table>
-
-// TODO:DAZ Expand on these
-* Define multiple tool chains to build native binary variants
-    * This means you can build for multiple versions of the same tool chain.
-* Build binary variants for different custom flavors
-* Build binary variants for different target architectures
-* Discovers Visual studio and Windows SDK installations, which means you can compile using the Visual C++ tools from the cygwin command prompt.
-* Support for the [Clang](http://clang.llvm.org) compiler.
+Note that conventional source directories eg: `src/main/cpp` and `src/main/headers` are now only applied if no
+source directories are explicitly configured. If you don't define any source directories, the conventions apply.
+If you wish to define custom source locations, then _all_ of the source locations must be specified (not just those in
+addition to the convention).
 
 ### Initializing `Groovy` or a `Scala` project
 

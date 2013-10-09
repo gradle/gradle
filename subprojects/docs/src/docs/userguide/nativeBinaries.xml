@@ -132,7 +132,7 @@
         </section>
     </section>
 
-    <section>
+    <section id="native_binaries:languages">
         <title>Supported Languages: C, C++ and Assembler</title>
         <para>
             Presently, Gradle supports building native binaries from any combination of C++, C and Assembler sources.
@@ -307,7 +307,7 @@
         </section>
     </section>
 
-    <section>
+    <section id="native_binaries:variants">
         <title>Native Binary Variants</title>
         <para>
             For each executable or library defined, Gradle is able to build a number of different native binary variants.
