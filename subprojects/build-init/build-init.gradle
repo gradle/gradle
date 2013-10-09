@@ -70,11 +70,7 @@ class GenerateVersionProperties extends DefaultTask {
         Properties versionProperties = new Properties()
 
         ResolutionResult resolutionResult = templateVersionConfiguration.incoming.resolutionResult
-        resolutionResult.allModuleVersions { result ->
-            resolutionResult.root.dependencies.each { dep ->
-                versionProperties.put(dep.requested.name, dep.selected.id.version)
-            }
-        }
+        resolutionResult.root.dependencies.each { dep -> versionProperties.put(dep.requested.name, dep.selected.id.version) }
         outputFile.withOutputStream { outputStream ->
             versionProperties.store(outputStream, "Version values used in build-init templates")
         }
