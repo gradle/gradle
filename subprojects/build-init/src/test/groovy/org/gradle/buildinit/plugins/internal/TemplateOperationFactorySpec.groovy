@@ -20,36 +20,53 @@ import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.file.FileResolver
 import spock.lang.Specification
 
-class TemplateOperationBuilderSpec extends Specification {
+class TemplateOperationFactorySpec extends Specification {
 
     FileResolver fileResolver = Mock()
     DocumentationRegistry documentationRegistry = Mock()
-    TemplateOperationBuilder operationBuilder
+    TemplateOperationFactory.TemplateOperationBuilder builder
+    TemplateOperationFactory factory
 
     def setup() {
-        operationBuilder = new TemplateOperationBuilder("/some/template/package", fileResolver, documentationRegistry)
-        operationBuilder.newTemplateOperation()
-        operationBuilder.withTemplate(GroovyMock(URL))
+        factory = new TemplateOperationFactory("/some/template/package", fileResolver, documentationRegistry)
+        builder = factory.newTemplateOperation()
+        builder.withTemplate(GroovyMock(URL))
         _ * fileResolver.resolve(_) >> { String fileName ->
             File fileMock = Mock(File)
             fileMock
         }
-        operationBuilder.withTarget("someTarget")
+        builder.withTarget("someTarget")
     }
+
+    def "factory creates isolated builders"() {
+
+        when:
+        def operation1 = factory.newTemplateOperation()
+        def operation2 = factory.newTemplateOperation()
+
+        operation1.withBindings(key:"value")
+        operation1.withTarget("atarget")
+
+        then:
+        operation1 != operation2
+        operation1.bindings.size() == 4
+        operation2.bindings.size() == 3
+        operation2.target == null
+    }
+
 
     def "withDocumentationBindings looks up value in documentationRegistry"() {
         when:
-        operationBuilder.withDocumentationBindings(someDocumentationKey: 'someDocID')
+        builder.withDocumentationBindings(someDocumentationKey: 'someDocID')
         then:
         1 * documentationRegistry.getDocumentationFor('someDocID') >> "resolvedDocumentationID"
-
         and:
-        operationBuilder.create().bindings.someDocumentationKey.value == "resolvedDocumentationID"
+        builder.create().bindings.someDocumentationKey.value == "resolvedDocumentationID"
     }
 
     def "declares default bindings"() {
         when:
-        def templateOperation = operationBuilder.create()
+        def templateOperation = builder.create()
         then:
         templateOperation.bindings.size() == 3
         templateOperation.bindings.genDate.value != null
@@ -59,7 +76,7 @@ class TemplateOperationBuilderSpec extends Specification {
 
     def "supports custom bindings"() {
         when:
-        def templateOperation = operationBuilder.withBindings(someCustomBinding: "someCustomBindingValue").create()
+        def templateOperation = builder.withBindings(someCustomBinding: "someCustomBindingValue").create()
         then:
         templateOperation.bindings.size() == 4
         templateOperation.bindings.someCustomBinding.value == "someCustomBindingValue"

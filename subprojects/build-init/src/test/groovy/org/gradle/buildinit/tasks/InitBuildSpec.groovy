@@ -62,6 +62,6 @@ class InitBuildSpec extends Specification {
         when:
         init.setupProjectLayout()
         then:
-        1 * projectSetupDescriptor1.generateProject()
+        1 * projectSetupDescriptor1.generate()
     }
 }

@@ -49,7 +49,7 @@ class InitBuild extends DefaultTask {
         if (!projectLayoutRegistry.supports(type)) {
             throw new GradleException("The requested build setup type '${type}' is not supported. Supported types: ${projectLayoutRegistry.supportedTypes.collect{"'$it'"}.join(", ")}.")
         }
-        projectLayoutRegistry.get(type).generateProject()
+        projectLayoutRegistry.get(type).generate()
     }
 
     @CommandLineOption(options = "type", description = "Set type of build to create.")

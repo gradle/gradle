@@ -14,19 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.buildinit.plugins.internal
+package org.gradle.buildinit.plugins.internal;
 
-class TemplateBasedProjectInitDescriptor implements ProjectInitDescriptor{
-     List<TemplateOperation> templateOperations
+import java.util.ArrayList;
+import java.util.List;
 
-    public TemplateBasedProjectInitDescriptor(TemplateOperation... templateOperations){
-        this.templateOperations = Arrays.asList(templateOperations)
+abstract class TemplateBasedProjectInitDescriptor implements ProjectInitDescriptor {
+    private List<TemplateOperation> templateOperations = new ArrayList<TemplateOperation>();
+
+    public void generate() {
+        for (TemplateOperation templateOperation : templateOperations) {
+            templateOperation.generate();
+        }
     }
 
-    @Override
-    void generateProject() {
-        templateOperations.each {templateOperation ->
-            templateOperation.generate()
-        }
+    protected void register(TemplateOperation templateOperation) {
+        this.templateOperations.add(templateOperation);
     }
 }

@@ -24,13 +24,21 @@ class TemplateBasedProjectInitDescriptorSpec extends Specification {
         setup:
         TemplateOperation templateOperation1 = Mock(TemplateOperation)
         TemplateOperation templateOperation2 = Mock(TemplateOperation)
-        TemplateBasedProjectInitDescriptor descriptor = new TemplateBasedProjectInitDescriptor(templateOperation1, templateOperation2)
+        TemplateBasedProjectInitDescriptor descriptor = new TestTemplateBasedProjectInitDescriptor(templateOperation1, templateOperation2)
         when:
-        descriptor.generateProject()
+        descriptor.generate()
         then:
 
         then:
         1 * templateOperation1.generate()
         1 * templateOperation2.generate()
+    }
+
+    class TestTemplateBasedProjectInitDescriptor extends TemplateBasedProjectInitDescriptor{
+        TestTemplateBasedProjectInitDescriptor(TemplateOperation... templateOperations) {
+            templateOperations.each {
+                register(it)
+            }
+        }
     }
 }
