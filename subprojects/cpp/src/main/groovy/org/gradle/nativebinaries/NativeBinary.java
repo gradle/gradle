@@ -31,6 +31,10 @@ import java.util.Collection;
  */
 @Incubating @HasInternalProtocol
 public interface NativeBinary extends Binary {
+    /**
+     * The component that this binary was built from.
+     */
+    NativeComponent getComponent();
 
     /**
      * The flavor that this binary was built with.

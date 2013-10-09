@@ -149,12 +149,10 @@ class DefaultNativeBinaryTest extends Specification {
             this.owner = owner
         }
 
-        @Override
-        protected NativeComponent getComponent() {
+        public NativeComponent getComponent() {
             return owner
         }
 
-        @Override
         String getOutputFileName() {
             return null
         }
