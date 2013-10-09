@@ -22,13 +22,26 @@ dependencies {
     integTestRuntime project(':scala')
 }
 
+dependencies {
+    components {
+        eachComponent { ComponentMetadataDetails details ->
+            def version = details.id.version
+            if(version.matches("(\\d\\.?)+")){
+                details.status = "release"
+            }else{
+                details.status = "integration"
+            }
+            details.statusScheme = ["integration", "release"]
+        }
+    }
+}
 
 task generateTemplateVersionFile(type: GenerateVersionProperties) {
     outputFile = new File(generatedResourcesDir, "org/gradle/buildinit/tasks/templates/library-versions.properties")
-    library 'org.scalatest:scalatest_2.10:1.9.2'
-    library 'org.scala-lang:scala-library:2.10.+'
-    library 'org.codehaus.groovy:groovy:2.1.7'
-    library 'junit:junit:4.+'
+    library 'org.scalatest:scalatest_2.10:latest.release'
+    library 'org.scala-lang:scala-library:latest.release'
+    library 'org.codehaus.groovy:groovy:latest.release'
+    library 'junit:junit:latest.release'
 }
 
 sourceSets.main.resources.srcDir generatedResourcesDir
@@ -58,7 +71,7 @@ class GenerateVersionProperties extends DefaultTask {
 
         ResolutionResult resolutionResult = templateVersionConfiguration.incoming.resolutionResult
         resolutionResult.allModuleVersions { result ->
-            resolutionResult.root.dependencies.each{ dep->
+            resolutionResult.root.dependencies.each { dep ->
                 versionProperties.put(dep.requested.name, dep.selected.id.version)
             }
         }
