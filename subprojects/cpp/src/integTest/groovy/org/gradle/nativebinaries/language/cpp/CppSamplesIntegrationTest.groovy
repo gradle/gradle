@@ -33,13 +33,6 @@ class CppSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
     @Rule public final Sample variants = new Sample(temporaryFolder, 'native-binaries/variants')
     @Rule public final Sample dependencies = new Sample(temporaryFolder, 'native-binaries/dependencies')
 
-    def setup() {
-        toolChain.initialiseEnvironment()
-    }
-    def cleanup() {
-        toolChain.resetEnvironment()
-    }
-
     def "assembler"() {
         given:
         sample assembler
@@ -250,5 +243,4 @@ class CppSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         executable("native-binaries/dependencies/exe/build/binaries/mainExecutable/exe").assertExists()
         file("native-binaries/dependencies/exe/build/repo/dependencies/exe/1.0/exe-1.0.exe").exists()
     }
-
 }

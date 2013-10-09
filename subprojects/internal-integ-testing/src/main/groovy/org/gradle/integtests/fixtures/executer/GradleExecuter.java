@@ -77,6 +77,8 @@ public interface GradleExecuter {
 
     GradleExecuter usingInitScript(File initScript);
 
+    GradleExecuter alwaysUsingInitScript(File initScript);
+
     /**
      * Uses the given project directory
      */
