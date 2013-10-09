@@ -25,6 +25,7 @@ import org.gradle.internal.resource.local.DefaultLocallyAvailableResource
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
+import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Specification
 
@@ -329,6 +330,106 @@ class GradlePomModuleDescriptorParserTest extends Specification {
         artifactThree.dependencyRevisionId == moduleId('group-one', 'artifact-three', 'version-one')
         artifactThree.moduleConfigurations == ['compile', 'runtime']
         hasDefaultDependencyArtifact(artifactThree)
+    }
+
+    @Ignore
+    @Issue("GRADLE-2918")
+    def "uses imported BOM in grand parent dependency management section"() {
+        given:
+        def imported = tmpDir.file("imported.xml") << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>different-group</groupId>
+    <artifactId>imported</artifactId>
+    <version>different-version</version>
+
+    <properties>
+        <myversion>some-version</myversion>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>group-one</groupId>
+                <artifactId>artifact-two</artifactId>
+                <version>\${myversion}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+</project>
+"""
+
+        def grandParent = tmpDir.file("grand-parent.xlm") << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>different-group</groupId>
+    <artifactId>grandparent</artifactId>
+    <version>different-version</version>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>different-group</groupId>
+                <artifactId>imported</artifactId>
+                <version>different-version</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+</project>
+"""
+
+        def parent = tmpDir.file("parent.xlm") << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>parent</artifactId>
+    <version>version-one</version>
+
+    <parent>
+        <groupId>different-group</groupId>
+        <artifactId>grandparent</artifactId>
+        <version>different-version</version>
+    </parent>
+</project>
+"""
+
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+
+    <parent>
+        <groupId>group-one</groupId>
+        <artifactId>parent</artifactId>
+        <version>version-one</version>
+    </parent>
+
+    <dependencies>
+        <dependency>
+            <groupId>group-one</groupId>
+            <artifactId>artifact-two</artifactId>
+        </dependency>
+    </dependencies>
+</project>
+"""
+        and:
+        parseContext.currentRevisionId >> moduleId('group-one', 'artifact-one', 'version-one')
+        parseContext.getArtifact({it.moduleRevisionId.name == 'parent' }) >> { new DefaultLocallyAvailableExternalResource(parent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(parent)) }
+        parseContext.getArtifact({it.moduleRevisionId.name == 'grandparent' }) >> { new DefaultLocallyAvailableExternalResource(grandParent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(imported)) }
+        parseContext.getArtifact({it.moduleRevisionId.name == 'imported' }) >> { new DefaultLocallyAvailableExternalResource(imported.toURI().toURL().toString(), new DefaultLocallyAvailableResource(imported)) }
+
+        when:
+        def descriptor = parsePom()
+
+        then:
+        descriptor.dependencies.length == 1
+        def artifactTwo = descriptor.dependencies[0]
+        artifactTwo.dependencyRevisionId == moduleId('group-one', 'artifact-two', 'some-version')
+        artifactTwo.moduleConfigurations == ['compile', 'runtime']
     }
 
     def "pom with dependency with classifier"() {
