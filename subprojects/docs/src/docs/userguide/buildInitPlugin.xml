@@ -17,7 +17,7 @@
     <title>Build Init Plugin</title>
     <note>
         <para>
-            The Build Init plugin is currently<link linkend="feature_lifecycle">incubating</link>. Please be aware that the DSL and other configuration may change in later Gradle versions.
+            The Build Init plugin is currently <link linkend="feature_lifecycle">incubating</link>. Please be aware that the DSL and other configuration may change in later Gradle versions.
         </para>
     </note>
     <para>
@@ -27,7 +27,7 @@
     <para>
         Gradle plugins typically need to be
         <firstterm>applied</firstterm>
-        to a project before they can be used (see<xref linkend="sec:using_plugins"/>).
+        to a project before they can be used (see <xref linkend="sec:using_plugins"/>).
         The Build Init plugin is an automatically applied plugin, which means you do not need to apply it explicitly.
         To use the plugin, simply execute the task named
         <literal>init</literal>
@@ -39,7 +39,7 @@
     <para>
         It also leverages the
         <literal>wrapper</literal>
-        task from the Wrapper plugin (see<xref linkend='wrapper_plugin'/>),
+        task from the Wrapper plugin (see <xref linkend='wrapper_plugin'/>),
         which means that the Gradle Wrapper will also be installed into the project.
     </para>
     <section>
@@ -84,7 +84,7 @@
         <title>What to set up</title>
         <para>The
             <literal>init</literal>
-            supports different build setup<firstterm>types</firstterm>. The type is specified by supplying a
+            supports different build setup <firstterm>types</firstterm>. The type is specified by supplying a
             <literal>--type</literal>
             argument value. For example, to create a Java library project simply execute:
             <literal>gradle init --type java-library</literal>.
@@ -105,7 +105,7 @@
     <section>
         <title>Build init types</title>
         <note>
-            As this plugin is currently<link linkend="feature_lifecycle">incubating</link>, only 3 build init types are currently supported.
+            As this plugin is currently <link linkend="feature_lifecycle">incubating</link>, only 3 build init types are currently supported.
             More types will be added in future Gradle releases.
         </note>
         <section>
