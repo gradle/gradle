@@ -14,19 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.service;
+package org.gradle.initialization;
 
-/**
- * Allows services to be added to a registry.
- */
-public interface ServiceRegistration {
+public interface JdkToolsInitializer {
     /**
-     * Adds a service to this registry. The given object is closed when the associated registry is closed.
+     * Ensures that the JDK tools are visible on the system ClassLoader. Not really a great idea, but here for backwards
+     * compatibility.
      */
-    <T> void add(Class<T> serviceType, T serviceInstance);
-
-    /**
-     * Adds a service provider bean to this registry. This provider may define factory and decorator methods. See {@link DefaultServiceRegistry} for details.
-     */
-    void addProvider(Object provider);
+    void initializeJdkTools();
 }

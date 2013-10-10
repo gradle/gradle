@@ -20,6 +20,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonStarter;
 import org.gradle.api.internal.tasks.compile.daemon.InProcessCompilerDaemonFactory;
+import org.gradle.initialization.JdkToolsInitializer;
 import org.gradle.internal.Factory;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
@@ -34,6 +35,11 @@ public class CompileServices implements PluginServiceRegistry {
     }
 
     private static class BuildScopeCompileServices {
+        void configure(ServiceRegistration registration, JdkToolsInitializer initializer) {
+            // Hackery
+            initializer.initializeJdkTools();
+        }
+
         CompilerDaemonManager createCompilerDaemonManager(Factory<WorkerProcessBuilder> workerFactory, StartParameter startParameter) {
             return new CompilerDaemonManager(new CompilerDaemonStarter(workerFactory, startParameter));
         }

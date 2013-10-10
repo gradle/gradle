@@ -33,7 +33,7 @@ import java.util.*;
  *
  * <li>Calling {@link #add(Class, Object)} to register a service instance.</li>
  *
- * <li>Calling {@link #addProvider(Object)} to register a service provider bean. A provider bean may have factory, decorator and configuration methods.</li>
+ * <li>Calling {@link #addProvider(Object)} to register a service provider bean. A provider bean may have factory, decorator and configuration methods as described below.</li>
  *
  * <li>Adding a factory method. A factory method should have a name that starts with 'create', and have a non-void return type. For example, <code>protected SomeService
  * createSomeService() { .... }</code>. Parameters are injected using services from this registry or its parents.</li>
@@ -46,7 +46,7 @@ import java.util.*;
  *
  * </ul>
  *
- * <p>Service instances are created on demand. {@link #getFactory(Class)} looks for a service instance which implements {@code Factory<T>} where {@code T} is the expected type.</p>.
+ * <p>Service instances are created on demand. {@link #getFactory(Class)} looks for a service instance which implements {@code Factory<T>} where {@code T} is the expected type.</p>
  *
  * <p>Service registries are arranged in a hierarchy. If a service of a given type cannot be located, the registry uses its parent registry, if any, to locate the service.</p>
  */
