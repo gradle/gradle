@@ -45,7 +45,56 @@ Description
 BUILD SUCCESSFUL"""))
     }
 
-    def "multipleMatchingTasksOfSameType"() {
+    def "help for tasks same type different descriptions"() {
+        setup:
+        settingsFile.text = """
+include ":someproj"
+"""
+        buildFile.text = """
+        task hello {
+            description = "hello task from root"
+        }
+        project(":someproj"){
+            task hello {
+                description = "hello task from someproj"
+            }
+        }
+"""
+        when:
+        run "help", "--task", "hello"
+        then:
+        output.contains(toPlatformLineSeparators("""Detailed task description for hello
+
+Paths
+     :hello
+     :someproj:hello
+
+Type
+     DefaultTask (class org.gradle.api.DefaultTask)
+
+Descriptions
+     (:hello) hello task from root
+     (:someproj:hello) hello task from someproj"""))
+    }
+
+    def "matchingTasksOfSameType"() {
+        when:
+        run "help", "--task", ":jar"
+        then:
+        output.contains(toPlatformLineSeparators("""Detailed task description for :jar
+
+Path
+     :jar
+
+Type
+     Jar (class org.gradle.api.tasks.bundling.Jar)
+
+Description
+     Assembles a jar archive containing the main classes.
+
+
+BUILD SUCCESSFUL"""))
+
         when:
         run "help", "--task", "jar"
         then:

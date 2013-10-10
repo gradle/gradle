@@ -22,10 +22,7 @@ import org.gradle.execution.TaskSelector;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.util.CollectionUtils;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
 import static org.gradle.logging.StyledTextOutput.Style.UserInput;
 
@@ -47,6 +44,36 @@ public class TaskDetailPrinter {
         });
 
         output.text("Detailed task description for ").withStyle(UserInput).println(taskPath);
+        final Map<Class, List<Task>> classListMap = groupTasksByType(tasks);
+
+        final List<Map.Entry<Class, List<Task>>> entries = CollectionUtils.sort(classListMap.entrySet(), new Comparator<Map.Entry<Class, List<Task>>>() {
+            public int compare(Map.Entry<Class, List<Task>> o1, Map.Entry<Class, List<Task>> o2) {
+                return o1.getKey().getSimpleName().compareTo(o2.getKey().getSimpleName());
+            }
+        });
+
+        for (Map.Entry<Class, List<Task>> entry  : entries){
+            output.println();
+            final List<Task> tasksByType = entry.getValue();
+            final Class clazz = entry.getKey();
+            output.text(tasksByType.size() > 1 ? "Paths" : "Path").println();
+            for (Task task : tasksByType) {
+                output.text(INDENT).withStyle(UserInput).println(task.getPath());
+            }
+            output.println();
+            output.text("Type").println();
+            output.text(INDENT).withStyle(UserInput).text(clazz.getSimpleName());
+            output.println(" (" + clazz + ")");
+            output.println();
+            printTaskDescription(output, tasksByType);
+            output.println();
+            if (classListMap.size() > 1) {
+                output.println("----------------------");
+            }
+        }
+    }
+
+    private Map<Class, List<Task>> groupTasksByType(List<Task> tasks) {
         final Set<Class> taskTypes = new TreeSet<Class>(new Comparator<Class>() {
             public int compare(Class o1, Class o2) {
                 return o1.getSimpleName().compareTo(o2.getSimpleName());
@@ -57,45 +84,38 @@ public class TaskDetailPrinter {
                 return original.getClass().getSuperclass();
             }
         }));
+
+        Map<Class, List<Task>> tasksGroupedByType = new HashMap<Class, List<Task>>();
         for (final Class taskType : taskTypes) {
-            final Set<Task> tasksByType = new TreeSet<Task>(CollectionUtils.filter(tasks, new Spec<Task>() {
+            tasksGroupedByType.put(taskType, CollectionUtils.filter(tasks, new Spec<Task>() {
                 public boolean isSatisfiedBy(Task element) {
                     return element.getClass().getSuperclass().equals(taskType);
                 }
             }));
-            output.println();
-            output.text(tasksByType.size() > 1 ? "Paths" : "Path").println();
-            for (Task task : tasksByType) {
-                output.text(INDENT).withStyle(UserInput).println(task.getPath());
-            }
-            output.println();
-            output.text("Type").println();
-            output.text(INDENT).withStyle(UserInput).text(taskType.getSimpleName());
-            output.println(" (" + taskType + ")");
-            output.println();
-            printTaskDescription(output, tasksByType);
-            output.println();
-            if (taskTypes.size() > 1) {
-                output.println("----------------------");
-            }
         }
-
+        return tasksGroupedByType;
     }
 
-    private void printTaskDescription(StyledTextOutput output, Set<Task> tasksByType) {
-        final Set<String> descriptions = CollectionUtils.collect(tasksByType, new Transformer<String, Task>() {
-            public String transform(Task original) {
-                return original.getDescription();
-            }
-        });
-        output.text(descriptions.size() > 1 ? "Descriptions" : "Description").println();
-        if (descriptions.size() == 1) {
+    private void printTaskDescription(StyledTextOutput output, List<Task> tasks) {
+        int differentDescriptionsCount = differentDescriptions(tasks);
+        output.text(differentDescriptionsCount > 1 ? "Descriptions" : "Description").println();
+        if (differentDescriptionsCount == 1) {
             // all tasks have the same description
-            output.text(INDENT).println(descriptions.iterator().next());
+            output.text(INDENT).println(tasks.iterator().next().getDescription());
         } else {
-            for (final String description : descriptions) {
-                output.text(INDENT).println(description);
+            for (Task task : tasks) {
+                output.text(INDENT).withStyle(UserInput).text(String.format("(%s) ", task.getPath())).println(task.getDescription());
             }
         }
+    }
+
+    private int differentDescriptions(List<Task> tasks) {
+        return CollectionUtils.toSet(
+                CollectionUtils.collect(tasks, new Transformer<String, Task>() {
+                    public String transform(Task original) {
+                        return original.getDescription();
+                    }
+                })
+        ).size();
     }
 }
