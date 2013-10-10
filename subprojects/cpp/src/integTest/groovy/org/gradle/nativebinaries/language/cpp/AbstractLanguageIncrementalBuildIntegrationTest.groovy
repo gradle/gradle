@@ -14,9 +14,6 @@
  * limitations under the License.
  */
 
-
-
-
 package org.gradle.nativebinaries.language.cpp
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
@@ -110,6 +107,50 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         and:
         install.assertInstalled()
         install.exec().out == app.alternateOutput
+    }
+
+    def "recompiles source but does not relink binary with source comment change"() {
+        when:
+        sourceFile.text = sourceFile.text.replaceFirst("// Simple hello world app", "// Comment is changed")
+        run "mainExecutable"
+
+        then:
+        skipped libraryCompileTask
+        skipped ":linkHelloSharedLibrary"
+        skipped ":helloSharedLibrary"
+
+        executedAndNotSkipped mainCompileTask
+
+        // Visual C++ compiler embeds a timestamp in every object file, so relinking is always required after recompiling
+        if (toolChain.visualCpp) {
+            executedAndNotSkipped ":linkMainExecutable"
+            executedAndNotSkipped ":mainExecutable"
+        } else {
+            skipped ":linkMainExecutable"
+            skipped ":mainExecutable"
+        }
+    }
+
+    def "recompiles binary when header file changes"() {
+        when:
+        headerFile << """
+            void DLL_FUNC unused();
+"""
+
+        run "mainExecutable"
+
+        then:
+        executedAndNotSkipped libraryCompileTask
+        executedAndNotSkipped mainCompileTask
+
+        // Visual C++ compiler embeds a timestamp in every object file, so relinking is always required after recompiling
+        if (toolChain.visualCpp) {
+            executedAndNotSkipped ":linkHelloSharedLibrary", ":helloSharedLibrary"
+            executedAndNotSkipped ":linkMainExecutable", ":mainExecutable"
+        } else {
+            skipped ":linkHelloSharedLibrary", ":helloSharedLibrary"
+            skipped ":linkMainExecutable", ":mainExecutable"
+        }
     }
 
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
@@ -250,24 +291,6 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         and:
         executable.assertExists()
         executable.assertHasChangedSince(snapshot)
-    }
-
-    def "recompiles source but does not relink binary with source comment change"() {
-        if (toolChain.visualCpp) {
-            return // Visual C++ compiler embeds a timestamp in every object file, so relinking is always required after recompiling
-        }
-        when:
-        sourceFile.text = sourceFile.text.replaceFirst("// Simple hello world app", "// Comment is changed")
-        run "installMainExecutable"
-
-        then:
-        skipped libraryCompileTask
-        skipped ":linkHelloSharedLibrary"
-        skipped ":helloSharedLibrary"
-        executedAndNotSkipped mainCompileTask
-        skipped ":linkMainExecutable"
-        skipped ":mainExecutable"
-        skipped ":installMainExecutable"
     }
 
     def "cleans up stale object files when source file renamed"() {
