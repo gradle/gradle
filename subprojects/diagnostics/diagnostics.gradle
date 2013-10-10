@@ -20,6 +20,7 @@ dependencies {
     compile project(':reporting')
     compile project(':plugins')
     compile project(':coreImpl')
+    integTestRuntime project(':buildInit')
 }
 
 useTestFixtures()

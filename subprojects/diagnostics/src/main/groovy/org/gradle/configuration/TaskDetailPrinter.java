@@ -43,7 +43,7 @@ public class TaskDetailPrinter {
             }
         });
 
-        output.text("Detailed task description for ").withStyle(UserInput).println(taskPath);
+        output.text("Detailed task information for ").withStyle(UserInput).println(taskPath);
         final Map<Class, List<Task>> classListMap = groupTasksByType(tasks);
 
         final List<Map.Entry<Class, List<Task>>> entries = CollectionUtils.sort(classListMap.entrySet(), new Comparator<Map.Entry<Class, List<Task>>>() {

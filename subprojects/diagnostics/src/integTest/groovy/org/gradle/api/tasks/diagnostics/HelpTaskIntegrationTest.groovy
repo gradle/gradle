@@ -30,7 +30,7 @@ class HelpTaskIntegrationTest extends AbstractIntegrationSpec {
         when:
         run "help", "--task", "dependencies"
         then:
-        output.contains(toPlatformLineSeparators("""Detailed task description for dependencies
+        output.contains(toPlatformLineSeparators("""Detailed task information for dependencies
 
 Path
      :dependencies
@@ -40,6 +40,25 @@ Type
 
 Description
      Displays all dependencies declared in root project '${testDirectory.getName()}'.
+
+
+BUILD SUCCESSFUL"""))
+    }
+
+    def "can print help for placeholder added tasks"() {
+        when:
+        run "help", "--task", "init"
+        then:
+        output.contains(toPlatformLineSeparators("""Detailed task information for init
+
+Path
+     :init
+
+Type
+     InitBuild (class org.gradle.buildinit.tasks.InitBuild)
+
+Description
+     Initializes a new Gradle build. [incubating]
 
 
 BUILD SUCCESSFUL"""))
@@ -63,7 +82,7 @@ include ":someproj"
         when:
         run "help", "--task", "hello"
         then:
-        output.contains(toPlatformLineSeparators("""Detailed task description for hello
+        output.contains(toPlatformLineSeparators("""Detailed task information for hello
 
 Paths
      :hello
@@ -81,7 +100,7 @@ Descriptions
         when:
         run "help", "--task", ":jar"
         then:
-        output.contains(toPlatformLineSeparators("""Detailed task description for :jar
+        output.contains(toPlatformLineSeparators("""Detailed task information for :jar
 
 Path
      :jar
@@ -98,7 +117,7 @@ BUILD SUCCESSFUL"""))
         when:
         run "help", "--task", "jar"
         then:
-        output.contains(toPlatformLineSeparators("""Detailed task description for jar
+        output.contains(toPlatformLineSeparators("""Detailed task information for jar
 
 Paths
      :jar
@@ -119,7 +138,7 @@ BUILD SUCCESSFUL"""))
         when:
         run "help", "--task", "someTask"
         then:
-        output.contains(toPlatformLineSeparators("""Detailed task description for someTask
+        output.contains(toPlatformLineSeparators("""Detailed task information for someTask
 
 Path
      :subproj1:someTask
@@ -145,5 +164,35 @@ Description
 
 BUILD SUCCESSFUL"""))
     }
-}
 
+    def "error message contains possible candidates"() {
+        buildFile.text = """
+        task aTask
+"""
+        when:
+        fails "help", "--task", "bTask"
+        then:
+        errorOutput.contains(" Task 'bTask' not found in root project '${testDirectory.getName()}'. Some candidates are: 'aTask', 'tasks'")
+    }
+
+    def "tasks can be defined by camelCase matching"() {
+        buildFile.text = """
+        task someCamelCaseTask{
+            description = "a description"
+        }"""
+        when:
+        run "help", "--task", "sCC"
+        then:
+        output.contains(toPlatformLineSeparators("""Detailed task information for sCC
+
+Path
+     :someCamelCaseTask
+
+Type
+     DefaultTask (class org.gradle.api.DefaultTask)
+
+Description
+     a description"""))
+
+    }
+}
