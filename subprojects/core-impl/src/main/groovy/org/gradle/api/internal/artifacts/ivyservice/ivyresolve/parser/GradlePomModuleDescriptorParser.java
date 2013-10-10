@@ -19,10 +19,10 @@ import org.apache.ivy.core.module.descriptor.*;
 import org.apache.ivy.core.module.descriptor.Configuration.Visibility;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.parser.m2.PomDependencyMgt;
-import org.gradle.api.internal.artifacts.metadata.ModuleDescriptorAdapter;
-import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomReader.PomDependencyData;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomReader.PomPluginElement;
+import org.gradle.api.internal.artifacts.metadata.ModuleDescriptorAdapter;
+import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData;
 import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +33,7 @@ import java.text.ParseException;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * This a straight copy of org.apache.ivy.plugins.parser.m2.PomModuleDescriptorParser, with one change: we do NOT attempt to retrieve source and javadoc artifacts when parsing the POM. This cuts the
@@ -84,6 +85,8 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
             for (Map.Entry<String, String> entry : parentPomProps.entrySet()) {
                 pomReader.setProperty(entry.getKey(), entry.getValue());
             }
+
+            pomReader.addDependencyMgts(parentDescr.getDependencyMgt());
         }
         pomReader.resolveGAV();
 
@@ -131,7 +134,7 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
         } else {
             if (parentDescr != null) {
                 // add dependency management info from parent
-                List<PomDependencyMgt> depMgt = parentDescr.getDependencyMgt();
+                Set<PomDependencyMgt> depMgt = parentDescr.getDependencyMgt();
                 for (PomDependencyMgt aDepMgt : depMgt) {
                     mdBuilder.addDependencyMgt(aDepMgt);
                 }
@@ -152,7 +155,9 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
                             dep.getVersion());
                     PomReader importDescr = parseOtherPom(parserSettings, importModRevID);
                     // add dependency management info from imported module
-                    List<PomDependencyMgt> depMgt = importDescr.getDependencyMgt();
+                    Set<PomDependencyMgt> depMgt = importDescr.getDependencyMgt();
+                    pomReader.addDependencyMgts(depMgt);
+
                     for (PomDependencyMgt aDepMgt : depMgt) {
                         mdBuilder.addDependencyMgt(aDepMgt);
                     }

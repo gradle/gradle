@@ -71,6 +71,7 @@ public class PomReader {
     private static final String TYPE = "type";
 
     private Map<String, String> properties = new HashMap<String, String>();
+    private final Set<PomDependencyMgt> inheritedDependencyMgts = new HashSet<PomDependencyMgt>();
 
     private final Element projectElement;
     private final Element parentElement;
@@ -168,6 +169,10 @@ public class PomReader {
 
     public Map<String, String> getProperties() {
         return properties;
+    }
+
+    public void addDependencyMgts(Set<PomDependencyMgt> dependencyMgts) {
+        inheritedDependencyMgts.addAll(dependencyMgts);
     }
 
     public String getGroupId() {
@@ -308,10 +313,10 @@ public class PomReader {
     }
 
 
-    public List<PomDependencyMgt> getDependencyMgt() {
+    public Set<PomDependencyMgt> getDependencyMgt() {
         Element dependenciesElement = getFirstChildElement(projectElement, DEPENDENCY_MGT);
         dependenciesElement = getFirstChildElement(dependenciesElement, DEPENDENCIES);
-        List<PomDependencyMgt> dependencies = new LinkedList<PomDependencyMgt>();
+        Set<PomDependencyMgt> dependencies = new LinkedHashSet<PomDependencyMgt>();
         if (dependenciesElement != null) {
             NodeList childs = dependenciesElement.getChildNodes();
             for (int i = 0; i < childs.getLength(); i++) {
@@ -321,6 +326,7 @@ public class PomReader {
                 }
             }
         }
+        dependencies.addAll(inheritedDependencyMgts);
         return dependencies;
     }
 

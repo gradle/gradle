@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
+
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.apache.ivy.core.module.id.ArtifactRevisionId
@@ -25,7 +26,6 @@ import org.gradle.internal.resource.local.DefaultLocallyAvailableResource
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
-import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Specification
 
@@ -332,7 +332,6 @@ class GradlePomModuleDescriptorParserTest extends Specification {
         hasDefaultDependencyArtifact(artifactThree)
     }
 
-    @Ignore
     @Issue("GRADLE-2918")
     def "uses imported BOM in grand parent dependency management section"() {
         given:
