@@ -57,11 +57,15 @@ The following stories are candidates to be included in Gradle 2.0. They have not
 
 ## Remove `group` and `status` from project
 
-Alternatively, default the group to `null`.
+Alternatively, default the group to `null` and status to `integration`.
 
 ## Remove the Ant-task based Scala compiler
 
 * Change the default for `useAnt` to `false` and deprecate the `useAnt` property.
+
+## Don't inject tools.jar into the system ClassLoader
+
+Currently required for in-process Ant-based compilation on Java 5. Dropping support for one of (in-process, ant-based, java 5) would allow us to remove this.
 
 ## Decouple publishing DSL from Maven Ant tasks
 
@@ -74,7 +78,7 @@ Alternatively, default the group to `null`.
 
 ## Copy tasks
 
-There are serveral inconsitencies and confusing behaviours in the copy tasks and copy spec:
+There are several inconsistencies and confusing behaviours in the copy tasks and copy spec:
 
 * Change copy tasks so that they no longer implement `CopySpec`. Instead, they should have a `content` property which is a `CopySpec` that contains the main content.
   Leave behind some methods which operate on the file tree as a whole, eg `eachFile()`, `duplicatesStrategy`, `matching()`.
@@ -206,7 +210,7 @@ at load time we can support expressions such as `new MyDslType()`, rather than r
 Switching to decoration at load time should generally be transparent to most things, except for clients of `ProjectBuilder` that refer to types
 which are not loaded by Gradle, such as the classes under test.
 
-## Restructure plugin package heirarchy
+## Restructure plugin package hierarchy
 
 ## buildNeeded and buildDependents
 
