@@ -1,0 +1,12 @@
+Detailed task information for libs
+
+Paths
+     :api:libs
+     :webapp:libs
+
+Type
+     DefaultTask (class org.gradle.api.DefaultTask)
+
+Description
+     Builds the JAR
+
