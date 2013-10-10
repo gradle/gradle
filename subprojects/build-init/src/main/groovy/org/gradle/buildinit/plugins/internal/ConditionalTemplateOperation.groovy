@@ -28,7 +28,6 @@ class ConditionalTemplateOperation implements TemplateOperation {
         this.optionalOperations = optionalOperations
     }
 
-    @Override
     void generate() {
         if(condition.create()){
             optionalOperations.each {
