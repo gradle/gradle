@@ -32,6 +32,11 @@ public class DefaultLocallyAvailableExternalResource extends LocalFileStandInExt
         this.locallyAvailableResource = locallyAvailableResource;
     }
 
+    @Override
+    public String toString() {
+        return locallyAvailableResource.toString();
+    }
+
     public LocallyAvailableResource getLocalResource() {
         return locallyAvailableResource;
     }
