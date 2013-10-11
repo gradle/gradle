@@ -29,18 +29,20 @@ import java.util.*;
 
 public class ClasspathUtil {
     public static void addUrl(URLClassLoader classLoader, Iterable<URL> classpathElements) {
-        Set<URL> original = new HashSet<URL>();
-        Collections.addAll(original, classLoader.getURLs());
         try {
+            Set<URI> original = new HashSet<URI>();
+            for (URL url : classLoader.getURLs()) {
+                original.add(url.toURI());
+            }
             Method method = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
             method.setAccessible(true);
             for (URL classpathElement : classpathElements) {
-                if (original.add(classpathElement)) {
+                if (original.add(classpathElement.toURI())) {
                     method.invoke(classLoader, classpathElement);
                 }
             }
         } catch (Throwable t) {
-            throw new RuntimeException("Error, could not add URL to classloader", t);
+            throw new RuntimeException(String.format("Could not add URLs %s to class path for ClassLoader %s", classpathElements, classLoader), t);
         }
     }
 
