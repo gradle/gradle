@@ -25,10 +25,13 @@ import java.util.zip.ZipInputStream
 class JarTestFixture extends ZipTestFixture {
     File file
 
-    JarTestFixture(File file) {
-        super(file)
-        this.file = file
-    }
+    /**
+     * Asserts that the Jar file is well-formed
+     */
+     JarTestFixture(File file) {super(file)
+         this.file = file
+         isManifestPresentAndFirstEntry()
+     }
 
     /**
      * Asserts that the given service is defined in this jar file.
@@ -41,10 +44,8 @@ class JarTestFixture extends ZipTestFixture {
      * Asserts that the manifest file is present and first entry in this jar file.
      */
     void isManifestPresentAndFirstEntry() {
-        ZipInputStream zip
-
+        ZipInputStream zip = new ZipInputStream(new FileInputStream(file))
         try {
-            zip = new ZipInputStream(new FileInputStream(file))
             ZipEntry zipEntry = zip.getNextEntry()
 
             if (zipEntry.getName().equalsIgnoreCase("META-INF/")) {
