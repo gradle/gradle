@@ -336,11 +336,6 @@ public class GradlePomModuleDescriptorBuilder {
                 index += 1;
             }
         }
-        // dependency management info is also used for version mediation of transitive dependencies
-        ivyModuleDescriptor.addDependencyDescriptorMediator(
-                ModuleId.newInstance(dep.getGroupId(), dep.getArtifactId()),
-                ExactPatternMatcher.INSTANCE,
-                new OverrideDependencyDescriptorMediator(null, dep.getVersion()));
     }
 
     private String getDefaultVersion(PomReader.PomDependencyData dep) {
