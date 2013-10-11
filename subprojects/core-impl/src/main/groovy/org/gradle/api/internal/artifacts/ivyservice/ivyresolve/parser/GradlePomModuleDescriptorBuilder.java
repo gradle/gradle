@@ -343,65 +343,6 @@ public class GradlePomModuleDescriptorBuilder {
                 new OverrideDependencyDescriptorMediator(null, dep.getVersion()));
     }
 
-    public void addPlugin(PomDependencyMgt plugin) {
-        String pluginValue = plugin.getGroupId() + EXTRA_INFO_DELIMITER + plugin.getArtifactId()
-                + EXTRA_INFO_DELIMITER + plugin.getVersion();
-        String pluginExtraInfo = extraInfo.get("m:maven.plugins");
-        if (pluginExtraInfo == null) {
-            pluginExtraInfo = pluginValue;
-        } else {
-            pluginExtraInfo = pluginExtraInfo + "|" + pluginValue;
-        }
-        addExtraInfo("m:maven.plugins", pluginExtraInfo);
-    }
-
-    public List<PomDependencyMgt> getPlugins(ModuleDescriptor md) {
-        List<PomDependencyMgt> result = new ArrayList<PomDependencyMgt>();
-        String plugins = (String) md.getExtraInfo().get("m:maven.plugins");
-        if (plugins == null) {
-            return new ArrayList<PomDependencyMgt>();
-        }
-        String[] pluginsArray = plugins.split("\\|");
-        for (String plugin : pluginsArray) {
-            String[] parts = plugin.split(EXTRA_INFO_DELIMITER);
-            result.add(new PomPluginElement(parts[0], parts[1], parts[2]));
-        }
-
-        return result;
-    }
-
-    private static class PomPluginElement implements PomDependencyMgt {
-        private String groupId;
-        private String artifactId;
-        private String version;
-
-        public PomPluginElement(String groupId, String artifactId, String version) {
-            this.groupId = groupId;
-            this.artifactId = artifactId;
-            this.version = version;
-        }
-
-        public String getGroupId() {
-            return groupId;
-        }
-
-        public String getArtifactId() {
-            return artifactId;
-        }
-
-        public String getVersion() {
-            return version;
-        }
-
-        public String getScope() {
-            return null;
-        }
-
-        public List /*<ModuleId>*/ getExcludedModules() {
-            return Collections.EMPTY_LIST; // probably not used?
-        }
-    }
-
     private String getDefaultVersion(PomReader.PomDependencyData dep) {
         String key = getDependencyMgtExtraInfoKeyForVersion(dep.getGroupId(), dep.getArtifactId());
         return extraInfo.get(key);

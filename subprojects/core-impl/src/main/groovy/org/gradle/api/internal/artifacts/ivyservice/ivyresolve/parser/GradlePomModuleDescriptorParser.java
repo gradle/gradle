@@ -20,7 +20,6 @@ import org.apache.ivy.core.module.descriptor.Configuration.Visibility;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.parser.m2.PomDependencyMgt;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomReader.PomDependencyData;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomReader.PomPluginElement;
 import org.gradle.api.internal.artifacts.metadata.ModuleDescriptorAdapter;
 import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData;
 import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
@@ -138,12 +137,6 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
                 for (PomDependencyMgt aDepMgt : depMgt) {
                     mdBuilder.addDependencyMgt(aDepMgt);
                 }
-
-                // add plugins from parent
-                List<PomPluginElement> plugins = parentDescr.getPlugins();
-                for(PomPluginElement plugin : plugins) {
-                    mdBuilder.addPlugin(plugin);
-                }
             }
 
             for (Object o : pomReader.getDependencyMgt()) {
@@ -176,11 +169,6 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
                 for (PomDependencyData pomDependencyData : parentDescr.getDependencies()) {
                     mdBuilder.addDependency(pomDependencyData);
                 }
-            }
-
-            for (Object o : pomReader.getPlugins()) {
-                PomPluginElement plugin = (PomPluginElement) o;
-                mdBuilder.addPlugin(plugin);
             }
         }
     }

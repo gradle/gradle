@@ -66,8 +66,6 @@ public class PomReader {
     private static final String DISTRIBUTION_MGT = "distributionManagement";
     private static final String RELOCATION = "relocation";
     private static final String PROPERTIES = "properties";
-    private static final String PLUGINS = "plugins";
-    private static final String PLUGIN = "plugin";
     private static final String TYPE = "type";
 
     private Map<String, String> properties = new HashMap<String, String>();
@@ -397,59 +395,6 @@ public class PomReader {
             return exclusions;
         }
     }
-
-    public List<PomPluginElement> getPlugins() {
-        List<PomPluginElement> plugins = new LinkedList<PomPluginElement>();
-
-        Element buildElement = getFirstChildElement(projectElement, "build");
-        if (buildElement == null) {
-            return plugins;
-        }
-
-        Element pluginsElement = getFirstChildElement(buildElement, PLUGINS);
-        if (pluginsElement != null) {
-            NodeList childs = pluginsElement.getChildNodes();
-            for (int i = 0; i < childs.getLength(); i++) {
-                Node node = childs.item(i);
-                if (node instanceof Element && PLUGIN.equals(node.getNodeName())) {
-                    plugins.add(new PomPluginElement((Element) node));
-                }
-            }
-        }
-        return plugins;
-    }
-
-    public class PomPluginElement implements PomDependencyMgt {
-        private Element pluginElement;
-
-        PomPluginElement(Element pluginElement) {
-            this.pluginElement = pluginElement;
-        }
-
-        public String getGroupId() {
-            String val = getFirstChildText(pluginElement , GROUP_ID);
-            return replaceProps(val);
-        }
-
-        public String getArtifactId() {
-            String val = getFirstChildText(pluginElement , ARTIFACT_ID);
-            return replaceProps(val);
-        }
-
-        public String getVersion() {
-            String val = getFirstChildText(pluginElement , VERSION);
-            return replaceProps(val);
-        }
-
-        public String getScope() {
-            return null; // not used
-        }
-
-        public List<ModuleId> getExcludedModules() {
-            return Collections.emptyList(); // probably not used?
-        }
-    }
-
 
     public class PomDependencyData extends PomDependencyMgtElement {
         private final Element depElement;
