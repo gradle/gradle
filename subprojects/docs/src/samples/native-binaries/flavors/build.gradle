@@ -4,15 +4,17 @@ sources {
     exe {}
     lib {}
 }
+// START SNIPPET flavors
 libraries {
+// END SNIPPET flavors
     // Define some common settings for all shared library binaries
     all {
         binaries.withType(SharedLibraryBinary) {
             cppCompiler.define "DLL_EXPORT"
         }
     }
+// START SNIPPET flavors
     hello {
-        source sources.lib
         flavors {
             english {}
             french {}
@@ -22,16 +24,18 @@ libraries {
                 cppCompiler.define "FRENCH"
             }
         }
+        source sources.lib
     }
 }
+// END SNIPPET flavors
 
 executables {
     main {
-        source sources.exe
         flavors {
             english {}
             french {}
         }
+        source sources.exe
         binaries.all {
             lib libraries.hello
         }

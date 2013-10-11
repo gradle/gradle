@@ -44,7 +44,7 @@ public class DaemonGroovyCompiler implements Compiler<GroovyJavaJointCompileSpec
 
     public WorkResult execute(GroovyJavaJointCompileSpec spec) {
         DaemonForkOptions daemonForkOptions = createDaemonForkOptions(spec);
-        CompilerDaemon daemon = daemonFactory.getDaemon(project, daemonForkOptions);
+        CompilerDaemon daemon = daemonFactory.getDaemon(project.getRootProject().getProjectDir(), daemonForkOptions);
         CompileResult result = daemon.execute(delegate, spec);
         if (result.isSuccess()) {
             return result;

@@ -1,10 +1,13 @@
 apply plugin: 'cpp'
 
+// START SNIPPET build-types
 buildTypes {
     debug {}
     release {}
 }
+// END SNIPPET build-types
 
+// START SNIPPET target-platforms
 targetPlatforms {
     x86 {
         architecture "x86"
@@ -16,6 +19,7 @@ targetPlatforms {
         architecture "ia-64"
     }
 }
+// END SNIPPET target-platforms
 
 executables {
     main {}
@@ -26,6 +30,7 @@ libraries {
 sources.main.cpp.lib libraries.hello.static
 
 // Apply arguments for debug binaries (these options are not yet set automatically)
+// START SNIPPET build-type-config
 binaries.all {
     if (toolChain in Gcc && buildType == buildTypes.debug) {
         cppCompiler.args "-g"
@@ -36,6 +41,7 @@ binaries.all {
         linker.args '/DEBUG'
     }
 }
+// END SNIPPET build-type-config
 
 // Apply custom arguments for different target platforms
 binaries.all {

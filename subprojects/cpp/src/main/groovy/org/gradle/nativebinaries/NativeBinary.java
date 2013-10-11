@@ -31,6 +31,10 @@ import java.util.Collection;
  */
 @Incubating @HasInternalProtocol
 public interface NativeBinary extends Binary {
+    /**
+     * The component that this binary was built from.
+     */
+    NativeComponent getComponent();
 
     /**
      * The flavor that this binary was built with.
@@ -103,5 +107,13 @@ public interface NativeBinary extends Binary {
      */
     Tool getLinker();
 
+    /**
+     * The set of tasks associated with this binary.
+     */
     NativeBinaryTasks getTasks();
+
+    /**
+     * Can this binary be built in the current environment?
+     */
+    boolean isBuildable();
 }

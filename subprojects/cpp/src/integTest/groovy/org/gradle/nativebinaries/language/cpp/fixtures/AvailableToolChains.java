@@ -94,7 +94,7 @@ public class AvailableToolChains {
         // Search in the standard installation locations
         File compilerExe = new File("C:/MinGW/bin/g++.exe");
         if (compilerExe.isFile()) {
-            return new InstalledGcc("mingw").inPath(compilerExe.getParentFile()).withVisualCppHidden();
+            return new InstalledGcc("mingw").inPath(compilerExe.getParentFile());
         }
 
         return new UnavailableToolChain("mingw");
@@ -104,7 +104,7 @@ public class AvailableToolChains {
         // Search in the standard installation locations
         File compilerExe = new File("C:/cygwin/bin/g++.exe");
         if (compilerExe.isFile()) {
-            return new InstalledGcc("gcc cygwin").inPath(compilerExe.getParentFile()).withVisualCppHidden();
+            return new InstalledGcc("gcc cygwin").inPath(compilerExe.getParentFile());
         }
 
         return new UnavailableToolChain("gcc cygwin");
@@ -160,10 +160,8 @@ public class AvailableToolChains {
     public abstract static class InstalledToolChain extends ToolChainCandidate {
         private static final ProcessEnvironment PROCESS_ENVIRONMENT = NativeServices.getInstance().get(ProcessEnvironment.class);
         protected final List<File> pathEntries = new ArrayList<File>();
-        protected final Map<String, String> environmentVars = new HashMap<String, String>();
         private final String displayName;
         private final String pathVarName;
-        private final Map<String, String> originalEnvrionmentVars = new HashMap<String, String>();
         private String originalPath;
 
         public InstalledToolChain(String displayName) {
@@ -173,12 +171,6 @@ public class AvailableToolChains {
 
         InstalledToolChain inPath(File... pathEntries) {
             Collections.addAll(this.pathEntries, pathEntries);
-            return this;
-        }
-
-        InstalledToolChain withVisualCppHidden() {
-            // Change PROGRAMFILES so that Visual C++ won't be located
-            environmentVars.put("PROGRAMFILES", "C:\\NOT A DIRECTORY");
             return this;
         }
 
@@ -221,22 +213,11 @@ public class AvailableToolChains {
                 System.out.println(String.format("Using path %s", path));
                 PROCESS_ENVIRONMENT.setEnvironmentVariable(pathVarName, path);
             }
-
-            for (Map.Entry<String, String> entry : environmentVars.entrySet()) {
-                String key = entry.getKey();
-                String value = entry.getValue();
-                originalEnvrionmentVars.put(key, System.getenv(key));
-                System.out.println(String.format("Using environment key %s -> %s", key, value));
-                PROCESS_ENVIRONMENT.setEnvironmentVariable(key, value);
-            }
         }
 
         public void resetEnvironment() {
             if (originalPath != null) {
                 PROCESS_ENVIRONMENT.setEnvironmentVariable(pathVarName, originalPath);
-            }
-            for (Map.Entry<String, String> entry : originalEnvrionmentVars.entrySet()) {
-                PROCESS_ENVIRONMENT.setEnvironmentVariable(entry.getKey(), entry.getValue());
             }
         }
 

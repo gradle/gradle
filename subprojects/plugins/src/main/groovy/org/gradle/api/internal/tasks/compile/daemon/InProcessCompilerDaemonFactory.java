@@ -16,16 +16,16 @@
 
 package org.gradle.api.internal.tasks.compile.daemon;
 
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.compile.CompileSpec;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.*;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.io.ClassLoaderObjectInputStream;
-import org.gradle.util.*;
+import org.gradle.util.GUtil;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.Serializable;
 import java.util.concurrent.Callable;
 
@@ -37,7 +37,7 @@ public class InProcessCompilerDaemonFactory implements CompilerDaemonFactory {
         return INSTANCE;
     }
 
-    public CompilerDaemon getDaemon(ProjectInternal project, final DaemonForkOptions forkOptions) {
+    public CompilerDaemon getDaemon(File workingDir, final DaemonForkOptions forkOptions) {
         return new CompilerDaemon() {
             public <T extends CompileSpec> CompileResult execute(Compiler<T> compiler, T spec) {
                 ClassLoader groovyClassLoader = classLoaderFactory.createIsolatedClassLoader(new DefaultClassPath(forkOptions.getClasspath()));

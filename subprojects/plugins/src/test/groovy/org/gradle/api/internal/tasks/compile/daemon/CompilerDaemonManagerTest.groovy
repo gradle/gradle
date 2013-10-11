@@ -16,9 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile.daemon
 
-import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.util.ConcurrentSpecification
-import org.gradle.util.TestUtil
 
 import java.util.concurrent.CopyOnWriteArraySet
 import java.util.concurrent.locks.ReentrantLock
@@ -27,7 +25,7 @@ import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
 class CompilerDaemonManagerTest extends ConcurrentSpecification {
 
-    def project = TestUtil.createRootProject()
+    def workingDir = new File("some-dir")
 
     def "creates new daemon when fork options incompatible"() {
         def forkOptions = Stub(DaemonForkOptions) { isCompatibleWith(_) >> false }
@@ -35,8 +33,8 @@ class CompilerDaemonManagerTest extends ConcurrentSpecification {
 
         when:
         Set daemons = []
-        daemons << m.getDaemon(project, forkOptions)
-        daemons << m.getDaemon(project, forkOptions)
+        daemons << m.getDaemon(workingDir, forkOptions)
+        daemons << m.getDaemon(workingDir, forkOptions)
 
         then:
         daemons.size() == 2
@@ -48,8 +46,8 @@ class CompilerDaemonManagerTest extends ConcurrentSpecification {
 
         when:
         Set daemons = []
-        daemons << m.getDaemon(project, forkOptions).setIdle(true)
-        daemons << m.getDaemon(project, forkOptions)
+        daemons << m.getDaemon(workingDir, forkOptions).setIdle(true)
+        daemons << m.getDaemon(workingDir, forkOptions)
 
         then:
         daemons.size() == 1
@@ -62,8 +60,8 @@ class CompilerDaemonManagerTest extends ConcurrentSpecification {
 
         when: //2 threads asking for daemons
         Set daemons = new CopyOnWriteArraySet()
-        start { daemons << m.getDaemon(project, forkOptions) }
-        start { daemons << m.getDaemon(project, forkOptions) }
+        start { daemons << m.getDaemon(workingDir, forkOptions) }
+        start { daemons << m.getDaemon(workingDir, forkOptions) }
 
         then: //both threads are creating an instance of a daemon at the same time
         poll { assert starter.awaitingCreation == 2 }
@@ -81,8 +79,8 @@ class CompilerDaemonManagerTest extends ConcurrentSpecification {
 
         when: //2 threads asking for daemons
         Set daemons = new CopyOnWriteArraySet()
-        start { daemons << m.getDaemon(project, forkOptions) }
-        start { daemons << m.getDaemon(project, forkOptions) }
+        start { daemons << m.getDaemon(workingDir, forkOptions) }
+        start { daemons << m.getDaemon(workingDir, forkOptions) }
 
         then: //both threads are creating an instance of a daemon at the same time
         poll { assert daemons.size() == 2 }
@@ -91,7 +89,7 @@ class CompilerDaemonManagerTest extends ConcurrentSpecification {
         daemons.each { it.idle = true }
 
         and: //and new daemon requested
-        daemons << m.getDaemon(project, forkOptions)
+        daemons << m.getDaemon(workingDir, forkOptions)
 
         then: //one of the daemons is reused
         poll {
@@ -106,7 +104,11 @@ class CompilerDaemonManagerTest extends ConcurrentSpecification {
         def boolean blocked
         def awaitingCreation = 0
 
-        CompilerDaemonClient startDaemon(ProjectInternal project, DaemonForkOptions forkOptions) {
+        DummyCompilerDaemonStarter() {
+            super(null, null)
+        }
+
+        CompilerDaemonClient startDaemon(File workingDir, DaemonForkOptions forkOptions) {
             lock.lock()
             try {
                 awaitingCreation++

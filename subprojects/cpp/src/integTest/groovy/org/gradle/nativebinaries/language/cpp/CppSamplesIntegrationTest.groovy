@@ -33,13 +33,6 @@ class CppSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
     @Rule public final Sample variants = new Sample(temporaryFolder, 'native-binaries/variants')
     @Rule public final Sample dependencies = new Sample(temporaryFolder, 'native-binaries/dependencies')
 
-    def setup() {
-        toolChain.initialiseEnvironment()
-    }
-    def cleanup() {
-        toolChain.resetEnvironment()
-    }
-
     def "assembler"() {
         given:
         sample assembler
@@ -102,6 +95,10 @@ class CppSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
 
     def "exe"() {
         given:
+        // Need to PATH to be set to find the 'strip' executable
+        toolChain.initialiseEnvironment()
+
+        and:
         sample cppExe
 
         when:
@@ -113,6 +110,9 @@ class CppSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         and:
         executable("native-binaries/cpp-exe/build/binaries/mainExecutable/sampleExe").exec().out == "Hello, World!\n"
         installation("native-binaries/cpp-exe/build/install/mainExecutable").exec().out == "Hello, World!\n"
+
+        cleanup:
+        toolChain.resetEnvironment()
     }
 
     def "lib"() {
@@ -250,5 +250,4 @@ class CppSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         executable("native-binaries/dependencies/exe/build/binaries/mainExecutable/exe").assertExists()
         file("native-binaries/dependencies/exe/build/repo/dependencies/exe/1.0/exe-1.0.exe").exists()
     }
-
 }

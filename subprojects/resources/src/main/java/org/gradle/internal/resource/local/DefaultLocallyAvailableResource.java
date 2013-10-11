@@ -31,6 +31,11 @@ public class DefaultLocallyAvailableResource extends AbstractLocallyAvailableRes
         this.origin = origin;
     }
 
+    @Override
+    public String toString() {
+        return origin.toString();
+    }
+
     public File getFile() {
         return origin;
     }

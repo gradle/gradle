@@ -14,17 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries.internal;
+package org.gradle.initialization;
 
-import org.gradle.language.DependentSourceSet;
-import org.gradle.language.base.internal.BinaryInternal;
-import org.gradle.nativebinaries.NativeBinary;
-import org.gradle.nativebinaries.NativeDependencySet;
-
-import java.util.Collection;
-
-public interface NativeBinaryInternal extends NativeBinary, BinaryInternal {
-    Collection<NativeDependencySet> getLibs(DependentSourceSet sourceSet);
-
-    void setBuildable(boolean buildable);
+public interface JdkToolsInitializer {
+    /**
+     * Ensures that the JDK tools are visible on the system ClassLoader. Not really a great idea, but here for backwards
+     * compatibility.
+     */
+    void initializeJdkTools();
 }

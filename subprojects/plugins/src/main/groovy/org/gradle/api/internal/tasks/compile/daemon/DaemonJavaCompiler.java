@@ -28,10 +28,12 @@ import java.util.Collections;
 public class DaemonJavaCompiler implements Compiler<JavaCompileSpec> {
     private final ProjectInternal project;
     private final Compiler<JavaCompileSpec> delegate;
+    private final CompilerDaemonManager compilerDaemonManager;
 
-    public DaemonJavaCompiler(ProjectInternal project, Compiler<JavaCompileSpec> delegate) {
+    public DaemonJavaCompiler(ProjectInternal project, Compiler<JavaCompileSpec> delegate, CompilerDaemonManager compilerDaemonManager) {
         this.project = project;
         this.delegate = delegate;
+        this.compilerDaemonManager = compilerDaemonManager;
     }
 
     public WorkResult execute(JavaCompileSpec spec) {
@@ -39,7 +41,7 @@ public class DaemonJavaCompiler implements Compiler<JavaCompileSpec> {
         DaemonForkOptions daemonForkOptions = new DaemonForkOptions(
                 forkOptions.getMemoryInitialSize(), forkOptions.getMemoryMaximumSize(), forkOptions.getJvmArgs(),
                 Collections.<File>emptyList(), Collections.singleton("com.sun.tools.javac"));
-        CompilerDaemon daemon = CompilerDaemonManager.getInstance().getDaemon(project, daemonForkOptions);
+        CompilerDaemon daemon = compilerDaemonManager.getDaemon(project.getRootProject().getProjectDir(), daemonForkOptions);
         CompileResult result = daemon.execute(delegate, spec);
         if (result.isSuccess()) {
             return result;

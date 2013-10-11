@@ -16,8 +16,9 @@
 
 package org.gradle.api.internal.tasks.compile.daemon;
 
-import org.gradle.api.internal.project.ProjectInternal;
+import java.io.File;
 
 public interface CompilerDaemonFactory {
-    CompilerDaemon getDaemon(ProjectInternal project, DaemonForkOptions forkOptions);
+    // TODO - workingDir should be injected into the implementation
+    CompilerDaemon getDaemon(File workingDir, DaemonForkOptions forkOptions);
 }

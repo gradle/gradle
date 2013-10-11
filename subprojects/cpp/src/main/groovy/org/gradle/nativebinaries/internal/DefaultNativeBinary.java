@@ -142,6 +142,4 @@ public abstract class DefaultNativeBinary extends AbstractBuildableModelElement 
 
     public abstract String getOutputFileName();
 
-    protected abstract NativeComponent getComponent();
-
 }

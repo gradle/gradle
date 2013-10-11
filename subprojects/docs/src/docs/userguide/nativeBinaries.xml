@@ -32,8 +32,12 @@
     <section>
         <title>Tool chain support</title>
         <para>
-            Gradle offers the ability to execute the same build using different tool chains. At present, you control which tool chain will be used to build
-            by changing the operating system PATH to include the desired tool chain compiler. The following tool chains are supported:
+            Gradle offers the ability to execute the same build using different tool chains. You can ontrol which tool chain will be used to build
+            by changing the operating system PATH to include the desired tool chain compiler. Alternatively, you can configure the tool chains directly,
+            as described in the `Native Binary Variants` section, below.
+        </para>
+        <para>
+            The following tool chains are supported:
         </para>
         <table>
             <thread>
@@ -61,12 +65,6 @@
                 <td>Windows</td><td><ulink url="http://www.mingw.org/">MinGW</ulink></td><td>Windows XP and later.</td>
             </tr>
         </table>
-        <para>
-            Currently, there is no direct support for creating multiple variants of the same binary (e.g. 32 bit vs. 64 bit) and there is no direct
-            support for cross platform source configuration (à la <ulink url="http://www.gnu.org/s/autoconf/">autoconf</ulink>) at this time. Support for different
-            compiler chains, managing multiple variants and cross platform source configuration will be added over time, making Gradle a fully capable build tool for C++
-            (and other “native” language) projects.
-        </para>
     </section>
 
     <section>
@@ -94,6 +92,12 @@
         <sample id="cppExecutables" dir="native-binaries/c" title="Defining executable components">
             <sourcefile file="build.gradle" snippet="executables"/>
         </sample>
+        <para>
+            In many cases, more than one native binary can be produced for a component.
+            These binaries may vary based on the tool chain used to build, the compiler/linker flags supplied, the dependencies
+            provided, or additional source files provided. Each native binary produced for a component is referred to as <literal>variant</literal>.
+            Binary variants are discussed in detail below.
+        </para>
     </section>
 
     <section>
@@ -128,7 +132,7 @@
         </section>
     </section>
 
-    <section>
+    <section id="native_binaries:languages">
         <title>Supported Languages: C, C++ and Assembler</title>
         <para>
             Presently, Gradle supports building native binaries from any combination of C++, C and Assembler sources.
@@ -300,6 +304,170 @@
                 “<literal>zip</literal>” which is a zip file of the exported headers, and another with the classifier “<literal>so</literal>” and extension
                 “<literal>so</literal>” which is the compiled library binary to link against (which is supplied as a direct input to the g++ link operation).
             </para>
+        </section>
+    </section>
+
+    <section id="native_binaries:variants">
+        <title>Native Binary Variants</title>
+        <para>
+            For each executable or library defined, Gradle is able to build a number of different native binary variants.
+            Examples of different variants include debug vs release binaries, 32-bit vs 64-bit binaries, and binaries produced
+            by GCC vs binaries produced by Clang.
+        </para>
+        <para>
+            Binaries produced by Gradle can be differentiated on
+                <link linkend="native_binaries:build_type">build type</link>,
+                <link linkend="native_binaries:target_platform">target platform</link>,
+                <link linkend="native_binaries:flavor">flavor</link> and
+                <link linkend="native_binaries:tool_chain">tool chain</link>.
+        </para>
+
+        <section id="native_binaries:build_type">
+            <title>Build type</title>
+            <para>
+                The <literal>build type</literal> determines various non-functional aspects of a binary, such as whether debug information is included,
+                or what optimisation level the binary is compiled with. Typical build types are 'debug' and 'release', but a project
+                is free to define any set of build types.
+            </para>
+            <sample id="buildTypes" dir="native-binaries/variants" title="Defining build types">
+                <sourcefile file="build.gradle" snippet="build-types"/>
+            </sample>
+            <para>
+                For a build type, a Gradle project will typically define a set of compiler/linker flags per tool chain.
+            </para>
+            <sample id="buildTypeConfig" dir="native-binaries/variants" title="Configuring debug binaries">
+                <sourcefile file="build.gradle" snippet="build-type-config"/>
+            </sample>
+            <note>
+                At this stage, it is completely up to the build script to configure the relevant compiler/linker flags for each
+                build type. Future versions of Gradle will automatically include the appropriate debug flags for any 'debug' build
+                type, and may be aware of various levels of optimisation as well.
+            </note>
+            <para>
+                If no build types are defined for a component, then all binaries are built with a single, default build type called 'debug'.
+            </para>
+        </section>
+
+        <section id="native_binaries:target_platform">
+            <title>Target platform</title>
+            <para>
+                An executable or library can be built to run on different operating systems and cpu architectures, with a variant being
+                produced for each target platform.
+                Gradle defines each target OS/architecture combination as a <apilink class="org.gradle.nativebinaries.Platform"/>, and
+                a project may be configured with different <literal>targetPlatforms</literal>.
+            </para>
+            <sample id="targetPlatforms" dir="native-binaries/variants" title="Defining target platforms">
+                <sourcefile file="build.gradle" snippet="target-platforms"/>
+            </sample>
+            <note>
+                When a platform does not define an architecture or operating system, the default target of the tool chain
+                is assumed. In the example above, the <literal>operatingSystem</literal> is not defined, so Gradle will assume that the tool chain
+                is configured to build for the correct operating system, and will not supply any specific
+                compiler/linker flags to target a particular operating system.
+            </note>
+            <para>
+                The core Gradle tool chains support the following architectures out of the box. There is not currently any core
+                support for building for different operating systems.
+            </para>
+            <table>
+                <thread>
+                    <tr><td>Tool Chain</td><td>Architectures</td></tr>
+                </thread>
+                <tr>
+                    <td>GCC</td><td>x86, x86_64</td>
+                </tr>
+                <tr>
+                    <td>Clang</td><td>x86, x86_64</td>
+                </tr>
+                <tr>
+                    <td>Visual C++</td><td>x86, x86_64, ia-64</td>
+                </tr>
+            </table>
+
+            <para>
+                Cross-compiling is possible with the <apilink class="org.gradle.nativebinaries.toolchain.Gcc"/> and <apilink class="org.gradle.nativebinaries.toolchain.Clang"/> tool chains,
+                by programmatically adding support for additional target platforms.
+                This is done using the <apilink class="org.gradle.nativebinaries.toolchain.PlatformConfigurableToolChain"/> API.
+            </para>
+
+            <note>
+                There is no direct support for cross platform source configuration (à la <ulink url="http://www.gnu.org/s/autoconf/">autoconf</ulink>) at this time.
+            </note>
+
+            <para>
+                If no target platforms are defined for a project, then all binaries are built to target a default platform
+                which does not specify an <literal>architecture</literal> or <literal>operatingSystem</literal>, hence using the tool chain default.
+            </para>
+        </section>
+
+        <section id="native_binaries:flavor">
+            <title>Flavor</title>
+            <para>
+                Each component can have a set of named <literal>flavors</literal>, and a separate binary variant can be produced for each flavor.
+                While the <literal>build type</literal> and <literal>target platform</literal> variant dimensions have a defined meaning in Gradle,
+                each project is free to define any number of flavors and apply meaning to them in any way.
+            </para>
+            <para>
+                An example of component flavors might differentiate between 'demo', 'paid' and 'enterprise' editions of the component,
+                where the same set of sources is used to produce binaries with different functions.
+            </para>
+            <sample id="flavors" dir="native-binaries/flavors" title="Defining component flavors">
+                <sourcefile file="build.gradle" snippet="flavors"/>
+            </sample>
+            <para>
+                In the above example, a library is defined with a 'english' and 'french' flavor. When compiling the 'french'
+                variant, a separate macro is defined which leads to a different binary being produced.
+            </para>
+            <para>
+                If no flavor is defined for a component, then a single default flavor named 'default' is used.
+            </para>
+        </section>
+        <section id="native_binaries:tool_chain">
+            <title>Tool chain</title>
+            <para>
+                Within a single build it is possible to build the same component with different tool chains. To do so, the set
+                of tool chains for a project must be explicitly configured, and a separate variant will be produced for each
+                available tool chain. Attempting to build the variant for a tool chain that is not available on the current
+                machine will result in an error.
+            </para>
+            <sample id="toolChains" dir="native-binaries/tool-chains" title="Defining tool chains">
+                <sourcefile file="build.gradle" snippet="toolChains"/>
+            </sample>
+            <para>
+                The supported tool chain types are:
+            </para>
+            <itemizedlist>
+                <listitem>
+                    <para><apilink class="org.gradle.nativebinaries.toolchain.Gcc"/></para>
+                </listitem>
+                <listitem>
+                    <para><apilink class="org.gradle.nativebinaries.toolchain.Clang"/></para>
+                </listitem>
+                <listitem>
+                    <para><apilink class="org.gradle.nativebinaries.toolchain.VisualCpp"/></para>
+                </listitem>
+            </itemizedlist>
+            <para>
+                Each tool chain implementation allows for a certain degree of configuration (see the API documentation for more details).
+            </para>
+        </section>
+        <section>
+            <title>Building all possible variants</title>
+            <para>
+                When a set of build types, target platforms, flavors and tool chains is defined for a component,
+                a <apilink class="org.gradle.nativebinaries.NativeBinary"/> model element is created for every possible
+                combination of these. However, in many cases it is not possible to build a particular variant, perhaps because
+                the tool chain for that variant is not available on the current machine, or the tool chain is not able to build
+                for the specified target architecture.
+            </para>
+            <para>
+                If a binary variant cannot be built for any reason, then the <apilink class="org.gradle.nativebinaries.NativeBinary"/>
+                associated with that variant will not be <literal>buildable</literal>. It is possible to use this property to create a task
+                to generate all possible variants on a particular machine.
+            </para>
+            <sample id="buildable" dir="native-binaries/tool-chains" title="Building all possible variants">
+                <sourcefile file="build.gradle" snippet="buildable"/>
+            </sample>
         </section>
     </section>
 

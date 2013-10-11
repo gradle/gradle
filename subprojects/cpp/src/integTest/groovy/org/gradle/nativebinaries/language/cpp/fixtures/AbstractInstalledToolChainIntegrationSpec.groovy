@@ -15,7 +15,6 @@
  */
 
 package org.gradle.nativebinaries.language.cpp.fixtures
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.runner.RunWith
@@ -25,14 +24,18 @@ import org.junit.runner.RunWith
 @RunWith(SingleToolChainTestRunner.class)
 abstract class AbstractInstalledToolChainIntegrationSpec extends AbstractIntegrationSpec {
     static AvailableToolChains.InstalledToolChain toolChain
+    def initScript
 
     def setup() {
-        buildFile << """
-            apply plugin: ${toolChain.pluginClass}
-            toolChains {
-                ${toolChain.buildScriptConfig}
-            }
+        initScript = file("init.gradle") << """
+allprojects {
+    apply plugin: ${toolChain.pluginClass}
+    toolChains {
+        ${toolChain.buildScriptConfig}
+    }
+}
 """
+        executer.alwaysUsingInitScript(initScript)
     }
 
     def NativeInstallationFixture installation(Object installDir) {

@@ -19,8 +19,6 @@ package org.gradle.api.tasks.bundling
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.archive.JarTestFixture
 
-import static org.hamcrest.Matchers.equalTo
-
 class JarIntegrationTest extends AbstractIntegrationSpec {
 
     def canCreateAnEmptyJar() {
@@ -32,13 +30,13 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
                     archiveName = 'test.jar'
         }
         """
+
         when:
         run 'jar'
+
         then:
-        def expandDir = file('expanded')
-        file('build/test.jar').unzipTo(expandDir)
-        expandDir.assertHasDescendants('META-INF/MANIFEST.MF')
-        expandDir.file('META-INF/MANIFEST.MF').assertContents(equalTo('Manifest-Version: 1.0\r\n\r\n'))
+        def jar = new JarTestFixture(file('build/test.jar'))
+        jar.assertFileContent('META-INF/MANIFEST.MF', 'Manifest-Version: 1.0\r\n\r\n')
     }
 
     def canCreateAJarArchiveWithDefaultManifest() {
@@ -65,15 +63,15 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
                 archiveName = 'test.jar'
             }
         """
+
         when:
         run 'jar'
+
         then:
         def jar = new JarTestFixture(file('build/test.jar'))
-        jar.isManifestPresentAndFirstEntry()
-        def expandDir = file('expanded')
-        file('build/test.jar').unzipTo(expandDir)
-        expandDir.assertHasDescendants('META-INF/MANIFEST.MF', 'META-INF/file1.txt', 'META-INF/dir2/file2.txt', 'dir1/file1.txt')
-        expandDir.file('META-INF/MANIFEST.MF').assertContents(equalTo('Manifest-Version: 1.0\r\n\r\n'))
+        jar.assertContainsFile('META-INF/file1.txt')
+        jar.assertContainsFile('META-INF/dir2/file2.txt')
+        jar.assertContainsFile('dir1/file1.txt')
     }
 
     def metaInfSpecsAreIndependentOfOtherSpec() {
@@ -111,17 +109,17 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
                 archiveName = 'test.jar'
             }
         """
+
         when:
         run 'jar'
+
         then:
-        def expandDir = file('expanded')
-        file('build/test.jar').unzipTo(expandDir)
-        expandDir.assertHasDescendants(
-                'META-INF/MANIFEST.MF',
-                'META-INF/dir2/file2.xml',
-                'META-INF/dir3/file2.txt',
-                'META-INF/dir3/file2.xml',
-                'dir1/file1.txt')
+        def jar = new JarTestFixture(file('build/test.jar'))
+        jar.assertContainsFile('META-INF/MANIFEST.MF')
+        jar.assertContainsFile('META-INF/dir2/file2.xml')
+        jar.assertContainsFile('META-INF/dir3/file2.txt')
+        jar.assertContainsFile('META-INF/dir3/file2.xml')
+        jar.assertContainsFile('dir1/file1.txt')
     }
 
     def usesManifestFromJarTaskWhenMergingJars() {
@@ -150,19 +148,22 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
                 from zipTree(jar1.archivePath), zipTree(jar2.archivePath)
                 manifest { attributes(attr: 'value') }
                 destinationDir = buildDir
-                archiveName = 'test.zip'
+                archiveName = 'test.jar'
             }
             '''
+
         when:
         run 'jar'
+
         then:
-        def jar = file('build/test.zip')
+        def jar = file('build/test.jar')
         def manifest = jar.manifest
         manifest.mainAttributes.getValue('attr') == 'value'
 
-        def expandDir = file('expected')
-        jar.unzipTo(expandDir)
-        expandDir.assertHasDescendants('dir1/file1.txt', 'dir2/file2.txt', 'META-INF/MANIFEST.MF')
+        def jarFixture = new JarTestFixture(jar)
+        jarFixture.assertContainsFile('META-INF/MANIFEST.MF')
+        jarFixture.assertContainsFile('dir2/file2.txt')
+        jarFixture.assertContainsFile('dir2/file2.txt')
     }
 
     def excludeDuplicatesUseManifestOverMetaInf() {
@@ -183,14 +184,15 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         }
 
         '''
+
         when:
         run 'jar'
+
         then:
         def jar = file('build/test.jar')
         def manifest = jar.manifest
         manifest.mainAttributes.getValue('attr') == 'from manifest'
     }
-
 
     def excludeDuplicatesUseMetaInfOverRegularFiles() {
         createDir('meta-inf1') {
@@ -220,16 +222,13 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         }
 
         '''
+
         when:
         run 'jar'
-        then:
-        def jar = file('build/test.jar')
-        jar.unzipTo(file('expected'))
-        def target = file('expected/META-INF/file.txt')
 
         then:
-        target.assertIsFile()
-        target.text == 'good'
+        def jar = new JarTestFixture(file('build/test.jar'))
+        jar.assertFileContent('META-INF/file.txt', 'good')
     }
 
     def duplicateServicesIncludedOthersExcluded() {
@@ -247,10 +246,11 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         }
 
         '''
+
         when:
         run 'jar'
-        then:
 
+        then:
         confirmDuplicateServicesPreserved()
     }
 
@@ -270,8 +270,10 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         }
 
         '''
+
         when:
         run 'jar'
+
         then:
         confirmDuplicateServicesPreserved()
     }

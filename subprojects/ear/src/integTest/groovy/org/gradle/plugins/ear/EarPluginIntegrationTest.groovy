@@ -18,12 +18,12 @@ package org.gradle.plugins.ear
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.test.fixtures.archive.JarTestFixture
+import org.hamcrest.Matchers
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.Test
 
 import static org.testng.Assert.assertEquals
-import static org.testng.Assert.assertFalse
 
 class EarPluginIntegrationTest extends AbstractIntegrationTest {
 
@@ -48,15 +48,13 @@ dependencies {
 """)
         //when
         executer.withTasks('assemble').run()
-        file("build/libs/root.ear").unzipTo(file("unzipped"))
-        
+
         //then
         def ear = new JarTestFixture(file('build/libs/root.ear'))
-        ear.isManifestPresentAndFirstEntry()
-        file("unzipped/rootLib.jar").assertExists()
-        file("unzipped/META-INF/MANIFEST.MF").assertExists()
-        file("unzipped/META-INF/application.xml").assertExists()
-        file("unzipped/lib/earLib.jar").assertExists()
+        ear.assertContainsFile("META-INF/MANIFEST.MF")
+        ear.assertContainsFile("META-INF/application.xml")
+        ear.assertContainsFile("rootLib.jar")
+        ear.assertContainsFile("lib/earLib.jar")
     }
 
     @Test
@@ -79,13 +77,12 @@ ear {
 """)
         //when
         executer.withTasks('assemble').run()
-        file("build/libs/root.ear").unzipTo(file("unzipped"))
 
         //then
-        file("unzipped/CUSTOM/lib/earLib.jar").assertExists()
-        assert file("unzipped/META-INF/application.xml").text.contains('cool ear')
+        def ear = new JarTestFixture(file('build/libs/root.ear'))
+        ear.assertContainsFile("CUSTOM/lib/earLib.jar")
+        ear.assertFileContent("META-INF/application.xml", Matchers.containsString("cool ear"))
     }
-
 
     @Test
     void "includes modules in deployment descriptor"() {
@@ -132,12 +129,12 @@ ear {
 
         //when
         executer.withTasks('assemble').run()
-        file("build/libs/root.ear").unzipTo(file("unzipped"))
 
         //then
-        assert file("unzipped/someOtherFile.txt").assertExists()
-        assert file("unzipped/META-INF/stuff/yetAnotherFile.txt").assertExists()
-        assert file("unzipped/META-INF/application.xml").text == applicationXml
+        def ear = new JarTestFixture(file('build/libs/root.ear'))
+        ear.assertContainsFile("someOtherFile.txt")
+        ear.assertContainsFile("META-INF/stuff/yetAnotherFile.txt")
+        ear.assertFileContent("META-INF/application.xml", applicationXml)
     }
 
     @Test
@@ -162,12 +159,12 @@ ear {
 
         //when
         executer.withTasks('assemble').run()
-        file("build/libs/root.ear").unzipTo(file("unzipped"))
 
         //then
-        assert file("unzipped/someOtherFile.txt").assertExists()
-        assert file("unzipped/META-INF/stuff/yetAnotherFile.txt").assertExists()
-        assert file("unzipped/META-INF/application.xml").text == applicationXml
+        def ear = new JarTestFixture(file('build/libs/root.ear'))
+        ear.assertContainsFile("someOtherFile.txt")
+        ear.assertContainsFile("META-INF/stuff/yetAnotherFile.txt")
+        ear.assertFileContent("META-INF/application.xml", applicationXml)
     }
 
     @Test @Ignore
@@ -187,12 +184,10 @@ ear {
 
         // when
         executer.withTasks('assemble').run();
-        file('build/libs/root.ear').unzipTo(file('unzipped'))
 
         // then
-        assertFalse(
-                file('unzipped/META-INF/application.xml').text.contains('bad descriptor'))
-
+        def ear = new JarTestFixture(file('build/libs/root.ear'))
+        ear.assertFileContent("META-INF/application.xml", Matchers.not(Matchers.containsString("bad descriptor")))
     }
 
     @Test
@@ -214,11 +209,10 @@ ear {
 
         // when
         executer.withTasks('assemble').run();
-        file('build/libs/root.ear').unzipTo(file('unzipped'))
 
         // then
-        assertEquals(file('unzipped/lib/file.txt').text, 'good')
-
+        def ear = new JarTestFixture(file('build/libs/root.ear'))
+        ear.assertFileContent("lib/file.txt", "good")
     }
 
 }

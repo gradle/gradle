@@ -15,9 +15,10 @@
  */
 package org.gradle.api.internal.tasks.compile.daemon;
 
-import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.StartParameter;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.Factory;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.process.internal.WorkerProcess;
@@ -26,15 +27,21 @@ import org.gradle.util.Clock;
 
 import java.io.File;
 
-class CompilerDaemonStarter {
-
+public class CompilerDaemonStarter {
     private final static Logger LOG = Logging.getLogger(CompilerDaemonStarter.class);
+    private final Factory<WorkerProcessBuilder> workerFactory;
+    private final StartParameter startParameter;
 
-    public CompilerDaemonClient startDaemon(ProjectInternal project, DaemonForkOptions forkOptions) {
+    public CompilerDaemonStarter(Factory<WorkerProcessBuilder> workerFactory, StartParameter startParameter) {
+        this.workerFactory = workerFactory;
+        this.startParameter = startParameter;
+    }
+
+    public CompilerDaemonClient startDaemon(File workingDir, DaemonForkOptions forkOptions) {
         LOG.debug("Starting Gradle compiler daemon with fork options {}.", forkOptions);
         Clock clock = new Clock();
-        WorkerProcessBuilder builder = project.getServices().getFactory(WorkerProcessBuilder.class).create();
-        builder.setLogLevel(project.getGradle().getStartParameter().getLogLevel()); // NOTE: might make sense to respect per-compile-task log level
+        WorkerProcessBuilder builder = workerFactory.create();
+        builder.setLogLevel(startParameter.getLogLevel()); // NOTE: might make sense to respect per-compile-task log level
         builder.applicationClasspath(forkOptions.getClasspath());
         builder.sharedPackages(forkOptions.getSharedPackages());
         File toolsJar = Jvm.current().getToolsJar();
@@ -45,7 +52,7 @@ class CompilerDaemonStarter {
         javaCommand.setMinHeapSize(forkOptions.getMinHeapSize());
         javaCommand.setMaxHeapSize(forkOptions.getMaxHeapSize());
         javaCommand.setJvmArgs(forkOptions.getJvmArgs());
-        javaCommand.setWorkingDir(project.getRootProject().getProjectDir());
+        javaCommand.setWorkingDir(workingDir);
         WorkerProcess process = builder.worker(new CompilerDaemonServer()).build();
         process.start();
         CompilerDaemonServerProtocol server = process.getConnection().addOutgoing(CompilerDaemonServerProtocol.class);

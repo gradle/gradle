@@ -25,20 +25,24 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 public class ClasspathUtil {
     public static void addUrl(URLClassLoader classLoader, Iterable<URL> classpathElements) {
         try {
+            Set<URI> original = new HashSet<URI>();
+            for (URL url : classLoader.getURLs()) {
+                original.add(url.toURI());
+            }
             Method method = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
             method.setAccessible(true);
             for (URL classpathElement : classpathElements) {
-                method.invoke(classLoader, classpathElement);
+                if (original.add(classpathElement.toURI())) {
+                    method.invoke(classLoader, classpathElement);
+                }
             }
         } catch (Throwable t) {
-            throw new RuntimeException("Error, could not add URL to classloader", t);
+            throw new RuntimeException(String.format("Could not add URLs %s to class path for ClassLoader %s", classpathElements, classLoader), t);
         }
     }
 

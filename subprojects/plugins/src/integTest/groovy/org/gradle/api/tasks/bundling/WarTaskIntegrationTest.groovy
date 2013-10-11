@@ -19,8 +19,6 @@ package org.gradle.api.tasks.bundling
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.archive.JarTestFixture
 
-import static org.hamcrest.Matchers.equalTo
-
 class WarTaskIntegrationTest extends AbstractIntegrationSpec {
 
     def canCreateAWarArchiveWithNoWebXml() {
@@ -67,27 +65,27 @@ class WarTaskIntegrationTest extends AbstractIntegrationSpec {
                 archiveName = 'test.war'
             }
         """
+
         when:
         run "war"
+
         then:
         def war = new JarTestFixture(file('build/test.war'))
         war.isManifestPresentAndFirstEntry()
-        def expandDir = file('expanded')
-        file('build/test.war').unzipTo(expandDir)
-        expandDir.assertHasDescendants(
-                'META-INF/MANIFEST.MF',
-                'META-INF/metainf1/file2.txt',
-                'content1/file1.jsp',
-                'WEB-INF/lib/lib.jar',
-                'WEB-INF/classes/org/gradle/resource.txt',
-                'WEB-INF/classes/org/gradle/Person.class',
-                'WEB-INF/webinf1/file1.txt')
+        war.assertContainsFile('META-INF/MANIFEST.MF')
+        war.assertContainsFile('META-INF/metainf1/file2.txt')
+        war.assertContainsFile('content1/file1.jsp')
+        war.assertContainsFile('WEB-INF/lib/lib.jar')
+        war.assertContainsFile('WEB-INF/classes/org/gradle/resource.txt')
+        war.assertContainsFile('WEB-INF/classes/org/gradle/Person.class')
+        war.assertContainsFile('WEB-INF/webinf1/file1.txt')
 
-        expandDir.file('META-INF/MANIFEST.MF').assertContents(equalTo('Manifest-Version: 1.0\r\n\r\n'))
+        war.assertFileContent('META-INF/MANIFEST.MF', 'Manifest-Version: 1.0\r\n\r\n')
     }
 
     def canCreateAWarArchiveWithWebXml() {
-        given: file('some.xml') << '<web/>'
+        given:
+        def webXml = file('some.xml') << '<web/>'
         createDir('web-inf') {
             webinf1 {
                 file 'file1.txt'
@@ -105,15 +103,17 @@ class WarTaskIntegrationTest extends AbstractIntegrationSpec {
                 archiveName = 'test.war'
             }
         """
+
         when:
         run "war"
+
         then:
-        def expandDir = file('expanded')
-        file('build/test.war').unzipTo(expandDir)
-        expandDir.assertHasDescendants(
-                'META-INF/MANIFEST.MF',
-                'WEB-INF/web.xml',
-                'WEB-INF/webinf1/file1.txt')
+        def war = new JarTestFixture(file('build/test.war'))
+        war.assertContainsFile('META-INF/MANIFEST.MF')
+        war.assertContainsFile('WEB-INF/web.xml')
+        war.assertContainsFile('WEB-INF/webinf1/file1.txt')
+
+        war.assertFileContent('WEB-INF/web.xml', webXml.text)
     }
 
     def canAddFilesToWebInfDir() {
@@ -143,15 +143,15 @@ class WarTaskIntegrationTest extends AbstractIntegrationSpec {
                 archiveName = 'test.war'
             }
         """
+
         when:
         run 'war'
+
         then:
-        def expandDir = file('expanded')
-        file('build/test.war').unzipTo(expandDir)
-        expandDir.assertHasDescendants(
-                'META-INF/MANIFEST.MF',
-                'WEB-INF/webinf1/file1.txt',
-                'WEB-INF/dir2/file2.txt')
+        def war = new JarTestFixture(file('build/test.war'))
+        war.assertContainsFile('META-INF/MANIFEST.MF')
+        war.assertContainsFile('WEB-INF/webinf1/file1.txt')
+        war.assertContainsFile('WEB-INF/dir2/file2.txt')
     }
 
     def "exclude duplicates: webXml precedence over webInf"() {
@@ -175,14 +175,13 @@ class WarTaskIntegrationTest extends AbstractIntegrationSpec {
             duplicatesStrategy = 'exclude'
         }
         '''
+
         when:
         run "war"
-        def war = file('build/test.war')
-        def expandDir = file('expanded')
-        war.unzipTo(expandDir)
+
         then:
-        expandDir.assertHasDescendants('WEB-INF/web.xml', 'META-INF/MANIFEST.MF')
-        file('expanded/WEB-INF/web.xml').text == 'good'
+        def war = new JarTestFixture(file('build/test.war'))
+        war.assertFileContent('WEB-INF/web.xml', 'good')
     }
 
     def "exclude duplicates: classpath precedence over webInf"() {
@@ -210,14 +209,13 @@ class WarTaskIntegrationTest extends AbstractIntegrationSpec {
             duplicatesStrategy = 'exclude'
         }
         '''
+
         when:
         run "war"
-        def war = file('build/test.war')
-        def expandDir = file('expanded')
-        war.unzipTo(expandDir)
+
         then:
-        expandDir.assertHasDescendants('WEB-INF/lib/file.txt', 'META-INF/MANIFEST.MF')
-        file('expanded/WEB-INF/lib/file.txt').text == 'good'
+        def war = new JarTestFixture(file('build/test.war'))
+        war.assertFileContent('WEB-INF/lib/file.txt', 'good')
     }
 
     def "exclude duplicates: webInf over normal files"() {
@@ -245,13 +243,12 @@ class WarTaskIntegrationTest extends AbstractIntegrationSpec {
             duplicatesStrategy = 'exclude'
         }
         '''
+
         when:
         run "war"
-        def war = file('build/test.war')
-        def expandDir = file('expanded')
-        war.unzipTo(expandDir)
+
         then:
-        expandDir.assertHasDescendants('WEB-INF/file.txt', 'META-INF/MANIFEST.MF')
-        file('expanded/WEB-INF/file.txt').text == 'good'
+        def war = new JarTestFixture(file('build/test.war'))
+        war.assertFileContent('WEB-INF/file.txt', 'good')
     }
 }

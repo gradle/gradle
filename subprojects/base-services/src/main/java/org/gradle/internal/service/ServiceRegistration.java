@@ -26,7 +26,7 @@ public interface ServiceRegistration {
     <T> void add(Class<T> serviceType, T serviceInstance);
 
     /**
-     * Adds a service provider bean to this registry. This provider may define factory and decorator methods.
+     * Adds a service provider bean to this registry. This provider may define factory and decorator methods. See {@link DefaultServiceRegistry} for details.
      */
     void addProvider(Object provider);
 }
