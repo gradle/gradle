@@ -15,9 +15,12 @@
  */
 package org.gradle.api.artifacts.component;
 
+import org.gradle.api.Incubating;
+
 /**
  * Selects a component.
  */
+@Incubating
 public interface ComponentSelector {
     /**
      * The display name of a component.

@@ -15,9 +15,12 @@
  */
 package org.gradle.api.artifacts.component;
 
+import org.gradle.api.Incubating;
+
 /**
  * The identifier for a module component.
  */
+@Incubating
 public interface ModuleComponentIdentifier extends ComponentIdentifier {
     /**
      * The group of a component identifier.

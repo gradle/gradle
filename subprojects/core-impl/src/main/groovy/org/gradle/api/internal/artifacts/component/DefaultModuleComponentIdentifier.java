@@ -24,14 +24,10 @@ public class DefaultModuleComponentIdentifier implements ModuleComponentIdentifi
     private final String version;
 
     public DefaultModuleComponentIdentifier(String group, String name, String version) {
-        this("", group, name, version);
-    }
-
-    public DefaultModuleComponentIdentifier(String displayName, String group, String name, String version) {
         assert group != null : "group cannot be null";
         assert name != null : "name cannot be null";
         assert version != null : "version cannot be null";
-        this.displayName = displayName;
+        displayName = String.format("%s:%s:%s", group, name, version);
         this.group = group;
         this.name = name;
         this.version = version;
@@ -64,16 +60,13 @@ public class DefaultModuleComponentIdentifier implements ModuleComponentIdentifi
 
         DefaultModuleComponentIdentifier that = (DefaultModuleComponentIdentifier) o;
 
-        if (displayName != null ? !displayName.equals(that.displayName) : that.displayName != null) {
+        if (!group.equals(that.group)) {
             return false;
         }
-        if (group != null ? !group.equals(that.group) : that.group != null) {
+        if (!name.equals(that.name)) {
             return false;
         }
-        if (name != null ? !name.equals(that.name) : that.name != null) {
-            return false;
-        }
-        if (version != null ? !version.equals(that.version) : that.version != null) {
+        if (!version.equals(that.version)) {
             return false;
         }
 
@@ -82,16 +75,15 @@ public class DefaultModuleComponentIdentifier implements ModuleComponentIdentifi
 
     @Override
     public int hashCode() {
-        int result = displayName != null ? displayName.hashCode() : 0;
-        result = 31 * result + (group != null ? group.hashCode() : 0);
-        result = 31 * result + (name != null ? name.hashCode() : 0);
-        result = 31 * result + (version != null ? version.hashCode() : 0);
+        int result = group.hashCode();
+        result = 31 * result + name.hashCode();
+        result = 31 * result + version.hashCode();
         return result;
     }
 
     @Override
     public String toString() {
-        return String.format("%s:%s:%s", group, name, version);
+        return displayName;
     }
 
     public static ModuleComponentIdentifier newId(String group, String name, String version) {

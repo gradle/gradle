@@ -25,14 +25,10 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector {
     private final String version;
 
     public DefaultModuleComponentSelector(String group, String name, String version) {
-        this.displayName = "";
-        this.group = group;
-        this.name = name;
-        this.version = version;
-    }
-
-    public DefaultModuleComponentSelector(String displayName, String group, String name, String version) {
-        this.displayName = displayName;
+        assert group != null : "group cannot be null";
+        assert name != null : "name cannot be null";
+        assert version != null : "version cannot be null";
+        displayName = String.format("%s:%s:%s", group, name, version);
         this.group = group;
         this.name = name;
         this.version = version;
@@ -69,16 +65,13 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector {
 
         DefaultModuleComponentSelector that = (DefaultModuleComponentSelector) o;
 
-        if (displayName != null ? !displayName.equals(that.displayName) : that.displayName != null) {
+        if (!group.equals(that.group)) {
             return false;
         }
-        if (group != null ? !group.equals(that.group) : that.group != null) {
+        if (!name.equals(that.name)) {
             return false;
         }
-        if (name != null ? !name.equals(that.name) : that.name != null) {
-            return false;
-        }
-        if (version != null ? !version.equals(that.version) : that.version != null) {
+        if (!version.equals(that.version)) {
             return false;
         }
 
@@ -87,23 +80,18 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector {
 
     @Override
     public int hashCode() {
-        int result = displayName != null ? displayName.hashCode() : 0;
-        result = 31 * result + (group != null ? group.hashCode() : 0);
-        result = 31 * result + (name != null ? name.hashCode() : 0);
-        result = 31 * result + (version != null ? version.hashCode() : 0);
+        int result = group.hashCode();
+        result = 31 * result + name.hashCode();
+        result = 31 * result + version.hashCode();
         return result;
     }
 
     @Override
     public String toString() {
-        return String.format("%s:%s:%s", group, name, version);
+        return displayName;
     }
 
     public static ModuleComponentSelector newSelector(String group, String name, String version) {
         return new DefaultModuleComponentSelector(group, name, version);
-    }
-
-    public static ModuleComponentSelector newSelector(String displayName, String group, String name, String version) {
-        return new DefaultModuleComponentSelector(displayName, group, name, version);
     }
 }
