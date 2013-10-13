@@ -44,9 +44,9 @@ class DefaultModuleComponentIdentifierTest extends Specification {
         thrown(AssertionError)
 
         where:
-        group | name | version
-        null | 'some-name' | '1.0'
-        'some-group' | null | '1.0'
+        group        | name        | version
+        null         | 'some-name' | '1.0'
+        'some-group' | null        | '1.0'
         'some-group' | 'some-name' | null
     }
 
