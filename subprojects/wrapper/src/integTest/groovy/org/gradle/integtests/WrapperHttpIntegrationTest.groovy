@@ -145,4 +145,44 @@ class WrapperHttpIntegrationTest extends AbstractIntegrationSpec {
         and:
         proxyServer.requestCount == 1
     }
+
+    public void "downloads wrapper with basic authentication"() {
+        given:
+        prepareWrapper("http://user_foo:password_foo@localhost:${server.port}")
+        server.expectGet("/gradlew/dist", "user_foo", "password_foo", distribution.binDistribution)
+
+        when:
+        def result = wrapperExecuter.withTasks('hello').run()
+
+        then:
+        assertThat(result.output, containsString('hello'))
+
+        when:
+        result = wrapperExecuter.withTasks('hello').run()
+
+        then:
+        assertThat(result.output, containsString('hello'))
+    }
+
+    public void "downloads wrapper with basic authentication configured in gradle.properties"() {
+        given:
+        prepareWrapper("http://localhost:${server.port}")
+        file("gradle.properties") << """
+    systemProp.gradle.wrapperUser=user_foo
+    systemProp.gradle.wrapperPassword=password_foo
+"""
+        server.expectGet("/gradlew/dist", "user_foo", "password_foo", distribution.binDistribution)
+
+        when:
+        def result = wrapperExecuter.withTasks('hello').run()
+
+        then:
+        assertThat(result.output, containsString('hello'))
+
+        when:
+        result = wrapperExecuter.withTasks('hello').run()
+
+        then:
+        assertThat(result.output, containsString('hello'))
+    }
 }

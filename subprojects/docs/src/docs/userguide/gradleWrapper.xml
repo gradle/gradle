@@ -79,6 +79,25 @@
         <para>If you build via the wrapper, any existing Gradle distribution installed on the machine is ignored.
         </para>
     </section>
+    <section id='sec:userconfiguration'>
+        <title>User Configuration</title>
+        <para>The gradle wrapper reads system properties from the user's configuration file before executing, see <xref linkend="sec:gradle_configuration_properties" />.
+            The default location for this is <filename>.gradle/gradle.properties</filename> in the user's home directory.  This file can be used to
+            specify the user credentials or proxy settings the <literal>Wrapper</literal> will use to download the Gradle distribution.
+        </para>
+        <para>Specifying a userid and password are enable you to host the gradle distribution on a private website or a repository protected with 
+            basic http authentication.  Note for security reasons this should only be used with https and not plain http. 
+        </para>
+        <example>
+            <title>Specifying the basic auth userid and password</title>
+            <para><filename>gradle.properties</filename></para>
+            <programlisting><![CDATA[
+systemProp.gradle.wrapperUser=userid
+systemProp.gradle.wrapperPassword=password
+]]></programlisting>
+        </example>
+        <para>See <xref linkend="sec:accessing_the_web_via_a_proxy" /> for configuring the <literal>Wrapper</literal> to use a proxy.</para>
+    </section>
     <section id='sec:unix_file_permissions'>
         <title>Unix file permissions</title>
         <para>The Wrapper task adds appropriate file permissions to allow the execution for the gradlew *NIX command.
