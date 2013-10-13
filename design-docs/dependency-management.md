@@ -8,29 +8,16 @@ This specification defines some improvements to dependency management.
 
 # Implementation plan
 
-## Story: Restructure Gradle cache layout to give file store and metadata separate versions (DONE)
+## Story: Dependency resolution result produces a graph of components instead of a graph of module versions
 
-This story separates the file store and meta-data cache versions so that they can evolve separately.
+Currently, dependency resolution effectively produces a graph of 'module versions'. There are a number of issues with this approach.
+One fundamental problem is that not all of the things that participate in dependency resolution are modules in a repository or
+are versioned. This series of stories changes dependency resolution so that it can deal with things which are not 'module versions'.
 
-The Gradle cache layout will become:
+The approach here is to introduce the more general concept of a _component_ and base dependency resolution on this concept. Then, different
+types of components will be introduced to model the different kinds of things that participate in dependency resolution.
 
-* `$gradleHome/caches/modules-${l}/` - this is the cache base directory, which includes the lock. When the locking protocol changes, the version `${l}` is changed.
-* `$gradleHome/caches/modules-${l}/files-${l}.${f}` - this is the file store directory. When the file store layout changes, the version `${f}` is changed.
-* `$gradleHome/caches/modules-${l}/metadata-${l}.${m}` - this is the meta-data directory, includes the artifact, dependency and module meta-data caches.
-  When the meta-data format changes, the version `${m}` is changed.
-
-Initial values: `l` = 1, `f` = 1, `m` = 27.
-
-1. Change `CacheLockingManager.createCache()` to accept a relative path name instead of a `File`. This path should be resolved relative to the meta-data directory.
-2. Add methods to `CacheLockingManager` to create the file store and module meta-data `PathKeyFileStore` implementations.
-
-### Test coverage
-
-- Update the existing caching test coverage for the new locations. No new coverage is required.
-
-## Story: Dependency result models resolved components instead of module versions
-
-This story is a step in moving towards _components_ as the central dependency management concept, replacing the _module version_ concept.
+In this story, the dependency resolution result is changed so that it produces a graph of components, rather than a graph of module versions.
 
 1. Rename `ResolvedModuleVersionResult` to `ResolvedComponentResult`.
     - Rename the `allModuleVersions` methods on `ResolutionResult` to `allComponents`.
@@ -57,12 +44,18 @@ This story is a step in moving towards _components_ as the central dependency ma
 
 - Nothing beyond some unit tests for the new methods and types.
 
-## Story: Dependency result exposes local components
+### Open issues
 
-This story allows IDE integrations to map dependencies by exposing some information about the source of a resolved component.
+- Packages for the new types
+
+## Story: Dependency resolution result exposes local components
+
+This story changes the dependency resolution result to distinguish between components that are produced by the build and those that are
+produced outside the build. This will allow IDE integrations to map dependencies by exposing this information about the source of a component.
 
 1. Introduce a `BuildComponentIdentifier` type that extends `ComponentIdentifier` and add a private implementation.
     - `project` property
+    - `displayName` should be something like `project :path`.
 2. Change `ModuleVersionMetaData` to add a `ComponentIdentifier getComponentId()` method.
     - Default should be a `ModuleComponentIdentifier` with the same attributes as `getId()`.
     - For project components (as resolved by `ProjectDependencyResolver`) this should return a `BuildComponentIdentifier` instance.
@@ -77,7 +70,7 @@ This story allows IDE integrations to map dependencies by exposing some informat
     - For project dependencies this should return a `BuildComponentSelector` instance.
 4. Change the dependency reports so that they render both `id` and `publishedAs` when they are not the equal.
 
-A consumer can extract the external and project components as follows:
+This will allow a consumer to extract the external and project components as follows:
 
     def result = configurations.compile.incoming.resolve()
     def projectComponents = result.root.dependencies.selected.findAll { it.id instanceof BuildComponentIdentifier }
@@ -85,7 +78,7 @@ A consumer can extract the external and project components as follows:
 
 ### Test coverage
 
-- Need to update the existing tests for the dependency tasks, as they will now render different values for projects and project dependencies.
+- Need to update the existing tests for the dependency report tasks, as they will now render different values for project dependencies.
 - Update existing integration test cases so that, for the resolution result:
     - for the root component
         - `id` is a `BuildComponentIdentifier` with `project` value referring to the consuming project.
@@ -109,16 +102,24 @@ A consumer can extract the external and project components as follows:
 
 ### Open issues
 
-- Convenience for casting selector? Selecting things with a given id type or selector type?
+- Convenience for casting selector and id?
+- Convenience for selecting things with a given id type or selector type?
 
-## Story: IDE plugins use resolution result to determine IDE classpaths
+## Story: IDE plugins use dependency resolution result to determine IDE classpaths
 
-TBD
+This story changes the `idea` and `eclipse` plugins to use the resolution result to determine the IDE project classpath.
 
-## Story: Dependency result does not expose local components that are not published
+- Change IdeDependenciesExtractor and JavadocAndSourcesDownloader to use the resolution result to determine the project and
+  external dependencies.
 
-This story improves the resolution result to distinguish between the local and external identifiers for a component, and
-associates an external identifier only with those components that are published.
+## Story: Dependency resolution result exposes local components that are not published
+
+This story changes the resolution result to distinguish between local components that are published and those that are not published.
+The main change in this story is expose the fact that a component may not necessarily have a module identifier, and may have multiple
+different kinds of identifiers.
+
+It introduces local and external identifiers for a component, and associates an external identifier only with those components that are published
+(or are to be published).
 
 1. Change `ModuleVersionMetaData` to add a `ModuleComponentIdentifier getPublishedAs()`
     - Default is to return the same as `getComponentId()`
@@ -155,7 +156,7 @@ associates an external identifier only with those components that are published.
 * Add Ivy and Maven specific ids and sources.
 * Rename and garbage internal types.
 
-## Story: GRADLE-2713/GRADLE2678 Dependency management uses local component identity to when resolving project dependencies
+## Story: GRADLE-2713/GRADLE-2678 Dependency resolution uses local component identity to when resolving project dependencies
 
 Currently, dependency management uses the module version (group, module, version) of the target of a project dependency to detect conflicts. However, the
 module version of a project is not necessarily unique. This leads to a number of problems:
