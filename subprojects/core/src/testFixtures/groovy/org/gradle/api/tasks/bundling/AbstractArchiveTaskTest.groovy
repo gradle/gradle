@@ -46,6 +46,7 @@ abstract class AbstractArchiveTaskTest extends AbstractCopyTaskContractTest {
     }
 
     @Test public void testExecute() {
+        archiveTask.from tmpDir.createFile('file.txt')
         archiveTask.execute()
         assertTrue(archiveTask.destinationDir.isDirectory())
         assertTrue(archiveTask.archivePath.isFile())

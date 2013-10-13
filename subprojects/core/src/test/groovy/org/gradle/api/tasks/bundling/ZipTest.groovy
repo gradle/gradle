@@ -23,22 +23,14 @@ import static org.junit.Assert.assertEquals
 
 class ZipTest extends AbstractArchiveTaskTest {
     Zip zip
-    File intialFile
 
     @Before public void setUp()  {
         zip = createTask(Zip)
         configure(zip)
-        intialFile = tmpDir.createFile('file.txt')
-        zip.from intialFile
     }
 
     AbstractArchiveTask getArchiveTask() {
         zip
-    }
-
-    @Override
-    protected List<File> getInitalFiles() {
-        [intialFile]
     }
 
     @Test public void testZip() {

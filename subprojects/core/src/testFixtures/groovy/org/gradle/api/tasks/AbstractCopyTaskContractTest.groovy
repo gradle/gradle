@@ -33,10 +33,6 @@ abstract class AbstractCopyTaskContractTest extends AbstractConventionTaskTest {
 
     abstract AbstractCopyTask getTask()
 
-    protected List<File> getInitalFiles() {
-        []
-    }
-
     @Unroll
     @Test
     public void rootLevelFileCopyDetailsIsDslEnhanced() {
@@ -65,9 +61,8 @@ abstract class AbstractCopyTaskContractTest extends AbstractConventionTaskTest {
         task.eachFile closureInvocation.closure
         task.execute()
 
-        List<File> expectedFiles = getInitalFiles() << fromPropertiesFile
-        assert closureInvocation.wasCalled(expectedFiles.size())
-        assert closureInvocation.files.containsAll(expectedFiles)
+        assert closureInvocation.wasCalled(1)
+        assert closureInvocation.files.containsAll(fromPropertiesFile)
     }
 
     @Test

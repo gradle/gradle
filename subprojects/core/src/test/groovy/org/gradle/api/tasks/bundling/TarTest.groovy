@@ -24,22 +24,14 @@ import static org.junit.Assert.assertThat;
 
 class TarTest extends AbstractArchiveTaskTest {
     Tar tar
-    File intialFile
 
     @Before public void setUp()  {
         tar = createTask(Tar)
         configure(tar)
-        intialFile = tmpDir.createFile('file.txt')
-        tar.from intialFile
     }
 
     AbstractArchiveTask getArchiveTask() {
         tar
-    }
-
-    @Override
-    protected List<File> getInitalFiles() {
-        [intialFile]
     }
 
     @Test public void testDefaultValues() {
