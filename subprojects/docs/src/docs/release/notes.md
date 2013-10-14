@@ -200,8 +200,7 @@ addition to the convention).
 
 ### Initializing `Groovy` or a `Scala` project
 
-It was never easier to setup a Java, Scala or Groovy project with Gradle. The `build-init` plugin now ships with
-two additional templates for initializing a new project:
+The `build-init` plugin now ships with two additional templates for initializing a new project:
 
 * `groovy-library` creates a simple Groovy project with Spock as testing framework.
 * `scala-library` creates a simple Scala project with scalatest as testing framework.
