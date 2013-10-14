@@ -209,9 +209,7 @@ The `build-init` plugin now ships with two additional templates for initializing
 
 To initialize a new project just run
 
-<pre><tt>
-gradle init --type groovy-library
-</tt></pre>
+<pre><tt>gradle init --type groovy-library</tt></pre>
 
 on the commandline.
 
@@ -227,24 +225,23 @@ And run `gradle htmlDependencyReport` or `gradle projectReport`
 
 ### FindBugs plugin provides new reporting capabilities
 
-* If the plugin is configured to produce an XML report, the output can be augmented with human-readable messages. The follow example demonstrates its use:
+If the a FindBugs task is configured to produce an XML report, the output can be augmented with human-readable messages. 
 
-<pre>
-findbugsMain.reports {
-    xml.enabled true
-    xml.withMessages true
-}
-</pre>
+The follow example demonstrates its use:
 
-* Additionally, the plugin allows for generating text and Emacs report formats.
+    findbugsMain.reports {
+        xml {
+            enabled true
+            withMessages true
+        }
+    }
 
-<pre>
-findbugsMain.reports {
-    xml.enabled true
-    text.enabled true
-    emacs.enabled true
-}
-</pre>
+Additionally, reports in text and Emacs formats can now be produced.
+
+    findbugsMain.reports {
+        text.enabled true
+        emacs.enabled true
+    }
 
 ## Fixed issues
 
