@@ -221,7 +221,7 @@ Thanks to a contribution by [Jean-Baptiste Nizet](https://github.com/jnizet), th
 
 To use the report just apply the plugin:
 
-    apply plugin: `project-report`
+    apply plugin: "project-report"
 
 And run `gradle htmlDependencyReport` or `gradle projectReport`
 
