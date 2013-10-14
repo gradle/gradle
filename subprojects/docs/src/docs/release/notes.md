@@ -276,7 +276,7 @@ The following are the newly deprecated items in this Gradle release. If you have
     * This file now only contains file inputs to the tool - all other options are supplied directly via the command line.
 * Object files generated from the assembly of Assembler sources are no longer named '<file>.s.o'.
 * Renamed method: BuildableModelElement.dependsOn() -> BuildableModelElement.builtBy()
-* The `gpp-compiler` plugin was renamed to `gcc`. Class name was change to `GccCompilerPlugin`.
+* The `gpp-compiler` plugin was renamed to `gcc`. Class name was changed to `GccCompilerPlugin`.
 * Linker arguments are no longer automatically escaped with '-Xlinker' on GCC.
 * The conventional source directories eg: `src/main/cpp` and `src/main/headers` are only applied if no source directories are explicitly
   configured. If you wish to define custom source locations, you must define _all_ of the source locations.
