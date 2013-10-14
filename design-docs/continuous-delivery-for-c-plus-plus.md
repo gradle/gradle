@@ -956,20 +956,60 @@ The implementation will also remove stale object files.
 
 ## Story: Include Windows resource files in binaries
 
-Resource files can be linked into a binary.
+Allow resource files to be linked into a Windows binary.
 
-### Implementation
+This story adds a new `windows-resources` plugin which adds support for compiling and linking resource files into a native binary. Windows resource will be treated
+as another native language, and the plugin will follow a similar pattern to the C and C++ language plugins.
 
-* Resource files are compiled using `rc` to a `.res` file, which can then be linked into the binary.
-* Add a `resource` source set type and allow these to be attached to a binary.
-* Add the appropriate tasks to compile resource scripts.
+Here's an example:
 
-## Story: Use Windows linker def files
+    apply plugin: `windows-resources`
 
-### Implementation
+    sources {
+        myExe {
+            rc {
+                include '**/*.rc'
+            }
+        }
+    }
 
-* A `.def` file lists `__stdcall` functions to export from a DLL. Can also use `__declspec(dllexport)` in source to export a function.
-* Functions are imported from a DLL using `__declspec(dllimport)`.
+    executables {
+        myExe
+    }
+
+1. Add a `windows-resources` plugin. This will follow a similar pattern as the `cpp` and `c` plugins (see `CppPlugin` for example). For now, this can do nothing.
+2. Add a `WindowsResourcesSet` which extends `LanguageSourceSet`.
+3. For each `FunctionalSourceSet`, the `windows-resources` plugin defines a `WindowsResourceSet` called `rc` (see `CppLangPlugin` for example).
+4. Add a `WindowsResourcesCompile` task type. For now, this can do nothing.
+5. For each `WindowsResourceSet` added as input to a `NativeBinary`, then the `windows-resources` plugin:
+    - If target platform is not Windows, ignores the source set.
+    - If target platform is Windows, adds a `WindowsResourceCompile` task which takes as input all of the resource files in the source set.
+      Naming scheme as per the other language plugins (see `CppNativeBinariesPlugin` for example).
+6. The `WindowsResourcesCompile` task compiles source resources to `.res` format:
+    - For the gcc/clang toolchains, should use [`windres`](http://sourceware.org/binutils/docs/binutils/windres.html) to compile each source file.
+    - For the Visual C++ toolchain, should use [`rc`](http://msdn.microsoft.com/en-us/library/windows/desktop/aa381055.aspx) to compile each source file.
+    - Should implement this by adding a new tool method on `PlatformToolChain`.
+7. Include the resulting `.res` files as input to the link task  (see `CppNativeBinariesPlugin` for example).
+8. For each `NativeBinary`, the `windows-resources` plugin defines a `PreprocessingTool` extension called `rcCompiler` (see `CppNativeBinariesPlugin` for example).
+    - Wire up the args and macros defined in this extension as defaults for the resource compile task.
+
+### Test cases
+
+- Can compile and link multiple resource files into an executable and a shared library.
+    - Possibly use a STRING resource and the `LoadString()` function to verify that the resources are included.
+    - Possibly find some tool that can query the resources linked into a binary and use this.
+- Can define preprocessor macros and provide command-line args to `rc` and `windres`.
+- Compilation and linking is incremental wrt resource source files and resource compiler args.
+- Stale `.res` files are removed when a resource source file is renamed.
+- User receives a reasonable error message when resource compilation fails.
+- Can create a resources-only executable and shared library.
+- Resource source files are ignored on non-Windows platforms.
+
+### Open issues
+
+- Generate and link a version resource by convention into every binary?
+- Include headers?
+- Don't define the compile task if the source set is empty.
 
 ## Story: Use Windows IDL files
 
@@ -977,10 +1017,19 @@ Resource files can be linked into a binary.
 
 * Use `midl` to generate server, client and header source files.
 
+### Test cases
+
 ### Open issues
 
 - Need to deal with source sets that are generated.
 - Need a `CppSourceSet.getBuildDependencies()` implementation.
+
+## Story: Use Windows linker def files
+
+### Implementation
+
+* A `.def` file lists `__stdcall` functions to export from a DLL. Can also use `__declspec(dllexport)` in source to export a function.
+* Functions are imported from a DLL using `__declspec(dllimport)`.
 
 # Milestone 3
 
