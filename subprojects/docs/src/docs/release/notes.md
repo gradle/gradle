@@ -209,9 +209,9 @@ The `build-init` plugin now ships with two additional templates for initializing
 
 To initialize a new project just run
 
-<pre>
+<pre><tt>
 gradle init --type groovy-library
-</pre>
+</tt></pre>
 
 on the commandline.
 
