@@ -215,7 +215,7 @@ on the commandline.
 
 ### HTML dependency report
 
-Thanks to a contribution by Jean-Baptiste Nizet, the `project-report` plugin can now generate an HTML dependency report.
+Thanks to a contribution by [Jean-Baptiste Nizet](https://github.com/jnizet), the `project-report` plugin can now generate an HTML dependency report.
 
 To use the report just apply the plugin:
 
