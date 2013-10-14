@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.component
 
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -66,21 +65,6 @@ class DefaultModuleComponentSelectorTest extends Specification {
         'other-group' | 'some-name'  | '1.0'   | false    | false    | false
         'some-group'  | 'other-name' | '1.0'   | false    | false    | false
         'some-group'  | 'some-name'  | '2.0'   | false    | false    | false
-    }
-
-    @Unroll
-    def "matches id (#group, #name, #version)"() {
-        expect:
-        ModuleComponentSelector defaultModuleComponentSelector = new DefaultModuleComponentSelector('some-group', 'some-name', '1.0')
-        ModuleComponentIdentifier defaultModuleComponentIdentifier = new DefaultModuleComponentIdentifier(group, name, version)
-        defaultModuleComponentSelector.matchesStrictly(defaultModuleComponentIdentifier) == matchesId
-
-        where:
-        group         | name         | version | matchesId
-        'some-group'  | 'some-name'  | '1.0'   | true
-        'other-group' | 'some-name'  | '1.0'   | false
-        'some-group'  | 'other-name' | '1.0'   | false
-        'some-group'  | 'some-name'  | '2.0'   | false
     }
 
     def "can create new selector"() {

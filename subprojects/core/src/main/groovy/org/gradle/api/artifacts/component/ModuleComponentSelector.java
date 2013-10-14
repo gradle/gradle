@@ -42,14 +42,4 @@ public interface ModuleComponentSelector extends ComponentSelector {
      * @return Module component version
      */
     String getVersion();
-
-    /**
-     * To match strictly means that the given identifier needs to have
-     * equal group, module name and version.
-     * It does not smartly match dynamic versions,
-     * e.g. '1.+' selector does not strictly match '1.2' identifier.
-     *
-     * @return if this selector matches exactly the given identifier.
-     */
-    boolean matchesStrictly(ModuleComponentIdentifier identifier);
 }

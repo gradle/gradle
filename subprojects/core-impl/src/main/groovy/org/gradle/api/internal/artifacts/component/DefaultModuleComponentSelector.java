@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.component;
 
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 
 public class DefaultModuleComponentSelector implements ModuleComponentSelector {
@@ -48,10 +47,6 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector {
 
     public String getVersion() {
         return version;
-    }
-
-    public boolean matchesStrictly(ModuleComponentIdentifier identifier) {
-        return new ModuleComponentSelectorStrictSpec(this).isSatisfiedBy(identifier);
     }
 
     @Override
