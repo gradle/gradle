@@ -204,8 +204,8 @@ addition to the convention).
 
 The `build-init` plugin now ships with two additional templates for initializing a new project:
 
-* `groovy-library` creates a simple Groovy project with Spock as testing framework.
-* `scala-library` creates a simple Scala project with scalatest as testing framework.
+* `groovy-library` creates a simple [Groovy](http://groovy.codehaus.org/) project with [Spock](http://spockframework.org/) as the testing framework.
+* `scala-library` creates a simple [Scala](http://www.scala-lang.org/) project with [scalatest](http://www.scalatest.org/) as the testing framework.
 
 To initialize a new project just run
 
