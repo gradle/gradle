@@ -954,7 +954,7 @@ The implementation will also remove stale object files.
 - Add set methods for each of these properties.
 - Split the compiler and linker settings out to separate types.
 
-## Story: Include Windows resource files in binaries
+## Story: Link Windows resource files into native binaries
 
 Allow resource files to be linked into a Windows binary.
 
@@ -1011,7 +1011,7 @@ Here's an example:
 - Include headers?
 - Don't define the compile task if the source set is empty.
 
-## Story: Use Windows IDL files
+## Story: Generate source from Microsoft IDL files
 
 ### Implementation
 
