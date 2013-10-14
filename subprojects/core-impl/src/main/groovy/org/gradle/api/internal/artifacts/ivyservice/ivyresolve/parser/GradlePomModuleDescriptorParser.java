@@ -107,7 +107,7 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
                 LOGGER.warn("Resolution will only pick dependencies of the relocated element.  Artifacts and other metadata will be ignored.");
                 PomReader relocatedModule = parseOtherPom(parserSettings, relocation);
 
-                Collection<PomDependencyData> pomDependencyDataList = relocatedModule.getDependencies().values();
+                List<PomDependencyData> pomDependencyDataList = relocatedModule.getDependencies();
                 for(PomDependencyData pomDependencyData : pomDependencyDataList) {
                     mdBuilder.addDependency(pomDependencyData);
                 }
@@ -136,7 +136,6 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
                 }
 
                 pomReader.addDependencyMgts(parentDescr.getDependencyMgt());
-                pomReader.addDependencies(parentDescr.getDependencies());
             }
 
             overrideDependencyMgtsWithImported(parserSettings, pomReader);
@@ -145,8 +144,14 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
                 mdBuilder.addDependencyMgt(dependencyMgt);
             }
 
-            for (PomDependencyData dependency : pomReader.getDependencies().values()) {
+            for (PomDependencyData dependency : pomReader.getDependencies()) {
                 mdBuilder.addDependency(dependency);
+            }
+
+            if (parentDescr != null) {
+                for (PomDependencyData pomDependencyData : parentDescr.getDependencies()) {
+                    mdBuilder.addDependency(pomDependencyData);
+                }
             }
 
             for (Object o : pomReader.getPlugins()) {
