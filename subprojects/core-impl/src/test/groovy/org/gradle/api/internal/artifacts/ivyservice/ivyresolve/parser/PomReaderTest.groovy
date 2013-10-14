@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
 
 import org.apache.ivy.core.module.descriptor.License
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomReader.PomDependencyData
 import org.gradle.api.internal.externalresource.DefaultLocallyAvailableExternalResource
 import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource
 import org.gradle.internal.resource.local.DefaultLocallyAvailableResource
@@ -178,9 +179,11 @@ class PomReaderTest extends Specification {
 
         then:
         pomReader.getDependencies().size() == 1
-        pomReader.getDependencies().get(0).groupId == 'group-two'
-        pomReader.getDependencies().get(0).artifactId == 'artifact-two'
-        pomReader.getDependencies().get(0).version == 'version-two'
+        pomReader.getDependencies().containsKey('group-two:artifact-two')
+        PomDependencyData dependency = pomReader.getDependencies().get('group-two:artifact-two')
+        dependency.groupId == 'group-two'
+        dependency.artifactId == 'artifact-two'
+        dependency.version == 'version-two'
     }
 
     def "get dependencies with custom properties"() {
@@ -212,9 +215,11 @@ class PomReaderTest extends Specification {
 
         then:
         pomReader.getDependencies().size() == 1
-        pomReader.getDependencies().get(0).groupId == 'group-two'
-        pomReader.getDependencies().get(0).artifactId == 'artifact-two'
-        pomReader.getDependencies().get(0).version == 'version-two'
+        pomReader.getDependencies().containsKey('group-two:artifact-two')
+        PomDependencyData dependency = pomReader.getDependencies().get('group-two:artifact-two')
+        dependency.groupId == 'group-two'
+        dependency.artifactId == 'artifact-two'
+        dependency.version == 'version-two'
     }
 
     def "parse POM with parent POM"() {

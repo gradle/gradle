@@ -72,6 +72,7 @@ public class PomReader {
 
     private Map<String, String> properties = new HashMap<String, String>();
     private final Map<String, PomDependencyMgt> inheritedDependencyMgts = new LinkedHashMap<String, PomDependencyMgt>();
+    private final Map<String, PomDependencyData> inheritedDependencies = new LinkedHashMap<String, PomDependencyData>();
 
     private final Element projectElement;
     private final Element parentElement;
@@ -180,6 +181,10 @@ public class PomReader {
 
     public void addDependencyMgts(Map<String, PomDependencyMgt> dependencyMgts) {
         inheritedDependencyMgts.putAll(dependencyMgts);
+    }
+
+    public void addDependencies(Map<String, PomDependencyData> dependencies) {
+        inheritedDependencies.putAll(dependencies);
     }
 
     public String getGroupId() {
@@ -304,19 +309,22 @@ public class PomReader {
         }
     }
 
-    public List<PomDependencyData> getDependencies() {
+    public Map<String, PomDependencyData> getDependencies() {
         Element dependenciesElement = getFirstChildElement(projectElement, DEPENDENCIES);
-        List<PomDependencyData> dependencies = new LinkedList<PomDependencyData>();
+        Map<String, PomDependencyData> dependencies = new LinkedHashMap<String, PomDependencyData>();
         if (dependenciesElement != null) {
             NodeList childs = dependenciesElement.getChildNodes();
             for (int i = 0; i < childs.getLength(); i++) {
                 Node node = childs.item(i);
                 if (node instanceof Element && DEPENDENCY.equals(node.getNodeName())) {
-                    dependencies.add(new PomDependencyData((Element) node));
+                    PomDependencyData pomDependencyData = new PomDependencyData((Element) node);
+                    String key = createPomDependencyMgtKey(pomDependencyData.getGroupId(), pomDependencyData.getArtifactId());
+                    dependencies.put(key, pomDependencyData);
                 }
             }
         }
-        return dependencies;
+        inheritedDependencies.putAll(dependencies);
+        return inheritedDependencies;
     }
 
 
