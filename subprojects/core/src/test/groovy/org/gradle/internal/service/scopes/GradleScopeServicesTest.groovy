@@ -39,18 +39,18 @@ import spock.lang.Specification
 import static org.hamcrest.Matchers.sameInstance
 
 public class GradleScopeServicesTest extends Specification {
-    private GradleInternal gradle = Mock()
-    private ServiceRegistry parent = Mock()
-    private ListenerManager listenerManager = Mock()
-    private CacheRepository cacheRepository = Mock()
+    private GradleInternal gradle = Stub()
+    private ServiceRegistry parent = Stub()
+    private ListenerManager listenerManager = Stub()
+    private CacheRepository cacheRepository = Stub()
     private GradleScopeServices registry = new GradleScopeServices(parent, gradle)
     private StartParameter startParameter = new StartParameter()
-    private PluginRegistry pluginRegistryParent = Mock()
-    private PluginRegistry pluginRegistryChild = Mock()
+    private PluginRegistry pluginRegistryParent = Stub()
+    private PluginRegistry pluginRegistryChild = Stub()
 
     public void setup() {
-        parent.get(StartParameter) >> Mock(StartParameter)
-        parent.get(InMemoryTaskArtifactCache) >> Mock(InMemoryTaskArtifactCache)
+        parent.get(StartParameter) >> Stub(StartParameter)
+        parent.get(InMemoryTaskArtifactCache) >> Stub(InMemoryTaskArtifactCache)
         parent.get(ListenerManager) >> listenerManager
         parent.get(CacheRepository) >> cacheRepository
         parent.get(PluginRegistry) >> pluginRegistryParent

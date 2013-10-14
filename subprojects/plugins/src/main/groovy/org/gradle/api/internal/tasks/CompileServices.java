@@ -34,6 +34,9 @@ public class CompileServices implements PluginServiceRegistry {
         registration.addProvider(new BuildScopeCompileServices());
     }
 
+    public void registerProjectServices(ServiceRegistration registration) {
+    }
+
     private static class BuildScopeCompileServices {
         void configure(ServiceRegistration registration, JdkToolsInitializer initializer) {
             // Hackery

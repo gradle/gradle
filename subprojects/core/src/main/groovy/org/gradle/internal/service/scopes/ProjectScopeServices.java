@@ -73,6 +73,9 @@ public class ProjectScopeServices extends DefaultServiceRegistry implements Serv
             public void execute(ServiceRegistration registration) {
                 registration.add(DomainObjectContext.class, project);
                 parent.get(DependencyManagementServices.class).addDslServices(registration);
+                for (PluginServiceRegistry pluginServiceRegistry : parent.getAll(PluginServiceRegistry.class)) {
+                    pluginServiceRegistry.registerProjectServices(registration);
+                }
             }
         });
     }

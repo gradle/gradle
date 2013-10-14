@@ -807,7 +807,9 @@ public class DefaultServiceRegistry implements ServiceRegistry {
         }
 
         public <T> void getAll(LookupContext context, Class<T> serviceType, List<T> result) {
-            result.addAll(parent.getAll(serviceType));
+            List<T> services = parent.getAll(serviceType);
+            assert services != null : String.format("parent returned null for services of type %s", format(serviceType));
+            result.addAll(services);
         }
 
         public void stop() {

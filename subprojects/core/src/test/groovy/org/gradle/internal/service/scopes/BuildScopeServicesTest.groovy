@@ -64,9 +64,7 @@ public class BuildScopeServicesTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     StartParameter startParameter = new StartParameter()
-    ServiceRegistry parent = Mock() {
-        getAll(PluginServiceRegistry) >> []
-    }
+    ServiceRegistry parent = Stub()
     Factory<CacheFactory> cacheFactoryFactory = Mock()
     ClosableCacheFactory cacheFactory = Mock()
     ClassLoaderRegistry classLoaderRegistry = Mock()
@@ -92,6 +90,21 @@ public class BuildScopeServicesTest extends Specification {
 
         expect:
         registry.get(String) == "value"
+    }
+
+    def addsAllPluginBuildScopeServices() {
+        def plugin2 = Mock(PluginServiceRegistry)
+        def plugin1 = Mock(PluginServiceRegistry)
+
+        given:
+        parent.getAll(PluginServiceRegistry) >> [plugin1, plugin2]
+
+        when:
+        new BuildScopeServices(parent, startParameter)
+
+        then:
+        1 * plugin1.registerBuildServices(_)
+        1 * plugin2.registerBuildServices(_)
     }
 
     def throwsExceptionForUnknownDomainObject() {
