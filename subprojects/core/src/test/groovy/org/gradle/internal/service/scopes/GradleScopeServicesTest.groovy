@@ -29,6 +29,7 @@ import org.gradle.cache.CacheRepository
 import org.gradle.execution.BuildExecuter
 import org.gradle.execution.DefaultBuildExecuter
 import org.gradle.execution.TaskGraphExecuter
+import org.gradle.execution.TaskSelector
 import org.gradle.execution.taskgraph.DefaultTaskGraphExecuter
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.invocation.BuildClassLoaderRegistry
@@ -117,5 +118,15 @@ public class GradleScopeServicesTest extends Specification {
         then:
         graphExecuter instanceof DefaultTaskGraphExecuter
         graphExecuter sameInstance(secondExecuter)
+    }
+
+    def "provides a task selector"() {
+        when:
+        def selector = registry.get(TaskSelector)
+        def secondSelector = registry.get(TaskSelector)
+
+        then:
+        selector instanceof TaskSelector
+        secondSelector sameInstance(selector)
     }
 }

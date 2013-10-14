@@ -16,10 +16,8 @@
 package org.gradle.configuration;
 
 import org.gradle.api.DefaultTask;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.CommandLineOption;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.execution.TaskNameResolver;
 import org.gradle.execution.TaskSelector;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.logging.StyledTextOutput;
@@ -43,7 +41,7 @@ public class Help extends DefaultTask {
     }
 
     private void printTaskHelp(StyledTextOutput output) {
-        TaskSelector selector = new TaskSelector(((ProjectInternal) getProject()).getGradle(), new TaskNameResolver());
+        TaskSelector selector = getServices().get(TaskSelector.class);
         final TaskSelector.TaskSelection selection = selector.getSelection(taskPath);
         TaskDetailPrinter taskDetailPrinter = new TaskDetailPrinter(taskPath, selection);
         taskDetailPrinter.print(output);

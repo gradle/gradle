@@ -31,20 +31,11 @@ import java.util.List;
  */
 public class TaskNameResolvingBuildConfigurationAction implements BuildConfigurationAction {
     private static final Logger LOGGER = LoggerFactory.getLogger(TaskNameResolvingBuildConfigurationAction.class);
-    private final TaskNameResolver taskNameResolver;
-
-    public TaskNameResolvingBuildConfigurationAction() {
-        this(new TaskNameResolver());
-    }
-
-    TaskNameResolvingBuildConfigurationAction(TaskNameResolver taskNameResolver) {
-        this.taskNameResolver = taskNameResolver;
-    }
 
     public void configure(BuildExecutionContext context) {
         GradleInternal gradle = context.getGradle();
         List<String> taskNames = gradle.getStartParameter().getTaskNames();
-        Multimap<String, Task> selectedTasks = doSelect(gradle, taskNames, taskNameResolver);
+        Multimap<String, Task> selectedTasks = doSelect(gradle, taskNames);
 
         TaskGraphExecuter executer = gradle.getTaskGraph();
         for (String name : selectedTasks.keySet()) {
@@ -60,8 +51,8 @@ public class TaskNameResolvingBuildConfigurationAction implements BuildConfigura
         context.proceed();
     }
 
-    private Multimap<String, Task> doSelect(GradleInternal gradle, List<String> paths, TaskNameResolver taskNameResolver) {
-        TaskSelector selector = new TaskSelector(gradle, taskNameResolver);
+    private Multimap<String, Task> doSelect(GradleInternal gradle, List<String> paths) {
+        TaskSelector selector = gradle.getServices().get(TaskSelector.class);
         return new CommandLineTaskParser().parseTasks(paths, selector);
     }
 }

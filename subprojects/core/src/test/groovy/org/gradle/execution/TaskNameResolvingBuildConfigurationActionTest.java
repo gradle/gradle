@@ -24,6 +24,7 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.AbstractProject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.CommandLineOption;
+import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.util.GUtil;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.jmock.Expectations;
@@ -53,7 +54,9 @@ public class TaskNameResolvingBuildConfigurationActionTest {
     private final TaskNameResolver resolver = context.mock(TaskNameResolver.class);
     private final BuildExecutionContext executionContext = context.mock(BuildExecutionContext.class);
     private final StartParameter startParameter = context.mock(StartParameter.class);
-    private final TaskNameResolvingBuildConfigurationAction action = new TaskNameResolvingBuildConfigurationAction(resolver);
+    private final ServiceRegistryFactory services = context.mock(ServiceRegistryFactory.class);
+    private final TaskSelector selector = new TaskSelector(gradle, resolver);
+    private final TaskNameResolvingBuildConfigurationAction action = new TaskNameResolvingBuildConfigurationAction();
 
     @Before
     public void setUp() {
@@ -66,6 +69,10 @@ public class TaskNameResolvingBuildConfigurationActionTest {
             will(returnValue(taskExecuter));
             allowing(gradle).getStartParameter();
             will(returnValue(startParameter));
+            allowing(gradle).getServices();
+            will(returnValue(services));
+            allowing(services).get(TaskSelector.class);
+            will(returnValue(selector));
             allowing(project).getAllprojects();
             will(returnValue(toSet(project, otherProject)));
             allowing(otherProject).getPath();
