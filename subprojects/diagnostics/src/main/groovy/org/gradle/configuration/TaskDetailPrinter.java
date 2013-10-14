@@ -15,6 +15,8 @@
  */
 package org.gradle.configuration;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.plugins.DslObject;
@@ -45,18 +47,18 @@ public class TaskDetailPrinter {
         });
 
         output.text("Detailed task information for ").withStyle(UserInput).println(taskPath);
-        final Map<Class, List<Task>> classListMap = groupTasksByType(tasks);
+        final ListMultimap<Class, Task> classListMap = groupTasksByType(tasks);
 
-        final List<Map.Entry<Class, List<Task>>> entries = CollectionUtils.sort(classListMap.entrySet(), new Comparator<Map.Entry<Class, List<Task>>>() {
-            public int compare(Map.Entry<Class, List<Task>> o1, Map.Entry<Class, List<Task>> o2) {
-                return o1.getKey().getSimpleName().compareTo(o2.getKey().getSimpleName());
+        final Set<Class> classes = classListMap.keySet();
+        boolean multipleClasses = classes.size() > 1;
+        final List<Class> sortedClasses = CollectionUtils.sort(classes, new Comparator<Class>() {
+            public int compare(Class o1, Class o2) {
+                return o1.getSimpleName().compareTo(o2.getSimpleName());
             }
         });
-
-        for (Map.Entry<Class, List<Task>> entry  : entries){
+        for (Class clazz  : sortedClasses){
             output.println();
-            final List<Task> tasksByType = entry.getValue();
-            final Class clazz = entry.getKey();
+            final List<Task> tasksByType = classListMap.get(clazz);
             output.text(tasksByType.size() > 1 ? "Paths" : "Path").println();
             for (Task task : tasksByType) {
                 output.text(INDENT).withStyle(UserInput).println(task.getPath());
@@ -68,13 +70,13 @@ public class TaskDetailPrinter {
             output.println();
             printTaskDescription(output, tasksByType);
             output.println();
-            if (classListMap.size() > 1) {
+            if (multipleClasses) {
                 output.println("----------------------");
             }
         }
     }
 
-    private Map<Class, List<Task>> groupTasksByType(List<Task> tasks) {
+    private ListMultimap<Class, Task> groupTasksByType(List<Task> tasks) {
         final Set<Class> taskTypes = new TreeSet<Class>(new Comparator<Class>() {
             public int compare(Class o1, Class o2) {
                 return o1.getSimpleName().compareTo(o2.getSimpleName());
@@ -86,9 +88,9 @@ public class TaskDetailPrinter {
             }
         }));
 
-        Map<Class, List<Task>> tasksGroupedByType = new HashMap<Class, List<Task>>();
+        ListMultimap<Class, Task> tasksGroupedByType = ArrayListMultimap.create();
         for (final Class taskType : taskTypes) {
-            tasksGroupedByType.put(taskType, CollectionUtils.filter(tasks, new Spec<Task>() {
+            tasksGroupedByType.putAll(taskType, CollectionUtils.filter(tasks, new Spec<Task>() {
                 public boolean isSatisfiedBy(Task element) {
                     return new DslObject(element).getDeclaredType().equals(taskType);
                 }

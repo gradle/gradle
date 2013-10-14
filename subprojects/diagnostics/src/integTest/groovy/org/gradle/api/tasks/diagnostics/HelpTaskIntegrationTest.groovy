@@ -47,18 +47,18 @@ BUILD SUCCESSFUL"""))
 
     def "can print help for placeholder added tasks"() {
         when:
-        run "help", "--task", "init"
+        run "help", "--task", "help"
         then:
-        output.contains(toPlatformLineSeparators("""Detailed task information for init
+        output.contains(toPlatformLineSeparators("""Detailed task information for help
 
 Path
-     :init
+     :help
 
 Type
-     InitBuild (class org.gradle.buildinit.tasks.InitBuild)
+     Help (class org.gradle.configuration.Help)
 
 Description
-     Initializes a new Gradle build. [incubating]
+     Displays a help message
 
 
 BUILD SUCCESSFUL"""))
