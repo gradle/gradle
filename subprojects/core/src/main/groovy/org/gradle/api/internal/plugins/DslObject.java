@@ -71,6 +71,10 @@ public class DslObject implements DynamicObjectAware, ExtensionAware, IConventio
         return conventionMapping;
     }
 
+    public Class getDeclaredType(){
+        return object.getClass().getSuperclass();
+    }
+
     private static <T> T toType(Object delegate, Class<T> type) {
         if (type.isInstance(delegate)) {
             return type.cast(delegate);

@@ -17,6 +17,7 @@ package org.gradle.configuration;
 
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.specs.Spec;
 import org.gradle.execution.TaskSelector;
 import org.gradle.logging.StyledTextOutput;
@@ -39,7 +40,7 @@ public class TaskDetailPrinter {
     public void print(StyledTextOutput output) {
         final List<Task> tasks = CollectionUtils.sort(selection.getTasks(), new Comparator<Task>() {
             public int compare(Task o1, Task o2) {
-                return o1.getPath().compareTo(o2.getPath());
+                return o1.compareTo(o2);
             }
         });
 
@@ -81,7 +82,7 @@ public class TaskDetailPrinter {
         });
         taskTypes.addAll(CollectionUtils.collect(tasks, new Transformer<Class, Task>() {
             public Class transform(Task original) {
-                return original.getClass().getSuperclass();
+                return new DslObject(original).getDeclaredType();
             }
         }));
 
@@ -89,7 +90,7 @@ public class TaskDetailPrinter {
         for (final Class taskType : taskTypes) {
             tasksGroupedByType.put(taskType, CollectionUtils.filter(tasks, new Spec<Task>() {
                 public boolean isSatisfiedBy(Task element) {
-                    return element.getClass().getSuperclass().equals(taskType);
+                    return new DslObject(element).getDeclaredType().equals(taskType);
                 }
             }));
         }
