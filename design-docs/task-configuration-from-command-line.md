@@ -5,7 +5,7 @@ command line options & task configuration
 1. User selects the dependency criteria to run dependency reports for.
 2. User selects which tests to include/exclude for test execution.
 3. User requests that tests be executed with debugging enabled.
-4. User specifies which Gradle version to perform an upgrade comparision build against.
+4. User specifies which Gradle version to perform an upgrade comparison build against.
 5. User specifies which Gradle version the wrapper should use.
 
 ## State of things
@@ -110,12 +110,14 @@ If multiple tasks match, details of the matching tasks are shown
     - lookup project tasks and implicit tasks using the task selector
     - throw decent error message when requested task cannot be found
     - task details (task name, task type, path)
+    - the default message informs the user about using `gradle help --task n`
 
 - Update the 'using Gradle from the command-line' user guide chapter to mention the help task.
 
-## Help task shows command-line options for a task (but not the legal values for each option)
+## Help task shows command-line options for a task
 
-Commandline options of the task passed to help are listed including a description.
+Commandline options of the task passed to help are listed including a description. The legal values for each property are not shown - this
+is added in a later story.
 
 ### User visible changes
 
@@ -167,7 +169,7 @@ The usage message of running `gradle help --task init` includes the available va
 - Add a task validator that validates a string property has a legal value at execution time.
 - Update the 'using Gradle from the command-line' user guide chapter.
 
-## Support camel-case matching for task commandline properties
+## Support camel-case matching for task commandline property values
 
 ### User visible changes
 
@@ -229,3 +231,4 @@ This is not a blocker because we have very little command line options, yet.
 1. If a method marked with `@CommandLineOption` accepts varargs or a Collection type as parameter, allow the command-line option to be specified multiple
    time on the command-line.
 1. Add support for more types in the conversion from command-line option value to property value, in particular File.
+1. Output of `gradle help --task x` provides link to task documentation.
