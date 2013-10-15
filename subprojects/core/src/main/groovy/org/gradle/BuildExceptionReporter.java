@@ -19,6 +19,7 @@ import org.codehaus.groovy.runtime.StackTraceUtils;
 import org.gradle.api.Action;
 import org.gradle.api.internal.LocationAwareException;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.configuration.ImplicitTasksConfigurer;
 import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.execution.TaskSelectionException;
@@ -188,12 +189,16 @@ public class BuildExceptionReporter extends BuildAdapter implements Action<Throw
     }
 
     private void fillInFailureResolution(FailureDetails details) {
+        if (causedByCommandLineException(details.failure)){
+            details.resolution.text("Run ");
+            details.resolution.withStyle(UserInput).format("%s --task 'taskName'", ImplicitTasksConfigurer.HELP_TASK);
+            details.resolution.text(" to get task usage details. ");
+        }
         if (details.exceptionStyle == ExceptionStyle.NONE) {
             details.resolution.text("Run with ");
             details.resolution.withStyle(UserInput).format("--%s", LoggingCommandLineConverter.STACKTRACE_LONG);
             details.resolution.text(" option to get the stack trace. ");
         }
-
         if (loggingConfiguration.getLogLevel() != LogLevel.DEBUG) {
             details.resolution.text("Run with ");
             if (loggingConfiguration.getLogLevel() != LogLevel.INFO) {
@@ -203,6 +208,17 @@ public class BuildExceptionReporter extends BuildAdapter implements Action<Throw
             details.resolution.withStyle(UserInput).format("--%s", LoggingCommandLineConverter.DEBUG_LONG);
             details.resolution.text(" option to get more log output.");
         }
+    }
+
+    private boolean causedByCommandLineException(Throwable failure) {
+        Throwable cause = failure.getCause();
+        while(cause != null){
+            if(cause instanceof CommandLineArgumentException){
+                return true;
+            }
+            cause = cause.getCause();
+        }
+        return false;
     }
 
     private String getMessage(Throwable throwable) {
