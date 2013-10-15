@@ -41,9 +41,9 @@ import java.util.Map;
  */
 public abstract class StatementExtractingScriptTransformer extends AbstractScriptTransformer {
 
-    private final Spec<Statement> statementSpec;
+    private final Spec<? super Statement> statementSpec;
 
-    protected StatementExtractingScriptTransformer(Spec<Statement> statementSpec) {
+    protected StatementExtractingScriptTransformer(Spec<? super Statement> statementSpec) {
         this.statementSpec = statementSpec;
     }
 
@@ -111,21 +111,30 @@ public abstract class StatementExtractingScriptTransformer extends AbstractScrip
     }
 
     public Transformer invert() {
-        return new AbstractScriptTransformer() {
-            protected int getPhase() {
-                return Phases.CANONICALIZATION;
-            }
-
-            public String getId() {
-                return "no_" + StatementExtractingScriptTransformer.this.getId();
-            }
-
-            @Override
-            public void call(SourceUnit source) throws CompilationFailedException {
-                Spec<Statement> spec = Specs.not(statementSpec);
-                AstUtils.filterStatements(source, spec);
-            }
-        };
+        return new Inverse("no_" + StatementExtractingScriptTransformer.this.getId(), statementSpec);
     }
 
+    private static class Inverse extends AbstractScriptTransformer {
+        private final String id;
+        private final Spec<? super Statement> originalSpec;
+
+        private Inverse(String id, Spec<? super Statement> originalSpec) {
+            this.id = id;
+            this.originalSpec = originalSpec;
+        }
+
+        protected int getPhase() {
+            return Phases.CANONICALIZATION;
+        }
+
+        public String getId() {
+            return id;
+        }
+
+        @Override
+        public void call(SourceUnit source) throws CompilationFailedException {
+            Spec<Statement> spec = Specs.not(originalSpec);
+            AstUtils.filterStatements(source, spec);
+        }
+    }
 }
