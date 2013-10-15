@@ -52,7 +52,7 @@ public abstract class StatementExtractingScriptTransformer extends AbstractScrip
     }
 
     public void call(SourceUnit source) throws CompilationFailedException {
-        filterStatements(source, statementSpec);
+        AstUtils.filterStatements(source, statementSpec);
 
         // Filter imported classes which are not available yet
 
@@ -119,16 +119,6 @@ public abstract class StatementExtractingScriptTransformer extends AbstractScrip
         }
     }
 
-    private void filterStatements(SourceUnit source, Spec<Statement> spec) {
-        Iterator statementIterator = source.getAST().getStatementBlock().getStatements().iterator();
-        while (statementIterator.hasNext()) {
-            Statement statement = (Statement) statementIterator.next();
-            if (!spec.isSatisfiedBy(statement)) {
-                statementIterator.remove();
-            }
-        }
-    }
-
     public Transformer invert() {
         return new AbstractScriptTransformer() {
             protected int getPhase() {
@@ -142,7 +132,7 @@ public abstract class StatementExtractingScriptTransformer extends AbstractScrip
             @Override
             public void call(SourceUnit source) throws CompilationFailedException {
                 Spec<Statement> spec = Specs.not(statementSpec);
-                filterStatements(source, spec);
+                AstUtils.filterStatements(source, spec);
             }
         };
     }

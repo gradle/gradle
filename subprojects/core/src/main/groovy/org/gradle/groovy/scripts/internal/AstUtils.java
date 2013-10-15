@@ -23,7 +23,11 @@ import org.codehaus.groovy.ast.expr.ConstantExpression;
 import org.codehaus.groovy.ast.expr.Expression;
 import org.codehaus.groovy.ast.expr.MethodCallExpression;
 import org.codehaus.groovy.ast.expr.VariableExpression;
+import org.codehaus.groovy.ast.stmt.Statement;
 import org.codehaus.groovy.control.SourceUnit;
+import org.gradle.api.specs.Spec;
+
+import java.util.Iterator;
 
 /**
  * Self contained utility functions for dealing with AST.
@@ -62,5 +66,15 @@ public abstract class AstUtils {
     protected static void removeMethod(ClassNode declaringClass, MethodNode methodNode) {
         declaringClass.getMethods().remove(methodNode);
         declaringClass.getDeclaredMethods(methodNode.getName()).clear();
+    }
+
+    static void filterStatements(SourceUnit source, Spec<? super Statement> spec) {
+        Iterator statementIterator = source.getAST().getStatementBlock().getStatements().iterator();
+        while (statementIterator.hasNext()) {
+            Statement statement = (Statement) statementIterator.next();
+            if (!spec.isSatisfiedBy(statement)) {
+                statementIterator.remove();
+            }
+        }
     }
 }
