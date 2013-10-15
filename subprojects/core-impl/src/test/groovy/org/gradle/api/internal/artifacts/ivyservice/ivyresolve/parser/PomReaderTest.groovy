@@ -116,6 +116,7 @@ class PomReaderTest extends Specification {
         pomReader.properties['parent.groupId'] == 'group-one'
         pomReader.properties['project.parent.version'] == 'version-one'
         pomReader.properties['project.parent.groupId'] == 'group-one'
+        pomReader.relocation == null
     }
 
     def "use custom properties in POM project coordinates"() {
@@ -279,5 +280,139 @@ class PomReaderTest extends Specification {
         pomReader.properties['project.version'] == 'version-one'
         pomReader.properties['pom.version'] == 'version-one'
         pomReader.properties['version'] == 'version-one'
+    }
+
+    def "Parse relocated POM without provided coordinates"() {
+        when:
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+    <distributionManagement>
+        <relocation>
+        </relocation>
+    </distributionManagement>
+</project>
+"""
+        pomReader = new PomReader(locallyAvailableExternalResource)
+
+        then:
+        pomReader.groupId == 'group-one'
+        pomReader.artifactId == 'artifact-one'
+        pomReader.version == 'version-one'
+        pomReader.packaging == 'jar'
+        pomReader.homePage == ''
+        pomReader.description == ''
+        pomReader.licenses == new License[0]
+        !pomReader.hasParent()
+        pomReader.pomProperties.size() == 0
+        pomReader.relocation != null
+        pomReader.relocation.organisation == 'group-one'
+        pomReader.relocation.name == 'artifact-one'
+        pomReader.relocation.revision == 'version-one'
+    }
+
+    def "Parse relocated POM with provided group ID"() {
+        when:
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+    <distributionManagement>
+        <relocation>
+            <groupId>group-two</groupId>
+        </relocation>
+    </distributionManagement>
+</project>
+"""
+        pomReader = new PomReader(locallyAvailableExternalResource)
+
+        then:
+        pomReader.groupId == 'group-one'
+        pomReader.artifactId == 'artifact-one'
+        pomReader.version == 'version-one'
+        pomReader.packaging == 'jar'
+        pomReader.homePage == ''
+        pomReader.description == ''
+        pomReader.licenses == new License[0]
+        !pomReader.hasParent()
+        pomReader.pomProperties.size() == 0
+        pomReader.relocation != null
+        pomReader.relocation.organisation == 'group-two'
+        pomReader.relocation.name == 'artifact-one'
+        pomReader.relocation.revision == 'version-one'
+    }
+
+    def "Parse relocated POM with provided group ID and artifact ID"() {
+        when:
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+    <distributionManagement>
+        <relocation>
+            <groupId>group-two</groupId>
+            <artifactId>artifact-two</artifactId>
+        </relocation>
+    </distributionManagement>
+</project>
+"""
+        pomReader = new PomReader(locallyAvailableExternalResource)
+
+        then:
+        pomReader.groupId == 'group-one'
+        pomReader.artifactId == 'artifact-one'
+        pomReader.version == 'version-one'
+        pomReader.packaging == 'jar'
+        pomReader.homePage == ''
+        pomReader.description == ''
+        pomReader.licenses == new License[0]
+        !pomReader.hasParent()
+        pomReader.pomProperties.size() == 0
+        pomReader.relocation != null
+        pomReader.relocation.organisation == 'group-two'
+        pomReader.relocation.name == 'artifact-two'
+        pomReader.relocation.revision == 'version-one'
+    }
+
+    def "Parse relocated POM with all provided coordinates"() {
+        when:
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+    <distributionManagement>
+        <relocation>
+            <groupId>group-two</groupId>
+            <artifactId>artifact-two</artifactId>
+            <version>version-two</version>
+        </relocation>
+    </distributionManagement>
+</project>
+"""
+        pomReader = new PomReader(locallyAvailableExternalResource)
+
+        then:
+        pomReader.groupId == 'group-one'
+        pomReader.artifactId == 'artifact-one'
+        pomReader.version == 'version-one'
+        pomReader.packaging == 'jar'
+        pomReader.homePage == ''
+        pomReader.description == ''
+        pomReader.licenses == new License[0]
+        !pomReader.hasParent()
+        pomReader.pomProperties.size() == 0
+        pomReader.relocation != null
+        pomReader.relocation.organisation == 'group-two'
+        pomReader.relocation.name == 'artifact-two'
+        pomReader.relocation.revision == 'version-two'
     }
 }

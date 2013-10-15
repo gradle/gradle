@@ -1240,6 +1240,89 @@ class GradlePomModuleDescriptorParserTest extends Specification {
         hasDefaultDependencyArtifact(dep)
     }
 
+    def "defines relocation but doesn't include any explicit dependencies"() {
+        given:
+        def relocated = tmpDir.file("relocated.xml") << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-relocated</groupId>
+    <artifactId>relocated</artifactId>
+    <version>version-one</version>
+</project>
+"""
+
+        def parent = tmpDir.file("parent.xml") << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>group-two</groupId>
+                <artifactId>artifact-two</artifactId>
+                <version>1.2</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>group-three</groupId>
+            <artifactId>artifact-three</artifactId>
+            <version>1.3</version>
+        </dependency>
+    </dependencies>
+</project>
+"""
+
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+
+    <parent>
+        <groupId>group-one</groupId>
+        <artifactId>parent</artifactId>
+        <version>version-one</version>
+    </parent>
+
+    <distributionManagement>
+        <relocation>
+            <groupId>group-relocated</groupId>
+            <artifactId>relocated</artifactId>
+        </relocation>
+    </distributionManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>group-two</groupId>
+            <artifactId>artifact-two</artifactId>
+        </dependency>
+    </dependencies>
+</project>
+"""
+        and:
+        parseContext.currentRevisionId >> moduleId('group-relocated', 'relocated', 'version-one')
+        parseContext.getArtifact({it.moduleRevisionId.name == 'parent' }) >> { new DefaultLocallyAvailableExternalResource(parent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(parent)) }
+        parseContext.getArtifact({it.moduleRevisionId.name == 'relocated' }) >> { new DefaultLocallyAvailableExternalResource(relocated.toURI().toURL().toString(), new DefaultLocallyAvailableResource(relocated)) }
+
+
+        when:
+        def descriptor = parsePom()
+
+        then:
+        descriptor.dependencies.length == 1
+        def dep = descriptor.dependencies.first()
+        dep.dependencyRevisionId == moduleId('group-relocated', 'relocated', 'version-one')
+        dep.moduleConfigurations == ['default', 'master', 'compile', 'provided', 'runtime', 'system', 'sources', 'javadoc', 'optional']
+        hasDefaultDependencyArtifact(dep)
+    }
+
     private ModuleDescriptor parsePom() {
         parseMetaData().descriptor
     }
