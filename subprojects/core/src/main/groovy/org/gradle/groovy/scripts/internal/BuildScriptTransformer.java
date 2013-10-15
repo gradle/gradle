@@ -19,9 +19,9 @@ import org.codehaus.groovy.control.CompilationUnit;
 import org.gradle.groovy.scripts.Transformer;
 
 public class BuildScriptTransformer implements Transformer {
-    private final BuildScriptClasspathScriptTransformer classpathScriptTransformer;
+    private final BuildScriptStatementExtractingScriptTransformer classpathScriptTransformer;
 
-    public BuildScriptTransformer(BuildScriptClasspathScriptTransformer transformer) {
+    public BuildScriptTransformer(BuildScriptStatementExtractingScriptTransformer transformer) {
         classpathScriptTransformer = transformer;
     }
 

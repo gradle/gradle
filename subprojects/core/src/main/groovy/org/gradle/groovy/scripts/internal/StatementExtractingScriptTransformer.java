@@ -20,10 +20,6 @@ import org.codehaus.groovy.ast.ClassNode;
 import org.codehaus.groovy.ast.ImportNode;
 import org.codehaus.groovy.ast.MethodNode;
 import org.codehaus.groovy.ast.ModuleNode;
-import org.codehaus.groovy.ast.expr.ArgumentListExpression;
-import org.codehaus.groovy.ast.expr.ClosureExpression;
-import org.codehaus.groovy.ast.expr.MethodCallExpression;
-import org.codehaus.groovy.ast.stmt.ExpressionStatement;
 import org.codehaus.groovy.ast.stmt.Statement;
 import org.codehaus.groovy.control.CompilationFailedException;
 import org.codehaus.groovy.control.Phases;
@@ -39,21 +35,24 @@ import java.util.Iterator;
 import java.util.Map;
 
 /**
- * The classpath script transformer uses Groovy's AST support to implement a two-phase
- * compilation of a script into a "class path script" and an "everything else script".
- * The classpath script can then be executed and its results taken into account (in
- * particular, to update the classpath) before the remainder of the script is executed.
+ * Excludes everything from a script except statements that are satisfied by a given predicate, and imports for accessible classes.
+ * <p>
+ * *All* other kinds of constructs are filtered, including: classes, methods etc.
  */
-public abstract class ClasspathScriptTransformer extends AbstractScriptTransformer {
-    protected abstract String getScriptMethodName();
+public abstract class StatementExtractingScriptTransformer extends AbstractScriptTransformer {
+
+    private final Spec<Statement> statementSpec;
+
+    protected StatementExtractingScriptTransformer(Spec<Statement> statementSpec) {
+        this.statementSpec = statementSpec;
+    }
 
     protected int getPhase() {
         return Phases.CONVERSION;
     }
 
     public void call(SourceUnit source) throws CompilationFailedException {
-        Spec<Statement> spec = isScriptBlock();
-        filterStatements(source, spec);
+        filterStatements(source, statementSpec);
 
         // Filter imported classes which are not available yet
 
@@ -137,41 +136,15 @@ public abstract class ClasspathScriptTransformer extends AbstractScriptTransform
             }
 
             public String getId() {
-                return "no_" + ClasspathScriptTransformer.this.getId();
+                return "no_" + StatementExtractingScriptTransformer.this.getId();
             }
 
             @Override
             public void call(SourceUnit source) throws CompilationFailedException {
-                Spec<Statement> spec = Specs.not(isScriptBlock());
+                Spec<Statement> spec = Specs.not(statementSpec);
                 filterStatements(source, spec);
             }
         };
     }
 
-    public Spec<Statement> isScriptBlock() {
-        return new Spec<Statement>() {
-            public boolean isSatisfiedBy(Statement statement) {
-                if (!(statement instanceof ExpressionStatement)) {
-                    return false;
-                }
-
-                ExpressionStatement expressionStatement = (ExpressionStatement) statement;
-                if (!(expressionStatement.getExpression() instanceof MethodCallExpression)) {
-                    return false;
-                }
-
-                MethodCallExpression methodCall = (MethodCallExpression) expressionStatement.getExpression();
-                if (!AstUtils.isMethodOnThis(methodCall, getScriptMethodName())) {
-                    return false;
-                }
-
-                if (!(methodCall.getArguments() instanceof ArgumentListExpression)) {
-                    return false;
-                }
-
-                ArgumentListExpression args = (ArgumentListExpression) methodCall.getArguments();
-                return args.getExpressions().size() == 1 && args.getExpression(0) instanceof ClosureExpression;
-            }
-        };
-    }
 }

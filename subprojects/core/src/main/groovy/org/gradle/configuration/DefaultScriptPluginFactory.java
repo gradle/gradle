@@ -20,7 +20,7 @@ import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.groovy.scripts.*;
-import org.gradle.groovy.scripts.internal.BuildScriptClasspathScriptTransformer;
+import org.gradle.groovy.scripts.internal.BuildScriptStatementExtractingScriptTransformer;
 import org.gradle.groovy.scripts.internal.BuildScriptTransformer;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
@@ -112,8 +112,8 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
 
             compiler.setClassloader(classLoaderProvider.getClassLoader());
 
-            BuildScriptClasspathScriptTransformer classpathScriptTransformer
-                    = new BuildScriptClasspathScriptTransformer(classpathClosureName);
+            BuildScriptStatementExtractingScriptTransformer classpathScriptTransformer
+                    = new BuildScriptStatementExtractingScriptTransformer(classpathClosureName);
             compiler.setTransformer(classpathScriptTransformer);
 
             ScriptRunner<? extends BasicScript> classPathScriptRunner = compiler.compile(scriptType);

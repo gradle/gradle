@@ -15,14 +15,12 @@
  */
 package org.gradle.groovy.scripts.internal;
 
-/**
- * An implementation of ClasspathScriptTransformer for use in build scripts.  This subclass defines the script method
- * name to be buildscript {}.
- */
-public class BuildScriptClasspathScriptTransformer extends ClasspathScriptTransformer {
+public class BuildScriptStatementExtractingScriptTransformer extends StatementExtractingScriptTransformer {
+
     private final String classpathClosureName;
 
-    public BuildScriptClasspathScriptTransformer(String classpathClosureName) {
+    public BuildScriptStatementExtractingScriptTransformer(String classpathClosureName) {
+        super(new IsScriptBlockWithNameSpec(classpathClosureName));
         this.classpathClosureName = classpathClosureName;
     }
 
@@ -30,9 +28,6 @@ public class BuildScriptClasspathScriptTransformer extends ClasspathScriptTransf
         return classpathClosureName;
     }
 
-    protected String getScriptMethodName() {
-        return classpathClosureName;
-    }
 }
 
 

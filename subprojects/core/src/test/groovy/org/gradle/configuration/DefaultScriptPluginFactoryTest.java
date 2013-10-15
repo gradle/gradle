@@ -18,7 +18,7 @@ package org.gradle.configuration;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.groovy.scripts.*;
-import org.gradle.groovy.scripts.internal.ClasspathScriptTransformer;
+import org.gradle.groovy.scripts.internal.StatementExtractingScriptTransformer;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
@@ -85,7 +85,7 @@ public class DefaultScriptPluginFactoryTest {
             one(scriptCompilerMock).setClassloader(scriptClassLoader);
             inSequence(sequence);
 
-            one(scriptCompilerMock).setTransformer(with(any(ClasspathScriptTransformer.class)));
+            one(scriptCompilerMock).setTransformer(with(any(StatementExtractingScriptTransformer.class)));
             inSequence(sequence);
 
             one(scriptCompilerMock).compile(DefaultScript.class);
@@ -153,7 +153,7 @@ public class DefaultScriptPluginFactoryTest {
             one(scriptCompilerMock).setClassloader(scriptClassLoader);
             inSequence(sequence);
 
-            one(scriptCompilerMock).setTransformer(with(any(ClasspathScriptTransformer.class)));
+            one(scriptCompilerMock).setTransformer(with(any(StatementExtractingScriptTransformer.class)));
             inSequence(sequence);
 
             one(scriptCompilerMock).compile(DefaultScript.class);
