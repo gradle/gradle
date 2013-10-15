@@ -88,7 +88,7 @@ public abstract class ClasspathScriptTransformer extends AbstractScriptTransform
             }
         }
 
-        ClassNode scriptClass = getScriptClass(source);
+        ClassNode scriptClass = AstUtils.getScriptClass(source);
 
         // Remove all the classes other than the main class
         Iterator<ClassNode> classes = source.getAST().getClasses().iterator();
@@ -103,7 +103,7 @@ public abstract class ClasspathScriptTransformer extends AbstractScriptTransform
         if (scriptClass != null) {
             for (MethodNode methodNode : new ArrayList<MethodNode>(scriptClass.getMethods())) {
                 if (!methodNode.getName().equals("run")) {
-                    removeMethod(scriptClass, methodNode);
+                    AstUtils.removeMethod(scriptClass, methodNode);
                 }
             }
         }
@@ -161,7 +161,7 @@ public abstract class ClasspathScriptTransformer extends AbstractScriptTransform
                 }
 
                 MethodCallExpression methodCall = (MethodCallExpression) expressionStatement.getExpression();
-                if (!isMethodOnThis(methodCall, getScriptMethodName())) {
+                if (!AstUtils.isMethodOnThis(methodCall, getScriptMethodName())) {
                     return false;
                 }
 

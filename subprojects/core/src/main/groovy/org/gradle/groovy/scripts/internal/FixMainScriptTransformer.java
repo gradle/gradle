@@ -37,13 +37,13 @@ public class FixMainScriptTransformer extends AbstractScriptTransformer {
 
     @Override
     public void call(SourceUnit source) throws CompilationFailedException {
-        ClassNode scriptClass = getScriptClass(source);
+        ClassNode scriptClass = AstUtils.getScriptClass(source);
         if (scriptClass == null) {
             return;
         }
         for (MethodNode methodNode : scriptClass.getMethods()) {
             if (methodNode.getName().equals("main")) {
-                removeMethod(scriptClass, methodNode);
+                AstUtils.removeMethod(scriptClass, methodNode);
                 break;
             }
         }
