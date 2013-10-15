@@ -23,10 +23,10 @@ import org.codehaus.groovy.ast.stmt.ExpressionStatement;
 import org.codehaus.groovy.ast.stmt.Statement;
 import org.gradle.api.specs.Spec;
 
-class IsScriptBlockWithNameSpec implements Spec<Statement> {
+public class IsScriptBlockWithNameSpec implements Spec<Statement> {
     private final String[] names;
 
-    IsScriptBlockWithNameSpec(String... names) {
+    public IsScriptBlockWithNameSpec(String... names) {
         this.names = names;
     }
 

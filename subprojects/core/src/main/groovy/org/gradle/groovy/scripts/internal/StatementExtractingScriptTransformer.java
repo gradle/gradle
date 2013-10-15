@@ -39,12 +39,18 @@ import java.util.Map;
  * <p>
  * *All* other kinds of constructs are filtered, including: classes, methods etc.
  */
-public abstract class StatementExtractingScriptTransformer extends AbstractScriptTransformer {
+public class StatementExtractingScriptTransformer extends AbstractScriptTransformer {
 
+    private final String id;
     private final Spec<? super Statement> statementSpec;
 
-    protected StatementExtractingScriptTransformer(Spec<? super Statement> statementSpec) {
+    public StatementExtractingScriptTransformer(String id, Spec<? super Statement> statementSpec) {
+        this.id = id;
         this.statementSpec = statementSpec;
+    }
+
+    public String getId() {
+        return id;
     }
 
     protected int getPhase() {
