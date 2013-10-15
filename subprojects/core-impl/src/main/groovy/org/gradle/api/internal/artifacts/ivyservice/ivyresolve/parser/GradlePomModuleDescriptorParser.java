@@ -144,14 +144,14 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
                 mdBuilder.addDependencyMgt(dependencyMgt);
             }
 
-            for (PomDependencyData dependency : pomReader.getDependencies()) {
-                mdBuilder.addDependency(dependency);
-            }
-
             if (parentDescr != null) {
                 for (PomDependencyData pomDependencyData : parentDescr.getDependencies()) {
                     mdBuilder.addDependency(pomDependencyData);
                 }
+            }
+
+            for (PomDependencyData dependency : pomReader.getDependencies()) {
+                mdBuilder.addDependency(dependency);
             }
 
             for (Object o : pomReader.getPlugins()) {
