@@ -25,6 +25,7 @@ import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.initialization.dsl.ScriptHandler;
+import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.ProcessOperations;
 import org.gradle.api.internal.file.*;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
@@ -38,6 +39,8 @@ import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.internal.nativeplatform.filesystem.FileSystems;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.plugin.PluginHandler;
+import org.gradle.plugin.internal.DefaultPluginHandler;
 import org.gradle.process.ExecResult;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.DeprecationLogger;
@@ -52,6 +55,9 @@ public abstract class DefaultScript extends BasicScript {
     private FileOperations fileOperations;
     private ProcessOperations processOperations;
     private LoggingManager loggingManager;
+
+    // TODO this is just a stub
+    private final PluginHandler pluginHandler = new DefaultPluginHandler();
 
     public void init(Object target, ServiceRegistry services) {
         super.init(target, services);
@@ -193,7 +199,17 @@ public abstract class DefaultScript extends BasicScript {
         return LOGGER;
     }
 
+    public void plugins(Closure closure) {
+        new ClosureBackedAction<PluginHandler>(closure).execute(pluginHandler);
+    }
+
+    public PluginHandler getPlugins() {
+        return pluginHandler;
+    }
+
     public String toString() {
         return "script";
     }
+
+
 }

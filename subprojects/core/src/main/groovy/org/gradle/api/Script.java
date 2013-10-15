@@ -25,6 +25,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.plugin.PluginHandler;
 import org.gradle.process.ExecResult;
 
 import java.io.File;
@@ -366,4 +367,21 @@ public interface Script {
      * @return Returned instance contains various resource-specific utility methods.
      */
     ResourceHandler getResources();
+
+    /**
+     * The plugin handler that manages plugins (including plugin application) for the script target.
+     *
+     * @return The plugin handler. Never null
+     */
+    @Incubating
+    PluginHandler getPlugins();
+
+    /**
+     * Configures plugin handler that manages plugins (including plugin application) for the script target.
+     * <p>
+     * Delegates to {@link PluginHandler}.
+     */
+    @Incubating
+    void plugins(Closure closure);
+
 }
