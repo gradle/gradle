@@ -203,10 +203,6 @@ public abstract class DefaultScript extends BasicScript {
         new ClosureBackedAction<PluginHandler>(closure).execute(pluginHandler);
     }
 
-    public PluginHandler getPlugins() {
-        return pluginHandler;
-    }
-
     public String toString() {
         return "script";
     }

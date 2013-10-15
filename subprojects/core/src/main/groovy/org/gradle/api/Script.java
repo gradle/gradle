@@ -369,14 +369,6 @@ public interface Script {
     ResourceHandler getResources();
 
     /**
-     * The plugin handler that manages plugins (including plugin application) for the script target.
-     *
-     * @return The plugin handler. Never null
-     */
-    @Incubating
-    PluginHandler getPlugins();
-
-    /**
      * Configures plugin handler that manages plugins (including plugin application) for the script target.
      * <p>
      * Delegates to {@link PluginHandler}.
