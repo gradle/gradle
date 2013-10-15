@@ -239,10 +239,6 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
             // start Jetty
             server.start();
 
-            if (daemon) {
-                return;
-            }
-
             if (getStopPort() != null && getStopPort() > 0 && getStopKey() != null) {
                 Monitor monitor = new Monitor(getStopPort(), getStopKey(), (Server) server.getProxiedObject());
                 monitor.start();
@@ -265,6 +261,11 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
         progressLogger.setDescription(String.format("Run Jetty at http://localhost:%d/%s", getHttpPort(), getContextPath()));
         progressLogger.setShortDescription(String.format("Running at http://localhost:%d/%s", getHttpPort(), getContextPath()));
         progressLogger.started();
+
+        if (daemon) {
+            return;
+        }
+
         try {
             // keep the thread going if not in daemon mode
             server.join();

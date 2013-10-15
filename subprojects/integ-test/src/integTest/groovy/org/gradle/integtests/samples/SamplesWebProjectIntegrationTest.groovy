@@ -92,4 +92,41 @@ private void callServlet() {
         then:
         output.contains('Hello Gradle')
     }
+
+    def "can stop container"() {
+        given:
+        // Inject some int test stuff
+        sample.dir.file('build.gradle') << """
+def portFinder = org.gradle.util.AvailablePortFinder.createPrivate()
+
+httpPort = portFinder.nextAvailable
+stopPort = portFinder.nextAvailable
+println "http port = \$httpPort, stop port = \$stopPort"
+
+[jettyRun, jettyRunWar]*.daemon = true
+
+task runTest(dependsOn: jettyRun) << {
+    URL url = new URL("http://localhost:\$httpPort/customized/hello")
+    println url.text
+
+    jettyStop.execute()
+    Thread.sleep(500)
+
+    try {
+        url.text
+        assert false
+    } catch (Exception e) {
+        println e
+    }
+}
+"""
+
+        when:
+        sample sample
+        run 'runTest'
+
+        then:
+        output.contains('Hello Gradle')
+        output.contains('ConnectException')
+    }
 }
