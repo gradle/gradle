@@ -34,9 +34,8 @@ public abstract class AstUtils {
     }
 
     public static boolean isMethodOnThis(MethodCallExpression call, String name) {
-        boolean isTaskMethod = call.getMethod() instanceof ConstantExpression && call.getMethod().getText().equals(
-                name);
-        return isTaskMethod && targetIsThis(call);
+        boolean hasName = call.getMethod() instanceof ConstantExpression && call.getMethod().getText().equals(name);
+        return hasName && targetIsThis(call);
     }
 
     public static boolean targetIsThis(MethodCallExpression call) {
