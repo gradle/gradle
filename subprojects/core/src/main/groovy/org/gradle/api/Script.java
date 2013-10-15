@@ -25,7 +25,6 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.plugin.PluginHandler;
 import org.gradle.process.ExecResult;
 
 import java.io.File;
@@ -371,7 +370,7 @@ public interface Script {
     /**
      * Configures plugin handler that manages plugins (including plugin application) for the script target.
      * <p>
-     * Delegates to {@link PluginHandler}.
+     * Delegates to {@link org.gradle.plugin.PluginHandler}.
      */
     @Incubating
     void plugins(Closure closure);
