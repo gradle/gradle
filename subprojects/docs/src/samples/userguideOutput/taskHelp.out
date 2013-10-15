@@ -5,7 +5,7 @@ Paths
      :webapp:libs
 
 Type
-     DefaultTask (class org.gradle.api.DefaultTask)
+     Task (org.gradle.api.Task)
 
 Description
      Builds the JAR

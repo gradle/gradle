@@ -21,11 +21,13 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.plugins.DslObject;
+import org.gradle.api.internal.tasks.CommandLineOption;
 import org.gradle.api.specs.Spec;
 import org.gradle.execution.TaskSelector;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.util.CollectionUtils;
 
+import java.lang.reflect.Method;
 import java.util.*;
 
 import static org.gradle.logging.StyledTextOutput.Style.UserInput;
@@ -57,7 +59,7 @@ public class TaskDetailPrinter {
                 return o1.getSimpleName().compareTo(o2.getSimpleName());
             }
         });
-        for (Class clazz  : sortedClasses){
+        for (Class clazz : sortedClasses) {
             output.println();
             final List<Task> tasksByType = classListMap.get(clazz);
             output.text(tasksByType.size() > 1 ? "Paths" : "Path").println();
@@ -67,7 +69,10 @@ public class TaskDetailPrinter {
             output.println();
             output.text("Type").println();
             output.text(INDENT).withStyle(UserInput).text(clazz.getSimpleName());
-            output.println(" (" + clazz + ")");
+            output.println(String.format(" (%s)", clazz.getName()));
+
+            printlnCommandlineOptions(output, clazz);
+
             output.println();
             printTaskDescription(output, tasksByType);
             output.println();
@@ -102,9 +107,9 @@ public class TaskDetailPrinter {
 
     private Class getDeclaredTaskType(Task original) {
         Class clazz = new DslObject(original).getDeclaredType();
-        if(clazz.equals(DefaultTask.class)){
+        if (clazz.equals(DefaultTask.class)) {
             return org.gradle.api.Task.class;
-        }else{
+        } else {
             return clazz;
         }
     }
@@ -120,6 +125,35 @@ public class TaskDetailPrinter {
                 output.text(INDENT).withStyle(UserInput).text(String.format("(%s) ", task.getPath())).println(task.getDescription());
             }
         }
+    }
+
+    private void printlnCommandlineOptions(StyledTextOutput output, Class clazz) {
+        Map<String, String> cmdOptions = getOptionsWithDescriptions(clazz);
+        if (!cmdOptions.isEmpty()) {
+            output.println();
+            output.text("Options").println();
+        }
+        for (Map.Entry<String, String> optionWithDescr : cmdOptions.entrySet()) {
+            output.text(INDENT).withStyle(UserInput).text(String.format("--%s", optionWithDescr.getKey()));
+            output.text(INDENT).println(optionWithDescr.getValue());
+        }
+    }
+
+    private Map<String, String> getOptionsWithDescriptions(Class taskClazz) {
+        Map<String, String> options = new HashMap<String, String>();
+        for (Class<?> type = taskClazz; type != Object.class && type != null; type = type.getSuperclass()) {
+            //if (type != null) {
+                for (Method method : type.getDeclaredMethods()) {
+                    CommandLineOption commandLineOption = method.getAnnotation(CommandLineOption.class);
+                    if (commandLineOption != null) {
+                        String optionName = commandLineOption.options()[0];
+                        String optionDescription = commandLineOption.description();
+                        options.put(optionName, optionDescription);
+                    }
+                }
+            //}
+        }
+        return options;
     }
 
     private int differentDescriptions(List<Task> tasks) {

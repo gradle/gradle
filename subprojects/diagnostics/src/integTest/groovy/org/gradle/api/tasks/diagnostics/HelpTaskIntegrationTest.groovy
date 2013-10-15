@@ -31,7 +31,10 @@ Path
      :dependencies
 
 Type
-     DependencyReportTask (class org.gradle.api.tasks.diagnostics.DependencyReportTask)
+     DependencyReportTask (org.gradle.api.tasks.diagnostics.DependencyReportTask)
+
+Options
+     --configuration     The configuration to generate the report for.
 
 Description
      Displays all dependencies declared in root project '${testDirectory.getName()}'.
@@ -52,7 +55,10 @@ Path
      :help
 
 Type
-     Help (class org.gradle.configuration.Help)
+     Help (org.gradle.configuration.Help)
+
+Options
+     --task     The task, detailed help is requested for.
 
 Description
      Displays a help message
@@ -88,7 +94,7 @@ Paths
      :someproj:hello
 
 Type
-     Task (interface org.gradle.api.Task)
+     Task (org.gradle.api.Task)
 
 Descriptions
      (:hello) hello task from root
@@ -109,7 +115,7 @@ Path
      :jar
 
 Type
-     Jar (class org.gradle.api.tasks.bundling.Jar)
+     Jar (org.gradle.api.tasks.bundling.Jar)
 
 Description
      Assembles a jar archive containing the main classes.
@@ -127,7 +133,7 @@ Paths
      :subproj1:jar
 
 Type
-     Jar (class org.gradle.api.tasks.bundling.Jar)
+     Jar (org.gradle.api.tasks.bundling.Jar)
 
 Description
      Assembles a jar archive containing the main classes.
@@ -159,7 +165,7 @@ Path
      :subproj1:someTask
 
 Type
-     Copy (class org.gradle.api.tasks.Copy)
+     Copy (org.gradle.api.tasks.Copy)
 
 Description
      a copy operation
@@ -170,7 +176,7 @@ Path
      :someTask
 
 Type
-     Jar (class org.gradle.api.tasks.bundling.Jar)
+     Jar (org.gradle.api.tasks.bundling.Jar)
 
 Description
      an archiving operation
@@ -204,7 +210,7 @@ Path
      :someCamelCaseTask
 
 Type
-     Task (interface org.gradle.api.Task)
+     Task (org.gradle.api.Task)
 
 Description
      a description"""))
