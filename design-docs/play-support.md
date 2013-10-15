@@ -87,7 +87,20 @@ a developer may run `gradle --watch <tasks>`.
 
 - Gradle runs tasks, then watches files that are inputs to a task but not outputs of some other task. When a file changes, repeat.
 - Monitor files that are inputs to the model for changes too.
-- When the tasks start a service, stop the service(s) before rebuilding.
+- When the tasks start a service, stop and restart the service(s) after rebuilding, or reload if supported by the service container.
+
+## Developer triggers rebuild of running Play application
+
+Add support for non-continuous mode, where the developer triggers a rebuild of a Play application by reloading the application in the
+browser.
+
+- Gradle starts the Play server configured with the appropriate hooks to be informed when a request is in progress.
+- On each request, check asynchronously whether the application is up-to-date, if a check or rebuild is not already in progress.
+- Checks the same set of files as for the above feature, possibly monitored in the same way.
+- When an input file is out of date, rebuild the application.
+
+The implementation for continuous and non-continuous modes are basically the same, the main difference being when a rebuild
+is triggered.
 
 ## Developer views compile and other build failures in Play application
 
