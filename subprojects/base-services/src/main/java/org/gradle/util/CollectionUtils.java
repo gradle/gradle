@@ -75,6 +75,18 @@ public abstract class CollectionUtils {
         return copy;
     }
 
+    public static <T extends Comparable> List<T> sort(Iterable<T> things) {
+        List<T> copy;
+        if (things instanceof Collection) {
+            //noinspection unchecked
+            copy = new ArrayList<T>((Collection<T>) things);
+        } else {
+            copy = toList(things);
+        }
+        Collections.sort(copy);
+        return copy;
+    }
+
     public static <T, C extends Collection<T>> C filter(Iterable<? extends T> source, C destination, Spec<? super T> filter) {
         for (T item : source) {
             if (filter.isSatisfiedBy(item)) {

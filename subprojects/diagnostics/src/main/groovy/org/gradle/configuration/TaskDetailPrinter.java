@@ -43,11 +43,7 @@ public class TaskDetailPrinter {
     }
 
     public void print(StyledTextOutput output) {
-        final List<Task> tasks = CollectionUtils.sort(selection.getTasks(), new Comparator<Task>() {
-            public int compare(Task o1, Task o2) {
-                return o1.compareTo(o2);
-            }
-        });
+        final List<Task> tasks = CollectionUtils.sort(selection.getTasks());
 
         output.text("Detailed task information for ").withStyle(UserInput).println(taskPath);
         final ListMultimap<Class, Task> classListMap = groupTasksByType(tasks);
