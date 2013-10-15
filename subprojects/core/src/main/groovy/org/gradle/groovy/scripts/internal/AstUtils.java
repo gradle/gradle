@@ -47,7 +47,7 @@ public abstract class AstUtils {
         return target instanceof VariableExpression && target.getText().equals("this");
     }
 
-    protected static void visitScriptCode(SourceUnit source, GroovyCodeVisitor transformer) {
+    public static void visitScriptCode(SourceUnit source, GroovyCodeVisitor transformer) {
         source.getAST().getStatementBlock().visit(transformer);
         for (Object method : source.getAST().getMethods()) {
             MethodNode methodNode = (MethodNode) method;
@@ -55,7 +55,7 @@ public abstract class AstUtils {
         }
     }
 
-    protected static ClassNode getScriptClass(SourceUnit source) {
+    public static ClassNode getScriptClass(SourceUnit source) {
         if (source.getAST().getStatementBlock().getStatements().isEmpty() && source.getAST().getMethods().isEmpty()) {
             // There is no script class when there are no statements or methods declared in the script
             return null;
@@ -63,18 +63,27 @@ public abstract class AstUtils {
         return source.getAST().getClasses().get(0);
     }
 
-    protected static void removeMethod(ClassNode declaringClass, MethodNode methodNode) {
+    public static void removeMethod(ClassNode declaringClass, MethodNode methodNode) {
         declaringClass.getMethods().remove(methodNode);
         declaringClass.getDeclaredMethods(methodNode.getName()).clear();
     }
 
-    static void filterStatements(SourceUnit source, Spec<? super Statement> spec) {
+    public static void filterStatements(SourceUnit source, Spec<? super Statement> spec) {
         Iterator statementIterator = source.getAST().getStatementBlock().getStatements().iterator();
         while (statementIterator.hasNext()) {
             Statement statement = (Statement) statementIterator.next();
             if (!spec.isSatisfiedBy(statement)) {
                 statementIterator.remove();
             }
+        }
+    }
+
+    public static boolean isVisible(SourceUnit source, String className) {
+        try {
+            source.getClassLoader().loadClass(className);
+            return true;
+        } catch (ClassNotFoundException e) {
+            return false;
         }
     }
 }

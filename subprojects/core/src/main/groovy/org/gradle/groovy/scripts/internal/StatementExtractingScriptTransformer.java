@@ -59,7 +59,7 @@ public abstract class StatementExtractingScriptTransformer extends AbstractScrip
         Iterator<ImportNode> iter = source.getAST().getImports().iterator();
         while (iter.hasNext()) {
             ImportNode importedClass = iter.next();
-            if (!isVisible(source, importedClass.getClassName())) {
+            if (!AstUtils.isVisible(source, importedClass.getClassName())) {
                 try {
                     Field field = ModuleNode.class.getDeclaredField("imports");
                     field.setAccessible(true);
@@ -74,7 +74,7 @@ public abstract class StatementExtractingScriptTransformer extends AbstractScrip
         iter = source.getAST().getStaticImports().values().iterator();
         while (iter.hasNext()) {
             ImportNode importedClass = iter.next();
-            if (!isVisible(source, importedClass.getClassName())) {
+            if (!AstUtils.isVisible(source, importedClass.getClassName())) {
                 iter.remove();
             }
         }
@@ -82,7 +82,7 @@ public abstract class StatementExtractingScriptTransformer extends AbstractScrip
         iter = source.getAST().getStaticStarImports().values().iterator();
         while (iter.hasNext()) {
             ImportNode importedClass = iter.next();
-            if (!isVisible(source, importedClass.getClassName())) {
+            if (!AstUtils.isVisible(source, importedClass.getClassName())) {
                 iter.remove();
             }
         }
@@ -108,15 +108,6 @@ public abstract class StatementExtractingScriptTransformer extends AbstractScrip
         }
 
         source.getAST().getMethods().clear();
-    }
-
-    private boolean isVisible(SourceUnit source, String className) {
-        try {
-            source.getClassLoader().loadClass(className);
-            return true;
-        } catch (ClassNotFoundException e) {
-            return false;
-        }
     }
 
     public Transformer invert() {
