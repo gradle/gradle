@@ -26,6 +26,8 @@ import java.util.Map;
 @Incubating
 public interface PluginHandler {
 
+    String BLOCK_NAME = "plugins";
+
     void apply(Map<String, String> options);
 
 }

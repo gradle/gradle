@@ -27,6 +27,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.logging.LoggingManagerInternal;
+import org.gradle.plugin.PluginHandler;
 
 public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private final ScriptCompilerFactory scriptCompilerFactory;
@@ -115,7 +116,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
 
             StatementExtractingScriptTransformer classpathScriptTransformer = new StatementExtractingScriptTransformer(
                     classpathClosureName,
-                    new IsScriptBlockWithNameSpec(classpathClosureName)
+                    new IsScriptBlockWithNameSpec(classpathClosureName, PluginHandler.BLOCK_NAME)
             );
 
             compiler.setTransformer(classpathScriptTransformer);

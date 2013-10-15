@@ -20,31 +20,38 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class PluginHandlerScriptIntegTest extends AbstractIntegrationSpec {
 
+    private static final String SCRIPT = "println 'out'; plugins { println 'in'; apply([:]) }"
+
     def "build scripts have plugin blocks"() {
         when:
-        buildFile << "plugins { apply([:]) }"
+        buildFile << SCRIPT
 
         then:
-        succeeds "tasks"
+        executesCorrectly()
     }
 
     def "settings scripts have plugin blocks"() {
         when:
-        settingsFile << "plugins { apply([:]) }"
+        settingsFile << SCRIPT
 
         then:
-        succeeds "tasks"
+        executesCorrectly()
     }
 
     def "init scripts have plugin blocks"() {
         def initScript = file("init.gradle")
 
         when:
-        initScript << "plugins { apply([:]) }"
+        initScript << SCRIPT
 
         then:
         args "-I", initScript.absolutePath
+        executesCorrectly()
+    }
+
+    def void executesCorrectly() {
         succeeds "tasks"
+        assert output.contains("in\nout\n") // Testing the the plugins {} block is extracted and executed before the “main” content
     }
 
 }
