@@ -1,9 +1,0 @@
-task someTask(type:Jar){
-    description = "an archiving operation"
-}
-
-project(":subproj1"){
-    task someTask(type:Copy){
-        description = "a copy operation"
-    }
-}

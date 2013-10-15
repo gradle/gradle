@@ -23,10 +23,7 @@ import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 class HelpTaskIntegrationTest extends AbstractIntegrationSpec {
 
-    @Rule
-    public final TestResources resources = new TestResources(temporaryFolder)
-
-    def "can print help for implicit tasks"() {
+   def "can print help for implicit tasks"() {
         when:
         run "help", "--task", "dependencies"
         then:
@@ -44,6 +41,8 @@ Description
 
 BUILD SUCCESSFUL"""))
     }
+
+
 
     def "can print help for placeholder added tasks"() {
         when:
@@ -63,6 +62,8 @@ Description
 
 BUILD SUCCESSFUL"""))
     }
+
+
 
     def "help for tasks same type different descriptions"() {
         setup:
@@ -89,14 +90,18 @@ Paths
      :someproj:hello
 
 Type
-     DefaultTask (class org.gradle.api.DefaultTask)
+     Task (interface org.gradle.api.Task)
 
 Descriptions
      (:hello) hello task from root
      (:someproj:hello) hello task from someproj"""))
     }
 
+
     def "matchingTasksOfSameType"() {
+        setup:
+        settingsFile << "include ':subproj1'"
+        buildFile << "allprojects{ apply plugin:'java'}"
         when:
         run "help", "--task", ":jar"
         then:
@@ -135,6 +140,18 @@ BUILD SUCCESSFUL"""))
     }
 
     def "multipleMatchingTasksOfDifferentType"() {
+        setup:
+        settingsFile << "include ':subproj1'"
+        buildFile << """task someTask(type:Jar){
+            description = "an archiving operation"
+        }
+
+        project(":subproj1"){
+            task someTask(type:Copy){
+                description = "a copy operation"
+            }
+        }"""
+
         when:
         run "help", "--task", "someTask"
         then:
@@ -189,7 +206,7 @@ Path
      :someCamelCaseTask
 
 Type
-     DefaultTask (class org.gradle.api.DefaultTask)
+     Task (interface org.gradle.api.Task)
 
 Description
      a description"""))

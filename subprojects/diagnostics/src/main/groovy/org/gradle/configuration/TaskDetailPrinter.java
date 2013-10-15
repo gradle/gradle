@@ -17,6 +17,7 @@ package org.gradle.configuration;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
+import org.gradle.api.DefaultTask;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.plugins.DslObject;
@@ -84,7 +85,7 @@ public class TaskDetailPrinter {
         });
         taskTypes.addAll(CollectionUtils.collect(tasks, new Transformer<Class, Task>() {
             public Class transform(Task original) {
-                return new DslObject(original).getDeclaredType();
+                return getDeclaredTaskType(original);
             }
         }));
 
@@ -92,11 +93,20 @@ public class TaskDetailPrinter {
         for (final Class taskType : taskTypes) {
             tasksGroupedByType.putAll(taskType, CollectionUtils.filter(tasks, new Spec<Task>() {
                 public boolean isSatisfiedBy(Task element) {
-                    return new DslObject(element).getDeclaredType().equals(taskType);
+                    return getDeclaredTaskType(element).equals(taskType);
                 }
             }));
         }
         return tasksGroupedByType;
+    }
+
+    private Class getDeclaredTaskType(Task original) {
+        Class clazz = new DslObject(original).getDeclaredType();
+        if(clazz.equals(DefaultTask.class)){
+            return org.gradle.api.Task.class;
+        }else{
+            return clazz;
+        }
     }
 
     private void printTaskDescription(StyledTextOutput output, List<Task> tasks) {
