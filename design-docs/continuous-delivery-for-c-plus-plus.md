@@ -775,51 +775,6 @@ Depends on a number of stories in [dependency-resolution.md](dependency-resoluti
 - Replace `DependentSourceSet.libs` and `dependency` with a set of dependency declarations.
 - Replace `LibraryResolver` and `NativeDependencySet` with the above.
 
-## Story: Simplify configuration of a binary based on its properties
-
-- Add a `DomainObjectCollection` sub-interface with method `all(map, action)`. This method is equivalent to calling `matching(predicate, action)`, where `predicate` is a spec that selects all objects whose property values equal those specified in the map. This method can be used to do delayed configuration of the elements of the collection.
-- Change `NativeComponent.binaries` and `BinariesContainer` to provide implementations of this interface.
-
-### User visible changes
-
-    apply plugin: 'cpp-lib'
-
-    libraries {
-        main {
-            // Defaults for all binaries for this library
-            binaries.all {
-                …
-            }
-            // Defaults for all shared library binaries for this library
-            binaries.all(type: SharedLibraryBinary) {
-                …
-            }
-            // Defaults for all binaries built by Visual C++
-            binaries.all(toolchain: toolchains.visualCpp) {
-                …
-            }
-            // Defaults for all shared library binaries built by Visual C++
-            binaries.all(toolchain: toolchains.visualCpp, type: SharedLibraryBinary) {
-                …
-            }
-        }
-    }
-
-    binaries.all(name: 'mainSharedLibrary') {
-        …
-    }
-
-    binaries.all(type: NativeBinary) {
-        …
-    }
-
-### Open issues
-
-- Roll out the predicate methods to other containers.
-- Need to deal with things like 'all versions of visual C++', 'all toolchains except visual C++', 'visual C++ 9 and later', 'gcc 3' etc.
-- Need to deal with things like 'all unix environments', 'all windows environments', etc.
-- Nice to have a way to select all binaries that have linker settings (ExecutableBinary + SharedLibraryBinary).
-
 ## Story: Allow easy creation of all variants, all possible variants and a single variant for each component
 
 - Add an `assemble` lifecycle task for each component.
@@ -836,79 +791,6 @@ Depends on a number of stories in [dependency-resolution.md](dependency-resoluti
 
 - Build all types of binaries from all supported languages using Clang.
 - Change test apps to detect which compiler is used to compile and assert that the correct compiler is being used.
-
-## Story: Defer creation of binaries
-
-This story defers creation of the binaries for a native component until after the component has been fully configured. This will be used in later stories to allow
-different variants to be defined for a component.
-
-- Add an internal (for now) `ConfigurationActionContainer` interface, with a single `onConfigure(Runnable)` method.
-- Add a project scoped implementation of this interface. The `onConfigure()` method is invoked just before the `afterEvaluated` event.
-- Change the publishing plugin to register an action that configures the publications of the project.
-- Change the handling of `@DeferredConfigurable` so that a `@DeferredConfigurable` is not automatically configured during project configuration. Instead, it is configured
-  on demand.
-- Change the C++ plugin to register an action that configures the components of the project and then creates the binaries of each component.
-
-*Note*: this story introduces some breaking changes, as the binaries and their tasks will not be defined when the build script is executed. Later stories will
-improve this.
-
-### User visible changes
-
-    apply plugin: 'cpp-lib'
-
-    libraries {
-        main {
-            // Defaults for all binaries for this library
-            binaries.all {
-                …
-            }
-            // Defaults for all shared library binaries for this library
-            binaries.withType(type: SharedLibraryBinary) {
-                …
-            }
-            // Note: These will not work as expected
-            binaries.each { … }
-            binaries.find { … }
-            binaries.size()
-        }
-    }
-
-    binaries.all {
-        …
-    }
-
-    binaries.withType(NativeBinary) {
-        …
-    }
-
-    // Note: this will not work as previously. It will fail because the binary does not exist yet
-    binaries {
-        mainSharedLibrary { … }
-    }
-
-    //Note: this will not work as previously. It will fail because the task does not exist yet
-    compileMainSharedLibrary { … }
-
-
-### Open issues
-
-- Introduce a `DomainObjectCollection` that uses delayed configuration of its elements.
-- Introduce a `NamedDomainObjectCollection` that uses delayed configuration of its elements.
-- Warn when using binaries container in a way that won't work.
-- Warn when mutating component after binaries have been created.
-
-## Story: Convenient configuration of tasks for binaries and components
-
-This story defers configuration of the tasks for a binary or component until after the object has been fully configured.
-
-- Change the C++ plugin to create the tasks for each native binary after the binary has been configured.
-- Change the C++ plugin to create the tasks for each component after the tasks for the binary have been configured.
-- Remove the convention mappings from the C++ plugin.
-
-### Open issues
-
-- Allow navigation from a `Binary` to the tasks associated with the binary.
-- Some way to configure the tasks for a binary and publication.
 
 ## Story: Incremental compilation for C and C++
 
@@ -991,7 +873,9 @@ Here's an example:
     - Should implement this by adding a new tool method on `PlatformToolChain`.
 7. Include the resulting `.res` files as input to the link task  (see `CppNativeBinariesPlugin` for example).
 8. For each `NativeBinary`, the `windows-resources` plugin defines a `PreprocessingTool` extension called `rcCompiler` (see `CppNativeBinariesPlugin` for example).
+    - If the target platform is not Windows, do not add.
     - Wire up the args and macros defined in this extension as defaults for the resource compile task.
+9. Add a sample
 
 ### Test cases
 
@@ -1007,22 +891,38 @@ Here's an example:
 
 ### Open issues
 
+- Source set with srcdirs + patterns probably does not work for resource files
 - Generate and link a version resource by convention into every binary?
 - Include headers?
 - Don't define the compile task if the source set is empty.
 
 ## Story: Generate source from Microsoft IDL files
 
-### Implementation
-
-* Use `midl` to generate server, client and header source files.
+- Add a `microsoft-idl` plugin
+- For each `FunctionalSourceSet` add an IDL source set.
+- Add the IDL source set as input to the C source set.
+- Add some way to declare what type of thing is being built: RPC client, RPC server, COM component, etc
+- For each IDL source set adds a generate task for each target architecture
+    - Not on Windows
+    - Fail if toolchain is not Visual C++
+    - Use `midl` to generate server, client and header source files.
+        - Invoke with `/env win32` or `/env amd64` according to target architecture.
+        - Invoke with `/nologo /out <output-dir>`
+- Add `midl` macros and args to each `NativeBinary` with Windows as the target platform
+- Add a sample
 
 ### Test cases
 
+- Can build a client and server executable.
+- Can build a COM DLL.
+- Incremental
+- Removes stale `.c` and `.h` files
+
 ### Open issues
 
-- Need to deal with source sets that are generated.
-- Need a `CppSourceSet.getBuildDependencies()` implementation.
+- Source set with srcdirs + patterns probably does not work for IDL files.
+- Include headers?
+- Need to make `LanguageSourceSet` extend `BuildableModelElement`.
 
 ## Story: Use Windows linker def files
 
