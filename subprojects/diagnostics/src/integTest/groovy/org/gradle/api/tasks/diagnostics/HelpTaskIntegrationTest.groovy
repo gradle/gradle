@@ -16,8 +16,6 @@
 package org.gradle.api.tasks.diagnostics
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.TestResources
-import org.junit.Rule
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
