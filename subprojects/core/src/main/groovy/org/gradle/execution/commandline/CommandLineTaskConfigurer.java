@@ -16,15 +16,15 @@
 
 package org.gradle.execution.commandline;
 
-import org.gradle.api.GradleException;
 import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.CommandLineOption;
+import org.gradle.api.internal.tasks.CommandLineOptionReader;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.cli.ParsedCommandLineOption;
-import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.reflect.JavaMethod;
+import org.gradle.internal.reflect.JavaReflectionUtil;
 
 import java.lang.reflect.Method;
 import java.util.Collection;
@@ -44,30 +44,28 @@ public class CommandLineTaskConfigurer {
 
     private List<String> configureTasksNow(Collection<Task> tasks, List<String> arguments) {
         List<String> remainingArguments = null;
+        CommandLineOptionReader commandLineOptionReader = new CommandLineOptionReader();
         for (Task task : tasks) {
             Map<String, JavaMethod<Object, ?>> options = new HashMap<String, JavaMethod<Object, ?>>();
             CommandLineParser parser = new CommandLineParser();
-            for (Class<?> type = task.getClass(); type != Object.class; type = type.getSuperclass()) {
-                for (Method method : type.getDeclaredMethods()) {
-                    CommandLineOption commandLineOption = method.getAnnotation(CommandLineOption.class);
-                    if (commandLineOption != null) {
-                        String optionName = commandLineOption.options()[0];
-                        org.gradle.cli.CommandLineOption option = parser.option(optionName);
-                        option.hasDescription(commandLineOption.description());
-                        if (method.getParameterTypes().length > 0 && !hasSingleBooleanParameter(method)) {
-                            option.hasArgument();
-                        }
-                        options.put(optionName, JavaReflectionUtil.method(Object.class, Object.class, method));
-                    }
+            final Map<CommandLineOption, Method> commandLineOptionsWithMethod = commandLineOptionReader.getCommandLineOptionsWithMethod(task);
+            for (Map.Entry<CommandLineOption, Method> commandLineOptionMethodEntry : commandLineOptionsWithMethod.entrySet()) {
+                final CommandLineOption commandLineOption = commandLineOptionMethodEntry.getKey();
+                final Method method = commandLineOptionMethodEntry.getValue();
+                String optionName = commandLineOption.options()[0];
+                org.gradle.cli.CommandLineOption option = parser.option(optionName);
+                option.hasDescription(commandLineOption.description());
+                if (method.getParameterTypes().length > 0 && !hasSingleBooleanParameter(method)) {
+                    option.hasArgument();
                 }
+                options.put(optionName, JavaReflectionUtil.method(Object.class, Object.class, method));
             }
-
             ParsedCommandLine parsed;
             try {
                 parsed = parser.parse(arguments);
             } catch (CommandLineArgumentException e) {
                 //we expect that all options must be applicable for each task
-                throw new GradleException("Problem configuring task " + task.getPath() + " from command line. " + e.getMessage(), e);
+                throw new TaskConfigurationException(task, "Problem configuring task " + task.getPath() + " from command line. " + e.getMessage(), e);
             }
             for (Map.Entry<String, JavaMethod<Object, ?>> entry : options.entrySet()) {
                 if (parsed.hasOption(entry.getKey())) {
@@ -81,7 +79,7 @@ public class CommandLineTaskConfigurer {
             }
             //since
             assert remainingArguments == null || remainingArguments.equals(parsed.getExtraArguments())
-                : "we expect all options to be consumed by each task so remainingArguments should be the same for each task";
+                    : "we expect all options to be consumed by each task so remainingArguments should be the same for each task";
             remainingArguments = parsed.getExtraArguments();
         }
         return remainingArguments;

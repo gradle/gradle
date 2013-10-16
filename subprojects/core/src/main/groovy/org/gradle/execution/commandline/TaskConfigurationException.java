@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,28 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.execution;
+
+package org.gradle.execution.commandline;
 
 import org.gradle.FailureResolutionAware;
-import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.GradleException;
+import org.gradle.api.Task;
+import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.configuration.ImplicitTasksConfigurer;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.logging.StyledTextOutput;
 
 import static org.gradle.logging.StyledTextOutput.Style.UserInput;
 
-/**
- * A {@code TaskSelectionException} is thrown when the tasks to execute cannot be selected due to some user input
- * problem.
- */
-public class TaskSelectionException extends InvalidUserDataException implements FailureResolutionAware{
-    public TaskSelectionException(String message) {
-        super(message);
+public class TaskConfigurationException extends GradleException implements FailureResolutionAware {
+
+    private final Task task;
+
+    public TaskConfigurationException(Task task, String message, CommandLineArgumentException cause) {
+        super(message, cause);
+        this.task = task;
     }
 
     public void appendResolution(StyledTextOutput output, BuildClientMetaData clientMetaData) {
         output.text("Run ");
-        clientMetaData.describeCommand(output.withStyle(UserInput), ImplicitTasksConfigurer.TASKS_TASK);
-        output.text(" to get a list of available tasks.");
+        clientMetaData.describeCommand(output.withStyle(UserInput), ImplicitTasksConfigurer.HELP_TASK);
+        output.withStyle(UserInput).format(" --task %s", task.getName());
+        output.text(" to get task usage details. ");
     }
 }

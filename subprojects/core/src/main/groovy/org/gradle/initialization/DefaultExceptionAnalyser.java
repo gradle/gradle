@@ -15,12 +15,12 @@
  */
 package org.gradle.initialization;
 
+import org.gradle.FailureResolutionAware;
 import org.gradle.api.GradleScriptException;
 import org.gradle.api.internal.Contextual;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.LocationAwareException;
 import org.gradle.api.tasks.TaskExecutionException;
-import org.gradle.execution.TaskSelectionException;
 import org.gradle.groovy.scripts.Script;
 import org.gradle.groovy.scripts.ScriptCompilationException;
 import org.gradle.groovy.scripts.ScriptExecutionListener;
@@ -46,8 +46,7 @@ public class DefaultExceptionAnalyser implements ExceptionAnalyser, ScriptExecut
     }
 
     public Throwable transform(Throwable exception) {
-        // TODO: remove this special case
-        if (exception instanceof TaskSelectionException) {
+        if (exception instanceof FailureResolutionAware) {
             return exception;
         }
 

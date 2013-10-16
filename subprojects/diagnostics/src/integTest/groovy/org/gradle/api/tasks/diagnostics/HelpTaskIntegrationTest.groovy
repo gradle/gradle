@@ -217,7 +217,6 @@ Description
 
     }
 
-
     def "prints hint when using invalid commandlineoptions"() {
         setup:
         buildFile << "apply plugin:'java'"
@@ -228,9 +227,8 @@ Description
 
 * What went wrong:
 Problem configuring task :help from command line. Unknown command-line option '--tasssk'.
-> Unknown command-line option '--tasssk'.
 
 * Try:
-Run help --task 'taskName' to get task usage details. Run with --info or --debug option to get more log output."""))
+Run gradle help --task help to get task usage details. Run with --info or --debug option to get more log output."""))
         }
 }

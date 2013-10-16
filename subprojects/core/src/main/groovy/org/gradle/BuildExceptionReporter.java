@@ -19,8 +19,6 @@ import org.codehaus.groovy.runtime.StackTraceUtils;
 import org.gradle.api.Action;
 import org.gradle.api.internal.LocationAwareException;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.cli.CommandLineArgumentException;
-import org.gradle.configuration.ImplicitTasksConfigurer;
 import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.execution.TaskSelectionException;
 import org.gradle.initialization.BuildClientMetaData;
@@ -135,9 +133,7 @@ public class BuildExceptionReporter extends BuildAdapter implements Action<Throw
         assert failure.getCause() == null;
         details.summary.text("Could not determine which tasks to execute.");
         details.details.text(getMessage(failure));
-        details.resolution.text("Run ");
-        clientMetaData.describeCommand(details.resolution.withStyle(UserInput), ImplicitTasksConfigurer.TASKS_TASK);
-        details.resolution.text(" to get a list of available tasks.");
+        failure.appendResolution(details.resolution, clientMetaData);
     }
 
     private void formatGenericFailure(String granularity, Throwable failure, final FailureDetails details) {
@@ -189,10 +185,8 @@ public class BuildExceptionReporter extends BuildAdapter implements Action<Throw
     }
 
     private void fillInFailureResolution(FailureDetails details) {
-        if (causedByCommandLineException(details.failure)){
-            details.resolution.text("Run ");
-            details.resolution.withStyle(UserInput).format("%s --task 'taskName'", ImplicitTasksConfigurer.HELP_TASK);
-            details.resolution.text(" to get task usage details. ");
+        if (details.failure instanceof FailureResolutionAware){
+            ((FailureResolutionAware)details.failure).appendResolution(details.resolution, clientMetaData);
         }
         if (details.exceptionStyle == ExceptionStyle.NONE) {
             details.resolution.text("Run with ");
@@ -208,17 +202,6 @@ public class BuildExceptionReporter extends BuildAdapter implements Action<Throw
             details.resolution.withStyle(UserInput).format("--%s", LoggingCommandLineConverter.DEBUG_LONG);
             details.resolution.text(" option to get more log output.");
         }
-    }
-
-    private boolean causedByCommandLineException(Throwable failure) {
-        Throwable cause = failure.getCause();
-        while(cause != null){
-            if(cause instanceof CommandLineArgumentException){
-                return true;
-            }
-            cause = cause.getCause();
-        }
-        return false;
     }
 
     private String getMessage(Throwable throwable) {

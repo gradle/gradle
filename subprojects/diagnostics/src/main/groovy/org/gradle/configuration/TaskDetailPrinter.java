@@ -22,12 +22,12 @@ import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.tasks.CommandLineOption;
+import org.gradle.api.internal.tasks.CommandLineOptionReader;
 import org.gradle.api.specs.Spec;
 import org.gradle.execution.TaskSelector;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.util.CollectionUtils;
 
-import java.lang.reflect.Method;
 import java.util.*;
 
 import static org.gradle.logging.StyledTextOutput.Style.UserInput;
@@ -36,10 +36,12 @@ public class TaskDetailPrinter {
     private final String taskPath;
     private final TaskSelector.TaskSelection selection;
     private static final String INDENT = "     ";
+    private final CommandLineOptionReader commandLineOptionReader;
 
     public TaskDetailPrinter(String taskPath, TaskSelector.TaskSelection selection) {
         this.taskPath = taskPath;
         this.selection = selection;
+        commandLineOptionReader = new CommandLineOptionReader();
     }
 
     public void print(StyledTextOutput output) {
@@ -137,17 +139,9 @@ public class TaskDetailPrinter {
 
     private Map<String, String> getOptionsWithDescriptions(Class taskClazz) {
         Map<String, String> options = new HashMap<String, String>();
-        for (Class<?> type = taskClazz; type != Object.class && type != null; type = type.getSuperclass()) {
-            //if (type != null) {
-                for (Method method : type.getDeclaredMethods()) {
-                    CommandLineOption commandLineOption = method.getAnnotation(CommandLineOption.class);
-                    if (commandLineOption != null) {
-                        String optionName = commandLineOption.options()[0];
-                        String optionDescription = commandLineOption.description();
-                        options.put(optionName, optionDescription);
-                    }
-                }
-            //}
+        final Set<CommandLineOption> commandLineOptions = commandLineOptionReader.getCommandLineOptions(taskClazz);
+        for (CommandLineOption commandLineOption : commandLineOptions) {
+            options.put(commandLineOption.options()[0], commandLineOption.description());
         }
         return options;
     }
