@@ -135,14 +135,11 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
                     mdBuilder.addPlugin(plugin);
                 }
 
-                pomReader.addDependencyMgts(parentDescr.getDependencyMgt());
+                pomReader.addInheritedDependencyMgts(parentDescr.getDependencyMgt());
             }
 
             overrideDependencyMgtsWithImported(parserSettings, pomReader);
-
-            for(PomDependencyMgt dependencyMgt : pomReader.getDependencyMgt().values()) {
-                mdBuilder.addDependencyMgt(dependencyMgt);
-            }
+            addDependencyMgtsToBuilder(mdBuilder, pomReader.getDependencyMgt().values());
 
             if (parentDescr != null) {
                 for (PomDependencyData pomDependencyData : parentDescr.getDependencies()) {
@@ -170,8 +167,8 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
      * @throws SAXException
      */
     private void overrideDependencyMgtsWithImported(DescriptorParseContext parseContext, PomReader pomReader) throws IOException, SAXException {
-        List<PomDependencyMgt> importedDependencyMgts = parseImportedDependencyMgts(parseContext, pomReader.getDependencyMgt().values());
-        pomReader.addDependencyMgts(importedDependencyMgts);
+        Map<String, PomDependencyMgt> importedDependencyMgts = parseImportedDependencyMgts(parseContext, pomReader.getDependencyMgt().values());
+        pomReader.addInheritedDependencyMgts(importedDependencyMgts);
     }
 
     /**
@@ -183,20 +180,41 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
      * @throws IOException
      * @throws SAXException
      */
-    private List<PomDependencyMgt> parseImportedDependencyMgts(DescriptorParseContext parseContext, Collection<PomDependencyMgt> currentDependencyMgts) throws IOException, SAXException {
-        List<PomDependencyMgt> importedDependencyMgts = new ArrayList<PomDependencyMgt>();
+    private Map<String, PomDependencyMgt> parseImportedDependencyMgts(DescriptorParseContext parseContext, Collection<PomDependencyMgt> currentDependencyMgts) throws IOException, SAXException {
+        Map<String, PomDependencyMgt> importedDependencyMgts = new LinkedHashMap<String, PomDependencyMgt>();
 
         for(PomDependencyMgt currentDependencyMgt : currentDependencyMgts) {
-            if(DEPENDENCY_IMPORT_SCOPE.equals(currentDependencyMgt.getScope())) {
+            if(isDependencyImportScoped(currentDependencyMgt)) {
                 PomReader importDescr = parseImportedPom(parseContext, currentDependencyMgt);
-
-                for(PomDependencyMgt importedDependencyMgt : importDescr.getDependencyMgt().values()) {
-                    importedDependencyMgts.add(importedDependencyMgt);
-                }
+                importedDependencyMgts.putAll(importDescr.getDependencyMgt());
             }
         }
 
         return importedDependencyMgts;
+    }
+
+    /**
+     * Adds dependency management information to builder. Excludes elements with scope "import".
+     *
+     * @param mdBuilder Module descriptor builder
+     * @param dependencyMgts Dependency management information
+     */
+    private void addDependencyMgtsToBuilder(GradlePomModuleDescriptorBuilder mdBuilder, Collection<PomDependencyMgt> dependencyMgts) {
+        for(PomDependencyMgt dependencyMgt : dependencyMgts) {
+            if(!isDependencyImportScoped(dependencyMgt)) {
+                mdBuilder.addDependencyMgt(dependencyMgt);
+            }
+        }
+    }
+
+    /**
+     * Checks if dependency has scope "import".
+     *
+     * @param dependencyMgt Dependency management element
+     * @return Flag
+     */
+    private boolean isDependencyImportScoped(PomDependencyMgt dependencyMgt) {
+        return DEPENDENCY_IMPORT_SCOPE.equals(dependencyMgt.getScope());
     }
 
     /**

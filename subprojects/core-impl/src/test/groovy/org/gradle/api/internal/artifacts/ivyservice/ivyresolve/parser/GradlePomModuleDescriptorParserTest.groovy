@@ -338,6 +338,75 @@ class GradlePomModuleDescriptorParserTest extends Specification {
         hasDefaultDependencyArtifact(dep)
     }
 
+    def "uses importing pom dependency management over imported pom definition with same group ID and artifact ID "() {
+        given:
+
+        def imported = tmpDir.file("imported.xml") << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>different-group</groupId>
+    <artifactId>imported</artifactId>
+    <version>different-version</version>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>group-two</groupId>
+                <artifactId>artifact-two</artifactId>
+                <version>1.5</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+</project>
+"""
+
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>different-group</groupId>
+                <artifactId>imported</artifactId>
+                <version>different-version</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>group-two</groupId>
+                <artifactId>artifact-two</artifactId>
+                <version>1.2</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>group-two</groupId>
+            <artifactId>artifact-two</artifactId>
+        </dependency>
+    </dependencies>
+</project>
+"""
+        and:
+        parseContext.currentRevisionId >> moduleId('group-one', 'artifact-one', 'version-one')
+        parseContext.getArtifact({it.moduleRevisionId.name == 'imported' }) >> { new DefaultLocallyAvailableExternalResource(imported.toURI().toURL().toString(), new DefaultLocallyAvailableResource(imported)) }
+
+        when:
+        def descriptor = parsePom()
+
+        then:
+        descriptor.dependencies.length == 1
+        def dep = descriptor.dependencies.first()
+        dep.dependencyRevisionId == moduleId('group-two', 'artifact-two', '1.2')
+        dep.moduleConfigurations == ['compile', 'runtime']
+        hasDefaultDependencyArtifact(dep)
+    }
+
     def "uses parent pom over grand parent pom dependency management section"() {
         given:
         def grandParent = tmpDir.file("grandparent.xml") << """

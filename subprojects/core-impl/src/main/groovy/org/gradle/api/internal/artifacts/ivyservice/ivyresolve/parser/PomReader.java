@@ -72,6 +72,7 @@ public class PomReader {
 
     private Map<String, String> properties = new HashMap<String, String>();
     private final Map<String, PomDependencyMgt> inheritedDependencyMgts = new LinkedHashMap<String, PomDependencyMgt>();
+    private Map<String, PomDependencyMgt> dependencyMgts;
 
     private final Element projectElement;
     private final Element parentElement;
@@ -171,15 +172,8 @@ public class PomReader {
         return properties;
     }
 
-    public void addDependencyMgts(List<PomDependencyMgt> dependencyMgts) {
-        for(PomDependencyMgt dependencyMgt : dependencyMgts) {
-            String key = createPomDependencyMgtKey(dependencyMgt.getGroupId(), dependencyMgt.getArtifactId());
-            inheritedDependencyMgts.put(key, dependencyMgt);
-        }
-    }
-
-    public void addDependencyMgts(Map<String, PomDependencyMgt> dependencyMgts) {
-        inheritedDependencyMgts.putAll(dependencyMgts);
+    public void addInheritedDependencyMgts(Map<String, PomDependencyMgt> inherited) {
+        inheritedDependencyMgts.putAll(inherited);
     }
 
     public String getGroupId() {
@@ -320,9 +314,19 @@ public class PomReader {
     }
 
     public Map<String, PomDependencyMgt> getDependencyMgt() {
+        if(dependencyMgts == null) {
+            dependencyMgts = resolveDependencyMgt();
+        }
+
+        inheritedDependencyMgts.putAll(dependencyMgts);
+        return inheritedDependencyMgts;
+    }
+
+    private Map<String, PomDependencyMgt> resolveDependencyMgt() {
+        Map<String, PomDependencyMgt> resolvedDependencyMgts = new LinkedHashMap<String, PomDependencyMgt>();
+
         Element dependenciesElement = getFirstChildElement(projectElement, DEPENDENCY_MGT);
         dependenciesElement = getFirstChildElement(dependenciesElement, DEPENDENCIES);
-        Map<String, PomDependencyMgt> dependencies = new LinkedHashMap<String, PomDependencyMgt>();
         if (dependenciesElement != null) {
             NodeList childs = dependenciesElement.getChildNodes();
             for (int i = 0; i < childs.getLength(); i++) {
@@ -330,12 +334,12 @@ public class PomReader {
                 if (node instanceof Element && DEPENDENCY.equals(node.getNodeName())) {
                     PomDependencyMgt pomDependencyMgt = new PomDependencyMgtElement((Element) node);
                     String key = createPomDependencyMgtKey(pomDependencyMgt.getGroupId(), pomDependencyMgt.getArtifactId());
-                    dependencies.put(key, pomDependencyMgt);
+                    resolvedDependencyMgts.put(key, pomDependencyMgt);
                 }
             }
         }
-        inheritedDependencyMgts.putAll(dependencies);
-        return inheritedDependencyMgts;
+
+        return resolvedDependencyMgts;
     }
 
     private String createPomDependencyMgtKey(String groupId, String artifactId) {
