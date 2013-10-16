@@ -20,14 +20,20 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class PluginHandlerScriptIntegTest extends AbstractIntegrationSpec {
 
-    private static final String SCRIPT = "println 'out'; plugins { println 'in'; apply([:]) }"
+    private static final String SCRIPT = "println 'out'; plugins { println 'in' }"
 
     def "build scripts have plugin blocks"() {
         when:
         buildFile << SCRIPT
+        buildFile << """
+            plugins {
+              apply plugin: 'java'
+            }
+        """
 
         then:
         executesCorrectly()
+        output.contains "javadoc" // task added by java plugin
     }
 
     def "settings scripts have plugin blocks"() {
