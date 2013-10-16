@@ -172,10 +172,6 @@ public class TestOutputStore {
         final Region stdOut;
         final Region stdErr;
 
-        private Index() {
-            this(new Region(), new Region());
-        }
-
         private Index(Region stdOut, Region stdErr) {
             this.children = ImmutableMap.of();
             this.stdOut = stdOut;
@@ -273,7 +269,7 @@ public class TestOutputStore {
                 }
             } else { // no outputs file
                 if (indexFile.exists()) {
-                    throw new IllegalStateException(String.format("Test outputs data file '{}' does not exist but the index file '{}' does", outputsFile, indexFile));
+                    throw new IllegalStateException(String.format("Test outputs data file '%s' does not exist but the index file '%s' does", outputsFile, indexFile));
                 }
 
                 index = null;
@@ -380,13 +376,11 @@ public class TestOutputStore {
                         writer.write(message);
                     } else {
                         dataFile.skipBytes(readLength);
-                        continue;
                     }
                 }
             } catch (IOException e1) {
                 throw new UncheckedIOException(e1);
             }
-
         }
     }
 
