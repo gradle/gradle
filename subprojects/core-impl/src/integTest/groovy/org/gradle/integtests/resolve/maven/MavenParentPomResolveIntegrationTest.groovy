@@ -401,7 +401,7 @@ task retrieve(type: Sync) {
         server.start()
 
         def parent = mavenHttpRepo.module('group', 'parent', '1.0').dependsOn('my.group', 'myartifact', '1.1').publish()
-        def parentDepModule = mavenHttpRepo.module('my.group', 'myartifact', '1.1').publish()
+        mavenHttpRepo.module('my.group', 'myartifact', '1.1').publish()
         def depModule = mavenHttpRepo.module('my.group', 'myartifact', '1.3').publish()
         def module = mavenHttpRepo.module('group', 'artifact', '1.0').parent('group', 'parent', '1.0').dependsOn('my.group', 'myartifact', '1.3').publish()
 
@@ -421,7 +421,6 @@ task retrieve(type: Sync) {
         parent.pom.expectGet()
         module.pom.expectGet()
         module.artifact.expectGet()
-        parentDepModule.pom.expectGet()
         depModule.pom.expectGet()
         depModule.artifact.expectGet()
 
