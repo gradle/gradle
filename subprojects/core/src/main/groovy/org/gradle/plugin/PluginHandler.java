@@ -28,6 +28,6 @@ public interface PluginHandler {
 
     String BLOCK_NAME = "plugins";
 
-    void apply(Map<String, Object> options);
+    void apply(Map<String, String> options);
 
 }

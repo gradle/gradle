@@ -16,22 +16,14 @@
 
 package org.gradle.plugin.internal;
 
-import org.gradle.api.plugins.PluginAware;
 import org.gradle.plugin.PluginHandler;
 
 import java.util.Map;
 
 public class DefaultPluginHandler implements PluginHandler {
 
-    private final PluginAware delegate;
-
-    public DefaultPluginHandler(PluginAware delegate) {
-        this.delegate = delegate;
-    }
-
-    public void apply(Map<String, Object> options) {
-        PluginTarget target = new PluginApplicationNotationParser().parseType(options);
-        delegate.getPlugins().apply(target.getId());
+    public void apply(Map<String, String> options) {
+        // implementation stubbed
     }
 
 }
