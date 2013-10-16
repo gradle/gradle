@@ -21,7 +21,7 @@ import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 class HelpTaskIntegrationTest extends AbstractIntegrationSpec {
 
-   def "can print help for implicit tasks"() {
+    def "can print help for implicit tasks"() {
         when:
         run "help", "--task", "dependencies"
         then:
@@ -42,7 +42,6 @@ Description
 
 BUILD SUCCESSFUL"""))
     }
-
 
 
     def "can print help for placeholder added tasks"() {
@@ -66,7 +65,6 @@ Description
 
 BUILD SUCCESSFUL"""))
     }
-
 
 
     def "help for tasks same type different descriptions"() {
@@ -218,17 +216,35 @@ Description
     }
 
     def "prints hint when using invalid commandlineoptions"() {
-        setup:
-        buildFile << "apply plugin:'java'"
         when:
-            fails "help", "--tasssk", "help"
-            then:
-            errorOutput.contains(toPlatformLineSeparators("""FAILURE: Build failed with an exception.
+        fails "help", "--tasssk", "help"
+        then:
+        errorOutput.contains(toPlatformLineSeparators("""FAILURE: Build failed with an exception.
 
 * What went wrong:
 Problem configuring task :help from command line. Unknown command-line option '--tasssk'.
 
 * Try:
 Run gradle help --task help to get task usage details. Run with --info or --debug option to get more log output."""))
-        }
+    }
+
+    def "prints available options when using boolean properties"() {
+        when:
+        succeeds "help", "--task", "tasks"
+        then:
+        output.contains(toPlatformLineSeparators("""Detailed task information for tasks
+
+Path
+     :tasks
+
+Type
+     TaskReportTask (org.gradle.api.tasks.diagnostics.TaskReportTask)
+
+Options
+     --all     Show additional tasks and detail.
+               Takes a boolean value (true|false) as parameter. As a default (ommitting a parameter) true will be used.
+
+Description
+     Displays the tasks runnable from root project '${testDirectory.getName()}'."""))
+    }
 }

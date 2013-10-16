@@ -48,10 +48,10 @@ public class CommandLineTaskConfigurer {
         for (Task task : tasks) {
             Map<String, JavaMethod<Object, ?>> options = new HashMap<String, JavaMethod<Object, ?>>();
             CommandLineParser parser = new CommandLineParser();
-            final Map<CommandLineOption, Method> commandLineOptionsWithMethod = commandLineOptionReader.getCommandLineOptionsWithMethod(task);
-            for (Map.Entry<CommandLineOption, Method> commandLineOptionMethodEntry : commandLineOptionsWithMethod.entrySet()) {
-                final CommandLineOption commandLineOption = commandLineOptionMethodEntry.getKey();
-                final Method method = commandLineOptionMethodEntry.getValue();
+            final List<CommandLineOptionReader.CommandLineOptionDescriptor> commandLineOptions = commandLineOptionReader.getCommandLineOptions(task);
+            for (CommandLineOptionReader.CommandLineOptionDescriptor optionDescriptor : commandLineOptions) {
+                final CommandLineOption commandLineOption = optionDescriptor.getOption();
+                final Method method = optionDescriptor.getAnnotatedMethod();
                 String optionName = commandLineOption.options()[0];
                 org.gradle.cli.CommandLineOption option = parser.option(optionName);
                 option.hasDescription(commandLineOption.description());

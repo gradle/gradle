@@ -21,14 +21,16 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.plugins.DslObject;
-import org.gradle.api.internal.tasks.CommandLineOption;
 import org.gradle.api.internal.tasks.CommandLineOptionReader;
 import org.gradle.api.specs.Spec;
 import org.gradle.execution.TaskSelector;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.util.CollectionUtils;
 
-import java.util.*;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 import static org.gradle.logging.StyledTextOutput.Style.UserInput;
 
@@ -126,24 +128,26 @@ public class TaskDetailPrinter {
     }
 
     private void printlnCommandlineOptions(StyledTextOutput output, Class clazz) {
-        Map<String, String> cmdOptions = getOptionsWithDescriptions(clazz);
-        if (!cmdOptions.isEmpty()) {
+        final List<CommandLineOptionReader.CommandLineOptionDescriptor> commandLineOptions = commandLineOptionReader.getCommandLineOptions(clazz);
+        if (!commandLineOptions.isEmpty()) {
             output.println();
             output.text("Options").println();
         }
-        for (Map.Entry<String, String> optionWithDescr : cmdOptions.entrySet()) {
-            output.text(INDENT).withStyle(UserInput).text(String.format("--%s", optionWithDescr.getKey()));
-            output.text(INDENT).println(optionWithDescr.getValue());
-        }
-    }
+        for (CommandLineOptionReader.CommandLineOptionDescriptor descriptor : commandLineOptions) {
+            final String optionString = String.format("--%s", descriptor.getOption().options()[0]);
+            output.text(INDENT).withStyle(UserInput).text(optionString);
+            output.text(INDENT).println(descriptor.getOption().description());
 
-    private Map<String, String> getOptionsWithDescriptions(Class taskClazz) {
-        Map<String, String> options = new HashMap<String, String>();
-        final Set<CommandLineOption> commandLineOptions = commandLineOptionReader.getCommandLineOptions(taskClazz);
-        for (CommandLineOption commandLineOption : commandLineOptions) {
-            options.put(commandLineOption.options()[0], commandLineOption.description());
+            if (descriptor.getAvailableValuesType() == Boolean.class || descriptor.getAvailableValuesType() == Boolean.TYPE) {
+                output.text(INDENT).text(INDENT);
+                for (int i = 0; i < optionString.length(); i++) {
+                    output.append(' ');
+                }
+                output.text("Takes a boolean value (").withStyle(UserInput).text("true");
+                output.text("|").withStyle(UserInput).text("false");
+                output.println(") as parameter. As a default (ommitting a parameter) true will be used.");
+            }
         }
-        return options;
     }
 
     private int differentDescriptions(List<Task> tasks) {

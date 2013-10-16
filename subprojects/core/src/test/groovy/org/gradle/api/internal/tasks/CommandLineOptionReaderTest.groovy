@@ -24,23 +24,40 @@ class CommandLineOptionReaderTest extends Specification {
 
     def "can read commandlineoptions of a task"() {
         when:
-        Set<CommandLineOption> options = new CommandLineOptionReader().getCommandLineOptions(TestTask)
+        List<CommandLineOptionReader.CommandLineOptionDescriptor> options = new CommandLineOptionReader().getCommandLineOptions(TestTask)
         then:
-        options.size() == 1
-        def option = options.iterator().next()
-        option.description() == "sets a value"
-        option.options().size() == 1
-        option.options()[0] == "aValue"
+
+        options[0].option.description() == "boolean value"
+        options[0].availableValuesType  == Boolean.TYPE
+        options[0].annotatedMethod.name == "setBooleanValue"
+
+        options[1].option.description() == "enum value"
+        options[1].availableValuesType  == TestEnum
+        options[1].annotatedMethod.name == "setEnumValue"
+
+        options[2].option.description() == "string value"
+        options[2].availableValuesType  == String
+        options[2].annotatedMethod.name == "setStringValue"
     }
 
 
     public static class TestTask extends DefaultTask {
-        String value;
-
-        @CommandLineOption(options = "aValue", description = "sets a value")
-        public void setValue(String value) {
-            this.value = value
+        @CommandLineOption(options = "stringValue", description = "string value")
+        public void setStringValue(String value) {
         }
+
+        @CommandLineOption(options = "booleanValue", description = "boolean value")
+        public void setBooleanValue(boolean value) {
+        }
+
+        @CommandLineOption(options = "enumValue", description = "enum value")
+        public void setEnumValue(TestEnum value) {
+        }
+
+    }
+
+    enum TestEnum {
+        ABC, DEF
     }
 }
 

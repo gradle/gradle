@@ -17,32 +17,88 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.Task;
+import org.gradle.util.CollectionUtils;
 
 import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class CommandLineOptionReader {
 
-    public Map<CommandLineOption, Method> getCommandLineOptionsWithMethod(Class taskClazz) {
-        Map<CommandLineOption, Method> options = new HashMap<CommandLineOption, Method>();
+    public List<CommandLineOptionDescriptor> getCommandLineOptions(Class taskClazz) {
+        List<CommandLineOptionDescriptor> options = new ArrayList<CommandLineOptionDescriptor>();
         for (Class<?> type = taskClazz; type != Object.class && type != null; type = type.getSuperclass()) {
             for (Method method : type.getDeclaredMethods()) {
                 CommandLineOption commandLineOption = method.getAnnotation(CommandLineOption.class);
                 if (commandLineOption != null) {
-                    options.put(commandLineOption, method);
+                    options.add(new CommandLineOptionDescriptor(commandLineOption, method));
                 }
             }
         }
-        return options;
+        return CollectionUtils.sort(options);
     }
 
-    public Set<CommandLineOption> getCommandLineOptions(Class taskClazz) {
-        return getCommandLineOptionsWithMethod(taskClazz).keySet();
+    public List<CommandLineOptionDescriptor> getCommandLineOptions(Task task) {
+        return getCommandLineOptions(task.getClass());
     }
 
-    public Map<CommandLineOption, Method> getCommandLineOptionsWithMethod(Task task) {
-       return getCommandLineOptionsWithMethod(task.getClass());
+    public static class CommandLineOptionDescriptor implements Comparable<CommandLineOptionDescriptor> {
+        private CommandLineOption option;
+        private Method annotatedMethod;
+        private List<String> availableValues;
+        private Class availableValueType;
+
+        public CommandLineOptionDescriptor(CommandLineOption option, Method annotatedMethod) {
+            this.option = option;
+            this.annotatedMethod = annotatedMethod;
+        }
+
+        public CommandLineOption getOption() {
+            return option;
+        }
+
+        public Method getAnnotatedMethod() {
+            return annotatedMethod;
+        }
+
+        public List<String> getAvailableValues() {
+            //calculate list lazy to avoid overhead upfront
+            if (availableValues == null) {
+                calculdateAvailableValuesAndTypes();
+            }
+            return availableValues;
+        }
+
+        public Class getAvailableValuesType() {
+            //calculate lazy to avoid overhead upfront
+            if (availableValueType == null) {
+                calculdateAvailableValuesAndTypes();
+            }
+            return availableValueType;
+        }
+
+        private void calculdateAvailableValuesAndTypes() {
+            if (annotatedMethod.getParameterTypes().length == 1) {
+                Class<?> type = annotatedMethod.getParameterTypes()[0];
+
+                availableValueType = type;
+                availableValues = new ArrayList<String>();
+
+                //handle booleans
+                if (type == Boolean.class || type == Boolean.TYPE) {
+                    availableValues.add("true");
+                    availableValues.add("false");
+                }
+            } else {
+                // TODO deal correctly with annotated methods
+                // with multiple parameters
+                availableValues = Collections.EMPTY_LIST;
+            }
+        }
+
+        public int compareTo(CommandLineOptionDescriptor o) {
+            return option.options()[0].compareTo(o.option.options()[0]);
+        }
     }
 }
