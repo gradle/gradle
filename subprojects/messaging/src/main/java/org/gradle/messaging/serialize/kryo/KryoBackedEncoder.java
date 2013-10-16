@@ -21,9 +21,10 @@ import org.gradle.api.Nullable;
 import org.gradle.messaging.serialize.AbstractEncoder;
 import org.gradle.messaging.serialize.FlushableEncoder;
 
+import java.io.Closeable;
 import java.io.OutputStream;
 
-public class KryoBackedEncoder extends AbstractEncoder implements FlushableEncoder {
+public class KryoBackedEncoder extends AbstractEncoder implements FlushableEncoder, Closeable {
     private final Output output;
 
     public KryoBackedEncoder(OutputStream outputStream) {
@@ -72,6 +73,13 @@ public class KryoBackedEncoder extends AbstractEncoder implements FlushableEncod
     public void writeBinary(byte[] bytes, int offset, int count) {
         output.writeInt(count, true);
         output.writeBytes(bytes, offset, count);
+    }
+
+    /**
+     * Returns the total number of bytes written by this encoder, some of which is may still be buffered.
+     */
+    public int getWritePosition() {
+        return output.total();
     }
 
     public void flush() {
