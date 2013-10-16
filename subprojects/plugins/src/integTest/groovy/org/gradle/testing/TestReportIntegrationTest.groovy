@@ -26,7 +26,7 @@ import static org.hamcrest.Matchers.*
 class TestReportIntegrationTest extends AbstractIntegrationSpec {
     @Rule Sample sample = new Sample(temporaryFolder)
 
-    def "report includes results of each invocation"() {
+    def "report includes results of most recent invocation"() {
         given:
         buildFile << """
 $junitSetup
@@ -76,8 +76,8 @@ public class LoggingTest {
 
         then:
         def htmlReport = new HtmlTestExecutionResult(sample.dir, "allTests")
-        htmlReport.testClass("org.gradle.sample.CoreTest").assertTestCount(1, 0, 0).assertTestPassed("ok").assertStdout(contains("hello from CoreTest."))
-        htmlReport.testClass("org.gradle.sample.UtilTest").assertTestCount(1, 0, 0).assertTestPassed("ok").assertStdout(contains("hello from UtilTest."))
+        htmlReport.testClass("org.gradle.sample.CoreTest").assertTestCount(1, 0, 0).assertTestPassed("ok").assertStdout(equalTo("hello from CoreTest.\n"))
+        htmlReport.testClass("org.gradle.sample.UtilTest").assertTestCount(1, 0, 0).assertTestPassed("ok").assertStdout(equalTo("hello from UtilTest.\n"))
     }
 
     @Issue("http://issues.gradle.org//browse/GRADLE-2821")

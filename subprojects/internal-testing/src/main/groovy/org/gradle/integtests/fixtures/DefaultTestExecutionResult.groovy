@@ -48,7 +48,7 @@ class DefaultTestExecutionResult implements TestExecutionResult {
 
         TestClassExecutionResult assertTestsExecuted(String... testNames) {
             testClassResults*.assertTestsExecuted(testNames)
-            return this
+            this
         }
 
         TestClassExecutionResult assertTestCount(int tests, int failures, int errors) {
@@ -58,7 +58,7 @@ class DefaultTestExecutionResult implements TestExecutionResult {
 
         TestClassExecutionResult assertTestsSkipped(String... testNames) {
             testClassResults*.assertTestsSkipped(testNames)
-            return this
+            this
         }
 
         TestClassExecutionResult assertTestPassed(String name) {
@@ -73,6 +73,7 @@ class DefaultTestExecutionResult implements TestExecutionResult {
 
         TestClassExecutionResult assertTestSkipped(String name) {
             testClassResults*.assertTestSkipped(name)
+            this
         }
 
         TestClassExecutionResult assertConfigMethodPassed(String name) {
@@ -92,6 +93,7 @@ class DefaultTestExecutionResult implements TestExecutionResult {
 
         TestClassExecutionResult assertTestCaseStdout(String testCaseName, Matcher<? super String> matcher) {
             testClassResults*.assertTestCaseStdout(testCaseName, matcher)
+            this
         }
 
         TestClassExecutionResult assertStderr(Matcher<? super String> matcher) {
@@ -101,6 +103,7 @@ class DefaultTestExecutionResult implements TestExecutionResult {
 
         TestClassExecutionResult assertTestCaseStderr(String testCaseName, Matcher<? super String> matcher) {
             testClassResults*.assertTestCaseStderr(testCaseName, matcher)
+            this
         }
     }
 }
