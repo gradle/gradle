@@ -1240,7 +1240,7 @@ class GradlePomModuleDescriptorParserTest extends Specification {
         hasDefaultDependencyArtifact(dep)
     }
 
-    def "defines relocation but doesn't include any explicit dependencies"() {
+    def "defines relocation but doesn't include any explicit dependencies or artifacts"() {
         given:
         def relocated = tmpDir.file("relocated.xml") << """
 <project>
@@ -1321,6 +1321,9 @@ class GradlePomModuleDescriptorParserTest extends Specification {
         dep.dependencyRevisionId == moduleId('group-relocated', 'relocated', 'version-one')
         dep.moduleConfigurations == ['default', 'master', 'compile', 'provided', 'runtime', 'system', 'sources', 'javadoc', 'optional']
         hasDefaultDependencyArtifact(dep)
+
+        and:
+        descriptor.allArtifacts.length == 0
     }
 
     private ModuleDescriptor parsePom() {

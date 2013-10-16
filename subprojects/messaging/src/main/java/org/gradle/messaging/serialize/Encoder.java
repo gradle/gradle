@@ -28,27 +28,27 @@ public interface Encoder {
     OutputStream getOutputStream();
 
     /**
-     * Writes a byte value to the stream.
+     * Writes a raw byte value to the stream.
      */
     void writeByte(byte value) throws IOException;
 
     /**
-     * Writes the given bytes to the stream. Does not encode any length information.
+     * Writes the given raw bytes to the stream. Does not encode any length information.
      */
     void writeBytes(byte[] bytes) throws IOException;
 
     /**
-     * Writes the given bytes to the stream. Does not encode any length information.
+     * Writes the given raw bytes to the stream. Does not encode any length information.
      */
     void writeBytes(byte[] bytes, int offset, int count) throws IOException;
 
     /**
-     * Writes the given byte array to the stream. Encodes the bytes and some length information.
+     * Writes the given byte array to the stream. Encodes the bytes and length information.
      */
     void writeBinary(byte[] bytes) throws IOException;
 
     /**
-     * Writes the given byte array to the stream. Encodes the bytes and some length information.
+     * Writes the given byte array to the stream. Encodes the bytes and length information.
      */
     void writeBinary(byte[] bytes, int offset, int count) throws IOException;
 
@@ -58,15 +58,21 @@ public interface Encoder {
     void writeLong(long value) throws IOException;
 
     /**
+     * Writes a signed 64 bit long value whose value is likely to be small and positive but may not be. The implementation may encode the value in a way that is more efficient for small positive
+     * values.
+     */
+    void writeSmallLong(long value) throws IOException;
+
+    /**
      * Writes a signed 32 bit int value. The implementation may encode the value as a variable number of bytes, not necessarily as 4 bytes.
      */
     void writeInt(int value) throws IOException;
 
     /**
-     * Writes a signed 32 bit int value whose value is likely to be small and positive but may not be. The implementation may encode the value as a variable number of bytes, not necessarily as 4
-     * bytes.
+     * Writes a signed 32 bit int value whose value is likely to be small and positive but may not be. The implementation may encode the value in a way that
+     * is more efficient for small positive values.
      */
-    void writeSizeInt(int value) throws IOException;
+    void writeSmallInt(int value) throws IOException;
 
     /**
      * Writes a boolean value.

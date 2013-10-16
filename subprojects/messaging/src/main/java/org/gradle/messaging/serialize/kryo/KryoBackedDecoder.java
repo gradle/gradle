@@ -27,18 +27,35 @@ import java.io.InputStream;
 
 public class KryoBackedDecoder extends AbstractDecoder implements Decoder {
     private final Input input;
+    private final InputStream inputStream;
 
     /**
      * Note that this decoder uses buffering, so will attempt to read beyond the end of the encoded data. This means you should use this type only when this decoder will be used to decode the entire
      * stream.
      */
     public KryoBackedDecoder(InputStream inputStream) {
-        input = new Input(inputStream);
+        this.inputStream = inputStream;
+        input = new Input(this.inputStream);
     }
 
     @Override
     protected int maybeReadBytes(byte[] buffer, int offset, int count) {
         return input.read(buffer, offset, count);
+    }
+
+    @Override
+    protected long maybeSkip(long count) throws IOException {
+        // Work around some bugs in Input.skip()
+        int remaining = input.limit() - input.position();
+        if (remaining == 0) {
+            return inputStream.skip(count);
+        } else if (count <= remaining) {
+            input.setPosition(input.position() + (int) count);
+            return count;
+        } else {
+            input.setPosition(input.limit());
+            return remaining;
+        }
     }
 
     private RuntimeException maybeEndOfStream(KryoException e) throws EOFException {
@@ -72,6 +89,14 @@ public class KryoBackedDecoder extends AbstractDecoder implements Decoder {
         }
     }
 
+    public long readSmallLong() throws EOFException, IOException {
+        try {
+            return input.readLong(true);
+        } catch (KryoException e) {
+            throw maybeEndOfStream(e);
+        }
+    }
+
     public int readInt() throws EOFException {
         try {
             return input.readInt();
@@ -80,7 +105,7 @@ public class KryoBackedDecoder extends AbstractDecoder implements Decoder {
         }
     }
 
-    public int readSizeInt() throws EOFException {
+    public int readSmallInt() throws EOFException {
         try {
             return input.readInt(true);
         } catch (KryoException e) {
