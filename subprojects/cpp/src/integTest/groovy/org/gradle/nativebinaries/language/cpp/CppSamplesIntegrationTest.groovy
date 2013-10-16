@@ -31,7 +31,6 @@ class CppSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
     @Rule public final Sample multiProject = new Sample(temporaryFolder, 'native-binaries/multi-project')
     @Rule public final Sample flavors = new Sample(temporaryFolder, 'native-binaries/flavors')
     @Rule public final Sample variants = new Sample(temporaryFolder, 'native-binaries/variants')
-    @Rule public final Sample dependencies = new Sample(temporaryFolder, 'native-binaries/dependencies')
 
     def "assembler"() {
         given:
@@ -227,27 +226,4 @@ class CppSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         installation("native-binaries/multi-project/exe/build/install/mainExecutable").exec().out == "Hello, World!\n"
     }
 
-    // Does not work on windows, due to GRADLE-2118
-    @Requires(TestPrecondition.NOT_WINDOWS)
-    def "dependencies"() {
-        when:
-        sample dependencies
-        run ":lib:uploadArchives"
-
-        then:
-        sharedLibrary("native-binaries/dependencies/lib/build/binaries/mainSharedLibrary/lib").assertExists()
-        file("native-binaries/dependencies/lib/build/repo/some-org/some-lib/1.0/some-lib-1.0-so.so").isFile()
-
-        when:
-        sample dependencies
-        run ":exe:uploadArchives"
-
-        then:
-        ":exe:mainCppExtractHeaders" in nonSkippedTasks
-        ":exe:mainExecutable" in nonSkippedTasks
-
-        and:
-        executable("native-binaries/dependencies/exe/build/binaries/mainExecutable/exe").assertExists()
-        file("native-binaries/dependencies/exe/build/repo/dependencies/exe/1.0/exe-1.0.exe").exists()
-    }
 }
