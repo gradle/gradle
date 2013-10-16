@@ -2,9 +2,26 @@
 
 Here are the new features introduced in this Gradle release.
 
-<!--
-### Example new and noteworthy
--->
+### Show task usage details via help task
+
+You can run the help task now with a commandline option '--task' to get detailed usage information for a specific task. The usage information
+includes task type, path, description and available commandline options. To get details about the incubating `init` task you can run
+`gradle help --task init` which will give you the following output
+
+    Detailed task information for init
+
+    Path
+         :init
+
+    Type
+         InitBuild (org.gradle.buildinit.tasks.InitBuild)
+
+    Options
+         --type     Set type of build to create.
+
+    Description
+         Initializes a new Gradle build. [incubating]
+
 
 ## Promoted features
 
