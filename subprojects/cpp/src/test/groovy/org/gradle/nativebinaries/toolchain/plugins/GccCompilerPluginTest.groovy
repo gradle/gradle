@@ -19,6 +19,8 @@ import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.ExtraPropertiesExtension
 import org.gradle.nativebinaries.toolchain.Gcc
 import org.gradle.nativebinaries.toolchain.internal.gcc.GccToolChain
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -37,6 +39,7 @@ class GccCompilerPluginTest extends Specification {
         project.toolChains.gcc instanceof GccToolChain
     }
 
+    @Requires(TestPrecondition.NOT_WINDOWS)
     def "registers default Gcc tool chain"() {
         when:
         project.toolChains.addDefaultToolChain()

@@ -20,6 +20,8 @@ import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.ExtraPropertiesExtension
 import org.gradle.nativebinaries.toolchain.Clang
 import org.gradle.nativebinaries.toolchain.internal.clang.ClangToolChain
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -38,6 +40,7 @@ class ClangCompilerPluginTest extends Specification {
         project.toolChains.clang instanceof ClangToolChain
     }
 
+    @Requires(TestPrecondition.NOT_WINDOWS)
     def "registers default Clang tool chain"() {
         when:
         project.toolChains.addDefaultToolChain()
