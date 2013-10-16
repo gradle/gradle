@@ -35,11 +35,11 @@ class Binary2JUnitXmlReportGeneratorSpec extends Specification {
 
     def "writes results"() {
         def fooTest = new TestClassResult(1, 'FooTest', 100)
-            .add(new TestMethodResult(1, "foo", Mock(TestResult)))
+            .add(new TestMethodResult(1, "foo"))
 
         def barTest = new TestClassResult(2, 'BarTest', 100)
-            .add(new TestMethodResult(2, "bar", Mock(TestResult)))
-            .add(new TestMethodResult(3, "bar2", Mock(TestResult)))
+            .add(new TestMethodResult(2, "bar"))
+            .add(new TestMethodResult(3, "bar2"))
 
         resultsProvider.visitClasses(_) >> { Action action ->
             action.execute(fooTest)
@@ -57,7 +57,7 @@ class Binary2JUnitXmlReportGeneratorSpec extends Specification {
 
     def "adds context information to the failure if something goes wrong"() {
         def fooTest = new TestClassResult(1, 'FooTest', 100)
-                .add(new TestMethodResult(1, "foo", Mock(TestResult)))
+                .add(new TestMethodResult(1, "foo"))
 
         resultsProvider.visitClasses(_) >> { Action action ->
             action.execute(fooTest)

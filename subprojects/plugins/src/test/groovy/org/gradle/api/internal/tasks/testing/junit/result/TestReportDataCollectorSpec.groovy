@@ -65,20 +65,38 @@ class TestReportDataCollectorSpec extends Specification {
         fooTest.results.find { it.name == 'testMethod2' && it.endTime == 300 && it.duration == 50 }
     }
 
-    def "writes test outputs"() {
+    def "writes test outputs for interleaved tests"() {
         def test = new DefaultTestDescriptor("1.1.1", "FooTest", "testMethod")
         def test2 = new DefaultTestDescriptor("1.1.2", "FooTest", "testMethod2")
         def suite = new DefaultTestSuiteDescriptor("1", "Suite")
 
         when:
-        collector.onOutput(suite, new DefaultTestOutputEvent(StdOut, "out"))
-        collector.onOutput(test, new DefaultTestOutputEvent(StdErr, "err"))
-        collector.onOutput(test2, new DefaultTestOutputEvent(StdOut, "out"))
+        collector.onOutput(suite, new DefaultTestOutputEvent(StdOut, "suite-out"))
+        collector.beforeTest(test)
+        collector.beforeTest(test2)
+        collector.onOutput(test, new DefaultTestOutputEvent(StdErr, "err-1"))
+        collector.onOutput(test2, new DefaultTestOutputEvent(StdOut, "out-2"))
+        collector.onOutput(test, new DefaultTestOutputEvent(StdOut, "out-1"))
 
         then:
-        1 * writer.onOutput(1, 2, new DefaultTestOutputEvent(StdErr, "err"))
-        1 * writer.onOutput(1, 3, new DefaultTestOutputEvent(StdOut, "out"))
+        1 * writer.onOutput(3, 1, new DefaultTestOutputEvent(StdErr, "err-1"))
+        1 * writer.onOutput(3, 2, new DefaultTestOutputEvent(StdOut, "out-2"))
+        1 * writer.onOutput(3, 1, new DefaultTestOutputEvent(StdOut, "out-1"))
         0 * writer._
     }
 
+    def "writes test outputs for class"() {
+        def testClass = new DefaultTestClassDescriptor("1.1.1", "FooTest")
+        def suite = new DefaultTestSuiteDescriptor("1", "Suite")
+
+        when:
+        collector.onOutput(suite, new DefaultTestOutputEvent(StdOut, "suite-out"))
+        collector.onOutput(testClass, new DefaultTestOutputEvent(StdErr, "err-1"))
+        collector.onOutput(testClass, new DefaultTestOutputEvent(StdErr, "err-2"))
+
+        then:
+        1 * writer.onOutput(1, new DefaultTestOutputEvent(StdErr, "err-1"))
+        1 * writer.onOutput(1, new DefaultTestOutputEvent(StdErr, "err-2"))
+        0 * writer._
+    }
 }

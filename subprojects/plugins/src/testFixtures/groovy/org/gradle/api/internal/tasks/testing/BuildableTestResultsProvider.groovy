@@ -129,7 +129,8 @@ class BuildableTestResultsProvider implements TestResultsProvider {
         private final List<BuildableOutputEvent> outputEvents
 
         BuildableTestMethodResult(long id, String name, List<BuildableOutputEvent> outputEvents, TestResult result) {
-            super(id, name, result)
+            super(id, name)
+            completed(result)
             this.outputEvents = outputEvents
             duration = result.endTime - result.startTime;
         }

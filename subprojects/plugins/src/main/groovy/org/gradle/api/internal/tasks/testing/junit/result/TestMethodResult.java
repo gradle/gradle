@@ -23,18 +23,14 @@ import java.util.List;
 public class TestMethodResult {
     private final long id;
     private final String name;
-    private final TestResult.ResultType resultType;
-    private final long duration;
-    private final long endTime;
-    private final List<Throwable> exceptions;
+    private TestResult.ResultType resultType;
+    private long duration;
+    private long endTime;
+    private List<Throwable> exceptions;
 
-    public TestMethodResult(long id, String name, TestResult result) {
+    public TestMethodResult(long id, String name) {
         this.id = id;
         this.name = name;
-        resultType = result.getResultType();
-        duration = result.getEndTime() - result.getStartTime();
-        endTime = result.getEndTime();
-        exceptions = result.getExceptions();
     }
 
     public TestMethodResult(long id, String name, TestResult.ResultType resultType, long duration, long endTime, List<Throwable> exceptions) {
@@ -47,6 +43,14 @@ public class TestMethodResult {
         this.duration = duration;
         this.endTime = endTime;
         this.exceptions = exceptions;
+    }
+
+    public TestMethodResult completed(TestResult result) {
+        resultType = result.getResultType();
+        duration = result.getEndTime() - result.getStartTime();
+        endTime = result.getEndTime();
+        exceptions = result.getExceptions();
+        return this;
     }
 
     public long getId() {
