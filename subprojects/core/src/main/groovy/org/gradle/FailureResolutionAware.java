@@ -19,6 +19,9 @@ package org.gradle;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.logging.StyledTextOutput;
 
+/**
+ * Enhancement interface that exceptions can implement to provide additional information on how to resolve the failure.
+ */
 public interface FailureResolutionAware {
 
     public void appendResolution(StyledTextOutput output, BuildClientMetaData clientMetaData);
