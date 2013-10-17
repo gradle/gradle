@@ -22,7 +22,7 @@ import org.gradle.nativebinaries.Platform;
 import org.gradle.nativebinaries.internal.ArchitectureInternal;
 import org.gradle.nativebinaries.internal.PlatformToolChain;
 import org.gradle.nativebinaries.internal.ToolChainAvailability;
-import org.gradle.nativebinaries.toolchain.GccCompatibleToolChain;
+import org.gradle.nativebinaries.toolchain.PlatformConfigurableToolChain;
 import org.gradle.nativebinaries.toolchain.TargetPlatformConfiguration;
 import org.gradle.nativebinaries.toolchain.internal.AbstractToolChain;
 import org.gradle.nativebinaries.toolchain.internal.ToolType;
@@ -38,7 +38,7 @@ import static java.util.Collections.emptyList;
 /**
  * A tool chain that has GCC semantics, where all platform variants are produced by varying the tool args.
  */
-public abstract class AbstractGccCompatibleToolChain extends AbstractToolChain implements GccCompatibleToolChain {
+public abstract class AbstractGccCompatibleToolChain extends AbstractToolChain implements PlatformConfigurableToolChain {
     private final ExecActionFactory execActionFactory;
     protected final ToolRegistry tools;
 

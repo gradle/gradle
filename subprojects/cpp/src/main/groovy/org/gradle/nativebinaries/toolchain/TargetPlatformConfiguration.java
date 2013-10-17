@@ -21,7 +21,7 @@ import org.gradle.nativebinaries.Platform;
 import java.util.List;
 
 /**
- * Configuration to add support for a target platform to a {@link GccCompatibleToolChain}.
+ * Configuration to add support for a target platform to a {@link PlatformConfigurableToolChain}.
  */
 @Incubating
 public interface TargetPlatformConfiguration {
@@ -30,13 +30,28 @@ public interface TargetPlatformConfiguration {
      */
     boolean supportsPlatform(Platform targetPlatform);
 
+    /**
+     * The additional args supplied to the C++ compiler to target the platform.
+     */
     List<String> getCppCompilerArgs();
 
+    /**
+     * The additional args supplied to the C compiler to target the platform.
+     */
     List<String> getCCompilerArgs();
 
+    /**
+     * The additional args supplied to the Assembler to target the platform.
+     */
     List<String> getAssemblerArgs();
 
+    /**
+     * The additional args supplied to the Static Library Archiver to target the platform.
+     */
     List<String> getStaticLibraryArchiverArgs();
 
+    /**
+     * The additional args supplied to the Linker to target the platform.
+     */
     List<String> getLinkerArgs();
 }
