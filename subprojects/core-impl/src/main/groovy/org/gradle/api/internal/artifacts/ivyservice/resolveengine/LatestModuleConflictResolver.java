@@ -26,7 +26,7 @@ class LatestModuleConflictResolver implements ModuleConflictResolver {
         this.latestStrategy = latestStrategy;
     }
 
-    public ModuleRevisionResolveState select(Collection<? extends ModuleRevisionResolveState> candidates) {
+    public <T extends ModuleRevisionResolveState> T select(Collection<? extends T> candidates) {
         return latestStrategy.findLatest(candidates);
     }
 }

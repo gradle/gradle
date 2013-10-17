@@ -63,8 +63,6 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
 """
         ModuleDescriptor md = parser.parseMetaData(parseContext, file, true).descriptor
 
-        and:
-
         then:
         md != null
         md.moduleRevisionId.organisation == "myorg"
