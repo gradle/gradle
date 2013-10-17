@@ -17,7 +17,6 @@
 package org.gradle.api.internal.file.copy;
 
 import org.gradle.api.file.RelativePath;
-import org.gradle.api.internal.file.BaseDirFileResolver;
 import org.gradle.api.internal.file.TestFiles;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.jmock.Expectations;
@@ -48,7 +47,7 @@ public class FileCopyActionTest {
 
     @Test
     public void plainCopy() {
-        FileCopyAction visitor = new FileCopyAction(new BaseDirFileResolver(TestFiles.fileSystem(), destDir));
+        FileCopyAction visitor = new FileCopyAction(TestFiles.resolver(destDir));
         visit(visitor,
                 file(new RelativePath(true, "rootfile.txt"), new File(destDir, "rootfile.txt")),
                 file(new RelativePath(true, "subdir", "anotherfile.txt"), new File(destDir, "subdir/anotherfile.txt"))
