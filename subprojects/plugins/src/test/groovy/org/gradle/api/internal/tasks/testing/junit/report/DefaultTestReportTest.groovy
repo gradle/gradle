@@ -119,7 +119,7 @@ class DefaultTestReportTest extends Specification {
                 }
                 testcase("test2") {
                     duration = 0
-                    failure("a multi-line\nmessage\"", "this is a failure.")
+                    failure("this is the failure", "SomeType: this is the failure.\nat someClass")
                     stdout "this is\nstandard output"
                     stderr "this is\nstandard error"
 
@@ -160,9 +160,9 @@ class DefaultTestReportTest extends Specification {
         testClassFile.assertHasFailures(2)
         testClassFile.assertHasSuccessRate(0)
         testClassFile.assertHasTest('test1')
-        testClassFile.assertHasFailure('test1', 'this is the failure\nat someClass\n')
+        testClassFile.assertHasFailure('test1', 'something failed\n\nthis is the failure\nat someClass\n')
         testClassFile.assertHasTest('test2')
-        testClassFile.assertHasFailure('test2', 'this is a failure.')
+        testClassFile.assertHasFailure('test2', 'SomeType: this is the failure.\nat someClass')
     }
 
     def generatesReportWhenThereAreIgnoredTests() {
@@ -222,7 +222,7 @@ class DefaultTestReportTest extends Specification {
         def testTestResults = buildResults {
             testClassResult("org.gradle.Test") {
                 testcase("test1 < test2") {
-                    failure("something failed", "<a failure>")
+                    failure("<a failure>", "<a failure>")
 
                     stdout "</html> & "
                     stderr "</div> & "
