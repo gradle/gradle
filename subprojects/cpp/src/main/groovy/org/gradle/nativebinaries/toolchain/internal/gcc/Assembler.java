@@ -56,7 +56,7 @@ class Assembler implements Compiler<AssembleSpec> {
         }
 
         public void collectArguments(AssembleSpec spec, ArgCollector collector) {
-            for (String rawArg : spec.getArgs()) {
+            for (String rawArg : spec.getAllArgs()) {
                 collector.args(rawArg);
             }
             collector.args("-o", outputFileName);

@@ -30,7 +30,7 @@ class GeneralVisualCppCompileSpecToArguments<T extends NativeCompileSpec> implem
         for (String macroArg : new MacroArgsConverter().transform(spec.getMacros())) {
             collector.args("/D" + macroArg);
         }
-        collector.args(spec.getArgs());
+        collector.args(spec.getAllArgs());
         collector.args("/c");
         for (File file : spec.getIncludeRoots()) {
             collector.args("/I", file.getAbsolutePath());

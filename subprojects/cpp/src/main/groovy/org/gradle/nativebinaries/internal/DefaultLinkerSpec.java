@@ -21,14 +21,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class DefaultLinkerSpec implements LinkerSpec {
+public class DefaultLinkerSpec extends AbstractBinaryToolSpec implements LinkerSpec {
 
     private final List<File> objectFiles = new ArrayList<File>();
     private final List<File> libraries = new ArrayList<File>();
     private final List<File> libraryPath = new ArrayList<File>();
-    private final List<String> args = new ArrayList<String>();
     private File outputFile;
-    private File tempDir;
 
     public List<File> getObjectFiles() {
         return objectFiles;
@@ -54,28 +52,12 @@ public class DefaultLinkerSpec implements LinkerSpec {
         Collections.addAll(this.libraryPath, libraryPath);
     }
 
-    public List<String> getArgs() {
-        return args;
-    }
-
-    public void args(List<String> args) {
-        this.args.addAll(args);
-    }
-
     public File getOutputFile() {
         return outputFile;
     }
 
     public void setOutputFile(File outputFile) {
         this.outputFile = outputFile;
-    }
-
-    public File getTempDir() {
-        return tempDir;
-    }
-
-    public void setTempDir(File tempDir) {
-        this.tempDir = tempDir;
     }
 
     private void addAll(List<File> list, Iterable<File> iterable) {

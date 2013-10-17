@@ -39,7 +39,7 @@ binaries.all {
     // Define toolchain-specific compiler and linker options
     if (toolChain in Gcc) {
         cCompiler.args "-O2"
-        linker.args "-static-libgcc"
+        linker.args "-S"
     }
     if (toolChain in VisualCpp) {
         cCompiler.args "/Zi"

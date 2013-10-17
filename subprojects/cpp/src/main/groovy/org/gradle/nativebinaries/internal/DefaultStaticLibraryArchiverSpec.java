@@ -20,12 +20,10 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DefaultStaticLibraryArchiverSpec implements StaticLibraryArchiverSpec {
+public class DefaultStaticLibraryArchiverSpec extends AbstractBinaryToolSpec implements StaticLibraryArchiverSpec {
 
     private final List<File> objectFiles = new ArrayList<File>();
-    private final List<String> args = new ArrayList<String>();
     private File outputFile;
-    private File tempDir;
 
     public List<File> getObjectFiles() {
         return objectFiles;
@@ -43,21 +41,5 @@ public class DefaultStaticLibraryArchiverSpec implements StaticLibraryArchiverSp
 
     public void setOutputFile(File outputFile) {
         this.outputFile = outputFile;
-    }
-
-    public List<String> getArgs() {
-        return args;
-    }
-
-    public void args(List<String> args) {
-        this.args.addAll(args);
-    }
-
-    public File getTempDir() {
-        return tempDir;
-    }
-
-    public void setTempDir(File tempDir) {
-        this.tempDir = tempDir;
     }
 }

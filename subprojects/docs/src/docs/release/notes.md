@@ -148,7 +148,7 @@ To complement this change, the `compilerArgs`, `assemblerArgs` and `linkerArgs` 
     </tr>
     <tr>
     <td>linkerArgs "-no_pie"</td>
-    <td>linker.args "-Xlinker", "-no_pie"</td>
+    <td>linker.args "-no_pie"</td>
     </tr>
     <tr>
     <td>staticLibArgs "-v"</td>
@@ -158,8 +158,6 @@ To complement this change, the `compilerArgs`, `assemblerArgs` and `linkerArgs` 
 
 Note that the language-specific element is only present if the appropriate plugin has been applied. So the 'cCompiler' extension
 is only available if the 'c' plugin has been applied.
-
-(Also note that linker arguments are no longer automatically escaped with '-Xlinker' on GCC)
 
 #### Source sets for a native component (executable or library) are automatically configured
 
@@ -276,7 +274,6 @@ The following are the newly deprecated items in this Gradle release. If you have
 * Object files generated from the assembly of Assembler sources are no longer named '<file>.s.o'.
 * Renamed method: BuildableModelElement.dependsOn() -> BuildableModelElement.builtBy()
 * The `gpp-compiler` plugin was renamed to `gcc`. Class name was changed to `GccCompilerPlugin`.
-* Linker arguments are no longer automatically escaped with '-Xlinker' on GCC.
 * The conventional source directories eg: `src/main/cpp` and `src/main/headers` are only applied if no source directories are explicitly
   configured. If you wish to define custom source locations, you must define _all_ of the source locations.
 

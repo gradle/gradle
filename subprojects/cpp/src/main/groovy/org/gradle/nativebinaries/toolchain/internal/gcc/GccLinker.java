@@ -46,7 +46,10 @@ class GccLinker implements Compiler<LinkerSpec> {
     private static class GccLinkerSpecToArguments implements CompileSpecToArguments<LinkerSpec> {
 
         public void collectArguments(LinkerSpec spec, ArgCollector collector) {
-            collector.args(spec.getArgs());
+            collector.args(spec.getSystemArgs());
+            for (String userArg : spec.getArgs()) {
+                collector.args("-Xlinker", userArg);
+            }
 
             if (spec instanceof SharedLibraryLinkerSpec) {
                 collector.args("-shared");

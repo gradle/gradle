@@ -59,7 +59,7 @@ class GccSpecToArguments<T extends BinaryToolSpec> implements CompileSpecToArgum
         private static final List<String> CLI_ONLY_ARGS = Arrays.asList("-m32", "-m64");
 
         public void collectArguments(BinaryToolSpec spec, ArgCollector collector) {
-            List<String> commandLineOnlyArgs = new ArrayList<String>(spec.getArgs());
+            List<String> commandLineOnlyArgs = new ArrayList<String>(spec.getAllArgs());
             commandLineOnlyArgs.retainAll(CLI_ONLY_ARGS);
             collector.args(commandLineOnlyArgs);
         }

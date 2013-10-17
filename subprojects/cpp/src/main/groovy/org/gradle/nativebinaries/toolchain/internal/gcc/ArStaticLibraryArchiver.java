@@ -45,7 +45,7 @@ class ArStaticLibraryArchiver implements Compiler<StaticLibraryArchiverSpec> {
             // -c : Don't write message to standard error when creating archive
             // -s : Create an object file index (equivalent to running 'ranlib')
             collector.args("-rcs");
-            collector.args(spec.getArgs());
+            collector.args(spec.getAllArgs());
             collector.args(spec.getOutputFile().getAbsolutePath());
             for (File file : spec.getObjectFiles()) {
                 collector.args(file.getAbsolutePath());

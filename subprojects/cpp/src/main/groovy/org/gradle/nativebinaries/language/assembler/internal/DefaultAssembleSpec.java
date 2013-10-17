@@ -16,16 +16,16 @@
 
 package org.gradle.nativebinaries.language.assembler.internal;
 
+import org.gradle.nativebinaries.internal.AbstractBinaryToolSpec;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DefaultAssembleSpec implements AssembleSpec {
+public class DefaultAssembleSpec extends AbstractBinaryToolSpec implements AssembleSpec {
 
     private List<File> source = new ArrayList<File>();
-    private List<String> args = new ArrayList<String>();
     private File objectFileDir;
-    private File tempDir;
 
     public List<File> getSourceFiles() {
         return source;
@@ -44,21 +44,4 @@ public class DefaultAssembleSpec implements AssembleSpec {
     public void setObjectFileDir(File objectFileDir) {
         this.objectFileDir = objectFileDir;
     }
-
-    public File getTempDir() {
-        return tempDir;
-    }
-
-    public void setTempDir(File tempDir) {
-        this.tempDir = tempDir;
-    }
-
-    public List<String> getArgs() {
-        return args;
-    }
-
-    public void args(List<String> args) {
-        this.args.addAll(args);
-    }
-
 }
