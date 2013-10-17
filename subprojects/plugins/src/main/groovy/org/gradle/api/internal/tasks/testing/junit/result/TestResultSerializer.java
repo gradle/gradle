@@ -20,7 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.UncheckedException;
-import org.gradle.messaging.remote.internal.Message;
 import org.gradle.messaging.serialize.Decoder;
 import org.gradle.messaging.serialize.Encoder;
 import org.gradle.messaging.serialize.FlushableEncoder;
@@ -29,8 +28,6 @@ import org.gradle.messaging.serialize.kryo.KryoBackedEncoder;
 
 import java.io.*;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 
 public class TestResultSerializer {
     private static final int RESULT_VERSION = 2;
@@ -82,11 +79,11 @@ public class TestResultSerializer {
         encoder.writeSmallInt(methodResult.getResultType().ordinal());
         encoder.writeSmallLong(methodResult.getDuration());
         encoder.writeLong(methodResult.getEndTime());
-        if (methodResult.getExceptions().isEmpty()) {
-            encoder.writeBoolean(false);
-        } else {
-            encoder.writeBoolean(true);
-            Message.send(methodResult.getExceptions(), encoder.getOutputStream());
+        encoder.writeSmallInt(methodResult.getFailures().size());
+        for (TestFailure testFailure : methodResult.getFailures()) {
+            encoder.writeString(testFailure.getExceptionType());
+            encoder.writeString(testFailure.getMessage());
+            encoder.writeString(testFailure.getStackTrace());
         }
     }
 
@@ -142,14 +139,14 @@ public class TestResultSerializer {
         TestResult.ResultType resultType = TestResult.ResultType.values()[decoder.readSmallInt()];
         long duration = decoder.readSmallLong();
         long endTime = decoder.readLong();
-        boolean hasFailures = decoder.readBoolean();
-        List<Throwable> failures;
-        if (hasFailures) {
-            failures = (List<Throwable>) Message.receive(decoder.getInputStream(), getClass().getClassLoader());
-        } else {
-            failures = Collections.emptyList();
+        TestMethodResult methodResult = new TestMethodResult(id, name, resultType, duration, endTime);
+        int failures = decoder.readSmallInt();
+        for (int i = 0; i < failures; i++) {
+            String exceptionType = decoder.readString();
+            String message = decoder.readString();
+            String stackTrace = decoder.readString();
+            methodResult.addFailure(message, stackTrace, exceptionType);
         }
-        return new TestMethodResult(id, name, resultType, duration, endTime, failures);
+        return methodResult;
     }
-
 }

@@ -21,12 +21,9 @@ import org.gradle.api.internal.xml.SimpleXmlWriter;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.UncheckedException;
-import org.gradle.messaging.remote.internal.PlaceholderException;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 
 public class JUnitXmlResultWriter {
 
@@ -97,12 +94,12 @@ public class JUnitXmlResultWriter {
                     .attribute("classname", className)
                     .attribute("time", String.valueOf(methodResult.getDuration() / 1000.0));
 
-            for (Throwable failure : methodResult.getExceptions()) {
+            for (TestFailure failure : methodResult.getFailures()) {
                 writer.startElement("failure")
-                        .attribute("message", failureMessage(failure))
-                        .attribute("type", failure.getClass().getName());
+                        .attribute("message", failure.getMessage())
+                        .attribute("type", failure.getExceptionType());
 
-                writer.characters(stackTrace(failure));
+                writer.characters(failure.getStackTrace());
 
                 writer.endElement();
             }
@@ -117,32 +114,6 @@ public class JUnitXmlResultWriter {
             }
 
             writer.endElement();
-        }
-    }
-
-    private String failureMessage(Throwable throwable) {
-        try {
-            return throwable.toString();
-        } catch (Throwable t) {
-            String exceptionClassName = throwable instanceof PlaceholderException ? ((PlaceholderException) throwable).getExceptionClassName() : throwable.getClass().getName();
-            return String.format("Could not determine failure message for exception of type %s: %s",
-                    exceptionClassName, t);
-        }
-    }
-
-    private String stackTrace(Throwable throwable) {
-        try {
-            StringWriter stringWriter = new StringWriter();
-            PrintWriter writer = new PrintWriter(stringWriter);
-            throwable.printStackTrace(writer);
-            writer.close();
-            return stringWriter.toString();
-        } catch (Throwable t) {
-            StringWriter stringWriter = new StringWriter();
-            PrintWriter writer = new PrintWriter(stringWriter);
-            t.printStackTrace(writer);
-            writer.close();
-            return stringWriter.toString();
         }
     }
 }

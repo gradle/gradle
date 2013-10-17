@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks.testing.junit.report;
+
+package org.gradle.api.internal.tasks.testing.junit.result;
 
 public class TestFailure {
     private final String message;
     private final String stackTrace;
+    private final String exceptionType;
 
-    public TestFailure(String message, String stackTrace) {
+    public TestFailure(String message, String stackTrace, String exceptionType) {
         this.message = message;
         this.stackTrace = stackTrace;
+        this.exceptionType = exceptionType;
     }
 
     public String getMessage() {
@@ -30,5 +33,9 @@ public class TestFailure {
 
     public String getStackTrace() {
         return stackTrace;
+    }
+
+    public String getExceptionType() {
+        return exceptionType;
     }
 }
