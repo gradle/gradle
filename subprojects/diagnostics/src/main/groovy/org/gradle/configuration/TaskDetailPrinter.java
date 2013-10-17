@@ -116,10 +116,12 @@ public class TaskDetailPrinter {
         output.text(differentDescriptionsCount > 1 ? "Descriptions" : "Description").println();
         if (differentDescriptionsCount == 1) {
             // all tasks have the same description
-            output.text(INDENT).println(tasks.iterator().next().getDescription());
+            final Task task = tasks.iterator().next();
+            output.text(INDENT).println(task.getDescription() == null ? "-" : task.getDescription());
         } else {
             for (Task task : tasks) {
-                output.text(INDENT).withStyle(UserInput).text(String.format("(%s) ", task.getPath())).println(task.getDescription());
+                output.text(INDENT).withStyle(UserInput).text(String.format("(%s) ", task.getPath()));
+                output.println(task.getDescription() == null ? "-" : task.getDescription());
             }
         }
     }
