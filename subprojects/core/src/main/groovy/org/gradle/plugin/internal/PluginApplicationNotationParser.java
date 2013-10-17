@@ -14,20 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin;
+package org.gradle.plugin.internal;
 
-import org.gradle.api.Incubating;
+import org.gradle.api.internal.notations.parsers.MapKey;
+import org.gradle.api.internal.notations.parsers.MapNotationParser;
 
-import java.util.Map;
+public class PluginApplicationNotationParser extends MapNotationParser<PluginTarget> {
 
-/**
- * A manager of plugins.
- */
-@Incubating
-public interface PluginHandler {
-
-    String BLOCK_NAME = "plugins";
-
-    void apply(Map<String, Object> options);
+    public PluginTarget parseMap(
+        @MapKey("plugin") String plugin
+    ) {
+        return new PluginTarget(plugin);
+    }
 
 }

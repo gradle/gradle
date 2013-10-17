@@ -14,20 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin;
+package org.gradle.plugin.internal;
 
-import org.gradle.api.Incubating;
+public class PluginTarget {
 
-import java.util.Map;
+    private final String id;
 
-/**
- * A manager of plugins.
- */
-@Incubating
-public interface PluginHandler {
+    public PluginTarget(String id) {
+        this.id = id;
+    }
 
-    String BLOCK_NAME = "plugins";
-
-    void apply(Map<String, Object> options);
-
+    public String getId() {
+        return id;
+    }
 }

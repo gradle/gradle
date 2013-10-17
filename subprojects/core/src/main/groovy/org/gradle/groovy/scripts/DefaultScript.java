@@ -33,6 +33,7 @@ import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.LoggingManager;
+import org.gradle.api.plugins.PluginAware;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.configuration.ScriptPluginFactory;
@@ -56,8 +57,7 @@ public abstract class DefaultScript extends BasicScript {
     private ProcessOperations processOperations;
     private LoggingManager loggingManager;
 
-    // TODO this is just a stub
-    private final PluginHandler pluginHandler = new DefaultPluginHandler();
+    private PluginHandler pluginHandler;
 
     public void init(Object target, ServiceRegistry services) {
         super.init(target, services);
@@ -75,6 +75,12 @@ public abstract class DefaultScript extends BasicScript {
         }
 
         processOperations = (ProcessOperations) fileOperations;
+
+        if (target instanceof PluginAware) {
+            pluginHandler = new DefaultPluginHandler((PluginAware) target);
+        } else {
+            throw new IllegalStateException("script target " + target + " is not plugin aware");
+        }
     }
 
     public FileResolver getFileResolver() {
