@@ -145,17 +145,7 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
         buildFile << """
             toolChains {
                 crossCompiler(Gcc) {
-                    addPlatformConfiguration(new ToolChainPlatformConfiguration() {
-                        public boolean supportsPlatform(Platform element) {
-                            return element.getArchitecture().name == "arm"
-                        }
-
-                        // Treat 'arm' as 'i386' (since we don't have a real cross compiler)
-                        public void configureBinaryForPlatform(NativeBinary binary) {
-                            binary.cppCompiler.args "-m32"
-                            binary.linker.args "-m32"
-                        }
-                    })
+                    addPlatformConfiguration(new ArmArchitecture())
                 }
             }
             targetPlatforms {
@@ -164,6 +154,32 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
                 }
                 x64 {
                     architecture "x86_64"
+                }
+            }
+
+            class ArmArchitecture implements TargetPlatformConfiguration {
+                boolean supportsPlatform(Platform element) {
+                    return element.getArchitecture().name == "arm"
+                }
+
+                List<String> getCppCompilerArgs() {
+                    ["-m32"]
+                }
+
+                List<String> getCCompilerArgs() {
+                    ["-m32"]
+                }
+
+                List<String> getAssemblerArgs() {
+                    []
+                }
+
+                List<String> getLinkerArgs() {
+                    ["-m32"]
+                }
+
+                List<String> getStaticLibraryArchiverArgs() {
+                    []
                 }
             }
 """

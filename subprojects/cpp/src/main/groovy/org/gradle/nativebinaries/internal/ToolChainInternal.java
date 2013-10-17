@@ -24,7 +24,7 @@ public interface ToolChainInternal extends ToolChain {
 
     PlatformToolChain target(Platform targetPlatform);
 
-    void targetNativeBinaryForPlatform(NativeBinaryInternal nativeBinary);
+    boolean canTargetPlatform(Platform targetPlatform);
 
     // TODO:DAZ These are platform-specific
     String getExecutableName(String executablePath);

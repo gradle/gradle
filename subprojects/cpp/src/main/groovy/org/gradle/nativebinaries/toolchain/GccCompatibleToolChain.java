@@ -16,21 +16,16 @@
 package org.gradle.nativebinaries.toolchain;
 
 import org.gradle.api.Incubating;
-import org.gradle.nativebinaries.NativeBinary;
-import org.gradle.nativebinaries.Platform;
+import org.gradle.nativebinaries.ToolChain;
 
 /**
- * Configuration to add support for a target platform to a {@link PlatformConfigurableToolChain}.
+ * A ToolChain that can handle additional platforms simply by configuring the NativeBinary.
  */
 @Incubating
-public interface ToolChainPlatformConfiguration {
-    /**
-     * Matches the platform that this configuration supports.
-     */
-    boolean supportsPlatform(Platform element);
+public interface GccCompatibleToolChain extends ToolChain {
 
     /**
-     * Configure the binary to build for this platform.
+     * Add configuration for a target platform.
      */
-    void configureBinaryForPlatform(NativeBinary binary);
+    void addPlatformConfiguration(TargetPlatformConfiguration platformConfig);
 }

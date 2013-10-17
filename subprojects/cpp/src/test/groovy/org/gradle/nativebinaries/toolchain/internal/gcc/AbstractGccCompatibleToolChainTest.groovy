@@ -14,18 +14,13 @@
  * limitations under the License.
  */
 package org.gradle.nativebinaries.toolchain.internal.gcc
-
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.plugins.ExtensionAware
-import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.Platform
-import org.gradle.nativebinaries.Tool
 import org.gradle.nativebinaries.internal.ArchitectureInternal
 import org.gradle.nativebinaries.internal.DefaultArchitecture
 import org.gradle.nativebinaries.internal.DefaultOperatingSystem
-import org.gradle.nativebinaries.internal.NativeBinaryInternal
-import org.gradle.nativebinaries.toolchain.ToolChainPlatformConfiguration
+import org.gradle.nativebinaries.toolchain.TargetPlatformConfiguration
 import org.gradle.nativebinaries.toolchain.internal.ToolType
 import org.gradle.process.internal.ExecActionFactory
 import org.gradle.util.Requires
@@ -41,16 +36,6 @@ class AbstractGccCompatibleToolChainTest extends Specification {
     def tool = Mock(File)
     def os = Mock(OperatingSystem)
     def toolChain = new TestToolChain("test", fileResolver, execActionFactory, toolRegistry)
-
-    def cppCompiler = Mock(Tool)
-    def assembler = Mock(Tool)
-    def linker = Mock(Tool)
-    def extensions = Mock(ExtensionContainer) {
-    }
-    def nativeBinary = Mock(ExtendedNativeBinary) {
-        getExtensions() >> extensions
-        getLinker() >> linker
-    }
     def platform = Mock(Platform)
 
     def "is unavailable if not all tools can be found"() {
@@ -77,66 +62,67 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         availability.available
     }
 
-    def "does not target native binary for tool chain default"() {
+    def "supplies no additional arguments to target native binary for tool chain default"() {
         when:
-        nativeBinary.getTargetPlatform() >> platform
         platform.getOperatingSystem() >> DefaultOperatingSystem.TOOL_CHAIN_DEFAULT
         platform.getArchitecture() >> ArchitectureInternal.TOOL_CHAIN_DEFAULT
 
-        and:
-        toolChain.targetNativeBinaryForPlatform(nativeBinary)
 
         then:
-        0 * nativeBinary._
+        toolChain.canTargetPlatform(platform)
+
+        with(toolChain.getPlatformConfiguration(platform)) {
+            linkerArgs == []
+            cppCompilerArgs == []
+            CCompilerArgs == []
+            assemblerArgs == []
+            staticLibraryArchiverArgs == []
+        }
     }
 
     @Requires(TestPrecondition.NOT_WINDOWS)
-    def "targets native binary for architecture"() {
+    def "supplies args for supported architecture"() {
         when:
-        nativeBinary.getTargetPlatform() >> platform
         platform.getOperatingSystem() >> DefaultOperatingSystem.TOOL_CHAIN_DEFAULT
         platform.getArchitecture() >> new DefaultArchitecture(arch, instructionSet, registerSize)
 
-        and:
-        toolChain.targetNativeBinaryForPlatform(nativeBinary)
-
         then:
-        1 * nativeBinary.getLinker() >> linker
-        1 * linker.args(linkerArg)
-        1 * extensions.findByName("cppCompiler") >> cppCompiler
-        1 * cppCompiler.args(compilerArg)
-        1 * extensions.findByName("cCompiler") >> null
-        1 * extensions.findByName("assembler") >> assembler
-        if (OperatingSystem.current().isMacOsX()) {
-            1 * assembler.args(osxAssemblerArg as String[])
-        } else {
-            1 * assembler.args(assemblerArg)
+        toolChain.canTargetPlatform(platform)
+
+        with(toolChain.getPlatformConfiguration(platform)) {
+            linkerArgs == [linkerArg]
+            cppCompilerArgs == [compilerArg]
+            CCompilerArgs == [compilerArg]
+            if (OperatingSystem.current().isMacOsX()) {
+                assemblerArgs == osxAssemblerArgs
+            } else {
+                assemblerArgs == [assemblerArg]
+            }
+            staticLibraryArchiverArgs == []
         }
 
         where:
-        arch     | instructionSet | registerSize | linkerArg | compilerArg | assemblerArg | osxAssemblerArg
+        arch     | instructionSet | registerSize | linkerArg | compilerArg | assemblerArg | osxAssemblerArgs
         "i386"   | X86            | 32           | "-m32"    | "-m32"      | "--32"       | ["-arch", "i386"]
         "x86_64" | X86            | 64           | "-m64"    | "-m64"      | "--64"       | ["-arch", "x86_64"]
     }
 
     @Requires(TestPrecondition.WINDOWS)
-    def "targets native binary for i386 architecture on windows"() {
+    def "supplies args for supported architecture for i386 architecture on windows"() {
         when:
-        nativeBinary.getTargetPlatform() >> platform
         platform.getOperatingSystem() >> DefaultOperatingSystem.TOOL_CHAIN_DEFAULT
         platform.getArchitecture() >> new DefaultArchitecture("i386", X86, 32)
 
-        and:
-        toolChain.targetNativeBinaryForPlatform(nativeBinary)
-
         then:
-        1 * nativeBinary.getLinker() >> linker
-        1 * linker.args("-m32")
-        1 * extensions.findByName("cppCompiler") >> cppCompiler
-        1 * cppCompiler.args("-m32")
-        1 * extensions.findByName("cCompiler") >> null
-        1 * extensions.findByName("assembler") >> assembler
-        1 * assembler.args("--32")
+        toolChain.canTargetPlatform(platform)
+
+        with(toolChain.getPlatformConfiguration(platform)) {
+            linkerArgs == ["-m32"]
+            cppCompilerArgs == ["-m32"]
+            CCompilerArgs == ["-m32"]
+            assemblerArgs == ["--32"]
+            staticLibraryArchiverArgs == []
+        }
     }
 
     @Requires(TestPrecondition.WINDOWS)
@@ -159,10 +145,9 @@ class AbstractGccCompatibleToolChainTest extends Specification {
     }
 
     def "uses supplied platform configurations in order to target binary"() {
-        def platformConfig1 = Mock(ToolChainPlatformConfiguration)
-        def platformConfig2 = Mock(ToolChainPlatformConfiguration)
+        def platformConfig1 = Mock(TargetPlatformConfiguration)
+        def platformConfig2 = Mock(TargetPlatformConfiguration)
         when:
-        nativeBinary.getTargetPlatform() >> platform
         platform.getOperatingSystem() >> new DefaultOperatingSystem("other", OperatingSystem.SOLARIS)
 
         and:
@@ -170,13 +155,14 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         toolChain.addPlatformConfiguration(platformConfig2)
 
         and:
-        toolChain.targetNativeBinaryForPlatform(nativeBinary)
+        platformConfig1.supportsPlatform(platform) >> false
+        platformConfig2.supportsPlatform(platform) >> true
 
         then:
-        1 * platformConfig1.supportsPlatform(platform) >> false
-        1 * platformConfig2.supportsPlatform(platform) >> true
-        1 * platformConfig2.configureBinaryForPlatform(nativeBinary)
-        0 * nativeBinary._
+        toolChain.canTargetPlatform(platform)
+
+        and:
+        toolChain.getPlatformConfiguration(platform) == platformConfig2
     }
 
     static class TestToolChain extends AbstractGccCompatibleToolChain {
@@ -189,6 +175,4 @@ class AbstractGccCompatibleToolChainTest extends Specification {
             return "Test"
         }
     }
-
-    interface ExtendedNativeBinary extends NativeBinaryInternal, ExtensionAware {}
 }
