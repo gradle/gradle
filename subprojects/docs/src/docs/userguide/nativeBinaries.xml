@@ -287,24 +287,6 @@
                 <sourcefile file="build.gradle" snippet="project-dependencies"/>
             </sample>
         </section>
-        <section>
-            <title>External Dependencies</title>
-            <para>
-                External dependencies (i.e. from a repository, not a subproject) are specified using the following syntax:
-            </para>
-            <sample id="cppExternalDependencies" dir="native-binaries/dependencies" title="Declaring dependencies">
-                <sourcefile file="build.gradle" snippet="declaring-dependencies"/>
-            </sample>
-            <para>
-                Each dependency must be specified with the <literal>dependency</literal> method as above and must be declared as part of the source set. The
-                <literal>group</literal>, <literal>name</literal> and <literal>version</literal> arguments <emphasis>must</emphasis> be supplied.
-            </para>
-            <para>
-                For each declared dependency, two actual dependencies are created. One with the classifier “<literal>headers</literal>” and extension
-                “<literal>zip</literal>” which is a zip file of the exported headers, and another with the classifier “<literal>so</literal>” and extension
-                “<literal>so</literal>” which is the compiled library binary to link against (which is supplied as a direct input to the g++ link operation).
-            </para>
-        </section>
     </section>
 
     <section id="native_binaries:variants">
@@ -469,27 +451,6 @@
                 <sourcefile file="build.gradle" snippet="buildable"/>
             </sample>
         </section>
-    </section>
-
-    <section>
-        <title>Publishing</title>
-        <para>
-            The <literal>cpp-exe</literal> and <literal>cpp-lib</literal> plugins configure their respective output binaries to be publishable as part of the
-            <literal>archives</literal> configuration. To publish, simply configure the <literal>uploadArchives</literal> task as per usual.
-        </para>
-        <sample id="cppPublish" dir="native-binaries/dependencies" title="Uploading exe or lib">
-            <sourcefile file="build.gradle" snippet="upload"/>
-        </sample>
-        <para>
-            The <literal>cpp-exe</literal> plugin publishes a single artifact with extension “<literal>exe</literal>”. The <literal>cpp-lib</literal> plugin
-            publishes two artifacts; one with classifier “<literal>headers</literal>” and extension “<literal>zip</literal>”, and one with classifier
-            “<literal>so</literal>” and extension “<literal>so</literal>” (which is the format used when consuming dependencies).
-        </para>
-        <note>
-            <para>
-                Currently, there is no support for publishing the dependencies of artifacts in POM or Ivy files. Future versions will support this.
-            </para>
-        </note>
     </section>
 
 </chapter>
