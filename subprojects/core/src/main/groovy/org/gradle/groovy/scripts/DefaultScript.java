@@ -42,6 +42,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.plugin.PluginHandler;
 import org.gradle.plugin.internal.DefaultPluginHandler;
+import org.gradle.plugin.internal.NonPluggableTargetPluginHandler;
 import org.gradle.process.ExecResult;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.DeprecationLogger;
@@ -79,7 +80,7 @@ public abstract class DefaultScript extends BasicScript {
         if (target instanceof PluginAware) {
             pluginHandler = new DefaultPluginHandler((PluginAware) target);
         } else {
-            throw new IllegalStateException("script target " + target + " is not plugin aware");
+            pluginHandler = new NonPluggableTargetPluginHandler(target);
         }
     }
 
