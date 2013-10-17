@@ -17,7 +17,6 @@ package org.gradle.api.internal.file.copy;
 
 import org.gradle.api.Action;
 import org.gradle.api.file.CopySpec;
-import org.gradle.api.internal.file.BaseDirFileResolver;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.nativeplatform.filesystem.FileSystems;
@@ -56,7 +55,7 @@ public class FileCopier {
     }
 
     private FileCopyAction getCopyVisitor(File destination) {
-        return new FileCopyAction(new BaseDirFileResolver(FileSystems.getDefault(), destination));
+        return new FileCopyAction(fileResolver.withBaseDir(destination));
     }
 
     private WorkResult doCopy(CopySpecInternal copySpec, CopyAction visitor) {
