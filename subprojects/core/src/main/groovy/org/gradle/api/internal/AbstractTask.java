@@ -81,6 +81,8 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private String group;
 
+    private String mutex;
+
     private AndSpec<Task> onlyIfSpec = new AndSpec<Task>(createNewOnlyIfSpec());
 
     private final TaskOutputsInternal outputs;
@@ -381,6 +383,14 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     public void setGroup(String group) {
         this.group = group;
+    }
+
+    public String getMutex() {
+        return mutex;
+    }
+
+    public void setMutex(String mutex) {
+        this.mutex = mutex;
     }
 
     public TaskInputs getInputs() {

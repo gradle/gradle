@@ -71,6 +71,9 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * <tr><td><code>{@value org.gradle.api.Task#TASK_DEPENDS_ON}</code></td><td>The dependencies of the task. See <a
      * href="../Task.html#dependencies">here</a> for more details.</td><td><code>[]</code></td></tr>
      *
+     * <tr><td><code>{@value org.gradle.api.Task#TASK_MUTEX}</code></td><td>The mutex of the task. See
+     * {@link Task#setMutex(String)} for more details.</td><td><code>null</code></td></tr>
+     *
      * </table>
      *
      * <p>After the task is added, it is made available as a property of the project, so that you can reference the task
@@ -107,6 +110,9 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      *
      * <tr><td><code>{@value org.gradle.api.Task#TASK_DEPENDS_ON}</code></td><td>The dependencies of the task. See <a
      * href="../Task.html#dependencies">here</a> for more details.</td><td><code>[]</code></td></tr>
+     *
+     * <tr><td><code>{@value org.gradle.api.Task#TASK_MUTEX}</code></td><td>The mutex of the task. See
+     * {@link Task#setMutex(String)} for more details.</td><td><code>null</code></td></tr>
      *
      * </table>
      *

@@ -60,7 +60,7 @@ public class TaskFactory implements ITaskFactory {
         validTaskArguments.add(Task.TASK_NAME);
         validTaskArguments.add(Task.TASK_OVERWRITE);
         validTaskArguments.add(Task.TASK_TYPE);
-
+        validTaskArguments.add(Task.TASK_MUTEX);
     }
 
     public ITaskFactory createChild(ProjectInternal project, Instantiator instantiator) {
@@ -91,6 +91,10 @@ public class TaskFactory implements ITaskFactory {
         Object group = actualArgs.get(Task.TASK_GROUP);
         if (group != null) {
             task.setGroup(group.toString());
+        }
+        Object mutex = actualArgs.get(Task.TASK_MUTEX);
+        if (mutex != null) {
+            task.setMutex(mutex.toString());
         }
         Object action = actualArgs.get(Task.TASK_ACTION);
         if (action instanceof Action) {

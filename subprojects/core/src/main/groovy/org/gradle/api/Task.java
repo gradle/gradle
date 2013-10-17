@@ -146,6 +146,8 @@ public interface Task extends Comparable<Task>, ExtensionAware {
 
     public static final String TASK_ACTION = "action";
 
+    public static final String TASK_MUTEX = "mutex";
+
     /**
      * <p>Returns the name of this task. The name uniquely identifies the task within its {@link Project}.</p>
      *
@@ -509,6 +511,25 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      * @param group The task group for this task. Can be null.
      */
     void setGroup(String group);
+
+    /**
+     * Returns the mutex of this task. A mutex other than <code>null</code> will prevent other tasks
+     * with the same mutex from being picked up simultaneously by the {@link org.gradle.execution.taskgraph.TaskPlanExecutor}.
+     *
+     * @return the mutex. May return null.
+     */
+    String getMutex();
+
+    /**
+     * Sets the mutex (mutal exclusive) of this task. Only one task with a certain mutex value set may be executed
+     * at a time during a build with parallel execution enabled. Setting a mutex will prevent other tasks with
+     * the same mutex from being picked up simultaneously by the {@link org.gradle.execution.taskgraph.TaskPlanExecutor}.
+     *
+     * Mutexes are only relevant in parallel builds.
+     *
+     * @param mutex The mutex for this task. Can be null.
+     */
+    void setMutex(String mutex);
 
     /**
      * <p>Checks if any of the tasks that this task depends on {@link Task#getDidWork() didWork}.</p>

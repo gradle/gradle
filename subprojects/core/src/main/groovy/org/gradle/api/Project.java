@@ -435,6 +435,9 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * <tr><td><code>{@value org.gradle.api.Task#TASK_GROUP}</code></td><td>A task group which this task belongs to.
      * </td><td><code>null</code></td></tr>
      *
+     * <tr><td><code>{@value org.gradle.api.Task#TASK_MUTEX}</code></td><td>A mutex for this task.</td>
+     * <td><code>null</code></td></tr>
+     *
      * </table>
      *
      * <p>After the task is added to the project, it is made available as a property of the project, so that you can

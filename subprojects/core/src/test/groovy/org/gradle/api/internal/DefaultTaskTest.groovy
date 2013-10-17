@@ -350,6 +350,13 @@ class DefaultTaskTest extends AbstractTaskTest {
     }
 
     @Test
+    void getAndSetMutex() {
+        assertNull(defaultTask.getMutex())
+        defaultTask.setMutex('value')
+        assertEquals('value', defaultTask.getMutex())
+    }
+
+    @Test
     void canCallConventionMethods() {
         defaultTask.convention.plugins.test = new TestConvention()
         assertEquals(defaultTask.conventionMethod('a', 'b').toString(), "a.b")

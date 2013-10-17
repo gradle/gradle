@@ -32,4 +32,19 @@ class ProjectConfigurationIntegrationTest extends AbstractIntegrationSpec {
         then:
         output.contains "the name: foobar"
     }
+
+    def "setting and retrieving a task mutex"() {
+        buildFile << """
+            task foobar {
+                mutex = "test"
+            }
+            println "the mutex value: " + foobar.mutex
+        """
+
+        when:
+        run()
+
+        then:
+        output.contains "the mutex value: test"
+    }
 }
