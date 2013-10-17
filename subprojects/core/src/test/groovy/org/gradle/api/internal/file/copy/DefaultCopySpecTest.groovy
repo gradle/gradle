@@ -390,5 +390,69 @@ public class DefaultCopySpecTest {
         assertFalse(matchSpec.isSatisfiedBy(RelativePath.parse(true, 'root/folder/abc')))
     }
 
+    @Test
+    void "Add spec as first child"() {
+        DefaultCopySpec child1 = spec.addFirst()
+        assert child1 != null
+        assert spec.childSpecs.size() == 1
+        assert spec.childSpecs[0] == child1
+        DefaultCopySpec child2 = spec.addFirst()
+        assert child2 != null
+        assert spec.childSpecs.size() == 2
+        assert spec.childSpecs[0] == child2
+        assert spec.childSpecs[1] == child1
+    }
+
+    @Test
+    void "Add spec in between two child specs if given child exists"() {
+        DefaultCopySpec child1 = spec.addChild()
+        DefaultCopySpec child2 = spec.addChild()
+        assert child1 != null
+        assert child2 != null
+        assert spec.childSpecs.size() == 2
+        assert spec.childSpecs[0] == child1
+        assert spec.childSpecs[1] == child2
+        DefaultCopySpec child3 = spec.addChildBeforeSpec(child2)
+        assert child3 != null
+        assert spec.childSpecs.size() == 3
+        assert spec.childSpecs[0] == child1
+        assert spec.childSpecs[1] == child3
+        assert spec.childSpecs[2] == child2
+    }
+
+    @Test
+    void "Add spec in between two child specs if given child does not exist"() {
+        DefaultCopySpec child1 = spec.addChild()
+        DefaultCopySpec child2 = spec.addChild()
+        assert child1 != null
+        assert child2 != null
+        assert spec.childSpecs.size() == 2
+        assert spec.childSpecs[0] == child1
+        assert spec.childSpecs[1] == child2
+        DefaultCopySpec unknownChild = new DefaultCopySpec(fileResolver, instantiator)
+        DefaultCopySpec child3 = spec.addChildBeforeSpec(unknownChild)
+        assert child3 != null
+        assert spec.childSpecs.size() == 3
+        assert spec.childSpecs[0] == child1
+        assert spec.childSpecs[1] == child2
+        assert spec.childSpecs[2] == child3
+    }
+
+    @Test
+    void "Add spec in between two child specs if given child is null"() {
+        DefaultCopySpec child1 = spec.addChild()
+        DefaultCopySpec child2 = spec.addChild()
+        assert child1 != null
+        assert child2 != null
+        assert spec.childSpecs.size() == 2
+        assert spec.childSpecs[0] == child1
+        assert spec.childSpecs[1] == child2
+        DefaultCopySpec child3 = spec.addChildBeforeSpec(null)
+        assert child3 != null
+        assert spec.childSpecs.size() == 3
+        assert spec.childSpecs[0] == child1
+        assert spec.childSpecs[1] == child2
+        assert spec.childSpecs[2] == child3
+    }
 }
 

@@ -105,8 +105,12 @@ public class DefaultCopySpec implements CopySpecInternal {
     }
 
     public DefaultCopySpec addFirst() {
+        return addChildAtPosition(0);
+    }
+
+    private DefaultCopySpec addChildAtPosition(int position) {
         DefaultCopySpec child = instantiator.newInstance(DefaultCopySpec.class, resolver, instantiator, this);
-        childSpecs.add(0, child);
+        childSpecs.add(position, child);
         return child;
     }
 
@@ -114,6 +118,11 @@ public class DefaultCopySpec implements CopySpecInternal {
         DefaultCopySpec child = instantiator.newInstance(DefaultCopySpec.class, resolver, instantiator, this);
         childSpecs.add(child);
         return child;
+    }
+
+    public DefaultCopySpec addChildBeforeSpec(CopySpecInternal childSpec) {
+        int position = childSpecs.indexOf(childSpec);
+        return position != -1 ? addChildAtPosition(position) : addChild();
     }
 
     public Set<Object> getSourcePaths() {

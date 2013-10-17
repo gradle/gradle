@@ -41,5 +41,7 @@ public interface CopySpecInternal extends CopySpec {
 
     DefaultCopySpec addChild();
 
+    DefaultCopySpec addChildBeforeSpec(CopySpecInternal childSpec);
+
     DefaultCopySpec addFirst();
 }
