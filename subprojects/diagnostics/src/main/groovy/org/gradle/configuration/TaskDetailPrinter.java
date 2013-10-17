@@ -27,10 +27,7 @@ import org.gradle.execution.TaskSelector;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.util.CollectionUtils;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
 import static org.gradle.logging.StyledTextOutput.Style.UserInput;
 
@@ -133,20 +130,45 @@ public class TaskDetailPrinter {
             output.println();
             output.text("Options").println();
         }
-        for (CommandLineOptionReader.CommandLineOptionDescriptor descriptor : commandLineOptions) {
+        final Iterator<CommandLineOptionReader.CommandLineOptionDescriptor> optionsIterator = commandLineOptions.iterator();
+        while (optionsIterator.hasNext()) {
+            final CommandLineOptionReader.CommandLineOptionDescriptor descriptor = optionsIterator.next();
             final String optionString = String.format("--%s", descriptor.getOption().options()[0]);
             output.text(INDENT).withStyle(UserInput).text(optionString);
             output.text(INDENT).println(descriptor.getOption().description());
 
-            if (descriptor.getAvailableValuesType() == Boolean.class || descriptor.getAvailableValuesType() == Boolean.TYPE) {
-                output.text(INDENT).text(INDENT);
-                for (int i = 0; i < optionString.length(); i++) {
-                    output.append(' ');
-                }
+            final Class availableValuesType = descriptor.getAvailableValuesType();
+            if (availableValuesType == Boolean.class || availableValuesType == Boolean.TYPE) {
+                indentForOptionDescription(output, optionString);
                 output.text("Takes a boolean value (").withStyle(UserInput).text("true");
                 output.text("|").withStyle(UserInput).text("false");
                 output.println(") as parameter. As a default (ommitting a parameter) true will be used.");
             }
+
+            if (availableValuesType.isEnum()) {
+                final Object[] enumConstants = availableValuesType.getEnumConstants();
+                indentForOptionDescription(output, optionString);
+                output.text("Takes an enum value of type (").withStyle(UserInput).text(availableValuesType.getName()).println(").");
+                indentForOptionDescription(output, optionString);
+                output.println("Available values are:");
+                for (Object enumConstant : enumConstants) {
+                    indentForOptionDescription(output, optionString);
+                    output.text(INDENT);
+                    output.withStyle(UserInput).println(enumConstant);
+                }
+            }
+            if (optionsIterator.hasNext()) {
+                output.println();
+            }
+        }
+    }
+
+    // TODO possibly styledtextoutput should handle proper indention
+    // instead of doing it here
+    private void indentForOptionDescription(StyledTextOutput output, String optionString) {
+        output.text(INDENT).text(INDENT);
+        for (int i = 0; i < optionString.length(); i++) {
+            output.append(' ');
         }
     }
 
