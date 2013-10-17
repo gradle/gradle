@@ -249,6 +249,20 @@ The report will show more information.
 
 ## Link to custom documentation in the dashboard report
 
+## Aggregate test report
+
+- Change `TestReportTask` to implement reporting and finalize the test tasks that it reports on
+- Change `JacocoReport` so that it finalizes the test tasks that it reports on.
+
+## Add an HTML dependency report
+
+- Download jquery and jstree from repository
+- Move the project tree to the build dashboard and remove from the dependency report
+- Reuse stylesheets and reporting infrastructure from the other reports
+- Mention the report in the user guide
+- Improve `gradle tasks` output so that the report is visible
+- Move the supporting files for all reports to subdirectories of the output directory and leave only the index.html in the top level directory.
+
 ## Link to the dependency reports in the dashboard report
 
 ## Link to the project structure reports in the dashboard report
