@@ -601,6 +601,41 @@ task checkDeps(dependsOn: configurations.compile) << {
         run("checkDeps")
     }
 
+    @Issue("GRADLE-2920")
+    void "does not replace root module when later version of root module is requested"() {
+        mavenRepo.module("org", "test", "2.1").publish()
+        mavenRepo.module("org", "other", "1.7").dependsOn("org", "test", "2.1").publish()
+
+        settingsFile << "rootProject.name= 'test'"
+
+        buildFile << """
+apply plugin: 'java'
+
+group "org"
+version "1.3"
+
+repositories {
+    maven { url "${mavenRepo.uri}" }
+}
+
+dependencies {
+    compile "org:other:1.7"
+}
+"""
+
+        def resolve = new ResolveTestFixture(buildFile)
+        resolve.prepare()
+
+        expect:
+        run("checkDeps")
+
+        resolve.expectGraph {
+            root "org:test:1.3"
+            "org:test:1.3" > "org:other:1.7"
+            "org.other:1.7" > "org:test:2.1"
+        }
+    }
+
     void "module is required only by selected conflicting version and in turn requires evicted conflicting version"() {
         /*
             a2 -> b1 -> c1

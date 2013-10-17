@@ -526,11 +526,13 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                     extendsStarted(attributes);
                 } else if (state == State.INFO && "license".equals(qName)) {
                     getMd().addLicense(new License(substitute(attributes.getValue("name")), substitute(attributes.getValue("url"))));
-                } /* CHECKSTYLE:OFF */ else if (state == State.INFO && "ivyauthor".equals(qName)) {
+                } else if (state == State.INFO && "ivyauthor".equals(qName)) {
                     // nothing to do, we don't store this
+                    return;
                 } else if (state == State.INFO && "repository".equals(qName)) {
                     // nothing to do, we don't store this
-                } /* CHECKSTYLE:ON */ else if (state == State.INFO && "description".equals(qName)) {
+                    return;
+                } else if (state == State.INFO && "description".equals(qName)) {
                     getMd().setHomePage(substitute(attributes.getValue("homepage")));
                     state = State.DESCRIPTION;
                     buffer = new StringBuffer();

@@ -28,8 +28,8 @@ public class VersionSelectionReasonResolver implements ModuleConflictResolver {
         this.delegate = delegate;
     }
 
-    public ModuleRevisionResolveState select(Collection<? extends ModuleRevisionResolveState> candidates) {
-        ModuleRevisionResolveState selected = delegate.select(candidates);
+    public <T extends ModuleRevisionResolveState> T select(Collection<? extends T> candidates) {
+        T selected = delegate.select(candidates);
         selected.setSelectionReason(VersionSelectionReasons.withConflictResolution(selected.getSelectionReason()));
         return selected;
     }
