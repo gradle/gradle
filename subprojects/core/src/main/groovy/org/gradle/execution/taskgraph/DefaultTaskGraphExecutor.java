@@ -22,7 +22,7 @@ import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.specs.Spec;
 import org.gradle.execution.TaskFailureHandler;
-import org.gradle.execution.TaskGraphExecuter;
+import org.gradle.execution.TaskGraphExecutor;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.listener.ListenerManager;
@@ -34,8 +34,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
-    private static Logger logger = LoggerFactory.getLogger(DefaultTaskGraphExecuter.class);
+public class DefaultTaskGraphExecutor implements TaskGraphExecutor {
+    private static Logger logger = LoggerFactory.getLogger(DefaultTaskGraphExecutor.class);
 
     private enum TaskGraphState {
         EMPTY, DIRTY, POPULATED
@@ -47,7 +47,7 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
     private final DefaultTaskExecutionPlan taskExecutionPlan = new DefaultTaskExecutionPlan();
     private TaskGraphState taskGraphState = TaskGraphState.EMPTY;
 
-    public DefaultTaskGraphExecuter(ListenerManager listenerManager, TaskPlanExecutor taskPlanExecutor) {
+    public DefaultTaskGraphExecutor(ListenerManager listenerManager, TaskPlanExecutor taskPlanExecutor) {
         this.taskPlanExecutor = taskPlanExecutor;
         graphListeners = listenerManager.createAnonymousBroadcaster(TaskExecutionGraphListener.class);
         taskListeners = listenerManager.createAnonymousBroadcaster(TaskExecutionListener.class);

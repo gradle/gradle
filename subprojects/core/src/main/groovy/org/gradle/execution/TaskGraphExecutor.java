@@ -19,7 +19,7 @@ import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.specs.Spec;
 
-public interface TaskGraphExecuter extends TaskExecutionGraph {
+public interface TaskGraphExecutor extends TaskExecutionGraph {
     /**
      * Sets the filter to use when adding tasks to this graph. Only those tasks which are accepted by the given filter
      * will be added to this graph.

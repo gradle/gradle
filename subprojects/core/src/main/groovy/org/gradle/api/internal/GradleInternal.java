@@ -19,9 +19,9 @@ import org.gradle.BuildListener;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
+import org.gradle.execution.TaskGraphExecutor;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.api.invocation.Gradle;
-import org.gradle.execution.TaskGraphExecuter;
 
 /**
  * An internal interface for Gradle that exposed objects and concepts that are not intended for public
@@ -36,7 +36,7 @@ public interface GradleInternal extends Gradle {
     /**
      * {@inheritDoc}
      */
-    TaskGraphExecuter getTaskGraph();
+    TaskGraphExecutor getTaskGraph();
 
     /**
      * Returns the default project. This is used to resolve relative names and paths provided on the UI.

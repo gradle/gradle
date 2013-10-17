@@ -53,7 +53,7 @@ public class DefaultTaskGraphExecutorTest {
     final JUnit4Mockery context = new JUnit4GroovyMockery();
     final ListenerManager listenerManager = context.mock(ListenerManager.class);
     final TaskArtifactStateCacheAccess taskArtifactStateCacheAccess = context.mock(TaskArtifactStateCacheAccess.class);
-    DefaultTaskGraphExecuter taskExecuter;
+    DefaultTaskGraphExecutor taskExecutor;
     ProjectInternal root;
     List<Task> executedTasks = new ArrayList<Task>();
     ExecutorTestHelper helper;
@@ -76,15 +76,15 @@ public class DefaultTaskGraphExecutorTest {
                 }
             });
         }});
-        taskExecuter = new DefaultTaskGraphExecuter(listenerManager, new DefaultTaskPlanExecutor(taskArtifactStateCacheAccess));
+        taskExecutor = new DefaultTaskGraphExecutor(listenerManager, new DefaultTaskPlanExecutor(taskArtifactStateCacheAccess));
     }
 
     @Test
     public void testExecute() {
         Task a = helper.task("a");
 
-        taskExecuter.addTasks(toList(a));
-        taskExecuter.execute();
+        taskExecutor.addTasks(toList(a));
+        taskExecutor.execute();
 
         assertThat(executedTasks, equalTo(toList(a)));
     }
@@ -95,17 +95,17 @@ public class DefaultTaskGraphExecutorTest {
         Task b = helper.task("b", a);
         Task c = helper.task("c", b, a);
         Task d = helper.task("d", c);
-        taskExecuter.addTasks(toList(d));
+        taskExecutor.addTasks(toList(d));
 
-        assertTrue(taskExecuter.hasTask(":a"));
-        assertTrue(taskExecuter.hasTask(a));
-        assertTrue(taskExecuter.hasTask(":b"));
-        assertTrue(taskExecuter.hasTask(b));
-        assertTrue(taskExecuter.hasTask(":c"));
-        assertTrue(taskExecuter.hasTask(c));
-        assertTrue(taskExecuter.hasTask(":d"));
-        assertTrue(taskExecuter.hasTask(d));
-        assertThat(taskExecuter.getAllTasks(), equalTo(toList(a, b, c, d)));
+        assertTrue(taskExecutor.hasTask(":a"));
+        assertTrue(taskExecutor.hasTask(a));
+        assertTrue(taskExecutor.hasTask(":b"));
+        assertTrue(taskExecutor.hasTask(b));
+        assertTrue(taskExecutor.hasTask(":c"));
+        assertTrue(taskExecutor.hasTask(c));
+        assertTrue(taskExecutor.hasTask(":d"));
+        assertTrue(taskExecutor.hasTask(d));
+        assertThat(taskExecutor.getAllTasks(), equalTo(toList(a, b, c, d)));
     }
 
     @Test
@@ -114,15 +114,15 @@ public class DefaultTaskGraphExecutorTest {
         Task c = helper.task("c");
         Task b = helper.task("b", d, c);
         Task a = helper.task("a", b);
-        taskExecuter.addTasks(toList(a));
+        taskExecutor.addTasks(toList(a));
 
-        assertThat(taskExecuter.getAllTasks(), equalTo(toList(c, d, b, a)));
+        assertThat(taskExecutor.getAllTasks(), equalTo(toList(c, d, b, a)));
     }
 
     @Test
     public void testCannotUseGetterMethodsWhenGraphHasNotBeenCalculated() {
         try {
-            taskExecuter.hasTask(":a");
+            taskExecutor.hasTask(":a");
             fail();
         } catch (IllegalStateException e) {
             assertThat(e.getMessage(), equalTo(
@@ -130,7 +130,7 @@ public class DefaultTaskGraphExecutorTest {
         }
 
         try {
-            taskExecuter.hasTask(helper.task("a"));
+            taskExecutor.hasTask(helper.task("a"));
             fail();
         } catch (IllegalStateException e) {
             assertThat(e.getMessage(), equalTo(
@@ -138,7 +138,7 @@ public class DefaultTaskGraphExecutorTest {
         }
 
         try {
-            taskExecuter.getAllTasks();
+            taskExecutor.getAllTasks();
             fail();
         } catch (IllegalStateException e) {
             assertThat(e.getMessage(), equalTo(
@@ -151,12 +151,12 @@ public class DefaultTaskGraphExecutorTest {
         Task a = helper.task("a");
         Task b = helper.task("b", a);
 
-        taskExecuter.addTasks(toList(b));
-        taskExecuter.execute();
+        taskExecutor.addTasks(toList(b));
+        taskExecutor.execute();
 
-        assertFalse(taskExecuter.hasTask(":a"));
-        assertFalse(taskExecuter.hasTask(a));
-        assertTrue(taskExecuter.getAllTasks().isEmpty());
+        assertFalse(taskExecutor.hasTask(":a"));
+        assertFalse(taskExecutor.hasTask(a));
+        assertTrue(taskExecutor.getAllTasks().isEmpty());
     }
 
     @Test
@@ -165,17 +165,17 @@ public class DefaultTaskGraphExecutorTest {
         Task b = helper.task("b", a);
         Task c = helper.task("c");
 
-        taskExecuter.addTasks(toList(b));
-        taskExecuter.execute();
+        taskExecutor.addTasks(toList(b));
+        taskExecutor.execute();
         assertThat(executedTasks, equalTo(toList(a, b)));
 
         executedTasks.clear();
 
-        taskExecuter.addTasks(toList(c));
+        taskExecutor.addTasks(toList(c));
 
-        assertThat(taskExecuter.getAllTasks(), equalTo(toList(c)));
+        assertThat(taskExecutor.getAllTasks(), equalTo(toList(c)));
 
-        taskExecuter.execute();
+        taskExecutor.execute();
 
         assertThat(executedTasks, equalTo(toList(c)));
     }
@@ -187,9 +187,9 @@ public class DefaultTaskGraphExecutorTest {
         Task c = helper.task("c", b);
         helper.dependsOn(a, c);
 
-        taskExecuter.addTasks(toList(c));
+        taskExecutor.addTasks(toList(c));
         try {
-            taskExecuter.execute();
+            taskExecutor.execute();
             fail();
         } catch (CircularReferenceException e) {
             // Expected
@@ -201,14 +201,14 @@ public class DefaultTaskGraphExecutorTest {
         final TaskExecutionGraphListener listener = context.mock(TaskExecutionGraphListener.class);
         Task a = helper.task("a");
 
-        taskExecuter.addTaskExecutionGraphListener(listener);
-        taskExecuter.addTasks(toList(a));
+        taskExecutor.addTaskExecutionGraphListener(listener);
+        taskExecutor.addTasks(toList(a));
 
         context.checking(new Expectations() {{
-            one(listener).graphPopulated(taskExecuter);
+            one(listener).graphPopulated(taskExecutor);
         }});
 
-        taskExecuter.execute();
+        taskExecutor.execute();
     }
 
     @Test
@@ -216,15 +216,15 @@ public class DefaultTaskGraphExecutorTest {
         final TestClosure runnable = context.mock(TestClosure.class);
         Task a = helper.task("a");
 
-        taskExecuter.whenReady(toClosure(runnable));
+        taskExecutor.whenReady(toClosure(runnable));
 
-        taskExecuter.addTasks(toList(a));
+        taskExecutor.addTasks(toList(a));
 
         context.checking(new Expectations() {{
-            one(runnable).call(taskExecuter);
+            one(runnable).call(taskExecutor);
         }});
 
-        taskExecuter.execute();
+        taskExecutor.execute();
     }
 
     @Test
@@ -233,8 +233,8 @@ public class DefaultTaskGraphExecutorTest {
         final Task a = helper.task("a");
         final Task b = helper.task("b");
 
-        taskExecuter.addTaskExecutionListener(listener);
-        taskExecuter.addTasks(toList(a, b));
+        taskExecutor.addTaskExecutionListener(listener);
+        taskExecutor.addTasks(toList(a, b));
 
         context.checking(new Expectations() {{
             one(listener).beforeExecute(a);
@@ -243,7 +243,7 @@ public class DefaultTaskGraphExecutorTest {
             one(listener).afterExecute(with(equalTo(b)), with(notNullValue(TaskState.class)));
         }});
 
-        taskExecuter.execute();
+        taskExecutor.execute();
     }
 
     @Test
@@ -252,8 +252,8 @@ public class DefaultTaskGraphExecutorTest {
         final RuntimeException failure = new RuntimeException();
         final Task a = helper.brokenTask("a", failure);
 
-        taskExecuter.addTaskExecutionListener(listener);
-        taskExecuter.addTasks(toList(a));
+        taskExecutor.addTaskExecutionListener(listener);
+        taskExecutor.addTasks(toList(a));
 
         context.checking(new Expectations() {{
             one(listener).beforeExecute(a);
@@ -261,7 +261,7 @@ public class DefaultTaskGraphExecutorTest {
         }});
 
         try {
-            taskExecuter.execute();
+            taskExecutor.execute();
             fail();
         } catch (RuntimeException e) {
             assertThat(e, sameInstance(failure));
@@ -276,10 +276,10 @@ public class DefaultTaskGraphExecutorTest {
         final Task a = helper.brokenTask("a", failure);
         final Task b = helper.task("b");
 
-        taskExecuter.addTasks(toList(a, b));
+        taskExecutor.addTasks(toList(a, b));
 
         try {
-            taskExecuter.execute();
+            taskExecutor.execute();
             fail();
         } catch (RuntimeException e) {
             assertThat(e, sameInstance(failure));
@@ -297,15 +297,15 @@ public class DefaultTaskGraphExecutorTest {
         final Task a = helper.brokenTask("a", failure);
         final Task b = helper.task("b");
 
-        taskExecuter.useFailureHandler(handler);
-        taskExecuter.addTasks(toList(a, b));
+        taskExecutor.useFailureHandler(handler);
+        taskExecutor.addTasks(toList(a, b));
 
         context.checking(new Expectations(){{
             one(handler).onTaskFailure(a);
             will(throwException(wrappedFailure));
         }});
         try {
-            taskExecuter.execute();
+            taskExecutor.execute();
             fail();
         } catch (RuntimeException e) {
             assertThat(e, sameInstance(wrappedFailure));
@@ -321,16 +321,16 @@ public class DefaultTaskGraphExecutorTest {
         final Task b = helper.task("b");
 
         final Closure closure = toClosure(runnable);
-        taskExecuter.beforeTask(closure);
+        taskExecutor.beforeTask(closure);
 
-        taskExecuter.addTasks(toList(a, b));
+        taskExecutor.addTasks(toList(a, b));
 
         context.checking(new Expectations() {{
             one(runnable).call(a);
             one(runnable).call(b);
         }});
 
-        taskExecuter.execute();
+        taskExecutor.execute();
     }
 
     @Test
@@ -339,16 +339,16 @@ public class DefaultTaskGraphExecutorTest {
         final Task a = helper.task("a");
         final Task b = helper.task("b");
 
-        taskExecuter.afterTask(toClosure(runnable));
+        taskExecutor.afterTask(toClosure(runnable));
 
-        taskExecuter.addTasks(toList(a, b));
+        taskExecutor.addTasks(toList(a, b));
 
         context.checking(new Expectations() {{
             one(runnable).call(a);
             one(runnable).call(b);
         }});
 
-        taskExecuter.execute();
+        taskExecutor.execute();
     }
 
     @Test
@@ -361,11 +361,11 @@ public class DefaultTaskGraphExecutorTest {
             }
         };
 
-        taskExecuter.useFilter(spec);
-        taskExecuter.addTasks(toList(a, b));
-        assertThat(taskExecuter.getAllTasks(), equalTo(toList(b)));
+        taskExecutor.useFilter(spec);
+        taskExecutor.addTasks(toList(a, b));
+        assertThat(taskExecutor.getAllTasks(), equalTo(toList(b)));
 
-        taskExecuter.execute();
+        taskExecutor.execute();
         
         assertThat(executedTasks, equalTo(toList(b)));
     }
@@ -381,11 +381,11 @@ public class DefaultTaskGraphExecutorTest {
             }
         };
 
-        taskExecuter.useFilter(spec);
-        taskExecuter.addTasks(toList(c));
-        assertThat(taskExecuter.getAllTasks(), equalTo(toList(b, c)));
+        taskExecutor.useFilter(spec);
+        taskExecutor.addTasks(toList(c));
+        assertThat(taskExecutor.getAllTasks(), equalTo(toList(b, c)));
         
-        taskExecuter.execute();
+        taskExecutor.execute();
                 
         assertThat(executedTasks, equalTo(toList(b, c)));
     }
@@ -398,19 +398,19 @@ public class DefaultTaskGraphExecutorTest {
         final Task b = helper.task("b");
         final Task c = helper.task("c", b);
 
-        taskExecuter.useFailureHandler(handler);
-        taskExecuter.useFilter(new Spec<Task>() {
+        taskExecutor.useFailureHandler(handler);
+        taskExecutor.useFilter(new Spec<Task>() {
             public boolean isSatisfiedBy(Task element) {
                 return element != b;
             }
         });
-        taskExecuter.addTasks(toList(a, c));
+        taskExecutor.addTasks(toList(a, c));
 
         context.checking(new Expectations() {{
             ignoring(handler);
         }});
         try {
-            taskExecuter.execute();
+            taskExecutor.execute();
             fail();
         } catch (RuntimeException e) {
             assertThat(e, sameInstance(failure));

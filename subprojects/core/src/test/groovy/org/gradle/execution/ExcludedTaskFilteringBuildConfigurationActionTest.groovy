@@ -24,7 +24,7 @@ import static java.util.Collections.emptySet
 class ExcludedTaskFilteringBuildConfigurationActionTest extends Specification {
     final BuildExecutionContext context = Mock()
     final StartParameter startParameter = Mock()
-    final TaskGraphExecuter taskGraph = Mock()
+    final TaskGraphExecutor taskGraph = Mock()
     final TaskSelector selector = Mock()
     final GradleInternal gradle = Mock()
     final action = Spy(ExcludedTaskFilteringBuildConfigurationAction)

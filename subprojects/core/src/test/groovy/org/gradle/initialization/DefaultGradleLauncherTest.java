@@ -28,7 +28,7 @@ import org.gradle.api.internal.file.TestFiles;
 import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildExecuter;
-import org.gradle.execution.TaskGraphExecuter;
+import org.gradle.execution.TaskGraphExecutor;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.JUnit4GroovyMockery;
@@ -64,7 +64,7 @@ public class DefaultGradleLauncherTest {
 
     private GradleLauncher gradleLauncher;
 
-    private TaskGraphExecuter taskExecuterMock;
+    private TaskGraphExecutor taskExecutorMock;
 
     private ProjectDescriptor expectedRootProjectDescriptor;
 
@@ -83,7 +83,7 @@ public class DefaultGradleLauncherTest {
         initscriptHandlerMock = context.mock(InitScriptHandler.class);
         settingsHandlerMock = context.mock(SettingsHandler.class);
         settingsMock = context.mock(SettingsInternal.class);
-        taskExecuterMock = context.mock(TaskGraphExecuter.class);
+        taskExecutorMock = context.mock(TaskGraphExecutor.class);
         buildLoaderMock = context.mock(BuildLoader.class);
         buildConfigurerMock = context.mock(BuildConfigurer.class);
         gradleMock = context.mock(GradleInternal.class);
@@ -117,7 +117,7 @@ public class DefaultGradleLauncherTest {
                 allowing(gradleMock).getDefaultProject();
                 will(returnValue(expectedCurrentProject));
                 allowing(gradleMock).getTaskGraph();
-                will(returnValue(taskExecuterMock));
+                will(returnValue(taskExecutorMock));
                 allowing(gradleMock).getStartParameter();
                 will(returnValue(expectedStartParams));
             }

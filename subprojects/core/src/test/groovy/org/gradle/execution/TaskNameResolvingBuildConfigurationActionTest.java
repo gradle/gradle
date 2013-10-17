@@ -49,7 +49,7 @@ public class TaskNameResolvingBuildConfigurationActionTest {
     private final ProjectInternal otherProject = context.mock(AbstractProject.class, "[otherProject]");
     private final ProjectInternal rootProject = context.mock(ProjectInternal.class);
     private final GradleInternal gradle = context.mock(GradleInternal.class);
-    private final TaskGraphExecuter taskExecuter = context.mock(TaskGraphExecuter.class);
+    private final TaskGraphExecutor taskExecuter = context.mock(TaskGraphExecutor.class);
     private final TaskNameResolver resolver = context.mock(TaskNameResolver.class);
     private final BuildExecutionContext executionContext = context.mock(BuildExecutionContext.class);
     private final StartParameter startParameter = context.mock(StartParameter.class);
