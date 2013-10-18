@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.internal;
+package org.gradle.plugin.resolve;
 
-public class PluginTarget {
+import org.gradle.api.Incubating;
 
-    private final String id;
+/**
+ * Represents a request for a plugin.
+ */
+@Incubating
+public interface PluginRequest {
 
-    public PluginTarget(String id) {
-        this.id = id;
-    }
+    String getId();
 
-    public String getId() {
-        return id;
-    }
 }

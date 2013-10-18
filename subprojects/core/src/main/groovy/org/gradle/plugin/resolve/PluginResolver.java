@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.internal;
+package org.gradle.plugin.resolve;
 
-import org.gradle.api.internal.notations.parsers.MapKey;
-import org.gradle.api.internal.notations.parsers.MapNotationParser;
-import org.gradle.plugin.resolve.PluginRequest;
-import org.gradle.plugin.resolve.internal.DefaultPluginRequest;
+import org.gradle.api.Incubating;
+import org.gradle.api.Named;
+import org.gradle.api.Nullable;
 
-public class PluginApplicationNotationParser extends MapNotationParser<PluginRequest> {
+/**
+ * A repository of plugins.
+ */
+@Incubating
+public interface PluginResolver extends Named {
 
-    public PluginRequest parseMap(
-        @MapKey("plugin") String plugin
-    ) {
-        return new DefaultPluginRequest(plugin);
-    }
+    @Nullable
+    PluginResolution resolve(PluginRequest pluginRequest);
 
 }

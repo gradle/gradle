@@ -17,6 +17,8 @@
 package org.gradle.plugin;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.NamedDomainObjectList;
+import org.gradle.plugin.resolve.PluginResolver;
 
 import java.util.Map;
 
@@ -29,5 +31,7 @@ public interface PluginHandler {
     String BLOCK_NAME = "plugins";
 
     void apply(Map<String, Object> options);
+
+    NamedDomainObjectList<PluginResolver> getResolvers();
 
 }

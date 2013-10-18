@@ -16,7 +16,9 @@
 
 package org.gradle.plugin.internal;
 
+import org.gradle.api.NamedDomainObjectList;
 import org.gradle.plugin.PluginHandler;
+import org.gradle.plugin.resolve.PluginResolver;
 
 import java.util.Map;
 
@@ -29,6 +31,14 @@ public class NonPluggableTargetPluginHandler implements PluginHandler {
     }
 
     public void apply(Map<String, Object> options) {
-        throw new UnsupportedOperationException("Script target " + target + " cannot have plugins applied to it");
+        throw fail();
+    }
+
+    public NamedDomainObjectList<PluginResolver> getResolvers() {
+        throw fail();
+    }
+
+    private RuntimeException fail() {
+        return new UnsupportedOperationException("Script target " + target + " cannot have plugins applied to it");
     }
 }

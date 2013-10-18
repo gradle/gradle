@@ -19,6 +19,7 @@ package org.gradle.configuration;
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
+import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.groovy.scripts.*;
 import org.gradle.groovy.scripts.internal.BuildScriptTransformer;
 import org.gradle.groovy.scripts.internal.IsScriptBlockWithNameSpec;
@@ -36,19 +37,21 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private final ClassLoader defaultClassLoader;
     private final Factory<LoggingManagerInternal> loggingManagerFactory;
     private final Instantiator instantiator;
+    private final PluginRegistry pluginRegistry;
 
     public DefaultScriptPluginFactory(ScriptCompilerFactory scriptCompilerFactory,
                                       ImportsReader importsReader,
                                       ScriptHandlerFactory scriptHandlerFactory,
                                       ClassLoader defaultClassLoader,
                                       Factory<LoggingManagerInternal> loggingManagerFactory,
-                                      Instantiator instantiator) {
+                                      Instantiator instantiator, PluginRegistry pluginRegistry) {
         this.scriptCompilerFactory = scriptCompilerFactory;
         this.importsReader = importsReader;
         this.scriptHandlerFactory = scriptHandlerFactory;
         this.defaultClassLoader = defaultClassLoader;
         this.loggingManagerFactory = loggingManagerFactory;
         this.instantiator = instantiator;
+        this.pluginRegistry = pluginRegistry;
     }
 
     public ScriptPlugin create(ScriptSource scriptSource) {
@@ -95,6 +98,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             services.add(ScriptPluginFactory.class, DefaultScriptPluginFactory.this);
             services.add(LoggingManagerInternal.class, loggingManagerFactory.create());
             services.add(Instantiator.class, instantiator);
+            services.add(PluginRegistry.class, pluginRegistry);
 
             ScriptAware scriptAware = null;
             if (target instanceof ScriptAware) {

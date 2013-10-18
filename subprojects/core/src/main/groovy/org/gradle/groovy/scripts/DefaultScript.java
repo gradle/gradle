@@ -19,6 +19,7 @@ package org.gradle.groovy.scripts;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.PathValidation;
+import org.gradle.api.Plugin;
 import org.gradle.api.Script;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFileTree;
@@ -30,6 +31,7 @@ import org.gradle.api.internal.ProcessOperations;
 import org.gradle.api.internal.file.*;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
+import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.LoggingManager;
@@ -37,19 +39,26 @@ import org.gradle.api.plugins.PluginAware;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.configuration.ScriptPluginFactory;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.nativeplatform.filesystem.FileSystems;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.plugin.PluginHandler;
 import org.gradle.plugin.internal.DefaultPluginHandler;
 import org.gradle.plugin.internal.NonPluggableTargetPluginHandler;
+import org.gradle.plugin.resolve.PluginResolution;
+import org.gradle.plugin.resolve.internal.PluginRegistryPluginResolver;
 import org.gradle.process.ExecResult;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 import java.net.URI;
+import java.net.URLClassLoader;
 import java.util.Map;
+import java.util.Set;
 
 public abstract class DefaultScript extends BasicScript {
     private static final Logger LOGGER = Logging.getLogger(Script.class);
@@ -60,7 +69,7 @@ public abstract class DefaultScript extends BasicScript {
 
     private PluginHandler pluginHandler;
 
-    public void init(Object target, ServiceRegistry services) {
+    public void init(final Object target, ServiceRegistry services) {
         super.init(target, services);
         this.services = services;
         loggingManager = services.get(LoggingManager.class);
@@ -78,7 +87,21 @@ public abstract class DefaultScript extends BasicScript {
         processOperations = (ProcessOperations) fileOperations;
 
         if (target instanceof PluginAware) {
-            pluginHandler = new DefaultPluginHandler((PluginAware) target);
+            pluginHandler = new DefaultPluginHandler((PluginAware) target, instantiator, new Action<PluginResolution>() {
+                public void execute(PluginResolution pluginResolution) {
+                    Set<File> classpathFiles = pluginResolution.resolveClasspath();
+                    ClassPath classPath = new DefaultClassPath(classpathFiles);
+                    ClassLoader classLoader = new URLClassLoader(classPath.getAsURLArray(), this.getClass().getClassLoader());
+                    Class<?> aClass;
+                    try {
+                        aClass = classLoader.loadClass(pluginResolution.getClassName());
+                    } catch (ClassNotFoundException e) {
+                        throw UncheckedException.throwAsUncheckedException(e);
+                    }
+                    ((PluginAware) target).getPlugins().apply((Class<? extends Plugin>) aClass);
+                }
+            });
+            pluginHandler.getResolvers().add(new PluginRegistryPluginResolver(services.get(PluginRegistry.class)));
         } else {
             pluginHandler = new NonPluggableTargetPluginHandler(target);
         }

@@ -14,19 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.internal;
+package org.gradle.plugin.resolve.internal;
 
-import org.gradle.api.internal.notations.parsers.MapKey;
-import org.gradle.api.internal.notations.parsers.MapNotationParser;
 import org.gradle.plugin.resolve.PluginRequest;
-import org.gradle.plugin.resolve.internal.DefaultPluginRequest;
 
-public class PluginApplicationNotationParser extends MapNotationParser<PluginRequest> {
+public class DefaultPluginRequest implements PluginRequest {
 
-    public PluginRequest parseMap(
-        @MapKey("plugin") String plugin
-    ) {
-        return new DefaultPluginRequest(plugin);
+    private final String id;
+
+    public DefaultPluginRequest(String id) {
+        this.id = id;
     }
 
+    public String getId() {
+        return id;
+    }
+
+    @Override
+    public String toString() {
+        return "{id=" + id + "}";
+    }
 }

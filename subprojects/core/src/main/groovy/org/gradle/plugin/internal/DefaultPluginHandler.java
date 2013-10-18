@@ -16,22 +16,55 @@
 
 package org.gradle.plugin.internal;
 
+import org.gradle.api.Action;
+import org.gradle.api.Named;
+import org.gradle.api.NamedDomainObjectList;
+import org.gradle.api.internal.DefaultNamedDomainObjectList;
 import org.gradle.api.plugins.PluginAware;
+import org.gradle.api.plugins.UnknownPluginException;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugin.PluginHandler;
+import org.gradle.plugin.resolve.PluginResolver;
+import org.gradle.plugin.resolve.PluginRequest;
+import org.gradle.plugin.resolve.PluginResolution;
+import org.gradle.util.CollectionUtils;
 
 import java.util.Map;
 
 public class DefaultPluginHandler implements PluginHandler {
 
     private final PluginAware delegate;
+    private final Action<? super PluginResolution> pluginResolutionHandler;
+    private final NamedDomainObjectList<PluginResolver> repositories;
 
-    public DefaultPluginHandler(PluginAware delegate) {
+    public DefaultPluginHandler(PluginAware delegate, Instantiator instantiator, Action<? super PluginResolution> pluginResolutionHandler) {
         this.delegate = delegate;
+        this.pluginResolutionHandler = pluginResolutionHandler;
+
+        @SuppressWarnings("unchecked")
+        DefaultNamedDomainObjectList<PluginResolver> unchecked = instantiator.newInstance(DefaultNamedDomainObjectList.class, PluginResolver.class, instantiator, Named.Namer.forType(PluginResolver.class));
+        this.repositories = unchecked;
     }
 
     public void apply(Map<String, Object> options) {
-        PluginTarget target = new PluginApplicationNotationParser().parseType(options);
-        delegate.getPlugins().apply(target.getId());
+        PluginRequest request = new PluginApplicationNotationParser().parseType(options);
+
+        PluginResolution resolution = null;
+        for (PluginResolver repository : repositories) {
+            resolution = repository.resolve(request);
+            if (resolution != null) {
+                break;
+            }
+        }
+
+        if (resolution == null) {
+            throw new UnknownPluginException("Cannot resolve plugin request " + request + " from repositories: " + CollectionUtils.toStringList(repositories));
+        }
+
+        pluginResolutionHandler.execute(resolution);
     }
 
+    public NamedDomainObjectList<PluginResolver> getResolvers() {
+        return repositories;
+    }
 }
