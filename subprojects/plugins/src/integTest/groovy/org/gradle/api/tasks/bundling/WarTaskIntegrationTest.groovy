@@ -233,10 +233,10 @@ class WarTaskIntegrationTest extends AbstractIntegrationSpec {
         buildFile << '''
         task war(type: War) {
             into('WEB-INF') {
-                from 'good'
+                from 'bad'
             }
             webInf {
-                from 'bad'
+                from 'good'
             }
             destinationDir = buildDir
             archiveName = 'test.war'
@@ -250,5 +250,32 @@ class WarTaskIntegrationTest extends AbstractIntegrationSpec {
         then:
         def war = new JarTestFixture(file('build/test.war'))
         war.assertFileContent('WEB-INF/file.txt', 'good')
+    }
+
+    def "exclude duplicates: webXml over normal files"() {
+        given:
+        file('originalWebXml.xml') << 'good'
+        file('some-dir/web.xml') << 'bad'
+
+        and:
+        buildFile << """
+            task war(type: War) {
+                duplicatesStrategy 'exclude'
+                from('some-dir') {
+                    into 'WEB-INF'
+                }
+                webXml = file('originalWebXml.xml')
+                destinationDir = buildDir
+                archiveName = 'test.war'
+            }
+        """
+
+        when:
+        run "war"
+
+        then:
+        def war = new JarTestFixture(file('build/test.war'))
+        war.assertContainsFile('WEB-INF/web.xml')
+        war.assertFileContent('WEB-INF/web.xml', 'good')
     }
 }

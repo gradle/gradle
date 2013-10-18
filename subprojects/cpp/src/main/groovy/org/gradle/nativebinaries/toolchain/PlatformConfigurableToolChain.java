@@ -22,7 +22,7 @@ import org.gradle.nativebinaries.ToolChain;
  * A ToolChain that can handle additional platforms simply by configuring the NativeBinary.
  */
 @Incubating
-public interface GccCompatibleToolChain extends ToolChain {
+public interface PlatformConfigurableToolChain extends ToolChain {
 
     /**
      * Add configuration for a target platform.
