@@ -20,7 +20,7 @@ import org.gradle.CacheUsage
 import org.gradle.api.Action
 import org.gradle.cache.PersistentCache
 import org.gradle.cache.internal.*
-import org.gradle.cache.internal.filelock.FileLockAccess
+import org.gradle.cache.internal.filelock.SimpleStateInfoProtocol
 import org.gradle.cache.internal.locklistener.NoOpFileLockContentionHandler
 import org.gradle.internal.nativeplatform.services.NativeServices
 import org.gradle.test.fixtures.file.TestFile
@@ -36,7 +36,7 @@ abstract class DownloadableGradleDistribution extends DefaultGradleDistribution 
                         new DefaultProcessMetaDataProvider(
                                 NativeServices.getInstance().get(org.gradle.internal.nativeplatform.ProcessEnvironment)),
                         20 * 60 * 1000 // allow up to 20 minutes to download a distribution
-                , new NoOpFileLockContentionHandler()    )).create()
+                , new NoOpFileLockContentionHandler(), new SimpleStateInfoProtocol())).create()
     }
 
     protected TestFile versionDir
@@ -65,11 +65,8 @@ abstract class DownloadableGradleDistribution extends DefaultGradleDistribution 
                 super.binDistribution.copyFrom(url)
                 super.binDistribution.usingNativeTools().unzipTo(versionDir)
             }
-            //cache lock dir needs to encode current cache lock protocol version
-            //otherwise there are failures when we upgrade cache lock format
-            def cacheLockDir = new File(versionDir, "cache-lock-${FileLockAccess.PROTOCOL_VERSION}")
             //noinspection GrDeprecatedAPIUsage
-            cache = CACHE_FACTORY.open(cacheLockDir, version.version, CacheUsage.ON, null, [:], FileLockManager.LockMode.Shared, downloadAction as Action)
+            cache = CACHE_FACTORY.open(versionDir, version.version, CacheUsage.ON, null, [:], FileLockManager.LockMode.Shared, downloadAction as Action)
         }
 
         super.binDistribution.assertIsFile()

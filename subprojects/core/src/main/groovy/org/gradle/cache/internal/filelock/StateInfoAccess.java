@@ -21,7 +21,11 @@ import java.nio.channels.FileLock;
 
 public class StateInfoAccess {
 
-    private DefaultStateInfoProtocol protocol = new DefaultStateInfoProtocol();
+    private final StateInfoProtocol protocol;
+
+    public StateInfoAccess(StateInfoProtocol protocol) {
+        this.protocol = protocol;
+    }
 
     public void ensureStateInfo(RandomAccessFile lockFileAccess) throws IOException {
         if (lockFileAccess.length() < protocol.getSize()) {

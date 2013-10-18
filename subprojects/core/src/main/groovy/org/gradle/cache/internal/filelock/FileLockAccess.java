@@ -38,12 +38,12 @@ public class FileLockAccess {
     private File lockFile;
     private String displayName;
 
-    public FileLockAccess(File lockFile, String displayName) throws FileNotFoundException {
+    public FileLockAccess(File lockFile, String displayName, StateInfoAccess stateInfoAccess) throws FileNotFoundException {
         this.lockFile = lockFile;
         this.displayName = displayName;
         this.lockFileAccess = new RandomAccessFile(lockFile, "rw");
-        this.stateInfoAccess = new StateInfoAccess();
-        this.infoRegionPos = stateInfoAccess.getRegionEnd();
+        this.stateInfoAccess = stateInfoAccess;
+        this.infoRegionPos = this.stateInfoAccess.getRegionEnd();
     }
 
     public void close() throws IOException {

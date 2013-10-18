@@ -18,6 +18,7 @@ package org.gradle.cache.internal
 
 import org.apache.commons.lang.RandomStringUtils
 import org.gradle.cache.internal.FileLockManager.LockMode
+import org.gradle.cache.internal.filelock.DefaultStateInfoProtocol
 import org.gradle.cache.internal.filelock.FileLockAccess
 import org.gradle.cache.internal.locklistener.NoOpFileLockContentionHandler
 import org.gradle.internal.Factory
@@ -38,7 +39,7 @@ class DefaultFileLockManagerTest extends Specification {
     def metaDataProvider = Mock(ProcessMetaDataProvider)
     def generator = Stub(IdGenerator)
 
-    FileLockManager manager = new DefaultFileLockManager(metaDataProvider, 5000, new NoOpFileLockContentionHandler(), generator)
+    FileLockManager manager = new DefaultFileLockManager(metaDataProvider, 5000, new NoOpFileLockContentionHandler(), generator, new DefaultStateInfoProtocol())
 
     TestFile testFile
     TestFile testFileLock
@@ -399,7 +400,7 @@ class DefaultFileLockManagerTest extends Specification {
         def customMetaDataProvider = Mock(ProcessMetaDataProvider)
         def processIdentifier = RandomStringUtils.randomAlphanumeric(1000)
         1 * customMetaDataProvider.processIdentifier >> processIdentifier
-        def customManager = new DefaultFileLockManager(customMetaDataProvider, 5000, new NoOpFileLockContentionHandler(), generator)
+        def customManager = new DefaultFileLockManager(customMetaDataProvider, 5000, new NoOpFileLockContentionHandler(), generator, stateInfoProtocol)
         def operationalDisplayName = RandomStringUtils.randomAlphanumeric(1000)
 
         when:

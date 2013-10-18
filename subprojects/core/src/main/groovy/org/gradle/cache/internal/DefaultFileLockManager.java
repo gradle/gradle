@@ -17,9 +17,7 @@ package org.gradle.cache.internal;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.cache.internal.filelock.FileLockAccess;
-import org.gradle.cache.internal.filelock.OwnerInfo;
-import org.gradle.cache.internal.filelock.StateInfo;
+import org.gradle.cache.internal.filelock.*;
 import org.gradle.cache.internal.locklistener.FileLockContentionHandler;
 import org.gradle.internal.CompositeStoppable;
 import org.gradle.internal.Factory;
@@ -52,23 +50,26 @@ public class DefaultFileLockManager implements FileLockManager {
     private final ProcessMetaDataProvider metaDataProvider;
     private final int lockTimeoutMs;
     private final IdGenerator<Long> generator;
-    private FileLockContentionHandler fileLockContentionHandler;
+    private final StateInfoProtocol stateInfoProtocol;
+    private final FileLockContentionHandler fileLockContentionHandler;
     private final long shortTimeoutMs = 10000;
     private final int ownerId = new NoZeroIntegerIdGenerator().generateId();
 
     public DefaultFileLockManager(ProcessMetaDataProvider metaDataProvider, FileLockContentionHandler fileLockContentionHandler) {
-        this(metaDataProvider, DEFAULT_LOCK_TIMEOUT, fileLockContentionHandler);
+        this(metaDataProvider, DEFAULT_LOCK_TIMEOUT, fileLockContentionHandler, new DefaultStateInfoProtocol());
     }
 
-    public DefaultFileLockManager(ProcessMetaDataProvider metaDataProvider, int lockTimeoutMs, FileLockContentionHandler fileLockContentionHandler) {
-        this(metaDataProvider, lockTimeoutMs, fileLockContentionHandler, new RandomLongIdGenerator());
+    public DefaultFileLockManager(ProcessMetaDataProvider metaDataProvider, int lockTimeoutMs, FileLockContentionHandler fileLockContentionHandler, StateInfoProtocol stateInfoProtocol) {
+        this(metaDataProvider, lockTimeoutMs, fileLockContentionHandler, new RandomLongIdGenerator(), stateInfoProtocol);
     }
 
-    public DefaultFileLockManager(ProcessMetaDataProvider metaDataProvider, int lockTimeoutMs, FileLockContentionHandler fileLockContentionHandler, IdGenerator<Long> generator) {
+    DefaultFileLockManager(ProcessMetaDataProvider metaDataProvider, int lockTimeoutMs, FileLockContentionHandler fileLockContentionHandler,
+                           IdGenerator<Long> generator, StateInfoProtocol stateInfoProtocol) {
         this.metaDataProvider = metaDataProvider;
         this.lockTimeoutMs = lockTimeoutMs;
         this.fileLockContentionHandler = fileLockContentionHandler;
         this.generator = generator;
+        this.stateInfoProtocol = stateInfoProtocol;
     }
 
     public FileLock lock(File target, LockMode mode, String targetDisplayName) throws LockTimeoutException {
@@ -128,7 +129,7 @@ public class DefaultFileLockManager implements FileLockManager {
 
             GFileUtils.mkdirs(lockFile.getParentFile());
             lockFile.createNewFile();
-            fileLockAccess = new FileLockAccess(lockFile, displayName);
+            fileLockAccess = new FileLockAccess(lockFile, displayName, new StateInfoAccess(stateInfoProtocol));
             try {
                 lock = lock(mode);
                 StateInfo stateInfo = fileLockAccess.readStateInfo();
