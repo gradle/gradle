@@ -21,24 +21,20 @@ import org.gradle.api.logging.Logging;
 import java.io.*;
 import java.nio.channels.FileLock;
 
-import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
-
 public class FileLockAccess {
     
     private final static Logger LOGGER = Logging.getLogger(FileLockAccess.class);
 
-    public static final byte STATE_REGION_PROTOCOL = 2; //should be incremented when state region format changes in an incompatible way
-    public static final int STATE_REGION_SIZE = 5;
-    public static final int STATE_REGION_POS = 0;
-    public static final byte INFORMATION_REGION_PROTOCOL = 3; //should be incremented when information region format changes in an incompatible way
-    public static final int INFORMATION_REGION_POS = STATE_REGION_POS + STATE_REGION_SIZE;
+    private static final byte INFORMATION_REGION_PROTOCOL = 3; //should be incremented when information region format changes in an incompatible way
     public static final int INFORMATION_REGION_SIZE = 2052;
     public static final int INFORMATION_REGION_DESCR_CHUNK_LIMIT = 340;
-    public static final int UNKNOWN_PREVIOUS_OWNER = 0;
-
-    public static final short PROTOCOL_VERSION = STATE_REGION_PROTOCOL + INFORMATION_REGION_PROTOCOL;
+    public static final short PROTOCOL_VERSION = StateInfoAccess.STATE_REGION_PROTOCOL + INFORMATION_REGION_PROTOCOL;
 
     private final RandomAccessFile lockFileAccess;
+
+    private final StateInfoAccess stateInfoAccess;
+    private final int infoRegionPos;
+
     private File lockFile;
     private String displayName;
 
@@ -46,6 +42,8 @@ public class FileLockAccess {
         this.lockFile = lockFile;
         this.displayName = displayName;
         this.lockFileAccess = new RandomAccessFile(lockFile, "rw");
+        this.stateInfoAccess = new StateInfoAccess();
+        this.infoRegionPos = stateInfoAccess.getRegionEnd();
     }
 
     public void close() throws IOException {
@@ -53,16 +51,13 @@ public class FileLockAccess {
     }
 
     public void assertStateInfoIntegral() throws IOException {
-        if (lockFileAccess.length() > 0) {
-            lockFileAccess.seek(STATE_REGION_POS);
-            if (lockFileAccess.readByte() != STATE_REGION_PROTOCOL) {
-                throw new IllegalStateException(String.format("Unexpected lock protocol found in lock file '%s' for %s.", lockFile, displayName));
-            }
+        if (!stateInfoAccess.isIntegral(lockFileAccess)) {
+            throw new IllegalStateException(String.format("Unexpected lock protocol found in lock file '%s' for %s.", lockFile, displayName));
         }
     }
 
     public void writeOwnerInfo(int port, long lockId, String pid, String operation) throws IOException {
-        lockFileAccess.seek(INFORMATION_REGION_POS);
+        lockFileAccess.seek(infoRegionPos);
         lockFileAccess.writeByte(INFORMATION_REGION_PROTOCOL);
         lockFileAccess.writeInt(port);
         lockFileAccess.writeLong(lockId);
@@ -81,10 +76,10 @@ public class FileLockAccess {
 
     public OwnerInfo readOwnerInfo() throws IOException {
         OwnerInfo out = new OwnerInfo();
-        if (lockFileAccess.length() <= INFORMATION_REGION_POS) {
+        if (lockFileAccess.length() <= infoRegionPos) {
             LOGGER.debug("Lock file for {} is too short to contain information region. Ignoring.", displayName);
         } else {
-            lockFileAccess.seek(INFORMATION_REGION_POS);
+            lockFileAccess.seek(infoRegionPos);
             if (lockFileAccess.readByte() != INFORMATION_REGION_PROTOCOL) {
                 throw new IllegalStateException(String.format("Unexpected lock protocol found in lock file '%s' for %s.", lockFile, displayName));
             }
@@ -97,52 +92,31 @@ public class FileLockAccess {
         return out;
     }
 
-    private int readPreviousOwnerId() {
-        try {
-            lockFileAccess.seek(STATE_REGION_POS + 1);
-            return lockFileAccess.readInt();
-        } catch (EOFException e) {
-            // Process has crashed writing to lock file
-            return UNKNOWN_PREVIOUS_OWNER;
-        } catch (Exception e) {
-            throw throwAsUncheckedException(e);
-        }
-    }
-
     public void ensureStateInfo() throws IOException {
-        if (lockFileAccess.length() < STATE_REGION_SIZE) {
-            // File did not exist before locking
-            markClean(UNKNOWN_PREVIOUS_OWNER);
-        }
+        stateInfoAccess.ensureStateInfo(lockFileAccess);
     }
 
     public void markClean(int ownerId) throws IOException {
-        lockFileAccess.seek(STATE_REGION_POS);
-        lockFileAccess.writeByte(STATE_REGION_PROTOCOL);
-        lockFileAccess.writeInt(ownerId);
-        assert lockFileAccess.getFilePointer() == STATE_REGION_SIZE + STATE_REGION_POS;
+        stateInfoAccess.markClean(lockFileAccess, ownerId);
     }
 
     public void markDirty() throws IOException {
-        lockFileAccess.seek(STATE_REGION_POS);
-        lockFileAccess.writeByte(STATE_REGION_PROTOCOL);
-        lockFileAccess.writeInt(UNKNOWN_PREVIOUS_OWNER);
-        assert lockFileAccess.getFilePointer() == STATE_REGION_SIZE + STATE_REGION_POS;
+        stateInfoAccess.markDirty(lockFileAccess);
     }
 
     public void clearOwnerInfo() throws IOException {
-        lockFileAccess.setLength(INFORMATION_REGION_POS);
+        lockFileAccess.setLength(infoRegionPos);
     }
 
     public FileLock tryLockOwnerInfo(boolean shared) throws IOException {
-        return lockFileAccess.getChannel().tryLock((long) INFORMATION_REGION_POS, (long) (INFORMATION_REGION_SIZE - INFORMATION_REGION_POS), shared);
+        return lockFileAccess.getChannel().tryLock((long) infoRegionPos, (long) (INFORMATION_REGION_SIZE - infoRegionPos), shared);
     }
 
     public FileLock tryLockStateInfo(boolean shared) throws IOException {
-        return lockFileAccess.getChannel().tryLock((long) STATE_REGION_POS, (long) STATE_REGION_SIZE, shared);
+        return stateInfoAccess.tryLock(lockFileAccess, shared);
     }
 
     public StateInfo readStateInfo() {
-        return new StateInfo(readPreviousOwnerId());
+        return stateInfoAccess.readStateInfo(lockFileAccess);
     }
 }

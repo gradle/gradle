@@ -17,9 +17,11 @@ package org.gradle.cache.internal.filelock;
 
 public class StateInfo {
     private int previousOwnerId;
+    private boolean dirty;
 
-    public StateInfo(int previousOwnerId) {
+    public StateInfo(int previousOwnerId, boolean dirty) {
         this.previousOwnerId = previousOwnerId;
+        this.dirty = dirty;
     }
 
     public int getPreviousOwnerId() {
@@ -27,6 +29,6 @@ public class StateInfo {
     }
 
     public boolean isDirty() {
-        return previousOwnerId == FileLockAccess.UNKNOWN_PREVIOUS_OWNER;
+        return dirty;
     }
 }
