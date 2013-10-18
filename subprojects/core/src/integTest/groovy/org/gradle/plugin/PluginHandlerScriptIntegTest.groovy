@@ -17,6 +17,9 @@
 package org.gradle.plugin
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.TextUtil
+
+import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 class PluginHandlerScriptIntegTest extends AbstractIntegrationSpec {
 
@@ -51,7 +54,7 @@ class PluginHandlerScriptIntegTest extends AbstractIntegrationSpec {
 
     def void executesCorrectly() {
         succeeds "tasks"
-        assert output.contains("in\nout\n") // Testing the the plugins {} block is extracted and executed before the “main” content
+        assert output.contains(toPlatformLineSeparators("in\nout\n")) // Testing the the plugins {} block is extracted and executed before the “main” content
     }
 
 }
