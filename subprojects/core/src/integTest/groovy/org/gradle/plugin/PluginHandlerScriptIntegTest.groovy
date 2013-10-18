@@ -17,7 +17,6 @@
 package org.gradle.plugin
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.TextUtil
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
