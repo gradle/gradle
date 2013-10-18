@@ -24,43 +24,42 @@ import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
 
 public class StateInfoAccess {
 
-    static final byte STATE_REGION_PROTOCOL = 2; //should be incremented when state region format changes in an incompatible way
-    private static final int STATE_REGION_SIZE = 5;
-    private static final int STATE_REGION_POS = 0;
     private static final int UNKNOWN_PREVIOUS_OWNER = 0;
+    private DefaultStateInfoProtocol protocol = new DefaultStateInfoProtocol();
 
     public void ensureStateInfo(RandomAccessFile lockFileAccess) throws IOException {
-        if (lockFileAccess.length() < STATE_REGION_SIZE) {
+        if (lockFileAccess.length() < protocol.getSize()) {
             // File did not exist before locking
             markClean(lockFileAccess, UNKNOWN_PREVIOUS_OWNER);
         }
     }
 
     public void markClean(RandomAccessFile lockFileAccess, int ownerId) throws IOException {
-        lockFileAccess.seek(STATE_REGION_POS);
-        lockFileAccess.writeByte(STATE_REGION_PROTOCOL);
-        lockFileAccess.writeInt(ownerId);
-        assert lockFileAccess.getFilePointer() == STATE_REGION_SIZE + STATE_REGION_POS;
+        writeState(lockFileAccess, ownerId);
     }
 
     public void markDirty(RandomAccessFile lockFileAccess) throws IOException {
-        lockFileAccess.seek(STATE_REGION_POS);
-        lockFileAccess.writeByte(STATE_REGION_PROTOCOL);
-        lockFileAccess.writeInt(UNKNOWN_PREVIOUS_OWNER);
-        assert lockFileAccess.getFilePointer() == STATE_REGION_SIZE + STATE_REGION_POS;
+        writeState(lockFileAccess, UNKNOWN_PREVIOUS_OWNER);
+    }
+
+    private void writeState(RandomAccessFile lockFileAccess, int ownerId) throws IOException {
+        lockFileAccess.seek(0);
+        lockFileAccess.writeByte(protocol.getVersion());
+        protocol.writeState(lockFileAccess, new StateInfo(ownerId, false));
+        assert lockFileAccess.getFilePointer() == protocol.getSize();
     }
 
     public boolean isIntegral(RandomAccessFile lockFileAccess) throws IOException {
         if (lockFileAccess.length() > 0) {
-            lockFileAccess.seek(STATE_REGION_POS);
-            return lockFileAccess.readByte() == STATE_REGION_PROTOCOL;
+            lockFileAccess.seek(0);
+            return lockFileAccess.readByte() == protocol.getVersion();
         }
         return true;
     }
 
     private int readPreviousOwnerId(RandomAccessFile lockFileAccess) {
         try {
-            lockFileAccess.seek(STATE_REGION_POS + 1);
+            lockFileAccess.seek(1); //skip the protocol byte
             return lockFileAccess.readInt();
         } catch (EOFException e) {
             // Process has crashed writing to lock file
@@ -76,10 +75,10 @@ public class StateInfoAccess {
     }
 
     public FileLock tryLock(RandomAccessFile lockFileAccess, boolean shared) throws IOException {
-        return lockFileAccess.getChannel().tryLock((long) STATE_REGION_POS, (long) STATE_REGION_SIZE, shared);
+        return lockFileAccess.getChannel().tryLock(0, protocol.getSize(), shared);
     }
 
     public int getRegionEnd() {
-        return STATE_REGION_POS + STATE_REGION_SIZE;
+        return protocol.getSize();
     }
 }
