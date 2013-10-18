@@ -1,11 +1,10 @@
 package org.gradle.nativebinaries.language.c.internal.incremental;
 
-import org.codehaus.groovy.runtime.DefaultGroovyMethods;
-import org.gradle.api.UncheckedIOException;
+import org.gradle.api.internal.changedetection.state.DefaultHasher;
+import org.gradle.api.internal.changedetection.state.Hasher;
 import org.gradle.cache.PersistentIndexedCache;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.*;
 
 public class IncrementalCompileFiles implements IncrementalCompilation {
@@ -18,6 +17,9 @@ public class IncrementalCompileFiles implements IncrementalCompilation {
     private final List<File> removed = new ArrayList<File>();
 
     private final Map<File, Boolean> processed = new HashMap<File, Boolean>();
+
+    // TODO:DAZ Use a caching hasher
+    private final Hasher hasher = new DefaultHasher();
 
     public IncrementalCompileFiles(List<File> previousSourceFiles, PersistentIndexedCache<File, FileState> fileStateCache, SourceDependencyParser dependencyParser) {
         this.fileStateCache = fileStateCache;
@@ -48,9 +50,10 @@ public class IncrementalCompileFiles implements IncrementalCompilation {
             state = new FileState();
         }
 
-        if (state.isChanged(file)) {
+        byte[] currentHash = hasher.hash(file);
+        if (hasChanged(state, currentHash)) {
             changed = true;
-            state.setText(getText(file));
+            state.setHash(currentHash);
             state.getDeps().addAll(dependencyParser.parseDependencies(file));
             saveState(file, state);
         }
@@ -65,12 +68,8 @@ public class IncrementalCompileFiles implements IncrementalCompilation {
         return changed;
     }
 
-    private String getText(File file) {
-        try {
-            return DefaultGroovyMethods.getText(file);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+    private boolean hasChanged(FileState state, byte[] currentHash) {
+        return !Arrays.equals(currentHash, state.getHash());
     }
 
     private FileState findState(File file) {
