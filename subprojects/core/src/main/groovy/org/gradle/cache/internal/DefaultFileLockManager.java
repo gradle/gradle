@@ -149,7 +149,11 @@ public class DefaultFileLockManager implements FileLockManager {
 
         public boolean getUnlockedCleanly() {
             assertOpen();
-            return !fileLockAccess.readStateInfo().isDirty();
+            try {
+                return !fileLockAccess.readStateInfo().isDirty();
+            } catch (IOException e) {
+                throw new RuntimeException("Unable to read state info from lock file: " + lockFile, e);
+            }
         }
 
         public boolean getHasNewOwner() {

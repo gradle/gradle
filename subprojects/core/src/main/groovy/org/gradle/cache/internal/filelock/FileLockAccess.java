@@ -116,7 +116,7 @@ public class FileLockAccess {
         return stateInfoAccess.tryLock(lockFileAccess, shared);
     }
 
-    public StateInfo readStateInfo() {
+    public StateInfo readStateInfo() throws IOException {
         return stateInfoAccess.readStateInfo(lockFileAccess);
     }
 }

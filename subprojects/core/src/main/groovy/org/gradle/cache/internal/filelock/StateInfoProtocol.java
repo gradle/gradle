@@ -26,7 +26,8 @@ public interface StateInfoProtocol {
     int getSize();
 
     /**
-     * an implementation should be incremented when protocol changes in an incompatible way
+     * single byte that describes the version.
+     * an implementation protocol should increment the value when protocol changes in an incompatible way
      */
     int getVersion();
 
@@ -34,4 +35,9 @@ public interface StateInfoProtocol {
      * writes the state data
      */
     void writeState(RandomAccessFile lockFileAccess, StateInfo stateInfo) throws IOException;
+
+    /**
+     * reads the state data
+     */
+    StateInfo readState(RandomAccessFile lockFileAccess);
 }

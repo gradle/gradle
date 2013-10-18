@@ -15,10 +15,14 @@
  */
 package org.gradle.cache.internal.filelock;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
+import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
+
 public class DefaultStateInfoProtocol implements StateInfoProtocol {
+
     public int getSize() {
         return 5;
     }
@@ -29,5 +33,18 @@ public class DefaultStateInfoProtocol implements StateInfoProtocol {
 
     public void writeState(RandomAccessFile lockFileAccess, StateInfo stateInfo) throws IOException {
         lockFileAccess.writeInt(stateInfo.getPreviousOwnerId());
+    }
+
+    public StateInfo readState(RandomAccessFile lockFileAccess) {
+        int id;
+        try {
+            id = lockFileAccess.readInt();
+        } catch (EOFException e) {
+            // Process has crashed writing to lock file
+            id = StateInfo.UNKNOWN_PREVIOUS_OWNER;
+        } catch (Exception e) {
+            throw throwAsUncheckedException(e);
+        }
+        return new StateInfo(id, id == StateInfo.UNKNOWN_PREVIOUS_OWNER);
     }
 }

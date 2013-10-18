@@ -15,22 +15,18 @@
  */
 package org.gradle.cache.internal.filelock;
 
-import java.io.EOFException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileLock;
 
-import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
-
 public class StateInfoAccess {
 
-    private static final int UNKNOWN_PREVIOUS_OWNER = 0;
     private DefaultStateInfoProtocol protocol = new DefaultStateInfoProtocol();
 
     public void ensureStateInfo(RandomAccessFile lockFileAccess) throws IOException {
         if (lockFileAccess.length() < protocol.getSize()) {
             // File did not exist before locking
-            markClean(lockFileAccess, UNKNOWN_PREVIOUS_OWNER);
+            markClean(lockFileAccess, StateInfo.UNKNOWN_PREVIOUS_OWNER);
         }
     }
 
@@ -39,7 +35,7 @@ public class StateInfoAccess {
     }
 
     public void markDirty(RandomAccessFile lockFileAccess) throws IOException {
-        writeState(lockFileAccess, UNKNOWN_PREVIOUS_OWNER);
+        writeState(lockFileAccess, StateInfo.UNKNOWN_PREVIOUS_OWNER);
     }
 
     private void writeState(RandomAccessFile lockFileAccess, int ownerId) throws IOException {
@@ -57,21 +53,9 @@ public class StateInfoAccess {
         return true;
     }
 
-    private int readPreviousOwnerId(RandomAccessFile lockFileAccess) {
-        try {
-            lockFileAccess.seek(1); //skip the protocol byte
-            return lockFileAccess.readInt();
-        } catch (EOFException e) {
-            // Process has crashed writing to lock file
-            return UNKNOWN_PREVIOUS_OWNER;
-        } catch (Exception e) {
-            throw throwAsUncheckedException(e);
-        }
-    }
-
-    public StateInfo readStateInfo(RandomAccessFile lockFileAccess) {
-        int id =  readPreviousOwnerId(lockFileAccess);
-        return new StateInfo(id, id == UNKNOWN_PREVIOUS_OWNER);
+    public StateInfo readStateInfo(RandomAccessFile lockFileAccess) throws IOException {
+        lockFileAccess.seek(1); //skip the protocol byte
+        return protocol.readState(lockFileAccess);
     }
 
     public FileLock tryLock(RandomAccessFile lockFileAccess, boolean shared) throws IOException {
