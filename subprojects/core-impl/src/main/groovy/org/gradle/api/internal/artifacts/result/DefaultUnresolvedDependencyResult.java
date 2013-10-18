@@ -17,17 +17,19 @@
 package org.gradle.api.internal.artifacts.result;
 
 import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
-import org.gradle.api.artifacts.result.ResolvedModuleVersionResult;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
+import org.gradle.api.artifacts.result.ComponentSelectionReason;
+import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
+import org.gradle.api.internal.artifacts.component.DefaultModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
 
 public class DefaultUnresolvedDependencyResult extends AbstractDependencyResult implements UnresolvedDependencyResult {
-    private final ModuleVersionSelectionReason reason;
+    private final ComponentSelectionReason reason;
     private final ModuleVersionResolveException failure;
 
-    public DefaultUnresolvedDependencyResult(ModuleVersionSelector requested, ModuleVersionSelectionReason reason,
-                                             ResolvedModuleVersionResult from, ModuleVersionResolveException failure) {
+    public DefaultUnresolvedDependencyResult(ModuleVersionSelector requested, ComponentSelectionReason reason,
+                                             ResolvedComponentResult from, ModuleVersionResolveException failure) {
         super(requested, from);
         this.reason = reason;
         this.failure = failure;
@@ -37,11 +39,12 @@ public class DefaultUnresolvedDependencyResult extends AbstractDependencyResult 
         return failure;
     }
 
-    public ModuleVersionSelector getAttempted() {
-        return failure.getSelector();
+    public ModuleComponentSelector getAttempted() {
+        ModuleVersionSelector moduleVersionSelector = failure.getSelector();
+        return DefaultModuleComponentSelector.newSelector(moduleVersionSelector.getGroup(), moduleVersionSelector.getName(), moduleVersionSelector.getVersion());
     }
 
-    public ModuleVersionSelectionReason getAttemptedReason() {
+    public ComponentSelectionReason getAttemptedReason() {
         return reason;
     }
 

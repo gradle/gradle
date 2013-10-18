@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
+import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.internal.artifacts.ModuleVersionIdentifierSerializer;
 import org.gradle.messaging.serialize.Decoder;
 import org.gradle.messaging.serialize.Encoder;
@@ -32,7 +32,7 @@ public class ModuleVersionSelectionSerializer implements Serializer<ModuleVersio
 
     public ModuleVersionSelection read(Decoder decoder) throws IOException {
         ModuleVersionIdentifier id = idSerializer.read(decoder);
-        ModuleVersionSelectionReason reason = reasonSerializer.read(decoder);
+        ComponentSelectionReason reason = reasonSerializer.read(decoder);
         return new DefaultModuleVersionSelection(id, reason);
     }
 

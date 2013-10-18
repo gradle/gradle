@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.result
 
-import org.gradle.api.artifacts.result.ModuleVersionSelectionReason
+import org.gradle.api.artifacts.result.ComponentSelectionReason
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
 
@@ -34,8 +34,8 @@ class ResolutionResultDataBuilder {
         new DefaultUnresolvedDependencyResult(requested, VersionSelectionReasons.REQUESTED, newModule(group, module, selectedVersion), new ModuleVersionResolveException(requested, "broken"))
     }
 
-    static DefaultResolvedModuleVersionResult newModule(String group='a', String module='a', String version='1',
-                                                        ModuleVersionSelectionReason selectionReason = VersionSelectionReasons.REQUESTED) {
-        new DefaultResolvedModuleVersionResult(newId(group, module, version), selectionReason)
+    static DefaultResolvedComponentResult newModule(String group='a', String module='a', String version='1',
+                                                        ComponentSelectionReason selectionReason = VersionSelectionReasons.REQUESTED) {
+        new DefaultResolvedComponentResult(newId(group, module, version), selectionReason)
     }
 }

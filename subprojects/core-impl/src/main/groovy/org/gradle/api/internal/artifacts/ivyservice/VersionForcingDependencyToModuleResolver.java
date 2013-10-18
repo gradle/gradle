@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
+import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.internal.artifacts.DependencyResolveDetailsInternal;
 import org.gradle.api.internal.artifacts.metadata.DependencyMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
@@ -68,7 +68,7 @@ public class VersionForcingDependencyToModuleResolver implements DependencyToMod
             throw failure;
         }
 
-        public ModuleVersionSelectionReason getSelectionReason() {
+        public ComponentSelectionReason getSelectionReason() {
             return VersionSelectionReasons.REQUESTED;
         }
     }

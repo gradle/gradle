@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.result.ResolutionResult;
-import org.gradle.api.artifacts.result.ResolvedModuleVersionResult;
+import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.internal.artifacts.ModuleVersionIdentifierSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.EncodedWriteAction;
@@ -52,10 +52,10 @@ public class StreamingResolutionResultBuilder implements ResolutionResultBuilder
     private final BinaryStore store;
     private final ModuleVersionIdentifierSerializer moduleVersionIdentifierSerializer = new ModuleVersionIdentifierSerializer();
     private final ModuleVersionSelectionSerializer moduleVersionSelectionSerializer = new ModuleVersionSelectionSerializer();
-    private Store<ResolvedModuleVersionResult> cache;
+    private Store<ResolvedComponentResult> cache;
     private final InternalDependencyResultSerializer internalDependencyResultSerializer = new InternalDependencyResultSerializer();
 
-    public StreamingResolutionResultBuilder(BinaryStore store, Store<ResolvedModuleVersionResult> cache) {
+    public StreamingResolutionResultBuilder(BinaryStore store, Store<ResolvedComponentResult> cache) {
         this.store = store;
         this.cache = cache;
     }
@@ -114,32 +114,32 @@ public class StreamingResolutionResultBuilder implements ResolutionResultBuilder
         }
     }
 
-    private static class RootFactory implements Factory<ResolvedModuleVersionResult> {
+    private static class RootFactory implements Factory<ResolvedComponentResult> {
 
         private final static Logger LOG = Logging.getLogger(RootFactory.class);
         private final ModuleVersionSelectionSerializer moduleVersionSelectionSerializer = new ModuleVersionSelectionSerializer();
 
         private BinaryStore.BinaryData data;
         private final Map<ModuleVersionSelector, ModuleVersionResolveException> failures;
-        private Store<ResolvedModuleVersionResult> cache;
+        private Store<ResolvedComponentResult> cache;
         private final Object lock = new Object();
         private final ModuleVersionIdentifierSerializer moduleVersionIdentifierSerializer = new ModuleVersionIdentifierSerializer();
         private final InternalDependencyResultSerializer internalDependencyResultSerializer = new InternalDependencyResultSerializer();
 
         public RootFactory(BinaryStore.BinaryData data, Map<ModuleVersionSelector, ModuleVersionResolveException> failures,
-                           Store<ResolvedModuleVersionResult> cache) {
+                           Store<ResolvedComponentResult> cache) {
             this.data = data;
             this.failures = failures;
             this.cache = cache;
         }
 
-        public ResolvedModuleVersionResult create() {
+        public ResolvedComponentResult create() {
             synchronized (lock) {
-                return cache.load(new Factory<ResolvedModuleVersionResult>() {
-                    public ResolvedModuleVersionResult create() {
+                return cache.load(new Factory<ResolvedComponentResult>() {
+                    public ResolvedComponentResult create() {
                         try {
-                            return data.read(new BinaryStore.ReadAction<ResolvedModuleVersionResult>() {
-                                public ResolvedModuleVersionResult read(DataInputStream input) throws IOException {
+                            return data.read(new BinaryStore.ReadAction<ResolvedComponentResult>() {
+                                public ResolvedComponentResult read(DataInputStream input) throws IOException {
                                     return deserialize(input);
                                 }
                             });
@@ -151,7 +151,7 @@ public class StreamingResolutionResultBuilder implements ResolutionResultBuilder
             }
         }
 
-        private ResolvedModuleVersionResult deserialize(DataInputStream input) {
+        private ResolvedComponentResult deserialize(DataInputStream input) {
             int valuesRead = 0;
             byte type = -1;
             Clock clock = new Clock();
@@ -180,7 +180,7 @@ public class StreamingResolutionResultBuilder implements ResolutionResultBuilder
                             builder.resolvedConfiguration(id, deps);
                             break;
                         case DONE:
-                            ResolvedModuleVersionResult root = builder.complete().getRoot();
+                            ResolvedComponentResult root = builder.complete().getRoot();
                             LOG.debug("Loaded resolution results ({}) from {}", clock.getTime(), data);
                             return root;
                         default:

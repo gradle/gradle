@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
 import org.gradle.api.artifacts.result.DependencyResult
-import org.gradle.api.artifacts.result.ResolvedModuleVersionResult
+import org.gradle.api.artifacts.result.ResolvedComponentResult
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 
 public class ResolutionResultPrinter {
@@ -35,7 +35,7 @@ public class ResolutionResultPrinter {
         }
     }
 
-    static String printGraph(ResolvedModuleVersionResult root) {
+    static String printGraph(ResolvedComponentResult root) {
         StringBuilder sb = new StringBuilder();
         sb.append(root).append("\n");
         for (DependencyResult d : root.getDependencies()) {

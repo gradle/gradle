@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
 import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
+import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.internal.artifacts.ModuleVersionSelectorSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
 import org.gradle.messaging.serialize.Decoder;
@@ -35,7 +35,7 @@ public class InternalDependencyResultSerializer {
 
     public InternalDependencyResult read(Decoder decoder, Map<ModuleVersionSelector, ModuleVersionResolveException> failures) throws IOException {
         ModuleVersionSelector requested = moduleVersionSelectorSerializer.read(decoder);
-        ModuleVersionSelectionReason reason = moduleVersionSelectionReasonSerializer.read(decoder);
+        ComponentSelectionReason reason = moduleVersionSelectionReasonSerializer.read(decoder);
         byte resultByte = decoder.readByte();
         if (resultByte == SUCCESSFUL) {
             ModuleVersionSelection selected = moduleVersionSelectionSerializer.read(decoder);

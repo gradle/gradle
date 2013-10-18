@@ -344,7 +344,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
 	        }
 
 	        task check << {
-                def modules = configurations.conf.incoming.resolutionResult.allModuleVersions as List
+                def modules = configurations.conf.incoming.resolutionResult.allComponents as List
                 def a = modules.find { it.id.name == 'a' }
                 assert a.id.version == '1.4'
                 assert a.selectionReason.conflictResolution
@@ -382,7 +382,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
 	        }
 
 	        task check << {
-                def modules = configurations.conf.incoming.resolutionResult.allModuleVersions as List
+                def modules = configurations.conf.incoming.resolutionResult.allComponents as List
                 def a = modules.find { it.id.name == 'a' }
                 assert a.id.version == '1.3'
                 assert a.selectionReason.conflictResolution
@@ -605,7 +605,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
 	        }
 
 	        task check << {
-                def modules = configurations.conf.incoming.resolutionResult.allModuleVersions as List
+                def modules = configurations.conf.incoming.resolutionResult.allComponents as List
                 assert !modules.find { it.id.name == 'a' }
                 def b = modules.find { it.id.name == 'b' }
                 assert b.id.version == '2.1'
@@ -774,7 +774,7 @@ conf
             }
 
             task check << {
-                def modules = configurations.conf.incoming.resolutionResult.allModuleVersions as List
+                def modules = configurations.conf.incoming.resolutionResult.allComponents as List
                 assert modules.find { it.id.name == 'b' && it.id.version == '4.0' && it.selectionReason.conflictResolution }
             }
 """

@@ -17,7 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
+import org.gradle.api.artifacts.result.ComponentSelectionReason;
 
 public interface ModuleVersionIdResolveResult {
     /**
@@ -42,5 +42,5 @@ public interface ModuleVersionIdResolveResult {
     /**
      * @return why given id was selected. Should return a value even if the resolve failed.
      */
-    ModuleVersionSelectionReason getSelectionReason();
+    ComponentSelectionReason getSelectionReason();
 }

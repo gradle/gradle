@@ -19,12 +19,12 @@ package org.gradle.api.artifacts.result;
 import org.gradle.api.Incubating;
 
 /**
- * Answers the question why given module version was selected during the dependency resolution
+ * Answers the question why given component was selected during the dependency resolution
  *
  * @since 1.3
  */
 @Incubating
-public interface ModuleVersionSelectionReason {
+public interface ComponentSelectionReason {
 
     /**
      * Informs whether the module was forced.

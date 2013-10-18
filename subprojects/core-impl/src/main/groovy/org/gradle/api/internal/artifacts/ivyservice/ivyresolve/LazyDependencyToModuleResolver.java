@@ -19,7 +19,7 @@ import org.apache.ivy.core.module.descriptor.Configuration;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
+import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
@@ -103,7 +103,7 @@ public class LazyDependencyToModuleResolver implements DependencyToModuleVersion
             return resolveResult;
         }
 
-        public ModuleVersionSelectionReason getSelectionReason() {
+        public ComponentSelectionReason getSelectionReason() {
             return VersionSelectionReasons.REQUESTED;
         }
 
@@ -134,7 +134,7 @@ public class LazyDependencyToModuleResolver implements DependencyToModuleVersion
             return id;
         }
 
-        public ModuleVersionSelectionReason getSelectionReason() {
+        public ComponentSelectionReason getSelectionReason() {
             return VersionSelectionReasons.REQUESTED;
         }
 

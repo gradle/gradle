@@ -38,7 +38,7 @@ class DefaultResolutionResultTest extends Specification {
 
         when:
         def deps = new DefaultResolutionResult({root} as Factory).allDependencies
-        def modules = new DefaultResolutionResult({root} as Factory).allModuleVersions
+        def modules = new DefaultResolutionResult({root} as Factory).allComponents
 
         then:
         deps == [dep1, dep2, dep3, dep4] as Set
@@ -62,7 +62,7 @@ class DefaultResolutionResultTest extends Specification {
         def deps = []
         def modules = []
         result.allDependencies { deps << it }
-        result.allModuleVersions { modules << it }
+        result.allComponents { modules << it }
 
         then:
         deps*.requested.group == ['dep1', 'dep3', 'dep2', 'dep3']
@@ -81,7 +81,7 @@ class DefaultResolutionResultTest extends Specification {
 
         when:
         def deps = new DefaultResolutionResult({root} as Factory).allDependencies
-        def modules = new DefaultResolutionResult({root} as Factory).allModuleVersions
+        def modules = new DefaultResolutionResult({root} as Factory).allComponents
 
         then:
         deps.size() == 2
@@ -100,14 +100,14 @@ class DefaultResolutionResultTest extends Specification {
 
         then:
         result.allDependencies == [dep1, dep2] as Set
-        result.allModuleVersions == [root, dep1.selected, dep2.selected] as Set
+        result.allComponents == [root, dep1.selected, dep2.selected] as Set
 
         when:
         result.allDependencies << newDependency('dep3')
-        result.allModuleVersions << newModule('foo')
+        result.allComponents << newModule('foo')
 
         then:
         result.allDependencies == [dep1, dep2] as Set
-        result.allModuleVersions == [root, dep1.selected, dep2.selected] as Set
+        result.allComponents == [root, dep1.selected, dep2.selected] as Set
     }
 }

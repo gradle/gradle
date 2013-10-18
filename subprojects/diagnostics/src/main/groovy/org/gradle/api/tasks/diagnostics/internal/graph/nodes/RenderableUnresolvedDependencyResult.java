@@ -18,8 +18,10 @@ package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 
 import java.util.Collections;
 import java.util.Set;
@@ -30,7 +32,8 @@ public class RenderableUnresolvedDependencyResult extends AbstractRenderableDepe
 
     public RenderableUnresolvedDependencyResult(UnresolvedDependencyResult dependency) {
         this.dependency = dependency;
-        ModuleVersionSelector attempted = dependency.getAttempted();
+        ModuleComponentSelector moduleComponentSelector = dependency.getAttempted();
+        ModuleVersionSelector attempted = DefaultModuleVersionSelector.newSelector(moduleComponentSelector.getGroup(), moduleComponentSelector.getName(), moduleComponentSelector.getVersion());
         this.actual = DefaultModuleVersionIdentifier.newId(attempted.getGroup(), attempted.getName(), attempted.getVersion());
     }
 
@@ -41,7 +44,8 @@ public class RenderableUnresolvedDependencyResult extends AbstractRenderableDepe
 
     @Override
     protected ModuleVersionSelector getRequested() {
-        return dependency.getRequested();
+        ModuleComponentSelector moduleComponentSelector = dependency.getRequested();
+        return DefaultModuleVersionSelector.newSelector(moduleComponentSelector.getGroup(), moduleComponentSelector.getName(), moduleComponentSelector.getVersion());
     }
 
     @Override

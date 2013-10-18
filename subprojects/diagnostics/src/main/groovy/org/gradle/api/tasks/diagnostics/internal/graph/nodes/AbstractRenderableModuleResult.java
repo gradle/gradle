@@ -17,20 +17,23 @@
 package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.result.ResolvedModuleVersionResult;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.result.ResolvedComponentResult;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 
 import java.util.Set;
 
 public abstract class AbstractRenderableModuleResult implements RenderableDependency {
 
-    protected final ResolvedModuleVersionResult module;
+    protected final ResolvedComponentResult module;
 
-    public AbstractRenderableModuleResult(ResolvedModuleVersionResult module) {
+    public AbstractRenderableModuleResult(ResolvedComponentResult module) {
         this.module = module;
     }
 
     public ModuleVersionIdentifier getId() {
-        return module.getId();
+        ModuleComponentIdentifier moduleComponentIdentifier = module.getId();
+        return DefaultModuleVersionIdentifier.newId(moduleComponentIdentifier.getGroup(), moduleComponentIdentifier.getName(), moduleComponentIdentifier.getVersion());
     }
 
     public String getName() {

@@ -16,7 +16,8 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
-import org.gradle.api.artifacts.result.ModuleVersionSelectionReason
+import org.gradle.api.artifacts.result.ComponentSelectionReason
+import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException
 import spock.lang.Specification
 
@@ -38,7 +39,7 @@ class StreamingResolutionResultBuilderTest extends Specification {
 
         then:
         with(result) {
-            root.id == newId("org", "root", "1.0")
+            root.id == DefaultModuleComponentIdentifier.newId("org", "root", "1.0")
             root.selectionReason == VersionSelectionReasons.ROOT
         }
         printGraph(result.root) == """org:root:1.0
@@ -131,7 +132,7 @@ class StreamingResolutionResultBuilderTest extends Specification {
 """
     }
 
-    private DefaultModuleVersionSelection sel(String org, String name, String ver, ModuleVersionSelectionReason reason) {
+    private DefaultModuleVersionSelection sel(String org, String name, String ver, ComponentSelectionReason reason) {
         new DefaultModuleVersionSelection(newId(org, name, ver), reason)
     }
 }

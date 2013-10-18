@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.id.ModuleId;
 import org.gradle.api.artifacts.*;
-import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
+import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
@@ -394,7 +394,7 @@ public class DependencyGraphBuilder {
             return selector.getSelected();
         }
 
-        public ModuleVersionSelectionReason getReason() {
+        public ComponentSelectionReason getReason() {
             return selector.getSelectionReason();
         }
 
@@ -598,7 +598,7 @@ public class DependencyGraphBuilder {
         final Set<ConfigurationNode> configurations = new LinkedHashSet<ConfigurationNode>();
         ModuleVersionMetaData metaData;
         ModuleState state = ModuleState.New;
-        ModuleVersionSelectionReason selectionReason = VersionSelectionReasons.REQUESTED;
+        ComponentSelectionReason selectionReason = VersionSelectionReasons.REQUESTED;
         ModuleVersionIdResolveResult idResolveResult;
         ModuleVersionResolveResult resolveResult;
         ModuleVersionResolveException failure;
@@ -676,11 +676,11 @@ public class DependencyGraphBuilder {
             return id;
         }
 
-        public ModuleVersionSelectionReason getSelectionReason() {
+        public ComponentSelectionReason getSelectionReason() {
             return selectionReason;
         }
 
-        public void setSelectionReason(ModuleVersionSelectionReason reason) {
+        public void setSelectionReason(ComponentSelectionReason reason) {
             this.selectionReason = reason;
         }
     }
@@ -891,7 +891,7 @@ public class DependencyGraphBuilder {
             return failure != null ? failure : targetModuleRevision.getFailure();
         }
 
-        public ModuleVersionSelectionReason getSelectionReason() {
+        public ComponentSelectionReason getSelectionReason() {
             return targetModuleRevision == null ? idResolveResult.getSelectionReason() : targetModuleRevision.getSelectionReason();
         }
 

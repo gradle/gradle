@@ -217,7 +217,7 @@ class DefaultResolutionResultBuilderSpec extends Specification {
         builder.resolvedConfiguration(confId(module), deps)
     }
 
-    private InternalDependencyResult dep(String requested, Exception failure = null, String selected = requested, ModuleVersionSelectionReason selectionReason = VersionSelectionReasons.REQUESTED) {
+    private InternalDependencyResult dep(String requested, Exception failure = null, String selected = requested, ComponentSelectionReason selectionReason = VersionSelectionReasons.REQUESTED) {
         def selection = new DummyModuleVersionSelection(selectedId: newId("x", selected, "1"), selectionReason: selectionReason)
         def selector = newSelector("x", requested, "1")
         failure = failure == null ? null : new ModuleVersionResolveException(selector, failure)
@@ -230,13 +230,13 @@ class DefaultResolutionResultBuilderSpec extends Specification {
 
     class DummyModuleVersionSelection implements ModuleVersionSelection {
         ModuleVersionIdentifier selectedId
-        ModuleVersionSelectionReason selectionReason
+        ComponentSelectionReason selectionReason
     }
 
     class DummyInternalDependencyResult implements InternalDependencyResult {
         ModuleVersionSelector requested
         ModuleVersionSelection selected
         ModuleVersionResolveException failure
-        ModuleVersionSelectionReason reason
+        ComponentSelectionReason reason
     }
 }

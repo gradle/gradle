@@ -17,7 +17,7 @@
 package org.gradle.api.artifacts.result;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
 
 /**
  * An edge in the dependency graph. Provides information about the origin of the dependency and the requested module version.
@@ -27,16 +27,16 @@ import org.gradle.api.artifacts.ModuleVersionSelector;
 @Incubating
 public interface DependencyResult {
     /**
-     * Returns the requested module version.
+     * Returns the requested module component.
      *
-     * @return the requested module version
+     * @return the requested module component
      */
-    ModuleVersionSelector getRequested();
+    ModuleComponentSelector getRequested();
 
     /**
      * Returns the origin of the dependency.
      *
      * @return the origin of the dependency
      */
-    ResolvedModuleVersionResult getFrom();
+    ResolvedComponentResult getFrom();
 }

@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
+import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
 
 public interface InternalDependencyResult {
@@ -31,5 +31,5 @@ public interface InternalDependencyResult {
     @Nullable
     ModuleVersionSelection getSelected();
 
-    ModuleVersionSelectionReason getReason();
+    ComponentSelectionReason getReason();
 }

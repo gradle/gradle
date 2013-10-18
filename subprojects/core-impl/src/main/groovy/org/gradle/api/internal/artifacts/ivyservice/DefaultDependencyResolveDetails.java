@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
+import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.internal.artifacts.DependencyResolveDetailsInternal;
 import org.gradle.api.internal.artifacts.dsl.ModuleVersionSelectorParsers;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
@@ -26,7 +26,7 @@ import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.new
 
 public class DefaultDependencyResolveDetails implements DependencyResolveDetailsInternal {
     private final ModuleVersionSelector requested;
-    private ModuleVersionSelectionReason selectionReason;
+    private ComponentSelectionReason selectionReason;
     private ModuleVersionSelector target;
 
     public DefaultDependencyResolveDetails(ModuleVersionSelector requested) {
@@ -42,7 +42,7 @@ public class DefaultDependencyResolveDetails implements DependencyResolveDetails
         useVersion(version, VersionSelectionReasons.SELECTED_BY_RULE);
     }
 
-    public void useVersion(String version, ModuleVersionSelectionReason selectionReason) {
+    public void useVersion(String version, ComponentSelectionReason selectionReason) {
         assert selectionReason != null;
         if (version == null) {
             throw new IllegalArgumentException("Configuring the dependency resolve details with 'null' version is not allowed.");
@@ -58,7 +58,7 @@ public class DefaultDependencyResolveDetails implements DependencyResolveDetails
         this.selectionReason = VersionSelectionReasons.SELECTED_BY_RULE;
     }
 
-    public ModuleVersionSelectionReason getSelectionReason() {
+    public ComponentSelectionReason getSelectionReason() {
         return selectionReason;
     }
 

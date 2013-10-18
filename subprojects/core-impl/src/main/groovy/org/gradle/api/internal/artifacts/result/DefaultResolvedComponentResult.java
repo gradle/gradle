@@ -16,23 +16,26 @@
 
 package org.gradle.api.internal.artifacts.result;
 
+import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.artifacts.result.DependencyResult;
-import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
+import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
-import org.gradle.api.artifacts.result.ResolvedModuleVersionResult;
+import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier;
 
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public class DefaultResolvedModuleVersionResult implements ResolvedModuleVersionResult {
+public class DefaultResolvedComponentResult implements ResolvedComponentResult {
     private final ModuleVersionIdentifier id;
     private final Set<DependencyResult> dependencies = new LinkedHashSet<DependencyResult>();
     private final Set<ResolvedDependencyResult> dependents = new LinkedHashSet<ResolvedDependencyResult>();
-    private final ModuleVersionSelectionReason selectionReason;
+    private final ComponentSelectionReason selectionReason;
 
-    public DefaultResolvedModuleVersionResult(ModuleVersionIdentifier id, ModuleVersionSelectionReason selectionReason) {
+    public DefaultResolvedComponentResult(ModuleVersionIdentifier id, ComponentSelectionReason selectionReason) {
         assert id != null;
         assert selectionReason != null;
 
@@ -40,8 +43,8 @@ public class DefaultResolvedModuleVersionResult implements ResolvedModuleVersion
         this.selectionReason = selectionReason;
     }
 
-    public ModuleVersionIdentifier getId() {
-        return id;
+    public ModuleComponentIdentifier getId() {
+        return DefaultModuleComponentIdentifier.newId(id.getGroup(), id.getName(), id.getVersion());
     }
 
     public Set<DependencyResult> getDependencies() {
@@ -52,18 +55,23 @@ public class DefaultResolvedModuleVersionResult implements ResolvedModuleVersion
         return Collections.unmodifiableSet(dependents);
     }
 
-    public DefaultResolvedModuleVersionResult addDependency(DependencyResult dependency) {
+    public DefaultResolvedComponentResult addDependency(DependencyResult dependency) {
         this.dependencies.add(dependency);
         return this;
     }
 
-    public DefaultResolvedModuleVersionResult addDependent(ResolvedDependencyResult dependent) {
+    public DefaultResolvedComponentResult addDependent(ResolvedDependencyResult dependent) {
         this.dependents.add(dependent);
         return this;
     }
 
-    public ModuleVersionSelectionReason getSelectionReason() {
+    public ComponentSelectionReason getSelectionReason() {
         return selectionReason;
+    }
+
+    @Nullable
+    public ModuleComponentIdentifier getPublishedAs() {
+        return getId();
     }
 
     @Override

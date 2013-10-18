@@ -17,14 +17,16 @@
 package org.gradle.api.internal.artifacts.result;
 
 import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.result.DependencyResult;
-import org.gradle.api.artifacts.result.ResolvedModuleVersionResult;
+import org.gradle.api.artifacts.result.ResolvedComponentResult;
+import org.gradle.api.internal.artifacts.component.DefaultModuleComponentSelector;
 
 public class AbstractDependencyResult implements DependencyResult {
     private final ModuleVersionSelector requested;
-    private final ResolvedModuleVersionResult from;
+    private final ResolvedComponentResult from;
 
-    public AbstractDependencyResult(ModuleVersionSelector requested, ResolvedModuleVersionResult from) {
+    public AbstractDependencyResult(ModuleVersionSelector requested, ResolvedComponentResult from) {
         assert requested != null;
         assert from != null;
 
@@ -32,11 +34,11 @@ public class AbstractDependencyResult implements DependencyResult {
         this.requested = requested;
     }
 
-    public ModuleVersionSelector getRequested() {
-        return requested;
+    public ModuleComponentSelector getRequested() {
+        return DefaultModuleComponentSelector.newSelector(requested.getGroup(), requested.getName(), requested.getVersion());
     }
 
-    public ResolvedModuleVersionResult getFrom() {
+    public ResolvedComponentResult getFrom() {
         return from;
     }
 }

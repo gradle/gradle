@@ -17,8 +17,10 @@
 package org.gradle.api.tasks.diagnostics.internal.dsl;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.specs.Spec;
 
 class DependencyResultSpec implements Spec<DependencyResult> {
@@ -44,7 +46,8 @@ class DependencyResultSpec implements Spec<DependencyResult> {
     }
 
     private boolean matchesSelected(ResolvedDependencyResult candidate) {
-        ModuleVersionIdentifier selected = candidate.getSelected().getId();
+        ModuleComponentIdentifier moduleComponentIdentifier = candidate.getSelected().getId();
+        ModuleVersionIdentifier selected = DefaultModuleVersionIdentifier.newId(moduleComponentIdentifier.getGroup(), moduleComponentIdentifier.getName(), moduleComponentIdentifier.getVersion());
         String selectedCandidate = selected.getGroup() + ":" + selected.getName() + ":" + selected.getVersion();
         return selectedCandidate.contains(stringNotation);
     }

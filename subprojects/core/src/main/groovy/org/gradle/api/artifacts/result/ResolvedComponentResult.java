@@ -17,23 +17,23 @@
 package org.gradle.api.artifacts.result;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 
 import java.util.Set;
 
 /**
  * A node in the resolved dependency graph.
- * Contains the identifier of the module and its dependencies.
+ * Contains the identifier of the component and its dependencies.
  */
 @Incubating
-public interface ResolvedModuleVersionResult {
+public interface ResolvedComponentResult {
 
     /**
-     * Returns the identifier of the resolved module.
+     * Returns the identifier of the resolved component.
      *
-     * @return the identifier of the resolved module
+     * @return the identifier of the resolved component
      */
-    ModuleVersionIdentifier getId();
+    ModuleComponentIdentifier getId();
 
     /**
      * Returns the dependencies of the resolved module.
@@ -56,5 +56,12 @@ public interface ResolvedModuleVersionResult {
      *
      * @return the reason for selecting the module
      */
-    ModuleVersionSelectionReason getSelectionReason();
+    ComponentSelectionReason getSelectionReason();
+
+    /**
+     * Returns the identifier of the component publication.
+     *
+     * @return the identifier of the resolved component
+     */
+    ModuleComponentIdentifier getPublishedAs();
 }

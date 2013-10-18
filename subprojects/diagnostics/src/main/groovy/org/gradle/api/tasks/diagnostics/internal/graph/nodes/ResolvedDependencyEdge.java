@@ -18,8 +18,12 @@ package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
+import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 
 import java.util.Collections;
 import java.util.Set;
@@ -36,19 +40,22 @@ public class ResolvedDependencyEdge implements DependencyEdge {
     }
 
     public ModuleVersionSelector getRequested() {
-        return dependency.getRequested();
+        ModuleComponentSelector moduleComponentSelector = dependency.getRequested();
+        return DefaultModuleVersionSelector.newSelector(moduleComponentSelector.getGroup(), moduleComponentSelector.getName(), moduleComponentSelector.getVersion());
     }
 
-    public ModuleVersionSelectionReason getReason() {
+    public ComponentSelectionReason getReason() {
         return dependency.getSelected().getSelectionReason();
     }
 
     public ModuleVersionIdentifier getActual() {
-        return dependency.getSelected().getId();
+        ModuleComponentIdentifier moduleComponentIdentifier = dependency.getSelected().getId();
+        return DefaultModuleVersionIdentifier.newId(moduleComponentIdentifier.getGroup(), moduleComponentIdentifier.getName(), moduleComponentIdentifier.getVersion());
     }
 
     public ModuleVersionIdentifier getFrom() {
-        return dependency.getFrom().getId();
+        ModuleComponentIdentifier moduleComponentIdentifier = dependency.getFrom().getId();
+        return DefaultModuleVersionIdentifier.newId(moduleComponentIdentifier.getGroup(), moduleComponentIdentifier.getName(), moduleComponentIdentifier.getVersion());
     }
 
     public Set<? extends RenderableDependency> getChildren() {

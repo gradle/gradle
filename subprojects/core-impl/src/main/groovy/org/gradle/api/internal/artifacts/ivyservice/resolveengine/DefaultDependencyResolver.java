@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 import org.apache.ivy.Ivy;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ResolveException;
-import org.gradle.api.artifacts.result.ResolvedModuleVersionResult;
+import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
@@ -96,7 +96,7 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
 
                 BinaryStores stores = storeFactory.createBinaryStores();
                 BinaryStore newModelStore = stores.next();
-                Store<ResolvedModuleVersionResult> newModelCache = storeFactory.createNewModelCache(configuration);
+                Store<ResolvedComponentResult> newModelCache = storeFactory.createNewModelCache(configuration);
                 ResolutionResultBuilder newModelBuilder = new StreamingResolutionResultBuilder(newModelStore, newModelCache);
 
                 BinaryStore oldModelStore = stores.next();

@@ -17,8 +17,10 @@ package org.gradle.api.reporting.dependencies.internal;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.specs.Spec;
 
 /**
@@ -46,7 +48,8 @@ public class StrictDependencyResultSpec implements Spec<DependencyResult> {
     }
 
     private boolean matchesSelected(ResolvedDependencyResult candidate) {
-        ModuleVersionIdentifier selected = candidate.getSelected().getId();
+        ModuleComponentIdentifier moduleComponentIdentifier = candidate.getSelected().getId();
+        ModuleVersionIdentifier selected = DefaultModuleVersionIdentifier.newId(moduleComponentIdentifier.getGroup(), moduleComponentIdentifier.getName(), moduleComponentIdentifier.getVersion());
         return selected.getGroup().equals(moduleIdentifier.getGroup())
                && selected.getName().equals(moduleIdentifier.getName());
     }

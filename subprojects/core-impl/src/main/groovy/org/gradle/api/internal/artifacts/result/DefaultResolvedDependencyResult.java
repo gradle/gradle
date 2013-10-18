@@ -16,25 +16,35 @@
 
 package org.gradle.api.internal.artifacts.result;
 
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
+import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
-import org.gradle.api.artifacts.result.ResolvedModuleVersionResult;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 
 public class DefaultResolvedDependencyResult extends AbstractDependencyResult implements ResolvedDependencyResult {
-    private final ResolvedModuleVersionResult selected;
+    private final ResolvedComponentResult selected;
 
-    public DefaultResolvedDependencyResult(ModuleVersionSelector requested, ResolvedModuleVersionResult selected, ResolvedModuleVersionResult from) {
+    public DefaultResolvedDependencyResult(ModuleVersionSelector requested, ResolvedComponentResult selected, ResolvedComponentResult from) {
         super(requested, from);
         this.selected = selected;
     }
 
-    public ResolvedModuleVersionResult getSelected() {
+    public ResolvedComponentResult getSelected() {
         return selected;
     }
 
     @Override
     public String toString() {
-        if (getRequested().matchesStrictly(getSelected().getId())) {
+        ModuleComponentSelector moduleComponentSelector = getRequested();
+        ModuleVersionSelector requestedModuleVersionSelector = DefaultModuleVersionSelector.newSelector(moduleComponentSelector.getGroup(), moduleComponentSelector.getName(), moduleComponentSelector.getVersion());
+        ModuleComponentIdentifier moduleComponentIdentifier = getSelected().getId();
+        ModuleVersionIdentifier selectedModuleVersionIdentifier = DefaultModuleVersionIdentifier.newId(moduleComponentIdentifier.getGroup(), moduleComponentIdentifier.getName(), moduleComponentIdentifier.getVersion());
+
+        if (requestedModuleVersionSelector.matchesStrictly(selectedModuleVersionIdentifier)) {
             return getRequested().toString();
         } else {
             return String.format("%s -> %s", getRequested(), getSelected().getId());

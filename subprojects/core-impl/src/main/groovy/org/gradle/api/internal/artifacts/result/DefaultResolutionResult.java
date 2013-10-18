@@ -20,8 +20,8 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolutionResult;
+import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
-import org.gradle.api.artifacts.result.ResolvedModuleVersionResult;
 import org.gradle.api.internal.Actions;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.internal.Factory;
@@ -32,14 +32,14 @@ import java.util.Set;
 
 public class DefaultResolutionResult implements ResolutionResult {
 
-    private Factory<ResolvedModuleVersionResult> rootSource;
+    private Factory<ResolvedComponentResult> rootSource;
 
-    public DefaultResolutionResult(Factory<ResolvedModuleVersionResult> rootSource) {
+    public DefaultResolutionResult(Factory<ResolvedComponentResult> rootSource) {
         assert rootSource != null;
         this.rootSource = rootSource;
     }
 
-    public ResolvedModuleVersionResult getRoot() {
+    public ResolvedComponentResult getRoot() {
         return rootSource.create();
     }
 
@@ -54,16 +54,16 @@ public class DefaultResolutionResult implements ResolutionResult {
     }
 
     public void allDependencies(Action<? super DependencyResult> action) {
-        eachElement(getRoot(), Actions.doNothing(), action, new HashSet<ResolvedModuleVersionResult>());
+        eachElement(getRoot(), Actions.doNothing(), action, new HashSet<ResolvedComponentResult>());
     }
 
     public void allDependencies(final Closure closure) {
         allDependencies(new ClosureBackedAction<DependencyResult>(closure));
     }
 
-    private void eachElement(ResolvedModuleVersionResult node,
-                             Action<? super ResolvedModuleVersionResult> moduleAction, Action<? super DependencyResult> dependencyAction,
-                             Set<ResolvedModuleVersionResult> visited) {
+    private void eachElement(ResolvedComponentResult node,
+                             Action<? super ResolvedComponentResult> moduleAction, Action<? super DependencyResult> dependencyAction,
+                             Set<ResolvedComponentResult> visited) {
         if (!visited.add(node)) {
             return;
         }
@@ -76,18 +76,18 @@ public class DefaultResolutionResult implements ResolutionResult {
         }
     }
 
-    public Set<ResolvedModuleVersionResult> getAllModuleVersions() {
-        final Set<ResolvedModuleVersionResult> out = new LinkedHashSet<ResolvedModuleVersionResult>();
+    public Set<ResolvedComponentResult> getAllComponents() {
+        final Set<ResolvedComponentResult> out = new LinkedHashSet<ResolvedComponentResult>();
         eachElement(getRoot(), Actions.doNothing(), Actions.doNothing(), out);
         return out;
     }
 
-    public void allModuleVersions(final Action<? super ResolvedModuleVersionResult> action) {
-        eachElement(getRoot(), action, Actions.doNothing(), new HashSet<ResolvedModuleVersionResult>());
+    public void allComponents(final Action<? super ResolvedComponentResult> action) {
+        eachElement(getRoot(), action, Actions.doNothing(), new HashSet<ResolvedComponentResult>());
     }
 
-    public void allModuleVersions(final Closure closure) {
-        allModuleVersions(new ClosureBackedAction<ResolvedModuleVersionResult>(closure));
+    public void allComponents(final Closure closure) {
+        allComponents(new ClosureBackedAction<ResolvedComponentResult>(closure));
     }
 
 }

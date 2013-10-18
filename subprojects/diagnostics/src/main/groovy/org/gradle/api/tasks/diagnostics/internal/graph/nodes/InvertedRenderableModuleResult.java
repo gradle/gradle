@@ -17,8 +17,8 @@
 package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
-import org.gradle.api.artifacts.result.ResolvedModuleVersionResult;
 
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -30,7 +30,7 @@ import java.util.Set;
  */
 public class InvertedRenderableModuleResult extends RenderableModuleResult {
 
-    public InvertedRenderableModuleResult(ResolvedModuleVersionResult module) {
+    public InvertedRenderableModuleResult(ResolvedComponentResult module) {
         super(module);
     }
 

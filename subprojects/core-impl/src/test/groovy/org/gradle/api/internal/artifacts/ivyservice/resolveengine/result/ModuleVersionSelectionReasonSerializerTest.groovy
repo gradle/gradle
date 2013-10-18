@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
-import org.gradle.api.artifacts.result.ModuleVersionSelectionReason
+import org.gradle.api.artifacts.result.ComponentSelectionReason
 import org.gradle.messaging.serialize.InputStreamBackedDecoder
 import org.gradle.messaging.serialize.SerializerSpec
 
@@ -36,7 +36,7 @@ class ModuleVersionSelectionReasonSerializerTest extends SerializerSpec {
 
     def "yields informative message on incorrect input"() {
         when:
-        check({} as ModuleVersionSelectionReason)
+        check({} as ComponentSelectionReason)
         then:
         thrown(IllegalArgumentException)
 
@@ -47,7 +47,7 @@ class ModuleVersionSelectionReasonSerializerTest extends SerializerSpec {
         thrown(IllegalArgumentException)
     }
 
-    void check(ModuleVersionSelectionReason reason) {
+    void check(ComponentSelectionReason reason) {
         def result = serialize(reason, serializer)
         assert result == reason
     }

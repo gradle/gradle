@@ -15,12 +15,12 @@
  */
 package org.gradle.api.tasks.diagnostics.internal.graph.nodes
 
-import org.gradle.api.artifacts.ModuleVersionSelector
+import org.gradle.api.artifacts.component.ModuleComponentSelector
+import org.gradle.api.artifacts.result.ResolvedComponentResult
 import org.gradle.api.artifacts.result.ResolvedDependencyResult
-import org.gradle.api.artifacts.result.ResolvedModuleVersionResult
 import spock.lang.Specification
 
-import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
+import static org.gradle.api.internal.artifacts.component.DefaultModuleComponentSelector.newSelector
 import static org.gradle.api.internal.artifacts.result.ResolutionResultDataBuilder.newModule
 
 class RenderableDependencyResultTest extends Specification {
@@ -40,7 +40,7 @@ class RenderableDependencyResultTest extends Specification {
         dep(requested, differentGroup).name == 'org.mockito:mockito-core:1.0 -> com.mockito:mockito:2.0'
     }
 
-    private RenderableDependencyResult dep(ModuleVersionSelector requested, ResolvedModuleVersionResult selected) {
+    private RenderableDependencyResult dep(ModuleComponentSelector requested, ResolvedComponentResult selected) {
         ResolvedDependencyResult dependencyResult = Stub() {
             getRequested() >> requested
             getSelected() >> selected
