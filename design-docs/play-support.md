@@ -17,7 +17,9 @@ The following features are currently out of scope for this spec, but certainly m
   It will be possible to declare which version of Scala to build for.
 - Using continuous mode with JVMs older than Java 7. For now, this will work only with Java 7 and later will be supported. It will be possible to build and run for Java 6.
 - Any specific IDE integration, beyond Gradle's current general purpose IDE integration for Java and Scala.
+- Any specific testing support, beyond Gradle's current support for testing Java and Scala projects.
 - Any specific support for publishing and resolving Play applications, beyond Gradle's current general purpose capabilities.
+- Any specific support for authoring plugins, beyond Gradle's current support.
 - Installing the Play tools on the build machine.
 - Bootstrapping a Play project.
 - Migrating or importing SBT settings for a Play project.
@@ -52,6 +54,7 @@ Extend the standard build lifecycle to compile the front end assets to CSS and J
     - LESSCSS -> CSS
     - Javascript > Javascript via Google Closure
     - Javascript minification, requirejs optimization
+- Include the compiled assets in the Jar
 - Include the `public/` assets in the Jar
 - Define source sets for each type of source file
 - Compilation should be incremental and remove stale outputs
@@ -68,6 +71,8 @@ developer may run `gradle run` to run the application or `gradle start` to start
 - Model Play application as service
 - Lifecycle to run in foreground, or start in background, as per `play run` and `play start`
 
+Note that this story does not address reloading the application when source files change. This is addressed by a later story.
+
 ## Developer builds Play application distribution
 
 Introduce some lifecycle tasks to allow the developer to package up the Play application. For example, the
@@ -82,17 +87,34 @@ Reuse the compiler daemon across builds to keep the Scala compiler warmed up. Th
 
 ## Keep running Play application up-to-date when source changes
 
+This story adds an equivalent of Play's continuous mode, where Gradle monitors the source files for changes and rebuilds and restarts the application when
+some change is detected. Note that 'restart' here means a logical restart.
+
 Add a general-purpose mechanism which is able to keep the output of some tasks up-to-date when source files change. For example,
 a developer may run `gradle --watch <tasks>`.
 
 - Gradle runs tasks, then watches files that are inputs to a task but not outputs of some other task. When a file changes, repeat.
 - Monitor files that are inputs to the model for changes too.
 - When the tasks start a service, stop and restart the service(s) after rebuilding, or reload if supported by the service container.
+- The Play application container must support reload. According to the Play docs the plugin can simply recreate the application
+  ClassLoader.
+- Integrate with the build-announcements plugin, so that desktop notifications can be fired when something fails when rerunning the tasks.
+
+So:
+
+- `gradle --watch run` would build and run the Play application. When a change to the source files are detected, Gradle would rebuild and
+  restart the application.
+- `gradle --watch test run` would build and run the tests and then the Play application. When a change to the source files is detected,
+  Gradle would rerun the tests, rebuild and restart the Play application.
+- `gradle --watch test` would build and run the tests. When a source file changes, Gradle would rerun the tests.
+
+Note that for this story, the implementation will assume that any source file affects the output of every task listed on the command-line.
+For example, running `gradle --watch test run` would restart the application if a test source file changes.
 
 ## Developer triggers rebuild of running Play application
 
-Add support for non-continuous mode, where the developer triggers a rebuild of a Play application by reloading the application in the
-browser.
+This story adds an equivalent of Play's non-continuous mode, where Gradle restarts the application when triggered by the developer reloading
+the application in the browser and some source files have changed. Note that 'restart' here means a logical restart.
 
 - Gradle starts the Play server configured with the appropriate hooks to be informed when a request is in progress.
 - On each request, check asynchronously whether the application is up-to-date, if a check or rebuild is not already in progress.

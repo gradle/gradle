@@ -16,10 +16,15 @@
 package org.gradle.api.tasks.diagnostics
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.TestResources
+import org.junit.Rule
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 class HelpTaskIntegrationTest extends AbstractIntegrationSpec {
+
+    @Rule
+    public final TestResources resources = new TestResources(temporaryFolder)
 
     def "can print help for implicit tasks"() {
         when:
@@ -228,23 +233,30 @@ Problem configuring task :help from command line. Unknown command-line option '-
 Run gradle help --task help to get task usage details. Run with --info or --debug option to get more log output."""))
     }
 
-    def "prints available options when using boolean properties"() {
+    def "listsEnumAndBooleanCmdOptionValues"() {
         when:
-        succeeds "help", "--task", "tasks"
+        run "help", "--task", "hello"
         then:
-        output.contains(toPlatformLineSeparators("""Detailed task information for tasks
+        output.contains(toPlatformLineSeparators("""Detailed task information for hello
 
 Path
-     :tasks
+     :hello
 
 Type
-     TaskReportTask (org.gradle.api.tasks.diagnostics.TaskReportTask)
+     CustomTask (CustomTask)
 
 Options
-     --all     Show additional tasks and detail.
-               Takes a boolean value (true|false) as parameter. As a default (ommitting a parameter) true will be used.
+     --booleanValue     Configures a boolean flag in CustomTask.
+                        Takes a boolean value (true|false) as parameter. As a default (ommitting a parameter) true will be used.
+
+     --enumValue     Configures an enum value in CustomTask.
+                     Takes an enum value of type (TestEnum).
+                     Available values are:
+                          ABC
+                          DEF
+                          GHIJKL
 
 Description
-     Displays the tasks runnable from root project '${testDirectory.getName()}'."""))
+     -"""))
     }
 }
