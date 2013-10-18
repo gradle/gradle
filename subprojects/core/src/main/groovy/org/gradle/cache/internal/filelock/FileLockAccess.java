@@ -52,10 +52,6 @@ public class FileLockAccess {
         lockFileAccess.close();
     }
 
-    public FileLock tryLock(long start, long size, boolean shared) throws IOException {
-        return lockFileAccess.getChannel().tryLock(start, size, shared);
-    }
-
     public void assertStateInfoIntegral() throws IOException {
         if (lockFileAccess.length() > 0) {
             lockFileAccess.seek(STATE_REGION_POS);
@@ -65,7 +61,7 @@ public class FileLockAccess {
         }
     }
 
-    public void writeStateInfo() throws IOException {
+    public void initStateInfo() throws IOException {
         if (lockFileAccess.length() < STATE_REGION_SIZE) {
             // File did not exist before locking
             lockFileAccess.seek(STATE_REGION_POS);
@@ -110,7 +106,7 @@ public class FileLockAccess {
         return out;
     }
 
-    public int getPreviousOwnerId() {
+    private int readPreviousOwnerId() {
         try {
             lockFileAccess.seek(STATE_REGION_POS + 1);
             return lockFileAccess.readInt();
@@ -141,10 +137,14 @@ public class FileLockAccess {
     }
 
     public FileLock tryLockOwnerInfo(boolean shared) throws IOException {
-        return tryLock(INFORMATION_REGION_POS, INFORMATION_REGION_SIZE - INFORMATION_REGION_POS, shared);
+        return lockFileAccess.getChannel().tryLock((long) INFORMATION_REGION_POS, (long) (INFORMATION_REGION_SIZE - INFORMATION_REGION_POS), shared);
     }
 
     public FileLock tryLockStateInfo(boolean shared) throws IOException {
-        return tryLock(STATE_REGION_POS, STATE_REGION_SIZE, shared);
+        return lockFileAccess.getChannel().tryLock((long) STATE_REGION_POS, (long) STATE_REGION_SIZE, shared);
+    }
+
+    public StateInfo readStateInfo() {
+        return new StateInfo(readPreviousOwnerId());
     }
 }

@@ -19,6 +19,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.internal.filelock.FileLockAccess;
 import org.gradle.cache.internal.filelock.OwnerInfo;
+import org.gradle.cache.internal.filelock.StateInfo;
 import org.gradle.cache.internal.locklistener.FileLockContentionHandler;
 import org.gradle.internal.CompositeStoppable;
 import org.gradle.internal.Factory;
@@ -103,7 +104,6 @@ public class DefaultFileLockManager implements FileLockManager {
         private final String operationDisplayName;
         private final boolean hasNewOwner;
         private java.nio.channels.FileLock lock;
-//        private RandomAccessFile lockFileAccess;
         private FileLockAccess fileLockAccess;
         private boolean integrityViolated;
         private int port;
@@ -131,9 +131,9 @@ public class DefaultFileLockManager implements FileLockManager {
             fileLockAccess = new FileLockAccess(lockFile, displayName);
             try {
                 lock = lock(mode);
-                int previousOwnerId = getPreviousOwnerId();
-                hasNewOwner = previousOwnerId != ownerId;
-                integrityViolated = previousOwnerId == FileLockAccess.UNKNOWN_PREVIOUS_OWNER;
+                StateInfo stateInfo = fileLockAccess.readStateInfo();
+                hasNewOwner = stateInfo.getPreviousOwnerId() != ownerId;
+                integrityViolated = stateInfo.isDirty();
             } catch (Throwable t) {
                 // Also releases any locks
                 fileLockAccess.close();
@@ -147,13 +147,9 @@ public class DefaultFileLockManager implements FileLockManager {
             return file.equals(lockFile);
         }
 
-        private int getPreviousOwnerId() {
-            assertOpen();
-            return fileLockAccess.getPreviousOwnerId();
-        }
-
         public boolean getUnlockedCleanly() {
-            return getPreviousOwnerId() != FileLockAccess.UNKNOWN_PREVIOUS_OWNER;
+            assertOpen();
+            return !fileLockAccess.readStateInfo().isDirty();
         }
 
         public boolean getHasNewOwner() {
@@ -283,7 +279,7 @@ public class DefaultFileLockManager implements FileLockManager {
                 if (!stateRegionLock.isShared()) {
                     // We have an exclusive lock (whether we asked for it or not).
                     // Update the state region
-                    fileLockAccess.writeStateInfo();
+                    fileLockAccess.initStateInfo();
                     // Acquire an exclusive lock on the information region and write our details there
                     java.nio.channels.FileLock informationRegionLock = lockInformationRegion(LockMode.Exclusive, System.currentTimeMillis() + shortTimeoutMs);
                     if (informationRegionLock == null) {
