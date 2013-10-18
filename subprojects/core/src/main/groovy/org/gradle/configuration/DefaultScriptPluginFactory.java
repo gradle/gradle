@@ -16,33 +16,19 @@
 
 package org.gradle.configuration;
 
-import org.gradle.api.Action;
-import org.gradle.api.Plugin;
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
-import org.gradle.api.internal.plugins.PluginRegistry;
-import org.gradle.api.plugins.PluginAware;
 import org.gradle.groovy.scripts.*;
 import org.gradle.groovy.scripts.internal.BuildScriptTransformer;
 import org.gradle.groovy.scripts.internal.IsScriptBlockWithNameSpec;
 import org.gradle.groovy.scripts.internal.StatementExtractingScriptTransformer;
 import org.gradle.internal.Factory;
-import org.gradle.internal.UncheckedException;
-import org.gradle.internal.classpath.ClassPath;
-import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.plugin.PluginHandler;
-import org.gradle.plugin.internal.DefaultPluginHandler;
-import org.gradle.plugin.internal.NonPluggableTargetPluginHandler;
-import org.gradle.plugin.resolve.PluginResolution;
-import org.gradle.plugin.resolve.internal.PluginRegistryPluginResolver;
-
-import java.io.File;
-import java.net.URLClassLoader;
-import java.util.Set;
+import org.gradle.plugin.internal.PluginHandlerFactory;
 
 public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private final ScriptCompilerFactory scriptCompilerFactory;
@@ -51,21 +37,23 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private final ClassLoader defaultClassLoader;
     private final Factory<LoggingManagerInternal> loggingManagerFactory;
     private final Instantiator instantiator;
-    private final PluginRegistry pluginRegistry;
+    private final PluginHandlerFactory pluginHandlerFactory;
 
     public DefaultScriptPluginFactory(ScriptCompilerFactory scriptCompilerFactory,
                                       ImportsReader importsReader,
                                       ScriptHandlerFactory scriptHandlerFactory,
                                       ClassLoader defaultClassLoader,
                                       Factory<LoggingManagerInternal> loggingManagerFactory,
-                                      Instantiator instantiator, PluginRegistry pluginRegistry) {
+                                      Instantiator instantiator,
+                                      PluginHandlerFactory pluginHandlerFactory
+    ) {
         this.scriptCompilerFactory = scriptCompilerFactory;
         this.importsReader = importsReader;
         this.scriptHandlerFactory = scriptHandlerFactory;
         this.defaultClassLoader = defaultClassLoader;
         this.loggingManagerFactory = loggingManagerFactory;
         this.instantiator = instantiator;
-        this.pluginRegistry = pluginRegistry;
+        this.pluginHandlerFactory = pluginHandlerFactory;
     }
 
     public ScriptPlugin create(ScriptSource scriptSource) {
@@ -112,7 +100,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             services.add(ScriptPluginFactory.class, DefaultScriptPluginFactory.this);
             services.add(LoggingManagerInternal.class, loggingManagerFactory.create());
             services.add(Instantiator.class, instantiator);
-            services.add(PluginHandler.class, createPluginHandler(target));
+            services.add(PluginHandler.class, pluginHandlerFactory.createPluginHandler(target));
 
             ScriptAware scriptAware = null;
             if (target instanceof ScriptAware) {
@@ -155,27 +143,5 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             runner.run();
         }
 
-        private PluginHandler createPluginHandler(final Object target) {
-            if (target instanceof PluginAware) {
-                PluginHandler pluginHandler = new DefaultPluginHandler((PluginAware) target, instantiator, new Action<PluginResolution>() {
-                    public void execute(PluginResolution pluginResolution) {
-                        Set<File> classpathFiles = pluginResolution.resolveClasspath();
-                        ClassPath classPath = new DefaultClassPath(classpathFiles);
-                        ClassLoader classLoader = new URLClassLoader(classPath.getAsURLArray(), this.getClass().getClassLoader());
-                        Class<?> aClass;
-                        try {
-                            aClass = classLoader.loadClass(pluginResolution.getClassName());
-                        } catch (ClassNotFoundException e) {
-                            throw UncheckedException.throwAsUncheckedException(e);
-                        }
-                        ((PluginAware) target).getPlugins().apply((Class<? extends Plugin>) aClass);
-                    }
-                });
-                pluginHandler.getResolvers().add(new PluginRegistryPluginResolver(pluginRegistry));
-                return pluginHandler;
-            } else {
-                return new NonPluggableTargetPluginHandler(target);
-            }
-        }
     }
 }
