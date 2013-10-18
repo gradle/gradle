@@ -279,7 +279,7 @@ public class DefaultFileLockManager implements FileLockManager {
                 if (!stateRegionLock.isShared()) {
                     // We have an exclusive lock (whether we asked for it or not).
                     // Update the state region
-                    fileLockAccess.initStateInfo();
+                    fileLockAccess.ensureStateInfo();
                     // Acquire an exclusive lock on the information region and write our details there
                     java.nio.channels.FileLock informationRegionLock = lockInformationRegion(LockMode.Exclusive, System.currentTimeMillis() + shortTimeoutMs);
                     if (informationRegionLock == null) {

@@ -61,15 +61,6 @@ public class FileLockAccess {
         }
     }
 
-    public void initStateInfo() throws IOException {
-        if (lockFileAccess.length() < STATE_REGION_SIZE) {
-            // File did not exist before locking
-            lockFileAccess.seek(STATE_REGION_POS);
-            lockFileAccess.writeByte(STATE_REGION_PROTOCOL);
-            lockFileAccess.writeInt(UNKNOWN_PREVIOUS_OWNER);
-        }
-    }
-
     public void writeOwnerInfo(int port, long lockId, String pid, String operation) throws IOException {
         lockFileAccess.seek(INFORMATION_REGION_POS);
         lockFileAccess.writeByte(INFORMATION_REGION_PROTOCOL);
@@ -115,6 +106,13 @@ public class FileLockAccess {
             return UNKNOWN_PREVIOUS_OWNER;
         } catch (Exception e) {
             throw throwAsUncheckedException(e);
+        }
+    }
+
+    public void ensureStateInfo() throws IOException {
+        if (lockFileAccess.length() < STATE_REGION_SIZE) {
+            // File did not exist before locking
+            markClean(UNKNOWN_PREVIOUS_OWNER);
         }
     }
 
