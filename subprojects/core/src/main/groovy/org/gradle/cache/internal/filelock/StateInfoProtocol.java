@@ -39,5 +39,5 @@ public interface StateInfoProtocol {
     /**
      * reads the state data
      */
-    StateInfo readState(RandomAccessFile lockFileAccess);
+    StateInfo readState(RandomAccessFile lockFileAccess) throws IOException;
 }

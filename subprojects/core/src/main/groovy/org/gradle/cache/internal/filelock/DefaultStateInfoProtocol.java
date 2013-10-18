@@ -19,8 +19,6 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
-import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
-
 public class DefaultStateInfoProtocol implements StateInfoProtocol {
 
     public int getSize() {
@@ -35,15 +33,13 @@ public class DefaultStateInfoProtocol implements StateInfoProtocol {
         lockFileAccess.writeInt(stateInfo.getPreviousOwnerId());
     }
 
-    public StateInfo readState(RandomAccessFile lockFileAccess) {
+    public StateInfo readState(RandomAccessFile lockFileAccess) throws IOException {
         int id;
         try {
             id = lockFileAccess.readInt();
         } catch (EOFException e) {
             // Process has crashed writing to lock file
             id = StateInfo.UNKNOWN_PREVIOUS_OWNER;
-        } catch (Exception e) {
-            throw throwAsUncheckedException(e);
         }
         return new StateInfo(id, id == StateInfo.UNKNOWN_PREVIOUS_OWNER);
     }
