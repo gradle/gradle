@@ -15,7 +15,6 @@
  */
 package org.gradle.cache.internal.filelock;
 
-import java.io.EOFException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
@@ -34,13 +33,7 @@ public class DefaultStateInfoProtocol implements StateInfoProtocol {
     }
 
     public StateInfo readState(RandomAccessFile lockFileAccess) throws IOException {
-        int id;
-        try {
-            id = lockFileAccess.readInt();
-        } catch (EOFException e) {
-            // Process has crashed writing to lock file
-            id = StateInfo.UNKNOWN_PREVIOUS_OWNER;
-        }
+        int id = lockFileAccess.readInt();
         return new StateInfo(id, id == StateInfo.UNKNOWN_PREVIOUS_OWNER);
     }
 }

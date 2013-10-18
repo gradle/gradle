@@ -15,6 +15,7 @@
  */
 package org.gradle.cache.internal.filelock;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileLock;
@@ -59,7 +60,11 @@ public class StateInfoAccess {
 
     public StateInfo readStateInfo(RandomAccessFile lockFileAccess) throws IOException {
         lockFileAccess.seek(1); //skip the protocol byte
-        return protocol.readState(lockFileAccess);
+        try {
+            return protocol.readState(lockFileAccess);
+        } catch (EOFException e) {
+            return new StateInfo(StateInfo.UNKNOWN_PREVIOUS_OWNER, true);
+        }
     }
 
     public FileLock tryLock(RandomAccessFile lockFileAccess, boolean shared) throws IOException {

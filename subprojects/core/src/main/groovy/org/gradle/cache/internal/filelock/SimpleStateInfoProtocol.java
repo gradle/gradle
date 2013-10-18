@@ -28,10 +28,10 @@ public class SimpleStateInfoProtocol implements StateInfoProtocol {
     }
 
     public void writeState(RandomAccessFile lockFileAccess, StateInfo stateInfo) throws IOException {
-        lockFileAccess.writeBoolean(stateInfo.isDirty());
+        lockFileAccess.writeBoolean(!stateInfo.isDirty());
     }
 
     public StateInfo readState(RandomAccessFile lockFileAccess) throws IOException {
-        return new StateInfo(StateInfo.UNKNOWN_PREVIOUS_OWNER, lockFileAccess.readBoolean());
+        return new StateInfo(StateInfo.UNKNOWN_PREVIOUS_OWNER, !lockFileAccess.readBoolean());
     }
 }
