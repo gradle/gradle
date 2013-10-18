@@ -18,6 +18,7 @@ package org.gradle.cache.internal
 
 import org.apache.commons.lang.RandomStringUtils
 import org.gradle.cache.internal.FileLockManager.LockMode
+import org.gradle.cache.internal.filelock.FileLockAccess
 import org.gradle.cache.internal.locklistener.NoOpFileLockContentionHandler
 import org.gradle.internal.Factory
 import org.gradle.internal.id.IdGenerator
@@ -405,7 +406,7 @@ class DefaultFileLockManagerTest extends Specification {
         customManager.lock(testFile, Exclusive, "targetDisplayName", operationalDisplayName)
 
         then:
-        isVersion2LockFile(testFileLock, processIdentifier.substring(0, DefaultFileLockManager.INFORMATION_REGION_DESCR_CHUNK_LIMIT), operationalDisplayName.substring(0, DefaultFileLockManager.INFORMATION_REGION_DESCR_CHUNK_LIMIT))
+        isVersion2LockFile(testFileLock, processIdentifier.substring(0, FileLockAccess.INFORMATION_REGION_DESCR_CHUNK_LIMIT), operationalDisplayName.substring(0, FileLockAccess.INFORMATION_REGION_DESCR_CHUNK_LIMIT))
     }
 
     def "require exclusive lock for writing"() {

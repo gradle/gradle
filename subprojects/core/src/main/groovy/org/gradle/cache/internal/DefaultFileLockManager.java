@@ -17,6 +17,8 @@ package org.gradle.cache.internal;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.cache.internal.filelock.FileLockAccess;
+import org.gradle.cache.internal.filelock.OwnerInfo;
 import org.gradle.cache.internal.locklistener.FileLockContentionHandler;
 import org.gradle.internal.CompositeStoppable;
 import org.gradle.internal.Factory;
@@ -26,10 +28,8 @@ import org.gradle.internal.id.NoZeroIntegerIdGenerator;
 import org.gradle.internal.id.RandomLongIdGenerator;
 import org.gradle.util.GFileUtils;
 
-import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
@@ -45,17 +45,7 @@ import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
  */
 public class DefaultFileLockManager implements FileLockManager {
     private static final Logger LOGGER = Logging.getLogger(DefaultFileLockManager.class);
-    private static final int DEFAULT_LOCK_TIMEOUT = 60000;
-    private static final byte STATE_REGION_PROTOCOL = 2; //should be incremented when state region format changes in an incompatible way
-    private static final int STATE_REGION_SIZE = 5;
-    private static final int STATE_REGION_POS = 0;
-    private static final byte INFORMATION_REGION_PROTOCOL = 3; //should be incremented when information region format changes in an incompatible way
-    private static final int INFORMATION_REGION_POS = STATE_REGION_POS + STATE_REGION_SIZE;
-    public static final int INFORMATION_REGION_SIZE = 2052;
-    public static final int INFORMATION_REGION_DESCR_CHUNK_LIMIT = 340;
-    private static final int UNKNOWN_PREVIOUS_OWNER = 0;
-
-    public static final short PROTOCOL_VERSION = STATE_REGION_PROTOCOL + INFORMATION_REGION_PROTOCOL;
+    public static final int DEFAULT_LOCK_TIMEOUT = 60000;
 
     private final Set<File> lockedFiles = new CopyOnWriteArraySet<File>();
     private final ProcessMetaDataProvider metaDataProvider;
@@ -105,13 +95,6 @@ public class DefaultFileLockManager implements FileLockManager {
         fileLockContentionHandler.start(fileLock.getLockId(), whenContended);
     }
 
-    private class OwnerInfo {
-        int port;
-        long lockId;
-        String pid;
-        String operation;
-    }
-
     private class DefaultFileLock extends AbstractFileAccess implements FileLock {
         private final File lockFile;
         private final File target;
@@ -120,7 +103,8 @@ public class DefaultFileLockManager implements FileLockManager {
         private final String operationDisplayName;
         private final boolean hasNewOwner;
         private java.nio.channels.FileLock lock;
-        private RandomAccessFile lockFileAccess;
+//        private RandomAccessFile lockFileAccess;
+        private FileLockAccess fileLockAccess;
         private boolean integrityViolated;
         private int port;
         private final long lockId;
@@ -144,15 +128,15 @@ public class DefaultFileLockManager implements FileLockManager {
 
             GFileUtils.mkdirs(lockFile.getParentFile());
             lockFile.createNewFile();
-            lockFileAccess = new RandomAccessFile(lockFile, "rw");
+            fileLockAccess = new FileLockAccess(lockFile, displayName);
             try {
                 lock = lock(mode);
                 int previousOwnerId = getPreviousOwnerId();
                 hasNewOwner = previousOwnerId != ownerId;
-                integrityViolated = previousOwnerId == UNKNOWN_PREVIOUS_OWNER;
+                integrityViolated = previousOwnerId == FileLockAccess.UNKNOWN_PREVIOUS_OWNER;
             } catch (Throwable t) {
                 // Also releases any locks
-                lockFileAccess.close();
+                fileLockAccess.close();
                 throw t;
             }
 
@@ -165,19 +149,11 @@ public class DefaultFileLockManager implements FileLockManager {
 
         private int getPreviousOwnerId() {
             assertOpen();
-            try {
-                lockFileAccess.seek(STATE_REGION_POS + 1);
-                return lockFileAccess.readInt();
-            } catch (EOFException e) {
-                // Process has crashed writing to lock file
-                return UNKNOWN_PREVIOUS_OWNER;
-            } catch (Exception e) {
-                throw throwAsUncheckedException(e);
-            }
+            return fileLockAccess.getPreviousOwnerId();
         }
 
         public boolean getUnlockedCleanly() {
-            return getPreviousOwnerId() != UNKNOWN_PREVIOUS_OWNER;
+            return getPreviousOwnerId() != FileLockAccess.UNKNOWN_PREVIOUS_OWNER;
         }
 
         public boolean getHasNewOwner() {
@@ -206,9 +182,9 @@ public class DefaultFileLockManager implements FileLockManager {
 
             try {
                 integrityViolated = true;
-                markDirty();
+                fileLockAccess.markDirty();
                 action.run();
-                markClean();
+                fileLockAccess.markClean(ownerId);
                 integrityViolated = false;
             } catch (Throwable t) {
                 throw throwAsUncheckedException(t);
@@ -228,20 +204,6 @@ public class DefaultFileLockManager implements FileLockManager {
             }
         }
 
-        private void markClean() throws IOException {
-            lockFileAccess.seek(STATE_REGION_POS);
-            lockFileAccess.writeByte(STATE_REGION_PROTOCOL);
-            lockFileAccess.writeInt(ownerId);
-            assert lockFileAccess.getFilePointer() == STATE_REGION_SIZE + STATE_REGION_POS;
-        }
-
-        private void markDirty() throws IOException {
-            lockFileAccess.seek(STATE_REGION_POS);
-            lockFileAccess.writeByte(STATE_REGION_PROTOCOL);
-            lockFileAccess.writeInt(UNKNOWN_PREVIOUS_OWNER);
-            assert lockFileAccess.getFilePointer() == STATE_REGION_SIZE + STATE_REGION_POS;
-        }
-
         public void close() {
             CompositeStoppable stoppable = new CompositeStoppable();
             stoppable.add(new Stoppable() {
@@ -255,7 +217,7 @@ public class DefaultFileLockManager implements FileLockManager {
             });
             stoppable.add(new Stoppable() {
                 public void stop() {
-                    if (lockFileAccess == null) {
+                    if (fileLockAccess == null) {
                         return;
                     }
                     try {
@@ -271,14 +233,14 @@ public class DefaultFileLockManager implements FileLockManager {
                                 }
                                 if (info != null) {
                                     try {
-                                        lockFileAccess.setLength(INFORMATION_REGION_POS);
+                                        fileLockAccess.clearOwnerInfo();
                                     } finally {
                                         info.release();
                                     }
                                 }
                             }
                         } finally {
-                            lockFileAccess.close();
+                            fileLockAccess.close();
                         }
                     } catch (Exception e) {
                         throw new RuntimeException("Failed to release lock on " + displayName, e);
@@ -288,7 +250,7 @@ public class DefaultFileLockManager implements FileLockManager {
             stoppable.add(new Stoppable() {
                 public void stop() {
                     lock = null;
-                    lockFileAccess = null;
+                    fileLockAccess = null;
                     lockedFiles.remove(target);
                 }
             });
@@ -316,22 +278,12 @@ public class DefaultFileLockManager implements FileLockManager {
             }
 
             try {
-                if (lockFileAccess.length() > 0) {
-                    lockFileAccess.seek(STATE_REGION_POS);
-                    if (lockFileAccess.readByte() != STATE_REGION_PROTOCOL) {
-                        throw new IllegalStateException(String.format("Unexpected lock protocol found in lock file '%s' for %s.", lockFile, displayName));
-                    }
-                }
+                fileLockAccess.assertStateInfoIntegral();
 
                 if (!stateRegionLock.isShared()) {
                     // We have an exclusive lock (whether we asked for it or not).
                     // Update the state region
-                    if (lockFileAccess.length() < STATE_REGION_SIZE) {
-                        // File did not exist before locking
-                        lockFileAccess.seek(STATE_REGION_POS);
-                        lockFileAccess.writeByte(STATE_REGION_PROTOCOL);
-                        lockFileAccess.writeInt(UNKNOWN_PREVIOUS_OWNER);
-                    }
+                    fileLockAccess.writeStateInfo();
                     // Acquire an exclusive lock on the information region and write our details there
                     java.nio.channels.FileLock informationRegionLock = lockInformationRegion(LockMode.Exclusive, System.currentTimeMillis() + shortTimeoutMs);
                     if (informationRegionLock == null) {
@@ -339,13 +291,7 @@ public class DefaultFileLockManager implements FileLockManager {
                     }
                     // check that the length of the reserved region is enough for storing our content
                     try {
-                        lockFileAccess.seek(INFORMATION_REGION_POS);
-                        lockFileAccess.writeByte(INFORMATION_REGION_PROTOCOL);
-                        lockFileAccess.writeInt(port);
-                        lockFileAccess.writeLong(lockId);
-                        lockFileAccess.writeUTF(trimIfNecessary(metaDataProvider.getProcessIdentifier()));
-                        lockFileAccess.writeUTF(trimIfNecessary(operationDisplayName));
-                        lockFileAccess.setLength(lockFileAccess.getFilePointer());
+                        fileLockAccess.writeOwnerInfo(port, lockId, metaDataProvider.getProcessIdentifier(), operationDisplayName);
                     } finally {
                         informationRegionLock.release();
                     }
@@ -362,27 +308,12 @@ public class DefaultFileLockManager implements FileLockManager {
         private OwnerInfo readInformationRegion(long waitUntil) throws IOException, InterruptedException {
             // Can't acquire lock, get details of owner to include in the error message
             OwnerInfo out = new OwnerInfo();
-            out.pid = "unknown";
-            out.operation = "unknown";
-            out.port = -1;
             java.nio.channels.FileLock informationRegionLock = lockInformationRegion(LockMode.Shared, waitUntil);
             if (informationRegionLock == null) {
                 LOGGER.debug("Could not lock information region for {}. Ignoring.", displayName);
             } else {
                 try {
-                    if (lockFileAccess.length() <= INFORMATION_REGION_POS) {
-                        LOGGER.debug("Lock file for {} is too short to contain information region. Ignoring.", displayName);
-                    } else {
-                        lockFileAccess.seek(INFORMATION_REGION_POS);
-                        if (lockFileAccess.readByte() != INFORMATION_REGION_PROTOCOL) {
-                            throw new IllegalStateException(String.format("Unexpected lock protocol found in lock file '%s' for %s.", lockFile, displayName));
-                        }
-                        out.port = lockFileAccess.readInt();
-                        out.lockId = lockFileAccess.readLong();
-                        out.pid = lockFileAccess.readUTF();
-                        out.operation = lockFileAccess.readUTF();
-                        LOGGER.debug("Read following information from the file lock info region. Port: {}, owner: {}, operation: {}", out.port, out.pid, out.operation);
-                    }
+                    out = fileLockAccess.readOwnerInfo();
                 } finally {
                     informationRegionLock.release();
                 }
@@ -390,17 +321,9 @@ public class DefaultFileLockManager implements FileLockManager {
             return out;
         }
 
-        private String trimIfNecessary(String inputString) {
-            if(inputString.length() > INFORMATION_REGION_DESCR_CHUNK_LIMIT){
-                return inputString.substring(0, INFORMATION_REGION_DESCR_CHUNK_LIMIT);
-            } else {
-                return inputString;
-            }
-        }
-
         private java.nio.channels.FileLock lockStateRegion(LockMode lockMode, final long waitUntil) throws IOException, InterruptedException {
             do {
-                java.nio.channels.FileLock fileLock = lockRegion(lockMode, STATE_REGION_POS, STATE_REGION_SIZE);
+                java.nio.channels.FileLock fileLock = fileLockAccess.tryLockStateInfo(lockMode == LockMode.Shared);
                 if (fileLock != null) {
                     return fileLock;
                 }
@@ -422,7 +345,7 @@ public class DefaultFileLockManager implements FileLockManager {
 
         private java.nio.channels.FileLock lockInformationRegion(LockMode lockMode, long waitUntil) throws IOException, InterruptedException {
             do {
-                java.nio.channels.FileLock fileLock = lockRegion(lockMode, INFORMATION_REGION_POS, INFORMATION_REGION_SIZE - INFORMATION_REGION_POS);
+                java.nio.channels.FileLock fileLock = fileLockAccess.tryLockOwnerInfo(lockMode == LockMode.Shared);
                 if (fileLock != null) {
                     return fileLock;
                 }
@@ -430,10 +353,6 @@ public class DefaultFileLockManager implements FileLockManager {
             }
             while (System.currentTimeMillis() < waitUntil);
             return null;
-        }
-
-        private java.nio.channels.FileLock lockRegion(LockMode lockMode, long start, long size) throws IOException, InterruptedException {
-            return lockFileAccess.getChannel().tryLock(start, size, lockMode == LockMode.Shared);
         }
     }
 }
