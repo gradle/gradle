@@ -559,7 +559,7 @@ parentFirst
     }
 
     @Issue("GRADLE-2752")
-    void "does not replace root module when earlier version of root module is requested"() {
+    void "selects root module when earlier version of module requested"() {
         mavenRepo.module("org", "test", "1.2").publish()
         mavenRepo.module("org", "other", "1.7").dependsOn("org", "test", "1.2").publish()
 
@@ -602,11 +602,11 @@ task checkDeps(dependsOn: configurations.compile) << {
     }
 
     @Issue("GRADLE-2920")
-    void "does not replace root module when later version of root module is requested"() {
+    void "selects later version of root module when requested"() {
         mavenRepo.module("org", "test", "2.1").publish()
         mavenRepo.module("org", "other", "1.7").dependsOn("org", "test", "2.1").publish()
 
-        settingsFile << "rootProject.name= 'test'"
+        settingsFile << "rootProject.name = 'test'"
 
         buildFile << """
 apply plugin: 'java'
@@ -631,8 +631,8 @@ dependencies {
 
         resolve.expectGraph {
             root "org:test:1.3"
-            "org:test:1.3" > "org:other:1.7"
-            "org.other:1.7" > "org:test:2.1"
+            node("org:test:1.3") dependsOn node("org:other:1.7")
+            node("org:other:1.7") dependsOn node("org:test:2.1")
         }
     }
 
