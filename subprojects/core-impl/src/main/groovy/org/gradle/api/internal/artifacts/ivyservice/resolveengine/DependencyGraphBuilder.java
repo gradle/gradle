@@ -116,7 +116,7 @@ public class DependencyGraphBuilder {
                             ModuleVersionResolveState previouslySelected = module.clearSelection();
                             if (previouslySelected != null) {
                                 for (ConfigurationNode configuration : previouslySelected.configurations) {
-                                    configuration.removeOutgoingEdges();
+                                    configuration.deselect();
                                 }
                             }
                         }
@@ -849,11 +849,15 @@ public class DependencyGraphBuilder {
 
         public void validate() {
             for (DependencyEdge incomingEdge : incomingEdges) {
-                ModuleState state = incomingEdge.from.moduleRevision.state;
-                if (state != ModuleState.Selected) {
-                    throw new IllegalStateException(String.format("Unexpected state %s for parent node for dependency from %s to %s.", state, incomingEdge.from, this));
+                ConfigurationNode fromNode = incomingEdge.from;
+                if (!fromNode.isSelected()) {
+                    throw new IllegalStateException(String.format("Unexpected state %s for parent node for dependency from %s to %s.", fromNode.moduleRevision.state, fromNode, this));
                 }
             }
+        }
+
+        public void deselect() {
+            removeOutgoingEdges();
         }
     }
 
@@ -865,6 +869,10 @@ public class DependencyGraphBuilder {
         @Override
         public boolean isSelected() {
             return true;
+        }
+
+        @Override
+        public void deselect() {
         }
     }
 
