@@ -252,27 +252,17 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
 
     def "relinks binary when set of input libraries changes"() {
         given:
-        run "installMainExecutable"
+        run "mainExecutable", "helloStaticLibrary"
 
         def executable = executable("build/binaries/mainExecutable/main")
         def snapshot = executable.snapshot()
 
         when:
-        buildFile << """
-            executables {
-                main {
-                    binaries.all {
-                        lib libraries.hello.static
-                    }
-                }
-            }
-"""
+        buildFile.text = buildFile.text.replaceFirst("lib libraries.hello", "lib libraries.hello.static")
         run "mainExecutable"
 
         then:
-        skipped libraryCompileTask
-        skipped ":linkHelloSharedLibrary"
-        skipped ":helloSharedLibrary"
+        skipped ":helloStaticLibrary"
         skipped mainCompileTask
         executedAndNotSkipped ":linkMainExecutable"
         executedAndNotSkipped ":mainExecutable"
