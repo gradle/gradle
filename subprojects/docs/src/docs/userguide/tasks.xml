@@ -32,7 +32,7 @@
             <sourcefile file="build.gradle"/>
         </sample>
         <para>You can also use strings for the task names:</para>
-        <sample id="defineUsingStringTaskNames" dir="userguide/tasks/defineUsingStringTaskNames" title="Defining tasks - using strings">
+        <sample id="defineUsingStringTaskNames" dir="userguide/tasks/defineUsingStringTaskNames" title="Defining tasks - using strings for task names">
             <sourcefile file="build.gradle"/>
         </sample>
         <para>There is an alternative syntax for defining tasks, which you may prefer to use:</para>
@@ -84,17 +84,7 @@
             (<literal>myCopy</literal>) in the configuration statement every time. This is a redundancy and not very
             nice to read.
         </para>
-        <para>There is a more convenient way of doing this.
-        </para>
-        <sample id="configureUsingLiterateStyle" dir="userguide/tasks/configureUsingLiterateStyle" title="Configuring a task - fluent interface">
-            <sourcefile file="build.gradle"/>
-        </sample>
-        <para>You might know this approach from the Hibernates Criteria Query API or JMock. Of course the API of a task
-            has to support this. The <literal>from</literal>, <literal>to</literal> and <literal>include</literal>
-            methods all return an object that may be used to chain to additional configuration methods. Gradle's built-in tasks usually
-            support this configuration style.
-        </para>
-        <para>But there is yet another way of configuring a task. It also preserves the context and it is arguably the
+        <para>There is another way of configuring a task. It also preserves the context and it is arguably the
             most readable. It is usually our favorite.
         </para>
         <sample id="configureUsingClosure" dir="userguide/tasks/configureUsingClosure" title="Configuring a task - with closure">
@@ -102,14 +92,8 @@
         </sample>
         <para>This works for <emphasis>any</emphasis> task. Line 3 of the example is just a shortcut for the
             <literal>tasks.getByName()</literal> method. It is important to note that if you pass a closure to the
-            <literal>getByName()</literal> method, this closure is applied to <emphasis>configure</emphasis> the task.
-        </para>
-        <para>There is a slightly different ways of doing this.</para>
-        <sample id="configureUsingConfigure" dir="userguide/tasks/configureUsingConfigure" title="Configuring a task - with configure() method">
-            <sourcefile file="build.gradle"/>
-        </sample>
-        <para>Every task has a <literal>configure()</literal> method, which you can pass a closure for configuring the task.
-            Gradle uses this style for configuring objects in many places, not just for tasks.
+            <literal>getByName()</literal> method, this closure is applied to <emphasis>configure</emphasis> the task, not when
+            the task executes.
         </para>
         <para>You can also use a configuration closure when you define a task.</para>
         <sample id="defineAndConfigure" dir="userguide/tasks/defineAndConfigure" title="Defining a task with closure">
