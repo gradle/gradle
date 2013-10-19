@@ -40,7 +40,7 @@ public class RegexBackedIncludesParser implements IncludesParser {
 
             try {
                 String line;
-                while ( (line = bf.readLine()) != null) {
+                while ((line = bf.readLine()) != null) {
                     Matcher m = includePattern.matcher(line);
 
                     while (m.find()) {
