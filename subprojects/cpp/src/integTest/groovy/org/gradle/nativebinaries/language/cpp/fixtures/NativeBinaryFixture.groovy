@@ -41,7 +41,7 @@ class NativeBinaryFixture {
     }
 
     void assertHasChangedSince(TestFile.Snapshot snapshot) {
-        file.assertHasChangedSince(snapshot)
+        file.assertContentsHaveChangedSince(snapshot)
     }
 
     void assertExists() {
