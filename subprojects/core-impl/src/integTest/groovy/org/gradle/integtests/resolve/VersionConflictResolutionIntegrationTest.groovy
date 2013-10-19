@@ -578,27 +578,22 @@ repositories {
 dependencies {
     compile "org:other:1.7"
 }
-
-task checkDeps(dependsOn: configurations.compile) << {
-    assert configurations.compile*.name == ['other-1.7.jar', 'test-1.3.jar']
-
-    def result = configurations.compile.incoming.resolutionResult
-    assert result.allModuleVersions.size() == 2
-
-    def root = result.root
-    assert root.id.version == '1.3'
-    assert root.selectionReason.description == 'root'
-    assert !root.selectionReason.conflictResolution //current behavior, feels incorrect
-
-    def other = result.allModuleVersions.find { it.id.name == 'other' }
-
-    assert root.dependencies*.selected == [other]
-    assert other.dependencies*.selected == [root]
-}
 """
 
-        expect:
+        def resolve = new ResolveTestFixture(buildFile)
+        resolve.prepare()
+
+        when:
         run("checkDeps")
+
+        then:
+        resolve.expectGraph {
+            root("org:test:1.3") {
+                node("org:other:1.7") {
+                    edge("org:test:1.2", "org:test:1.3")
+                }
+            }
+        }
     }
 
     @Issue("GRADLE-2920")
@@ -626,13 +621,16 @@ dependencies {
         def resolve = new ResolveTestFixture(buildFile)
         resolve.prepare()
 
-        expect:
+        when:
         run("checkDeps")
 
+        then:
         resolve.expectGraph {
-            root "org:test:1.3"
-            node("org:test:1.3") dependsOn node("org:other:1.7")
-            node("org:other:1.7") dependsOn node("org:test:2.1")
+            root("org:test:1.3") {
+                node("org:other:1.7") {
+                    node("org:test:2.1").byConflictResolution()
+                }
+            }
         }
     }
 
