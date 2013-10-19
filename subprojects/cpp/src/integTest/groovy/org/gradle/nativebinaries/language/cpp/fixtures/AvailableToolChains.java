@@ -200,8 +200,8 @@ public class AvailableToolChains {
             return new SharedLibraryFixture(new TestFile(OperatingSystem.current().getSharedLibraryName(path.toString())), this);
         }
 
-        public NativeBinaryFixture staticLibrary(Object path) {
-            return new NativeBinaryFixture(new TestFile(OperatingSystem.current().getStaticLibraryName(path.toString())), this);
+        public StaticLibraryFixture staticLibrary(Object path) {
+            return new StaticLibraryFixture(new TestFile(OperatingSystem.current().getStaticLibraryName(path.toString())), this);
         }
 
         public void initialiseEnvironment() {

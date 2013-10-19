@@ -22,6 +22,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GUtil
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Ignore
 
 import static org.gradle.util.TextUtil.escapeString
 
@@ -72,11 +73,12 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         app.librarySources.each {
             librarySourceFiles << it.writeToDir(file("src/hello"))
         }
-
-        run "installMainExecutable"
     }
 
     def "does not re-execute build with no change"() {
+        given:
+        run "installMainExecutable"
+
         when:
         run "installMainExecutable"
 
@@ -85,8 +87,10 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
     }
 
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
-    def "rebuilds binary with source file change"() {
+    def "rebuilds executable with source file change"() {
         given:
+        run "installMainExecutable"
+
         def install = installation("build/install/mainExecutable")
 
         when:
@@ -110,6 +114,9 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
     }
 
     def "recompiles source but does not relink binary with source comment change"() {
+        given:
+        run "installMainExecutable"
+
         when:
         sourceFile.text = sourceFile.text.replaceFirst("// Simple hello world app", "// Comment is changed")
         run "mainExecutable"
@@ -132,6 +139,9 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
     }
 
     def "recompiles binary when header file changes"() {
+        given:
+        run "installMainExecutable"
+
         when:
         headerFile << """
             void DLL_FUNC unused();
@@ -154,9 +164,12 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
     }
 
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
-    def "relinks binary with library source file change"() {
-        when:
+    def "recompiles library and relinks executable with library source file change"() {
+        given:
+        run "installMainExecutable"
         def install = installation("build/install/mainExecutable")
+
+        when:
         for (int i = 0; i < librarySourceFiles.size(); i++) {
             TestFile sourceFile = librarySourceFiles.get(i);
             sourceFile.text = app.alternateLibrarySources[i].content
@@ -183,6 +196,8 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         if (toolChain.visualCpp) {
             return // Visual C++ compiler embeds a timestamp in every object file, so relinking is always required after recompiling
         }
+        given:
+        run "installMainExecutable"
 
         when:
         headerFile << """
@@ -203,10 +218,12 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
 
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
     def "rebuilds binary with compiler option change"() {
-        when:
+        given:
+        run "installMainExecutable"
+
         def install = installation("build/install/mainExecutable")
 
-        and:
+        when:
         buildFile << """
             libraries {
                 hello {
@@ -234,6 +251,9 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
     }
 
     def "relinks binary when set of input libraries changes"() {
+        given:
+        run "installMainExecutable"
+
         def executable = executable("build/binaries/mainExecutable/main")
         def snapshot = executable.snapshot()
 
@@ -262,6 +282,9 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
     }
 
     def "relinks binary but does not recompile when linker option changed"() {
+        given:
+        run "installMainExecutable"
+
         when:
         def executable = executable("build/binaries/mainExecutable/main")
         def snapshot = executable.snapshot()
@@ -293,14 +316,19 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         executable.assertHasChangedSince(snapshot)
     }
 
-    def "cleans up stale object files when source file renamed"() {
+    def "cleans up stale object files when executable source file renamed"() {
+        given:
+        run "installMainExecutable"
+
         def oldObjFile = objectFile("build/objectFiles/mainExecutable/main${sourceType}/main")
         def newObjFile = objectFile("build/objectFiles/mainExecutable/main${sourceType}/changed_main")
         assert oldObjFile.file
         assert !newObjFile.file
 
+        final source = sourceFile
+
         when:
-        sourceFile.renameTo("${sourceFile.parentFile.absolutePath}/changed_${sourceFile.name}")
+        rename(source)
         run "mainExecutable"
 
         then:
@@ -314,6 +342,40 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         and:
         !oldObjFile.file
         newObjFile.file
+    }
+
+    @Ignore("not yet implemented")
+    def "cleans up stale object files when library source file renamed"() {
+        given:
+        run "installMainExecutable"
+
+        when:
+        run "helloStaticLibrary"
+
+        then:
+        def oldObjFile = objectFile("build/objectFiles/helloStaticLibrary/hello${sourceType}/hello")
+        def newObjFile = objectFile("build/objectFiles/helloStaticLibrary/hello${sourceType}/changed_hello")
+        assert oldObjFile.file
+        assert !newObjFile.file
+
+        assert staticLibrary("build/binaries/helloStaticLibrary/hello").listObjectFiles().contains(oldObjFile.name)
+
+        when:
+        librarySourceFiles.each { rename(it) }
+        run "helloStaticLibrary"
+
+        then:
+        executedAndNotSkipped libraryCompileTask.replace("Shared", "Static")
+        executedAndNotSkipped ":createHelloStaticLibrary"
+        executedAndNotSkipped ":helloStaticLibrary"
+
+        and:
+        !oldObjFile.file
+        newObjFile.file
+
+        and:
+        assert staticLibrary("build/binaries/helloStaticLibrary/hello").listObjectFiles().contains(newObjFile.name)
+        assert !staticLibrary("build/binaries/helloStaticLibrary/hello").listObjectFiles().contains(oldObjFile.name)
     }
 
     def "cleans up stale debug files when changing from debug to non-debug"() {
@@ -345,5 +407,54 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
 
         and:
         executable.assertDebugFileDoesNotExist()
+    }
+
+    @Ignore("Test demonstrates missing functionality in incremental build with C++")
+    def "recompiles binary when header file with relative path changes"() {
+        when:
+        buildFile << """
+            apply plugin: 'cpp'
+            executables {
+                main {}
+            }
+"""
+
+        file("src/main/cpp/main.cpp") << """
+            #include "../not_included/hello.h"
+
+            int main () {
+              sayHello();
+              return 0;
+            }
+"""
+
+        def headerFile = file("src/main/not_included/hello.h") << """
+            void sayHello();
+"""
+
+        file("src/main/cpp/hello.cpp") << """
+            #include <iostream>
+
+            void sayHello() {
+                std::cout << "HELLO" << std::endl;
+            }
+"""
+        then:
+        succeeds "mainExecutable"
+        executable("build/binaries/mainExecutable/main").exec().out == "HELLO\n"
+
+        when:
+        headerFile.text = """
+            NOT A VALID HEADER FILE
+"""
+        then:
+        fails "mainExecutable"
+        and:
+        executedAndNotSkipped "compileMainExecutableMainCpp"
+    }
+
+
+    private static boolean rename(TestFile sourceFile) {
+        sourceFile.renameTo("${sourceFile.parentFile.absolutePath}/changed_${sourceFile.name}")
     }
 }

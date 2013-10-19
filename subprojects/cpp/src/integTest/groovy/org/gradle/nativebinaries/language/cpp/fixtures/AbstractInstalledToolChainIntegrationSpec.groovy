@@ -54,7 +54,7 @@ allprojects {
         return toolChain.sharedLibrary(file(path))
     }
 
-    def NativeBinaryFixture staticLibrary(Object path) {
+    def StaticLibraryFixture staticLibrary(Object path) {
         return toolChain.staticLibrary(file(path))
     }
 }
