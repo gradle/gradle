@@ -113,7 +113,7 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         install.exec().out == app.alternateOutput
     }
 
-    def "recompiles source but does not relink binary with source comment change"() {
+    def "recompiles but does not relink executable with source comment change"() {
         given:
         run "installMainExecutable"
 
@@ -137,32 +137,6 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
             skipped ":mainExecutable"
         }
     }
-
-    def "recompiles binary when header file changes"() {
-        given:
-        run "installMainExecutable"
-
-        when:
-        headerFile << """
-            void DLL_FUNC unused();
-"""
-
-        run "mainExecutable"
-
-        then:
-        executedAndNotSkipped libraryCompileTask
-        executedAndNotSkipped mainCompileTask
-
-        // Visual C++ compiler embeds a timestamp in every object file, so relinking is always required after recompiling
-        if (toolChain.visualCpp) {
-            executedAndNotSkipped ":linkHelloSharedLibrary", ":helloSharedLibrary"
-            executedAndNotSkipped ":linkMainExecutable", ":mainExecutable"
-        } else {
-            skipped ":linkHelloSharedLibrary", ":helloSharedLibrary"
-            skipped ":linkMainExecutable", ":mainExecutable"
-        }
-    }
-
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
     def "recompiles library and relinks executable with library source file change"() {
         given:
@@ -192,10 +166,32 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         install.exec().out == app.alternateLibraryOutput
     }
 
-    def "recompiles binary when header file changes in a way that does not affect the object files"() {
+    def "recompiles binary when header file changes"() {
+        given:
+        run "installMainExecutable"
+
+        when:
+        headerFile << """
+            void DLL_FUNC unused();
+"""
+
+        run "mainExecutable"
+
+        then:
+        executedAndNotSkipped libraryCompileTask
+        executedAndNotSkipped mainCompileTask
+
+        // Visual C++ compiler embeds a timestamp in every object file, so relinking is always required after recompiling
         if (toolChain.visualCpp) {
-            return // Visual C++ compiler embeds a timestamp in every object file, so relinking is always required after recompiling
+            executedAndNotSkipped ":linkHelloSharedLibrary", ":helloSharedLibrary"
+            executedAndNotSkipped ":linkMainExecutable", ":mainExecutable"
+        } else {
+            skipped ":linkHelloSharedLibrary", ":helloSharedLibrary"
+            skipped ":linkMainExecutable", ":mainExecutable"
         }
+    }
+
+    def "recompiles binary when header file changes in a way that does not affect the object files"() {
         given:
         run "installMainExecutable"
 
@@ -204,16 +200,20 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
 // Comment added to the end of the header file
 """
 
-        run "installMainExecutable"
+        run "mainExecutable"
 
         then:
         executedAndNotSkipped libraryCompileTask
-        skipped ":linkHelloSharedLibrary"
-        skipped ":helloSharedLibrary"
         executedAndNotSkipped mainCompileTask
-        skipped ":linkMainExecutable"
-        skipped ":mainExecutable"
-        skipped ":installMainExecutable"
+
+        // Visual C++ compiler embeds a timestamp in every object file, so relinking is always required after recompiling
+        if (toolChain.visualCpp) {
+            executedAndNotSkipped ":linkHelloSharedLibrary", ":helloSharedLibrary"
+            executedAndNotSkipped ":linkMainExecutable", ":mainExecutable"
+        } else {
+            skipped ":linkHelloSharedLibrary", ":helloSharedLibrary"
+            skipped ":linkMainExecutable", ":mainExecutable"
+        }
     }
 
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
