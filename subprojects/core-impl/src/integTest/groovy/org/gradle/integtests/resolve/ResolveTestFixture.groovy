@@ -42,7 +42,7 @@ class ResolveTestFixture {
     void prepare() {
         buildFile << """
 buildscript {
-    dependencies.classpath files("${ClasspathUtil.getClasspathForClass(GenerateGraphTask)}")
+    dependencies.classpath files("${ClasspathUtil.getClasspathForClass(GenerateGraphTask).toURI()}")
 }
 
 allprojects {
