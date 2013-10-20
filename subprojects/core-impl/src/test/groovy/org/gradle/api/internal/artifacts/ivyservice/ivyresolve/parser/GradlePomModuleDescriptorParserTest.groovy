@@ -75,6 +75,80 @@ class GradlePomModuleDescriptorParserTest extends Specification {
         parser.toString() == 'gradle pom parser'
     }
 
+    def "merges dependencies declared in pom with those declared in parent"() {
+        given:
+        def parent = tmpDir.file("parent.xlm") << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+
+    <dependencies>
+        <dependency>
+            <groupId>group-two</groupId>
+            <artifactId>artifact-two</artifactId>
+            <version>1.2</version>
+        </dependency>
+        <dependency>
+            <groupId>group-two</groupId>
+            <artifactId>artifact-three</artifactId>
+            <version>1.2</version>
+        </dependency>
+    </dependencies>
+</project>
+"""
+
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+
+    <parent>
+        <groupId>group-one</groupId>
+        <artifactId>parent</artifactId>
+        <version>version-one</version>
+    </parent>
+
+    <dependencies>
+        <dependency>
+            <groupId>group-two</groupId>
+            <artifactId>artifact-one</artifactId>
+            <version>11</version>
+        </dependency>
+        <dependency>
+            <groupId>group-two</groupId>
+            <artifactId>artifact-three</artifactId>
+            <version>11</version>
+        </dependency>
+    </dependencies>
+</project>
+"""
+        and:
+        parseContext.currentRevisionId >> moduleId('group-one', 'artifact-one', 'version-one')
+        parseContext.getArtifact(_) >> { new DefaultLocallyAvailableExternalResource(parent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(parent)) }
+
+        when:
+        def descriptor = parsePom()
+
+        then:
+        descriptor.dependencies.length == 3
+
+        def dep1 = descriptor.dependencies[0]
+        dep1.dependencyRevisionId == moduleId('group-two', 'artifact-one', '11')
+        dep1.moduleConfigurations == ['compile', 'runtime']
+
+        def dep2 = descriptor.dependencies[1]
+        dep2.dependencyRevisionId == moduleId('group-two', 'artifact-three', '11')
+        dep2.moduleConfigurations == ['compile', 'runtime']
+
+        def inheritedDep = descriptor.dependencies[2]
+        inheritedDep.dependencyRevisionId == moduleId('group-two', 'artifact-two', '1.2')
+        inheritedDep.moduleConfigurations == ['compile', 'runtime']
+    }
+
     def "uses dependency management section to provide default values for a dependency"() {
         given:
         pomFile << """
