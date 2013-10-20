@@ -72,13 +72,13 @@ public class DefaultFileLockManager implements FileLockManager {
         this.stateInfoProtocol = stateInfoProtocol;
     }
 
-    public FileLock lock(File target, LockMode mode, String targetDisplayName) throws LockTimeoutException {
-        return lock(target, mode, targetDisplayName, "");
+    public FileLock lock(File target, LockOptions options, String targetDisplayName) throws LockTimeoutException {
+        return lock(target, options, targetDisplayName, "");
     }
 
-    public FileLock lock(File target, LockMode mode, String targetDisplayName, String operationDisplayName) {
-        if (mode == LockMode.None) {
-            throw new UnsupportedOperationException(String.format("No %s mode lock implementation available.", mode));
+    public FileLock lock(File target, LockOptions options, String targetDisplayName, String operationDisplayName) {
+        if (options.getMode() == LockMode.None) {
+            throw new UnsupportedOperationException(String.format("No %s mode lock implementation available.", options));
         }
         File canonicalTarget = GFileUtils.canonicalise(target);
         if (!lockedFiles.add(canonicalTarget)) {
@@ -86,7 +86,7 @@ public class DefaultFileLockManager implements FileLockManager {
         }
         try {
             int port = fileLockContentionHandler.reservePort();
-            return new DefaultFileLock(canonicalTarget, mode, targetDisplayName, operationDisplayName, port);
+            return new DefaultFileLock(canonicalTarget, options, targetDisplayName, operationDisplayName, port);
         } catch (Throwable t) {
             lockedFiles.remove(canonicalTarget);
             throw throwAsUncheckedException(t);
@@ -110,10 +110,10 @@ public class DefaultFileLockManager implements FileLockManager {
         private int port;
         private final long lockId;
 
-        public DefaultFileLock(File target, LockMode mode, String displayName, String operationDisplayName, int port) throws Throwable {
+        public DefaultFileLock(File target, LockOptions options, String displayName, String operationDisplayName, int port) throws Throwable {
             this.port = port;
             this.lockId = generator.generateId();
-            if (mode == LockMode.None) {
+            if (options.getMode() == LockMode.None) {
                 throw new UnsupportedOperationException("Locking mode None is not supported.");
             }
 
@@ -131,7 +131,7 @@ public class DefaultFileLockManager implements FileLockManager {
             lockFile.createNewFile();
             fileLockAccess = new FileLockAccess(lockFile, displayName, new StateInfoAccess(stateInfoProtocol));
             try {
-                lock = lock(mode);
+                lock = lock(options.getMode());
                 StateInfo stateInfo = fileLockAccess.readStateInfo();
                 hasNewOwner = stateInfo.getPreviousOwnerId() != ownerId;
                 integrityViolated = stateInfo.isDirty();

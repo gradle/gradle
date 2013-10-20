@@ -36,6 +36,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import static org.gradle.cache.internal.FileLockManager.LockMode.Exclusive;
 import static org.gradle.cache.internal.FileLockManager.LockMode.Shared;
+import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 @ThreadSafe
 public class DefaultCacheAccess implements CacheAccess {
@@ -84,7 +85,7 @@ public class DefaultCacheAccess implements CacheAccess {
             if (fileLock != null) {
                 throw new IllegalStateException("File lock " + lockFile + " is already open.");
             }
-            fileLock = lockManager.lock(lockFile, lockMode, cacheDiplayName);
+            fileLock = lockManager.lock(lockFile, mode(lockMode), cacheDiplayName);
             takeOwnership(String.format("Access %s", cacheDiplayName));
             lockManager.allowContention(fileLock, whenContended());
         } finally {
@@ -301,7 +302,7 @@ public class DefaultCacheAccess implements CacheAccess {
         if (fileLock != null) {
             return false;
         }
-        fileLock = lockManager.lock(lockFile, Exclusive, cacheDiplayName, operations.getDescription());
+        fileLock = lockManager.lock(lockFile, mode(Exclusive), cacheDiplayName, operations.getDescription());
 
         for (UnitOfWorkParticipant cache : caches) {
             cache.onStartWork(operations.getDescription(), fileLock.getHasNewOwner());

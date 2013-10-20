@@ -21,6 +21,7 @@ import spock.lang.Specification
 
 import static org.gradle.cache.internal.FileLockManager.LockMode.None
 import static org.gradle.cache.internal.FileLockManager.LockMode.Shared
+import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode
 
 class DefaultPersistentDirectoryStoreTest extends Specification {
     @Rule
@@ -65,7 +66,7 @@ class DefaultPersistentDirectoryStoreTest extends Specification {
         store.open()
 
         then:
-        1 * lockManager.lock(cacheDir, Shared, "<display> ($cacheDir)") >> lock
+        1 * lockManager.lock(cacheDir, mode(Shared), "<display> ($cacheDir)") >> lock
 
         when:
         store.close()
