@@ -50,26 +50,24 @@ public class DefaultFileLockManager implements FileLockManager {
     private final ProcessMetaDataProvider metaDataProvider;
     private final int lockTimeoutMs;
     private final IdGenerator<Long> generator;
-    private final StateInfoProtocol stateInfoProtocol;
     private final FileLockContentionHandler fileLockContentionHandler;
     private final long shortTimeoutMs = 10000;
     private final int ownerId = new NoZeroIntegerIdGenerator().generateId();
 
     public DefaultFileLockManager(ProcessMetaDataProvider metaDataProvider, FileLockContentionHandler fileLockContentionHandler) {
-        this(metaDataProvider, DEFAULT_LOCK_TIMEOUT, fileLockContentionHandler, new DefaultStateInfoProtocol());
+        this(metaDataProvider, DEFAULT_LOCK_TIMEOUT, fileLockContentionHandler);
     }
 
-    public DefaultFileLockManager(ProcessMetaDataProvider metaDataProvider, int lockTimeoutMs, FileLockContentionHandler fileLockContentionHandler, StateInfoProtocol stateInfoProtocol) {
-        this(metaDataProvider, lockTimeoutMs, fileLockContentionHandler, new RandomLongIdGenerator(), stateInfoProtocol);
+    public DefaultFileLockManager(ProcessMetaDataProvider metaDataProvider, int lockTimeoutMs, FileLockContentionHandler fileLockContentionHandler) {
+        this(metaDataProvider, lockTimeoutMs, fileLockContentionHandler, new RandomLongIdGenerator());
     }
 
     DefaultFileLockManager(ProcessMetaDataProvider metaDataProvider, int lockTimeoutMs, FileLockContentionHandler fileLockContentionHandler,
-                           IdGenerator<Long> generator, StateInfoProtocol stateInfoProtocol) {
+                           IdGenerator<Long> generator) {
         this.metaDataProvider = metaDataProvider;
         this.lockTimeoutMs = lockTimeoutMs;
         this.fileLockContentionHandler = fileLockContentionHandler;
         this.generator = generator;
-        this.stateInfoProtocol = stateInfoProtocol;
     }
 
     public FileLock lock(File target, LockOptions options, String targetDisplayName) throws LockTimeoutException {
@@ -129,7 +127,8 @@ public class DefaultFileLockManager implements FileLockManager {
 
             GFileUtils.mkdirs(lockFile.getParentFile());
             lockFile.createNewFile();
-            fileLockAccess = new FileLockAccess(lockFile, displayName, new StateInfoAccess(stateInfoProtocol));
+            fileLockAccess = new FileLockAccess(lockFile, displayName, new StateInfoAccess(options.getStateInfoProtocol()));
+            //TODO SF protocol is now injected and unit tests should reflect this
             try {
                 lock = lock(options.getMode());
                 StateInfo stateInfo = fileLockAccess.readStateInfo();

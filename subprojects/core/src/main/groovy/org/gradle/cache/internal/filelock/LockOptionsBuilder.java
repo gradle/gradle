@@ -40,8 +40,8 @@ public class LockOptionsBuilder implements LockOptions {
         return mode;
     }
 
-    public boolean isSimple() {
-        return simple;
+    public StateInfoProtocol getStateInfoProtocol() {
+        return simple? new SimpleStateInfoProtocol() : new DefaultStateInfoProtocol();
     }
 
     @Override

@@ -20,5 +20,5 @@ import org.gradle.cache.internal.FileLockManager;
 public interface LockOptions {
 
     FileLockManager.LockMode getMode();
-    boolean isSimple();
+    StateInfoProtocol getStateInfoProtocol();
 }
