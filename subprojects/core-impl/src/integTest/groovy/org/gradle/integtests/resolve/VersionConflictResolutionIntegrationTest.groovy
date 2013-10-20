@@ -107,7 +107,10 @@ project(':tool') {
         mavenRepo.module("org", "foo", '1.3.3').publish()
         mavenRepo.module("org", "foo", '1.4.4').publish()
 
-        settingsFile << "include 'api', 'impl', 'tool'"
+        settingsFile << """
+rootProject.name = 'test'
+include 'api', 'impl', 'tool'
+"""
 
         buildFile << """
 allprojects {
@@ -134,19 +137,33 @@ project(':tool') {
 		compile project(':api')
 		compile project(':impl')
 	}
-    task checkDeps(dependsOn: configurations.compile) << {
-        assert configurations.compile*.name == ['api.jar', 'impl.jar', 'foo-1.4.4.jar']
-    }
 }
 """
 
-        expect:
+        def resolve = new ResolveTestFixture(buildFile)
+        resolve.prepare()
+
+        when:
         run("tool:checkDeps")
+
+        then:
+        resolve.expectGraph {
+            root("test:tool:") {
+                node("test:api:") {
+                    edge("org:foo:1.3.3", "org:foo:1.4.4")
+                }
+                node("test:impl:") {
+                    node("org:foo:1.4.4").byConflictResolution()
+                }
+            }
+        }
     }
 
     void "does not attempt to resolve an evicted dependency"() {
         mavenRepo.module("org", "external", "1.2").publish()
         mavenRepo.module("org", "dep", "2.2").dependsOn("org", "external", "1.0").publish()
+
+        settingsFile << "rootProject.name = 'test'"
 
         buildFile << """
 repositories {
@@ -159,14 +176,23 @@ dependencies {
     compile 'org:external:1.2'
     compile 'org:dep:2.2'
 }
-
-task checkDeps << {
-    assert configurations.compile*.name == ['external-1.2.jar', 'dep-2.2.jar']
-}
 """
 
-        expect:
+        def resolve = new ResolveTestFixture(buildFile)
+        resolve.prepare()
+
+        when:
         run("checkDeps")
+
+        then:
+        resolve.expectGraph {
+            root(":test:") {
+                node("org:external:1.2").byConflictResolution()
+                node("org:dep:2.2") {
+                    edge("org:external:1.0", "org:external:1.2")
+                }
+            }
+        }
     }
 
     @Issue("GRADLE-2890")

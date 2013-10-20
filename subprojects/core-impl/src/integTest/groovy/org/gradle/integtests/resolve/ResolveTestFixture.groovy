@@ -45,15 +45,19 @@ buildscript {
     dependencies.classpath files("${ClasspathUtil.getClasspathForClass(GenerateGraphTask)}")
 }
 
-task checkDeps(dependsOn: configurations.${config}, type: ${GenerateGraphTask.name}) {
-    outputFile = file("\${buildDir}/${config}.txt")
-    configuration = configurations.$config
+allprojects {
+    tasks.addPlaceholderAction("checkDeps") {
+        tasks.create(name: "checkDeps", dependsOn: configurations.${config}, type: ${GenerateGraphTask.name}) {
+            outputFile = rootProject.file("\${rootProject.buildDir}/${config}.txt")
+            configuration = configurations.$config
+        }
+    }
 }
 """
     }
 
     /**
-     * Verifies the result of executing the task.
+     * Verifies the result of executing the task injected by {@link #prepare()}. The closure delegates to a {@link GraphBuilder} instance.
      */
     void expectGraph(Closure closure) {
         def graph = new GraphBuilder()
@@ -65,42 +69,78 @@ task checkDeps(dependsOn: configurations.${config}, type: ${GenerateGraphTask.na
             throw new IllegalArgumentException("No root node defined")
         }
 
-        def configFile = buildFile.parentFile.file("build/${config}.txt").text.readLines()
+        def configDetailsFile = buildFile.parentFile.file("build/${config}.txt")
+        def configDetails = configDetailsFile.text.readLines()
 
-        def actualArtifacts = configFile.findAll { it.startsWith('artifact:') }.collect { it.substring(9) }
-        def expectedArtifacts = graph.artifactNodes.collect { "${it.group}:${it.module}:${it.version}:${it.module}.jar" }
+        println "VALIDATING"
+        println(configDetailsFile.text)
+
+        def actualArtifacts = configDetails.findAll { it.startsWith('artifact:') }.collect { it.substring(9) }
+        def expectedArtifacts = graph.artifactNodes.collect { "[${it.id}][${it.module}.jar]" }
         assert actualArtifacts == expectedArtifacts
 
-        def actualFiles = configFile.findAll { it.startsWith('file:') }.collect { it.substring(5) }
-        def expectedFiles = graph.artifactNodes.collect { "$it.module-${it.version}.jar" }
+        def actualFiles = configDetails.findAll { it.startsWith('file:') }.collect { it.substring(5) }
+        def expectedFiles = graph.artifactNodes.collect { it.fileName }
         assert actualFiles == expectedFiles
 
-        def actualFirstLevel = configFile.findAll { it.startsWith('first-level:') }.collect { it.substring(12) }
-        def expectedFirstLevel = graph.root.deps.collect { "${it.selected.id}:default" }
+        def actualFirstLevel = configDetails.findAll { it.startsWith('first-level:') }.collect { it.substring(12) }
+        def expectedFirstLevel = graph.root.deps.collect { "[${it.selected.id}:default]" }
         assert actualFirstLevel == expectedFirstLevel
 
-        def actualRoot = configFile.find { it.startsWith('root:') }.substring(5)
-        def expectedRoot = "${graph.root.id}:${graph.root.reason}"
+        def actualRoot = configDetails.find { it.startsWith('root:') }.substring(5)
+        def expectedRoot = "[${graph.root.id}][${graph.root.reason}]"
         assert actualRoot == expectedRoot
 
-        def actualNodes = configFile.findAll { it.startsWith('module-version:') }.collect { it.substring(15) }
-        def expectedNodes = graph.nodes.values().collect { "${it.id}:${it.reason}" }
+        def actualNodes = configDetails.findAll { it.startsWith('module-version:') }.collect { it.substring(15) }
+        def expectedNodes = graph.nodes.values().collect { "[${it.id}][${it.reason}]" }
         assert actualNodes == expectedNodes
 
-        def actualEdges = configFile.findAll { it.startsWith('dependency:') }.collect { it.substring(11) }
-        def expectedEdges = graph.nodes.values().collect { from -> from.deps.collect { "${from.id}:${it.requested}->${it.selected.id}" } }.flatten()
+        def actualEdges = configDetails.findAll { it.startsWith('dependency:') }.collect { it.substring(11) }
+        def expectedEdges = graph.edges.collect { "[${it.from.id}][${it.requested}->${it.selected.id}]" }
         assert actualEdges == expectedEdges
     }
 
     public static class GraphBuilder {
         final Map<String, NodeBuilder> nodes = new LinkedHashMap<>()
-        final Set<NodeBuilder> reachable = new LinkedHashSet<>()
         NodeBuilder root
 
         private getArtifactNodes() {
-            return reachable
+            Set<NodeBuilder> result = new LinkedHashSet()
+            visitNodes(root, result)
+            return result
         }
 
+        private void visitNodes(NodeBuilder node, Set<NodeBuilder> result) {
+            Set<NodeBuilder> nodesToVisit = []
+            for (EdgeBuilder edge: node.deps) {
+                if (result.add(edge.selected)) {
+                    nodesToVisit << edge.selected
+                }
+            }
+            for(NodeBuilder child: nodesToVisit) {
+                visitNodes(child, result)
+            }
+        }
+
+        private getEdges() {
+            Set<EdgeBuilder> result = new LinkedHashSet<>()
+            Set<NodeBuilder> seen = []
+            visitEdges(root, seen, result)
+            return result
+        }
+
+        private visitEdges(NodeBuilder node, Set<NodeBuilder> seenNodes, Set<EdgeBuilder> edges) {
+            for (EdgeBuilder edge: node.deps) {
+                edges.add(edge)
+                if (seenNodes.add(edge.selected)) {
+                    visitEdges(edge.selected, seenNodes, edges)
+                }
+            }
+        }
+
+        /**
+         * Defines the root node of the graph. The closure delegates to a {@link NodeBuilder} instance that represents the root node.
+         */
         def root(String value, Closure cl) {
             if (root != null) {
                 throw new IllegalStateException("Root node is already defined")
@@ -124,9 +164,11 @@ task checkDeps(dependsOn: configurations.${config}, type: ${GenerateGraphTask.na
 
     public static class EdgeBuilder {
         final String requested
+        final NodeBuilder from
         final NodeBuilder selected
 
-        EdgeBuilder(String requested, NodeBuilder selected) {
+        EdgeBuilder(NodeBuilder from, String requested, NodeBuilder selected) {
+            this.from = from
             this.selected = selected
             this.requested = requested
         }
@@ -142,23 +184,49 @@ task checkDeps(dependsOn: configurations.${config}, type: ${GenerateGraphTask.na
         private String reason
 
         NodeBuilder(String id, GraphBuilder graph) {
-            this.id = id
-            def parts = id.split(':')
-            assert parts.length == 3
-            this.group = parts[0]
-            this.module = parts[1]
-            this.version = parts[2]
             this.graph = graph
+            if (id.matches(':\\w+:')) {
+                def parts = id.split(':')
+                this.group = null
+                this.module = parts[1]
+                this.version = null
+                this.id = ":${module}:unspecified"
+            } else if (id.matches('\\w+:\\w+:')) {
+                def parts = id.split(':')
+                this.group = parts[0]
+                this.module = parts[1]
+                this.version = null
+                this.id = "${group}:${module}:unspecified"
+            } else {
+                def parts = id.split(':')
+                assert parts.length == 3
+                this.group = parts[0]
+                this.module = parts[1]
+                this.version = parts[2]
+                this.id = id
+            }
         }
 
-        def getReason() {
+        private def getReason() {
             reason ?: (this == graph.root ? 'root:' : 'requested:')
         }
 
-        def node(String value) {
-            return edge(value, value).selected
+        private def getFileName() {
+            "$module${version ? '-' + version : ''}.jar"
         }
 
+        /**
+         * Defines a dependency on the given node.
+         */
+        def node(String value) {
+            def node = graph.node(value)
+            deps << new EdgeBuilder(this, node.id, node)
+            return node
+        }
+
+        /**
+         * Defines a dependency on the given node. The closure delegates to a {@link NodeBuilder} instance that represents the target node.
+         */
         def node(String value, Closure cl) {
             def node = node(value)
             cl.resolveStrategy = Closure.DELEGATE_ONLY
@@ -167,14 +235,18 @@ task checkDeps(dependsOn: configurations.${config}, type: ${GenerateGraphTask.na
             return node
         }
 
+        /**
+         * Defines a dependency on the given node.
+         */
         def edge(String requested, String selected) {
             def node = graph.node(selected)
-            graph.reachable << node
-            def edge = new EdgeBuilder(requested, node)
-            deps << edge
-            return edge
+            deps << new EdgeBuilder(this, requested, node)
+            return node
         }
 
+        /**
+         * Marks that this node was selected due to conflict resolution.
+         */
         def byConflictResolution() {
             reason = 'conflict resolution:conflict'
             this
@@ -192,18 +264,18 @@ public class GenerateGraphTask extends DefaultTask {
 
         outputFile.withPrintWriter { writer ->
             configuration.resolvedConfiguration.firstLevelModuleDependencies.each {
-                writer.println("first-level:${it.moduleGroup}:${it.moduleName}:${it.moduleVersion}:${it.configuration}")
+                writer.println("first-level:[${it.moduleGroup}:${it.moduleName}:${it.moduleVersion}:${it.configuration}]")
             }
             configuration.resolvedConfiguration.resolvedArtifacts.each {
-                writer.println("artifact:${it.moduleVersion.id}:${it.name}${it.classifier ? "-" + it.classifier : ""}.${it.extension}")
+                writer.println("artifact:[${it.moduleVersion.id}][${it.name}${it.classifier ? "-" + it.classifier : ""}.${it.extension}]")
             }
             def root = configuration.incoming.resolutionResult.root
-            writer.println("root:${root.id}:${formatReason(root.selectionReason)}")
+            writer.println("root:[${root.id}][${formatReason(root.selectionReason)}]")
             configuration.incoming.resolutionResult.allModuleVersions.each {
-                writer.println("module-version:${it.id}:${formatReason(it.selectionReason)}")
+                writer.println("module-version:[${it.id}][${formatReason(it.selectionReason)}]")
             }
             configuration.incoming.resolutionResult.allDependencies.each {
-                writer.println("dependency:${it.from.id}:${it.requested}->${it.selected.id}")
+                writer.println("dependency:[${it.from.id}][${it.requested}->${it.selected.id}]")
             }
             configuration.files.each {
                 writer.println("file:${it.name}")
