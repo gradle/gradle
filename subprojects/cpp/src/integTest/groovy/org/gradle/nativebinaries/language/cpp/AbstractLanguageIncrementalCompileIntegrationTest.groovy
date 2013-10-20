@@ -157,9 +157,7 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
         run "mainExecutable"
 
         then:
-        executedAndNotSkipped compileTask
-
-        and:
+        skipped compileTask
         noneRecompiled()
     }
 
@@ -189,6 +187,67 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
 
         and:
         recompiled allSources
+    }
+
+    def "removes output file when source file is renamed"() {
+        given:
+        initialCompile()
+        final newFile = file("src/main/${app.sourceType}/changed.${app.sourceType}")
+
+        when:
+        newFile << sourceFile.text
+        sourceFile.delete()
+
+        and:
+        run "mainExecutable"
+
+        then:
+        recompiled newFile
+        outputRemoved sourceFile
+    }
+
+    def "removes output file when source file is removed"() {
+        given:
+        def extraSource = file("src/main/${app.sourceType}/extra.${app.sourceType}")
+        extraSource << sourceFile.text.replaceAll("main", "main2")
+
+        initialCompile()
+
+        and:
+        outputFile(extraSource).assertExists()
+
+        when:
+        extraSource.delete()
+
+        and:
+        run "mainExecutable"
+
+        then:
+        outputFile(extraSource).assertDoesNotExist()
+        noneRecompiled()
+    }
+
+    def "removes all output files when all source files are removed"() {
+        given:
+        initialCompile()
+
+        def executable = executable("build/binaries/mainExecutable/main")
+        executable.assertExists()
+
+        when:
+        file("src/main").eachFileRecurse(FileType.FILES) {
+            println "deleting ${it}"
+            it.delete()
+        }
+
+        and:
+        run "mainExecutable"
+
+        then:
+        file("build/objectFiles").assertIsEmptyDir()
+
+        // TODO:DAZ Link task should remove output when inputs are all removed
+//        executable.assertDoesNotExist()
     }
 
     def initialCompile() {
@@ -224,6 +283,23 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
     def recompiled(List<TestFile> files) {
         def expectedNames = files.collect({ FilenameUtils.removeExtension(it.name) }) as Set
         assert getRecompiledFiles() == expectedNames
+        return true
+    }
+
+    def outputFile(TestFile sourceFile) {
+        final baseName = FilenameUtils.removeExtension(sourceFile.name)
+        return objectFile("build/objectFiles/mainExecutable/main${sourceType}/${baseName}")
+    }
+
+    def outputRemoved(TestFile sourceFile) {
+        outputRemoved([sourceFile])
+    }
+
+    def outputRemoved(List<TestFile> sourceFiles) {
+        def expectedMissing = sourceFiles.collect({ objectFile(FilenameUtils.removeExtension(it.name)) }) as Set
+        expectedMissing.each {
+            file("build/objectFiles/$it").assertDoesNotExist()
+        }
         return true
     }
 
