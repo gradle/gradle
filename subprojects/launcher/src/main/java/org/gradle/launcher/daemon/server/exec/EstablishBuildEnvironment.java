@@ -47,6 +47,7 @@ public class EstablishBuildEnvironment extends BuildCommandOnly {
 
         for (Map.Entry<String, String> entry : build.getParameters().getSystemProperties().entrySet()) {
             if (SystemProperties.getStandardProperties().contains(entry.getKey())) { continue; }
+            if (SystemProperties.getNonStandardImportantProperties().contains(entry.getKey())) { continue; }
             if (entry.getKey().startsWith("sun.")) { continue; }
             System.setProperty(entry.getKey(), entry.getValue());
         }
