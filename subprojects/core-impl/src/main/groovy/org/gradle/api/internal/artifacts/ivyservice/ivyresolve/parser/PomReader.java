@@ -70,10 +70,11 @@ public class PomReader {
     private static final String PLUGIN = "plugin";
     private static final String TYPE = "type";
 
-    private Map<String, String> properties = new HashMap<String, String>();
+    private final Map<String, String> properties = new HashMap<String, String>();
     private final Map<String, PomDependencyMgt> inheritedDependencyMgts = new LinkedHashMap<String, PomDependencyMgt>();
     private Map<String, PomDependencyMgt> dependencyMgts;
     private final Map<String, PomDependencyData> inheritedDependencies = new LinkedHashMap<String, PomDependencyData>();
+    private Map<String, PomDependencyData> dependencies;
 
     private final Element projectElement;
     private final Element parentElement;
@@ -304,21 +305,27 @@ public class PomReader {
     }
 
     public Map<String, PomDependencyData> getDependencies() {
-        Element dependenciesElement = getFirstChildElement(projectElement, DEPENDENCIES);
-        Map<String, PomDependencyData> dependencies = new LinkedHashMap<String, PomDependencyData>();
-        if (dependenciesElement != null) {
-            NodeList childs = dependenciesElement.getChildNodes();
-            for (int i = 0; i < childs.getLength(); i++) {
-                Node node = childs.item(i);
-                if (node instanceof Element && DEPENDENCY.equals(node.getNodeName())) {
-                    PomDependencyData pomDependencyData = new PomDependencyData((Element) node);
-                    String key = createPomDependencyMgtKey(pomDependencyData.getGroupId(), pomDependencyData.getArtifactId());
-                    dependencies.put(key, pomDependencyData);
+        if (dependencies == null) {
+            Element dependenciesElement = getFirstChildElement(projectElement, DEPENDENCIES);
+            dependencies = new LinkedHashMap<String, PomDependencyData>();
+            if (dependenciesElement != null) {
+                NodeList childs = dependenciesElement.getChildNodes();
+                for (int i = 0; i < childs.getLength(); i++) {
+                    Node node = childs.item(i);
+                    if (node instanceof Element && DEPENDENCY.equals(node.getNodeName())) {
+                        PomDependencyData pomDependencyData = new PomDependencyData((Element) node);
+                        String key = createPomDependencyMgtKey(pomDependencyData.getGroupId(), pomDependencyData.getArtifactId());
+                        dependencies.put(key, pomDependencyData);
+                    }
+                }
+            }
+            for (Map.Entry<String, PomDependencyData> entry : inheritedDependencies.entrySet()) {
+                if (!dependencies.containsKey(entry.getKey())) {
+                    dependencies.put(entry.getKey(), entry.getValue());
                 }
             }
         }
-        inheritedDependencies.putAll(dependencies);
-        return inheritedDependencies;
+        return dependencies;
     }
 
     public Map<String, PomDependencyMgt> getDependencyMgt() {
