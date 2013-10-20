@@ -80,12 +80,12 @@ class GccLinker implements Compiler<LinkerSpec> {
     }
 
     public static String getLibraryName(final String fileName) {
-	Pattern pattern = Pattern.compile("^lib(.+)\\.so$");
-	Matcher matcher = pattern.matcher(fileName);
-	if (matcher.find()) {
-	    return matcher.group(1);
-	} else {
-	    return fileName;
-	}
+        Pattern pattern = Pattern.compile("^lib(.+)\\.so$");
+        Matcher matcher = pattern.matcher(fileName);
+        if (matcher.find()) {
+            return matcher.group(1);
+        } else {
+            return fileName;
+        }
     }
 }
