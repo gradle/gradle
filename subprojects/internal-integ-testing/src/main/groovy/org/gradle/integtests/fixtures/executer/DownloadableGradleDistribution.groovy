@@ -26,6 +26,8 @@ import org.gradle.internal.nativeplatform.services.NativeServices
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
 
+import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode
+
 abstract class DownloadableGradleDistribution extends DefaultGradleDistribution {
 
     private static final CACHE_FACTORY = createCacheFactory()
@@ -66,7 +68,7 @@ abstract class DownloadableGradleDistribution extends DefaultGradleDistribution 
                 super.binDistribution.usingNativeTools().unzipTo(versionDir)
             }
             //noinspection GrDeprecatedAPIUsage
-            cache = CACHE_FACTORY.open(versionDir, version.version, CacheUsage.ON, null, [:], FileLockManager.LockMode.Shared, downloadAction as Action)
+            cache = CACHE_FACTORY.open(versionDir, version.version, CacheUsage.ON, null, [:], mode(FileLockManager.LockMode.Shared).simple(), downloadAction as Action)
         }
 
         super.binDistribution.assertIsFile()

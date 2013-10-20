@@ -30,7 +30,7 @@ class DefaultPersistentDirectoryStoreTest extends Specification {
     final FileLock lock = Mock()
     final cacheDir = tmpDir.file("dir")
     final cacheFile = cacheDir.file("some-content.bin")
-    final store = new DefaultPersistentDirectoryStore(cacheDir, "<display>", None, lockManager)
+    final store = new DefaultPersistentDirectoryStore(cacheDir, "<display>", mode(None), lockManager)
 
     def "has useful toString() implementation"() {
         expect:
@@ -60,7 +60,7 @@ class DefaultPersistentDirectoryStoreTest extends Specification {
     }
 
     def "open locks cache directory with requested mode"() {
-        final store = new DefaultPersistentDirectoryStore(cacheDir, "<display>", Shared, lockManager)
+        final store = new DefaultPersistentDirectoryStore(cacheDir, "<display>", mode(Shared), lockManager)
 
         when:
         store.open()
@@ -77,7 +77,7 @@ class DefaultPersistentDirectoryStoreTest extends Specification {
     }
 
     def "open does not lock cache directory when None mode requested"() {
-        final store = new DefaultPersistentDirectoryStore(cacheDir, "<display>", None, lockManager)
+        final store = new DefaultPersistentDirectoryStore(cacheDir, "<display>", mode(None), lockManager)
 
         when:
         store.open()

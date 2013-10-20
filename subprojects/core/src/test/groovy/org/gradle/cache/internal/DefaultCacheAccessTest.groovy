@@ -46,7 +46,7 @@ class DefaultCacheAccessTest extends Specification {
 
     def "acquires lock on open and releases on close when initial lock mode is not none"() {
         when:
-        access.open(Shared)
+        access.open(mode(Shared))
 
         then:
         1 * lockManager.lock(lockFile, mode(Shared), "<display-name>") >> lock
@@ -73,8 +73,8 @@ class DefaultCacheAccessTest extends Specification {
         lockManager.lock(lockFile, mode(Shared), "<display-name>") >> lock
 
         when:
-        access.open(Shared)
-        access.open(Shared)
+        access.open(mode(Shared))
+        access.open(mode(Shared))
 
         then:
         thrown(IllegalStateException)
@@ -82,7 +82,7 @@ class DefaultCacheAccessTest extends Specification {
 
     def "does not acquire lock on open when initial lock mode is none"() {
         when:
-        access.open(None)
+        access.open(mode(None))
 
         then:
         0 * _._
@@ -146,7 +146,7 @@ class DefaultCacheAccessTest extends Specification {
         Factory<String> action = Mock()
 
         when:
-        access.open(Exclusive)
+        access.open(mode(Exclusive))
 
         then:
         1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
@@ -160,7 +160,7 @@ class DefaultCacheAccessTest extends Specification {
     }
 
     def "use cache operation does not allow shared locks"() {
-        access.open(Shared)
+        access.open(mode(Shared))
 
         when:
         access.useCache("some operation", Mock(Factory))
@@ -183,7 +183,7 @@ class DefaultCacheAccessTest extends Specification {
         Factory<String> action = Mock()
 
         when:
-        access.open(Exclusive)
+        access.open(mode(Exclusive))
 
         then:
         1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
@@ -216,7 +216,7 @@ class DefaultCacheAccessTest extends Specification {
         Factory<String> action = Mock()
 
         when:
-        access.open(Exclusive)
+        access.open(mode(Exclusive))
 
         then:
         1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
@@ -239,7 +239,7 @@ class DefaultCacheAccessTest extends Specification {
         Factory<String> action = Mock()
 
         when:
-        access.open(Shared)
+        access.open(mode(Shared))
 
         then:
         1 * lockManager.lock(lockFile, mode(Shared), "<display-name>") >> lock
@@ -297,7 +297,7 @@ class DefaultCacheAccessTest extends Specification {
         Factory<String> action = Mock()
 
         when:
-        access.open(Exclusive)
+        access.open(mode(Exclusive))
         access.longRunningOperation("some operation", action)
 
         then:
@@ -316,7 +316,7 @@ class DefaultCacheAccessTest extends Specification {
         def runnable = Mock(Runnable)
 
         when:
-        access.open(None)
+        access.open(mode(None))
         access.fileAccess.updateFile(runnable)
 
         then:
@@ -327,7 +327,7 @@ class DefaultCacheAccessTest extends Specification {
         def runnable = Mock(Runnable)
 
         when:
-        access.open(Exclusive)
+        access.open(mode(Exclusive))
         access.fileAccess.updateFile(runnable)
 
         then:
@@ -339,7 +339,7 @@ class DefaultCacheAccessTest extends Specification {
         def runnable = Mock(Runnable)
 
         when:
-        access.open(None)
+        access.open(mode(None))
         access.useCache("use cache", {} as Runnable) //acquires file lock but releases the thread lock
         access.fileAccess.updateFile(runnable)
 

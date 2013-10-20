@@ -39,6 +39,7 @@ import java.util.Map;
 import java.util.Properties;
 
 import static org.gradle.cache.internal.FileLockManager.LockMode;
+import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
@@ -73,7 +74,7 @@ public class DefaultPersistentDirectoryCacheTest {
             one(action).execute(with(notNullValue(PersistentCache.class)));
         }});
 
-        DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(emptyDir, "<display-name>", CacheUsage.ON, validator, properties, LockMode.Shared, action, lockManager);
+        DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(emptyDir, "<display-name>", CacheUsage.ON, validator, properties, mode(LockMode.Shared), action, lockManager);
         cache.open();
         assertThat(loadProperties(emptyDir.file("cache.properties")), equalTo(properties));
     }
@@ -86,7 +87,7 @@ public class DefaultPersistentDirectoryCacheTest {
             one(action).execute(with(notNullValue(PersistentCache.class)));
         }});
 
-        DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, "<display-name>", CacheUsage.ON, validator, properties, LockMode.Shared, action, lockManager);
+        DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, "<display-name>", CacheUsage.ON, validator, properties, mode(LockMode.Shared), action, lockManager);
         cache.open();
         assertThat(loadProperties(dir.file("cache.properties")), equalTo(properties));
     }
@@ -99,7 +100,7 @@ public class DefaultPersistentDirectoryCacheTest {
             one(action).execute(with(notNullValue(PersistentCache.class)));
         }});
 
-        DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, "<display-name>", CacheUsage.ON, validator, properties, LockMode.Shared, action, lockManager);
+        DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, "<display-name>", CacheUsage.ON, validator, properties, mode(LockMode.Shared), action, lockManager);
         cache.open();
         assertThat(loadProperties(dir.file("cache.properties")), equalTo(properties));
     }
@@ -112,7 +113,7 @@ public class DefaultPersistentDirectoryCacheTest {
             one(action).execute(with(notNullValue(PersistentCache.class)));
         }});
 
-        DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, "<display-name>", CacheUsage.REBUILD, validator, properties, LockMode.Shared, action, lockManager);
+        DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, "<display-name>", CacheUsage.REBUILD, validator, properties, mode(LockMode.Shared), action, lockManager);
         cache.open();
         assertThat(loadProperties(dir.file("cache.properties")), equalTo(properties));
     }
@@ -131,7 +132,7 @@ public class DefaultPersistentDirectoryCacheTest {
 
         }});
 
-        DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, "<display-name>", CacheUsage.ON, invalidator, properties, LockMode.Shared, action, lockManager);
+        DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, "<display-name>", CacheUsage.ON, invalidator, properties, mode(LockMode.Shared), action, lockManager);
         cache.open();
         assertThat(loadProperties(dir.file("cache.properties")), equalTo(properties));
     }
@@ -144,7 +145,7 @@ public class DefaultPersistentDirectoryCacheTest {
             allowing(action).execute(with(notNullValue(PersistentCache.class)));
         }});
 
-        DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, "<display-name>", CacheUsage.ON, null, properties, LockMode.Shared, action, lockManager) {
+        DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, "<display-name>", CacheUsage.ON, null, properties, mode(LockMode.Shared), action, lockManager) {
             @Override
             protected boolean determineIfCacheIsValid(FileLock lock) throws IOException {
                 return false;
@@ -170,7 +171,7 @@ public class DefaultPersistentDirectoryCacheTest {
         }});
 
         try {
-            new DefaultPersistentDirectoryCache(dir, "<display-name>", CacheUsage.ON, validator, properties, LockMode.Shared, action, lockManager).open();
+            new DefaultPersistentDirectoryCache(dir, "<display-name>", CacheUsage.ON, validator, properties, mode(LockMode.Shared), action, lockManager).open();
             fail();
         } catch (CacheOpenException e) {
             assertThat(e.getCause(), sameInstance((Throwable) failure));
@@ -180,7 +181,7 @@ public class DefaultPersistentDirectoryCacheTest {
             one(action).execute(with(notNullValue(PersistentCache.class)));
         }});
 
-        DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, "<display-name>", CacheUsage.ON, validator, properties, LockMode.Shared, action, lockManager);
+        DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, "<display-name>", CacheUsage.ON, validator, properties, mode(LockMode.Shared), action, lockManager);
         cache.open();
         assertThat(loadProperties(dir.file("cache.properties")), equalTo(properties));
     }
@@ -189,7 +190,7 @@ public class DefaultPersistentDirectoryCacheTest {
     public void doesNotInitializeCacheWhenCacheDirExistsAndIsNotInvalid() {
         TestFile dir = createCacheDir();
 
-        DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, "<display-name>", CacheUsage.ON, validator, properties, LockMode.Shared, action, lockManager);
+        DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, "<display-name>", CacheUsage.ON, validator, properties, mode(LockMode.Shared), action, lockManager);
         cache.open();
         dir.file("cache.properties").assertIsFile();
         dir.file("some-file").assertIsFile();
@@ -211,7 +212,7 @@ public class DefaultPersistentDirectoryCacheTest {
         properties.putAll(this.properties);
         properties.putAll(GUtil.map((Object[]) extraProps));
 
-        DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, "<display-name>", CacheUsage.ON, validator, properties, LockMode.Shared, null, lockManager);
+        DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, "<display-name>", CacheUsage.ON, validator, properties, mode(LockMode.Shared), null, lockManager);
         cache.open();
         dir.file("some-file").touch();
         cache.close();

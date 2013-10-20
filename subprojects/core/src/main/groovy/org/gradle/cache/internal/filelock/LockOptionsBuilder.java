@@ -28,7 +28,7 @@ public class LockOptionsBuilder implements LockOptions {
     }
 
     public static LockOptionsBuilder mode(FileLockManager.LockMode lockMode) {
-        return new LockOptionsBuilder(lockMode, true);
+        return new LockOptionsBuilder(lockMode, false);
     }
 
     public LockOptionsBuilder simple() {
