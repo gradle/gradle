@@ -178,6 +178,17 @@ It should be possible to configure native components and binaries based on their
 
 The implementation should be able to detect and report on typos and predicates that will never match anything.
 
+## Enforce model rule inputs and outputs
+
+- Model rule uses an object which is not a declared input
+- Model rule mutates an object which is not a declared output
+- Model element is mutated after it is closed
+- Integration with old DSL.
+
+## Plugins use model rules to define implicit tasks
+
+Replace usages of `TaskContainerInternal.addPlaceholderAction()`
+
 ## User discovers which model elements are available
 
 - Add some command-line and HTML reporting tasks that can present the model, or parts of the model, to the user.

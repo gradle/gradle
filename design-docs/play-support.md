@@ -1,4 +1,3 @@
-
 This specification outlines the work that is required to use Gradle to build applications that use the [Play framework](http://www.playframework.com).
 
 # Use cases
@@ -56,6 +55,7 @@ Extend the standard build lifecycle to compile the front end assets to CSS and J
     - Javascript minification, requirejs optimization
 - Include the compiled assets in the Jar
 - Include the `public/` assets in the Jar
+- Include Play config files in the Jar (eg `conf/play.plugins`)
 - Define source sets for each type of source file
 - Compilation should be incremental and remove stale outputs
 - Expose some compiler options
