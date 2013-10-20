@@ -64,7 +64,7 @@ class ExecutorTestHelper {
     }
 
     Task brokenTask(String name, final RuntimeException failure, final Task... dependsOn) {
-        final TaskInternal task = createTask(root, name);
+        final TaskInternal task = createTask(root, name, null);
         dependsOn(task, dependsOn);
         context.checking(new Expectations() {{
             atMost(1).of(task).executeWithoutThrowingTaskFailure();
@@ -82,15 +82,19 @@ class ExecutorTestHelper {
     }
 
     Task task(ProjectInternal project, final String name, final Task... dependsOn) {
-        return task(project, name, null, dependsOn);
+        return task(project, name, null, null, dependsOn);
     }
 
-    Task task(ProjectInternal project, final String name, CountDownLatch latchToCountDown, final Task... dependsOn) {
-        return blockingTask(project, name, null, latchToCountDown, dependsOn);
+    Task task(ProjectInternal project, final String name, final String mutex, final Task... dependsOn) {
+        return task(project, name, mutex, null, dependsOn);
     }
 
-    Task blockingTask(ProjectInternal project, final String name, final CountDownLatch blockingLatch, final CountDownLatch latchToCountDown, final Task... dependsOn) {
-        final TaskInternal task = createTask(project, name);
+    Task task(ProjectInternal project, final String name, final String mutex, CountDownLatch latchToCountDown, final Task... dependsOn) {
+        return blockingTask(project, name, mutex, null, latchToCountDown, dependsOn);
+    }
+
+    Task blockingTask(ProjectInternal project, final String name, final String mutex, final CountDownLatch blockingLatch, final CountDownLatch latchToCountDown, final Task... dependsOn) {
+        final TaskInternal task = createTask(project, name, mutex);
         dependsOn(task, dependsOn);
         context.checking(new Expectations() {{
             atMost(1).of(task).executeWithoutThrowingTaskFailure();
@@ -102,13 +106,13 @@ class ExecutorTestHelper {
     }
 
     TaskInternal createTask(final String name) {
-        return createTask(root,name);
+        return createTask(root,name, null);
     }
 
-    TaskInternal createTask(final ProjectInternal project, final String name) {
-        final TaskInternal task = context.mock(TaskInternal.class);
+    TaskInternal createTask(final ProjectInternal project, final String name, final String mutex) {
+        final TaskInternal task = context.mock(TaskInternal.class, "task " + name);
         context.checking(new Expectations() {{
-            TaskStateInternal state = context.mock(TaskStateInternal.class);
+            TaskStateInternal state = context.mock(TaskStateInternal.class, "task state " + name);
 
             allowing(task).getProject();
             will(returnValue(project));
@@ -116,6 +120,8 @@ class ExecutorTestHelper {
             will(returnValue(name));
             allowing(task).getPath();
             will(returnValue(":" + name));
+            allowing(task).getMutex();
+            will(returnValue(mutex));
             allowing(task).getState();
             will(returnValue(state));
             allowing(task).getMustRunAfter();

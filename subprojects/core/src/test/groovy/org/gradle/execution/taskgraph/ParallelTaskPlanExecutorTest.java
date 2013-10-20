@@ -54,19 +54,18 @@ public class ParallelTaskPlanExecutorTest extends AbstractTaskPlanExecutorTest {
     @Test
     public void testExecutesOnlyOneDependencyPerProjectSimultaneouslyWhenInMultipleProjects() throws InterruptedException {
         final CountDownLatch latchA = new CountDownLatch(1);
-        final CountDownLatch latchC = new CountDownLatch(1);
         final CountDownLatch latchE = new CountDownLatch(1);
 
         // 1: worker 1, first free item to pick by NameOrder
-        final Task a = helper.blockingTask(sub1, "a", latchA, null);
+        final Task a = helper.blockingTask(sub1, "a", null, latchA, null);
         // 3: waiting for task a in same project to complete -- > release c
         final Task b = helper.task(sub1, "b");
         // 2: worker 2, first free item to pick by NameOrder in other project
         final Task c = helper.task(sub2, "c");
         // 4: waiting for task c in same project to complete --> release a
-        final Task d = helper.task(sub2, "d", latchA);
+        final Task d = helper.task(sub2, "d", null, latchA);
         // 5: waiting for all dependencies to complete
-        final Task e = helper.task(root, "e", latchE, b, a, c, d);
+        final Task e = helper.task(root, "e", null, latchE, b, a, c, d);
 
         taskPlanExecutor = new ParallelTaskPlanExecutor(taskArtifactStateCacheAccess, 2);
 
@@ -77,5 +76,34 @@ public class ParallelTaskPlanExecutorTest extends AbstractTaskPlanExecutorTest {
 
         assertThat("wrong start order", startedTasks, equalTo(toList(a, c, d, b, e)));
         assertThat("wrong completion order", completedTasks, equalTo(toList(c, d, a, b, e)));
+    }
+
+    @Test
+    public void testExecutionPlanHonoursMutexes() throws InterruptedException {
+        final CountDownLatch latchA = new CountDownLatch(1);
+        final CountDownLatch latchD = new CountDownLatch(1);
+        final CountDownLatch latchE = new CountDownLatch(1);
+        String mutex = "mutex";
+
+        // 1: worker 1, first free item to pick by NameOrder, setting mutex
+        final Task a = helper.blockingTask(sub1, "a", mutex, latchA, null);
+        // 3: waiting for task a in same project to complete -- > release d
+        final Task b = helper.task(sub1, "b", null, latchD);
+        // 4: worker 2, skipped at first as blocked by mutex, later waiting for task d in same project to complete
+        final Task c = helper.task(sub2, "c", mutex);
+        // 2: worker 2, first free item to pick by NameOrder in other project, no blocking mutex --> -- > release a
+        final Task d = helper.blockingTask(sub2, "d", null, latchD, latchA);
+        // 5: waiting for all dependencies to complete
+        final Task e = helper.task(root, "e", null, latchE, b, a, c, d);
+
+        taskPlanExecutor = new ParallelTaskPlanExecutor(taskArtifactStateCacheAccess, 2);
+
+        addTasksToPlan(e);
+        execute();
+
+        latchE.await();
+
+        assertThat("wrong start order", startedTasks, equalTo(toList(a, d, b, c, e)));
+        assertThat("wrong completion order", completedTasks, equalTo(toList(a, b, d, c, e)));
     }
 }

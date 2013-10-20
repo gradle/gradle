@@ -298,7 +298,7 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         this.failureHandler = handler;
     }
 
-    public TaskInfo getTaskToExecute() {
+    public TaskInfo getTaskToExecute(MutexManager mutexManager) {
         lock.lock();
         try {
             while (true) {
@@ -306,7 +306,7 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 boolean allTasksComplete = true;
                 for (TaskInfo taskInfo : executionPlan.values()) {
                     allTasksComplete = allTasksComplete && taskInfo.isComplete();
-                    if (taskInfo.isReady() && taskInfo.allDependenciesComplete() && !runningProjects.contains(taskInfo.getTask().getProject().getPath())) {
+                    if (isReadyToBeExecuted(taskInfo, runningProjects, mutexManager)) {
                         nextMatching = taskInfo;
                         break;
                     }
@@ -334,6 +334,24 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         } finally {
             lock.unlock();
         }
+    }
+
+    static boolean isReadyToBeExecuted(TaskInfo taskInfo, Collection<String> runningProjects, MutexManager mutexManager) {
+        if (!taskInfo.isReady()) {
+            return false;
+        }
+
+        if (!taskInfo.allDependenciesComplete()) {
+            return false;
+        }
+
+        TaskInternal task = taskInfo.getTask();
+
+        if (runningProjects.contains(task.getProject().getPath())) {
+            return false;
+        }
+
+        return mutexManager.claim(task);
     }
 
     public void taskComplete(TaskInfo taskInfo) {
