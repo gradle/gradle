@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.testing
 
 import org.gradle.api.Action
 import org.gradle.api.internal.tasks.testing.junit.result.TestClassResult
+import org.gradle.api.internal.tasks.testing.junit.result.TestFailure
 import org.gradle.api.internal.tasks.testing.junit.result.TestMethodResult
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider
 import org.gradle.api.tasks.testing.TestOutputEvent
@@ -122,20 +123,21 @@ class BuildableTestResultsProvider implements TestResultsProvider {
     static class BuildableTestMethodResult extends TestMethodResult {
 
         long duration
-        List<Throwable> exceptions = []
+        List<TestFailure> failures = []
 
         TestResult.ResultType resultType = TestResult.ResultType.SUCCESS
 
         private final List<BuildableOutputEvent> outputEvents
 
         BuildableTestMethodResult(long id, String name, List<BuildableOutputEvent> outputEvents, TestResult result) {
-            super(id, name, result)
+            super(id, name)
+            completed(result)
             this.outputEvents = outputEvents
             duration = result.endTime - result.startTime;
         }
 
-        void failure(String message, String text) {
-            exceptions.add(new TestResultException(message, text))
+        void failure(String message, String stackTrace) {
+            failures.add(new TestFailure(message, stackTrace, "ExceptionType"))
         }
 
         def stderr(String output) {
@@ -144,25 +146,6 @@ class BuildableTestResultsProvider implements TestResultsProvider {
 
         def stdout(String output) {
             outputEvents << new BuildableOutputEvent(getId(), new DefaultTestOutputEvent(StdOut, output))
-        }
-    }
-
-    static class TestResultException extends Exception {
-
-        private final String message
-        private final String text
-
-        TestResultException(String message, String text) {
-            super(message)
-            this.text = text
-        }
-
-        String toString() {
-            return message
-        }
-
-        public void printStackTrace(PrintWriter s) {
-            s.print(text);
         }
     }
 

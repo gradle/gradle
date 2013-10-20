@@ -68,8 +68,11 @@ public class PomReader {
     private static final String PROPERTIES = "properties";
     private static final String TYPE = "type";
 
-    private Map<String, String> properties = new HashMap<String, String>();
-    private final Set<PomDependencyMgt> inheritedDependencyMgts = new HashSet<PomDependencyMgt>();
+    private final Map<String, String> properties = new HashMap<String, String>();
+    private final Map<String, PomDependencyMgt> inheritedDependencyMgts = new LinkedHashMap<String, PomDependencyMgt>();
+    private Map<String, PomDependencyMgt> dependencyMgts;
+    private final Map<String, PomDependencyData> inheritedDependencies = new LinkedHashMap<String, PomDependencyData>();
+    private Map<String, PomDependencyData> dependencies;
 
     private final Element projectElement;
     private final Element parentElement;
@@ -169,8 +172,12 @@ public class PomReader {
         return properties;
     }
 
-    public void addDependencyMgts(Set<PomDependencyMgt> dependencyMgts) {
-        inheritedDependencyMgts.addAll(dependencyMgts);
+    public void addInheritedDependencyMgts(Map<String, PomDependencyMgt> inherited) {
+        inheritedDependencyMgts.putAll(inherited);
+    }
+
+    public void addInheritedDependencies(Map<String, PomDependencyData> inherited) {
+        inheritedDependencies.putAll(inherited);
     }
 
     public String getGroupId() {
@@ -235,7 +242,7 @@ public class PomReader {
     }
 
     public String getHomePage() {
-        String val = getFirstChildText(projectElement , HOMEPAGE);
+        String val = getFirstChildText(projectElement, HOMEPAGE);
         if (val == null) {
             val = "";
         }
@@ -295,37 +302,61 @@ public class PomReader {
         }
     }
 
-    public List<PomDependencyData> getDependencies() {
-        Element dependenciesElement = getFirstChildElement(projectElement, DEPENDENCIES);
-        List<PomDependencyData> dependencies = new LinkedList<PomDependencyData>();
-        if (dependenciesElement != null) {
-            NodeList childs = dependenciesElement.getChildNodes();
-            for (int i = 0; i < childs.getLength(); i++) {
-                Node node = childs.item(i);
-                if (node instanceof Element && DEPENDENCY.equals(node.getNodeName())) {
-                    dependencies.add(new PomDependencyData((Element) node));
+    public Map<String, PomDependencyData> getDependencies() {
+        if (dependencies == null) {
+            Element dependenciesElement = getFirstChildElement(projectElement, DEPENDENCIES);
+            dependencies = new LinkedHashMap<String, PomDependencyData>();
+            if (dependenciesElement != null) {
+                NodeList childs = dependenciesElement.getChildNodes();
+                for (int i = 0; i < childs.getLength(); i++) {
+                    Node node = childs.item(i);
+                    if (node instanceof Element && DEPENDENCY.equals(node.getNodeName())) {
+                        PomDependencyData pomDependencyData = new PomDependencyData((Element) node);
+                        String key = createPomDependencyMgtKey(pomDependencyData.getGroupId(), pomDependencyData.getArtifactId());
+                        dependencies.put(key, pomDependencyData);
+                    }
+                }
+            }
+            for (Map.Entry<String, PomDependencyData> entry : inheritedDependencies.entrySet()) {
+                if (!dependencies.containsKey(entry.getKey())) {
+                    dependencies.put(entry.getKey(), entry.getValue());
                 }
             }
         }
         return dependencies;
     }
 
+    public Map<String, PomDependencyMgt> getDependencyMgt() {
+        if(dependencyMgts == null) {
+            dependencyMgts = resolveDependencyMgt();
+        }
 
-    public Set<PomDependencyMgt> getDependencyMgt() {
+        inheritedDependencyMgts.putAll(dependencyMgts);
+        return inheritedDependencyMgts;
+    }
+
+    private Map<String, PomDependencyMgt> resolveDependencyMgt() {
+        Map<String, PomDependencyMgt> resolvedDependencyMgts = new LinkedHashMap<String, PomDependencyMgt>();
+
         Element dependenciesElement = getFirstChildElement(projectElement, DEPENDENCY_MGT);
         dependenciesElement = getFirstChildElement(dependenciesElement, DEPENDENCIES);
-        Set<PomDependencyMgt> dependencies = new LinkedHashSet<PomDependencyMgt>();
         if (dependenciesElement != null) {
             NodeList childs = dependenciesElement.getChildNodes();
             for (int i = 0; i < childs.getLength(); i++) {
                 Node node = childs.item(i);
                 if (node instanceof Element && DEPENDENCY.equals(node.getNodeName())) {
-                    dependencies.add(new PomDependencyMgtElement((Element) node));
+                    PomDependencyMgt pomDependencyMgt = new PomDependencyMgtElement((Element) node);
+                    String key = createPomDependencyMgtKey(pomDependencyMgt.getGroupId(), pomDependencyMgt.getArtifactId());
+                    resolvedDependencyMgts.put(key, pomDependencyMgt);
                 }
             }
         }
-        dependencies.addAll(inheritedDependencyMgts);
-        return dependencies;
+
+        return resolvedDependencyMgts;
+    }
+
+    private String createPomDependencyMgtKey(String groupId, String artifactId) {
+        return String.format("%s:%s", groupId, artifactId);
     }
 
     public void resolveGAV() {

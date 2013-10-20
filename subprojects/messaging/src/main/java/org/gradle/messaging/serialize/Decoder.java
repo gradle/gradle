@@ -39,6 +39,13 @@ public interface Decoder {
     long readLong() throws EOFException, IOException;
 
     /**
+     * Reads a signed 64 bit int value. Can read any value that was written using {@link Encoder#writeSmallLong(int)}.
+     *
+     * @throws EOFException when the end of the byte stream is reached before the int value can be fully read.
+     */
+    long readSmallLong() throws EOFException, IOException;
+
+    /**
      * Reads a signed 32 bit int value. Can read any value that was written using {@link Encoder#writeInt(int)}.
      *
      * @throws EOFException when the end of the byte stream is reached before the int value can be fully read.
@@ -46,11 +53,11 @@ public interface Decoder {
     int readInt() throws EOFException, IOException;
 
     /**
-     * Reads a signed 32 bit int value. Can read any value that was written using {@link Encoder#writeSizeInt(int)}.
+     * Reads a signed 32 bit int value. Can read any value that was written using {@link Encoder#writeSmallInt(int)}.
      *
      * @throws EOFException when the end of the byte stream is reached before the int value can be fully read.
      */
-    int readSizeInt() throws EOFException, IOException;
+    int readSmallInt() throws EOFException, IOException;
 
     /**
      * Reads a boolean value. Can read any value that was written using {@link Encoder#writeBoolean(boolean)}.
@@ -103,4 +110,9 @@ public interface Decoder {
      * @throws EOFException when the end of the byte stream is reached before the byte array was fully read.
      */
     byte[] readBinary() throws EOFException, IOException;
+
+    /**
+     * Skips the given number of bytes. Can skip over any byte values that were written using one of the raw byte methods on {@link Encoder}.
+     */
+    void skipBytes(long count) throws EOFException, IOException;
 }

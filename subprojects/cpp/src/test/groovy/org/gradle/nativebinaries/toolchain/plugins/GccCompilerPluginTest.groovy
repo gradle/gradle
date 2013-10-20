@@ -15,46 +15,45 @@
  */
 
 package org.gradle.nativebinaries.toolchain.plugins
-
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.ExtraPropertiesExtension
-import org.gradle.nativebinaries.toolchain.Clang
-import org.gradle.nativebinaries.toolchain.internal.clang.ClangToolChain
+import org.gradle.nativebinaries.toolchain.Gcc
+import org.gradle.nativebinaries.toolchain.internal.gcc.GccToolChain
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
-class ClangCompilerPluginTest extends Specification {
+class GccCompilerPluginTest extends Specification {
     def project = TestUtil.createRootProject()
 
     def setup() {
-        project.plugins.apply(ClangCompilerPlugin)
+        project.plugins.apply(GccCompilerPlugin)
     }
 
-    def "makes a Clang tool chain available"() {
+    def "makes a Gcc tool chain available"() {
         when:
-        project.toolChains.create("clang", Clang)
+        project.toolChains.create("gcc", Gcc)
 
         then:
-        project.toolChains.clang instanceof ClangToolChain
+        project.toolChains.gcc instanceof GccToolChain
     }
 
     @Requires(TestPrecondition.NOT_WINDOWS)
-    def "registers default Clang tool chain"() {
+    def "registers default Gcc tool chain"() {
         when:
         project.toolChains.addDefaultToolChain()
 
         then:
-        project.toolChains.clang instanceof ClangToolChain
+        project.toolChains.gcc instanceof GccToolChain
     }
 
-    def "Clang tool chain is extended"() {
+    def "Gcc tool chain is extended"() {
         when:
-        project.toolChains.create("clang", Clang)
+        project.toolChains.create("gcc", Gcc)
 
         then:
-        with (project.toolChains.clang) {
+        with (project.toolChains.gcc) {
             it instanceof ExtensionAware
             it.ext instanceof ExtraPropertiesExtension
         }

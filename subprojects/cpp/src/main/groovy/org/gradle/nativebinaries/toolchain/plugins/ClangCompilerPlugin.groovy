@@ -19,6 +19,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.nativebinaries.internal.ToolChainRegistryInternal
 import org.gradle.nativebinaries.plugins.NativeBinariesPlugin
 import org.gradle.nativebinaries.toolchain.Clang
@@ -33,11 +34,13 @@ import javax.inject.Inject
 class ClangCompilerPlugin implements Plugin<Project> {
     private final FileResolver fileResolver
     private final ExecActionFactory execActionFactory
+    private final Instantiator instantiator
 
     @Inject
-    ClangCompilerPlugin(FileResolver fileResolver, ExecActionFactory execActionFactory) {
+    ClangCompilerPlugin(FileResolver fileResolver, ExecActionFactory execActionFactory, Instantiator instantiator) {
         this.execActionFactory = execActionFactory
         this.fileResolver = fileResolver
+        this.instantiator = instantiator
     }
 
     void apply(Project project) {
@@ -45,7 +48,7 @@ class ClangCompilerPlugin implements Plugin<Project> {
 
         final toolChainRegistry = project.extensions.getByType(ToolChainRegistryInternal)
         toolChainRegistry.registerFactory(Clang, { String name ->
-            return new ClangToolChain(name, OperatingSystem.current(), fileResolver, execActionFactory)
+            return instantiator.newInstance(ClangToolChain, name, OperatingSystem.current(), fileResolver, execActionFactory)
         })
         toolChainRegistry.registerDefaultToolChain(ClangToolChain.DEFAULT_NAME, Clang)
     }

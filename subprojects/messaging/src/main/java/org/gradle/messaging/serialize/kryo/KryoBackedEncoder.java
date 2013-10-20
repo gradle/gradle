@@ -19,12 +19,12 @@ package org.gradle.messaging.serialize.kryo;
 import com.esotericsoftware.kryo.io.Output;
 import org.gradle.api.Nullable;
 import org.gradle.messaging.serialize.AbstractEncoder;
-import org.gradle.messaging.serialize.Encoder;
+import org.gradle.messaging.serialize.FlushableEncoder;
 
-import java.io.IOException;
+import java.io.Closeable;
 import java.io.OutputStream;
 
-public class KryoBackedEncoder extends AbstractEncoder implements Encoder {
+public class KryoBackedEncoder extends AbstractEncoder implements FlushableEncoder, Closeable {
     private final Output output;
 
     public KryoBackedEncoder(OutputStream outputStream) {
@@ -43,15 +43,19 @@ public class KryoBackedEncoder extends AbstractEncoder implements Encoder {
         output.writeLong(value);
     }
 
-    public void writeInt(int value) throws IOException {
+    public void writeSmallLong(long value) {
+        output.writeLong(value, true);
+    }
+
+    public void writeInt(int value) {
         output.writeInt(value);
     }
 
-    public void writeSizeInt(int value) throws IOException {
+    public void writeSmallInt(int value) {
         output.writeInt(value, true);
     }
 
-    public void writeBoolean(boolean value) throws IOException {
+    public void writeBoolean(boolean value) {
         output.writeBoolean(value);
     }
 
@@ -66,12 +70,23 @@ public class KryoBackedEncoder extends AbstractEncoder implements Encoder {
         output.writeString(value);
     }
 
-    public void writeBinary(byte[] bytes, int offset, int count) throws IOException {
+    public void writeBinary(byte[] bytes, int offset, int count) {
         output.writeInt(count, true);
         output.writeBytes(bytes, offset, count);
     }
 
+    /**
+     * Returns the total number of bytes written by this encoder, some of which is may still be buffered.
+     */
+    public int getWritePosition() {
+        return output.total();
+    }
+
     public void flush() {
         output.flush();
+    }
+
+    public void close() {
+        output.close();
     }
 }

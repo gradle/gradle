@@ -128,6 +128,56 @@ abstract class AbstractCodecTest extends Specification {
         thrown(EOFException)
     }
 
+    def "can skip raw bytes"() {
+        expect:
+        def bytes = encode { Encoder encoder ->
+            encoder.writeBytes([1, 2, 3, 4, 5, 6] as byte[])
+            encoder.writeBytes(new byte[4096])
+            encoder.writeBytes([7, 8] as byte[])
+        }
+        decode(bytes) { Decoder decoder ->
+            def buffer = new byte[2]
+            decoder.readBytes(buffer)
+            assert buffer == [1, 2] as byte[]
+            decoder.skipBytes(2)
+            assert decoder.readByte() == 5 as byte
+            assert decoder.readByte() == 6 as byte
+            decoder.skipBytes(2000)
+            decoder.skipBytes(2096)
+            assert decoder.readByte() == 7 as byte
+            assert decoder.readByte() == 8 as byte
+        }
+    }
+
+    def "can skip raw bytes using InputStream"() {
+        expect:
+        def bytes = encode { Encoder encoder ->
+            encoder.writeBytes([1, 2, 3, 4, 5, 6] as byte[])
+        }
+        decode(bytes) { Decoder decoder ->
+            def buffer = new byte[2]
+            decoder.readBytes(buffer)
+            assert buffer == [1, 2] as byte[]
+            assert decoder.inputStream.skip(2) == 2
+            assert decoder.readByte() == 5 as byte
+            assert decoder.readByte() == 6 as byte
+            assert decoder.inputStream.skip(2) == 0
+        }
+    }
+
+    def "decode fails when too few bytes are available to skip"() {
+        when:
+        def bytes = encode { Encoder encoder ->
+            encoder.writeBytes([1, 2] as byte[])
+        }
+        decode(bytes) { Decoder decoder ->
+            decoder.skipBytes(4)
+        }
+
+        then:
+        thrown(EOFException)
+    }
+
     def "can encode and decode byte array"() {
         expect:
         def bytes = encode { Encoder encoder ->
@@ -198,6 +248,49 @@ abstract class AbstractCodecTest extends Specification {
         thrown(EOFException)
     }
 
+    def "can encode and decode a small long"() {
+        expect:
+        def bytesA = encode { Encoder encoder ->
+            encoder.writeSmallLong(a as long)
+        }
+        def bytesB = encode { Encoder encoder ->
+            encoder.writeSmallLong(b as long)
+        }
+        decode(bytesA) { Decoder decoder ->
+            assert decoder.readSmallLong() == a
+        }
+        decode(bytesB) { Decoder decoder ->
+            assert decoder.readSmallLong() == b
+        }
+        bytesA.length <= bytesB.length
+
+        where:
+        a                 | b
+        0                 | 0x1ff
+        0x2ff             | 0x1000
+        0x1000            | -1
+        Integer.MAX_VALUE | -1
+        Long.MAX_VALUE    | -1
+        Long.MAX_VALUE    | -0xc3412
+        Integer.MAX_VALUE | Integer.MIN_VALUE
+        Long.MAX_VALUE    | Long.MIN_VALUE
+    }
+
+    def "decode fails when small long cannot be fully read"() {
+        given:
+        def bytes = truncate { Encoder encoder ->
+            encoder.writeSmallLong(0xa40745f)
+        }
+
+        when:
+        decode(bytes) { Decoder decoder ->
+            decoder.readSmallLong()
+        }
+
+        then:
+        thrown(EOFException)
+    }
+
     def "can encode and decode an int"() {
         expect:
         def bytes = encode { Encoder encoder ->
@@ -231,19 +324,19 @@ abstract class AbstractCodecTest extends Specification {
         thrown(EOFException)
     }
 
-    def "can encode and decode a size int"() {
+    def "can encode and decode a small int"() {
         expect:
         def bytesA = encode { Encoder encoder ->
-            encoder.writeSizeInt(a as int)
+            encoder.writeSmallInt(a as int)
         }
         def bytesB = encode { Encoder encoder ->
-            encoder.writeSizeInt(b as int)
+            encoder.writeSmallInt(b as int)
         }
         decode(bytesA) { Decoder decoder ->
-            assert decoder.readSizeInt() == a
+            assert decoder.readSmallInt() == a
         }
         decode(bytesB) { Decoder decoder ->
-            assert decoder.readSizeInt() == b
+            assert decoder.readSmallInt() == b
         }
         bytesA.length <= bytesB.length
 
@@ -257,15 +350,15 @@ abstract class AbstractCodecTest extends Specification {
         Integer.MAX_VALUE | Integer.MIN_VALUE
     }
 
-    def "decode fails when size int cannot be fully read"() {
+    def "decode fails when small int cannot be fully read"() {
         given:
         def bytes = truncate { Encoder encoder ->
-            encoder.writeSizeInt(0xa40745f)
+            encoder.writeSmallInt(0xa40745f)
         }
 
         when:
         decode(bytes) { Decoder decoder ->
-            decoder.readSizeInt()
+            decoder.readSmallInt()
         }
 
         then:

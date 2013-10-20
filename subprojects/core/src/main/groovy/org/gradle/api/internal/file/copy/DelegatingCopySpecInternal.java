@@ -211,6 +211,10 @@ abstract public class DelegatingCopySpecInternal implements CopySpecInternal {
         return getDelegateCopySpec().addChild();
     }
 
+    public DefaultCopySpec addChildBeforeSpec(CopySpecInternal spec) {
+        return getDelegateCopySpec().addChildBeforeSpec(spec);
+    }
+
     public DefaultCopySpec addFirst() {
         return getDelegateCopySpec().addFirst();
     }

@@ -53,8 +53,8 @@ class Assembler implements Compiler<AssembleSpec> {
         }
 
         public void collectArguments(AssembleSpec spec, ArgCollector collector) {
-            for (String rawArg : spec.getArgs()) {
-                collector.args(rawArg);
+            for (String arg : spec.getAllArgs()) {
+                collector.args(arg);
             }
             collector.args("/nologo");
             collector.args("/c");

@@ -27,5 +27,5 @@ public interface PlatformConfigurableToolChain extends ToolChain {
     /**
      * Add configuration for a target platform.
      */
-    void addPlatformConfiguration(ToolChainPlatformConfiguration platformConfig);
+    void addPlatformConfiguration(TargetPlatformConfiguration platformConfig);
 }

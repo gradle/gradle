@@ -40,13 +40,13 @@ public interface TestListener {
     void afterSuite(TestDescriptor suite, TestResult result);
 
     /**
-     * Called before a test is started.
+     * Called before an atomic test is started.
      * @param testDescriptor The test which is about to be executed.
      */
     void beforeTest(TestDescriptor testDescriptor);
 
     /**
-     * Called after a test is finished.
+     * Called after an atomic test is finished.
      * @param testDescriptor The test which has finished executing.
      * @param result The test result.
      */

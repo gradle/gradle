@@ -33,4 +33,66 @@ class KryoBackedCodecTest extends AbstractCodecTest {
         def decoder = new KryoBackedDecoder(inputStream)
         closure.call(decoder)
     }
+
+    def "can query write and read positions"() {
+        def outstr = new ByteArrayOutputStream()
+        def encoder = new KryoBackedEncoder(outstr)
+
+        expect:
+        encoder.writePosition == 0
+
+        when:
+        encoder.writeBoolean(true)
+        encoder.writeByte(12 as byte)
+        encoder.writeLong(1234)
+
+        then:
+        encoder.writePosition == 10
+        outstr.size() == 0
+
+        when:
+        encoder.flush()
+
+        then:
+        encoder.writePosition == 10
+        outstr.size() == 10
+
+        when:
+        encoder.writeBytes(new byte[4098])
+
+        then:
+        encoder.writePosition == 4108
+        outstr.size() == 4106
+
+        when:
+        encoder.close()
+
+        then:
+        encoder.writePosition == 4108
+        outstr.size() == 4108
+
+        when:
+        def instr = new ByteArrayInputStream(outstr.toByteArray())
+        def decoder = new KryoBackedDecoder(instr)
+
+        then:
+        instr.available() == 4108
+        decoder.readPosition == 0
+
+        when:
+        decoder.readBoolean()
+        decoder.readByte()
+        decoder.readLong()
+
+        then:
+        instr.available() == 12 // decoder has buffered from instr
+        decoder.readPosition == 10
+
+        when:
+        decoder.skipBytes(4098)
+
+        then:
+        instr.available() == 0
+        decoder.readPosition == 4108
+    }
 }

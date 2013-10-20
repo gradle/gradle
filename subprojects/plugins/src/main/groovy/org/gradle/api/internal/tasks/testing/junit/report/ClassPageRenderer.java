@@ -17,9 +17,12 @@ package org.gradle.api.internal.tasks.testing.junit.report;
 
 import org.gradle.api.internal.ErroringAction;
 import org.gradle.api.internal.html.SimpleHtmlWriter;
+import org.gradle.api.internal.tasks.testing.junit.result.TestFailure;
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;
 import org.gradle.api.tasks.testing.TestOutputEvent;
+import org.gradle.internal.SystemProperties;
 import org.gradle.reporting.CodePanelRenderer;
+import org.gradle.util.GUtil;
 
 import java.io.IOException;
 
@@ -70,7 +73,13 @@ class ClassPageRenderer extends PageRenderer<ClassTestResults> {
                 .startElement("a").attribute("name", test.getId().toString()).characters("").endElement() //browsers dont understand <a name="..."/>
                 .startElement("h3").attribute("class", test.getStatusClass()).characters(test.getName()).endElement();
             for (TestFailure failure : test.getFailures()) {
-                codePanelRenderer.render(failure.getStackTrace(), htmlWriter);
+                String message;
+                if (GUtil.isTrue(failure.getMessage()) && !failure.getStackTrace().contains(failure.getMessage())) {
+                    message = failure.getMessage() + SystemProperties.getLineSeparator() + SystemProperties.getLineSeparator() + failure.getStackTrace();
+                } else {
+                    message = failure.getStackTrace();
+                }
+                codePanelRenderer.render(message, htmlWriter);
             }
             htmlWriter.endElement();
         }

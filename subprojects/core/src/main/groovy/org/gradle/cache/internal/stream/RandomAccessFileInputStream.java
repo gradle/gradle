@@ -27,6 +27,12 @@ public class RandomAccessFileInputStream extends InputStream {
     }
 
     @Override
+    public long skip(long n) throws IOException {
+        file.seek(file.getFilePointer() + n);
+        return n;
+    }
+
+    @Override
     public int read(byte[] bytes) throws IOException {
         return file.read(bytes);
     }

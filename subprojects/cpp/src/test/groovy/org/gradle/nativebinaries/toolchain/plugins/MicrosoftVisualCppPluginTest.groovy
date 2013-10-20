@@ -15,11 +15,14 @@
  */
 
 package org.gradle.nativebinaries.toolchain.plugins
+import org.gradle.api.plugins.ExtensionAware
+import org.gradle.api.plugins.ExtraPropertiesExtension
 import org.gradle.internal.nativeplatform.ProcessEnvironment
 import org.gradle.internal.nativeplatform.services.NativeServices
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.internal.ToolChainAvailability
 import org.gradle.nativebinaries.toolchain.VisualCpp
+import org.gradle.nativebinaries.toolchain.internal.msvcpp.VisualCppToolChain
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -34,11 +37,41 @@ class MicrosoftVisualCppPluginTest extends Specification {
     TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
     def project = TestUtil.createRootProject()
 
+    def setup() {
+        project.plugins.apply(MicrosoftVisualCppPlugin)
+    }
+
+    def "makes a VisualCpp tool chain available"() {
+        when:
+        project.toolChains.create("vc", VisualCpp)
+
+        then:
+        project.toolChains.vc instanceof VisualCppToolChain
+    }
+
+    @Requires(TestPrecondition.WINDOWS)
+    def "registers default VisualCpp tool chain"() {
+        when:
+        project.toolChains.addDefaultToolChain()
+
+        then:
+        project.toolChains.visualCpp instanceof VisualCppToolChain
+    }
+
+    def "VisualCpp tool chain is extended"() {
+        when:
+        project.toolChains.create("vc", VisualCpp)
+
+        then:
+        with (project.toolChains.vc) {
+            it instanceof ExtensionAware
+            it.ext instanceof ExtraPropertiesExtension
+        }
+    }
+
     @Requires(TestPrecondition.NOT_WINDOWS)
     def "installs an unavailable tool chain when not windows"() {
         when:
-        project.plugins.apply(MicrosoftVisualCppPlugin)
-
         project.toolChains.create("vc", VisualCpp)
 
         then:
@@ -58,7 +91,6 @@ class MicrosoftVisualCppPluginTest extends Specification {
         processEnvironment.setEnvironmentVariable(pathVar, dummyCompiler.getParentFile().absolutePath);
 
         when:
-        project.plugins.apply(MicrosoftVisualCppPlugin)
         project.toolChains.create("vc", VisualCpp)
 
         then:

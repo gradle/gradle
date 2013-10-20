@@ -21,24 +21,47 @@ import com.esotericsoftware.kryo.io.Input;
 import org.gradle.messaging.serialize.AbstractDecoder;
 import org.gradle.messaging.serialize.Decoder;
 
+import java.io.Closeable;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 
-public class KryoBackedDecoder extends AbstractDecoder implements Decoder {
+public class KryoBackedDecoder extends AbstractDecoder implements Decoder, Closeable {
     private final Input input;
+    private final InputStream inputStream;
+    private long extraSkipped;
 
     /**
      * Note that this decoder uses buffering, so will attempt to read beyond the end of the encoded data. This means you should use this type only when this decoder will be used to decode the entire
      * stream.
      */
     public KryoBackedDecoder(InputStream inputStream) {
-        input = new Input(inputStream);
+        this.inputStream = inputStream;
+        input = new Input(this.inputStream);
     }
 
     @Override
     protected int maybeReadBytes(byte[] buffer, int offset, int count) {
         return input.read(buffer, offset, count);
+    }
+
+    @Override
+    protected long maybeSkip(long count) throws IOException {
+        // Work around some bugs in Input.skip()
+        int remaining = input.limit() - input.position();
+        if (remaining == 0) {
+            long skipped = inputStream.skip(count);
+            if (skipped > 0) {
+                extraSkipped += skipped;
+            }
+            return skipped;
+        } else if (count <= remaining) {
+            input.setPosition(input.position() + (int) count);
+            return count;
+        } else {
+            input.setPosition(input.limit());
+            return remaining;
+        }
     }
 
     private RuntimeException maybeEndOfStream(KryoException e) throws EOFException {
@@ -72,6 +95,14 @@ public class KryoBackedDecoder extends AbstractDecoder implements Decoder {
         }
     }
 
+    public long readSmallLong() throws EOFException, IOException {
+        try {
+            return input.readLong(true);
+        } catch (KryoException e) {
+            throw maybeEndOfStream(e);
+        }
+    }
+
     public int readInt() throws EOFException {
         try {
             return input.readInt();
@@ -80,7 +111,7 @@ public class KryoBackedDecoder extends AbstractDecoder implements Decoder {
         }
     }
 
-    public int readSizeInt() throws EOFException {
+    public int readSmallInt() throws EOFException {
         try {
             return input.readInt(true);
         } catch (KryoException e) {
@@ -117,5 +148,16 @@ public class KryoBackedDecoder extends AbstractDecoder implements Decoder {
         } catch (KryoException e) {
             throw maybeEndOfStream(e);
         }
+    }
+
+    /**
+     * Returns the total number of bytes consumed by this decoder. Some additional bytes may also be buffered by this decoder but have not been consumed.
+     */
+    public long getReadPosition() {
+        return input.total() + extraSkipped;
+    }
+
+    public void close() throws IOException {
+        input.close();
     }
 }

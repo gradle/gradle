@@ -29,10 +29,7 @@ import org.xml.sax.SAXException;
 
 import java.io.IOException;
 import java.text.ParseException;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * This a straight copy of org.apache.ivy.plugins.parser.m2.PomModuleDescriptorParser, with one change: we do NOT attempt to retrieve source and javadoc artifacts when parsing the POM. This cuts the
@@ -40,6 +37,7 @@ import java.util.Set;
  */
 public final class GradlePomModuleDescriptorParser extends AbstractModuleDescriptorParser {
     private static final Logger LOGGER = LoggerFactory.getLogger(GradlePomModuleDescriptorParser.class);
+    private static final String DEPENDENCY_IMPORT_SCOPE = "import";
 
     @Override
     protected String getTypeName() {
@@ -84,8 +82,6 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
             for (Map.Entry<String, String> entry : parentPomProps.entrySet()) {
                 pomReader.setProperty(entry.getKey(), entry.getValue());
             }
-
-            pomReader.addDependencyMgts(parentDescr.getDependencyMgt());
         }
         pomReader.resolveGAV();
 
@@ -110,7 +106,7 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
                 LOGGER.warn("Resolution will only pick dependencies of the relocated element.  Artifacts and other metadata will be ignored.");
                 PomReader relocatedModule = parseOtherPom(parserSettings, relocation);
 
-                List<PomDependencyData> pomDependencyDataList = relocatedModule.getDependencies();
+                Collection<PomDependencyData> pomDependencyDataList = relocatedModule.getDependencies().values();
                 for(PomDependencyData pomDependencyData : pomDependencyDataList) {
                     mdBuilder.addDependency(pomDependencyData);
                 }
@@ -132,49 +128,103 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
             }
         } else {
             if (parentDescr != null) {
-                // add dependency management info from parent
-                Set<PomDependencyMgt> depMgt = parentDescr.getDependencyMgt();
-                for (PomDependencyMgt aDepMgt : depMgt) {
-                    mdBuilder.addDependencyMgt(aDepMgt);
-                }
+
+                pomReader.addInheritedDependencyMgts(parentDescr.getDependencyMgt());
+                pomReader.addInheritedDependencies(parentDescr.getDependencies());
             }
 
-            for (Object o : pomReader.getDependencyMgt()) {
-                PomDependencyMgt dep = (PomDependencyMgt) o;
-                if ("import".equals(dep.getScope())) {
-                    ModuleRevisionId importModRevID = ModuleRevisionId.newInstance(
-                            dep.getGroupId(),
-                            dep.getArtifactId(),
-                            dep.getVersion());
-                    PomReader importDescr = parseOtherPom(parserSettings, importModRevID);
-                    // add dependency management info from imported module
-                    Set<PomDependencyMgt> depMgt = importDescr.getDependencyMgt();
-                    pomReader.addDependencyMgts(depMgt);
+            overrideDependencyMgtsWithImported(parserSettings, pomReader);
+            addDependencyMgtsToBuilder(mdBuilder, pomReader.getDependencyMgt().values());
 
-                    for (PomDependencyMgt aDepMgt : depMgt) {
-                        mdBuilder.addDependencyMgt(aDepMgt);
-                    }
-
-                } else {
-                    mdBuilder.addDependencyMgt(dep);
-                }
-            }
-
-            for (Object o : pomReader.getDependencies()) {
-                PomDependencyData dep = (PomDependencyData) o;
-                mdBuilder.addDependency(dep);
-            }
-
-            if (parentDescr != null) {
-                for (PomDependencyData pomDependencyData : parentDescr.getDependencies()) {
-                    mdBuilder.addDependency(pomDependencyData);
-                }
+            for (PomDependencyData dependency : pomReader.getDependencies().values()) {
+                mdBuilder.addDependency(dependency);
             }
         }
     }
 
-    private PomReader parseOtherPom(DescriptorParseContext parseContext,
-                                    ModuleRevisionId parentModRevID) throws IOException, SAXException {
+    /**
+     * Overrides existing dependency management information with imported ones if existing.
+     *
+     * @param parseContext Parse context
+     * @param pomReader POM reader
+     * @throws IOException
+     * @throws SAXException
+     */
+    private void overrideDependencyMgtsWithImported(DescriptorParseContext parseContext, PomReader pomReader) throws IOException, SAXException {
+        Map<String, PomDependencyMgt> importedDependencyMgts = parseImportedDependencyMgts(parseContext, pomReader.getDependencyMgt().values());
+        pomReader.addInheritedDependencyMgts(importedDependencyMgts);
+    }
+
+    /**
+     * Parses imported dependency management information.
+     *
+     * @param parseContext Parse context
+     * @param currentDependencyMgts Current dependency management information
+     * @return Imported dependency management information
+     * @throws IOException
+     * @throws SAXException
+     */
+    private Map<String, PomDependencyMgt> parseImportedDependencyMgts(DescriptorParseContext parseContext, Collection<PomDependencyMgt> currentDependencyMgts) throws IOException, SAXException {
+        Map<String, PomDependencyMgt> importedDependencyMgts = new LinkedHashMap<String, PomDependencyMgt>();
+
+        for(PomDependencyMgt currentDependencyMgt : currentDependencyMgts) {
+            if(isDependencyImportScoped(currentDependencyMgt)) {
+                PomReader importDescr = parseImportedPom(parseContext, currentDependencyMgt);
+                importedDependencyMgts.putAll(importDescr.getDependencyMgt());
+            }
+        }
+
+        return importedDependencyMgts;
+    }
+
+    /**
+     * Adds dependency management information to builder. Excludes elements with scope "import".
+     *
+     * @param mdBuilder Module descriptor builder
+     * @param dependencyMgts Dependency management information
+     */
+    private void addDependencyMgtsToBuilder(GradlePomModuleDescriptorBuilder mdBuilder, Collection<PomDependencyMgt> dependencyMgts) {
+        for(PomDependencyMgt dependencyMgt : dependencyMgts) {
+            if(!isDependencyImportScoped(dependencyMgt)) {
+                mdBuilder.addDependencyMgt(dependencyMgt);
+            }
+        }
+    }
+
+    /**
+     * Checks if dependency has scope "import".
+     *
+     * @param dependencyMgt Dependency management element
+     * @return Flag
+     */
+    private boolean isDependencyImportScoped(PomDependencyMgt dependencyMgt) {
+        return DEPENDENCY_IMPORT_SCOPE.equals(dependencyMgt.getScope());
+    }
+
+    /**
+     * Parses imported POM.
+     *
+     * @param parseContext Parse context
+     * @param pomDependencyMgt Dependency management information
+     * @return POM reader
+     * @throws IOException
+     * @throws SAXException
+     */
+    private PomReader parseImportedPom(DescriptorParseContext parseContext, PomDependencyMgt pomDependencyMgt) throws IOException, SAXException {
+        ModuleRevisionId importModRevID = ModuleRevisionId.newInstance(pomDependencyMgt.getGroupId(), pomDependencyMgt.getArtifactId(), pomDependencyMgt.getVersion());
+        return parseOtherPom(parseContext, importModRevID);
+    }
+
+    /**
+     * Parses other POM.
+     *
+     * @param parseContext Parse context
+     * @param parentModRevID Parent module revision ID
+     * @return POM reader
+     * @throws IOException
+     * @throws SAXException
+     */
+    private PomReader parseOtherPom(DescriptorParseContext parseContext, ModuleRevisionId parentModRevID) throws IOException, SAXException {
         Artifact pomArtifact = DefaultArtifact.newPomArtifact(parentModRevID, new Date());
         LocallyAvailableExternalResource localResource = parseContext.getArtifact(pomArtifact);
         GradlePomModuleDescriptorBuilder mdBuilder = new GradlePomModuleDescriptorBuilder(localResource, parseContext);

@@ -16,6 +16,7 @@
 
 package org.gradle.messaging.serialize;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -33,10 +34,31 @@ public abstract class AbstractDecoder implements Decoder {
         readBytes(buffer, 0, buffer.length);
     }
 
+    public void skipBytes(long count) throws EOFException, IOException {
+        long remaining = count;
+        while (remaining > 0) {
+            long skipped = maybeSkip(remaining);
+            if (skipped <= 0) {
+                break;
+            }
+            remaining -= skipped;
+        }
+        if (remaining > 0) {
+            throw new EOFException();
+        }
+    }
+
     protected abstract int maybeReadBytes(byte[] buffer, int offset, int count) throws IOException;
+
+    protected abstract long maybeSkip(long count) throws IOException;
 
     private class DecoderStream extends InputStream {
         byte[] buffer = new byte[1];
+
+        @Override
+        public long skip(long n) throws IOException {
+            return maybeSkip(n);
+        }
 
         @Override
         public int read() throws IOException {

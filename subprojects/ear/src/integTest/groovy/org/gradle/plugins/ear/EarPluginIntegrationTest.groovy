@@ -200,10 +200,10 @@ apply plugin: 'ear'
 ear {
    duplicatesStrategy = 'exclude'
    into('lib') {
-       from 'good-lib'
+       from 'bad-lib'
    }
    lib {
-       from 'bad-lib'
+       from 'good-lib'
    }
 }''')
 

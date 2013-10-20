@@ -20,11 +20,11 @@ import com.google.common.base.Joiner;
 import org.gradle.api.GradleException;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
-import org.gradle.api.internal.tasks.compile.CompileSpec;
 import org.gradle.api.internal.tasks.compile.CompileSpecToArguments;
 import org.gradle.api.internal.tasks.compile.ExecSpecBackedArgCollector;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.nativebinaries.internal.BinaryToolSpec;
 import org.gradle.process.internal.ExecAction;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.process.internal.ExecException;
@@ -33,7 +33,7 @@ import org.gradle.util.GFileUtils;
 import java.io.File;
 import java.util.*;
 
-public class CommandLineTool<T extends CompileSpec> {
+public class CommandLineTool<T extends BinaryToolSpec> {
     private final String action;
     private final File executable;
     private final ExecActionFactory execActionFactory;

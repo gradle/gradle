@@ -107,13 +107,11 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
         }
     }
 
-    public void targetNativeBinaryForPlatform(NativeBinaryInternal nativeBinary) {
-        org.gradle.nativebinaries.OperatingSystem targetOs = nativeBinary.getTargetPlatform().getOperatingSystem();
-        ArchitectureInternal targetArch = (ArchitectureInternal) nativeBinary.getTargetPlatform().getArchitecture();
+    public boolean canTargetPlatform(Platform targetPlatform) {
+        org.gradle.nativebinaries.OperatingSystem targetOs = targetPlatform.getOperatingSystem();
+        ArchitectureInternal targetArch = (ArchitectureInternal) targetPlatform.getArchitecture();
 
-        if (!(targetOs.isWindows() && isSupportedArchitecture(targetArch))) {
-            nativeBinary.setBuildable(false);
-        }
+        return targetOs.isWindows() && isSupportedArchitecture(targetArch);
     }
 
     private boolean isSupportedArchitecture(ArchitectureInternal targetArch) {

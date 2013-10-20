@@ -51,6 +51,7 @@ class AssemblerTest extends Specification {
         1 * assembler.execute({ AssembleSpec spec ->
             assert spec.sourceFiles*.name == ["sourceFile"]
             assert spec.args == ['arg']
+            assert spec.allArgs == ['arg']
             assert spec.objectFileDir.name == "outputFile"
             true
         }) >> result

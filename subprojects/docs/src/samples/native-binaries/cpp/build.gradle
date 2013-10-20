@@ -32,7 +32,7 @@ binaries.all {
     // Define toolchain-specific compiler and linker options
     if (toolChain in Gcc) {
         cppCompiler.args "-O2", "-fno-access-control"
-        linker.args "-static-libgcc"
+        linker.args "-S"
     }
     if (toolChain in VisualCpp) {
         cppCompiler.args "/Zi"

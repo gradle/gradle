@@ -34,11 +34,15 @@ public class OutputStreamBackedEncoder extends AbstractEncoder implements Closea
         outputStream.writeLong(value);
     }
 
+    public void writeSmallLong(long value) throws IOException {
+        outputStream.writeLong(value);
+    }
+
     public void writeInt(int value) throws IOException {
         outputStream.writeInt(value);
     }
 
-    public void writeSizeInt(int value) throws IOException {
+    public void writeSmallInt(int value) throws IOException {
         outputStream.writeInt(value);
     }
 

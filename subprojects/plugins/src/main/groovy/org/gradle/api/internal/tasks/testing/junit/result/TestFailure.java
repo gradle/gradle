@@ -13,24 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.nativebinaries.toolchain;
 
-import org.gradle.api.Incubating;
-import org.gradle.nativebinaries.NativeBinary;
-import org.gradle.nativebinaries.Platform;
+package org.gradle.api.internal.tasks.testing.junit.result;
 
-/**
- * Configuration to add support for a target platform to a {@link PlatformConfigurableToolChain}.
- */
-@Incubating
-public interface ToolChainPlatformConfiguration {
-    /**
-     * Matches the platform that this configuration supports.
-     */
-    boolean supportsPlatform(Platform element);
+public class TestFailure {
+    private final String message;
+    private final String stackTrace;
+    private final String exceptionType;
 
-    /**
-     * Configure the binary to build for this platform.
-     */
-    void configureBinaryForPlatform(NativeBinary binary);
+    public TestFailure(String message, String stackTrace, String exceptionType) {
+        this.message = message;
+        this.stackTrace = stackTrace;
+        this.exceptionType = exceptionType;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public String getStackTrace() {
+        return stackTrace;
+    }
+
+    public String getExceptionType() {
+        return exceptionType;
+    }
 }

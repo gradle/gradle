@@ -30,7 +30,16 @@ public class InputStreamBackedDecoder extends AbstractDecoder implements Decoder
         return inputStream.read(buffer, offset, count);
     }
 
+    @Override
+    protected long maybeSkip(long count) throws IOException {
+        return inputStream.skip(count);
+    }
+
     public long readLong() throws IOException {
+        return inputStream.readLong();
+    }
+
+    public long readSmallLong() throws IOException {
         return inputStream.readLong();
     }
 
@@ -38,7 +47,7 @@ public class InputStreamBackedDecoder extends AbstractDecoder implements Decoder
         return inputStream.readInt();
     }
 
-    public int readSizeInt() throws EOFException, IOException {
+    public int readSmallInt() throws EOFException, IOException {
         return inputStream.readInt();
     }
 

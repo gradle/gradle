@@ -52,6 +52,7 @@ class CppCompileTest extends Specification {
         1 * cppCompiler.execute({ CppCompileSpec spec ->
             assert spec.sourceFiles*.name == ["sourceFile"]
             assert spec.args == ['arg']
+            assert spec.allArgs == ['arg']
             assert spec.macros == [def: 'value']
             assert spec.objectFileDir.name == "outputFile"
             true

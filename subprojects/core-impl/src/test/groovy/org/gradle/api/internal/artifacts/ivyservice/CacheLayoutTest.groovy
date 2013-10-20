@@ -46,10 +46,10 @@ class CacheLayoutTest extends Specification {
         CacheLayout cacheLayout = CacheLayout.META_DATA
 
         then:
-        cacheLayout.key == 'metadata-1.30'
+        cacheLayout.key == 'metadata-1.31'
         cacheLayout.majorVersion == 1
-        cacheLayout.minorVersion == 30
-        cacheLayout.formattedVersion == '1.30'
-        cacheLayout.getPath(new File('some/dir')) == new File('some/dir/metadata-1.30')
+        cacheLayout.minorVersion == 31
+        cacheLayout.formattedVersion == '1.31'
+        cacheLayout.getPath(new File('some/dir')) == new File('some/dir/metadata-1.31')
     }
 }

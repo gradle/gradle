@@ -107,7 +107,10 @@ project(':tool') {
         mavenRepo.module("org", "foo", '1.3.3').publish()
         mavenRepo.module("org", "foo", '1.4.4').publish()
 
-        settingsFile << "include 'api', 'impl', 'tool'"
+        settingsFile << """
+rootProject.name = 'test'
+include 'api', 'impl', 'tool'
+"""
 
         buildFile << """
 allprojects {
@@ -134,19 +137,33 @@ project(':tool') {
 		compile project(':api')
 		compile project(':impl')
 	}
-    task checkDeps(dependsOn: configurations.compile) << {
-        assert configurations.compile*.name == ['api.jar', 'impl.jar', 'foo-1.4.4.jar']
-    }
 }
 """
 
-        expect:
+        def resolve = new ResolveTestFixture(buildFile)
+        resolve.prepare()
+
+        when:
         run("tool:checkDeps")
+
+        then:
+        resolve.expectGraph {
+            root("test:tool:") {
+                node("test:api:") {
+                    edge("org:foo:1.3.3", "org:foo:1.4.4")
+                }
+                node("test:impl:") {
+                    node("org:foo:1.4.4").byConflictResolution()
+                }
+            }
+        }
     }
 
     void "does not attempt to resolve an evicted dependency"() {
         mavenRepo.module("org", "external", "1.2").publish()
         mavenRepo.module("org", "dep", "2.2").dependsOn("org", "external", "1.0").publish()
+
+        settingsFile << "rootProject.name = 'test'"
 
         buildFile << """
 repositories {
@@ -159,14 +176,23 @@ dependencies {
     compile 'org:external:1.2'
     compile 'org:dep:2.2'
 }
-
-task checkDeps << {
-    assert configurations.compile*.name == ['external-1.2.jar', 'dep-2.2.jar']
-}
 """
 
-        expect:
+        def resolve = new ResolveTestFixture(buildFile)
+        resolve.prepare()
+
+        when:
         run("checkDeps")
+
+        then:
+        resolve.expectGraph {
+            root(":test:") {
+                node("org:external:1.2").byConflictResolution()
+                node("org:dep:2.2") {
+                    edge("org:external:1.0", "org:external:1.2")
+                }
+            }
+        }
     }
 
     @Issue("GRADLE-2890")
@@ -559,7 +585,7 @@ parentFirst
     }
 
     @Issue("GRADLE-2752")
-    void "does not replace root module when earlier version of root module is requested"() {
+    void "selects root module when earlier version of module requested"() {
         mavenRepo.module("org", "test", "1.2").publish()
         mavenRepo.module("org", "other", "1.7").dependsOn("org", "test", "1.2").publish()
 
@@ -578,27 +604,60 @@ repositories {
 dependencies {
     compile "org:other:1.7"
 }
+"""
 
-task checkDeps(dependsOn: configurations.compile) << {
-    assert configurations.compile*.name == ['other-1.7.jar', 'test-1.3.jar']
+        def resolve = new ResolveTestFixture(buildFile)
+        resolve.prepare()
 
-    def result = configurations.compile.incoming.resolutionResult
-    assert result.allComponents.size() == 2
+        when:
+        run("checkDeps")
 
-    def root = result.root
-    assert root.id.version == '1.3'
-    assert root.selectionReason.description == 'root'
-    assert !root.selectionReason.conflictResolution //current behavior, feels incorrect
+        then:
+        resolve.expectGraph {
+            root("org:test:1.3") {
+                node("org:other:1.7") {
+                    edge("org:test:1.2", "org:test:1.3")
+                }
+            }
+        }
+    }
 
-    def other = result.allComponents.find { it.id.name == 'other' }
+    @Issue("GRADLE-2920")
+    void "selects later version of root module when requested"() {
+        mavenRepo.module("org", "test", "2.1").publish()
+        mavenRepo.module("org", "other", "1.7").dependsOn("org", "test", "2.1").publish()
 
-    assert root.dependencies*.selected == [other]
-    assert other.dependencies*.selected == [root]
+        settingsFile << "rootProject.name = 'test'"
+
+        buildFile << """
+apply plugin: 'java'
+
+group "org"
+version "1.3"
+
+repositories {
+    maven { url "${mavenRepo.uri}" }
+}
+
+dependencies {
+    compile "org:other:1.7"
 }
 """
 
-        expect:
+        def resolve = new ResolveTestFixture(buildFile)
+        resolve.prepare()
+
+        when:
         run("checkDeps")
+
+        then:
+        resolve.expectGraph {
+            root("org:test:1.3") {
+                node("org:other:1.7") {
+                    node("org:test:2.1").byConflictResolution()
+                }
+            }
+        }
     }
 
     void "module is required only by selected conflicting version and in turn requires evicted conflicting version"() {

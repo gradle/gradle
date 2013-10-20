@@ -51,7 +51,7 @@ public class TaskSelector {
         if (taskPath.isQualified()) {
             tasksByName = taskNameResolver.select(taskPath.getTaskName(), taskPath.getProject());
         } else {
-            tasksByName = taskNameResolver.selectAll(path, project);
+            tasksByName = taskNameResolver.selectAll(taskPath.getTaskName(), taskPath.getProject());
         }
 
         Set<TaskSelectionResult> tasks = tasksByName.get(taskPath.getTaskName());
@@ -66,7 +66,7 @@ public class TaskSelector {
             return new TaskSelection(taskPath.getPrefix() + actualName, tasksByName.get(actualName));
         }
 
-        throw new TaskSelectionException(matcher.formatErrorMessage("task", project));
+        throw new TaskSelectionException(matcher.formatErrorMessage("task", taskPath.getProject()));
     }
 
     public static class TaskSelection {

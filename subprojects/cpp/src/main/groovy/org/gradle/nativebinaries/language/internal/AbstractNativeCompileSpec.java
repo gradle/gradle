@@ -16,19 +16,18 @@
 
 package org.gradle.nativebinaries.language.internal;
 
+import org.gradle.nativebinaries.internal.AbstractBinaryToolSpec;
 import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec;
 
 import java.io.File;
 import java.util.*;
 
-public abstract class AbstractNativeCompileSpec implements NativeCompileSpec {
+public abstract class AbstractNativeCompileSpec extends AbstractBinaryToolSpec implements NativeCompileSpec {
 
     private List<File> includeRoots = new ArrayList<File>();
     private List<File> sourceFiles = new ArrayList<File>();
-    private List<String> args = new ArrayList<String>();
     private Map<String, String> macros = new LinkedHashMap<String, String>();
     private File objectFileDir;
-    private File tempDir;
     private boolean positionIndependentCode;
 
     public List<File> getIncludeRoots() {
@@ -57,22 +56,6 @@ public abstract class AbstractNativeCompileSpec implements NativeCompileSpec {
 
     public void setObjectFileDir(File objectFileDir) {
         this.objectFileDir = objectFileDir;
-    }
-
-    public File getTempDir() {
-        return tempDir;
-    }
-
-    public void setTempDir(File tempDir) {
-        this.tempDir = tempDir;
-    }
-
-    public List<String> getArgs() {
-        return args;
-    }
-
-    public void args(List<String> args) {
-        this.args.addAll(args);
     }
 
     public Map<String, String> getMacros() {

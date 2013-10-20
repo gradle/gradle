@@ -33,7 +33,7 @@ class CommonGccCompileSpecToArguments<T extends NativeCompileSpec> implements Co
             collector.args("-D", macroArg);
         }
 
-        collector.args(spec.getArgs());
+        collector.args(spec.getAllArgs());
         collector.args("-c");
         if (spec.isPositionIndependentCode()) {
             if (!OperatingSystem.current().isWindows()) {

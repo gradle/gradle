@@ -46,7 +46,7 @@ class LinkExeLinker implements Compiler<LinkerSpec> {
     private static class VisualCppLinkerSpecArguments implements CompileSpecToArguments<LinkerSpec> {
 
         public void collectArguments(LinkerSpec spec, ArgCollector collector) {
-            collector.args(spec.getArgs());
+            collector.args(spec.getAllArgs());
             collector.args("/OUT:" + spec.getOutputFile().getAbsolutePath());
             collector.args("/NOLOGO");
             if (spec instanceof SharedLibraryLinkerSpec) {

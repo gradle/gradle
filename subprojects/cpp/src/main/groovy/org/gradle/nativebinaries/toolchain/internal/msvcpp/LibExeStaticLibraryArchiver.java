@@ -44,7 +44,7 @@ class LibExeStaticLibraryArchiver implements Compiler<StaticLibraryArchiverSpec>
         public void collectArguments(StaticLibraryArchiverSpec spec, ArgCollector collector) {
             collector.args("/OUT:" + spec.getOutputFile().getAbsolutePath());
             collector.args("/NOLOGO");
-            collector.args(spec.getArgs());
+            collector.args(spec.getAllArgs());
             for (File file : spec.getObjectFiles()) {
                 collector.args(file.getAbsolutePath());
             }

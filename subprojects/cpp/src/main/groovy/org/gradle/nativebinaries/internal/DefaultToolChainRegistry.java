@@ -76,8 +76,8 @@ public class DefaultToolChainRegistry extends DefaultPolymorphicDomainObjectCont
             throw failure();
         }
 
-        public void targetNativeBinaryForPlatform(NativeBinaryInternal nativeBinary) {
-            nativeBinary.setBuildable(false);
+        public boolean canTargetPlatform(Platform targetPlatform) {
+            return false;
         }
 
         private IllegalStateException failure() {

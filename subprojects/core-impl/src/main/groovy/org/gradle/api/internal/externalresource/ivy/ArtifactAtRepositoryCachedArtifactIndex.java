@@ -71,7 +71,7 @@ public class ArtifactAtRepositoryCachedArtifactIndex extends AbstractCachedIndex
             encoder.writeString(artifact.getType());
             encoder.writeNullableString(artifact.getExtension());
             Map<String, String> attributes = artifact.getAttributes();
-            encoder.writeSizeInt(attributes.size());
+            encoder.writeSmallInt(attributes.size());
             for (Map.Entry<String, String> entry : attributes.entrySet()) {
                 encoder.writeString(entry.getKey());
                 encoder.writeString(entry.getValue());
@@ -84,7 +84,7 @@ public class ArtifactAtRepositoryCachedArtifactIndex extends AbstractCachedIndex
             String artifactName = decoder.readString();
             String type = decoder.readString();
             String extension = decoder.readNullableString();
-            int attrCount = decoder.readSizeInt();
+            int attrCount = decoder.readSmallInt();
             Map<String, String> attributes;
             if (attrCount == 0) {
                 attributes = Collections.emptyMap();

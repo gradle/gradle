@@ -395,4 +395,38 @@ task retrieve(type: Sync) {
         succeeds ":libs"
         succeeds ":libs"
     }
+
+    def "dependency with same group ID and artifact ID defined in child and parent is used from child"() {
+        given:
+        server.start()
+
+        def parent = mavenHttpRepo.module('group', 'parent', '1.0').dependsOn('my.group', 'myartifact', '1.1').publish()
+        mavenHttpRepo.module('my.group', 'myartifact', '1.1').publish()
+        def depModule = mavenHttpRepo.module('my.group', 'myartifact', '1.3').publish()
+        def module = mavenHttpRepo.module('group', 'artifact', '1.0').parent('group', 'parent', '1.0').dependsOn('my.group', 'myartifact', '1.3').publish()
+
+        and:
+        buildFile << """
+            repositories {
+                maven { url "${mavenHttpRepo.uri}" }
+            }
+            configurations { compile }
+            dependencies {
+                compile "group:artifact:1.0"
+            }
+            task libs << { assert configurations.compile.files.collect {it.name} == ['artifact-1.0.jar', 'myartifact-1.3.jar'] }
+        """
+
+        and:
+        parent.pom.expectGet()
+        module.pom.expectGet()
+        module.artifact.expectGet()
+        depModule.pom.expectGet()
+        depModule.artifact.expectGet()
+
+        expect:
+        // have to run twice to trigger the failure, to parse the descriptor from the cache
+        succeeds ":libs"
+        succeeds ":libs"
+    }
 }

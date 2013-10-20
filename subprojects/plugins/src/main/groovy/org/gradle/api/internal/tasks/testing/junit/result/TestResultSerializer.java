@@ -16,21 +16,21 @@
 
 package org.gradle.api.internal.tasks.testing.junit.result;
 
-import com.esotericsoftware.kryo.io.Input;
-import com.esotericsoftware.kryo.io.Output;
 import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.UncheckedException;
-import org.gradle.messaging.remote.internal.Message;
+import org.gradle.messaging.serialize.Decoder;
+import org.gradle.messaging.serialize.Encoder;
+import org.gradle.messaging.serialize.FlushableEncoder;
+import org.gradle.messaging.serialize.kryo.KryoBackedDecoder;
+import org.gradle.messaging.serialize.kryo.KryoBackedEncoder;
 
 import java.io.*;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 
 public class TestResultSerializer {
-    private static final int RESULT_VERSION = 1;
+    private static final int RESULT_VERSION = 2;
 
     private final File resultsFile;
 
@@ -43,10 +43,10 @@ public class TestResultSerializer {
             OutputStream outputStream = new FileOutputStream(resultsFile);
             try {
                 if (!results.isEmpty()) { // only write if we have results, otherwise truncate
-                    Output output = new Output(outputStream);
-                    output.writeInt(RESULT_VERSION, true);
-                    write(results, output);
-                    output.flush();
+                    FlushableEncoder encoder = new KryoBackedEncoder(outputStream);
+                    encoder.writeSmallInt(RESULT_VERSION);
+                    write(results, encoder);
+                    encoder.flush();
                 }
             } finally {
                 outputStream.close();
@@ -56,34 +56,34 @@ public class TestResultSerializer {
         }
     }
 
-    private void write(Collection<TestClassResult> results, Output output) throws IOException {
-        output.writeInt(results.size(), true);
+    private void write(Collection<TestClassResult> results, Encoder encoder) throws IOException {
+        encoder.writeSmallInt(results.size());
         for (TestClassResult result : results) {
-            write(result, output);
+            write(result, encoder);
         }
     }
 
-    private void write(TestClassResult classResult, Output output) throws IOException {
-        output.writeLong(classResult.getId(), true);
-        output.writeString(classResult.getClassName());
-        output.writeLong(classResult.getStartTime());
-        output.writeInt(classResult.getResults().size(), true);
+    private void write(TestClassResult classResult, Encoder encoder) throws IOException {
+        encoder.writeSmallLong(classResult.getId());
+        encoder.writeString(classResult.getClassName());
+        encoder.writeLong(classResult.getStartTime());
+        encoder.writeSmallInt(classResult.getResults().size());
         for (TestMethodResult methodResult : classResult.getResults()) {
-            write(methodResult, output);
+            write(methodResult, encoder);
         }
     }
 
-    private void write(TestMethodResult methodResult, Output output) throws IOException {
-        output.writeLong(methodResult.getId(), true);
-        output.writeString(methodResult.getName());
-        output.writeInt(methodResult.getResultType().ordinal(), true);
-        output.writeLong(methodResult.getDuration(), true);
-        output.writeLong(methodResult.getEndTime());
-        if (methodResult.getExceptions().isEmpty()) {
-            output.writeBoolean(false);
-        } else {
-            output.writeBoolean(true);
-            Message.send(methodResult.getExceptions(), output);
+    private void write(TestMethodResult methodResult, Encoder encoder) throws IOException {
+        encoder.writeSmallLong(methodResult.getId());
+        encoder.writeString(methodResult.getName());
+        encoder.writeSmallInt(methodResult.getResultType().ordinal());
+        encoder.writeSmallLong(methodResult.getDuration());
+        encoder.writeLong(methodResult.getEndTime());
+        encoder.writeSmallInt(methodResult.getFailures().size());
+        for (TestFailure testFailure : methodResult.getFailures()) {
+            encoder.writeString(testFailure.getExceptionType());
+            encoder.writeString(testFailure.getMessage());
+            encoder.writeString(testFailure.getStackTrace());
         }
     }
 
@@ -94,12 +94,12 @@ public class TestResultSerializer {
         try {
             InputStream inputStream = new FileInputStream(resultsFile);
             try {
-                Input input = new Input(inputStream);
-                int version = input.readInt(true);
+                Decoder decoder = new KryoBackedDecoder(inputStream);
+                int version = decoder.readSmallInt();
                 if (version != RESULT_VERSION) {
                     throw new IllegalArgumentException(String.format("Unexpected result file version %d found in %s.", version, resultsFile));
                 }
-                readResults(input, visitor);
+                readResults(decoder, visitor);
             } finally {
                 inputStream.close();
             }
@@ -112,41 +112,41 @@ public class TestResultSerializer {
         return resultsFile.exists() && resultsFile.length() > 0;
     }
 
-    private void readResults(Input input, Action<? super TestClassResult> visitor) throws ClassNotFoundException, IOException {
-        int classCount = input.readInt(true);
+    private void readResults(Decoder decoder, Action<? super TestClassResult> visitor) throws ClassNotFoundException, IOException {
+        int classCount = decoder.readSmallInt();
         for (int i = 0; i < classCount; i++) {
-            TestClassResult classResult = readClassResult(input);
+            TestClassResult classResult = readClassResult(decoder);
             visitor.execute(classResult);
         }
     }
 
-    private TestClassResult readClassResult(Input input) throws IOException, ClassNotFoundException {
-        long id = input.readLong(true);
-        String className = input.readString();
-        long startTime = input.readLong();
+    private TestClassResult readClassResult(Decoder decoder) throws IOException, ClassNotFoundException {
+        long id = decoder.readSmallLong();
+        String className = decoder.readString();
+        long startTime = decoder.readLong();
         TestClassResult result = new TestClassResult(id, className, startTime);
-        int testMethodCount = input.readInt(true);
+        int testMethodCount = decoder.readSmallInt();
         for (int i = 0; i < testMethodCount; i++) {
-            TestMethodResult methodResult = readMethodResult(input);
+            TestMethodResult methodResult = readMethodResult(decoder);
             result.add(methodResult);
         }
         return result;
     }
 
-    private TestMethodResult readMethodResult(Input input) throws ClassNotFoundException, IOException {
-        long id = input.readLong(true);
-        String name = input.readString();
-        TestResult.ResultType resultType = TestResult.ResultType.values()[input.readInt(true)];
-        long duration = input.readLong(true);
-        long endTime = input.readLong();
-        boolean hasFailures = input.readBoolean();
-        List<Throwable> failures;
-        if (hasFailures) {
-            failures = (List<Throwable>) Message.receive(input, getClass().getClassLoader());
-        } else {
-            failures = Collections.emptyList();
+    private TestMethodResult readMethodResult(Decoder decoder) throws ClassNotFoundException, IOException {
+        long id = decoder.readSmallLong();
+        String name = decoder.readString();
+        TestResult.ResultType resultType = TestResult.ResultType.values()[decoder.readSmallInt()];
+        long duration = decoder.readSmallLong();
+        long endTime = decoder.readLong();
+        TestMethodResult methodResult = new TestMethodResult(id, name, resultType, duration, endTime);
+        int failures = decoder.readSmallInt();
+        for (int i = 0; i < failures; i++) {
+            String exceptionType = decoder.readString();
+            String message = decoder.readString();
+            String stackTrace = decoder.readString();
+            methodResult.addFailure(message, stackTrace, exceptionType);
         }
-        return new TestMethodResult(id, name, resultType, duration, endTime, failures);
+        return methodResult;
     }
-
 }

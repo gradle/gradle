@@ -30,4 +30,10 @@ public interface BinaryToolSpec extends CompileSpec {
 
     void args(List<String> args);
 
+    List<String> getSystemArgs();
+
+    void systemArgs(List<String> args);
+
+    List<String> getAllArgs();
+
 }

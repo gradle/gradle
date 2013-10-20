@@ -25,7 +25,6 @@ import spock.lang.Specification
 
 import static TestOutputAssociation.WITH_SUITE
 import static TestOutputAssociation.WITH_TESTCASE
-import static java.util.Arrays.asList
 import static java.util.Collections.emptyList
 import static org.gradle.api.tasks.testing.TestOutputEvent.Destination.StdErr
 import static org.gradle.api.tasks.testing.TestOutputEvent.Destination.StdOut
@@ -45,10 +44,10 @@ class JUnitXmlResultWriterSpec extends Specification {
 
     def "writes xml JUnit result"() {
         TestClassResult result = new TestClassResult(1, "com.foo.FooTest", startTime)
-        result.add(new TestMethodResult(1, "some test", new DefaultTestResult(SUCCESS, startTime + 10, startTime + 25, 1, 1, 0, emptyList())))
-        result.add(new TestMethodResult(2, "some test two", new DefaultTestResult(SUCCESS, startTime + 15, startTime + 30, 1, 1, 0, emptyList())))
-        result.add(new TestMethodResult(3, "some failing test", new DefaultTestResult(FAILURE, startTime + 30, startTime + 40, 1, 0, 1, [new RuntimeException("Boo!")])))
-        result.add(new TestMethodResult(4, "some skipped test", new DefaultTestResult(SKIPPED, startTime + 35, startTime + 45, 1, 0, 1, asList())))
+        result.add(new TestMethodResult(1, "some test", SUCCESS, 15, startTime + 25))
+        result.add(new TestMethodResult(2, "some test two", SUCCESS, 15, startTime + 30))
+        result.add(new TestMethodResult(3, "some failing test", FAILURE, 10, startTime + 40).addFailure("failure message", "[stack-trace]", "ExceptionType"))
+        result.add(new TestMethodResult(4, "some skipped test", SKIPPED, 10, startTime + 45))
 
         provider.writeAllOutput(1, StdOut, _) >> { args -> args[2].write("1st output message\n2nd output message\n") }
         provider.writeAllOutput(1, StdErr, _) >> { args -> args[2].write("err") }
@@ -59,7 +58,7 @@ class JUnitXmlResultWriterSpec extends Specification {
         then:
         new JUnitTestClassExecutionResult(xml, "com.foo.FooTest", TestResultOutputAssociation.WITH_SUITE)
                 .assertTestCount(4, 1, 0)
-                .assertTestFailed("some failing test", equalTo('java.lang.RuntimeException: Boo!'))
+                .assertTestFailed("some failing test", equalTo('failure message'))
                 .assertTestsSkipped("some skipped test")
                 .assertTestsExecuted("some test", "some test two", "some failing test")
                 .assertStdout(equalTo("""1st output message
@@ -68,15 +67,13 @@ class JUnitXmlResultWriterSpec extends Specification {
                 .assertStderr(equalTo("err"))
 
         and:
-        xml.startsWith """<?xml version="1.1" encoding="UTF-8"?>
+        xml == """<?xml version="1.1" encoding="UTF-8"?>
 <testsuite name="com.foo.FooTest" tests="4" failures="1" errors="0" timestamp="2012-11-19T17:09:28" hostname="localhost" time="0.045">
   <properties/>
   <testcase name="some test" classname="com.foo.FooTest" time="0.015"/>
   <testcase name="some test two" classname="com.foo.FooTest" time="0.015"/>
   <testcase name="some failing test" classname="com.foo.FooTest" time="0.01">
-    <failure message="java.lang.RuntimeException: Boo!" type="java.lang.RuntimeException">java.lang.RuntimeException: Boo!"""
-
-        xml.endsWith """</failure>
+    <failure message="failure message" type="ExceptionType">[stack-trace]</failure>
   </testcase>
   <ignored-testcase name="some skipped test" classname="com.foo.FooTest" time="0.01"/>
   <system-out><![CDATA[1st output message
@@ -89,7 +86,7 @@ class JUnitXmlResultWriterSpec extends Specification {
 
     def "writes results with empty outputs"() {
         TestClassResult result = new TestClassResult(1, "com.foo.FooTest", startTime)
-        result.add(new TestMethodResult(1, "some test", new DefaultTestResult(SUCCESS, startTime + 100, startTime + 300, 1, 1, 0, emptyList())))
+        result.add(new TestMethodResult(1, "some test").completed(new DefaultTestResult(SUCCESS, startTime + 100, startTime + 300, 1, 1, 0, emptyList())))
         _ * provider.writeAllOutput(_, _, _)
 
         when:
@@ -108,7 +105,7 @@ class JUnitXmlResultWriterSpec extends Specification {
 
     def "encodes xml"() {
         TestClassResult result = new TestClassResult(1, "com.foo.FooTest", startTime)
-        result.add(new TestMethodResult(1, "some test", new DefaultTestResult(FAILURE, 100, 300, 1, 1, 0, [new RuntimeException("<> encoded!")])))
+        result.add(new TestMethodResult(1, "some test", FAILURE, 200, 300).addFailure("<> encoded!", "<non ascii: \u0302>", "<Exception>"))
         provider.writeAllOutput(_, StdErr, _) >> { args -> args[2].write("with CDATA end token: ]]> some ascii: ż") }
         provider.writeAllOutput(_, StdOut, _) >> { args -> args[2].write("with CDATA end token: ]]> some ascii: ż") }
 
@@ -117,7 +114,7 @@ class JUnitXmlResultWriterSpec extends Specification {
 
         then:
         //attribute and text is encoded:
-        xml.contains('message="java.lang.RuntimeException: &lt;&gt; encoded!" type="java.lang.RuntimeException">java.lang.RuntimeException: &lt;&gt; encoded!')
+        xml.contains('message="&lt;&gt; encoded!" type="&lt;Exception&gt;">&lt;non ascii: \u0302&gt;')
         //output encoded:
         xml.contains('<system-out><![CDATA[with CDATA end token: ]]]]><![CDATA[> some ascii: ż]]></system-out>')
         xml.contains('<system-err><![CDATA[with CDATA end token: ]]]]><![CDATA[> some ascii: ż]]></system-err>')
