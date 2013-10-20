@@ -21,10 +21,6 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 import static org.gradle.util.Clock.prettyTime;
 
 abstract class AbstractTaskPlanExecutor implements TaskPlanExecutor {
