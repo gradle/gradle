@@ -15,6 +15,8 @@
  */
 package org.gradle.internal;
 
+import com.google.common.collect.ImmutableSet;
+
 import java.io.File;
 import java.util.*;
 
@@ -56,7 +58,7 @@ public class SystemProperties {
             "java.runtime.version");
 
     private static Set<String> asSet(String... values) {
-        return Collections.unmodifiableSet(new HashSet<String>(Arrays.asList(values)));
+        return ImmutableSet.copyOf(Arrays.asList(values));
     }
 
     @SuppressWarnings("unchecked")
