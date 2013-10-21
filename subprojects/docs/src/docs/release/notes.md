@@ -1,5 +1,5 @@
 This release of Gradle primarily provides relief through important bug fixes. 
-It also boosts Gradle's performance through optimizations to incremental building when using the [Gradle Daemon](userguide/gradle_daemon.html) and also when building in parallel.
+It also boosts Gradle's performance through optimizations to incremental building when using the Gradle Daemon and when building in parallel.
 
 Gradle 1.9 also brings “variant” capabilities to the native code support. 
 Variants can be used to model different ways to construct and build a binary (e.g. including debug symbols or not, x86 vs x64).
@@ -13,9 +13,18 @@ Thank you to all who contributed and please keep the pull requests coming.
 
 Here are the new features introduced in this Gradle release.
 
-### Faster builds with the daemon
+### Faster incremental builds when using the Gradle Daemon
 
-TODO SF: mention the task artifact in-memory caching and memory impact
+Gradle's incremental build support enables a fast feedback cycle by only performing build tasks that are affected by changes that have occurred since the last build.
+The [Gradle Daemon](userguide/gradle_daemon.html) also improves performance by reusing a long lived process, 
+instead of incurring the process initialization cost for each build invocation.
+In Gradle 1.9, these two features combine to make incremental building even faster when using the Gradle Daemon.
+
+Incremental building support requires internal activities and record keeping (all completely transparent to Gradle users) to track changes to files and configuration.
+The data required to do this is now cached within the Gradle Daemon, reducing the overhead of the record keeping and making subsequent incremental builds faster.
+
+This is but one example of the kind of optimization that the Gradle Daemon can offer, by way of it being a long lived process.
+Expect to see further optimizations in future versions of Gradle of this nature.
 
 ### Faster parallel builds when using forked Java compilation
 
