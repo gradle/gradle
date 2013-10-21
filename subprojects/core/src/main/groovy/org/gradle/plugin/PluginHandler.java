@@ -28,8 +28,6 @@ import java.util.Map;
 @HasInternalProtocol
 public interface PluginHandler {
 
-    String BLOCK_NAME = "plugins";
-
     void apply(Map<String, Object> options);
 
 }

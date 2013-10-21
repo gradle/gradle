@@ -122,7 +122,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
 
             StatementExtractingScriptTransformer classpathScriptTransformer = new StatementExtractingScriptTransformer(
                     classpathClosureName,
-                    new IsScriptBlockWithNameSpec(classpathClosureName, PluginHandler.BLOCK_NAME)
+                    new IsScriptBlockWithNameSpec(classpathClosureName, "plugins")
             );
 
             compiler.setTransformer(classpathScriptTransformer);
