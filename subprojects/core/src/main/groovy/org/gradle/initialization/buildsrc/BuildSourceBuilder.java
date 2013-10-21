@@ -22,7 +22,6 @@ import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.FileLockManager;
-import org.gradle.cache.internal.filelock.FileLockAccess;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.classpath.ClassPath;
