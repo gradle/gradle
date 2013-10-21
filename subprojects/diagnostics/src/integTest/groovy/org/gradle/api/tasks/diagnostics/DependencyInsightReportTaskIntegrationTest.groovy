@@ -164,13 +164,13 @@ org:leaf:2.0 -> 1.0
 
     def "shows multiple outgoing dependencies"() {
         given:
-        mavenRepo.module("org", "leaf", "1.0").publish()
-        mavenRepo.module("org", "middle", "1.0")
+        ivyRepo.module("org", "leaf", "1.0").publish()
+        ivyRepo.module("org", "middle", "1.0")
                 .dependsOn("org", "leaf", "1.0")
                 .dependsOn("org", "leaf", "[1.0,2.0]")
                 .dependsOn("org", "leaf", "latest.integration")
                 .publish()
-        mavenRepo.module("org", "top", "1.0")
+        ivyRepo.module("org", "top", "1.0")
                 .dependsOn("org", "middle", "1.0")
                 .dependsOn("org", "middle", "[1.0,2.0]")
                 .dependsOn("org", "middle", "latest.integration")
@@ -178,7 +178,7 @@ org:leaf:2.0 -> 1.0
 
         file("build.gradle") << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                ivy { url "${ivyRepo.uri}" }
             }
             configurations {
                 conf
@@ -198,8 +198,17 @@ org:leaf:2.0 -> 1.0
         run "insight"
 
         then:
-        // TODO - need to use a fixed ordering for dynamic requested versions
         output.contains(toPlatformLineSeparators("""
+org:leaf:1.0
+\\--- org:middle:1.0
+     \\--- org:top:1.0
+          \\--- conf
+
+org:leaf:[1.0,2.0] -> 1.0
+\\--- org:middle:1.0
+     \\--- org:top:1.0
+          \\--- conf
+
 org:leaf:latest.integration -> 1.0
 \\--- org:middle:1.0
      \\--- org:top:1.0
@@ -292,8 +301,8 @@ org:leaf:2.0 -> org:new-leaf:77
 
     def "shows version resolved from dynamic selectors"() {
         given:
-        mavenRepo.module("org", "leaf", "1.6").publish()
-        mavenRepo.module("org", "top", "1.0")
+        ivyRepo.module("org", "leaf", "1.6").publish()
+        ivyRepo.module("org", "top", "1.0")
                 .dependsOn("org", "leaf", "[1.5,1.9]")
                 .dependsOn("org", "leaf", "latest.integration")
                 .dependsOn("org", "leaf", "1.+")
@@ -301,7 +310,7 @@ org:leaf:2.0 -> org:new-leaf:77
 
         file("build.gradle") << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                ivy { url "${ivyRepo.uri}" }
             }
             configurations {
                 conf
@@ -323,6 +332,14 @@ org:leaf:2.0 -> org:new-leaf:77
 org:leaf:1.6
 
 org:leaf:1.+ -> 1.6
+\\--- org:top:1.0
+     \\--- conf
+
+org:leaf:[1.5,1.9] -> 1.6
+\\--- org:top:1.0
+     \\--- conf
+
+org:leaf:latest.integration -> 1.6
 \\--- org:top:1.0
      \\--- conf
 """))
@@ -705,7 +722,7 @@ org:leaf:[1.5,1.9] -> 1.5
 
     def "shows multiple failed outgoing dependencies"() {
         given:
-        mavenRepo.module("org", "top", "1.0")
+        ivyRepo.module("org", "top", "1.0")
                 .dependsOn("org", "leaf", "1.0")
                 .dependsOn("org", "leaf", "[1.5,2.0]")
                 .dependsOn("org", "leaf", "1.6+")
@@ -713,7 +730,7 @@ org:leaf:[1.5,1.9] -> 1.5
 
         file("build.gradle") << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                ivy { url "${ivyRepo.uri}" }
             }
             configurations {
                 conf
@@ -732,7 +749,15 @@ org:leaf:[1.5,1.9] -> 1.5
 
         then:
         output.contains(toPlatformLineSeparators("""
+org:leaf:1.0 FAILED
+\\--- org:top:1.0
+     \\--- conf
+
 org:leaf:1.6+ FAILED
+\\--- org:top:1.0
+     \\--- conf
+
+org:leaf:[1.5,2.0] FAILED
 \\--- org:top:1.0
      \\--- conf
 """))
