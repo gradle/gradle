@@ -68,7 +68,7 @@ class PluginHandlerScriptIntegTest extends AbstractIntegrationSpec {
 
         file("plugin.gradle") << """
             plugins {
-                apply plugin: "foo"
+                apply "foo"
             }
         """
 
