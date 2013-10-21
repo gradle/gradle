@@ -195,7 +195,7 @@ public class GradlePomModuleDescriptorBuilder {
         ivyModuleDescriptor.setDescription(description);
     }
 
-    public void setLicenses(License[] licenses) {
+    public void setLicenses(Iterable<License> licenses) {
         for (License license : licenses) {
             ivyModuleDescriptor.addLicense(license);
         }

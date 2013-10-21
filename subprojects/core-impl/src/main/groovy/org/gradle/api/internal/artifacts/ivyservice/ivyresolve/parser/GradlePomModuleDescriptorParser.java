@@ -162,7 +162,7 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
      * @throws SAXException
      */
     private void overrideDependencyMgtsWithImported(DescriptorParseContext parseContext, PomReader pomReader) throws IOException, SAXException {
-        Map<String, PomDependencyMgt> importedDependencyMgts = parseImportedDependencyMgts(parseContext, pomReader.getDependencyMgt().values());
+        Map<String, PomDependencyMgt> importedDependencyMgts = parseImportedDependencyMgts(parseContext, pomReader.getPomDependencyMgt().values());
         pomReader.addInheritedDependencyMgts(importedDependencyMgts);
     }
 
