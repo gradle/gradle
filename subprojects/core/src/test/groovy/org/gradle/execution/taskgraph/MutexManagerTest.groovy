@@ -20,13 +20,6 @@ import org.gradle.api.Task
 import org.gradle.api.internal.TaskInternal
 import spock.lang.Specification
 
-/**
- * Created with IntelliJ IDEA.
- * User: mark.koops
- * Date: 20-10-13
- * Time: 14:12
- * To change this template use File | Settings | File Templates.
- */
 class MutexManagerTest extends Specification {
     def MutexManager manager;
 

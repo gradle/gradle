@@ -20,12 +20,9 @@ import org.gradle.api.Task;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.gradle.util.TestUtil.createChildProject;
-import static org.gradle.util.TestUtil.createRootProject;
-import static org.gradle.util.TestUtil.toClosure;
 import static org.gradle.util.WrapUtil.toList;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertThat;
 
 public class DefaultTaskPlanExecutorTest extends AbstractTaskPlanExecutorTest {
     @Before

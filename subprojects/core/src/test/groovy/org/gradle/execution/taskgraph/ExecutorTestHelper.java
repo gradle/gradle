@@ -106,7 +106,7 @@ class ExecutorTestHelper {
     }
 
     TaskInternal createTask(final String name) {
-        return createTask(root,name, null);
+        return createTask(root, name, null);
     }
 
     TaskInternal createTask(final ProjectInternal project, final String name, final String mutex) {

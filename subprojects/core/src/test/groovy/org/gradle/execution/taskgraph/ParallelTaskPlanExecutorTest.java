@@ -24,7 +24,6 @@ import java.util.concurrent.CountDownLatch;
 
 import static org.gradle.util.WrapUtil.toList;
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
 public class ParallelTaskPlanExecutorTest extends AbstractTaskPlanExecutorTest {
