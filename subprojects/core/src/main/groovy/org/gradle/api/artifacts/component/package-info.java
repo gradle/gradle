@@ -15,6 +15,6 @@
  */
 
 /**
- * Classes that compose the component identifiers and selectors.
+ * Classes that provide meta-data about software components.
  */
 package org.gradle.api.artifacts.component;

@@ -25,7 +25,7 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector;
 @Incubating
 public interface UnresolvedDependencyResult extends DependencyResult {
     /**
-     * Returns the module version selector that was attempted to be resolved. This may not be the same as the requested module version.
+     * Returns the selector that was attempted to be resolved. This may not be the same as the requested component.
      */
     ModuleComponentSelector getAttempted();
 

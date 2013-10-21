@@ -19,7 +19,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 
 /**
- * The selector for a build component.
+ * Selects a locally built component.
  */
 @Incubating
 public interface BuildComponentSelector extends ComponentSelector {

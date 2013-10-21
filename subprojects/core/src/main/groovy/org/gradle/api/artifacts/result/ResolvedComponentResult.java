@@ -29,39 +29,39 @@ import java.util.Set;
 public interface ResolvedComponentResult {
 
     /**
-     * Returns the identifier of the resolved component.
+     * Returns the identifier of this component.
      *
-     * @return the identifier of the resolved component
+     * @return the identifier of this component
      */
     ModuleComponentIdentifier getId();
 
     /**
-     * Returns the dependencies of the resolved module.
+     * Returns the dependencies of this component.
      * Includes resolved and unresolved dependencies (if any).
      *
-     * @return the dependencies of the resolved module
+     * @return the dependencies of this component
      */
     Set<? extends DependencyResult> getDependencies();
 
     /**
-     * Returns the dependents of the resolved module.
+     * Returns the dependents of this component.
      *
-     * @return the dependents of the resolved module
+     * @return the dependents of this component
      */
     Set<? extends ResolvedDependencyResult> getDependents();
 
     /**
-     * Returns the reason for selecting the module.
-     * Useful if multiple candidate versions were found during dependency resolution.
+     * Returns the reason for selecting this component.
+     * Useful if multiple candidate components were found during dependency resolution.
      *
-     * @return the reason for selecting the module
+     * @return the reason for selecting the component
      */
     ComponentSelectionReason getSelectionReason();
 
     /**
-     * Returns the identifier of the component publication.
+     * Returns the identifier which this component is published as.
      *
-     * @return the identifier of the resolved component
+     * @return the identifier of the component
      */
     ModuleComponentIdentifier getPublishedAs();
 }

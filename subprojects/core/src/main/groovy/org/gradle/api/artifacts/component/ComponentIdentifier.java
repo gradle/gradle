@@ -18,12 +18,12 @@ package org.gradle.api.artifacts.component;
 import org.gradle.api.Incubating;
 
 /**
- * The identifier for a component.
+ * An identifier for a component.
  */
 @Incubating
 public interface ComponentIdentifier {
     /**
-     * The display name of a component identifier.
+     * Returns a human-consumable display name for this identifier.
      *
      * @return Component identifier display name
      */

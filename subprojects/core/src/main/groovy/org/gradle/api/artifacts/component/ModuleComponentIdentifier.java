@@ -18,7 +18,7 @@ package org.gradle.api.artifacts.component;
 import org.gradle.api.Incubating;
 
 /**
- * The identifier for a module component.
+ * An identifier for a module component.
  */
 @Incubating
 public interface ModuleComponentIdentifier extends ComponentIdentifier {

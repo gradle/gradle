@@ -18,12 +18,12 @@ package org.gradle.api.artifacts.component;
 import org.gradle.api.Incubating;
 
 /**
- * Selects a component.
+ * Represents the criteria used to select a component during dependency resolution.
  */
 @Incubating
 public interface ComponentSelector {
     /**
-     * The display name of a component.
+     * Returns a human-consumable display name for this selector.
      *
      * @return Display name
      */

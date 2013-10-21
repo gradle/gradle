@@ -19,7 +19,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 
 /**
- * The identifier for a build component.
+ * An identifier for a locally built component.
  */
 @Incubating
 public interface BuildComponentIdentifier extends ComponentIdentifier {

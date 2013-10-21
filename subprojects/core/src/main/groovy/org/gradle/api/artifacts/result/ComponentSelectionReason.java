@@ -19,7 +19,7 @@ package org.gradle.api.artifacts.result;
 import org.gradle.api.Incubating;
 
 /**
- * Answers the question why given component was selected during the dependency resolution
+ * Answers the question why a component was selected during the dependency resolution.
  *
  * @since 1.3
  */
@@ -27,14 +27,14 @@ import org.gradle.api.Incubating;
 public interface ComponentSelectionReason {
 
     /**
-     * Informs whether the module was forced.
-     * Users can force modules via {@link org.gradle.api.artifacts.ResolutionStrategy}
+     * Informs whether the component was forced.
+     * Users can force components via {@link org.gradle.api.artifacts.ResolutionStrategy}
      * or when declaring dependencies (see {@link org.gradle.api.artifacts.dsl.DependencyHandler}).
      */
     boolean isForced();
 
     /**
-     * Informs whether the module was selected by conflict resolution.
+     * Informs whether the component was selected by conflict resolution.
      * For more information about Gradle's conflict resolution please refer to the user
      * guide. {@link org.gradle.api.artifacts.ResolutionStrategy} contains information
      * about conflict resolution and includes means to configure it.
@@ -42,7 +42,7 @@ public interface ComponentSelectionReason {
     boolean isConflictResolution();
 
     /**
-     * Informs whether the module was selected by the dependency resolve rule.
+     * Informs whether the component was selected by the dependency resolve rule.
      * Users can configure dependency resolve rules via {@link org.gradle.api.artifacts.ResolutionStrategy#eachDependency(org.gradle.api.Action)}
      *
      * @since 1.4
@@ -50,7 +50,7 @@ public interface ComponentSelectionReason {
     boolean isSelectedByRule();
 
     /**
-     * Describes this selection reason.
+     * Returns a human-consumable description of this selection reason.
      */
     String getDescription();
 }

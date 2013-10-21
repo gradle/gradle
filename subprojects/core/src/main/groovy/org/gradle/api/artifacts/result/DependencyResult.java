@@ -20,7 +20,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 
 /**
- * An edge in the dependency graph. Provides information about the origin of the dependency and the requested module version.
+ * An edge in the dependency graph. Provides information about the origin of the dependency and the requested component.
  *
  * @see ResolutionResult
  */
