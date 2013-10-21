@@ -15,25 +15,24 @@
  */
 package org.gradle.api.internal.artifacts.component;
 
-import org.gradle.api.Project;
 import org.gradle.api.artifacts.component.BuildComponentSelector;
 
 public class DefaultBuildComponentSelector implements BuildComponentSelector {
-    private final Project project;
+    private final String projectPath;
     private final String displayName;
 
-    public DefaultBuildComponentSelector(Project project) {
-        assert project != null : "project cannot be null";
-        this.project = project;
-        displayName = String.format("project %s", project.getPath());
+    public DefaultBuildComponentSelector(String projectPath) {
+        assert projectPath != null : "project path cannot be null";
+        this.projectPath = projectPath;
+        displayName = String.format("project %s", projectPath);
     }
 
     public String getDisplayName() {
         return displayName;
     }
 
-    public Project getProject() {
-        return project;
+    public String getProjectPath() {
+        return projectPath;
     }
 
     @Override
@@ -47,7 +46,7 @@ public class DefaultBuildComponentSelector implements BuildComponentSelector {
 
         DefaultBuildComponentSelector that = (DefaultBuildComponentSelector) o;
 
-        if (!project.equals(that.project)) {
+        if (!projectPath.equals(that.projectPath)) {
             return false;
         }
 
@@ -56,7 +55,7 @@ public class DefaultBuildComponentSelector implements BuildComponentSelector {
 
     @Override
     public int hashCode() {
-        return project.hashCode();
+        return projectPath.hashCode();
     }
 
     @Override

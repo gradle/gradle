@@ -16,12 +16,11 @@
 package org.gradle.api.artifacts.component;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.Project;
 
 /**
  * Selects a locally built component.
  */
 @Incubating
 public interface BuildComponentSelector extends ComponentSelector {
-    Project getProject();
+    String getProjectPath();
 }

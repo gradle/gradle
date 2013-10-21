@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.component
 
-import org.gradle.api.Project
 import org.gradle.api.artifacts.component.BuildComponentSelector
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -23,16 +22,12 @@ import spock.lang.Unroll
 import static org.gradle.util.Matchers.strictlyEquals
 
 class DefaultBuildComponentSelectorTest extends Specification {
-    Project project1 = Mock()
-    Project project2 = Mock()
-
     def "is instantiated with non-null constructor parameter values"() {
         when:
-        BuildComponentSelector defaultBuildComponentSelector = new DefaultBuildComponentSelector(project1)
+        BuildComponentSelector defaultBuildComponentSelector = new DefaultBuildComponentSelector(':myPath')
 
         then:
-        defaultBuildComponentSelector.project == project1
-        1 * project1.path >> ':myPath'
+        defaultBuildComponentSelector.projectPath == ':myPath'
         defaultBuildComponentSelector.displayName == 'project :myPath'
         defaultBuildComponentSelector.toString() == 'project :myPath'
     }
@@ -44,31 +39,21 @@ class DefaultBuildComponentSelectorTest extends Specification {
 
         then:
         Throwable t = thrown(AssertionError)
-        t.message == 'project cannot be null'
+        t.message == 'project path cannot be null'
     }
 
-    def "can compare with instance for same project"() {
-        when:
-        BuildComponentSelector defaultBuildComponentSelector1 = new DefaultBuildComponentSelector(project1)
-        BuildComponentSelector defaultBuildComponentSelector2 = new DefaultBuildComponentSelector(project1)
+    @Unroll
+    def "can compare with other instance (#projectPath)"() {
+        expect:
+        BuildComponentSelector defaultBuildComponentSelector1 = new DefaultBuildComponentSelector(':myProjectPath1')
+        BuildComponentSelector defaultBuildComponentSelector2 = new DefaultBuildComponentSelector(projectPath)
+        strictlyEquals(defaultBuildComponentSelector1, defaultBuildComponentSelector2) == equality
+        (defaultBuildComponentSelector1.hashCode() == defaultBuildComponentSelector2.hashCode()) == hashCode
+        (defaultBuildComponentSelector1.toString() == defaultBuildComponentSelector2.toString()) == stringRepresentation
 
-        then:
-        strictlyEquals(defaultBuildComponentSelector1, defaultBuildComponentSelector2)
-        (defaultBuildComponentSelector1.hashCode() == defaultBuildComponentSelector2.hashCode())
-        (defaultBuildComponentSelector1.toString() == defaultBuildComponentSelector2.toString())
-        2 * project1.path >> ':myProjectPath1'
-    }
-
-    def "can compare with instance for different projects"() {
-        when:
-        BuildComponentSelector defaultBuildComponentSelector1 = new DefaultBuildComponentSelector(project1)
-        BuildComponentSelector defaultBuildComponentSelector2 = new DefaultBuildComponentSelector(project2)
-
-        then:
-        !strictlyEquals(defaultBuildComponentSelector1, defaultBuildComponentSelector2)
-        !(defaultBuildComponentSelector1.hashCode() == defaultBuildComponentSelector2.hashCode())
-        !(defaultBuildComponentSelector1.toString() == defaultBuildComponentSelector2.toString())
-        1 * project1.path >> ':myProjectPath1'
-        1 * project2.path >> ':myProjectPath2'
+        where:
+        projectPath       | equality | hashCode | stringRepresentation
+        ':myProjectPath1' | true     | true     | true
+        ':myProjectPath2' | false    | false    | false
     }
 }

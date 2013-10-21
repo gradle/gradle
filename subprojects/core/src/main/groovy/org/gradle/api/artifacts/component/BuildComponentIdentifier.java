@@ -16,12 +16,11 @@
 package org.gradle.api.artifacts.component;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.Project;
 
 /**
  * An identifier for a locally built component.
  */
 @Incubating
 public interface BuildComponentIdentifier extends ComponentIdentifier {
-    Project getProject();
+    String getProjectPath();
 }
