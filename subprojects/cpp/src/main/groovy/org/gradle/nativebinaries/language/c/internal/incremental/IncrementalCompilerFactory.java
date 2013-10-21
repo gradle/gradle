@@ -43,7 +43,7 @@ public class IncrementalCompilerFactory  {
         File privateCacheDir = new File(cacheDir, cacheKey);
         PersistentCache cache = cacheFactory.open(privateCacheDir, "cppCompile", CacheUsage.ON, null, Collections.<String, Object>emptyMap(), FileLockManager.LockMode.Exclusive, null);
 
-        PersistentIndexedCache<File, FileState> stateCache = createCache(cache, "state", File.class, new DefaultSerializer<FileState>());
+        PersistentIndexedCache<File, FileState> stateCache = createCache(cache, "state", File.class, new DefaultSerializer<FileState>(FileState.class.getClassLoader()));
 
         // TODO:DAZ This doesn't need to be an indexed cache: need PersistentCache.createStateCache()
         PersistentIndexedCache<String, List<File>> listCache = createCache(cache, "previous", String.class, new DefaultSerializer<List<File>>());
