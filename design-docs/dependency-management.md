@@ -63,7 +63,7 @@ produced outside the build. This will allow IDE integrations to map dependencies
     - `getId()` returns the identifier from `ModuleVersionMetaData.getComponentId()`.
     - `getPublishedAs()` returns a `ModuleComponentIdentifier` with the same attributes as `ModuleVersionMetaData.getId()`.
     - Add `<T extends ComponentIdentifier> T getId(Class<T> type)` that returns an id of the requested type.
-4. Introduce `BuildComponentSelector` type that extends `ComponentSelector and add a private implementation.
+4. Introduce `BuildComponentSelector` type that extends `ComponentSelector` and add a private implementation.
     - `project` property
 5. Change `DependencyMetaData` to add a `ComponentSelector getSelector()`
     - Default should be a `ModuleComponentSelector` with the same attributes as `getRequested()`.
