@@ -21,6 +21,7 @@ import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.UncheckedException;
+import org.gradle.model.ModelFinalizer;
 import org.gradle.model.ModelPath;
 import org.gradle.model.ModelRule;
 import org.gradle.model.Path;
@@ -95,11 +96,18 @@ public abstract class ReflectiveRule {
         List<BindableParameter<?>> tail = bindings.subList(1, bindings.size());
         ModelMutator<?> modelMutator = toMutator(modelRule, bindingMethod, first, tail);
 
-        modelRegistry.mutate(first.getPath().toString(), CollectionUtils.collect(tail, new Transformer<String, BindableParameter<?>>() {
+        String path = first.getPath().toString();
+        List<String> bindingPaths = CollectionUtils.collect(tail, new Transformer<String, BindableParameter<?>>() {
             public String transform(BindableParameter<?> bindableParameter) {
                 return bindableParameter.getPath().toString();
             }
-        }), modelMutator);
+        });
+
+        if (modelRule instanceof ModelFinalizer) {
+            modelRegistry.finalize(path, bindingPaths, modelMutator);
+        } else {
+            modelRegistry.mutate(path, bindingPaths, modelMutator);
+        }
     }
 
     private static <T> ModelMutator<T> toMutator(final ModelRule modelRule, final Method bindingMethod, final BindableParameter<T> first, final List<BindableParameter<?>> tail) {

@@ -143,9 +143,11 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
     def "can add binary configuration to target a platform"() {
         when:
         buildFile << """
-            toolChains {
-                crossCompiler(Gcc) {
-                    addPlatformConfiguration(new ArmArchitecture())
+            model {
+                toolChains {
+                    crossCompiler(Gcc) {
+                        addPlatformConfiguration(new ArmArchitecture())
+                    }
                 }
             }
             targetPlatforms {

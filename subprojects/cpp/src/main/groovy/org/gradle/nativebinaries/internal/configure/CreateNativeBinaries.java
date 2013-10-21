@@ -16,29 +16,29 @@
 
 package org.gradle.nativebinaries.internal.configure;
 
-import org.gradle.api.Action;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.BinaryContainer;
+import org.gradle.model.ModelRule;
 import org.gradle.nativebinaries.*;
 import org.gradle.nativebinaries.internal.DefaultExecutableBinary;
 import org.gradle.nativebinaries.internal.DefaultSharedLibraryBinary;
 import org.gradle.nativebinaries.internal.DefaultStaticLibraryBinary;
 
-public class CreateNativeBinaries implements Action<ProjectInternal> {
+public class CreateNativeBinaries extends ModelRule {
     private final Instantiator instantiator;
+    private final ProjectInternal project;
 
-    public CreateNativeBinaries(Instantiator instantiator) {
+    public CreateNativeBinaries(Instantiator instantiator, ProjectInternal project) {
         this.instantiator = instantiator;
+        this.project = project;
     }
 
-    public void execute(ProjectInternal project) {
-        ToolChainRegistry toolChains = project.getExtensions().getByType(ToolChainRegistry.class);
+    public void create(BinaryContainer binaries, ToolChainRegistry toolChains) {
         PlatformContainer targetPlatforms = project.getExtensions().getByType(PlatformContainer.class);
         BuildTypeContainer buildTypes = project.getExtensions().getByType(BuildTypeContainer.class);
         ExecutableContainer executables = project.getExtensions().getByType(ExecutableContainer.class);
         LibraryContainer libraries = project.getExtensions().getByType(LibraryContainer.class);
-        BinaryContainer binaries = project.getExtensions().getByType(BinaryContainer.class);
 
         NativeBinaryFactory factory = new NativeBinaryFactory(instantiator, project, toolChains, targetPlatforms, buildTypes);
         for (ToolChain toolChain : toolChains) {

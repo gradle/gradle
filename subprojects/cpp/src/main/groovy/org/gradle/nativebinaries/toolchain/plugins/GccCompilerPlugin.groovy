@@ -19,6 +19,8 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.model.ModelRule
+import org.gradle.model.ModelRules
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.nativebinaries.internal.ToolChainRegistryInternal
 import org.gradle.nativebinaries.plugins.NativeBinariesPlugin
@@ -35,22 +37,27 @@ class GccCompilerPlugin implements Plugin<Project> {
     private final FileResolver fileResolver
     private final ExecActionFactory execActionFactory
     private final Instantiator instantiator
+    private final ModelRules modelRules;
 
     @Inject
-    GccCompilerPlugin(FileResolver fileResolver, ExecActionFactory execActionFactory, Instantiator instantiator) {
+    GccCompilerPlugin(FileResolver fileResolver, ExecActionFactory execActionFactory, ModelRules modelRules, Instantiator instantiator) {
         this.execActionFactory = execActionFactory
         this.fileResolver = fileResolver
+        this.modelRules = modelRules
         this.instantiator = instantiator
     }
 
     void apply(Project project) {
         project.plugins.apply(NativeBinariesPlugin)
 
-        final toolChainRegistry = project.extensions.getByType(ToolChainRegistryInternal)
-        toolChainRegistry.registerFactory(Gcc, { String name ->
-            return instantiator.newInstance(GccToolChain, name, OperatingSystem.current(), fileResolver, execActionFactory)
+        modelRules.rule(new ModelRule() {
+            void addGccToolChain(ToolChainRegistryInternal toolChainRegistry) {
+                toolChainRegistry.registerFactory(Gcc, { String name ->
+                    return instantiator.newInstance(GccToolChain, name, OperatingSystem.current(), fileResolver, execActionFactory)
+                })
+                toolChainRegistry.registerDefaultToolChain(GccToolChain.DEFAULT_NAME, Gcc)
+            }
         })
-        toolChainRegistry.registerDefaultToolChain(GccToolChain.DEFAULT_NAME, Gcc)
     }
 
 }

@@ -34,6 +34,7 @@ public class DefaultModelRegistry implements ModelRegistry {
 
     private final Map<ModelPath, ModelCreation> creations = new HashMap<ModelPath, ModelCreation>();
     private final Multimap<ModelPath, ModelMutation<?>> mutators = ArrayListMultimap.create();
+    private final Multimap<ModelPath, ModelMutation<?>> finalizers = ArrayListMultimap.create();
 
     private final List<ModelCreationListener> modelCreationListeners = new LinkedList<ModelCreationListener>();
 
@@ -59,12 +60,25 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     public <T> void mutate(String path, ModelMutation<T> mutation) {
+        ModelPath mutationModelPath = assertNotFinalized(path);
+        mutators.put(mutationModelPath, mutation);
+    }
+
+    public <T> void finalize(String path, List<String> inputPaths, ModelMutator<T> mutator) {
+        finalize(path, new ModelMutation<T>(mutator, toModelPaths(inputPaths)));
+    }
+
+    public <T> void finalize(String path, ModelMutation<T> mutation) {
+        ModelPath mutationModelPath = assertNotFinalized(path);
+        finalizers.put(mutationModelPath, mutation);
+    }
+
+    private ModelPath assertNotFinalized(String path) {
         ModelPath mutationModelPath = ModelPath.path(path);
         if (store.containsKey(mutationModelPath)) {
             throw new IllegalStateException("model '" + mutationModelPath + "' is finalized");
         }
-
-        mutators.put(mutationModelPath, mutation);
+        return mutationModelPath;
     }
 
     public <T> T get(String path, Class<T> type) {
@@ -108,6 +122,11 @@ public class DefaultModelRegistry implements ModelRegistry {
 
         Object model = createModel(path);
         Collection<ModelMutation<?>> modelMutations = mutators.removeAll(path);
+        for (ModelMutation modelMutation : modelMutations) {
+            fireMutation(model, modelMutation);
+        }
+
+        modelMutations = finalizers.removeAll(path);
         for (ModelMutation modelMutation : modelMutations) {
             fireMutation(model, modelMutation);
         }
