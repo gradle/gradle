@@ -37,7 +37,6 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import static org.gradle.cache.internal.FileLockManager.LockMode.Exclusive;
 import static org.gradle.cache.internal.FileLockManager.LockMode.Shared;
-import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 @ThreadSafe
 public class DefaultCacheAccess implements CacheAccess {
@@ -304,7 +303,7 @@ public class DefaultCacheAccess implements CacheAccess {
         if (fileLock != null) {
             return false;
         }
-        fileLock = lockManager.lock(lockFile, mode(Exclusive), cacheDiplayName, operations.getDescription());
+        fileLock = lockManager.lock(lockFile, lockOptions.withMode(Exclusive), cacheDiplayName, operations.getDescription());
 
         for (UnitOfWorkParticipant cache : caches) {
             cache.onStartWork(operations.getDescription(), fileLock.getHasNewOwner());

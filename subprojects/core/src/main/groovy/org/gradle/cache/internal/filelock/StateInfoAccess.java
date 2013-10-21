@@ -31,22 +31,22 @@ public class StateInfoAccess {
     public void ensureStateInfo(RandomAccessFile lockFileAccess) throws IOException {
         if (lockFileAccess.length() < protocol.getSize()) {
             // File did not exist before locking
-            markClean(lockFileAccess, StateInfo.UNKNOWN_PREVIOUS_OWNER);
+            markDirty(lockFileAccess); //TODO SF add coverage that we're actually marking dirty here
         }
     }
 
     public void markClean(RandomAccessFile lockFileAccess, int ownerId) throws IOException {
-        writeState(lockFileAccess, ownerId);
+        writeState(lockFileAccess, new StateInfo(ownerId, false));
     }
 
     public void markDirty(RandomAccessFile lockFileAccess) throws IOException {
-        writeState(lockFileAccess, StateInfo.UNKNOWN_PREVIOUS_OWNER);
+        writeState(lockFileAccess, new StateInfo(StateInfo.UNKNOWN_PREVIOUS_OWNER, true));
     }
 
-    private void writeState(RandomAccessFile lockFileAccess, int ownerId) throws IOException {
+    private void writeState(RandomAccessFile lockFileAccess, StateInfo stateInfo) throws IOException {
         lockFileAccess.seek(0);
         lockFileAccess.writeByte(protocol.getVersion());
-        protocol.writeState(lockFileAccess, new StateInfo(ownerId, false));
+        protocol.writeState(lockFileAccess, stateInfo);
         assert lockFileAccess.getFilePointer() == protocol.getSize();
     }
 

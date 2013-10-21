@@ -102,6 +102,7 @@ class DefaultCacheAccessTest extends Specification {
         Factory<String> action = Mock()
 
         when:
+        access.open(mode(None))
         access.useCache("some operation", action)
 
         then:
@@ -131,6 +132,7 @@ class DefaultCacheAccessTest extends Specification {
         Factory<String> action = Mock()
 
         when:
+        access.open(mode(None))
         access.useCache("some operation", action)
 
         then:
