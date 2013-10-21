@@ -25,6 +25,7 @@ import spock.lang.Specification
 
 import static org.gradle.cache.internal.DefaultFileLockManagerTestHelper.createDefaultFileLockManager
 import static org.gradle.cache.internal.DefaultFileLockManagerTestHelper.unlockUncleanly
+import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode
 
 class DefaultPersistentDirectoryCacheSpec extends Specification {
 
@@ -37,7 +38,7 @@ class DefaultPersistentDirectoryCacheSpec extends Specification {
         def init = { initd = true } as Action
         unlockUncleanly(new File(dir, "cache.properties"))
         def cache = new DefaultPersistentDirectoryCache(
-                dir, "test", CacheUsage.ON, { true } as CacheValidator, [:], FileLockManager.LockMode.Exclusive, init, createDefaultFileLockManager()
+                dir, "test", CacheUsage.ON, { true } as CacheValidator, [:], mode(FileLockManager.LockMode.Exclusive), init, createDefaultFileLockManager()
         )
         
         when:

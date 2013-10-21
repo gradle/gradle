@@ -19,6 +19,7 @@ import org.gradle.CacheUsage;
 import org.gradle.api.Action;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.*;
+import org.gradle.cache.internal.filelock.LockOptions;
 import org.gradle.messaging.serialize.DefaultSerializer;
 import org.gradle.messaging.serialize.Serializer;
 import org.gradle.util.GradleVersion;
@@ -29,6 +30,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.gradle.cache.internal.FileLockManager.LockMode;
+import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class DefaultCacheRepository implements CacheRepository {
     private final GradleVersion version = GradleVersion.current();
@@ -133,7 +135,7 @@ public class DefaultCacheRepository implements CacheRepository {
 
     private class PersistentCacheBuilder extends AbstractCacheBuilder<PersistentCache> implements DirectoryCacheBuilder {
         Action<? super PersistentCache> initializer;
-        LockMode lockMode = LockMode.Shared;
+        LockOptions lockOptions = mode(LockMode.Shared);
         String displayName;
 
         protected PersistentCacheBuilder(String key) {
@@ -174,14 +176,14 @@ public class DefaultCacheRepository implements CacheRepository {
             return this;
         }
 
-        public DirectoryCacheBuilder withLockMode(LockMode lockMode) {
-            this.lockMode = lockMode;
+        public DirectoryCacheBuilder withLockOptions(LockOptions lockOptions) {
+            this.lockOptions = lockOptions;
             return this;
         }
 
         @Override
         protected PersistentCache doOpen(File cacheDir, Map<String, ?> properties, CacheValidator validator) {
-            return factory.open(cacheDir, displayName, cacheUsage, validator, properties, lockMode, initializer);
+            return factory.open(cacheDir, displayName, cacheUsage, validator, properties, lockOptions, initializer);
         }
     }
 
@@ -195,7 +197,7 @@ public class DefaultCacheRepository implements CacheRepository {
             if (!properties.isEmpty()) {
                 throw new UnsupportedOperationException("Properties are not supported for stores.");
             }
-            return factory.openStore(cacheDir, displayName, lockMode, initializer);
+            return factory.openStore(cacheDir, displayName, lockOptions, initializer);
         }
     }
 
@@ -237,7 +239,7 @@ public class DefaultCacheRepository implements CacheRepository {
 
         @Override
         protected PersistentStateCache<E> doOpen(File cacheDir, Map<String, ?> properties, CacheValidator validator) {
-            return factory.openStateCache(cacheDir, cacheUsage, validator, properties, LockMode.Exclusive, serializer);
+            return factory.openStateCache(cacheDir, cacheUsage, validator, properties, mode(LockMode.Exclusive), serializer);
         }
     }
 
@@ -248,7 +250,7 @@ public class DefaultCacheRepository implements CacheRepository {
 
         @Override
         protected PersistentIndexedCache<K, V> doOpen(File cacheDir, Map<String, ?> properties, CacheValidator validator) {
-            return factory.openIndexedCache(cacheDir, cacheUsage, validator, properties, LockMode.Exclusive, serializer);
+            return factory.openIndexedCache(cacheDir, cacheUsage, validator, properties, mode(LockMode.Exclusive), serializer);
         }
     }
 }

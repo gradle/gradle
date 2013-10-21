@@ -19,6 +19,7 @@ import org.gradle.CacheUsage;
 import org.gradle.api.Action;
 import org.gradle.cache.*;
 import org.gradle.cache.internal.*;
+import org.gradle.cache.internal.filelock.LockOptions;
 import org.gradle.internal.Factory;
 import org.gradle.messaging.serialize.DefaultSerializer;
 import org.gradle.messaging.serialize.Serializer;
@@ -29,11 +30,11 @@ import java.util.Collections;
 import java.util.Map;
 
 public class InMemoryCacheFactory implements CacheFactory {
-    public PersistentCache openStore(File storeDir, String displayName, FileLockManager.LockMode lockMode, Action<? super PersistentCache> initializer) throws CacheOpenException {
-        return open(storeDir, displayName, CacheUsage.ON, null, Collections.<String, Object>emptyMap(), lockMode, initializer);
+    public PersistentCache openStore(File storeDir, String displayName, LockOptions lockOptions, Action<? super PersistentCache> initializer) throws CacheOpenException {
+        return open(storeDir, displayName, CacheUsage.ON, null, Collections.<String, Object>emptyMap(), lockOptions, initializer);
     }
 
-    public PersistentCache open(File cacheDir, String displayName, CacheUsage usage, CacheValidator cacheValidator, Map<String, ?> properties, FileLockManager.LockMode lockMode, Action<? super PersistentCache> initializer) {
+    public PersistentCache open(File cacheDir, String displayName, CacheUsage usage, CacheValidator cacheValidator, Map<String, ?> properties, LockOptions lockOptions, Action<? super PersistentCache> initializer) {
         GFileUtils.mkdirs(cacheDir);
         InMemoryCache cache = new InMemoryCache(cacheDir);
         if (initializer != null) {
@@ -42,11 +43,11 @@ public class InMemoryCacheFactory implements CacheFactory {
         return cache;
     }
 
-    public <K, V> PersistentIndexedCache<K, V> openIndexedCache(File cacheDir, CacheUsage usage, CacheValidator validator, Map<String, ?> properties, FileLockManager.LockMode lockMode, Serializer<V> serializer) {
+    public <K, V> PersistentIndexedCache<K, V> openIndexedCache(File cacheDir, CacheUsage usage, CacheValidator validator, Map<String, ?> properties, LockOptions lockOptions, Serializer<V> serializer) {
         return new InMemoryIndexedCache<K, V>(serializer);
     }
 
-    public <E> PersistentStateCache<E> openStateCache(File cacheDir, CacheUsage usage, CacheValidator validator, Map<String, ?> properties, FileLockManager.LockMode lockMode, Serializer<E> serializer) {
+    public <E> PersistentStateCache<E> openStateCache(File cacheDir, CacheUsage usage, CacheValidator validator, Map<String, ?> properties, LockOptions lockOptions, Serializer<E> serializer) {
         GFileUtils.mkdirs(cacheDir);
         return new SimpleStateCache<E>(new File(cacheDir, "state.bin"), new NoOpFileLock(), new DefaultSerializer<E>());
     }

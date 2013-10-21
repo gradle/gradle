@@ -29,6 +29,8 @@ import org.gradle.messaging.serialize.Serializer;
 
 import java.io.File;
 
+import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
+
 public class DefaultTaskArtifactStateCacheAccess implements TaskArtifactStateCacheAccess {
     private final Gradle gradle;
     private final CacheRepository cacheRepository;
@@ -50,7 +52,7 @@ public class DefaultTaskArtifactStateCacheAccess implements TaskArtifactStateCac
                         .cache("taskArtifacts")
                         .forObject(gradle)
                         .withDisplayName("task artifact state cache")
-                        .withLockMode(FileLockManager.LockMode.Exclusive)
+                        .withLockOptions(mode(FileLockManager.LockMode.Exclusive))
                         .open();
             }
             return cache;

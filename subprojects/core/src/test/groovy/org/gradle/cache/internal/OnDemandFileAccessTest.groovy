@@ -21,6 +21,8 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
+import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode
+
 class OnDemandFileAccessTest extends Specification {
     final FileLockManager manager = Mock()
     final FileLock targetLock = Mock()
@@ -42,7 +44,7 @@ class OnDemandFileAccessTest extends Specification {
 
         then:
         !file.exists()
-        1 * manager.lock(file, LockMode.Shared, "some-lock") >> targetLock
+        1 * manager.lock(file, mode(LockMode.Shared), "some-lock") >> targetLock
         1 * targetLock.readFile(action)
         1 * targetLock.close()
         0 * targetLock._
@@ -56,7 +58,7 @@ class OnDemandFileAccessTest extends Specification {
 
         then:
         !file.exists()
-        1 * manager.lock(file, LockMode.Exclusive, "some-lock") >> targetLock
+        1 * manager.lock(file, mode(LockMode.Exclusive), "some-lock") >> targetLock
         1 * targetLock.updateFile(action)
         1 * targetLock.close()
         0 * targetLock._
@@ -70,7 +72,7 @@ class OnDemandFileAccessTest extends Specification {
 
         then:
         !file.exists()
-        1 * manager.lock(file, LockMode.Exclusive, "some-lock") >> targetLock
+        1 * manager.lock(file, mode(LockMode.Exclusive), "some-lock") >> targetLock
         1 * targetLock.writeFile(action)
         1 * targetLock.close()
         0 * targetLock._

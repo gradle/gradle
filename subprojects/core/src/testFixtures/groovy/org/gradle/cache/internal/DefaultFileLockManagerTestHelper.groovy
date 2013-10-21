@@ -16,6 +16,7 @@
 
 package org.gradle.cache.internal
 
+import org.gradle.cache.internal.filelock.LockOptionsBuilder
 import org.gradle.cache.internal.locklistener.NoOpFileLockContentionHandler
 
 abstract class DefaultFileLockManagerTestHelper {
@@ -57,7 +58,7 @@ abstract class DefaultFileLockManagerTestHelper {
     }
     
     static FileLock createDefaultFileLock(File file, FileLockManager.LockMode mode = FileLockManager.LockMode.Exclusive, DefaultFileLockManager manager = createDefaultFileLockManager()) {
-        manager.lock(file, mode, "test lock")
+        manager.lock(file, LockOptionsBuilder.mode(mode), "test lock")
     }
 
     static File getLockFile(File target) {

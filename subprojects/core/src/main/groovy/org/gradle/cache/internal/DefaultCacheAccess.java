@@ -21,6 +21,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.cache.CacheAccess;
 import org.gradle.cache.internal.btree.BTreePersistentIndexedCache;
 import org.gradle.cache.internal.cacheops.CacheAccessOperationsStack;
+import org.gradle.cache.internal.filelock.LockOptions;
 import org.gradle.internal.CompositeStoppable;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
@@ -50,7 +51,7 @@ public class DefaultCacheAccess implements CacheAccess {
     private final Lock lock = new ReentrantLock();
     private final Condition condition = lock.newCondition();
     private Thread owner;
-    private FileLockManager.LockMode lockMode;
+    private LockOptions lockOptions;
     private FileLock fileLock;
     private boolean contended;
     private final CacheAccessOperationsStack operations;
@@ -70,21 +71,22 @@ public class DefaultCacheAccess implements CacheAccess {
     /**
      * Opens this cache access with the given lock mode. Calling this with {@link org.gradle.cache.internal.FileLockManager.LockMode#Exclusive} will lock the cache for exclusive access from all other
      * threads (including those in this process and all other processes), until {@link #close()} is called.
+     * @param lockOptions
      */
-    public void open(FileLockManager.LockMode lockMode) {
+    public void open(LockOptions lockOptions) {
         lock.lock();
         try {
             if (owner != null) {
                 throw new IllegalStateException(String.format("Cannot open the %s, as it is already in use.", cacheDiplayName));
             }
-            this.lockMode = lockMode;
-            if (lockMode == FileLockManager.LockMode.None) {
+            this.lockOptions = lockOptions;
+            if (lockOptions.getMode() == FileLockManager.LockMode.None) {
                 return;
             }
             if (fileLock != null) {
                 throw new IllegalStateException("File lock " + lockFile + " is already open.");
             }
-            fileLock = lockManager.lock(lockFile, lockMode, cacheDiplayName);
+            fileLock = lockManager.lock(lockFile, lockOptions, cacheDiplayName);
             takeOwnership(String.format("Access %s", cacheDiplayName));
             lockManager.allowContention(fileLock, whenContended());
         } finally {
@@ -113,7 +115,7 @@ public class DefaultCacheAccess implements CacheAccess {
                 LOG.debug("Cache {} was closed {} times.", cacheDiplayName, cacheClosedCount);
             }
         } finally {
-            lockMode = null;
+            lockOptions = null;
             owner = null;
             lock.unlock();
         }
@@ -128,7 +130,7 @@ public class DefaultCacheAccess implements CacheAccess {
     }
 
     public <T> T useCache(String operationDisplayName, Factory<? extends T> factory) {
-        if (lockMode == FileLockManager.LockMode.Shared) {
+        if (lockOptions != null && lockOptions.getMode() == FileLockManager.LockMode.Shared) {
             throw new UnsupportedOperationException("Not implemented yet.");
         }
 
@@ -301,7 +303,7 @@ public class DefaultCacheAccess implements CacheAccess {
         if (fileLock != null) {
             return false;
         }
-        fileLock = lockManager.lock(lockFile, Exclusive, cacheDiplayName, operations.getDescription());
+        fileLock = lockManager.lock(lockFile, lockOptions.withMode(Exclusive), cacheDiplayName, operations.getDescription());
 
         for (UnitOfWorkParticipant cache : caches) {
             cache.onStartWork(operations.getDescription(), fileLock.getHasNewOwner());

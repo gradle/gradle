@@ -18,18 +18,18 @@ package org.gradle.cache.internal;
 import org.gradle.CacheUsage;
 import org.gradle.api.Action;
 import org.gradle.cache.*;
-import org.gradle.cache.internal.FileLockManager.LockMode;
+import org.gradle.cache.internal.filelock.LockOptions;
 import org.gradle.messaging.serialize.Serializer;
 
 import java.io.File;
 import java.util.Map;
 
 public interface CacheFactory {
-    PersistentCache openStore(File storeDir, String displayName, LockMode lockMode, Action<? super PersistentCache> initializer) throws CacheOpenException;
+    PersistentCache openStore(File storeDir, String displayName, LockOptions lockOptions, Action<? super PersistentCache> initializer) throws CacheOpenException;
 
-    PersistentCache open(File cacheDir, String displayName, CacheUsage usage, CacheValidator cacheValidator, Map<String, ?> properties, LockMode lockMode, Action<? super PersistentCache> initializer) throws CacheOpenException;
+    PersistentCache open(File cacheDir, String displayName, CacheUsage usage, CacheValidator cacheValidator, Map<String, ?> properties, LockOptions lockOptions, Action<? super PersistentCache> initializer) throws CacheOpenException;
 
-    <E> PersistentStateCache<E> openStateCache(File cacheDir, CacheUsage usage, CacheValidator cacheValidator, Map<String, ?> properties, LockMode lockMode, Serializer<E> serializer) throws CacheOpenException;
+    <E> PersistentStateCache<E> openStateCache(File cacheDir, CacheUsage usage, CacheValidator cacheValidator, Map<String, ?> properties, LockOptions lockOptions, Serializer<E> serializer) throws CacheOpenException;
 
-    <K, V> PersistentIndexedCache<K, V> openIndexedCache(File cacheDir, CacheUsage usage, CacheValidator cacheValidator, Map<String, ?> properties, LockMode lockMode, Serializer<V> serializer) throws CacheOpenException;
+    <K, V> PersistentIndexedCache<K, V> openIndexedCache(File cacheDir, CacheUsage usage, CacheValidator cacheValidator, Map<String, ?> properties, LockOptions lockOptions, Serializer<V> serializer) throws CacheOpenException;
 }

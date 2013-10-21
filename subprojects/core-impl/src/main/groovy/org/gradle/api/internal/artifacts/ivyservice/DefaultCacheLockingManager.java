@@ -29,6 +29,8 @@ import org.gradle.messaging.serialize.Serializer;
 
 import java.io.File;
 
+import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
+
 public class DefaultCacheLockingManager implements CacheLockingManager {
 
     // If you update this, also update DefaultGradleDistribution.getArtifactCacheLayoutVersion() (which is the historical record)
@@ -42,7 +44,7 @@ public class DefaultCacheLockingManager implements CacheLockingManager {
                 .store(CacheLayout.ROOT.getKey())
                 .withDisplayName("artifact cache")
                 .withVersionStrategy(CacheBuilder.VersionStrategy.SharedCache)
-                .withLockMode(FileLockManager.LockMode.None) // Don't need to lock anything until we use the caches
+                .withLockOptions(mode(FileLockManager.LockMode.None)) // Don't need to lock anything until we use the caches
                 .open();
 
         initMetaDataStoreDir();
