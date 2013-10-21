@@ -35,7 +35,7 @@ class CCompileTest extends Specification {
     Compiler<CppCompileSpec> cCompiler = Mock(Compiler)
 
     def "executes using the C Compiler"() {
-        def inputDir = testDir.file("sourceFile")
+        def sourceFile = testDir.createFile("sourceFile")
         def result = Mock(WorkResult)
         when:
         cCompile.toolChain = toolChain
@@ -43,7 +43,7 @@ class CCompileTest extends Specification {
         cCompile.compilerArgs = ["arg"]
         cCompile.macros = [def: "value"]
         cCompile.objectFileDir = testDir.file("outputFile")
-        cCompile.source inputDir
+        cCompile.source sourceFile
         cCompile.execute()
 
         then:

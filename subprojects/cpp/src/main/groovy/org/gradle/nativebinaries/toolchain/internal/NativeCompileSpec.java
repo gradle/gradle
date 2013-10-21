@@ -40,6 +40,10 @@ public interface NativeCompileSpec extends BinaryToolSpec {
 
     void source(Iterable<File> sources);
 
+    List<File> getRemovedSourceFiles();
+
+    void removedSource(Iterable<File> sources);
+
     Map<String, String> getMacros();
 
     void setMacros(Map<String, String> macros);
