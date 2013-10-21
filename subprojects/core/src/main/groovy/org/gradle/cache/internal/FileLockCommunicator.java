@@ -27,6 +27,7 @@ import java.net.SocketException;
 import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
 
 public class FileLockCommunicator {
+    private static final byte PROTOCOL_VERSION = 1;
     private final DatagramSocket socket;
     private final InetAddressFactory addressFactory;
     private boolean stopped;
@@ -54,7 +55,7 @@ public class FileLockCommunicator {
 
     public long receive() throws GracefullyStoppedException {
         try {
-            byte[] bytes = new byte[8];
+            byte[] bytes = new byte[9];
             DatagramPacket packet = new DatagramPacket(bytes, bytes.length);
             socket.receive(packet);
             return decode(bytes);
@@ -73,12 +74,20 @@ public class FileLockCommunicator {
 
     private static byte[] encode(long lockId) throws IOException {
         ByteArrayOutputStream packet = new ByteArrayOutputStream();
-        new DataOutputStream(packet).writeLong(lockId);
+        DataOutputStream dataOutput = new DataOutputStream(packet);
+        dataOutput.writeByte(PROTOCOL_VERSION);
+        dataOutput.writeLong(lockId);
+        dataOutput.flush();
         return packet.toByteArray();
     }
 
     private static long decode(byte[] bytes) throws IOException {
-        return new DataInputStream(new ByteArrayInputStream(bytes)).readLong();
+        DataInputStream dataInput = new DataInputStream(new ByteArrayInputStream(bytes));
+        byte version = dataInput.readByte();
+        if (version != PROTOCOL_VERSION) {
+            throw new IllegalArgumentException(String.format("Unexpected protocol version %s received in lock contention notification message", version));
+        }
+        return dataInput.readLong();
     }
 
     public int getPort() {

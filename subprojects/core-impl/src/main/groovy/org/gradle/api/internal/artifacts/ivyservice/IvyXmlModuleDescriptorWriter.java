@@ -16,10 +16,8 @@
 
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.apache.ivy.core.IvyPatternHelper;
 import org.apache.ivy.core.module.descriptor.*;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.apache.ivy.plugins.matcher.MapMatcher;
 import org.apache.ivy.util.XMLHelper;
 import org.apache.ivy.util.extendable.ExtendableItem;
 import org.gradle.api.Action;
@@ -174,40 +172,8 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
     }
 
     private static void printAllMediators(ModuleDescriptor md, Writer writer) throws IOException {
-        Map/*<MapMatcher, DependencyDescriptorMediator>*/ mediators
-                = md.getAllDependencyDescriptorMediators().getAllRules();
-
-        for (Iterator iterator = mediators.entrySet().iterator(); iterator.hasNext();) {
-            Map.Entry mediatorRule = (Map.Entry) iterator.next();
-            MapMatcher matcher = (MapMatcher) mediatorRule.getKey();
-            DependencyDescriptorMediator mediator =
-                    (DependencyDescriptorMediator) mediatorRule.getValue();
-
-            if (mediator instanceof OverrideDependencyDescriptorMediator) {
-                OverrideDependencyDescriptorMediator oddm =
-                        (OverrideDependencyDescriptorMediator) mediator;
-
-                writer.write("\t\t<override");
-                writer.write(" org=\"" + XMLHelper.escape(
-                        (String) matcher.getAttributes().get(IvyPatternHelper.ORGANISATION_KEY))
-                        + "\"");
-                writer.write(" module=\"" + XMLHelper.escape(
-                        (String) matcher.getAttributes().get(IvyPatternHelper.MODULE_KEY))
-                        + "\"");
-                writer.write(" matcher=\"" + XMLHelper.escape(
-                        matcher.getPatternMatcher().getName())
-                        + "\"");
-                if (oddm.getBranch() != null) {
-                    writer.write(" branch=\"" + XMLHelper.escape(oddm.getBranch()) + "\"");
-                }
-                if (oddm.getVersion() != null) {
-                    writer.write(" rev=\"" + XMLHelper.escape(oddm.getVersion()) + "\"");
-                }
-                writer.write("/>");
-                writer.write(TextUtil.getPlatformLineSeparator());
-            } else {
-                LOGGER.debug("Ignoring unhandled DependencyDescriptorMediator: {}", mediator.getClass());
-            }
+        if (!md.getAllDependencyDescriptorMediators().getAllRules().isEmpty()) {
+            throw new UnsupportedOperationException("Mediators are not support.");
         }
     }
 
