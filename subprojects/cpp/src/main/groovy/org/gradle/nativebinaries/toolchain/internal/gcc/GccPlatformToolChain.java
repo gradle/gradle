@@ -26,6 +26,7 @@ import org.gradle.nativebinaries.language.c.internal.CCompileSpec;
 import org.gradle.nativebinaries.language.cpp.internal.CppCompileSpec;
 import org.gradle.nativebinaries.toolchain.TargetPlatformConfiguration;
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
+import org.gradle.nativebinaries.toolchain.internal.OutputCleaningCompiler;
 import org.gradle.nativebinaries.toolchain.internal.ToolType;
 import org.gradle.process.internal.ExecActionFactory;
 
@@ -47,13 +48,15 @@ class GccPlatformToolChain implements PlatformToolChain {
     public <T extends BinaryToolSpec> org.gradle.api.internal.tasks.compile.Compiler<T> createCppCompiler() {
         CommandLineTool<CppCompileSpec> commandLineTool = commandLineTool(ToolType.CPP_COMPILER);
         commandLineTool.withSpecTransformer(withSystemArgs(CppCompileSpec.class, platformConfiguration.getCppCompilerArgs()));
-        return (org.gradle.api.internal.tasks.compile.Compiler<T>) new CppCompiler(commandLineTool, useCommandFile);
+        CppCompiler cppCompiler = new CppCompiler(commandLineTool, useCommandFile);
+        return (Compiler<T>) new OutputCleaningCompiler<CppCompileSpec>(cppCompiler);
     }
 
     public <T extends BinaryToolSpec> org.gradle.api.internal.tasks.compile.Compiler<T> createCCompiler() {
         CommandLineTool<CCompileSpec> commandLineTool = commandLineTool(ToolType.C_COMPILER);
         commandLineTool.withSpecTransformer(withSystemArgs(CCompileSpec.class, platformConfiguration.getCCompilerArgs()));
-        return (Compiler<T>) new CCompiler(commandLineTool, useCommandFile);
+        CCompiler cCompiler = new CCompiler(commandLineTool, useCommandFile);
+        return (Compiler<T>) new OutputCleaningCompiler<CCompileSpec>(cCompiler);
     }
 
     public <T extends BinaryToolSpec> Compiler<T> createAssembler() {

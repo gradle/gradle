@@ -30,6 +30,7 @@ import org.gradle.nativebinaries.toolchain.internal.AbstractToolChain;
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
 import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec;
 import org.gradle.nativebinaries.toolchain.internal.ToolType;
+import org.gradle.nativebinaries.toolchain.internal.OutputCleaningCompiler;
 import org.gradle.process.internal.ExecActionFactory;
 
 import java.io.File;
@@ -141,14 +142,16 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
             CommandLineTool<CppCompileSpec> commandLineTool = commandLineTool(ToolType.CPP_COMPILER, install.getCompiler(targetPlatform));
             Transformer<CppCompileSpec, CppCompileSpec> specTransformer = addIncludePath();
             commandLineTool.withSpecTransformer(specTransformer);
-            return (Compiler<T>) new CppCompiler(commandLineTool);
+            CppCompiler cppCompiler = new CppCompiler(commandLineTool);
+            return (Compiler<T>) new OutputCleaningCompiler<CppCompileSpec>(cppCompiler);
         }
 
         public <T extends BinaryToolSpec> Compiler<T> createCCompiler() {
             CommandLineTool<CCompileSpec> commandLineTool = commandLineTool(ToolType.C_COMPILER, install.getCompiler(targetPlatform));
             Transformer<CCompileSpec, CCompileSpec> specTransformer = addIncludePath();
             commandLineTool.withSpecTransformer(specTransformer);
-            return (Compiler<T>) new CCompiler(commandLineTool);
+            CCompiler cCompiler = new CCompiler(commandLineTool);
+            return (Compiler<T>) new OutputCleaningCompiler<CCompileSpec>(cCompiler);
         }
 
         public <T extends BinaryToolSpec> Compiler<T> createAssembler() {

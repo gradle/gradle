@@ -16,14 +16,11 @@
 
 package org.gradle.nativebinaries.toolchain.internal.gcc;
 
-import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.internal.tasks.compile.ArgCollector;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.nativebinaries.language.cpp.internal.CppCompileSpec;
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
-
-import java.io.File;
 
 class CppCompiler implements Compiler<CppCompileSpec> {
 
@@ -38,21 +35,7 @@ class CppCompiler implements Compiler<CppCompileSpec> {
     }
 
     public WorkResult execute(CppCompileSpec spec) {
-        boolean didRemove = false;
-        boolean didCompile = false;
-        for (File removedSource : spec.getRemovedSourceFiles()) {
-            didRemove |= deleteOutputForRemovedSource(spec.getObjectFileDir(), removedSource);
-        }
-        if (!spec.getSourceFiles().isEmpty()) {
-            didCompile = commandLineTool.inWorkDirectory(spec.getObjectFileDir()).execute(spec).getDidWork();
-        }
-        return new SimpleWorkResult(didRemove || didCompile);
-    }
-
-    private boolean deleteOutputForRemovedSource(File objectFileDir, File removedSource) {
-        String objectFileName = removedSource.getName().replaceFirst("\\.[^\\.]+$", ".o");
-        File objectFile = new File(objectFileDir, objectFileName);
-        return objectFile.delete();
+        return commandLineTool.inWorkDirectory(spec.getObjectFileDir()).execute(spec);
     }
 
     private static class CppCompileSpecToArguments extends CommonGccCompileSpecToArguments<CppCompileSpec> {
