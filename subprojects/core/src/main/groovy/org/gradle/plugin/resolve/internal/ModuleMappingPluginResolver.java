@@ -30,7 +30,7 @@ public class ModuleMappingPluginResolver implements PluginResolver {
         if (dependency == null) {
             return null;
         } else {
-            return new DependencyResolvingPluginResolution(dependencyResolutionServices, instantiator, dependency, pluginRequest.getId());
+            return new ClassPathPluginResolution(instantiator, pluginRequest.getId(), new DependencyResolvingClasspathProvider(dependencyResolutionServices, dependency));
         }
     }
 
