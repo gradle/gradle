@@ -16,8 +16,6 @@
 
 package org.gradle.plugin.internal;
 
-import org.gradle.api.Action;
-import org.gradle.api.Plugin;
 import org.gradle.api.UnknownProjectException;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
@@ -34,7 +32,6 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugin.resolve.internal.ModuleMappingPluginResolver;
 import org.gradle.plugin.resolve.internal.PluginRegistryPluginResolver;
 import org.gradle.plugin.resolve.internal.PluginRequest;
-import org.gradle.plugin.resolve.internal.PluginResolution;
 
 public class DefaultPluginHandlerFactory implements PluginHandlerFactory {
 
@@ -60,12 +57,7 @@ public class DefaultPluginHandlerFactory implements PluginHandlerFactory {
 
     public PluginHandlerInternal createPluginHandler(final Object target) {
         if (target instanceof PluginAware) {
-            PluginHandlerInternal pluginHandler = new DefaultPluginHandler(instantiator, new Action<PluginResolution>() {
-                public void execute(PluginResolution pluginResolution) {
-                    Class<? extends Plugin> pluginClass = pluginResolution.resolve(this.getClass().getClassLoader());
-                    ((PluginAware) target).getPlugins().apply(pluginClass);
-                }
-            });
+            PluginHandlerInternal pluginHandler = new DefaultPluginHandler(instantiator, new PluginResolutionApplicator((PluginAware) target));
             addDefaultResolvers(pluginHandler);
             return pluginHandler;
         } else {
@@ -96,4 +88,5 @@ public class DefaultPluginHandlerFactory implements PluginHandlerFactory {
             return name;
         }
     }
+
 }
