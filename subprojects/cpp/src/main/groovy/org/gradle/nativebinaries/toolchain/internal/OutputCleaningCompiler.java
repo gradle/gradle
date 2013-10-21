@@ -25,9 +25,11 @@ import java.io.File;
 public class OutputCleaningCompiler<T extends NativeCompileSpec> implements Compiler<T> {
 
     private final Compiler<T> compiler;
+    private final String outputFileSuffix;
 
-    public OutputCleaningCompiler(Compiler<T> compiler) {
+    public OutputCleaningCompiler(Compiler<T> compiler, String outputFileSuffix) {
         this.compiler = compiler;
+        this.outputFileSuffix = outputFileSuffix;
     }
 
     public WorkResult execute(T spec) {
@@ -55,7 +57,7 @@ public class OutputCleaningCompiler<T extends NativeCompileSpec> implements Comp
     }
 
     private File getOutputFile(File objectFileDir, File sourceFile) {
-        String objectFileName = sourceFile.getName().replaceFirst("\\.[^\\.]+$", ".o");
+        String objectFileName = sourceFile.getName().replaceFirst("\\.[^\\.]+$", outputFileSuffix);
         return new File(objectFileDir, objectFileName);
     }
 }

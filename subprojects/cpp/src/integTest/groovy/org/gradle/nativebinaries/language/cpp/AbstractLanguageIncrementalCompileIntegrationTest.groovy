@@ -210,7 +210,7 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
 
         then:
         recompiled newFile
-        outputRemoved sourceFile
+        outputFile(sourceFile).assertDoesNotExist()
     }
 
     def "removes output file when source file is removed"() {
@@ -297,17 +297,4 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
         final baseName = FilenameUtils.removeExtension(sourceFile.name)
         return objectFile("build/objectFiles/mainExecutable/main${sourceType}/${baseName}")
     }
-
-    def outputRemoved(TestFile sourceFile) {
-        outputRemoved([sourceFile])
-    }
-
-    def outputRemoved(List<TestFile> sourceFiles) {
-        def expectedMissing = sourceFiles.collect({ objectFile(FilenameUtils.removeExtension(it.name)) }) as Set
-        expectedMissing.each {
-            file("build/objectFiles/$it").assertDoesNotExist()
-        }
-        return true
-    }
-
 }

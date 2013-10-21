@@ -143,7 +143,7 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
             Transformer<CppCompileSpec, CppCompileSpec> specTransformer = addIncludePath();
             commandLineTool.withSpecTransformer(specTransformer);
             CppCompiler cppCompiler = new CppCompiler(commandLineTool);
-            return (Compiler<T>) new OutputCleaningCompiler<CppCompileSpec>(cppCompiler);
+            return (Compiler<T>) new OutputCleaningCompiler<CppCompileSpec>(cppCompiler, ".obj");
         }
 
         public <T extends BinaryToolSpec> Compiler<T> createCCompiler() {
@@ -151,7 +151,7 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
             Transformer<CCompileSpec, CCompileSpec> specTransformer = addIncludePath();
             commandLineTool.withSpecTransformer(specTransformer);
             CCompiler cCompiler = new CCompiler(commandLineTool);
-            return (Compiler<T>) new OutputCleaningCompiler<CCompileSpec>(cCompiler);
+            return (Compiler<T>) new OutputCleaningCompiler<CCompileSpec>(cCompiler, ".obj");
         }
 
         public <T extends BinaryToolSpec> Compiler<T> createAssembler() {

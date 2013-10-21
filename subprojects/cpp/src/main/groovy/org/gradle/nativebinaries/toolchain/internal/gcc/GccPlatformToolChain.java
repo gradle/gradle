@@ -49,14 +49,14 @@ class GccPlatformToolChain implements PlatformToolChain {
         CommandLineTool<CppCompileSpec> commandLineTool = commandLineTool(ToolType.CPP_COMPILER);
         commandLineTool.withSpecTransformer(withSystemArgs(CppCompileSpec.class, platformConfiguration.getCppCompilerArgs()));
         CppCompiler cppCompiler = new CppCompiler(commandLineTool, useCommandFile);
-        return (Compiler<T>) new OutputCleaningCompiler<CppCompileSpec>(cppCompiler);
+        return (Compiler<T>) new OutputCleaningCompiler<CppCompileSpec>(cppCompiler, ".o");
     }
 
     public <T extends BinaryToolSpec> org.gradle.api.internal.tasks.compile.Compiler<T> createCCompiler() {
         CommandLineTool<CCompileSpec> commandLineTool = commandLineTool(ToolType.C_COMPILER);
         commandLineTool.withSpecTransformer(withSystemArgs(CCompileSpec.class, platformConfiguration.getCCompilerArgs()));
         CCompiler cCompiler = new CCompiler(commandLineTool, useCommandFile);
-        return (Compiler<T>) new OutputCleaningCompiler<CCompileSpec>(cCompiler);
+        return (Compiler<T>) new OutputCleaningCompiler<CCompileSpec>(cCompiler, ".o");
     }
 
     public <T extends BinaryToolSpec> Compiler<T> createAssembler() {
