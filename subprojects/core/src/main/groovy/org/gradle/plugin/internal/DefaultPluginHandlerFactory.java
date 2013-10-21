@@ -17,8 +17,6 @@
 package org.gradle.plugin.internal;
 
 import org.gradle.api.UnknownProjectException;
-import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
@@ -29,9 +27,9 @@ import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.PluginAware;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.plugin.resolve.internal.AndroidPluginMapper;
 import org.gradle.plugin.resolve.internal.ModuleMappingPluginResolver;
 import org.gradle.plugin.resolve.internal.PluginRegistryPluginResolver;
-import org.gradle.plugin.resolve.internal.PluginRequest;
 
 public class DefaultPluginHandlerFactory implements PluginHandlerFactory {
 
@@ -67,16 +65,7 @@ public class DefaultPluginHandlerFactory implements PluginHandlerFactory {
 
     private void addDefaultResolvers(PluginHandlerInternal pluginHandler) {
         pluginHandler.getResolvers().add(new PluginRegistryPluginResolver(pluginRegistry));
-        pluginHandler.getResolvers().add(new ModuleMappingPluginResolver("android plugin resolver", createDependencyResolutionServices(), instantiator, new ModuleMappingPluginResolver.Mapper() {
-            public Dependency map(PluginRequest request, DependencyHandler dependencyHandler) {
-                if (request.getId().equals("android")) {
-                    return dependencyHandler.create("com.android.tools.build:gradle:0.6.1");
-                } else {
-                    return null;
-                }
-            }
-        }));
-
+        pluginHandler.getResolvers().add(new ModuleMappingPluginResolver("android plugin resolver", createDependencyResolutionServices(), instantiator, new AndroidPluginMapper()));
     }
 
     private DependencyResolutionServices createDependencyResolutionServices() {
