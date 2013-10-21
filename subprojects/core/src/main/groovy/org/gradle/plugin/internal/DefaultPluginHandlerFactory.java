@@ -65,6 +65,8 @@ public class DefaultPluginHandlerFactory implements PluginHandlerFactory {
 
     private void addDefaultResolvers(PluginHandlerInternal pluginHandler) {
         pluginHandler.getResolvers().add(new PluginRegistryPluginResolver(pluginRegistry));
+
+        // TODO there are dependency resolution options in here that need to be exposed for user configuration
         pluginHandler.getResolvers().add(new ModuleMappingPluginResolver("android plugin resolver", createDependencyResolutionServices(), instantiator, new AndroidPluginMapper()));
     }
 

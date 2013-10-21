@@ -32,7 +32,10 @@ public class ModuleMappingPluginResolver implements PluginResolver {
         if (dependency == null) {
             return null;
         } else {
+            // TODO the dependency resolution config of this guy needs to be externalized
             Factory<ClassPath> classPathFactory = new DependencyResolvingClasspathProvider(dependencyResolutionServices, dependency);
+
+            // TODO the classloader strategy employed here is naive - doesn't update the script classloader or reuse classes
             return new ClassPathPluginResolution(instantiator, pluginRequest.getId(), classPathFactory);
         }
     }
