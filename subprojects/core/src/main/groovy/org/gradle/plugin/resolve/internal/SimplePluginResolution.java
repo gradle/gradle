@@ -14,26 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.resolve;
+package org.gradle.plugin.resolve.internal;
 
-import com.google.common.collect.ImmutableSet;
+import org.gradle.api.Plugin;
+import org.gradle.plugin.resolve.PluginResolution;
 
-import java.io.File;
-import java.util.Set;
+public class SimplePluginResolution implements PluginResolution {
 
-public class NoClasspathAdditionPluginResolution implements PluginResolution {
+    private final Class<? extends Plugin> pluginClass;
 
-    private final String className;
-
-    public NoClasspathAdditionPluginResolution(String className) {
-        this.className = className;
+    public SimplePluginResolution(Class<? extends Plugin> pluginClass) {
+        this.pluginClass = pluginClass;
     }
 
-    public String getClassName() {
-        return className;
+    public Class<? extends Plugin> resolve(ClassLoader parentClassLoader) {
+        return pluginClass;
     }
 
-    public Set<File> resolveClasspath() {
-        return ImmutableSet.of();
-    }
 }

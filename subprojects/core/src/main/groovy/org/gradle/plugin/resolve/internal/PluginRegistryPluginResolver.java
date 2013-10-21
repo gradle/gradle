@@ -19,7 +19,6 @@ package org.gradle.plugin.resolve.internal;
 import org.gradle.api.Plugin;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.plugins.UnknownPluginException;
-import org.gradle.plugin.resolve.NoClasspathAdditionPluginResolution;
 import org.gradle.plugin.resolve.PluginRequest;
 import org.gradle.plugin.resolve.PluginResolution;
 import org.gradle.plugin.resolve.PluginResolver;
@@ -35,7 +34,7 @@ public class PluginRegistryPluginResolver implements PluginResolver {
     public PluginResolution resolve(PluginRequest pluginRequest) {
         try {
             Class<? extends Plugin> typeForId = pluginRegistry.getTypeForId(pluginRequest.getId());
-            return new NoClasspathAdditionPluginResolution(typeForId.getName());
+            return new SimplePluginResolution(typeForId);
         } catch (UnknownPluginException e) {
             return null;
         }

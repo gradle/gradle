@@ -225,7 +225,13 @@ public class BuildScopeServices extends DefaultServiceRegistry implements Servic
     }
 
     protected PluginHandlerFactory createPluginHandlerFactory() {
-        return new DefaultPluginHandlerFactory(get(PluginRegistry.class), get(Instantiator.class));
+        return new DefaultPluginHandlerFactory(
+                get(PluginRegistry.class),
+                get(Instantiator.class),
+                get(DependencyManagementServices.class),
+                get(FileResolver.class),
+                new DependencyMetaDataProviderImpl()
+        );
     }
 
     protected Factory<WorkerProcessBuilder> createWorkerProcessFactory() {

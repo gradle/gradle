@@ -85,4 +85,18 @@ class PluginHandlerScriptIntegTest extends AbstractIntegrationSpec {
         assert output.contains(toPlatformLineSeparators("in\nout\n")) // Testing the the plugins {} block is extracted and executed before the “main” content
     }
 
+    void "can resolve android plugin"() {
+        given:
+        buildFile << """
+            plugins {
+                apply plugin: "android"
+            }
+        """
+
+        when:
+        fails "tasks"
+
+        then:
+        errorOutput.contains "Gradle version 1.8 is required"
+    }
 }

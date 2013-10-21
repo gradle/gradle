@@ -17,6 +17,7 @@
 package org.gradle.plugin.resolve;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.Plugin;
 
 import java.io.File;
 import java.util.Set;
@@ -27,8 +28,6 @@ import java.util.Set;
 @Incubating
 public interface PluginResolution {
 
-    String getClassName();
-
-    Set<File> resolveClasspath();
+    Class<? extends Plugin> resolve(ClassLoader parentClassLoader);
 
 }
