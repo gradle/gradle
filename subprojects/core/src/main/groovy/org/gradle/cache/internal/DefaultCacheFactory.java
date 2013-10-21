@@ -17,10 +17,10 @@ package org.gradle.cache.internal;
 
 import org.gradle.CacheUsage;
 import org.gradle.api.Action;
-import org.gradle.cache.internal.filelock.LockOptions;
-import org.gradle.internal.Factory;
 import org.gradle.cache.*;
 import org.gradle.cache.internal.btree.BTreePersistentIndexedCache;
+import org.gradle.cache.internal.filelock.LockOptions;
+import org.gradle.internal.Factory;
 import org.gradle.messaging.serialize.DefaultSerializer;
 import org.gradle.messaging.serialize.Serializer;
 import org.gradle.util.GFileUtils;
@@ -29,7 +29,6 @@ import java.io.File;
 import java.util.*;
 
 import static org.gradle.cache.internal.FileLockManager.LockMode;
-import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class DefaultCacheFactory implements Factory<CacheFactory> {
     private final Map<File, DirCacheReference> dirCaches = new HashMap<File, DirCacheReference>();
@@ -64,7 +63,7 @@ public class DefaultCacheFactory implements Factory<CacheFactory> {
             if (dirCacheReference == null) {
                 if (lockOptions.getMode().equals(LockMode.None)) {
                     // Create nested cache with LockMode#Exclusive (tb discussed) that is opened and closed on Demand in the DelegateOnDemandPersistentDirectoryCache.
-                    DefaultPersistentDirectoryCache nestedCache = new DefaultPersistentDirectoryCache(canonicalDir, displayName, usage, validator, properties, mode(LockMode.Exclusive), action, lockManager);
+                    DefaultPersistentDirectoryCache nestedCache = new DefaultPersistentDirectoryCache(canonicalDir, displayName, usage, validator, properties, lockOptions.withMode(LockMode.Exclusive), action, lockManager);
                     DelegateOnDemandPersistentDirectoryCache onDemandDache = new DelegateOnDemandPersistentDirectoryCache(nestedCache);
                     onDemandDache.open();
                     dirCacheReference = new DirCacheReference(onDemandDache, properties, lockOptions);

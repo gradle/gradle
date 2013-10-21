@@ -53,6 +53,7 @@ public class StateInfoAccess {
     public boolean isIntegral(RandomAccessFile lockFileAccess) throws IOException {
         if (lockFileAccess.length() > 0) {
             lockFileAccess.seek(0);
+            //TODO SF throw the exception here and print diagnostics
             return lockFileAccess.readByte() == protocol.getVersion();
         }
         return true;

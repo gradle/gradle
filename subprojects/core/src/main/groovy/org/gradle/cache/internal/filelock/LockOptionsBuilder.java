@@ -44,6 +44,15 @@ public class LockOptionsBuilder implements LockOptions {
         return simple? new SimpleStateInfoProtocol() : new DefaultStateInfoProtocol();
     }
 
+    public LockOptions withMode(FileLockManager.LockMode mode) {
+        return mode(mode).simple(simple);
+    }
+
+    private LockOptions simple(boolean simple) {
+        this.simple = simple;
+        return this;
+    }
+
     @Override
     public String toString() {
         return mode + " (simple=" + simple + ")";

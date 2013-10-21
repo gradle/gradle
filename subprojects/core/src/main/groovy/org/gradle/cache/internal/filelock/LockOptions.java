@@ -21,4 +21,5 @@ public interface LockOptions {
 
     FileLockManager.LockMode getMode();
     StateInfoProtocol getStateInfoProtocol();
+    LockOptions withMode(FileLockManager.LockMode mode);
 }
