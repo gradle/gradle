@@ -1,12 +1,16 @@
-This release of Gradle primarily provides relief through important bug fixes. 
+This release of Gradle primarily provides relief through important bug fixes.
 It also boosts Gradle's performance through optimizations to incremental building when using the Gradle Daemon and when building in parallel.
 
-Gradle 1.9 also brings “variant” capabilities to the native code support. 
+The support for building native applications gained an important new feature in this release: “variants”. 
 Variants can be used to model different ways to construct and build a binary (e.g. including debug symbols or not, x86 vs x64).
-In a given build invocation, all binaries may be built or just a subset.
-This is an important addition to Gradle's native code support.
+In a given build invocation, all variants may be built in one invocation or just a subset.
 
-Several new features and improvements to existing features, outlined below, have been contributed by the community. 
+The new HTML dependency report added in this release is a compelling alternative to the existing console based report as it leverages the richer medium of HTML to offer more
+information and navigability. It is extremely useful for analyzing and understanding large dependency graphs.
+
+Two new project types for use with the `init` command (formerly named `buildSetup`) have been added, `groovy-library` and `scala-library` for creating Groovy and Scala libraries respectively.
+
+Several of the new features and improvements have been contributed by the community. 
 Thank you to all who contributed and please keep the pull requests coming.
 
 ## New and noteworthy
