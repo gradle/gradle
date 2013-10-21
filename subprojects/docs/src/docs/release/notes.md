@@ -28,6 +28,50 @@ As of Gradle 1.9, extra compilation processes will be created as needed when bui
 Forked compilation is generally safer and allows fine grained control of the JVM options of the compilation process as well as decoupling the target JDK from the build JVM.
 It will become the default way that Java code is compiled in a future version of Gradle.
 
+### HTML dependency report
+
+Thanks to a contribution by [Jean-Baptiste Nizet](https://github.com/jnizet), the `project-report` plugin can now generate an HTML dependency report.
+
+To use the report just apply the plugin:
+
+    apply plugin: "project-report"
+
+And run `gradle htmlDependencyReport` or `gradle projectReport`
+
+### Initializing `Groovy` or a `Scala` project
+
+The `build-init` plugin now ships with two additional templates for initializing a new project:
+
+* `groovy-library` creates a simple [Groovy](http://groovy.codehaus.org/) project with [Spock](http://spockframework.org/) as the testing framework.
+* `scala-library` creates a simple [Scala](http://www.scala-lang.org/) project with [scalatest](http://www.scalatest.org/) as the testing framework.
+
+To initialize a new project just run
+
+<pre><tt>gradle init --type groovy-library</tt></pre>
+
+on the commandline.
+
+### FindBugs plugin provides new reporting capabilities
+
+If the a FindBugs task is configured to produce an XML report, the output can be augmented with human-readable messages. 
+
+The follow example demonstrates its use:
+
+    findbugsMain.reports {
+        xml {
+            enabled true
+            withMessages true
+        }
+    }
+
+Additionally, reports in text and Emacs formats can now be produced.
+
+    findbugsMain.reports {
+        text.enabled true
+        emacs.enabled true
+    }
+
+
 ### Build multiple variants of a native binary (i)
 
 Gradle is rapidly becoming a capable build system for 'native' code projects.
@@ -201,49 +245,6 @@ Note that conventional source directories eg: `src/main/cpp` and `src/main/heade
 source directories are explicitly configured. If you don't define any source directories, the conventions apply.
 If you wish to define custom source locations, then _all_ of the source locations must be specified (not just those in
 addition to the convention).
-
-### Initializing `Groovy` or a `Scala` project
-
-The `build-init` plugin now ships with two additional templates for initializing a new project:
-
-* `groovy-library` creates a simple [Groovy](http://groovy.codehaus.org/) project with [Spock](http://spockframework.org/) as the testing framework.
-* `scala-library` creates a simple [Scala](http://www.scala-lang.org/) project with [scalatest](http://www.scalatest.org/) as the testing framework.
-
-To initialize a new project just run
-
-<pre><tt>gradle init --type groovy-library</tt></pre>
-
-on the commandline.
-
-### HTML dependency report
-
-Thanks to a contribution by [Jean-Baptiste Nizet](https://github.com/jnizet), the `project-report` plugin can now generate an HTML dependency report.
-
-To use the report just apply the plugin:
-
-    apply plugin: "project-report"
-
-And run `gradle htmlDependencyReport` or `gradle projectReport`
-
-### FindBugs plugin provides new reporting capabilities
-
-If the a FindBugs task is configured to produce an XML report, the output can be augmented with human-readable messages. 
-
-The follow example demonstrates its use:
-
-    findbugsMain.reports {
-        xml {
-            enabled true
-            withMessages true
-        }
-    }
-
-Additionally, reports in text and Emacs formats can now be produced.
-
-    findbugsMain.reports {
-        text.enabled true
-        emacs.enabled true
-    }
 
 ## Fixed issues
 
