@@ -16,20 +16,14 @@
 
 package org.gradle.plugin.resolve.internal;
 
-public class DefaultPluginRequest implements PluginRequest {
+import org.gradle.api.Incubating;
 
-    private final String id;
+/**
+ * Represents a request for a plugin.
+ */
+@Incubating
+public interface PluginRequest {
 
-    public DefaultPluginRequest(String id) {
-        this.id = id;
-    }
+    String getId();
 
-    public String getId() {
-        return id;
-    }
-
-    @Override
-    public String toString() {
-        return "{id=" + id + "}";
-    }
 }

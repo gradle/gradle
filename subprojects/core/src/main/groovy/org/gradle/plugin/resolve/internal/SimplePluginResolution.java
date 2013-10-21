@@ -17,7 +17,6 @@
 package org.gradle.plugin.resolve.internal;
 
 import org.gradle.api.Plugin;
-import org.gradle.plugin.resolve.PluginResolution;
 
 public class SimplePluginResolution implements PluginResolution {
 

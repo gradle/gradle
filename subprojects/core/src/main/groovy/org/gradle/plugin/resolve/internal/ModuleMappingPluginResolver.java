@@ -10,9 +10,6 @@ import org.gradle.api.internal.plugins.DefaultPluginRegistry;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.plugin.resolve.PluginRequest;
-import org.gradle.plugin.resolve.PluginResolution;
-import org.gradle.plugin.resolve.PluginResolver;
 
 import java.io.File;
 import java.net.URLClassLoader;

@@ -16,10 +16,8 @@
 
 package org.gradle.plugin.internal;
 
-import org.gradle.plugin.PluginHandler;
-
 public interface PluginHandlerFactory {
 
-    PluginHandler createPluginHandler(Object target);
+    PluginHandlerInternal createPluginHandler(Object target);
 
 }

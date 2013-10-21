@@ -31,11 +31,10 @@ import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.PluginAware;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.plugin.PluginHandler;
-import org.gradle.plugin.resolve.PluginRequest;
-import org.gradle.plugin.resolve.PluginResolution;
 import org.gradle.plugin.resolve.internal.ModuleMappingPluginResolver;
 import org.gradle.plugin.resolve.internal.PluginRegistryPluginResolver;
+import org.gradle.plugin.resolve.internal.PluginRequest;
+import org.gradle.plugin.resolve.internal.PluginResolution;
 
 public class DefaultPluginHandlerFactory implements PluginHandlerFactory {
 
@@ -59,9 +58,9 @@ public class DefaultPluginHandlerFactory implements PluginHandlerFactory {
         this.dependencyMetaDataProvider = dependencyMetaDataProvider;
     }
 
-    public PluginHandler createPluginHandler(final Object target) {
+    public PluginHandlerInternal createPluginHandler(final Object target) {
         if (target instanceof PluginAware) {
-            PluginHandler pluginHandler = new DefaultPluginHandler(instantiator, new Action<PluginResolution>() {
+            PluginHandlerInternal pluginHandler = new DefaultPluginHandler(instantiator, new Action<PluginResolution>() {
                 public void execute(PluginResolution pluginResolution) {
                     Class<? extends Plugin> pluginClass = pluginResolution.resolve(this.getClass().getClassLoader());
                     ((PluginAware) target).getPlugins().apply(pluginClass);
@@ -74,7 +73,7 @@ public class DefaultPluginHandlerFactory implements PluginHandlerFactory {
         }
     }
 
-    private void addDefaultResolvers(PluginHandler pluginHandler) {
+    private void addDefaultResolvers(PluginHandlerInternal pluginHandler) {
         pluginHandler.getResolvers().add(new PluginRegistryPluginResolver(pluginRegistry));
         pluginHandler.getResolvers().add(new ModuleMappingPluginResolver("android plugin resolver", createDependencyResolutionServices(), instantiator, new ModuleMappingPluginResolver.Mapper() {
             public Dependency map(PluginRequest request, DependencyHandler dependencyHandler) {

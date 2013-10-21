@@ -20,18 +20,16 @@ import org.gradle.api.Action;
 import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectList;
 import org.gradle.api.internal.DefaultNamedDomainObjectList;
-import org.gradle.api.plugins.PluginAware;
 import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.plugin.PluginHandler;
-import org.gradle.plugin.resolve.PluginResolver;
-import org.gradle.plugin.resolve.PluginRequest;
-import org.gradle.plugin.resolve.PluginResolution;
+import org.gradle.plugin.resolve.internal.PluginRequest;
+import org.gradle.plugin.resolve.internal.PluginResolution;
+import org.gradle.plugin.resolve.internal.PluginResolver;
 import org.gradle.util.CollectionUtils;
 
 import java.util.Map;
 
-public class DefaultPluginHandler implements PluginHandler {
+public class DefaultPluginHandler implements PluginHandlerInternal {
 
     private final Action<? super PluginResolution> pluginResolutionHandler;
     private final NamedDomainObjectList<PluginResolver> repositories;

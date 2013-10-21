@@ -14,20 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.resolve;
+package org.gradle.plugin.resolve.internal;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.Plugin;
-
-import java.io.File;
-import java.util.Set;
+import org.gradle.api.Named;
+import org.gradle.api.Nullable;
 
 /**
- * The result of attempting to resolve a plugin to a classpath.
+ * A repository of plugins.
  */
 @Incubating
-public interface PluginResolution {
+public interface PluginResolver extends Named {
 
-    Class<? extends Plugin> resolve(ClassLoader parentClassLoader);
+    @Nullable
+    PluginResolution resolve(PluginRequest pluginRequest);
 
 }

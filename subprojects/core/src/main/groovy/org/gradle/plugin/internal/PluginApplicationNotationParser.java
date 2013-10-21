@@ -18,7 +18,7 @@ package org.gradle.plugin.internal;
 
 import org.gradle.api.internal.notations.parsers.MapKey;
 import org.gradle.api.internal.notations.parsers.MapNotationParser;
-import org.gradle.plugin.resolve.PluginRequest;
+import org.gradle.plugin.resolve.internal.PluginRequest;
 import org.gradle.plugin.resolve.internal.DefaultPluginRequest;
 
 public class PluginApplicationNotationParser extends MapNotationParser<PluginRequest> {

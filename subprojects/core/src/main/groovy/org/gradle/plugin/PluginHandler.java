@@ -17,8 +17,7 @@
 package org.gradle.plugin;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.NamedDomainObjectList;
-import org.gradle.plugin.resolve.PluginResolver;
+import org.gradle.api.internal.HasInternalProtocol;
 
 import java.util.Map;
 
@@ -26,12 +25,11 @@ import java.util.Map;
  * A manager of plugins.
  */
 @Incubating
+@HasInternalProtocol
 public interface PluginHandler {
 
     String BLOCK_NAME = "plugins";
 
     void apply(Map<String, Object> options);
-
-    NamedDomainObjectList<PluginResolver> getResolvers();
 
 }

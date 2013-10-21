@@ -18,11 +18,11 @@ package org.gradle.plugin.internal;
 
 import org.gradle.api.NamedDomainObjectList;
 import org.gradle.plugin.PluginHandler;
-import org.gradle.plugin.resolve.PluginResolver;
+import org.gradle.plugin.resolve.internal.PluginResolver;
 
 import java.util.Map;
 
-public class NonPluggableTargetPluginHandler implements PluginHandler {
+public class NonPluggableTargetPluginHandler implements PluginHandlerInternal {
 
     private final Object target;
 

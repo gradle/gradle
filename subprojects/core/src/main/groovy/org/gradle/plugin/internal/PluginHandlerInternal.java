@@ -14,19 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.resolve;
+package org.gradle.plugin.internal;
 
-import org.gradle.api.Incubating;
-import org.gradle.api.Named;
-import org.gradle.api.Nullable;
+import org.gradle.api.NamedDomainObjectList;
+import org.gradle.plugin.PluginHandler;
+import org.gradle.plugin.resolve.internal.PluginResolver;
 
-/**
- * A repository of plugins.
- */
-@Incubating
-public interface PluginResolver extends Named {
+public interface PluginHandlerInternal extends PluginHandler {
 
-    @Nullable
-    PluginResolution resolve(PluginRequest pluginRequest);
+    NamedDomainObjectList<PluginResolver> getResolvers();
 
 }
