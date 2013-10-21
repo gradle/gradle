@@ -4,6 +4,8 @@ import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
+import org.gradle.internal.Factory;
+import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.reflect.Instantiator;
 
 public class ModuleMappingPluginResolver implements PluginResolver {
@@ -30,7 +32,8 @@ public class ModuleMappingPluginResolver implements PluginResolver {
         if (dependency == null) {
             return null;
         } else {
-            return new ClassPathPluginResolution(instantiator, pluginRequest.getId(), new DependencyResolvingClasspathProvider(dependencyResolutionServices, dependency));
+            Factory<ClassPath> classPathFactory = new DependencyResolvingClasspathProvider(dependencyResolutionServices, dependency);
+            return new ClassPathPluginResolution(instantiator, pluginRequest.getId(), classPathFactory);
         }
     }
 
