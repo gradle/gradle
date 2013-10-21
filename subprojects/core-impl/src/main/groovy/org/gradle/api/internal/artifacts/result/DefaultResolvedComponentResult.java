@@ -76,6 +76,6 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResult {
 
     @Override
     public String toString() {
-        return id.getGroup() + ":" + id.getName() + ":" + id.getVersion();
+        return getId().getDisplayName();
     }
 }
