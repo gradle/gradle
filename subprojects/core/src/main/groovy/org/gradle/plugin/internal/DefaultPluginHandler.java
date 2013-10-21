@@ -22,6 +22,7 @@ import org.gradle.api.NamedDomainObjectList;
 import org.gradle.api.internal.DefaultNamedDomainObjectList;
 import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.plugin.resolve.internal.DefaultPluginRequest;
 import org.gradle.plugin.resolve.internal.PluginRequest;
 import org.gradle.plugin.resolve.internal.PluginResolution;
 import org.gradle.plugin.resolve.internal.PluginResolver;
@@ -42,9 +43,15 @@ public class DefaultPluginHandler implements PluginHandlerInternal {
         this.repositories = unchecked;
     }
 
-    public void apply(Map<String, Object> options) {
-        PluginRequest request = new PluginApplicationNotationParser().parseType(options);
+    public void apply(String pluginId) {
+       apply(new DefaultPluginRequest(pluginId));
+    }
 
+    public void apply(String pluginId, String version) {
+        apply(new DefaultPluginRequest(pluginId, version));
+    }
+
+    private void apply(PluginRequest request) {
         PluginResolution resolution = null;
         for (PluginResolver repository : repositories) {
             resolution = repository.resolve(request);

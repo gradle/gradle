@@ -22,7 +22,8 @@ import org.gradle.api.artifacts.dsl.DependencyHandler;
 public class AndroidPluginMapper implements ModuleMappingPluginResolver.Mapper {
     public Dependency map(PluginRequest request, DependencyHandler dependencyHandler) {
         if (request.getId().equals("android")) {
-            return dependencyHandler.create("com.android.tools.build:gradle:0.6.1");
+            String version = request.getVersion() == null ? "latest.release" : request.getVersion();
+            return dependencyHandler.create("com.android.tools.build:gradle:" + version);
         } else {
             return null;
         }

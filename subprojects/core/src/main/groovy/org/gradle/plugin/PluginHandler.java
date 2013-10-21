@@ -28,6 +28,8 @@ import java.util.Map;
 @HasInternalProtocol
 public interface PluginHandler {
 
-    void apply(Map<String, Object> options);
+    void apply(String pluginId);
+
+    void apply(String pluginId, String version);
 
 }

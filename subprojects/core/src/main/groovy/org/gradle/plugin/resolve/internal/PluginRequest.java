@@ -26,4 +26,6 @@ public interface PluginRequest {
 
     String getId();
 
+    String getVersion();
+
 }

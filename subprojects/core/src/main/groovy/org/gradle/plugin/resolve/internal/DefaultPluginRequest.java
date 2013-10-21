@@ -19,17 +19,28 @@ package org.gradle.plugin.resolve.internal;
 public class DefaultPluginRequest implements PluginRequest {
 
     private final String id;
+    private final String version;
 
     public DefaultPluginRequest(String id) {
         this.id = id;
+        this.version = null;
+    }
+
+    public DefaultPluginRequest(String id, String version) {
+        this.id = id;
+        this.version = version;
     }
 
     public String getId() {
         return id;
     }
 
+    public String getVersion() {
+        return version;
+    }
+
     @Override
     public String toString() {
-        return "{id=" + id + "}";
+        return "{id=" + id + ",version=" + version + "}";
     }
 }

@@ -29,7 +29,7 @@ class PluginHandlerScriptIntegTest extends AbstractIntegrationSpec {
         buildFile << SCRIPT
         buildFile << """
             plugins {
-              apply plugin: 'java'
+              apply 'java'
             }
         """
 
@@ -89,7 +89,7 @@ class PluginHandlerScriptIntegTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
             plugins {
-                apply plugin: "android"
+                apply "android"
             }
         """
 
@@ -98,5 +98,20 @@ class PluginHandlerScriptIntegTest extends AbstractIntegrationSpec {
 
         then:
         errorOutput.contains "Gradle version 1.8 is required"
+    }
+
+    void "can resolve versioned android plugin"() {
+        given:
+        buildFile << """
+            plugins {
+                apply "android", "0.5.7"
+            }
+        """
+
+        when:
+        fails "tasks"
+
+        then:
+        errorOutput.contains "Gradle version 1.6 is required"
     }
 }
