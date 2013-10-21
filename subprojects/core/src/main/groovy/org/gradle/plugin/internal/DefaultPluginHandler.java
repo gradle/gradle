@@ -33,12 +33,10 @@ import java.util.Map;
 
 public class DefaultPluginHandler implements PluginHandler {
 
-    private final PluginAware delegate;
     private final Action<? super PluginResolution> pluginResolutionHandler;
     private final NamedDomainObjectList<PluginResolver> repositories;
 
-    public DefaultPluginHandler(PluginAware delegate, Instantiator instantiator, Action<? super PluginResolution> pluginResolutionHandler) {
-        this.delegate = delegate;
+    public DefaultPluginHandler(Instantiator instantiator, Action<? super PluginResolution> pluginResolutionHandler) {
         this.pluginResolutionHandler = pluginResolutionHandler;
 
         @SuppressWarnings("unchecked")

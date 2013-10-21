@@ -61,7 +61,7 @@ public class DefaultPluginHandlerFactory implements PluginHandlerFactory {
 
     public PluginHandler createPluginHandler(final Object target) {
         if (target instanceof PluginAware) {
-            PluginHandler pluginHandler = new DefaultPluginHandler((PluginAware) target, instantiator, new Action<PluginResolution>() {
+            PluginHandler pluginHandler = new DefaultPluginHandler(instantiator, new Action<PluginResolution>() {
                 public void execute(PluginResolution pluginResolution) {
                     Class<? extends Plugin> pluginClass = pluginResolution.resolve(this.getClass().getClassLoader());
                     ((PluginAware) target).getPlugins().apply(pluginClass);
