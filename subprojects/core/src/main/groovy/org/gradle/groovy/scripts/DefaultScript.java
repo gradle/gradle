@@ -197,7 +197,7 @@ public abstract class DefaultScript extends BasicScript {
     }
 
     public void plugins(Closure closure) {
-        new ClosureBackedAction<PluginHandler>(closure).execute(services.get(PluginHandler.class));
+        new ClosureBackedAction<PluginHandler>(closure, Closure.DELEGATE_ONLY).execute(services.get(PluginHandler.class));
     }
 
     public String toString() {
