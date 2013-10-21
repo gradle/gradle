@@ -14,23 +14,22 @@
  * limitations under the License.
  */
 package org.gradle.nativebinaries.language.c.internal.incremental
-
 import org.gradle.CacheUsage
 import org.gradle.cache.internal.FileLockManager
 import org.gradle.messaging.serialize.DefaultSerializer
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.InMemoryCacheFactory
-import org.gradle.testfixtures.internal.InMemoryIndexedCache
 import org.junit.Rule
 import spock.lang.Specification
 
 class IncrementalCompilerTest extends Specification {
     @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
+    def cacheDir = tmpDir.createDir("cache")
     def dependencyParser = Mock(SourceDependencyParser)
     def cacheFactory = new InMemoryCacheFactory()
-    def stateCache = new InMemoryIndexedCache<File, FileState>(new DefaultSerializer<FileState>())
-    def listCache = cacheFactory.openStateCache(tmpDir.createDir("cache"), CacheUsage.ON, null, null, FileLockManager.LockMode.None, new DefaultSerializer<List<File>>())
+    def stateCache = cacheFactory.openIndexedCache(cacheDir, CacheUsage.ON, null, null, FileLockManager.LockMode.None, new DefaultSerializer<FileState>())
+    def listCache = cacheFactory.openIndexedCache(cacheDir, CacheUsage.ON, null, null, FileLockManager.LockMode.None, new DefaultSerializer<List<File>>())
     def incrementalCompiler = new IncrementalCompiler(stateCache, listCache, dependencyParser)
 
     def source1 = sourceFile("source1")

@@ -20,10 +20,13 @@ import org.gradle.api.Incubating
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.tasks.*
+import org.gradle.api.tasks.incremental.IncrementalTaskInputs
+import org.gradle.cache.internal.CacheFactory
 import org.gradle.language.jvm.internal.SimpleStaleClassCleaner
 import org.gradle.nativebinaries.Platform
 import org.gradle.nativebinaries.ToolChain
 import org.gradle.nativebinaries.internal.PlatformToolChain
+import org.gradle.nativebinaries.language.c.internal.incremental.IncrementalCompilerFactory
 import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec
 
 import javax.inject.Inject
@@ -32,7 +35,7 @@ import javax.inject.Inject
  */
 @Incubating
 abstract class AbstractNativeCompileTask extends DefaultTask {
-    private FileCollection source
+    private final IncrementalCompilerFactory incrementalCompilerFactory
 
     /**
      * The tool chain used for compilation.
@@ -66,10 +69,8 @@ abstract class AbstractNativeCompileTask extends DefaultTask {
     /**
      * Returns the source files to be compiled.
      */
-    @InputFiles @SkipWhenEmpty // Workaround for GRADLE-2026
-    FileCollection getSource() {
-        source
-    }
+    @InputFiles
+    FileCollection source
 
     // TODO:DAZ We also need the platform to form an input
     // Invalidate output when the tool chain output changes
@@ -91,23 +92,31 @@ abstract class AbstractNativeCompileTask extends DefaultTask {
     List<String> compilerArgs
 
     @Inject
-    AbstractNativeCompileTask() {
+    AbstractNativeCompileTask(CacheFactory cacheFactory) {
+        incrementalCompilerFactory = new IncrementalCompilerFactory(cacheFactory)
         includes = project.files()
         source = project.files()
     }
 
     @TaskAction
-    void compile() {
-        def cleaner = new SimpleStaleClassCleaner(getOutputs())
-        cleaner.setDestinationDir(getObjectFileDir())
-        cleaner.execute()
+    void compile(IncrementalTaskInputs inputs) {
+        def cacheDir = project.file("${project.buildDir}/.compileCache")
+        def incrementalCompiler = incrementalCompilerFactory.create(cacheDir, name, includes)
+        def compilation = incrementalCompiler.processSourceFiles(getSource().files)
 
         def spec = createCompileSpec()
         spec.tempDir = getTemporaryDir()
-
         spec.objectFileDir = getObjectFileDir()
         spec.include getIncludes()
-        spec.source getSource()
+
+        if (inputs.incremental) {
+            spec.source compilation.recompile
+            spec.removedSource compilation.removed
+        } else {
+            cleanPreviousOutputs()
+            spec.source getSource()
+        }
+
         spec.macros = getMacros()
         spec.args getCompilerArgs()
         spec.positionIndependentCode = isPositionIndependentCode()
@@ -115,6 +124,12 @@ abstract class AbstractNativeCompileTask extends DefaultTask {
         PlatformToolChain platformToolChain = toolChain.target(targetPlatform)
         def result = execute(platformToolChain, spec)
         didWork = result.didWork
+    }
+
+    private void cleanPreviousOutputs() {
+        def cleaner = new SimpleStaleClassCleaner(getOutputs())
+        cleaner.setDestinationDir(getObjectFileDir())
+        cleaner.execute()
     }
 
     protected abstract NativeCompileSpec createCompileSpec();

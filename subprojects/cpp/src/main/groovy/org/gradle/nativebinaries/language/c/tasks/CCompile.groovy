@@ -18,15 +18,23 @@ package org.gradle.nativebinaries.language.c.tasks
 
 import org.gradle.api.Incubating
 import org.gradle.api.tasks.WorkResult
+import org.gradle.cache.internal.CacheFactory
 import org.gradle.nativebinaries.internal.PlatformToolChain
 import org.gradle.nativebinaries.language.c.internal.DefaultCCompileSpec
 import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec
+
+import javax.inject.Inject
 
 /**
  * Compiles C source files into object files.
  */
 @Incubating
 class CCompile extends AbstractNativeCompileTask {
+    @Inject
+    CCompile(CacheFactory cacheFactory) {
+        super(cacheFactory)
+    }
+
     @Override
     protected NativeCompileSpec createCompileSpec() {
         new DefaultCCompileSpec()

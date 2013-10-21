@@ -69,11 +69,11 @@ public class IncrementalCompileFiles implements IncrementalCompilation {
         if (hasChanged(state, currentHash)) {
             changed = true;
             state.setHash(currentHash);
-            state.getDeps().addAll(dependencyParser.parseDependencies(file));
+            state.setDependencies(dependencyParser.parseDependencies(file));
             saveState(file, state);
         }
 
-        for (File dep : state.getDeps()) {
+        for (File dep : state.getDependencies()) {
             Boolean depChanged = checkChangedAndUpdateState(dep);
             changed = changed || depChanged;
         }

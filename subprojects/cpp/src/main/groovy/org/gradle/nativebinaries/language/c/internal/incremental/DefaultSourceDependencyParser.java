@@ -41,10 +41,10 @@ public class DefaultSourceDependencyParser implements SourceDependencyParser {
         return dependencies;
     }
 
-    private List<File> prependSourceDir(File sourceFile, List<File> includePaths1) {
-        List<File> quotedSearchPath = new ArrayList<File>(includePaths1.size() + 1);
+    private List<File> prependSourceDir(File sourceFile, List<File> includePaths) {
+        List<File> quotedSearchPath = new ArrayList<File>(includePaths.size() + 1);
         quotedSearchPath.add(sourceFile.getParentFile());
-        quotedSearchPath.addAll(includePaths1);
+        quotedSearchPath.addAll(includePaths);
         return quotedSearchPath;
     }
 

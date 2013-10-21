@@ -334,11 +334,8 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         newObjFile.file
     }
 
-    @Ignore("not yet implemented")
+    @Ignore("For GCC, need to delete previous binary output before generating")
     def "cleans up stale object files when library source file renamed"() {
-        given:
-        run "installMainExecutable"
-
         when:
         run "helloStaticLibrary"
 
@@ -445,6 +442,8 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
 
 
     private static boolean rename(TestFile sourceFile) {
-        sourceFile.renameTo("${sourceFile.parentFile.absolutePath}/changed_${sourceFile.name}")
+        final newFile = new File(sourceFile.getParentFile(), "changed_${sourceFile.name}")
+        newFile << sourceFile.text
+        sourceFile.delete()
     }
 }

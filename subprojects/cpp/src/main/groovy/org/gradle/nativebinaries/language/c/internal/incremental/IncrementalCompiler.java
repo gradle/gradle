@@ -16,26 +16,28 @@
 package org.gradle.nativebinaries.language.c.internal.incremental;
 
 import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.cache.PersistentStateCache;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
 public class IncrementalCompiler {
 
+    private static final String PREVIOUS_FILES = "previous";
     private final PersistentIndexedCache<File, FileState> fileStateCache;
-    private final PersistentStateCache<List<File>> previousSourcesCache;
+    private final PersistentIndexedCache<String, List<File>> previousSourcesCache;
     private final SourceDependencyParser dependencyParser;
 
-    public IncrementalCompiler(PersistentIndexedCache<File, FileState> fileStateCache, PersistentStateCache<List<File>> previousSourcesCache, SourceDependencyParser dependencyParser) {
+    public IncrementalCompiler(PersistentIndexedCache<File, FileState> fileStateCache, PersistentIndexedCache<String, List<File>> previousSourcesCache, SourceDependencyParser dependencyParser) {
         this.fileStateCache = fileStateCache;
         this.previousSourcesCache = previousSourcesCache;
         this.dependencyParser = dependencyParser;
     }
 
-    public IncrementalCompileFiles processSourceFiles(List<File> sourceFiles) {
-        List<File> previousSources = previousSourcesCache.get();
+    public IncrementalCompileFiles processSourceFiles(Collection<File> sourceFiles) {
+        List<File> previousSources = previousSourcesCache.get(PREVIOUS_FILES);
         previousSources = previousSources == null ? Collections.<File>emptyList() : previousSources;
         final IncrementalCompileFiles result = new IncrementalCompileFiles(previousSources, fileStateCache, dependencyParser);
 
@@ -47,7 +49,7 @@ public class IncrementalCompiler {
             purgeRemoved(removed, result);
         }
 
-        previousSourcesCache.set(sourceFiles);
+        previousSourcesCache.put(PREVIOUS_FILES, new ArrayList<File>(sourceFiles));
 
         return result;
     }
@@ -60,7 +62,7 @@ public class IncrementalCompiler {
 
         fileStateCache.remove(removed);
 
-        for (File file : state.getDeps()) {
+        for (File file : state.getDependencies()) {
             purgeRemoved(file, result);
         }
     }

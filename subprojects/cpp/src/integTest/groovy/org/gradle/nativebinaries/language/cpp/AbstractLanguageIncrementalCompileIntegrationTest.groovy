@@ -161,9 +161,14 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
         noneRecompiled()
     }
 
-    def "recompiles all source files when compiler arg changes"() {
+    def "recompiles all source files and removes stale outputs when compiler arg changes"() {
         given:
+        def extraSource = file("src/main/${app.sourceType}/extra.${app.sourceType}")
+        extraSource << sourceFile.text.replaceAll("main", "main2")
+
         initialCompile()
+
+        outputFile(extraSource).assertExists()
 
         when:
         sourceFile << """
@@ -178,6 +183,7 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
                 }
             }
 """
+        extraSource.delete()
 
         and:
         run "mainExecutable"
@@ -187,14 +193,15 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
 
         and:
         recompiled allSources
+        outputFile(extraSource).assertDoesNotExist()
     }
 
     def "removes output file when source file is renamed"() {
         given:
         initialCompile()
-        final newFile = file("src/main/${app.sourceType}/changed.${app.sourceType}")
 
         when:
+        final newFile = file("src/main/${app.sourceType}/changed.${app.sourceType}")
         newFile << sourceFile.text
         sourceFile.delete()
 

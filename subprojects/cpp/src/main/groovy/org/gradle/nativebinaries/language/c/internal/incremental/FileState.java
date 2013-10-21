@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class FileState implements Serializable {
-    private List<File> deps = new ArrayList<File>();
+    private List<File> dependencies = new ArrayList<File>();
     private byte[] hash;
 
     public byte[] getHash() {
@@ -32,7 +32,12 @@ public class FileState implements Serializable {
         this.hash = hash;
     }
 
-    public List<File> getDeps() {
-        return deps;
+    public List<File> getDependencies() {
+        return dependencies;
+    }
+
+    public void setDependencies(List<File> files) {
+        this.dependencies.clear();
+        this.dependencies.addAll(files);
     }
 }
