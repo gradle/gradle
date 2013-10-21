@@ -1,9 +1,13 @@
+This release of Gradle primarily provides relief through important bug fixes. 
+It also boosts Gradle's performance through optimizations to incremental building when using the [Gradle Daemon](userguide/gradle_daemon.html) and also when building in parallel.
 
-This release of Gradle is mostly a bug fix release. However, it still contains some nice new features.
+Gradle 1.9 also brings “variant” capabilities to the native code support. 
+Variants can be used to model different ways to construct and build a binary (e.g. including debug symbols or not, x86 vs x64).
+In a given build invocation, all binaries may be built or just a subset.
+This is an important addition to Gradle's native code support.
 
-Faster incremental builds and parallel compilation.
-
-Variants for native binaries.
+Several new features and improvements to existing features, outlined below, have been contributed by the community. 
+Thank you to all who contributed and please keep the pull requests coming.
 
 ## New and noteworthy
 
@@ -276,7 +280,6 @@ The following are the newly deprecated items in this Gradle release. If you have
 * The `gpp-compiler` plugin was renamed to `gcc`. Class name was changed to `GccCompilerPlugin`.
 * The conventional source directories eg: `src/main/cpp` and `src/main/headers` are only applied if no source directories are explicitly
   configured. If you wish to define custom source locations, you must define _all_ of the source locations.
-
 
 ## External contributions
 
