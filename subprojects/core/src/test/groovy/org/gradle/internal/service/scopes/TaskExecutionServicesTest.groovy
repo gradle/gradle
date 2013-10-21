@@ -47,7 +47,7 @@ class TaskExecutionServicesTest extends Specification {
         _ * cacheRepository.cache(!null) >> cacheBuilder
         _ * cacheBuilder.forObject(gradle) >> cacheBuilder
         _ * cacheBuilder.withDisplayName(!null) >> cacheBuilder
-        _ * cacheBuilder.withLockMode(!null) >> cacheBuilder
+        _ * cacheBuilder.withLockOptions(!null) >> cacheBuilder
         _ * cacheBuilder.open() >> Mock(PersistentCache)
 
         expect:

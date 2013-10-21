@@ -28,7 +28,6 @@ public class FileLockAccess {
     private static final byte INFORMATION_REGION_PROTOCOL = 3; //should be incremented when information region format changes in an incompatible way
     public static final int INFORMATION_REGION_SIZE = 2052;
     public static final int INFORMATION_REGION_DESCR_CHUNK_LIMIT = 340;
-    public static final short PROTOCOL_VERSION = 2 + INFORMATION_REGION_PROTOCOL; //TODO SF '2' is a magic number but soo this whole field will be gone
 
     private final RandomAccessFile lockFileAccess;
 

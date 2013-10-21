@@ -32,6 +32,7 @@ import org.junit.Rule
 import spock.lang.Specification
 
 import static org.gradle.cache.internal.FileLockManager.LockMode.*
+import static org.gradle.cache.internal.FileLockManager.LockMode.None
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode
 
 class DefaultCacheRepositoryTest extends Specification {
@@ -154,7 +155,7 @@ class DefaultCacheRepositoryTest extends Specification {
 
     public void canSpecifyLockModeForDirectoryCache() {
         when:
-        repository.cache("a").withLockMode(FileLockManager.LockMode.None).open()
+        repository.cache("a").withLockOptions(mode(None)).open()
 
         then:
         1 * cacheFactory.open(sharedCacheDir.file(version, "a"), null, CacheUsage.ON, null, [:], mode(None), null) >> cache

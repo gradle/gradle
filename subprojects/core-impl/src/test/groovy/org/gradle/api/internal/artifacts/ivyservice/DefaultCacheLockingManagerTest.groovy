@@ -26,6 +26,8 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
+import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode
+
 class DefaultCacheLockingManagerTest extends Specification {
     CacheRepository cacheRepository = Mock()
     DirectoryCacheBuilder directoryCacheBuilder = Mock()
@@ -44,7 +46,7 @@ class DefaultCacheLockingManagerTest extends Specification {
         1 * cacheRepository.store(CacheLayout.ROOT.getKey()) >> directoryCacheBuilder
         1 * directoryCacheBuilder.withDisplayName("artifact cache") >> directoryCacheBuilder
         1 * directoryCacheBuilder.withVersionStrategy(CacheBuilder.VersionStrategy.SharedCache) >> directoryCacheBuilder
-        1 * directoryCacheBuilder.withLockMode(FileLockManager.LockMode.None) >> directoryCacheBuilder
+        1 * directoryCacheBuilder.withLockOptions(mode(FileLockManager.LockMode.None)) >> directoryCacheBuilder
         1 * directoryCacheBuilder.open() >> persistentCache
         2 * persistentCache.baseDir >> testCacheDir
         fileStore != null
@@ -63,7 +65,7 @@ class DefaultCacheLockingManagerTest extends Specification {
         1 * cacheRepository.store(CacheLayout.ROOT.getKey()) >> directoryCacheBuilder
         1 * directoryCacheBuilder.withDisplayName("artifact cache") >> directoryCacheBuilder
         1 * directoryCacheBuilder.withVersionStrategy(CacheBuilder.VersionStrategy.SharedCache) >> directoryCacheBuilder
-        1 * directoryCacheBuilder.withLockMode(FileLockManager.LockMode.None) >> directoryCacheBuilder
+        1 * directoryCacheBuilder.withLockOptions(mode(FileLockManager.LockMode.None)) >> directoryCacheBuilder
         1 * directoryCacheBuilder.open() >> persistentCache
         2 * persistentCache.baseDir >> testCacheDir
         fileStore != null

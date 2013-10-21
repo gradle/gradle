@@ -176,8 +176,8 @@ public class DefaultCacheRepository implements CacheRepository {
             return this;
         }
 
-        public DirectoryCacheBuilder withLockMode(LockMode lockMode) {
-            this.lockOptions = mode(lockMode);
+        public DirectoryCacheBuilder withLockOptions(LockOptions lockOptions) {
+            this.lockOptions = lockOptions;
             return this;
         }
 
