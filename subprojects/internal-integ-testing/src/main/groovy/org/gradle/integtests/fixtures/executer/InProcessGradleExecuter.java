@@ -377,6 +377,11 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
             return this;
         }
 
+        public ExecutionFailure assertHasResolution(String resolution) {
+            outputFailure.assertHasResolution(resolution);
+            return this;
+        }
+
         public ExecutionFailure assertHasCause(String description) {
             assertThatCause(startsWith(description));
             return this;

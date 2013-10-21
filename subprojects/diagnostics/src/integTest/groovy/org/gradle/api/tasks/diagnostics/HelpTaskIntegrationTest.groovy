@@ -223,14 +223,11 @@ Description
     def "prints hint when using invalid commandlineoptions"() {
         when:
         fails "help", "--tasssk", "help"
+
         then:
-        errorOutput.contains(toPlatformLineSeparators("""FAILURE: Build failed with an exception.
-
-* What went wrong:
-Problem configuring task :help from command line. Unknown command-line option '--tasssk'.
-
-* Try:
-Run gradle help --task help to get task usage details. Run with --info or --debug option to get more log output."""))
+        failure.assertHasDescription("Problem configuring task :help from command line.")
+        failure.assertHasCause("Unknown command-line option '--tasssk'.")
+        failure.assertHasResolution("Run gradle help --task help to get task usage details. Run with --info or --debug option to get more log output.")
     }
 
     def "listsEnumAndBooleanCmdOptionValues"() {
