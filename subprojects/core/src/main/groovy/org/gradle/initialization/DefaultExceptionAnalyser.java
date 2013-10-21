@@ -15,7 +15,6 @@
  */
 package org.gradle.initialization;
 
-import org.gradle.FailureResolutionAware;
 import org.gradle.api.GradleScriptException;
 import org.gradle.api.internal.Contextual;
 import org.gradle.api.internal.ExceptionAnalyser;
@@ -46,10 +45,6 @@ public class DefaultExceptionAnalyser implements ExceptionAnalyser, ScriptExecut
     }
 
     public Throwable transform(Throwable exception) {
-        if (exception instanceof FailureResolutionAware) {
-            return exception;
-        }
-
         Throwable actualException = findDeepestRootException(exception);
         if (actualException instanceof LocationAwareException) {
             return actualException;

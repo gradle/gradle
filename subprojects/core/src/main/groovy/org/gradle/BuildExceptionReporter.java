@@ -20,7 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.LocationAwareException;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.execution.MultipleBuildFailures;
-import org.gradle.execution.TaskSelectionException;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.logging.LoggingConfiguration;
 import org.gradle.logging.ShowStacktrace;
@@ -122,18 +121,7 @@ public class BuildExceptionReporter extends BuildAdapter implements Action<Throw
             details.exceptionStyle = ExceptionStyle.FULL;
         }
 
-        if (failure instanceof TaskSelectionException) {
-            formatTaskSelectionFailure((TaskSelectionException) failure, details);
-        } else {
-            formatGenericFailure(granularity, failure, details);
-        }
-    }
-
-    private void formatTaskSelectionFailure(TaskSelectionException failure, FailureDetails details) {
-        assert failure.getCause() == null;
-        details.summary.text("Could not determine which tasks to execute.");
-        details.details.text(getMessage(failure));
-        failure.appendResolution(details.resolution, clientMetaData);
+        formatGenericFailure(granularity, failure, details);
     }
 
     private void formatGenericFailure(String granularity, Throwable failure, final FailureDetails details) {
@@ -185,8 +173,11 @@ public class BuildExceptionReporter extends BuildAdapter implements Action<Throw
     }
 
     private void fillInFailureResolution(FailureDetails details) {
-        if (details.failure instanceof FailureResolutionAware){
-            ((FailureResolutionAware)details.failure).appendResolution(details.resolution, clientMetaData);
+        if (details.failure instanceof FailureResolutionAware) {
+            ((FailureResolutionAware) details.failure).appendResolution(details.resolution, clientMetaData);
+            if (details.resolution.getHasContent()) {
+                details.resolution.append(' ');
+            }
         }
         if (details.exceptionStyle == ExceptionStyle.NONE) {
             details.resolution.text("Run with ");

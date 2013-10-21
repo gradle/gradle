@@ -166,7 +166,8 @@ class TaskCommandLineConfigurationIntegrationSpec extends AbstractIntegrationSpe
         def failure = runAndFail 'someTask', '--first'
 
         then:
-        failure.assertHasDescription("Problem configuring task :other:someTask from command line. Unknown command-line option '--first'.")
+        failure.assertHasDescription("Problem configuring task :other:someTask from command line.")
+        failure.assertHasCause("Unknown command-line option '--first'.")
     }
 
     def "using an unknown option yields decent error message"() {
@@ -183,7 +184,8 @@ class TaskCommandLineConfigurationIntegrationSpec extends AbstractIntegrationSpe
         runAndFail 'someTask', '--second', 'foo', 'someTask2', '--secon', 'bar'
 
         then:
-        failure.assertHasDescription("Problem configuring task :someTask2 from command line. Unknown command-line option '--secon'.")
+        failure.assertHasDescription("Problem configuring task :someTask2 from command line.")
+        failure.assertHasCause("Unknown command-line option '--secon'.")
 
         //TODO it's not fixable easily we would need to change some stuff in options parsing. See also ignored test method below.
 //        when:
@@ -196,13 +198,15 @@ class TaskCommandLineConfigurationIntegrationSpec extends AbstractIntegrationSpe
         runAndFail 'someTask', '--second'
 
         then:
-        failure.assertHasDescription("Problem configuring task :someTask from command line. No argument was provided for command-line option '--second'.")
+        failure.assertHasDescription("Problem configuring task :someTask from command line.")
+        failure.assertHasCause("No argument was provided for command-line option '--second'.")
 
         when:
         runAndFail 'someTask', '--second', 'hey', '--second', 'buddy'
 
         then:
-        failure.assertHasDescription("Problem configuring task :someTask from command line. Multiple arguments were provided for command-line option '--second'.")
+        failure.assertHasDescription("Problem configuring task :someTask from command line.")
+        failure.assertHasCause("Multiple arguments were provided for command-line option '--second'.")
     }
 
     def "single dash user error yields decent error message"() {
@@ -210,7 +214,8 @@ class TaskCommandLineConfigurationIntegrationSpec extends AbstractIntegrationSpe
         runAndFail 'tasks', '-all'
 
         then:
-        failure.assertHasDescription("Problem configuring task :tasks from command line. Unknown command-line option '-l'.")
+        failure.assertHasDescription("Problem configuring task :tasks from command line.")
+        failure.assertHasCause("Unknown command-line option '-l'.")
     }
 
     @Ignore

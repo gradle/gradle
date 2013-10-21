@@ -151,7 +151,7 @@ class LoggingIntegrationTest extends AbstractIntegrationTest {
     }}
 
     private final LogOutput brokenBuild = new LogOutput() {{
-        error('FAILURE: Could not determine which tasks to execute.')
+        error('FAILURE: Build failed with an exception.')
     }}
 
     @Test

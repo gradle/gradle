@@ -20,7 +20,6 @@ import org.gradle.api.internal.AbstractMultiCauseException
 import org.gradle.api.internal.LocationAwareException
 import org.gradle.api.logging.LogLevel
 import org.gradle.execution.MultipleBuildFailures
-import org.gradle.execution.TaskSelectionException
 import org.gradle.initialization.BuildClientMetaData
 import org.gradle.logging.LoggingConfiguration
 import org.gradle.logging.ShowStacktrace
@@ -209,22 +208,6 @@ Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get m
 * Exception is:
 org.gradle.api.GradleException: <message>
 {stacktrace}
-'''
-    }
-
-    def reportsTaskSelectionException() {
-        Throwable exception = new TaskSelectionException("<message>");
-
-        expect:
-        reporter.buildFinished(result(exception))
-        output.value == '''
-{failure}FAILURE: {normal}{failure}Could not determine which tasks to execute.{normal}
-
-* What went wrong:
-<message>
-
-* Try:
-Run {userinput}[gradle tasks]{normal} to get a list of available tasks.
 '''
     }
 

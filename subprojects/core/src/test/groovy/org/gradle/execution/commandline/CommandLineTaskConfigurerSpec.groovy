@@ -13,13 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
-
 package org.gradle.execution.commandline
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.internal.tasks.CommandLineOption
 import org.gradle.api.tasks.TaskAction
@@ -87,17 +83,19 @@ class CommandLineTaskConfigurerSpec extends Specification {
     def "fails if some of the types cannot accommodate the setting"() {
         when:
         configurer.configureTasks([task, defaultTask], ['--someFlag'])
+
         then:
-        def ex = thrown(GradleException)
-        ex.message.contains('someFlag')
+        def ex = thrown(TaskConfigurationException)
+        ex.cause.message.contains('someFlag')
     }
 
     def "fails if one of the options cannot be applied to one of the tasks"() {
         when:
         configurer.configureTasks([task, otherTask], input)
+
         then:
-        def ex = thrown(GradleException)
-        ex.message.contains('someFlag2')
+        def ex = thrown(TaskConfigurationException)
+        ex.cause.message.contains('someFlag2')
 
         where:
         input << [['--someFlag', '--someFlag2'], ['--someFlag2', '--someFlag']]
@@ -134,8 +132,8 @@ class CommandLineTaskConfigurerSpec extends Specification {
         configurer.configureTasks([task, task2], args)
 
         then:
-        def ex = thrown(GradleException)
-        ex.message.contains('xxx')
+        def ex = thrown(TaskConfigurationException)
+        ex.cause.message.contains('xxx')
     }
 
     def "fails neatly when short option used"() {
@@ -144,8 +142,8 @@ class CommandLineTaskConfigurerSpec extends Specification {
         configurer.configureTasks([task], args)
 
         then:
-        def ex = thrown(GradleException)
-        ex.message.contains("Unknown command-line option '-c'")
+        def ex = thrown(TaskConfigurationException)
+        ex.cause.message.contains("Unknown command-line option '-c'")
     }
 
     public static class SomeTask extends DefaultTask {

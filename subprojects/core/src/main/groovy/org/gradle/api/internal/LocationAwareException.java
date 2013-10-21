@@ -16,8 +16,11 @@
 package org.gradle.api.internal;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.FailureResolutionAware;
 import org.gradle.api.GradleException;
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.initialization.BuildClientMetaData;
+import org.gradle.logging.StyledTextOutput;
 import org.gradle.util.TreeVisitor;
 
 import java.util.ArrayList;
@@ -26,7 +29,7 @@ import java.util.List;
 /**
  * A {@code LocationAwareException} is an exception which can be annotated with a location in a script.
  */
-public class LocationAwareException extends GradleException {
+public class LocationAwareException extends GradleException implements FailureResolutionAware {
     private final ScriptSource source;
     private final Integer lineNumber;
 
@@ -88,6 +91,13 @@ public class LocationAwareException extends GradleException {
             return location;
         }
         return String.format("%s%n%s", location, message);
+    }
+
+    public void appendResolution(StyledTextOutput output, BuildClientMetaData clientMetaData) {
+        if (getCause() instanceof FailureResolutionAware) {
+            FailureResolutionAware resolutionAware = (FailureResolutionAware) getCause();
+            resolutionAware.appendResolution(output, clientMetaData);
+        }
     }
 
     /**

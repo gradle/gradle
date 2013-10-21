@@ -19,6 +19,7 @@ package org.gradle.execution.commandline;
 import org.gradle.FailureResolutionAware;
 import org.gradle.api.GradleException;
 import org.gradle.api.Task;
+import org.gradle.api.internal.Contextual;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.configuration.ImplicitTasksConfigurer;
 import org.gradle.initialization.BuildClientMetaData;
@@ -26,6 +27,7 @@ import org.gradle.logging.StyledTextOutput;
 
 import static org.gradle.logging.StyledTextOutput.Style.UserInput;
 
+@Contextual
 public class TaskConfigurationException extends GradleException implements FailureResolutionAware {
 
     private final Task task;
@@ -39,6 +41,6 @@ public class TaskConfigurationException extends GradleException implements Failu
         output.text("Run ");
         clientMetaData.describeCommand(output.withStyle(UserInput), ImplicitTasksConfigurer.HELP_TASK);
         output.withStyle(UserInput).format(" --task %s", task.getName());
-        output.text(" to get task usage details. ");
+        output.text(" to get task usage details.");
     }
 }
