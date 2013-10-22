@@ -127,7 +127,7 @@ public class DefaultFileLockManager implements FileLockManager {
 
             GFileUtils.mkdirs(lockFile.getParentFile());
             lockFile.createNewFile();
-            lockFileAccess = new LockFileAccess(lockFile, displayName, new StateInfoAccess(options.getLockStateSerializer()));
+            lockFileAccess = new LockFileAccess(lockFile, new LockStateAccess(options.getLockStateSerializer()));
             //TODO SF protocol is now injected and unit tests should reflect this
             try {
                 LockState lockState = lock(options.getMode());

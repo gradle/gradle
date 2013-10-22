@@ -18,15 +18,15 @@ package org.gradle.cache.internal.filelock;
 import java.io.*;
 import java.nio.channels.FileLock;
 
-public class StateInfoAccess {
+public class LockStateAccess {
     private final LockStateSerializer protocol;
     private static final int REGION_START = 0;
-    private static final int STATE_INFO_START = 1;
+    private static final int STATE_CONTENT_START = 1;
     private final int stateRegionSize;
 
-    public StateInfoAccess(LockStateSerializer protocol) {
+    public LockStateAccess(LockStateSerializer protocol) {
         this.protocol = protocol;
-        stateRegionSize = STATE_INFO_START + protocol.getSize();
+        stateRegionSize = STATE_CONTENT_START + protocol.getSize();
     }
 
     public LockState ensureLockState(RandomAccessFile lockFileAccess) throws IOException {

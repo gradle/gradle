@@ -16,35 +16,21 @@
 package org.gradle.cache.internal.filelock;
 
 import org.gradle.api.Nullable;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
-import org.gradle.cache.internal.stream.RandomAccessFileInputStream;
-import org.gradle.cache.internal.stream.RandomAccessFileOutputStream;
 
 import java.io.*;
 import java.nio.channels.FileLock;
 
 public class LockFileAccess {
-    
-    private final static Logger LOGGER = Logging.getLogger(LockFileAccess.class);
-
-    public static final int INFORMATION_REGION_SIZE = 2052;
 
     private final RandomAccessFile lockFileAccess;
 
-    private final StateInfoAccess lockStateAccess;
-    private final LockInfoSerializer lockInfoSerializer = new LockInfoSerializer();
-    private final int infoRegionPos;
+    private final LockStateAccess lockStateAccess;
+    private final LockInfoAccess lockInfoAccess;
 
-    private File lockFile;
-    private String displayName;
-
-    public LockFileAccess(File lockFile, String displayName, StateInfoAccess lockStateAccess) throws FileNotFoundException {
-        this.lockFile = lockFile;
-        this.displayName = displayName;
+    public LockFileAccess(File lockFile, LockStateAccess lockStateAccess) throws FileNotFoundException {
         this.lockFileAccess = new RandomAccessFile(lockFile, "rw");
         this.lockStateAccess = lockStateAccess;
-        this.infoRegionPos = this.lockStateAccess.getRegionEnd();
+        lockInfoAccess = new LockInfoAccess(this.lockStateAccess.getRegionEnd());
     }
 
     public void close() throws IOException {
@@ -52,34 +38,16 @@ public class LockFileAccess {
     }
 
     public void writeLockInfo(int port, long lockId, String pid, String operation) throws IOException {
-        lockFileAccess.seek(infoRegionPos);
-
-        DataOutputStream outstr = new DataOutputStream(new BufferedOutputStream(new RandomAccessFileOutputStream(lockFileAccess)));
-        outstr.writeByte(lockInfoSerializer.getVersion());
         LockInfo lockInfo = new LockInfo();
         lockInfo.port = port;
         lockInfo.lockId = lockId;
         lockInfo.pid = pid;
         lockInfo.operation = operation;
-        lockInfoSerializer.write(outstr, lockInfo);
-        outstr.flush();
-
-        lockFileAccess.setLength(lockFileAccess.getFilePointer());
+        lockInfoAccess.writeLockInfo(lockFileAccess, lockInfo);
     }
 
     public LockInfo readLockInfo() throws IOException {
-        if (lockFileAccess.length() <= infoRegionPos) {
-            LOGGER.debug("Lock file for {} is too short to contain information region. Ignoring.", displayName);
-            return new LockInfo();
-        } else {
-            lockFileAccess.seek(infoRegionPos);
-
-            DataInputStream inputStream = new DataInputStream(new BufferedInputStream(new RandomAccessFileInputStream(lockFileAccess)));
-            if (inputStream.readByte() != lockInfoSerializer.getVersion()) {
-                throw new IllegalStateException(String.format("Unexpected lock protocol found in lock file '%s' for %s.", lockFile, displayName));
-            }
-            return lockInfoSerializer.read(inputStream);
-        }
+        return lockInfoAccess.readLockInfo(lockFileAccess);
     }
 
     /**
@@ -98,12 +66,12 @@ public class LockFileAccess {
     }
 
     public void clearLockInfo() throws IOException {
-        lockFileAccess.setLength(infoRegionPos);
+        lockInfoAccess.clearLockInfo(lockFileAccess);
     }
 
     @Nullable
     public FileLock tryLockInfo(boolean shared) throws IOException {
-        return lockFileAccess.getChannel().tryLock(infoRegionPos, (long) (INFORMATION_REGION_SIZE - infoRegionPos), shared);
+        return lockInfoAccess.tryLock(lockFileAccess, shared);
     }
 
     @Nullable
