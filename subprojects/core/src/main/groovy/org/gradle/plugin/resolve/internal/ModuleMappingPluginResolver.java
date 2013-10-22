@@ -1,8 +1,10 @@
 package org.gradle.plugin.resolve.internal;
 
+import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.internal.Factory;
 import org.gradle.internal.classpath.ClassPath;
@@ -14,17 +16,19 @@ public class ModuleMappingPluginResolver implements PluginResolver {
     private final DependencyResolutionServices dependencyResolutionServices;
     private final Instantiator instantiator;
     private final Mapper mapper;
+    private Action<? super RepositoryHandler> repositoriesConfigurer;
 
     public interface Mapper {
         @Nullable
         Dependency map(PluginRequest request, DependencyHandler dependencyHandler);
     }
 
-    public ModuleMappingPluginResolver(String name, DependencyResolutionServices dependencyResolutionServices, Instantiator instantiator, Mapper mapper) {
+    public ModuleMappingPluginResolver(String name, DependencyResolutionServices dependencyResolutionServices, Instantiator instantiator, Mapper mapper, Action<? super RepositoryHandler> repositoriesConfigurer) {
         this.name = name;
         this.dependencyResolutionServices = dependencyResolutionServices;
         this.instantiator = instantiator;
         this.mapper = mapper;
+        this.repositoriesConfigurer = repositoriesConfigurer;
     }
 
     public PluginResolution resolve(final PluginRequest pluginRequest) {
@@ -33,7 +37,7 @@ public class ModuleMappingPluginResolver implements PluginResolver {
             return null;
         } else {
             // TODO the dependency resolution config of this guy needs to be externalized
-            Factory<ClassPath> classPathFactory = new DependencyResolvingClasspathProvider(dependencyResolutionServices, dependency);
+            Factory<ClassPath> classPathFactory = new DependencyResolvingClasspathProvider(dependencyResolutionServices, dependency, repositoriesConfigurer);
 
             // TODO the classloader strategy employed here is naive - doesn't update the script classloader or reuse classes
             return new ClassPathPluginResolution(instantiator, pluginRequest.getId(), classPathFactory);

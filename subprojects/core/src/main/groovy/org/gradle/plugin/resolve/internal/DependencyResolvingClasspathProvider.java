@@ -16,8 +16,10 @@
 
 package org.gradle.plugin.resolve.internal;
 
+import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.internal.Factory;
 import org.gradle.internal.classpath.ClassPath;
@@ -27,15 +29,17 @@ public class DependencyResolvingClasspathProvider implements Factory<ClassPath> 
 
     private final DependencyResolutionServices dependencyResolutionServices;
     private final Dependency dependency;
+    private final Action<? super RepositoryHandler> repositoriesConfigurer;
 
-    public DependencyResolvingClasspathProvider(DependencyResolutionServices dependencyResolutionServices, Dependency dependency) {
+    public DependencyResolvingClasspathProvider(DependencyResolutionServices dependencyResolutionServices, Dependency dependency, Action<? super RepositoryHandler> repositoriesConfigurer) {
         this.dependencyResolutionServices = dependencyResolutionServices;
         this.dependency = dependency;
+        this.repositoriesConfigurer = repositoriesConfigurer;
     }
 
     public ClassPath create() {
         Configuration configuration = dependencyResolutionServices.getConfigurationContainer().detachedConfiguration(dependency);
-        dependencyResolutionServices.getResolveRepositoryHandler().jcenter(); // TODO remove this hardcoding
+        repositoriesConfigurer.execute(dependencyResolutionServices.getResolveRepositoryHandler());
         return new DefaultClassPath(configuration.resolve());
     }
 

@@ -16,7 +16,9 @@
 
 package org.gradle.plugin.internal;
 
+import org.gradle.api.Action;
 import org.gradle.api.UnknownProjectException;
+import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
@@ -65,9 +67,7 @@ public class DefaultPluginHandlerFactory implements PluginHandlerFactory {
 
     private void addDefaultResolvers(PluginHandlerInternal pluginHandler) {
         pluginHandler.getResolvers().add(new PluginRegistryPluginResolver(pluginRegistry));
-
-        // TODO there are dependency resolution options in here that need to be exposed for user configuration
-        pluginHandler.getResolvers().add(new ModuleMappingPluginResolver("android plugin resolver", createDependencyResolutionServices(), instantiator, new AndroidPluginMapper()));
+        pluginHandler.getResolvers().add(new ModuleMappingPluginResolver("android plugin resolver", createDependencyResolutionServices(), instantiator, new AndroidPluginMapper(), new JCenterRepositoryConfigurer()));
     }
 
     private DependencyResolutionServices createDependencyResolutionServices() {
@@ -80,4 +80,9 @@ public class DefaultPluginHandlerFactory implements PluginHandlerFactory {
         }
     }
 
+    private static class JCenterRepositoryConfigurer implements Action<RepositoryHandler> {
+        public void execute(RepositoryHandler repositories) {
+            repositories.jcenter();
+        }
+    }
 }
