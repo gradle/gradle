@@ -16,7 +16,6 @@
 package org.gradle.logging.internal;
 
 import org.gradle.api.logging.LogLevel;
-import org.gradle.internal.SystemProperties;
 import org.gradle.logging.StyledTextOutput;
 
 import java.text.SimpleDateFormat;
@@ -26,8 +25,6 @@ import static org.gradle.logging.StyledTextOutput.Style.Error;
 import static org.gradle.logging.StyledTextOutput.Style.Normal;
 
 public class StyledTextOutputBackedRenderer implements OutputEventListener {
-    private static final String EOL = SystemProperties.getLineSeparator();
-
     private final OutputEventTextOutputImpl textOutput;
     private boolean debugOutput;
     private RenderableOutputEvent lastEvent;
