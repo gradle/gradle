@@ -15,6 +15,7 @@
  */
 package org.gradle.nativebinaries.language.c.internal.incremental
 import org.gradle.CacheUsage
+import org.gradle.cache.CacheAccess
 import org.gradle.cache.internal.FileLockManager
 import org.gradle.messaging.serialize.DefaultSerializer
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -28,9 +29,10 @@ class IncrementalCompileProcessorTest extends Specification {
     def cacheDir = tmpDir.createDir("cache")
     def dependencyParser = Mock(SourceDependencyParser)
     def cacheFactory = new InMemoryCacheFactory()
+    def cacheAccess = Mock(CacheAccess)
     def stateCache = cacheFactory.openIndexedCache(cacheDir, CacheUsage.ON, null, null, FileLockManager.LockMode.None, new DefaultSerializer<FileState>())
     def listCache = cacheFactory.openIndexedCache(cacheDir, CacheUsage.ON, null, null, FileLockManager.LockMode.None, new DefaultSerializer<List<File>>())
-    def incrementalCompiler = new IncrementalCompileProcessor(stateCache, listCache, dependencyParser)
+    def incrementalCompileProcessor = new IncrementalCompileProcessor(cacheAccess, stateCache, listCache, dependencyParser)
 
     def source1 = sourceFile("source1")
     def source2 = sourceFile("source2")
@@ -358,8 +360,13 @@ class IncrementalCompileProcessorTest extends Specification {
         }
     }
 
+    def "makes cacheAccess available"() {
+        expect:
+        incrementalCompileProcessor.cacheAccess == cacheAccess
+    }
+
     def getState() {
-        incrementalCompiler.processSourceFiles(sourceFiles)
+        incrementalCompileProcessor.processSourceFiles(sourceFiles)
     }
 
     def cached(File... files) {

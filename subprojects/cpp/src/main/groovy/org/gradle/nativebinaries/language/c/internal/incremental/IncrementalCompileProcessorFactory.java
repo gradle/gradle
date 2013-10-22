@@ -37,8 +37,6 @@ public class IncrementalCompileProcessorFactory {
     }
 
     public IncrementalCompileProcessor create(File cacheDir, String cacheKey, Iterable<File> includes) {
-        // TODO:DAZ Lock cache while using
-
         // Cache is private to a named task
         File privateCacheDir = new File(cacheDir, cacheKey);
         PersistentCache cache = cacheFactory.open(privateCacheDir, "cppCompile", CacheUsage.ON, null, Collections.<String, Object>emptyMap(), FileLockManager.LockMode.Exclusive, null);
@@ -49,7 +47,7 @@ public class IncrementalCompileProcessorFactory {
         PersistentIndexedCache<String, List<File>> listCache = createCache(cache, "previous", String.class, new DefaultSerializer<List<File>>());
 
         List<File> includePaths = CollectionUtils.toList(includes);
-        return new IncrementalCompileProcessor(stateCache, listCache, new DefaultSourceDependencyParser(includesParser, includePaths));
+        return new IncrementalCompileProcessor(cache, stateCache, listCache, new DefaultSourceDependencyParser(includesParser, includePaths));
     }
 
     private <U, V> PersistentIndexedCache<U, V> createCache(PersistentCache cache, String name, Class<U> keyType, DefaultSerializer<V> fileStateDefaultSerializer) {

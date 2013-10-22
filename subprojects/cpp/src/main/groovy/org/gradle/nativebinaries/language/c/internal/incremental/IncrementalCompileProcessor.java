@@ -15,6 +15,7 @@
  */
 package org.gradle.nativebinaries.language.c.internal.incremental;
 
+import org.gradle.cache.CacheAccess;
 import org.gradle.cache.PersistentIndexedCache;
 
 import java.io.File;
@@ -26,14 +27,20 @@ import java.util.List;
 public class IncrementalCompileProcessor {
 
     private static final String PREVIOUS_FILES = "previous";
+    private final CacheAccess cacheAccess;
     private final PersistentIndexedCache<File, FileState> fileStateCache;
     private final PersistentIndexedCache<String, List<File>> previousSourcesCache;
     private final SourceDependencyParser dependencyParser;
 
-    public IncrementalCompileProcessor(PersistentIndexedCache<File, FileState> fileStateCache, PersistentIndexedCache<String, List<File>> previousSourcesCache, SourceDependencyParser dependencyParser) {
+    public IncrementalCompileProcessor(CacheAccess cacheAccess, PersistentIndexedCache<File, FileState> fileStateCache, PersistentIndexedCache<String, List<File>> previousSourcesCache, SourceDependencyParser dependencyParser) {
+        this.cacheAccess = cacheAccess;
         this.fileStateCache = fileStateCache;
         this.previousSourcesCache = previousSourcesCache;
         this.dependencyParser = dependencyParser;
+    }
+
+    public CacheAccess getCacheAccess() {
+        return cacheAccess;
     }
 
     public IncrementalCompileFiles processSourceFiles(Collection<File> sourceFiles) {

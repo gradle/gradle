@@ -17,7 +17,6 @@
 package org.gradle.nativebinaries.language.c.tasks
 
 import org.gradle.api.Incubating
-import org.gradle.api.tasks.WorkResult
 import org.gradle.cache.internal.CacheFactory
 import org.gradle.nativebinaries.internal.PlatformToolChain
 import org.gradle.nativebinaries.language.c.internal.DefaultCCompileSpec
