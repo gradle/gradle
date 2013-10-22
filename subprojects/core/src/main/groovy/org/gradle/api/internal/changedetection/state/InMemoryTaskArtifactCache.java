@@ -87,8 +87,8 @@ public class InMemoryTaskArtifactCache implements InMemoryPersistentCacheDecorat
                 original.remove(key);
             }
 
-            public void onStartWork(String operationDisplayName, boolean lockHasNewOwner) {
-                if (lockHasNewOwner) {
+            public void onStartWork(String operationDisplayName, boolean contentHasBeenUpdated) {
+                if (contentHasBeenUpdated) {
                     LOG.info("Invalidating in-memory cache of {}", cacheFile);
                     data.invalidateAll();
                 }
