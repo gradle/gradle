@@ -30,8 +30,8 @@ import org.gradle.nativebinaries.ToolChain
 import org.gradle.nativebinaries.internal.PlatformToolChain
 import org.gradle.nativebinaries.language.c.internal.incremental.CacheLockingIncrementalCompiler
 import org.gradle.nativebinaries.language.c.internal.incremental.IncrementalCompileProcessorFactory
-import org.gradle.nativebinaries.language.c.internal.incremental.IncrementalCompiler
-import org.gradle.nativebinaries.language.c.internal.incremental.CleanIncrementalCompiler
+import org.gradle.nativebinaries.language.c.internal.incremental.IncrementalNativeCompiler
+import org.gradle.nativebinaries.language.c.internal.incremental.CleanCompilingNativeCompiler
 import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec
 
 import javax.inject.Inject
@@ -127,8 +127,8 @@ abstract class AbstractNativeCompileTask extends DefaultTask {
         final cacheDir = project.file("${project.buildDir}/.compileCache")
         final incrementalProcessor = incrementalCompilerFactory.create(cacheDir, name, includes)
         final incrementalCompiler = incremental ?
-            new IncrementalCompiler(compiler, incrementalProcessor) :
-            new CleanIncrementalCompiler(compiler, incrementalProcessor, getOutputs())
+            new IncrementalNativeCompiler(compiler, incrementalProcessor) :
+            new CleanCompilingNativeCompiler(compiler, incrementalProcessor, getOutputs())
         return new CacheLockingIncrementalCompiler(incrementalProcessor, incrementalCompiler)
     }
 

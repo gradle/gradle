@@ -15,35 +15,25 @@
  */
 package org.gradle.nativebinaries.language.c.internal.incremental;
 
-import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.language.jvm.internal.SimpleStaleClassCleaner;
-import org.gradle.language.jvm.internal.StaleClassCleaner;
 import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec;
 
-public class CleanIncrementalCompiler implements Compiler<NativeCompileSpec> {
+public class IncrementalNativeCompiler implements org.gradle.api.internal.tasks.compile.Compiler<NativeCompileSpec> {
     private final Compiler<NativeCompileSpec> delegateCompiler;
     private final IncrementalCompileProcessor incrementalCompileProcessor;
-    private TaskOutputsInternal taskOutputs;
 
-    public CleanIncrementalCompiler(Compiler<NativeCompileSpec> delegateCompiler, IncrementalCompileProcessor incrementalCompileProcessor,
-                                    TaskOutputsInternal taskOutputs) {
+    public IncrementalNativeCompiler(Compiler<NativeCompileSpec> delegateCompiler, IncrementalCompileProcessor incrementalCompileProcessor) {
         this.delegateCompiler = delegateCompiler;
         this.incrementalCompileProcessor = incrementalCompileProcessor;
-        this.taskOutputs = taskOutputs;
     }
 
     public WorkResult execute(NativeCompileSpec spec) {
-        incrementalCompileProcessor.processSourceFiles(spec.getSourceFiles());
-        cleanPreviousOutputs(spec);
+        IncrementalCompilation compilation = incrementalCompileProcessor.processSourceFiles(spec.getSourceFiles());
+
+        // Determine the actual sources to clean/compile
+        spec.setSourceFiles(compilation.getRecompile());
+        spec.setRemovedSourceFiles(compilation.getRemoved());
         return delegateCompiler.execute(spec);
     }
-
-    private void cleanPreviousOutputs(NativeCompileSpec spec) {
-        StaleClassCleaner cleaner = new SimpleStaleClassCleaner(taskOutputs);
-        cleaner.setDestinationDir(spec.getObjectFileDir());
-        cleaner.execute();
-    }
-
 }
