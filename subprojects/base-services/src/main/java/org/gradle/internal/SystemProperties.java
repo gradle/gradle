@@ -15,16 +15,17 @@
  */
 package org.gradle.internal;
 
-import com.google.common.collect.ImmutableSet;
-
 import java.io.File;
-import java.util.*;
+import java.util.Map;
+import java.util.Set;
+
+import static com.google.common.collect.ImmutableSet.of;
 
 /**
  * Provides access to frequently used system properties.
  */
 public class SystemProperties {
-    private static final Set<String> STANDARD_PROPERTIES = asSet(
+    private static final Set<String> STANDARD_PROPERTIES = of(
             "java.version",
             "java.vendor",
             "java.vendor.url",
@@ -52,14 +53,12 @@ public class SystemProperties {
             "line.separator",
             "user.name",
             "user.home",
-            "user.dir");
+            "user.dir"
+    );
 
-    private static final Set<String> IMPORTANT_NON_STANDARD_PROPERTIES = asSet(
-            "java.runtime.version");
-
-    private static Set<String> asSet(String... values) {
-        return ImmutableSet.copyOf(Arrays.asList(values));
-    }
+    private static final Set<String> IMPORTANT_NON_STANDARD_PROPERTIES = of(
+            "java.runtime.version"
+    );
 
     @SuppressWarnings("unchecked")
     public static Map<String, String> asMap() {
