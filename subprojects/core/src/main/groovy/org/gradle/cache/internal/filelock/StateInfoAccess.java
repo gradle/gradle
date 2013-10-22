@@ -19,17 +19,17 @@ import java.io.*;
 import java.nio.channels.FileLock;
 
 public class StateInfoAccess {
-    private final StateInfoProtocol protocol;
+    private final LockStateSerializer protocol;
     private static final int REGION_START = 0;
     private static final int STATE_INFO_START = 1;
     private final int stateRegionSize;
 
-    public StateInfoAccess(StateInfoProtocol protocol) {
+    public StateInfoAccess(LockStateSerializer protocol) {
         this.protocol = protocol;
         stateRegionSize = STATE_INFO_START + protocol.getSize();
     }
 
-    public StateInfo ensureStateInfo(RandomAccessFile lockFileAccess) throws IOException {
+    public LockState ensureStateInfo(RandomAccessFile lockFileAccess) throws IOException {
         if (lockFileAccess.length() == 0) {
             // File did not exist before locking
             return markDirty(lockFileAccess); //TODO SF add coverage that we're actually marking dirty here
@@ -38,31 +38,31 @@ public class StateInfoAccess {
         }
     }
 
-    public StateInfo markClean(RandomAccessFile lockFileAccess, int ownerId) throws IOException {
-        StateInfo stateInfo = new StateInfo(ownerId, false);
-        writeState(lockFileAccess, stateInfo);
-        return stateInfo;
+    public LockState markClean(RandomAccessFile lockFileAccess, int ownerId) throws IOException {
+        LockState lockState = new LockState(ownerId, false);
+        writeState(lockFileAccess, lockState);
+        return lockState;
     }
 
-    public StateInfo markDirty(RandomAccessFile lockFileAccess) throws IOException {
-        StateInfo stateInfo = new StateInfo(StateInfo.UNKNOWN_PREVIOUS_OWNER, true);
-        writeState(lockFileAccess, stateInfo);
-        return stateInfo;
+    public LockState markDirty(RandomAccessFile lockFileAccess) throws IOException {
+        LockState lockState = new LockState(LockState.UNKNOWN_PREVIOUS_OWNER, true);
+        writeState(lockFileAccess, lockState);
+        return lockState;
     }
 
-    private void writeState(RandomAccessFile lockFileAccess, StateInfo stateInfo) throws IOException {
+    private void writeState(RandomAccessFile lockFileAccess, LockState lockState) throws IOException {
         ByteArrayOutputStream outstr = new ByteArrayOutputStream();
         DataOutputStream dataOutput = new DataOutputStream(outstr);
         dataOutput.writeByte(protocol.getVersion());
         dataOutput.flush();
 
-        protocol.writeState(dataOutput, stateInfo);
+        protocol.writeState(dataOutput, lockState);
         lockFileAccess.seek(REGION_START);
         lockFileAccess.write(outstr.toByteArray());
         assert lockFileAccess.getFilePointer() == stateRegionSize;
     }
 
-    public StateInfo readStateInfo(RandomAccessFile lockFileAccess) throws IOException {
+    public LockState readStateInfo(RandomAccessFile lockFileAccess) throws IOException {
         try {
             byte[] buffer = new byte[stateRegionSize];
             lockFileAccess.seek(REGION_START);
@@ -85,7 +85,7 @@ public class StateInfoAccess {
             }
             return protocol.readState(dataInput);
         } catch (EOFException e) {
-            return new StateInfo(StateInfo.UNKNOWN_PREVIOUS_OWNER, true);
+            return new LockState(LockState.UNKNOWN_PREVIOUS_OWNER, true);
         }
     }
 

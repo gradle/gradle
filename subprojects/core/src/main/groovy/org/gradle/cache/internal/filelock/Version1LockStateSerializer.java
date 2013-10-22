@@ -19,26 +19,23 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
-public interface StateInfoProtocol {
+/**
+ * An older, cross-version state info format.
+ */
+public class Version1LockStateSerializer implements LockStateSerializer {
+    public int getSize() {
+        return 1;
+    }
 
-    /**
-     * size (bytes) of the data of this protocol.
-     */
-    int getSize();
+    public int getVersion() {
+        return 1;
+    }
 
-    /**
-     * single byte that describes the version.
-     * an implementation protocol should increment the value when protocol changes in an incompatible way
-     */
-    int getVersion();
+    public void writeState(DataOutput dataOutput, LockState lockState) throws IOException {
+        dataOutput.writeBoolean(!lockState.isDirty());
+    }
 
-    /**
-     * writes the state data
-     */
-    void writeState(DataOutput lockFileAccess, StateInfo stateInfo) throws IOException;
-
-    /**
-     * reads the state data
-     */
-    StateInfo readState(DataInput lockFileAccess) throws IOException;
+    public LockState readState(DataInput dataInput) throws IOException {
+        return new LockState(LockState.UNKNOWN_PREVIOUS_OWNER, !dataInput.readBoolean());
+    }
 }

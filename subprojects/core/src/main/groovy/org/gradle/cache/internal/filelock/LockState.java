@@ -15,9 +15,21 @@
  */
 package org.gradle.cache.internal.filelock;
 
-public class OwnerInfo {
-    public int port = -1;
-    public long lockId;
-    public String pid = "unknown";
-    public String operation = "unknown";
+public class LockState {
+    public static final int UNKNOWN_PREVIOUS_OWNER = 0;
+    private int previousOwnerId;
+    private boolean dirty;
+
+    public LockState(int previousOwnerId, boolean dirty) {
+        this.previousOwnerId = previousOwnerId;
+        this.dirty = dirty;
+    }
+
+    public int getPreviousOwnerId() {
+        return previousOwnerId;
+    }
+
+    public boolean isDirty() {
+        return dirty;
+    }
 }

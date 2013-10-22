@@ -15,24 +15,9 @@
  */
 package org.gradle.cache.internal.filelock;
 
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.IOException;
-
-public class SimpleStateInfoProtocol implements StateInfoProtocol {
-    public int getSize() {
-        return 1;
-    }
-
-    public int getVersion() {
-        return 1;
-    }
-
-    public void writeState(DataOutput dataOutput, StateInfo stateInfo) throws IOException {
-        dataOutput.writeBoolean(!stateInfo.isDirty());
-    }
-
-    public StateInfo readState(DataInput dataInput) throws IOException {
-        return new StateInfo(StateInfo.UNKNOWN_PREVIOUS_OWNER, !dataInput.readBoolean());
-    }
+public class LockInfo {
+    public int port = -1;
+    public long lockId;
+    public String pid = "unknown";
+    public String operation = "unknown";
 }

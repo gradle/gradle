@@ -19,22 +19,26 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
-public class DefaultStateInfoProtocol implements StateInfoProtocol {
+public interface LockStateSerializer {
 
-    public int getSize() {
-        return 4;
-    }
+    /**
+     * size (bytes) of the data of this protocol.
+     */
+    int getSize();
 
-    public int getVersion() {
-        return 2;
-    }
+    /**
+     * single byte that describes the version.
+     * an implementation protocol should increment the value when protocol changes in an incompatible way
+     */
+    int getVersion();
 
-    public void writeState(DataOutput dataOutput, StateInfo stateInfo) throws IOException {
-        dataOutput.writeInt(stateInfo.getPreviousOwnerId());
-    }
+    /**
+     * writes the state data
+     */
+    void writeState(DataOutput lockFileAccess, LockState lockState) throws IOException;
 
-    public StateInfo readState(DataInput dataInput) throws IOException {
-        int id = dataInput.readInt();
-        return new StateInfo(id, id == StateInfo.UNKNOWN_PREVIOUS_OWNER);
-    }
+    /**
+     * reads the state data
+     */
+    LockState readState(DataInput lockFileAccess) throws IOException;
 }

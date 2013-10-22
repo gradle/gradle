@@ -24,22 +24,22 @@ import org.gradle.cache.internal.stream.RandomAccessFileOutputStream;
 import java.io.*;
 import java.nio.channels.FileLock;
 
-public class FileLockAccess {
+public class LockFileAccess {
     
-    private final static Logger LOGGER = Logging.getLogger(FileLockAccess.class);
+    private final static Logger LOGGER = Logging.getLogger(LockFileAccess.class);
 
     public static final int INFORMATION_REGION_SIZE = 2052;
 
     private final RandomAccessFile lockFileAccess;
 
     private final StateInfoAccess stateInfoAccess;
-    private final OwnerInfoProtocol ownerInfoProtocol = new OwnerInfoProtocol();
+    private final LockInfoSerializer lockInfoSerializer = new LockInfoSerializer();
     private final int infoRegionPos;
 
     private File lockFile;
     private String displayName;
 
-    public FileLockAccess(File lockFile, String displayName, StateInfoAccess stateInfoAccess) throws FileNotFoundException {
+    public LockFileAccess(File lockFile, String displayName, StateInfoAccess stateInfoAccess) throws FileNotFoundException {
         this.lockFile = lockFile;
         this.displayName = displayName;
         this.lockFileAccess = new RandomAccessFile(lockFile, "rw");
@@ -55,37 +55,37 @@ public class FileLockAccess {
         lockFileAccess.seek(infoRegionPos);
 
         DataOutputStream outstr = new DataOutputStream(new BufferedOutputStream(new RandomAccessFileOutputStream(lockFileAccess)));
-        outstr.writeByte(ownerInfoProtocol.getVersion());
-        OwnerInfo ownerInfo = new OwnerInfo();
-        ownerInfo.port = port;
-        ownerInfo.lockId = lockId;
-        ownerInfo.pid = pid;
-        ownerInfo.operation = operation;
-        ownerInfoProtocol.write(outstr, ownerInfo);
+        outstr.writeByte(lockInfoSerializer.getVersion());
+        LockInfo lockInfo = new LockInfo();
+        lockInfo.port = port;
+        lockInfo.lockId = lockId;
+        lockInfo.pid = pid;
+        lockInfo.operation = operation;
+        lockInfoSerializer.write(outstr, lockInfo);
         outstr.flush();
 
         lockFileAccess.setLength(lockFileAccess.getFilePointer());
     }
 
-    public OwnerInfo readOwnerInfo() throws IOException {
+    public LockInfo readOwnerInfo() throws IOException {
         if (lockFileAccess.length() <= infoRegionPos) {
             LOGGER.debug("Lock file for {} is too short to contain information region. Ignoring.", displayName);
-            return new OwnerInfo();
+            return new LockInfo();
         } else {
             lockFileAccess.seek(infoRegionPos);
 
             DataInputStream inputStream = new DataInputStream(new BufferedInputStream(new RandomAccessFileInputStream(lockFileAccess)));
-            if (inputStream.readByte() != ownerInfoProtocol.getVersion()) {
+            if (inputStream.readByte() != lockInfoSerializer.getVersion()) {
                 throw new IllegalStateException(String.format("Unexpected lock protocol found in lock file '%s' for %s.", lockFile, displayName));
             }
-            return ownerInfoProtocol.readState(inputStream);
+            return lockInfoSerializer.readState(inputStream);
         }
     }
 
     /**
      * Reads the state info from the lock file, possibly generating a new lock file if not present or empty.
      */
-    public StateInfo ensureStateInfo() throws IOException {
+    public LockState ensureStateInfo() throws IOException {
         return stateInfoAccess.ensureStateInfo(lockFileAccess);
     }
 
@@ -114,7 +114,7 @@ public class FileLockAccess {
     /**
      * Reads the state info from the lock file.
      */
-    public StateInfo readStateInfo() throws IOException {
+    public LockState readStateInfo() throws IOException {
         return stateInfoAccess.readStateInfo(lockFileAccess);
     }
 }

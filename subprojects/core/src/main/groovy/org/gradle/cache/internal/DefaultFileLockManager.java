@@ -103,7 +103,7 @@ public class DefaultFileLockManager implements FileLockManager {
         private final String operationDisplayName;
         private final boolean hasNewOwner;
         private java.nio.channels.FileLock lock;
-        private FileLockAccess fileLockAccess;
+        private LockFileAccess lockFileAccess;
         private boolean integrityViolated;
         private int port;
         private final long lockId;
@@ -127,15 +127,15 @@ public class DefaultFileLockManager implements FileLockManager {
 
             GFileUtils.mkdirs(lockFile.getParentFile());
             lockFile.createNewFile();
-            fileLockAccess = new FileLockAccess(lockFile, displayName, new StateInfoAccess(options.getStateInfoProtocol()));
+            lockFileAccess = new LockFileAccess(lockFile, displayName, new StateInfoAccess(options.getStateInfoProtocol()));
             //TODO SF protocol is now injected and unit tests should reflect this
             try {
-                StateInfo stateInfo = lock(options.getMode());
-                hasNewOwner = stateInfo.getPreviousOwnerId() != ownerId;
-                integrityViolated = stateInfo.isDirty();
+                LockState lockState = lock(options.getMode());
+                hasNewOwner = lockState.getPreviousOwnerId() != ownerId;
+                integrityViolated = lockState.isDirty();
             } catch (Throwable t) {
                 // Also releases any locks
-                fileLockAccess.close();
+                lockFileAccess.close();
                 throw t;
             }
 
@@ -177,9 +177,9 @@ public class DefaultFileLockManager implements FileLockManager {
 
             try {
                 integrityViolated = true;
-                fileLockAccess.markDirty();
+                lockFileAccess.markDirty();
                 action.run();
-                fileLockAccess.markClean(ownerId);
+                lockFileAccess.markClean(ownerId);
                 integrityViolated = false;
             } catch (Throwable t) {
                 throw throwAsUncheckedException(t);
@@ -212,7 +212,7 @@ public class DefaultFileLockManager implements FileLockManager {
             });
             stoppable.add(new Stoppable() {
                 public void stop() {
-                    if (fileLockAccess == null) {
+                    if (lockFileAccess == null) {
                         return;
                     }
                     try {
@@ -228,14 +228,14 @@ public class DefaultFileLockManager implements FileLockManager {
                                 }
                                 if (info != null) {
                                     try {
-                                        fileLockAccess.clearOwnerInfo();
+                                        lockFileAccess.clearOwnerInfo();
                                     } finally {
                                         info.release();
                                     }
                                 }
                             }
                         } finally {
-                            fileLockAccess.close();
+                            lockFileAccess.close();
                         }
                     } catch (Exception e) {
                         throw new RuntimeException("Failed to release lock on " + displayName, e);
@@ -245,7 +245,7 @@ public class DefaultFileLockManager implements FileLockManager {
             stoppable.add(new Stoppable() {
                 public void stop() {
                     lock = null;
-                    fileLockAccess = null;
+                    lockFileAccess = null;
                     lockedFiles.remove(target);
                 }
             });
@@ -260,25 +260,25 @@ public class DefaultFileLockManager implements FileLockManager {
             return lockId;
         }
 
-        private StateInfo lock(FileLockManager.LockMode lockMode) throws Throwable {
+        private LockState lock(FileLockManager.LockMode lockMode) throws Throwable {
             LOGGER.debug("Waiting to acquire {} lock on {}.", lockMode.toString().toLowerCase(), displayName);
             long waitUntil = System.currentTimeMillis() + lockTimeoutMs;
 
             // Lock the state region, with the requested mode
             java.nio.channels.FileLock stateRegionLock = lockStateRegion(lockMode, waitUntil);
             if (stateRegionLock == null) {
-                OwnerInfo ownerInfo = readInformationRegion(System.currentTimeMillis() + shortTimeoutMs);
+                LockInfo lockInfo = readInformationRegion(System.currentTimeMillis() + shortTimeoutMs);
                 throw new LockTimeoutException(String.format("Timeout waiting to lock %s. It is currently in use by another Gradle instance.%nOwner PID: %s%nOur PID: %s%nOwner Operation: %s%nOur operation: %s%nLock file: %s",
-                        displayName, ownerInfo.pid, metaDataProvider.getProcessIdentifier(), ownerInfo.operation, operationDisplayName, lockFile));
+                        displayName, lockInfo.pid, metaDataProvider.getProcessIdentifier(), lockInfo.operation, operationDisplayName, lockFile));
             }
 
             try {
-                StateInfo stateInfo;
+                LockState lockState;
                 if (!stateRegionLock.isShared()) {
                     // We have an exclusive lock (whether we asked for it or not).
 
                     // Update the state region
-                    stateInfo = fileLockAccess.ensureStateInfo();
+                    lockState = lockFileAccess.ensureStateInfo();
 
                     // Acquire an exclusive lock on the information region and write our details there
                     java.nio.channels.FileLock informationRegionLock = lockInformationRegion(LockMode.Exclusive, System.currentTimeMillis() + shortTimeoutMs);
@@ -287,32 +287,32 @@ public class DefaultFileLockManager implements FileLockManager {
                     }
                     // check that the length of the reserved region is enough for storing our content
                     try {
-                        fileLockAccess.writeOwnerInfo(port, lockId, metaDataProvider.getProcessIdentifier(), operationDisplayName);
+                        lockFileAccess.writeOwnerInfo(port, lockId, metaDataProvider.getProcessIdentifier(), operationDisplayName);
                     } finally {
                         informationRegionLock.release();
                     }
                 } else {
                     // Just read the state region
-                    stateInfo = fileLockAccess.readStateInfo();
+                    lockState = lockFileAccess.readStateInfo();
                 }
                 LOGGER.debug("Lock acquired.");
                 lock = stateRegionLock;
-                return stateInfo;
+                return lockState;
             } catch (Throwable t) {
                 stateRegionLock.release();
                 throw t;
             }
         }
 
-        private OwnerInfo readInformationRegion(long waitUntil) throws IOException, InterruptedException {
+        private LockInfo readInformationRegion(long waitUntil) throws IOException, InterruptedException {
             // Can't acquire lock, get details of owner to include in the error message
-            OwnerInfo out = new OwnerInfo();
+            LockInfo out = new LockInfo();
             java.nio.channels.FileLock informationRegionLock = lockInformationRegion(LockMode.Shared, waitUntil);
             if (informationRegionLock == null) {
                 LOGGER.debug("Could not lock information region for {}. Ignoring.", displayName);
             } else {
                 try {
-                    out = fileLockAccess.readOwnerInfo();
+                    out = lockFileAccess.readOwnerInfo();
                 } finally {
                     informationRegionLock.release();
                 }
@@ -322,15 +322,15 @@ public class DefaultFileLockManager implements FileLockManager {
 
         private java.nio.channels.FileLock lockStateRegion(LockMode lockMode, final long waitUntil) throws IOException, InterruptedException {
             do {
-                java.nio.channels.FileLock fileLock = fileLockAccess.tryLockStateInfo(lockMode == LockMode.Shared);
+                java.nio.channels.FileLock fileLock = lockFileAccess.tryLockStateInfo(lockMode == LockMode.Shared);
                 if (fileLock != null) {
                     return fileLock;
                 }
                 if (port != -1) { //we don't like the assumption about the port very much
-                    OwnerInfo ownerInfo = readInformationRegion(System.currentTimeMillis()); //no need for timeout here, as we're already looping with timeout
-                    if (ownerInfo.port != -1) {
-                        LOGGER.debug("The file lock is held by a different Gradle process (pid: {}, operation: {}). Will attempt to ping owner at port {}", ownerInfo.pid, ownerInfo.operation, ownerInfo.port);
-                        fileLockContentionHandler.pingOwner(ownerInfo.port, ownerInfo.lockId, displayName);
+                    LockInfo lockInfo = readInformationRegion(System.currentTimeMillis()); //no need for timeout here, as we're already looping with timeout
+                    if (lockInfo.port != -1) {
+                        LOGGER.debug("The file lock is held by a different Gradle process (pid: {}, operation: {}). Will attempt to ping owner at port {}", lockInfo.pid, lockInfo.operation, lockInfo.port);
+                        fileLockContentionHandler.pingOwner(lockInfo.port, lockInfo.lockId, displayName);
                     } else {
                         LOGGER.debug("The file lock is held by a different Gradle process. I was unable to read on which port the owner listens for lock access requests.");
                     }
@@ -344,7 +344,7 @@ public class DefaultFileLockManager implements FileLockManager {
 
         private java.nio.channels.FileLock lockInformationRegion(LockMode lockMode, long waitUntil) throws IOException, InterruptedException {
             do {
-                java.nio.channels.FileLock fileLock = fileLockAccess.tryLockOwnerInfo(lockMode == LockMode.Shared);
+                java.nio.channels.FileLock fileLock = lockFileAccess.tryLockOwnerInfo(lockMode == LockMode.Shared);
                 if (fileLock != null) {
                     return fileLock;
                 }

@@ -40,8 +40,8 @@ public class LockOptionsBuilder implements LockOptions {
         return mode;
     }
 
-    public StateInfoProtocol getStateInfoProtocol() {
-        return simple? new SimpleStateInfoProtocol() : new DefaultStateInfoProtocol();
+    public LockStateSerializer getStateInfoProtocol() {
+        return simple? new Version1LockStateSerializer() : new DefaultLockStateSerializer();
     }
 
     public LockOptions withMode(FileLockManager.LockMode mode) {
