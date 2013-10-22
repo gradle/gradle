@@ -13,17 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.cache.internal.filelock;
 
-import org.gradle.cache.internal.FileLockManager;
+package org.gradle.cache.internal.filelock
 
-public interface LockOptions {
+import spock.lang.Specification
 
-    FileLockManager.LockMode getMode();
-    StateInfoProtocol getStateInfoProtocol();
+import static org.gradle.cache.internal.FileLockManager.LockMode.*
 
-    /**
-     * Creates a copy of these options with the given mode.
-     */
-    LockOptions withMode(FileLockManager.LockMode mode);
+class LockOptionsBuilderTest extends Specification {
+    def "can make copy of options"() {
+        def builder = LockOptionsBuilder.mode(Exclusive).simple()
+
+        when:
+        def copy = builder.withMode(Shared)
+
+        then:
+        !copy.is(builder)
+        copy.mode == Shared
+        copy.simple
+    }
 }
