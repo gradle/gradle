@@ -18,6 +18,8 @@ package org.gradle.cache.internal.filelock;
 import org.gradle.api.Nullable;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.cache.internal.stream.RandomAccessFileInputStream;
+import org.gradle.cache.internal.stream.RandomAccessFileOutputStream;
 
 import java.io.*;
 import java.nio.channels.FileLock;
@@ -26,13 +28,12 @@ public class FileLockAccess {
     
     private final static Logger LOGGER = Logging.getLogger(FileLockAccess.class);
 
-    private static final byte INFORMATION_REGION_PROTOCOL = 3; //should be incremented when information region format changes in an incompatible way
     public static final int INFORMATION_REGION_SIZE = 2052;
-    public static final int INFORMATION_REGION_DESCR_CHUNK_LIMIT = 340;
 
     private final RandomAccessFile lockFileAccess;
 
     private final StateInfoAccess stateInfoAccess;
+    private final OwnerInfoProtocol ownerInfoProtocol = new OwnerInfoProtocol();
     private final int infoRegionPos;
 
     private File lockFile;
@@ -52,38 +53,33 @@ public class FileLockAccess {
 
     public void writeOwnerInfo(int port, long lockId, String pid, String operation) throws IOException {
         lockFileAccess.seek(infoRegionPos);
-        lockFileAccess.writeByte(INFORMATION_REGION_PROTOCOL);
-        lockFileAccess.writeInt(port);
-        lockFileAccess.writeLong(lockId);
-        lockFileAccess.writeUTF(trimIfNecessary(pid));
-        lockFileAccess.writeUTF(trimIfNecessary(operation));
+
+        DataOutputStream outstr = new DataOutputStream(new BufferedOutputStream(new RandomAccessFileOutputStream(lockFileAccess)));
+        outstr.writeByte(ownerInfoProtocol.getVersion());
+        OwnerInfo ownerInfo = new OwnerInfo();
+        ownerInfo.port = port;
+        ownerInfo.lockId = lockId;
+        ownerInfo.pid = pid;
+        ownerInfo.operation = operation;
+        ownerInfoProtocol.write(outstr, ownerInfo);
+        outstr.flush();
+
         lockFileAccess.setLength(lockFileAccess.getFilePointer());
     }
 
-    private String trimIfNecessary(String inputString) {
-        if(inputString.length() > INFORMATION_REGION_DESCR_CHUNK_LIMIT){
-            return inputString.substring(0, INFORMATION_REGION_DESCR_CHUNK_LIMIT);
-        } else {
-            return inputString;
-        }
-    }
-
     public OwnerInfo readOwnerInfo() throws IOException {
-        OwnerInfo out = new OwnerInfo();
         if (lockFileAccess.length() <= infoRegionPos) {
             LOGGER.debug("Lock file for {} is too short to contain information region. Ignoring.", displayName);
+            return new OwnerInfo();
         } else {
             lockFileAccess.seek(infoRegionPos);
-            if (lockFileAccess.readByte() != INFORMATION_REGION_PROTOCOL) {
+
+            DataInputStream inputStream = new DataInputStream(new BufferedInputStream(new RandomAccessFileInputStream(lockFileAccess)));
+            if (inputStream.readByte() != ownerInfoProtocol.getVersion()) {
                 throw new IllegalStateException(String.format("Unexpected lock protocol found in lock file '%s' for %s.", lockFile, displayName));
             }
-            out.port = lockFileAccess.readInt();
-            out.lockId = lockFileAccess.readLong();
-            out.pid = lockFileAccess.readUTF();
-            out.operation = lockFileAccess.readUTF();
-            LOGGER.debug("Read following information from the file lock info region. Port: {}, owner: {}, operation: {}", out.port, out.pid, out.operation);
+            return ownerInfoProtocol.readState(inputStream);
         }
-        return out;
     }
 
     /**
@@ -107,7 +103,7 @@ public class FileLockAccess {
 
     @Nullable
     public FileLock tryLockOwnerInfo(boolean shared) throws IOException {
-        return lockFileAccess.getChannel().tryLock((long) infoRegionPos, (long) (INFORMATION_REGION_SIZE - infoRegionPos), shared);
+        return lockFileAccess.getChannel().tryLock(infoRegionPos, (long) (INFORMATION_REGION_SIZE - infoRegionPos), shared);
     }
 
     @Nullable

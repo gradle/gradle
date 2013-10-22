@@ -18,7 +18,7 @@ package org.gradle.cache.internal
 
 import org.apache.commons.lang.RandomStringUtils
 import org.gradle.cache.internal.FileLockManager.LockMode
-import org.gradle.cache.internal.filelock.FileLockAccess
+import org.gradle.cache.internal.filelock.OwnerInfoProtocol
 import org.gradle.cache.internal.locklistener.NoOpFileLockContentionHandler
 import org.gradle.internal.Factory
 import org.gradle.internal.id.IdGenerator
@@ -34,6 +34,7 @@ import static org.gradle.cache.internal.FileLockManager.LockMode.Exclusive
 import static org.gradle.cache.internal.FileLockManager.LockMode.Shared
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode
 
+// TODO:SF - Test that lock file contains the correct stuff when it is being initialised (for all implementations)
 class DefaultFileLockManagerTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def metaDataProvider = Mock(ProcessMetaDataProvider)
@@ -407,7 +408,7 @@ class DefaultFileLockManagerTest extends Specification {
         customManager.lock(testFile, mode(Exclusive), "targetDisplayName", operationalDisplayName)
 
         then:
-        isVersion2LockFile(testFileLock, processIdentifier.substring(0, FileLockAccess.INFORMATION_REGION_DESCR_CHUNK_LIMIT), operationalDisplayName.substring(0, FileLockAccess.INFORMATION_REGION_DESCR_CHUNK_LIMIT))
+        isVersion2LockFile(testFileLock, processIdentifier.substring(0, OwnerInfoProtocol.INFORMATION_REGION_DESCR_CHUNK_LIMIT), operationalDisplayName.substring(0, OwnerInfoProtocol.INFORMATION_REGION_DESCR_CHUNK_LIMIT))
     }
 
     def "require exclusive lock for writing"() {
@@ -479,8 +480,10 @@ class DefaultFileLockManagerTest extends Specification {
         assert lockFile.length() > 3
         assert lockFile.length() <= 2048
         lockFile.withDataInputStream { str ->
+            // state version + owner id
             assert str.readByte() == 2
             assert str.readInt() == 0
+            // info version + port, lock-id, pid, operation-name
             assert str.readByte() == 3
             assert str.readInt() == -1
             assert str.readLong() == 678L
