@@ -287,7 +287,7 @@ public class DefaultCacheAccess implements CacheAccess {
         try {
             caches.add(indexedCache);
             if (fileLock != null) {
-                indexedCache.onStartWork(operations.getDescription(), fileLock.getHasNewOwner());
+                indexedCache.onStartWork(operations.getDescription(), false);
             }
         } finally {
             lock.unlock();
@@ -306,7 +306,7 @@ public class DefaultCacheAccess implements CacheAccess {
         fileLock = lockManager.lock(lockFile, lockOptions.withMode(Exclusive), cacheDiplayName, operations.getDescription());
 
         for (UnitOfWorkParticipant cache : caches) {
-            cache.onStartWork(operations.getDescription(), fileLock.getHasNewOwner());
+            cache.onStartWork(operations.getDescription(), fileLock.getHasBeenUpdated());
         }
 
         lockManager.allowContention(fileLock, whenContended());

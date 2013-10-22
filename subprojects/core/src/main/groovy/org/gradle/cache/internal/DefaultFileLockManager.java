@@ -92,7 +92,8 @@ public class DefaultFileLockManager implements FileLockManager {
     }
 
     public void allowContention(FileLock fileLock, Runnable whenContended) {
-        fileLockContentionHandler.start(fileLock.getLockId(), whenContended);
+        DefaultFileLock internalLock = (DefaultFileLock) fileLock;
+        fileLockContentionHandler.start(internalLock.lockId, whenContended);
     }
 
     private class DefaultFileLock extends AbstractFileAccess implements FileLock {
@@ -128,7 +129,6 @@ public class DefaultFileLockManager implements FileLockManager {
             GFileUtils.mkdirs(lockFile.getParentFile());
             lockFile.createNewFile();
             lockFileAccess = new LockFileAccess(lockFile, new LockStateAccess(options.getLockStateSerializer()));
-            //TODO SF protocol is now injected and unit tests should reflect this
             try {
                 LockState lockState = lock(options.getMode());
                 hasNewOwner = lockState.getPreviousOwnerId() != ownerId;
@@ -151,7 +151,7 @@ public class DefaultFileLockManager implements FileLockManager {
             return !integrityViolated;
         }
 
-        public boolean getHasNewOwner() {
+        public boolean getHasBeenUpdated() {
             return hasNewOwner;
         }
 
@@ -254,10 +254,6 @@ public class DefaultFileLockManager implements FileLockManager {
 
         public LockMode getMode() {
             return mode;
-        }
-
-        public long getLockId() {
-            return lockId;
         }
 
         private LockState lock(FileLockManager.LockMode lockMode) throws Throwable {

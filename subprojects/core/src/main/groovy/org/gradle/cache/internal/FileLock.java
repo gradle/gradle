@@ -23,17 +23,17 @@ public interface FileLock extends Closeable, FileAccess {
      * Returns true if the most recent mutation method ({@link #updateFile(Runnable)} or {@link #writeFile(Runnable)} attempted by any process succeeded
      * (ie a process did not crash while updating the target file).
      *
-     * Returns false if no mutation method has been called for the target file.
+     * Returns false if no mutation method has ever been called for the target file.
      */
     boolean getUnlockedCleanly();
 
     /**
-     * Informs if this lock is currently acquired by the same process as the when it was acquired previously.
-     * If single process keeps acquiring and releasing this lock, the method returns false.
-     * If different processes interleave acquiring and releasing this lock, the method may return true.
-     * Returns true if there was not previous owner.
+     * Returns true if a mutation method ({@link #updateFile(Runnable)} or {@link #writeFile(Runnable)}) has been executed in another process since
+     * this process last closed a lock on the target file.
+     *
+     * Returns false if this process has never opened a lock on the target file.
      */
-    boolean getHasNewOwner();
+    boolean getHasBeenUpdated();
 
     /**
      * Returns true if the given file is used by this lock.
@@ -49,9 +49,4 @@ public interface FileLock extends Closeable, FileAccess {
      * The actual mode of the lock. May be different to what was requested.
      */
     FileLockManager.LockMode getMode();
-
-    /**
-     * @return unique id of this lock
-     */
-    long getLockId();
 }
