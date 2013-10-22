@@ -15,13 +15,14 @@
  */
 package org.gradle.cache.internal.filelock;
 
+import java.io.DataInput;
+import java.io.DataOutput;
 import java.io.IOException;
-import java.io.RandomAccessFile;
 
 public interface StateInfoProtocol {
 
     /**
-     * size (bytes) of the data of this protocol
+     * size (bytes) of the data of this protocol.
      */
     int getSize();
 
@@ -34,10 +35,10 @@ public interface StateInfoProtocol {
     /**
      * writes the state data
      */
-    void writeState(RandomAccessFile lockFileAccess, StateInfo stateInfo) throws IOException;
+    void writeState(DataOutput lockFileAccess, StateInfo stateInfo) throws IOException;
 
     /**
      * reads the state data
      */
-    StateInfo readState(RandomAccessFile lockFileAccess) throws IOException;
+    StateInfo readState(DataInput lockFileAccess) throws IOException;
 }

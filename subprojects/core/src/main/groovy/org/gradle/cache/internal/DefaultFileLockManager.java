@@ -130,8 +130,7 @@ public class DefaultFileLockManager implements FileLockManager {
             fileLockAccess = new FileLockAccess(lockFile, displayName, new StateInfoAccess(options.getStateInfoProtocol()));
             //TODO SF protocol is now injected and unit tests should reflect this
             try {
-                lock = lock(options.getMode());
-                StateInfo stateInfo = fileLockAccess.readStateInfo();
+                StateInfo stateInfo = lock(options.getMode());
                 hasNewOwner = stateInfo.getPreviousOwnerId() != ownerId;
                 integrityViolated = stateInfo.isDirty();
             } catch (Throwable t) {
@@ -149,11 +148,7 @@ public class DefaultFileLockManager implements FileLockManager {
 
         public boolean getUnlockedCleanly() {
             assertOpen();
-            try {
-                return !fileLockAccess.readStateInfo().isDirty();
-            } catch (IOException e) {
-                throw new RuntimeException("Unable to read state info from lock file: " + lockFile, e);
-            }
+            return !integrityViolated;
         }
 
         public boolean getHasNewOwner() {
@@ -265,7 +260,7 @@ public class DefaultFileLockManager implements FileLockManager {
             return lockId;
         }
 
-        private java.nio.channels.FileLock lock(FileLockManager.LockMode lockMode) throws Throwable {
+        private StateInfo lock(FileLockManager.LockMode lockMode) throws Throwable {
             LOGGER.debug("Waiting to acquire {} lock on {}.", lockMode.toString().toLowerCase(), displayName);
             long waitUntil = System.currentTimeMillis() + lockTimeoutMs;
 
@@ -278,12 +273,13 @@ public class DefaultFileLockManager implements FileLockManager {
             }
 
             try {
-                fileLockAccess.assertStateInfoIntegral();
-
+                StateInfo stateInfo;
                 if (!stateRegionLock.isShared()) {
                     // We have an exclusive lock (whether we asked for it or not).
+
                     // Update the state region
-                    fileLockAccess.ensureStateInfo();
+                    stateInfo = fileLockAccess.ensureStateInfo();
+
                     // Acquire an exclusive lock on the information region and write our details there
                     java.nio.channels.FileLock informationRegionLock = lockInformationRegion(LockMode.Exclusive, System.currentTimeMillis() + shortTimeoutMs);
                     if (informationRegionLock == null) {
@@ -295,14 +291,17 @@ public class DefaultFileLockManager implements FileLockManager {
                     } finally {
                         informationRegionLock.release();
                     }
+                } else {
+                    // Just read the state region
+                    stateInfo = fileLockAccess.readStateInfo();
                 }
+                LOGGER.debug("Lock acquired.");
+                lock = stateRegionLock;
+                return stateInfo;
             } catch (Throwable t) {
                 stateRegionLock.release();
                 throw t;
             }
-
-            LOGGER.debug("Lock acquired.");
-            return stateRegionLock;
         }
 
         private OwnerInfo readInformationRegion(long waitUntil) throws IOException, InterruptedException {

@@ -15,6 +15,7 @@
  */
 package org.gradle.cache.internal.filelock;
 
+import org.gradle.api.Nullable;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 
@@ -47,10 +48,6 @@ public class FileLockAccess {
 
     public void close() throws IOException {
         lockFileAccess.close();
-    }
-
-    public void assertStateInfoIntegral() throws IOException {
-        stateInfoAccess.assertIntegral(lockFileAccess);
     }
 
     public void writeOwnerInfo(int port, long lockId, String pid, String operation) throws IOException {
@@ -89,8 +86,11 @@ public class FileLockAccess {
         return out;
     }
 
-    public void ensureStateInfo() throws IOException {
-        stateInfoAccess.ensureStateInfo(lockFileAccess);
+    /**
+     * Reads the state info from the lock file, possibly generating a new lock file if not present or empty.
+     */
+    public StateInfo ensureStateInfo() throws IOException {
+        return stateInfoAccess.ensureStateInfo(lockFileAccess);
     }
 
     public void markClean(int ownerId) throws IOException {
@@ -105,14 +105,19 @@ public class FileLockAccess {
         lockFileAccess.setLength(infoRegionPos);
     }
 
+    @Nullable
     public FileLock tryLockOwnerInfo(boolean shared) throws IOException {
         return lockFileAccess.getChannel().tryLock((long) infoRegionPos, (long) (INFORMATION_REGION_SIZE - infoRegionPos), shared);
     }
 
+    @Nullable
     public FileLock tryLockStateInfo(boolean shared) throws IOException {
         return stateInfoAccess.tryLock(lockFileAccess, shared);
     }
 
+    /**
+     * Reads the state info from the lock file.
+     */
     public StateInfo readStateInfo() throws IOException {
         return stateInfoAccess.readStateInfo(lockFileAccess);
     }

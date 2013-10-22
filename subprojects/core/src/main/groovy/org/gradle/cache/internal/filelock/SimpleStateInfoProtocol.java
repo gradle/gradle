@@ -15,23 +15,24 @@
  */
 package org.gradle.cache.internal.filelock;
 
+import java.io.DataInput;
+import java.io.DataOutput;
 import java.io.IOException;
-import java.io.RandomAccessFile;
 
 public class SimpleStateInfoProtocol implements StateInfoProtocol {
     public int getSize() {
-        return 2;
+        return 1;
     }
 
     public int getVersion() {
         return 1;
     }
 
-    public void writeState(RandomAccessFile lockFileAccess, StateInfo stateInfo) throws IOException {
-        lockFileAccess.writeBoolean(!stateInfo.isDirty());
+    public void writeState(DataOutput dataOutput, StateInfo stateInfo) throws IOException {
+        dataOutput.writeBoolean(!stateInfo.isDirty());
     }
 
-    public StateInfo readState(RandomAccessFile lockFileAccess) throws IOException {
-        return new StateInfo(StateInfo.UNKNOWN_PREVIOUS_OWNER, !lockFileAccess.readBoolean());
+    public StateInfo readState(DataInput dataInput) throws IOException {
+        return new StateInfo(StateInfo.UNKNOWN_PREVIOUS_OWNER, !dataInput.readBoolean());
     }
 }
