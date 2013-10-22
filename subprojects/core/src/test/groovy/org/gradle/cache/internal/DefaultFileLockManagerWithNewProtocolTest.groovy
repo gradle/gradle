@@ -28,19 +28,17 @@ class DefaultFileLockManagerWithNewProtocolTest extends AbstractFileLockManagerT
         return LockOptionsBuilder.mode(FileLockManager.LockMode.None)
     }
 
-    def "a lock has been updated when locking a new file for the first time"() {
-        when:
-        def lock = createLock(lockMode)
-
-        then:
-        lock.hasBeenUpdated
-
-        when:
+    def "a lock has been updated when never written to"() {
+        given:
+        def lock = createLock(Shared)
+        def state = lock.state
         lock.close()
+
+        when:
         lock = createLock(lockMode)
 
         then:
-        !lock.hasBeenUpdated
+        lock.state.hasBeenUpdatedSince(state)
 
         cleanup:
         lock?.close()
@@ -49,23 +47,21 @@ class DefaultFileLockManagerWithNewProtocolTest extends AbstractFileLockManagerT
         lockMode << [Exclusive, Shared]
     }
 
-    def "a lock has been updated when locking an existing file for the first time"() {
+    def "a lock has not been updated when locking an existing file that has not been accessed since last open"() {
         given:
         def lockManager = new DefaultFileLockManager(metaDataProvider, contentionHandler)
         writeFile(lockManager)
 
-        when:
+        and:
         def lock = createLock(lockMode)
-
-        then:
-        lock.hasBeenUpdated
+        def state = lock.state
+        lock.close()
 
         when:
-        lock.close()
         lock = createLock(lockMode)
 
         then:
-        !lock.hasBeenUpdated
+        !lock.state.hasBeenUpdatedSince(state)
 
         cleanup:
         lock?.close()
@@ -74,16 +70,62 @@ class DefaultFileLockManagerWithNewProtocolTest extends AbstractFileLockManagerT
         lockMode << [Exclusive, Shared]
     }
 
-    def "a lock has been updated when written to since last open"() {
+    def "a lock has not been updated when locking an existing file that has been read by another process since last open"() {
         given:
         def lockManager = new DefaultFileLockManager(metaDataProvider, contentionHandler)
-        writeFile()
+        writeFile(lockManager)
+
+        and:
+        def lock = createLock(lockMode)
+        def beforeAccess = lock.state
+        lock.close()
+
+        and:
+        lock = createLock(lockMode, testFile, lockManager)
+        lock.readFile {}
+        lock.close()
 
         when:
-        def lock = createLock(lockMode)
+        lock = createLock(lockMode)
 
         then:
-        !lock.hasBeenUpdated
+        !lock.state.hasBeenUpdatedSince(beforeAccess)
+
+        cleanup:
+        lock?.close()
+
+        where:
+        lockMode << [Exclusive, Shared]
+    }
+
+    def "a lock has been updated when written to by another process since last open"() {
+        given:
+        def lockManager = new DefaultFileLockManager(metaDataProvider, contentionHandler)
+        writeFile(lockManager)
+
+        and:
+        def lock = createLock(lockMode)
+        def beforeUpdate = lock.state
+        lock.close()
+
+        and:
+        writeFile(lockManager)
+        writeFile(lockManager)
+
+        when:
+        lock = createLock(lockMode)
+        def afterUpdate = lock.state
+
+        then:
+        lock.state.hasBeenUpdatedSince(beforeUpdate)
+
+        when:
+        lock.close()
+        lock = createLock(lockMode)
+
+        then:
+        lock.state.hasBeenUpdatedSince(beforeUpdate)
+        !lock.state.hasBeenUpdatedSince(afterUpdate)
 
         when:
         lock.close()
@@ -91,35 +133,54 @@ class DefaultFileLockManagerWithNewProtocolTest extends AbstractFileLockManagerT
         lock = createLock(lockMode)
 
         then:
-        lock.hasBeenUpdated
-
-        when:
-        lock.close()
-        lock = createLock(lockMode)
-
-        then:
-        !lock.hasBeenUpdated
+        lock.state.hasBeenUpdatedSince(beforeUpdate)
+        lock.state.hasBeenUpdatedSince(afterUpdate)
 
         cleanup:
         lock?.close()
 
         where:
         lockMode << [Exclusive, Shared]
+    }
+
+    def "a lock has been updated when written to while open"() {
+        given:
+        def lockManager = new DefaultFileLockManager(metaDataProvider, contentionHandler)
+        writeFile(lockManager)
+
+        and:
+        def lock = createLock(Exclusive)
+        def beforeUpdate = lock.state
+
+        when:
+        lock.writeFile { }
+
+        then:
+        lock.state.hasBeenUpdatedSince(beforeUpdate)
+
+        cleanup:
+        lock?.close()
     }
 
     def "a lock has been updated when lock is dirty"() {
-        when:
+        given:
+        def lockManager = new DefaultFileLockManager(metaDataProvider, contentionHandler)
+        writeFile(lockManager)
+
+        and:
         def lock = createLock(lockMode)
+        def state = lock.state
+        lock.close()
 
-        then:
-        lock.hasBeenUpdated
+        and:
+        unlockUncleanly(lockManager)
 
         when:
-        lock.close()
         lock = createLock(lockMode)
 
         then:
-        !lock.hasBeenUpdated
+        !lock.unlockedCleanly
+        lock.state.hasBeenUpdatedSince(state)
 
         cleanup:
         lock?.close()
@@ -129,21 +190,52 @@ class DefaultFileLockManagerWithNewProtocolTest extends AbstractFileLockManagerT
     }
 
     def "a lock has been updated when lock is partially written"() {
-        when:
+        given:
+        def lockManager = new DefaultFileLockManager(metaDataProvider, contentionHandler)
+        writeFile(lockManager)
+
+        and:
         def lock = createLock(lockMode)
+        def state = lock.state
+        lock.close()
 
-        then:
-        lock.hasBeenUpdated
+        and:
+        partiallyWritten(lockManager)
 
         when:
-        lock.close()
         lock = createLock(lockMode)
 
         then:
-        !lock.hasBeenUpdated
+        !lock.unlockedCleanly
+        lock.state.hasBeenUpdatedSince(state)
 
         cleanup:
         lock?.close()
+
+        where:
+        lockMode << [Exclusive, Shared]
+    }
+
+    def "a lock has been updated when lock file has been recreated by another process"() {
+        given:
+        def lockManager = new DefaultFileLockManager(metaDataProvider, contentionHandler)
+        writeFile(lockManager)
+
+        and:
+        def lock = createLock(lockMode)
+        def state = lock.state
+        lock.close()
+
+        and:
+        testFileLock.delete()
+        writeFile(lockManager)
+
+        when:
+        lock = createLock(lockMode)
+
+        then:
+        lock.unlockedCleanly
+        lock.state.hasBeenUpdatedSince(state)
 
         where:
         lockMode << [Exclusive, Shared]
@@ -153,12 +245,13 @@ class DefaultFileLockManagerWithNewProtocolTest extends AbstractFileLockManagerT
         assert lockFile.isFile()
         assert lockFile.length() <= 2048
         lockFile.withDataInputStream { str ->
-            // state version + owner id
+            // state version + creation number + sequence number
             assert str.readByte() == 3
+            str.readLong()
             if (dirty) {
-                assert str.readInt() == 0
+                assert str.readLong() == 0
             } else {
-                assert str.readInt() != 0
+                assert str.readLong() != 0
             }
             assert str.read() < 0
         }
@@ -168,12 +261,13 @@ class DefaultFileLockManagerWithNewProtocolTest extends AbstractFileLockManagerT
         assert lockFile.isFile()
         assert lockFile.length() <= 2048
         lockFile.withDataInputStream { str ->
-            // state version + owner id
+            // state version + creation number + sequence number
             assert str.readByte() == 3
+            str.readLong()
             if (dirty) {
-                assert str.readInt() == 0
+                assert str.readLong() == 0
             } else {
-                assert str.readInt() != 0
+                assert str.readLong() != 0
             }
             // info version + port, lock-id, pid, operation-name
             assert str.readByte() == 3

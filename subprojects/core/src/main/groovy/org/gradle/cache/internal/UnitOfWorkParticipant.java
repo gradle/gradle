@@ -23,13 +23,12 @@ public interface UnitOfWorkParticipant {
      * Called just after the cache is locked. Called before any work has been performed.
      *
      * @param operationDisplayName operation
-     * @param contentHasBeenUpdated true means that the contents of the cache has been changed since {@link #onEndWork()} was called, false means
-     * that the contents of the cache have not been changed.
+     * @param currentCacheState the current cache state.
      */
-    void onStartWork(String operationDisplayName, boolean contentHasBeenUpdated);
+    void onStartWork(String operationDisplayName, FileLock.State currentCacheState);
 
     /**
      * Called just before the cache is to be unlocked. Called after all work has been completed.
      */
-    void onEndWork();
+    void onEndWork(FileLock.State currentCacheState);
 }

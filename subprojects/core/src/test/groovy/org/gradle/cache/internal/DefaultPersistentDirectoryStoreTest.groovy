@@ -72,6 +72,7 @@ class DefaultPersistentDirectoryStoreTest extends Specification {
         store.close()
 
         then:
+        _ * lock.state
         1 * lock.close()
         0 * _._
     }

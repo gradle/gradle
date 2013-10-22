@@ -105,7 +105,6 @@ public class DefaultFileLockManager implements FileLockManager {
         private java.nio.channels.FileLock lock;
         private LockFileAccess lockFileAccess;
         private LockState lockState;
-        private boolean hasBeenUpdated;
         private int port;
         private final long lockId;
 
@@ -131,7 +130,6 @@ public class DefaultFileLockManager implements FileLockManager {
             lockFileAccess = new LockFileAccess(lockFile, new LockStateAccess(options.getLockStateSerializer()));
             try {
                 lockState = lock(options.getMode());
-                hasBeenUpdated = lockState.getPreviousOwnerId() != ownerId;
             } catch (Throwable t) {
                 // Also releases any locks
                 lockFileAccess.close();
@@ -150,8 +148,9 @@ public class DefaultFileLockManager implements FileLockManager {
             return !lockState.isDirty();
         }
 
-        public boolean getHasBeenUpdated() {
-            return hasBeenUpdated;
+        public State getState() {
+            assertOpen();
+            return lockState;
         }
 
         public <T> T readFile(Factory<? extends T> action) throws LockTimeoutException, FileIntegrityViolationException {

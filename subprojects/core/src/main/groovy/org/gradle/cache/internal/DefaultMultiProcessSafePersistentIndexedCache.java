@@ -64,11 +64,10 @@ public class DefaultMultiProcessSafePersistentIndexedCache<K, V> implements Mult
         });
     }
 
-    public void onStartWork(String operationDisplayName, boolean contentHasBeenUpdated) {
+    public void onStartWork(String operationDisplayName, FileLock.State currentCacheState) {
     }
 
-    public void onEndWork() {
-        close();
+    public void onEndWork(FileLock.State currentCacheState) {
     }
 
     public void close() {

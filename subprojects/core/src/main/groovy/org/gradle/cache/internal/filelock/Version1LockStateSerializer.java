@@ -15,6 +15,8 @@
  */
 package org.gradle.cache.internal.filelock;
 
+import org.gradle.cache.internal.FileLock;
+
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
@@ -32,14 +34,39 @@ public class Version1LockStateSerializer implements LockStateSerializer {
     }
 
     public LockState createInitialState() {
-        return new DefaultLockState(LockState.UNKNOWN_PREVIOUS_OWNER, true);
+        return new DirtyFlagLockState(true);
     }
 
     public void write(DataOutput dataOutput, LockState lockState) throws IOException {
-        dataOutput.writeBoolean(!lockState.isDirty());
+        DirtyFlagLockState state = (DirtyFlagLockState) lockState;
+        dataOutput.writeBoolean(!state.dirty);
     }
 
     public LockState read(DataInput dataInput) throws IOException {
-        return new DefaultLockState(LockState.UNKNOWN_PREVIOUS_OWNER, !dataInput.readBoolean());
+        return new DirtyFlagLockState(!dataInput.readBoolean());
+    }
+
+    private static class DirtyFlagLockState implements LockState {
+        private final boolean dirty;
+
+        private DirtyFlagLockState(boolean dirty) {
+            this.dirty = dirty;
+        }
+
+        public boolean isDirty() {
+            return dirty;
+        }
+
+        public LockState beforeUpdate() {
+            return new DirtyFlagLockState(true);
+        }
+
+        public LockState completeUpdate() {
+            return new DirtyFlagLockState(false);
+        }
+
+        public boolean hasBeenUpdatedSince(FileLock.State state) {
+            throw new UnsupportedOperationException("This protocol version does not support detecting changes by other processes.");
+        }
     }
 }

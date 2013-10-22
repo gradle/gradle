@@ -75,7 +75,7 @@ public class LockStateAccess {
             }
             return protocol.read(dataInput);
         } catch (EOFException e) {
-            return new DefaultLockState(LockState.UNKNOWN_PREVIOUS_OWNER, true);
+            return protocol.createInitialState();
         }
     }
 

@@ -52,6 +52,7 @@ class DefaultCacheAccessTest extends Specification {
         1 * lockManager.lock(lockFile, mode(Shared), "<display-name>") >> lock
         1 * lockManager.allowContention(lock, _ as Runnable)
         1 * operations.pushCacheAction("Access <display-name>")
+        _ * lock.state
         0 * _._
 
         and:
@@ -61,6 +62,7 @@ class DefaultCacheAccessTest extends Specification {
         access.close()
 
         then:
+        _ * lock.state
         1 * lock.close()
         1 * operations.close()
         0 * _._
@@ -111,6 +113,7 @@ class DefaultCacheAccessTest extends Specification {
         then:
         1 * operations.description >> "some operation"
         1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>", "some operation") >> lock
+        _ * lock.state
         1 * lockManager.allowContention(lock, _ as Runnable)
 
         then:
@@ -162,6 +165,8 @@ class DefaultCacheAccessTest extends Specification {
     }
 
     def "use cache operation does not allow shared locks"() {
+        given:
+        1 * lockManager.lock(lockFile, mode(Shared), "<display-name>") >> lock
         access.open(mode(Shared))
 
         when:
@@ -224,17 +229,14 @@ class DefaultCacheAccessTest extends Specification {
         1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
 
         when:
-        access.whenContended().run()
         access.longRunningOperation("some operation", action)
 
         then:
+        1 * action.create() >> {
+            access.whenContended().run()
+        }
         1 * lock.close()
-
-        then:
-        1 * action.create()
-
-        then:
-        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>", _)
+        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>", _) >> lock
     }
 
     def "long running operation closes the lock if the lock is shared"() {
@@ -257,7 +259,7 @@ class DefaultCacheAccessTest extends Specification {
         1 * action.create()
 
         then:
-        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>", _)
+        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>", _) >> lock
     }
 
     def "reentrant long running operation does not involve locking"() {
@@ -299,19 +301,17 @@ class DefaultCacheAccessTest extends Specification {
         Factory<String> action = Mock()
 
         when:
-        access.open(mode(Exclusive))
-        access.longRunningOperation("some operation", action)
+        access.open(mode(None))
+        access.useCache("some operation", action)
 
         then:
-        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
-        action.create() >> {
-            access.whenContended().run()
-        }
+        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>", _) >> lock
 
-        and:
-        1 * operations.pushCacheAction('Other process requested access to <display-name>')
+        when:
+        access.whenContended().run()
+
+        then:
         1 * lock.close()
-        1 * operations.popCacheAction('Other process requested access to <display-name>')
     }
 
     def "file access requires acquired lock"() {

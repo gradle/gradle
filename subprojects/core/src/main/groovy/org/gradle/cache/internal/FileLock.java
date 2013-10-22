@@ -28,14 +28,6 @@ public interface FileLock extends Closeable, FileAccess {
     boolean getUnlockedCleanly();
 
     /**
-     * Returns true if a mutation method ({@link #updateFile(Runnable)} or {@link #writeFile(Runnable)}) has been executed in another process since
-     * this process last closed a lock on the target file.
-     *
-     * Returns false if this process has never opened a lock on the target file.
-     */
-    boolean getHasBeenUpdated();
-
-    /**
      * Returns true if the given file is used by this lock.
      */
     boolean isLockFile(File file);
@@ -46,7 +38,16 @@ public interface FileLock extends Closeable, FileAccess {
     void close();
 
     /**
+     * Returns some memento of the current state of this target file.
+     */
+    State getState();
+
+    /**
      * The actual mode of the lock. May be different to what was requested.
      */
     FileLockManager.LockMode getMode();
+
+    interface State {
+        boolean hasBeenUpdatedSince(State state);
+    }
 }

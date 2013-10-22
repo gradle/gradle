@@ -493,8 +493,8 @@ abstract class AbstractFileLockManagerTest extends Specification {
         }
     }
 
-    protected void unlockUncleanly() {
-        def lock = createLock(Exclusive, testFile)
+    protected void unlockUncleanly(FileLockManager lockManager = manager) {
+        def lock = createLock(Exclusive, testFile, lockManager)
         def failure = new RuntimeException()
         try {
             lock.writeFile {
@@ -509,8 +509,8 @@ abstract class AbstractFileLockManagerTest extends Specification {
         }
     }
 
-    protected void partiallyWritten() {
-        createLock(Exclusive, testFile).close()
+    protected void partiallyWritten(FileLockManager lockManager = manager) {
+        createLock(Exclusive, testFile, lockManager).close()
         assert testFileLock.length() > 1
         def file = new RandomAccessFile(testFileLock, "rw")
         try {

@@ -16,10 +16,10 @@
 
 package org.gradle.cache.internal.filelock;
 
-public interface LockState {
-    int UNKNOWN_PREVIOUS_OWNER = 0;
+import org.gradle.cache.internal.FileLock;
 
-    int getPreviousOwnerId();
+public interface LockState extends FileLock.State {
+    int UNKNOWN_PREVIOUS_OWNER = 0;
 
     boolean isDirty();
 

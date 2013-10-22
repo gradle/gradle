@@ -15,14 +15,17 @@
  */
 package org.gradle.cache.internal.filelock;
 
+import org.gradle.cache.internal.FileLock;
+
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+import java.util.Random;
 
 public class DefaultLockStateSerializer implements LockStateSerializer {
 
     public int getSize() {
-        return 4;
+        return 16;
     }
 
     public byte getVersion() {
@@ -30,15 +33,59 @@ public class DefaultLockStateSerializer implements LockStateSerializer {
     }
 
     public LockState createInitialState() {
-        return new DefaultLockState(LockState.UNKNOWN_PREVIOUS_OWNER, true);
+        long creationNumber = new Random().nextLong();
+        return new SequenceNumberLockState(creationNumber, -1, 0);
     }
 
     public void write(DataOutput dataOutput, LockState lockState) throws IOException {
-        dataOutput.writeInt(lockState.getPreviousOwnerId());
+        SequenceNumberLockState state = (SequenceNumberLockState) lockState;
+        dataOutput.writeLong(state.creationNumber);
+        dataOutput.writeLong(state.sequenceNumber);
     }
 
     public LockState read(DataInput dataInput) throws IOException {
-        int id = dataInput.readInt();
-        return new DefaultLockState(id, id == LockState.UNKNOWN_PREVIOUS_OWNER);
+        long creationNumber = dataInput.readLong();
+        long sequenceNumber = dataInput.readLong();
+        return new SequenceNumberLockState(creationNumber, sequenceNumber, sequenceNumber);
+    }
+
+    private static class SequenceNumberLockState implements LockState {
+        private final long creationNumber;
+        private final long originalSequenceNumber;
+        private final long sequenceNumber;
+
+        private SequenceNumberLockState(long creationNumber, long originalSequenceNumber, long sequenceNumber) {
+            this.creationNumber = creationNumber;
+            this.originalSequenceNumber = originalSequenceNumber;
+            this.sequenceNumber = sequenceNumber;
+        }
+
+        @Override
+        public String toString() {
+            return String.format("[%s,%s,%s]", creationNumber, sequenceNumber, isDirty());
+        }
+
+        public LockState beforeUpdate() {
+            return new SequenceNumberLockState(creationNumber, originalSequenceNumber, 0);
+        }
+
+        public LockState completeUpdate() {
+            long newSequenceNumber;
+            if (originalSequenceNumber <= 0) {
+                newSequenceNumber = 1;
+            } else {
+                newSequenceNumber = originalSequenceNumber + 1;
+            }
+            return new SequenceNumberLockState(creationNumber, newSequenceNumber, newSequenceNumber);
+        }
+
+        public boolean isDirty() {
+            return sequenceNumber == 0 || sequenceNumber != originalSequenceNumber;
+        }
+
+        public boolean hasBeenUpdatedSince(FileLock.State state) {
+            SequenceNumberLockState other = (SequenceNumberLockState) state;
+            return sequenceNumber != other.sequenceNumber || creationNumber != other.creationNumber;
+        }
     }
 }
