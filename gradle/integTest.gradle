@@ -39,6 +39,19 @@ task cleanUpCaches {
                 }
             }
         }
+
+        // Clean up the lock files for the shared cache
+        File modulesCacheDir = rootProject.file("intTestHomeDir/worker-1/caches/modules-1")
+        if (modulesCacheDir.directory) {
+            File lockFile = new File(modulesCacheDir, "modules-1.lock")
+            if (lockFile.file && lockFile.length() > 0) {
+                def version = lockFile.bytes[0]
+                if (version != 3) {
+                    println "Cleaning lock file for ${modulesCacheDir}"
+                    lockFile.delete()
+                }
+            }
+        }
     }
 }
 
