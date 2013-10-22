@@ -42,7 +42,7 @@ class CppCompile extends AbstractNativeCompileTask {
     }
 
     @Override
-    protected WorkResult execute(PlatformToolChain toolChain, NativeCompileSpec spec) {
-        return toolChain.createCppCompiler().execute(spec)
+    protected org.gradle.api.internal.tasks.compile.Compiler<NativeCompileSpec> createCompiler(PlatformToolChain toolChain) {
+        return toolChain.createCppCompiler()
     }
 }

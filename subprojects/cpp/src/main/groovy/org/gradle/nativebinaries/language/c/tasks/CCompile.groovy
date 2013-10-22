@@ -40,8 +40,7 @@ class CCompile extends AbstractNativeCompileTask {
         new DefaultCCompileSpec()
     }
 
-    @Override
-    protected WorkResult execute(PlatformToolChain toolChain, NativeCompileSpec spec) {
-        return toolChain.createCCompiler().execute(spec)
+    protected org.gradle.api.internal.tasks.compile.Compiler<NativeCompileSpec> createCompiler(PlatformToolChain toolChain) {
+        toolChain.createCCompiler()
     }
 }

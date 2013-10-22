@@ -51,12 +51,22 @@ public abstract class AbstractNativeCompileSpec extends AbstractBinaryToolSpec i
         addAll(sourceFiles, sources);
     }
 
+    public void setSourceFiles(Collection<File> sources) {
+        sourceFiles.clear();
+        sourceFiles.addAll(sources);
+    }
+
     public List<File> getRemovedSourceFiles() {
         return removedSourceFiles;
     }
 
     public void removedSource(Iterable<File> sources) {
         addAll(removedSourceFiles, sources);
+    }
+
+    public void setRemovedSourceFiles(Collection<File> sources) {
+        removedSourceFiles.clear();
+        removedSourceFiles.addAll(sources);
     }
 
     public File getObjectFileDir() {

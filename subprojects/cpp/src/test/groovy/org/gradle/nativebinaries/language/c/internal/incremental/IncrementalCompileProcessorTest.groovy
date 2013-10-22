@@ -22,7 +22,7 @@ import org.gradle.testfixtures.internal.InMemoryCacheFactory
 import org.junit.Rule
 import spock.lang.Specification
 
-class IncrementalCompilerTest extends Specification {
+class IncrementalCompileProcessorTest extends Specification {
     @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     def cacheDir = tmpDir.createDir("cache")
@@ -30,7 +30,7 @@ class IncrementalCompilerTest extends Specification {
     def cacheFactory = new InMemoryCacheFactory()
     def stateCache = cacheFactory.openIndexedCache(cacheDir, CacheUsage.ON, null, null, FileLockManager.LockMode.None, new DefaultSerializer<FileState>())
     def listCache = cacheFactory.openIndexedCache(cacheDir, CacheUsage.ON, null, null, FileLockManager.LockMode.None, new DefaultSerializer<List<File>>())
-    def incrementalCompiler = new IncrementalCompiler(stateCache, listCache, dependencyParser)
+    def incrementalCompiler = new IncrementalCompileProcessor(stateCache, listCache, dependencyParser)
 
     def source1 = sourceFile("source1")
     def source2 = sourceFile("source2")

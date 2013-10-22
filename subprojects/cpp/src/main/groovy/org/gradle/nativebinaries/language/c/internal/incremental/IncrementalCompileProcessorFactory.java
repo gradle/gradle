@@ -28,15 +28,15 @@ import java.io.File;
 import java.util.Collections;
 import java.util.List;
 
-public class IncrementalCompilerFactory  {
+public class IncrementalCompileProcessorFactory {
     private final RegexBackedIncludesParser includesParser = new RegexBackedIncludesParser();
     private final CacheFactory cacheFactory;
 
-    public IncrementalCompilerFactory(CacheFactory cacheFactory) {
+    public IncrementalCompileProcessorFactory(CacheFactory cacheFactory) {
         this.cacheFactory = cacheFactory;
     }
 
-    public IncrementalCompiler create(File cacheDir, String cacheKey, Iterable<File> includes) {
+    public IncrementalCompileProcessor create(File cacheDir, String cacheKey, Iterable<File> includes) {
         // TODO:DAZ Lock cache while using
 
         // Cache is private to a named task
@@ -49,7 +49,7 @@ public class IncrementalCompilerFactory  {
         PersistentIndexedCache<String, List<File>> listCache = createCache(cache, "previous", String.class, new DefaultSerializer<List<File>>());
 
         List<File> includePaths = CollectionUtils.toList(includes);
-        return new IncrementalCompiler(stateCache, listCache, new DefaultSourceDependencyParser(includesParser, includePaths));
+        return new IncrementalCompileProcessor(stateCache, listCache, new DefaultSourceDependencyParser(includesParser, includePaths));
     }
 
     private <U, V> PersistentIndexedCache<U, V> createCache(PersistentCache cache, String name, Class<U> keyType, DefaultSerializer<V> fileStateDefaultSerializer) {

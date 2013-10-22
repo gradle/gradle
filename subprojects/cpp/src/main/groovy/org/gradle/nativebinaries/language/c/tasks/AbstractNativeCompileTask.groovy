@@ -19,14 +19,18 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.Incubating
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.SourceDirectorySet
-import org.gradle.api.tasks.*
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs
 import org.gradle.cache.internal.CacheFactory
-import org.gradle.language.jvm.internal.SimpleStaleClassCleaner
 import org.gradle.nativebinaries.Platform
 import org.gradle.nativebinaries.ToolChain
 import org.gradle.nativebinaries.internal.PlatformToolChain
-import org.gradle.nativebinaries.language.c.internal.incremental.IncrementalCompilerFactory
+import org.gradle.nativebinaries.language.c.internal.incremental.IncrementalCompileProcessorFactory
+import org.gradle.nativebinaries.language.c.internal.incremental.IncrementalCompiler
+import org.gradle.nativebinaries.language.c.internal.incremental.CleanIncrementalCompiler
 import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec
 
 import javax.inject.Inject
@@ -35,7 +39,7 @@ import javax.inject.Inject
  */
 @Incubating
 abstract class AbstractNativeCompileTask extends DefaultTask {
-    private final IncrementalCompilerFactory incrementalCompilerFactory
+    private final IncrementalCompileProcessorFactory incrementalCompilerFactory
 
     /**
      * The tool chain used for compilation.
@@ -93,48 +97,43 @@ abstract class AbstractNativeCompileTask extends DefaultTask {
 
     @Inject
     AbstractNativeCompileTask(CacheFactory cacheFactory) {
-        incrementalCompilerFactory = new IncrementalCompilerFactory(cacheFactory)
+        incrementalCompilerFactory = new IncrementalCompileProcessorFactory(cacheFactory)
         includes = project.files()
         source = project.files()
     }
 
     @TaskAction
     void compile(IncrementalTaskInputs inputs) {
-        def cacheDir = project.file("${project.buildDir}/.compileCache")
-        def incrementalCompiler = incrementalCompilerFactory.create(cacheDir, name, includes)
-        def compilation = incrementalCompiler.processSourceFiles(getSource().files)
 
         def spec = createCompileSpec()
         spec.tempDir = getTemporaryDir()
         spec.objectFileDir = getObjectFileDir()
         spec.include getIncludes()
-
-        if (inputs.incremental) {
-            spec.source compilation.recompile
-            spec.removedSource compilation.removed
-        } else {
-            cleanPreviousOutputs()
-            spec.source getSource()
-        }
-
+        spec.source getSource()
         spec.macros = getMacros()
         spec.args getCompilerArgs()
         spec.positionIndependentCode = isPositionIndependentCode()
 
         PlatformToolChain platformToolChain = toolChain.target(targetPlatform)
-        def result = execute(platformToolChain, spec)
+        final compiler = createCompiler(platformToolChain)
+        final incrementalCompiler = createIncrementalCompiler(inputs.incremental, compiler)
+
+        def result = incrementalCompiler.execute(spec)
         didWork = result.didWork
     }
 
-    private void cleanPreviousOutputs() {
-        def cleaner = new SimpleStaleClassCleaner(getOutputs())
-        cleaner.setDestinationDir(getObjectFileDir())
-        cleaner.execute()
+    private org.gradle.api.internal.tasks.compile.Compiler<NativeCompileSpec> createIncrementalCompiler(boolean incremental, org.gradle.api.internal.tasks.compile.Compiler<NativeCompileSpec> compiler) {
+        def cacheDir = project.file("${project.buildDir}/.compileCache")
+        def incrementalProcessor = incrementalCompilerFactory.create(cacheDir, name, includes)
+        final incrementalCompiler = incremental ?
+            new IncrementalCompiler(compiler, incrementalProcessor) :
+            new CleanIncrementalCompiler(compiler, incrementalProcessor, getOutputs())
+        incrementalCompiler
     }
 
     protected abstract NativeCompileSpec createCompileSpec();
 
-    protected abstract WorkResult execute(PlatformToolChain toolChain, NativeCompileSpec spec);
+    protected abstract org.gradle.api.internal.tasks.compile.Compiler<NativeCompileSpec> createCompiler(PlatformToolChain toolChain)
 
     /**
      * Add locations where the compiler should search for header files.

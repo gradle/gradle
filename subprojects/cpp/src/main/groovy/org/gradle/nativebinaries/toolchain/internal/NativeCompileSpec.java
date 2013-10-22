@@ -19,6 +19,7 @@ package org.gradle.nativebinaries.toolchain.internal;
 import org.gradle.nativebinaries.internal.BinaryToolSpec;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -38,9 +39,13 @@ public interface NativeCompileSpec extends BinaryToolSpec {
 
     List<File> getSourceFiles();
 
+    void setSourceFiles(Collection<File> sources);
+
     void source(Iterable<File> sources);
 
     List<File> getRemovedSourceFiles();
+
+    void setRemovedSourceFiles(Collection<File> sources);
 
     void removedSource(Iterable<File> sources);
 
