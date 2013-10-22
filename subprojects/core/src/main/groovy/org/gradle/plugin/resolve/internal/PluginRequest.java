@@ -17,6 +17,7 @@
 package org.gradle.plugin.resolve.internal;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.Nullable;
 
 /**
  * Represents a request for a plugin.
@@ -26,6 +27,7 @@ public interface PluginRequest {
 
     String getId();
 
+    @Nullable
     String getVersion();
 
 }
