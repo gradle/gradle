@@ -127,7 +127,7 @@ public class DefaultFileLockManager implements FileLockManager {
 
             GFileUtils.mkdirs(lockFile.getParentFile());
             lockFile.createNewFile();
-            lockFileAccess = new LockFileAccess(lockFile, displayName, new StateInfoAccess(options.getStateInfoProtocol()));
+            lockFileAccess = new LockFileAccess(lockFile, displayName, new StateInfoAccess(options.getLockStateSerializer()));
             //TODO SF protocol is now injected and unit tests should reflect this
             try {
                 LockState lockState = lock(options.getMode());
@@ -228,7 +228,7 @@ public class DefaultFileLockManager implements FileLockManager {
                                 }
                                 if (info != null) {
                                     try {
-                                        lockFileAccess.clearOwnerInfo();
+                                        lockFileAccess.clearLockInfo();
                                     } finally {
                                         info.release();
                                     }
@@ -278,7 +278,7 @@ public class DefaultFileLockManager implements FileLockManager {
                     // We have an exclusive lock (whether we asked for it or not).
 
                     // Update the state region
-                    lockState = lockFileAccess.ensureStateInfo();
+                    lockState = lockFileAccess.ensureLockState();
 
                     // Acquire an exclusive lock on the information region and write our details there
                     java.nio.channels.FileLock informationRegionLock = lockInformationRegion(LockMode.Exclusive, System.currentTimeMillis() + shortTimeoutMs);
@@ -287,13 +287,13 @@ public class DefaultFileLockManager implements FileLockManager {
                     }
                     // check that the length of the reserved region is enough for storing our content
                     try {
-                        lockFileAccess.writeOwnerInfo(port, lockId, metaDataProvider.getProcessIdentifier(), operationDisplayName);
+                        lockFileAccess.writeLockInfo(port, lockId, metaDataProvider.getProcessIdentifier(), operationDisplayName);
                     } finally {
                         informationRegionLock.release();
                     }
                 } else {
                     // Just read the state region
-                    lockState = lockFileAccess.readStateInfo();
+                    lockState = lockFileAccess.readLockState();
                 }
                 LOGGER.debug("Lock acquired.");
                 lock = stateRegionLock;
@@ -312,7 +312,7 @@ public class DefaultFileLockManager implements FileLockManager {
                 LOGGER.debug("Could not lock information region for {}. Ignoring.", displayName);
             } else {
                 try {
-                    out = lockFileAccess.readOwnerInfo();
+                    out = lockFileAccess.readLockInfo();
                 } finally {
                     informationRegionLock.release();
                 }
@@ -322,7 +322,7 @@ public class DefaultFileLockManager implements FileLockManager {
 
         private java.nio.channels.FileLock lockStateRegion(LockMode lockMode, final long waitUntil) throws IOException, InterruptedException {
             do {
-                java.nio.channels.FileLock fileLock = lockFileAccess.tryLockStateInfo(lockMode == LockMode.Shared);
+                java.nio.channels.FileLock fileLock = lockFileAccess.tryLockState(lockMode == LockMode.Shared);
                 if (fileLock != null) {
                     return fileLock;
                 }
@@ -344,7 +344,7 @@ public class DefaultFileLockManager implements FileLockManager {
 
         private java.nio.channels.FileLock lockInformationRegion(LockMode lockMode, long waitUntil) throws IOException, InterruptedException {
             do {
-                java.nio.channels.FileLock fileLock = lockFileAccess.tryLockOwnerInfo(lockMode == LockMode.Shared);
+                java.nio.channels.FileLock fileLock = lockFileAccess.tryLockInfo(lockMode == LockMode.Shared);
                 if (fileLock != null) {
                     return fileLock;
                 }

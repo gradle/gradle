@@ -35,10 +35,10 @@ public interface LockStateSerializer {
     /**
      * writes the state data
      */
-    void writeState(DataOutput lockFileAccess, LockState lockState) throws IOException;
+    void write(DataOutput lockFileAccess, LockState lockState) throws IOException;
 
     /**
      * reads the state data
      */
-    LockState readState(DataInput lockFileAccess) throws IOException;
+    LockState read(DataInput lockFileAccess) throws IOException;
 }

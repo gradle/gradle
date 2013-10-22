@@ -29,12 +29,12 @@ public class StateInfoAccess {
         stateRegionSize = STATE_INFO_START + protocol.getSize();
     }
 
-    public LockState ensureStateInfo(RandomAccessFile lockFileAccess) throws IOException {
+    public LockState ensureLockState(RandomAccessFile lockFileAccess) throws IOException {
         if (lockFileAccess.length() == 0) {
             // File did not exist before locking
             return markDirty(lockFileAccess); //TODO SF add coverage that we're actually marking dirty here
         } else {
-            return readStateInfo(lockFileAccess);
+            return readState(lockFileAccess);
         }
     }
 
@@ -56,13 +56,13 @@ public class StateInfoAccess {
         dataOutput.writeByte(protocol.getVersion());
         dataOutput.flush();
 
-        protocol.writeState(dataOutput, lockState);
+        protocol.write(dataOutput, lockState);
         lockFileAccess.seek(REGION_START);
         lockFileAccess.write(outstr.toByteArray());
         assert lockFileAccess.getFilePointer() == stateRegionSize;
     }
 
-    public LockState readStateInfo(RandomAccessFile lockFileAccess) throws IOException {
+    public LockState readState(RandomAccessFile lockFileAccess) throws IOException {
         try {
             byte[] buffer = new byte[stateRegionSize];
             lockFileAccess.seek(REGION_START);
@@ -83,7 +83,7 @@ public class StateInfoAccess {
             if (protocolVersion != protocol.getVersion()) {
                 throw new IllegalStateException(String.format("Unexpected lock protocol found in lock file. Expected %s, found %s.", protocol.getVersion(), protocolVersion));
             }
-            return protocol.readState(dataInput);
+            return protocol.read(dataInput);
         } catch (EOFException e) {
             return new LockState(LockState.UNKNOWN_PREVIOUS_OWNER, true);
         }

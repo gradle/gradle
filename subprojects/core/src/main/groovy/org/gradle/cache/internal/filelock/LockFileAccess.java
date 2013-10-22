@@ -32,26 +32,26 @@ public class LockFileAccess {
 
     private final RandomAccessFile lockFileAccess;
 
-    private final StateInfoAccess stateInfoAccess;
+    private final StateInfoAccess lockStateAccess;
     private final LockInfoSerializer lockInfoSerializer = new LockInfoSerializer();
     private final int infoRegionPos;
 
     private File lockFile;
     private String displayName;
 
-    public LockFileAccess(File lockFile, String displayName, StateInfoAccess stateInfoAccess) throws FileNotFoundException {
+    public LockFileAccess(File lockFile, String displayName, StateInfoAccess lockStateAccess) throws FileNotFoundException {
         this.lockFile = lockFile;
         this.displayName = displayName;
         this.lockFileAccess = new RandomAccessFile(lockFile, "rw");
-        this.stateInfoAccess = stateInfoAccess;
-        this.infoRegionPos = this.stateInfoAccess.getRegionEnd();
+        this.lockStateAccess = lockStateAccess;
+        this.infoRegionPos = this.lockStateAccess.getRegionEnd();
     }
 
     public void close() throws IOException {
         lockFileAccess.close();
     }
 
-    public void writeOwnerInfo(int port, long lockId, String pid, String operation) throws IOException {
+    public void writeLockInfo(int port, long lockId, String pid, String operation) throws IOException {
         lockFileAccess.seek(infoRegionPos);
 
         DataOutputStream outstr = new DataOutputStream(new BufferedOutputStream(new RandomAccessFileOutputStream(lockFileAccess)));
@@ -67,7 +67,7 @@ public class LockFileAccess {
         lockFileAccess.setLength(lockFileAccess.getFilePointer());
     }
 
-    public LockInfo readOwnerInfo() throws IOException {
+    public LockInfo readLockInfo() throws IOException {
         if (lockFileAccess.length() <= infoRegionPos) {
             LOGGER.debug("Lock file for {} is too short to contain information region. Ignoring.", displayName);
             return new LockInfo();
@@ -78,43 +78,43 @@ public class LockFileAccess {
             if (inputStream.readByte() != lockInfoSerializer.getVersion()) {
                 throw new IllegalStateException(String.format("Unexpected lock protocol found in lock file '%s' for %s.", lockFile, displayName));
             }
-            return lockInfoSerializer.readState(inputStream);
+            return lockInfoSerializer.read(inputStream);
         }
     }
 
     /**
-     * Reads the state info from the lock file, possibly generating a new lock file if not present or empty.
+     * Reads the lock state from the lock file, possibly writing out a new lock file if not present or empty.
      */
-    public LockState ensureStateInfo() throws IOException {
-        return stateInfoAccess.ensureStateInfo(lockFileAccess);
+    public LockState ensureLockState() throws IOException {
+        return lockStateAccess.ensureLockState(lockFileAccess);
     }
 
     public void markClean(int ownerId) throws IOException {
-        stateInfoAccess.markClean(lockFileAccess, ownerId);
+        lockStateAccess.markClean(lockFileAccess, ownerId);
     }
 
     public void markDirty() throws IOException {
-        stateInfoAccess.markDirty(lockFileAccess);
+        lockStateAccess.markDirty(lockFileAccess);
     }
 
-    public void clearOwnerInfo() throws IOException {
+    public void clearLockInfo() throws IOException {
         lockFileAccess.setLength(infoRegionPos);
     }
 
     @Nullable
-    public FileLock tryLockOwnerInfo(boolean shared) throws IOException {
+    public FileLock tryLockInfo(boolean shared) throws IOException {
         return lockFileAccess.getChannel().tryLock(infoRegionPos, (long) (INFORMATION_REGION_SIZE - infoRegionPos), shared);
     }
 
     @Nullable
-    public FileLock tryLockStateInfo(boolean shared) throws IOException {
-        return stateInfoAccess.tryLock(lockFileAccess, shared);
+    public FileLock tryLockState(boolean shared) throws IOException {
+        return lockStateAccess.tryLock(lockFileAccess, shared);
     }
 
     /**
-     * Reads the state info from the lock file.
+     * Reads the lock state from the lock file.
      */
-    public LockState readStateInfo() throws IOException {
-        return stateInfoAccess.readStateInfo(lockFileAccess);
+    public LockState readLockState() throws IOException {
+        return lockStateAccess.readState(lockFileAccess);
     }
 }

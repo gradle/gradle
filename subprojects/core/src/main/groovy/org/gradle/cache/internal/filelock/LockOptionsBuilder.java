@@ -40,7 +40,7 @@ public class LockOptionsBuilder implements LockOptions {
         return mode;
     }
 
-    public LockStateSerializer getStateInfoProtocol() {
+    public LockStateSerializer getLockStateSerializer() {
         return simple? new Version1LockStateSerializer() : new DefaultLockStateSerializer();
     }
 

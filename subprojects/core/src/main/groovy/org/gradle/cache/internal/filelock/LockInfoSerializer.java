@@ -34,7 +34,7 @@ public class LockInfoSerializer {
         dataOutput.writeUTF(trimIfNecessary(lockInfo.operation));
     }
 
-    public LockInfo readState(DataInput dataInput) throws IOException {
+    public LockInfo read(DataInput dataInput) throws IOException {
         LockInfo out = new LockInfo();
         out.port = dataInput.readInt();
         out.lockId = dataInput.readLong();

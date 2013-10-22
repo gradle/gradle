@@ -20,7 +20,8 @@ import org.gradle.cache.internal.FileLockManager;
 public interface LockOptions {
 
     FileLockManager.LockMode getMode();
-    LockStateSerializer getStateInfoProtocol();
+
+    LockStateSerializer getLockStateSerializer();
 
     /**
      * Creates a copy of these options with the given mode.
