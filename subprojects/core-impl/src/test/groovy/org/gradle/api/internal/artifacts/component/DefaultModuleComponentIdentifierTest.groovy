@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.component
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -32,6 +33,7 @@ class DefaultModuleComponentIdentifierTest extends Specification {
         defaultModuleComponentIdentifier.name == 'some-name'
         defaultModuleComponentIdentifier.version == '1.0'
         defaultModuleComponentIdentifier.displayName == 'some-group:some-name:1.0'
+        defaultModuleComponentIdentifier.module == new DefaultModuleIdentifier('some-group', 'some-name')
         defaultModuleComponentIdentifier.toString() == 'some-group:some-name:1.0'
     }
 
@@ -76,6 +78,7 @@ class DefaultModuleComponentIdentifierTest extends Specification {
         defaultModuleComponentIdentifier.name == 'some-name'
         defaultModuleComponentIdentifier.version == '1.0'
         defaultModuleComponentIdentifier.displayName == 'some-group:some-name:1.0'
+        defaultModuleComponentIdentifier.module == new DefaultModuleIdentifier('some-group', 'some-name')
         defaultModuleComponentIdentifier.toString() == 'some-group:some-name:1.0'
     }
 }

@@ -18,10 +18,13 @@ package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier;
 
 public abstract class AbstractRenderableDependencyResult implements RenderableDependency {
-    public ModuleVersionIdentifier getId() {
-        return getActual();
+    public ModuleComponentIdentifier getId() {
+        ModuleVersionIdentifier moduleVersionIdentifier = getActual();
+        return DefaultModuleComponentIdentifier.newId(moduleVersionIdentifier.getGroup(), moduleVersionIdentifier.getName(), moduleVersionIdentifier.getVersion());
     }
 
     public String getName() {

@@ -16,6 +16,7 @@
 package org.gradle.api.artifacts.component;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.artifacts.ModuleIdentifier;
 
 /**
  * An identifier for a module component.
@@ -42,4 +43,12 @@ public interface ModuleComponentIdentifier extends ComponentIdentifier {
      * @return Component identifier version
      */
     String getVersion();
+
+    /**
+     * Returns the {@link org.gradle.api.artifacts.ModuleIdentifier} containing the group and the name of this module.
+     * Contains the same information as {@link #getGroup()} and {@link #getVersion()}
+     *
+     * @return the module identifier
+     */
+    ModuleIdentifier getModule();
 }

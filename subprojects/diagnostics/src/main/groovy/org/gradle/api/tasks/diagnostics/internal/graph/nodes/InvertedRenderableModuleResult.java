@@ -16,7 +16,7 @@
 
 package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 
@@ -35,7 +35,7 @@ public class InvertedRenderableModuleResult extends RenderableModuleResult {
     }
 
     public Set<RenderableDependency> getChildren() {
-        Map<ModuleVersionIdentifier, RenderableDependency> children = new LinkedHashMap<ModuleVersionIdentifier, RenderableDependency>();
+        Map<ModuleComponentIdentifier, RenderableDependency> children = new LinkedHashMap<ModuleComponentIdentifier, RenderableDependency>();
         for (ResolvedDependencyResult dependent : module.getDependents()) {
             InvertedRenderableModuleResult child = new InvertedRenderableModuleResult(dependent.getFrom());
             if (!children.containsKey(child.getId())) {
