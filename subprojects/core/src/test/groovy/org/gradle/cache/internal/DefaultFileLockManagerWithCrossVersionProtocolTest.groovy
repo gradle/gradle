@@ -25,22 +25,22 @@ class DefaultFileLockManagerWithCrossVersionProtocolTest extends AbstractFileLoc
         return LockOptionsBuilder.mode(FileLockManager.LockMode.None).simple()
     }
 
-    void isVersionLockFile(TestFile lockFile) {
+    void isVersionLockFile(TestFile lockFile, boolean dirty) {
         assert lockFile.isFile()
         assert lockFile.length() == 2
         lockFile.withDataInputStream { str ->
             assert str.readByte() == 1
-            assert !str.readBoolean()
+            assert str.readBoolean() != dirty
         }
     }
 
     @Override
-    void isVersionLockFileWithInfoRegion(TestFile lockFile, String processIdentifier, String operationalName) {
+    void isVersionLockFileWithInfoRegion(TestFile lockFile, boolean dirty, String processIdentifier, String operationalName) {
         assert lockFile.isFile()
         lockFile.withDataInputStream { str ->
             // state version + dirty flag
             assert str.readByte() == 1
-            assert !str.readBoolean()
+            assert str.readBoolean() != dirty
             // info version + port, lock-id, pid, operation-name
             assert str.readByte() == 3
             assert str.readInt() == 34

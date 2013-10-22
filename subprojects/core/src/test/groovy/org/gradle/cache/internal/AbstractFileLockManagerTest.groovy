@@ -353,7 +353,7 @@ abstract class AbstractFileLockManagerTest extends Specification {
         lock.isLockFile(testFileLock)
 
         and:
-        isVersionLockFile(testFileLock)
+        isVersionLockFile(testFileLock, true)
     }
 
     def "leaves empty lock file after shared lock on new file closed"() {
@@ -370,8 +370,7 @@ abstract class AbstractFileLockManagerTest extends Specification {
 
     def "leaves lock file after lock on existing file is closed"() {
         given:
-        createLock(Exclusive).close()
-        isVersionLockFile(testFileLock)
+        writeFile()
 
         when:
         def lock = createLock(mode)
@@ -381,7 +380,7 @@ abstract class AbstractFileLockManagerTest extends Specification {
         lock.isLockFile(testFileLock)
 
         and:
-        isVersionLockFile(testFileLock)
+        isVersionLockFile(testFileLock, false)
 
         where:
         mode << [Shared, Exclusive]
@@ -389,14 +388,33 @@ abstract class AbstractFileLockManagerTest extends Specification {
 
     @Requires(TestPrecondition.NO_FILE_LOCK_ON_OPEN)
     def "writes lock file with info region while exclusive lock is open"() {
+        expect:
+        def lock = createLock(Exclusive)
+        isVersionLockFileWithInfoRegion(testFileLock, true)
+        lock.writeFile {}
+        isVersionLockFileWithInfoRegion(testFileLock, false)
+
+        cleanup:
+        lock?.close()
+    }
+
+    @Requires(TestPrecondition.NO_FILE_LOCK_ON_OPEN)
+    def "writes dirty lock file with info region while updating file"() {
+        given:
+        writeFile()
+
         when:
         def lock = createLock(Exclusive)
 
         then:
         lock.isLockFile(testFileLock)
 
-        and:
-        isVersionLockFileWithInfoRegion(testFileLock)
+        expect:
+        isVersionLockFileWithInfoRegion(testFileLock, false)
+        lock.writeFile {
+            isVersionLockFileWithInfoRegion(testFileLock, true)
+        }
+        isVersionLockFileWithInfoRegion(testFileLock, false)
 
         cleanup:
         lock?.close()
@@ -415,7 +433,7 @@ abstract class AbstractFileLockManagerTest extends Specification {
         def lock = customManager.lock(testFile, options().withMode(Exclusive), "targetDisplayName", operationalDisplayName)
 
         then:
-        isVersionLockFileWithInfoRegion(testFileLock, processIdentifier.substring(0, LockInfoSerializer.INFORMATION_REGION_DESCR_CHUNK_LIMIT), operationalDisplayName.substring(0, LockInfoSerializer.INFORMATION_REGION_DESCR_CHUNK_LIMIT))
+        isVersionLockFileWithInfoRegion(testFileLock, true, processIdentifier.substring(0, LockInfoSerializer.INFORMATION_REGION_DESCR_CHUNK_LIMIT), operationalDisplayName.substring(0, LockInfoSerializer.INFORMATION_REGION_DESCR_CHUNK_LIMIT))
 
         cleanup:
         lock?.close()
@@ -452,13 +470,13 @@ abstract class AbstractFileLockManagerTest extends Specification {
         assert lockFile.length() == 0
     }
 
-    abstract void isVersionLockFile(TestFile lockFile)
+    abstract void isVersionLockFile(TestFile lockFile, boolean dirty)
 
-    void isVersionLockFileWithInfoRegion(TestFile lockFile) {
-        isVersionLockFileWithInfoRegion(lockFile, "123", "operation")
+    void isVersionLockFileWithInfoRegion(TestFile lockFile, boolean dirty) {
+        isVersionLockFileWithInfoRegion(lockFile, dirty, "123", "operation")
     }
 
-    abstract void isVersionLockFileWithInfoRegion(TestFile lockFile, String processIdentifier, String operationalName)
+    abstract void isVersionLockFileWithInfoRegion(TestFile lockFile, boolean dirty, String processIdentifier, String operationalName)
 
     FileLock createLock(LockMode lockMode, File file = testFile, FileLockManager lockManager = manager) {
         lockManager.lock(file, options().withMode(lockMode), "foo", "operation")

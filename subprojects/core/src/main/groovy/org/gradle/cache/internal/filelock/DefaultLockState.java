@@ -13,17 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.cache.internal.filelock;
 
-public interface LockState {
-    int UNKNOWN_PREVIOUS_OWNER = 0;
+public class DefaultLockState implements LockState {
+    private int previousOwnerId;
+    private boolean dirty;
 
-    int getPreviousOwnerId();
+    public DefaultLockState(int previousOwnerId, boolean dirty) {
+        this.previousOwnerId = previousOwnerId;
+        this.dirty = dirty;
+    }
 
-    boolean isDirty();
+    public LockState beforeUpdate() {
+        return new DefaultLockState(UNKNOWN_PREVIOUS_OWNER, true);
+    }
 
-    LockState completeUpdate();
+    public LockState completeUpdate() {
+        return new DefaultLockState(123, false);
+    }
 
-    LockState beforeUpdate();
+    public int getPreviousOwnerId() {
+        return previousOwnerId;
+    }
+
+    public boolean isDirty() {
+        return dirty;
+    }
 }

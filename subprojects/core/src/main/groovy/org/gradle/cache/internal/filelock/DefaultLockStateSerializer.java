@@ -29,12 +29,16 @@ public class DefaultLockStateSerializer implements LockStateSerializer {
         return 3;
     }
 
+    public LockState createInitialState() {
+        return new DefaultLockState(LockState.UNKNOWN_PREVIOUS_OWNER, true);
+    }
+
     public void write(DataOutput dataOutput, LockState lockState) throws IOException {
         dataOutput.writeInt(lockState.getPreviousOwnerId());
     }
 
     public LockState read(DataInput dataInput) throws IOException {
         int id = dataInput.readInt();
-        return new LockState(id, id == LockState.UNKNOWN_PREVIOUS_OWNER);
+        return new DefaultLockState(id, id == LockState.UNKNOWN_PREVIOUS_OWNER);
     }
 }

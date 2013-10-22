@@ -57,12 +57,16 @@ public class LockFileAccess {
         return lockStateAccess.ensureLockState(lockFileAccess);
     }
 
-    public void markClean(int ownerId) throws IOException {
-        lockStateAccess.markClean(lockFileAccess, ownerId);
+    public LockState markClean(LockState lockState) throws IOException {
+        LockState newState = lockState.completeUpdate();
+        lockStateAccess.writeState(lockFileAccess, newState);
+        return newState;
     }
 
-    public void markDirty() throws IOException {
-        lockStateAccess.markDirty(lockFileAccess);
+    public LockState markDirty(LockState lockState) throws IOException {
+        LockState newState = lockState.beforeUpdate();
+        lockStateAccess.writeState(lockFileAccess, newState);
+        return newState;
     }
 
     public void clearLockInfo() throws IOException {

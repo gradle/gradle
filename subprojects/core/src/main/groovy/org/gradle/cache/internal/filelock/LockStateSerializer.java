@@ -33,6 +33,11 @@ public interface LockStateSerializer {
     byte getVersion();
 
     /**
+     * Returns the initial state for a lock file with this format.
+     */
+    LockState createInitialState();
+
+    /**
      * writes the state data
      */
     void write(DataOutput lockFileAccess, LockState lockState) throws IOException;

@@ -31,26 +31,16 @@ public class LockStateAccess {
 
     public LockState ensureLockState(RandomAccessFile lockFileAccess) throws IOException {
         if (lockFileAccess.length() == 0) {
-            // File did not exist before locking
-            return markDirty(lockFileAccess); //TODO SF add coverage that we're actually marking dirty here
+            // File did not exist before locking, use some initial state
+            LockState state = protocol.createInitialState();
+            writeState(lockFileAccess, state);
+            return state;
         } else {
             return readState(lockFileAccess);
         }
     }
 
-    public LockState markClean(RandomAccessFile lockFileAccess, int ownerId) throws IOException {
-        LockState lockState = new LockState(ownerId, false);
-        writeState(lockFileAccess, lockState);
-        return lockState;
-    }
-
-    public LockState markDirty(RandomAccessFile lockFileAccess) throws IOException {
-        LockState lockState = new LockState(LockState.UNKNOWN_PREVIOUS_OWNER, true);
-        writeState(lockFileAccess, lockState);
-        return lockState;
-    }
-
-    private void writeState(RandomAccessFile lockFileAccess, LockState lockState) throws IOException {
+    public void writeState(RandomAccessFile lockFileAccess, LockState lockState) throws IOException {
         ByteArrayOutputStream outstr = new ByteArrayOutputStream();
         DataOutputStream dataOutput = new DataOutputStream(outstr);
         dataOutput.writeByte(protocol.getVersion());
@@ -85,7 +75,7 @@ public class LockStateAccess {
             }
             return protocol.read(dataInput);
         } catch (EOFException e) {
-            return new LockState(LockState.UNKNOWN_PREVIOUS_OWNER, true);
+            return new DefaultLockState(LockState.UNKNOWN_PREVIOUS_OWNER, true);
         }
     }
 

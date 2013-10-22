@@ -31,11 +31,15 @@ public class Version1LockStateSerializer implements LockStateSerializer {
         return 1;
     }
 
+    public LockState createInitialState() {
+        return new DefaultLockState(LockState.UNKNOWN_PREVIOUS_OWNER, true);
+    }
+
     public void write(DataOutput dataOutput, LockState lockState) throws IOException {
         dataOutput.writeBoolean(!lockState.isDirty());
     }
 
     public LockState read(DataInput dataInput) throws IOException {
-        return new LockState(LockState.UNKNOWN_PREVIOUS_OWNER, !dataInput.readBoolean());
+        return new DefaultLockState(LockState.UNKNOWN_PREVIOUS_OWNER, !dataInput.readBoolean());
     }
 }

@@ -102,10 +102,10 @@ public class DefaultFileLockManager implements FileLockManager {
         private final LockMode mode;
         private final String displayName;
         private final String operationDisplayName;
-        private final boolean hasNewOwner;
         private java.nio.channels.FileLock lock;
         private LockFileAccess lockFileAccess;
-        private boolean integrityViolated;
+        private LockState lockState;
+        private boolean hasBeenUpdated;
         private int port;
         private final long lockId;
 
@@ -130,9 +130,8 @@ public class DefaultFileLockManager implements FileLockManager {
             lockFile.createNewFile();
             lockFileAccess = new LockFileAccess(lockFile, new LockStateAccess(options.getLockStateSerializer()));
             try {
-                LockState lockState = lock(options.getMode());
-                hasNewOwner = lockState.getPreviousOwnerId() != ownerId;
-                integrityViolated = lockState.isDirty();
+                lockState = lock(options.getMode());
+                hasBeenUpdated = lockState.getPreviousOwnerId() != ownerId;
             } catch (Throwable t) {
                 // Also releases any locks
                 lockFileAccess.close();
@@ -148,11 +147,11 @@ public class DefaultFileLockManager implements FileLockManager {
 
         public boolean getUnlockedCleanly() {
             assertOpen();
-            return !integrityViolated;
+            return !lockState.isDirty();
         }
 
         public boolean getHasBeenUpdated() {
-            return hasNewOwner;
+            return hasBeenUpdated;
         }
 
         public <T> T readFile(Factory<? extends T> action) throws LockTimeoutException, FileIntegrityViolationException {
@@ -176,11 +175,9 @@ public class DefaultFileLockManager implements FileLockManager {
             }
 
             try {
-                integrityViolated = true;
-                lockFileAccess.markDirty();
+                lockState = lockFileAccess.markDirty(lockState);
                 action.run();
-                lockFileAccess.markClean(ownerId);
-                integrityViolated = false;
+                lockState = lockFileAccess.markClean(lockState);
             } catch (Throwable t) {
                 throw throwAsUncheckedException(t);
             }
@@ -194,7 +191,7 @@ public class DefaultFileLockManager implements FileLockManager {
 
         private void assertOpenAndIntegral() {
             assertOpen();
-            if (integrityViolated) {
+            if (lockState.isDirty()) {
                 throw new FileIntegrityViolationException(String.format("The file '%s' was not unlocked cleanly", target));
             }
         }

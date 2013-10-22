@@ -149,24 +149,32 @@ class DefaultFileLockManagerWithNewProtocolTest extends AbstractFileLockManagerT
         lockMode << [Exclusive, Shared]
     }
 
-    void isVersionLockFile(TestFile lockFile) {
+    void isVersionLockFile(TestFile lockFile, boolean dirty) {
         assert lockFile.isFile()
         assert lockFile.length() <= 2048
         lockFile.withDataInputStream { str ->
             // state version + owner id
             assert str.readByte() == 3
-            assert str.readInt() == 0
+            if (dirty) {
+                assert str.readInt() == 0
+            } else {
+                assert str.readInt() != 0
+            }
             assert str.read() < 0
         }
     }
 
-    void isVersionLockFileWithInfoRegion(TestFile lockFile, String processIdentifier, String operationalName) {
+    void isVersionLockFileWithInfoRegion(TestFile lockFile, boolean dirty, String processIdentifier, String operationalName) {
         assert lockFile.isFile()
         assert lockFile.length() <= 2048
         lockFile.withDataInputStream { str ->
             // state version + owner id
             assert str.readByte() == 3
-            assert str.readInt() == 0
+            if (dirty) {
+                assert str.readInt() == 0
+            } else {
+                assert str.readInt() != 0
+            }
             // info version + port, lock-id, pid, operation-name
             assert str.readByte() == 3
             assert str.readInt() == 34
