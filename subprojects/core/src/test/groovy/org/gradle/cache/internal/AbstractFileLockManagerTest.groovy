@@ -18,7 +18,9 @@ package org.gradle.cache.internal
 
 import org.apache.commons.lang.RandomStringUtils
 import org.gradle.cache.internal.FileLockManager.LockMode
-import org.gradle.cache.internal.locklistener.NoOpFileLockContentionHandler
+import org.gradle.cache.internal.filelock.LockInfoSerializer
+import org.gradle.cache.internal.filelock.LockOptionsBuilder
+import org.gradle.cache.internal.locklistener.FileLockContentionHandler
 import org.gradle.internal.Factory
 import org.gradle.internal.id.IdGenerator
 import org.gradle.test.fixtures.file.TestFile
@@ -27,17 +29,17 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import static org.gradle.cache.internal.FileLockManager.LockMode.Exclusive
 import static org.gradle.cache.internal.FileLockManager.LockMode.Shared
 
-class DefaultFileLockManagerTest extends Specification {
+abstract class AbstractFileLockManagerTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def metaDataProvider = Mock(ProcessMetaDataProvider)
     def generator = Stub(IdGenerator)
+    def contentionHandler = Stub(FileLockContentionHandler)
 
-    FileLockManager manager = new DefaultFileLockManager(metaDataProvider, 5000, new NoOpFileLockContentionHandler(), generator)
+    FileLockManager manager = new DefaultFileLockManager(metaDataProvider, 5000, contentionHandler, generator)
 
     TestFile testFile
     TestFile testFileLock
@@ -52,27 +54,39 @@ class DefaultFileLockManagerTest extends Specification {
 
         metaDataProvider.processIdentifier >> '123'
         metaDataProvider.processDisplayName >> 'process'
+        contentionHandler.reservePort() >> 34
         generator.generateId() >> 678L
     }
 
-    @Unroll
-    "#operation throws integrity exception when not cleanly unlocked file"() {
+    def "readFile throws integrity exception when not cleanly unlocked file"() {
         given:
         unlockUncleanly()
 
         and:
-        def lock = createLock()
+        def lock = createLock(lockMode)
 
         when:
-        lock."$operation"(arg)
+        lock.readFile {}
 
         then:
         thrown FileIntegrityViolationException
 
         where:
-        operation    | arg
-        "readFile"   | {} as Factory
-        "updateFile" | {} as Runnable
+        lockMode << [Exclusive, Shared]
+    }
+
+    def "updateFile throws integrity exception when not cleanly unlocked file"() {
+        given:
+        unlockUncleanly()
+
+        and:
+        def lock = createLock(Exclusive)
+
+        when:
+        lock.updateFile {}
+
+        then:
+        thrown FileIntegrityViolationException
     }
 
     def "writeFile does not throw integrity exception when not cleanly unlocked file"() {
@@ -88,36 +102,45 @@ class DefaultFileLockManagerTest extends Specification {
 
     def "can lock a file"() {
         when:
-        def lock = createLock()
+        def lock = createLock(lockMode)
 
         then:
         lock.isLockFile(tmpDir.createFile(testFile.name + ".lock"))
 
         cleanup:
         lock?.close()
+
+        where:
+        lockMode << [Exclusive, Shared]
     }
 
     def "can lock a directory"() {
         when:
-        def lock = createLock(testDir)
+        def lock = createLock(lockMode, testDir)
 
         then:
         lock.isLockFile(testDirLock)
 
         cleanup:
         lock?.close()
+
+        where:
+        lockMode << [Exclusive, Shared]
     }
 
-    def "can lock a file once it has been closed"() {
+    def "can lock a file after it has been closed"() {
         given:
         def fileLock = createLock(Exclusive)
         fileLock.close()
 
         when:
-        createLock(Exclusive)
+        createLock(lockMode)
 
         then:
         notThrown(RuntimeException)
+
+        where:
+        lockMode << [Exclusive, Shared]
     }
 
     def "lock on new file is not unlocked cleanly"() {
@@ -164,7 +187,7 @@ class DefaultFileLockManagerTest extends Specification {
     def "integrity violation exception is thrown after a failed write"() {
         given:
         def e = new RuntimeException()
-        def lock = createLock()
+        def lock = createLock(Exclusive)
 
         when:
         lock.writeFile {}
@@ -290,86 +313,15 @@ class DefaultFileLockManagerTest extends Specification {
         thrown(IllegalStateException)
     }
 
-    def "leaves version 1 lock file after exclusive lock on new file closed"() {
-        when:
-        def lock = createLock(Exclusive)
-        lock.close()
-
-        then:
-        lock.isLockFile(testFileLock)
-
-        and:
-        isVersion1LockFile(testFileLock)
-    }
-
-    def "leaves empty lock file after shared lock on new file closed"() {
-        when:
-        def lock = createLock()
-        lock.close()
-
-        then:
-        lock.isLockFile(testFileLock)
-
-        and:
-        isEmptyLockFile(testFileLock)
-    }
-
-    def "leaves version 1 lock file after lock on existing file is closed"() {
-        testFileLock.withDataOutputStream {
-            it.writeByte(2)
-            it.writeInt(0)
-        }
-
-        when:
-        def lock = createLock(mode)
-        lock.close()
-
-        then:
-        lock.isLockFile(testFileLock)
-
-        and:
-        isVersion1LockFile(testFileLock)
-
-        where:
-        mode << [Shared, Exclusive]
-    }
-
-    @Requires(TestPrecondition.NO_FILE_LOCK_ON_OPEN)
-    def "writes version 2 lock file while exclusive lock is open"() {
-        when:
-        def lock = createLock(Exclusive)
-
-        then:
-        lock.isLockFile(testFileLock)
-
-        and:
-        isVersion2LockFile(testFileLock)
-
-        cleanup:
-        lock?.close()
-    }
-
     def "can acquire lock on partially written lock file"() {
+        given:
+        partiallyWritten()
+
         when:
-        testFileLock.withDataOutputStream {
-            it.writeByte(2)
-        }
         def lock = createLock(mode)
 
         then:
-        lock.isLockFile(testFileLock)
-        lock.close()
-
-        when:
-        testFileLock.withDataOutputStream {
-            it.writeByte(2)
-            it.writeInt(123)
-            it.writeByte(2)
-            it.writeByte(12)
-        }
-        lock = createLock(mode)
-
-        then:
+        !lock.unlockedCleanly
         lock.isLockFile(testFileLock)
         lock.close()
 
@@ -392,20 +344,99 @@ class DefaultFileLockManagerTest extends Specification {
         mode << [Shared, Exclusive]
     }
 
+    def "leaves lock file after exclusive lock on new file closed"() {
+        when:
+        def lock = createLock(Exclusive)
+        lock.close()
+
+        then:
+        lock.isLockFile(testFileLock)
+
+        and:
+        isVersionLockFile(testFileLock, true)
+    }
+
+    def "leaves empty lock file after shared lock on new file closed"() {
+        when:
+        def lock = createLock(Shared)
+        lock.close()
+
+        then:
+        lock.isLockFile(testFileLock)
+
+        and:
+        isEmptyLockFile(testFileLock)
+    }
+
+    def "leaves lock file after lock on existing file is closed"() {
+        given:
+        writeFile()
+
+        when:
+        def lock = createLock(mode)
+        lock.close()
+
+        then:
+        lock.isLockFile(testFileLock)
+
+        and:
+        isVersionLockFile(testFileLock, false)
+
+        where:
+        mode << [Shared, Exclusive]
+    }
+
+    @Requires(TestPrecondition.NO_FILE_LOCK_ON_OPEN)
+    def "writes lock file with info region while exclusive lock is open"() {
+        expect:
+        def lock = createLock(Exclusive)
+        isVersionLockFileWithInfoRegion(testFileLock, true)
+        lock.writeFile {}
+        isVersionLockFileWithInfoRegion(testFileLock, false)
+
+        cleanup:
+        lock?.close()
+    }
+
+    @Requires(TestPrecondition.NO_FILE_LOCK_ON_OPEN)
+    def "writes dirty lock file with info region while updating file"() {
+        given:
+        writeFile()
+
+        when:
+        def lock = createLock(Exclusive)
+
+        then:
+        lock.isLockFile(testFileLock)
+
+        expect:
+        isVersionLockFileWithInfoRegion(testFileLock, false)
+        lock.writeFile {
+            isVersionLockFileWithInfoRegion(testFileLock, true)
+        }
+        isVersionLockFileWithInfoRegion(testFileLock, false)
+
+        cleanup:
+        lock?.close()
+    }
+
     @Requires(TestPrecondition.NO_FILE_LOCK_ON_OPEN)
     def "long descriptor strings are trimmed when written to information region"() {
         setup:
         def customMetaDataProvider = Mock(ProcessMetaDataProvider)
         def processIdentifier = RandomStringUtils.randomAlphanumeric(1000)
         1 * customMetaDataProvider.processIdentifier >> processIdentifier
-        def customManager = new DefaultFileLockManager(customMetaDataProvider, 5000, new NoOpFileLockContentionHandler(), generator)
+        def customManager = new DefaultFileLockManager(customMetaDataProvider, 5000, contentionHandler, generator)
         def operationalDisplayName = RandomStringUtils.randomAlphanumeric(1000)
 
         when:
-        customManager.lock(testFile, Exclusive, "targetDisplayName", operationalDisplayName)
+        def lock = customManager.lock(testFile, options().withMode(Exclusive), "targetDisplayName", operationalDisplayName)
 
         then:
-        isVersion2LockFile(testFileLock, processIdentifier.substring(0, DefaultFileLockManager.INFORMATION_REGION_DESCR_CHUNK_LIMIT), operationalDisplayName.substring(0, DefaultFileLockManager.INFORMATION_REGION_DESCR_CHUNK_LIMIT))
+        isVersionLockFileWithInfoRegion(testFileLock, true, processIdentifier.substring(0, LockInfoSerializer.INFORMATION_REGION_DESCR_CHUNK_LIMIT), operationalDisplayName.substring(0, LockInfoSerializer.INFORMATION_REGION_DESCR_CHUNK_LIMIT))
+
+        cleanup:
+        lock?.close()
     }
 
     def "require exclusive lock for writing"() {
@@ -421,10 +452,7 @@ class DefaultFileLockManagerTest extends Specification {
 
     def "require exclusive lock for updating"() {
         given:
-        def writeLock = createLock(Exclusive)
-        writeLock.writeFile {}
-        writeLock.close()
-
+        writeFile()
         def lock = createLock(Shared)
 
         when:
@@ -432,71 +460,63 @@ class DefaultFileLockManagerTest extends Specification {
 
         then:
         thrown InsufficientLockModeException
-    }
-
-    def "the lock knows if it has a new owner process"() {
-        when:
-        def lock = createLock(Exclusive)
-
-        then:
-        lock.hasNewOwner
-
-        when:
-        lock.writeFile({})
-
-        then:
-        lock.hasNewOwner
-
-        when:
-        lock.close()
-        lock = createLock(Exclusive)
-
-        then:
-        !lock.hasNewOwner
 
         cleanup:
         lock?.close()
     }
 
-    private void isEmptyLockFile(TestFile lockFile) {
+    void isEmptyLockFile(TestFile lockFile) {
         assert lockFile.isFile()
         assert lockFile.length() == 0
     }
 
-    private void isVersion1LockFile(TestFile lockFile) {
-        assert lockFile.isFile()
-        assert lockFile.length() == 5
-        lockFile.withDataInputStream { str ->
-            assert str.readByte() == 2
-            assert str.readInt() == 0
+    abstract void isVersionLockFile(TestFile lockFile, boolean dirty)
+
+    void isVersionLockFileWithInfoRegion(TestFile lockFile, boolean dirty) {
+        isVersionLockFileWithInfoRegion(lockFile, dirty, "123", "operation")
+    }
+
+    abstract void isVersionLockFileWithInfoRegion(TestFile lockFile, boolean dirty, String processIdentifier, String operationalName)
+
+    FileLock createLock(LockMode lockMode, File file = testFile, FileLockManager lockManager = manager) {
+        lockManager.lock(file, options().withMode(lockMode), "foo", "operation")
+    }
+
+    protected abstract LockOptionsBuilder options();
+
+    protected void writeFile(FileLockManager lockManager = manager) {
+        def lock = lockManager.lock(testFile, options().withMode(Exclusive), "foo", "operation")
+        try {
+            lock.writeFile { }
+        } finally {
+            lock.close()
         }
     }
 
-    private void isVersion2LockFile(TestFile lockFile, String processIdentifier = "123", String operationalName = 'operation') {
-        assert lockFile.isFile()
-        assert lockFile.length() > 3
-        assert lockFile.length() <= 2048
-        lockFile.withDataInputStream { str ->
-            assert str.readByte() == 2
-            assert str.readInt() == 0
-            assert str.readByte() == 3
-            assert str.readInt() == -1
-            assert str.readLong() == 678L
-            assert str.readUTF() == processIdentifier
-            assert str.readUTF() == operationalName
-            assert str.read() < 0
+    protected void unlockUncleanly(FileLockManager lockManager = manager) {
+        def lock = createLock(Exclusive, testFile, lockManager)
+        def failure = new RuntimeException()
+        try {
+            lock.writeFile {
+                throw failure
+            }
+        } catch(RuntimeException e) {
+            if (e != failure) {
+                throw e
+            }
+        } finally {
+            lock.close()
         }
     }
 
-    private FileLock createLock(File testFile) {
-        createLock(Shared, testFile)
-    }
-
-    private FileLock createLock(LockMode lockMode = Shared, File file = testFile) {
-        manager.lock(file, lockMode, "foo", "operation")
-    }
-
-    private File unlockUncleanly(LockMode lockMode = Shared, File file = testFile) {
-        DefaultFileLockManagerTestHelper.unlockUncleanly(file)
+    protected void partiallyWritten(FileLockManager lockManager = manager) {
+        createLock(Exclusive, testFile, lockManager).close()
+        assert testFileLock.length() > 1
+        def file = new RandomAccessFile(testFileLock, "rw")
+        try {
+            file.setLength(1)
+        } finally {
+            file.close()
+        }
     }
 }

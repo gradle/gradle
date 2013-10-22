@@ -20,6 +20,7 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.cache.internal.FileLock;
 import org.gradle.cache.internal.MultiProcessSafePersistentIndexedCache;
 
 import java.io.File;
@@ -32,6 +33,7 @@ public class InMemoryTaskArtifactCache implements InMemoryPersistentCacheDecorat
 
     private final Object lock = new Object();
     private final Map<File, Cache> cache = new HashMap<File, Cache>();
+    private final Map<File, FileLock.State> states = new HashMap<File, FileLock.State>();
 
     private static final Map<String, Integer> CACHE_CAPS = new HashMap<String, Integer>();
 
@@ -87,14 +89,24 @@ public class InMemoryTaskArtifactCache implements InMemoryPersistentCacheDecorat
                 original.remove(key);
             }
 
-            public void onStartWork(String operationDisplayName, boolean lockHasNewOwner) {
-                if (lockHasNewOwner) {
+            public void onStartWork(String operationDisplayName, FileLock.State currentCacheState) {
+                boolean outOfDate;
+                synchronized (lock) {
+                    FileLock.State previousState = states.get(cacheFile);
+                    outOfDate = previousState == null || currentCacheState.hasBeenUpdatedSince(previousState);
+                }
+
+                if (outOfDate) {
                     LOG.info("Invalidating in-memory cache of {}", cacheFile);
                     data.invalidateAll();
                 }
             }
 
-            public void onEndWork() {}
+            public void onEndWork(FileLock.State currentCacheState) {
+                synchronized (lock) {
+                    states.put(cacheFile, currentCacheState);
+                }
+            }
         };
     }
 

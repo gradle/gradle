@@ -23,13 +23,12 @@ public interface UnitOfWorkParticipant {
      * Called just after the cache is locked. Called before any work has been performed.
      *
      * @param operationDisplayName operation
-     * @param lockHasNewOwner true means that this process is a new owner of the lock, e.g. different than the previous owner (or there was no previous owner).
-     * false means that the previous owner was this process.
+     * @param currentCacheState the current cache state.
      */
-    void onStartWork(String operationDisplayName, boolean lockHasNewOwner);
+    void onStartWork(String operationDisplayName, FileLock.State currentCacheState);
 
     /**
      * Called just before the cache is to be unlocked. Called after all work has been completed.
      */
-    void onEndWork();
+    void onEndWork(FileLock.State currentCacheState);
 }

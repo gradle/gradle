@@ -21,7 +21,6 @@ import org.gradle.StartParameter;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
-import org.gradle.cache.internal.DefaultFileLockManager;
 import org.gradle.cache.internal.FileLockManager;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.GradleLauncherFactory;
@@ -31,6 +30,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.URLClassLoader;
+
+import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class BuildSourceBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildSourceBuilder.class);
@@ -70,9 +71,8 @@ public class BuildSourceBuilder {
 
     PersistentCache createCache(StartParameter startParameter) {
         return cacheRepository.
-                    //TODO SF workaround for cache lock format change
-                    cache("buildSrc.v" + DefaultFileLockManager.PROTOCOL_VERSION).
-                    withLockMode(FileLockManager.LockMode.None).
+                    cache("buildSrc").
+                    withLockOptions(mode(FileLockManager.LockMode.None).simple()).
                     forObject(startParameter.getCurrentDir()).
                     withVersionStrategy(CacheBuilder.VersionStrategy.SharedCacheInvalidateOnVersionChange).
                     open();

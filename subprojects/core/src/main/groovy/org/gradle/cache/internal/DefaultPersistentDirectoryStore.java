@@ -18,6 +18,7 @@ package org.gradle.cache.internal;
 import org.gradle.api.Action;
 import org.gradle.cache.CacheOpenException;
 import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.cache.internal.filelock.LockOptions;
 import org.gradle.internal.Factory;
 import org.gradle.util.GFileUtils;
 
@@ -26,14 +27,14 @@ import java.io.IOException;
 
 public class DefaultPersistentDirectoryStore implements ReferencablePersistentCache {
     private final File dir;
-    private final FileLockManager.LockMode lockMode;
+    private final LockOptions lockOptions;
     private final FileLockManager lockManager;
     private final String displayName;
     private DefaultCacheAccess cacheAccess;
 
-    public DefaultPersistentDirectoryStore(File dir, String displayName, FileLockManager.LockMode lockMode, FileLockManager fileLockManager) {
+    public DefaultPersistentDirectoryStore(File dir, String displayName, LockOptions lockOptions, FileLockManager fileLockManager) {
         this.dir = dir;
-        this.lockMode = lockMode;
+        this.lockOptions = lockOptions;
         this.lockManager = fileLockManager;
         this.displayName = displayName != null ? String.format("%s (%s)", displayName, dir) : String.format("cache directory %s (%s)", dir.getName(), dir);
     }
@@ -42,7 +43,7 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
         GFileUtils.mkdirs(dir);
         cacheAccess = createCacheAccess();
         try {
-            cacheAccess.open(lockMode);
+            cacheAccess.open(lockOptions);
             try {
                 init();
             } catch (Throwable throwable) {
@@ -69,7 +70,7 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
             boolean reopen = cacheAccess != null;
             close();
             DefaultCacheAccess exclusiveAccess = createCacheAccess();
-            exclusiveAccess.open(FileLockManager.LockMode.Exclusive);
+            exclusiveAccess.open(lockOptions.withMode(FileLockManager.LockMode.Exclusive));
             try {
                 action.execute(exclusiveAccess.getFileLock());
             } finally {
@@ -77,7 +78,7 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
             }
             if (reopen) {
                 cacheAccess = createCacheAccess();
-                cacheAccess.open(lockMode);
+                cacheAccess.open(lockOptions);
             }
         }
     }

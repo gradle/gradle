@@ -13,16 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.cache.internal;
 
-import org.gradle.cache.PersistentIndexedCache;
+package org.gradle.cache.internal.filelock
 
-import java.io.Closeable;
+import spock.lang.Specification
 
-public interface MultiProcessSafePersistentIndexedCache<K, V> extends
-        PersistentIndexedCache<K, V>, UnitOfWorkParticipant, Closeable {
-    /**
-     * Note: this method is called before {@link UnitOfWorkParticipant#onEndWork(org.gradle.cache.internal.FileLock.State)}.
-     */
-    void close(); //so that we don't have to handle IOException (do we need this?)
+import static org.gradle.cache.internal.FileLockManager.LockMode.*
+
+class LockOptionsBuilderTest extends Specification {
+    def "can make copy of options"() {
+        def builder = LockOptionsBuilder.mode(Exclusive).simple()
+
+        when:
+        def copy = builder.withMode(Shared)
+
+        then:
+        !copy.is(builder)
+        copy.mode == Shared
+        copy.simple
+    }
 }

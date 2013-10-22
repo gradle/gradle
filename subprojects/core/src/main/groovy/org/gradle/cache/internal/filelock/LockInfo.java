@@ -13,16 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.cache.internal;
+package org.gradle.cache.internal.filelock;
 
-import org.gradle.cache.PersistentIndexedCache;
-
-import java.io.Closeable;
-
-public interface MultiProcessSafePersistentIndexedCache<K, V> extends
-        PersistentIndexedCache<K, V>, UnitOfWorkParticipant, Closeable {
-    /**
-     * Note: this method is called before {@link UnitOfWorkParticipant#onEndWork(org.gradle.cache.internal.FileLock.State)}.
-     */
-    void close(); //so that we don't have to handle IOException (do we need this?)
+public class LockInfo {
+    public int port = -1;
+    public long lockId;
+    public String pid = "unknown";
+    public String operation = "unknown";
 }

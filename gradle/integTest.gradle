@@ -22,8 +22,41 @@ dependencies {
 
 ext.integTestTasks = tasks.withType(Test).matching { it.name.toLowerCase().endsWith('integtest') }
 
+// TODO:ADAM - remove this
+task cleanUpCaches {
+    doLast {
+        // Clean up the lock files for previous versions
+        File previousVersionsDir = rootProject.file("intTestHomeDir/previousVersion")
+        if (previousVersionsDir.directory) {
+            for (File versionDir: previousVersionsDir.listFiles()) {
+                File lockFile = new File(versionDir, "cache.properties.lock")
+                if (lockFile.file && lockFile.length() > 0) {
+                    def version = lockFile.bytes[0]
+                    if (version != 1) {
+                        println "Cleaning lock file for ${versionDir}"
+                        lockFile.delete()
+                    }
+                }
+            }
+        }
+
+        // Clean up the lock files for the shared cache
+        File modulesCacheDir = rootProject.file("intTestHomeDir/worker-1/caches/modules-1")
+        if (modulesCacheDir.directory) {
+            File lockFile = new File(modulesCacheDir, "modules-1.lock")
+            if (lockFile.file && lockFile.length() > 0) {
+                def version = lockFile.bytes[0]
+                if (version != 3) {
+                    println "Cleaning lock file for ${modulesCacheDir}"
+                    lockFile.delete()
+                }
+            }
+        }
+    }
+}
+
 integTestTasks.all { Test task ->
-    dependsOn ':intTestImage'
+    dependsOn ':intTestImage', 'cleanUpCaches'
     testClassesDir = sourceSets.integTest.output.classesDir
     classpath = sourceSets.integTest.runtimeClasspath
     testSrcDirs = []

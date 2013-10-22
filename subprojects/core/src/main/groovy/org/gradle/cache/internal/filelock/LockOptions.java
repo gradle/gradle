@@ -13,16 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.cache.internal;
+package org.gradle.cache.internal.filelock;
 
-import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.cache.internal.FileLockManager;
 
-import java.io.Closeable;
+public interface LockOptions {
 
-public interface MultiProcessSafePersistentIndexedCache<K, V> extends
-        PersistentIndexedCache<K, V>, UnitOfWorkParticipant, Closeable {
+    FileLockManager.LockMode getMode();
+
+    LockStateSerializer getLockStateSerializer();
+
     /**
-     * Note: this method is called before {@link UnitOfWorkParticipant#onEndWork(org.gradle.cache.internal.FileLock.State)}.
+     * Creates a copy of these options with the given mode.
      */
-    void close(); //so that we don't have to handle IOException (do we need this?)
+    LockOptions withMode(FileLockManager.LockMode mode);
 }

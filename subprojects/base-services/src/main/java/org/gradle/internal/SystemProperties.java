@@ -16,16 +16,16 @@
 package org.gradle.internal;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+
+import static com.google.common.collect.ImmutableSet.of;
 
 /**
  * Provides access to frequently used system properties.
  */
 public class SystemProperties {
-    private static final Set<String> STANDARD_PROPERTIES = new HashSet<String>(Arrays.asList(
+    private static final Set<String> STANDARD_PROPERTIES = of(
             "java.version",
             "java.vendor",
             "java.vendor.url",
@@ -53,7 +53,12 @@ public class SystemProperties {
             "line.separator",
             "user.name",
             "user.home",
-            "user.dir"));
+            "user.dir"
+    );
+
+    private static final Set<String> IMPORTANT_NON_STANDARD_PROPERTIES = of(
+            "java.runtime.version"
+    );
 
     @SuppressWarnings("unchecked")
     public static Map<String, String> asMap() {
@@ -86,5 +91,16 @@ public class SystemProperties {
      */
     public static Set<String> getStandardProperties() {
         return STANDARD_PROPERTIES;
+    }
+
+    /**
+     * Returns the names of properties that are not guaranteed to be contained in System.getProperties()
+     * but are usually there and if there should not be adjusted.
+     *
+     * @return the set of keys of {@code System.getProperties()} which should not be adjusted
+     *   by client code. This method never returns {@code null}.
+     */
+    public static Set<String> getNonStandardImportantProperties() {
+        return IMPORTANT_NON_STANDARD_PROPERTIES;
     }
 }
