@@ -20,7 +20,6 @@ import org.gradle.CacheUsage
 import org.gradle.api.Action
 import org.gradle.cache.PersistentCache
 import org.gradle.cache.internal.*
-import org.gradle.cache.internal.filelock.SimpleStateInfoProtocol
 import org.gradle.cache.internal.locklistener.NoOpFileLockContentionHandler
 import org.gradle.internal.nativeplatform.services.NativeServices
 import org.gradle.test.fixtures.file.TestFile
