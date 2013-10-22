@@ -91,14 +91,31 @@ assert inputArgs.find { it.contains('-XX:HeapDumpPath=') }
 """
     }
 
-    @IgnoreIf({ AvailableJavaHomes.bestAlternative == null })
-    def "honours java home specified in gradle.properties"() {
-        given:
+    def String useAlternativeJavaPath() {
         File javaHome = AvailableJavaHomes.bestAlternative
         String javaPath = TextUtil.escapeString(javaHome.canonicalPath)
         file("gradle.properties") << "org.gradle.java.home=$javaPath"
 
+        return javaPath
+    }
+
+    @IgnoreIf({ AvailableJavaHomes.bestAlternative == null })
+    def "honours java home specified in gradle.properties"() {
+        given:
+        String javaPath = useAlternativeJavaPath()
+
         expect:
         buildSucceeds "assert System.getProperty('java.home').startsWith('$javaPath')"
+    }
+
+    @IgnoreIf({ AvailableJavaHomes.bestAlternative == null || System.getProperty('java.runtime.version') == null})
+    def "does not alter java.runtime.version"() {
+        given:
+
+        useAlternativeJavaPath()
+        String javaRuntimeVersion = System.getProperty('java.runtime.version')
+
+        expect:
+        buildSucceeds "assert System.getProperty('java.runtime.version') != '${javaRuntimeVersion}'"
     }
 }
