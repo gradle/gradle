@@ -55,7 +55,7 @@ class InitBuild extends DefaultTask {
         def type = getType()
         def projectLayoutRegistry = getProjectLayoutRegistry()
         if (!projectLayoutRegistry.supports(type)) {
-            throw new GradleException("The requested build setup type '${type}' is not supported. Supported types: ${projectLayoutRegistry.supportedTypes.collect{"'$it'"}.join(", ")}.")
+            throw new GradleException("The requested build setup type '${type}' is not supported. Supported types: ${projectLayoutRegistry.supportedTypes.collect{"'$it'"}.sort().join(", ")}.")
         }
         projectLayoutRegistry.get(type).generate()
     }
