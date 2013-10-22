@@ -16,8 +16,8 @@
 
 package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 
 import java.util.Set;
@@ -25,11 +25,11 @@ import java.util.Set;
 public interface DependencyEdge {
     boolean isResolvable();
 
-    ModuleVersionSelector getRequested();
+    ModuleComponentSelector getRequested();
 
-    ModuleVersionIdentifier getActual();
+    ModuleComponentIdentifier getActual();
 
-    ModuleVersionIdentifier getFrom();
+    ModuleComponentIdentifier getFrom();
 
     ComponentSelectionReason getReason();
 

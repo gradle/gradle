@@ -16,15 +16,11 @@
 
 package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -42,15 +38,13 @@ public class RenderableDependencyResult extends AbstractRenderableDependencyResu
     }
 
     @Override
-    protected ModuleVersionIdentifier getActual() {
-        ModuleComponentIdentifier moduleComponentIdentifier = dependency.getSelected().getId();
-        return DefaultModuleVersionIdentifier.newId(moduleComponentIdentifier.getGroup(), moduleComponentIdentifier.getName(), moduleComponentIdentifier.getVersion());
+    protected ModuleComponentIdentifier getActual() {
+        return dependency.getSelected().getId();
     }
 
     @Override
-    protected ModuleVersionSelector getRequested() {
-        ModuleComponentSelector moduleComponentSelector = dependency.getRequested();
-        return DefaultModuleVersionSelector.newSelector(moduleComponentSelector.getGroup(), moduleComponentSelector.getName(), moduleComponentSelector.getVersion());
+    protected ModuleComponentSelector getRequested() {
+        return dependency.getRequested();
     }
 
     public Set<RenderableDependency> getChildren() {

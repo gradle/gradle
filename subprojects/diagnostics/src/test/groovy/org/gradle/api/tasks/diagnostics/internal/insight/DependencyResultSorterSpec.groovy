@@ -16,14 +16,14 @@
 
 package org.gradle.api.tasks.diagnostics.internal.insight
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier
-import org.gradle.api.artifacts.ModuleVersionSelector
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.DependencyEdge
 import spock.lang.Specification
 
-import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
-import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
+import static org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier.newId
+import static org.gradle.api.internal.artifacts.component.DefaultModuleComponentSelector.newSelector
 
 class DependencyResultSorterSpec extends Specification {
     def matcher = new ResolverStrategy().versionMatcher
@@ -114,7 +114,7 @@ class DependencyResultSorterSpec extends Specification {
         sorted == [d1, d2, d3, d4, d5, d6, d7, d8]
     }
 
-    private newDependency(ModuleVersionSelector requested, ModuleVersionIdentifier selected, ModuleVersionIdentifier from = newId("org", "a", "1.0")) {
+    private newDependency(ModuleComponentSelector requested, ModuleComponentIdentifier selected, ModuleComponentIdentifier from = newId("org", "a", "1.0")) {
         return Stub(DependencyEdge) {
             toString() >> "$requested -> $selected"
             getRequested() >> requested

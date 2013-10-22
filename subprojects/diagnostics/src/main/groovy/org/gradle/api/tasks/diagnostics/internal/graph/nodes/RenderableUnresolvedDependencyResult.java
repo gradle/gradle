@@ -16,25 +16,22 @@
 
 package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
+import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier;
 
 import java.util.Collections;
 import java.util.Set;
 
 public class RenderableUnresolvedDependencyResult extends AbstractRenderableDependencyResult {
-    private final ModuleVersionIdentifier actual;
+    private final ModuleComponentIdentifier actual;
     private final UnresolvedDependencyResult dependency;
 
     public RenderableUnresolvedDependencyResult(UnresolvedDependencyResult dependency) {
         this.dependency = dependency;
-        ModuleComponentSelector moduleComponentSelector = dependency.getAttempted();
-        ModuleVersionSelector attempted = DefaultModuleVersionSelector.newSelector(moduleComponentSelector.getGroup(), moduleComponentSelector.getName(), moduleComponentSelector.getVersion());
-        this.actual = DefaultModuleVersionIdentifier.newId(attempted.getGroup(), attempted.getName(), attempted.getVersion());
+        ModuleComponentSelector attempted = dependency.getAttempted();
+        this.actual = DefaultModuleComponentIdentifier.newId(attempted.getGroup(), attempted.getName(), attempted.getVersion());
     }
 
     @Override
@@ -43,13 +40,12 @@ public class RenderableUnresolvedDependencyResult extends AbstractRenderableDepe
     }
 
     @Override
-    protected ModuleVersionSelector getRequested() {
-        ModuleComponentSelector moduleComponentSelector = dependency.getRequested();
-        return DefaultModuleVersionSelector.newSelector(moduleComponentSelector.getGroup(), moduleComponentSelector.getName(), moduleComponentSelector.getVersion());
+    protected ModuleComponentSelector getRequested() {
+        return dependency.getRequested();
     }
 
     @Override
-    protected ModuleVersionIdentifier getActual() {
+    protected ModuleComponentIdentifier getActual() {
         return actual;
     }
 

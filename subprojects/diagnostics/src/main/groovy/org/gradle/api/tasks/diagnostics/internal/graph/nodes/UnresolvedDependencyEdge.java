@@ -16,39 +16,34 @@
 
 package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
+import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier;
 
 import java.util.Collections;
 import java.util.Set;
 
 public class UnresolvedDependencyEdge implements DependencyEdge {
     private final UnresolvedDependencyResult dependency;
-    private final ModuleVersionIdentifier actual;
+    private final ModuleComponentIdentifier actual;
 
     public UnresolvedDependencyEdge(UnresolvedDependencyResult dependency) {
         this.dependency = dependency;
-        ModuleComponentSelector moduleComponentSelector = dependency.getAttempted();
-        ModuleVersionSelector attempted = DefaultModuleVersionSelector.newSelector(moduleComponentSelector.getGroup(), moduleComponentSelector.getName(), moduleComponentSelector.getVersion());
-        actual = DefaultModuleVersionIdentifier.newId(attempted.getGroup(), attempted.getName(), attempted.getVersion());
+        ModuleComponentSelector attempted = dependency.getAttempted();
+        actual = DefaultModuleComponentIdentifier.newId(attempted.getGroup(), attempted.getName(), attempted.getVersion());
     }
 
     public boolean isResolvable() {
         return false;
     }
 
-    public ModuleVersionSelector getRequested() {
-        ModuleComponentSelector moduleComponentSelector = dependency.getRequested();
-        return DefaultModuleVersionSelector.newSelector(moduleComponentSelector.getGroup(), moduleComponentSelector.getName(), moduleComponentSelector.getVersion());
+    public ModuleComponentSelector getRequested() {
+        return dependency.getRequested();
     }
 
-    public ModuleVersionIdentifier getActual() {
+    public ModuleComponentIdentifier getActual() {
         return actual;
     }
 
@@ -56,9 +51,8 @@ public class UnresolvedDependencyEdge implements DependencyEdge {
         return dependency.getAttemptedReason();
     }
 
-    public ModuleVersionIdentifier getFrom() {
-        ModuleComponentIdentifier moduleComponentIdentifier = dependency.getFrom().getId();
-        return DefaultModuleVersionIdentifier.newId(moduleComponentIdentifier.getGroup(), moduleComponentIdentifier.getName(), moduleComponentIdentifier.getVersion());
+    public ModuleComponentIdentifier getFrom() {
+        return dependency.getFrom().getId();
     }
 
     public Set<? extends RenderableDependency> getChildren() {

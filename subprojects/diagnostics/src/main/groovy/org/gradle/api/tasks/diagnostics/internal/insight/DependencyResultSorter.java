@@ -16,8 +16,8 @@
 
 package org.gradle.api.tasks.diagnostics.internal.insight;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.DependencyEdge;
 
@@ -47,8 +47,8 @@ public class DependencyResultSorter {
         }
 
         public int compare(DependencyEdge left, DependencyEdge right) {
-            ModuleVersionSelector leftRequested = left.getRequested();
-            ModuleVersionSelector rightRequested = right.getRequested();
+            ModuleComponentSelector leftRequested = left.getRequested();
+            ModuleComponentSelector rightRequested = right.getRequested();
             int byGroup = leftRequested.getGroup().compareTo(rightRequested.getGroup());
             if (byGroup != 0) {
                 return byGroup;
@@ -89,8 +89,8 @@ public class DependencyResultSorter {
                 return byVersion;
             }
 
-            ModuleVersionIdentifier leftFrom = left.getFrom();
-            ModuleVersionIdentifier rightFrom = right.getFrom();
+            ModuleComponentIdentifier leftFrom = left.getFrom();
+            ModuleComponentIdentifier rightFrom = right.getFrom();
             byGroup = leftFrom.getGroup().compareTo(rightFrom.getGroup());
             if (byGroup != 0) {
                 return byGroup;
