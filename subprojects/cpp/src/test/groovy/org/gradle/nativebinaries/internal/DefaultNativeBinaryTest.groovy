@@ -127,15 +127,57 @@ class DefaultNativeBinaryTest extends Specification {
         def dependency = Stub(NativeDependencySet)
 
         when:
-        def sourceSet = Stub(DependentSourceSet)
+        def sourceSet = Stub(DependentSourceSet) {
+            getLibs() >> [dependency]
+        }
         binary.source sourceSet
-
-        and:
-        sourceSet.getLibs() >> [dependency]
 
         then:
         binary.libs == [dependency]
         binary.getLibs(sourceSet) == [dependency]
+    }
+
+    def "order of libraries is maintained"() {
+        def binary = testBinary(component)
+        def dependency1 = Stub(NativeDependencySet)
+        def dependency2 = Stub(NativeDependencySet)
+        def dependency3 = Stub(NativeDependencySet)
+
+        when:
+        binary.lib(dependency1)
+
+        and:
+        def libraryBinary = Mock(LibraryBinary)
+        libraryBinary.resolve() >> dependency2
+        binary.lib(libraryBinary)
+
+        and:
+        binary.lib(dependency3)
+
+        then:
+        binary.libs as List == [dependency1, dependency2, dependency3]
+    }
+
+    def "library added to binary is ordered before library for source set"() {
+        def binary = testBinary(component)
+        def lib1 = Stub(NativeDependencySet)
+        def lib2 = Stub(NativeDependencySet)
+        def sourceLib = Stub(NativeDependencySet)
+
+        when:
+        binary.lib(lib1)
+
+        and:
+        def sourceSet = Stub(DependentSourceSet) {
+            getLibs() >> [sourceLib]
+        }
+        binary.source sourceSet
+
+        and:
+        binary.lib(lib2)
+
+        then:
+        binary.libs as List == [lib1, lib2, sourceLib]
     }
 
     def testBinary(NativeComponent owner, Flavor flavor = new DefaultFlavor(DefaultFlavor.DEFAULT)) {

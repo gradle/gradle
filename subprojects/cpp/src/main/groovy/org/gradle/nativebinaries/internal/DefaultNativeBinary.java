@@ -121,7 +121,7 @@ public abstract class DefaultNativeBinary extends AbstractBuildableModelElement 
     }
 
     private Collection<NativeDependencySet> getLibs(Collection<? extends DependentSourceSet> sourceSets) {
-        Set<? super Object> allLibs = new HashSet<Object>(libs);
+        Set<? super Object> allLibs = new LinkedHashSet<Object>(libs);
         for (DependentSourceSet dependentSourceSet : sourceSets) {
             allLibs.addAll(dependentSourceSet.getLibs());
         }
