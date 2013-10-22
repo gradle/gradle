@@ -15,7 +15,6 @@
  */
 package org.gradle.nativebinaries.language.c.internal.incremental;
 
-import org.gradle.api.internal.changedetection.state.DefaultHasher;
 import org.gradle.api.internal.changedetection.state.Hasher;
 import org.gradle.cache.CacheAccess;
 import org.gradle.cache.PersistentIndexedCache;
@@ -30,15 +29,14 @@ public class IncrementalCompileProcessor {
     private final PersistentIndexedCache<File, FileState> fileStateCache;
     private final PersistentIndexedCache<String, List<File>> previousSourcesCache;
     private final SourceDependencyParser dependencyParser;
+    private final Hasher hasher;
 
-    // TODO:DAZ Use a caching hasher
-    private final Hasher hasher = new DefaultHasher();
-
-    public IncrementalCompileProcessor(CacheAccess cacheAccess, PersistentIndexedCache<File, FileState> fileStateCache, PersistentIndexedCache<String, List<File>> previousSourcesCache, SourceDependencyParser dependencyParser) {
+    public IncrementalCompileProcessor(CacheAccess cacheAccess, PersistentIndexedCache<File, FileState> fileStateCache, PersistentIndexedCache<String, List<File>> previousSourcesCache, SourceDependencyParser dependencyParser, Hasher hasher) {
         this.cacheAccess = cacheAccess;
         this.fileStateCache = fileStateCache;
         this.previousSourcesCache = previousSourcesCache;
         this.dependencyParser = dependencyParser;
+        this.hasher = hasher;
     }
 
     public CacheAccess getCacheAccess() {

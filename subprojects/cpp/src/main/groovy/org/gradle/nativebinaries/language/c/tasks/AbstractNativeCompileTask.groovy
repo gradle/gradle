@@ -15,10 +15,12 @@
  */
 
 package org.gradle.nativebinaries.language.c.tasks
+
 import org.gradle.api.DefaultTask
 import org.gradle.api.Incubating
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.SourceDirectorySet
+import org.gradle.api.internal.changedetection.state.Hasher
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputDirectory
@@ -29,12 +31,13 @@ import org.gradle.nativebinaries.Platform
 import org.gradle.nativebinaries.ToolChain
 import org.gradle.nativebinaries.internal.PlatformToolChain
 import org.gradle.nativebinaries.language.c.internal.incremental.CacheLockingIncrementalCompiler
+import org.gradle.nativebinaries.language.c.internal.incremental.CleanCompilingNativeCompiler
 import org.gradle.nativebinaries.language.c.internal.incremental.IncrementalCompileProcessorFactory
 import org.gradle.nativebinaries.language.c.internal.incremental.IncrementalNativeCompiler
-import org.gradle.nativebinaries.language.c.internal.incremental.CleanCompilingNativeCompiler
 import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec
 
 import javax.inject.Inject
+
 /**
  * Compiles native source files into object files.
  */
@@ -97,8 +100,8 @@ abstract class AbstractNativeCompileTask extends DefaultTask {
     List<String> compilerArgs
 
     @Inject
-    AbstractNativeCompileTask(CacheFactory cacheFactory) {
-        incrementalCompilerFactory = new IncrementalCompileProcessorFactory(cacheFactory)
+    AbstractNativeCompileTask(CacheFactory cacheFactory, Hasher hasher) {
+        incrementalCompilerFactory = new IncrementalCompileProcessorFactory(cacheFactory, hasher)
         includes = project.files()
         source = project.files()
     }

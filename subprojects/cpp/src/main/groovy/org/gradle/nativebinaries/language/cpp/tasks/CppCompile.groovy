@@ -17,6 +17,7 @@
 package org.gradle.nativebinaries.language.cpp.tasks
 
 import org.gradle.api.Incubating
+import org.gradle.api.internal.changedetection.state.Hasher
 import org.gradle.cache.internal.CacheFactory
 import org.gradle.nativebinaries.internal.PlatformToolChain
 import org.gradle.nativebinaries.language.c.tasks.AbstractNativeCompileTask
@@ -31,8 +32,8 @@ import javax.inject.Inject
 @Incubating
 class CppCompile extends AbstractNativeCompileTask {
     @Inject
-    CppCompile(CacheFactory cacheFactory) {
-        super(cacheFactory)
+    CppCompile(CacheFactory cacheFactory, Hasher hasher) {
+        super(cacheFactory, hasher)
     }
 
     @Override

@@ -16,6 +16,7 @@
 package org.gradle.nativebinaries.language.c.internal.incremental;
 
 import org.gradle.CacheUsage;
+import org.gradle.api.internal.changedetection.state.Hasher;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.internal.CacheFactory;
@@ -31,9 +32,11 @@ import java.util.List;
 public class IncrementalCompileProcessorFactory {
     private final RegexBackedIncludesParser includesParser = new RegexBackedIncludesParser();
     private final CacheFactory cacheFactory;
+    private final Hasher hasher;
 
-    public IncrementalCompileProcessorFactory(CacheFactory cacheFactory) {
+    public IncrementalCompileProcessorFactory(CacheFactory cacheFactory, Hasher hasher) {
         this.cacheFactory = cacheFactory;
+        this.hasher = hasher;
     }
 
     public IncrementalCompileProcessor create(File cacheDir, String cacheKey, Iterable<File> includes) {
@@ -46,8 +49,8 @@ public class IncrementalCompileProcessorFactory {
         // TODO:DAZ This doesn't need to be an indexed cache: need PersistentCache.createStateCache()
         PersistentIndexedCache<String, List<File>> listCache = createCache(cache, "previous", String.class, new DefaultSerializer<List<File>>());
 
-        List<File> includePaths = CollectionUtils.toList(includes);
-        return new IncrementalCompileProcessor(cache, stateCache, listCache, new DefaultSourceDependencyParser(includesParser, includePaths));
+        DefaultSourceDependencyParser dependencyParser = new DefaultSourceDependencyParser(includesParser, CollectionUtils.toList(includes));
+        return new IncrementalCompileProcessor(cache, stateCache, listCache, dependencyParser, hasher);
     }
 
     private <U, V> PersistentIndexedCache<U, V> createCache(PersistentCache cache, String name, Class<U> keyType, DefaultSerializer<V> fileStateDefaultSerializer) {
