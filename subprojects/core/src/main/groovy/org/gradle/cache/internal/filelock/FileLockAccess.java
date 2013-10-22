@@ -50,9 +50,7 @@ public class FileLockAccess {
     }
 
     public void assertStateInfoIntegral() throws IOException {
-        if (!stateInfoAccess.isIntegral(lockFileAccess)) {
-            throw new IllegalStateException(String.format("Unexpected lock protocol found in lock file '%s' for %s.", lockFile, displayName));
-        }
+        stateInfoAccess.assertIntegral(lockFileAccess);
     }
 
     public void writeOwnerInfo(int port, long lockId, String pid, String operation) throws IOException {

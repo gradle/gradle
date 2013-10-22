@@ -50,13 +50,18 @@ public class StateInfoAccess {
         assert lockFileAccess.getFilePointer() == protocol.getSize();
     }
 
-    public boolean isIntegral(RandomAccessFile lockFileAccess) throws IOException {
+    /**
+     * @throws IllegalStateException When the state region is badly formed.
+     */
+    public void assertIntegral(RandomAccessFile lockFileAccess) throws IOException, IllegalStateException {
         if (lockFileAccess.length() > 0) {
             lockFileAccess.seek(0);
-            //TODO SF throw the exception here and print diagnostics
-            return lockFileAccess.readByte() == protocol.getVersion();
+            //TODO:ADAM need to add contextual exception higher up
+            byte protocolVersion = lockFileAccess.readByte();
+            if (protocolVersion != protocol.getVersion()) {
+                throw new IllegalStateException(String.format("Unexpected lock protocol found in lock file. Expected %s, found %s.", protocol.getVersion(), protocolVersion));
+            }
         }
-        return true;
     }
 
     public StateInfo readStateInfo(RandomAccessFile lockFileAccess) throws IOException {
