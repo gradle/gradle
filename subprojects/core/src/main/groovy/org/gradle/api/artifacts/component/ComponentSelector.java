@@ -19,13 +19,23 @@ import org.gradle.api.Incubating;
 
 /**
  * Represents the criteria used to select a component during dependency resolution.
+ *
+ * @param <T> The component identifier
  */
 @Incubating
-public interface ComponentSelector {
+public interface ComponentSelector<T extends ComponentIdentifier> {
     /**
      * Returns a human-consumable display name for this selector.
      *
      * @return Display name
      */
     String getDisplayName();
+
+    /**
+     * Checks if selector matches identifier.
+     *
+     * @param identifier Identifier
+     * @return if this selector matches exactly the given identifier.
+     */
+    boolean matchesStrictly(T identifier);
 }

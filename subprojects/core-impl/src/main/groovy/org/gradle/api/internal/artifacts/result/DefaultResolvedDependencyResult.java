@@ -16,14 +16,9 @@
 
 package org.gradle.api.internal.artifacts.result;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 
 public class DefaultResolvedDependencyResult extends AbstractDependencyResult implements ResolvedDependencyResult {
     private final ResolvedComponentResult selected;
@@ -39,12 +34,7 @@ public class DefaultResolvedDependencyResult extends AbstractDependencyResult im
 
     @Override
     public String toString() {
-        ModuleComponentSelector moduleComponentSelector = getRequested();
-        ModuleVersionSelector requestedModuleVersionSelector = DefaultModuleVersionSelector.newSelector(moduleComponentSelector.getGroup(), moduleComponentSelector.getName(), moduleComponentSelector.getVersion());
-        ModuleComponentIdentifier moduleComponentIdentifier = getSelected().getId();
-        ModuleVersionIdentifier selectedModuleVersionIdentifier = DefaultModuleVersionIdentifier.newId(moduleComponentIdentifier.getGroup(), moduleComponentIdentifier.getName(), moduleComponentIdentifier.getVersion());
-
-        if (requestedModuleVersionSelector.matchesStrictly(selectedModuleVersionIdentifier)) {
+        if (getRequested().matchesStrictly(getSelected().getId())) {
             return getRequested().toString();
         } else {
             return String.format("%s -> %s", getRequested(), getSelected().getId());

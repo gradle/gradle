@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.component
 
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -41,13 +42,14 @@ class DefaultModuleComponentSelectorTest extends Specification {
         new DefaultModuleComponentSelector(group, name, version)
 
         then:
-        thrown(AssertionError)
+        Throwable t = thrown(AssertionError)
+        assert t.message == assertionMessage
 
         where:
-        group        | name        | version
-        null         | 'some-name' | '1.0'
-        'some-group' | null        | '1.0'
-        'some-group' | 'some-name' | null
+        group        | name        | version | assertionMessage
+        null         | 'some-name' | '1.0'   | 'group cannot be null'
+        'some-group' | null        | '1.0'   | 'name cannot be null'
+        'some-group' | 'some-name' | null    | 'version cannot be null'
     }
 
     @Unroll
@@ -77,5 +79,30 @@ class DefaultModuleComponentSelectorTest extends Specification {
         defaultModuleComponentSelector.version == '1.0'
         defaultModuleComponentSelector.displayName == 'some-group:some-name:1.0'
         defaultModuleComponentSelector.toString() == 'some-group:some-name:1.0'
+    }
+
+    def "prevents matching of null id"() {
+        when:
+        ModuleComponentSelector defaultModuleComponentSelector = new DefaultModuleComponentSelector('some-group', 'some-name', '1.0')
+        defaultModuleComponentSelector.matchesStrictly(null)
+
+        then:
+        Throwable t = thrown(AssertionError)
+        assert t.message == 'identifier cannot be null'
+    }
+
+    @Unroll
+    def "matches id (#group, #name, #version)"() {
+        expect:
+        ModuleComponentSelector defaultModuleComponentSelector = new DefaultModuleComponentSelector('some-group', 'some-name', '1.0')
+        ModuleComponentIdentifier defaultModuleComponentIdentifier = new DefaultModuleComponentIdentifier(group, name, version)
+        defaultModuleComponentSelector.matchesStrictly(defaultModuleComponentIdentifier) == matchesId
+
+        where:
+        group         | name         | version | matchesId
+        'some-group'  | 'some-name'  | '1.0'   | true
+        'other-group' | 'some-name'  | '1.0'   | false
+        'some-group'  | 'other-name' | '1.0'   | false
+        'some-group'  | 'some-name'  | '2.0'   | false
     }
 }

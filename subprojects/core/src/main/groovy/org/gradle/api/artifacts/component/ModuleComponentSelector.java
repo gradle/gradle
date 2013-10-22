@@ -21,7 +21,7 @@ import org.gradle.api.Incubating;
  * Selects a module component.
  */
 @Incubating
-public interface ModuleComponentSelector extends ComponentSelector {
+public interface ModuleComponentSelector extends ComponentSelector<ModuleComponentIdentifier> {
     /**
      * The group of a module component.
      *

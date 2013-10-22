@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.component
 
+import org.gradle.api.artifacts.component.BuildComponentIdentifier
 import org.gradle.api.artifacts.component.BuildComponentSelector
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -55,5 +56,28 @@ class DefaultBuildComponentSelectorTest extends Specification {
         projectPath       | equality | hashCode | stringRepresentation
         ':myProjectPath1' | true     | true     | true
         ':myProjectPath2' | false    | false    | false
+    }
+
+    def "prevents matching of null id"() {
+        when:
+        BuildComponentSelector defaultBuildComponentSelector = new DefaultBuildComponentSelector(':myPath')
+        defaultBuildComponentSelector.matchesStrictly(null)
+
+        then:
+        Throwable t = thrown(AssertionError)
+        assert t.message == 'identifier cannot be null'
+    }
+
+    @Unroll
+    def "matches id (#projectPath)"() {
+        expect:
+        BuildComponentSelector defaultBuildComponentSelector = new DefaultBuildComponentSelector(':myProjectPath1')
+        BuildComponentIdentifier defaultBuildComponentIdentifier = new DefaultBuildComponentIdentifier(projectPath)
+        defaultBuildComponentSelector.matchesStrictly(defaultBuildComponentIdentifier) == matchesId
+
+        where:
+        projectPath       | matchesId
+        ':myProjectPath1' | true
+        ':myProjectPath2' | false
     }
 }
