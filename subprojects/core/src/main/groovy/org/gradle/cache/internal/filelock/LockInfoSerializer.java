@@ -23,7 +23,7 @@ import java.io.IOException;
 public class LockInfoSerializer {
     public static final int INFORMATION_REGION_DESCR_CHUNK_LIMIT = 340;
 
-    public int getVersion() {
+    public byte getVersion() {
         return 3;
     }
 

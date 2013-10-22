@@ -43,7 +43,7 @@ class DefaultFileLockManagerWithCrossVersionProtocolTest extends AbstractFileLoc
             assert !str.readBoolean()
             // info version + port, lock-id, pid, operation-name
             assert str.readByte() == 3
-            assert str.readInt() == -1
+            assert str.readInt() == 34
             assert str.readLong() == 678L
             assert str.readUTF() == processIdentifier
             assert str.readUTF() == operationalName

@@ -25,8 +25,8 @@ public class DefaultLockStateSerializer implements LockStateSerializer {
         return 4;
     }
 
-    public int getVersion() {
-        return 2;
+    public byte getVersion() {
+        return 3;
     }
 
     public void write(DataOutput dataOutput, LockState lockState) throws IOException {

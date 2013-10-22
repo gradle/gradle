@@ -20,7 +20,7 @@ import org.apache.commons.lang.RandomStringUtils
 import org.gradle.cache.internal.FileLockManager.LockMode
 import org.gradle.cache.internal.filelock.LockInfoSerializer
 import org.gradle.cache.internal.filelock.LockOptionsBuilder
-import org.gradle.cache.internal.locklistener.NoOpFileLockContentionHandler
+import org.gradle.cache.internal.locklistener.FileLockContentionHandler
 import org.gradle.internal.Factory
 import org.gradle.internal.id.IdGenerator
 import org.gradle.test.fixtures.file.TestFile
@@ -32,14 +32,14 @@ import spock.lang.Specification
 
 import static org.gradle.cache.internal.FileLockManager.LockMode.Exclusive
 import static org.gradle.cache.internal.FileLockManager.LockMode.Shared
-import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode
 
 abstract class AbstractFileLockManagerTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def metaDataProvider = Mock(ProcessMetaDataProvider)
     def generator = Stub(IdGenerator)
+    def contentionHandler = Stub(FileLockContentionHandler)
 
-    FileLockManager manager = new DefaultFileLockManager(metaDataProvider, 5000, new NoOpFileLockContentionHandler(), generator)
+    FileLockManager manager = new DefaultFileLockManager(metaDataProvider, 5000, contentionHandler, generator)
 
     TestFile testFile
     TestFile testFileLock
@@ -54,6 +54,7 @@ abstract class AbstractFileLockManagerTest extends Specification {
 
         metaDataProvider.processIdentifier >> '123'
         metaDataProvider.processDisplayName >> 'process'
+        contentionHandler.reservePort() >> 34
         generator.generateId() >> 678L
     }
 
@@ -62,13 +63,16 @@ abstract class AbstractFileLockManagerTest extends Specification {
         unlockUncleanly()
 
         and:
-        def lock = createLock()
+        def lock = createLock(lockMode)
 
         when:
         lock.readFile {}
 
         then:
         thrown FileIntegrityViolationException
+
+        where:
+        lockMode << [Exclusive, Shared]
     }
 
     def "updateFile throws integrity exception when not cleanly unlocked file"() {
@@ -76,7 +80,7 @@ abstract class AbstractFileLockManagerTest extends Specification {
         unlockUncleanly()
 
         and:
-        def lock = createLock()
+        def lock = createLock(Exclusive)
 
         when:
         lock.updateFile {}
@@ -98,36 +102,45 @@ abstract class AbstractFileLockManagerTest extends Specification {
 
     def "can lock a file"() {
         when:
-        def lock = createLock()
+        def lock = createLock(lockMode)
 
         then:
         lock.isLockFile(tmpDir.createFile(testFile.name + ".lock"))
 
         cleanup:
         lock?.close()
+
+        where:
+        lockMode << [Exclusive, Shared]
     }
 
     def "can lock a directory"() {
         when:
-        def lock = createLock(testDir)
+        def lock = createLock(lockMode, testDir)
 
         then:
         lock.isLockFile(testDirLock)
 
         cleanup:
         lock?.close()
+
+        where:
+        lockMode << [Exclusive, Shared]
     }
 
-    def "can lock a file once it has been closed"() {
+    def "can lock a file after it has been closed"() {
         given:
         def fileLock = createLock(Exclusive)
         fileLock.close()
 
         when:
-        createLock(Exclusive)
+        createLock(lockMode)
 
         then:
         notThrown(RuntimeException)
+
+        where:
+        lockMode << [Exclusive, Shared]
     }
 
     def "lock on new file is not unlocked cleanly"() {
@@ -174,7 +187,7 @@ abstract class AbstractFileLockManagerTest extends Specification {
     def "integrity violation exception is thrown after a failed write"() {
         given:
         def e = new RuntimeException()
-        def lock = createLock()
+        def lock = createLock(Exclusive)
 
         when:
         lock.writeFile {}
@@ -345,7 +358,7 @@ abstract class AbstractFileLockManagerTest extends Specification {
 
     def "leaves empty lock file after shared lock on new file closed"() {
         when:
-        def lock = createLock()
+        def lock = createLock(Shared)
         lock.close()
 
         then:
@@ -395,7 +408,7 @@ abstract class AbstractFileLockManagerTest extends Specification {
         def customMetaDataProvider = Mock(ProcessMetaDataProvider)
         def processIdentifier = RandomStringUtils.randomAlphanumeric(1000)
         1 * customMetaDataProvider.processIdentifier >> processIdentifier
-        def customManager = new DefaultFileLockManager(customMetaDataProvider, 5000, new NoOpFileLockContentionHandler(), generator)
+        def customManager = new DefaultFileLockManager(customMetaDataProvider, 5000, contentionHandler, generator)
         def operationalDisplayName = RandomStringUtils.randomAlphanumeric(1000)
 
         when:
@@ -421,10 +434,7 @@ abstract class AbstractFileLockManagerTest extends Specification {
 
     def "require exclusive lock for updating"() {
         given:
-        def writeLock = createLock(Exclusive)
-        writeLock.writeFile {}
-        writeLock.close()
-
+        writeFile()
         def lock = createLock(Shared)
 
         when:
@@ -432,6 +442,9 @@ abstract class AbstractFileLockManagerTest extends Specification {
 
         then:
         thrown InsufficientLockModeException
+
+        cleanup:
+        lock?.close()
     }
 
     void isEmptyLockFile(TestFile lockFile) {
@@ -447,18 +460,23 @@ abstract class AbstractFileLockManagerTest extends Specification {
 
     abstract void isVersionLockFileWithInfoRegion(TestFile lockFile, String processIdentifier, String operationalName)
 
-    FileLock createLock(File testFile) {
-        createLock(Shared, testFile)
-    }
-
-    FileLock createLock(LockMode lockMode = Shared, File file = testFile) {
-        manager.lock(file, options().withMode(lockMode), "foo", "operation")
+    FileLock createLock(LockMode lockMode, File file = testFile, FileLockManager lockManager = manager) {
+        lockManager.lock(file, options().withMode(lockMode), "foo", "operation")
     }
 
     protected abstract LockOptionsBuilder options();
 
-    protected File unlockUncleanly(File file = testFile) {
-        def lock = createLock(Exclusive, file)
+    protected void writeFile(FileLockManager lockManager = manager) {
+        def lock = lockManager.lock(testFile, options().withMode(Exclusive), "foo", "operation")
+        try {
+            lock.writeFile { }
+        } finally {
+            lock.close()
+        }
+    }
+
+    protected void unlockUncleanly() {
+        def lock = createLock(Exclusive, testFile)
         def failure = new RuntimeException()
         try {
             lock.writeFile {
@@ -473,7 +491,7 @@ abstract class AbstractFileLockManagerTest extends Specification {
         }
     }
 
-    protected File partiallyWritten() {
+    protected void partiallyWritten() {
         createLock(Exclusive, testFile).close()
         assert testFileLock.length() > 1
         def file = new RandomAccessFile(testFileLock, "rw")

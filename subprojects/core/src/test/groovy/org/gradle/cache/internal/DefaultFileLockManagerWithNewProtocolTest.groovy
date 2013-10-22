@@ -20,6 +20,7 @@ import org.gradle.cache.internal.filelock.LockOptionsBuilder
 import org.gradle.test.fixtures.file.TestFile
 
 import static org.gradle.cache.internal.FileLockManager.LockMode.Exclusive
+import static org.gradle.cache.internal.FileLockManager.LockMode.Shared
 
 class DefaultFileLockManagerWithNewProtocolTest extends AbstractFileLockManagerTest {
     @Override
@@ -27,28 +28,125 @@ class DefaultFileLockManagerWithNewProtocolTest extends AbstractFileLockManagerT
         return LockOptionsBuilder.mode(FileLockManager.LockMode.None)
     }
 
-    def "the lock knows if it has a new owner process"() {
+    def "a lock has been updated when locking a new file for the first time"() {
         when:
-        def lock = createLock(Exclusive)
+        def lock = createLock(lockMode)
 
         then:
-        lock.hasNewOwner
-
-        when:
-        lock.writeFile({})
-
-        then:
-        lock.hasNewOwner
+        lock.hasBeenUpdated
 
         when:
         lock.close()
-        lock = createLock(Exclusive)
+        lock = createLock(lockMode)
 
         then:
-        !lock.hasNewOwner
+        !lock.hasBeenUpdated
 
         cleanup:
         lock?.close()
+
+        where:
+        lockMode << [Exclusive, Shared]
+    }
+
+    def "a lock has been updated when locking an existing file for the first time"() {
+        given:
+        def lockManager = new DefaultFileLockManager(metaDataProvider, contentionHandler)
+        writeFile(lockManager)
+
+        when:
+        def lock = createLock(lockMode)
+
+        then:
+        lock.hasBeenUpdated
+
+        when:
+        lock.close()
+        lock = createLock(lockMode)
+
+        then:
+        !lock.hasBeenUpdated
+
+        cleanup:
+        lock?.close()
+
+        where:
+        lockMode << [Exclusive, Shared]
+    }
+
+    def "a lock has been updated when written to since last open"() {
+        given:
+        def lockManager = new DefaultFileLockManager(metaDataProvider, contentionHandler)
+        writeFile()
+
+        when:
+        def lock = createLock(lockMode)
+
+        then:
+        !lock.hasBeenUpdated
+
+        when:
+        lock.close()
+        writeFile(lockManager)
+        lock = createLock(lockMode)
+
+        then:
+        lock.hasBeenUpdated
+
+        when:
+        lock.close()
+        lock = createLock(lockMode)
+
+        then:
+        !lock.hasBeenUpdated
+
+        cleanup:
+        lock?.close()
+
+        where:
+        lockMode << [Exclusive, Shared]
+    }
+
+    def "a lock has been updated when lock is dirty"() {
+        when:
+        def lock = createLock(lockMode)
+
+        then:
+        lock.hasBeenUpdated
+
+        when:
+        lock.close()
+        lock = createLock(lockMode)
+
+        then:
+        !lock.hasBeenUpdated
+
+        cleanup:
+        lock?.close()
+
+        where:
+        lockMode << [Exclusive, Shared]
+    }
+
+    def "a lock has been updated when lock is partially written"() {
+        when:
+        def lock = createLock(lockMode)
+
+        then:
+        lock.hasBeenUpdated
+
+        when:
+        lock.close()
+        lock = createLock(lockMode)
+
+        then:
+        !lock.hasBeenUpdated
+
+        cleanup:
+        lock?.close()
+
+        where:
+        lockMode << [Exclusive, Shared]
     }
 
     void isVersionLockFile(TestFile lockFile) {
@@ -56,7 +154,7 @@ class DefaultFileLockManagerWithNewProtocolTest extends AbstractFileLockManagerT
         assert lockFile.length() <= 2048
         lockFile.withDataInputStream { str ->
             // state version + owner id
-            assert str.readByte() == 2
+            assert str.readByte() == 3
             assert str.readInt() == 0
             assert str.read() < 0
         }
@@ -67,11 +165,11 @@ class DefaultFileLockManagerWithNewProtocolTest extends AbstractFileLockManagerT
         assert lockFile.length() <= 2048
         lockFile.withDataInputStream { str ->
             // state version + owner id
-            assert str.readByte() == 2
+            assert str.readByte() == 3
             assert str.readInt() == 0
             // info version + port, lock-id, pid, operation-name
             assert str.readByte() == 3
-            assert str.readInt() == -1
+            assert str.readInt() == 34
             assert str.readLong() == 678L
             assert str.readUTF() == processIdentifier
             assert str.readUTF() == operationalName

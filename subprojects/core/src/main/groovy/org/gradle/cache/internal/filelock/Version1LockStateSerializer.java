@@ -27,7 +27,7 @@ public class Version1LockStateSerializer implements LockStateSerializer {
         return 1;
     }
 
-    public int getVersion() {
+    public byte getVersion() {
         return 1;
     }
 

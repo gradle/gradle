@@ -30,7 +30,7 @@ public interface LockStateSerializer {
      * single byte that describes the version.
      * an implementation protocol should increment the value when protocol changes in an incompatible way
      */
-    int getVersion();
+    byte getVersion();
 
     /**
      * writes the state data
