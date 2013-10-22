@@ -25,8 +25,6 @@ import org.gradle.util.GFileUtils;
 import java.io.File;
 import java.io.IOException;
 
-import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
-
 public class DefaultPersistentDirectoryStore implements ReferencablePersistentCache {
     private final File dir;
     private final LockOptions lockOptions;
@@ -72,7 +70,7 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
             boolean reopen = cacheAccess != null;
             close();
             DefaultCacheAccess exclusiveAccess = createCacheAccess();
-            exclusiveAccess.open(mode(FileLockManager.LockMode.Exclusive));
+            exclusiveAccess.open(lockOptions.withMode(FileLockManager.LockMode.Exclusive));
             try {
                 action.execute(exclusiveAccess.getFileLock());
             } finally {
