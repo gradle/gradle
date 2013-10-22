@@ -26,6 +26,8 @@ import org.gradle.nativebinaries.internal.SharedLibraryLinkerSpec;
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
 
 import java.io.File;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 class GccLinker implements Compiler<LinkerSpec> {
 
@@ -43,7 +45,7 @@ class GccLinker implements Compiler<LinkerSpec> {
         return commandLineTool.execute(spec);
     }
 
-    private static class GccLinkerSpecToArguments implements CompileSpecToArguments<LinkerSpec> {
+    private class GccLinkerSpecToArguments implements CompileSpecToArguments<LinkerSpec> {
 
         public void collectArguments(LinkerSpec spec, ArgCollector collector) {
             collector.args(spec.getSystemArgs());
@@ -67,7 +69,8 @@ class GccLinker implements Compiler<LinkerSpec> {
                 collector.args(file.getAbsolutePath());
             }
             for (File file : spec.getLibraries()) {
-                collector.args(file.getAbsolutePath());
+                collector.args("-L" + file.getParentFile().getAbsoluteFile());
+                collector.args("-l" + getLibraryName(file.getName()));
             }
             for (File pathEntry : spec.getLibraryPath()) {
                 // TODO:DAZ It's not clear to me what the correct meaning of this should be for GCC
@@ -76,6 +79,16 @@ class GccLinker implements Compiler<LinkerSpec> {
 //                collector.args("-Wl,-rpath," + pathEntry.getAbsolutePath());
                 throw new UnsupportedOperationException("Library Path not yet supported on GCC");
             }
+        }
+    }
+
+    public static String getLibraryName(final String fileName) {
+        Pattern pattern = Pattern.compile("^lib(.+)\\.so$");
+        Matcher matcher = pattern.matcher(fileName);
+        if (matcher.find()) {
+            return matcher.group(1);
+        } else {
+            return fileName;
         }
     }
 }
