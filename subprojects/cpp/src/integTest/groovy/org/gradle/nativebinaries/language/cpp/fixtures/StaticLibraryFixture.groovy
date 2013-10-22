@@ -26,7 +26,7 @@ class StaticLibraryFixture extends NativeBinaryFixture {
     def listObjectFiles() {
         if (toolChain.visualCpp) {
             // TODO:DAZ Implement this for Visual C++
-            return []
+            throw new UnsupportedOperationException()
         } else {
             def process = ['ar', '-t', file.getAbsolutePath()].execute()
             return process.inputStream.readLines().drop(1)

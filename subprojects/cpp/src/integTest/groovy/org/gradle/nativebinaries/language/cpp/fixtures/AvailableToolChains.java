@@ -238,7 +238,6 @@ public class AvailableToolChains {
         /**
          * The environment required to execute a binary created by this toolchain.
          */
-        // TODO:DAZ This isn't quite right (only required for MinGW and cygwin, and preferably not even those)
         public List<String> getRuntimeEnv() {
             if (pathEntries.isEmpty()) {
                 return Collections.emptyList();
