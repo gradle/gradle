@@ -45,13 +45,13 @@ class InitBuildSpec extends Specification {
     def "throws GradleException if requested setupDescriptor not supported"() {
         setup:
         _ * projectLayoutRegistry.get("aType") >> null
-        _ * projectLayoutRegistry.getSupportedTypes() >> ["supported-type", 'another-supported-type']
+        _ * projectLayoutRegistry.getSupportedTypes() >> ['supported-type', 'another-supported-type']
         when:
         init.type = "aType"
         init.setupProjectLayout()
         then:
         def e = thrown(GradleException)
-        e.message == "The requested build setup type 'aType' is not supported. Supported types: 'supported-type', 'another-supported-type'."
+        e.message == "The requested build setup type 'aType' is not supported. Supported types: 'another-supported-type', 'supported-type'."
 
     }
 
