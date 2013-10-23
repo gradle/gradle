@@ -403,7 +403,7 @@ class DefaultCacheFactoryTest extends Specification {
 
         then:
         IllegalStateException e = thrown()
-        e.message == "Cannot open cache '${tmpDir.testDirectory}' with exclusive (simple=false) lock mode as it is already open with shared (simple=false) lock mode."
+        e.message == "Cache '${tmpDir.testDirectory}' is already open with different options."
     }
 
     public void "can pass CacheValidator to Cache"() {

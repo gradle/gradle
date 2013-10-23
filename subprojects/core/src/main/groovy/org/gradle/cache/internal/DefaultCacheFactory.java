@@ -79,7 +79,7 @@ public class DefaultCacheFactory implements Factory<CacheFactory> {
                     throw new IllegalStateException(String.format("Cannot rebuild cache '%s' as it is already open.", cacheDir));
                 }
                 if (!lockOptions.equals(dirCacheReference.lockOptions)) {
-                    throw new IllegalStateException(String.format("Cannot open cache '%s' with %s lock mode as it is already open with %s lock mode.", cacheDir, lockOptions.toString().toLowerCase(), dirCacheReference.lockOptions.toString().toLowerCase()));
+                    throw new IllegalStateException(String.format("Cache '%s' is already open with different options.", cacheDir));
                 }
                 if (!properties.equals(dirCacheReference.properties)) {
                     throw new IllegalStateException(String.format("Cache '%s' is already open with different state.", cacheDir));
