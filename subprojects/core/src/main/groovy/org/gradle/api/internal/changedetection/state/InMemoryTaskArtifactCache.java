@@ -51,7 +51,7 @@ public class InMemoryTaskArtifactCache implements InMemoryPersistentCacheDecorat
     }
 
     public <K, V> MultiProcessSafePersistentIndexedCache<K, V> withMemoryCaching(final File cacheFile, final MultiProcessSafePersistentIndexedCache<K, V> original) {
-        final Cache data;
+        final Cache<K, V> data;
         synchronized (lock) {
             if (this.cache.containsKey(cacheFile)) {
                 data = this.cache.get(cacheFile);
@@ -70,17 +70,17 @@ public class InMemoryTaskArtifactCache implements InMemoryPersistentCacheDecorat
 
             public V get(K key) {
                 assert key instanceof String || key instanceof Long || key instanceof File : "Unsupported key type: " + key;
-                Value<V> value = (Value) data.getIfPresent(key);
+                V value = data.getIfPresent(key);
                 if (value != null) {
-                    return value.value;
+                    return value;
                 }
-                Object out = original.get(key);
-                data.put(key, new Value(out));
-                return (V) out;
+                V out = original.get(key);
+                data.put(key, out);
+                return out;
             }
 
             public void put(K key, V value) {
-                data.put(key, new Value<V>(value));
+                data.put(key, value);
                 original.put(key, value);
             }
 
@@ -108,13 +108,5 @@ public class InMemoryTaskArtifactCache implements InMemoryPersistentCacheDecorat
                 }
             }
         };
-    }
-
-    private static class Value<T> {
-        private T value;
-
-        public Value(T value) {
-            this.value = value;
-        }
     }
 }
