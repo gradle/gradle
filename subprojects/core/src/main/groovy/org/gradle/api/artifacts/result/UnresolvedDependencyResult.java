@@ -17,7 +17,7 @@
 package org.gradle.api.artifacts.result;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.artifacts.component.ModuleComponentSelector;
+import org.gradle.api.artifacts.component.ComponentSelector;
 
 /**
  * A dependency that could not be resolved.
@@ -27,7 +27,7 @@ public interface UnresolvedDependencyResult extends DependencyResult {
     /**
      * Returns the selector that was attempted to be resolved. This may not be the same as the requested component.
      */
-    ModuleComponentSelector getAttempted();
+    ComponentSelector getAttempted();
 
     /**
      * Returns the reasons why the failed selector was attempted.

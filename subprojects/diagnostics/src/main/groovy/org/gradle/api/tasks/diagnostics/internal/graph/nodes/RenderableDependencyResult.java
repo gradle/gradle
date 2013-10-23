@@ -39,12 +39,12 @@ public class RenderableDependencyResult extends AbstractRenderableDependencyResu
 
     @Override
     protected ModuleComponentIdentifier getActual() {
-        return dependency.getSelected().getId();
+        return (ModuleComponentIdentifier)dependency.getSelected().getId();
     }
 
     @Override
     protected ModuleComponentSelector getRequested() {
-        return dependency.getRequested();
+        return (ModuleComponentSelector)dependency.getRequested();
     }
 
     public Set<RenderableDependency> getChildren() {

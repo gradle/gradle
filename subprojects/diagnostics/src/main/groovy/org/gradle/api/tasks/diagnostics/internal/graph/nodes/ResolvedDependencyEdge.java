@@ -36,7 +36,7 @@ public class ResolvedDependencyEdge implements DependencyEdge {
     }
 
     public ModuleComponentSelector getRequested() {
-        return dependency.getRequested();
+        return (ModuleComponentSelector)dependency.getRequested();
     }
 
     public ComponentSelectionReason getReason() {
@@ -44,11 +44,11 @@ public class ResolvedDependencyEdge implements DependencyEdge {
     }
 
     public ModuleComponentIdentifier getActual() {
-        return dependency.getSelected().getId();
+        return (ModuleComponentIdentifier)dependency.getSelected().getId();
     }
 
     public ModuleComponentIdentifier getFrom() {
-        return dependency.getFrom().getId();
+        return (ModuleComponentIdentifier)dependency.getFrom().getId();
     }
 
     public Set<? extends RenderableDependency> getChildren() {

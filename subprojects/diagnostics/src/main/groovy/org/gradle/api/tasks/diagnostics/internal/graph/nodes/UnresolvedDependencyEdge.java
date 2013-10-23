@@ -31,7 +31,7 @@ public class UnresolvedDependencyEdge implements DependencyEdge {
 
     public UnresolvedDependencyEdge(UnresolvedDependencyResult dependency) {
         this.dependency = dependency;
-        ModuleComponentSelector attempted = dependency.getAttempted();
+        ModuleComponentSelector attempted = (ModuleComponentSelector)dependency.getAttempted();
         actual = DefaultModuleComponentIdentifier.newId(attempted.getGroup(), attempted.getName(), attempted.getVersion());
     }
 
@@ -40,7 +40,7 @@ public class UnresolvedDependencyEdge implements DependencyEdge {
     }
 
     public ModuleComponentSelector getRequested() {
-        return dependency.getRequested();
+        return (ModuleComponentSelector)dependency.getRequested();
     }
 
     public ModuleComponentIdentifier getActual() {
@@ -52,7 +52,7 @@ public class UnresolvedDependencyEdge implements DependencyEdge {
     }
 
     public ModuleComponentIdentifier getFrom() {
-        return dependency.getFrom().getId();
+        return (ModuleComponentIdentifier)dependency.getFrom().getId();
     }
 
     public Set<? extends RenderableDependency> getChildren() {

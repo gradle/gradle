@@ -17,6 +17,7 @@ package org.gradle.api.reporting.dependencies.internal;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.specs.Spec;
@@ -41,12 +42,13 @@ public class StrictDependencyResultSpec implements Spec<DependencyResult> {
     }
 
     private boolean matchesRequested(DependencyResult candidate) {
-        return candidate.getRequested().getGroup().equals(moduleIdentifier.getGroup())
-               && candidate.getRequested().getName().equals(moduleIdentifier.getName());
+        ModuleComponentSelector requested = (ModuleComponentSelector)candidate.getRequested();
+        return requested.getGroup().equals(moduleIdentifier.getGroup())
+               && requested.getName().equals(moduleIdentifier.getName());
     }
 
     private boolean matchesSelected(ResolvedDependencyResult candidate) {
-        ModuleComponentIdentifier selected = candidate.getSelected().getId();
+        ModuleComponentIdentifier selected = (ModuleComponentIdentifier)candidate.getSelected().getId();
         return selected.getGroup().equals(moduleIdentifier.getGroup())
                && selected.getName().equals(moduleIdentifier.getName());
     }

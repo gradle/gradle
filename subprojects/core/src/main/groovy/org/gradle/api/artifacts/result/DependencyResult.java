@@ -17,7 +17,7 @@
 package org.gradle.api.artifacts.result;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.artifacts.component.ModuleComponentSelector;
+import org.gradle.api.artifacts.component.ComponentSelector;
 
 /**
  * An edge in the dependency graph. Provides information about the origin of the dependency and the requested component.
@@ -27,11 +27,11 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector;
 @Incubating
 public interface DependencyResult {
     /**
-     * Returns the requested module component.
+     * Returns the requested component.
      *
-     * @return the requested module component
+     * @return the requested component
      */
-    ModuleComponentSelector getRequested();
+    ComponentSelector getRequested();
 
     /**
      * Returns the origin of the dependency.

@@ -47,8 +47,8 @@ public class DependencyResultSorter {
         }
 
         public int compare(DependencyEdge left, DependencyEdge right) {
-            ModuleComponentSelector leftRequested = left.getRequested();
-            ModuleComponentSelector rightRequested = right.getRequested();
+            ModuleComponentSelector leftRequested = (ModuleComponentSelector)left.getRequested();
+            ModuleComponentSelector rightRequested = (ModuleComponentSelector)right.getRequested();
             int byGroup = leftRequested.getGroup().compareTo(rightRequested.getGroup());
             if (byGroup != 0) {
                 return byGroup;
@@ -89,8 +89,8 @@ public class DependencyResultSorter {
                 return byVersion;
             }
 
-            ModuleComponentIdentifier leftFrom = left.getFrom();
-            ModuleComponentIdentifier rightFrom = right.getFrom();
+            ModuleComponentIdentifier leftFrom = (ModuleComponentIdentifier)left.getFrom();
+            ModuleComponentIdentifier rightFrom = (ModuleComponentIdentifier)right.getFrom();
             byGroup = leftFrom.getGroup().compareTo(rightFrom.getGroup());
             if (byGroup != 0) {
                 return byGroup;

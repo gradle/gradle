@@ -17,7 +17,7 @@
 package org.gradle.api.artifacts.result;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 
 import java.util.Set;
 
@@ -33,7 +33,7 @@ public interface ResolvedComponentResult {
      *
      * @return the identifier of this component
      */
-    ModuleComponentIdentifier getId();
+    ComponentIdentifier getId();
 
     /**
      * Returns the dependencies of this component.
@@ -63,5 +63,5 @@ public interface ResolvedComponentResult {
      *
      * @return the identifier of the component
      */
-    ModuleComponentIdentifier getPublishedAs();
+    ComponentIdentifier getPublishedAs();
 }
