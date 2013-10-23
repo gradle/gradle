@@ -544,8 +544,8 @@ This story adds support for building a native component using multiple tool chai
 
 ### Tests
 
-- With no toolchain defined, build on windows with Visual C++/MinGW/cygwin-gcc in path and on linux with gcc4/gcc3 in path. (existing tests)
-- Build with gcc3 & gcc4 on Linux in a single invocation, with neither tool chain in path.
+- With no toolchain defined, build on windows with Visual C++/MinGW/cygwin-gcc in path and on linux with gcc4/clang in path. (existing tests)
+- Build with clang & gcc4 on Linux in a single invocation, with neither tool chain in path.
 - Build with Visual C++, MinGW and GCC on Windows in a single invocation, with no tool chain in path.
 - Reasonable error message when no tool chain is defined and default is not available.
 - Reasonable error message any defined tool chain not available.
@@ -659,35 +659,85 @@ Standard build types (debug/release) and build type compatibility will be handle
 - When resolving the dependencies of a binary `b`, for a dependency on library `l`:
     - Select a binary for library `l` that has a build type with a matching name.
 
-## Story: Cross-compile for multiple operating systems
+## Story: Use GCC to cross-compile for custom target platforms
 
-This story adds support for cross-compilation. Add the concept of an operating system to the platform.
+This story adds support for cross-compilation with GCC. It adds the concept of a 'platform configuration' to be supplied to a tool chain,
+specifying arguments to use with GCC when targeting a particular platform.
 
-- Add `OperatingSystem` and simple type extending Named
-- Add `Platform.operatingSystem` property. Should default to the operating system of the build machine.
-- Add `ToolChain.targetPlatform` add to the set of supported target platforms for a tool chain.
+- Add `TargetPlatformConfiguration` that defines the set of tool arguments that should be provided to the tool chain
+  when building for a target platform.
+- Add `Gcc.addPlatformConfiguration(TargetPlatformConfiguration)` to add target platform support to a tool chain.
+- Add `ToolChainInternal.canTargetPlatform(Platform)` to determine if a particular tool chain supports building for a particular
+  target platform.
+  - For GCC 'i386' and 'x86_64' will have built-in support.
+  - For Visual C++, the supported platforms is not extensible. Support is limited to 'i386', 'x86_64' and 'ia64'.
 
 ### User visible changes
-
     toolChains {
-        gccXCompile(GccToolChain) {
-            path "/my/crosscompiler"
+        crossCompiler(Gcc) {
+            addPlatformConfiguration(new ArmSupport())
+        }
+    }
+    targetPlatforms {
+        arm {
+            architecture "arm"
 
-            targetPlatform "linux_x86" // target by name
-            targetPlatform {
-                it.operatingSystem.name == "windows" && it.architecture.name == "x86"
-            }
+        }
+        x64 {
+            architecture "x86_64"
         }
     }
 
+    class ArmSupport implements TargetPlatformConfiguration {
+        boolean supportsPlatform(Platform element) {
+            return element.getArchitecture().name == "arm"
+        }
+
+        List<String> getCppCompilerArgs() {
+            ["-mcpu=arm"]
+        }
+
+        List<String> getCCompilerArgs() {
+            ["-mcpu=arm"]
+        }
+
+        List<String> getAssemblerArgs() {
+            []
+        }
+
+        List<String> getLinkerArgs() {
+            ["-arch", "arm"]
+        }
+
+        List<String> getStaticLibraryArchiverArgs() {
+            []
+        }
+    }
+
+### Open issues
+
+- Need to be able to build for a single platform or all available platforms.
+- Add some opt-in way to define variants using a matrix of (flavour, tool chain, architecture, operating system).
+
+## Story: Build a native component for multiple operating systems
+
+This story adds the concept of an operating system to the platform. A tool chain may only be able to build for a particular
+target operating system, an for GCC additional support may be added to target an operating system.
+
+- Add `OperatingSystem` and simple type extending Named
+- Add `Platform.operatingSystem` property. Default is the default target operating system of the tool chain.
+    - Can configure the operating system with a string arg to `Platform.operatingSystem()`: a set of standard names will map to
+      windows, linux, osx and solaris.
+
+### User visible changes
     targetPlatforms {
         linux_x86 {
             operatingSystem "linux"
-            architecture "x86" // Synonym for x86-32, IA-32
+            architecture "x86"
         }
         linux_x64 {
             operatingSystem "linux"
-            architecture "x64" // Synonym for x86-64, AMD64
+            architecture "x64"
         }
         osx_64 {
             operatingSystem "osx"
@@ -695,24 +745,43 @@ This story adds support for cross-compilation. Add the concept of an operating s
         }
         itanium {
             architecture "IA-64"
+            // Use the tool chain default operating system
         }
     }
 
 ### Open issues
 
 - Different source files by platform
-- Need to be able to build for a single platform or all available platforms.
-- Need separate compiler, linker and assembler options for each operating system.
-- Need to discover which platforms a tool chain can build for.
 - Define some conventions for operating system names.
-- Add some opt-in way to define variants using a matrix of (flavour, tool chain, architecture, operating system).
+
+## Story: Incremental compilation for C and C++
+
+### Implementation
+
+There are two approaches to extracting the dependency information from source files: parse the source files looking for `#include` directives, or
+use the toolchain's preprocessor.
+
+For Visual studio, can run with `/P` and parse the resulting `.i` file to extract `#line nnn "filename"` directives. In practise, this is pretty slow.
+For example, a simple source file that includes `Windows.h` generates 2.7Mb in text output.
+
+For GCC, can run with `-M` or `-MM` and parse the resulting make file to extract the header dependencies.
+
+The implementation will also remove stale object files.
+
+### Test cases
+
+- Change a header file that is included by one source file, only that source file is recompiled.
+- Change a header file that is not included by any source files, no compilation or linking should happen.
+- Change a header file that is included by another header file.
+- Change a compiler setting, all source files are recompiled.
+- Remove a source file, the corresponding object file is removed.
+- Rename a source file, the corresponding object file is removed.
+- Remove all source files, all object files and binary files are removed.
 
 ## Story: Allow sources to be specified that apply to a particular Target Platform
 
 In some cases, different sources should be used depending on ToolChain or Target Platform. Assembler sources are almost always different
 for different platforms. This story will allow different sources to be used to build a Native Binary depending on the target platform.
-
-## Story: Allow definition of custom architecture and custom GCC Tool Chain to build for that architecture
 
 ## Story: Build native binaries with Visual C++ that target different Windows SDK versions
 
@@ -791,30 +860,6 @@ Depends on a number of stories in [dependency-resolution.md](dependency-resoluti
 
 - Build all types of binaries from all supported languages using Clang.
 - Change test apps to detect which compiler is used to compile and assert that the correct compiler is being used.
-
-## Story: Incremental compilation for C and C++
-
-### Implementation
-
-There are two approaches to extracting the dependency information from source files: parse the source files looking for `#include` directives, or
-use the toolchain's preprocessor.
-
-For Visual studio, can run with `/P` and parse the resulting `.i` file to extract `#line nnn "filename"` directives. In practise, this is pretty slow.
-For example, a simple source file that includes `Windows.h` generates 2.7Mb in text output.
-
-For GCC, can run with `-M` or `-MM` and parse the resulting make file to extract the header dependencies.
-
-The implementation will also remove stale object files.
-
-### Test cases
-
-- Change a header file that is included by one source file, only that source file is recompiled.
-- Change a header file that is not included by any source files, no compilation or linking should happen.
-- Change a header file that is included by another header file.
-- Change a compiler setting, all source files are recompiled.
-- Remove a source file, the corresponding object file is removed.
-- Rename a source file, the corresponding object file is removed.
-- Remove all source files, all object files and binary files are removed.
 
 ## Story: Allow a binary to be defined that is not part of a component
 
