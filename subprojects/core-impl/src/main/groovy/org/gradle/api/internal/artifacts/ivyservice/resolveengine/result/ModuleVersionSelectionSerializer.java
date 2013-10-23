@@ -28,7 +28,7 @@ import java.io.IOException;
 public class ModuleVersionSelectionSerializer implements Serializer<ModuleVersionSelection> {
 
     private final ModuleVersionIdentifierSerializer idSerializer = new ModuleVersionIdentifierSerializer();
-    private final ModuleVersionSelectionReasonSerializer reasonSerializer = new ModuleVersionSelectionReasonSerializer();
+    private final ComponentSelectionReasonSerializer reasonSerializer = new ComponentSelectionReasonSerializer();
 
     public ModuleVersionSelection read(Decoder decoder) throws IOException {
         ModuleVersionIdentifier id = idSerializer.read(decoder);

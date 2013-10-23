@@ -20,9 +20,9 @@ import org.gradle.api.artifacts.result.ComponentSelectionReason
 import org.gradle.messaging.serialize.InputStreamBackedDecoder
 import org.gradle.messaging.serialize.SerializerSpec
 
-class ModuleVersionSelectionReasonSerializerTest extends SerializerSpec {
+class ComponentSelectionReasonSerializerTest extends SerializerSpec {
 
-    private serializer = new ModuleVersionSelectionReasonSerializer()
+    private serializer = new ComponentSelectionReasonSerializer()
 
     def "serializes"() {
         expect:

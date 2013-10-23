@@ -49,9 +49,14 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ## Potential breaking changes
 
-<!--
-### Example breaking change
--->
+### Dependency resolution result produces a graph of components instead of a graph of module versions.
+
+* The dependency resolution result is changed so that it produces a graph of components.
+* Various interfaces were renamed to reflect this change:
+    * `ResolvedModuleVersionResult` to `ResolvedComponentResult`
+    * `ModuleVersionSelectionReason` to `ComponentSelectionReason`
+    * `ModuleVersionSelectionReasonSerializer` to `ComponentSelectionReasonSerializer`
+* Various interface method signatures were changed to return the new component types: `DependencyResult`, `ResolvedComponentResult`, `UnresolvedDependencyResult`, `RenderableDependency` and `DependencyEdge`.
 
 ## External contributions
 

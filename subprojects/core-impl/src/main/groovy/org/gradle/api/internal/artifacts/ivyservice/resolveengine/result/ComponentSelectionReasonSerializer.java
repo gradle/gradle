@@ -27,7 +27,7 @@ import java.io.IOException;
 
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons.*;
 
-public class ModuleVersionSelectionReasonSerializer implements Serializer<ComponentSelectionReason> {
+public class ComponentSelectionReasonSerializer implements Serializer<ComponentSelectionReason> {
 
     private static final BiMap<Byte, ComponentSelectionReason> REASONS = HashBiMap.create(6);
 
