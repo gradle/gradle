@@ -785,6 +785,40 @@ for different platforms. This story will allow different sources to be used to b
 
 ## Story: Build native binaries with Visual C++ that target different Windows SDK versions
 
+## Story: Influence which variant is chosen for a library dependency
+
+This story adds the ability to define the variant attributes that should be matched when resolving a library dependency to a binary.
+For now, it will be possible to specify the linkage, flavor, buildType and platform of the variant. These values will be specified
+as string selectors, which will be matched to the respective attributes of each candidate binary.
+
+When a variant attribute is not specified, it will be matched to the consuming binary.
+
+### User visible changes
+
+    sources.main.cpp {
+        lib(libraries.hello) {
+            linkage "static"
+            flavor "chocolate"
+            buildType "debug-optimised"
+            platform "x86_64"
+        }
+    }
+    executables {
+        main {}
+    }
+
+### Test cases:
+
+- Executable with single flavor chooses which flavor of library to link
+- Executable chooses custom buildType for static library variant
+- Build fails when executable attempts to define multiple selection criteria for same library
+
+### Open issues:
+
+- Handle multiple definitions of selection criteria for the same library
+- Allow different library variants to be selected for different consuming variants
+- Need a way to define rules like: 'use all static variants'
+
 ## Story: Allow library binaries to be used as input to other libraries
 
 This story add support for using a library which has dependencies on other libraries.
