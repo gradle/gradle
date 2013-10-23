@@ -32,7 +32,6 @@ class DefaultBuildComponentIdentifierTest extends Specification {
         defaultBuildComponentIdentifier.toString() == 'project :myPath'
     }
 
-    @Unroll
     def "is instantiated with null constructor parameter value"() {
         when:
         new DefaultBuildComponentIdentifier(null)

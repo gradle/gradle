@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.component;
 
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 
@@ -50,11 +51,17 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector {
         return version;
     }
 
-    public boolean matchesStrictly(ModuleComponentIdentifier identifier) {
+    public boolean matchesStrictly(ComponentIdentifier identifier) {
         assert identifier != null : "identifier cannot be null";
-        return identifier.getName().equals(getName())
-                && identifier.getGroup().equals(getGroup())
-                && identifier.getVersion().equals(getVersion());
+
+        if(identifier instanceof ModuleComponentIdentifier) {
+            ModuleComponentIdentifier moduleComponentIdentifier = (ModuleComponentIdentifier)identifier;
+            return moduleComponentIdentifier.getName().equals(getName())
+                    && moduleComponentIdentifier.getGroup().equals(getGroup())
+                    && moduleComponentIdentifier.getVersion().equals(getVersion());
+        }
+
+        return false;
     }
 
     @Override

@@ -91,6 +91,15 @@ class DefaultModuleComponentSelectorTest extends Specification {
         assert t.message == 'identifier cannot be null'
     }
 
+    def "does not match id for unexpected component selector type"() {
+        when:
+        ModuleComponentSelector defaultModuleComponentSelector = new DefaultModuleComponentSelector('some-group', 'some-name', '1.0')
+        boolean matches = defaultModuleComponentSelector.matchesStrictly(new DefaultBuildComponentIdentifier(':mypath'))
+
+        then:
+        assert !matches
+    }
+
     @Unroll
     def "matches id (#group, #name, #version)"() {
         expect:

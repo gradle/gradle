@@ -21,6 +21,6 @@ import org.gradle.api.Incubating;
  * Selects a locally built component.
  */
 @Incubating
-public interface BuildComponentSelector extends ComponentSelector<BuildComponentIdentifier> {
+public interface BuildComponentSelector extends ComponentSelector {
     String getProjectPath();
 }

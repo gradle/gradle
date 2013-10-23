@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.component;
 
 import org.gradle.api.artifacts.component.BuildComponentIdentifier;
 import org.gradle.api.artifacts.component.BuildComponentSelector;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 
 public class DefaultBuildComponentSelector implements BuildComponentSelector {
     private final String projectPath;
@@ -36,9 +37,15 @@ public class DefaultBuildComponentSelector implements BuildComponentSelector {
         return projectPath;
     }
 
-    public boolean matchesStrictly(BuildComponentIdentifier identifier) {
+    public boolean matchesStrictly(ComponentIdentifier identifier) {
         assert identifier != null : "identifier cannot be null";
-        return identifier.getProjectPath().equals(getProjectPath());
+
+        if(identifier instanceof BuildComponentIdentifier) {
+            BuildComponentIdentifier buildComponentIdentifier = (BuildComponentIdentifier)identifier;
+            return buildComponentIdentifier.getProjectPath().equals(getProjectPath());
+        }
+
+        return false;
     }
 
     @Override
