@@ -22,6 +22,8 @@ import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.internal.CacheFactory;
 import org.gradle.cache.internal.FileLockManager;
 import org.gradle.cache.internal.PersistentIndexedCacheParameters;
+import org.gradle.cache.internal.filelock.LockOptions;
+import org.gradle.cache.internal.filelock.LockOptionsBuilder;
 import org.gradle.messaging.serialize.DefaultSerializer;
 import org.gradle.util.CollectionUtils;
 
@@ -42,7 +44,8 @@ public class IncrementalCompileProcessorFactory {
     public IncrementalCompileProcessor create(File cacheDir, String cacheKey, Iterable<File> includes) {
         // Cache is private to a named task
         File privateCacheDir = new File(cacheDir, cacheKey);
-        PersistentCache cache = cacheFactory.open(privateCacheDir, "cppCompile", CacheUsage.ON, null, Collections.<String, Object>emptyMap(), FileLockManager.LockMode.Exclusive, null);
+        LockOptions lockOptions = LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive);
+        PersistentCache cache = cacheFactory.open(privateCacheDir, "cppCompile", CacheUsage.ON, null, Collections.<String, Object>emptyMap(), lockOptions, null);
 
         PersistentIndexedCache<File, FileState> stateCache = createCache(cache, "state", File.class, new DefaultSerializer<FileState>(FileState.class.getClassLoader()));
 
