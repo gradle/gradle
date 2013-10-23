@@ -20,6 +20,7 @@ import org.gradle.internal.os.OperatingSystem;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.util.GradleVersion;
+import org.gradle.util.VersionNumber;
 
 public interface GradleDistribution {
     /**
@@ -75,7 +76,7 @@ public interface GradleDistribution {
     /**
      * Returns the version of the artifact cache layout
      */
-    int getArtifactCacheLayoutVersion();
+    VersionNumber getArtifactCacheLayoutVersion();
 
     /**
      * Returns true if the open API is supported by this distribution.
