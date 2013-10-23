@@ -72,7 +72,7 @@ public class BuildSourceBuilder {
     PersistentCache createCache(StartParameter startParameter) {
         return cacheRepository.
                     cache("buildSrc").
-                    withLockOptions(mode(FileLockManager.LockMode.None).simple()).
+                    withLockOptions(mode(FileLockManager.LockMode.None).useCrossVersionImplementation()).
                     forObject(startParameter.getCurrentDir()).
                     withVersionStrategy(CacheBuilder.VersionStrategy.SharedCacheInvalidateOnVersionChange).
                     open();

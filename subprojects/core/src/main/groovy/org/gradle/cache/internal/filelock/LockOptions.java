@@ -21,7 +21,7 @@ public interface LockOptions {
 
     FileLockManager.LockMode getMode();
 
-    LockStateSerializer getLockStateSerializer();
+    boolean isUseCrossVersionImplementation();
 
     /**
      * Creates a copy of these options with the given mode.

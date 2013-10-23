@@ -20,19 +20,19 @@ import org.gradle.cache.internal.FileLockManager;
 public class LockOptionsBuilder implements LockOptions {
 
     private FileLockManager.LockMode mode;
-    private boolean simple;
+    private boolean crossVersion;
 
-    private LockOptionsBuilder(FileLockManager.LockMode mode, boolean simple) {
+    private LockOptionsBuilder(FileLockManager.LockMode mode, boolean crossVersion) {
         this.mode = mode;
-        this.simple = simple;
+        this.crossVersion = crossVersion;
     }
 
     public static LockOptionsBuilder mode(FileLockManager.LockMode lockMode) {
         return new LockOptionsBuilder(lockMode, false);
     }
 
-    public LockOptionsBuilder simple() {
-        simple = true;
+    public LockOptionsBuilder useCrossVersionImplementation() {
+        crossVersion = true;
         return this;
     }
 
@@ -40,22 +40,17 @@ public class LockOptionsBuilder implements LockOptions {
         return mode;
     }
 
-    public LockStateSerializer getLockStateSerializer() {
-        return simple? new Version1LockStateSerializer() : new DefaultLockStateSerializer();
+    public boolean isUseCrossVersionImplementation() {
+        return crossVersion;
     }
 
     public LockOptions withMode(FileLockManager.LockMode mode) {
-        return mode(mode).simple(simple);
-    }
-
-    private LockOptions simple(boolean simple) {
-        this.simple = simple;
-        return this;
+        return new LockOptionsBuilder(mode, crossVersion);
     }
 
     @Override
     public String toString() {
-        return mode + " (simple=" + simple + ")";
+        return mode + " (simple=" + crossVersion + ")";
     }
 
     @Override
@@ -69,7 +64,7 @@ public class LockOptionsBuilder implements LockOptions {
 
         LockOptionsBuilder that = (LockOptionsBuilder) o;
 
-        if (simple != that.simple) {
+        if (crossVersion != that.crossVersion) {
             return false;
         }
         if (mode != that.mode) {
@@ -82,7 +77,7 @@ public class LockOptionsBuilder implements LockOptions {
     @Override
     public int hashCode() {
         int result = mode.hashCode();
-        result = 31 * result + (simple ? 1 : 0);
+        result = 31 * result + (crossVersion ? 1 : 0);
         return result;
     }
 }
