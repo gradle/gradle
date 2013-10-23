@@ -18,6 +18,7 @@ package org.gradle.api.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.internal.UncheckedException;
 
 import java.io.*;
 import java.nio.charset.Charset;
@@ -59,6 +60,33 @@ public abstract class IoActions {
      */
     public static Action<Action<? super BufferedWriter>> createTextFileWriteAction(File output, String encoding) {
         return new TextFileWriterIoAction(output, encoding);
+    }
+
+    /**
+     * Performs the given action against the given resource, then closes the resource. Ignores failure to close the resource when
+     * the action throws an exception.
+     *
+     * @param resource
+     * @param action
+     * @param <T>
+     */
+    public static <T extends Closeable> void withResource(T resource, Action<? super T> action) {
+        try {
+            action.execute(resource);
+        } catch(Throwable t) {
+            try {
+                resource.close();
+            } catch (IOException e) {
+                // Ignored
+            }
+            throw UncheckedException.throwAsUncheckedException(t);
+        }
+
+        try {
+            resource.close();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     private static class TextFileWriterIoAction implements Action<Action<? super BufferedWriter>> {

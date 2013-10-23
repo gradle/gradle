@@ -15,12 +15,13 @@
  */
 package org.gradle.api.internal.file.archive;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.tools.zip.UnixStat;
 import org.apache.tools.zip.ZipEntry;
 import org.apache.tools.zip.ZipOutputStream;
+import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCopyDetails;
+import org.gradle.api.internal.IoActions;
 import org.gradle.api.internal.file.CopyActionProcessingStreamAction;
 import org.gradle.api.internal.file.copy.CopyAction;
 import org.gradle.api.internal.file.copy.CopyActionProcessingStream;
@@ -28,7 +29,6 @@ import org.gradle.api.internal.file.copy.FileCopyDetailsInternal;
 import org.gradle.api.internal.file.copy.ZipCompressor;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.internal.UncheckedException;
 
 import java.io.File;
 
@@ -41,7 +41,7 @@ public class ZipCopyAction implements CopyAction {
         this.compressor = compressor;
     }
 
-    public WorkResult execute(CopyActionProcessingStream stream) {
+    public WorkResult execute(final CopyActionProcessingStream stream) {
         final ZipOutputStream zipOutStr;
 
         try {
@@ -50,13 +50,11 @@ public class ZipCopyAction implements CopyAction {
             throw new GradleException(String.format("Could not create ZIP '%s'.", zipFile), e);
         }
 
-        try {
-            stream.process(new StreamAction(zipOutStr));
-        } catch (Exception e) {
-            UncheckedException.throwAsUncheckedException(e);
-        } finally {
-            IOUtils.closeQuietly(zipOutStr);
-        }
+        IoActions.withResource(zipOutStr, new Action<ZipOutputStream>() {
+            public void execute(ZipOutputStream outputStream) {
+                stream.process(new StreamAction(outputStream));
+            }
+        });
 
         return new SimpleWorkResult(true);
     }

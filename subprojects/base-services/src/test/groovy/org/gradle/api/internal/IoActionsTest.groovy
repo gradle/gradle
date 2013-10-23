@@ -89,4 +89,79 @@ class IoActionsTest extends Specification {
         then:
         file.text == "bar⌘"
     }
+
+    def "closes resource after executing action"() {
+        def action = Mock(Action)
+        def resource = Mock(Closeable)
+
+        when:
+        withResource(resource, action)
+
+        then:
+        1 * action.execute(resource)
+
+        then:
+        1 * resource.close()
+        0 * _._
+    }
+
+    def "closes resource after action fails"() {
+        def action = Mock(Action)
+        def resource = Mock(Closeable)
+        def failure = new RuntimeException()
+
+        when:
+        withResource(resource, action)
+
+        then:
+        RuntimeException e = thrown()
+        e.is(failure)
+
+        then:
+        1 * action.execute(resource) >> { throw failure }
+
+        then:
+        1 * resource.close()
+        0 * _._
+    }
+
+    def "propagates failure to close resource"() {
+        def action = Mock(Action)
+        def resource = Mock(Closeable)
+        def failure = new RuntimeException()
+
+        when:
+        withResource(resource, action)
+
+        then:
+        RuntimeException e = thrown()
+        e.is(failure)
+
+        then:
+        1 * action.execute(resource)
+
+        then:
+        1 * resource.close() >> { throw failure }
+        0 * _._
+    }
+
+    def "discards IOException thrown when closing resource after action fails"() {
+        def action = Mock(Action)
+        def resource = Mock(Closeable)
+        def failure = new RuntimeException()
+
+        when:
+        withResource(resource, action)
+
+        then:
+        RuntimeException e = thrown()
+        e.is(failure)
+
+        then:
+        1 * action.execute(resource) >> { throw failure }
+
+        then:
+        1 * resource.close() >> { throw new IOException("ignore me") }
+        0 * _._
+    }
 }
