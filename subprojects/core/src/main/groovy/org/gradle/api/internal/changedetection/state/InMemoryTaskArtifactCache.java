@@ -28,11 +28,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class InMemoryTaskArtifactCache implements InMemoryPersistentCacheDecorator {
-
     private final static Logger LOG = Logging.getLogger(InMemoryTaskArtifactCache.class);
+    private final static Object NULL = new Object();
 
     private final Object lock = new Object();
-    private final Map<File, Cache> cache = new HashMap<File, Cache>();
+    private final Map<File, Cache<Object, Object>> cache = new HashMap<File, Cache<Object, Object>>();
     private final Map<File, FileLock.State> states = new HashMap<File, FileLock.State>();
 
     private static final Map<String, Integer> CACHE_CAPS = new HashMap<String, Integer>();
@@ -51,7 +51,7 @@ public class InMemoryTaskArtifactCache implements InMemoryPersistentCacheDecorat
     }
 
     public <K, V> MultiProcessSafePersistentIndexedCache<K, V> withMemoryCaching(final File cacheFile, final MultiProcessSafePersistentIndexedCache<K, V> original) {
-        final Cache<K, V> data;
+        final Cache<Object, Object> data;
         synchronized (lock) {
             if (this.cache.containsKey(cacheFile)) {
                 data = this.cache.get(cacheFile);
@@ -63,6 +63,7 @@ public class InMemoryTaskArtifactCache implements InMemoryPersistentCacheDecorat
                 this.cache.put(cacheFile, data);
             }
         }
+
         return new MultiProcessSafePersistentIndexedCache<K, V>() {
             public void close() {
                 original.close();
@@ -70,22 +71,25 @@ public class InMemoryTaskArtifactCache implements InMemoryPersistentCacheDecorat
 
             public V get(K key) {
                 assert key instanceof String || key instanceof Long || key instanceof File : "Unsupported key type: " + key;
-                V value = data.getIfPresent(key);
+                Object value = data.getIfPresent(key);
+                if (value == NULL) {
+                    return null;
+                }
                 if (value != null) {
-                    return value;
+                    return (V) value;
                 }
                 V out = original.get(key);
-                data.put(key, out);
+                data.put(key, out == null ? NULL : out);
                 return out;
             }
 
             public void put(K key, V value) {
-                data.put(key, value);
                 original.put(key, value);
+                data.put(key, value);
             }
 
             public void remove(K key) {
-                data.invalidate(key);
+                data.put(key, NULL);
                 original.remove(key);
             }
 
