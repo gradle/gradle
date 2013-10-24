@@ -14,16 +14,11 @@
  * limitations under the License.
  */
 package org.gradle.cache.internal
-
 import org.gradle.CacheUsage
 import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.invocation.Gradle
-import org.gradle.cache.CacheBuilder.VersionStrategy
-import org.gradle.cache.CacheValidator
-import org.gradle.cache.PersistentCache
-import org.gradle.cache.PersistentIndexedCache
-import org.gradle.cache.PersistentStateCache
+import org.gradle.cache.*
 import org.gradle.messaging.serialize.DefaultSerializer
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -32,7 +27,6 @@ import org.junit.Rule
 import spock.lang.Specification
 
 import static org.gradle.cache.internal.FileLockManager.LockMode.*
-import static org.gradle.cache.internal.FileLockManager.LockMode.None
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode
 
 class DefaultCacheRepositoryTest extends Specification {
@@ -109,38 +103,16 @@ class DefaultCacheRepositoryTest extends Specification {
         1 * cacheFactory.open(sharedCacheDir.file(version, "a/b/c"), null, CacheUsage.ON, null, properties, mode(Shared), null) >> cache
     }
 
-    public void createsCacheForAGradleInstance() {
+    public void createsCacheWithLayout() {
+        def layout = Mock(CacheLayout)
+        def cacheDir = tmpDir.createDir("cache")
         when:
-        repository.cache("a/b/c").forObject(gradle).open()
+        repository.cache("a/b/c").withProperties(properties).withLayout(layout).open()
 
         then:
-        1 * cacheFactory.open(buildRootDir.file(".gradle", version, "a/b/c"), null, CacheUsage.ON, null, [:], mode(Shared), null) >> cache
-    }
-
-    public void createsCacheForAFile() {
-        final TestFile dir = tmpDir.createDir("otherDir");
-
-        when:
-        repository.cache("a/b/c").forObject(dir).open()
-
-        then:
-        1 * cacheFactory.open(dir.file(".gradle", version, "a/b/c"), null, CacheUsage.ON, null, [:], mode(Shared), null) >> cache
-    }
-
-    public void createsCrossVersionCacheThatIsInvalidatedOnVersionChange() {
-        when:
-        repository.cache("a/b/c").withVersionStrategy(VersionStrategy.SharedCacheInvalidateOnVersionChange).open()
-
-        then:
-        1 * cacheFactory.open(sharedCacheDir.file("noVersion", "a/b/c"), null, CacheUsage.ON, null, ["gradle.version": version], mode(Shared), null) >> cache
-    }
-
-    public void createsCrossVersionCacheForAGradleInstanceThatIsInvalidatedOnVersionChange() {
-        when:
-        repository.cache("a/b/c").withVersionStrategy(VersionStrategy.SharedCacheInvalidateOnVersionChange).forObject(gradle).open()
-
-        then:
-        1 * cacheFactory.open(buildRootDir.file(".gradle", "noVersion", "a/b/c"), null, CacheUsage.ON, null, ["gradle.version": version], mode(Shared), null) >> cache
+        1 * layout.getCacheDir(sharedCacheDir, null, "a/b/c") >> cacheDir
+        1 * layout.applyLayoutProperties(properties) >> [version: "foo"]
+        1 * cacheFactory.open(cacheDir, null, CacheUsage.ON, null, [version: "foo"], mode(Shared), null) >> cache
     }
 
     public void canSpecifyInitializerActionForDirectoryCache() {

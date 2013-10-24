@@ -17,9 +17,11 @@ package org.gradle.nativebinaries.language.c.internal.incremental;
 
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.Hasher;
+import org.gradle.cache.CacheLayout;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.cache.internal.CacheLayoutBuilder;
 import org.gradle.cache.internal.FileLockManager;
 import org.gradle.cache.internal.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.filelock.LockOptions;
@@ -76,7 +78,11 @@ public class IncrementalCompilerBuilder {
 
     private IncrementalCompileProcessor createProcessor(TaskInternal task, Iterable<File> includes) {
         LockOptions lockOptions = LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive);
-        PersistentCache cache = cacheRepository.cache("incrementalCompile").forObject(task).withLockOptions(lockOptions).open();
+        CacheLayout layout = new CacheLayoutBuilder()
+                .withBuildScope(task.getProject())
+                .withPath("taskState", task.getName())
+                .build();
+        PersistentCache cache = cacheRepository.cache("incrementalCompile").withLayout(layout).withLockOptions(lockOptions).open();
 
         PersistentIndexedCache<File, FileState> stateCache = createCache(cache, "state", File.class, new DefaultSerializer<FileState>(FileState.class.getClassLoader()));
         // TODO:DAZ This doesn't need to be an indexed cache: need PersistentCache.createStateCache()

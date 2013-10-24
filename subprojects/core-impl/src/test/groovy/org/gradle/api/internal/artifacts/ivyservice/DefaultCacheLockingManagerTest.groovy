@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.api.internal.artifacts.ivyservice
-
 import org.gradle.api.internal.filestore.PathKeyFileStore
-import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.DirectoryCacheBuilder
 import org.gradle.cache.PersistentCache
@@ -45,7 +43,7 @@ class DefaultCacheLockingManagerTest extends Specification {
         then:
         1 * cacheRepository.store(CacheLayout.ROOT.getKey()) >> directoryCacheBuilder
         1 * directoryCacheBuilder.withDisplayName("artifact cache") >> directoryCacheBuilder
-        1 * directoryCacheBuilder.withVersionStrategy(CacheBuilder.VersionStrategy.SharedCache) >> directoryCacheBuilder
+        1 * directoryCacheBuilder.withLayout(_) >> directoryCacheBuilder
         1 * directoryCacheBuilder.withLockOptions(mode(FileLockManager.LockMode.None)) >> directoryCacheBuilder
         1 * directoryCacheBuilder.open() >> persistentCache
         2 * persistentCache.baseDir >> testCacheDir
@@ -64,7 +62,7 @@ class DefaultCacheLockingManagerTest extends Specification {
         then:
         1 * cacheRepository.store(CacheLayout.ROOT.getKey()) >> directoryCacheBuilder
         1 * directoryCacheBuilder.withDisplayName("artifact cache") >> directoryCacheBuilder
-        1 * directoryCacheBuilder.withVersionStrategy(CacheBuilder.VersionStrategy.SharedCache) >> directoryCacheBuilder
+        1 * directoryCacheBuilder.withLayout(_) >> directoryCacheBuilder
         1 * directoryCacheBuilder.withLockOptions(mode(FileLockManager.LockMode.None)) >> directoryCacheBuilder
         1 * directoryCacheBuilder.open() >> persistentCache
         2 * persistentCache.baseDir >> testCacheDir

@@ -18,10 +18,10 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.filestore.PathKeyFileStore;
 import org.gradle.api.internal.filestore.UniquePathKeyFileStore;
-import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.cache.internal.CacheLayoutBuilder;
 import org.gradle.cache.internal.FileLockManager;
 import org.gradle.cache.internal.PersistentIndexedCacheParameters;
 import org.gradle.internal.Factory;
@@ -43,7 +43,7 @@ public class DefaultCacheLockingManager implements CacheLockingManager {
         cache = cacheRepository
                 .store(CacheLayout.ROOT.getKey())
                 .withDisplayName("artifact cache")
-                .withVersionStrategy(CacheBuilder.VersionStrategy.SharedCache)
+                .withLayout(new CacheLayoutBuilder().withSharedCache().build())
                 .withLockOptions(mode(FileLockManager.LockMode.None)) // Don't need to lock anything until we use the caches
                 .open();
 

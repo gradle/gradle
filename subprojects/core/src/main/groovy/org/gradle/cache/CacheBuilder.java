@@ -45,20 +45,13 @@ public interface CacheBuilder<T> {
     CacheBuilder<T> withProperties(Map<String, ?> properties);
 
     /**
-     * Specifies the target domain object.  This might be a task, project, or similar. The cache is scoped for the given target object. The default is to use a globally-scoped cache.
+     * Specifies the layout strategy for the Cache.
      *
-     * @param target The target domain object which the cache is for.
+     * @param layout The layout for this cache.
      * @return this
      */
-    CacheBuilder<T> forObject(Object target);
+    CacheBuilder<T> withLayout(CacheLayout layout);
 
-    /**
-     * Specifies the versioning strategy for this cache. The default is {@link VersionStrategy#CachePerVersion}.
-     *
-     * @param strategy The strategy
-     * @return this
-     */
-    CacheBuilder<T> withVersionStrategy(VersionStrategy strategy);
 
     /**
      * Specifies a cache validator for this cache. If {@link CacheValidator#isValid()} results in false, the Cache is considered as invalid.
