@@ -17,6 +17,7 @@ package org.gradle.cache.internal;
 
 import org.gradle.CacheUsage;
 import org.gradle.api.Action;
+import org.gradle.api.Task;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.*;
 import org.gradle.cache.internal.filelock.LockOptions;
@@ -102,6 +103,10 @@ public class DefaultCacheRepository implements CacheRepository {
                 Gradle gradle = (Gradle) target;
                 File rootProjectDir = gradle.getRootProject().getProjectDir();
                 cacheBaseDir = maybeProjectCacheDir(rootProjectDir);
+            } else if (target instanceof Task) {
+                Task task = (Task) target;
+                File rootProjectDir = task.getProject().getRootProject().getProjectDir();
+                cacheBaseDir = new File(new File(maybeProjectCacheDir(rootProjectDir), "tasks"), task.getName());
             } else if (target instanceof File) {
                 cacheBaseDir = new File((File) target, ".gradle");
             } else {

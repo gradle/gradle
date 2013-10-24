@@ -17,22 +17,23 @@ package org.gradle.nativebinaries.language.c.internal.incremental;
 
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.cache.CacheAccess;
 import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec;
 
 import java.util.concurrent.atomic.AtomicReference;
 
 public class CacheLockingIncrementalCompiler implements Compiler<NativeCompileSpec> {
-    private final IncrementalCompileProcessor incrementalCompileProcessor;
+    private final CacheAccess cacheAccess;
     private final Compiler<NativeCompileSpec> delegateCompiler;
 
-    public CacheLockingIncrementalCompiler(IncrementalCompileProcessor incrementalCompileProcessor, Compiler<NativeCompileSpec> delegateCompiler) {
-        this.incrementalCompileProcessor = incrementalCompileProcessor;
+    public CacheLockingIncrementalCompiler(CacheAccess cacheAccess, Compiler<NativeCompileSpec> delegateCompiler) {
+        this.cacheAccess = cacheAccess;
         this.delegateCompiler = delegateCompiler;
     }
 
     public WorkResult execute(final NativeCompileSpec spec) {
         final AtomicReference<WorkResult> result = new AtomicReference<WorkResult>();
-        incrementalCompileProcessor.getCacheAccess().useCache("incremental compile", new Runnable() {
+        cacheAccess.useCache("incremental compile", new Runnable() {
             public void run() {
                 result.set(delegateCompiler.execute(spec));
             }
