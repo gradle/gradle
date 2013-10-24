@@ -15,33 +15,27 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
+import org.gradle.util.VersionNumber;
+
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 
 public enum CacheLayout {
-    ROOT("modules", "%d", 1, null),
-    FILE_STORE("files", "%d.%d", ROOT.majorVersion, 1),
-    META_DATA("metadata", "%d.%d", ROOT.majorVersion, 31);
+    ROOT(null, "modules", 2),
+    FILE_STORE(ROOT, "files", 1),
+    META_DATA(ROOT, "metadata", 1);
 
     private final String name;
-    private final String versionPattern;
-    private final Integer majorVersion;
-    private final Integer minorVersion;
+    private final CacheLayout parent;
+    private final int version;
 
-    private CacheLayout(String name, String versionPattern, Integer majorVersion, Integer minorVersion) {
+    private CacheLayout(CacheLayout parent, String name, int version) {
+        this.parent = parent;
         this.name = name;
-        this.versionPattern = versionPattern;
-        this.majorVersion = majorVersion;
-        this.minorVersion = minorVersion;
+        this.version = version;
     }
 
-    public Integer getMajorVersion() {
-        return majorVersion;
-    }
-
-    public Integer getMinorVersion() {
-        return minorVersion;
+    public VersionNumber getVersion() {
+        return VersionNumber.parse(getFormattedVersion());
     }
 
     public String getKey() {
@@ -53,14 +47,10 @@ public enum CacheLayout {
     }
 
     public String getFormattedVersion() {
-        List<Integer> versions = new ArrayList<Integer>();
-        versions.add(majorVersion);
-
-        if(minorVersion != null) {
-            versions.add(minorVersion);
+        if (parent == null) {
+            return String.valueOf(version);
         }
-
-        return String.format(versionPattern, versions.toArray());
+        return parent.getFormattedVersion() + '.' + String.valueOf(version);
     }
 
     public File getPath(File parentDir) {

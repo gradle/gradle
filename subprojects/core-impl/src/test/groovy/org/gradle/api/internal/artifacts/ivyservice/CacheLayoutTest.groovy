@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice
 
+import org.gradle.util.VersionNumber
 import spock.lang.Specification
 
 class CacheLayoutTest extends Specification {
@@ -23,10 +24,10 @@ class CacheLayoutTest extends Specification {
         CacheLayout cacheLayout = CacheLayout.ROOT
 
         then:
-        cacheLayout.getKey() == 'modules-1'
-        cacheLayout.getMajorVersion() == 1
-        cacheLayout.getFormattedVersion() == '1'
-        cacheLayout.getPath(new File('some/dir')) == new File('some/dir/modules-1')
+        cacheLayout.key == 'modules-2'
+        cacheLayout.version == VersionNumber.parse("2.0.0")
+        cacheLayout.formattedVersion == '2'
+        cacheLayout.getPath(new File('some/dir')) == new File('some/dir/modules-2')
     }
 
     def "use file store layout"() {
@@ -34,11 +35,10 @@ class CacheLayoutTest extends Specification {
         CacheLayout cacheLayout = CacheLayout.FILE_STORE
 
         then:
-        cacheLayout.key == 'files-1.1'
-        cacheLayout.majorVersion == 1
-        cacheLayout.minorVersion == 1
-        cacheLayout.formattedVersion == '1.1'
-        cacheLayout.getPath(new File('some/dir')) == new File('some/dir/files-1.1')
+        cacheLayout.key == 'files-2.1'
+        cacheLayout.version == VersionNumber.parse("2.1.0")
+        cacheLayout.formattedVersion == '2.1'
+        cacheLayout.getPath(new File('some/dir')) == new File('some/dir/files-2.1')
     }
 
     def "use metadata store layout"() {
@@ -46,10 +46,9 @@ class CacheLayoutTest extends Specification {
         CacheLayout cacheLayout = CacheLayout.META_DATA
 
         then:
-        cacheLayout.key == 'metadata-1.31'
-        cacheLayout.majorVersion == 1
-        cacheLayout.minorVersion == 31
-        cacheLayout.formattedVersion == '1.31'
-        cacheLayout.getPath(new File('some/dir')) == new File('some/dir/metadata-1.31')
+        cacheLayout.key == 'metadata-2.1'
+        cacheLayout.version == VersionNumber.parse("2.1.0")
+        cacheLayout.formattedVersion == '2.1'
+        cacheLayout.getPath(new File('some/dir')) == new File('some/dir/metadata-2.1')
     }
 }

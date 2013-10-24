@@ -26,6 +26,7 @@ import org.gradle.cache.internal.FileLockManager;
 import org.gradle.cache.internal.PersistentIndexedCacheParameters;
 import org.gradle.internal.Factory;
 import org.gradle.messaging.serialize.Serializer;
+import org.gradle.util.VersionNumber;
 
 import java.io.File;
 
@@ -35,7 +36,7 @@ public class DefaultCacheLockingManager implements CacheLockingManager {
 
     // If you update this, also update DefaultGradleDistribution.getArtifactCacheLayoutVersion() (which is the historical record)
     // You should also update LocallyAvailableResourceFinderFactory
-    public static final int CACHE_LAYOUT_VERSION = CacheLayout.META_DATA.getMinorVersion();
+    public static final VersionNumber CACHE_LAYOUT_VERSION = CacheLayout.META_DATA.getVersion();
 
     private final PersistentCache cache;
 

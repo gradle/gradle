@@ -21,6 +21,7 @@ import org.gradle.internal.os.OperatingSystem;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.util.GradleVersion;
+import org.gradle.util.VersionNumber;
 
 public class DefaultGradleDistribution implements GradleDistribution {
 
@@ -112,19 +113,21 @@ public class DefaultGradleDistribution implements GradleDistribution {
         return true;
     }
 
-    public int getArtifactCacheLayoutVersion() {
-        if (isSameOrNewer("1.9-rc-1")) {
-            return 31;
+    public VersionNumber getArtifactCacheLayoutVersion() {
+        if (isSameOrNewer("1.9-rc-2")) {
+            return VersionNumber.parse("2.1");
+        } else if (isSameOrNewer("1.9-rc-1")) {
+            return VersionNumber.parse("1.31");
         } else if (isSameOrNewer("1.7-rc-1")) {
-            return 26;
+            return VersionNumber.parse("0.26");
         } else if (isSameOrNewer("1.6-rc-1")) {
-            return 24;
+            return VersionNumber.parse("0.24");
         } else if (isSameOrNewer("1.4-rc-1")) {
-            return 23;
+            return VersionNumber.parse("0.23");
         } else if (isSameOrNewer("1.3")) {
-            return 15;
+            return VersionNumber.parse("0.15");
         } else {
-            return 1;
+            return VersionNumber.parse("0.1");
         }
     }
 
