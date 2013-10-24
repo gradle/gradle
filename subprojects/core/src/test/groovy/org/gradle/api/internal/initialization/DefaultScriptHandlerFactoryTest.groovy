@@ -22,9 +22,7 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerIn
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.groovy.scripts.ScriptSource
-
 import spock.lang.Specification
-import org.gradle.internal.classloader.MutableURLClassLoader
 
 class DefaultScriptHandlerFactoryTest extends Specification {
     private final DependencyMetaDataProvider metaDataProvider = Mock()
@@ -44,8 +42,9 @@ class DefaultScriptHandlerFactoryTest extends Specification {
 
         then:
         handler instanceof DefaultScriptHandler
-        handler.classLoader instanceof MutableURLClassLoader
-        handler.classLoader.parent == parentClassLoader
+        handler.classLoader instanceof ScriptClassLoader
+        ScriptClassLoader scriptLoader = handler.classLoader
+        scriptLoader.parentLoader == parentClassLoader
     }
 
     def reusesClassLoaderForGivenScriptClassAndParentClassLoader() {

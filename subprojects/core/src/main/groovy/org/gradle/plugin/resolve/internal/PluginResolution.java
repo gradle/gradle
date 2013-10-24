@@ -19,9 +19,6 @@ package org.gradle.plugin.resolve.internal;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 
-import java.io.File;
-import java.util.Set;
-
 /**
  * The result of attempting to resolve a plugin to a classpath.
  */

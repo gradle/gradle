@@ -14,20 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin;
+package org.gradle.plugin.resolve.internal;
 
-import org.gradle.api.Incubating;
-import org.gradle.api.internal.HasInternalProtocol;
+import org.gradle.api.GradleException;
 
-/**
- * A manager of plugins.
- */
-@Incubating
-@HasInternalProtocol
-public interface PluginHandler {
-
-    void apply(String pluginId);
-
-    void apply(String pluginId, String version);
-
+public class InvalidPluginRequest extends GradleException {
+    public InvalidPluginRequest(String message) {
+        super(message);
+    }
 }

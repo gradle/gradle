@@ -16,6 +16,7 @@
 
 package org.gradle.configuration;
 
+import org.gradle.api.internal.initialization.ScriptClassLoader;
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
@@ -100,7 +101,6 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             services.add(ScriptPluginFactory.class, DefaultScriptPluginFactory.this);
             services.add(LoggingManagerInternal.class, loggingManagerFactory.create());
             services.add(Instantiator.class, instantiator);
-            services.add(PluginHandler.class, pluginHandlerFactory.createPluginHandler(target));
 
             ScriptAware scriptAware = null;
             if (target instanceof ScriptAware) {
@@ -115,10 +115,13 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
                 services.add(ScriptHandlerInternal.class, defaultScriptHandler);
                 classLoaderProvider = defaultScriptHandler;
             }
-            
+
+            ScriptClassLoader scriptClassLoader = classLoaderProvider.getClassLoader();
+            services.add(PluginHandler.class, pluginHandlerFactory.createPluginHandler(target, scriptClassLoader));
+
             ScriptCompiler compiler = scriptCompilerFactory.createCompiler(withImports);
 
-            compiler.setClassloader(classLoaderProvider.getClassLoader());
+            compiler.setClassloader(scriptClassLoader);
 
             StatementExtractingScriptTransformer classpathScriptTransformer = new StatementExtractingScriptTransformer(
                     classpathClosureName,

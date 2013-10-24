@@ -15,6 +15,7 @@
  */
 package org.gradle.configuration;
 
+import org.gradle.api.internal.initialization.ScriptClassLoader;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.groovy.scripts.*;
@@ -51,7 +52,7 @@ public class DefaultScriptPluginFactoryTest {
     private final BasicScript scriptMock = context.mock(BasicScript.class);
     private final Instantiator instantiatorMock = context.mock(Instantiator.class);
     private final URLClassLoader parentClassLoader = new URLClassLoader(new URL[0]);
-    private final URLClassLoader scriptClassLoader = new URLClassLoader(new URL[0]);
+    private final ScriptClassLoader scriptClassLoader = new ScriptClassLoader(new URLClassLoader(new URL[0]));
     private final ScriptHandlerFactory scriptHandlerFactoryMock = context.mock(ScriptHandlerFactory.class);
     private final PluginHandlerFactory pluginHandlerFactoryMock = context.mock(PluginHandlerFactory.class);
     private final ScriptHandlerInternal scriptHandlerMock = context.mock(ScriptHandlerInternal.class);
@@ -69,6 +70,7 @@ public class DefaultScriptPluginFactoryTest {
             ScriptSource sourceWithImportsMock = context.mock(ScriptSource.class, "imports");
             LoggingManagerInternal loggingManagerMock = context.mock(LoggingManagerInternal.class);
 
+            one(pluginHandlerFactoryMock).createPluginHandler(target, scriptClassLoader);
             one(loggingManagerFactoryMock).create();
             will(returnValue(loggingManagerMock));
 
@@ -134,6 +136,8 @@ public class DefaultScriptPluginFactoryTest {
             Sequence sequence = context.sequence("seq");
             ScriptSource sourceWithImportsMock = context.mock(ScriptSource.class, "imports");
             LoggingManagerInternal loggingManagerMock = context.mock(LoggingManagerInternal.class);
+
+            one(pluginHandlerFactoryMock).createPluginHandler(target, scriptClassLoader);
 
             one(loggingManagerFactoryMock).create();
             will(returnValue(loggingManagerMock));

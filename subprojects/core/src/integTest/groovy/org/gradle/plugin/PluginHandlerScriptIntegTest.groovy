@@ -114,4 +114,23 @@ class PluginHandlerScriptIntegTest extends AbstractIntegrationSpec {
         then:
         errorOutput.contains "Gradle version 1.6 is required"
     }
+
+    void "can use plugin classes in script"() {
+        given:
+        buildFile << """
+            plugins {
+                apply "tomcat", "1.0"
+            }
+
+            import org.gradle.api.plugins.tomcat.TomcatRun
+
+            task customRun(type: TomcatRun)
+        """
+
+        when:
+        succeeds "tasks"
+
+        then:
+        output.contains "customRun"
+    }
 }

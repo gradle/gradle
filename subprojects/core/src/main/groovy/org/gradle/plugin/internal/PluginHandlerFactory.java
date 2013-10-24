@@ -16,8 +16,10 @@
 
 package org.gradle.plugin.internal;
 
+import org.gradle.api.internal.initialization.ScriptClassLoader;
+
 public interface PluginHandlerFactory {
 
-    PluginHandlerInternal createPluginHandler(Object target);
+    PluginHandlerInternal createPluginHandler(Object target, ScriptClassLoader scriptClassLoader);
 
 }

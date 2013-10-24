@@ -28,8 +28,6 @@ import org.gradle.plugin.resolve.internal.PluginResolution;
 import org.gradle.plugin.resolve.internal.PluginResolver;
 import org.gradle.util.CollectionUtils;
 
-import java.util.Map;
-
 public class DefaultPluginHandler implements PluginHandlerInternal {
 
     private final Action<? super PluginResolution> pluginResolutionHandler;

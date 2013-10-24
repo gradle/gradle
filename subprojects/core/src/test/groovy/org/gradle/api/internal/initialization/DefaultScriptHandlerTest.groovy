@@ -32,7 +32,10 @@ class DefaultScriptHandlerTest extends Specification {
     ConfigurationContainer configurationContainer = Mock()
     Configuration configuration = Mock()
     ScriptSource scriptSource = Mock()
-    MutableURLClassLoader classLoader = Mock()
+    def mutableLoader = Mock(MutableURLClassLoader)
+    def classLoader = Mock(ScriptClassLoader) {
+        getMutableClassLoader() >> mutableLoader
+    }
 
     def "adds classpath configuration"() {
         when:
@@ -57,8 +60,8 @@ class DefaultScriptHandlerTest extends Specification {
 
         then:
         1 * configuration.getFiles() >> WrapUtil.toSet(file1, file2)
-        1 * classLoader.addURL(file1.toURI().toURL())
-        1 * classLoader.addURL(file2.toURI().toURL())
+        1 * mutableLoader.addURL(file1.toURI().toURL())
+        1 * mutableLoader.addURL(file2.toURI().toURL())
     }
 
     def "can configure repositories"() {

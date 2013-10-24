@@ -28,14 +28,15 @@ public class DefaultScriptHandler extends AbstractScriptHandler {
 
     public DefaultScriptHandler(ScriptSource scriptSource, RepositoryHandler repositoryHandler,
                                 DependencyHandler dependencyHandler, ConfigurationContainer configContainer,
-                                MutableURLClassLoader classLoader) {
+                                ScriptClassLoader classLoader) {
         super(classLoader, repositoryHandler, dependencyHandler, scriptSource, configContainer);
     }
 
     public void updateClassPath() {
+        MutableURLClassLoader mutableClassLoader = getClassLoader().getMutableClassLoader();
         for (File file : getClasspathConfiguration().getFiles()) {
             try {
-                getClassLoader().addURL(file.toURI().toURL());
+                mutableClassLoader.addURL(file.toURI().toURL());
             } catch (MalformedURLException e) {
                 throw new RuntimeException(e);
             }
