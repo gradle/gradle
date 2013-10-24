@@ -259,6 +259,11 @@ source directories are explicitly configured. If you don't define any source dir
 If you wish to define custom source locations, then _all_ of the source locations must be specified (not just those in
 addition to the convention).
 
+### Tooling API supports BuildModel for all Gradle versions
+
+In this release, the `BuildModel` tooling model is now supported for all target Gradle versions supported by the tooling API. Previously,
+this model was only available for target Gradle versions 1.8 and later.
+
 ## Fixed issues
 
 ## Potential breaking changes
