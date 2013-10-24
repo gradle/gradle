@@ -25,7 +25,7 @@ import org.gradle.integtests.fixtures.IgnoreVersions
 import org.gradle.api.internal.artifacts.ivyservice.DefaultCacheLockingManager
 
 @TargetVersions('1.0-milestone-6+')
-@IgnoreVersions({ it.artifactCacheLayoutVersion == DefaultCacheLockingManager.CACHE_LAYOUT_VERSION })
+@IgnoreVersions({ it.artifactCacheLayoutVersion == DefaultCacheLockingManager.CACHE_LAYOUT_VERSION || it.version.version == "1.9-rc-1" })
 class CacheReuseCrossVersionIntegrationTest extends AbstractCacheReuseCrossVersionIntegrationTest {
     @Rule public final HttpServer server = new HttpServer()
     final MavenHttpRepository httpRepo = new MavenHttpRepository(server, new MavenFileRepository(file("maven-repo")))
