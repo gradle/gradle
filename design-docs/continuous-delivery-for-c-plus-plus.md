@@ -778,6 +778,43 @@ The implementation will also remove stale object files.
 - Rename a source file, the corresponding object file is removed.
 - Remove all source files, all object files and binary files are removed.
 
+## Story: Modify command line arguments for binary tool prior to execution
+
+This story provides a 'hook' allowing the build author to control the exact set of arguments passed to a tool chain executable.
+This will allow a build author to work around any limitations in Gradle, or incorrect assumptions that Gradle makes.
+The arguments hook should be seen as a 'last-resort' mechanism, with preference given to truly modelling the underlying domain.
+
+### User visible changes
+
+    toolChains {
+        gcc(Gcc) {
+            cppCompiler.withArgs { List<String> args ->
+                Collections.replaceAll(args, "-m32", "-march=i386")
+            }
+            linker.withArgs { List<String> args ->
+                if (args.remove("-lstdc++")) {
+                    args << "-lstdc++"
+                }
+            }
+        }
+    }
+
+### Implementation
+
+- Change the mechanism for transforming a spec to arguments, so that first we create a list of arguments, then we apply
+  a series of transformations.
+- Add `GccTool.withArgs(Action<List<String>>)`, which adds a transformation early in the series (before writing option file).
+
+### Test cases
+
+- Test adds Visual C++ argument that is replaced by a GCC argument via GccTool.withArgs(). Do this for each tool (cppCompiler, cCompiler, linker, assembler, archiver).
+- Test adds bad argument to args for binary: arg is removed by hook.
+
+### Open Issues
+
+- Similar functionality for Visual C++
+- Use only 'g++' and 'gcc' frontends for GCC (see http://stackoverflow.com/questions/172587/what-is-the-difference-between-g-and-gcc)
+
 ## Story: Allow sources to be specified that apply to a particular Target Platform
 
 In some cases, different sources should be used depending on ToolChain or Target Platform. Assembler sources are almost always different
