@@ -1583,6 +1583,74 @@ class GradlePomModuleDescriptorParserTest extends Specification {
         descriptor.allArtifacts.length == 0
     }
 
+    @Issue("GRADLE-2931")
+    def "handles dependencies with same group ID and artifact ID but different type and classifier"() {
+        given:
+        def parent = tmpDir.file("parent.xml") << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>parent</artifactId>
+    <version>version-one</version>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>group-two</groupId>
+                <artifactId>artifact-two</artifactId>
+                <version>1.1</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+</project>
+"""
+
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>group-one</groupId>
+        <artifactId>parent</artifactId>
+        <version>version-one</version>
+    </parent>
+
+    <artifactId>artifact-one</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>group-two</groupId>
+            <artifactId>artifact-two</artifactId>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>group-two</groupId>
+            <artifactId>artifact-two</artifactId>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>
+"""
+        and:
+        parseContext.currentRevisionId >> moduleId('group-one', 'artifact-one', 'version-one')
+        parseContext.getArtifact({it.moduleRevisionId.name == 'parent' }) >> { new DefaultLocallyAvailableExternalResource(parent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(parent)) }
+
+        when:
+        def descriptor = parsePom()
+
+        then:
+        descriptor.dependencies.length == 2
+        def depCompile = descriptor.dependencies[0]
+        depCompile.dependencyRevisionId == moduleId('group-two', 'artifact-two', '1.1')
+        depCompile.moduleConfigurations == ['compile', 'runtime']
+        hasDefaultDependencyArtifact(depCompile)
+        def depTest = descriptor.dependencies[1]
+        depTest.dependencyRevisionId == moduleId('group-two', 'artifact-two', '1.1')
+        depTest.moduleConfigurations == ['test']
+        hasDefaultDependencyArtifact(depTest)
+    }
+
     private ModuleDescriptor parsePom() {
         parseMetaData().descriptor
     }

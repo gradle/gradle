@@ -25,6 +25,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import org.xml.sax.SAXParseException
+import spock.lang.Issue
 import spock.lang.Specification
 
 class PomReaderTest extends Specification {
@@ -180,8 +181,8 @@ class PomReaderTest extends Specification {
 
         then:
         pomReader.getDependencies().size() == 1
-        pomReader.getDependencies().containsKey('group-two:artifact-two')
-        PomDependencyData dependency = pomReader.getDependencies().get('group-two:artifact-two')
+        pomReader.getDependencies().containsKey('group-two:artifact-two::')
+        PomDependencyData dependency = pomReader.getDependencies().get('group-two:artifact-two::')
         dependency.groupId == 'group-two'
         dependency.artifactId == 'artifact-two'
         dependency.version == 'version-two'
@@ -216,10 +217,57 @@ class PomReaderTest extends Specification {
 
         then:
         pomReader.getDependencies().size() == 1
-        PomDependencyData dependency = pomReader.getDependencies().get('group-two:artifact-two')
+        pomReader.getDependencies().containsKey('group-two:artifact-two::')
+        PomDependencyData dependency = pomReader.getDependencies().get('group-two:artifact-two::')
         dependency.groupId == 'group-two'
         dependency.artifactId == 'artifact-two'
         dependency.version == 'version-two'
+    }
+
+    @Issue("GRADLE-2931")
+    def "get dependencies with same group ID and artifact ID but different type and classifier"() {
+        when:
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+    <name>Test Artifact One</name>
+    <description>The first test artifact</description>
+
+    <dependencies>
+        <dependency>
+            <groupId>group-two</groupId>
+            <artifactId>artifact-two</artifactId>
+            <version>version-two</version>
+        </dependency>
+        <dependency>
+            <groupId>group-two</groupId>
+            <artifactId>artifact-two</artifactId>
+            <version>version-two</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>
+"""
+        pomReader = new PomReader(locallyAvailableExternalResource)
+
+        then:
+        pomReader.getDependencies().size() == 2
+        pomReader.getDependencies().containsKey('group-two:artifact-two::')
+        PomDependencyData dependencyJar = pomReader.getDependencies().get('group-two:artifact-two::')
+        dependencyJar.groupId == 'group-two'
+        dependencyJar.artifactId == 'artifact-two'
+        dependencyJar.version == 'version-two'
+        dependencyJar.type == null
+        pomReader.getDependencies().containsKey('group-two:artifact-two:test-jar:')
+        PomDependencyData dependencyTestJar = pomReader.getDependencies().get('group-two:artifact-two:test-jar:')
+        dependencyTestJar.groupId == 'group-two'
+        dependencyTestJar.artifactId == 'artifact-two'
+        dependencyTestJar.version == 'version-two'
+        dependencyTestJar.type == 'test-jar'
     }
 
     def "parse POM with parent POM"() {

@@ -324,7 +324,7 @@ public class PomReader {
                 Node node = childs.item(i);
                 if (node instanceof Element && DEPENDENCY.equals(node.getNodeName())) {
                     PomDependencyData pomDependencyData = new PomDependencyData((Element) node);
-                    String key = createPomDependencyMgtKey(pomDependencyData.getGroupId(), pomDependencyData.getArtifactId());
+                    String key = createPomDependencyDataKey(pomDependencyData);
                     dependencies.put(key, pomDependencyData);
                 }
             }
@@ -338,6 +338,18 @@ public class PomReader {
         }
 
         return dependencies;
+    }
+
+    /**
+     * Creates key for dependency based on group ID, artifact ID, type and classifier.
+     *
+     * @param pomDependencyData Dependency
+     * @return Key
+     */
+    private String createPomDependencyDataKey(PomDependencyData pomDependencyData) {
+        return String.format("%s:%s:%s:%s", pomDependencyData.getGroupId(), pomDependencyData.getArtifactId(),
+                                            pomDependencyData.getType() != null ? pomDependencyData.getType() : "",
+                                            pomDependencyData.getClassifier() != null ? pomDependencyData.getClassifier() : "");
     }
 
     /**
