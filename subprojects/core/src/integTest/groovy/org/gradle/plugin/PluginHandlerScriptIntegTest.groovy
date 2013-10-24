@@ -97,22 +97,9 @@ class PluginHandlerScriptIntegTest extends AbstractIntegrationSpec {
         fails "tasks"
 
         then:
-        errorOutput.contains "Gradle version 1.8 is required"
-    }
-
-    void "can resolve versioned android plugin"() {
-        given:
-        buildFile << """
-            plugins {
-                apply "android", "0.5.7"
-            }
-        """
-
-        when:
-        fails "tasks"
-
-        then:
-        errorOutput.contains "Gradle version 1.6 is required"
+        // This is a very lame test
+        // This error message is produced due to a binary incompatible change on an incubating class
+        errorOutput.contains "Could not create plugin of type 'AppPlugin'"
     }
 
     void "can use plugin classes in script"() {
