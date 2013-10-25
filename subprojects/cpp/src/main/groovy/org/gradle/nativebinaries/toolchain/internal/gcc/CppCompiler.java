@@ -19,6 +19,7 @@ package org.gradle.nativebinaries.toolchain.internal.gcc;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.nativebinaries.language.cpp.internal.CppCompileSpec;
+import org.gradle.nativebinaries.toolchain.internal.ArgsTransformer;
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
 
 class CppCompiler implements Compiler<CppCompileSpec> {
@@ -26,18 +27,18 @@ class CppCompiler implements Compiler<CppCompileSpec> {
     private final CommandLineTool<CppCompileSpec> commandLineTool;
 
     public CppCompiler(CommandLineTool<CppCompileSpec> commandLineTool, boolean useCommandFile) {
-        GccSpecToArguments<CppCompileSpec> specToArguments = new GccSpecToArguments<CppCompileSpec>(
-                new CppCompileSpecToArguments(),
-                useCommandFile
-        );
-        this.commandLineTool = commandLineTool.withArguments(specToArguments);
+        ArgsTransformer<CppCompileSpec> argsTransformer = new CppCompileArgsTransformer();
+        if (useCommandFile) {
+            argsTransformer = new GccOptionsFileArgTransformer<CppCompileSpec>(argsTransformer);
+        }
+        this.commandLineTool = commandLineTool.withArguments(argsTransformer);
     }
 
     public WorkResult execute(CppCompileSpec spec) {
         return commandLineTool.inWorkDirectory(spec.getObjectFileDir()).execute(spec);
     }
 
-    private static class CppCompileSpecToArguments extends GccCompilerArgsTransformer<CppCompileSpec> {
+    private static class CppCompileArgsTransformer extends GccCompilerArgsTransformer<CppCompileSpec> {
         protected String getLanguage() {
             return "c++";
         }

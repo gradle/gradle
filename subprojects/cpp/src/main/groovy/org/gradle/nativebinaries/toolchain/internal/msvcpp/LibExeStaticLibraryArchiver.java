@@ -21,7 +21,7 @@ import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.nativebinaries.internal.StaticLibraryArchiverSpec;
 import org.gradle.nativebinaries.toolchain.internal.ArgsTransformer;
-import org.gradle.nativebinaries.toolchain.internal.CommandLineCompilerArgumentsToOptionFile;
+import org.gradle.nativebinaries.toolchain.internal.OptionsFileArgsTransformer;
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
 
 import java.io.File;
@@ -33,7 +33,7 @@ class LibExeStaticLibraryArchiver implements Compiler<StaticLibraryArchiverSpec>
 
     public LibExeStaticLibraryArchiver(CommandLineTool<StaticLibraryArchiverSpec> commandLineTool) {
         this.commandLineTool = commandLineTool
-                .withArguments(new CommandLineCompilerArgumentsToOptionFile<StaticLibraryArchiverSpec>(ArgWriter.windowsStyleFactory(), new LibExeSpecToArguments()
+                .withArguments(new OptionsFileArgsTransformer<StaticLibraryArchiverSpec>(ArgWriter.windowsStyleFactory(), new LibExeSpecToArguments()
         ));
     }
 

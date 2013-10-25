@@ -20,10 +20,8 @@ import org.gradle.api.internal.tasks.compile.ArgWriter;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.nativebinaries.language.c.internal.CCompileSpec;
-import org.gradle.nativebinaries.toolchain.internal.CommandLineCompilerArgumentsToOptionFile;
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
-
-import java.util.List;
+import org.gradle.nativebinaries.toolchain.internal.OptionsFileArgsTransformer;
 
 class CCompiler implements Compiler<CCompileSpec> {
 
@@ -31,21 +29,18 @@ class CCompiler implements Compiler<CCompileSpec> {
 
     CCompiler(CommandLineTool<CCompileSpec> commandLineTool) {
         this.commandLineTool = commandLineTool.withArguments(
-                new CommandLineCompilerArgumentsToOptionFile<CCompileSpec>(
+                new OptionsFileArgsTransformer<CCompileSpec>(
                         ArgWriter.windowsStyleFactory(),
-                        new CCompileSpecToArguments()));
+                        new CCompilerArgsTransformer()));
     }
 
     public WorkResult execute(CCompileSpec spec) {
         return commandLineTool.inWorkDirectory(spec.getObjectFileDir()).execute(spec);
     }
 
-    private static class CCompileSpecToArguments extends GeneralVisualCppCompileSpecToArguments<CCompileSpec> {
-        @Override
-        public List<String> transform(CCompileSpec spec) {
-            List<String> args = super.transform(spec);
-            args.add(0, "/TC");
-            return args;
+    private static class CCompilerArgsTransformer extends VisualCppCompilerArgsTransformer<CCompileSpec> {
+        protected String getLanguageOption() {
+            return "/TC";
         }
     }
 }

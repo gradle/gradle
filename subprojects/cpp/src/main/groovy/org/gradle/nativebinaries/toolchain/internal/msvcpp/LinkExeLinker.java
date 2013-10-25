@@ -22,7 +22,7 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.nativebinaries.internal.LinkerSpec;
 import org.gradle.nativebinaries.internal.SharedLibraryLinkerSpec;
 import org.gradle.nativebinaries.toolchain.internal.ArgsTransformer;
-import org.gradle.nativebinaries.toolchain.internal.CommandLineCompilerArgumentsToOptionFile;
+import org.gradle.nativebinaries.toolchain.internal.OptionsFileArgsTransformer;
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
 
 import java.io.File;
@@ -35,8 +35,8 @@ class LinkExeLinker implements Compiler<LinkerSpec> {
 
     public LinkExeLinker(CommandLineTool<LinkerSpec> commandLineTool) {
         this.commandLineTool = commandLineTool
-                .withArguments(new CommandLineCompilerArgumentsToOptionFile<LinkerSpec>(
-                ArgWriter.windowsStyleFactory(), new VisualCppLinkerSpecArguments()
+                .withArguments(new OptionsFileArgsTransformer<LinkerSpec>(
+                ArgWriter.windowsStyleFactory(), new LinkerArgsTransformer()
         ));
     }
 
@@ -44,7 +44,7 @@ class LinkExeLinker implements Compiler<LinkerSpec> {
         return commandLineTool.execute(spec);
     }
 
-    private static class VisualCppLinkerSpecArguments implements ArgsTransformer<LinkerSpec> {
+    private static class LinkerArgsTransformer implements ArgsTransformer<LinkerSpec> {
         public List<String> transform(LinkerSpec spec) {
             List<String> args = new ArrayList<String>();
             args.addAll(spec.getAllArgs());

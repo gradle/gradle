@@ -33,18 +33,18 @@ class GccLinker implements Compiler<LinkerSpec> {
     private final CommandLineTool<LinkerSpec> commandLineTool;
 
     public GccLinker(CommandLineTool<LinkerSpec> commandLineTool, boolean useCommandFile) {
-        GccSpecToArguments<LinkerSpec> specToArguments = new GccSpecToArguments<LinkerSpec>(
-                new GccLinkerSpecToArguments(),
-                useCommandFile
-        );
-        this.commandLineTool = commandLineTool.withArguments(specToArguments);
+        ArgsTransformer<LinkerSpec> argsTransformer = new GccLinkerArgsTransformer();
+        if (useCommandFile) {
+            argsTransformer = new GccOptionsFileArgTransformer<LinkerSpec>(argsTransformer);
+        }
+        this.commandLineTool = commandLineTool.withArguments(argsTransformer);
     }
 
     public WorkResult execute(LinkerSpec spec) {
         return commandLineTool.execute(spec);
     }
 
-    private static class GccLinkerSpecToArguments implements ArgsTransformer<LinkerSpec> {
+    private static class GccLinkerArgsTransformer implements ArgsTransformer<LinkerSpec> {
         public List<String> transform(LinkerSpec spec) {
             List<String> args = new ArrayList<String>();
             

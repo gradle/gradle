@@ -24,9 +24,10 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-class GeneralVisualCppCompileSpecToArguments<T extends NativeCompileSpec> implements ArgsTransformer<T> {
+abstract class VisualCppCompilerArgsTransformer<T extends NativeCompileSpec> implements ArgsTransformer<T> {
     public List<String> transform(T spec) {
         List<String> args = new ArrayList<String>();
+        args.add(getLanguageOption());
         args.add("/nologo");
 
         for (String macroArg : new MacroArgsConverter().transform(spec.getMacros())) {
@@ -44,4 +45,6 @@ class GeneralVisualCppCompileSpecToArguments<T extends NativeCompileSpec> implem
 
         return args;
     }
+
+    protected abstract String getLanguageOption();
 }

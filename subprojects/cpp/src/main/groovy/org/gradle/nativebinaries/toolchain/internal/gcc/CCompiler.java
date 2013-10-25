@@ -19,6 +19,7 @@ package org.gradle.nativebinaries.toolchain.internal.gcc;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.nativebinaries.language.c.internal.CCompileSpec;
+import org.gradle.nativebinaries.toolchain.internal.ArgsTransformer;
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
 
 class CCompiler implements Compiler<CCompileSpec> {
@@ -26,18 +27,18 @@ class CCompiler implements Compiler<CCompileSpec> {
     private final CommandLineTool<CCompileSpec> commandLineTool;
 
     public CCompiler(CommandLineTool<CCompileSpec> commandLineTool, boolean useCommandFile) {
-        GccSpecToArguments<CCompileSpec> specToArguments = new GccSpecToArguments<CCompileSpec>(
-                new CCompileSpecToArguments(),
-                useCommandFile
-        );
-        this.commandLineTool = commandLineTool.withArguments(specToArguments);
+        ArgsTransformer<CCompileSpec> argsTransformer = new CCompileArgsTransformer();
+        if (useCommandFile) {
+            argsTransformer = new GccOptionsFileArgTransformer<CCompileSpec>(argsTransformer);
+        }
+        this.commandLineTool = commandLineTool.withArguments(argsTransformer);
     }
 
     public WorkResult execute(CCompileSpec spec) {
         return commandLineTool.inWorkDirectory(spec.getObjectFileDir()).execute(spec);
     }
 
-    private static class CCompileSpecToArguments extends GccCompilerArgsTransformer<CCompileSpec> {
+    private static class CCompileArgsTransformer extends GccCompilerArgsTransformer<CCompileSpec> {
         protected String getLanguage() {
             return "c";
         }

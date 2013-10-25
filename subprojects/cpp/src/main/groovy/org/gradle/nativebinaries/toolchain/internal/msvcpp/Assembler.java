@@ -39,17 +39,17 @@ class Assembler implements Compiler<AssembleSpec> {
         boolean didWork = false;
         CommandLineTool<AssembleSpec> commandLineAssembler = commandLineTool.inWorkDirectory(spec.getObjectFileDir());
         for (File sourceFile : spec.getSourceFiles()) {
-            WorkResult result = commandLineAssembler.withArguments(new AssemblerSpecToArguments(sourceFile)).execute(spec);
+            WorkResult result = commandLineAssembler.withArguments(new AssemblerArgsTransformer(sourceFile)).execute(spec);
             didWork = didWork || result.getDidWork();
         }
         return new SimpleWorkResult(didWork);
     }
 
 
-    private static class AssemblerSpecToArguments implements ArgsTransformer<AssembleSpec> {
+    private static class AssemblerArgsTransformer implements ArgsTransformer<AssembleSpec> {
         private final File inputFile;
 
-        public AssemblerSpecToArguments(File inputFile) {
+        public AssemblerArgsTransformer(File inputFile) {
             this.inputFile = inputFile;
         }
 

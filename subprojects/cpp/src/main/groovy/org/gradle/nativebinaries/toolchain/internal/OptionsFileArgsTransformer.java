@@ -25,7 +25,7 @@ import org.gradle.util.GFileUtils;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 
 public class OptionsFileArgsTransformer<T extends BinaryToolSpec> implements ArgsTransformer<T> {
@@ -38,19 +38,19 @@ public class OptionsFileArgsTransformer<T extends BinaryToolSpec> implements Arg
     }
 
     public List<String> transform(T spec) {
-        List<String> args = delegate.transform(spec);
-        File tempDir = spec.getTempDir();
-        return transformArgs(args, tempDir);
+        List<String> output = new ArrayList<String>();
+        transformArgs(delegate.transform(spec), output, spec.getTempDir());
+        return output;
     }
 
-    public List<String> transformArgs(List<String> args, File tempDir) {
+    protected void transformArgs(List<String> input, List<String> output, File tempDir) {
         GFileUtils.mkdirs(tempDir);
         File optionsFile = new File(tempDir, "options.txt");
         try {
             PrintWriter writer = new PrintWriter(optionsFile);
             ArgWriter argWriter = argWriterFactory.transform(writer);
             try {
-                argWriter.args(args);
+                argWriter.args(input);
             } finally {
                 writer.close();
             }
@@ -58,6 +58,6 @@ public class OptionsFileArgsTransformer<T extends BinaryToolSpec> implements Arg
             throw new UncheckedIOException(String.format("Could not write compiler options file '%s'.", optionsFile.getAbsolutePath()), e);
         }
 
-        return Collections.singletonList(String.format("@%s", optionsFile.getAbsolutePath()));
+        output.add(String.format("@%s", optionsFile.getAbsolutePath()));
     }
 }

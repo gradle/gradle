@@ -19,8 +19,9 @@ package org.gradle.nativebinaries.toolchain.internal.gcc;
 import org.gradle.api.internal.tasks.compile.ArgWriter;
 import org.gradle.nativebinaries.internal.BinaryToolSpec;
 import org.gradle.nativebinaries.toolchain.internal.ArgsTransformer;
-import org.gradle.nativebinaries.toolchain.internal.CommandLineCompilerArgumentsToOptionFile;
+import org.gradle.nativebinaries.toolchain.internal.OptionsFileArgsTransformer;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -29,30 +30,18 @@ import java.util.List;
  * Uses an option file for arguments passed to GCC if possible.
  * Certain GCC options do not function correctly when included in an option file, so include these directly on the command line as well.
  */
-class GccOptionsFileArgTransformer<T extends BinaryToolSpec> implements ArgsTransformer<T> {
+class GccOptionsFileArgTransformer<T extends BinaryToolSpec> extends OptionsFileArgsTransformer<T> {
     private static final List<String> CLI_ONLY_ARGS = Arrays.asList("-m32", "-m64");
 
-    private final ArgsTransformer<T> delegate;
-    private final boolean useOptionFile;
-
-    public GccOptionsFileArgTransformer(ArgsTransformer<T> delegate, boolean useOptionFile) {
-        this.delegate = delegate;
-        this.useOptionFile = useOptionFile;
+    public GccOptionsFileArgTransformer(ArgsTransformer<T> delegate) {
+        super(ArgWriter.unixStyleFactory(), delegate);
     }
 
-    public List<String> transform(T spec) {
-        if (useOptionFile) {
-            List<String> args = delegate.transform(spec);
-            List<String> commandLineArgs = getCommandLineOnlyArgs(args);
-            commandLineArgs.addAll(withOptionFile(delegate).transformArgs(args, spec.getTempDir()));
-            return commandLineArgs;
-        } else {
-            return delegate.transform(spec);
-        }
-    }
-
-    private CommandLineCompilerArgumentsToOptionFile<T> withOptionFile(ArgsTransformer<T> delegate) {
-        return new CommandLineCompilerArgumentsToOptionFile<T>(ArgWriter.unixStyleFactory(), delegate);
+    @Override
+    protected void transformArgs(List<String> input, List<String> output, File tempDir) {
+        List<String> commandLineOnlyArgs = getCommandLineOnlyArgs(input);
+        output.addAll(commandLineOnlyArgs);
+        super.transformArgs(input, output, tempDir);
     }
 
     private List<String> getCommandLineOnlyArgs(List<String> allArgs) {
