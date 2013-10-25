@@ -20,6 +20,7 @@ import org.gradle.api.Project
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.testing.jacoco.tasks.JacocoMerge
+import spock.lang.Issue
 
 class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
 
@@ -187,6 +188,13 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         ":test" in nonSkippedTasks
         ":otherTests" in nonSkippedTasks
         file("build/jacoco/jacocoMerge.exec").exists()
+    }
+
+    @Issue("GRADLE-2917")
+    void "configures default jacoco dependencies even if the configuration was resolved before"() {
+        expect:
+        //dependencies task forces resolution of the configurations
+        succeeds "dependencies", "test", "jacocoTestReport"
     }
 
     private void createTestFiles() {
