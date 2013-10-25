@@ -16,14 +16,15 @@
 
 package org.gradle.nativebinaries.toolchain.internal.gcc;
 
-import org.gradle.api.internal.tasks.compile.ArgCollector;
-import org.gradle.api.internal.tasks.compile.CompileSpecToArguments;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.nativebinaries.internal.StaticLibraryArchiverSpec;
+import org.gradle.nativebinaries.toolchain.internal.ArgsTransformer;
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A static library archiver based on the GNU 'ar' utility
@@ -39,17 +40,19 @@ class ArStaticLibraryArchiver implements Compiler<StaticLibraryArchiverSpec> {
         return commandLineTool.execute(spec);
     }
 
-    private static class ArchiverSpecToArguments implements CompileSpecToArguments<StaticLibraryArchiverSpec> {
-        public void collectArguments(StaticLibraryArchiverSpec spec, ArgCollector collector) {
+    private static class ArchiverSpecToArguments implements ArgsTransformer<StaticLibraryArchiverSpec> {
+        public List<String> transform(StaticLibraryArchiverSpec spec) {
+            List<String> args = new ArrayList<String>();
             // -r : Add files to static archive, creating if required
             // -c : Don't write message to standard error when creating archive
             // -s : Create an object file index (equivalent to running 'ranlib')
-            collector.args("-rcs");
-            collector.args(spec.getAllArgs());
-            collector.args(spec.getOutputFile().getAbsolutePath());
+            args.add("-rcs");
+            args.addAll(spec.getAllArgs());
+            args.add(spec.getOutputFile().getAbsolutePath());
             for (File file : spec.getObjectFiles()) {
-                collector.args(file.getAbsolutePath());
+                args.add(file.getAbsolutePath());
             }
+            return args;
         }
     }
 }

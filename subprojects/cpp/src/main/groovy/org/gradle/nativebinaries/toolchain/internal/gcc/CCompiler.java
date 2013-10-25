@@ -16,7 +16,6 @@
 
 package org.gradle.nativebinaries.toolchain.internal.gcc;
 
-import org.gradle.api.internal.tasks.compile.ArgCollector;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.nativebinaries.language.c.internal.CCompileSpec;
@@ -38,13 +37,9 @@ class CCompiler implements Compiler<CCompileSpec> {
         return commandLineTool.inWorkDirectory(spec.getObjectFileDir()).execute(spec);
     }
 
-    private static class CCompileSpecToArguments extends CommonGccCompileSpecToArguments<CCompileSpec> {
-        @Override
-        public void collectArguments(CCompileSpec spec, ArgCollector collector) {
-            // C-compiling options
-            collector.args("-x", "c");
-
-            super.collectArguments(spec, collector);
+    private static class CCompileSpecToArguments extends GccCompilerArgsTransformer<CCompileSpec> {
+        protected String getLanguage() {
+            return "c";
         }
     }
 }

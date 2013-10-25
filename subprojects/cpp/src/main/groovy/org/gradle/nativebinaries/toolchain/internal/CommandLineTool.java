@@ -20,8 +20,6 @@ import com.google.common.base.Joiner;
 import org.gradle.api.GradleException;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
-import org.gradle.api.internal.tasks.compile.CompileSpecToArguments;
-import org.gradle.api.internal.tasks.compile.ExecSpecBackedArgCollector;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativebinaries.internal.BinaryToolSpec;
@@ -39,7 +37,7 @@ public class CommandLineTool<T extends BinaryToolSpec> {
     private final ExecActionFactory execActionFactory;
     private final Map<String, String> environment = new HashMap<String, String>();
     private final List<File> path = new ArrayList<File>();
-    private CompileSpecToArguments<T> toArguments;
+    private ArgsTransformer<T> specToArgs;
     private Transformer<T, T> specTransformer = new IdentityTransformer<T>();
     private File workDir;
 
@@ -70,8 +68,8 @@ public class CommandLineTool<T extends BinaryToolSpec> {
         return this;
     }
 
-    public CommandLineTool<T> withArguments(CompileSpecToArguments<T> arguments) {
-        this.toArguments = arguments;
+    public CommandLineTool<T> withArguments(ArgsTransformer<T> arguments) {
+        this.specToArgs = arguments;
         return this;
     }
 
@@ -82,7 +80,8 @@ public class CommandLineTool<T extends BinaryToolSpec> {
             compiler.workingDir(workDir);
         }
 
-        toArguments.collectArguments(specTransformer.transform(spec), new ExecSpecBackedArgCollector(compiler));
+        List<String> args = specToArgs.transform(specTransformer.transform(spec));
+        compiler.args(args);
 
         if (!path.isEmpty()) {
             String pathVar = OperatingSystem.current().getPathVar();

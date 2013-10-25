@@ -16,7 +16,6 @@
 
 package org.gradle.nativebinaries.toolchain.internal.msvcpp;
 
-import org.gradle.api.internal.tasks.compile.ArgCollector;
 import org.gradle.api.internal.tasks.compile.ArgWriter;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
@@ -24,14 +23,17 @@ import org.gradle.nativebinaries.language.cpp.internal.CppCompileSpec;
 import org.gradle.nativebinaries.toolchain.internal.CommandLineCompilerArgumentsToOptionFile;
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
 
+import java.util.List;
+
 class CppCompiler implements Compiler<CppCompileSpec> {
 
     private final CommandLineTool<CppCompileSpec> commandLineTool;
 
     CppCompiler(CommandLineTool<CppCompileSpec> commandLineTool) {
         this.commandLineTool = commandLineTool.withArguments(
-                new CommandLineCompilerArgumentsToOptionFile<CppCompileSpec>(ArgWriter.windowsStyleFactory(), new CppCompileSpecToArguments())
-        );
+                new CommandLineCompilerArgumentsToOptionFile<CppCompileSpec>(
+                        ArgWriter.windowsStyleFactory(),
+                        new CppCompileSpecToArguments()));
     }
 
     public WorkResult execute(CppCompileSpec spec) {
@@ -39,11 +41,11 @@ class CppCompiler implements Compiler<CppCompileSpec> {
     }
 
     private static class CppCompileSpecToArguments extends GeneralVisualCppCompileSpecToArguments<CppCompileSpec> {
-        public void collectArguments(CppCompileSpec spec, ArgCollector collector) {
-            // C++-compiling options
-            collector.args("/TP");
-
-            super.collectArguments(spec, collector);
+        @Override
+        public List<String> transform(CppCompileSpec spec) {
+            List<String> args = super.transform(spec);
+            args.add(0, "/TP");
+            return args;
         }
     }
-    }
+}

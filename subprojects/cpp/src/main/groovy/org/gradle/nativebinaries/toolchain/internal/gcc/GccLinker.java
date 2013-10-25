@@ -16,16 +16,17 @@
 
 package org.gradle.nativebinaries.toolchain.internal.gcc;
 
-import org.gradle.api.internal.tasks.compile.ArgCollector;
-import org.gradle.api.internal.tasks.compile.CompileSpecToArguments;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativebinaries.internal.LinkerSpec;
 import org.gradle.nativebinaries.internal.SharedLibraryLinkerSpec;
+import org.gradle.nativebinaries.toolchain.internal.ArgsTransformer;
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 class GccLinker implements Compiler<LinkerSpec> {
 
@@ -43,39 +44,43 @@ class GccLinker implements Compiler<LinkerSpec> {
         return commandLineTool.execute(spec);
     }
 
-    private static class GccLinkerSpecToArguments implements CompileSpecToArguments<LinkerSpec> {
-
-        public void collectArguments(LinkerSpec spec, ArgCollector collector) {
-            collector.args(spec.getSystemArgs());
+    private static class GccLinkerSpecToArguments implements ArgsTransformer<LinkerSpec> {
+        public List<String> transform(LinkerSpec spec) {
+            List<String> args = new ArrayList<String>();
+            
+            args.addAll(spec.getSystemArgs());
             for (String userArg : spec.getArgs()) {
-                collector.args("-Xlinker", userArg);
+                args.add("-Xlinker");
+                args.add(userArg);
             }
 
             if (spec instanceof SharedLibraryLinkerSpec) {
-                collector.args("-shared");
+                args.add("-shared");
                 if (!OperatingSystem.current().isWindows()) {
                     String installName = ((SharedLibraryLinkerSpec) spec).getInstallName();
                     if (OperatingSystem.current().isMacOsX()) {
-                        collector.args("-Wl,-install_name," + installName);
+                        args.add("-Wl,-install_name," + installName);
                     } else {
-                        collector.args("-Wl,-soname," + installName);
+                        args.add("-Wl,-soname," + installName);
                     }
                 }
             }
-            collector.args("-o", spec.getOutputFile().getAbsolutePath());
+            args.add("-o");
+            args.add(spec.getOutputFile().getAbsolutePath());
             for (File file : spec.getObjectFiles()) {
-                collector.args(file.getAbsolutePath());
+                args.add(file.getAbsolutePath());
             }
             for (File file : spec.getLibraries()) {
-                collector.args(file.getAbsolutePath());
+                args.add(file.getAbsolutePath());
             }
             for (File pathEntry : spec.getLibraryPath()) {
                 // TODO:DAZ It's not clear to me what the correct meaning of this should be for GCC
-//                collector.args("-L" + pathEntry.getAbsolutePath());
-//                collector.args("-Wl,-L" + pathEntry.getAbsolutePath());
-//                collector.args("-Wl,-rpath," + pathEntry.getAbsolutePath());
+//                args.add("-L" + pathEntry.getAbsolutePath());
+//                args.add("-Wl,-L" + pathEntry.getAbsolutePath());
+//                args.add("-Wl,-rpath," + pathEntry.getAbsolutePath());
                 throw new UnsupportedOperationException("Library Path not yet supported on GCC");
             }
+            return args;
         }
     }
 }

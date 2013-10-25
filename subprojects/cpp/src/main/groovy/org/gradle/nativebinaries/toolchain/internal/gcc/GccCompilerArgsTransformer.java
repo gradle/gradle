@@ -16,38 +16,46 @@
 
 package org.gradle.nativebinaries.toolchain.internal.gcc;
 
-import org.gradle.api.internal.tasks.compile.ArgCollector;
-import org.gradle.api.internal.tasks.compile.CompileSpecToArguments;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.nativebinaries.toolchain.internal.ArgsTransformer;
 import org.gradle.nativebinaries.toolchain.internal.MacroArgsConverter;
 import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Maps common options for C/C++ compiling with GCC
  */
-class CommonGccCompileSpecToArguments<T extends NativeCompileSpec> implements CompileSpecToArguments<T> {
-    public void collectArguments(T spec, ArgCollector collector) {
+abstract class GccCompilerArgsTransformer<T extends NativeCompileSpec> implements ArgsTransformer<T> {
+    public List<String> transform(T spec) {
+        List<String> args = new ArrayList<String>();
+        Collections.addAll(args, "-x", getLanguage());
+
         for (String macroArg : new MacroArgsConverter().transform(spec.getMacros())) {
-            collector.args("-D", macroArg);
+            args.add("-D" + macroArg);
         }
 
-        collector.args(spec.getAllArgs());
-        collector.args("-c");
+        args.addAll(spec.getAllArgs());
+        args.add("-c");
         if (spec.isPositionIndependentCode()) {
             if (!OperatingSystem.current().isWindows()) {
-                collector.args("-fPIC");
+                args.add("-fPIC");
             }
         }
 
         for (File file : spec.getIncludeRoots()) {
-            collector.args("-I");
-            collector.args(file.getAbsolutePath());
+            args.add("-I");
+            args.add(file.getAbsolutePath());
         }
         for (File file : spec.getSourceFiles()) {
-            collector.args(file.getAbsolutePath());
+            args.add(file.getAbsolutePath());
         }
-
+        return args;
     }
+
+    protected abstract String getLanguage();
+
 }
