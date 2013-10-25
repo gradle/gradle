@@ -25,6 +25,7 @@ import org.junit.Rule
 
 import static org.gradle.test.matchers.UserAgentMatcher.matchesNameAndVersion
 import static org.hamcrest.Matchers.containsString
+import static org.hamcrest.Matchers.not
 import static org.junit.Assert.assertThat
 
 class WrapperHttpIntegrationTest extends AbstractIntegrationSpec {
@@ -162,6 +163,25 @@ class WrapperHttpIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         assertThat(result.output, containsString('hello'))
+    }
+
+    public void "downloads wrapper with basic authentication (safe exception messages)"() {
+        given:
+        prepareWrapper("http://user_foo:password_foo@localhost:${server.port}")
+        server.expectGetBroken("/gradlew/dist")
+
+        when:
+        def exception
+        try {
+            wrapperExecuter.withTasks('hello').run()
+            fail("Expected Exception")
+        } catch (Exception e) {
+            e.printStackTrace()
+            exception = e
+        }
+
+        then:
+        assertThat(exception.message, not(containsString('password_foo')))
     }
 
     public void "downloads wrapper with basic authentication configured in gradle.properties"() {

@@ -53,7 +53,7 @@ public class Install {
                 if (needsDownload) {
                     File tmpZipFile = new File(localZipFile.getParentFile(), localZipFile.getName() + ".part");
                     tmpZipFile.delete();
-                    System.out.println("Downloading " + distributionUrl);
+                    System.out.println("Downloading " + Download.safeUri(distributionUrl));
                     download.download(distributionUrl, tmpZipFile);
                     tmpZipFile.renameTo(localZipFile);
                 }
@@ -66,7 +66,7 @@ public class Install {
                 System.out.println("Unzipping " + localZipFile.getAbsolutePath() + " to " + distDir.getAbsolutePath());
                 unzip(localZipFile, distDir);
 
-                File root = getDistributionRoot(distDir, distributionUrl.toString());
+                File root = getDistributionRoot(distDir, Download.safeUri(distributionUrl).toString());
                 setExecutablePermissions(root);
                 markerFile.createNewFile();
 

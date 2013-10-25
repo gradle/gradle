@@ -49,13 +49,10 @@ public class Download implements IDownload {
         URLConnection conn;
         InputStream in = null;
         try {
-            URL url = address.toURL();
+            URL url = safeUri(address).toURL();
             out = new BufferedOutputStream(new FileOutputStream(destination));
             conn = url.openConnection();
-            String userInfo = calculateUserAndPassword();
-            if (userInfo == null) {
-                userInfo = url.getUserInfo();
-            }
+            String userInfo = calculateUserAndPassword(address);
             if (userInfo != null) {
                 String basicAuth = "Basic " + Base64Coder.encodeString(userInfo);
                 conn.setRequestProperty("Authorization", basicAuth);
@@ -97,15 +94,19 @@ public class Download implements IDownload {
         return String.format("%s/%s (%s;%s;%s) (%s;%s;%s)", applicationName, appVersion, osName, osVersion, osArch, javaVendor, javaVersion, javaVendorVersion);
     }
 
-    private String calculateUserAndPassword() {
+    private String calculateUserAndPassword(URI uri) {
         String user = System.getProperty("gradle.wrapperUser");
         String password = System.getProperty("gradle.wrapperPassword");
 
         if (user != null && password != null) {
             return user + ":" + password;
         } else {
-            return null;
+            return uri.getUserInfo();
         }
+    }
+
+    public static URI safeUri(URI uri) throws URISyntaxException {
+        return new URI(uri.getScheme(), null, uri.getHost(), uri.getPort(), uri.getPath(), uri.getQuery(), uri.getFragment());
     }
 
     private static class SystemPropertiesProxyAuthenticator extends
