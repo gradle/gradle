@@ -90,6 +90,16 @@ class CommandLineParserTest extends Specification {
         result.option('a').values == ['arg']
     }
 
+    def parsesShortOptionWithEqualMultilineArgument() {
+        parser.option('a').hasArgument()
+
+        expect:
+        def result = parser.parse(['-a=1\n2\n3'])
+        result.hasOption('a')
+        result.option('a').value == '1\n2\n3'
+        result.option('a').values == ['1\n2\n3']
+    }
+
     def parsesShortOptionWithEqualsCharacterInAttachedArgument() {
         parser.option('a').hasArgument()
 
@@ -522,6 +532,22 @@ class CommandLineParserTest extends Specification {
         then:
         def e = thrown(CommandLineArgumentException)
         e.message == 'An empty argument was provided for command-line option \'-a\'.'
+    }
+
+    def parseAcceptsMultilineArgument() {
+        parser.option('D').hasArgument()
+
+        expect:
+        def result = parser.parse(['-Dprops=a:1\nb:2\nc:3'])
+        result.option('D').values == ['props=a:1\nb:2\nc:3']
+    }
+
+    def parseAcceptsMultilineArgumentForLongOption() {
+        parser.option('a', 'long-option').hasArgument()
+
+        expect:
+        def result = parser.parse(['--long-option=a\nb\nc'])
+        result.option('long-option').values == ['a\nb\nc']
     }
 
     def parseFailsWhenEmptyArgumentIsProvided() {
