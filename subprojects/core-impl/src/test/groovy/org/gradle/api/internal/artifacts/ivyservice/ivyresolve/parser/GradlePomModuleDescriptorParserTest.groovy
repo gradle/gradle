@@ -198,6 +198,64 @@ class GradlePomModuleDescriptorParserTest extends Specification {
         hasDefaultDependencyArtifact(dep)
     }
 
+    def "fails to resolve dependency if parent pom dependency management section to does not provide default values"() {
+        given:
+        def parent = tmpDir.file("parent.xml") << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>group-three</groupId>
+                <artifactId>artifact-three</artifactId>
+                <version>1.2</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+</project>
+"""
+
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+
+    <parent>
+        <groupId>group-one</groupId>
+        <artifactId>parent</artifactId>
+        <version>version-one</version>
+    </parent>
+
+    <dependencies>
+        <dependency>
+            <groupId>group-two</groupId>
+            <artifactId>artifact-two</artifactId>
+        </dependency>
+    </dependencies>
+</project>
+"""
+        and:
+        parseContext.currentRevisionId >> moduleId('group-one', 'artifact-one', 'version-one')
+        parseContext.getArtifact(_) >> { new DefaultLocallyAvailableExternalResource(parent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(parent)) }
+
+        when:
+        def descriptor = parsePom()
+
+        then:
+        descriptor.dependencies.length == 1
+        def dep = descriptor.dependencies.first()
+        dep.dependencyRevisionId.organisation == 'group-two'
+        dep.dependencyRevisionId.name == 'artifact-two'
+        dep.dependencyRevisionId.revision != '1.2'
+        hasDefaultDependencyArtifact(dep)
+    }
+
     def "uses parent pom dependency management section to provide default values for a dependency"() {
         given:
         def parent = tmpDir.file("parent.xlm") << """
@@ -1600,6 +1658,12 @@ class GradlePomModuleDescriptorParserTest extends Specification {
                 <artifactId>artifact-two</artifactId>
                 <version>1.1</version>
             </dependency>
+            <dependency>
+                <groupId>group-two</groupId>
+                <artifactId>artifact-two</artifactId>
+                <type>test-jar</type>
+                <version>1.2</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 </project>
@@ -1646,7 +1710,75 @@ class GradlePomModuleDescriptorParserTest extends Specification {
         depCompile.moduleConfigurations == ['compile', 'runtime']
         hasDefaultDependencyArtifact(depCompile)
         def depTest = descriptor.dependencies[1]
-        depTest.dependencyRevisionId == moduleId('group-two', 'artifact-two', '1.1')
+        depTest.dependencyRevisionId == moduleId('group-two', 'artifact-two', '1.2')
+        depTest.moduleConfigurations == ['test']
+        hasDefaultDependencyArtifact(depTest)
+    }
+
+    @Issue("GRADLE-2931")
+    def "fails to resolve dependency if parent dependency management doesn't provide correct defaults"() {
+        given:
+        def parent = tmpDir.file("parent.xml") << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>parent</artifactId>
+    <version>version-one</version>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>group-two</groupId>
+                <artifactId>artifact-two</artifactId>
+                <version>1.1</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+</project>
+"""
+
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>group-one</groupId>
+        <artifactId>parent</artifactId>
+        <version>version-one</version>
+    </parent>
+
+    <artifactId>artifact-one</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>group-two</groupId>
+            <artifactId>artifact-two</artifactId>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>group-two</groupId>
+            <artifactId>artifact-two</artifactId>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>
+"""
+        and:
+        parseContext.currentRevisionId >> moduleId('group-one', 'artifact-one', 'version-one')
+        parseContext.getArtifact({it.moduleRevisionId.name == 'parent' }) >> { new DefaultLocallyAvailableExternalResource(parent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(parent)) }
+
+        when:
+        def descriptor = parsePom()
+
+        then:
+        descriptor.dependencies.length == 2
+        def depCompile = descriptor.dependencies[0]
+        depCompile.dependencyRevisionId == moduleId('group-two', 'artifact-two', '1.1')
+        depCompile.moduleConfigurations == ['compile', 'runtime']
+        hasDefaultDependencyArtifact(depCompile)
+        def depTest = descriptor.dependencies[1]
+        depTest.dependencyRevisionId != moduleId('group-two', 'artifact-two', '1.1')
         depTest.moduleConfigurations == ['test']
         hasDefaultDependencyArtifact(depTest)
     }

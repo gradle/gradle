@@ -17,6 +17,8 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
 
 import org.apache.ivy.core.module.descriptor.License
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomReader.PomDependencyData
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.MavenDependencyKey
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.PomDependencyMgt
 import org.gradle.api.internal.externalresource.DefaultLocallyAvailableExternalResource
 import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource
 import org.gradle.internal.resource.local.DefaultLocallyAvailableResource
@@ -178,11 +180,12 @@ class PomReaderTest extends Specification {
 </project>
 """
         pomReader = new PomReader(locallyAvailableExternalResource)
+        MavenDependencyKey key = new MavenDependencyKey('group-two', 'artifact-two', null, null)
 
         then:
         pomReader.getDependencies().size() == 1
-        pomReader.getDependencies().containsKey('group-two:artifact-two::')
-        PomDependencyData dependency = pomReader.getDependencies().get('group-two:artifact-two::')
+        pomReader.getDependencies().containsKey(key)
+        PomDependencyData dependency = pomReader.getDependencies().get(key)
         dependency.groupId == 'group-two'
         dependency.artifactId == 'artifact-two'
         dependency.version == 'version-two'
@@ -214,11 +217,12 @@ class PomReaderTest extends Specification {
 </project>
 """
         pomReader = new PomReader(locallyAvailableExternalResource)
+        MavenDependencyKey key = new MavenDependencyKey('group-two', 'artifact-two', null, null)
 
         then:
         pomReader.getDependencies().size() == 1
-        pomReader.getDependencies().containsKey('group-two:artifact-two::')
-        PomDependencyData dependency = pomReader.getDependencies().get('group-two:artifact-two::')
+        pomReader.getDependencies().containsKey(key)
+        PomDependencyData dependency = pomReader.getDependencies().get(key)
         dependency.groupId == 'group-two'
         dependency.artifactId == 'artifact-two'
         dependency.version == 'version-two'
@@ -248,26 +252,82 @@ class PomReaderTest extends Specification {
             <version>version-two</version>
             <type>test-jar</type>
             <scope>test</scope>
+            <classifier>test</classifier>
         </dependency>
     </dependencies>
 </project>
 """
         pomReader = new PomReader(locallyAvailableExternalResource)
+        MavenDependencyKey dependencyJarKey = new MavenDependencyKey('group-two', 'artifact-two', null, null)
+        MavenDependencyKey dependencyTestJarKey = new MavenDependencyKey('group-two', 'artifact-two', 'test-jar', 'test')
 
         then:
         pomReader.getDependencies().size() == 2
-        pomReader.getDependencies().containsKey('group-two:artifact-two::')
-        PomDependencyData dependencyJar = pomReader.getDependencies().get('group-two:artifact-two::')
+        pomReader.getDependencies().containsKey(dependencyJarKey)
+        PomDependencyData dependencyJar = pomReader.getDependencies().get(dependencyJarKey)
         dependencyJar.groupId == 'group-two'
         dependencyJar.artifactId == 'artifact-two'
         dependencyJar.version == 'version-two'
         dependencyJar.type == null
-        pomReader.getDependencies().containsKey('group-two:artifact-two:test-jar:')
-        PomDependencyData dependencyTestJar = pomReader.getDependencies().get('group-two:artifact-two:test-jar:')
+        dependencyJar.classifier == null
+        pomReader.getDependencies().containsKey(dependencyTestJarKey)
+        PomDependencyData dependencyTestJar = pomReader.getDependencies().get(dependencyTestJarKey)
         dependencyTestJar.groupId == 'group-two'
         dependencyTestJar.artifactId == 'artifact-two'
         dependencyTestJar.version == 'version-two'
         dependencyTestJar.type == 'test-jar'
+        dependencyTestJar.classifier == 'test'
+    }
+
+    def "get dependencies management without custom properties"() {
+        when:
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+    <name>Test Artifact One</name>
+    <description>The first test artifact</description>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>group-two</groupId>
+                <artifactId>artifact-two</artifactId>
+                <version>version-two</version>
+            </dependency>
+            <dependency>
+                <groupId>group-three</groupId>
+                <artifactId>artifact-three</artifactId>
+                <version>version-three</version>
+                <type>test-jar</type>
+                <classifier>test</classifier>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+</project>
+"""
+        pomReader = new PomReader(locallyAvailableExternalResource)
+        MavenDependencyKey dependencyMgtJarKey = new MavenDependencyKey('group-two', 'artifact-two', null, null)
+        MavenDependencyKey dependencyMgtTestJarKey = new MavenDependencyKey('group-three', 'artifact-three', 'test-jar', 'test')
+
+        then:
+        pomReader.getDependencyMgt().size() == 2
+        pomReader.getDependencyMgt().containsKey(dependencyMgtJarKey)
+        PomDependencyMgt dependencyMgtJar = pomReader.getDependencyMgt().get(dependencyMgtJarKey)
+        dependencyMgtJar.groupId == 'group-two'
+        dependencyMgtJar.artifactId == 'artifact-two'
+        dependencyMgtJar.version == 'version-two'
+        dependencyMgtJar.type == null
+        dependencyMgtJar.classifier == null
+        pomReader.getDependencyMgt().containsKey(dependencyMgtTestJarKey)
+        PomDependencyMgt dependencyMgtTestJar = pomReader.getDependencyMgt().get(dependencyMgtTestJarKey)
+        dependencyMgtTestJar.groupId == 'group-three'
+        dependencyMgtTestJar.artifactId == 'artifact-three'
+        dependencyMgtTestJar.version == 'version-three'
+        dependencyMgtTestJar.type == 'test-jar'
+        dependencyMgtTestJar.classifier == 'test'
     }
 
     def "parse POM with parent POM"() {
