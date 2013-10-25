@@ -35,4 +35,14 @@ public interface VisualCpp extends ToolChain {
      * The directory where Visual Studio or Visual C++ is installed.
      */
     void setInstallDir(Object installDir);
+
+    /**
+     * The directory where Windows SDK is installed.
+     */
+    File getWindowsSdkDir();
+
+    /**
+     * The directory where Windows SDK is installed.
+     */
+    void setWindowsSdkDir(Object installDir);
 }

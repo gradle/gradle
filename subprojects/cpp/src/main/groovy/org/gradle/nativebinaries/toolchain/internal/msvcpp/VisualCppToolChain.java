@@ -42,6 +42,7 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
     private final ExecActionFactory execActionFactory;
     private final VisualStudioLocator visualStudioLocator;
     private File installDir;
+    private File windowsSdkDir;
 
     public VisualCppToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory,
                               VisualStudioLocator visualStudioLocator) {
@@ -79,6 +80,9 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
     }
 
     private VisualStudioLocator.SearchResult locateWindowsSdk() {
+        if (windowsSdkDir != null) {
+            visualStudioLocator.locateWindowsSdk(windowsSdkDir);
+        }
         return visualStudioLocator.locateDefaultWindowsSdk();
     }
 
@@ -88,6 +92,14 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
 
     public void setInstallDir(Object installDirPath) {
         this.installDir = resolve(installDirPath);
+    }
+
+    public File getWindowsSdkDir() {
+        return windowsSdkDir;
+    }
+
+    public void setWindowsSdkDir(Object windowsSdkDirPath) {
+        this.windowsSdkDir = resolve(windowsSdkDirPath);
     }
 
     public PlatformToolChain target(Platform targetPlatform) {

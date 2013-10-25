@@ -46,7 +46,9 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
             return locateInHierarchy(compilerInPath, isVisualStudio);
         }
 
-        return locateInProgramFiles(isVisualStudio, "/Microsoft Visual Studio 10.0");
+        return locateInProgramFiles(isVisualStudio,
+                "/Microsoft Visual Studio 11.0",
+                "/Microsoft Visual Studio 10.0");
     }
 
     private Spec<File> isVisualStudio() {
@@ -57,6 +59,10 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
         };
     }
 
+    public Search locateWindowsSdk(File candidate) {
+        return locateInHierarchy(candidate, isWindowsSdk());
+    }
+
     public Search locateDefaultWindowsSdk() {
         // If rc.exe is on the path, assume it is contained within a Windows SDK
         File resourceCompilerInPath = os.findInPath("rc.exe");
@@ -65,6 +71,7 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
         }
 
         return locateInProgramFiles(isWindowsSdk(),
+                "Microsoft SDKs/Windows/v7.1A",
                 "Microsoft SDKs/Windows/v7.1",
                 "Microsoft SDKs/Windows/v7.0A");
     }
