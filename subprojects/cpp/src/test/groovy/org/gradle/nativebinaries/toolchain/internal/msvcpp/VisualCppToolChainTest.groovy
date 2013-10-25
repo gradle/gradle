@@ -110,6 +110,17 @@ class VisualCppToolChainTest extends Specification {
         toolChain.installDir == file("one")
     }
 
+    def "resolves windows sdk directory"() {
+        when:
+        toolChain.windowsSdkDir = "The Path"
+
+        then:
+        fileResolver.resolve("The Path") >> file("one")
+
+        and:
+        toolChain.windowsSdkDir == file("one")
+    }
+
     def file(String name) {
         testDirectoryProvider.testDirectory.file(name)
     }
