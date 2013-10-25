@@ -16,6 +16,7 @@
 
 package org.gradle.nativebinaries.toolchain.internal.gcc
 
+import org.gradle.api.Action
 import org.gradle.nativebinaries.language.c.internal.CCompileSpec
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool
 import org.gradle.process.internal.ExecAction
@@ -29,8 +30,9 @@ class CCompilerTest extends Specification {
 
     def executable = new File("executable")
     def execActionFactory = Mock(ExecActionFactory)
+    Action<List<String>> argAction = Mock(Action)
     CommandLineTool<CCompileSpec> commandLineTool = new CommandLineTool<CCompileSpec>("cCompiler", executable, execActionFactory)
-    CCompiler compiler = new CCompiler(commandLineTool, false);
+    CCompiler compiler = new CCompiler(commandLineTool, argAction, false);
 
     def "compiles all source files in a single execution"() {
         given:
@@ -51,6 +53,13 @@ class CCompilerTest extends Specification {
         compiler.execute(compileSpec)
 
         then:
+        1 * argAction.execute([
+                "-x", "c",
+                "-Dfoo=bar", "-Dempty",
+                "-firstArg", "-secondArg",
+                "-c",
+                "-I", testDir.file("include.h").absolutePath,
+                testDir.file("one.c").absolutePath, testDir.file("two.c").absolutePath])
         1 * execActionFactory.newExecAction() >> execAction
         1 * execAction.executable(executable)
         1 * execAction.workingDir(objectFileDir)

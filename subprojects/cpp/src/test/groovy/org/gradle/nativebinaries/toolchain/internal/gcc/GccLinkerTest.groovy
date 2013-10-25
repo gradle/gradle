@@ -15,6 +15,8 @@
  */
 
 package org.gradle.nativebinaries.toolchain.internal.gcc
+
+import org.gradle.api.Action
 import org.gradle.nativebinaries.internal.LinkerSpec
 import org.gradle.nativebinaries.internal.SharedLibraryLinkerSpec
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool
@@ -29,8 +31,9 @@ class GccLinkerTest extends Specification {
 
     def executable = new File("executable")
     def execActionFactory = Mock(ExecActionFactory)
+    Action<List<String>> argAction = Mock(Action)
     CommandLineTool<LinkerSpec> commandLineTool = new CommandLineTool<LinkerSpec>("linker", executable, execActionFactory)
-    GccLinker linker = new GccLinker(commandLineTool, false);
+    GccLinker linker = new GccLinker(commandLineTool, argAction, false);
 
     def "compiles all source files in a single execution"() {
         given:
@@ -53,6 +56,12 @@ class GccLinkerTest extends Specification {
         linker.execute(spec)
 
         then:
+        1 * argAction.execute([
+                "-sys1", "-sys2",
+                "-Xlinker", "-arg1", "-Xlinker", "-arg2",
+                "-shared", "-Wl,-install_name,installName",
+                "-o", outputFile.absolutePath,
+                testDir.file("one.o").absolutePath, testDir.file("two.o").absolutePath])
         1 * execActionFactory.newExecAction() >> execAction
         1 * execAction.executable(executable)
         1 * execAction.args([

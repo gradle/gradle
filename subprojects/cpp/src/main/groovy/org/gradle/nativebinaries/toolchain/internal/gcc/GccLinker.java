@@ -16,6 +16,7 @@
 
 package org.gradle.nativebinaries.toolchain.internal.gcc;
 
+import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.os.OperatingSystem;
@@ -32,8 +33,9 @@ class GccLinker implements Compiler<LinkerSpec> {
 
     private final CommandLineTool<LinkerSpec> commandLineTool;
 
-    public GccLinker(CommandLineTool<LinkerSpec> commandLineTool, boolean useCommandFile) {
+    public GccLinker(CommandLineTool<LinkerSpec> commandLineTool, Action<List<String>> argsAction, boolean useCommandFile) {
         ArgsTransformer<LinkerSpec> argsTransformer = new GccLinkerArgsTransformer();
+        argsTransformer = new UserArgsTransformer<LinkerSpec>(argsTransformer, argsAction);
         if (useCommandFile) {
             argsTransformer = new GccOptionsFileArgTransformer<LinkerSpec>(argsTransformer);
         }

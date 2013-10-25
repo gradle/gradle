@@ -16,6 +16,7 @@
 
 package org.gradle.nativebinaries.toolchain.internal.gcc;
 
+import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.nativebinaries.internal.StaticLibraryArchiverSpec;
@@ -32,8 +33,10 @@ import java.util.List;
 class ArStaticLibraryArchiver implements Compiler<StaticLibraryArchiverSpec> {
     private final CommandLineTool<StaticLibraryArchiverSpec> commandLineTool;
 
-    public ArStaticLibraryArchiver(CommandLineTool<StaticLibraryArchiverSpec> commandLineTool) {
-        this.commandLineTool = commandLineTool.withArguments(new ArchiverSpecToArguments());
+    public ArStaticLibraryArchiver(CommandLineTool<StaticLibraryArchiverSpec> commandLineTool, Action<List<String>> argsAction) {
+        ArgsTransformer<StaticLibraryArchiverSpec> arguments = new ArchiverSpecToArguments();
+        arguments = new UserArgsTransformer<StaticLibraryArchiverSpec>(arguments, argsAction);
+        this.commandLineTool = commandLineTool.withArguments(arguments);
     }
 
     public WorkResult execute(StaticLibraryArchiverSpec spec) {

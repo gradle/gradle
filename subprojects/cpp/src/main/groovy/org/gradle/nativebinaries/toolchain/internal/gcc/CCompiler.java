@@ -16,18 +16,22 @@
 
 package org.gradle.nativebinaries.toolchain.internal.gcc;
 
+import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.nativebinaries.language.c.internal.CCompileSpec;
 import org.gradle.nativebinaries.toolchain.internal.ArgsTransformer;
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
 
+import java.util.List;
+
 class CCompiler implements Compiler<CCompileSpec> {
 
     private final CommandLineTool<CCompileSpec> commandLineTool;
 
-    public CCompiler(CommandLineTool<CCompileSpec> commandLineTool, boolean useCommandFile) {
+    public CCompiler(CommandLineTool<CCompileSpec> commandLineTool, Action<List<String>> argsAction, boolean useCommandFile) {
         ArgsTransformer<CCompileSpec> argsTransformer = new CCompileArgsTransformer();
+        argsTransformer = new UserArgsTransformer<CCompileSpec>(argsTransformer, argsAction);
         if (useCommandFile) {
             argsTransformer = new GccOptionsFileArgTransformer<CCompileSpec>(argsTransformer);
         }

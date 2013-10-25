@@ -17,6 +17,7 @@
 package org.gradle.nativebinaries.toolchain.internal.gcc;
 
 import org.apache.commons.io.FilenameUtils;
+import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
@@ -32,16 +33,20 @@ import java.util.List;
 class Assembler implements Compiler<AssembleSpec> {
 
     private final CommandLineTool<AssembleSpec> commandLineTool;
+    private final Action<List<String>> argsAction;
 
-    public Assembler(CommandLineTool<AssembleSpec> commandLineTool) {
+    public Assembler(CommandLineTool<AssembleSpec> commandLineTool, Action<List<String>> argsAction) {
         this.commandLineTool = commandLineTool;
+        this.argsAction = argsAction;
     }
 
     public WorkResult execute(AssembleSpec spec) {
         boolean didWork = false;
         CommandLineTool<AssembleSpec> commandLineAssembler = commandLineTool.inWorkDirectory(spec.getObjectFileDir());
         for (File sourceFile : spec.getSourceFiles()) {
-            WorkResult result = commandLineAssembler.withArguments(new AssembleSpecToArgsList(sourceFile)).execute(spec);
+            ArgsTransformer<AssembleSpec> arguments = new AssembleSpecToArgsList(sourceFile);
+            arguments = new UserArgsTransformer<AssembleSpec>(arguments, argsAction);
+            WorkResult result = commandLineAssembler.withArguments(arguments).execute(spec);
             didWork = didWork || result.getDidWork();
         }
         return new SimpleWorkResult(didWork);
