@@ -26,7 +26,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.execution.*;
-import org.gradle.execution.taskgraph.DefaultTaskGraphExecuter;
+import org.gradle.execution.taskgraph.DefaultTaskGraphExecutor;
 import org.gradle.execution.taskgraph.TaskPlanExecutor;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
@@ -78,8 +78,8 @@ public class GradleScopeServices extends DefaultServiceRegistry implements Servi
         return new DefaultProjectRegistry<ProjectInternal>();
     }
 
-    protected TaskGraphExecuter createTaskGraphExecuter() {
-        return new DefaultTaskGraphExecuter(get(ListenerManager.class), get(TaskPlanExecutor.class));
+    protected TaskGraphExecutor createTaskGraphExecutor() {
+        return new DefaultTaskGraphExecutor(get(ListenerManager.class), get(TaskPlanExecutor.class));
     }
 
     public ServiceRegistryFactory createFor(Object domainObject) {

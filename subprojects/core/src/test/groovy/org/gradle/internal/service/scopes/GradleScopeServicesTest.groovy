@@ -28,8 +28,8 @@ import org.gradle.api.plugins.PluginContainer
 import org.gradle.cache.CacheRepository
 import org.gradle.execution.BuildExecuter
 import org.gradle.execution.DefaultBuildExecuter
-import org.gradle.execution.TaskGraphExecuter
-import org.gradle.execution.taskgraph.DefaultTaskGraphExecuter
+import org.gradle.execution.TaskGraphExecutor
+import org.gradle.execution.taskgraph.DefaultTaskGraphExecutor
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.invocation.BuildClassLoaderRegistry
 import org.gradle.listener.ListenerManager
@@ -111,11 +111,11 @@ public class GradleScopeServicesTest extends Specification {
 
     def "provides a task graph executer"() {
         when:
-        def graphExecuter = registry.get(TaskGraphExecuter)
-        def secondExecuter = registry.get(TaskGraphExecuter)
+        def graphExecutor = registry.get(TaskGraphExecutor)
+        def secondExecutor = registry.get(TaskGraphExecutor)
 
         then:
-        graphExecuter instanceof DefaultTaskGraphExecuter
-        graphExecuter sameInstance(secondExecuter)
+        graphExecutor instanceof DefaultTaskGraphExecutor
+        graphExecutor sameInstance(secondExecutor)
     }
 }

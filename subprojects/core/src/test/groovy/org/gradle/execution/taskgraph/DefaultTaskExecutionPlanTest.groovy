@@ -32,13 +32,14 @@ import static org.gradle.util.TestUtil.createRootProject
 import static org.gradle.util.WrapUtil.toList
 
 public class DefaultTaskExecutionPlanTest extends Specification {
-
     DefaultTaskExecutionPlan executionPlan
     DefaultProject root;
+    MutexManager mutexManager;
 
     def setup() {
         root = createRootProject();
         executionPlan = new DefaultTaskExecutionPlan()
+        mutexManager = new MutexManager()
     }
 
     private void addToGraphAndPopulate(List tasks) {
@@ -50,6 +51,61 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         Mock(TaskFailureHandler) {
             onTaskFailure(task) >> {}
         }
+    }
+
+    def "should be ready to execute when no blocking project, dependency or mutex"() {
+        def runningProjects = Collections.emptyList()
+
+        given:
+        Task a = task("a")
+
+        expect:
+        taskIsReadyToExecute(a, runningProjects)
+    }
+
+    def "should not be ready to execute when task is dependency is not yet complete"() {
+        def runningProjects = Collections.emptyList()
+
+        given:
+        Task a = task("a")
+        Task b = task("b", dependsOn: [a])
+
+        expect:
+        !taskIsReadyToExecute(b, runningProjects)
+    }
+
+    def "should not be ready to execute when other task of same project is already executing"() {
+        def runningProjects = Collections.singletonList(":")
+        given:
+        Task a = task("a")
+
+        expect:
+        !taskIsReadyToExecute(a, runningProjects)
+    }
+
+    def "should not be ready to execute when mutex is already claimed"() {
+        def runningProjects = Collections.emptyList()
+
+        given:
+        Task a = task(["mutex" : "commonMutex"], "a")
+        mutexManager.claim(a)
+        Task b = task(["mutex" : "commonMutex"], "b")
+
+        expect:
+        !taskIsReadyToExecute(b, runningProjects)
+    }
+
+    private boolean taskIsReadyToExecute(TaskInternal task, List runningProjects) {
+        def taskInfo = new TaskInfo(task)
+        def dependencies = task.getTaskDependencies().getDependencies(task)
+        dependencies.each() {
+            def dep = new TaskInfo(it)
+            dep.require()
+            taskInfo.addHardSuccessor(dep)
+        }
+        taskInfo.require();
+
+        DefaultTaskExecutionPlan.isReadyToBeExecuted(taskInfo, runningProjects, mutexManager)
     }
 
     def "schedules tasks in dependency order"() {
@@ -401,7 +457,7 @@ public class DefaultTaskExecutionPlanTest extends Specification {
     }
 
     protected TaskInfo getTaskToExecute() {
-        executionPlan.getTaskToExecute()
+        executionPlan.getTaskToExecute(mutexManager)
     }
 
     def "stops returning tasks on first task failure when no failure handler provided"() {
@@ -628,8 +684,8 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         addToGraphAndPopulate([fooA, barA, fooB, barB])
 
         when:
-        def t1 = executionPlan.getTaskToExecute()
-        def t2 = executionPlan.getTaskToExecute()
+        def t1 = getTaskToExecute()
+        def t2 = getTaskToExecute()
 
         then:
         t1.task.project != t2.task.project
@@ -637,8 +693,8 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         when:
         executionPlan.taskComplete(t1)
         executionPlan.taskComplete(t2)
-        def t3 = executionPlan.getTaskToExecute()
-        def t4 = executionPlan.getTaskToExecute()
+        def t3 = getTaskToExecute()
+        def t4 = getTaskToExecute()
 
         then:
         t3.task.project != t4.task.project
@@ -698,7 +754,8 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         if (options.failure) {
             failure(task, options.failure)
         }
-        task.getDidWork() >> (options.containsKey('didWork') ? options.didWork : true)
+        task.getDidWork() >> (options.didWork  ?: true)
+        task.getMutex() >>  (options.mutex  ?: null)
         return task
     }
 

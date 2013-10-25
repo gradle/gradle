@@ -29,11 +29,11 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.AbstractPluginAware;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
+import org.gradle.execution.TaskGraphExecutor;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.configuration.ScriptPluginFactory;
-import org.gradle.execution.TaskGraphExecuter;
 import org.gradle.listener.ActionBroadcast;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.listener.ListenerBroadcast;
@@ -45,7 +45,7 @@ import java.io.File;
 public class DefaultGradle extends AbstractPluginAware implements GradleInternal {
     private ProjectInternal rootProject;
     private ProjectInternal defaultProject;
-    private final TaskGraphExecuter taskGraph;
+    private final TaskGraphExecutor taskGraph;
     private final Gradle parent;
     private final StartParameter startParameter;
     private final ProjectRegistry<ProjectInternal> projectRegistry;
@@ -66,7 +66,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
         this.services = parentRegistry.createFor(this);
         this.listenerManager = services.get(ListenerManager.class);
         projectRegistry = services.get(ProjectRegistry.class);
-        taskGraph = services.get(TaskGraphExecuter.class);
+        taskGraph = services.get(TaskGraphExecutor.class);
         distributionLocator = services.get(GradleDistributionLocator.class);
         pluginContainer = services.get(PluginContainer.class);
         fileResolver = services.get(FileResolver.class);
@@ -143,7 +143,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
         this.defaultProject = defaultProject;
     }
 
-    public TaskGraphExecuter getTaskGraph() {
+    public TaskGraphExecutor getTaskGraph() {
         return taskGraph;
     }
 

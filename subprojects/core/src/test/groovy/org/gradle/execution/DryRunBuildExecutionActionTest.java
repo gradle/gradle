@@ -33,7 +33,7 @@ public class DryRunBuildExecutionActionTest {
     private final JUnit4Mockery context = new JUnit4GroovyMockery();
     private final BuildExecutionContext executionContext = context.mock(BuildExecutionContext.class);
     private final GradleInternal gradle = context.mock(GradleInternal.class);
-    private final TaskGraphExecuter taskExecuter = context.mock(TaskGraphExecuter.class);
+    private final TaskGraphExecutor taskExecuter = context.mock(TaskGraphExecutor.class);
     private final StartParameter startParameter = context.mock(StartParameter.class);
     private final DryRunBuildExecutionAction action = new DryRunBuildExecutionAction();
 

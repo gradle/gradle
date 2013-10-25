@@ -46,7 +46,7 @@ public class TaskNameResolvingBuildConfigurationAction implements BuildConfigura
         List<String> taskNames = gradle.getStartParameter().getTaskNames();
         Multimap<String, Task> selectedTasks = doSelect(gradle, taskNames, taskNameResolver);
 
-        TaskGraphExecuter executer = gradle.getTaskGraph();
+        TaskGraphExecutor executer = gradle.getTaskGraph();
         for (String name : selectedTasks.keySet()) {
             executer.addTasks(selectedTasks.get(name));
         }

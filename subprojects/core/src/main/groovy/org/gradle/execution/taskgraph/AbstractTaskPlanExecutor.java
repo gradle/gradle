@@ -26,6 +26,7 @@ import static org.gradle.util.Clock.prettyTime;
 abstract class AbstractTaskPlanExecutor implements TaskPlanExecutor {
     private static final Logger LOGGER = Logging.getLogger(AbstractTaskPlanExecutor.class);
     private final Object lock = new Object();
+    private final MutexManager mutexManager = new MutexManager();
 
     protected Runnable taskWorker(TaskExecutionPlan taskExecutionPlan, TaskExecutionListener taskListener) {
         return new TaskExecutorWorker(taskExecutionPlan, taskListener);
@@ -43,12 +44,14 @@ abstract class AbstractTaskPlanExecutor implements TaskPlanExecutor {
         public void run() {
             long busy = 0;
             long start = System.currentTimeMillis();
-            TaskInfo task;
-            while ((task = taskExecutionPlan.getTaskToExecute()) != null) {
-                final String taskPath = task.getTask().getPath();
+            TaskInfo taskInfo;
+            while ((taskInfo = taskExecutionPlan.getTaskToExecute(mutexManager)) != null) {
+                TaskInternal task = taskInfo.getTask();
+                final String taskPath = task.getPath();
                 LOGGER.info("{} ({}) started.", taskPath, Thread.currentThread());
                 long startTask = System.currentTimeMillis();
-                processTask(task);
+                processTask(taskInfo);
+                mutexManager.release(task);
                 long taskDuration = System.currentTimeMillis() - startTask;
                 busy += taskDuration;
                 LOGGER.info("{} ({}) completed. Took {}.", taskPath, Thread.currentThread(), prettyTime(taskDuration));

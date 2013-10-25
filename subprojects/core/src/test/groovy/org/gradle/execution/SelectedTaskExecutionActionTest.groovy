@@ -24,7 +24,7 @@ import spock.lang.Specification
 class SelectedTaskExecutionActionTest extends Specification {
     final SelectedTaskExecutionAction action = new SelectedTaskExecutionAction()
     final BuildExecutionContext context = Mock()
-    final TaskGraphExecuter executer = Mock()
+    final TaskGraphExecutor executer = Mock()
     final GradleInternal gradleInternal = Mock()
     final StartParameter startParameter = Mock()
 

@@ -44,7 +44,9 @@ public interface TaskExecutionPlan {
      * Provides a ready-to-execute task. A task is ready-to-execute if all of its dependencies have been completed successfully.
      * This method blocks until the at least one task is ready-to-execute.
      * If no tasks remain, null will be returned.
+     *
+     * @param mutexManager the mutex manager maintaining the active task mutexes.
      * @return The task, or null if no matching tasks remain.
      */
-    TaskInfo getTaskToExecute();
+    TaskInfo getTaskToExecute(MutexManager mutexManager);
 }
