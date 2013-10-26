@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
 
 import org.apache.ivy.core.module.descriptor.License
+import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomReader.PomDependencyData
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.MavenDependencyKey
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.PomDependencyMgt
@@ -167,8 +168,6 @@ class PomReaderTest extends Specification {
     <groupId>group-one</groupId>
     <artifactId>artifact-one</artifactId>
     <version>version-one</version>
-    <name>Test Artifact One</name>
-    <description>The first test artifact</description>
 
     <dependencies>
         <dependency>
@@ -184,11 +183,7 @@ class PomReaderTest extends Specification {
 
         then:
         pomReader.getDependencies().size() == 1
-        pomReader.getDependencies().containsKey(key)
-        PomDependencyData dependency = pomReader.getDependencies().get(key)
-        dependency.groupId == 'group-two'
-        dependency.artifactId == 'artifact-two'
-        dependency.version == 'version-two'
+        assertResolvedPomDependency(key, 'version-two')
     }
 
     def "get dependencies with custom properties"() {
@@ -199,8 +194,6 @@ class PomReaderTest extends Specification {
     <groupId>group-one</groupId>
     <artifactId>artifact-one</artifactId>
     <version>version-one</version>
-    <name>Test Artifact One</name>
-    <description>The first test artifact</description>
 
     <properties>
         <groupId.prop>group-two</groupId.prop>
@@ -221,15 +214,11 @@ class PomReaderTest extends Specification {
 
         then:
         pomReader.getDependencies().size() == 1
-        pomReader.getDependencies().containsKey(key)
-        PomDependencyData dependency = pomReader.getDependencies().get(key)
-        dependency.groupId == 'group-two'
-        dependency.artifactId == 'artifact-two'
-        dependency.version == 'version-two'
+        assertResolvedPomDependency(key, 'version-two')
     }
 
     @Issue("GRADLE-2931")
-    def "get dependencies with same group ID and artifact ID but different type and classifier"() {
+    def "picks version of last dependency defined by artifact ID, group ID, type and classifier"() {
         when:
         pomFile << """
 <project>
@@ -237,46 +226,85 @@ class PomReaderTest extends Specification {
     <groupId>group-one</groupId>
     <artifactId>artifact-one</artifactId>
     <version>version-one</version>
-    <name>Test Artifact One</name>
-    <description>The first test artifact</description>
 
     <dependencies>
         <dependency>
             <groupId>group-two</groupId>
             <artifactId>artifact-two</artifactId>
+            <type>jar</type>
+            <classifier>myjar</classifier>
             <version>version-two</version>
         </dependency>
         <dependency>
             <groupId>group-two</groupId>
             <artifactId>artifact-two</artifactId>
-            <version>version-two</version>
-            <type>test-jar</type>
-            <scope>test</scope>
-            <classifier>test</classifier>
+            <type>jar</type>
+            <classifier>myjar</classifier>
+            <version>version-three</version>
+        </dependency>
+        <dependency>
+            <groupId>group-two</groupId>
+            <artifactId>artifact-two</artifactId>
+            <type>jar</type>
+            <classifier>myjar</classifier>
+            <version>version-four</version>
         </dependency>
     </dependencies>
 </project>
 """
         pomReader = new PomReader(locallyAvailableExternalResource)
-        MavenDependencyKey dependencyJarKey = new MavenDependencyKey('group-two', 'artifact-two', null, null)
-        MavenDependencyKey dependencyTestJarKey = new MavenDependencyKey('group-two', 'artifact-two', 'test-jar', 'test')
+        MavenDependencyKey key = new MavenDependencyKey('group-two', 'artifact-two', 'jar', 'myjar')
 
         then:
-        pomReader.getDependencies().size() == 2
-        pomReader.getDependencies().containsKey(dependencyJarKey)
-        PomDependencyData dependencyJar = pomReader.getDependencies().get(dependencyJarKey)
-        dependencyJar.groupId == 'group-two'
-        dependencyJar.artifactId == 'artifact-two'
-        dependencyJar.version == 'version-two'
-        dependencyJar.type == null
-        dependencyJar.classifier == null
-        pomReader.getDependencies().containsKey(dependencyTestJarKey)
-        PomDependencyData dependencyTestJar = pomReader.getDependencies().get(dependencyTestJarKey)
-        dependencyTestJar.groupId == 'group-two'
-        dependencyTestJar.artifactId == 'artifact-two'
-        dependencyTestJar.version == 'version-two'
-        dependencyTestJar.type == 'test-jar'
-        dependencyTestJar.classifier == 'test'
+        pomReader.getDependencies().size() == 1
+        assertResolvedPomDependency(key, 'version-four')
+    }
+
+    @Issue("GRADLE-2931")
+    def "can declare multiple dependencies with same artifact ID and group ID but different type and classifier"() {
+        when:
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+
+    <dependencies>
+        <dependency>
+            <groupId>group-two</groupId>
+            <artifactId>artifact-two</artifactId>
+            <type>jar</type>
+            <classifier>myjar</classifier>
+            <version>version-two</version>
+        </dependency>
+        <dependency>
+            <groupId>group-two</groupId>
+            <artifactId>artifact-two</artifactId>
+            <type>test-jar</type>
+            <classifier>test</classifier>
+            <version>version-three</version>
+        </dependency>
+        <dependency>
+            <groupId>group-two</groupId>
+            <artifactId>artifact-two</artifactId>
+            <type>ejb-client</type>
+            <classifier>client</classifier>
+            <version>version-four</version>
+        </dependency>
+    </dependencies>
+</project>
+"""
+        pomReader = new PomReader(locallyAvailableExternalResource)
+        MavenDependencyKey dependencyJarkey = new MavenDependencyKey('group-two', 'artifact-two', 'jar', 'myjar')
+        MavenDependencyKey dependencyTestJarkey = new MavenDependencyKey('group-two', 'artifact-two', 'test-jar', 'test')
+        MavenDependencyKey dependencyEjbClientKey = new MavenDependencyKey('group-two', 'artifact-two', 'ejb-client', 'client')
+
+        then:
+        pomReader.getDependencies().size() == 3
+        assertResolvedPomDependency(dependencyJarkey, 'version-two')
+        assertResolvedPomDependency(dependencyTestJarkey, 'version-three')
+        assertResolvedPomDependency(dependencyEjbClientKey, 'version-four')
     }
 
     def "get dependencies management without custom properties"() {
@@ -287,8 +315,6 @@ class PomReaderTest extends Specification {
     <groupId>group-one</groupId>
     <artifactId>artifact-one</artifactId>
     <version>version-one</version>
-    <name>Test Artifact One</name>
-    <description>The first test artifact</description>
 
     <dependencyManagement>
         <dependencies>
@@ -297,37 +323,141 @@ class PomReaderTest extends Specification {
                 <artifactId>artifact-two</artifactId>
                 <version>version-two</version>
             </dependency>
+        </dependencies>
+    </dependencyManagement>
+</project>
+"""
+        pomReader = new PomReader(locallyAvailableExternalResource)
+        MavenDependencyKey key = new MavenDependencyKey('group-two', 'artifact-two', null, null)
+
+        then:
+        pomReader.getDependencyMgt().size() == 1
+        assertResolvedPomDependencyManagement(key, 'version-two')
+    }
+
+    def "get dependencies management with custom properties"() {
+        when:
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+
+    <properties>
+        <groupId.prop>group-two</groupId.prop>
+        <artifactId.prop>artifact-two</artifactId.prop>
+        <version.prop>version-two</version.prop>
+    </properties>
+    <dependencyManagement>
+        <dependencies>
             <dependency>
-                <groupId>group-three</groupId>
-                <artifactId>artifact-three</artifactId>
-                <version>version-three</version>
-                <type>test-jar</type>
-                <classifier>test</classifier>
+                <groupId>\${groupId.prop}</groupId>
+                <artifactId>\${artifactId.prop}</artifactId>
+                <version>\${version.prop}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
 </project>
 """
         pomReader = new PomReader(locallyAvailableExternalResource)
-        MavenDependencyKey dependencyMgtJarKey = new MavenDependencyKey('group-two', 'artifact-two', null, null)
-        MavenDependencyKey dependencyMgtTestJarKey = new MavenDependencyKey('group-three', 'artifact-three', 'test-jar', 'test')
+        MavenDependencyKey key = new MavenDependencyKey('group-two', 'artifact-two', null, null)
 
         then:
-        pomReader.getDependencyMgt().size() == 2
-        pomReader.getDependencyMgt().containsKey(dependencyMgtJarKey)
-        PomDependencyMgt dependencyMgtJar = pomReader.getDependencyMgt().get(dependencyMgtJarKey)
-        dependencyMgtJar.groupId == 'group-two'
-        dependencyMgtJar.artifactId == 'artifact-two'
-        dependencyMgtJar.version == 'version-two'
-        dependencyMgtJar.type == null
-        dependencyMgtJar.classifier == null
-        pomReader.getDependencyMgt().containsKey(dependencyMgtTestJarKey)
-        PomDependencyMgt dependencyMgtTestJar = pomReader.getDependencyMgt().get(dependencyMgtTestJarKey)
-        dependencyMgtTestJar.groupId == 'group-three'
-        dependencyMgtTestJar.artifactId == 'artifact-three'
-        dependencyMgtTestJar.version == 'version-three'
-        dependencyMgtTestJar.type == 'test-jar'
-        dependencyMgtTestJar.classifier == 'test'
+        pomReader.getDependencyMgt().size() == 1
+        assertResolvedPomDependencyManagement(key, 'version-two')
+    }
+
+    def "picks version of last dependency management defined by artifact ID, group ID, type and classifier"() {
+        when:
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>group-two</groupId>
+                <artifactId>artifact-two</artifactId>
+                <type>jar</type>
+                <classifier>myjar</classifier>
+                <version>version-two</version>
+            </dependency>
+            <dependency>
+                <groupId>group-two</groupId>
+                <artifactId>artifact-two</artifactId>
+                <type>jar</type>
+                <classifier>myjar</classifier>
+                <version>version-three</version>
+            </dependency>
+            <dependency>
+                <groupId>group-two</groupId>
+                <artifactId>artifact-two</artifactId>
+                <type>jar</type>
+                <classifier>myjar</classifier>
+                <version>version-four</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+</project>
+"""
+        pomReader = new PomReader(locallyAvailableExternalResource)
+        MavenDependencyKey key = new MavenDependencyKey('group-two', 'artifact-two', 'jar', 'myjar')
+
+        then:
+        pomReader.getDependencyMgt().size() == 1
+        assertResolvedPomDependencyManagement(key, 'version-four')
+    }
+
+    def "can declare multiple dependency managements with same artifact ID and group ID but different type and classifier"() {
+        when:
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>group-two</groupId>
+                <artifactId>artifact-two</artifactId>
+                <type>jar</type>
+                <classifier>myjar</classifier>
+                <version>version-two</version>
+            </dependency>
+            <dependency>
+                <groupId>group-two</groupId>
+                <artifactId>artifact-two</artifactId>
+                <type>test-jar</type>
+                <classifier>test</classifier>
+                <version>version-three</version>
+            </dependency>
+            <dependency>
+                <groupId>group-two</groupId>
+                <artifactId>artifact-two</artifactId>
+                <type>ejb-client</type>
+                <classifier>client</classifier>
+                <version>version-four</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+</project>
+"""
+        pomReader = new PomReader(locallyAvailableExternalResource)
+        MavenDependencyKey dependencyJarkey = new MavenDependencyKey('group-two', 'artifact-two', 'jar', 'myjar')
+        MavenDependencyKey dependencyTestJarkey = new MavenDependencyKey('group-two', 'artifact-two', 'test-jar', 'test')
+        MavenDependencyKey dependencyEjbClientKey = new MavenDependencyKey('group-two', 'artifact-two', 'ejb-client', 'client')
+
+        then:
+        pomReader.getDependencyMgt().size() == 3
+        assertResolvedPomDependencyManagement(dependencyJarkey, 'version-two')
+        assertResolvedPomDependencyManagement(dependencyTestJarkey, 'version-three')
+        assertResolvedPomDependencyManagement(dependencyEjbClientKey, 'version-four')
     }
 
     def "parse POM with parent POM"() {
@@ -421,9 +551,7 @@ class PomReaderTest extends Specification {
         !pomReader.hasParent()
         pomReader.pomProperties.size() == 0
         pomReader.relocation != null
-        pomReader.relocation.organisation == 'group-one'
-        pomReader.relocation.name == 'artifact-one'
-        pomReader.relocation.revision == 'version-one'
+        pomReader.relocation == ModuleRevisionId.newInstance('group-one', 'artifact-one', 'version-one')
     }
 
     def "Parse relocated POM with provided group ID"() {
@@ -454,9 +582,7 @@ class PomReaderTest extends Specification {
         !pomReader.hasParent()
         pomReader.pomProperties.size() == 0
         pomReader.relocation != null
-        pomReader.relocation.organisation == 'group-two'
-        pomReader.relocation.name == 'artifact-one'
-        pomReader.relocation.revision == 'version-one'
+        pomReader.relocation == ModuleRevisionId.newInstance('group-two', 'artifact-one', 'version-one')
     }
 
     def "Parse relocated POM with provided group ID and artifact ID"() {
@@ -488,9 +614,7 @@ class PomReaderTest extends Specification {
         !pomReader.hasParent()
         pomReader.pomProperties.size() == 0
         pomReader.relocation != null
-        pomReader.relocation.organisation == 'group-two'
-        pomReader.relocation.name == 'artifact-two'
-        pomReader.relocation.revision == 'version-one'
+        pomReader.relocation == ModuleRevisionId.newInstance('group-two', 'artifact-two', 'version-one')
     }
 
     def "Parse relocated POM with all provided coordinates"() {
@@ -523,8 +647,26 @@ class PomReaderTest extends Specification {
         !pomReader.hasParent()
         pomReader.pomProperties.size() == 0
         pomReader.relocation != null
-        pomReader.relocation.organisation == 'group-two'
-        pomReader.relocation.name == 'artifact-two'
-        pomReader.relocation.revision == 'version-two'
+        pomReader.relocation == ModuleRevisionId.newInstance('group-two', 'artifact-two', 'version-two')
+    }
+
+    private void assertResolvedPomDependency(MavenDependencyKey key, String version) {
+        assert pomReader.dependencies.containsKey(key)
+        PomDependencyData dependency = pomReader.dependencies[key]
+        assertPomDependencyValues(key, version, dependency)
+    }
+
+    private void assertResolvedPomDependencyManagement(MavenDependencyKey key, String version) {
+        assert pomReader.dependencyMgt.containsKey(key)
+        PomDependencyMgt dependency = pomReader.dependencyMgt[key]
+        assertPomDependencyValues(key, version, dependency)
+    }
+
+    private void assertPomDependencyValues(MavenDependencyKey key, String version, PomDependencyMgt dependency) {
+        assert dependency.groupId == key.groupId
+        assert dependency.artifactId == key.artifactId
+        assert dependency.type == key.type
+        assert dependency.classifier == key.classifier
+        assert dependency.version == version
     }
 }

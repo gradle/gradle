@@ -1783,6 +1783,116 @@ class GradlePomModuleDescriptorParserTest extends Specification {
         hasDefaultDependencyArtifact(depTest)
     }
 
+    @Issue("GRADLE-2931")
+    def "picks version of last dependency defined by artifact ID, group ID, type and classifier"() {
+        given:
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+
+    <dependencies>
+        <dependency>
+            <groupId>group-two</groupId>
+            <artifactId>artifact-two</artifactId>
+            <type>jar</type>
+            <classifier>myjar</classifier>
+            <version>version-two</version>
+        </dependency>
+        <dependency>
+            <groupId>group-two</groupId>
+            <artifactId>artifact-two</artifactId>
+            <type>jar</type>
+            <classifier>myjar</classifier>
+            <version>version-three</version>
+        </dependency>
+        <dependency>
+            <groupId>group-two</groupId>
+            <artifactId>artifact-two</artifactId>
+            <type>jar</type>
+            <classifier>myjar</classifier>
+            <version>version-four</version>
+        </dependency>
+    </dependencies>
+</project>
+"""
+        and:
+        parseContext.currentRevisionId >> moduleId('group-one', 'artifact-one', 'version-one')
+
+        when:
+        def descriptor = parsePom()
+
+        then:
+        descriptor.moduleRevisionId == moduleId('group-one', 'artifact-one', 'version-one')
+        hasArtifact(descriptor, 'artifact-one', 'jar', 'jar')
+        descriptor.dependencies.length == 1
+        def dep = descriptor.dependencies[0]
+        dep.dependencyRevisionId == moduleId('group-two', 'artifact-two', 'version-four')
+        dep.moduleConfigurations == ['compile', 'runtime']
+        hasDependencyArtifact(dep, 'artifact-two' , 'jar', 'jar', 'myjar')
+    }
+
+    @Issue("GRADLE-2931")
+    def "can declare multiple dependencies with same artifact ID and group ID but different type and classifier"() {
+        given:
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+
+    <dependencies>
+        <dependency>
+            <groupId>group-two</groupId>
+            <artifactId>artifact-two</artifactId>
+            <type>jar</type>
+            <classifier>myjar</classifier>
+            <version>version-two</version>
+        </dependency>
+        <dependency>
+            <groupId>group-two</groupId>
+            <artifactId>artifact-two</artifactId>
+            <type>test-jar</type>
+            <classifier>test</classifier>
+            <version>version-three</version>
+        </dependency>
+        <dependency>
+            <groupId>group-two</groupId>
+            <artifactId>artifact-two</artifactId>
+            <type>ejb-client</type>
+            <classifier>client</classifier>
+            <version>version-four</version>
+        </dependency>
+    </dependencies>
+</project>
+"""
+        and:
+        parseContext.currentRevisionId >> moduleId('group-one', 'artifact-one', 'version-one')
+
+        when:
+        def descriptor = parsePom()
+
+        then:
+        descriptor.moduleRevisionId == moduleId('group-one', 'artifact-one', 'version-one')
+        hasArtifact(descriptor, 'artifact-one', 'jar', 'jar')
+        descriptor.dependencies.length == 3
+        def depJar = descriptor.dependencies[0]
+        depJar.dependencyRevisionId == moduleId('group-two', 'artifact-two', 'version-two')
+        depJar.moduleConfigurations == ['compile', 'runtime']
+        hasDependencyArtifact(depJar, 'artifact-two' , 'jar', 'jar', 'myjar')
+        def depTestJar = descriptor.dependencies[1]
+        depTestJar.dependencyRevisionId == moduleId('group-two', 'artifact-two', 'version-three')
+        depTestJar.moduleConfigurations == ['compile', 'runtime']
+        hasDependencyArtifact(depTestJar, 'artifact-two' , 'test-jar', 'jar', 'test')
+        def depEjbClient = descriptor.dependencies[2]
+        depEjbClient.dependencyRevisionId == moduleId('group-two', 'artifact-two', 'version-four')
+        depEjbClient.moduleConfigurations == ['compile', 'runtime']
+        hasDependencyArtifact(depEjbClient, 'artifact-two' , 'ejb-client', 'ejb-client', 'client')
+    }
+
     private ModuleDescriptor parsePom() {
         parseMetaData().descriptor
     }
