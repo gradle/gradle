@@ -15,7 +15,6 @@
  */
 package org.gradle.configuration;
 
-import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.initialization.ScriptClassLoader;
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
