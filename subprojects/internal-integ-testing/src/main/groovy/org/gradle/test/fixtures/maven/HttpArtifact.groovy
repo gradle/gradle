@@ -16,10 +16,9 @@
 
 package org.gradle.test.fixtures.maven
 
-import org.gradle.api.artifacts.repositories.PasswordCredentials
+import org.gradle.internal.hash.HashUtil
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.HttpServer
-import org.gradle.internal.hash.HashUtil
 
 abstract class HttpArtifact extends HttpResource {
 
@@ -28,14 +27,6 @@ abstract class HttpArtifact extends HttpResource {
     public HttpArtifact(HttpServer server, String modulePath) {
         super(server)
         this.modulePath = modulePath
-    }
-
-    void expectHeadMissing() {
-        server.expectHeadMissing(path)
-    }
-
-    void expectGetMissing(PasswordCredentials passwordCredentials = null) {
-        server.expectGetMissing(path, passwordCredentials)
     }
 
     HttpResource getMd5() {

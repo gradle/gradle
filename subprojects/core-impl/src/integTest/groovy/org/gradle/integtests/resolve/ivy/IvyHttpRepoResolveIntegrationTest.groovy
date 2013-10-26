@@ -186,7 +186,7 @@ task listJars << {
         when:
         server.resetExpectations()
         // Will always re-attempt a broken repository
-        brokenModuleC.expectIvyHeadBroken()
+        brokenModuleC.ivy.expectHeadBroken()
         // No extra calls for cached dependencies
 
         then:

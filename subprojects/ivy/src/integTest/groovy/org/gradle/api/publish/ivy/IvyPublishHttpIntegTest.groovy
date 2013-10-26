@@ -74,10 +74,10 @@ credentials {
         """
 
         and:
-        module.expectJarPut()
-        module.expectJarSha1Put()
-        module.expectIvyPut(HttpStatus.ORDINAL_201_Created)
-        module.expectIvySha1Put(HttpStatus.ORDINAL_201_Created)
+        module.jar.expectPut()
+        module.jar.sha1.expectPut()
+        module.ivy.expectPut(HttpStatus.ORDINAL_201_Created)
+        module.ivy.sha1.expectPut(HttpStatus.ORDINAL_201_Created)
 
         when:
         succeeds 'publish'
@@ -267,10 +267,10 @@ credentials {
         """
 
         and:
-        module.expectJarPut()
-        module.expectJarSha1Put()
-        module.expectIvyPut()
-        module.expectIvySha1Put()
+        module.jar.expectPut()
+        module.jar.sha1.expectPut()
+        module.ivy.expectPut()
+        module.ivy.sha1.expectPut()
 
         when:
         run 'publish'
@@ -357,7 +357,7 @@ credentials {
         """
 
         and:
-        module.expectJarPut(HttpStatus.ORDINAL_500_Internal_Server_Error)
+        module.jar.expectPut(HttpStatus.ORDINAL_500_Internal_Server_Error)
 
         when:
         fails ':publish'
