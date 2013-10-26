@@ -22,11 +22,16 @@ import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 
 public class DefaultModuleVersionArtifactMetaData implements ModuleVersionArtifactMetaData {
     private final ModuleVersionIdentifier moduleVersionIdentifier;
     private final Artifact artifact;
     private final DefaultModuleVersionArtifactIdentifier id;
+
+    public DefaultModuleVersionArtifactMetaData(Artifact artifact) {
+        this(DefaultModuleVersionIdentifier.newId(artifact.getModuleRevisionId()), artifact);
+    }
 
     public DefaultModuleVersionArtifactMetaData(ModuleVersionIdentifier moduleVersionIdentifier, Artifact artifact) {
         this.moduleVersionIdentifier = moduleVersionIdentifier;

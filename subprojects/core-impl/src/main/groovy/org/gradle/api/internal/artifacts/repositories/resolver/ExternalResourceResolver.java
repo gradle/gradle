@@ -287,8 +287,8 @@ public class ExternalResourceResolver implements ModuleVersionPublisher, Configu
         return null;
     }
 
-    public boolean artifactExists(Artifact artifact) {
-        ResolvedArtifact artifactRef = getArtifactRef(artifact, false);
+    public boolean artifactExists(ModuleVersionArtifactMetaData artifact) {
+        ResolvedArtifact artifactRef = getArtifactRef(artifact.getArtifact(), false);
         return artifactRef != null && artifactRef.resource.exists();
     }
 

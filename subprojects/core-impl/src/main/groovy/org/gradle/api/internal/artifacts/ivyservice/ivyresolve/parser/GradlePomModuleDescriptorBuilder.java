@@ -24,6 +24,8 @@ import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.apache.ivy.plugins.parser.xml.XmlModuleDescriptorParser;
+import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactMetaData;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.PomDependencyMgt;
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.util.DeprecationLogger;
@@ -204,7 +206,8 @@ public class GradlePomModuleDescriptorBuilder {
     public void addMainArtifact(String artifactId, String packaging) {
         if ("pom".equals(packaging)) {
             DefaultArtifact artifact = new DefaultArtifact(mrid, new Date(), artifactId, "jar", "jar");
-            if (parserSettings.artifactExists(artifact)) {
+            ModuleVersionArtifactMetaData artifactIdentifier = new DefaultModuleVersionArtifactMetaData(artifact);
+            if (parserSettings.artifactExists(artifactIdentifier)) {
                 ivyModuleDescriptor.addArtifact("master", artifact);
             }
 
@@ -213,8 +216,8 @@ public class GradlePomModuleDescriptorBuilder {
 
         if (!isKnownJarPackaging(packaging)) {
             DefaultArtifact artifact = new DefaultArtifact(mrid, new Date(), artifactId, packaging, packaging);
-
-            if (parserSettings.artifactExists(artifact)) {
+            ModuleVersionArtifactMetaData artifactIdentifier = new DefaultModuleVersionArtifactMetaData(artifact);
+            if (parserSettings.artifactExists(artifactIdentifier)) {
                 ivyModuleDescriptor.addArtifact("master", artifact);
 
                 DeprecationLogger.nagUserOfDeprecated("Relying on packaging to define the extension of the main artifact");

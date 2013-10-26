@@ -15,14 +15,14 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
 
 public interface DescriptorParseContext {
-    boolean artifactExists(Artifact artifact);
+    boolean artifactExists(ModuleVersionArtifactMetaData artifact);
 
     ModuleRevisionId getCurrentRevisionId();
 
-    LocallyAvailableExternalResource getArtifact(Artifact artifact);
+    LocallyAvailableExternalResource getArtifact(ModuleVersionArtifactMetaData artifact);
 }
