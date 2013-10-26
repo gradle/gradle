@@ -22,6 +22,43 @@ import spock.lang.IgnoreIf
 
 class CachedMissingModulesIntegrationTest extends AbstractDependencyResolutionTest {
 
+    public void "caches missing module when module found in another repository"() {
+        server.start()
+
+        given:
+        def repo1 = ivyHttpRepo("repo1")
+        def repo2 = ivyHttpRepo("repo2")
+        def moduleInRepo1 = repo1.module("group", "projectA", "1.2")
+        def moduleInRepo2 = repo2.module('group', 'projectA', '1.2').publish()
+
+        buildFile << """
+repositories {
+    ivy { url "${repo1.uri}"}
+    ivy { url "${repo2.uri}"}
+}
+configurations { missing }
+dependencies {
+    missing 'group:projectA:1.2'
+}
+task showMissing << { println configurations.missing.files }
+"""
+
+        when:
+        moduleInRepo1.ivy.expectGetMissing()
+        moduleInRepo1.jar.expectHeadMissing()
+        moduleInRepo2.ivy.expectGet()
+        moduleInRepo2.jar.expectGet()
+
+        then:
+        succeeds("showMissing")
+
+        when:
+        server.resetExpectations() // Missing status in repo1 is cached
+
+        then:
+        succeeds('showMissing')
+    }
+
     def "cached not-found information for dynamic version is ignored if module is not available in any repo"() {
         given:
         server.start()

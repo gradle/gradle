@@ -21,19 +21,16 @@ import static org.hamcrest.Matchers.containsString
 
 class IvyBrokenRemoteResolveIntegrationTest extends AbstractDependencyResolutionTest {
 
-    public void "reports and caches missing module"() {
+    public void "reports and recovers from missing module"() {
         server.start()
 
         given:
-        def repo1 = ivyHttpRepo("repo1")
-        def repo2 = ivyHttpRepo("repo2")
-        def moduleInRepo1 = repo1.module("group", "projectA", "1.2")
-        def moduleInRepo2 = repo2.module('group', 'projectA', '1.2').publish()
+        def repo = ivyHttpRepo("repo1")
+        def module = repo.module("group", "projectA", "1.2").publish()
 
         buildFile << """
 repositories {
-    ivy { url "${repo1.uri}"}
-    ivy { url "${repo2.uri}"}
+    ivy { url "${repo.uri}"}
 }
 configurations { missing }
 dependencies {
@@ -43,16 +40,21 @@ task showMissing << { println configurations.missing.files }
 """
 
         when:
-        moduleInRepo1.ivy.expectGetMissing()
-        moduleInRepo1.jar.expectHeadMissing()
-        moduleInRepo2.ivy.expectGet()
-        moduleInRepo2.jar.expectGet()
+        module.ivy.expectGetMissing()
+        module.jar.expectHeadMissing()
 
         then:
-        succeeds("showMissing")
+        fails("showMissing")
+        failure
+            .assertHasDescription('Execution failed for task \':showMissing\'.')
+            .assertHasCause('Could not resolve all dependencies for configuration \':missing\'.')
+            .assertHasCause('Could not find group:projectA:1.2.')
 
         when:
-        server.resetExpectations() // Missing status in repo1 is cached
+        server.resetExpectations()
+        module.ivy.expectGet()
+        module.jar.expectGet()
+
         then:
         succeeds('showMissing')
     }
