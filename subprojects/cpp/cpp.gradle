@@ -24,7 +24,14 @@ dependencies {
 }
 
 
-integTestTasks.all {
+testTasks.all {
+    if (project.hasProperty("cppNoToolChainAvailable")) {
+        if (cppNoToolChainAvailable.asBoolean()) {
+            systemProperties['org.gradle.integtest.cpp.toolChains'] = "none"
+            logger.info("Specifying NO C++ tool chain available")
+        }
+    }
+
     if (isWindows && systemProperties['org.gradle.integtest.executer'] == "embedded") {
         systemProperties['org.gradle.integtest.executer'] =  "forking"
     }

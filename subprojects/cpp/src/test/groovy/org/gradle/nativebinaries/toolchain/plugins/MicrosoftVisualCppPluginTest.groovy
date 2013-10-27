@@ -60,7 +60,7 @@ class MicrosoftVisualCppPluginTest extends ToolChainPluginTest {
         toolchain instanceof VisualCppToolChain
     }
 
-    @Requires(TestPrecondition.WINDOWS)
+    @Requires([TestPrecondition.CAN_INSTALL_EXECUTABLE, TestPrecondition.CPP_TOOLCHAINS_AVAILABLE])
     def "registers default VisualCpp tool chain"() {
         when:
         addDefaultToolchain()
