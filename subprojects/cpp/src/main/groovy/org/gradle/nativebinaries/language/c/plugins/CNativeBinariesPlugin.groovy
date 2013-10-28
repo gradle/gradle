@@ -38,7 +38,7 @@ class CNativeBinariesPlugin implements Plugin<ProjectInternal> {
         project.plugins.apply(NativeBinariesPlugin)
         project.plugins.apply(CLangPlugin)
 
-        // TODO:DAZ Clean this up (would be simpler if it could just apply to all binaries)
+        // TODO:DAZ Clean this up (see CppNativeBinariesPlugin)
         project.executables.all { Executable executable ->
             addLanguageExtensionsToComponent(executable)
         }
