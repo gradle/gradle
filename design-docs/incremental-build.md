@@ -164,7 +164,7 @@ Change the `CppCompile` task to be incremental wrt source file changes:
 
 ## GRADLE-918: Document task input and output annotations
 
-## Story: Invalidate task outputs when task implementation changes
+## GRADLE-2936: Invalidate task outputs when task implementation changes
 
 Add to the task history a hash of the task implementation, and rebuild the task's outputs when this changes.
 
