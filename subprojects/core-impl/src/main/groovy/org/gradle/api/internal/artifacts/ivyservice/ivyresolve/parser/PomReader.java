@@ -19,9 +19,10 @@ import org.apache.ivy.core.IvyPatternHelper;
 import org.apache.ivy.core.module.descriptor.License;
 import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.apache.ivy.plugins.parser.m2.PomDependencyMgt;
 import org.apache.ivy.util.XMLHelper;
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.MavenDependencyKey;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.PomDependencyMgt;
 import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -69,10 +70,10 @@ public class PomReader {
     private static final String TYPE = "type";
 
     private final Map<String, String> properties = new HashMap<String, String>();
-    private final Map<String, PomDependencyMgt> inheritedDependencyMgts = new LinkedHashMap<String, PomDependencyMgt>();
-    private Map<String, PomDependencyMgt> dependencyMgts;
-    private final Map<String, PomDependencyData> inheritedDependencies = new LinkedHashMap<String, PomDependencyData>();
-    private Map<String, PomDependencyData> dependencies;
+    private final Map<MavenDependencyKey, PomDependencyMgt> inheritedDependencyMgts = new LinkedHashMap<MavenDependencyKey, PomDependencyMgt>();
+    private Map<MavenDependencyKey, PomDependencyMgt> dependencyMgts;
+    private final Map<MavenDependencyKey, PomDependencyData> inheritedDependencies = new LinkedHashMap<MavenDependencyKey, PomDependencyData>();
+    private Map<MavenDependencyKey, PomDependencyData> dependencies;
 
     private final Element projectElement;
     private final Element parentElement;
@@ -172,14 +173,14 @@ public class PomReader {
         return properties;
     }
 
-    public void addInheritedDependencyMgts(Map<String, PomDependencyMgt> inherited) {
+    public void addInheritedDependencyMgts(Map<MavenDependencyKey, PomDependencyMgt> inherited) {
         if (dependencyMgts != null) {
             throw new IllegalStateException("Cannot add inherited dependency management elements after dependency management elements have been resolved for this POM.");
         }
         inheritedDependencyMgts.putAll(inherited);
     }
 
-    public void addInheritedDependencies(Map<String, PomDependencyData> inherited) {
+    public void addInheritedDependencies(Map<MavenDependencyKey, PomDependencyData> inherited) {
         if (dependencies != null) {
             throw new IllegalStateException("Cannot add inherited dependencies after dependencies have been resolved for this POM.");
         }
@@ -306,15 +307,15 @@ public class PomReader {
     /**
      * Returns all dependencies for this POM, including those inherited from parent POMs.
      */
-    public Map<String, PomDependencyData> getDependencies() {
+    public Map<MavenDependencyKey, PomDependencyData> getDependencies() {
         if (dependencies == null) {
             dependencies = resolveDependencies();
         }
         return dependencies;
     }
 
-    private Map<String, PomDependencyData> resolveDependencies() {
-        Map<String, PomDependencyData> dependencies = new LinkedHashMap<String, PomDependencyData>();
+    private Map<MavenDependencyKey, PomDependencyData> resolveDependencies() {
+        Map<MavenDependencyKey, PomDependencyData> dependencies = new LinkedHashMap<MavenDependencyKey, PomDependencyData>();
         Element dependenciesElement = getFirstChildElement(projectElement, DEPENDENCIES);
         if (dependenciesElement != null) {
             NodeList childs = dependenciesElement.getChildNodes();
@@ -322,14 +323,14 @@ public class PomReader {
                 Node node = childs.item(i);
                 if (node instanceof Element && DEPENDENCY.equals(node.getNodeName())) {
                     PomDependencyData pomDependencyData = new PomDependencyData((Element) node);
-                    String key = createPomDependencyMgtKey(pomDependencyData.getGroupId(), pomDependencyData.getArtifactId());
+                    MavenDependencyKey key = new MavenDependencyKey(pomDependencyData.getGroupId(), pomDependencyData.getArtifactId(), pomDependencyData.getType(), pomDependencyData.getClassifier());
                     dependencies.put(key, pomDependencyData);
                 }
             }
         }
 
         // Maven adds inherited dependencies last
-        for (Map.Entry<String, PomDependencyData> entry : inheritedDependencies.entrySet()) {
+        for (Map.Entry<MavenDependencyKey, PomDependencyData> entry : inheritedDependencies.entrySet()) {
             if (!dependencies.containsKey(entry.getKey())) {
                 dependencies.put(entry.getKey(), entry.getValue());
             }
@@ -341,7 +342,7 @@ public class PomReader {
     /**
      * Returns all dependency management elements for this POM, including those inherited from parent and imported POMs.
      */
-    public Map<String, PomDependencyMgt> getDependencyMgt() {
+    public Map<MavenDependencyKey, PomDependencyMgt> getDependencyMgt() {
         if(dependencyMgts == null) {
             dependencyMgts = resolveDependencyMgt();
         }
@@ -349,8 +350,8 @@ public class PomReader {
         return dependencyMgts;
     }
 
-    private Map<String, PomDependencyMgt> resolveDependencyMgt() {
-        Map<String, PomDependencyMgt> dependencies = new LinkedHashMap<String, PomDependencyMgt>();
+    private Map<MavenDependencyKey, PomDependencyMgt> resolveDependencyMgt() {
+        Map<MavenDependencyKey, PomDependencyMgt> dependencies = new LinkedHashMap<MavenDependencyKey, PomDependencyMgt>();
         dependencies.putAll(inheritedDependencyMgts);
         dependencies.putAll(getPomDependencyMgt());
         return dependencies;
@@ -359,8 +360,8 @@ public class PomReader {
     /**
      * Returns the dependency management elements declared in this POM.
      */
-    public Map<String, PomDependencyMgt> getPomDependencyMgt() {
-        Map<String, PomDependencyMgt> depMgmtElements = new LinkedHashMap<String, PomDependencyMgt>();
+    public Map<MavenDependencyKey, PomDependencyMgt> getPomDependencyMgt() {
+        Map<MavenDependencyKey, PomDependencyMgt> depMgmtElements = new LinkedHashMap<MavenDependencyKey, PomDependencyMgt>();
         Element dependenciesElement = getFirstChildElement(projectElement, DEPENDENCY_MGT);
         dependenciesElement = getFirstChildElement(dependenciesElement, DEPENDENCIES);
         if (dependenciesElement != null) {
@@ -369,16 +370,12 @@ public class PomReader {
                 Node node = childs.item(i);
                 if (node instanceof Element && DEPENDENCY.equals(node.getNodeName())) {
                     PomDependencyMgt pomDependencyMgt = new PomDependencyMgtElement((Element) node);
-                    String key = createPomDependencyMgtKey(pomDependencyMgt.getGroupId(), pomDependencyMgt.getArtifactId());
+                    MavenDependencyKey key = new MavenDependencyKey(pomDependencyMgt.getGroupId(), pomDependencyMgt.getArtifactId(), pomDependencyMgt.getType(), pomDependencyMgt.getClassifier());
                     depMgmtElements.put(key, pomDependencyMgt);
                 }
             }
         }
         return depMgmtElements;
-    }
-
-    private String createPomDependencyMgtKey(String groupId, String artifactId) {
-        return String.format("%s:%s", groupId, artifactId);
     }
 
     public void resolveGAV() {
@@ -429,6 +426,16 @@ public class PomReader {
             return replaceProps(val);
         }
 
+        public String getType() {
+            String val = getFirstChildText(depElement , TYPE);
+            return replaceProps(val);
+        }
+
+        public String getClassifier() {
+            String val = getFirstChildText(depElement , CLASSIFIER);
+            return replaceProps(val);
+        }
+
         public List<ModuleId> getExcludedModules() {
             Element exclusionsElement = getFirstChildElement(depElement, EXCLUSIONS);
             List<ModuleId> exclusions = new LinkedList<ModuleId>();
@@ -454,21 +461,6 @@ public class PomReader {
         PomDependencyData(Element depElement) {
             super(depElement);
             this.depElement = depElement;
-        }
-
-        public String getScope() {
-            String val = getFirstChildText(depElement , SCOPE);
-            return replaceProps(val);
-        }
-
-        public String getClassifier() {
-            String val = getFirstChildText(depElement , CLASSIFIER);
-            return replaceProps(val);
-        }
-
-        public String getType() {
-            String val = getFirstChildText(depElement, TYPE);
-            return replaceProps(val);
         }
 
         public boolean isOptional() {

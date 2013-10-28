@@ -23,8 +23,8 @@ import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
-import org.apache.ivy.plugins.parser.m2.PomDependencyMgt;
 import org.apache.ivy.plugins.parser.xml.XmlModuleDescriptorParser;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.PomDependencyMgt;
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.util.DeprecationLogger;
 import org.slf4j.Logger;
@@ -320,7 +320,7 @@ public class GradlePomModuleDescriptorBuilder {
 
 
     public void addDependencyMgt(PomDependencyMgt dep) {
-        String key = getDependencyMgtExtraInfoKeyForVersion(dep.getGroupId(), dep.getArtifactId());
+        String key = getDependencyMgtExtraInfoKeyForVersion(dep);
         addExtraInfo(key, dep.getVersion());
         if (dep.getScope() != null) {
             String scopeKey = getDependencyMgtExtraInfoKeyForScope(dep.getGroupId(), dep.getArtifactId());
@@ -339,7 +339,7 @@ public class GradlePomModuleDescriptorBuilder {
     }
 
     private String getDefaultVersion(PomReader.PomDependencyData dep) {
-        String key = getDependencyMgtExtraInfoKeyForVersion(dep.getGroupId(), dep.getArtifactId());
+        String key = getDependencyMgtExtraInfoKeyForVersion(dep);
         return extraInfo.get(key);
     }
 
@@ -352,10 +352,20 @@ public class GradlePomModuleDescriptorBuilder {
         return result;
     }
 
-    private String getDependencyMgtExtraInfoKeyForVersion(
-            String groupId, String artifaceId) {
-        return DEPENDENCY_MANAGEMENT + EXTRA_INFO_DELIMITER + groupId
-                + EXTRA_INFO_DELIMITER + artifaceId + EXTRA_INFO_DELIMITER + "version";
+    private String getDependencyMgtExtraInfoKeyForVersion(PomDependencyMgt dep) {
+        StringBuilder key = new StringBuilder();
+        key.append(DEPENDENCY_MANAGEMENT).append(EXTRA_INFO_DELIMITER).append(dep.getGroupId()).append(EXTRA_INFO_DELIMITER).append(dep.getArtifactId());
+
+        if(dep.getType() != null) {
+            key.append(EXTRA_INFO_DELIMITER).append(dep.getType());
+        }
+
+        if(dep.getClassifier() != null) {
+            key.append(EXTRA_INFO_DELIMITER).append(dep.getClassifier());
+        }
+
+        key.append(EXTRA_INFO_DELIMITER).append("version");
+        return key.toString();
     }
 
     private String getDependencyMgtExtraInfoKeyForScope(String groupId, String artifaceId) {
