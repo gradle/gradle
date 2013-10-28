@@ -16,17 +16,18 @@
 
 package org.gradle.nativebinaries.toolchain.internal.msvcpp;
 
-import org.gradle.api.internal.tasks.compile.ArgCollector;
 import org.gradle.api.internal.tasks.compile.ArgWriter;
-import org.gradle.api.internal.tasks.compile.CompileSpecToArguments;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.nativebinaries.internal.LinkerSpec;
 import org.gradle.nativebinaries.internal.SharedLibraryLinkerSpec;
-import org.gradle.nativebinaries.toolchain.internal.CommandLineCompilerArgumentsToOptionFile;
+import org.gradle.nativebinaries.toolchain.internal.ArgsTransformer;
+import org.gradle.nativebinaries.toolchain.internal.OptionsFileArgsTransformer;
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 class LinkExeLinker implements Compiler<LinkerSpec> {
 
@@ -34,8 +35,8 @@ class LinkExeLinker implements Compiler<LinkerSpec> {
 
     public LinkExeLinker(CommandLineTool<LinkerSpec> commandLineTool) {
         this.commandLineTool = commandLineTool
-                .withArguments(new CommandLineCompilerArgumentsToOptionFile<LinkerSpec>(
-                ArgWriter.windowsStyleFactory(), new VisualCppLinkerSpecArguments()
+                .withArguments(new OptionsFileArgsTransformer<LinkerSpec>(
+                ArgWriter.windowsStyleFactory(), new LinkerArgsTransformer()
         ));
     }
 
@@ -43,24 +44,25 @@ class LinkExeLinker implements Compiler<LinkerSpec> {
         return commandLineTool.execute(spec);
     }
 
-    private static class VisualCppLinkerSpecArguments implements CompileSpecToArguments<LinkerSpec> {
-
-        public void collectArguments(LinkerSpec spec, ArgCollector collector) {
-            collector.args(spec.getAllArgs());
-            collector.args("/OUT:" + spec.getOutputFile().getAbsolutePath());
-            collector.args("/NOLOGO");
+    private static class LinkerArgsTransformer implements ArgsTransformer<LinkerSpec> {
+        public List<String> transform(LinkerSpec spec) {
+            List<String> args = new ArrayList<String>();
+            args.addAll(spec.getAllArgs());
+            args.add("/OUT:" + spec.getOutputFile().getAbsolutePath());
+            args.add("/NOLOGO");
             if (spec instanceof SharedLibraryLinkerSpec) {
-                collector.args("/DLL");
+                args.add("/DLL");
             }
             for (File pathEntry : spec.getLibraryPath()) {
-                collector.args("/LIBPATH:" + pathEntry.getAbsolutePath());
+                args.add("/LIBPATH:" + pathEntry.getAbsolutePath());
             }
             for (File file : spec.getObjectFiles()) {
-                collector.args(file.getAbsolutePath());
+                args.add(file.getAbsolutePath());
             }
             for (File file : spec.getLibraries()) {
-                collector.args(file.getAbsolutePath());
+                args.add(file.getAbsolutePath());
             }
+            return args;
         }
     }
 }

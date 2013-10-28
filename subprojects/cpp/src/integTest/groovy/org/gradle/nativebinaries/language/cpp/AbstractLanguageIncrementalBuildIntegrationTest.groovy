@@ -17,6 +17,7 @@
 package org.gradle.nativebinaries.language.cpp
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativebinaries.language.cpp.fixtures.RequiresInstalledToolChain
 import org.gradle.nativebinaries.language.cpp.fixtures.app.IncrementalHelloWorldApp
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GUtil
@@ -250,6 +251,28 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         install.exec().out == app.frenchOutput
     }
 
+    @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+    def "rebuilds binary with target platform change"() {
+        given:
+        buildFile << """
+    targetPlatforms {
+        arch {
+            // Tool chain defaults
+        }
+    }
+"""
+        run "mainExecutable"
+
+        when:
+        buildFile.text = buildFile.text.replace("// Tool chain defaults", "architecture 'i386'")
+        run "mainExecutable"
+
+        then:
+        executedAndNotSkipped libraryCompileTask, mainCompileTask
+        executedAndNotSkipped ":linkHelloSharedLibrary"
+        executedAndNotSkipped ":helloSharedLibrary", ":mainExecutable"
+    }
+
     def "relinks binary when set of input libraries changes"() {
         given:
         run "mainExecutable", "helloStaticLibrary"
@@ -334,7 +357,8 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         newObjFile.file
     }
 
-    @Ignore("For GCC, need to delete previous binary output before generating")
+    // TODO:DAZ Enable this on windows, after fixing static lib fixture
+    @Requires(TestPrecondition.NOT_WINDOWS)
     def "cleans up stale object files when library source file renamed"() {
         when:
         run "helloStaticLibrary"
@@ -365,10 +389,8 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         assert !staticLibrary("build/binaries/helloStaticLibrary/hello").listObjectFiles().contains(oldObjFile.name)
     }
 
+    @RequiresInstalledToolChain("visual c++")
     def "cleans up stale debug files when changing from debug to non-debug"() {
-        if (!toolChain.visualCpp) {
-            return
-        }
 
         given:
         buildFile << """

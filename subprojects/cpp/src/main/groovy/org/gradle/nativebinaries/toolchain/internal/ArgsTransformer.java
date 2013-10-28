@@ -13,22 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.nativebinaries.internal;
+package org.gradle.nativebinaries.toolchain.internal;
 
-import org.gradle.nativebinaries.Architecture;
+import org.gradle.api.Transformer;
+import org.gradle.nativebinaries.internal.BinaryToolSpec;
 
-public interface ArchitectureInternal extends Architecture {
-    static final ArchitectureInternal TOOL_CHAIN_DEFAULT = new DefaultArchitecture("default", null, 0);
+import java.util.List;
 
-    enum InstructionSet { X86, ITANIUM, PPC, SPARC, ARM }
+public interface ArgsTransformer<T extends BinaryToolSpec> extends Transformer<List<String>, T> {
 
-    InstructionSet getInstructionSet();
-
-    int getRegisterSize();
-
-    boolean isI386();
-
-    boolean isAmd64();
-
-    boolean isIa64();
 }

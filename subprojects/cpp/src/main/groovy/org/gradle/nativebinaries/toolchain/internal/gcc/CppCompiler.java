@@ -16,35 +16,36 @@
 
 package org.gradle.nativebinaries.toolchain.internal.gcc;
 
-import org.gradle.api.internal.tasks.compile.ArgCollector;
+import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.nativebinaries.language.cpp.internal.CppCompileSpec;
+import org.gradle.nativebinaries.toolchain.internal.ArgsTransformer;
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
+
+import java.util.List;
 
 class CppCompiler implements Compiler<CppCompileSpec> {
 
     private final CommandLineTool<CppCompileSpec> commandLineTool;
 
-    public CppCompiler(CommandLineTool<CppCompileSpec> commandLineTool, boolean useCommandFile) {
-        GccSpecToArguments<CppCompileSpec> specToArguments = new GccSpecToArguments<CppCompileSpec>(
-                new CppCompileSpecToArguments(),
-                useCommandFile
-        );
-        this.commandLineTool = commandLineTool.withArguments(specToArguments);
+    public CppCompiler(CommandLineTool<CppCompileSpec> commandLineTool, Action<List<String>> argsAction, boolean useCommandFile) {
+        ArgsTransformer<CppCompileSpec> argsTransformer = new CppCompileArgsTransformer();
+        argsTransformer = new UserArgsTransformer<CppCompileSpec>(argsTransformer, argsAction);
+        if (useCommandFile) {
+            argsTransformer = new GccOptionsFileArgTransformer<CppCompileSpec>(argsTransformer);
+        }
+        this.commandLineTool = commandLineTool.withArguments(argsTransformer);
     }
 
     public WorkResult execute(CppCompileSpec spec) {
         return commandLineTool.inWorkDirectory(spec.getObjectFileDir()).execute(spec);
     }
 
-    private static class CppCompileSpecToArguments extends CommonGccCompileSpecToArguments<CppCompileSpec> {
-        @Override
-        public void collectArguments(CppCompileSpec spec, ArgCollector collector) {
-            // C++-compiling options
-            collector.args("-x", "c++");
-
-            super.collectArguments(spec, collector);
+    private static class CppCompileArgsTransformer extends GccCompilerArgsTransformer<CppCompileSpec> {
+        protected String getLanguage() {
+            return "c++";
         }
     }
+
 }

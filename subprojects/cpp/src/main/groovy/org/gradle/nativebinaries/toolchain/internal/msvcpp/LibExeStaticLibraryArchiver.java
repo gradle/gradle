@@ -16,23 +16,24 @@
 
 package org.gradle.nativebinaries.toolchain.internal.msvcpp;
 
-import org.gradle.api.internal.tasks.compile.ArgCollector;
 import org.gradle.api.internal.tasks.compile.ArgWriter;
-import org.gradle.api.internal.tasks.compile.CompileSpecToArguments;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.nativebinaries.internal.StaticLibraryArchiverSpec;
-import org.gradle.nativebinaries.toolchain.internal.CommandLineCompilerArgumentsToOptionFile;
+import org.gradle.nativebinaries.toolchain.internal.ArgsTransformer;
+import org.gradle.nativebinaries.toolchain.internal.OptionsFileArgsTransformer;
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 class LibExeStaticLibraryArchiver implements Compiler<StaticLibraryArchiverSpec> {
     private final CommandLineTool<StaticLibraryArchiverSpec> commandLineTool;
 
     public LibExeStaticLibraryArchiver(CommandLineTool<StaticLibraryArchiverSpec> commandLineTool) {
         this.commandLineTool = commandLineTool
-                .withArguments(new CommandLineCompilerArgumentsToOptionFile<StaticLibraryArchiverSpec>(ArgWriter.windowsStyleFactory(), new LibExeSpecToArguments()
+                .withArguments(new OptionsFileArgsTransformer<StaticLibraryArchiverSpec>(ArgWriter.windowsStyleFactory(), new LibExeSpecToArguments()
         ));
     }
 
@@ -40,14 +41,16 @@ class LibExeStaticLibraryArchiver implements Compiler<StaticLibraryArchiverSpec>
         return commandLineTool.execute(spec);
     }
 
-    private static class LibExeSpecToArguments implements CompileSpecToArguments<StaticLibraryArchiverSpec> {
-        public void collectArguments(StaticLibraryArchiverSpec spec, ArgCollector collector) {
-            collector.args("/OUT:" + spec.getOutputFile().getAbsolutePath());
-            collector.args("/NOLOGO");
-            collector.args(spec.getAllArgs());
+    private static class LibExeSpecToArguments implements ArgsTransformer<StaticLibraryArchiverSpec> {
+        public List<String> transform(StaticLibraryArchiverSpec spec) {
+            List<String> args = new ArrayList<String>();
+            args.add("/OUT:" + spec.getOutputFile().getAbsolutePath());
+            args.add("/NOLOGO");
+            args.addAll(spec.getAllArgs());
             for (File file : spec.getObjectFiles()) {
-                collector.args(file.getAbsolutePath());
+                args.add(file.getAbsolutePath());
             }
+            return args;
         }
     }
 }

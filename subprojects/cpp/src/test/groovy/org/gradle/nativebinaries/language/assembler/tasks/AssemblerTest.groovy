@@ -17,7 +17,7 @@
 package org.gradle.nativebinaries.language.assembler.tasks
 import org.gradle.api.internal.tasks.compile.Compiler
 import org.gradle.api.tasks.WorkResult
-import org.gradle.nativebinaries.Platform
+import org.gradle.nativebinaries.internal.PlatformInternal
 import org.gradle.nativebinaries.internal.PlatformToolChain
 import org.gradle.nativebinaries.internal.ToolChainInternal
 import org.gradle.nativebinaries.language.assembler.internal.AssembleSpec
@@ -29,7 +29,7 @@ class AssemblerTest extends Specification {
     def testDir = new TestNameTestDirectoryProvider().testDirectory
     Assemble assembleTask = TestUtil.createTask(Assemble)
     def toolChain = Mock(ToolChainInternal)
-    def platform = Mock(Platform)
+    def platform = Mock(PlatformInternal)
     def platformToolChain = Mock(PlatformToolChain)
     Compiler<AssembleSpec> assembler = Mock(Compiler)
 
@@ -46,6 +46,7 @@ class AssemblerTest extends Specification {
 
         then:
         _ * toolChain.outputType >> "c"
+        _ * platform.compatibilityString >> "p"
         1 * toolChain.target(platform) >> platformToolChain
         1 * platformToolChain.createAssembler() >> assembler
         1 * assembler.execute({ AssembleSpec spec ->

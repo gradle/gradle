@@ -16,12 +16,11 @@
 
 package org.gradle.nativebinaries.toolchain.internal.msvcpp;
 
-import org.gradle.api.internal.tasks.compile.ArgCollector;
 import org.gradle.api.internal.tasks.compile.ArgWriter;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.nativebinaries.language.cpp.internal.CppCompileSpec;
-import org.gradle.nativebinaries.toolchain.internal.CommandLineCompilerArgumentsToOptionFile;
+import org.gradle.nativebinaries.toolchain.internal.OptionsFileArgsTransformer;
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
 
 class CppCompiler implements Compiler<CppCompileSpec> {
@@ -30,20 +29,18 @@ class CppCompiler implements Compiler<CppCompileSpec> {
 
     CppCompiler(CommandLineTool<CppCompileSpec> commandLineTool) {
         this.commandLineTool = commandLineTool.withArguments(
-                new CommandLineCompilerArgumentsToOptionFile<CppCompileSpec>(ArgWriter.windowsStyleFactory(), new CppCompileSpecToArguments())
-        );
+                new OptionsFileArgsTransformer<CppCompileSpec>(
+                        ArgWriter.windowsStyleFactory(),
+                        new CppCompilerArgsTransformer()));
     }
 
     public WorkResult execute(CppCompileSpec spec) {
         return commandLineTool.inWorkDirectory(spec.getObjectFileDir()).execute(spec);
     }
 
-    private static class CppCompileSpecToArguments extends GeneralVisualCppCompileSpecToArguments<CppCompileSpec> {
-        public void collectArguments(CppCompileSpec spec, ArgCollector collector) {
-            // C++-compiling options
-            collector.args("/TP");
-
-            super.collectArguments(spec, collector);
+    private static class CppCompilerArgsTransformer extends VisualCppCompilerArgsTransformer<CppCompileSpec> {
+        protected String getLanguageOption() {
+            return "/TP";
         }
     }
-    }
+}

@@ -92,6 +92,20 @@ class AssemblyLanguageIncrementalBuildIntegrationTest extends AbstractInstalledT
         install.exec().out == app.englishOutput
     }
 
+    @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+    def "reassembles binary with target platform change"() {
+        when:
+        buildFile.text = buildFile.text.replace("i386", "x86")
+
+        run "installMainExecutable"
+
+        then:
+        executedAndNotSkipped ":assembleHelloSharedLibraryHelloAsm"
+
+        and:
+        install.exec().out == app.englishOutput
+    }
+
     def "cleans up stale object files when source file renamed"() {
         def oldObjFile = objectFile("build/objectFiles/helloSharedLibrary/helloAsm/sum")
         def newObjFile = objectFile("build/objectFiles/helloSharedLibrary/helloAsm/changed_sum")

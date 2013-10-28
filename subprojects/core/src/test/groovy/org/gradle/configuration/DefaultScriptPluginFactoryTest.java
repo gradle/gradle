@@ -16,6 +16,7 @@
 package org.gradle.configuration;
 
 import org.gradle.api.internal.initialization.ScriptClassLoader;
+import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.groovy.scripts.*;
@@ -83,7 +84,8 @@ public class DefaultScriptPluginFactoryTest {
             one(scriptHandlerFactoryMock).create(sourceWithImportsMock, parentClassLoader);
             will(returnValue(scriptHandlerMock));
 
-            allowing(scriptHandlerMock).getClassLoader();
+            //noinspection RedundantCast
+            ((ScriptClassLoaderProvider)allowing(scriptHandlerMock)).getClassLoader();
             will(returnValue(scriptClassLoader));
 
             one(scriptCompilerMock).setClassloader(scriptClassLoader);
@@ -153,7 +155,8 @@ public class DefaultScriptPluginFactoryTest {
             one(scriptHandlerFactoryMock).create(sourceWithImportsMock, parentClassLoader);
             will(returnValue(scriptHandlerMock));
 
-            allowing(scriptHandlerMock).getClassLoader();
+            //noinspection RedundantCast
+            ((ScriptClassLoaderProvider)allowing(scriptHandlerMock)).getClassLoader();
             will(returnValue(scriptClassLoader));
 
             one(scriptCompilerMock).setClassloader(scriptClassLoader);

@@ -31,4 +31,6 @@ integTestTasks.all {
 }
 
 useTestFixtures()
+useTestFixtures(sourceSet: "testFixtures")
+
 //useClassycle()

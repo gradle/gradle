@@ -16,28 +16,35 @@
 
 package org.gradle.nativebinaries.toolchain.internal.msvcpp;
 
-import org.gradle.api.internal.tasks.compile.ArgCollector;
-import org.gradle.api.internal.tasks.compile.CompileSpecToArguments;
+import org.gradle.nativebinaries.toolchain.internal.ArgsTransformer;
 import org.gradle.nativebinaries.toolchain.internal.MacroArgsConverter;
 import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
-class GeneralVisualCppCompileSpecToArguments<T extends NativeCompileSpec> implements CompileSpecToArguments<T>  {
-    public void collectArguments(T spec, ArgCollector collector) {
-        collector.args("/nologo");
+abstract class VisualCppCompilerArgsTransformer<T extends NativeCompileSpec> implements ArgsTransformer<T> {
+    public List<String> transform(T spec) {
+        List<String> args = new ArrayList<String>();
+        args.add(getLanguageOption());
+        args.add("/nologo");
 
         for (String macroArg : new MacroArgsConverter().transform(spec.getMacros())) {
-            collector.args("/D" + macroArg);
+            args.add("/D" + macroArg);
         }
-        collector.args(spec.getAllArgs());
-        collector.args("/c");
+        args.addAll(spec.getAllArgs());
+        args.add("/c");
         for (File file : spec.getIncludeRoots()) {
-            collector.args("/I", file.getAbsolutePath());
+            args.add("/I");
+            args.add(file.getAbsolutePath());
         }
         for (File file : spec.getSourceFiles()) {
-            collector.args(file);
+            args.add(file.getAbsolutePath());
         }
+
+        return args;
     }
 
+    protected abstract String getLanguageOption();
 }

@@ -56,9 +56,9 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector {
 
         if(identifier instanceof ModuleComponentIdentifier) {
             ModuleComponentIdentifier moduleComponentIdentifier = (ModuleComponentIdentifier)identifier;
-            return moduleComponentIdentifier.getName().equals(getName())
-                    && moduleComponentIdentifier.getGroup().equals(getGroup())
-                    && moduleComponentIdentifier.getVersion().equals(getVersion());
+            return name.equals(moduleComponentIdentifier.getName())
+                    && group.equals(moduleComponentIdentifier.getGroup())
+                    && version.equals(moduleComponentIdentifier.getVersion());
         }
 
         return false;

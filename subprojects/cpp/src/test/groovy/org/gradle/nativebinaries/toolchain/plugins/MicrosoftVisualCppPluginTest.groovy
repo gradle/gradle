@@ -24,6 +24,7 @@ import org.gradle.internal.nativeplatform.services.NativeServices
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.ToolChain
 import org.gradle.nativebinaries.internal.ToolChainAvailability
+import org.gradle.nativebinaries.language.cpp.fixtures.RequiresInstalledToolChain
 import org.gradle.nativebinaries.toolchain.VisualCpp
 import org.gradle.nativebinaries.toolchain.internal.msvcpp.VisualCppToolChain
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -60,7 +61,7 @@ class MicrosoftVisualCppPluginTest extends ToolChainPluginTest {
         toolchain instanceof VisualCppToolChain
     }
 
-    @Requires(TestPrecondition.WINDOWS)
+    @RequiresInstalledToolChain("visual c++")
     def "registers default VisualCpp tool chain"() {
         when:
         addDefaultToolchain()

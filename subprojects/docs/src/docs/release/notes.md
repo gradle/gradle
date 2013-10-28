@@ -55,8 +55,11 @@ The following are the newly deprecated items in this Gradle release. If you have
 * Various interfaces were renamed to reflect this change:
     * `ResolvedModuleVersionResult` to `ResolvedComponentResult`
     * `ModuleVersionSelectionReason` to `ComponentSelectionReason`
-    * `ModuleVersionSelectionReasonSerializer` to `ComponentSelectionReasonSerializer`
-* Various interface method signatures were changed to return the new component types: `DependencyResult`, `ResolvedComponentResult`, `UnresolvedDependencyResult`, `RenderableDependency` and `DependencyEdge`.
+* Renamed methods on `ResolutionResult`:
+    * `getAllModuleVersions()` to `getAllComponents()`.
+    * `allModuleVersions(Action)` to `allComponents(Action)`.
+    * `allModuleVersions(Closure)` to `allComponents(Closure)`.
+* Various interface method signatures were changed to return the new component types: `DependencyResult`, `ResolvedComponentResult`, `UnresolvedDependencyResult` and `ResolutionResult`.
 
 ## External contributions
 

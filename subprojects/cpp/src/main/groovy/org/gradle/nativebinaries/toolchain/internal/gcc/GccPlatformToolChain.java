@@ -48,33 +48,33 @@ class GccPlatformToolChain implements PlatformToolChain {
     public <T extends BinaryToolSpec> org.gradle.api.internal.tasks.compile.Compiler<T> createCppCompiler() {
         CommandLineTool<CppCompileSpec> commandLineTool = commandLineTool(ToolType.CPP_COMPILER);
         commandLineTool.withSpecTransformer(withSystemArgs(CppCompileSpec.class, platformConfiguration.getCppCompilerArgs()));
-        CppCompiler cppCompiler = new CppCompiler(commandLineTool, useCommandFile);
+        CppCompiler cppCompiler = new CppCompiler(commandLineTool, tools.getArgTransformer(ToolType.CPP_COMPILER), useCommandFile);
         return (Compiler<T>) new OutputCleaningCompiler<CppCompileSpec>(cppCompiler, ".o");
     }
 
     public <T extends BinaryToolSpec> org.gradle.api.internal.tasks.compile.Compiler<T> createCCompiler() {
         CommandLineTool<CCompileSpec> commandLineTool = commandLineTool(ToolType.C_COMPILER);
         commandLineTool.withSpecTransformer(withSystemArgs(CCompileSpec.class, platformConfiguration.getCCompilerArgs()));
-        CCompiler cCompiler = new CCompiler(commandLineTool, useCommandFile);
+        CCompiler cCompiler = new CCompiler(commandLineTool, tools.getArgTransformer(ToolType.C_COMPILER), useCommandFile);
         return (Compiler<T>) new OutputCleaningCompiler<CCompileSpec>(cCompiler, ".o");
     }
 
     public <T extends BinaryToolSpec> Compiler<T> createAssembler() {
         CommandLineTool<AssembleSpec> commandLineTool = commandLineTool(ToolType.ASSEMBLER);
         commandLineTool.withSpecTransformer(withSystemArgs(AssembleSpec.class, platformConfiguration.getAssemblerArgs()));
-        return (Compiler<T>) new Assembler(commandLineTool);
+        return (Compiler<T>) new Assembler(commandLineTool, tools.getArgTransformer(ToolType.ASSEMBLER));
     }
 
     public <T extends LinkerSpec> Compiler<T> createLinker() {
         CommandLineTool<LinkerSpec> commandLineTool = commandLineTool(ToolType.LINKER);
         commandLineTool.withSpecTransformer(withSystemArgs(LinkerSpec.class, platformConfiguration.getLinkerArgs()));
-        return (Compiler<T>) new GccLinker(commandLineTool, useCommandFile);
+        return (Compiler<T>) new GccLinker(commandLineTool, tools.getArgTransformer(ToolType.LINKER), useCommandFile);
     }
 
     public <T extends StaticLibraryArchiverSpec> Compiler<T> createStaticLibraryArchiver() {
         CommandLineTool<StaticLibraryArchiverSpec> commandLineTool = commandLineTool(ToolType.STATIC_LIB_ARCHIVER);
         commandLineTool.withSpecTransformer(withSystemArgs(StaticLibraryArchiverSpec.class, platformConfiguration.getStaticLibraryArchiverArgs()));
-        return (Compiler<T>) new ArStaticLibraryArchiver(commandLineTool);
+        return (Compiler<T>) new ArStaticLibraryArchiver(commandLineTool, tools.getArgTransformer(ToolType.STATIC_LIB_ARCHIVER));
     }
 
     private <T extends BinaryToolSpec> CommandLineTool<T> commandLineTool(ToolType key) {

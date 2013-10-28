@@ -16,14 +16,19 @@
 
 package org.gradle.nativebinaries.toolchain.internal.gcc;
 
+import org.gradle.api.Action;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativebinaries.toolchain.internal.ToolType;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class ToolRegistry {
     private final Map<ToolType, String> executableNames = new HashMap<ToolType, String>();
+    private final Map<ToolType, CompositeArgAction> argTransformers = new HashMap<ToolType, CompositeArgAction>();
     private final Map<String, File> executables = new HashMap<String, File>();
     private final List<File> pathEntries = new ArrayList<File>();
 
@@ -75,5 +80,31 @@ public class ToolRegistry {
             }
         }
         return operatingSystem.findInPath(name);
+    }
+
+    public CompositeArgAction getArgTransformer(ToolType toolType) {
+        if (!argTransformers.containsKey(toolType)) {
+            argTransformers.put(toolType, new CompositeArgAction());
+        }
+        return argTransformers.get(toolType);
+    }
+
+    public void addArgsAction(ToolType toolType, Action<List<String>> arguments) {
+        getArgTransformer(toolType).add(arguments);
+    }
+
+    private static class CompositeArgAction implements Action<List<String>> {
+        private final List<Action<List<String>>> actions = new ArrayList<Action<List<String>>>();
+
+        public void add(Action<List<String>> action) {
+            actions.add(action);
+        }
+
+        public void execute(List<String> args) {
+            for (Action<List<String>> action : actions) {
+                action.execute(args);
+            }
+        }
+
     }
 }

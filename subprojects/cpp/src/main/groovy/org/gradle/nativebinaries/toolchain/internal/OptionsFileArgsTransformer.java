@@ -18,34 +18,39 @@ package org.gradle.nativebinaries.toolchain.internal;
 
 import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.internal.tasks.compile.ArgCollector;
 import org.gradle.api.internal.tasks.compile.ArgWriter;
-import org.gradle.api.internal.tasks.compile.CompileSpecToArguments;
 import org.gradle.nativebinaries.internal.BinaryToolSpec;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.List;
 
-public class CommandLineCompilerArgumentsToOptionFile<T extends BinaryToolSpec> implements CompileSpecToArguments<T> {
-
+public class OptionsFileArgsTransformer<T extends BinaryToolSpec> implements ArgsTransformer<T> {
     private final Transformer<ArgWriter, PrintWriter> argWriterFactory;
-    private final CompileSpecToArguments<T> toArguments;
+    private final ArgsTransformer<T> delegate;
 
-    public CommandLineCompilerArgumentsToOptionFile(Transformer<ArgWriter, PrintWriter> argWriterFactory, CompileSpecToArguments<T> toArguments) {
+    public OptionsFileArgsTransformer(Transformer<ArgWriter, PrintWriter> argWriterFactory, ArgsTransformer<T> delegate) {
         this.argWriterFactory = argWriterFactory;
-        this.toArguments = toArguments;
+        this.delegate = delegate;
     }
 
-    public void collectArguments(T spec, ArgCollector collector) {
-        GFileUtils.mkdirs(spec.getTempDir());
-        File optionsFile = new File(spec.getTempDir(), "options.txt");
+    public List<String> transform(T spec) {
+        List<String> output = new ArrayList<String>();
+        transformArgs(delegate.transform(spec), output, spec.getTempDir());
+        return output;
+    }
+
+    protected void transformArgs(List<String> input, List<String> output, File tempDir) {
+        GFileUtils.mkdirs(tempDir);
+        File optionsFile = new File(tempDir, "options.txt");
         try {
             PrintWriter writer = new PrintWriter(optionsFile);
             ArgWriter argWriter = argWriterFactory.transform(writer);
             try {
-                toArguments.collectArguments(spec, argWriter);
+                argWriter.args(input);
             } finally {
                 writer.close();
             }
@@ -53,6 +58,6 @@ public class CommandLineCompilerArgumentsToOptionFile<T extends BinaryToolSpec> 
             throw new UncheckedIOException(String.format("Could not write compiler options file '%s'.", optionsFile.getAbsolutePath()), e);
         }
 
-        collector.args(String.format("@%s", optionsFile.getAbsolutePath()));
+        output.add(String.format("@%s", optionsFile.getAbsolutePath()));
     }
 }

@@ -807,7 +807,7 @@ The arguments hook should be seen as a 'last-resort' mechanism, with preference 
 
 ### Test cases
 
-- Test adds Visual C++ argument that is replaced by a GCC argument via GccTool.withArgs(). Do this for each tool (cppCompiler, cCompiler, linker, assembler, archiver).
+- Test with custom placeholder argument that is replaced by a GCC argument via GccTool.withArgs(). Do this for each tool (cppCompiler, cCompiler, linker, assembler, archiver).
 - Test adds bad argument to args for binary: arg is removed by hook.
 
 ### Open Issues

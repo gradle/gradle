@@ -42,7 +42,7 @@ public class DefaultBuildComponentSelector implements BuildComponentSelector {
 
         if(identifier instanceof BuildComponentIdentifier) {
             BuildComponentIdentifier buildComponentIdentifier = (BuildComponentIdentifier)identifier;
-            return buildComponentIdentifier.getProjectPath().equals(getProjectPath());
+            return projectPath.equals(buildComponentIdentifier.getProjectPath());
         }
 
         return false;

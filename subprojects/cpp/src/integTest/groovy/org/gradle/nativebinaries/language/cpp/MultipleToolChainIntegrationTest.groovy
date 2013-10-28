@@ -16,14 +16,15 @@
 
 
 package org.gradle.nativebinaries.language.cpp
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.language.cpp.fixtures.AvailableToolChains
+import org.gradle.nativebinaries.language.cpp.fixtures.RequiresInstalledToolChain
 import org.gradle.nativebinaries.language.cpp.fixtures.app.CppCompilerDetectingTestApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
+@RequiresInstalledToolChain
 class MultipleToolChainIntegrationTest extends AbstractIntegrationSpec {
     def helloWorld = new CppCompilerDetectingTestApp()
 
@@ -102,7 +103,7 @@ class MultipleToolChainIntegrationTest extends AbstractIntegrationSpec {
 
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
     def "includes tool chain in task names and binary paths with two defined and one available"() {
-        AvailableToolChains.InstalledToolChain toolChain = AvailableToolChains.getToolChains().get(0) as AvailableToolChains.InstalledToolChain
+        AvailableToolChains.InstalledToolChain toolChain = AvailableToolChains.getAvailableToolChains().get(0)
 
         given:
         buildFile << """

@@ -15,20 +15,8 @@
  */
 package org.gradle.nativebinaries.internal;
 
-import org.gradle.nativebinaries.Architecture;
+import org.gradle.nativebinaries.Platform;
 
-public interface ArchitectureInternal extends Architecture {
-    static final ArchitectureInternal TOOL_CHAIN_DEFAULT = new DefaultArchitecture("default", null, 0);
-
-    enum InstructionSet { X86, ITANIUM, PPC, SPARC, ARM }
-
-    InstructionSet getInstructionSet();
-
-    int getRegisterSize();
-
-    boolean isI386();
-
-    boolean isAmd64();
-
-    boolean isIa64();
+public interface PlatformInternal extends Platform {
+    String getCompatibilityString();
 }
