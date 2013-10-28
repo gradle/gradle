@@ -20,15 +20,16 @@ import org.gradle.nativebinaries.internal.ArchitectureInternal
 import org.gradle.nativebinaries.internal.DefaultArchitecture
 
 class OtoolBinaryInfo implements BinaryInfo {
-    def archString
+    def binaryFile
 
     OtoolBinaryInfo(File binaryFile) {
-        def process = ['otool', '-hv', binaryFile.absolutePath].execute()
-        def lines = process.inputStream.readLines()
-        archString = lines[3].split()[1]
-    }
+        this.binaryFile = binaryFile    }
 
     ArchitectureInternal getArch() {
+        def process = ['otool', '-hv', binaryFile.absolutePath].execute()
+        def lines = process.inputStream.readLines()
+        def archString = lines[3].split()[1]
+
         switch (archString) {
             case "I386":
                 return new DefaultArchitecture("x86", ArchitectureInternal.InstructionSet.X86, 32)
@@ -37,5 +38,10 @@ class OtoolBinaryInfo implements BinaryInfo {
             default:
                 throw new RuntimeException("Cannot determine architecture for ${archString}")
         }
+    }
+
+    List<String> listObjectFiles() {
+        def process = ['ar', '-t', binaryFile.getAbsolutePath()].execute()
+        return process.inputStream.readLines().drop(1)
     }
 }

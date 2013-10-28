@@ -22,30 +22,34 @@ import org.gradle.nativebinaries.toolchain.internal.msvcpp.DefaultVisualStudioLo
 import org.gradle.nativebinaries.toolchain.internal.msvcpp.VisualStudioInstall
 
 class DumpbinBinaryInfo implements BinaryInfo {
-    def output
-    def archString
+    final File binaryFile
+    final File vcBin
+    final File commonBin
 
     DumpbinBinaryInfo(File binaryFile, InstalledToolChain tc) {
-        VisualStudioInstall vsInstall = findVisualStudio()
-        final binDir = vsInstall.getVisualCppBin()
-        final commonBin = vsInstall.getCommonIdeBin()
+        this.binaryFile = binaryFile
 
-        def dumpbin = findDumpBin(binDir)
-        def process = [dumpbin.absolutePath, '/HEADERS', binaryFile.absolutePath].execute(["PATH=$binDir;$commonBin"], null)
-        output = process.inputStream.text
-        archString = readArch(output)
+        VisualStudioInstall vsInstall = findVisualStudio()
+        vcBin = vsInstall.getVisualCppBin()
+        commonBin = vsInstall.getCommonIdeBin()
     }
 
     static VisualStudioInstall findVisualStudio() {
         new VisualStudioInstall(new DefaultVisualStudioLocator().locateDefaultVisualStudio().result)
     }
 
-    static findDumpBin(File binDir) {
-        final candidate = new File(binDir, "dumpbin.exe")
+    private findExe(String exe) {
+        final candidate = new File(vcBin, exe)
         if (candidate.exists()) {
             return candidate
         }
         throw new RuntimeException("dumpbin.exe not found")
+    }
+
+    private String getDumpbinHeaders() {
+        def dumpbin = findExe("dumpbin.exe")
+        def process = [dumpbin.absolutePath, '/HEADERS', binaryFile.absolutePath].execute(["PATH=$vcBin;$commonBin"], null)
+        return process.inputStream.text
     }
 
     def static readArch(def input) {
@@ -56,6 +60,7 @@ class DumpbinBinaryInfo implements BinaryInfo {
     }
 
     ArchitectureInternal getArch() {
+        def archString = readArch(dumpbinHeaders)
         switch (archString) {
             case "x86":
                 return new DefaultArchitecture("x86", ArchitectureInternal.InstructionSet.X86, 32)
@@ -66,5 +71,11 @@ class DumpbinBinaryInfo implements BinaryInfo {
             default:
                 throw new RuntimeException("Cannot determine architecture for ${archString}")
         }
+    }
+
+    List<String> listObjectFiles() {
+        def dumpbin = findExe("lib.exe")
+        def process = [dumpbin.absolutePath, '/LIST', binaryFile.absolutePath].execute(["PATH=$vcBin;$commonBin"], null)
+        return process.inputStream.readLines().drop(3).collect { new File(it).name }
     }
 }

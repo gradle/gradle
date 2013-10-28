@@ -20,12 +20,11 @@ import org.gradle.nativebinaries.internal.ArchitectureInternal
 import org.gradle.nativebinaries.internal.DefaultArchitecture
 
 class ReadelfBinaryInfo implements BinaryInfo {
-    def archString
+
+    private final File binaryFile
 
     ReadelfBinaryInfo(File binaryFile) {
-        def process = ['readelf', '-h', binaryFile.absolutePath].execute()
-        List<String> lines = process.inputStream.readLines()
-        archString = readHeaderValue(lines, "Machine:")
+        this.binaryFile = binaryFile
     }
 
     public static String readHeaderValue(List<String> lines, String header) {
@@ -36,6 +35,9 @@ class ReadelfBinaryInfo implements BinaryInfo {
     }
 
     ArchitectureInternal getArch() {
+        def process = ['readelf', '-h', binaryFile.absolutePath].execute()
+        List<String> lines = process.inputStream.readLines()
+        def archString = readHeaderValue(lines, "Machine:")
         switch (archString) {
             case "Intel 80386":
                 return new DefaultArchitecture("x86", ArchitectureInternal.InstructionSet.X86, 32)
@@ -44,5 +46,10 @@ class ReadelfBinaryInfo implements BinaryInfo {
             default:
                 throw new RuntimeException("Cannot determine architecture for ${archString}")
         }
+    }
+
+    List<String> listObjectFiles() {
+        def process = ['ar', '-t', binaryFile.getAbsolutePath()].execute()
+        return process.inputStream.readLines().drop(1)
     }
 }

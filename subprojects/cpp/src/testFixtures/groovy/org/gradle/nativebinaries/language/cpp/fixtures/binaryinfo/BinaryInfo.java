@@ -18,6 +18,9 @@ package org.gradle.nativebinaries.language.cpp.fixtures.binaryinfo;
 
 import org.gradle.nativebinaries.internal.ArchitectureInternal;
 
+import java.util.List;
+
 public interface BinaryInfo {
     ArchitectureInternal getArch();
+    List<String> listObjectFiles();
 }
