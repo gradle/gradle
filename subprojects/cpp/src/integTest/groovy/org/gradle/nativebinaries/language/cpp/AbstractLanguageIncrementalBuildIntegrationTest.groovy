@@ -357,8 +357,8 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         newObjFile.file
     }
 
-    // TODO:DAZ Enable this, after fixing static lib fixture for windows
-    @Ignore("For GCC, need to delete previous binary output before generating")
+    // TODO:DAZ Enable this on windows, after fixing static lib fixture
+    @Requires(TestPrecondition.NOT_WINDOWS)
     def "cleans up stale object files when library source file renamed"() {
         when:
         run "helloStaticLibrary"

@@ -17,6 +17,7 @@
 package org.gradle.nativebinaries.toolchain.internal.gcc;
 
 import org.gradle.api.Action;
+import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.nativebinaries.internal.StaticLibraryArchiverSpec;
@@ -40,7 +41,18 @@ class ArStaticLibraryArchiver implements Compiler<StaticLibraryArchiverSpec> {
     }
 
     public WorkResult execute(StaticLibraryArchiverSpec spec) {
+        deletePreviousOutput(spec);
         return commandLineTool.execute(spec);
+    }
+
+    private void deletePreviousOutput(StaticLibraryArchiverSpec spec) {
+        // Need to delete the previous archive, otherwise stale object files will remain
+        if (!spec.getOutputFile().isFile()) {
+            return;
+        }
+        if (!(spec.getOutputFile().delete())) {
+            throw new GradleException("Create static archive failed: could not delete previous archive");
+        }
     }
 
     private static class ArchiverSpecToArguments implements ArgsTransformer<StaticLibraryArchiverSpec> {
