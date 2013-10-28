@@ -430,7 +430,13 @@ public class PomReader {
 
         public String getType() {
             String val = getFirstChildText(depElement , TYPE);
-            return replaceProps(val);
+            val = replaceProps(val);
+
+            if(val == null) {
+                val = "jar";
+            }
+
+            return val;
         }
 
         public String getClassifier() {
