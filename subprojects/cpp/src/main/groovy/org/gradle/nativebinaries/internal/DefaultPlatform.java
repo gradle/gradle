@@ -19,9 +19,8 @@ package org.gradle.nativebinaries.internal;
 import org.gradle.api.internal.notations.api.NotationParser;
 import org.gradle.nativebinaries.Architecture;
 import org.gradle.nativebinaries.OperatingSystem;
-import org.gradle.nativebinaries.Platform;
 
-public class DefaultPlatform implements Platform {
+public class DefaultPlatform implements PlatformInternal {
     private final NotationParser<ArchitectureInternal> archParser;
     private final NotationParser<OperatingSystem> osParser;
     private final String name;
@@ -58,5 +57,9 @@ public class DefaultPlatform implements Platform {
 
     public void operatingSystem(Object notation) {
         operatingSystem = osParser.parseNotation(notation);
+    }
+
+    public String getCompatibilityString() {
+        return String.format("%s:%s", architecture.getName(), operatingSystem.getName());
     }
 }

@@ -48,7 +48,6 @@ abstract class AbstractNativeCompileTask extends DefaultTask {
     /**
      * The platform being targeted.
      */
-    // TODO:DAZ This should form an @Input
     Platform targetPlatform
 
     /**
@@ -75,11 +74,10 @@ abstract class AbstractNativeCompileTask extends DefaultTask {
     @InputFiles
     FileCollection source
 
-    // TODO:DAZ We also need the platform to form an input
     // Invalidate output when the tool chain output changes
     @Input
     def getOutputType() {
-        return toolChain.outputType
+        return "${toolChain.outputType}:${targetPlatform.compatibilityString}"
     }
 
     /**

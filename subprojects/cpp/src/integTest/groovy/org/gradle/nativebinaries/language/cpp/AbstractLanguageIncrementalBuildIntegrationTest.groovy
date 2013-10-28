@@ -251,6 +251,28 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         install.exec().out == app.frenchOutput
     }
 
+    @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+    def "rebuilds binary with target platform change"() {
+        given:
+        buildFile << """
+    targetPlatforms {
+        arch {
+            // Tool chain defaults
+        }
+    }
+"""
+        run "mainExecutable"
+
+        when:
+        buildFile.text = buildFile.text.replace("// Tool chain defaults", "architecture 'i386'")
+        run "mainExecutable"
+
+        then:
+        executedAndNotSkipped libraryCompileTask, mainCompileTask
+        executedAndNotSkipped ":linkHelloSharedLibrary"
+        executedAndNotSkipped ":helloSharedLibrary", ":mainExecutable"
+    }
+
     def "relinks binary when set of input libraries changes"() {
         given:
         run "mainExecutable", "helloStaticLibrary"

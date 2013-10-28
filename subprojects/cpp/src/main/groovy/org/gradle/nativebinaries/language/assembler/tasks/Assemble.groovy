@@ -38,7 +38,6 @@ class Assemble extends DefaultTask {
     /**
      * The platform being targeted.
      */
-    // TODO:DAZ This should form an @Input
     Platform targetPlatform
 
     /**
@@ -55,7 +54,7 @@ class Assemble extends DefaultTask {
     // Invalidate output when the tool chain output changes
     @Input
     def getOutputType() {
-        return toolChain.outputType
+        return "${toolChain.outputType}:${targetPlatform.compatibilityString}"
     }
 
     /**
