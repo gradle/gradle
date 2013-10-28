@@ -50,6 +50,6 @@ class ReadelfBinaryInfo implements BinaryInfo {
 
     List<String> listObjectFiles() {
         def process = ['ar', '-t', binaryFile.getAbsolutePath()].execute()
-        return process.inputStream.readLines().drop(1)
+        return process.inputStream.readLines()
     }
 }
