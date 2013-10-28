@@ -17,6 +17,7 @@
 package org.gradle.nativebinaries.toolchain.internal.gcc
 
 import org.gradle.api.Action
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.internal.LinkerSpec
 import org.gradle.nativebinaries.internal.SharedLibraryLinkerSpec
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool
@@ -41,6 +42,13 @@ class GccLinkerTest extends Specification {
         def outputFile = testDir.file("output/lib")
 
         def execAction = Mock(ExecAction)
+        final expectedArgs = [
+                "-sys1", "-sys2",
+                "-Xlinker", "-arg1", "-Xlinker", "-arg2",
+                "-shared"]
+        expectedArgs.addAll(getSoNameProp("installName"))
+        expectedArgs.addAll(["-o", outputFile.absolutePath,
+                testDir.file("one.o").absolutePath, testDir.file("two.o").absolutePath])
 
         when:
         LinkerSpec spec = Mock(SharedLibraryLinkerSpec)
@@ -56,22 +64,22 @@ class GccLinkerTest extends Specification {
         linker.execute(spec)
 
         then:
-        1 * argAction.execute([
-                "-sys1", "-sys2",
-                "-Xlinker", "-arg1", "-Xlinker", "-arg2",
-                "-shared", "-Wl,-install_name,installName",
-                "-o", outputFile.absolutePath,
-                testDir.file("one.o").absolutePath, testDir.file("two.o").absolutePath])
+        1 * argAction.execute(expectedArgs)
         1 * execActionFactory.newExecAction() >> execAction
         1 * execAction.executable(executable)
-        1 * execAction.args([
-                "-sys1", "-sys2",
-                "-Xlinker", "-arg1", "-Xlinker", "-arg2",
-                "-shared", "-Wl,-install_name,installName",
-                "-o", outputFile.absolutePath,
-                testDir.file("one.o").absolutePath, testDir.file("two.o").absolutePath])
+        1 * execAction.args(expectedArgs)
         1 * execAction.environment([:])
         1 * execAction.execute()
         0 * execAction._
+    }
+
+    List<String> getSoNameProp(def value) {
+        if (OperatingSystem.current().isWindows()) {
+            return []
+        }
+        if (OperatingSystem.current().isMacOsX()) {
+            return ["-Wl,-install_name,${value}"]
+        }
+        return ["-Wl,-soname,${value}"]
     }
 }
