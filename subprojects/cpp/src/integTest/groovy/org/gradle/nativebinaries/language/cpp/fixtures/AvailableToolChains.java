@@ -44,6 +44,20 @@ import java.util.*;
 
 public class AvailableToolChains {
     /**
+     * @return A list of installed and available tool chains, with the default tool chain listed first.
+     */
+    public static List<InstalledToolChain> getAvailableToolChains() {
+        List<ToolChainCandidate> allToolChains = getToolChains();
+        List<InstalledToolChain> installedToolChains = new ArrayList<InstalledToolChain>();
+        for (ToolChainCandidate candidate : allToolChains) {
+            if (candidate.isAvailable()) {
+                installedToolChains.add((InstalledToolChain) candidate);
+            }
+        }
+        return installedToolChains;
+    }
+
+    /**
      * @return A list of all tool chains for this platform, with the default tool chain listed first.
      */
     public static List<ToolChainCandidate> getToolChains() {

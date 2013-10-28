@@ -102,7 +102,7 @@ class MultipleToolChainIntegrationTest extends AbstractIntegrationSpec {
 
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
     def "includes tool chain in task names and binary paths with two defined and one available"() {
-        AvailableToolChains.InstalledToolChain toolChain = AvailableToolChains.getToolChains().get(0) as AvailableToolChains.InstalledToolChain
+        AvailableToolChains.InstalledToolChain toolChain = AvailableToolChains.getAvailableToolChains().get(0)
 
         given:
         buildFile << """
