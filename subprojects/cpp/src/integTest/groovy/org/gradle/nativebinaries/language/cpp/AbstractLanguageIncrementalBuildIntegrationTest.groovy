@@ -17,6 +17,7 @@
 package org.gradle.nativebinaries.language.cpp
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativebinaries.language.cpp.fixtures.RequiresInstalledToolChain
 import org.gradle.nativebinaries.language.cpp.fixtures.app.IncrementalHelloWorldApp
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GUtil
@@ -334,6 +335,7 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         newObjFile.file
     }
 
+    // TODO:DAZ Enable this, after fixing static lib fixture for windows
     @Ignore("For GCC, need to delete previous binary output before generating")
     def "cleans up stale object files when library source file renamed"() {
         when:
@@ -365,10 +367,8 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         assert !staticLibrary("build/binaries/helloStaticLibrary/hello").listObjectFiles().contains(oldObjFile.name)
     }
 
+    @RequiresInstalledToolChain("visual c++")
     def "cleans up stale debug files when changing from debug to non-debug"() {
-        if (!toolChain.visualCpp) {
-            return
-        }
 
         given:
         buildFile << """

@@ -19,11 +19,13 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.nativebinaries.language.cpp.fixtures.AvailableToolChains
 import org.gradle.nativebinaries.language.cpp.fixtures.AvailableToolChains.ToolChainCandidate
 import org.gradle.nativebinaries.language.cpp.fixtures.ExecutableFixture
+import org.gradle.nativebinaries.language.cpp.fixtures.RequiresInstalledToolChain
 import org.gradle.nativebinaries.language.cpp.fixtures.app.CppCallingCHelloWorldApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 @Requires(TestPrecondition.NOT_WINDOWS)
+@RequiresInstalledToolChain("gcc 4")
 class GccToolChainCustomisationIntegrationTest extends AbstractIntegrationSpec {
     def AvailableToolChains.InstalledToolChain gcc
     def helloWorldApp = new CppCallingCHelloWorldApp()

@@ -13,20 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.util
+package org.gradle.nativebinaries.language.cpp.fixtures
 
-import org.spockframework.runtime.extension.AbstractAnnotationDrivenExtension
-import org.spockframework.runtime.model.SpecInfo
-import org.spockframework.runtime.model.FeatureInfo
+import org.spockframework.runtime.extension.ExtensionAnnotation
 
-class TestPreconditionExtension extends AbstractAnnotationDrivenExtension<Requires> {
-    @Override
-    void visitSpecAnnotation(Requires annotation, SpecInfo spec) {
-        spec.skipped |= annotation.value().any() { !it.fulfilled }
-    }
+import java.lang.annotation.ElementType
+import java.lang.annotation.Retention
+import java.lang.annotation.RetentionPolicy
+import java.lang.annotation.Target
 
-    @Override
-    void visitFeatureAnnotation(Requires annotation, FeatureInfo feature) {
-        feature.skipped |= annotation.value().any() { !it.fulfilled }
-    }
+@Retention(RetentionPolicy.RUNTIME)
+@Target([ElementType.METHOD, ElementType.TYPE])
+@ExtensionAnnotation(RequiresInstalledToolChainExtension.class)
+public @interface RequiresInstalledToolChain {
+    String value() default ""
 }
+

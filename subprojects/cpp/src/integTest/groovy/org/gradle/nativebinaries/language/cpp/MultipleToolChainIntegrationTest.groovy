@@ -16,14 +16,15 @@
 
 
 package org.gradle.nativebinaries.language.cpp
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.language.cpp.fixtures.AvailableToolChains
+import org.gradle.nativebinaries.language.cpp.fixtures.RequiresInstalledToolChain
 import org.gradle.nativebinaries.language.cpp.fixtures.app.CppCompilerDetectingTestApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
+@RequiresInstalledToolChain
 class MultipleToolChainIntegrationTest extends AbstractIntegrationSpec {
     def helloWorld = new CppCompilerDetectingTestApp()
 
