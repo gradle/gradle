@@ -33,6 +33,10 @@ public class WindowsSdk implements Named {
         return "Windows SDK " + getVersion();
     }
 
+    public File getResourceCompiler() {
+        return new File(getBinDir(), "rc.exe");
+    }
+
     public String getVersion() {
         return baseDir.getName();
     }
@@ -58,5 +62,4 @@ public class WindowsSdk implements Named {
     private ArchitectureInternal architecture(Platform platform) {
         return (ArchitectureInternal) platform.getArchitecture();
     }
-
 }

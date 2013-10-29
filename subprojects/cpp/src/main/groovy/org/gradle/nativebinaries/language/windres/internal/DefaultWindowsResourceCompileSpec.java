@@ -13,21 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.nativebinaries.language.windres.internal;
 
-package org.gradle.nativebinaries.internal;
+import org.gradle.nativebinaries.language.internal.AbstractNativeCompileSpec;
 
-import org.gradle.api.internal.tasks.compile.Compiler;
-
-public interface PlatformToolChain {
-    <T extends BinaryToolSpec> Compiler<T> createCppCompiler();
-
-    <T extends BinaryToolSpec> Compiler<T> createCCompiler();
-
-    <T extends BinaryToolSpec> Compiler<T> createAssembler();
-
-    <T extends BinaryToolSpec> Compiler<T> createWindowsResourceCompiler();
-
-    <T extends LinkerSpec> Compiler<T> createLinker();
-
-    <T extends StaticLibraryArchiverSpec> Compiler<T> createStaticLibraryArchiver();
+public class DefaultWindowsResourceCompileSpec extends AbstractNativeCompileSpec implements WindowsResourceCompileSpec {
 }

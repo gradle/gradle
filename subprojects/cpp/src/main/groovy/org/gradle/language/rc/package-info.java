@@ -14,20 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries.internal;
-
-import org.gradle.api.internal.tasks.compile.Compiler;
-
-public interface PlatformToolChain {
-    <T extends BinaryToolSpec> Compiler<T> createCppCompiler();
-
-    <T extends BinaryToolSpec> Compiler<T> createCCompiler();
-
-    <T extends BinaryToolSpec> Compiler<T> createAssembler();
-
-    <T extends BinaryToolSpec> Compiler<T> createWindowsResourceCompiler();
-
-    <T extends LinkerSpec> Compiler<T> createLinker();
-
-    <T extends StaticLibraryArchiverSpec> Compiler<T> createStaticLibraryArchiver();
-}
+/**
+ * Model classes for building from Windows Resource scripts.
+ */
+package org.gradle.language.rc;

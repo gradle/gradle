@@ -65,6 +65,10 @@ class GccPlatformToolChain implements PlatformToolChain {
         return (Compiler<T>) new Assembler(commandLineTool, tools.getArgTransformer(ToolType.ASSEMBLER));
     }
 
+    public <T extends BinaryToolSpec> Compiler<T> createWindowsResourceCompiler() {
+        throw new UnsupportedOperationException();
+    }
+
     public <T extends LinkerSpec> Compiler<T> createLinker() {
         CommandLineTool<LinkerSpec> commandLineTool = commandLineTool(ToolType.LINKER);
         commandLineTool.withSpecTransformer(withSystemArgs(LinkerSpec.class, platformConfiguration.getLinkerArgs()));

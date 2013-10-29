@@ -19,13 +19,32 @@ package org.gradle.nativebinaries.language.cpp.fixtures.app
 class WindowsResourceHelloWorldApp extends HelloWorldApp {
 
     @Override
+    String getEnglishOutput() {
+        return HELLO_WORLD
+    }
+
+    @Override
+    List<String> getPluginList() {
+        ['cpp', 'windows-resources']
+    }
+
+    @Override
+    String getTargetPlatformsScript() {
+        return """
+            binaries.all {
+                linker.args "user32.lib"
+            }
+"""
+    }
+
+    @Override
     SourceFile getMainSource() {
         return sourceFile("cpp", "main.cpp", """
             #include "strings.h"
 
             int main () {
                 std::string hello = LoadStringFromResource(IDS_HELLO);
-                std::cout << hello << std::endl;
+                std::cout << hello;
                 return 0;
             }
 """
@@ -69,7 +88,7 @@ class WindowsResourceHelloWorldApp extends HelloWorldApp {
 
             STRINGTABLE
             {
-                IDS_HELLO,   "${HELLO_WORLD}"
+                IDS_HELLO, "${HELLO_WORLD}"
             }
         """)
     ]
