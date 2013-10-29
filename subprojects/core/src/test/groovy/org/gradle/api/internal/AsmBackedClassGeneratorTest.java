@@ -645,10 +645,12 @@ public class AsmBackedClassGeneratorTest {
         //assertThat(bean.getFiles(), sameInstance(files));
     }
 
-    @Test(expected=MissingMethodException.class)
-    public void doesNotAddSetValueMethodIfOnlyMultiArgMethods() throws Exception {
+    @Test
+    public void addsInsteadOfOverridesSetValueMethodIfOnlyMultiArgMethods() throws Exception {
         BeanWithMultiArgDslMethods bean = generator.generate(BeanWithMultiArgDslMethods.class).newInstance();
-        call("{ it.prop('value') }", bean);
+        // this method should have been added to the class
+        call("{ it.prop 'value'}", bean);
+        assertThat(bean.getProp(), equalTo("value"));
     }
 
     @Test

@@ -784,7 +784,9 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         public void overrideSetMethod(MetaBeanProperty property, MetaMethod metaMethod) throws Exception {
-            if (!extensible || metaMethod.getParameterTypes().length != 1) {
+            if (metaMethod.getParameterTypes().length != 1) {
+                throw new IllegalArgumentException("Can only override set methods that take one argument: " + metaMethod.toString());
+            } else if (!extensible) {
                 return;
             }
             Type paramType = Type.getType(metaMethod.getParameterTypes()[0].getTheClass());
