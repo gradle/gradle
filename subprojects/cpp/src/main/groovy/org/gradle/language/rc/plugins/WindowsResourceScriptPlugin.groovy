@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.language.windres.plugins
+package org.gradle.language.rc.plugins
 import org.gradle.api.Action
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
@@ -22,16 +22,16 @@ import org.gradle.internal.reflect.Instantiator
 import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.language.base.ProjectSourceSet
 import org.gradle.language.base.plugins.LanguageBasePlugin
-import org.gradle.language.windres.WindowsResourceSet
-import org.gradle.language.windres.internal.DefaultWindowsResourceSet
+import org.gradle.language.rc.WindowsResourceSet
+import org.gradle.language.rc.internal.DefaultWindowsResourceSet
 
 import javax.inject.Inject
 /**
  * Adds core language support for Windows resource script files.
  *
  * <ul>
- *     <li>For any {@link FunctionalSourceSet}, adds a conventional {@link org.gradle.language.windres.WindowsResourceSet} called 'rc'.</li>
- *     <li>Establishes a convention for all {@link org.gradle.language.windres.WindowsResourceSet}s so that sources are
+ *     <li>For any {@link FunctionalSourceSet}, adds a conventional {@link org.gradle.language.rc.WindowsResourceSet} called 'rc'.</li>
+ *     <li>Establishes a convention for all {@link org.gradle.language.rc.WindowsResourceSet}s so that sources are
  *         located in 'src/<name>/rc' and headers are located in 'src/<name>/headers'.</li>
  *     <li>
  * </ul>

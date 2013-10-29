@@ -13,18 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.nativebinaries.language.windres.plugins
+package org.gradle.nativebinaries.language.rc.plugins
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.language.c.CSourceSet
 import org.gradle.language.c.plugins.CLangPlugin
-import org.gradle.language.windres.WindowsResourceSet
-import org.gradle.language.windres.plugins.WindowsResourceScriptPlugin
+import org.gradle.language.rc.WindowsResourceSet
+import org.gradle.language.rc.plugins.WindowsResourceScriptPlugin
 import org.gradle.nativebinaries.NativeBinary
 import org.gradle.nativebinaries.internal.NativeBinaryInternal
 import org.gradle.nativebinaries.language.c.tasks.CCompile
-import org.gradle.nativebinaries.language.windres.tasks.WindowsResourceCompile
+import org.gradle.nativebinaries.language.rc.tasks.WindowsResourceCompile
 import org.gradle.nativebinaries.plugins.NativeBinariesPlugin
 /**
  * A plugin for projects wishing to build native binary components from C sources.

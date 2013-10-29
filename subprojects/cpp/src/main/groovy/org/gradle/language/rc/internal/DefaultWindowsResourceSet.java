@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.language.windres.internal;
+package org.gradle.language.rc.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.file.SourceDirectorySet;
@@ -21,7 +21,7 @@ import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.internal.AbstractLanguageSourceSet;
-import org.gradle.language.windres.WindowsResourceSet;
+import org.gradle.language.rc.WindowsResourceSet;
 
 public class DefaultWindowsResourceSet extends AbstractLanguageSourceSet implements WindowsResourceSet {
     private final DefaultSourceDirectorySet exportedHeaders;

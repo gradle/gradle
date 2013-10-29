@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.language.windres;
+package org.gradle.language.rc;
 
 import org.gradle.api.Incubating;
 import org.gradle.language.HeaderExportingSourceSet;

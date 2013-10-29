@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries.language.windres.tasks
+package org.gradle.nativebinaries.language.rc.tasks
 import org.gradle.api.DefaultTask
 import org.gradle.api.Incubating
 import org.gradle.api.file.FileCollection
@@ -26,7 +26,7 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.nativebinaries.Platform
 import org.gradle.nativebinaries.ToolChain
 import org.gradle.nativebinaries.internal.PlatformToolChain
-import org.gradle.nativebinaries.language.windres.internal.DefaultWindowsResourceCompileSpec
+import org.gradle.nativebinaries.language.rc.internal.DefaultWindowsResourceCompileSpec
 
 import javax.inject.Inject
 /**
