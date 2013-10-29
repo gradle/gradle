@@ -21,9 +21,13 @@ import org.gradle.language.c.CSourceSet
 import org.gradle.language.c.plugins.CLangPlugin
 import org.gradle.language.rc.WindowsResourceSet
 import org.gradle.language.rc.plugins.WindowsResourceScriptPlugin
+import org.gradle.nativebinaries.Executable
+import org.gradle.nativebinaries.Library
 import org.gradle.nativebinaries.NativeBinary
+import org.gradle.nativebinaries.NativeComponent
 import org.gradle.nativebinaries.internal.NativeBinaryInternal
 import org.gradle.nativebinaries.language.c.tasks.CCompile
+import org.gradle.nativebinaries.language.internal.DefaultPreprocessingTool
 import org.gradle.nativebinaries.language.rc.tasks.WindowsResourceCompile
 import org.gradle.nativebinaries.plugins.NativeBinariesPlugin
 /**
@@ -41,27 +45,35 @@ class WindowsResourcesPlugin implements Plugin<ProjectInternal> {
         project.plugins.apply(WindowsResourceScriptPlugin)
 
         // TODO:DAZ Clean this up (see CppNativeBinariesPlugin)
-//        project.executables.all { Executable executable ->
-//            addLanguageExtensionsToComponent(executable)
-//        }
-//        project.libraries.all { Library library ->
-//            addLanguageExtensionsToComponent(library)
-//        }
+        project.executables.all { Executable executable ->
+            addLanguageExtensionsToComponent(executable)
+        }
+        project.libraries.all { Library library ->
+            addLanguageExtensionsToComponent(library)
+        }
 
         project.binaries.withType(NativeBinary) { NativeBinaryInternal binary ->
-            binary.source.withType(WindowsResourceSet).all { WindowsResourceSet inputs ->
-                def resourceCompileTask = createResourceCompileTask(project, binary, inputs)
-                binary.tasks.add resourceCompileTask
-                binary.tasks.builder.source resourceCompileTask.outputs.files.asFileTree.matching { include '**/*.res' }
+            if (shouldProcessResources(binary)) {
+                binary.source.withType(WindowsResourceSet).all { WindowsResourceSet inputs ->
+                    def resourceCompileTask = createResourceCompileTask(project, binary, inputs)
+                    binary.tasks.add resourceCompileTask
+                    binary.tasks.builder.source resourceCompileTask.outputs.files.asFileTree.matching { include '**/*.res' }
+                }
             }
         }
     }
 
-//    private def addLanguageExtensionsToComponent(NativeComponent component) {
-//        component.binaries.all { binary ->
-//            binary.extensions.create("cCompiler", DefaultPreprocessingTool)
-//        }
-//    }
+    private def addLanguageExtensionsToComponent(NativeComponent component) {
+        component.binaries.all { NativeBinary binary ->
+            if (shouldProcessResources(binary)) {
+                binary.extensions.create("rcCompiler", DefaultPreprocessingTool)
+            }
+        }
+    }
+
+    private boolean shouldProcessResources(NativeBinary binary) {
+        binary.targetPlatform.operatingSystem.windows
+    }
 
     private def createResourceCompileTask(ProjectInternal project, NativeBinaryInternal binary, WindowsResourceSet sourceSet) {
         WindowsResourceCompile compileTask = project.task(binary.namingScheme.getTaskName("resourceCompile", sourceSet.fullName), type: WindowsResourceCompile) {
@@ -75,8 +87,8 @@ class WindowsResourcesPlugin implements Plugin<ProjectInternal> {
         compileTask.source sourceSet.source
 
         compileTask.outputDir = project.file("${project.buildDir}/objectFiles/${binary.namingScheme.outputDirectoryBase}/${sourceSet.fullName}")
-//        compileTask.macros = binary.rcCompiler.macros
-//        compileTask.compilerArgs = binary.rcCompiler.args
+        compileTask.macros = binary.rcCompiler.macros
+        compileTask.compilerArgs = binary.rcCompiler.args
 
         compileTask
     }

@@ -24,6 +24,11 @@ class WindowsResourceHelloWorldApp extends HelloWorldApp {
     }
 
     @Override
+    String getFrenchOutput() {
+        return HELLO_WORLD_FRENCH
+    }
+
+    @Override
     List<String> getPluginList() {
         ['cpp', 'windows-resources']
     }
@@ -35,6 +40,16 @@ class WindowsResourceHelloWorldApp extends HelloWorldApp {
                 linker.args "user32.lib"
             }
 """
+    }
+
+    @Override
+    String compilerArgs(String arg) {
+        "rcCompiler.args '${arg}'"
+    }
+
+    @Override
+    String compilerDefine(String define) {
+        "rcCompiler.define '${define}'"
     }
 
     @Override
@@ -88,7 +103,11 @@ class WindowsResourceHelloWorldApp extends HelloWorldApp {
 
             STRINGTABLE
             {
+                #ifdef FRENCH
+                IDS_HELLO, "${HELLO_WORLD_FRENCH}"
+                #else
                 IDS_HELLO, "${HELLO_WORLD}"
+                #endif
             }
         """)
     ]
