@@ -30,7 +30,7 @@ public class MixedLanguageHelloWorldApp extends HelloWorldApp {
         return ['c', 'cpp', 'assembler']
     }
 
-    String getTargetPlatformsScript() {
+    String getExtraConfiguration() {
         return """
             targetPlatforms {
                 x86 {

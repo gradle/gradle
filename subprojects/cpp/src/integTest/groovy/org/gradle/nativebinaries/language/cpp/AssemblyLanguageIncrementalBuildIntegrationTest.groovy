@@ -34,7 +34,7 @@ class AssemblyLanguageIncrementalBuildIntegrationTest extends AbstractInstalledT
             apply plugin: 'c'
             apply plugin: 'cpp'
 
-            $app.targetPlatformsScript
+            $app.extraConfiguration
 
             libraries {
                 hello {}

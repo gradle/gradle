@@ -34,10 +34,13 @@ class WindowsResourceHelloWorldApp extends HelloWorldApp {
     }
 
     @Override
-    String getTargetPlatformsScript() {
+    String getExtraConfiguration() {
         return """
             binaries.all {
                 linker.args "user32.lib"
+            }
+            binaries.withType(SharedLibraryBinary) {
+                cppCompiler.define "DLL_EXPORT"
             }
 """
     }
@@ -55,60 +58,65 @@ class WindowsResourceHelloWorldApp extends HelloWorldApp {
     @Override
     SourceFile getMainSource() {
         return sourceFile("cpp", "main.cpp", """
-            #include "strings.h"
+#include "hello.h"
 
-            int main () {
-                std::string hello = LoadStringFromResource(IDS_HELLO);
-                std::cout << hello;
-                return 0;
-            }
-"""
-        );
+int main () {
+    hello();
+    return 0;
+}
+""");
     }
 
     @Override
     SourceFile getLibraryHeader() {
-        return sourceFile("headers", "strings.h", """
-            #include <iostream>
-            #include <windows.h>
-            #include <string>
+        // TODO:DAZ Split this into 2 header files
+        return sourceFile("headers", "hello.h", """
+#define IDS_HELLO    111
 
-            #ifdef _WIN32
-            #define DLL_FUNC __declspec(dllexport)
-            #else
-            #define DLL_FUNC
-            #endif
+#ifdef DLL_EXPORT
+#define DLL_FUNC __declspec(dllexport)
+#define MODULE_HANDLE GetModuleHandle("hello")
+#else
+#define DLL_FUNC
+#define MODULE_HANDLE null
+#endif
 
-            #define IDS_HELLO    111
-
-            std::string DLL_FUNC LoadStringFromResource(UINT stringID);
-        """);
+void DLL_FUNC hello();
+""");
     }
 
     List<SourceFile> librarySources = [
-        sourceFile("cpp", "loader.cpp", """
-            #include "strings.h"
+        sourceFile("cpp", "hello.cpp", """
+#include <iostream>
+#include <windows.h>
+#include <string>
+#include "hello.h"
 
-            std::string LoadStringFromResource(UINT stringID)
-            {
-                HINSTANCE instance = NULL;
-                WCHAR * pBuf = NULL;
-                int len = LoadStringW(instance, stringID, reinterpret_cast<LPWSTR>(&pBuf), 0);
-                std::wstring wide = std::wstring(pBuf, len);
-                return std::string(wide.begin(), wide.end());
-            }
-        """),
+std::string LoadStringFromResource(UINT stringID)
+{
+    HINSTANCE instance = GetModuleHandle("hello");
+    WCHAR * pBuf = NULL;
+    int len = LoadStringW(instance, stringID, reinterpret_cast<LPWSTR>(&pBuf), 0);
+    std::wstring wide = std::wstring(pBuf, len);
+    return std::string(wide.begin(), wide.end());
+}
+
+void DLL_FUNC hello() {
+    std::string hello = LoadStringFromResource(IDS_HELLO);
+    std::cout << hello;
+}
+"""),
         sourceFile("rc", "strings.rc", """
-            #include "strings.h"
+#include "hello.h"
 
-            STRINGTABLE
-            {
-                #ifdef FRENCH
-                IDS_HELLO, "${HELLO_WORLD_FRENCH}"
-                #else
-                IDS_HELLO, "${HELLO_WORLD}"
-                #endif
-            }
-        """)
+STRINGTABLE
+{
+    #ifdef FRENCH
+    IDS_HELLO, "${HELLO_WORLD_FRENCH}"
+    #else
+    IDS_HELLO, "${HELLO_WORLD}"
+    #endif
+}
+""")
     ]
 }

@@ -31,7 +31,7 @@ public abstract class HelloWorldApp extends TestApp {
         return HELLO_WORLD_FRENCH + "\n12";
     }
 
-    public String getTargetPlatformsScript() {
+    public String getExtraConfiguration() {
         return "";
     }
 
