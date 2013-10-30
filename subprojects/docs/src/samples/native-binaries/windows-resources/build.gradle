@@ -1,0 +1,31 @@
+apply plugin: 'cpp'
+apply plugin: 'windows-resources'
+
+libraries {
+    hello {}
+}
+
+executables {
+    main {}
+}
+
+sources {
+    main {
+        cpp {
+            lib libraries.hello
+        }
+    }
+}
+
+binaries.all {
+    linker.args "user32.lib"
+}
+
+// For any shared library binaries built with Visual C++, define the DLL_EXPORT macro
+binaries.withType(SharedLibraryBinary) {
+    if (toolChain in VisualCpp) {
+        cppCompiler.define "DLL_EXPORT"
+    }
+}
+
+
