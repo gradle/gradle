@@ -163,7 +163,7 @@
             <sample id="taskHelp" dir="userguide/tutorial/projectReports" title="Obtaining detailed help for tasks">
                 <output args="-q help --task libs"/>
             </sample>
-            <para>This informatino includes the full task path, the task type, possible commandline options and the description of the given task.
+            <para>This information includes the full task path, the task type, possible commandline options and the description of the given task.
             </para>
         </section>
         <section id="sec:listing_dependencies">
