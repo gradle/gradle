@@ -17,26 +17,50 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.Task;
+import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.util.CollectionUtils;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.lang.reflect.Modifier;
+import java.util.*;
 
 public class CommandLineOptionReader {
 
     public List<CommandLineOptionDescriptor> getCommandLineOptions(Class taskClazz) {
-        List<CommandLineOptionDescriptor> options = new ArrayList<CommandLineOptionDescriptor>();
+        Map<String, CommandLineOptionDescriptor> options = new HashMap<String, CommandLineOptionDescriptor>();
         for (Class<?> type = taskClazz; type != Object.class && type != null; type = type.getSuperclass()) {
             for (Method method : type.getDeclaredMethods()) {
-                CommandLineOption commandLineOption = method.getAnnotation(CommandLineOption.class);
-                if (commandLineOption != null) {
-                    options.add(new CommandLineOptionDescriptor(commandLineOption, method));
+                if (!Modifier.isStatic(method.getModifiers())) {
+                    CommandLineOption commandLineOption = method.getAnnotation(CommandLineOption.class);
+                    if (commandLineOption != null) {
+                        final CommandLineOptionDescriptor optionDescriptor = new CommandLineOptionDescriptor(commandLineOption, method);
+                        assertMethodTypeSupported(optionDescriptor, taskClazz, method);
+
+                        if (options.containsKey(optionDescriptor.getName())) {
+                            throw new CommandLineArgumentException(String.format("Option '%s' linked to multiple methods in class '%s'.",
+                                    optionDescriptor.getName(), taskClazz.getName()));
+                        }
+                        options.put(optionDescriptor.getName(), optionDescriptor);
+                    }
                 }
             }
         }
-        return CollectionUtils.sort(options);
+        return CollectionUtils.sort(options.values());
+    }
+
+    private void assertMethodTypeSupported(CommandLineOptionDescriptor optionDescriptor, Class taskClazz, Method method) {
+        if (method.getParameterTypes().length != 1) {
+            throw new CommandLineArgumentException(String.format("Option '%s' cannot be linked to methods with multiple parameters in class '%s#%s'.",
+                    optionDescriptor.getName(), taskClazz.getName(), method.getName()));
+        }
+
+        final Class<?> parameterType = method.getParameterTypes()[0];
+        if (!(parameterType == Boolean.class || parameterType == Boolean.TYPE)
+                && !String.class.isAssignableFrom(parameterType)
+                && !parameterType.isEnum()) {
+            throw new CommandLineArgumentException(String.format("Option '%s' cannot be casted to parameter type '%s' in class '%s'.",
+                    optionDescriptor.getName(), parameterType.getName(), taskClazz.getName()));
+        }
     }
 
     public List<CommandLineOptionDescriptor> getCommandLineOptions(Task task) {
@@ -52,6 +76,10 @@ public class CommandLineOptionReader {
         public CommandLineOptionDescriptor(CommandLineOption option, Method annotatedMethod) {
             this.option = option;
             this.annotatedMethod = annotatedMethod;
+        }
+
+        public String getName() {
+            return option.options()[0];
         }
 
         public CommandLineOption getOption() {
