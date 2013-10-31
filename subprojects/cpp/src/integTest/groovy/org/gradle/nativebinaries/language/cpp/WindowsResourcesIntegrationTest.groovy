@@ -23,5 +23,68 @@ import org.gradle.nativebinaries.language.cpp.fixtures.app.WindowsResourceHelloW
 class WindowsResourcesIntegrationTest extends AbstractLanguageIntegrationTest {
 
     HelloWorldApp helloWorldApp = new WindowsResourceHelloWorldApp()
+
+    def "can create resources-only shared library"() {
+        given:
+        buildFile << """
+            executables {
+                main {}
+            }
+            libraries {
+                resources {
+                    binaries.all {
+                        linker.args "/noentry", "/machine:x86"
+                    }
+                }
+            }
+            sources.main.cpp.lib libraries.resources
+"""
+
+        and:
+        file("src/resources/rc/resources.rc") << """
+            #include "resources.h"
+
+            STRINGTABLE
+            {
+                IDS_HELLO, "Hello!"
+            }
+        """
+
+        and:
+        file("src/resources/headers/resources.h") << """
+            #define IDS_HELLO    111
+        """
+
+        and:
+        file("src/main/cpp/main.cpp") << """
+            #include <iostream>
+            #include <windows.h>
+            #include <string>
+            #include "resources.h"
+
+            std::string LoadStringFromResource(UINT stringID)
+            {
+                HMODULE instance = LoadLibraryEx("resources.dll", NULL, LOAD_LIBRARY_AS_DATAFILE);
+                WCHAR * pBuf = NULL;
+                int len = LoadStringW(instance, stringID, reinterpret_cast<LPWSTR>(&pBuf), 0);
+                std::wstring wide = std::wstring(pBuf, len);
+                return std::string(wide.begin(), wide.end());
+            }
+
+            int main() {
+                std::string hello = LoadStringFromResource(IDS_HELLO);
+                std::cout << hello;
+                return 0;
+            }
+        """
+
+        when:
+        run "installMainExecutable"
+
+        then:
+        sharedLibrary("build/resources").assertExists()
+        installation("build/install/mainExecutable").exec().out == "Hello!"
+    }
+
 }
 
