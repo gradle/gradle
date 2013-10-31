@@ -16,6 +16,7 @@
 
 package org.gradle.nativebinaries.internal
 import org.gradle.api.Task
+import org.gradle.api.file.FileCollection
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.language.base.internal.DefaultBinaryNamingScheme
 import org.gradle.nativebinaries.BuildType
@@ -59,7 +60,22 @@ class DefaultStaticLibraryBinaryTest extends Specification {
 
         and:
         nativeDependency.runtimeFiles.files.isEmpty()
-        nativeDependency.runtimeFiles.buildDependencies.getDependencies(Stub(Task)).isEmpty()
+        nativeDependency.runtimeFiles.buildDependencies.getDependencies(Stub(Task)) == [lifecycleTask] as Set
         nativeDependency.runtimeFiles.toString() == "static library 'main:staticLibrary'"
+    }
+
+    def "includes additional link files in native dependency"() {
+        final binary = staticLibrary
+        given:
+        def linkFile1 = Mock(File)
+        def linkFile2 = Mock(File)
+        def additionalLinkFiles = Stub(FileCollection) {
+            getFiles() >> [linkFile1, linkFile2]
+        }
+        binary.additionalLinkFiles(additionalLinkFiles)
+
+        expect:
+        def nativeDependency = binary.resolve()
+        nativeDependency.linkFiles.files == [binary.outputFile, linkFile1, linkFile2] as Set
     }
 }

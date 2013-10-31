@@ -13,21 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.nativebinaries.internal;
 
-package org.gradle.nativebinaries;
+import org.gradle.api.file.FileCollection;
 
-import org.gradle.api.Incubating;
-import org.gradle.api.internal.HasInternalProtocol;
-
-/**
- * A {@link Library} that has been compiled and archived into a static library.
- */
-@Incubating
-@HasInternalProtocol
-public interface StaticLibraryBinary extends LibraryBinary {
-
+public interface StaticLibraryBinaryInternal {
     /**
-     * The static archiver settings used for creating this binary.
+     * Add some additional files required at link time.
      */
-    Tool getStaticLibArchiver();
+    void additionalLinkFiles(FileCollection files);
 }

@@ -17,6 +17,7 @@
 package org.gradle.nativebinaries.internal
 import org.gradle.api.Task
 import org.gradle.api.file.SourceDirectorySet
+import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.internal.DefaultBinaryNamingScheme
 import org.gradle.nativebinaries.BuildType
 import org.gradle.nativebinaries.Library
@@ -53,6 +54,15 @@ class DefaultSharedLibraryBinaryTest extends Specification {
         library.headers >> headers
         toolChain.getSharedLibraryLinkFileName(binaryFile.path) >> linkFile.path
 
+        and: "has at least one regular source input"
+        def sourceDirSet = Stub(SourceDirectorySet) {
+            getFiles() >> [tmpDir.createFile("input.src")]
+        }
+        def sourceSet = Stub(LanguageSourceSet) {
+            getSource() >> sourceDirSet
+        }
+        binary.source sourceSet
+
         expect:
         def nativeDependency = binary.resolve()
         nativeDependency.includeRoots == headers
@@ -66,6 +76,18 @@ class DefaultSharedLibraryBinaryTest extends Specification {
         nativeDependency.runtimeFiles.files == [binaryFile] as Set
         nativeDependency.runtimeFiles.buildDependencies.getDependencies(Stub(Task)) == [lifecycleTask] as Set
         nativeDependency.runtimeFiles.toString() == "shared library 'main:sharedLibrary'"
+    }
+
+    def "has empty link files when no symbols are exported from library"() {
+        given:
+        def binary = sharedLibrary
+        def binaryFile = tmpDir.createFile("binary.run")
+        def linkFile = tmpDir.createFile("binary.link")
+        toolChain.getSharedLibraryLinkFileName(binaryFile.path) >> linkFile.path
+
+        expect:
+        def nativeDependency = binary.resolve()
+        nativeDependency.linkFiles.files == [] as Set
     }
 
     private DefaultSharedLibraryBinary getSharedLibrary() {
