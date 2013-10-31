@@ -182,4 +182,27 @@ class TestReportDataCollectorSpec extends Specification {
         failures[0].message == failure1.toString()
         failures[0].stackTrace.startsWith(failure2.toString())
     }
+
+    def "synthesises result when suite fails without running any tests"() {
+        def root = new DefaultTestSuiteDescriptor("1", "Suite")
+        def testWorker = new DefaultTestSuiteDescriptor("2", "Test Worker 1")
+
+        when:
+        //simulating a scenario with TestNG suite failing fatally to initialise
+        collector.beforeSuite(root)
+        collector.beforeSuite(testWorker)
+        collector.afterSuite(testWorker, new DefaultTestResult(FAILURE, 50, 450, 2, 1, 1, [new TestSuiteExecutionException("Boo!", new RuntimeException())]))
+        collector.afterSuite(root, new DefaultTestResult(FAILURE, 0, 500, 2, 1, 1, []))
+
+        then:
+        results.size() == 1
+        def result = results.values().toList().first()
+        result.className == 'Test Worker 1'
+        result.startTime == 50
+        result.testsCount == 1
+        result.failuresCount == 1
+        result.duration == 400
+        result.results.size() == 1
+        result.results[0].failures.size() == 1
+    }
 }
