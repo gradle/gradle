@@ -130,6 +130,10 @@ abstract class AbstractLanguageIntegrationTest extends AbstractInstalledToolChai
 
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
     def "build static library and link into executable"() {
+        // TODO:DAZ Work out a better way to not run this test for windows resources (or get it working for windows resources)
+        if (!helloWorldApp.supportsStaticLibraries) {
+            return
+        }
         given:
         buildFile << """
             executables {

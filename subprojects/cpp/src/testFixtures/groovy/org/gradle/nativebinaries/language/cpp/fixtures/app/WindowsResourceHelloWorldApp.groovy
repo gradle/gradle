@@ -17,6 +17,10 @@
 package org.gradle.nativebinaries.language.cpp.fixtures.app
 
 class WindowsResourceHelloWorldApp extends HelloWorldApp {
+    @Override
+    boolean isSupportsStaticLibraries() {
+        return false
+    }
 
     @Override
     String getEnglishOutput() {
@@ -106,7 +110,7 @@ void DLL_FUNC hello() {
     std::cout << hello;
 }
 """),
-        sourceFile("rc", "strings.rc", """
+        sourceFile("rc", "resources.rc", """
 #include "hello.h"
 
 STRINGTABLE

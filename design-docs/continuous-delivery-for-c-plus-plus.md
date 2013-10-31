@@ -1008,6 +1008,7 @@ Here's an example:
 ### Open issues
 
 - Source set with srcdirs + patterns probably does not work for resource files
+- For a static library, the .res file forms part of the library outputs
 - Generate and link a version resource by convention into every binary?
 - Include headers?
 - Don't define the compile task if the source set is empty.

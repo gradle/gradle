@@ -23,6 +23,10 @@ public abstract class HelloWorldApp extends TestApp {
     public static final String HELLO_WORLD = "Hello, World!";
     public static final String HELLO_WORLD_FRENCH = "Bonjour, Monde!";
 
+    public boolean isSupportsStaticLibraries() {
+        return true;
+    }
+
     public String getEnglishOutput() {
         return HELLO_WORLD + "\n12";
     }
