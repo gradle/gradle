@@ -64,25 +64,13 @@ public abstract class CollectionUtils {
     }
 
     public static <T> List<T> sort(Iterable<? extends T> things, Comparator<? super T> comparator) {
-        List<T> copy;
-        if (things instanceof Collection) {
-            //noinspection unchecked
-            copy = new ArrayList<T>((Collection<? extends T>) things);
-        } else {
-            copy = toList(things);
-        }
+        List<T> copy = new ArrayList(toList(things));
         Collections.sort(copy, comparator);
         return copy;
     }
 
     public static <T extends Comparable> List<T> sort(Iterable<T> things) {
-        List<T> copy;
-        if (things instanceof Collection) {
-            //noinspection unchecked
-            copy = new ArrayList<T>((Collection<T>) things);
-        } else {
-            copy = toList(things);
-        }
+        List<T> copy = new ArrayList(toList(things));
         Collections.sort(copy);
         return copy;
     }
@@ -221,7 +209,9 @@ public abstract class CollectionUtils {
             @SuppressWarnings("unchecked") List<T> castThings = (List<T>) things;
             return castThings;
         }
-
+        if (things instanceof Collection) {
+            return new ArrayList<T>((Collection) things);
+        }
         List<T> list = new ArrayList<T>();
         for (T thing : things) {
             list.add(thing);
