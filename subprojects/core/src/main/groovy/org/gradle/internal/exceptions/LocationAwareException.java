@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal;
+package org.gradle.internal.exceptions;
 
 import org.apache.commons.lang.StringUtils;
-import org.gradle.FailureResolutionAware;
 import org.gradle.api.GradleException;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.initialization.BuildClientMetaData;

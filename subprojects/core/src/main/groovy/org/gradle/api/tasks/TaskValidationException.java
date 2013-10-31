@@ -16,8 +16,8 @@
 package org.gradle.api.tasks;
 
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.internal.AbstractMultiCauseException;
-import org.gradle.api.internal.Contextual;
+import org.gradle.internal.exceptions.AbstractMultiCauseException;
+import org.gradle.internal.exceptions.Contextual;
 
 import java.util.List;
 

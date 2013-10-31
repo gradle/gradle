@@ -15,7 +15,7 @@
  */
 package org.gradle.api;
 
-import org.gradle.api.internal.Contextual;
+import org.gradle.internal.exceptions.Contextual;
 
 /**
  * <p>A <code>GradleScriptException</code> is thrown when an exception occurs in the compilation or execution of a

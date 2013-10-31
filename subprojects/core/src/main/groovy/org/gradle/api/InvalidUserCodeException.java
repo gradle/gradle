@@ -16,7 +16,7 @@
 
 package org.gradle.api;
 
-import org.gradle.api.internal.Contextual;
+import org.gradle.internal.exceptions.Contextual;
 
 /**
  * A <code>InvalidUserCodeException</code> is thrown when user-provided code cannot be executed.

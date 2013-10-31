@@ -17,10 +17,11 @@ package org.gradle;
 
 import org.codehaus.groovy.runtime.StackTraceUtils;
 import org.gradle.api.Action;
-import org.gradle.api.internal.LocationAwareException;
+import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.initialization.BuildClientMetaData;
+import org.gradle.internal.exceptions.FailureResolutionAware;
 import org.gradle.logging.LoggingConfiguration;
 import org.gradle.logging.ShowStacktrace;
 import org.gradle.logging.StyledTextOutput;

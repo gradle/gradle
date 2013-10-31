@@ -18,8 +18,8 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.internal.AbstractMultiCauseException;
-import org.gradle.api.internal.Contextual;
+import org.gradle.internal.exceptions.AbstractMultiCauseException;
+import org.gradle.internal.exceptions.Contextual;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.internal.UncheckedException;
 

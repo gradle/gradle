@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal;
+package org.gradle.internal.exceptions;
 
 import org.gradle.api.GradleException;
-
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.PrintStream;

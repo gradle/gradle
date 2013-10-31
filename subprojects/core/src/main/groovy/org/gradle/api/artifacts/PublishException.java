@@ -17,7 +17,7 @@
 package org.gradle.api.artifacts;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.internal.Contextual;
+import org.gradle.internal.exceptions.Contextual;
 
 /**
  * <p>A <code>PublishException</code> is thrown when a dependency configuration cannot be published for some reason.</p>

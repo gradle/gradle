@@ -15,7 +15,7 @@
  */
 package org.gradle.execution;
 
-import org.gradle.FailureResolutionAware;
+import org.gradle.internal.exceptions.FailureResolutionAware;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.configuration.ImplicitTasksConfigurer;
 import org.gradle.initialization.BuildClientMetaData;

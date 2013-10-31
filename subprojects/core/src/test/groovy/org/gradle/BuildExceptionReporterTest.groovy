@@ -16,8 +16,8 @@
 package org.gradle
 
 import org.gradle.api.GradleException
-import org.gradle.api.internal.AbstractMultiCauseException
-import org.gradle.api.internal.LocationAwareException
+import org.gradle.internal.exceptions.AbstractMultiCauseException
+import org.gradle.internal.exceptions.LocationAwareException
 import org.gradle.api.logging.LogLevel
 import org.gradle.execution.MultipleBuildFailures
 import org.gradle.initialization.BuildClientMetaData

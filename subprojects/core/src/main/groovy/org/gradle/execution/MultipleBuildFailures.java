@@ -16,7 +16,7 @@
 
 package org.gradle.execution;
 
-import org.gradle.api.internal.AbstractMultiCauseException;
+import org.gradle.internal.exceptions.AbstractMultiCauseException;
 
 import java.util.List;
 

@@ -16,10 +16,10 @@
 
 package org.gradle.execution.commandline;
 
-import org.gradle.FailureResolutionAware;
+import org.gradle.internal.exceptions.FailureResolutionAware;
 import org.gradle.api.GradleException;
 import org.gradle.api.Task;
-import org.gradle.api.internal.Contextual;
+import org.gradle.internal.exceptions.Contextual;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.configuration.ImplicitTasksConfigurer;
 import org.gradle.initialization.BuildClientMetaData;

@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal
+package org.gradle.internal.exceptions
 
-import spock.lang.Specification
 import org.gradle.util.TreeVisitor
+import spock.lang.Specification
 
 class LocationAwareExceptionTest extends Specification {
     def "visit reportable causes does not visit direct cause"() {
@@ -30,7 +30,7 @@ class LocationAwareExceptionTest extends Specification {
         then:
         1 * visitor.node(e)
         0 * visitor._
-        
+
         and:
         e.reportableCauses == []
     }
@@ -56,7 +56,7 @@ class LocationAwareExceptionTest extends Specification {
         and:
         1 * visitor.endChildren()
         0 * visitor._
-        
+
         and:
         e.reportableCauses == [childCause]
     }

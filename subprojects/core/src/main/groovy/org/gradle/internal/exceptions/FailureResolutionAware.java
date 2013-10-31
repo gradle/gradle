@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle;
+package org.gradle.internal.exceptions;
 
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.logging.StyledTextOutput;

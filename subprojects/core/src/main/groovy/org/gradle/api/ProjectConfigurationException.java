@@ -16,7 +16,7 @@
 
 package org.gradle.api;
 
-import org.gradle.api.internal.Contextual;
+import org.gradle.internal.exceptions.Contextual;
 
 /**
  * Indicates a problem that occurs during project configuration (evaluation) phase.

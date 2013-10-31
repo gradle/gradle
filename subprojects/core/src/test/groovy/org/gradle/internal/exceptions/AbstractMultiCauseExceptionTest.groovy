@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal
+
+package org.gradle.internal.exceptions
 
 import org.gradle.util.GUtil
 import spock.lang.Specification
+
 
 class AbstractMultiCauseExceptionTest extends Specification {
     def getCauseReturnsTheFirstCause() {
@@ -74,7 +76,7 @@ class AbstractMultiCauseExceptionTest extends Specification {
         outstr.toString().contains("Cause 1: ${RuntimeException.name}: cause1")
         outstr.toString().contains("Cause 2: ${RuntimeException.name}: cause2")
     }
-    
+
     def printStackTraceWithSingleCause() {
         RuntimeException cause1 = new RuntimeException('cause1')
         def failure = new TestMultiCauseException('message', [cause1])

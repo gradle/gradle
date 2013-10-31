@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal;
+package org.gradle.internal.exceptions;
 
-import java.lang.annotation.*;
+import java.util.List;
 
-/**
- * This annotation is attached to an exception class to indicate that it provides contextual information about the
- * exception which might help the user determine what the failed operation was, or where it took place. Generally, this
- * annotation is only attached to exceptions which chain lower-level exceptions.
- */
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
-@Inherited
-public @interface Contextual {
+public interface MultiCauseException {
+    List<? extends Throwable> getCauses();
 }
