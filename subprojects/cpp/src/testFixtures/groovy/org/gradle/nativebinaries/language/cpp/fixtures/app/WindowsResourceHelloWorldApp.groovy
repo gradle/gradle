@@ -18,11 +18,6 @@ package org.gradle.nativebinaries.language.cpp.fixtures.app
 
 class WindowsResourceHelloWorldApp extends HelloWorldApp {
     @Override
-    boolean isSupportsStaticLibraries() {
-        return false
-    }
-
-    @Override
     String getEnglishOutput() {
         return HELLO_WORLD
     }

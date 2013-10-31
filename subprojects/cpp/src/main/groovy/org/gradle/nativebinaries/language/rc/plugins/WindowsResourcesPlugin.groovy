@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.nativebinaries.language.rc.plugins
+
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
@@ -21,15 +22,13 @@ import org.gradle.language.c.CSourceSet
 import org.gradle.language.c.plugins.CLangPlugin
 import org.gradle.language.rc.WindowsResourceSet
 import org.gradle.language.rc.plugins.WindowsResourceScriptPlugin
-import org.gradle.nativebinaries.Executable
-import org.gradle.nativebinaries.Library
-import org.gradle.nativebinaries.NativeBinary
-import org.gradle.nativebinaries.NativeComponent
+import org.gradle.nativebinaries.*
 import org.gradle.nativebinaries.internal.NativeBinaryInternal
 import org.gradle.nativebinaries.language.c.tasks.CCompile
 import org.gradle.nativebinaries.language.internal.DefaultPreprocessingTool
 import org.gradle.nativebinaries.language.rc.tasks.WindowsResourceCompile
 import org.gradle.nativebinaries.plugins.NativeBinariesPlugin
+
 /**
  * A plugin for projects wishing to build native binary components from C sources.
  *
@@ -57,7 +56,12 @@ class WindowsResourcesPlugin implements Plugin<ProjectInternal> {
                 binary.source.withType(WindowsResourceSet).all { WindowsResourceSet inputs ->
                     def resourceCompileTask = createResourceCompileTask(project, binary, inputs)
                     binary.tasks.add resourceCompileTask
-                    binary.tasks.builder.source resourceCompileTask.outputs.files.asFileTree.matching { include '**/*.res' }
+                    final resourceOutputs = resourceCompileTask.outputs.files.asFileTree.matching { include '**/*.res' }
+                    binary.tasks.builder.source resourceOutputs
+                    if (binary instanceof StaticLibraryBinary) {
+                        println "Adding resources to static library: ${resourceOutputs}"
+                        binary.resources resourceOutputs
+                    }
                 }
             }
         }

@@ -17,6 +17,7 @@
 package org.gradle.nativebinaries;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.file.FileCollection;
 
 /**
  * A {@link Library} that has been compiled and archived into a static library.
@@ -28,4 +29,7 @@ public interface StaticLibraryBinary extends LibraryBinary {
      * The static archiver settings used for creating this binary.
      */
     Tool getStaticLibArchiver();
+
+    // TODO:DAZ Make internal and maybe use in shared library too
+    void resources(FileCollection files);
 }

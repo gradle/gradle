@@ -26,12 +26,15 @@ import org.gradle.language.base.internal.DefaultBinaryNamingScheme;
 import org.gradle.nativebinaries.*;
 
 import java.io.File;
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 public class DefaultStaticLibraryBinary extends DefaultNativeBinary implements StaticLibraryBinary {
     private final Library library;
     private final DefaultTool staticLibArchiver = new DefaultTool();
+    private final List<FileCollection> resources = new ArrayList<FileCollection>();
 
     public DefaultStaticLibraryBinary(Library library, Flavor flavor, ToolChainInternal toolChain, Platform platform, BuildType buildType, DefaultBinaryNamingScheme namingScheme) {
         super(library, flavor, toolChain, platform, buildType, namingScheme.withTypeString("StaticLibrary"));
@@ -50,6 +53,10 @@ public class DefaultStaticLibraryBinary extends DefaultNativeBinary implements S
         return staticLibArchiver;
     }
 
+    public void resources(FileCollection additionalOutputs) {
+        this.resources.add(additionalOutputs);
+    }
+
     public NativeDependencySet resolve() {
         return new NativeDependencySet() {
             public FileCollection getIncludeRoots() {
@@ -57,7 +64,7 @@ public class DefaultStaticLibraryBinary extends DefaultNativeBinary implements S
             }
 
             public FileCollection getLinkFiles() {
-                return new FileCollectionAdapter(new LibraryFile());
+                return new FileCollectionAdapter(new StaticLibraryOutputs());
             }
 
             public FileCollection getRuntimeFiles() {
@@ -71,9 +78,16 @@ public class DefaultStaticLibraryBinary extends DefaultNativeBinary implements S
         };
     }
 
-    private class LibraryFile implements MinimalFileSet, Buildable {
+    private class StaticLibraryOutputs implements MinimalFileSet, Buildable {
         public Set<File> getFiles() {
-            return Collections.singleton(getOutputFile());
+            System.out.println("Resolving static library link files");
+            Set<File> allFiles = new LinkedHashSet<File>();
+            allFiles.add(getOutputFile());
+            for (FileCollection resourceSet : resources) {
+                System.out.println("Resolving " + resourceSet + ": " + resourceSet.getFiles());
+                allFiles.addAll(resourceSet.getFiles());
+            }
+            return allFiles;
         }
 
         public String getDisplayName() {
