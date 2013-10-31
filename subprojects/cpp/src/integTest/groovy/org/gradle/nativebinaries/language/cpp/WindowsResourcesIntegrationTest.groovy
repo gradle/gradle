@@ -82,7 +82,7 @@ class WindowsResourcesIntegrationTest extends AbstractLanguageIntegrationTest {
         run "installMainExecutable"
 
         then:
-        sharedLibrary("build/resources").assertExists()
+        resourceOnlyLibrary("build/binaries/resourcesSharedLibrary/resources").assertExists()
         installation("build/install/mainExecutable").exec().out == "Hello!"
     }
 

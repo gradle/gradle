@@ -59,4 +59,8 @@ allprojects {
     def StaticLibraryFixture staticLibrary(Object path) {
         return toolChain.staticLibrary(file(path))
     }
+
+    def NativeBinaryFixture resourceOnlyLibrary(Object path) {
+        return toolChain.resourceOnlyLibrary(file(path))
+    }
 }
