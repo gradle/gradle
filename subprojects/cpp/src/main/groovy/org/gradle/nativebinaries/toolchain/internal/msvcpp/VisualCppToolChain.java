@@ -175,7 +175,8 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
             CommandLineTool<WindowsResourceCompileSpec> commandLineTool = commandLineTool("Windows resource compiler", sdk.getResourceCompiler());
             Transformer<WindowsResourceCompileSpec, WindowsResourceCompileSpec> specTransformer = addIncludePath();
             commandLineTool.withSpecTransformer(specTransformer);
-            return (Compiler<T>) new WindowsResourceCompiler(commandLineTool);
+            WindowsResourceCompiler windowsResourceCompiler = new WindowsResourceCompiler(commandLineTool);
+            return (Compiler<T>) new OutputCleaningCompiler<WindowsResourceCompileSpec>(windowsResourceCompiler, ".res");
         }
 
         public <T extends LinkerSpec> Compiler<T> createLinker() {

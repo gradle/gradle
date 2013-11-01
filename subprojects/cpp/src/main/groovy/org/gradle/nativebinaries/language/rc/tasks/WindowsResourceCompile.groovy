@@ -19,13 +19,17 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.Incubating
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.SourceDirectorySet
+import org.gradle.api.internal.changedetection.state.Hasher
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.incremental.IncrementalTaskInputs
+import org.gradle.cache.CacheRepository
 import org.gradle.nativebinaries.Platform
 import org.gradle.nativebinaries.ToolChain
 import org.gradle.nativebinaries.internal.PlatformToolChain
+import org.gradle.nativebinaries.language.c.internal.incremental.IncrementalCompilerBuilder
 import org.gradle.nativebinaries.language.rc.internal.DefaultWindowsResourceCompileSpec
 
 import javax.inject.Inject
@@ -34,9 +38,11 @@ import javax.inject.Inject
  */
 @Incubating
 class WindowsResourceCompile extends DefaultTask {
+    private final IncrementalCompilerBuilder incrementalCompilerBuilder
 
     @Inject
-    WindowsResourceCompile() {
+    WindowsResourceCompile(CacheRepository cacheRepository, Hasher hasher) {
+        incrementalCompilerBuilder = new IncrementalCompilerBuilder(cacheRepository, hasher, this)
         includes = project.files()
         source = project.files()
     }
@@ -88,8 +94,7 @@ class WindowsResourceCompile extends DefaultTask {
      List<String> compilerArgs = []
 
      @TaskAction
-     void compile() {
-
+     void compile(IncrementalTaskInputs inputs) {
          def spec = new DefaultWindowsResourceCompileSpec()
          spec.tempDir = getTemporaryDir()
          spec.objectFileDir = getOutputDir()
@@ -100,7 +105,12 @@ class WindowsResourceCompile extends DefaultTask {
 
          PlatformToolChain platformToolChain = toolChain.target(targetPlatform)
          final compiler = platformToolChain.createWindowsResourceCompiler()
-         def result = compiler.execute(spec)
+         if (!inputs.incremental) {
+             incrementalCompilerBuilder.withCleanCompile()
+         }
+         incrementalCompilerBuilder.withIncludes(includes)
+         final incrementalCompiler = incrementalCompilerBuilder.createIncrementalCompiler(compiler)
+         def result = incrementalCompiler.execute(spec)
          didWork = result.didWork
      }
 
