@@ -99,7 +99,7 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 Set<? extends Task> dependsOnTasks = context.getDependencies(task);
                 for (Task dependsOnTask : dependsOnTasks) {
                     TaskInfo targetNode = graph.addNode(dependsOnTask);
-                    node.addHardSuccessor(targetNode);
+                    node.addDependencySuccessor(targetNode);
                     if (!visiting.contains(targetNode)) {
                         queue.add(0, targetNode);
                     }
@@ -113,11 +113,15 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 }
                 for (Task mustRunAfter : task.getMustRunAfter().getDependencies(task)) {
                     TaskInfo targetNode = graph.addNode(mustRunAfter);
-                    node.addSoftSuccessor(targetNode);
+                    node.addMustSuccessor(targetNode);
+                }
+                for (Task shouldRunAfter : task.getShouldRunAfter().getDependencies(task)) {
+                    TaskInfo targetNode = graph.addNode(shouldRunAfter);
+                    node.addShouldSuccessor(targetNode);
                 }
                 if (node.isRequired()) {
-                    for (TaskInfo hardSuccessor : node.getHardSuccessors()) {
-                        hardSuccessor.require();
+                    for (TaskInfo successor : node.getDependencySuccessors()) {
+                        successor.require();
                     }
                 } else {
                     tasksInUnknownState.add(node);
@@ -144,7 +148,7 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             }
 
             if (visiting.add(task)) {
-                for (TaskInfo hardPredecessor : task.getHardPredecessors()) {
+                for (TaskInfo hardPredecessor : task.getDependencyPredecessors()) {
                     if (!visiting.contains(hardPredecessor)) {
                         queue.add(0, hardPredecessor);
                     }
@@ -153,7 +157,7 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
                 queue.remove(0);
                 visiting.remove(task);
                 task.mustNotRun();
-                for (TaskInfo predecessor : task.getHardPredecessors()) {
+                for (TaskInfo predecessor : task.getDependencyPredecessors()) {
                     assert predecessor.isRequired() || predecessor.getMustNotRun();
                     if (predecessor.isRequired()) {
                         task.require();
@@ -170,7 +174,7 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             if (!finalizerNode.isInKnownState()) {
                 finalizerNode.mustNotRun();
             }
-            finalizerNode.addSoftSuccessor(node);
+            finalizerNode.addMustSuccessor(node);
         }
     }
 
@@ -183,7 +187,7 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     private void requireWithDependencies(TaskInfo taskInfo) {
         if (taskInfo.getMustNotRun() && filter.isSatisfiedBy(taskInfo.getTask())) {
             taskInfo.require();
-            for (TaskInfo dependency : taskInfo.getHardSuccessors()) {
+            for (TaskInfo dependency : taskInfo.getDependencySuccessors()) {
                 requireWithDependencies(dependency);
             }
         }
@@ -192,6 +196,9 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     public void determineExecutionPlan() {
         List<TaskInfo> nodeQueue = new ArrayList<TaskInfo>(entryTasks);
         Set<TaskInfo> visitingNodes = new HashSet<TaskInfo>();
+        Stack<TaskDependencyGraphEdge> walkedShouldRunAfterEdges = new Stack<TaskDependencyGraphEdge>();
+        Stack<TaskInfo> path = new Stack<TaskInfo>();
+        HashMap<TaskInfo, Integer> planBeforeVisiting = new HashMap<TaskInfo, Integer>();
         while (!nodeQueue.isEmpty()) {
             TaskInfo taskNode = nodeQueue.get(0);
 
@@ -203,19 +210,33 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             if (visitingNodes.add(taskNode)) {
                 // Have not seen this task before - add its dependencies to the head of the queue and leave this
                 // task in the queue
-                ArrayList<TaskInfo> dependsOnTasks = new ArrayList<TaskInfo>();
-                addAllReversed(dependsOnTasks, taskNode.getHardSuccessors());
-                addAllReversed(dependsOnTasks, taskNode.getSoftSuccessors());
-                for (TaskInfo dependsOnTask : dependsOnTasks) {
-                    if (visitingNodes.contains(dependsOnTask)) {
-                        onOrderingCycle();
+                recordEdgeIfArrivedViaShouldRunAfter(walkedShouldRunAfterEdges, path, taskNode);
+                removeShouldRunAfterSuccessorsIfTheyImposeACycle(visitingNodes, taskNode);
+                takePlanSnapshotIfCanBeRestoredToCurrentTask(planBeforeVisiting, taskNode);
+                ArrayList<TaskInfo> successors = new ArrayList<TaskInfo>();
+                addAllSuccessorsInReverseOrder(taskNode, successors);
+                for (TaskInfo successor : successors) {
+                    if (visitingNodes.contains(successor)) {
+                        if (!walkedShouldRunAfterEdges.empty()) {
+                            //remove the last walked should run after edge and restore state from before walking it
+                            TaskDependencyGraphEdge toBeRemoved = walkedShouldRunAfterEdges.pop();
+                            toBeRemoved.getFrom().removeShouldRunAfterSuccessor(toBeRemoved.getTo());
+                            restorePath(path, toBeRemoved);
+                            restoreQueue(nodeQueue, visitingNodes, toBeRemoved);
+                            restoreExecutionPlan(planBeforeVisiting, toBeRemoved);
+                            break;
+                        } else {
+                            onOrderingCycle();
+                        }
                     }
-                    nodeQueue.add(0, dependsOnTask);
+                    nodeQueue.add(0, successor);
                 }
+                path.push(taskNode);
             } else {
                 // Have visited this task's dependencies - add it to the end of the plan
                 nodeQueue.remove(0);
                 visitingNodes.remove(taskNode);
+                path.pop();
                 executionPlan.put(taskNode.getTask(), taskNode);
                 ArrayList<TaskInfo> finalizerTasks = new ArrayList<TaskInfo>();
                 addAllReversed(finalizerTasks, taskNode.getFinalizers());
@@ -228,14 +249,70 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         }
     }
 
+    private void restoreExecutionPlan(HashMap<TaskInfo, Integer> planBeforeVisiting, TaskDependencyGraphEdge toBeRemoved) {
+        Iterator<Map.Entry<Task, TaskInfo>> executionPlanIterator = executionPlan.entrySet().iterator();
+        for (int i = 0; i < planBeforeVisiting.get(toBeRemoved.getFrom()); i++) {
+            executionPlanIterator.next();
+        }
+        while (executionPlanIterator.hasNext()) {
+            executionPlanIterator.next();
+            executionPlanIterator.remove();
+        }
+    }
+
+    private void restoreQueue(List<TaskInfo> nodeQueue, Set<TaskInfo> visitingNodes, TaskDependencyGraphEdge toBeRemoved) {
+        TaskInfo nextInQueue = null;
+        while (!toBeRemoved.getFrom().equals(nextInQueue)) {
+            nextInQueue = nodeQueue.get(0);
+            visitingNodes.remove(nextInQueue);
+            if (!toBeRemoved.getFrom().equals(nextInQueue)) {
+                nodeQueue.remove(0);
+            }
+        }
+    }
+
+    private void restorePath(Stack<TaskInfo> path, TaskDependencyGraphEdge toBeRemoved) {
+        TaskInfo removedFromPath = null;
+        while (!toBeRemoved.getFrom().equals(removedFromPath)) {
+            removedFromPath = path.pop();
+        }
+    }
+
+    private void addAllSuccessorsInReverseOrder(TaskInfo taskNode, ArrayList<TaskInfo> dependsOnTasks) {
+        addAllReversed(dependsOnTasks, taskNode.getDependencySuccessors());
+        addAllReversed(dependsOnTasks, taskNode.getMustSuccessors());
+        addAllReversed(dependsOnTasks, taskNode.getShouldSuccessors());
+    }
+
+    private void removeShouldRunAfterSuccessorsIfTheyImposeACycle(Set<TaskInfo> visitingNodes, TaskInfo taskNode) {
+        for (TaskInfo shouldRunAfterSuccessor : taskNode.getShouldSuccessors()) {
+            if (visitingNodes.contains(shouldRunAfterSuccessor)) {
+                taskNode.removeShouldRunAfterSuccessor(shouldRunAfterSuccessor);
+            }
+        }
+    }
+
+    private void takePlanSnapshotIfCanBeRestoredToCurrentTask(HashMap<TaskInfo, Integer> planBeforeVisiting, TaskInfo taskNode) {
+        if (taskNode.getShouldSuccessors().size() > 0) {
+            planBeforeVisiting.put(taskNode, executionPlan.size());
+        }
+    }
+
+    private void recordEdgeIfArrivedViaShouldRunAfter(Stack<TaskDependencyGraphEdge> walkedShouldRunAfterEdges, Stack<TaskInfo> path, TaskInfo taskNode) {
+        if (!path.empty() && path.peek().getShouldSuccessors().contains(taskNode)) {
+            walkedShouldRunAfterEdges.push(new TaskDependencyGraphEdge(path.peek(), taskNode));
+        }
+    }
+
     private int finalizerTaskPosition(TaskInfo finalizer, final List<TaskInfo> nodeQueue) {
         if (nodeQueue.size() == 0) {
             return 0;
         }
 
         ArrayList<TaskInfo> dependsOnTasks = new ArrayList<TaskInfo>();
-        dependsOnTasks.addAll(finalizer.getHardSuccessors());
-        dependsOnTasks.addAll(finalizer.getSoftSuccessors());
+        dependsOnTasks.addAll(finalizer.getDependencySuccessors());
+        dependsOnTasks.addAll(finalizer.getMustSuccessors());
+        dependsOnTasks.addAll(finalizer.getShouldSuccessors());
         List<Integer> dependsOnTaskIndexes = CollectionUtils.collect(dependsOnTasks, new Transformer<Integer, TaskInfo>() {
             public Integer transform(TaskInfo dependsOnTask) {
                 return nodeQueue.indexOf(dependsOnTask);
@@ -247,8 +324,8 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     private void onOrderingCycle() {
         CachingDirectedGraphWalker<TaskInfo, Void> graphWalker = new CachingDirectedGraphWalker<TaskInfo, Void>(new DirectedGraph<TaskInfo, Void>() {
             public void getNodeValues(TaskInfo node, Collection<? super Void> values, Collection<? super TaskInfo> connectedNodes) {
-                connectedNodes.addAll(node.getHardSuccessors());
-                connectedNodes.addAll(node.getSoftSuccessors());
+                connectedNodes.addAll(node.getDependencySuccessors());
+                connectedNodes.addAll(node.getMustSuccessors());
             }
         });
         graphWalker.add(entryTasks);
@@ -262,7 +339,7 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
         }, new DirectedGraph<TaskInfo, Object>() {
             public void getNodeValues(TaskInfo node, Collection<? super Object> values, Collection<? super TaskInfo> connectedNodes) {
                 for (TaskInfo dependency : firstCycle) {
-                    if (node.getHardSuccessors().contains(dependency) || node.getSoftSuccessors().contains(dependency)) {
+                    if (node.getDependencySuccessors().contains(dependency) || node.getMustSuccessors().contains(dependency)) {
                         connectedNodes.add(dependency);
                     }
                 }
@@ -361,7 +438,7 @@ class DefaultTaskExecutionPlan implements TaskExecutionPlan {
     }
 
     private void enforceWithDependencies(TaskInfo node) {
-        for (TaskInfo dependencyNode : node.getHardSuccessors()) {
+        for (TaskInfo dependencyNode : node.getDependencySuccessors()) {
             enforceWithDependencies(dependencyNode);
         }
         if (node.getMustNotRun() || node.isRequired()) {

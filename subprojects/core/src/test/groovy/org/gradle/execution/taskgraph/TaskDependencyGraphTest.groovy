@@ -40,9 +40,10 @@ class TaskDependencyGraphTest extends Specification {
 
         then:
         !node.inKnownState
-        node.hardPredecessors.empty
-        node.softSuccessors.empty
-        node.hardSuccessors.empty
+        node.dependencyPredecessors.empty
+        node.mustSuccessors.empty
+        node.dependencySuccessors.empty
+        node.shouldSuccessors.empty
         node.finalizers.empty
     }
 

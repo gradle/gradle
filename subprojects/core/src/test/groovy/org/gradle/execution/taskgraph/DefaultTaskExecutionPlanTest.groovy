@@ -26,6 +26,7 @@ import org.gradle.api.tasks.TaskState
 import org.gradle.execution.TaskFailureHandler
 import org.gradle.util.TextUtil
 import spock.lang.Specification
+import spock.lang.Unroll
 
 import static org.gradle.util.TestUtil.createChildProject
 import static org.gradle.util.TestUtil.createRootProject
@@ -109,11 +110,12 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         executes(b, c, a, d)
     }
 
-    def "schedules must run after task dependencies in name order"() {
+    @Unroll
+    def "schedules #orderingRule task dependencies in name order"() {
         given:
         Task a = task("a");
         Task b = task("b");
-        Task c = task("c", mustRunAfter: [b, a]);
+        Task c = task("c", (orderingRule): [b, a]);
         Task d = task("d", dependsOn: [b, a]);
 
         when:
@@ -121,6 +123,9 @@ public class DefaultTaskExecutionPlanTest extends Specification {
 
         then:
         executes(a, b, c, d)
+
+        where:
+        orderingRule << ['mustRunAfter', 'shouldRunAfter']
     }
 
     def "common tasks in separate batches are schedules only once"() {
@@ -152,10 +157,11 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         executes(a, b, c, d)
     }
 
-    def "must run after ordering is honoured for tasks added separately to graph"() {
+    @Unroll
+    def "#orderingRule ordering is honoured for tasks added separately to graph"() {
         Task a = task("a")
         Task b = task("b", dependsOn: [a])
-        Task c = task("c", mustRunAfter: [b])
+        Task c = task("c", (orderingRule): [b])
 
         when:
         executionPlan.addToTaskGraph([c])
@@ -164,11 +170,15 @@ public class DefaultTaskExecutionPlanTest extends Specification {
 
         then:
         executes(a, b, c)
+
+        where:
+        orderingRule << ['mustRunAfter', 'shouldRunAfter']
     }
 
-    def "must run after ordering is honoured for dependencies"() {
+    @Unroll
+    def "#orderingRule ordering is honoured for dependencies"() {
         Task b = task("b")
-        Task a = task("a", mustRunAfter: [b])
+        Task a = task("a", (orderingRule): [b])
         Task c = task("c", dependsOn: [a, b])
 
         when:
@@ -176,6 +186,9 @@ public class DefaultTaskExecutionPlanTest extends Specification {
 
         then:
         executes(b, a, c)
+
+        where:
+        orderingRule << ['mustRunAfter', 'shouldRunAfter']
     }
 
     def "mustRunAfter dependencies are scheduled before regular dependencies"() {
@@ -191,15 +204,32 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         executes(b, a, c, d)
     }
 
-    def "must run after does not pull in tasks that are not in the graph"() {
+    def "shouldRunAfter dependencies are scheduled before mustRunAfter dependencies"() {
         Task a = task("a")
-        Task b = task("b", mustRunAfter: [a])
+        Task b = task("b")
+        Task c = task("c", mustRunAfter: [a], shouldRunAfter: [b])
+        Task d = task("d", dependsOn: [a, b])
+
+        when:
+        addToGraphAndPopulate([c, d])
+
+        then:
+        executes(b, a, c, d)
+    }
+
+    @Unroll
+    def "#orderingRule does not pull in tasks that are not in the graph"() {
+        Task a = task("a")
+        Task b = task("b", (orderingRule): [a])
 
         when:
         addToGraphAndPopulate([b])
 
         then:
         executes(b)
+
+        where:
+        orderingRule << ['mustRunAfter', 'shouldRunAfter']
     }
 
     def "finalizer tasks are executed if a finalized task is added to the graph"() {
@@ -299,16 +329,37 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         executes(finalized, finalizer, dependsOnFinalized)
     }
 
-    def "finalizer tasks run as soon as possible for tasks that must run after finalized tasks"() {
+    @Unroll
+    def "finalizer tasks run as soon as possible for tasks that #orderingRule finalized tasks"() {
         Task finalizer = task("finalizer")
         Task finalized = task("finalized", finalizedBy: [finalizer])
-        Task mustRunAfterFinalized = task("mustRunAfterFinalized", mustRunAfter: [finalized])
+        Task runsAfterFinalized = task("runsAfterFinalized", (orderingRule): [finalized])
 
         when:
-        addToGraphAndPopulate([mustRunAfterFinalized, finalized])
+        addToGraphAndPopulate([runsAfterFinalized, finalized])
 
         then:
-        executes(finalized, finalizer, mustRunAfterFinalized)
+        executes(finalized, finalizer, runsAfterFinalized)
+
+        where:
+        orderingRule << ['mustRunAfter', 'shouldRunAfter']
+    }
+
+    @Unroll
+    def "finalizer tasks run as soon as possible but after its #orderingRule tasks"() {
+        Task finalizer = createTask("finalizer")
+        Task finalized = task("finalized", finalizedBy: [finalizer])
+        Task dependsOnFinalized = task("dependsOnFinalized", dependsOn: [finalized])
+        relationships(finalizer, (orderingRule): [dependsOnFinalized])
+
+        when:
+        addToGraphAndPopulate([dependsOnFinalized])
+
+        then:
+        executes(finalized, dependsOnFinalized, finalizer)
+
+        where:
+        orderingRule << ['dependsOn', 'mustRunAfter' , 'shouldRunAfter']
     }
 
     def "cannot add task with circular reference"() {
@@ -376,6 +427,37 @@ public class DefaultTaskExecutionPlanTest extends Specification {
 
 (*) - details omitted (listed previously)
 """)
+    }
+
+    def "should run after ordering is ignored if it is in a middle of a circular reference"() {
+        Task a = task("a")
+        Task b = task("b")
+        Task c = task("c")
+        Task d = createTask("d")
+        Task e = task("e", dependsOn: [a, d])
+        Task f = task("f", dependsOn: [e])
+        Task g = task("g", dependsOn: [c, f])
+        Task h = task("h", dependsOn: [b, g])
+        relationships(d, shouldRunAfter: [g])
+
+        when:
+        addToGraphAndPopulate([e, h])
+
+        then:
+        executedTasks == [a, d, e, b, c, f, g, h]
+    }
+
+    def "should run after ordering is ignored if it is at the end of a circular reference"() {
+        Task a = createTask("a")
+        Task b = task("b", dependsOn: [a])
+        Task c = task("c", dependsOn: [b])
+        relationships(a, shouldRunAfter: [c])
+
+        when:
+        addToGraphAndPopulate([c])
+
+        then:
+        executedTasks == [a, b, c]
     }
 
     def "stops returning tasks on task execution failure"() {
@@ -470,10 +552,11 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         e == failure
     }
 
-    def "continues to return tasks when failure handler does not abort execution and task are mustRunAfter dependent"() {
+    @Unroll
+    def "continues to return tasks when failure handler does not abort execution and tasks are #orderingRule dependent"() {
         RuntimeException failure = new RuntimeException();
         Task a = task("a", failure: failure);
-        Task b = task("b", mustRunAfter: [a]);
+        Task b = task("b", (orderingRule): [a]);
         addToGraphAndPopulate([a, b])
 
         when:
@@ -488,6 +571,9 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         then:
         RuntimeException e = thrown()
         e == failure
+
+        where:
+        orderingRule << ['mustRunAfter', 'shouldRunAfter']
     }
 
     def "does not attempt to execute tasks whose dependencies failed to execute"() {
@@ -578,10 +664,11 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         executes(b, c)
     }
 
-    def "does not build graph for or execute filtered tasks reachable via task ordering"() {
+    @Unroll
+    def "does not build graph for or execute filtered tasks reachable via #orderingRule task ordering"() {
         given:
         Task a = filteredTask("a")
-        Task b = task("b", mustRunAfter: [a])
+        Task b = task("b", (orderingRule): [a])
         Task c = task("c", dependsOn: [a])
         Spec<Task> filter = Mock()
 
@@ -594,6 +681,9 @@ public class DefaultTaskExecutionPlanTest extends Specification {
 
         then:
         executes(b, c)
+
+        where:
+        orderingRule << ['mustRunAfter', 'shouldRunAfter']
     }
 
     def "will execute a task whose dependencies have been filtered"() {
@@ -683,11 +773,15 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         task.getFinalizedBy() >> taskDependencyResolvingTo(task, finalizedByTasks)
     }
 
+    private void shouldRunAfter(TaskInternal task, List<Task> shouldRunAfterTasks) {
+        task.getShouldRunAfter() >> taskDependencyResolvingTo(task, shouldRunAfterTasks)
+    }
+
     private void failure(TaskInternal task, final RuntimeException failure) {
         task.state.getFailure() >> failure
         task.state.rethrowFailure() >> { throw failure }
     }
-    
+
     private TaskInternal task(final String name) {
         task([:], name)
     }
@@ -705,6 +799,7 @@ public class DefaultTaskExecutionPlanTest extends Specification {
     private void relationships(Map options, TaskInternal task) {
         dependsOn(task, options.dependsOn ?: [])
         mustRunAfter(task, options.mustRunAfter ?: [])
+        shouldRunAfter(task, options.shouldRunAfter ?: [])
         finalizedBy(task, options.finalizedBy ?: [])
     }
 
@@ -712,6 +807,7 @@ public class DefaultTaskExecutionPlanTest extends Specification {
         def task = createTask(name);
         task.getTaskDependencies() >> brokenDependencies()
         task.getMustRunAfter() >> brokenDependencies()
+        task.getShouldRunAfter() >> brokenDependencies()
         task.getFinalizedBy() >> taskDependencyResolvingTo(task, [])
         return task
     }
