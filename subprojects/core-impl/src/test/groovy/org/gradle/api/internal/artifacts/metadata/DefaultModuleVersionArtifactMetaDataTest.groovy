@@ -30,24 +30,24 @@ class DefaultModuleVersionArtifactMetaDataTest extends Specification {
     def "extracts attributes from provided artifact instance"() {
         expect:
         def artifact = new DefaultModuleVersionArtifactMetaData(Stub(ModuleVersionIdentifier), ivyArtifact("name", "type", "ext", ['m:classifier': 'classifier']))
-        artifact.name == "name"
-        artifact.type == "type"
-        artifact.extension == "ext"
-        artifact.classifier == "classifier"
+        artifact.name.name == "name"
+        artifact.name.type == "type"
+        artifact.name.extension == "ext"
+        artifact.name.classifier == "classifier"
 
         and:
         def noClassifier = new DefaultModuleVersionArtifactMetaData(Stub(ModuleVersionIdentifier), ivyArtifact("name", "type", "ext", [:]))
-        noClassifier.name == "name"
-        noClassifier.type == "type"
-        noClassifier.extension == "ext"
-        noClassifier.classifier == null
+        noClassifier.name.name == "name"
+        noClassifier.name.type == "type"
+        noClassifier.name.extension == "ext"
+        noClassifier.name.classifier == null
 
         and:
         def noExtension = new DefaultModuleVersionArtifactMetaData(Stub(ModuleVersionIdentifier), ivyArtifact("name", "type", null, [:]))
-        noExtension.name == "name"
-        noExtension.type == "type"
-        noExtension.extension == null
-        noExtension.classifier == null
+        noExtension.name.name == "name"
+        noExtension.name.type == "type"
+        noExtension.name.extension == null
+        noExtension.name.classifier == null
     }
 
     def ivyArtifact(String name, String type, String extension, Map attributes) {

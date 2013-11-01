@@ -15,39 +15,28 @@
  */
 package org.gradle.api.internal.artifacts;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
-import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
+import org.gradle.api.internal.artifacts.metadata.IvyArtifactName;
 import org.gradle.internal.Factory;
 import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
 
 public class DefaultResolvedArtifact implements ResolvedArtifact {
-    private final Map<String, String> extraAttributes;
-    private final String name;
-    private final String type;
-    private final String ext;
     private final ResolvedModuleVersion owner;
+    private final IvyArtifactName artifact;
     private long id;
     private final Factory<ResolvedDependency> ownerSource;
     private Factory<File> artifactSource;
     private File file;
 
-    public DefaultResolvedArtifact(ResolvedModuleVersion owner, Factory<ResolvedDependency> ownerSource, Artifact artifact, Factory<File> artifactSource, long id) {
+    public DefaultResolvedArtifact(ResolvedModuleVersion owner, Factory<ResolvedDependency> ownerSource, IvyArtifactName artifact, Factory<File> artifactSource, long id) {
         this.ownerSource = ownerSource;
         this.owner = owner;
+        this.artifact = artifact;
         this.id = id;
-        // Unpack the stuff that we're interested from the artifact and discard. The artifact instance drags in a whole pile of stuff that
-        // we don't want to retain references to.
-        this.name = artifact.getName();
-        this.type = artifact.getType();
-        this.ext = artifact.getExt();
-        this.extraAttributes = new HashMap<String, String>(artifact.getQualifiedExtraAttributes());
         this.artifactSource = artifactSource;
     }
 
@@ -85,16 +74,7 @@ public class DefaultResolvedArtifact implements ResolvedArtifact {
         if (!other.owner.getId().equals(owner.getId())) {
             return false;
         }
-        if (!other.getName().equals(getName())) {
-            return false;
-        }
-        if (!other.getType().equals(getType())) {
-            return false;
-        }
-        if (!other.getExtension().equals(getExtension())) {
-            return false;
-        }
-        if (!other.extraAttributes.equals(extraAttributes)) {
+        if (!other.artifact.equals(artifact)) {
             return false;
         }
         return true;
@@ -102,23 +82,23 @@ public class DefaultResolvedArtifact implements ResolvedArtifact {
 
     @Override
     public int hashCode() {
-        return owner.getId().hashCode() ^ getName().hashCode() ^ getType().hashCode() ^ getExtension().hashCode() ^ extraAttributes.hashCode();
+        return owner.getId().hashCode() ^ getName().hashCode() ^ getType().hashCode() ^ getExtension().hashCode() ^ artifact.hashCode();
     }
 
     public String getName() {
-        return name;
+        return artifact.getName();
     }
 
     public String getType() {
-        return type;
+        return artifact.getType();
     }
 
     public String getExtension() {
-        return ext;
+        return artifact.getExtension();
     }
 
     public String getClassifier() {
-        return extraAttributes.get(Dependency.CLASSIFIER);
+        return artifact.getClassifier();
     }
     
     public File getFile() {

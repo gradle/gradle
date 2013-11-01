@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ModuleVersionIdentifierSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactIdentifier;
+import org.gradle.api.internal.artifacts.metadata.IvyArtifactName;
 import org.gradle.api.internal.externalresource.cached.CachedArtifact;
 import org.gradle.api.internal.externalresource.cached.CachedArtifactIndex;
 import org.gradle.api.internal.externalresource.cached.DefaultCachedArtifact;
@@ -67,10 +68,11 @@ public class ArtifactAtRepositoryCachedArtifactIndex extends AbstractCachedIndex
             encoder.writeString(value.getRepositoryId());
             DefaultModuleVersionArtifactIdentifier artifact = (DefaultModuleVersionArtifactIdentifier) value.getArtifactId();
             modIdSerializer.write(encoder, artifact.getModuleVersionIdentifier());
-            encoder.writeString(artifact.getName());
-            encoder.writeString(artifact.getType());
-            encoder.writeNullableString(artifact.getExtension());
-            Map<String, String> attributes = artifact.getAttributes();
+            IvyArtifactName ivyArtifactName = artifact.getName();
+            encoder.writeString(ivyArtifactName.getName());
+            encoder.writeString(ivyArtifactName.getType());
+            encoder.writeNullableString(ivyArtifactName.getExtension());
+            Map<String, String> attributes = ivyArtifactName.getAttributes();
             encoder.writeSmallInt(attributes.size());
             for (Map.Entry<String, String> entry : attributes.entrySet()) {
                 encoder.writeString(entry.getKey());

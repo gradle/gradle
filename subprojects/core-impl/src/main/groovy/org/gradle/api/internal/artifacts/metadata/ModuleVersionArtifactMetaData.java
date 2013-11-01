@@ -26,6 +26,12 @@ public interface ModuleVersionArtifactMetaData {
     ModuleVersionArtifactIdentifier getId();
 
     /**
+     * Returns this artifact as an Ivy artifact. This method is here to allow the artifact to be exposed in a backward-compatible
+     * way.
+     */
+    IvyArtifactName getName();
+
+    /**
      * Returns this artifact as an Ivy Artifact. This method is here to allow us to migrate away from the Ivy types
      * and will be removed.
      */

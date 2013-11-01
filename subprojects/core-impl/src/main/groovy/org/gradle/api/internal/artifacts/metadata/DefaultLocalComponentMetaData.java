@@ -105,6 +105,10 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
             this.file = file;
         }
 
+        public IvyArtifactName getName() {
+            return new DefaultIvyArtifactName(artifact);
+        }
+
         public Artifact getArtifact() {
             return artifact;
         }

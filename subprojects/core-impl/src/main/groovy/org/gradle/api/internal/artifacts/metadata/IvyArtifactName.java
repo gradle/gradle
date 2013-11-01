@@ -16,9 +16,22 @@
 
 package org.gradle.api.internal.artifacts.metadata;
 
+import org.gradle.api.Nullable;
+
+import java.util.Map;
+
 /**
- * An immutable identifier for an artifact that belongs to some module version.
+ * Represents the 'name' part of an Ivy artifact, independent of which module version the artifact might belong to.
  */
-public interface ModuleVersionArtifactIdentifier {
-    String getDisplayName();
+public interface IvyArtifactName {
+    String getName();
+
+    String getType();
+
+    @Nullable
+    String getExtension();
+
+    String getClassifier();
+
+    Map<String, String> getAttributes();
 }
