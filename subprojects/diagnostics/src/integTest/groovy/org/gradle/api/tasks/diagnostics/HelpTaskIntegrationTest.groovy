@@ -246,7 +246,6 @@ Options
      --booleanValue     Configures a boolean flag in CustomTask.
 
      --enumValue     Configures an enum value in CustomTask.
-                     Takes an enum value of type (TestEnum).
                      Available values are:
                           ABC
                           DEF

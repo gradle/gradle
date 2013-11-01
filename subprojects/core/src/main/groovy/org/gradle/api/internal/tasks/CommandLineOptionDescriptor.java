@@ -21,7 +21,6 @@ import org.gradle.internal.reflect.JavaReflectionUtil;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public class CommandLineOptionDescriptor implements Comparable<CommandLineOptionDescriptor> {
@@ -64,19 +63,22 @@ public class CommandLineOptionDescriptor implements Comparable<CommandLineOption
     }
 
     private void calculdateAvailableValuesAndTypes() {
+        availableValues = new ArrayList<String>();
         if (annotatedMethod.getParameterTypes().length == 1) {
             Class<?> type = annotatedMethod.getParameterTypes()[0];
-            //we don't want support for "--flag true" syntax
+            //we don't want to support "--flag true" syntax
             if (type == Boolean.class || type == Boolean.TYPE) {
                 argumentType = Void.TYPE;
             }else{
                 argumentType = type;
+                if(argumentType.isEnum()){
+                    final Enum[] enumConstants = (Enum[]) argumentType.getEnumConstants();
+                    for (Enum enumConstant : enumConstants) {
+                        availableValues.add(enumConstant.name());
+                    }
+                }
             }
-            availableValues = new ArrayList<String>();
         } else {
-            // TODO deal correctly with annotated methods
-            // with multiple parameters
-            availableValues = Collections.EMPTY_LIST;
             argumentType = Void.TYPE;
         }
     }

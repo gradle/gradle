@@ -17,6 +17,7 @@ package org.gradle.configuration;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
@@ -26,6 +27,7 @@ import org.gradle.api.internal.tasks.CommandLineOptionReader;
 import org.gradle.api.specs.Spec;
 import org.gradle.execution.TaskSelector;
 import org.gradle.logging.StyledTextOutput;
+import org.gradle.logging.internal.LinePrefixingStyledTextOutput;
 import org.gradle.util.CollectionUtils;
 
 import java.util.*;
@@ -60,14 +62,16 @@ public class TaskDetailPrinter {
         for (Class clazz : sortedClasses) {
             output.println();
             final List<Task> tasksByType = classListMap.get(clazz);
-            output.text(tasksByType.size() > 1 ? "Paths" : "Path").println();
+            final LinePrefixingStyledTextOutput pathOutput = createIndentedOutput(output, INDENT);
+            pathOutput.println(tasksByType.size() > 1 ? "Paths" : "Path");
             for (Task task : tasksByType) {
-                output.text(INDENT).withStyle(UserInput).println(task.getPath());
+                pathOutput.withStyle(UserInput).println(task.getPath());
             }
             output.println();
-            output.text("Type").println();
-            output.text(INDENT).withStyle(UserInput).text(clazz.getSimpleName());
-            output.println(String.format(" (%s)", clazz.getName()));
+            final LinePrefixingStyledTextOutput typeOutput = createIndentedOutput(output, INDENT);
+            typeOutput.println("Type");
+            typeOutput.withStyle(UserInput).text(clazz.getSimpleName());
+            typeOutput.println(String.format(" (%s)", clazz.getName()));
 
             printlnCommandlineOptions(output, clazz);
 
@@ -114,15 +118,16 @@ public class TaskDetailPrinter {
 
     private void printTaskDescription(StyledTextOutput output, List<Task> tasks) {
         int differentDescriptionsCount = differentDescriptions(tasks);
-        output.text(differentDescriptionsCount > 1 ? "Descriptions" : "Description").println();
+        final LinePrefixingStyledTextOutput descriptorOutput = createIndentedOutput(output, INDENT);
+        descriptorOutput.println(differentDescriptionsCount > 1 ? "Descriptions" : "Description");
         if (differentDescriptionsCount == 1) {
             // all tasks have the same description
             final Task task = tasks.iterator().next();
-            output.text(INDENT).println(task.getDescription() == null ? "-" : task.getDescription());
+            descriptorOutput.println(task.getDescription() == null ? "-" : task.getDescription());
         } else {
             for (Task task : tasks) {
-                output.text(INDENT).withStyle(UserInput).text(String.format("(%s) ", task.getPath()));
-                output.println(task.getDescription() == null ? "-" : task.getDescription());
+                descriptorOutput.withStyle(UserInput).text(String.format("(%s) ", task.getPath()));
+                descriptorOutput.println(task.getDescription() == null ? "-" : task.getDescription());
             }
         }
     }
@@ -138,20 +143,20 @@ public class TaskDetailPrinter {
             final CommandLineOptionDescriptor descriptor = optionsIterator.next();
             final String optionString = String.format("--%s", descriptor.getOption().options()[0]);
             output.text(INDENT).withStyle(UserInput).text(optionString);
-            output.text(INDENT).println(descriptor.getOption().description());
-
-            final Class availableValuesType = descriptor.getArgumentType();
-            if (availableValuesType.isEnum()) {
-                final Object[] enumConstants = availableValuesType.getEnumConstants();
-                indentForOptionDescription(output, optionString);
-                output.text("Takes an enum value of type (").withStyle(UserInput).text(availableValuesType.getName()).println(").");
-                indentForOptionDescription(output, optionString);
-                output.println("Available values are:");
-                for (Object enumConstant : enumConstants) {
-                    indentForOptionDescription(output, optionString);
-                    output.text(INDENT);
-                    output.withStyle(UserInput).println(enumConstant);
+            output.text(INDENT).text(descriptor.getOption().description());
+            final List<String> availableValues = descriptor.getAvailableValues();
+            if (!availableValues.isEmpty()) {
+                //indentForOptionDescription
+                final int optionDescriptionOffset = 2 * INDENT.length() + optionString.length();
+                final LinePrefixingStyledTextOutput prefixedOutput = createIndentedOutput(output, optionDescriptionOffset);
+                prefixedOutput.println();
+                prefixedOutput.println("Available values are:");
+                for (String value : availableValues) {
+                    prefixedOutput.text(INDENT);
+                    prefixedOutput.withStyle(UserInput).println(value);
                 }
+            } else {
+                output.println();
             }
             if (optionsIterator.hasNext()) {
                 output.println();
@@ -159,13 +164,12 @@ public class TaskDetailPrinter {
         }
     }
 
-    // TODO possibly styledtextoutput should handle proper indention
-    // instead of doing it here
-    private void indentForOptionDescription(StyledTextOutput output, String optionString) {
-        output.text(INDENT).text(INDENT);
-        for (int i = 0; i < optionString.length(); i++) {
-            output.append(' ');
-        }
+    private LinePrefixingStyledTextOutput createIndentedOutput(StyledTextOutput output, int offset) {
+        return createIndentedOutput(output, StringUtils.leftPad("", offset, ' '));
+    }
+
+    private LinePrefixingStyledTextOutput createIndentedOutput(StyledTextOutput output, String prefix) {
+        return new LinePrefixingStyledTextOutput(output, prefix);
     }
 
     private int differentDescriptions(List<Task> tasks) {
