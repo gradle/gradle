@@ -18,6 +18,7 @@ package org.gradle.nativebinaries.language.c.internal.incremental;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.cache.CacheAccess;
+import org.gradle.internal.CompositeStoppable;
 import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec;
 
 import java.util.concurrent.atomic.AtomicReference;
@@ -38,6 +39,9 @@ public class CacheLockingIncrementalCompiler implements Compiler<NativeCompileSp
                 result.set(delegateCompiler.execute(spec));
             }
         });
+
+        // TODO:DAZ Refactor so that open / close are performed in symmetry . This is a hack.
+        new CompositeStoppable().add(cacheAccess).stop();
         return result.get();
     }
 }
