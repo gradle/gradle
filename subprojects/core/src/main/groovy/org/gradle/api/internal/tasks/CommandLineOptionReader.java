@@ -56,7 +56,7 @@ public class CommandLineOptionReader {
 
         final Class<?> parameterType = method.getParameterTypes()[0];
         if (!(parameterType == Boolean.class || parameterType == Boolean.TYPE)
-                && !String.class.isAssignableFrom(parameterType)
+                && !parameterType.isAssignableFrom(String.class)
                 && !parameterType.isEnum()) {
             throw new CommandLineArgumentException(String.format("Option '%s' cannot be casted to parameter type '%s' in class '%s'.",
                     optionDescriptor.getName(), parameterType.getName(), taskClazz.getName()));

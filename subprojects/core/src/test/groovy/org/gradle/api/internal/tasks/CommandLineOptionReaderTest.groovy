@@ -42,9 +42,13 @@ class CommandLineOptionReaderTest extends Specification {
         options[1].availableValuesType == TestEnum
         options[1].annotatedMethod.name == "setEnumValue"
 
-        options[2].option.description() == "string value"
-        options[2].availableValuesType == String
-        options[2].annotatedMethod.name == "setStringValue"
+        options[2].option.description() == "object value"
+        options[2].availableValuesType == Object
+        options[2].annotatedMethod.name == "setObjectValue"
+
+        options[3].option.description() == "string value"
+        options[3].availableValuesType == String
+        options[3].annotatedMethod.name == "setStringValue"
     }
 
     def "fail when multiple methods define same option"() {
@@ -83,6 +87,10 @@ class CommandLineOptionReaderTest extends Specification {
     public static class TestTask1 extends DefaultTask {
         @CommandLineOption(options = "stringValue", description = "string value")
         public void setStringValue(String value) {
+        }
+
+        @CommandLineOption(options = "objectValue", description = "object value")
+        public void setObjectValue(Object value) {
         }
 
         @CommandLineOption(options = "booleanValue", description = "boolean value")
