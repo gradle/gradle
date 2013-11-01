@@ -22,7 +22,9 @@ import org.gradle.util.CollectionUtils;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class CommandLineOptionReader {
 
@@ -68,71 +70,5 @@ public class CommandLineOptionReader {
 
     public List<CommandLineOptionDescriptor> getCommandLineOptions(Task task) {
         return getCommandLineOptions(task.getClass());
-    }
-
-    public static class CommandLineOptionDescriptor implements Comparable<CommandLineOptionDescriptor> {
-        private CommandLineOption option;
-        private Method annotatedMethod;
-        private List<String> availableValues;
-        private Class availableValueType;
-
-        public CommandLineOptionDescriptor(CommandLineOption option, Method annotatedMethod) {
-            this.option = option;
-            this.annotatedMethod = annotatedMethod;
-        }
-
-        public String getName() {
-            return option.options()[0];
-        }
-
-        public CommandLineOption getOption() {
-            return option;
-        }
-
-        public Method getAnnotatedMethod() {
-            return annotatedMethod;
-        }
-
-        public List<String> getAvailableValues() {
-            //calculate list lazy to avoid overhead upfront
-            if (availableValues == null) {
-                calculdateAvailableValuesAndTypes();
-            }
-            return availableValues;
-        }
-
-        public Class getAvailableValuesType() {
-            //calculate lazy to avoid overhead upfront
-            // availableValueType can be null for
-            // methods with no parameters, so check
-            // for availableValues instead
-            if (availableValues == null) {
-                calculdateAvailableValuesAndTypes();
-            }
-            return availableValueType;
-        }
-
-        private void calculdateAvailableValuesAndTypes() {
-            if (annotatedMethod.getParameterTypes().length == 1) {
-                Class<?> type = annotatedMethod.getParameterTypes()[0];
-
-                availableValueType = type;
-                availableValues = new ArrayList<String>();
-
-                //handle booleans
-                if (type == Boolean.class || type == Boolean.TYPE) {
-                    availableValues.add("true");
-                    availableValues.add("false");
-                }
-            } else {
-                // TODO deal correctly with annotated methods
-                // with multiple parameters
-                availableValues = Collections.EMPTY_LIST;
-            }
-        }
-
-        public int compareTo(CommandLineOptionDescriptor o) {
-            return option.options()[0].compareTo(o.option.options()[0]);
-        }
     }
 }

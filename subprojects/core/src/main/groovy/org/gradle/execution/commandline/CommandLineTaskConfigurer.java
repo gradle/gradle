@@ -17,20 +17,15 @@
 package org.gradle.execution.commandline;
 
 import org.gradle.api.Task;
-import org.gradle.api.internal.tasks.CommandLineOption;
+import org.gradle.api.internal.tasks.CommandLineOptionDescriptor;
 import org.gradle.api.internal.tasks.CommandLineOptionReader;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.cli.ParsedCommandLineOption;
-import org.gradle.internal.reflect.JavaMethod;
-import org.gradle.internal.reflect.JavaReflectionUtil;
 
-import java.lang.reflect.Method;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class CommandLineTaskConfigurer {
 
@@ -46,20 +41,17 @@ public class CommandLineTaskConfigurer {
         List<String> remainingArguments = null;
         CommandLineOptionReader commandLineOptionReader = new CommandLineOptionReader();
         for (Task task : tasks) {
-            Map<String, JavaMethod<Object, ?>> options = new HashMap<String, JavaMethod<Object, ?>>();
+//            Map<String, JavaMethod<Object, ?>> options = new HashMap<String, JavaMethod<Object, ?>>();
             CommandLineParser parser = new CommandLineParser();
-            final List<CommandLineOptionReader.CommandLineOptionDescriptor> commandLineOptions = commandLineOptionReader.getCommandLineOptions(task);
-            for (CommandLineOptionReader.CommandLineOptionDescriptor optionDescriptor : commandLineOptions) {
-                final CommandLineOption commandLineOption = optionDescriptor.getOption();
-                final Method method = optionDescriptor.getAnnotatedMethod();
-                String optionName = commandLineOption.options()[0];
+            final List<CommandLineOptionDescriptor> commandLineOptions = commandLineOptionReader.getCommandLineOptions(task);
+
+            for (CommandLineOptionDescriptor optionDescriptor : commandLineOptions) {
+                String optionName = optionDescriptor.getName();
                 org.gradle.cli.CommandLineOption option = parser.option(optionName);
-                option.hasDescription(commandLineOption.description());
-                if (method.getParameterTypes().length > 0 && !hasSingleBooleanParameter(method)) {
-                    option.hasArgument();
-                }
-                options.put(optionName, JavaReflectionUtil.method(Object.class, Object.class, method));
+                option.hasDescription(optionDescriptor.getDescription());
+                option.hasArgument(optionDescriptor.getArgumentType());
             }
+
             ParsedCommandLine parsed;
             try {
                 parsed = parser.parse(arguments);
@@ -67,29 +59,23 @@ public class CommandLineTaskConfigurer {
                 //we expect that all options must be applicable for each task
                 throw new TaskConfigurationException(task.getPath(), "Problem configuring task " + task.getPath() + " from command line.", e);
             }
-            for (Map.Entry<String, JavaMethod<Object, ?>> entry : options.entrySet()) {
-                if (parsed.hasOption(entry.getKey())) {
-                    ParsedCommandLineOption o = parsed.option(entry.getKey());
-                    if (o.hasValue()) {
-                        entry.getValue().invoke(task, o.getValue());
-                    } else {
-                        entry.getValue().invoke(task, true);
+
+            for (CommandLineOptionDescriptor commandLineOptionDescriptor : commandLineOptions) {
+                final String name = commandLineOptionDescriptor.getName();
+                if (parsed.hasOption(name)) {
+                    ParsedCommandLineOption o = parsed.option(name);
+                    try {
+                        commandLineOptionDescriptor.apply(task, o.getValues());
+                    } catch (Exception ex) {
+                        throw new TaskConfigurationException(task.getPath(),
+                                String.format("Problem configuring option '%s' on task '%s' from command line.", name, task.getPath()), ex);
                     }
                 }
             }
-            //since
             assert remainingArguments == null || remainingArguments.equals(parsed.getExtraArguments())
                     : "we expect all options to be consumed by each task so remainingArguments should be the same for each task";
             remainingArguments = parsed.getExtraArguments();
         }
         return remainingArguments;
-    }
-
-    private boolean hasSingleBooleanParameter(Method method) {
-        if (method.getParameterTypes().length != 1) {
-            return false;
-        }
-        Class<?> type = method.getParameterTypes()[0];
-        return type == Boolean.class || type == Boolean.TYPE;
     }
 }

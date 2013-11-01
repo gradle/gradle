@@ -227,7 +227,7 @@ Description
         then:
         failure.assertHasDescription("Problem configuring task :help from command line.")
         failure.assertHasCause("Unknown command-line option '--tasssk'.")
-        failure.assertHasResolution("Run gradle help --task help to get task usage details. Run with --info or --debug option to get more log output.")
+        failure.assertHasResolution("Run gradle help --task :help to get task usage details. Run with --info or --debug option to get more log output.")
     }
 
     def "listsEnumAndBooleanCmdOptionValues"() {
@@ -244,7 +244,6 @@ Type
 
 Options
      --booleanValue     Configures a boolean flag in CustomTask.
-                        Takes a boolean value (true|false) as parameter. As a default (ommitting a parameter) true will be used.
 
      --enumValue     Configures an enum value in CustomTask.
                      Takes an enum value of type (TestEnum).

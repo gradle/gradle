@@ -16,12 +16,11 @@
 
 package org.gradle.execution.commandline;
 
-import org.gradle.internal.exceptions.FailureResolutionAware;
 import org.gradle.api.GradleException;
-import org.gradle.internal.exceptions.Contextual;
-import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.configuration.ImplicitTasksConfigurer;
 import org.gradle.initialization.BuildClientMetaData;
+import org.gradle.internal.exceptions.Contextual;
+import org.gradle.internal.exceptions.FailureResolutionAware;
 import org.gradle.logging.StyledTextOutput;
 
 import static org.gradle.logging.StyledTextOutput.Style.UserInput;
@@ -31,7 +30,7 @@ public class TaskConfigurationException extends GradleException implements Failu
 
     private final String taskPath;
 
-    public TaskConfigurationException(String taskPath, String message, CommandLineArgumentException cause) {
+    public TaskConfigurationException(String taskPath, String message, Exception cause) {
         super(message, cause);
         this.taskPath = taskPath;
     }

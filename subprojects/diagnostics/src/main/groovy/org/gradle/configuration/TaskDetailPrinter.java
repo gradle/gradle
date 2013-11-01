@@ -21,6 +21,7 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.plugins.DslObject;
+import org.gradle.api.internal.tasks.CommandLineOptionDescriptor;
 import org.gradle.api.internal.tasks.CommandLineOptionReader;
 import org.gradle.api.specs.Spec;
 import org.gradle.execution.TaskSelector;
@@ -127,26 +128,19 @@ public class TaskDetailPrinter {
     }
 
     private void printlnCommandlineOptions(StyledTextOutput output, Class clazz) {
-        final List<CommandLineOptionReader.CommandLineOptionDescriptor> commandLineOptions = commandLineOptionReader.getCommandLineOptions(clazz);
+        final List<CommandLineOptionDescriptor> commandLineOptions = commandLineOptionReader.getCommandLineOptions(clazz);
         if (!commandLineOptions.isEmpty()) {
             output.println();
             output.text("Options").println();
         }
-        final Iterator<CommandLineOptionReader.CommandLineOptionDescriptor> optionsIterator = commandLineOptions.iterator();
+        final Iterator<CommandLineOptionDescriptor> optionsIterator = commandLineOptions.iterator();
         while (optionsIterator.hasNext()) {
-            final CommandLineOptionReader.CommandLineOptionDescriptor descriptor = optionsIterator.next();
+            final CommandLineOptionDescriptor descriptor = optionsIterator.next();
             final String optionString = String.format("--%s", descriptor.getOption().options()[0]);
             output.text(INDENT).withStyle(UserInput).text(optionString);
             output.text(INDENT).println(descriptor.getOption().description());
 
-            final Class availableValuesType = descriptor.getAvailableValuesType();
-            if (availableValuesType == Boolean.class || availableValuesType == Boolean.TYPE) {
-                indentForOptionDescription(output, optionString);
-                output.text("Takes a boolean value (").withStyle(UserInput).text("true");
-                output.text("|").withStyle(UserInput).text("false");
-                output.println(") as parameter. As a default (ommitting a parameter) true will be used.");
-            }
-
+            final Class availableValuesType = descriptor.getArgumentType();
             if (availableValuesType.isEnum()) {
                 final Object[] enumConstants = availableValuesType.getEnumConstants();
                 indentForOptionDescription(output, optionString);

@@ -72,4 +72,7 @@ public class JavaMethod<T, R> {
         }
     }
 
+    public Class<?>[] getParameterTypes(){
+        return method.getParameterTypes();
+    }
 }
