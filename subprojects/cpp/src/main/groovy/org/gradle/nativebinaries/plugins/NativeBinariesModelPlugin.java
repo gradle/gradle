@@ -34,6 +34,8 @@ import org.gradle.model.ModelRule;
 import org.gradle.model.ModelRules;
 import org.gradle.nativebinaries.internal.*;
 import org.gradle.nativebinaries.internal.configure.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 
@@ -42,6 +44,8 @@ import javax.inject.Inject;
  */
 @Incubating
 public class NativeBinariesModelPlugin implements Plugin<Project> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(NativeBinariesModelPlugin.class);
+
     private final Instantiator instantiator;
     private final ProjectConfigurationActionContainer configurationActions;
     private final FileResolver fileResolver;
@@ -77,7 +81,7 @@ public class NativeBinariesModelPlugin implements Plugin<Project> {
         modelRules.rule(new ModelRule() {
             void closeBinariesForTasks(TaskContainer tasks, BinaryContainer binaries) {
                 for (Binary binary : binaries) {
-                    System.out.println(binary);
+                    LOGGER.debug(binary.getName());
                 }
             }
         });
