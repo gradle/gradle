@@ -24,6 +24,27 @@ class WindowsResourcesIntegrationTest extends AbstractLanguageIntegrationTest {
 
     HelloWorldApp helloWorldApp = new WindowsResourceHelloWorldApp()
 
+    def "user receives a reasonable error message when resource compilation fails"() {
+        given:
+        buildFile << """
+             executables {
+                 main {}
+             }
+         """
+
+        and:
+        file("src/main/rc/broken.rc") << """
+        #include <stdio.h>
+
+        NOT A VALID RESOURCE
+"""
+
+        expect:
+        fails "mainExecutable"
+        failure.assertHasDescription("Execution failed for task ':resourceCompileMainExecutableMainRc'.");
+        failure.assertHasCause("Windows resource compiler failed; see the error output for details.")
+    }
+
     def "can create resources-only shared library"() {
         given:
         buildFile << """
