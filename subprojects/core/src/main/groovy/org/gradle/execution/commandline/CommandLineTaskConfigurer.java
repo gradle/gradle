@@ -65,7 +65,7 @@ public class CommandLineTaskConfigurer {
                 parsed = parser.parse(arguments);
             } catch (CommandLineArgumentException e) {
                 //we expect that all options must be applicable for each task
-                throw new TaskConfigurationException(task, "Problem configuring task " + task.getPath() + " from command line.", e);
+                throw new TaskConfigurationException(task.getPath(), "Problem configuring task " + task.getPath() + " from command line.", e);
             }
             for (Map.Entry<String, JavaMethod<Object, ?>> entry : options.entrySet()) {
                 if (parsed.hasOption(entry.getKey())) {

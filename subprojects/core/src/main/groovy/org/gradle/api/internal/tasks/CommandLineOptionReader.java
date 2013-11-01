@@ -49,17 +49,20 @@ public class CommandLineOptionReader {
     }
 
     private void assertMethodTypeSupported(CommandLineOptionDescriptor optionDescriptor, Class taskClazz, Method method) {
-        if (method.getParameterTypes().length != 1) {
+        final Class<?>[] parameterTypes = method.getParameterTypes();
+        if (parameterTypes.length > 1) {
             throw new CommandLineArgumentException(String.format("Option '%s' cannot be linked to methods with multiple parameters in class '%s#%s'.",
                     optionDescriptor.getName(), taskClazz.getName(), method.getName()));
         }
 
-        final Class<?> parameterType = method.getParameterTypes()[0];
-        if (!(parameterType == Boolean.class || parameterType == Boolean.TYPE)
-                && !parameterType.isAssignableFrom(String.class)
-                && !parameterType.isEnum()) {
-            throw new CommandLineArgumentException(String.format("Option '%s' cannot be casted to parameter type '%s' in class '%s'.",
-                    optionDescriptor.getName(), parameterType.getName(), taskClazz.getName()));
+        if (parameterTypes.length == 1) {
+            final Class<?> parameterType = parameterTypes[0];
+            if (!(parameterType == Boolean.class || parameterType == Boolean.TYPE)
+                    && !parameterType.isAssignableFrom(String.class)
+                    && !parameterType.isEnum()) {
+                throw new CommandLineArgumentException(String.format("Option '%s' cannot be casted to parameter type '%s' in class '%s'.",
+                        optionDescriptor.getName(), parameterType.getName(), taskClazz.getName()));
+            }
         }
     }
 
@@ -100,7 +103,10 @@ public class CommandLineOptionReader {
 
         public Class getAvailableValuesType() {
             //calculate lazy to avoid overhead upfront
-            if (availableValueType == null) {
+            // availableValueType can be null for
+            // methods with no parameters, so check
+            // for availableValues instead
+            if (availableValues == null) {
                 calculdateAvailableValuesAndTypes();
             }
             return availableValueType;

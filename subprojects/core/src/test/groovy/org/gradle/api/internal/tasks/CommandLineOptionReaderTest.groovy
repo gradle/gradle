@@ -33,22 +33,25 @@ class CommandLineOptionReaderTest extends Specification {
         when:
         List<CommandLineOptionReader.CommandLineOptionDescriptor> options = reader.getCommandLineOptions(TestTask1)
         then:
+        options[0].option.description() == "simple flag"
+        options[0].availableValuesType == null
+        options[0].annotatedMethod.name == "setActive"
 
-        options[0].option.description() == "boolean value"
-        options[0].availableValuesType == Boolean.TYPE
-        options[0].annotatedMethod.name == "setBooleanValue"
+        options[1].option.description() == "boolean value"
+        options[1].availableValuesType == Boolean.TYPE
+        options[1].annotatedMethod.name == "setBooleanValue"
 
-        options[1].option.description() == "enum value"
-        options[1].availableValuesType == TestEnum
-        options[1].annotatedMethod.name == "setEnumValue"
+        options[2].option.description() == "enum value"
+        options[2].availableValuesType == TestEnum
+        options[2].annotatedMethod.name == "setEnumValue"
 
-        options[2].option.description() == "object value"
-        options[2].availableValuesType == Object
-        options[2].annotatedMethod.name == "setObjectValue"
+        options[3].option.description() == "object value"
+        options[3].availableValuesType == Object
+        options[3].annotatedMethod.name == "setObjectValue"
 
-        options[3].option.description() == "string value"
-        options[3].availableValuesType == String
-        options[3].annotatedMethod.name == "setStringValue"
+        options[4].option.description() == "string value"
+        options[4].availableValuesType == String
+        options[4].annotatedMethod.name == "setStringValue"
     }
 
     def "fail when multiple methods define same option"() {
@@ -99,6 +102,10 @@ class CommandLineOptionReaderTest extends Specification {
 
         @CommandLineOption(options = "enumValue", description = "enum value")
         public void setEnumValue(TestEnum value) {
+        }
+
+        @CommandLineOption(options = "aFlag", description = "simple flag")
+        public void setActive() {
         }
     }
 
