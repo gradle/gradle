@@ -1698,7 +1698,7 @@ class GradlePomModuleDescriptorParserTest extends Specification {
 """
         and:
         parseContext.currentRevisionId >> moduleId('group-one', 'artifact-one', 'version-one')
-        parseContext.getArtifact({it.moduleRevisionId.name == 'parent' }) >> { new DefaultLocallyAvailableExternalResource(parent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(parent)) }
+        parseContext.getArtifact({it.id.moduleVersionIdentifier.name == 'parent' }) >> { new DefaultLocallyAvailableExternalResource(parent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(parent)) }
 
         when:
         def descriptor = parsePom()
@@ -1766,7 +1766,7 @@ class GradlePomModuleDescriptorParserTest extends Specification {
 """
         and:
         parseContext.currentRevisionId >> moduleId('group-one', 'artifact-one', 'version-one')
-        parseContext.getArtifact({it.moduleRevisionId.name == 'parent' }) >> { new DefaultLocallyAvailableExternalResource(parent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(parent)) }
+        parseContext.getArtifact({it.id.moduleVersionIdentifier.name == 'parent' }) >> { new DefaultLocallyAvailableExternalResource(parent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(parent)) }
 
         when:
         def descriptor = parsePom()
