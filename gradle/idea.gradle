@@ -196,6 +196,14 @@ idea {
           </component>
         ''')
                 node.append(codeFormatSettings)
+
+                node.append(new XmlParser().parseText('''
+                    <component name="GroovyCompilerProjectConfiguration">
+                      <excludes>
+                        <file url="file://$PROJECT_DIR$/subprojects/plugins/src/test/groovy/org/gradle/api/internal/tasks/testing/junit/JUnitTestClassProcessorTest.groovy" />
+                      </excludes>
+                    </component>
+                '''))
             }
         }
     }
