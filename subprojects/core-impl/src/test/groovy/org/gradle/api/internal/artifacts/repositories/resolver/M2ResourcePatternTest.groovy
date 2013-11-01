@@ -20,6 +20,7 @@ package org.gradle.api.internal.artifacts.repositories.resolver
 
 import org.apache.ivy.core.module.descriptor.DefaultArtifact
 import org.apache.ivy.core.module.id.ModuleRevisionId
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import spock.lang.Specification
 
 class M2ResourcePatternTest extends Specification {
@@ -35,26 +36,26 @@ class M2ResourcePatternTest extends Specification {
         pattern.toPath(artifact3) == 'prefix/[organisation]/projectA/1.2/ivys/1.2/ivy.xml'
     }
 
-    def "substitutes artifact attributes without version into pattern"() {
+    def "substitutes module attributes into pattern to determine module pattern"() {
         def pattern = new M2ResourcePattern("prefix/[organisation]/[module]/[revision]/[type]s/[revision]/[artifact].[ext]")
         def artifact1 = DefaultArtifact.newIvyArtifact(ModuleRevisionId.newInstance("group", "projectA", "1.2"), new Date())
         def artifact2 = DefaultArtifact.newIvyArtifact(ModuleRevisionId.newInstance("org.group", "projectA", "1.2"), new Date())
         def artifact3 = DefaultArtifact.newIvyArtifact(ModuleRevisionId.newInstance(null, "projectA", "1.2"), new Date())
 
         expect:
-        pattern.toPathWithoutRevision(artifact1) == 'prefix/group/projectA/[revision]/ivys/[revision]/ivy.xml'
-        pattern.toPathWithoutRevision(artifact2) == 'prefix/org/group/projectA/[revision]/ivys/[revision]/ivy.xml'
-        pattern.toPathWithoutRevision(artifact3) == 'prefix/[organisation]/projectA/[revision]/ivys/[revision]/ivy.xml'
+        pattern.toVersionListPattern(artifact1) == 'prefix/group/projectA/[revision]/ivys/[revision]/ivy.xml'
+        pattern.toVersionListPattern(artifact2) == 'prefix/org/group/projectA/[revision]/ivys/[revision]/ivy.xml'
+        pattern.toVersionListPattern(artifact3) == 'prefix/[organisation]/projectA/[revision]/ivys/[revision]/ivy.xml'
     }
 
     def "can build module path"() {
         def pattern = new M2ResourcePattern("prefix/" + MavenPattern.M2_PATTERN)
-        def artifact1 = DefaultArtifact.newIvyArtifact(ModuleRevisionId.newInstance("group", "projectA", "1.2"), new Date())
-        def artifact2 = DefaultArtifact.newIvyArtifact(ModuleRevisionId.newInstance("org.group", "projectA", "1.2"), new Date())
+        def module1 = new DefaultModuleIdentifier("group", "projectA")
+        def module2 = new DefaultModuleIdentifier("org.group", "projectA")
 
         expect:
-        pattern.toModulePath(artifact1) == 'prefix/group/projectA'
-        pattern.toModulePath(artifact2) == 'prefix/org/group/projectA'
+        pattern.toModulePath(module1) == 'prefix/group/projectA'
+        pattern.toModulePath(module2) == 'prefix/org/group/projectA'
     }
 
     def "can build module version path"() {
@@ -80,7 +81,7 @@ class M2ResourcePatternTest extends Specification {
         def pattern = new M2ResourcePattern("/non/m2/pattern")
 
         when:
-        pattern.toModulePath(DefaultArtifact.newIvyArtifact(ModuleRevisionId.newInstance("group", "projectA", "1.2"), new Date()))
+        pattern.toModulePath(new DefaultModuleIdentifier("group", "module"))
 
         then:
         thrown(UnsupportedOperationException)

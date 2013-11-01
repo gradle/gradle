@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.apache.ivy.core.IvyPatternHelper;
 import org.apache.ivy.core.module.descriptor.Artifact;
-import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.externalresource.transport.ExternalResourceRepository;
 import org.gradle.api.internal.resource.ResourceException;
 import org.gradle.api.internal.resource.ResourceNotFoundException;
@@ -42,12 +42,12 @@ public class ResourceVersionLister implements VersionLister {
         this.repository = repository;
     }
 
-    public VersionList getVersionList(ModuleVersionSelector selector) {
+    public VersionList getVersionList(final ModuleIdentifier module) {
         return new DefaultVersionList() {
             final Set<String> directories = new HashSet<String>();
 
             public void visit(ResourcePattern resourcePattern, Artifact artifact) throws ResourceNotFoundException, ResourceException {
-                String partiallyResolvedPattern = resourcePattern.toPathWithoutRevision(artifact);
+                String partiallyResolvedPattern = resourcePattern.toVersionListPattern(artifact);
                 LOGGER.debug("Listing all in {}", partiallyResolvedPattern);
                 try {
                     List<String> versionStrings = listRevisionToken(partiallyResolvedPattern);

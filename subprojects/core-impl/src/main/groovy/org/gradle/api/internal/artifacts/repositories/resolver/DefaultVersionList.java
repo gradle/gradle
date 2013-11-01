@@ -16,30 +16,19 @@
 
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
-import org.gradle.api.internal.resource.ResourceException;
-import org.gradle.api.internal.resource.ResourceNotFoundException;
-
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class DefaultVersionList extends AbstractVersionList {
+public abstract class DefaultVersionList extends AbstractVersionList {
     private final Map<String, ListedVersion> versions = new HashMap<String, ListedVersion>();
-
-    public DefaultVersionList() {
-    }
 
     protected void add(ListedVersion newVersion) {
         if (versions.containsKey(newVersion.getVersion())) {
             return;
         }
         versions.put(newVersion.getVersion(), newVersion);
-    }
-
-    public void visit(ResourcePattern pattern, Artifact artifact) throws ResourceNotFoundException, ResourceException {
-        throw new UnsupportedOperationException();
     }
 
     public Set<ListedVersion> getVersions() {
