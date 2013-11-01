@@ -78,6 +78,8 @@ To open the Gradle project in IDEA, simply run the following task from the root:
 
 This will generate appropriate IDEA metadata so that the project can be opened from within IDEA.
 
+Note that due to an IDEA glitch, the first build of Gradle from IDEA will fail. Launching a second build fixes the compilation error.
+
 ### Eclipse
 
 The Gradle project is not currently buildable in Eclipse. This is something that will be rectified in the future.

@@ -196,12 +196,26 @@ idea {
           </component>
         ''')
                 node.append(codeFormatSettings)
+
+                node.append(new XmlParser().parseText('''
+                    <component name="GroovyCompilerProjectConfiguration">
+                      <excludes>
+                        <file url="file://$PROJECT_DIR$/subprojects/plugins/src/test/groovy/org/gradle/api/internal/tasks/testing/junit/JUnitTestClassProcessorTest.groovy" />
+                      </excludes>
+                    </component>
+                '''))
             }
         }
     }
 
     workspace.iws.withXml { provider ->
         Node node = provider.asNode()
+
+        node.append(new XmlParser().parseText('''
+            <component name="CompilerWorkspaceConfiguration">
+              <option name="USE_COMPILE_SERVER" value="false" />
+            </component>
+        '''))
 
         Node runManagerConfig = node.component.find { it.'@name' == 'RunManager' }
 
