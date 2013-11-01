@@ -203,6 +203,12 @@ idea {
     workspace.iws.withXml { provider ->
         Node node = provider.asNode()
 
+        node.append(new XmlParser().parseText('''
+            <component name="CompilerWorkspaceConfiguration">
+              <option name="USE_COMPILE_SERVER" value="false" />
+            </component>
+        '''))
+
         Node runManagerConfig = node.component.find { it.'@name' == 'RunManager' }
 
         // Add int test configuration to JUnit defaults
