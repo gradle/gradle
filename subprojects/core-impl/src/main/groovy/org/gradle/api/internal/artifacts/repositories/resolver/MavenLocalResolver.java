@@ -43,20 +43,18 @@ public class MavenLocalResolver extends MavenResolver {
     }
 
     @Override
-    void getDependencyForFoundIvyFileRef(DependencyDescriptor dependencyDescriptor, BuildableModuleVersionMetaDataResolveResult result, ModuleRevisionId moduleRevisionId, ResolvedArtifact ivyRef) {
+    protected void getDependencyForFoundIvyFileRef(DependencyDescriptor dependencyDescriptor, BuildableModuleVersionMetaDataResolveResult result, ModuleRevisionId moduleRevisionId, DownloadedAndParsedMetaDataArtifact ivyRef) {
         ModuleVersionMetaData metaData = getArtifactMetadata(ivyRef.getArtifact(), ivyRef.getResource());
 
         if (!metaData.isMetaDataOnly()) {
             DefaultModuleDescriptor generatedModuleDescriptor = DefaultModuleDescriptor.newDefaultInstance(moduleRevisionId, dependencyDescriptor.getAllDependencyArtifacts());
             ResolvedArtifact artifactRef = findAnyArtifact(generatedModuleDescriptor);
-
-            if (artifactRef != null) {
-                super.getDependencyForFoundIvyFileRef(dependencyDescriptor, result, moduleRevisionId, ivyRef);
-            } else {
-                LOGGER.debug("Ivy file found for module '{}' in repository '{}' but no artifact found. Checking next repository.", moduleRevisionId, getName());
+            if (artifactRef == null) {
+                LOGGER.debug("POM file found for module '{}' in repository '{}' but no artifact found. Ignoring.", moduleRevisionId, getName());
+                return;
             }
-        } else {
-            super.getDependencyForFoundIvyFileRef(dependencyDescriptor, result, moduleRevisionId, ivyRef);
         }
+
+        super.getDependencyForFoundIvyFileRef(dependencyDescriptor, result, moduleRevisionId, ivyRef);
     }
 }

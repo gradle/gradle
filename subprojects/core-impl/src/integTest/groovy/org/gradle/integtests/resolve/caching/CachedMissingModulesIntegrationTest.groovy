@@ -91,12 +91,8 @@ task showMissing << { println configurations.missing.files }
 
         when:
         repo1.expectMetaDataGetMissing("group", "projectA")
-        repo1.expectMetaDataGetMissing("group", "projectA")
-        repo1.expectDirectoryListGet("group", "projectA")
         repo1.expectDirectoryListGet("group", "projectA")
         repo2.expectMetaDataGetMissing("group", "projectA")
-        repo2.expectMetaDataGetMissing("group", "projectA")
-        repo2.expectDirectoryListGet("group", "projectA")
         repo2.expectDirectoryListGet("group", "projectA")
 
         then:
@@ -105,8 +101,6 @@ task showMissing << { println configurations.missing.files }
         when:
         server.resetExpectations()
         repo1.expectMetaDataGetMissing("group", "projectA")
-        repo1.expectMetaDataGetMissing("group", "projectA")
-        repo1.expectDirectoryListGet("group", "projectA")
         repo1.expectDirectoryListGet("group", "projectA")
         repo2Module.publish()
         repo2.expectMetaDataGet("group", "projectA")

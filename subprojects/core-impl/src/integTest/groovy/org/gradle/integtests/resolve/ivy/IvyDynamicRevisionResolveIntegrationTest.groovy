@@ -16,7 +16,6 @@
 package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import spock.lang.Ignore
 import spock.lang.Issue
 
 class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolutionTest {
@@ -68,7 +67,6 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
         file('libs').assertHasDescendants('projectA-1.3.jar')
     }
 
-    @Ignore
     @Issue("GRADLE-2502")
     def "latest.integration selects highest version regardless of status even if metadata is missing"() {
         given:
@@ -250,7 +248,6 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
         file('libs').assertHasDescendants('projectA-1.2.9.jar')
     }
 
-    @Ignore
     @Issue("GRADLE-2502")
     def "version selector ending in + selects highest matching version even if metadata is missing"() {
         given:
@@ -331,7 +328,6 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
         file('libs').assertHasDescendants('projectA-1.3.jar')
     }
 
-    @Ignore
     @Issue("GRADLE-2502")
     def "version range selects highest matching version even if metadata is missing"() {
         given:

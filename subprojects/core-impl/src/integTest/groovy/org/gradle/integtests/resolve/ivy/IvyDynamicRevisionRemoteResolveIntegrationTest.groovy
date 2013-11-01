@@ -121,10 +121,7 @@ task retrieve(type: Sync) {
         and: "Server handles requests"
         ivyHttpRepo.expectDirectoryListGet("group", "projectA")
         projectA12.ivy.expectGetMissing()
-        projectA11.ivy.expectGetMissing()
 
-        // TODO - Should not list twice
-        ivyHttpRepo.expectDirectoryListGet("group", "projectA")
         projectA12.jar.expectHead()
         projectA12.jar.expectGet()
 
@@ -241,10 +238,6 @@ task retrieveMilestone(type: Sync) {
         version11.jar.expectGet()
         repo2.expectDirectoryListGet("group", "projectA")
         version12.ivy.expectGet()
-        // TODO - shouldn't need this
-        repo2.expectDirectoryListGet("group", "projectA")
-        // TODO - shouldn't need this
-        version12.jar.expectGet()
 
         and:
         run 'retrieveMilestone'
@@ -441,8 +434,6 @@ task retrieve(type: Sync) {
         repo1.expectDirectoryListGet("group", "projectA")
         // TODO Should not need to get this
         projectA11.ivy.expectGet()
-        // TODO Should only list missing directory once
-        repo2.expectDirectoryListGet("group", "projectA")
         repo2.expectDirectoryListGet("group", "projectA")
         repo3.expectDirectoryListGet("group", "projectA")
         projectA12.ivy.expectGet()
@@ -696,8 +687,6 @@ task retrieve(type: Sync) {
             """
 
         when:
-        repo1.expectDirectoryListGetMissing("group", "projectA")
-        // TODO - should only list versions once
         repo1.expectDirectoryListGetMissing("group", "projectA")
         repo2.expectDirectoryListGet("group", "projectA")
         moduleA.ivy.expectGet()
