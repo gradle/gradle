@@ -18,7 +18,6 @@ package org.gradle.execution.commandline;
 
 import org.gradle.internal.exceptions.FailureResolutionAware;
 import org.gradle.api.GradleException;
-import org.gradle.api.Task;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.configuration.ImplicitTasksConfigurer;
@@ -30,17 +29,17 @@ import static org.gradle.logging.StyledTextOutput.Style.UserInput;
 @Contextual
 public class TaskConfigurationException extends GradleException implements FailureResolutionAware {
 
-    private final Task task;
+    private final String taskPath;
 
-    public TaskConfigurationException(Task task, String message, CommandLineArgumentException cause) {
+    public TaskConfigurationException(String taskPath, String message, CommandLineArgumentException cause) {
         super(message, cause);
-        this.task = task;
+        this.taskPath = taskPath;
     }
 
     public void appendResolution(StyledTextOutput output, BuildClientMetaData clientMetaData) {
         output.text("Run ");
         clientMetaData.describeCommand(output.withStyle(UserInput), ImplicitTasksConfigurer.HELP_TASK);
-        output.withStyle(UserInput).format(" --task %s", task.getName());
+        output.withStyle(UserInput).format(" --task %s", taskPath);
         output.text(" to get task usage details.");
     }
 }
