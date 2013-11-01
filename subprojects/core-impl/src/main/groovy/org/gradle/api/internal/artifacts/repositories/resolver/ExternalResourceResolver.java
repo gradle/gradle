@@ -63,7 +63,7 @@ import java.util.List;
 
 import static org.gradle.api.internal.artifacts.repositories.cachemanager.RepositoryArtifactCache.ExternalResourceDownloader;
 
-public class ExternalResourceResolver implements ModuleVersionPublisher, ConfiguredModuleVersionRepository {
+public abstract class ExternalResourceResolver implements ModuleVersionPublisher, ConfiguredModuleVersionRepository {
     private static final Logger LOGGER = LoggerFactory.getLogger(ExternalResourceResolver.class);
 
     private final MetaDataParser metaDataParser;
@@ -178,7 +178,7 @@ public class ExternalResourceResolver implements ModuleVersionPublisher, Configu
         ModuleIdentifier module  = new DefaultModuleIdentifier(dependencyDescriptor.getDependencyId().getOrganisation(), dependencyDescriptor.getDependencyId().getName());
         VersionList versionList = versionLister.getVersionList(module);
         Artifact metaDataArtifact = getMetaDataArtifactFor(dependencyDescriptor.getDependencyRevisionId());
-        Artifact[] otherArtifacts = getDefaultModuleDescriptor(dependencyDescriptor, dependencyDescriptor.getDependencyRevisionId()).getAllArtifacts();
+        Artifact[] otherArtifacts = getDefaultMetaData(dependencyDescriptor, dependencyDescriptor.getDependencyRevisionId()).getDescriptor().getAllArtifacts();
         listVersionsForAllPatterns(module, getIvyPatterns(), metaDataArtifact, versionList);
         for (Artifact otherArtifact : otherArtifacts) {
             listVersionsForAllPatterns(module, getArtifactPatterns(), otherArtifact, versionList);
@@ -201,10 +201,10 @@ public class ExternalResourceResolver implements ModuleVersionPublisher, Configu
         }
     }
 
-    private DefaultModuleDescriptor getDefaultModuleDescriptor(DependencyDescriptor dependencyDescriptor, ModuleRevisionId moduleRevisionId) {
-        DefaultModuleDescriptor generatedModuleDescriptor = DefaultModuleDescriptor.newDefaultInstance(moduleRevisionId, dependencyDescriptor.getAllDependencyArtifacts());
-        generatedModuleDescriptor.setStatus("integration");
-        return generatedModuleDescriptor;
+    protected MutableModuleVersionMetaData getDefaultMetaData(DependencyDescriptor dependencyDescriptor, ModuleRevisionId moduleRevisionId) {
+        DefaultModuleDescriptor moduleDescriptor = DefaultModuleDescriptor.newDefaultInstance(moduleRevisionId, dependencyDescriptor.getAllDependencyArtifacts());
+        moduleDescriptor.setStatus("integration");
+        return new ModuleDescriptorAdapter(moduleDescriptor);
     }
 
     protected void getDependencyForFoundIvyFileRef(DependencyDescriptor dependencyDescriptor, BuildableModuleVersionMetaDataResolveResult result, ModuleRevisionId moduleRevisionId, DownloadedAndParsedMetaDataArtifact metaDataArtifact) {
@@ -277,12 +277,10 @@ public class ExternalResourceResolver implements ModuleVersionPublisher, Configu
     }
 
     @Nullable
-    protected Artifact getMetaDataArtifactFor(ModuleRevisionId mrid) {
-        return DefaultArtifact.newIvyArtifact(mrid, null);
-    }
+    protected abstract Artifact getMetaDataArtifactFor(ModuleRevisionId mrid);
 
-    protected ResolvedArtifact findAnyArtifact(ModuleDescriptor md) {
-        for (Artifact artifact : md.getAllArtifacts()) {
+    protected ResolvedArtifact findAnyArtifact(ModuleVersionMetaData metaData) {
+        for (Artifact artifact : metaData.getDescriptor().getAllArtifacts()) {
             ResolvedArtifact artifactRef = getArtifactRef(artifact, false);
             if (artifactRef != null) {
                 return artifactRef;
@@ -369,21 +367,16 @@ public class ExternalResourceResolver implements ModuleVersionPublisher, Configu
             return null;
         }
 
-        DefaultModuleDescriptor generatedModuleDescriptor = getDefaultModuleDescriptor(dependencyDescriptor, moduleRevisionId);
+        MutableModuleVersionMetaData metaData = getDefaultMetaData(dependencyDescriptor, moduleRevisionId);
 
-        ResolvedArtifact artifactRef = findAnyArtifact(generatedModuleDescriptor);
+        ResolvedArtifact artifactRef = findAnyArtifact(metaData);
         if (artifactRef == null) {
             return null;
         }
 
-        long lastModified = artifactRef.resource.getLastModified();
-        if (lastModified != 0) {
-            generatedModuleDescriptor.setLastModified(lastModified);
-        }
         LOGGER.debug("No meta-data file found for module '{}' in repository '{}', using default data instead.", moduleRevisionId, getName());
 
-        ModuleDescriptorAdapter metaData = new ModuleDescriptorAdapter(generatedModuleDescriptor);
-        metaData.setChanging(isChanging(generatedModuleDescriptor));
+        metaData.setChanging(isChanging(metaData.getDescriptor()));
 
         return new DownloadedAndParsedMetaDataArtifact(artifactRef.resource, artifactRef.artifact, metaData);
     }
