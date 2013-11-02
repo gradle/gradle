@@ -83,7 +83,8 @@ class CommandLineTaskConfigurerSpec extends Specification {
         then:
         def e = thrown(TaskConfigurationException)
         e.message == "Problem configuring option 'someEnum' on task ':someTask' from command line."
-        e.cause.message == "No enum constant org.gradle.execution.commandline.CommandLineTaskConfigurerSpec.TestEnum.unsupportedEnumValue"
+        e.cause instanceof IllegalArgumentException
+        e.cause.message.contains("No enum const")
     }
 
     def "configures options on all types that can accommodate the setting"() {
