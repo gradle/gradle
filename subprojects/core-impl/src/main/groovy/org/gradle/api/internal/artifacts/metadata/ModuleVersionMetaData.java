@@ -20,6 +20,7 @@ import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * The meta-data for a module version required during dependency resolution.
@@ -37,6 +38,8 @@ public interface ModuleVersionMetaData {
 
     @Nullable
     ConfigurationMetaData getConfiguration(String name);
+
+    Set<ModuleVersionArtifactMetaData> getArtifacts();
 
     boolean isChanging();
 

@@ -128,10 +128,28 @@ class ModuleDescriptorAdapterTest extends Specification {
     def "builds and caches artifacts from the module descriptor"() {
         def artifact1 = Stub(Artifact)
         def artifact2 = Stub(Artifact)
+
+        given:
+        moduleDescriptor.getAllArtifacts() >> ([artifact1, artifact2] as Artifact[])
+
+        when:
+        def artifacts = metaData.artifacts
+
+        then:
+        artifacts*.artifact == [artifact1, artifact2]
+
+        and:
+        metaData.artifacts.is(artifacts)
+    }
+
+    def "builds and caches artifacts for a configuration"() {
+        def artifact1 = Stub(Artifact)
+        def artifact2 = Stub(Artifact)
         def config = Stub(Configuration)
 
         given:
         moduleDescriptor.getConfiguration("conf") >> config
+        moduleDescriptor.allArtifacts >> ([artifact1, artifact2] as Artifact[])
         moduleDescriptor.getArtifacts("conf") >> ([artifact1, artifact2] as Artifact[])
 
         when:
@@ -139,6 +157,9 @@ class ModuleDescriptorAdapterTest extends Specification {
 
         then:
         artifacts*.artifact == [artifact1, artifact2]
+
+        and:
+        artifacts as List == metaData.artifacts as List
 
         and:
         metaData.getConfiguration("conf").artifacts.is(artifacts)
@@ -155,8 +176,9 @@ class ModuleDescriptorAdapterTest extends Specification {
         moduleDescriptor.getConfiguration("conf") >> config
         moduleDescriptor.getConfiguration("super") >> parent
         config.extends >> ["super"]
+        moduleDescriptor.allArtifacts >> ([artifact1, artifact2, artifact3] as Artifact[])
         moduleDescriptor.getArtifacts("conf") >> ([artifact1, artifact2] as Artifact[])
-        moduleDescriptor.getArtifacts("super") >> ([artifact1, artifact3] as Artifact[])
+        moduleDescriptor.getArtifacts("super") >> ([artifact2, artifact3] as Artifact[])
 
         when:
         def artifacts = metaData.getConfiguration("conf").artifacts
