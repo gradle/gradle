@@ -57,6 +57,79 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
         ":test" in nonSkippedTasks
     }
 
+    @Timeout(30)
+    def "fails cleanly even if an exception is thrown that doesn't serialize cleanly"() {
+        given:
+        file('src/test/java/ExceptionTest.java') << """
+            import org.junit.*;
+            import java.io.*;
+
+            public class ExceptionTest {
+
+                static class BadlyBehavedException extends Exception {
+                    private void writeObject(ObjectOutputStream os) throws IOException {
+                        throw new IOException("Failed strangely");
+                    }
+                }
+
+                @Test
+                public void testThrow() throws Throwable {
+                    throw new BadlyBehavedException();
+                }
+            }
+        """
+        file('build.gradle') << """
+            apply plugin: 'java'
+            repositories { mavenCentral() }
+            dependencies { testCompile 'junit:junit:4.10' }
+        """
+
+        when:
+        runAndFail "test"
+
+        then:
+        failureHasCause "There were failing tests"
+    }
+
+    @Timeout(30)
+    def "fails cleanly even if an exception is thrown that doesn't de-serialize cleanly"() {
+        given:
+
+        // I'm not sure what it is exactly about InvalidRequestException
+        // that brings out this problem. It's a thrift-generated
+        // class and it has a "readObject" method. I couldn't reproduce the issue
+        // using a simple class as in the previous case, presumably because it has to be
+        // on the Gradle worker classpath as well as the Gradle main classpath -
+        // could this be the case for Thrift?
+
+        file('src/test/java/ExceptionTest.java') << """
+            import org.junit.*;
+            import org.apache.cassandra.thrift.InvalidRequestException;
+
+            public class ExceptionTest {
+                @Test
+                public void testThrow() throws Throwable {
+                    throw new InvalidRequestException("causes de-serialization failure");
+                }
+            }
+        """
+        file('build.gradle') << """
+            apply plugin: 'java'
+            repositories { mavenCentral() }
+            dependencies {
+                testCompile 'junit:junit:4.10'
+                compile 'org.hectorclient:hector-core:1.1-3'
+            }
+        """
+
+        when:
+        // an exception was thrown so we should fail here
+        runAndFail "test"
+
+        then:
+        failureHasCause "There were failing tests"
+    }
+
     @IgnoreIf({ OperatingSystem.current().isWindows() })
     def "can use long paths for working directory"() {
         given:
