@@ -15,33 +15,34 @@
  */
 package org.gradle.nativebinaries.language.c.internal.incremental;
 
-import org.gradle.api.internal.TaskOutputsInternal;
+import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.changedetection.state.Hasher;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.cache.CacheRepository;
 import org.gradle.language.jvm.internal.SimpleStaleClassCleaner;
 import org.gradle.language.jvm.internal.StaleClassCleaner;
 import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec;
 
-public class CleanCompilingNativeCompiler implements Compiler<NativeCompileSpec> {
-    private final Compiler<NativeCompileSpec> delegateCompiler;
-    private final IncrementalCompileProcessor incrementalCompileProcessor;
-    private TaskOutputsInternal taskOutputs;
+import java.io.File;
 
-    public CleanCompilingNativeCompiler(Compiler<NativeCompileSpec> delegateCompiler, IncrementalCompileProcessor incrementalCompileProcessor,
-                                        TaskOutputsInternal taskOutputs) {
+public class CleanCompilingNativeCompiler extends AbstractIncrementalNativeCompiler {
+    private final Compiler<NativeCompileSpec> delegateCompiler;
+
+    public CleanCompilingNativeCompiler(TaskInternal task, Iterable<File> includes, CacheRepository cacheRepository, Hasher hasher, Compiler<NativeCompileSpec> delegateCompiler) {
+        super(task, includes, cacheRepository, hasher);
         this.delegateCompiler = delegateCompiler;
-        this.incrementalCompileProcessor = incrementalCompileProcessor;
-        this.taskOutputs = taskOutputs;
     }
 
-    public WorkResult execute(NativeCompileSpec spec) {
-        incrementalCompileProcessor.processSourceFiles(spec.getSourceFiles());
+    @Override
+    protected WorkResult doIncrementalCompile(IncrementalCompileProcessor processor, NativeCompileSpec spec) {
+        processor.processSourceFiles(spec.getSourceFiles());
         cleanPreviousOutputs(spec);
         return delegateCompiler.execute(spec);
     }
 
     private void cleanPreviousOutputs(NativeCompileSpec spec) {
-        StaleClassCleaner cleaner = new SimpleStaleClassCleaner(taskOutputs);
+        StaleClassCleaner cleaner = new SimpleStaleClassCleaner(getTask().getOutputs());
         cleaner.setDestinationDir(spec.getObjectFileDir());
         cleaner.execute();
     }

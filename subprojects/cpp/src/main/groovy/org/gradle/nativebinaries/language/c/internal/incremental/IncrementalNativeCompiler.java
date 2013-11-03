@@ -15,21 +15,26 @@
  */
 package org.gradle.nativebinaries.language.c.internal.incremental;
 
+import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.changedetection.state.Hasher;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.cache.CacheRepository;
 import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec;
 
-public class IncrementalNativeCompiler implements org.gradle.api.internal.tasks.compile.Compiler<NativeCompileSpec> {
-    private final Compiler<NativeCompileSpec> delegateCompiler;
-    private final IncrementalCompileProcessor incrementalCompileProcessor;
+import java.io.File;
 
-    public IncrementalNativeCompiler(Compiler<NativeCompileSpec> delegateCompiler, IncrementalCompileProcessor incrementalCompileProcessor) {
+public class IncrementalNativeCompiler extends AbstractIncrementalNativeCompiler {
+    private final Compiler<NativeCompileSpec> delegateCompiler;
+
+    public IncrementalNativeCompiler(TaskInternal task, Iterable<File> includes, CacheRepository cacheRepository, Hasher hasher, Compiler<NativeCompileSpec> delegateCompiler) {
+        super(task, includes, cacheRepository, hasher);
         this.delegateCompiler = delegateCompiler;
-        this.incrementalCompileProcessor = incrementalCompileProcessor;
     }
 
-    public WorkResult execute(NativeCompileSpec spec) {
-        IncrementalCompilation compilation = incrementalCompileProcessor.processSourceFiles(spec.getSourceFiles());
+    @Override
+    protected WorkResult doIncrementalCompile(IncrementalCompileProcessor processor, NativeCompileSpec spec) {
+        IncrementalCompilation compilation = processor.processSourceFiles(spec.getSourceFiles());
 
         // Determine the actual sources to clean/compile
         spec.setSourceFiles(compilation.getRecompile());

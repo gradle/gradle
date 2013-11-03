@@ -17,24 +17,12 @@ package org.gradle.nativebinaries.language.c.internal.incremental;
 
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.Hasher;
-import org.gradle.cache.CacheLayout;
 import org.gradle.cache.CacheRepository;
-import org.gradle.cache.PersistentCache;
-import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.cache.internal.CacheLayoutBuilder;
-import org.gradle.cache.internal.FileLockManager;
-import org.gradle.cache.internal.PersistentIndexedCacheParameters;
-import org.gradle.cache.internal.filelock.LockOptions;
-import org.gradle.cache.internal.filelock.LockOptionsBuilder;
-import org.gradle.messaging.serialize.DefaultSerializer;
 import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec;
-import org.gradle.util.CollectionUtils;
 
 import java.io.File;
-import java.util.List;
 
 public class IncrementalCompilerBuilder {
-    private final RegexBackedIncludesParser includesParser = new RegexBackedIncludesParser();
     private final TaskInternal task;
     private final CacheRepository cacheRepository;
     private final Hasher hasher;
@@ -65,36 +53,10 @@ public class IncrementalCompilerBuilder {
     }
 
     private org.gradle.api.internal.tasks.compile.Compiler<NativeCompileSpec> createIncrementalCompiler(org.gradle.api.internal.tasks.compile.Compiler<NativeCompileSpec> compiler, TaskInternal task, Iterable<File> includes) {
-        IncrementalCompileProcessor incrementalProcessor = createProcessor(task, includes);
-        IncrementalNativeCompiler incrementalNativeCompiler = new IncrementalNativeCompiler(compiler, incrementalProcessor);
-        return new CacheLockingIncrementalCompiler(incrementalProcessor.getCacheAccess(), incrementalNativeCompiler);
+        return new IncrementalNativeCompiler(task, includes, cacheRepository, hasher, compiler);
     }
 
     private org.gradle.api.internal.tasks.compile.Compiler<NativeCompileSpec> createCleaningCompiler(org.gradle.api.internal.tasks.compile.Compiler<NativeCompileSpec> compiler, TaskInternal task, Iterable<File> includes) {
-        IncrementalCompileProcessor incrementalProcessor = createProcessor(task, includes);
-        CleanCompilingNativeCompiler cleanCompilingNativeCompiler = new CleanCompilingNativeCompiler(compiler, incrementalProcessor, task.getOutputs());
-        return new CacheLockingIncrementalCompiler(incrementalProcessor.getCacheAccess(), cleanCompilingNativeCompiler);
+        return new CleanCompilingNativeCompiler(task, includes, cacheRepository, hasher, compiler);
     }
-
-    private IncrementalCompileProcessor createProcessor(TaskInternal task, Iterable<File> includes) {
-        LockOptions lockOptions = LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive);
-        CacheLayout layout = new CacheLayoutBuilder()
-                .withBuildScope(task.getProject())
-                .withPath("taskState", task.getName())
-                .build();
-        PersistentCache cache = cacheRepository.cache("incrementalCompile").withLayout(layout).withLockOptions(lockOptions).open();
-
-        PersistentIndexedCache<File, FileState> stateCache = createCache(cache, "state", File.class, new DefaultSerializer<FileState>(FileState.class.getClassLoader()));
-        // TODO:DAZ This doesn't need to be an indexed cache: need PersistentCache.createStateCache()
-        PersistentIndexedCache<String, List<File>> listCache = createCache(cache, "previous", String.class, new DefaultSerializer<List<File>>());
-
-        DefaultSourceDependencyParser dependencyParser = new DefaultSourceDependencyParser(includesParser, CollectionUtils.toList(includes));
-        return new IncrementalCompileProcessor(cache, stateCache, listCache, dependencyParser, hasher);
-    }
-
-    private <U, V> PersistentIndexedCache<U, V> createCache(PersistentCache cache, String name, Class<U> keyType, DefaultSerializer<V> fileStateDefaultSerializer) {
-        File cacheFile = new File(cache.getBaseDir(), name + ".bin");
-        return cache.createCache(new PersistentIndexedCacheParameters<U, V>(cacheFile, keyType, fileStateDefaultSerializer));
-    }
-
 }

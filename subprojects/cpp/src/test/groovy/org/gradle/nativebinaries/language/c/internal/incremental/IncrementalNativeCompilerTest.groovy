@@ -25,7 +25,7 @@ class IncrementalNativeCompilerTest extends Specification {
 
     def delegateCompiler = Mock(org.gradle.api.internal.tasks.compile.Compiler)
     def incrementalCompileProcessor = Mock(IncrementalCompileProcessor)
-    def compiler = new IncrementalNativeCompiler(delegateCompiler, incrementalCompileProcessor)
+    def compiler = new IncrementalNativeCompiler(null, null, null, null, delegateCompiler)
 
     def "updates spec for incremental compilation"() {
         def spec = Mock(NativeCompileSpec)
@@ -43,7 +43,7 @@ class IncrementalNativeCompilerTest extends Specification {
         compilation.getRemoved() >> [removedSource]
 
         and:
-        compiler.execute(spec)
+        compiler.doIncrementalCompile(incrementalCompileProcessor, spec)
 
         then:
         1 * spec.setSourceFiles([newSource])

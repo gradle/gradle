@@ -15,6 +15,7 @@
  */
 package org.gradle.nativebinaries.language.c.internal.incremental
 
+import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec
@@ -27,8 +28,9 @@ class CleanCompilingNativeCompilerTest extends Specification {
 
     def delegateCompiler = Mock(org.gradle.api.internal.tasks.compile.Compiler)
     def incrementalCompileProcessor = Mock(IncrementalCompileProcessor)
+    def task = Mock(TaskInternal)
     def outputs = Mock(TaskOutputsInternal)
-    def compiler = new CleanCompilingNativeCompiler(delegateCompiler, incrementalCompileProcessor, outputs)
+    def compiler = new CleanCompilingNativeCompiler(task, null, null, null, delegateCompiler)
 
     def "cleans outputs and delegates spec for compilation"() {
         def spec = Mock(NativeCompileSpec)
@@ -48,10 +50,11 @@ class CleanCompilingNativeCompilerTest extends Specification {
         0 * compilation._
 
         and:
-        compiler.execute(spec)
+        compiler.doIncrementalCompile(incrementalCompileProcessor, spec)
 
         then:
         1 * spec.getObjectFileDir() >> outputFile.parentFile
+        1 * task.getOutputs() >> outputs
         1 * outputs.previousFiles >> new SimpleFileCollection(outputFile)
         0 * spec._
         1 * delegateCompiler.execute(spec)
