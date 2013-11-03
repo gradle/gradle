@@ -23,13 +23,15 @@ import org.gradle.plugin.resolve.internal.PluginResolution;
 
 class PluginResolutionApplicator implements Action<PluginResolution> {
     private final PluginAware target;
+    private final ClassLoader parentClassLoader;
 
-    public PluginResolutionApplicator(PluginAware target) {
+    public PluginResolutionApplicator(PluginAware target, ClassLoader parentClassLoader) {
         this.target = target;
+        this.parentClassLoader = parentClassLoader;
     }
 
     public void execute(PluginResolution pluginResolution) {
-        Class<? extends Plugin> pluginClass = pluginResolution.resolve(this.getClass().getClassLoader());
+        Class<? extends Plugin> pluginClass = pluginResolution.resolve(parentClassLoader);
         target.getPlugins().apply(pluginClass);
     }
 }

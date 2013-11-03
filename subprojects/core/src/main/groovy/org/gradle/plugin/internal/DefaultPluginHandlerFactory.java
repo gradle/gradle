@@ -42,6 +42,7 @@ public class DefaultPluginHandlerFactory implements PluginHandlerFactory {
     private final DependencyManagementServices dependencyManagementServices;
     private final FileResolver fileResolver;
     private final DependencyMetaDataProvider dependencyMetaDataProvider;
+    private final ClassLoader parentClassLoader;
 
     private final ProjectFinder projectFinder = new ProjectFinder() {
         public ProjectInternal getProject(String path) {
@@ -49,17 +50,18 @@ public class DefaultPluginHandlerFactory implements PluginHandlerFactory {
         }
     };
 
-    public DefaultPluginHandlerFactory(PluginRegistry pluginRegistry, Instantiator instantiator, DependencyManagementServices dependencyManagementServices, FileResolver fileResolver, DependencyMetaDataProvider dependencyMetaDataProvider) {
+    public DefaultPluginHandlerFactory(PluginRegistry pluginRegistry, Instantiator instantiator, DependencyManagementServices dependencyManagementServices, FileResolver fileResolver, DependencyMetaDataProvider dependencyMetaDataProvider, ClassLoader parentClassLoader) {
         this.pluginRegistry = pluginRegistry;
         this.instantiator = instantiator;
         this.dependencyManagementServices = dependencyManagementServices;
         this.fileResolver = fileResolver;
         this.dependencyMetaDataProvider = dependencyMetaDataProvider;
+        this.parentClassLoader = parentClassLoader;
     }
 
     public PluginHandlerInternal createPluginHandler(final Object target, ScriptClassLoader scriptClassLoader) {
         if (target instanceof PluginAware) {
-            PluginHandlerInternal pluginHandler = new DefaultPluginHandler(instantiator, new PluginResolutionApplicator((PluginAware) target));
+            PluginHandlerInternal pluginHandler = new DefaultPluginHandler(instantiator, new PluginResolutionApplicator((PluginAware) target, parentClassLoader));
             addDefaultResolvers(pluginHandler, scriptClassLoader);
             return pluginHandler;
         } else {

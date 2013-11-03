@@ -230,7 +230,8 @@ public class BuildScopeServices extends DefaultServiceRegistry implements Servic
                 get(Instantiator.class),
                 get(DependencyManagementServices.class),
                 get(FileResolver.class),
-                new DependencyMetaDataProviderImpl()
+                new DependencyMetaDataProviderImpl(),
+                get(ClassLoaderRegistry.class).getPluginsClassLoader()
         );
     }
 
