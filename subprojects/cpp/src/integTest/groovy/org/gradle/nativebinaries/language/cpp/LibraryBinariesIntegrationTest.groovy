@@ -15,8 +15,11 @@
  */
 package org.gradle.nativebinaries.language.cpp
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativebinaries.language.cpp.fixtures.app.CppHelloWorldApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Ignore
+import spock.lang.Issue
 
 @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
 class LibraryBinariesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
@@ -268,5 +271,39 @@ include 'exe', 'lib'
 
         then:
         installation("build/install/mainExecutable").exec().out == "CPP_C"
+    }
+
+    @Ignore
+    @Issue("GRADLE-2925")
+    def "headers for source set added to library binary are available to consuming binary"() {
+        def app = new CppHelloWorldApp()
+        given:
+        buildFile << """
+            apply plugin: "cpp"
+            sources {
+                helloLib {}
+            }
+            executables {
+                main {}
+            }
+            libraries {
+                hello {
+                    binaries.all {
+                        source sources.helloLib.cpp
+                    }
+                }
+            }
+            sources.main.cpp.lib libraries.hello
+        """
+
+        and:
+        app.executable.writeSources(file("src/main"))
+        app.library.writeSources(file("src/helloLib"))
+
+        when:
+        succeeds "installMainExecutable"
+
+        then:
+        installation("build/install/mainExecutable").exec().out == app.englishOutput
     }
 }
