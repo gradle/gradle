@@ -17,7 +17,7 @@
 package org.gradle.nativebinaries.internal
 import org.gradle.api.Task
 import org.gradle.api.file.SourceDirectorySet
-import org.gradle.language.base.LanguageSourceSet
+import org.gradle.language.HeaderExportingSourceSet
 import org.gradle.language.base.internal.DefaultBinaryNamingScheme
 import org.gradle.nativebinaries.BuildType
 import org.gradle.nativebinaries.Library
@@ -50,22 +50,25 @@ class DefaultSharedLibraryBinaryTest extends Specification {
         binary.outputFile = binaryFile
 
         and:
-        def headers = Stub(SourceDirectorySet)
-        library.headers >> headers
         toolChain.getSharedLibraryLinkFileName(binaryFile.path) >> linkFile.path
 
-        and: "has at least one regular source input"
+        and: "has at least one header exporting source set"
+        final headerDir = tmpDir.createDir("headerDir")
+        def headerDirSet = Stub(SourceDirectorySet) {
+            getSrcDirs() >> [headerDir]
+        }
         def sourceDirSet = Stub(SourceDirectorySet) {
             getFiles() >> [tmpDir.createFile("input.src")]
         }
-        def sourceSet = Stub(LanguageSourceSet) {
+        def sourceSet = Stub(HeaderExportingSourceSet) {
             getSource() >> sourceDirSet
+            getExportedHeaders() >> headerDirSet
         }
         binary.source sourceSet
 
         expect:
         def nativeDependency = binary.resolve()
-        nativeDependency.includeRoots == headers
+        nativeDependency.includeRoots.files == [headerDir] as Set
 
         and:
         nativeDependency.linkFiles.files == [linkFile] as Set

@@ -18,7 +18,6 @@ import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChai
 import org.gradle.nativebinaries.language.cpp.fixtures.app.CppHelloWorldApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.Ignore
 import spock.lang.Issue
 
 @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
@@ -26,6 +25,7 @@ class LibraryBinariesIntegrationTest extends AbstractInstalledToolChainIntegrati
     def "setup"() {
         settingsFile << "rootProject.name = 'test'"
     }
+
     def "executable can use a mix of static and shared libraries"() {
         given:
         buildFile << """
@@ -273,7 +273,6 @@ include 'exe', 'lib'
         installation("build/install/mainExecutable").exec().out == "CPP_C"
     }
 
-    @Ignore
     @Issue("GRADLE-2925")
     def "headers for source set added to library binary are available to consuming binary"() {
         def app = new CppHelloWorldApp()

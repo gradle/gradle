@@ -27,18 +27,12 @@ import org.gradle.nativebinaries.*;
 import java.io.File;
 import java.util.*;
 
-public class DefaultStaticLibraryBinary extends DefaultNativeBinary implements StaticLibraryBinary, StaticLibraryBinaryInternal {
-    private final Library library;
+public class DefaultStaticLibraryBinary extends DefaultLibraryBinary implements StaticLibraryBinaryInternal {
     private final DefaultTool staticLibArchiver = new DefaultTool();
     private final List<FileCollection> additionalLinkFiles = new ArrayList<FileCollection>();
 
     public DefaultStaticLibraryBinary(Library library, Flavor flavor, ToolChainInternal toolChain, Platform platform, BuildType buildType, DefaultBinaryNamingScheme namingScheme) {
         super(library, flavor, toolChain, platform, buildType, namingScheme.withTypeString("StaticLibrary"));
-        this.library = library;
-    }
-
-    public Library getComponent() {
-        return library;
     }
 
     public String getOutputFileName() {
@@ -56,7 +50,7 @@ public class DefaultStaticLibraryBinary extends DefaultNativeBinary implements S
     public NativeDependencySet resolve() {
         return new NativeDependencySet() {
             public FileCollection getIncludeRoots() {
-                return library.getHeaders();
+                return getHeaderDirs();
             }
 
             public FileCollection getLinkFiles() {

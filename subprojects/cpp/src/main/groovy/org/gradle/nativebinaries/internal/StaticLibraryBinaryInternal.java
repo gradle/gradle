@@ -16,8 +16,9 @@
 package org.gradle.nativebinaries.internal;
 
 import org.gradle.api.file.FileCollection;
+import org.gradle.nativebinaries.StaticLibraryBinary;
 
-public interface StaticLibraryBinaryInternal {
+public interface StaticLibraryBinaryInternal extends StaticLibraryBinary {
     /**
      * Add some additional files required at link time.
      */

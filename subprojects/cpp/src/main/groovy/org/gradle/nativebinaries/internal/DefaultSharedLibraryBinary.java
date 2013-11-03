@@ -30,16 +30,10 @@ import java.io.File;
 import java.util.Collections;
 import java.util.Set;
 
-public class DefaultSharedLibraryBinary extends DefaultNativeBinary implements SharedLibraryBinary {
-    private final Library library;
+public class DefaultSharedLibraryBinary extends DefaultLibraryBinary implements SharedLibraryBinary {
 
     public DefaultSharedLibraryBinary(Library library, Flavor flavor, ToolChainInternal toolChain, Platform platform, BuildType buildType, DefaultBinaryNamingScheme namingScheme) {
         super(library, flavor, toolChain, platform, buildType, namingScheme.withTypeString("SharedLibrary"));
-        this.library = library;
-    }
-
-    public Library getComponent() {
-        return library;
     }
 
     public String getOutputFileName() {
@@ -49,7 +43,7 @@ public class DefaultSharedLibraryBinary extends DefaultNativeBinary implements S
     public NativeDependencySet resolve() {
         return new NativeDependencySet() {
             public FileCollection getIncludeRoots() {
-                return library.getHeaders();
+                return getHeaderDirs();
             }
 
             public FileCollection getLinkFiles() {
