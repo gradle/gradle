@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
 import org.gradle.api.Task;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.util.CollectionUtils;
@@ -27,6 +29,41 @@ import java.util.List;
 import java.util.Map;
 
 public class CommandLineOptionReader {
+
+    private ListMultimap<Class, StaticCommandLineOptionDescriptor> cachedStaticDescriptors = ArrayListMultimap.create();
+
+    public List<CommandLineOptionDescriptor> getCommandLineOptions(Task task) {
+        final Class<? extends Task> taskClazz = task.getClass();
+        Map<String, CommandLineOptionDescriptor> options = new HashMap<String, CommandLineOptionDescriptor>();
+
+        if (!cachedStaticDescriptors.containsKey(task.getClass())) {
+            //task class not processed yet
+            for (Class<?> type = taskClazz; type != Object.class && type != null; type = type.getSuperclass()) {
+                for (Method method : type.getDeclaredMethods()) {
+                    if (!Modifier.isStatic(method.getModifiers())) {
+                        CommandLineOption commandLineOption = method.getAnnotation(CommandLineOption.class);
+                        if (commandLineOption != null) {
+                            StaticCommandLineOptionDescriptor staticCommandLineOptionDescriptor = new StaticCommandLineOptionDescriptor(commandLineOption, method);
+                            assertMethodTypeSupported(staticCommandLineOptionDescriptor, taskClazz, method);
+
+                            CommandLineOptionDescriptor optionDescriptor = new InstanceCommandLineOptionDescriptor(task, staticCommandLineOptionDescriptor);
+                            if (options.containsKey(optionDescriptor.getName())) {
+                                throw new CommandLineArgumentException(String.format("Option '%s' linked to multiple methods in class '%s'.",
+                                        optionDescriptor.getName(), taskClazz.getName()));
+                            }
+                            cachedStaticDescriptors.put(taskClazz, staticCommandLineOptionDescriptor);
+                            options.put(optionDescriptor.getName(), optionDescriptor);
+                        }
+                    }
+                }
+            }
+        }else{
+            for (StaticCommandLineOptionDescriptor staticCommandLineOptionDescriptor : cachedStaticDescriptors.get(taskClazz)) {
+                options.put(staticCommandLineOptionDescriptor.getName(), new InstanceCommandLineOptionDescriptor(task, staticCommandLineOptionDescriptor));
+            }
+        }
+        return CollectionUtils.sort(options.values());
+    }
 
     private void assertMethodTypeSupported(CommandLineOptionDescriptor optionDescriptor, Class taskClazz, Method method) {
         final Class<?>[] parameterTypes = method.getParameterTypes();
@@ -44,28 +81,5 @@ public class CommandLineOptionReader {
                         optionDescriptor.getName(), parameterType.getName(), taskClazz.getName()));
             }
         }
-    }
-
-    public List<CommandLineOptionDescriptor> getCommandLineOptions(Task task) {
-        final Class<? extends Task> taskClazz = task.getClass();
-        Map<String, CommandLineOptionDescriptor> options = new HashMap<String, CommandLineOptionDescriptor>();
-        for (Class<?> type = taskClazz; type != Object.class && type != null; type = type.getSuperclass()) {
-            for (Method method : type.getDeclaredMethods()) {
-                if (!Modifier.isStatic(method.getModifiers())) {
-                    CommandLineOption commandLineOption = method.getAnnotation(CommandLineOption.class);
-                    if (commandLineOption != null) {
-                        final CommandLineOptionDescriptor optionDescriptor = new CommandLineOptionDescriptor(task, commandLineOption, method);
-                        assertMethodTypeSupported(optionDescriptor, taskClazz, method);
-
-                        if (options.containsKey(optionDescriptor.getName())) {
-                            throw new CommandLineArgumentException(String.format("Option '%s' linked to multiple methods in class '%s'.",
-                                    optionDescriptor.getName(), taskClazz.getName()));
-                        }
-                        options.put(optionDescriptor.getName(), optionDescriptor);
-                    }
-                }
-            }
-        }
-        return CollectionUtils.sort(options.values());
     }
 }

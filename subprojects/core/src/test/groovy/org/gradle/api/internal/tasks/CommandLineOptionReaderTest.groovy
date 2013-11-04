@@ -35,27 +35,27 @@ class CommandLineOptionReaderTest extends Specification {
 
     def "can read commandlineoptions of a task"() {
         when:
-        List<CommandLineOptionDescriptor> options = reader.getCommandLineOptions(Mock(TestTask1))
+        List<InstanceCommandLineOptionDescriptor> options = reader.getCommandLineOptions(Mock(TestTask1))
         then:
         options[0].option.description() == "simple flag"
         options[0].argumentType == Void.TYPE
-        options[0].annotatedMethod.name == "setActive"
+        options[0].configurationMethod.name == "setActive"
 
         options[1].option.description() == "boolean value"
         options[1].argumentType == Void.TYPE
-        options[1].annotatedMethod.name == "setBooleanValue"
+        options[1].configurationMethod.name == "setBooleanValue"
 
         options[2].option.description() == "enum value"
         options[2].argumentType == TestEnum
-        options[2].annotatedMethod.name == "setEnumValue"
+        options[2].configurationMethod.name == "setEnumValue"
 
         options[3].option.description() == "object value"
         options[3].argumentType == Object
-        options[3].annotatedMethod.name == "setObjectValue"
+        options[3].configurationMethod.name == "setObjectValue"
 
         options[4].option.description() == "string value"
         options[4].argumentType == String
-        options[4].annotatedMethod.name == "setStringValue"
+        options[4].configurationMethod.name == "setStringValue"
     }
 
     def "fail when multiple methods define same option"() {
@@ -68,7 +68,7 @@ class CommandLineOptionReaderTest extends Specification {
 
     def "ignores static methods"() {
         when:
-        List<CommandLineOptionDescriptor> options = reader.getCommandLineOptions(Mock(TestTask3))
+        List<InstanceCommandLineOptionDescriptor> options = reader.getCommandLineOptions(Mock(TestTask3))
         then:
         options.isEmpty()
     }

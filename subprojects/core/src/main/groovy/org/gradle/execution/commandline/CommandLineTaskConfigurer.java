@@ -64,7 +64,7 @@ public class CommandLineTaskConfigurer {
                 if (parsed.hasOption(name)) {
                     ParsedCommandLineOption o = parsed.option(name);
                     try {
-                        commandLineOptionDescriptor.apply(o.getValues());
+                        commandLineOptionDescriptor.apply(task, o.getValues());
                     } catch (Exception ex) {
                         throw new TaskConfigurationException(task.getPath(),
                                 String.format("Problem configuring option '%s' on task '%s' from command line.", name, task.getPath()), ex);
