@@ -36,8 +36,8 @@ abstract class HttpResource {
         server.expectGetBroken(getPath())
     }
 
-    void expectGetMissing() {
-        server.expectGetMissing(getPath())
+    void expectGetMissing(PasswordCredentials credentials = null) {
+        server.expectGetMissing(getPath(), credentials)
     }
 
     void expectHead() {

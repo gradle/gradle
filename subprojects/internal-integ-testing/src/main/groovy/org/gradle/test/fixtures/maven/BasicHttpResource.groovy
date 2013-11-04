@@ -19,7 +19,7 @@ package org.gradle.test.fixtures.maven
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.HttpServer
 
-class BasicHttpResource extends HttpResource{
+class BasicHttpResource extends HttpResource {
     private final String path
     private final File file
 
@@ -27,11 +27,6 @@ class BasicHttpResource extends HttpResource{
         super(httpServer)
         this.file = file
         this.path = path
-    }
-
-    @Override
-    void expectGetMissing() {
-        server.expectGetMissing(path)
     }
 
     @Override
