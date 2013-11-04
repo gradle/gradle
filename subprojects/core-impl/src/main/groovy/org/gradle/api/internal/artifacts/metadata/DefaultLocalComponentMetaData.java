@@ -90,7 +90,7 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
     }
 
     private static class DefaultLocalArtifactMetaData implements LocalArtifactMetaData, ModuleVersionArtifactMetaData {
-        private final ModuleVersionArtifactIdentifier id;
+        private final DefaultModuleVersionArtifactIdentifier id;
         private final ModuleVersionArtifactIdentifier selectorId;
         private final Artifact artifact;
         private final File file;
@@ -103,6 +103,10 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
             this.selectorId = new DefaultModuleVersionArtifactIdentifier(moduleVersionIdentifier, artifact);
             this.artifact = artifact;
             this.file = file;
+        }
+
+        public ModuleVersionIdentifier getModuleVersion() {
+            return id.getModuleVersionIdentifier();
         }
 
         public IvyArtifactName getName() {
