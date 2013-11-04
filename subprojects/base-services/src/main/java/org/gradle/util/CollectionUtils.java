@@ -219,6 +219,10 @@ public abstract class CollectionUtils {
         return list;
     }
 
+    public static <T> List<T> withoutDuplicates(List<T> things){
+        return toList(toSet(things));
+    }
+
     public static <T> List<T> toList(T[] things) {
         if (things == null || things.length == 0) {
             return new ArrayList<T>(0);
