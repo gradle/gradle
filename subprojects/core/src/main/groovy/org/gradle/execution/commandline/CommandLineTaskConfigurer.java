@@ -41,7 +41,6 @@ public class CommandLineTaskConfigurer {
         List<String> remainingArguments = null;
         CommandLineOptionReader commandLineOptionReader = new CommandLineOptionReader();
         for (Task task : tasks) {
-//            Map<String, JavaMethod<Object, ?>> options = new HashMap<String, JavaMethod<Object, ?>>();
             CommandLineParser parser = new CommandLineParser();
             final List<CommandLineOptionDescriptor> commandLineOptions = commandLineOptionReader.getCommandLineOptions(task);
 
@@ -65,7 +64,7 @@ public class CommandLineTaskConfigurer {
                 if (parsed.hasOption(name)) {
                     ParsedCommandLineOption o = parsed.option(name);
                     try {
-                        commandLineOptionDescriptor.apply(task, o.getValues());
+                        commandLineOptionDescriptor.apply(o.getValues());
                     } catch (Exception ex) {
                         throw new TaskConfigurationException(task.getPath(),
                                 String.format("Problem configuring option '%s' on task '%s' from command line.", name, task.getPath()), ex);

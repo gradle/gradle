@@ -49,4 +49,13 @@ class ProjectLayoutSetupRegistrySpec extends Specification {
         def e = thrown(GradleException)
         e.message == "ProjectDescriptor with ID 'desc1' already registered."
     }
+
+    def "getSupportedTypes lists all registered types"() {
+        setup:
+        registry.add("desc1", Mock(ProjectInitDescriptor))
+        registry.add("desc2", Mock(ProjectInitDescriptor))
+        registry.add("desc3", Mock(ProjectInitDescriptor))
+        expect:
+        registry.getSupportedTypes() == ["desc1", "desc2", "desc3"]
+    }
 }

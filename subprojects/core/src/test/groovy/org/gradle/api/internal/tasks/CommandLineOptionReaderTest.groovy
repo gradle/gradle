@@ -17,21 +17,25 @@
 package org.gradle.api.internal.tasks
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.Project
 import org.gradle.cli.CommandLineArgumentException
+import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
 
 
 class CommandLineOptionReaderTest extends Specification {
 
     CommandLineOptionReader reader
+    Project project
 
     def setup() {
         reader = new CommandLineOptionReader()
+        project = ProjectBuilder.builder().build();
     }
 
     def "can read commandlineoptions of a task"() {
         when:
-        List<CommandLineOptionDescriptor> options = reader.getCommandLineOptions(TestTask1)
+        List<CommandLineOptionDescriptor> options = reader.getCommandLineOptions(Mock(TestTask1))
         then:
         options[0].option.description() == "simple flag"
         options[0].argumentType == Void.TYPE
@@ -56,15 +60,15 @@ class CommandLineOptionReaderTest extends Specification {
 
     def "fail when multiple methods define same option"() {
         when:
-        reader.getCommandLineOptions(TestTask2)
+        reader.getCommandLineOptions(project.tasks.create("aTask", TestTask2))
         then:
         def e = thrown(CommandLineArgumentException)
-        e.message == "Option 'stringValue' linked to multiple methods in class 'org.gradle.api.internal.tasks.CommandLineOptionReaderTest\$TestTask2'."
+        e.message == "Option 'stringValue' linked to multiple methods in class 'org.gradle.api.internal.tasks.CommandLineOptionReaderTest\$TestTask2_Decorated'."
     }
 
     def "ignores static methods"() {
         when:
-        List<CommandLineOptionDescriptor> options = reader.getCommandLineOptions(TestTask3)
+        List<CommandLineOptionDescriptor> options = reader.getCommandLineOptions(Mock(TestTask3))
         then:
         options.isEmpty()
     }
@@ -72,19 +76,19 @@ class CommandLineOptionReaderTest extends Specification {
 
     def "fail when parameter cannot be converted from the command-line"() {
         when:
-        reader.getCommandLineOptions(TestTask5)
+        reader.getCommandLineOptions(project.tasks.create("aTask", TestTask5))
         then:
         def e = thrown(CommandLineArgumentException)
-        e.message == "Option 'fileValue' cannot be casted to parameter type 'java.io.File' in class 'org.gradle.api.internal.tasks.CommandLineOptionReaderTest\$TestTask5'."
+        e.message == "Option 'fileValue' cannot be casted to parameter type 'java.io.File' in class 'org.gradle.api.internal.tasks.CommandLineOptionReaderTest\$TestTask5_Decorated'."
     }
 
 
     def "fails when method has > 1 parameter"() {
         when:
-        reader.getCommandLineOptions(TestTask4)
+        reader.getCommandLineOptions(project.tasks.create("aTask", TestTask4));
         then:
         def e = thrown(CommandLineArgumentException)
-        e.message == "Option 'stringValue' cannot be linked to methods with multiple parameters in class 'org.gradle.api.internal.tasks.CommandLineOptionReaderTest\$TestTask4#setStrings'."
+        e.message == "Option 'stringValue' cannot be linked to methods with multiple parameters in class 'org.gradle.api.internal.tasks.CommandLineOptionReaderTest\$TestTask4_Decorated#setStrings'."
     }
 
     public static class TestTask1 extends DefaultTask {

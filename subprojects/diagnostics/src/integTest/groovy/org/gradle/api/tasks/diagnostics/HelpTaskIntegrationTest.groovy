@@ -236,8 +236,10 @@ Description
         then:
         output.contains(toPlatformLineSeparators("""Detailed task information for hello
 
-Path
+Paths
      :hello
+     :proj1:hello
+     :proj2:hello
 
 Type
      CustomTask (CustomTask)
@@ -250,6 +252,28 @@ Options
                           ABC
                           DEF
                           GHIJKL
+
+Description
+     -"""))
+    }
+
+    def "listsDynamicAvailableValues"() {
+        when:
+        run "help", "--task", "hello"
+        then:
+        output.contains(toPlatformLineSeparators("""Detailed task information for hello
+
+Path
+     :hello
+
+Type
+     CustomTask (CustomTask)
+
+Options
+     --stringValue     Configures a string value in CustomTask.
+                       Available values are:
+                            optionA
+                            optionB
 
 Description
      -"""))

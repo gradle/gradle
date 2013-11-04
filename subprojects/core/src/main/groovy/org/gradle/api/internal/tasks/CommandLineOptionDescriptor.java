@@ -18,20 +18,25 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.internal.reflect.JavaReflectionUtil;
+import org.gradle.util.CollectionUtils;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 public class CommandLineOptionDescriptor implements Comparable<CommandLineOptionDescriptor> {
-    private CommandLineOption option;
-    private Method annotatedMethod;
+    private final CommandLineOption option;
+    private final Method annotatedMethod;
+    private final Object object;
     private List<String> availableValues;
     private Class argumentType;
 
-    public CommandLineOptionDescriptor(CommandLineOption option, Method annotatedMethod) {
-        this.option = option;
-        this.annotatedMethod = annotatedMethod;
+    public CommandLineOptionDescriptor(Object object, CommandLineOption commandLineOption, Method method) {
+        this.object = object;
+        this.option = commandLineOption;
+        this.annotatedMethod = method;
     }
 
     public String getName() {
@@ -69,18 +74,36 @@ public class CommandLineOptionDescriptor implements Comparable<CommandLineOption
             //we don't want to support "--flag true" syntax
             if (type == Boolean.class || type == Boolean.TYPE) {
                 argumentType = Void.TYPE;
-            }else{
+            } else {
                 argumentType = type;
-                if(argumentType.isEnum()){
+                if (argumentType.isEnum()) {
                     final Enum[] enumConstants = (Enum[]) argumentType.getEnumConstants();
                     for (Enum enumConstant : enumConstants) {
                         availableValues.add(enumConstant.name());
                     }
+                } else if (String.class.isAssignableFrom(argumentType)) {
+                    availableValues.addAll(lookupDynamicAvailableValues());
                 }
             }
         } else {
             argumentType = Void.TYPE;
         }
+    }
+
+    private List<String> lookupDynamicAvailableValues() {
+        for (Class<?> type = object.getClass(); type != Object.class && type != null; type = type.getSuperclass()) {
+            for (Method method : type.getDeclaredMethods()) {
+                if (Collection.class.isAssignableFrom(method.getReturnType()) && method.getParameterTypes().length == 0) {
+                    OptionValues optionValues = method.getAnnotation(OptionValues.class);
+                    if (optionValues != null && optionValues.value()[0].equals(getName())) {
+                        final JavaMethod<Object, Object> methodToInvoke = JavaReflectionUtil.method(Object.class, Object.class, method);
+                        List values = (List) methodToInvoke.invoke(object);
+                        return CollectionUtils.stringize(values);
+                    }
+                }
+            }
+        }
+        return Collections.emptyList();
     }
 
     public int compareTo(CommandLineOptionDescriptor o) {
@@ -91,16 +114,16 @@ public class CommandLineOptionDescriptor implements Comparable<CommandLineOption
         return getOption().description();
     }
 
-    public void apply(Object objectToConfigure, List<String> parameterValues) {
+    public void apply(List<String> parameterValues) {
         final JavaMethod<Object, Object> method = JavaReflectionUtil.method(Object.class, Object.class, annotatedMethod);
         if (parameterValues.size() == 0) {
-            method.invoke(objectToConfigure, true);
-        }else if (parameterValues.size() > 1) {
+            method.invoke(object, true);
+        } else if (parameterValues.size() > 1) {
             //TODO add List<String> support
             throw new IllegalArgumentException(String.format("Lists not supported for option '%s'.", getName()));
-        } else{
+        } else {
             Object arg = getParameterObject(parameterValues.get(0));
-            method.invoke(objectToConfigure, arg);
+            method.invoke(object, arg);
         }
     }
 

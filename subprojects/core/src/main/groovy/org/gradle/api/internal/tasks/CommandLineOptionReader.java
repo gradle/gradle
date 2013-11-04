@@ -28,28 +28,6 @@ import java.util.Map;
 
 public class CommandLineOptionReader {
 
-    public List<CommandLineOptionDescriptor> getCommandLineOptions(Class taskClazz) {
-        Map<String, CommandLineOptionDescriptor> options = new HashMap<String, CommandLineOptionDescriptor>();
-        for (Class<?> type = taskClazz; type != Object.class && type != null; type = type.getSuperclass()) {
-            for (Method method : type.getDeclaredMethods()) {
-                if (!Modifier.isStatic(method.getModifiers())) {
-                    CommandLineOption commandLineOption = method.getAnnotation(CommandLineOption.class);
-                    if (commandLineOption != null) {
-                        final CommandLineOptionDescriptor optionDescriptor = new CommandLineOptionDescriptor(commandLineOption, method);
-                        assertMethodTypeSupported(optionDescriptor, taskClazz, method);
-
-                        if (options.containsKey(optionDescriptor.getName())) {
-                            throw new CommandLineArgumentException(String.format("Option '%s' linked to multiple methods in class '%s'.",
-                                    optionDescriptor.getName(), taskClazz.getName()));
-                        }
-                        options.put(optionDescriptor.getName(), optionDescriptor);
-                    }
-                }
-            }
-        }
-        return CollectionUtils.sort(options.values());
-    }
-
     private void assertMethodTypeSupported(CommandLineOptionDescriptor optionDescriptor, Class taskClazz, Method method) {
         final Class<?>[] parameterTypes = method.getParameterTypes();
         if (parameterTypes.length > 1) {
@@ -69,6 +47,25 @@ public class CommandLineOptionReader {
     }
 
     public List<CommandLineOptionDescriptor> getCommandLineOptions(Task task) {
-        return getCommandLineOptions(task.getClass());
+        final Class<? extends Task> taskClazz = task.getClass();
+        Map<String, CommandLineOptionDescriptor> options = new HashMap<String, CommandLineOptionDescriptor>();
+        for (Class<?> type = taskClazz; type != Object.class && type != null; type = type.getSuperclass()) {
+            for (Method method : type.getDeclaredMethods()) {
+                if (!Modifier.isStatic(method.getModifiers())) {
+                    CommandLineOption commandLineOption = method.getAnnotation(CommandLineOption.class);
+                    if (commandLineOption != null) {
+                        final CommandLineOptionDescriptor optionDescriptor = new CommandLineOptionDescriptor(task, commandLineOption, method);
+                        assertMethodTypeSupported(optionDescriptor, taskClazz, method);
+
+                        if (options.containsKey(optionDescriptor.getName())) {
+                            throw new CommandLineArgumentException(String.format("Option '%s' linked to multiple methods in class '%s'.",
+                                    optionDescriptor.getName(), taskClazz.getName()));
+                        }
+                        options.put(optionDescriptor.getName(), optionDescriptor);
+                    }
+                }
+            }
+        }
+        return CollectionUtils.sort(options.values());
     }
 }

@@ -1,4 +1,6 @@
-task hello(type: CustomTask)
+allprojects{
+    task hello(type: CustomTask)
+}
 
 class CustomTask extends DefaultTask {
     @TaskAction
