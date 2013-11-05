@@ -73,6 +73,25 @@ It needs to be figured out where we get previous versions from a dependency from
 - Binary Repository Manager
 - The internal Gradle Cache can save dependency versions that have been updated.
 
+## Notes
 
-
-
+- Two primitive operations:
+    - Check my changed sources against unchanged dependencies.
+    - Check my unchanged sources against changed dependencies.
+    - Can combine these
+- Two patterns:
+    - Optimistic: use changed dependencies for each build, updating the source to record which versions were used
+    - Pessimistic: use unchanged dependencies for each build, updating the source only when explicitly requested
+- When a failure occurs
+    - Provide a way to roll back the changes in dependencies and try again
+    - Could potentially provide a way to try again with a different set of dependency changes
+    - Blacklist the dependencies that were used so that other builds do not experiment with the same versions
+- Reporting
+    - Report on what changes were used
+    - Report on which new versions could be used
+- Provide some high level lifecycle and patterns on top of the primitives
+    - Allow some mechanism for ad hod experimentation with dependency versions
+- Provide some VCS integration to allow a CI build to change the dependencies.
+- Storage of the resolved graph
+    - In source
+    - In the repository indexed by hash of the dependency selectors
