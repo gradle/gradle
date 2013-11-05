@@ -5,12 +5,14 @@ This specification outlines the work that is required to use Gradle to build app
 There are 3 main use cases:
 
 - A developer builds a Play application.
-- A developer runs a Play application.
-- A deployer runs a Play application. That is, a Play application is run in a production environment.
+- A developer runs a Play application during development.
+- A deployer runs a Play application. That is, a Play application is packaged up as a distribution which can be run in a production environment.
+
+# Implementation plan - Milestone 1
 
 ## Out of scope
 
-The following features are currently out of scope for this spec, but certainly make sense for later work:
+The following features are currently out of scope for this milestone, but certainly make sense for later work:
 
 - Building a Play application for multiple Scala versions. For now, the build for a given Play application will target a single Scala version.
   It will be possible to declare which version of Scala to build for.
@@ -20,10 +22,7 @@ The following features are currently out of scope for this spec, but certainly m
 - Any specific support for publishing and resolving Play applications, beyond Gradle's current general purpose capabilities.
 - Any specific support for authoring plugins, beyond Gradle's current support.
 - Installing the Play tools on the build machine.
-- Bootstrapping a Play project.
 - Migrating or importing SBT settings for a Play project.
-
-# Implementation plan
 
 ## Developer compiles Java and Scala source for Play application
 
@@ -33,8 +32,6 @@ Developer uses the standard build lifecycle, such as `gradle assemble` or `gradl
 - Adapt language plugins conventions to Play conventions
     - need to include unmanaged dependencies from `lib/` as compile dependencies
     - sub-projects have a slightly different layout to root project
-
-TBD - support the new language plugins?
 
 ## Developer compiles route and template source for Play application
 
@@ -124,6 +121,17 @@ the application in the browser and some source files have changed. Note that 're
 The implementation for continuous and non-continuous modes are basically the same, the main difference being when a rebuild
 is triggered.
 
+## Resources are built on demand when running Play application
+
+When running a Play application, start the application without building any resources. Build these resources only when requested
+by the client.
+
+- On each request, check whether the task which produces the requested resource has been executed or not. If not, run the task synchronously
+  and block until completed.
+- Include the transitive input of these tasks as inputs to the watch mechanism, so that further changes in these source files will
+  trigger a restart of the application at the appropriate time.
+- Failures need to be forwarded to the application for display.
+
 ## Developer views compile and other build failures in Play application
 
 Adapt compiler output to the format expected by Play:
@@ -132,3 +140,47 @@ Adapt compiler output to the format expected by Play:
 - Java and scala compilation failures
 - Asset compilation failures
 - Other verification task failures?
+
+## Native integration with Specs 2
+
+Introduce a test integration which allows Specs 2 specifications to be executed directly by Gradle, without requiring the use of the Specs 2
+JUnit integration.
+
+- Add a Specs 2 plugin
+- Add some Specs 2 options to test tasks
+- Detect specs 2 specifications and schedule for execution
+- Execute specs 2 specifications using its API and adapt execution events
+
+Note: no changes to the HTML or XML test reports will be made.
+
+## Developer runs Scala interactive console
+
+Allow the Scala interactive console to be launched from the command-line.
+
+- Build the project's main classes and make them visible via the console
+- Add support for client-side execution of actions
+- Model the Scala console as a client-side action
+- Remove console decoration prior to starting the Scala console
+
+## Scala code quality plugins
+
+- Scalastyle
+- SCCT
+
+## Bootstrap a new Play project
+
+Extend the build init plugin so that it can bootstrap a new Play project, producing the same output as `play new` except with a Gradle build instead of
+an SBT build.
+
+## Documentation
+
+- Migrating an SBT based Play project to Gradle
+- Writing Gradle plugins that extend the base Play plugin
+
+# Implementation plan - Later milestones
+
+Some candidates for later work:
+
+- Improve the HTML test report to render a tree of test executions, for better reporting of Specs 2 execution (and other test frameworks)
+- Support the new Java and Scala language plugins
+- Improve watch mode so that only those tasks affected be a given change are executed
