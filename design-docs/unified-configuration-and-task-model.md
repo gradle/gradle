@@ -185,6 +185,8 @@ The implementation should be able to detect and report on typos and predicates t
 - Model element is mutated after it is closed
 - Integration with old DSL.
 
+## Native language plugins do not create tasks for binaries that cannot be built
+
 ## Plugins use model rules to define implicit tasks
 
 Replace usages of `TaskContainerInternal.addPlaceholderAction()`
