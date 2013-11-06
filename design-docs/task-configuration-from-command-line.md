@@ -153,23 +153,32 @@ The usage message of running `gradle help --task init` includes the available va
 
 - A reasonable error message is provided when user specified an illegal value for an enum property from the command-line.
 - A reasonable error message is provided when user specified an illegal value for an string property from the command-line.
-- A reasonable error message is provided when a string property is configured with an illegal value in the build script.
 
 ### Implementation approach
 
 - Introduce marker annotation `Option("optionName")` to mark a task property mapped to a commandline option.
-- `@Option` with not provided "optionName" is mapped to option with same name as the property
+- `@Option` with not provided "optionName" is mapped to option with same name as the annotated field
 - `@Option("optionName")` annotated on Enums includes enum values as possible option values
 - `@Option("optionName")` annotated on boolean includes true/false as possible option values
 - `@Option("optionName")` annotated on a setter method evaluates the available options from the parameter type)
-- `@Option("optionName")` annotated on a getter method evaluates the available options from the parameter type)
-
 - Introduce marker annotation `OptionValues("optionName")` to to allow a dynamic value lookup in the task implementation itself.
 - Adapt InitBuild task to use `@OptionValues` to map values for the `--type` command line option.
-- Add a task validator that validates a string property has a legal value at execution time.
 - Update the 'using Gradle from the command-line' user guide chapter.
 
+## Add task validator for task options
+
+### User visible changes
+
+When task options that have unsupported option values, will throw an Exception pointing to the wrong assigned option value and hints
+what values are supported.
+
+### Implementation approach
+- Add a task validator that validates a string property has a legal value at execution time.
+
 ## Support camel-case matching for task commandline property values
+
+### Test coverage
+- A reasonable error message is provided when a string property is configured with an illegal value in the build script.
 
 ### User visible changes
 
