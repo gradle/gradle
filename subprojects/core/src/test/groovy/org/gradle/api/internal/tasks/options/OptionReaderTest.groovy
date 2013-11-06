@@ -112,7 +112,6 @@ class OptionReaderTest extends Specification {
         options[1].argumentType == String
         options[1].availableValues.isEmpty()
 
-
         options[2].name == "field3"
         options[2].description == "Descr Field3"
         options[2].argumentType == TestEnum
