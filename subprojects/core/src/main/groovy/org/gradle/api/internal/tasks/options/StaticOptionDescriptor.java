@@ -25,6 +25,11 @@ public class StaticOptionDescriptor implements OptionDescriptor {
     private final String description;
 
     public StaticOptionDescriptor(String name, Option option, OptionElement optionElement) {
+        if (name== null || name.length() == 0) {
+            throw new OptionValidationException(String.format("No option name set on '%s' in class '%s'.", optionElement.getName(), optionElement.getDeclaredClass().getName()));
+        }
+
+
         this.name = name;
         this.optionElement = optionElement;
         this.description = readDescriptionFromOption(option);

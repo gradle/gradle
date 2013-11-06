@@ -29,6 +29,7 @@ import java.util.*;
 public class OptionReader {
 
     private ListMultimap<Class, StaticOptionDescriptor> cachedClassDescriptors = ArrayListMultimap.create();
+
     public List<OptionDescriptor> getOptions(Task task) {
         final Class<? extends Task> taskClazz = task.getClass();
         Map<String, OptionDescriptor> options = new HashMap<String, OptionDescriptor>();
@@ -70,12 +71,12 @@ public class OptionReader {
                 Option option = field.getAnnotation(Option.class);
                 if (option != null) {
                     String optionName;
-                    if(option.options()[0].length() == 0){
+                    if (option.options()[0].length() == 0) {
                         optionName = field.getName();
-                    }else{
+                    } else {
                         optionName = option.options()[0];
                     }
-                    staticDescriptors.add(new StaticOptionDescriptor(optionName, option, new FieldOptionElement(field)));
+                    staticDescriptors.add(new StaticOptionDescriptor(optionName, option, new FieldOptionElement(optionName, field)));
                 }
             }
         }

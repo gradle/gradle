@@ -20,18 +20,27 @@ import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.List;
 
-public class MethodOptionElement implements OptionElement {
+public class MethodOptionElement extends AbstractOptionElement {
 
     private final Method method;
-    private ArrayList<String> availableValues;
-    private Class<?> argumentType;
+    private List<String> availableValues;
+    private Class<?> optionType;
 
     public MethodOptionElement(String optionName, Method method) {
         assertMethodTypeSupported(optionName, method);
         this.method = method;
+        this.optionType = calculateOptionType();
+    }
+
+    private Class<?> calculateOptionType() {
+        if (method.getParameterTypes().length == 0) {
+            //flag method
+            return Void.TYPE;
+        } else {
+            return calculateOptionType(method.getParameterTypes()[0]);
+        }
     }
 
     public Class<?> getDeclaredClass() {
@@ -41,17 +50,13 @@ public class MethodOptionElement implements OptionElement {
     public List<String> getAvailableValues() {
         //calculate list lazy to avoid overhead upfront
         if (availableValues == null) {
-            calculdateAvailableValuesAndTypes();
+            availableValues = calculdateAvailableValues(optionType);
         }
         return availableValues;
     }
 
     public Class<?> getOptionType() {
-        //calculate lazy to avoid overhead upfront
-        if (argumentType == null) {
-            calculdateAvailableValuesAndTypes();
-        }
-        return argumentType;
+        return optionType;
     }
 
     public String getName() {
@@ -63,41 +68,10 @@ public class MethodOptionElement implements OptionElement {
         if (parameterValues.size() == 0) {
             javaMethod.invoke(object, true);
         } else if (parameterValues.size() > 1) {
-            //TODO add List<String> support
-            //TODO propagate this exception
-            throw new IllegalArgumentException(String.format("Lists not supported for option"));
+            throw new IllegalArgumentException(String.format("Lists not supported for option."));
         } else {
             Object arg = getParameterObject(parameterValues.get(0));
             javaMethod.invoke(object, arg);
-        }
-    }
-
-    private Object getParameterObject(String value) {
-        if (getOptionType().isEnum()) {
-            return Enum.valueOf((Class<? extends Enum>) getOptionType(), value);
-        }
-        return value;
-    }
-
-
-    private void calculdateAvailableValuesAndTypes() {
-        availableValues = new ArrayList<String>();
-        if (method.getParameterTypes().length == 1) {
-            Class<?> type = method.getParameterTypes()[0];
-            //we don't want to support "--flag true" syntax
-            if (type == Boolean.class || type == Boolean.TYPE) {
-                argumentType = Void.TYPE;
-            } else {
-                argumentType = type;
-                if (argumentType.isEnum()) {
-                    final Enum[] enumConstants = (Enum[]) argumentType.getEnumConstants();
-                    for (Enum enumConstant : enumConstants) {
-                        availableValues.add(enumConstant.name());
-                    }
-                }
-            }
-        } else {
-            argumentType = Void.TYPE;
         }
     }
 

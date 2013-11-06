@@ -19,25 +19,32 @@ package org.gradle.api.internal.tasks.options;
 import org.gradle.api.GradleException;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.List;
 
-public class FieldOptionElement implements OptionElement {
+public class FieldOptionElement extends AbstractOptionElement{
 
     private final Field field;
     private List<String> availableValues;
-    private Class<?> argumentType;
+    private Class<?> optionType;
 
-    public FieldOptionElement(Field field) {
-        // TODO assert field type supported
+    public FieldOptionElement(String name, Field field) {
+        assertFieldSupported(name, field);
         this.field = field;
+        this.optionType = calculateOptionType(field.getType());
+    }
+
+    private void assertFieldSupported(String name, Field field) {
+        final Class<?> type = field.getType();
+        if (!(type == Boolean.class || type == Boolean.TYPE)
+                && !type.isAssignableFrom(String.class)
+                && !type.isEnum()) {
+            throw new OptionValidationException(String.format("Option '%s' cannot be casted to type '%s' in class '%s'.",
+                    name, type.getName(), field.getDeclaringClass().getName()));
+        }
     }
 
     public Class<?> getOptionType() {
-        if (argumentType == null) {
-            calculdateAvailableValuesAndTypes();
-        }
-        return argumentType;
+        return optionType;
     }
 
     public String getName() {
@@ -51,14 +58,14 @@ public class FieldOptionElement implements OptionElement {
     public List<String> getAvailableValues() {
         //calculate list lazy to avoid overhead upfront
         if (availableValues == null) {
-            calculdateAvailableValuesAndTypes();
+            availableValues = calculdateAvailableValues(field.getType());
         }
         return availableValues;
     }
 
 
-    public void apply(Object object, List<String> parameterValues){
-        if(argumentType==Void.TYPE && parameterValues.size() == 0) {
+    public void apply(Object object, List<String> parameterValues) {
+        if (optionType == Void.TYPE && parameterValues.size() == 0) {
             setFieldValue(object, true);
         } else if (parameterValues.size() > 1) {
             throw new IllegalArgumentException(String.format("Lists not supported for option"));
@@ -74,31 +81,6 @@ public class FieldOptionElement implements OptionElement {
             field.set(object, value);
         } catch (IllegalAccessException e) {
             throw new GradleException(String.format("Cannot apply option value %s on field %s of object %s", value, field.getName(), object));
-        }
-    }
-
-    private Object getParameterObject(String value) {
-        if (getOptionType().isEnum()) {
-            return Enum.valueOf((Class<? extends Enum>) getOptionType(), value);
-        }
-        return value;
-    }
-
-    private void calculdateAvailableValuesAndTypes() {
-        availableValues = new ArrayList<String>();
-
-        Class<?> type = field.getType();
-        //we don't want to support "--flag true" syntax
-        if (type == Boolean.class || type == Boolean.TYPE) {
-            argumentType = Void.TYPE;
-        } else {
-            argumentType = type;
-            if (argumentType.isEnum()) {
-                final Enum[] enumConstants = (Enum[]) argumentType.getEnumConstants();
-                for (Enum enumConstant : enumConstants) {
-                    availableValues.add(enumConstant.name());
-                }
-            }
         }
     }
 }

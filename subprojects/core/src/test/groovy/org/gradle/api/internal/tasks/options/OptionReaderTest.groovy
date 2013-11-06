@@ -139,6 +139,15 @@ class OptionReaderTest extends Specification {
         e.message == "No description set on option 'field' at for class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$TestTask8'."
     }
 
+    def "throws decent error when method annotated without option set"() {
+        when:
+        reader.getOptions(project.tasks.create("aTask", TestTask9));
+        then:
+        def e = thrown(OptionValidationException)
+        e.message == "No option name set on 'setStrings' in class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$TestTask9'."
+    }
+
+
     public static class TestTask1 extends DefaultTask {
         @Option(options = "stringValue", description = "string value")
         public void setStringValue(String value) {
@@ -233,6 +242,13 @@ class OptionReaderTest extends Specification {
         @Option
         String field
     }
+
+    public static class TestTask9 extends DefaultTask {
+        @Option
+        public void setStrings(String value) {
+        }
+    }
+
 
     enum TestEnum {
         ABC, DEF
