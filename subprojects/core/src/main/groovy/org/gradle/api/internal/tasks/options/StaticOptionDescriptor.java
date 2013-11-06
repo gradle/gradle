@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.options;
 
+import java.lang.annotation.IncompleteAnnotationException;
 import java.util.List;
 
 public class StaticOptionDescriptor implements OptionDescriptor {
@@ -27,6 +28,15 @@ public class StaticOptionDescriptor implements OptionDescriptor {
         this.name = name;
         this.option = option;
         this.optionElement = optionElement;
+        assertDescriptionSet();
+    }
+
+    private void assertDescriptionSet() {
+        try{
+            option.description();
+        }catch(IncompleteAnnotationException ex){
+            throw new OptionValidationException(String.format("No description set on option '%s' at for class '%s'.", name, optionElement.getDeclaredClass().getName()));
+        }
     }
 
     public OptionElement getOptionElement(){

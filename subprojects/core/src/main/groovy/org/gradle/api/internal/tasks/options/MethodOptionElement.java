@@ -33,6 +33,9 @@ public class MethodOptionElement implements OptionElement {
         this.method = method;
     }
 
+    public Class<?> getDeclaredClass() {
+        return method.getDeclaringClass();
+    }
 
     public List<String> getAvailableValues() {
         //calculate list lazy to avoid overhead upfront

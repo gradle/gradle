@@ -44,6 +44,10 @@ public class FieldOptionElement implements OptionElement {
         return field.getName();
     }
 
+    public Class<?> getDeclaredClass() {
+        return field.getDeclaringClass();
+    }
+
     public List<String> getAvailableValues() {
         //calculate list lazy to avoid overhead upfront
         if (availableValues == null) {

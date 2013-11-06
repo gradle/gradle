@@ -36,5 +36,5 @@ public @interface Option {
      *
      * @return The description.
      */
-    String description() default "no description available";
+    String description();
 }

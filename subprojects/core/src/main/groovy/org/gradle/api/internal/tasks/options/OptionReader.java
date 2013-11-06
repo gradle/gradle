@@ -47,7 +47,7 @@ public class OptionReader {
         Set<String> processedOptionDescriptors = new HashSet<String>();
         for (StaticOptionDescriptor staticDescriptor : staticDescriptors) {
             if (processedOptionDescriptors.contains(staticDescriptor.getName())) {
-                throw new CommandLineArgumentException(String.format("Option '%s' linked to multiple elements in class '%s'.",
+                throw new OptionValidationException(String.format("Option '%s' linked to multiple elements in class '%s'.",
                         staticDescriptor.getName(), task.getClass().getName()));
             }
             processedOptionDescriptors.add(staticDescriptor.getName());
@@ -102,7 +102,7 @@ public class OptionReader {
     private void assertMethodTypeSupported(OptionDescriptor optionDescriptor, Class taskClazz, Method method) {
         final Class<?>[] parameterTypes = method.getParameterTypes();
         if (parameterTypes.length > 1) {
-            throw new CommandLineArgumentException(String.format("Option '%s' cannot be linked to methods with multiple parameters in class '%s#%s'.",
+            throw new OptionValidationException(String.format("Option '%s' cannot be linked to methods with multiple parameters in class '%s#%s'.",
                     optionDescriptor.getName(), taskClazz.getName(), method.getName()));
         }
 
@@ -111,7 +111,7 @@ public class OptionReader {
             if (!(parameterType == Boolean.class || parameterType == Boolean.TYPE)
                     && !parameterType.isAssignableFrom(String.class)
                     && !parameterType.isEnum()) {
-                throw new CommandLineArgumentException(String.format("Option '%s' cannot be casted to parameter type '%s' in class '%s'.",
+                throw new OptionValidationException(String.format("Option '%s' cannot be casted to parameter type '%s' in class '%s'.",
                         optionDescriptor.getName(), parameterType.getName(), taskClazz.getName()));
             }
         }

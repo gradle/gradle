@@ -19,6 +19,8 @@ package org.gradle.api.internal.tasks.options;
 import java.util.List;
 
 public interface OptionElement {
+    Class<?> getDeclaredClass();
+
     List getAvailableValues();
 
     Class<?> getOptionType();
