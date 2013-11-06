@@ -19,7 +19,6 @@ package org.gradle.api.internal.tasks.options;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import org.gradle.api.Task;
-import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.util.CollectionUtils;
 
 import java.lang.reflect.Field;
@@ -89,31 +88,12 @@ public class OptionReader {
             if (!Modifier.isStatic(method.getModifiers())) {
                 Option option = method.getAnnotation(Option.class);
                 if (option != null) {
-                    final StaticOptionDescriptor methodOptionDescriptor = new StaticOptionDescriptor(option.options()[0], option, new MethodOptionElement(method));
-                    //todo move assertion to MethodOptionElement
-                    assertMethodTypeSupported(methodOptionDescriptor, type, method);
+                    final String optionName = option.options()[0];
+                    final StaticOptionDescriptor methodOptionDescriptor = new StaticOptionDescriptor(optionName, option, new MethodOptionElement(optionName, method));
                     staticDescriptors.add(methodOptionDescriptor);
                 }
             }
         }
         return staticDescriptors;
-    }
-
-    private void assertMethodTypeSupported(OptionDescriptor optionDescriptor, Class taskClazz, Method method) {
-        final Class<?>[] parameterTypes = method.getParameterTypes();
-        if (parameterTypes.length > 1) {
-            throw new OptionValidationException(String.format("Option '%s' cannot be linked to methods with multiple parameters in class '%s#%s'.",
-                    optionDescriptor.getName(), taskClazz.getName(), method.getName()));
-        }
-
-        if (parameterTypes.length == 1) {
-            final Class<?> parameterType = parameterTypes[0];
-            if (!(parameterType == Boolean.class || parameterType == Boolean.TYPE)
-                    && !parameterType.isAssignableFrom(String.class)
-                    && !parameterType.isEnum()) {
-                throw new OptionValidationException(String.format("Option '%s' cannot be casted to parameter type '%s' in class '%s'.",
-                        optionDescriptor.getName(), parameterType.getName(), taskClazz.getName()));
-            }
-        }
     }
 }

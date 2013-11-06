@@ -43,10 +43,6 @@ public class InstanceOptionDescriptor implements OptionDescriptor {
         return delegate.getName();
     }
 
-    public Option getOption() {
-        return delegate.getOption();
-    }
-
     public List<String> getAvailableValues() {
         final List<String> values = delegate.getAvailableValues();
 
@@ -77,7 +73,7 @@ public class InstanceOptionDescriptor implements OptionDescriptor {
     }
 
     public String getDescription() {
-        return getOption().description();
+        return delegate.getDescription();
     }
 
     public void apply(Object objectParam, List<String> parameterValues) {

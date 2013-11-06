@@ -29,7 +29,8 @@ public class MethodOptionElement implements OptionElement {
     private ArrayList<String> availableValues;
     private Class<?> argumentType;
 
-    public MethodOptionElement(Method method) {
+    public MethodOptionElement(String optionName, Method method) {
+        assertMethodTypeSupported(optionName, method);
         this.method = method;
     }
 
@@ -100,4 +101,21 @@ public class MethodOptionElement implements OptionElement {
         }
     }
 
+    private static void assertMethodTypeSupported(String optionName, Method method) {
+        final Class<?>[] parameterTypes = method.getParameterTypes();
+        if (parameterTypes.length > 1) {
+            throw new OptionValidationException(String.format("Option '%s' cannot be linked to methods with multiple parameters in class '%s#%s'.",
+                    optionName, method.getDeclaringClass().getName(), method.getName()));
+        }
+
+        if (parameterTypes.length == 1) {
+            final Class<?> parameterType = parameterTypes[0];
+            if (!(parameterType == Boolean.class || parameterType == Boolean.TYPE)
+                    && !parameterType.isAssignableFrom(String.class)
+                    && !parameterType.isEnum()) {
+                throw new OptionValidationException(String.format("Option '%s' cannot be casted to parameter type '%s' in class '%s'.",
+                        optionName, parameterType.getName(), method.getDeclaringClass().getName()));
+            }
+        }
+    }
 }

@@ -21,25 +21,24 @@ import java.util.List;
 
 public class StaticOptionDescriptor implements OptionDescriptor {
     private final String name;
-    private final Option option;
     private final OptionElement optionElement;
+    private final String description;
 
     public StaticOptionDescriptor(String name, Option option, OptionElement optionElement) {
         this.name = name;
-        this.option = option;
         this.optionElement = optionElement;
-        assertDescriptionSet();
+        this.description = readDescriptionFromOption(option);
     }
 
-    private void assertDescriptionSet() {
-        try{
-            option.description();
-        }catch(IncompleteAnnotationException ex){
+    private String readDescriptionFromOption(Option option) {
+        try {
+            return option.description();
+        } catch (IncompleteAnnotationException ex) {
             throw new OptionValidationException(String.format("No description set on option '%s' at for class '%s'.", name, optionElement.getDeclaredClass().getName()));
         }
     }
 
-    public OptionElement getOptionElement(){
+    public OptionElement getOptionElement() {
         return optionElement;
     }
 
@@ -55,12 +54,8 @@ public class StaticOptionDescriptor implements OptionDescriptor {
         return optionElement.getAvailableValues();
     }
 
-    public Option getOption() {
-        return option;
-    }
-
     public String getDescription() {
-        return getOption().description();
+        return description;
     }
 
     public void apply(Object object, List<String> parameterValues) {

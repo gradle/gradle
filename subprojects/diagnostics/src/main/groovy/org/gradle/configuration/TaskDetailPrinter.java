@@ -156,7 +156,7 @@ public class TaskDetailPrinter {
                 }
             })));
             //description does not differ between task objects, grab first one
-            output.text(INDENT).text(descriptorsForCurrentName.iterator().next().getOption().description());
+            output.text(INDENT).text(descriptorsForCurrentName.iterator().next().getDescription());
             if (!availableValues.isEmpty()) {
                 final int optionDescriptionOffset = 2 * INDENT.length() + optionString.length();
                 final LinePrefixingStyledTextOutput prefixedOutput = createIndentedOutput(output, optionDescriptionOffset);

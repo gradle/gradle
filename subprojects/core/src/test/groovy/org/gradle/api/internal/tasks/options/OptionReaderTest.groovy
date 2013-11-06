@@ -36,31 +36,31 @@ class OptionReaderTest extends Specification {
         List<InstanceOptionDescriptor> options = reader.getOptions(project.tasks.create("aTask", TestTask1))
         then:
         options[0].name == "aFlag"
-        options[0].option.description() == "simple flag"
+        options[0].description == "simple flag"
         options[0].argumentType == Void.TYPE
         options[0].optionElement.name == "setActive"
         options[0].availableValues == []
 
         options[1].name == "booleanValue"
-        options[1].option.description() == "boolean value"
+        options[1].description == "boolean value"
         options[1].argumentType == Void.TYPE
         options[1].optionElement.name == "setBooleanValue"
         options[1].availableValues == []
 
         options[2].name == "enumValue"
-        options[2].option.description() == "enum value"
+        options[2].description == "enum value"
         options[2].argumentType == TestEnum
         options[2].optionElement.name == "setEnumValue"
         options[2].availableValues == ["ABC", "DEF"]
 
         options[3].name == "objectValue"
-        options[3].option.description() == "object value"
+        options[3].description == "object value"
         options[3].argumentType == Object
         options[3].optionElement.name == "setObjectValue"
         options[3].availableValues == []
 
         options[4].name == "stringValue"
-        options[4].option.description() == "string value"
+        options[4].description == "string value"
         options[4].argumentType == String
         options[4].optionElement.name == "setStringValue"
         options[4].availableValues == ["dynValue1", "dynValue2"]
@@ -75,7 +75,7 @@ class OptionReaderTest extends Specification {
         e.message == "Option 'stringValue' linked to multiple elements in class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$TestTask2_Decorated'."
     }
 
-    def "ignores static methods"() {
+    def "ignores static methods and fields"() {
         when:
         List<InstanceOptionDescriptor> options = reader.getOptions(Mock(TestTask3))
         then:
@@ -104,7 +104,7 @@ class OptionReaderTest extends Specification {
         List<InstanceOptionDescriptor> options = reader.getOptions(Mock(TestTask6))
         then:
         options[0].name == "customOptionName"
-        options[0].option.description() == "custom description"
+        options[0].description == "custom description"
         options[0].argumentType == String
 
         options[1].name == "field2"
@@ -188,6 +188,8 @@ class OptionReaderTest extends Specification {
         @Option(options = "staticString", description = "string value")
         public static void setStaticString(String value) {
         }
+        @Option(description = "staticOption")
+        static String staticField
     }
 
     public static class TestTask4 extends DefaultTask {

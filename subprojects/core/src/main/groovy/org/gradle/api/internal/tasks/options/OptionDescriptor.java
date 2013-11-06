@@ -20,8 +20,6 @@ import java.util.List;
 
 public interface OptionDescriptor extends Comparable<OptionDescriptor> {
 
-    Option getOption();
-
     String getName();
 
     Class getArgumentType();
