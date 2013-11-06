@@ -14,21 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks
+package org.gradle.api.internal.tasks.options;
 
-import java.lang.annotation.ElementType
-import java.lang.annotation.Inherited
-import java.lang.annotation.Retention
-import java.lang.annotation.RetentionPolicy
-import java.lang.annotation.Target
+import java.util.List;
 
+public interface OptionDescriptor extends Comparable<OptionDescriptor> {
 
-/**
- * Marks a method providing as available values for a given option.
- */
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
-@Inherited
-public @interface OptionValues {
-    String[] value();
+    Option getOption();
+
+    String getName();
+
+    Class getArgumentType();
+
+    List<String> getAvailableValues();
+
+    String getDescription();
+
+    public OptionElement getOptionElement();
+
+    void apply(Object object, List<String> values);
+
 }
+

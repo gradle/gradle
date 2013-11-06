@@ -17,8 +17,8 @@
 package org.gradle.execution.commandline;
 
 import org.gradle.api.Task;
-import org.gradle.api.internal.tasks.OptionDescriptor;
-import org.gradle.api.internal.tasks.OptionReader;
+import org.gradle.api.internal.tasks.options.OptionDescriptor;
+import org.gradle.api.internal.tasks.options.OptionReader;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;

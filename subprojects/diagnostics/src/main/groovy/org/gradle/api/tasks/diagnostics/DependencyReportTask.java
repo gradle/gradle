@@ -17,7 +17,7 @@ package org.gradle.api.tasks.diagnostics;
 
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.internal.tasks.Option;
+import org.gradle.api.internal.tasks.options.Option;
 import org.gradle.api.tasks.diagnostics.internal.DependencyReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.ReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.dependencies.AsciiDependencyReportRenderer;

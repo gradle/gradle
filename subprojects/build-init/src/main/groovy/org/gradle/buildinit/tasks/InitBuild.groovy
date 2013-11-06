@@ -19,8 +19,8 @@ package org.gradle.buildinit.tasks
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.Incubating
-import org.gradle.api.internal.tasks.Option
-import org.gradle.api.internal.tasks.OptionValues
+import org.gradle.api.internal.tasks.options.Option
+import org.gradle.api.internal.tasks.options.OptionValues
 import org.gradle.api.tasks.TaskAction
 import org.gradle.buildinit.plugins.internal.BuildInitTypeIds
 import org.gradle.buildinit.plugins.internal.ProjectLayoutSetupRegistry

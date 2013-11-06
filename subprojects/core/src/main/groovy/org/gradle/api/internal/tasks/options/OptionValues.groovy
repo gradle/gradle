@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,28 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks;
 
-import java.lang.annotation.*;
+package org.gradle.api.internal.tasks.options
+
+import java.lang.annotation.ElementType
+import java.lang.annotation.Inherited
+import java.lang.annotation.Retention
+import java.lang.annotation.RetentionPolicy
+import java.lang.annotation.Target
+
 
 /**
- * Marks a property as available from the command-line.
+ * Marks a method providing as available values for a given option.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 @Inherited
-public @interface Option {
-    /**
-     * The options to map to this property.
-     *
-     * @return The options.
-     */
-    String[] options();
-
-    /**
-     * The description of this option.
-     *
-     * @return The description.
-     */
-    String description();
+public @interface OptionValues {
+    String[] value();
 }

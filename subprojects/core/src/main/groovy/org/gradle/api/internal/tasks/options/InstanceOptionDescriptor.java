@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks;
+package org.gradle.api.internal.tasks.options;
 
 import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.internal.reflect.JavaReflectionUtil;
@@ -35,16 +35,16 @@ public class InstanceOptionDescriptor implements OptionDescriptor {
         this.delegate = delegate;
     }
 
+    public OptionElement getOptionElement() {
+        return delegate.getOptionElement();
+    }
+
     public String getName() {
         return delegate.getName();
     }
 
     public Option getOption() {
         return delegate.getOption();
-    }
-
-    public Method getConfigurationMethod() {
-        return delegate.getConfigurationMethod();
     }
 
     public List<String> getAvailableValues() {
@@ -66,9 +66,9 @@ public class InstanceOptionDescriptor implements OptionDescriptor {
                 if (Collection.class.isAssignableFrom(method.getReturnType()) && method.getParameterTypes().length == 0) {
                     OptionValues optionValues = method.getAnnotation(OptionValues.class);
                     if (optionValues != null && optionValues.value()[0].equals(getName())) {
-                        final JavaMethod<Object, Object> methodToInvoke = JavaReflectionUtil.method(Object.class, Object.class, method);
-                        List values = (List) methodToInvoke.invoke(object);
-                        return CollectionUtils.stringize(values);
+                        final JavaMethod<Object, Collection> methodToInvoke = JavaReflectionUtil.method(Object.class, Collection.class, method);
+                        Collection values = methodToInvoke.invoke(object);
+                        return CollectionUtils.stringize(CollectionUtils.toList(values));
                     }
                 }
             }

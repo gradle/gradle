@@ -1,4 +1,4 @@
-import org.gradle.api.internal.tasks.Option
+import org.gradle.api.internal.tasks.options.Option
 
 allprojects{
     task hello(type: CustomTask)

@@ -14,26 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks;
+package org.gradle.api.internal.tasks.options;
 
-import java.lang.reflect.Method;
 import java.util.List;
 
-public interface OptionDescriptor extends Comparable<OptionDescriptor> {
+public interface OptionElement {
+    List getAvailableValues();
 
-    Option getOption();
+    Class<?> getOptionType();
 
     String getName();
 
-    Method getConfigurationMethod();
-
-    Class getArgumentType();
-
-    List<String> getAvailableValues();
-
-    String getDescription();
-
-    void apply(Object object, List<String> values);
-
+    void apply(Object object, List<String> parameterValues);
 }
-

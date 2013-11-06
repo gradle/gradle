@@ -18,6 +18,10 @@ package org.gradle.api.internal.tasks
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
+import org.gradle.api.internal.tasks.options.InstanceOptionDescriptor
+import org.gradle.api.internal.tasks.options.Option
+import org.gradle.api.internal.tasks.options.OptionReader
+import org.gradle.api.internal.tasks.options.OptionValues
 import org.gradle.cli.CommandLineArgumentException
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
@@ -33,29 +37,40 @@ class OptionReaderTest extends Specification {
         project = ProjectBuilder.builder().build();
     }
 
-    def "can read commandlineoptions of a task"() {
+    def "can read options linked to setter methods of a task"() {
         when:
-        List<InstanceOptionDescriptor> options = reader.getOptions(Mock(TestTask1))
+        List<InstanceOptionDescriptor> options = reader.getOptions(project.tasks.create("aTask", TestTask1))
         then:
+        options[0].name == "aFlag"
         options[0].option.description() == "simple flag"
         options[0].argumentType == Void.TYPE
-        options[0].configurationMethod.name == "setActive"
+        options[0].optionElement.name == "setActive"
+        options[0].availableValues == []
 
+        options[1].name == "booleanValue"
         options[1].option.description() == "boolean value"
         options[1].argumentType == Void.TYPE
-        options[1].configurationMethod.name == "setBooleanValue"
+        options[1].optionElement.name == "setBooleanValue"
+        options[1].availableValues == []
 
+        options[2].name == "enumValue"
         options[2].option.description() == "enum value"
         options[2].argumentType == TestEnum
-        options[2].configurationMethod.name == "setEnumValue"
+        options[2].optionElement.name == "setEnumValue"
+        options[2].availableValues == ["ABC", "DEF"]
 
+        options[3].name == "objectValue"
         options[3].option.description() == "object value"
         options[3].argumentType == Object
-        options[3].configurationMethod.name == "setObjectValue"
+        options[3].optionElement.name == "setObjectValue"
+        options[3].availableValues == []
 
+        options[4].name == "stringValue"
         options[4].option.description() == "string value"
         options[4].argumentType == String
-        options[4].configurationMethod.name == "setStringValue"
+        options[4].optionElement.name == "setStringValue"
+        options[4].availableValues == ["dynValue1", "dynValue2"]
+
     }
 
     def "fail when multiple methods define same option"() {
@@ -63,7 +78,7 @@ class OptionReaderTest extends Specification {
         reader.getOptions(project.tasks.create("aTask", TestTask2))
         then:
         def e = thrown(CommandLineArgumentException)
-        e.message == "Option 'stringValue' linked to multiple methods in class 'org.gradle.api.internal.tasks.OptionReaderTest\$TestTask2_Decorated'."
+        e.message == "Option 'stringValue' linked to multiple elements in class 'org.gradle.api.internal.tasks.OptionReaderTest\$TestTask2_Decorated'."
     }
 
     def "ignores static methods"() {
@@ -79,7 +94,7 @@ class OptionReaderTest extends Specification {
         reader.getOptions(project.tasks.create("aTask", TestTask5))
         then:
         def e = thrown(CommandLineArgumentException)
-        e.message == "Option 'fileValue' cannot be casted to parameter type 'java.io.File' in class 'org.gradle.api.internal.tasks.OptionReaderTest\$TestTask5_Decorated'."
+        e.message == "Option 'fileValue' cannot be casted to parameter type 'java.io.File' in class 'org.gradle.api.internal.tasks.OptionReaderTest\$TestTask5'."
     }
 
 
@@ -88,7 +103,32 @@ class OptionReaderTest extends Specification {
         reader.getOptions(project.tasks.create("aTask", TestTask4));
         then:
         def e = thrown(CommandLineArgumentException)
-        e.message == "Option 'stringValue' cannot be linked to methods with multiple parameters in class 'org.gradle.api.internal.tasks.OptionReaderTest\$TestTask4_Decorated#setStrings'."
+        e.message == "Option 'stringValue' cannot be linked to methods with multiple parameters in class 'org.gradle.api.internal.tasks.OptionReaderTest\$TestTask4#setStrings'."
+    }
+
+    def "handles field options"() {
+        when:
+        List<InstanceOptionDescriptor> options = reader.getOptions(Mock(TestTask6))
+        then:
+        options[0].name == "customOptionName"
+        options[0].option.description() == "custom description"
+        options[0].argumentType == String
+
+        options[1].name == "field2"
+        options[1].description == "no description available"
+        options[1].argumentType == String
+        options[1].availableValues.isEmpty()
+
+
+        options[2].name == "field3"
+        options[2].description == "no description available"
+        options[2].argumentType == TestEnum
+        options[2].availableValues as Set == ["ABC", "DEF"] as Set
+
+        options[3].name == "field4"
+        options[3].description == "no description available"
+        options[3].argumentType == Void.TYPE
+        options[3].availableValues.isEmpty()
     }
 
     public static class TestTask1 extends DefaultTask {
@@ -110,6 +150,19 @@ class OptionReaderTest extends Specification {
 
         @Option(options = "aFlag", description = "simple flag")
         public void setActive() {
+        }
+
+        @OptionValues("stringValue")
+        public Collection<CustomClass> getAvailableValues() {
+            return Arrays.asList(new CustomClass(value:"dynValue1"), new CustomClass(value:"dynValue2"))
+        }
+    }
+
+    public static class CustomClass{
+        String value
+
+        public String toString(){
+            value
         }
     }
 
@@ -138,6 +191,25 @@ class OptionReaderTest extends Specification {
     public static class TestTask5 extends DefaultTask {
         @Option(options = 'fileValue', description = "file value")
         public void setStrings(File file) {
+        }
+    }
+
+    public static class TestTask6 extends DefaultTask {
+        @Option(options = 'customOptionName', description = "custom description")
+        String field1
+
+        @Option
+        String field2
+
+        @Option
+        TestEnum field3
+
+        @Option
+        boolean field4
+
+        @OptionValues("field2")
+        List<String> getField2Options() {
+            return Arrays.asList("dynValue1", "dynValue2")
         }
     }
 
