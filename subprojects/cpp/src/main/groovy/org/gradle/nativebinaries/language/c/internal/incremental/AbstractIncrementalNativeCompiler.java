@@ -87,7 +87,8 @@ abstract class AbstractIncrementalNativeCompiler implements Compiler<NativeCompi
         LockOptions lockOptions = LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive);
         CacheLayout layout = new CacheLayoutBuilder()
                 .withBuildScope(task.getProject())
-                .withPath("taskState", task.getName())
+                // TODO:DAZ Review
+                .withPath("taskState", task.getPath().replace(':', '_'))
                 .build();
         return cacheRepository.cache("incrementalCompile").withLayout(layout).withLockOptions(lockOptions).open();
     }
