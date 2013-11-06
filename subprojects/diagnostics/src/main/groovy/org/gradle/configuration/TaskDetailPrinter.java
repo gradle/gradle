@@ -22,8 +22,8 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.plugins.DslObject;
-import org.gradle.api.internal.tasks.CommandLineOptionDescriptor;
-import org.gradle.api.internal.tasks.CommandLineOptionReader;
+import org.gradle.api.internal.tasks.OptionDescriptor;
+import org.gradle.api.internal.tasks.OptionReader;
 import org.gradle.api.specs.Spec;
 import org.gradle.execution.TaskSelector;
 import org.gradle.logging.StyledTextOutput;
@@ -38,12 +38,12 @@ public class TaskDetailPrinter {
     private final String taskPath;
     private final TaskSelector.TaskSelection selection;
     private static final String INDENT = "     ";
-    private final CommandLineOptionReader commandLineOptionReader;
+    private final OptionReader commandLineOptionReader;
 
     public TaskDetailPrinter(String taskPath, TaskSelector.TaskSelection selection) {
         this.taskPath = taskPath;
         this.selection = selection;
-        commandLineOptionReader = new CommandLineOptionReader();
+        commandLineOptionReader = new OptionReader();
     }
 
     public void print(StyledTextOutput output) {
@@ -133,25 +133,25 @@ public class TaskDetailPrinter {
     }
 
     private void printlnCommandlineOptions(StyledTextOutput output, List<Task> tasks) {
-        List<CommandLineOptionDescriptor> allOptions = new ArrayList<CommandLineOptionDescriptor>();
+        List<OptionDescriptor> allOptions = new ArrayList<OptionDescriptor>();
         for (Task task : tasks) {
-            allOptions.addAll(commandLineOptionReader.getCommandLineOptions(task));
+            allOptions.addAll(commandLineOptionReader.getOptions(task));
         }
         if (!allOptions.isEmpty()) {
             output.println();
             output.text("Options").println();
         }
-        final ListMultimap<String, CommandLineOptionDescriptor> optionsByName = groupDescriptorsByName(allOptions);
+        final ListMultimap<String, OptionDescriptor> optionsByName = groupDescriptorsByName(allOptions);
         Iterator<String> optionNames = sort(optionsByName.asMap().keySet()).iterator();
         while (optionNames.hasNext()) {
             final String currentOption = optionNames.next();
-            final List<CommandLineOptionDescriptor> descriptorsForCurrentName = optionsByName.get(currentOption);
+            final List<OptionDescriptor> descriptorsForCurrentName = optionsByName.get(currentOption);
 
             final String optionString = String.format("--%s", currentOption);
             output.text(INDENT).withStyle(UserInput).text(optionString);
 
-            final List<String> availableValues = withoutDuplicates(flattenToList(String.class, collect(descriptorsForCurrentName, new Transformer<List<String>, CommandLineOptionDescriptor>() {
-                public List<String> transform(CommandLineOptionDescriptor original) {
+            final List<String> availableValues = withoutDuplicates(flattenToList(String.class, collect(descriptorsForCurrentName, new Transformer<List<String>, OptionDescriptor>() {
+                public List<String> transform(OptionDescriptor original) {
                     return original.getAvailableValues();
                 }
             })));
@@ -175,9 +175,9 @@ public class TaskDetailPrinter {
         }
     }
 
-    private ListMultimap<String, CommandLineOptionDescriptor> groupDescriptorsByName(List<CommandLineOptionDescriptor> allOptions) {
-        ListMultimap<String, CommandLineOptionDescriptor> optionsGroupedByName = ArrayListMultimap.create();
-        for (final CommandLineOptionDescriptor option : allOptions) {
+    private ListMultimap<String, OptionDescriptor> groupDescriptorsByName(List<OptionDescriptor> allOptions) {
+        ListMultimap<String, OptionDescriptor> optionsGroupedByName = ArrayListMultimap.create();
+        for (final OptionDescriptor option : allOptions) {
             optionsGroupedByName.put(option.getName(), option);
         }
         return optionsGroupedByName;

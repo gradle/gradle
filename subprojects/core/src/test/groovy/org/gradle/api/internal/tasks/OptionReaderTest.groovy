@@ -23,19 +23,19 @@ import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
 
 
-class CommandLineOptionReaderTest extends Specification {
+class OptionReaderTest extends Specification {
 
-    CommandLineOptionReader reader
+    OptionReader reader
     Project project
 
     def setup() {
-        reader = new CommandLineOptionReader()
+        reader = new OptionReader()
         project = ProjectBuilder.builder().build();
     }
 
     def "can read commandlineoptions of a task"() {
         when:
-        List<InstanceCommandLineOptionDescriptor> options = reader.getCommandLineOptions(Mock(TestTask1))
+        List<InstanceOptionDescriptor> options = reader.getOptions(Mock(TestTask1))
         then:
         options[0].option.description() == "simple flag"
         options[0].argumentType == Void.TYPE
@@ -60,15 +60,15 @@ class CommandLineOptionReaderTest extends Specification {
 
     def "fail when multiple methods define same option"() {
         when:
-        reader.getCommandLineOptions(project.tasks.create("aTask", TestTask2))
+        reader.getOptions(project.tasks.create("aTask", TestTask2))
         then:
         def e = thrown(CommandLineArgumentException)
-        e.message == "Option 'stringValue' linked to multiple methods in class 'org.gradle.api.internal.tasks.CommandLineOptionReaderTest\$TestTask2_Decorated'."
+        e.message == "Option 'stringValue' linked to multiple methods in class 'org.gradle.api.internal.tasks.OptionReaderTest\$TestTask2_Decorated'."
     }
 
     def "ignores static methods"() {
         when:
-        List<InstanceCommandLineOptionDescriptor> options = reader.getCommandLineOptions(Mock(TestTask3))
+        List<InstanceOptionDescriptor> options = reader.getOptions(Mock(TestTask3))
         then:
         options.isEmpty()
     }
@@ -76,67 +76,67 @@ class CommandLineOptionReaderTest extends Specification {
 
     def "fail when parameter cannot be converted from the command-line"() {
         when:
-        reader.getCommandLineOptions(project.tasks.create("aTask", TestTask5))
+        reader.getOptions(project.tasks.create("aTask", TestTask5))
         then:
         def e = thrown(CommandLineArgumentException)
-        e.message == "Option 'fileValue' cannot be casted to parameter type 'java.io.File' in class 'org.gradle.api.internal.tasks.CommandLineOptionReaderTest\$TestTask5_Decorated'."
+        e.message == "Option 'fileValue' cannot be casted to parameter type 'java.io.File' in class 'org.gradle.api.internal.tasks.OptionReaderTest\$TestTask5_Decorated'."
     }
 
 
     def "fails when method has > 1 parameter"() {
         when:
-        reader.getCommandLineOptions(project.tasks.create("aTask", TestTask4));
+        reader.getOptions(project.tasks.create("aTask", TestTask4));
         then:
         def e = thrown(CommandLineArgumentException)
-        e.message == "Option 'stringValue' cannot be linked to methods with multiple parameters in class 'org.gradle.api.internal.tasks.CommandLineOptionReaderTest\$TestTask4_Decorated#setStrings'."
+        e.message == "Option 'stringValue' cannot be linked to methods with multiple parameters in class 'org.gradle.api.internal.tasks.OptionReaderTest\$TestTask4_Decorated#setStrings'."
     }
 
     public static class TestTask1 extends DefaultTask {
-        @CommandLineOption(options = "stringValue", description = "string value")
+        @Option(options = "stringValue", description = "string value")
         public void setStringValue(String value) {
         }
 
-        @CommandLineOption(options = "objectValue", description = "object value")
+        @Option(options = "objectValue", description = "object value")
         public void setObjectValue(Object value) {
         }
 
-        @CommandLineOption(options = "booleanValue", description = "boolean value")
+        @Option(options = "booleanValue", description = "boolean value")
         public void setBooleanValue(boolean value) {
         }
 
-        @CommandLineOption(options = "enumValue", description = "enum value")
+        @Option(options = "enumValue", description = "enum value")
         public void setEnumValue(TestEnum value) {
         }
 
-        @CommandLineOption(options = "aFlag", description = "simple flag")
+        @Option(options = "aFlag", description = "simple flag")
         public void setActive() {
         }
     }
 
     public static class TestTask2 extends DefaultTask {
-        @CommandLineOption(options = "stringValue", description = "string value")
+        @Option(options = "stringValue", description = "string value")
         public void setStringValue(String value) {
         }
 
-        @CommandLineOption(options = "stringValue", description = "string value")
+        @Option(options = "stringValue", description = "string value")
         public void setStringValue2(String value) {
         }
     }
 
     public static class TestTask3 extends DefaultTask {
-        @CommandLineOption(options = "staticString", description = "string value")
+        @Option(options = "staticString", description = "string value")
         public static void setStaticString(String value) {
         }
     }
 
     public static class TestTask4 extends DefaultTask {
-        @CommandLineOption(options = 'stringValue', description = "string value")
+        @Option(options = 'stringValue', description = "string value")
         public void setStrings(String value1, String value2) {
         }
     }
 
     public static class TestTask5 extends DefaultTask {
-        @CommandLineOption(options = 'fileValue', description = "file value")
+        @Option(options = 'fileValue', description = "file value")
         public void setStrings(File file) {
         }
     }

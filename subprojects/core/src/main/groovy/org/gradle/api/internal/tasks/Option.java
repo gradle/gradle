@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,27 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.api.internal.tasks;
 
-import java.lang.reflect.Method;
-import java.util.List;
+import java.lang.annotation.*;
 
-public interface CommandLineOptionDescriptor extends Comparable<CommandLineOptionDescriptor> {
+/**
+ * Marks a property as available from the command-line.
+ */
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+@Inherited
+public @interface Option {
+    /**
+     * The options to map to this property.
+     *
+     * @return The options.
+     */
+    String[] options();
 
-    CommandLineOption getOption();
-
-    String getName();
-
-    Method getConfigurationMethod();
-
-    Class getArgumentType();
-
-    List<String> getAvailableValues();
-
-    String getDescription();
-
-    void apply(Object object, List<String> values);
-
+    /**
+     * The description of this option.
+     *
+     * @return The description.
+     */
+    String description();
 }
-

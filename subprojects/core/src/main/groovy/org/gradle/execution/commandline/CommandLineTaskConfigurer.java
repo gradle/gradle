@@ -17,8 +17,8 @@
 package org.gradle.execution.commandline;
 
 import org.gradle.api.Task;
-import org.gradle.api.internal.tasks.CommandLineOptionDescriptor;
-import org.gradle.api.internal.tasks.CommandLineOptionReader;
+import org.gradle.api.internal.tasks.OptionDescriptor;
+import org.gradle.api.internal.tasks.OptionReader;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
@@ -39,12 +39,12 @@ public class CommandLineTaskConfigurer {
 
     private List<String> configureTasksNow(Collection<Task> tasks, List<String> arguments) {
         List<String> remainingArguments = null;
-        CommandLineOptionReader commandLineOptionReader = new CommandLineOptionReader();
+        OptionReader commandLineOptionReader = new OptionReader();
         for (Task task : tasks) {
             CommandLineParser parser = new CommandLineParser();
-            final List<CommandLineOptionDescriptor> commandLineOptions = commandLineOptionReader.getCommandLineOptions(task);
+            final List<OptionDescriptor> commandLineOptions = commandLineOptionReader.getOptions(task);
 
-            for (CommandLineOptionDescriptor optionDescriptor : commandLineOptions) {
+            for (OptionDescriptor optionDescriptor : commandLineOptions) {
                 String optionName = optionDescriptor.getName();
                 org.gradle.cli.CommandLineOption option = parser.option(optionName);
                 option.hasDescription(optionDescriptor.getDescription());
@@ -59,7 +59,7 @@ public class CommandLineTaskConfigurer {
                 throw new TaskConfigurationException(task.getPath(), "Problem configuring task " + task.getPath() + " from command line.", e);
             }
 
-            for (CommandLineOptionDescriptor commandLineOptionDescriptor : commandLineOptions) {
+            for (OptionDescriptor commandLineOptionDescriptor : commandLineOptions) {
                 final String name = commandLineOptionDescriptor.getName();
                 if (parsed.hasOption(name)) {
                     ParsedCommandLineOption o = parsed.option(name);

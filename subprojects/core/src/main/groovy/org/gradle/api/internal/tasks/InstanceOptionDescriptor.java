@@ -25,12 +25,12 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-public class InstanceCommandLineOptionDescriptor implements CommandLineOptionDescriptor {
+public class InstanceOptionDescriptor implements OptionDescriptor {
 
     private final Object object;
-    private final CommandLineOptionDescriptor delegate;
+    private final OptionDescriptor delegate;
 
-    public InstanceCommandLineOptionDescriptor(Object object, CommandLineOptionDescriptor delegate) {
+    public InstanceOptionDescriptor(Object object, OptionDescriptor delegate) {
         this.object = object;
         this.delegate = delegate;
     }
@@ -39,7 +39,7 @@ public class InstanceCommandLineOptionDescriptor implements CommandLineOptionDes
         return delegate.getName();
     }
 
-    public CommandLineOption getOption() {
+    public Option getOption() {
         return delegate.getOption();
     }
 
@@ -87,7 +87,7 @@ public class InstanceCommandLineOptionDescriptor implements CommandLineOptionDes
         delegate.apply(objectParam, parameterValues);
     }
 
-    public int compareTo(CommandLineOptionDescriptor o) {
+    public int compareTo(OptionDescriptor o) {
         return delegate.compareTo(o);
     }
 }

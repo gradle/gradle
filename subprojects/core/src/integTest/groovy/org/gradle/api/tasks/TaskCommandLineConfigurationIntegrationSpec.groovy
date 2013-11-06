@@ -22,18 +22,18 @@ import spock.lang.Ignore
 class TaskCommandLineConfigurationIntegrationSpec extends AbstractIntegrationSpec {
 
     final String someConfigurableTaskType = """
-    import org.gradle.api.internal.tasks.CommandLineOption
+    import org.gradle.api.internal.tasks.Option
 
     class SomeTask extends DefaultTask {
         boolean first
         String second
 
-        @CommandLineOption(options = "first", description = "configures 'first' field")
+        @Option(options = "first", description = "configures 'first' field")
         void setFirst(boolean first) {
             this.first = first
         }
 
-        @CommandLineOption(options = "second", description = "configures 'second' field")
+        @Option(options = "second", description = "configures 'second' field")
         void setSecond(String second) {
             this.second = second
         }

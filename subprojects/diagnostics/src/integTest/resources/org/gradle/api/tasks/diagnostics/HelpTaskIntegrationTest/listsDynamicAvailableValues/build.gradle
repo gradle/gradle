@@ -1,3 +1,5 @@
+import org.gradle.api.internal.tasks.Option
+
 task hello(type: CustomTask)
 
 class CustomTask extends DefaultTask {
@@ -5,7 +7,7 @@ class CustomTask extends DefaultTask {
     void doSomething() {
     }
 
-    @org.gradle.api.internal.tasks.CommandLineOption(options = "stringValue", description = "Configures a string value in CustomTask.")
+    @Option(options = "stringValue", description = "Configures a string value in CustomTask.")
     public void setStringValue(String value) {
     }
 

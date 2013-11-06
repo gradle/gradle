@@ -19,7 +19,7 @@ package org.gradle.buildinit.tasks
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.Incubating
-import org.gradle.api.internal.tasks.CommandLineOption
+import org.gradle.api.internal.tasks.Option
 import org.gradle.api.internal.tasks.OptionValues
 import org.gradle.api.tasks.TaskAction
 import org.gradle.buildinit.plugins.internal.BuildInitTypeIds
@@ -61,7 +61,7 @@ class InitBuild extends DefaultTask {
         projectLayoutRegistry.get(type).generate()
     }
 
-    @CommandLineOption(options = "type", description = "Set type of build to create.")
+    @Option(options = "type", description = "Set type of build to create.")
     public void setType(String type) {
         this.type = type;
     }

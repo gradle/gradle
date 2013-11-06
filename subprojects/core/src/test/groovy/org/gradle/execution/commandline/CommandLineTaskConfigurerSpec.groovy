@@ -17,7 +17,7 @@ package org.gradle.execution.commandline
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
-import org.gradle.api.internal.tasks.CommandLineOption
+import org.gradle.api.internal.tasks.Option
 import org.gradle.api.tasks.TaskAction
 import org.gradle.execution.TaskSelector
 import org.gradle.testfixtures.ProjectBuilder
@@ -164,33 +164,33 @@ class CommandLineTaskConfigurerSpec extends Specification {
     public static class SomeTask extends DefaultTask {
         String content = 'default content'
 
-        @CommandLineOption(options = "content", description = "Some content.")
+        @Option(options = "content", description = "Some content.")
         public void setContent(String content) {
             this.content = content
         }
 
         boolean someFlag = false
 
-        @CommandLineOption(options = "someFlag", description = "Some flag.")
+        @Option(options = "someFlag", description = "Some flag.")
         public void setSomeFlag(boolean someFlag) {
             this.someFlag = someFlag
         }
 
         Boolean someFlag2 = false
 
-        @CommandLineOption(options = "someFlag2", description = "Some 2nd flag.")
+        @Option(options = "someFlag2", description = "Some 2nd flag.")
         public void setSomeFlag2(Boolean someFlag2) {
             this.someFlag2 = someFlag2
         }
 
-        @CommandLineOption(options = "notUsed", description = "Not used.")
+        @Option(options = "notUsed", description = "Not used.")
         public void setNotUsed(boolean notUsed) {
             throw new RuntimeException("Not used");
         }
 
         TestEnum anEnum
 
-        @CommandLineOption(options = "someEnum", description = "some enum value.")
+        @Option(options = "someEnum", description = "some enum value.")
         public void setEnum(TestEnum anEnum) {
             this.anEnum = anEnum;
         }
@@ -203,12 +203,12 @@ class CommandLineTaskConfigurerSpec extends Specification {
         boolean someFlag = false
         String stuff
 
-        @CommandLineOption(options = "someFlag", description = "Some flag.")
+        @Option(options = "someFlag", description = "Some flag.")
         public void setSomeFlag(boolean someFlag) {
             this.someFlag = someFlag
         }
 
-        @CommandLineOption(options = "stuff", description = "Some stuff.")
+        @Option(options = "stuff", description = "Some stuff.")
         public void setStuff(String stuff) {
             this.stuff = stuff;
         }

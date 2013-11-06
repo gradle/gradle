@@ -23,14 +23,14 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
-public class StaticCommandLineOptionDescriptor implements CommandLineOptionDescriptor {
-    private final CommandLineOption option;
+public class StaticOptionDescriptor implements OptionDescriptor {
+    private final Option option;
     private final Method configurationMethod;
     private List<String> availableValues;
     private Class argumentType;
 
-    public StaticCommandLineOptionDescriptor(CommandLineOption commandLineOption, Method method) {
-        this.option = commandLineOption;
+    public StaticOptionDescriptor(Option option, Method method) {
+        this.option = option;
         this.configurationMethod = method;
     }
 
@@ -42,7 +42,7 @@ public class StaticCommandLineOptionDescriptor implements CommandLineOptionDescr
         return configurationMethod;
     }
 
-    public CommandLineOption getOption() {
+    public Option getOption() {
         return option;
     }
 
@@ -107,7 +107,7 @@ public class StaticCommandLineOptionDescriptor implements CommandLineOptionDescr
         return value;
     }
 
-    public int compareTo(CommandLineOptionDescriptor o) {
+    public int compareTo(OptionDescriptor o) {
         return getOption().options()[0].compareTo(o.getOption().options()[0]);
     }
 }

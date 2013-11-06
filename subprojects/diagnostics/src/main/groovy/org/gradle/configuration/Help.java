@@ -16,7 +16,7 @@
 package org.gradle.configuration;
 
 import org.gradle.api.DefaultTask;
-import org.gradle.api.internal.tasks.CommandLineOption;
+import org.gradle.api.internal.tasks.Option;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.execution.TaskSelector;
 import org.gradle.initialization.BuildClientMetaData;
@@ -64,7 +64,7 @@ public class Help extends DefaultTask {
         output.println();
     }
 
-    @CommandLineOption(options = "task", description = "The task, detailed help is requested for.")
+    @Option(options = "task", description = "The task, detailed help is requested for.")
     public void setTaskPath(String taskPath) {
         this.taskPath = taskPath;
     }

@@ -28,25 +28,25 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class CommandLineOptionReader {
+public class OptionReader {
 
-    private ListMultimap<Class, StaticCommandLineOptionDescriptor> cachedStaticDescriptors = ArrayListMultimap.create();
+    private ListMultimap<Class, StaticOptionDescriptor> cachedStaticDescriptors = ArrayListMultimap.create();
 
-    public List<CommandLineOptionDescriptor> getCommandLineOptions(Task task) {
+    public List<OptionDescriptor> getOptions(Task task) {
         final Class<? extends Task> taskClazz = task.getClass();
-        Map<String, CommandLineOptionDescriptor> options = new HashMap<String, CommandLineOptionDescriptor>();
+        Map<String, OptionDescriptor> options = new HashMap<String, OptionDescriptor>();
 
         if (!cachedStaticDescriptors.containsKey(task.getClass())) {
             //task class not processed yet
             for (Class<?> type = taskClazz; type != Object.class && type != null; type = type.getSuperclass()) {
                 for (Method method : type.getDeclaredMethods()) {
                     if (!Modifier.isStatic(method.getModifiers())) {
-                        CommandLineOption commandLineOption = method.getAnnotation(CommandLineOption.class);
-                        if (commandLineOption != null) {
-                            StaticCommandLineOptionDescriptor staticCommandLineOptionDescriptor = new StaticCommandLineOptionDescriptor(commandLineOption, method);
+                        Option option = method.getAnnotation(Option.class);
+                        if (option != null) {
+                            StaticOptionDescriptor staticCommandLineOptionDescriptor = new StaticOptionDescriptor(option, method);
                             assertMethodTypeSupported(staticCommandLineOptionDescriptor, taskClazz, method);
 
-                            CommandLineOptionDescriptor optionDescriptor = new InstanceCommandLineOptionDescriptor(task, staticCommandLineOptionDescriptor);
+                            OptionDescriptor optionDescriptor = new InstanceOptionDescriptor(task, staticCommandLineOptionDescriptor);
                             if (options.containsKey(optionDescriptor.getName())) {
                                 throw new CommandLineArgumentException(String.format("Option '%s' linked to multiple methods in class '%s'.",
                                         optionDescriptor.getName(), taskClazz.getName()));
@@ -58,14 +58,14 @@ public class CommandLineOptionReader {
                 }
             }
         }else{
-            for (StaticCommandLineOptionDescriptor staticCommandLineOptionDescriptor : cachedStaticDescriptors.get(taskClazz)) {
-                options.put(staticCommandLineOptionDescriptor.getName(), new InstanceCommandLineOptionDescriptor(task, staticCommandLineOptionDescriptor));
+            for (StaticOptionDescriptor staticCommandLineOptionDescriptor : cachedStaticDescriptors.get(taskClazz)) {
+                options.put(staticCommandLineOptionDescriptor.getName(), new InstanceOptionDescriptor(task, staticCommandLineOptionDescriptor));
             }
         }
         return CollectionUtils.sort(options.values());
     }
 
-    private void assertMethodTypeSupported(CommandLineOptionDescriptor optionDescriptor, Class taskClazz, Method method) {
+    private void assertMethodTypeSupported(OptionDescriptor optionDescriptor, Class taskClazz, Method method) {
         final Class<?>[] parameterTypes = method.getParameterTypes();
         if (parameterTypes.length > 1) {
             throw new CommandLineArgumentException(String.format("Option '%s' cannot be linked to methods with multiple parameters in class '%s#%s'.",

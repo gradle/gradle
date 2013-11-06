@@ -24,7 +24,7 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.result.DependencyResult
 import org.gradle.api.artifacts.result.ResolutionResult
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher
-import org.gradle.api.internal.tasks.CommandLineOption
+import org.gradle.api.internal.tasks.Option
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.diagnostics.internal.dsl.DependencyResultSpecNotationParser
@@ -114,7 +114,7 @@ public class DependencyInsightReportTask extends DefaultTask {
      *
      * @param dependencyInsightNotation
      */
-    @CommandLineOption(options = "dependency", description = "Shows the details of given dependency.")
+    @Option(options = "dependency", description = "Shows the details of given dependency.")
     public void setDependencySpec(Object dependencyInsightNotation) {
         def parser = DependencyResultSpecNotationParser.create()
         this.dependencySpec = parser.parseNotation(dependencyInsightNotation)
@@ -137,7 +137,7 @@ public class DependencyInsightReportTask extends DefaultTask {
      *
      * @param configurationName
      */
-    @CommandLineOption(options = "configuration", description = "Looks for the dependency in given configuration.")
+    @Option(options = "configuration", description = "Looks for the dependency in given configuration.")
     public void setConfiguration(String configurationName) {
         this.configuration = project.configurations.getByName(configurationName)
     }

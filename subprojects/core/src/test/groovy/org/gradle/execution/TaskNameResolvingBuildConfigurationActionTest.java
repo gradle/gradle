@@ -23,7 +23,7 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.AbstractProject;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.CommandLineOption;
+import org.gradle.api.internal.tasks.Option;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.util.GUtil;
 import org.gradle.util.JUnit4GroovyMockery;
@@ -423,7 +423,7 @@ public class TaskNameResolvingBuildConfigurationActionTest {
     }
 
     public abstract class TaskWithBooleanProperty implements Task {
-        @CommandLineOption(options = "all", description = "Some boolean flag")
+        @Option(options = "all", description = "Some boolean flag")
         public void setSomeFlag(boolean flag) {
         }
     }
