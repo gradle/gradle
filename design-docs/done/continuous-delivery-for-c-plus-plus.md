@@ -71,3 +71,53 @@ This story separates C++ compilation and linking of binaries into separate tasks
     - Changing a link option causes the binary to be linked but does not recompile source files.
     - Changing a comment in a source file causes the source file to be compiled by the but does not relink the binary.
 
+## Story: Build a static library binary (DONE)
+
+This story introduces the concept of a static library binary that can be built for a C++ library. This will allow both shared and static variants of a particular library to be built.
+
+- Add `StaticLibraryBinary` type.
+- Add `LinkStaticLibrary` task type.
+- Change the `cpp` plugin to:
+    - Add a `StaticLibraryBinary` instance to the `binaries` container for each library added to the `libraries` container. The instance should be called
+      `${library.name}StaticLibrary`.
+    - Add a rule that adds a `CppCompile` and `LinkStaticLibrary` task for each `StaticLibraryBinary` instance added to the `binaries` container. The link task should be
+      called `${binary.name}`.
+- Change visual C++ toolchain to:
+     - Use `lib.exe` to assemble the static library.
+- Change the GCC toolchain to:
+    - Don't use other shared library flags (`-shared`) when compiling source files for a static library.
+    - Use `ar` to assemble the static library.
+- Update the user guide to reflect the fact that static libraries can be built. Include a stand-alone sample that
+  demonstrates how to build a library.
+
+### User visible changes
+
+Given:
+
+    apply plugin: `cpp-lib`
+
+Running `gradle mainStaticLibrary` will build the main static library. Running `gradle mainSharedLibrary` will build the main shared library.
+
+Given:
+
+    apply plugin: `cpp`
+
+    cpp {
+        sourceSets {
+            main
+        }
+    }
+
+    libraries {
+        custom {
+            sourceSets << cpp.sourceSets.main
+        }
+    }
+
+Running `gradle customStaticLibrary customSharedLibrary` will build the static and shared binaries.
+
+### Test cases
+
+- For a build that uses the `cpp-lib` plugin, `gradle mainStaticLibrary` will produce the static library.
+- For a build that uses the `cpp` plugin and defines multiple libraries, each library can be built as both a static and shared library binary.
+- Can link a static library into an executable and install and run the resulting executable.

@@ -50,57 +50,6 @@ A native component that represents a library to be used in other native componen
 
 # Milestone 1
 
-## Story: Build a static library binary (DONE)
-
-This story introduces the concept of a static library binary that can be built for a C++ library. This will allow both shared and static variants of a particular library to be built.
-
-- Add `StaticLibraryBinary` type.
-- Add `LinkStaticLibrary` task type.
-- Change the `cpp` plugin to:
-    - Add a `StaticLibraryBinary` instance to the `binaries` container for each library added to the `libraries` container. The instance should be called
-      `${library.name}StaticLibrary`.
-    - Add a rule that adds a `CppCompile` and `LinkStaticLibrary` task for each `StaticLibraryBinary` instance added to the `binaries` container. The link task should be
-      called `${binary.name}`.
-- Change visual C++ toolchain to:
-     - Use `lib.exe` to assemble the static library.
-- Change the GCC toolchain to:
-    - Don't use other shared library flags (`-shared`) when compiling source files for a static library.
-    - Use `ar` to assemble the static library.
-- Update the user guide to reflect the fact that static libraries can be built. Include a stand-alone sample that
-  demonstrates how to build a library.
-
-### User visible changes
-
-Given:
-
-    apply plugin: `cpp-lib`
-
-Running `gradle mainStaticLibrary` will build the main static library. Running `gradle mainSharedLibrary` will build the main shared library.
-
-Given:
-
-    apply plugin: `cpp`
-    
-    cpp {
-        sourceSets {
-            main
-        }
-    }
-    
-    libraries {
-        custom {
-            sourceSets << cpp.sourceSets.main        
-        }
-    }
-
-Running `gradle customStaticLibrary customSharedLibrary` will build the static and shared binaries.
-
-### Test cases
-
-- For a build that uses the `cpp-lib` plugin, `gradle mainStaticLibrary` will produce the static library.
-- For a build that uses the `cpp` plugin and defines multiple libraries, each library can be built as both a static and shared library binary.
-- Can link a static library into an executable and install and run the resulting executable.
-
 ## Story: Allow customization of binaries before and after linking
 
 This story introduces a lifecycle task for each binary, to allow tasks to be wired into the task graph for a given binary. These tasks will be able to modify the object files or binary files before they are consumed.
@@ -234,13 +183,6 @@ This story adds support for C source files as inputs to native binaries.
 - Manually define C++ and C source sets.
 - Can build a binary from C sources with `gcc` when `g++` and `as` are not installed
 
-### Open issues
-
-- Cpp source set should include only files with a C++ extension.
-- C source set should include only files with a C extension.
-- Assembler source set should include only files with an assembler extension.
-- Don't fail if assembler/C++/C compiler is not available if they are not required.
-
 ## Story: Build a binary from assembler source files
 
 This story adds support for using assembler source files as inputs to a native binary.
@@ -356,7 +298,7 @@ project in the same build, or from a binary repository.
 - Add `NativeBinary.libraries` property of type `DomainObjectCollection<NativeDependencySet>`.
 - Change the C++ plugin to add the dependencies of each C++ source set to this collection.
 - Change the C++ plugin to wire the inputs of the binary's compile and link tasks based on the contents of the `NativeBinary.libraries` collection.
-- Add `Library.getShared()` and `getStatic()` methods which return `NativeDependencySet` imlementations for the shared and static variants of the library.
+- Add `Library.getShared()` and `getStatic()` methods which return `NativeDependencySet` implementations for the shared and static variants of the library.
 - Add `NativeBinary.lib(Object)` method which accepts anything that can be converted to a `NativeDependencySet`:
     - A `NativeBinary` is converted by calling its `getAsNativeDependencySet()` method.
     - A `NativeDependencySet` can be used as is.
@@ -1366,8 +1308,38 @@ TBD
 
 TBD
 
+## DSL cleanups
+
+- Improve customising the tasks for building a binary
+- Improve doing stuff with the install task
+- Some way to configure/use all native components
+- Source sets are children of components
+- Cpp source set should include only files with a C++ extension
+- C source set should include only files with a C extension
+- Assembler source set should include only files with an assembler extension
+
+## Compilation
+
+- GRADLE-2943 - Fix escaping of compiler and linker args
+- Understand and/or model -I/-L/-l/-D/-U
+- GCC tool-chain uses gcc/g++ to link and gcc to assemble
+- Source set declares a target language runtime, use this to decide which driver to use to link
+- Don't fail if g++ is not installed when it is not required
+- Support preprocessor macros for assembler
+
+## Structure
+
+- Some common plugin that determines which tool-chains to apply
+- Fix package hierarchy
+
+## Later
+
+- Better way to see how the compiler is being invoked
+- Make names less important
+
 # Open issues
 
+* Parallel compilation
 * Output of any custom post link task should be treated as input to anything that depends on the binary.
 * Add 'position independent' setting to 'NativeBinary'.
 * Add a position independent variant for all static libraries.
