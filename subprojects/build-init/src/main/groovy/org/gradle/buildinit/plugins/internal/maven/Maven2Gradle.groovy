@@ -90,11 +90,7 @@ subprojects {
                 if (module.groupId != allProjects[0].groupId) {
                     group = "group = '${module.groupId}'"
                 }
-                String moduleBuild = """
-${group}
-description = '${module.name}'
-
-"""
+                String moduleBuild = "${group}\n"
                 if (warPack) {
                     moduleBuild += """apply plugin: 'war'
 
@@ -107,6 +103,11 @@ description = '${module.name}'
 """
                     }
                 }
+                if (module.name) {
+                    moduleBuild += "description = '${module.name}'\n"
+                }
+
+
                 if (hasDependencies) {
                     moduleBuild += moduleDependencies
                 }
