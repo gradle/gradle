@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.changedetection.state;
+package org.gradle.api.internal.hash;
 
+import org.gradle.api.internal.changedetection.state.TaskArtifactStateCacheAccess;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.messaging.serialize.Serializer;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;

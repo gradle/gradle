@@ -15,7 +15,7 @@
  */
 package org.gradle.nativebinaries.language.c.internal.incremental;
 
-import org.gradle.api.internal.changedetection.state.Hasher;
+import org.gradle.api.internal.hash.Hasher;
 import org.gradle.cache.CacheAccess;
 import org.gradle.cache.PersistentIndexedCache;
 

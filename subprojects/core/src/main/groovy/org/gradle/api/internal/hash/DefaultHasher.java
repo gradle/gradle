@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.changedetection.state;
+package org.gradle.api.internal.hash;
 
 import org.gradle.internal.hash.HashUtil;
 

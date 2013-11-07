@@ -16,8 +16,8 @@
 package org.gradle.nativebinaries.language.c.internal.incremental;
 
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.changedetection.state.CachingHasher;
-import org.gradle.api.internal.changedetection.state.DefaultHasher;
+import org.gradle.api.internal.hash.CachingHasher;
+import org.gradle.api.internal.hash.DefaultHasher;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.cache.CacheLayout;

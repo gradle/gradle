@@ -15,7 +15,7 @@
  */
 package org.gradle.nativebinaries.language.c.internal.incremental
 import org.gradle.CacheUsage
-import org.gradle.api.internal.changedetection.state.DefaultHasher
+import org.gradle.api.internal.hash.DefaultHasher
 import org.gradle.cache.CacheAccess
 import org.gradle.cache.internal.FileLockManager
 import org.gradle.cache.internal.filelock.LockOptionsBuilder
