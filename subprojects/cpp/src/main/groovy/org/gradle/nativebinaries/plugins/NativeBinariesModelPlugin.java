@@ -26,7 +26,6 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.language.base.Binary;
 import org.gradle.language.base.BinaryContainer;
 import org.gradle.language.base.plugins.LanguageBasePlugin;
 import org.gradle.model.ModelFinalizer;
@@ -34,8 +33,6 @@ import org.gradle.model.ModelRule;
 import org.gradle.model.ModelRules;
 import org.gradle.nativebinaries.internal.*;
 import org.gradle.nativebinaries.internal.configure.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 
@@ -44,7 +41,6 @@ import javax.inject.Inject;
  */
 @Incubating
 public class NativeBinariesModelPlugin implements Plugin<Project> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(NativeBinariesModelPlugin.class);
 
     private final Instantiator instantiator;
     private final ProjectConfigurationActionContainer configurationActions;
@@ -63,28 +59,11 @@ public class NativeBinariesModelPlugin implements Plugin<Project> {
         project.getPlugins().apply(BasePlugin.class);
         project.getPlugins().apply(LanguageBasePlugin.class);
 
-        modelRules.register("toolChains", ToolChainRegistryInternal.class, new Factory<ToolChainRegistryInternal>() {
-            public ToolChainRegistryInternal create() {
-                return instantiator.newInstance(DefaultToolChainRegistry.class, instantiator);
-            }
-        });
+        modelRules.register("toolChains", ToolChainRegistryInternal.class, new ToolChainFactory(instantiator));
 
-        modelRules.rule(new ModelFinalizer() {
-            void createDefaultToolChain(ToolChainRegistryInternal toolChains) {
-                if (toolChains.isEmpty()) {
-                    toolChains.addDefaultToolChain();
-                }
-            }
-        });
-
+        modelRules.rule(new AddDefaultToolchainIfRequired());
         modelRules.rule(new CreateNativeBinaries(instantiator, (ProjectInternal) project));
-        modelRules.rule(new ModelRule() {
-            void closeBinariesForTasks(TaskContainer tasks, BinaryContainer binaries) {
-                for (Binary binary : binaries) {
-                    LOGGER.debug(binary.getName());
-                }
-            }
-        });
+        modelRules.rule(new CloseBinariesForTasks());
 
         project.getExtensions().create(
                 "targetPlatforms",
@@ -118,4 +97,31 @@ public class NativeBinariesModelPlugin implements Plugin<Project> {
         ));
     }
 
+    @SuppressWarnings("UnusedDeclaration")
+    private static class CloseBinariesForTasks extends ModelRule {
+        void closeBinariesForTasks(TaskContainer tasks, BinaryContainer binaries) {
+            // nothing needed here
+        }
+    }
+
+    @SuppressWarnings("UnusedDeclaration")
+    private static class AddDefaultToolchainIfRequired extends ModelFinalizer {
+        void createDefaultToolChain(ToolChainRegistryInternal toolChains) {
+            if (toolChains.isEmpty()) {
+                toolChains.addDefaultToolChain();
+            }
+        }
+    }
+
+    private static class ToolChainFactory implements Factory<ToolChainRegistryInternal> {
+        private Instantiator instantiator;
+
+        public ToolChainFactory(Instantiator instantiator) {
+            this.instantiator = instantiator;
+        }
+
+        public ToolChainRegistryInternal create() {
+            return instantiator.newInstance(DefaultToolChainRegistry.class, instantiator);
+        }
+    }
 }
