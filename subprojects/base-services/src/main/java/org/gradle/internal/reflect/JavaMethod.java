@@ -16,6 +16,7 @@
 package org.gradle.internal.reflect;
 
 import org.gradle.api.GradleException;
+import org.gradle.internal.UncheckedException;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -66,7 +67,7 @@ public class JavaMethod<T, R> {
             if (cause instanceof RuntimeException) {
                 throw (RuntimeException) cause;
             }
-            throw new GradleException(String.format("Could not call %s.%s() on %s", method.getDeclaringClass().getSimpleName(), method.getName(), target), cause);
+            throw UncheckedException.throwAsUncheckedException(cause);
         } catch (Exception e) {
             throw new GradleException(String.format("Could not call %s.%s() on %s", method.getDeclaringClass().getSimpleName(), method.getName(), target), e);
         }
