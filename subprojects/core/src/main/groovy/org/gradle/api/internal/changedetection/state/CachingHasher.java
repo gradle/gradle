@@ -15,7 +15,9 @@
  */
 package org.gradle.api.internal.changedetection.state;
 
+import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.cache.internal.PersistentIndexedCacheParameters;
 import org.gradle.messaging.serialize.Decoder;
 import org.gradle.messaging.serialize.Encoder;
 import org.gradle.messaging.serialize.Serializer;
@@ -30,7 +32,15 @@ public class CachingHasher implements Hasher {
 
     public CachingHasher(Hasher hasher, TaskArtifactStateCacheAccess cacheAccess) {
         this.hasher = hasher;
-        cache = cacheAccess.createCache("fileHashes", File.class, new FileInfoSerializer());
+        this.cache = cacheAccess.createCache("fileHashes", File.class, new FileInfoSerializer());
+    }
+
+    public CachingHasher(Hasher hasher, PersistentCache persistentCache) {
+        this.hasher = hasher;
+        File cacheFile = new File(persistentCache.getBaseDir(), "fileHashes.bin");
+        this.cache = persistentCache.createCache(
+                new PersistentIndexedCacheParameters<File, FileInfo>(
+                        cacheFile, File.class, new FileInfoSerializer()));
     }
 
     public byte[] hash(File file) {

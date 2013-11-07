@@ -16,7 +16,6 @@
 package org.gradle.nativebinaries.language.c.internal.incremental;
 
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.changedetection.state.Hasher;
 import org.gradle.cache.CacheRepository;
 import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec;
 
@@ -25,14 +24,12 @@ import java.io.File;
 public class IncrementalCompilerBuilder {
     private final TaskInternal task;
     private final CacheRepository cacheRepository;
-    private final Hasher hasher;
     private boolean cleanCompile;
     private Iterable<File> includes;
 
-    public IncrementalCompilerBuilder(CacheRepository cacheRepository, Hasher hasher, TaskInternal task) {
+    public IncrementalCompilerBuilder(CacheRepository cacheRepository, TaskInternal task) {
         this.task = task;
         this.cacheRepository = cacheRepository;
-        this.hasher = hasher;
     }
 
     public IncrementalCompilerBuilder withCleanCompile() {
@@ -53,10 +50,10 @@ public class IncrementalCompilerBuilder {
     }
 
     private org.gradle.api.internal.tasks.compile.Compiler<NativeCompileSpec> createIncrementalCompiler(org.gradle.api.internal.tasks.compile.Compiler<NativeCompileSpec> compiler, TaskInternal task, Iterable<File> includes) {
-        return new IncrementalNativeCompiler(task, includes, cacheRepository, hasher, compiler);
+        return new IncrementalNativeCompiler(task, includes, cacheRepository, compiler);
     }
 
     private org.gradle.api.internal.tasks.compile.Compiler<NativeCompileSpec> createCleaningCompiler(org.gradle.api.internal.tasks.compile.Compiler<NativeCompileSpec> compiler, TaskInternal task, Iterable<File> includes) {
-        return new CleanCompilingNativeCompiler(task, includes, cacheRepository, hasher, compiler);
+        return new CleanCompilingNativeCompiler(task, includes, cacheRepository, compiler);
     }
 }

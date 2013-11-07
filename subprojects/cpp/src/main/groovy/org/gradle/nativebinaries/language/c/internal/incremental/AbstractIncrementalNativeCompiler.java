@@ -16,7 +16,8 @@
 package org.gradle.nativebinaries.language.c.internal.incremental;
 
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.changedetection.state.Hasher;
+import org.gradle.api.internal.changedetection.state.CachingHasher;
+import org.gradle.api.internal.changedetection.state.DefaultHasher;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.cache.CacheLayout;
@@ -30,6 +31,7 @@ import org.gradle.cache.internal.ReferencablePersistentCache;
 import org.gradle.cache.internal.filelock.LockOptions;
 import org.gradle.cache.internal.filelock.LockOptionsBuilder;
 import org.gradle.messaging.serialize.DefaultSerializer;
+import org.gradle.messaging.serialize.Serializer;
 import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec;
 import org.gradle.util.CollectionUtils;
 
@@ -41,14 +43,12 @@ abstract class AbstractIncrementalNativeCompiler implements Compiler<NativeCompi
     private final RegexBackedIncludesParser includesParser = new RegexBackedIncludesParser();
     private final TaskInternal task;
     private final CacheRepository cacheRepository;
-    private final Hasher hasher;
     private Iterable<File> includes;
 
-    protected AbstractIncrementalNativeCompiler(TaskInternal task, Iterable<File> includes, CacheRepository cacheRepository, Hasher hasher) {
+    protected AbstractIncrementalNativeCompiler(TaskInternal task, Iterable<File> includes, CacheRepository cacheRepository) {
         this.task = task;
         this.includes = includes;
         this.cacheRepository = cacheRepository;
-        this.hasher = hasher;
     }
 
     public WorkResult execute(final NativeCompileSpec spec) {
@@ -80,6 +80,10 @@ abstract class AbstractIncrementalNativeCompiler implements Compiler<NativeCompi
         PersistentIndexedCache<String, List<File>> listCache = createCache(cache, "previous", String.class, new DefaultSerializer<List<File>>());
 
         DefaultSourceDependencyParser dependencyParser = new DefaultSourceDependencyParser(includesParser, CollectionUtils.toList(includes));
+
+        // TODO:DAZ Inject a factory, and come up with a common abstraction for TaskArtifactStateCacheAccess and PersistentCache
+        CachingHasher hasher = new CachingHasher(new DefaultHasher(), cache);
+
         return new IncrementalCompileProcessor(cache, stateCache, listCache, dependencyParser, hasher);
     }
 
@@ -93,7 +97,7 @@ abstract class AbstractIncrementalNativeCompiler implements Compiler<NativeCompi
         return cacheRepository.cache("incrementalCompile").withLayout(layout).withLockOptions(lockOptions).open();
     }
 
-    private <U, V> PersistentIndexedCache<U, V> createCache(PersistentCache cache, String name, Class<U> keyType, DefaultSerializer<V> fileStateDefaultSerializer) {
+    private <U, V> PersistentIndexedCache<U, V> createCache(PersistentCache cache, String name, Class<U> keyType, Serializer<V> fileStateDefaultSerializer) {
         File cacheFile = new File(cache.getBaseDir(), name + ".bin");
         return cache.createCache(new PersistentIndexedCacheParameters<U, V>(cacheFile, keyType, fileStateDefaultSerializer));
     }

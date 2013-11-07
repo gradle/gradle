@@ -21,6 +21,8 @@ import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
 import org.gradle.api.internal.changedetection.changes.DefaultTaskArtifactStateRepository;
 import org.gradle.api.internal.changedetection.changes.ShortCircuitTaskArtifactStateRepository;
 import org.gradle.api.internal.changedetection.state.*;
+import org.gradle.api.internal.changedetection.state.CachingHasher;
+import org.gradle.api.internal.changedetection.state.DefaultHasher;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.execution.*;
 import org.gradle.api.invocation.Gradle;
@@ -50,12 +52,11 @@ public class TaskExecutionServices {
         return new DefaultTaskArtifactStateCacheAccess(gradle, cacheRepository, decoratorFactory);
     }
 
-    Hasher createHasher(TaskArtifactStateCacheAccess cacheAccess) {
-        return new CachingHasher(new DefaultHasher(), cacheAccess);
-    }
-
-    TaskArtifactStateRepository createTaskArtifactStateRepository(Instantiator instantiator, TaskArtifactStateCacheAccess cacheAccess, Hasher hasher, StartParameter startParameter) {
-        FileSnapshotter fileSnapshotter = new DefaultFileSnapshotter(hasher, cacheAccess);
+    TaskArtifactStateRepository createTaskArtifactStateRepository(Instantiator instantiator, TaskArtifactStateCacheAccess cacheAccess, StartParameter startParameter) {
+        FileSnapshotter fileSnapshotter = new DefaultFileSnapshotter(
+                new CachingHasher(
+                        new DefaultHasher(),
+                        cacheAccess), cacheAccess);
 
         FileSnapshotter outputFilesSnapshotter = new OutputFilesSnapshotter(fileSnapshotter, new RandomLongIdGenerator(), cacheAccess);
 

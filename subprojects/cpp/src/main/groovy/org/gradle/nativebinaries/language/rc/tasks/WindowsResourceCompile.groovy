@@ -19,7 +19,6 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.Incubating
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.SourceDirectorySet
-import org.gradle.api.internal.changedetection.state.Hasher
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputDirectory
@@ -41,8 +40,8 @@ class WindowsResourceCompile extends DefaultTask {
     private final IncrementalCompilerBuilder incrementalCompilerBuilder
 
     @Inject
-    WindowsResourceCompile(CacheRepository cacheRepository, Hasher hasher) {
-        incrementalCompilerBuilder = new IncrementalCompilerBuilder(cacheRepository, hasher, this)
+    WindowsResourceCompile(CacheRepository cacheRepository) {
+        incrementalCompilerBuilder = new IncrementalCompilerBuilder(cacheRepository, this)
         includes = project.files()
         source = project.files()
     }

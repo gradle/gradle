@@ -16,7 +16,6 @@
 package org.gradle.nativebinaries.language.c.internal.incremental;
 
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.changedetection.state.Hasher;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.cache.CacheRepository;
@@ -29,8 +28,8 @@ import java.io.File;
 public class CleanCompilingNativeCompiler extends AbstractIncrementalNativeCompiler {
     private final Compiler<NativeCompileSpec> delegateCompiler;
 
-    public CleanCompilingNativeCompiler(TaskInternal task, Iterable<File> includes, CacheRepository cacheRepository, Hasher hasher, Compiler<NativeCompileSpec> delegateCompiler) {
-        super(task, includes, cacheRepository, hasher);
+    public CleanCompilingNativeCompiler(TaskInternal task, Iterable<File> includes, CacheRepository cacheRepository, Compiler<NativeCompileSpec> delegateCompiler) {
+        super(task, includes, cacheRepository);
         this.delegateCompiler = delegateCompiler;
     }
 

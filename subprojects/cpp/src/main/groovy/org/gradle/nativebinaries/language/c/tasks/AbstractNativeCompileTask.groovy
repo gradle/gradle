@@ -19,7 +19,6 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.Incubating
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.SourceDirectorySet
-import org.gradle.api.internal.changedetection.state.Hasher
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputDirectory
@@ -93,8 +92,8 @@ abstract class AbstractNativeCompileTask extends DefaultTask {
     List<String> compilerArgs
 
     @Inject
-    AbstractNativeCompileTask(CacheRepository cacheRepository, Hasher hasher) {
-        incrementalCompilerBuilder = new IncrementalCompilerBuilder(cacheRepository, hasher, this)
+    AbstractNativeCompileTask(CacheRepository cacheRepository) {
+        incrementalCompilerBuilder = new IncrementalCompilerBuilder(cacheRepository, this)
         includes = project.files()
         source = project.files()
     }
