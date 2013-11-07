@@ -335,4 +335,26 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
 
 (*) - details omitted (listed previously)""")
     }
+
+    def "checked exceptions thrown by tasks are reported correctly"() {
+        buildFile << """
+            class SomeTask extends DefaultTask {
+            
+                @TaskAction
+                void explode() {
+                    throw new Exception("I am the checked exception")
+                }
+            }
+            
+            task explode(type: SomeTask) {
+            
+            }
+        """
+        
+        when:
+        fails "explode"
+
+        then:
+        failure.assertHasCause "java.lang.Exception: I am the checked exception"
+    }
 }
