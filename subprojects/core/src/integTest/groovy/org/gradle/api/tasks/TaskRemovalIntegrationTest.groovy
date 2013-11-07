@@ -26,6 +26,8 @@ class TaskRemovalIntegrationTest extends AbstractIntegrationSpec {
         buildScript """
             task foo {}
             tasks.remove(foo)
+            task foo {}
+            tasks.remove(foo)
         """
 
         when:

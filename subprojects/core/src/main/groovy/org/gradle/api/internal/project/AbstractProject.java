@@ -218,13 +218,10 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
 
         final ModelPath tasksModelPath = ModelPath.path(TaskContainerInternal.MODEL_PATH);
         modelRules.register(tasksModelPath.toString(), taskContainer);
-        final Set<String> createdTaskNames = new HashSet<String>();
         taskContainer.all(new Action<Task>() {
             public void execute(Task task) {
                 String name = task.getName();
-                if (createdTaskNames.add(name)) {
-                    modelRules.register(tasksModelPath.child(name).toString(), Task.class, new TaskFactory(taskContainer, name));
-                }
+                modelRules.register(tasksModelPath.child(name).toString(), Task.class, new TaskFactory(taskContainer, name));
             }
         });
         taskContainer.whenObjectRemoved(new Action<Task>() {

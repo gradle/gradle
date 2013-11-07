@@ -32,8 +32,8 @@ class CacheOperationStack {
         return this;
     }
 
-    public void popLongRunningOperation(String description) {
-        pop(description, true);
+    public void popLongRunningOperation() {
+        pop(true);
     }
 
     public boolean isInCacheAction() {
@@ -49,22 +49,26 @@ class CacheOperationStack {
         return this;
     }
 
-    public void popCacheAction(String description) {
-        pop(description, false);
+    public CacheOperation popCacheAction() {
+        return pop(false);
     }
 
-    private CacheOperation pop(String description, boolean longRunningOperation) {
+    private CacheOperation pop(boolean longRunningOperation) {
         checkNotEmpty();
         CacheOperation operation = operations.remove(0);
-        if (operation.description.equals(description) && operation.longRunningOperation == longRunningOperation) {
+        if (operation.longRunningOperation == longRunningOperation) {
             return operation;
         }
-        throw new IllegalStateException("Cannot pop operation '" + description + "'. It is not at the top of the stack");
+        throw new IllegalStateException(String.format("Unexpected operation %s at the top of the stack.", operation));
     }
 
     private void checkNotEmpty() {
         if (operations.isEmpty()) {
-            throw new IllegalStateException();
+            throw new IllegalStateException("Operation stack is empty.");
         }
+    }
+
+    public boolean isEmpty() {
+        return operations.isEmpty();
     }
 }

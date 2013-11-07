@@ -179,7 +179,7 @@ class PomReaderTest extends Specification {
 </project>
 """
         pomReader = new PomReader(locallyAvailableExternalResource)
-        MavenDependencyKey key = new MavenDependencyKey('group-two', 'artifact-two', null, null)
+        MavenDependencyKey key = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null)
 
         then:
         pomReader.getDependencies().size() == 1
@@ -210,7 +210,7 @@ class PomReaderTest extends Specification {
 </project>
 """
         pomReader = new PomReader(locallyAvailableExternalResource)
-        MavenDependencyKey key = new MavenDependencyKey('group-two', 'artifact-two', null, null)
+        MavenDependencyKey key = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null)
 
         then:
         pomReader.getDependencies().size() == 1
@@ -328,7 +328,7 @@ class PomReaderTest extends Specification {
 </project>
 """
         pomReader = new PomReader(locallyAvailableExternalResource)
-        MavenDependencyKey key = new MavenDependencyKey('group-two', 'artifact-two', null, null)
+        MavenDependencyKey key = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null)
 
         then:
         pomReader.getDependencyMgt().size() == 1
@@ -361,7 +361,7 @@ class PomReaderTest extends Specification {
 </project>
 """
         pomReader = new PomReader(locallyAvailableExternalResource)
-        MavenDependencyKey key = new MavenDependencyKey('group-two', 'artifact-two', null, null)
+        MavenDependencyKey key = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null)
 
         then:
         pomReader.getDependencyMgt().size() == 1
@@ -648,6 +648,94 @@ class PomReaderTest extends Specification {
         pomReader.pomProperties.size() == 0
         pomReader.relocation != null
         pomReader.relocation == ModuleRevisionId.newInstance('group-two', 'artifact-two', 'version-two')
+    }
+
+    @Issue("GRADLE-2938")
+    def "uses default type for dependency if not declared"() {
+        when:
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+
+    <dependencies>
+        <dependency>
+            <groupId>group-two</groupId>
+            <artifactId>artifact-two</artifactId>
+            <version>version-two</version>
+        </dependency>
+        <dependency>
+            <groupId>group-three</groupId>
+            <artifactId>artifact-three</artifactId>
+            <version>version-three</version>
+            <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>group-four</groupId>
+            <artifactId>artifact-four</artifactId>
+            <version>version-four</version>
+            <type>ejb-client</type>
+        </dependency>
+    </dependencies>
+</project>
+"""
+        pomReader = new PomReader(locallyAvailableExternalResource)
+        MavenDependencyKey keyGroupTwo = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null)
+        MavenDependencyKey keyGroupThree = new MavenDependencyKey('group-three', 'artifact-three', 'jar', null)
+        MavenDependencyKey keyGroupFour = new MavenDependencyKey('group-four', 'artifact-four', 'ejb-client', null)
+
+        then:
+        pomReader.getDependencies().size() == 3
+        assertResolvedPomDependency(keyGroupTwo, 'version-two')
+        assertResolvedPomDependency(keyGroupThree, 'version-three')
+        assertResolvedPomDependency(keyGroupFour, 'version-four')
+    }
+
+    @Issue("GRADLE-2938")
+    def "uses default type for dependency management if not declared"() {
+        when:
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>group-two</groupId>
+                <artifactId>artifact-two</artifactId>
+                <version>version-two</version>
+            </dependency>
+            <dependency>
+                <groupId>group-three</groupId>
+                <artifactId>artifact-three</artifactId>
+                <version>version-three</version>
+                <type>jar</type>
+            </dependency>
+            <dependency>
+                <groupId>group-four</groupId>
+                <artifactId>artifact-four</artifactId>
+                <version>version-four</version>
+                <type>ejb-client</type>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+</project>
+"""
+        pomReader = new PomReader(locallyAvailableExternalResource)
+        MavenDependencyKey keyGroupTwo = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null)
+        MavenDependencyKey keyGroupThree = new MavenDependencyKey('group-three', 'artifact-three', 'jar', null)
+        MavenDependencyKey keyGroupFour = new MavenDependencyKey('group-four', 'artifact-four', 'ejb-client', null)
+
+        then:
+        pomReader.getDependencyMgt().size() == 3
+        assertResolvedPomDependencyManagement(keyGroupTwo, 'version-two')
+        assertResolvedPomDependencyManagement(keyGroupThree, 'version-three')
+        assertResolvedPomDependencyManagement(keyGroupFour, 'version-four')
     }
 
     private void assertResolvedPomDependency(MavenDependencyKey key, String version) {

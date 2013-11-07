@@ -1893,6 +1893,79 @@ class GradlePomModuleDescriptorParserTest extends Specification {
         hasDependencyArtifact(depEjbClient, 'artifact-two' , 'ejb-client', 'ejb-client', 'client')
     }
 
+    @Issue("GRADLE-2938")
+    def "uses default dependency type if only the dependency management or dependency element declares it"() {
+        given:
+        def parent = tmpDir.file("parent.xml") << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>group-two</groupId>
+                <artifactId>artifact-two</artifactId>
+                <version>version-two</version>
+                <type>jar</type>
+            </dependency>
+            <dependency>
+                <groupId>group-three</groupId>
+                <artifactId>artifact-three</artifactId>
+                <version>version-three</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+</project>
+"""
+
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+
+    <parent>
+        <groupId>group-one</groupId>
+        <artifactId>parent</artifactId>
+        <version>version-one</version>
+    </parent>
+
+    <dependencies>
+        <dependency>
+            <groupId>group-two</groupId>
+            <artifactId>artifact-two</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>group-three</groupId>
+            <artifactId>artifact-three</artifactId>
+            <type>jar</type>
+        </dependency>
+    </dependencies>
+</project>
+"""
+        and:
+        parseContext.currentRevisionId >> moduleId('group-one', 'artifact-one', 'version-one')
+        parseContext.getArtifact(_) >> { new DefaultLocallyAvailableExternalResource(parent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(parent)) }
+
+        when:
+        def descriptor = parsePom()
+
+        then:
+        descriptor.dependencies.length == 2
+        def depGroupTwo = descriptor.dependencies[0]
+        depGroupTwo.dependencyRevisionId == moduleId('group-two', 'artifact-two', 'version-two')
+        depGroupTwo.moduleConfigurations == ['compile', 'runtime']
+        hasDefaultDependencyArtifact(depGroupTwo)
+        def depGroupThree = descriptor.dependencies[1]
+        depGroupThree.dependencyRevisionId == moduleId('group-three', 'artifact-three', 'version-three')
+        depGroupThree.moduleConfigurations == ['compile', 'runtime']
+        hasDefaultDependencyArtifact(depGroupThree)
+    }
+
     private ModuleDescriptor parsePom() {
         parseMetaData().descriptor
     }
