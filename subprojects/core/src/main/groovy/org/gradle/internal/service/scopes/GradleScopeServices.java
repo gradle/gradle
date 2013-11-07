@@ -24,6 +24,7 @@ import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.project.DefaultProjectRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
+import org.gradle.api.internal.tasks.options.OptionReader;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.execution.*;
 import org.gradle.execution.taskgraph.DefaultTaskGraphExecuter;
@@ -52,6 +53,11 @@ public class GradleScopeServices extends DefaultServiceRegistry implements Servi
         return new TaskSelector(gradle);
     }
 
+    OptionReader createOptionReader() {
+        return new OptionReader();
+    }
+
+
     BuildExecuter createBuildExecuter() {
         List<BuildConfigurationAction> configs = new LinkedList<BuildConfigurationAction>();
         if (get(StartParameter.class).isConfigureOnDemand()) {
@@ -64,7 +70,7 @@ public class GradleScopeServices extends DefaultServiceRegistry implements Servi
         return new DefaultBuildExecuter(
                 configs,
                 asList(new DryRunBuildExecutionAction(),
-                       new SelectedTaskExecutionAction()));
+                        new SelectedTaskExecutionAction()));
     }
 
     ProjectFinder createProjectFinder(final GradleInternal gradle) {

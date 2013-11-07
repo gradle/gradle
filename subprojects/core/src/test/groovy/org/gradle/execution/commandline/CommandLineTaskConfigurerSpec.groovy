@@ -18,6 +18,7 @@ package org.gradle.execution.commandline
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.internal.tasks.options.Option
+import org.gradle.api.internal.tasks.options.OptionReader
 import org.gradle.api.tasks.TaskAction
 import org.gradle.execution.TaskSelector
 import org.gradle.testfixtures.ProjectBuilder
@@ -26,7 +27,7 @@ import spock.lang.Specification
 class CommandLineTaskConfigurerSpec extends Specification {
 
     Project project = new ProjectBuilder().build()
-    CommandLineTaskConfigurer configurer = new CommandLineTaskConfigurer()
+    CommandLineTaskConfigurer configurer = new CommandLineTaskConfigurer(new OptionReader());
 
     TaskSelector selector = Mock()
     SomeTask task = project.task('someTask', type: SomeTask)
@@ -47,7 +48,7 @@ class CommandLineTaskConfigurerSpec extends Specification {
     }
 
     def "does not attempt configure if no options"() {
-        configurer = Spy(CommandLineTaskConfigurer)
+        configurer = Spy(CommandLineTaskConfigurer, constructorArgs: [new OptionReader()])
 
         when:
         def out = configurer.configureTasks([task, task2], ['foo'])

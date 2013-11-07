@@ -24,6 +24,7 @@ import org.gradle.api.internal.plugins.PluginRegistry
 import org.gradle.api.internal.project.DefaultProjectRegistry
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectRegistry
+import org.gradle.api.internal.tasks.options.OptionReader
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.cache.CacheRepository
 import org.gradle.execution.BuildExecuter
@@ -128,5 +129,15 @@ public class GradleScopeServicesTest extends Specification {
         then:
         selector instanceof TaskSelector
         secondSelector sameInstance(selector)
+    }
+
+    def "provides an option reader"() {
+        when:
+        def optionReader = registry.get(OptionReader)
+        def secondOptionReader = registry.get(OptionReader)
+
+        then:
+        optionReader instanceof DefaultPluginContainer
+        secondOptionReader sameInstance(optionReader)
     }
 }

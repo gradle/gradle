@@ -38,12 +38,12 @@ public class TaskDetailPrinter {
     private final String taskPath;
     private final TaskSelector.TaskSelection selection;
     private static final String INDENT = "     ";
-    private final OptionReader commandLineOptionReader;
+    private final OptionReader optionReader;
 
-    public TaskDetailPrinter(String taskPath, TaskSelector.TaskSelection selection) {
+    public TaskDetailPrinter(String taskPath, TaskSelector.TaskSelection selection, OptionReader optionReader) {
         this.taskPath = taskPath;
         this.selection = selection;
-        commandLineOptionReader = new OptionReader();
+        this.optionReader = optionReader;
     }
 
     public void print(StyledTextOutput output) {
@@ -135,7 +135,7 @@ public class TaskDetailPrinter {
     private void printlnCommandlineOptions(StyledTextOutput output, List<Task> tasks) {
         List<OptionDescriptor> allOptions = new ArrayList<OptionDescriptor>();
         for (Task task : tasks) {
-            allOptions.addAll(commandLineOptionReader.getOptions(task));
+            allOptions.addAll(optionReader.getOptions(task));
         }
         if (!allOptions.isEmpty()) {
             output.println();

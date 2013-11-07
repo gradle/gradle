@@ -29,6 +29,12 @@ import java.util.List;
 
 public class CommandLineTaskConfigurer {
 
+    private OptionReader optionReader;
+
+    public CommandLineTaskConfigurer(OptionReader optionReader) {
+        this.optionReader = optionReader;
+    }
+
     public List<String> configureTasks(Collection<Task> tasks, List<String> arguments) {
         assert !tasks.isEmpty();
         if (arguments.isEmpty()) {
@@ -39,11 +45,9 @@ public class CommandLineTaskConfigurer {
 
     private List<String> configureTasksNow(Collection<Task> tasks, List<String> arguments) {
         List<String> remainingArguments = null;
-        OptionReader commandLineOptionReader = new OptionReader();
         for (Task task : tasks) {
             CommandLineParser parser = new CommandLineParser();
-            final List<OptionDescriptor> commandLineOptions = commandLineOptionReader.getOptions(task);
-
+            final List<OptionDescriptor> commandLineOptions = optionReader.getOptions(task);
             for (OptionDescriptor optionDescriptor : commandLineOptions) {
                 String optionName = optionDescriptor.getName();
                 org.gradle.cli.CommandLineOption option = parser.option(optionName);

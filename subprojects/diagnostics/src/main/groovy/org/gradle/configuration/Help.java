@@ -17,6 +17,7 @@ package org.gradle.configuration;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.internal.tasks.options.Option;
+import org.gradle.api.internal.tasks.options.OptionReader;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.execution.TaskSelector;
 import org.gradle.initialization.BuildClientMetaData;
@@ -43,7 +44,8 @@ public class Help extends DefaultTask {
     private void printTaskHelp(StyledTextOutput output) {
         TaskSelector selector = getServices().get(TaskSelector.class);
         final TaskSelector.TaskSelection selection = selector.getSelection(taskPath);
-        TaskDetailPrinter taskDetailPrinter = new TaskDetailPrinter(taskPath, selection);
+        final OptionReader optionReader = getServices().get(OptionReader.class);
+        TaskDetailPrinter taskDetailPrinter = new TaskDetailPrinter(taskPath, selection, optionReader);
         taskDetailPrinter.print(output);
     }
 

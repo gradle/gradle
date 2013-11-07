@@ -28,15 +28,15 @@ import java.util.*;
 
 public class OptionReader {
 
-    private ListMultimap<Class, StaticOptionDescriptor> cachedClassDescriptors = ArrayListMultimap.create();
+    private ListMultimap<Class, StaticOptionDescriptor> cachedStaticClassDescriptors = ArrayListMultimap.create();
 
     public List<OptionDescriptor> getOptions(Task task) {
         final Class<? extends Task> taskClazz = task.getClass();
         Map<String, OptionDescriptor> options = new HashMap<String, OptionDescriptor>();
-        if (!cachedClassDescriptors.containsKey(taskClazz)) {
+        if (!cachedStaticClassDescriptors.containsKey(taskClazz)) {
             loadClassDescriptorInCache(task);
         }
-        for (StaticOptionDescriptor staticCommandLineOptionDescriptor : cachedClassDescriptors.get(taskClazz)) {
+        for (StaticOptionDescriptor staticCommandLineOptionDescriptor : cachedStaticClassDescriptors.get(taskClazz)) {
             options.put(staticCommandLineOptionDescriptor.getName(), new InstanceOptionDescriptor(task, staticCommandLineOptionDescriptor));
         }
         return CollectionUtils.sort(options.values());
@@ -51,7 +51,7 @@ public class OptionReader {
                         staticDescriptor.getName(), task.getClass().getName()));
             }
             processedOptionDescriptors.add(staticDescriptor.getName());
-            cachedClassDescriptors.put(task.getClass(), staticDescriptor);
+            cachedStaticClassDescriptors.put(task.getClass(), staticDescriptor);
         }
     }
 

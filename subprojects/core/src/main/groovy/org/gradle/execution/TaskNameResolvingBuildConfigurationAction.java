@@ -18,6 +18,8 @@ package org.gradle.execution;
 import com.google.common.collect.Multimap;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.tasks.options.OptionReader;
+import org.gradle.execution.commandline.CommandLineTaskConfigurer;
 import org.gradle.execution.commandline.CommandLineTaskParser;
 import org.gradle.util.GUtil;
 import org.slf4j.Logger;
@@ -53,6 +55,7 @@ public class TaskNameResolvingBuildConfigurationAction implements BuildConfigura
 
     private Multimap<String, Task> doSelect(GradleInternal gradle, List<String> paths) {
         TaskSelector selector = gradle.getServices().get(TaskSelector.class);
-        return new CommandLineTaskParser().parseTasks(paths, selector);
+        OptionReader optionReader = gradle.getServices().get(OptionReader.class);
+        return new CommandLineTaskParser(new CommandLineTaskConfigurer(optionReader)).parseTasks(paths, selector);
     }
 }
