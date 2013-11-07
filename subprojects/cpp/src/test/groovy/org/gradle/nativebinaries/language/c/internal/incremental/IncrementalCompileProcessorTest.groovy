@@ -16,7 +16,6 @@
 package org.gradle.nativebinaries.language.c.internal.incremental
 import org.gradle.CacheUsage
 import org.gradle.api.internal.hash.DefaultHasher
-import org.gradle.cache.CacheAccess
 import org.gradle.cache.internal.FileLockManager
 import org.gradle.cache.internal.filelock.LockOptionsBuilder
 import org.gradle.messaging.serialize.DefaultSerializer
@@ -32,10 +31,9 @@ class IncrementalCompileProcessorTest extends Specification {
     def dependencyParser = Mock(SourceDependencyParser)
     def cacheFactory = new InMemoryCacheFactory()
     def hasher = new DefaultHasher()
-    def cacheAccess = Mock(CacheAccess)
     def stateCache = cacheFactory.openIndexedCache(cacheDir, CacheUsage.ON, null, null, LockOptionsBuilder.mode(FileLockManager.LockMode.None), new DefaultSerializer<FileState>())
     def listCache = cacheFactory.openIndexedCache(cacheDir, CacheUsage.ON, null, null, LockOptionsBuilder.mode(FileLockManager.LockMode.None), new DefaultSerializer<List<File>>())
-    def incrementalCompileProcessor = new IncrementalCompileProcessor(cacheAccess, stateCache, listCache, dependencyParser, hasher)
+    def incrementalCompileProcessor = new IncrementalCompileProcessor(stateCache, listCache, dependencyParser, hasher)
 
     def source1 = sourceFile("source1")
     def source2 = sourceFile("source2")
@@ -361,11 +359,6 @@ class IncrementalCompileProcessorTest extends Specification {
             recompile == [source2]
             removed == []
         }
-    }
-
-    def "makes cacheAccess available"() {
-        expect:
-        incrementalCompileProcessor.cacheAccess == cacheAccess
     }
 
     def getState() {

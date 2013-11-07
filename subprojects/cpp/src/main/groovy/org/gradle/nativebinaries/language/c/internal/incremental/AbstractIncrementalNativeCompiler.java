@@ -84,7 +84,7 @@ abstract class AbstractIncrementalNativeCompiler implements Compiler<NativeCompi
         // TODO:DAZ Inject a factory, and come up with a common abstraction for TaskArtifactStateCacheAccess and PersistentCache
         CachingHasher hasher = new CachingHasher(new DefaultHasher(), cache);
 
-        return new IncrementalCompileProcessor(cache, stateCache, listCache, dependencyParser, hasher);
+        return new IncrementalCompileProcessor(stateCache, listCache, dependencyParser, hasher);
     }
 
     private PersistentCache openCache(TaskInternal task) {
