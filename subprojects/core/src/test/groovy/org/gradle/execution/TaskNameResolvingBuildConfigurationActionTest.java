@@ -24,6 +24,7 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.AbstractProject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.options.Option;
+import org.gradle.api.internal.tasks.options.OptionReader;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.util.GUtil;
 import org.gradle.util.JUnit4GroovyMockery;
@@ -57,6 +58,7 @@ public class TaskNameResolvingBuildConfigurationActionTest {
     private final ServiceRegistryFactory services = context.mock(ServiceRegistryFactory.class);
     private final TaskSelector selector = new TaskSelector(gradle, resolver);
     private final TaskNameResolvingBuildConfigurationAction action = new TaskNameResolvingBuildConfigurationAction();
+    private final OptionReader optionReader = new OptionReader();
 
     @Before
     public void setUp() {
@@ -73,13 +75,17 @@ public class TaskNameResolvingBuildConfigurationActionTest {
             will(returnValue(services));
             allowing(services).get(TaskSelector.class);
             will(returnValue(selector));
+            allowing(services).get(OptionReader.class);
+            will(returnValue(optionReader));
+
             allowing(project).getAllprojects();
             will(returnValue(toSet(project, otherProject)));
             allowing(otherProject).getPath();
             will(returnValue(":anotherProject"));
             allowing(rootProject).getPath();
             will(returnValue(":"));
-        }});
+        }
+        });
     }
 
     @Test

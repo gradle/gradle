@@ -30,15 +30,17 @@ import static java.util.Collections.emptyList
 class CommandLineTaskParserSpec extends Specification {
 
     Project project = new ProjectBuilder().build()
-    CommandLineTaskParser parser = new CommandLineTaskParser()
     TaskSelector selector = Mock()
     SomeTask task = project.task('someTask', type: SomeTask)
     SomeTask task2 = project.task('someTask2', type: SomeTask)
     SomeTask task3 = project.task('someTask3', type: SomeTask)
 
+    CommandLineTaskParser parser
+
     def setup() {
-        parser.taskConfigurer = Mock(CommandLineTaskConfigurer)
-        parser.taskConfigurer.configureTasks(_, _) >> { args -> args[1] }
+        CommandLineTaskConfigurer taskConfigurer = Mock(CommandLineTaskConfigurer)
+        taskConfigurer.configureTasks(_, _) >> { args -> args[1] }
+        parser = new CommandLineTaskParser(taskConfigurer)
     }
 
     def "deals with empty input"() {

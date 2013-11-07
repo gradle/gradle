@@ -137,7 +137,7 @@ public class GradleScopeServicesTest extends Specification {
         def secondOptionReader = registry.get(OptionReader)
 
         then:
-        optionReader instanceof DefaultPluginContainer
+        optionReader instanceof OptionReader
         secondOptionReader sameInstance(optionReader)
     }
 }
