@@ -24,16 +24,16 @@ import static java.lang.Thread.currentThread;
 public class CacheAccessOperationsStack {
     private final Map<Thread, CacheOperationStack> perThreadStacks = new HashMap<Thread, CacheOperationStack>();
 
-    public void close() {
-        perThreadStacks.remove(currentThread());
-    }
-
     public void pushCacheAction(String operationDisplayName) {
         getStackForCurrentThread().pushCacheAction(operationDisplayName);
     }
 
     public void popCacheAction() {
-        getStackForCurrentThread().popCacheAction();
+        CacheOperationStack stack = getStackForCurrentThread();
+        stack.popCacheAction();
+        if (stack.isEmpty()) {
+            perThreadStacks.remove(currentThread());
+        }
     }
 
     public boolean isInCacheAction() {
@@ -46,7 +46,11 @@ public class CacheAccessOperationsStack {
     }
 
     public void popLongRunningOperation() {
-        getStackForCurrentThread().popLongRunningOperation();
+        CacheOperationStack stack = getStackForCurrentThread();
+        stack.popLongRunningOperation();
+        if (stack.isEmpty()) {
+            perThreadStacks.remove(currentThread());
+        }
     }
 
     public String getDescription() {

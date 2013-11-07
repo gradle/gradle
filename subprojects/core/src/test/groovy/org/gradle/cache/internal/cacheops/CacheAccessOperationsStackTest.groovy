@@ -25,15 +25,17 @@ class CacheAccessOperationsStackTest extends ConcurrentSpecification {
     def "maintains operations per thread"() {
         expect:
         start {
-            assert !stack.isInCacheAction()
+            assert !stack.inCacheAction
             stack.pushCacheAction("foo1")
             stack.pushCacheAction("foo2")
+            assert stack.inCacheAction
             assert stack.description == "foo2"
         }
         start {
-            assert !stack.isInCacheAction()
+            assert !stack.inCacheAction
             stack.pushCacheAction("bar1")
             stack.pushCacheAction("bar2")
+            assert stack.inCacheAction
             assert stack.description == "bar2"
         }
         finished()

@@ -115,7 +115,6 @@ public class DefaultCacheAccess implements CacheAccess {
     public void close() {
         lock.lock();
         try {
-            operations.close();
             if (fileLock != null) {
                 closeFileLock();
             }

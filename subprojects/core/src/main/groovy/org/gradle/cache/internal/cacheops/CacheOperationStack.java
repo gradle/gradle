@@ -67,4 +67,8 @@ class CacheOperationStack {
             throw new IllegalStateException("Operation stack is empty.");
         }
     }
+
+    public boolean isEmpty() {
+        return operations.isEmpty();
+    }
 }
