@@ -22,7 +22,7 @@ import spock.lang.Ignore
 class TaskCommandLineConfigurationIntegrationSpec extends AbstractIntegrationSpec {
 
     final String someConfigurableTaskType = """
-    import org.gradle.api.internal.tasks.Option
+    import org.gradle.api.internal.tasks.options.Option
 
     class SomeTask extends DefaultTask {
         boolean first
