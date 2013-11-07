@@ -41,12 +41,12 @@ class CacheOperationStackTest extends Specification {
         stack.description == "long2"
 
         when:
-        stack.popLongRunningOperation("long2")
+        stack.popLongRunningOperation()
         then:
         stack.description == "long"
 
         when:
-        stack.popLongRunningOperation("long")
+        stack.popLongRunningOperation()
         and:
         stack.description
         then:
@@ -65,23 +65,14 @@ class CacheOperationStackTest extends Specification {
         stack.description == "foo2"
 
         when:
-        stack.popCacheAction("foo2")
+        stack.popCacheAction()
         then:
         stack.description == "foo"
 
         when:
-        stack.popCacheAction("foo")
+        stack.popCacheAction()
         and:
         stack.description
-        then:
-        thrown(IllegalStateException)
-    }
-
-    def "prevents popping latest operation if the name does not match"() {
-        stack.pushCacheAction("foo")
-
-        when:
-        stack.popCacheAction("foo2")
         then:
         thrown(IllegalStateException)
     }
@@ -90,7 +81,7 @@ class CacheOperationStackTest extends Specification {
         stack.pushCacheAction("foo")
 
         when:
-        stack.popLongRunningOperation("foo")
+        stack.popLongRunningOperation()
         then:
         thrown(IllegalStateException)
     }
@@ -117,8 +108,8 @@ class CacheOperationStackTest extends Specification {
         !stack.inLongRunningOperation
 
         when:
-        stack.popCacheAction("cache2")
-        stack.popCacheAction("cache")
+        stack.popCacheAction()
+        stack.popCacheAction()
         then:
         !stack.inCacheAction
         stack.inLongRunningOperation

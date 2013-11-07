@@ -16,27 +16,25 @@
 package org.gradle.cache.internal
 
 import org.gradle.cache.internal.btree.BTreePersistentIndexedCache
-import org.gradle.cache.internal.cacheops.CacheAccessOperationsStack
 import org.gradle.internal.Factory
 import org.gradle.messaging.serialize.Serializer
+import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
-import spock.lang.Specification
 
 import static org.gradle.cache.internal.FileLockManager.LockMode.*
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode
 
-class DefaultCacheAccessTest extends Specification {
+class DefaultCacheAccessTest extends ConcurrentSpec {
     @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     final FileLockManager lockManager = Mock()
     final File lockFile = tmpDir.file('lock.bin')
     final FileLock lock = Mock()
-    final CacheAccessOperationsStack operations = Mock()
     final BTreePersistentIndexedCache<String, Integer> backingCache = Mock()
-    DefaultCacheAccess access = newAccess(operations)
+    DefaultCacheAccess access = newAccess()
 
-    private DefaultCacheAccess newAccess(CacheAccessOperationsStack operations) {
-        new DefaultCacheAccess("<display-name>", lockFile, lockManager, operations) {
+    private DefaultCacheAccess newAccess() {
+        new DefaultCacheAccess("<display-name>", lockFile, lockManager) {
             @Override
             def <K, V> BTreePersistentIndexedCache<K, V> doCreateCache(File cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
                 return backingCache
@@ -51,12 +49,11 @@ class DefaultCacheAccessTest extends Specification {
         then:
         1 * lockManager.lock(lockFile, mode(Shared), "<display-name>") >> lock
         1 * lockManager.allowContention(lock, _ as Runnable)
-        1 * operations.pushCacheAction("Access <display-name>")
         _ * lock.state
         0 * _._
 
         and:
-        access.owner
+        access.owner == Thread.currentThread()
 
         when:
         access.close()
@@ -64,7 +61,6 @@ class DefaultCacheAccessTest extends Specification {
         then:
         _ * lock.state
         1 * lock.close()
-        1 * operations.close()
         0 * _._
 
         and:
@@ -93,14 +89,13 @@ class DefaultCacheAccessTest extends Specification {
         access.close()
 
         then:
-        1 * operations.close()
         0 * _._
 
         and:
         !access.owner
     }
 
-    def "using cache pushes an operation and acquires ownership"() {
+    def "using cache pushes an operation and acquires lock but does not release it at the end of the operation"() {
         Factory<String> action = Mock()
 
         when:
@@ -108,30 +103,24 @@ class DefaultCacheAccessTest extends Specification {
         access.useCache("some operation", action)
 
         then:
-        1 * operations.pushCacheAction("some operation")
-
-        then:
-        1 * operations.description >> "some operation"
         1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>", "some operation") >> lock
         _ * lock.state
         1 * lockManager.allowContention(lock, _ as Runnable)
 
         then:
         1 * action.create() >> {
-            assert access.owner
+            assert access.owner == Thread.currentThread()
         }
 
         then:
         1 * lock.getMode() >> Exclusive
-        1 * operations.inCacheAction >> false
-        1 * operations.popCacheAction("some operation")
         0 * _._
 
         and:
         !access.owner
     }
 
-    def "nested use cache operation does not release the ownership"() {
+    def "nested use cache operation does not release the lock"() {
         Factory<String> action = Mock()
 
         when:
@@ -140,28 +129,37 @@ class DefaultCacheAccessTest extends Specification {
 
         then:
         1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>", _) >> lock
-        1 * action.create()
-        1 * operations.inCacheAction >> true
+        1 * action.create() >> {
+            access.useCache("nested operation") {
+                assert access.owner == Thread.currentThread()
+            }
+        }
 
         then:
-        access.owner
+        !access.owner
     }
 
     def "use cache operation reuses existing file lock"() {
         Factory<String> action = Mock()
 
         when:
-        access.open(mode(Exclusive))
-
-        then:
-        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
-
-        when:
+        access.open(mode(None))
         access.useCache("some operation", action)
 
         then:
+        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>", "some operation") >> lock
+        1 * action.create() >> { assert access.owner == Thread.currentThread() }
+
+        when:
+        access.useCache("some other operation", action)
+
+        then:
         0 * lockManager._
-        1 * action.create()
+        1 * action.create() >> { assert access.owner == Thread.currentThread() }
+        0 * _._
+
+        and:
+        !access.owner
     }
 
     def "use cache operation does not allow shared locks"() {
@@ -176,17 +174,7 @@ class DefaultCacheAccessTest extends Specification {
         thrown(UnsupportedOperationException)
     }
 
-    def "long running operation fails early when there is no lock"() {
-        when:
-        access.longRunningOperation("some operation", Mock(Factory))
-
-        then:
-        IllegalStateException e = thrown()
-        e.message == 'Cannot start long running operation, as the <display-name> has not been locked.'
-    }
-
-    def "long running operation pushes an operation and releases ownership"() {
-        lock.mode >> Exclusive
+    def "long running operation pushes an operation and releases ownership but not lock"() {
         Factory<String> action = Mock()
 
         when:
@@ -194,17 +182,14 @@ class DefaultCacheAccessTest extends Specification {
 
         then:
         1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
-        assert access.owner
+        access.owner == Thread.currentThread()
 
         when:
         access.longRunningOperation("some operation", action)
 
         then:
-        1 * operations.maybeReentrantLongRunningOperation("some operation") >> false
-
-        then:
-        0 * lock.close()
-        1 * operations.pushLongRunningOperation("some operation")
+        _ * lock.mode >> Exclusive
+        0 * lock._
 
         then:
         1 * action.create() >> {
@@ -212,11 +197,10 @@ class DefaultCacheAccessTest extends Specification {
         }
 
         then:
-        0 * lockManager._
-        1 * operations.popLongRunningOperation("some operation")
+        0 * _._
 
         then:
-        access.owner
+        access.owner == Thread.currentThread()
     }
 
     def "long running operation closes the lock if contended"() {
@@ -262,20 +246,38 @@ class DefaultCacheAccessTest extends Specification {
         1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>", _) >> lock
     }
 
-    def "reentrant long running operation does not involve locking"() {
+    def "top-level long running operation does not lock file"() {
         Factory<String> action = Mock()
 
         when:
+        access.open(mode(None))
         access.longRunningOperation("some operation", action)
 
         then:
-        1 * operations.maybeReentrantLongRunningOperation("some operation") >> true
+        1 * action.create() >> {
+            assert !access.owner
+        }
 
         then:
-        1 * action.create()
+        0 * lock._
+        0 * lockManager._
+    }
+
+    def "re-entrant long running operation does not lock file"() {
+        Factory<String> action = Mock()
+
+        when:
+        access.open(mode(None))
+        access.longRunningOperation("some operation", action)
 
         then:
-        1 * operations.popLongRunningOperation("some operation")
+        1 * action.create() >> {
+            access.longRunningOperation("other operation") {
+                assert !access.owner
+            }
+        }
+
+        then:
         0 * lock._
         0 * lockManager._
     }

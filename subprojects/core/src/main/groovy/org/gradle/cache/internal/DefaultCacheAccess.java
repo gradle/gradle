@@ -59,14 +59,10 @@ public class DefaultCacheAccess implements CacheAccess {
     private int cacheClosedCount;
 
     public DefaultCacheAccess(String cacheDisplayName, File lockFile, FileLockManager lockManager) {
-        this(cacheDisplayName, lockFile, lockManager, new CacheAccessOperationsStack());
-    }
-
-    DefaultCacheAccess(String cacheDisplayName, File lockFile, FileLockManager lockManager, CacheAccessOperationsStack operations) {
         this.cacheDisplayName = cacheDisplayName;
         this.lockFile = lockFile;
         this.lockManager = lockManager;
-        this.operations = operations;
+        this.operations = new CacheAccessOperationsStack();
     }
 
     /**
@@ -154,10 +150,12 @@ public class DefaultCacheAccess implements CacheAccess {
         } finally {
             lock.lock();
             try {
-                if (wasStarted) {
-                    onEndWork(operationDisplayName);
-                } else {
-                    releaseOwnership(operationDisplayName);
+                try {
+                    if (wasStarted) {
+                        onEndWork();
+                    }
+                } finally {
+                    releaseOwnership();
                 }
             } finally {
                 lock.unlock();
@@ -182,10 +180,10 @@ public class DefaultCacheAccess implements CacheAccess {
         }
     }
 
-    private void releaseOwnership(String operationDisplayName) {
+    private void releaseOwnership() {
         lock.lock();
         try {
-            operations.popCacheAction(operationDisplayName);
+            operations.popCacheAction();
             if (!operations.isInCacheAction()) {
                 owner = null;
                 condition.signalAll();
@@ -196,44 +194,43 @@ public class DefaultCacheAccess implements CacheAccess {
     }
 
     public <T> T longRunningOperation(String operationDisplayName, Factory<? extends T> action) {
-        boolean isReentrant;
-        lock.lock();
-        try {
-            isReentrant = operations.maybeReentrantLongRunningOperation(operationDisplayName);
-        } finally {
-            lock.unlock();
-        }
-        if (isReentrant) {
-            try {
-                return action.create();
-            } finally {
-                popLongRunningOperation(operationDisplayName);
-            }
-        }
-
-        lock.lock();
-        boolean wasEnded;
-        try {
-            checkThreadIsOwner();
-            wasEnded = onEndWork();
-            parkOwner(operationDisplayName);
-        } finally {
-            lock.unlock();
-        }
+        boolean wasEnded = startLongRunningOperation(operationDisplayName);
         try {
             return action.create();
         } finally {
-            restoreOwner(operationDisplayName);
-            if (wasEnded) {
-                onStartWork();
-            }
+            finishLongRunningOperation(wasEnded);
         }
     }
 
-    private void popLongRunningOperation(String operationDisplayName) {
+    private boolean startLongRunningOperation(String operationDisplayName) {
+        boolean wasEnded;
         lock.lock();
         try {
-            operations.popLongRunningOperation(operationDisplayName);
+            if (operations.isInCacheAction()) {
+                checkThreadIsOwner();
+                wasEnded = onEndWork();
+                owner = null;
+                condition.signalAll();
+            } else {
+                wasEnded = false;
+            }
+            operations.pushLongRunningOperation(operationDisplayName);
+        } finally {
+            lock.unlock();
+        }
+        return wasEnded;
+    }
+
+    private void finishLongRunningOperation(boolean wasEnded) {
+        lock.lock();
+        try {
+            operations.popLongRunningOperation();
+            if (operations.isInCacheAction()) {
+                restoreOwner();
+                if (wasEnded) {
+                    onStartWork();
+                }
+            }
         } finally {
             lock.unlock();
         }
@@ -250,22 +247,7 @@ public class DefaultCacheAccess implements CacheAccess {
         }
     }
 
-    private void parkOwner(String operationDisplayName) {
-        lock.lock();
-        try {
-            if (owner != Thread.currentThread()) {
-                throw new IllegalStateException(String.format("Cannot start long running operation, as the %s has not been locked.", cacheDisplayName));
-            }
-            owner = null;
-            condition.signalAll();
-
-            operations.pushLongRunningOperation(operationDisplayName);
-        } finally {
-            lock.unlock();
-        }
-    }
-
-    private void restoreOwner(String description) {
+    private void restoreOwner() {
         lock.lock();
         try {
             while (owner != null) {
@@ -276,7 +258,6 @@ public class DefaultCacheAccess implements CacheAccess {
                 }
             }
             owner = Thread.currentThread();
-            popLongRunningOperation(description);
         } finally {
             lock.unlock();
         }
@@ -336,14 +317,6 @@ public class DefaultCacheAccess implements CacheAccess {
         return true;
     }
 
-    private void onEndWork(String operationToRelease) {
-        try {
-            onEndWork();
-        } finally {
-            releaseOwnership(operationToRelease);
-        }
-    }
-
     private FileLock getLock() {
         lock.lock();
         try {
@@ -394,7 +367,7 @@ public class DefaultCacheAccess implements CacheAccess {
                     try {
                         closeFileLock();
                     } finally {
-                        releaseOwnership("Other process requested access to " + cacheDisplayName);
+                        releaseOwnership();
                     }
                 } finally {
                     lock.unlock();
