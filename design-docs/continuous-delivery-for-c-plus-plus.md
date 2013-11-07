@@ -1090,6 +1090,35 @@ TBD
 * Merge with existing project file, as for IDEA and Eclipse.
 * Add hooks for customizing the generated XML.
 
+# Bugfixes
+
+## Files with identical names in C/C++ source tree are silently excluded from compilation (GRADLE-2923)
+
+### Implementation
+
+* Change C++ and C compiler implementations (GCC and VisualCpp) so that only a single sources file is compiled per execution 
+** Create a single compiler options file to reuse for compiling all source files
+** For each source file specify the source file name and the output file name on the command line
+* Make the generated object file include the project-relative path to the source file
+** For a source file that is located within the project directory, use the project relative path
+** For a source file that is located outside of the project directory, use the absolute path to the source file, appropriately escaped
+* Update `OutputCleaningCompiler` with knowledge of the new source->object file mapping
+
+If we are inspired by CMake, the output file rules would be:
+
+* For a source file found at `src/main/cpp/main.cpp`, create the object file `build/objectFiles/<component>/<sourceSet>/src/main/cpp/main.cpp.obj`
+* For a source file found at `../../src/main/cpp/main.cpp`, create the object file `build/objectFiles/<component>/<sourceSet>/C_/dev/gradle/samples/native-binaries/cpp-exe/src/main/cpp/main.cpp.obj`
+
+### Test cases
+
+* Source set includes files with the same name located within project directory
+* Source set includes files with the  files with the same name where 1 is located outside the project directory
+* Removes stale outputs when source file is moved to a different directory
+
+### Open issues
+
+* Nice way between a project directory and an absolute directory with the same path
+
 # Milestone 4
 
 ## Story: Automatically include debug symbols in 'debug' build types
