@@ -16,55 +16,39 @@
 package org.gradle.api.internal.tasks.compile.daemon;
 
 import net.jcip.annotations.ThreadSafe;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
-import org.gradle.internal.CompositeStoppable;
+import org.gradle.api.internal.tasks.compile.*;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Controls the lifecycle of the compiler daemon and provides access to it.
  */
 @ThreadSafe
 public class CompilerDaemonManager implements CompilerDaemonFactory {
-    private static final Logger LOGGER = Logging.getLogger(CompilerDaemonManager.class);
-    private final Object lock = new Object();
-    private final List<CompilerDaemonClient> clients = new ArrayList<CompilerDaemonClient>();
-    private CompilerDaemonStarter compilerDaemonStarter;
 
-    public CompilerDaemonManager(CompilerDaemonStarter compilerDaemonStarter) {
-        this.compilerDaemonStarter = compilerDaemonStarter;
+    private CompilerClientsManager clientsManager;
+
+    public CompilerDaemonManager(CompilerClientsManager clientsManager) {
+        this.clientsManager = clientsManager;
     }
 
-    public CompilerDaemon getDaemon(File workingDir, DaemonForkOptions forkOptions) {
-        synchronized (lock) {
-            for (CompilerDaemonClient client: clients) {
-                if (client.isCompatibleWith(forkOptions) && client.isIdle()) {
-                    client.setIdle(false);
-                    return client;
+    public CompilerDaemon getDaemon(final File workingDir, final DaemonForkOptions forkOptions) {
+        return new CompilerDaemon() {
+            public <T extends CompileSpec> CompileResult execute(org.gradle.api.internal.tasks.compile.Compiler<T> compiler, T spec) {
+                CompilerDaemonClient client = clientsManager.reserveIdleClient(forkOptions);
+                if (client == null) {
+                    client = clientsManager.reserveNewClient(workingDir, forkOptions);
+                }
+                try {
+                    return client.execute(compiler, spec);
+                } finally {
+                    clientsManager.release(client);
                 }
             }
-        }
-
-        //allow the daemon to be started concurrently
-        CompilerDaemonClient client =
-                compilerDaemonStarter.startDaemon(workingDir, forkOptions)
-                .setIdle(false);
-
-        synchronized (lock) {
-            clients.add(client);
-        }
-        return client;
+        };
     }
 
     public void stop() {
-        synchronized (lock) {
-            LOGGER.debug("Stopping {} compiler daemon(s).", clients.size());
-            CompositeStoppable.stoppable(clients).stop();
-            LOGGER.info("Stopped {} compiler daemon(s).", clients.size());
-            clients.clear();
-        }
+        clientsManager.stop();
     }
 }

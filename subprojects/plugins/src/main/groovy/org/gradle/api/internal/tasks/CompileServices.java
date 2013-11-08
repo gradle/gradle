@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.StartParameter;
+import org.gradle.api.internal.tasks.compile.daemon.CompilerClientsManager;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonStarter;
 import org.gradle.api.internal.tasks.compile.daemon.InProcessCompilerDaemonFactory;
@@ -44,7 +45,7 @@ public class CompileServices implements PluginServiceRegistry {
         }
 
         CompilerDaemonManager createCompilerDaemonManager(Factory<WorkerProcessBuilder> workerFactory, StartParameter startParameter) {
-            return new CompilerDaemonManager(new CompilerDaemonStarter(workerFactory, startParameter));
+            return new CompilerDaemonManager(new CompilerClientsManager(new CompilerDaemonStarter(workerFactory, startParameter)));
         }
 
         InProcessCompilerDaemonFactory createInProcessCompilerDaemonFactory() {

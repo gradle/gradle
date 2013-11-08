@@ -16,129 +16,86 @@
 
 package org.gradle.api.internal.tasks.compile.daemon
 
+import org.gradle.api.internal.tasks.compile.CompileSpec
 import org.gradle.util.ConcurrentSpecification
+import spock.lang.Subject
 
-import java.util.concurrent.CopyOnWriteArraySet
-import java.util.concurrent.locks.ReentrantLock
-
-import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
+import org.gradle.api.internal.tasks.compile.Compiler
 
 class CompilerDaemonManagerTest extends ConcurrentSpecification {
 
+    def clientsManager = Mock(CompilerClientsManager)
+    def client = Mock(CompilerDaemonClient)
+
+    @Subject manager = new CompilerDaemonManager(clientsManager)
+
     def workingDir = new File("some-dir")
+    def compiler = Stub(Compiler)
+    def options = Stub(DaemonForkOptions)
+    def compileSpec = Stub(CompileSpec)
 
-    def "creates new daemon when fork options incompatible"() {
-        def forkOptions = Stub(DaemonForkOptions) { isCompatibleWith(_) >> false }
-        def m = new CompilerDaemonManager(new DummyCompilerDaemonStarter())
-
+    def "getting a compiler daemon does not assume client use"() {
         when:
-        Set daemons = []
-        daemons << m.getDaemon(workingDir, forkOptions)
-        daemons << m.getDaemon(workingDir, forkOptions)
+        manager.getDaemon(workingDir, options);
 
         then:
-        daemons.size() == 2
+        0 * clientsManager._
     }
 
-    def "reuses daemons"() {
-        def forkOptions = Stub(DaemonForkOptions) { isCompatibleWith(_) >> true }
-        def m = new CompilerDaemonManager(new DummyCompilerDaemonStarter())
-
+    def "new client is created when daemon is executed and no idle clients found"() {
         when:
-        Set daemons = []
-        daemons << m.getDaemon(workingDir, forkOptions).setIdle(true)
-        daemons << m.getDaemon(workingDir, forkOptions)
+        manager.getDaemon(workingDir, options).execute(compiler, compileSpec)
 
         then:
-        daemons.size() == 1
-    }
-
-    def "allows compiler daemon per thread"() {
-        def forkOptions = Stub(DaemonForkOptions) { isCompatibleWith(_) >> true }
-        def starter = new DummyCompilerDaemonStarter().blockCreation()
-        def m = new CompilerDaemonManager(starter)
-
-        when: //2 threads asking for daemons
-        Set daemons = new CopyOnWriteArraySet()
-        start { daemons << m.getDaemon(workingDir, forkOptions) }
-        start { daemons << m.getDaemon(workingDir, forkOptions) }
-
-        then: //both threads are creating an instance of a daemon at the same time
-        poll { assert starter.awaitingCreation == 2 }
-
-        when: //complete creation of the daemons
-        starter.unblockCreation()
+        1 * clientsManager.reserveIdleClient(options) >> null
 
         then:
-        poll { assert daemons.size() == 2 }
+        1 * clientsManager.reserveNewClient(workingDir, options) >> client
+
+        then:
+        1 * client.execute(compiler, compileSpec)
+
+        then:
+        1 * clientsManager.release(client)
+        0 * _._
     }
 
-    def "reuses daemons in concurrent scenario"() {
-        def forkOptions = Stub(DaemonForkOptions) { isCompatibleWith(_) >> true }
-        def m = new CompilerDaemonManager(new DummyCompilerDaemonStarter())
+    def "idle client is reused when daemon is executed"() {
+        when:
+        manager.getDaemon(workingDir, options).execute(compiler, compileSpec)
 
-        when: //2 threads asking for daemons
-        Set daemons = new CopyOnWriteArraySet()
-        start { daemons << m.getDaemon(workingDir, forkOptions) }
-        start { daemons << m.getDaemon(workingDir, forkOptions) }
+        then:
+        1 * clientsManager.reserveIdleClient(options) >> client
 
-        then: //both threads are creating an instance of a daemon at the same time
-        poll { assert daemons.size() == 2 }
+        then:
+        1 * client.execute(compiler, compileSpec)
 
-        when: //daemons finished their jobs
-        daemons.each { it.idle = true }
-
-        and: //and new daemon requested
-        daemons << m.getDaemon(workingDir, forkOptions)
-
-        then: //one of the daemons is reused
-        poll {
-            assert daemons.size() == 2
-            assert daemons.count { it.idle } == 1
-        }
+        then:
+        1 * clientsManager.release(client)
+        0 * _._
     }
 
-    private static class DummyCompilerDaemonStarter extends CompilerDaemonStarter {
-        def lock = new ReentrantLock()
-        def condition = lock.newCondition()
-        def boolean blocked
-        def awaitingCreation = 0
+    def "client is released even if execution fails"() {
+        when:
+        manager.getDaemon(workingDir, options).execute(compiler, compileSpec)
 
-        DummyCompilerDaemonStarter() {
-            super(null, null)
-        }
+        then:
+        1 * clientsManager.reserveIdleClient(options) >> client
 
-        CompilerDaemonClient startDaemon(File workingDir, DaemonForkOptions forkOptions) {
-            lock.lock()
-            try {
-                awaitingCreation++
-                while (blocked) {
-                    condition.await()
-                }
-            } finally {
-                lock.unlock()
-            }
-            new CompilerDaemonClient(forkOptions, null, null)
-        }
+        then:
+        1 * client.execute(compiler, compileSpec) >> { throw new RuntimeException("Boo!") }
 
-        DummyCompilerDaemonStarter blockCreation() {
-            lock.lock()
-            try {
-                blocked = true
-            } finally {
-                lock.unlock()
-            }
-            this
-        }
+        then:
+        thrown(RuntimeException)
+        1 * clientsManager.release(client)
+        0 * _._
+    }
 
-        void unblockCreation() {
-            lock.lock()
-            try {
-                blocked = false
-                condition.signalAll()
-            } finally {
-                lock.unlock()
-            }
-        }
+    def "stops clients"() {
+        when:
+        manager.stop()
+
+        then:
+        clientsManager.stop()
     }
 }
