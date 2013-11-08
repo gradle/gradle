@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.store;
 
+import org.gradle.api.internal.cache.BinaryStore;
+
 public interface BinaryStores {
-    DefaultBinaryStore next();
+    BinaryStore nextStore();
 }

@@ -70,7 +70,7 @@ public class ResolutionResultsStoreFactory implements Closeable {
     public BinaryStores createBinaryStores() {
         return new BinaryStores() {
             int id;
-            public DefaultBinaryStore next() {
+            public DefaultBinaryStore nextStore() {
                 return createBinaryStore(id++);
             }
         };

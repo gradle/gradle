@@ -27,22 +27,22 @@ class ResolutionResultsStoreFactoryTest extends Specification {
 
     def "provides binary stores"() {
         def stores = f.createBinaryStores()
-        def store1 = stores.next()
-        def store2 = stores.next()
+        def store1 = stores.nextStore()
+        def store2 = stores.nextStore()
 
         expect:
         store1 != store2
-        store1 == f.createBinaryStores().next()
+        store1 == f.createBinaryStores().nextStore()
     }
 
     def "rolls the file"() {
         f = new ResolutionResultsStoreFactory(new TmpDirTemporaryFileProvider(), 2)
 
         when:
-        def store = f.createBinaryStores().next()
+        def store = f.createBinaryStores().nextStore()
         store.write({it.writeByte(1); it.writeByte(2) } as BinaryStore.WriteAction)
         store.done()
-        def store2 = f.createBinaryStores().next()
+        def store2 = f.createBinaryStores().nextStore()
 
         then:
         store.file == store2.file
@@ -52,7 +52,7 @@ class ResolutionResultsStoreFactoryTest extends Specification {
         store2.done()
 
         then:
-        f.createBinaryStores().next().file != store2.file
+        f.createBinaryStores().nextStore().file != store2.file
     }
 
     def "cleans up binary files"() {
@@ -60,11 +60,11 @@ class ResolutionResultsStoreFactoryTest extends Specification {
         def stores1 = f.createBinaryStores()
 
         when:
-        def store = stores1.next()
+        def store = stores1.nextStore()
         store.write({it.writeByte(1); it.writeByte(2) } as BinaryStore.WriteAction)
         store.done()
-        def store2 = stores1.next() // rolled
-        def store3 = f.createBinaryStores().next()
+        def store2 = stores1.nextStore() // rolled
+        def store3 = f.createBinaryStores().nextStore()
 
         then:
         store.file != store2.file //rolled
