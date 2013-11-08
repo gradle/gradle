@@ -88,7 +88,7 @@ public class DependencyReportTask extends AbstractReportTask {
      *
      * @param configurationName name of the configuration to generate the report for
      */
-    @Option(options = "configuration", description = "The configuration to generate the report for.")
+    @Option(option = "configuration", description = "The configuration to generate the report for.")
     public void setConfiguration(String configurationName) {
         this.configurations = Collections.singleton(getProject().getConfigurations().getByName(configurationName));
     }

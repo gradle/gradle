@@ -8,7 +8,7 @@ class CustomTask extends DefaultTask {
     void doSomething() {
     }
 
-    @Option(options = "stringValue", description = "Configures a string value in CustomTask.")
+    @Option(option = "stringValue", description = "Configures a string value in CustomTask.")
     public void setStringValue(String value) {
     }
 

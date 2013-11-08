@@ -61,7 +61,7 @@ class InitBuild extends DefaultTask {
         projectLayoutRegistry.get(type).generate()
     }
 
-    @Option(options = "type", description = "Set type of build to create.")
+    @Option(option = "type", description = "Set type of build to create.")
     public void setType(String type) {
         this.type = type;
     }

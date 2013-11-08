@@ -429,7 +429,7 @@ public class TaskNameResolvingBuildConfigurationActionTest {
     }
 
     public abstract class TaskWithBooleanProperty implements Task {
-        @Option(options = "all", description = "Some boolean flag")
+        @Option(option = "all", description = "Some boolean flag")
         public void setSomeFlag(boolean flag) {
         }
     }

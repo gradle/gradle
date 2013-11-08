@@ -167,33 +167,33 @@ class CommandLineTaskConfigurerSpec extends Specification {
     public static class SomeTask extends DefaultTask {
         String content = 'default content'
 
-        @Option(options = "content", description = "Some content.")
+        @Option(option = "content", description = "Some content.")
         public void setContent(String content) {
             this.content = content
         }
 
         boolean someFlag = false
 
-        @Option(options = "someFlag", description = "Some flag.")
+        @Option(option = "someFlag", description = "Some flag.")
         public void setSomeFlag(boolean someFlag) {
             this.someFlag = someFlag
         }
 
         Boolean someFlag2 = false
 
-        @Option(options = "someFlag2", description = "Some 2nd flag.")
+        @Option(option = "someFlag2", description = "Some 2nd flag.")
         public void setSomeFlag2(Boolean someFlag2) {
             this.someFlag2 = someFlag2
         }
 
-        @Option(options = "notUsed", description = "Not used.")
+        @Option(option = "notUsed", description = "Not used.")
         public void setNotUsed(boolean notUsed) {
             throw new RuntimeException("Not used");
         }
 
         TestEnum anEnum
 
-        @Option(options = "someEnum", description = "some enum value.")
+        @Option(option = "someEnum", description = "some enum value.")
         public void setEnum(TestEnum anEnum) {
             this.anEnum = anEnum;
         }
@@ -206,12 +206,12 @@ class CommandLineTaskConfigurerSpec extends Specification {
         boolean someFlag = false
         String stuff
 
-        @Option(options = "someFlag", description = "Some flag.")
+        @Option(option = "someFlag", description = "Some flag.")
         public void setSomeFlag(boolean someFlag) {
             this.someFlag = someFlag
         }
 
-        @Option(options = "stuff", description = "Some stuff.")
+        @Option(option = "stuff", description = "Some stuff.")
         public void setStuff(String stuff) {
             this.stuff = stuff;
         }

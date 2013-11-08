@@ -42,7 +42,7 @@ public class TaskReportTask extends AbstractReportTask {
         this.renderer = renderer;
     }
 
-    @Option(options = "all", description = "Show additional tasks and detail.")
+    @Option(option = "all", description = "Show additional tasks and detail.")
     public void setShowDetail(boolean detail) {
         this.detail = detail;
     }

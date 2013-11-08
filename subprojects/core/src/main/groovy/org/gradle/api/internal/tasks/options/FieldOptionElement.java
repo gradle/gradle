@@ -35,10 +35,10 @@ public class FieldOptionElement extends AbstractOptionElement{
     }
 
     private static String calOptionName(Option option, Field field) {
-        if (option.options()[0].length() == 0) {
+        if (option.option().length() == 0) {
             return field.getName();
         } else {
-            return option.options()[0];
+            return option.option();
         }
     }
 

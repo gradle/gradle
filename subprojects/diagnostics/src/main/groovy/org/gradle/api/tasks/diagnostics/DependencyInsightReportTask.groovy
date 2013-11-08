@@ -114,7 +114,7 @@ public class DependencyInsightReportTask extends DefaultTask {
      *
      * @param dependencyInsightNotation
      */
-    @Option(options = "dependency", description = "Shows the details of given dependency.")
+    @Option(option = "dependency", description = "Shows the details of given dependency.")
     public void setDependencySpec(Object dependencyInsightNotation) {
         def parser = DependencyResultSpecNotationParser.create()
         this.dependencySpec = parser.parseNotation(dependencyInsightNotation)
@@ -137,7 +137,7 @@ public class DependencyInsightReportTask extends DefaultTask {
      *
      * @param configurationName
      */
-    @Option(options = "configuration", description = "Looks for the dependency in given configuration.")
+    @Option(option = "configuration", description = "Looks for the dependency in given configuration.")
     public void setConfiguration(String configurationName) {
         this.configuration = project.configurations.getByName(configurationName)
     }

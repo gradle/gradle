@@ -9,11 +9,11 @@ class CustomTask extends DefaultTask {
     void doSomething() {
     }
 
-    @Option(options = "enumValue", description = "Configures an enum value in CustomTask.")
+    @Option(option = "enumValue", description = "Configures an enum value in CustomTask.")
     public void setEnumValue(TestEnum value) {
     }
 
-    @Option(options = "booleanValue", description = "Configures a boolean flag in CustomTask.")
+    @Option(option = "booleanValue", description = "Configures a boolean flag in CustomTask.")
     public void setBooleanValue(boolean value) {
     }
 }

@@ -29,7 +29,7 @@ public @interface Option {
      *
      * @return The options.
      */
-    String[] options() default "";
+    String option() default "";
 
     /**
      * The description of this option.

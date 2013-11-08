@@ -148,23 +148,23 @@ class OptionReaderTest extends Specification {
 
 
     public static class TestTask1 extends DefaultTask {
-        @Option(options = "stringValue", description = "string value")
+        @Option(option = "stringValue", description = "string value")
         public void setStringValue(String value) {
         }
 
-        @Option(options = "objectValue", description = "object value")
+        @Option(option = "objectValue", description = "object value")
         public void setObjectValue(Object value) {
         }
 
-        @Option(options = "booleanValue", description = "boolean value")
+        @Option(option = "booleanValue", description = "boolean value")
         public void setBooleanValue(boolean value) {
         }
 
-        @Option(options = "enumValue", description = "enum value")
+        @Option(option = "enumValue", description = "enum value")
         public void setEnumValue(TestEnum value) {
         }
 
-        @Option(options = "aFlag", description = "simple flag")
+        @Option(option = "aFlag", description = "simple flag")
         public void setActive() {
         }
 
@@ -183,17 +183,17 @@ class OptionReaderTest extends Specification {
     }
 
     public static class TestTask2 extends DefaultTask {
-        @Option(options = "stringValue", description = "string value")
+        @Option(option = "stringValue", description = "string value")
         public void setStringValue(String value) {
         }
 
-        @Option(options = "stringValue", description = "string value")
+        @Option(option = "stringValue", description = "string value")
         public void setStringValue2(String value) {
         }
     }
 
     public static class TestTask3 extends DefaultTask {
-        @Option(options = "staticString", description = "string value")
+        @Option(option = "staticString", description = "string value")
         public static void setStaticString(String value) {
         }
         @Option(description = "staticOption")
@@ -201,19 +201,19 @@ class OptionReaderTest extends Specification {
     }
 
     public static class TestTask4 extends DefaultTask {
-        @Option(options = 'stringValue', description = "string value")
+        @Option(option = 'stringValue', description = "string value")
         public void setStrings(String value1, String value2) {
         }
     }
 
     public static class TestTask5 extends DefaultTask {
-        @Option(options = 'fileValue', description = "file value")
+        @Option(option = 'fileValue', description = "file value")
         public void setStrings(File file) {
         }
     }
 
     public static class TestTask6 extends DefaultTask {
-        @Option(options = 'customOptionName', description = "custom description")
+        @Option(option = 'customOptionName', description = "custom description")
         String field1
 
         @Option(description = "Descr Field2")
@@ -232,7 +232,7 @@ class OptionReaderTest extends Specification {
     }
 
     public static class TestTask7 extends DefaultTask {
-        @Option(options = 'aValue')
+        @Option(option = 'aValue')
         public void setStrings(String value) {
         }
     }
@@ -247,7 +247,6 @@ class OptionReaderTest extends Specification {
         public void setStrings(String value) {
         }
     }
-
 
     enum TestEnum {
         ABC, DEF

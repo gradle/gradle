@@ -29,7 +29,7 @@ public class MethodOptionElement extends AbstractOptionElement {
     private Class<?> optionType;
 
     public MethodOptionElement(Option option, Method method) {
-        super(option.options()[0], option, method.getDeclaringClass());
+        super(option.option(), option, method.getDeclaringClass());
         this.method = method;
         this.optionType = calculateOptionType();
         assertMethodTypeSupported(getOptionName(), method);

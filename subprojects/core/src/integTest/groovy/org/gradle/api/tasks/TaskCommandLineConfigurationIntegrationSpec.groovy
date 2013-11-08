@@ -29,12 +29,12 @@ class TaskCommandLineConfigurationIntegrationSpec extends AbstractIntegrationSpe
         String second
         TestEnum third
 
-        @Option(options = "first", description = "configures 'first' field")
+        @Option(option = "first", description = "configures 'first' field")
         void setFirst(boolean first) {
             this.first = first
         }
 
-        @Option(options = "second", description = "configures 'second' field")
+        @Option(option = "second", description = "configures 'second' field")
         void setSecond(String second) {
             this.second = second
         }
@@ -44,7 +44,7 @@ class TaskCommandLineConfigurationIntegrationSpec extends AbstractIntegrationSpe
             this.second = second.toString()
         }
 
-       @Option(options = "third", description = "configures 'third' field")
+       @Option(option = "third", description = "configures 'third' field")
         void setThird(TestEnum blubb) {
             this.third = blubb
         }
