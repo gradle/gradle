@@ -27,6 +27,7 @@ class TaskCommandLineConfigurationIntegrationSpec extends AbstractIntegrationSpe
     class SomeTask extends DefaultTask {
         boolean first
         String second
+        TestEnum third
 
         @Option(options = "first", description = "configures 'first' field")
         void setFirst(boolean first) {
@@ -43,11 +44,24 @@ class TaskCommandLineConfigurationIntegrationSpec extends AbstractIntegrationSpe
             this.second = second.toString()
         }
 
+       @Option(options = "third", description = "configures 'third' field")
+        void setThird(TestEnum blubb) {
+            this.third = blubb
+        }
+
         @TaskAction
         void renderFields() {
-            println "first=" + first + ",second=" + second
+            println "first=" + first + ",second=" + second + ",third=" + third
         }
-    }"""
+
+
+        enum TestEnum {
+            ABC, DEF, GHIJKL
+        }
+    }
+
+
+    """
 
     def "can configure task from command line in multiple projects"() {
         given:
@@ -234,6 +248,23 @@ class TaskCommandLineConfigurationIntegrationSpec extends AbstractIntegrationSpe
         then:
         failure.assertHasDescription("Incorrect command line arguments: [-l, -l]. Task options require double dash, for example: 'gradle tasks --all'.")
     }
+
+
+    def "decent error for invalid enum value"() {
+        given:
+        file("build.gradle") << """
+            task someTask(type: SomeTask)
+            $someConfigurableTaskType
+"""
+
+        when:
+        runAndFail 'someTask', '--third', 'unsupportedValue'
+
+        then:
+        failure.assertHasDescription("Problem configuring option 'third' on task ':someTask' from command line.")
+        failure.assertHasCause("Cannot coerce string value 'unsupportedValue' to an enum value of type 'SomeTask\$TestEnum' (valid case insensitive values: [ABC, DEF, GHIJKL])")
+    }
+
 
     @Ignore
     //some existing problems with command line interface
