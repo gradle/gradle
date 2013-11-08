@@ -339,23 +339,6 @@ Note that this story does not include support for including the transitive depen
     - In each case, remove the original binaries before running the install image.
 - A dependency on a binary overrides a dependency on the library that produced the binary.
 
-## Open issues
-
-### Language plugins
-
-- Come up with consistent naming scheme for language plugins: 'cpp', 'c', 'assembler', 'java-lang', 'scala-lang', etc
-
-### Source sets
-
-- Declare a dependency on another source set.
-- Add compile dependencies to each source set.
-- Add link dependencies to each source set, use these to infer the link dependencies of the binary.
-- AssemblerSourceSet should implement DependentSourceSet (has source dependencies)
-- Change `NativeDependencySet` to handle separate C and C++ headers.
-- Replace `SourceDirectorySet` with something that is actually a set of source directories.
-    - Use this for sources and headers
-    - Can access as a set of directories, a set of files or a file tree
-
 # Milestone 2
 
 ## Story: Simplify configuration of component source sets
@@ -372,10 +355,6 @@ are created automatically for each component.
 ### Test cases
 
 - Programmatically create the functional source set prior to adding the matching component.
-
-### Open issues
-
-- Only do this if no source sets have been explicitly attached to the component.
 
 ## Story: Build different variants of a native component
 
@@ -427,11 +406,6 @@ This will define 4 binaries:
 
 ### Open issues
 
-- Make it easy to have the same set of variants for all components.
-- Add a 'development' assemble task, which chooses a single binary for each component.
-- Need to make standard 'build', 'check' lifecycle tasks available too.
-- Formalise the concept of a naming scheme for binary names, tasks and file paths.
-- Need to be able to build a single variant or all variants.
 - Need to consume locally and between projects and between builds.
 - Need a hook to infer the default variant.
 - Need to handle dependencies.
@@ -862,7 +836,7 @@ Depends on a number of stories in [dependency-resolution.md](dependency-resoluti
 - Add an `assemble` lifecycle task for each component.
 - Running `gradle assemble` should build all binaries for the main executable or library
 - Running `gradle uploadArchives` should build and publish all binaries for the main executable or library
-- Add a task for creating a single 'developerImage' for each component.
+- Add a task for creating a single 'developer image' for each component.
     - Build `debug` variant where possible
     - Build shared library variants
     - Build for the current Operating System and architecture
@@ -1312,11 +1286,30 @@ TBD
 
 - Improve customising the tasks for building a binary
 - Improve doing stuff with the install task
-- Some way to configure/use all native components
+- Some way to configure/use all native components (instead of `libraries.all { ... }` and `components.all { ... }`)
+- Have some way to replace the default source sets or configure one without redefining all
+- Model cross compilation as a single toolchain
+- Don't create variants that can never be built
+- Don't create variants that are not desired - e.g linkage, target platform, build types
+- Allow a plugin to define the set of available tool chains, build type, platforms, flavors etc and allow a component to declare which of these make sense.
+  Can infer tool chain from target platform
+
+## Source
+
+- Replace `SourceDirectorySet` with something that is actually a set of source directories.
+    - Use this for sources and headers
+    - Can access as a set of directories, a set of files or a file tree
+    - Allow individual files to be added
+    - Allow custom file extensions to be specified
 - Source sets are children of components
 - Cpp source set should include only files with a C++ extension
 - C source set should include only files with a C extension
 - Assembler source set should include only files with an assembler extension
+- A native component has a shared headers source set with its own dependencies, visible to all source sets of the component
+- A source set may have private headers and its own dependencies, visible only to the source set
+- A library component has an API, defaults to the shared headers
+- When compiling, only the API of dependencies should be visible
+- AssemblerSourceSet should implement DependentSourceSet (has source dependencies)
 
 ## Compilation
 
@@ -1326,11 +1319,18 @@ TBD
 - Source set declares a target language runtime, use this to decide which driver to use to link
 - Don't fail if g++ is not installed when it is not required
 - Support preprocessor macros for assembler
+- Understand build and release build types and drive the compiler and linker appropriately
 
 ## Structure
 
 - Some common plugin that determines which tool-chains to apply
 - Fix package hierarchy
+
+### Language plugins
+
+- Add a 'development' install task, which chooses a single variant for an executable to install
+- Need to make standard 'build', 'check' lifecycle tasks available too. The `assemble` task should build all buildable variants.
+- Come up with consistent naming scheme for language plugins: 'cpp', 'c', 'assembler', 'java-lang', 'scala-lang', etc
 
 ## Later
 
@@ -1344,8 +1344,6 @@ TBD
 * Add 'position independent' setting to 'NativeBinary'.
 * Add a position independent variant for all static libraries.
 * Model shared/static linkage as another dimension for library components.
-* Decouple SourceSet and SourceDirectorySet, and make it easy to add individual source files and directories.
-* General purpose tree artifact.
 * Handling for system libraries.
 * Building for multiple chipsets.
 * Selecting a compatible architecture at resolve time. For example, if I'm building for the amd64 cpu, I can use an x86 cpu + 64 bit data model.
