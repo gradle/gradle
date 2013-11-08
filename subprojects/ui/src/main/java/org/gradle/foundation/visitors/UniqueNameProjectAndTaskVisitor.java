@@ -17,9 +17,9 @@ package org.gradle.foundation.visitors;
 
 import org.gradle.foundation.ProjectView;
 import org.gradle.foundation.TaskView;
+import org.gradle.util.CollectionUtils;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -38,15 +38,11 @@ public class UniqueNameProjectAndTaskVisitor implements AllProjectsAndTasksVisit
     }
 
     public List<String> getSortedTaskNames() {
-        ArrayList<String> tasks = new ArrayList<String>(taskNames);
-        Collections.sort(tasks);
-        return tasks;
+        return CollectionUtils.sort(taskNames);
     }
 
     public List<String> getSortedProjectNames() {
-        ArrayList<String> projects = new ArrayList<String>(projectNames);
-        Collections.sort(projects);
-        return projects;
+        return CollectionUtils.sort(projectNames);
     }
 
     /*

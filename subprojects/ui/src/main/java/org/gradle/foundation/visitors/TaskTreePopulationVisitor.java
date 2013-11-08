@@ -19,6 +19,7 @@ import org.gradle.foundation.ProjectView;
 import org.gradle.foundation.TaskView;
 import org.gradle.gradleplugin.foundation.filters.AllowAllProjectAndTaskFilter;
 import org.gradle.gradleplugin.foundation.filters.ProjectAndTaskFilter;
+import org.gradle.util.CollectionUtils;
 import org.gradle.util.GUtil;
 
 import java.util.*;
@@ -105,8 +106,7 @@ public class TaskTreePopulationVisitor {
                                                 List<ProjectView> sourceProjects, P parentProjectObject, Comparator<ProjectView> projectSorter, Comparator<TaskView> taskSorter) {
         List<P> projectObjects = new ArrayList<P>();
 
-        sourceProjects = new ArrayList<ProjectView>(sourceProjects);  //make a copy because we're going to sort them.
-        Collections.sort(sourceProjects, projectSorter);
+        sourceProjects = CollectionUtils.sort(sourceProjects, projectSorter);  //make a copy because we're going to sort them.
 
         Iterator<ProjectView> iterator = sourceProjects.iterator();
         int index = 0;
@@ -138,8 +138,7 @@ public class TaskTreePopulationVisitor {
     private static <P, T> List<T> visitTasks(Visitor<P, T> visitor, ProjectAndTaskFilter filter, ProjectView project,
                                              int startingIndex, P userProjectObject, Comparator<TaskView> taskSorter) {
         List<T> taskObjects = new ArrayList<T>();
-        List<TaskView> tasks = new ArrayList<TaskView>(project.getTasks()); //make a copy because we're going to sort them
-        Collections.sort(tasks, taskSorter);
+        List<TaskView> tasks = CollectionUtils.sort(project.getTasks(), taskSorter); //make a copy because we're going to sort them
 
         Iterator<TaskView> iterator = tasks.iterator();
         int index = startingIndex;

@@ -63,14 +63,20 @@ public abstract class CollectionUtils {
         return filter(list, new LinkedList<T>(), filter);
     }
 
+    /**
+     * Returns a sorted copy of the provided collection of things. Uses the provided comparator to sort.
+     */
     public static <T> List<T> sort(Iterable<? extends T> things, Comparator<? super T> comparator) {
-        List<T> copy = new ArrayList(toList(things));
+        List<T> copy = toMutableList(things);
         Collections.sort(copy, comparator);
         return copy;
     }
 
+    /**
+     * Returns a sorted copy of the provided collection of things. Uses the natural ordering of the things.
+     */
     public static <T extends Comparable> List<T> sort(Iterable<T> things) {
-        List<T> copy = new ArrayList(toList(things));
+        List<T> copy = toMutableList(things);
         Collections.sort(copy);
         return copy;
     }
@@ -211,6 +217,17 @@ public abstract class CollectionUtils {
         }
         if (things instanceof Collection) {
             return new ArrayList<T>((Collection) things);
+        }
+        List<T> list = new ArrayList<T>();
+        for (T thing : things) {
+            list.add(thing);
+        }
+        return list;
+    }
+
+    private static <T> List<T> toMutableList(Iterable<? extends T> things) {
+        if (things == null) {
+            return new ArrayList<T>(0);
         }
         List<T> list = new ArrayList<T>();
         for (T thing : things) {

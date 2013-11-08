@@ -20,8 +20,10 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.DependencyEdge;
+import org.gradle.util.CollectionUtils;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Comparator;
 
 /**
  * Created: 17/08/2012
@@ -34,9 +36,7 @@ public class DependencyResultSorter {
      * so that the dependency that was selected is more prominent.
      */
     public static Collection<DependencyEdge> sort(Collection<DependencyEdge> input, VersionMatcher versionMatcher) {
-        List<DependencyEdge> out = new ArrayList<DependencyEdge>(input);
-        Collections.sort(out, new DependencyComparator(versionMatcher));
-        return out;
+        return CollectionUtils.sort(input, new DependencyComparator(versionMatcher));
     }
 
     private static class DependencyComparator implements Comparator<DependencyEdge> {
