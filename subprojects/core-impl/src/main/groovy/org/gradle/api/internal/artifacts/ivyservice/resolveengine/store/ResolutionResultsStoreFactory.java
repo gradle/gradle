@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.store;
 
+import org.gradle.api.artifacts.result.ResolvedComponentResult;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResults;
 import org.gradle.api.internal.cache.Store;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.logging.Logger;
@@ -38,6 +40,8 @@ public class ResolutionResultsStoreFactory implements Closeable {
     private CachedStoreFactory oldModelCache;
     private CachedStoreFactory newModelCache;
 
+    private int storeSetBaseId;
+
     public ResolutionResultsStoreFactory(TemporaryFileProvider temp) {
         this(temp, DEFAULT_MAX_SIZE);
     }
@@ -54,8 +58,7 @@ public class ResolutionResultsStoreFactory implements Closeable {
     private final Map<String, DefaultBinaryStore> stores = new HashMap<String, DefaultBinaryStore>();
     private final CompositeStoppable cleanUpLater = new CompositeStoppable();
 
-    private DefaultBinaryStore createBinaryStore(int id) {
-        String storeKey = Thread.currentThread().getId() + "-" + id; //one store per thread
+    private DefaultBinaryStore createBinaryStore(String storeKey) {
         DefaultBinaryStore store = stores.get(storeKey);
         if (store == null || isFull(store)) {
             File storeFile = temp.createTemporaryFile("gradle", ".bin");
@@ -67,11 +70,30 @@ public class ResolutionResultsStoreFactory implements Closeable {
         return store;
     }
 
-    public BinaryStores createBinaryStores() {
-        return new BinaryStores() {
-            int id;
-            public DefaultBinaryStore nextStore() {
-                return createBinaryStore(id++);
+    public StoreSet createStoreSet() {
+        return new StoreSet() {
+            int storeSetId = storeSetBaseId++;
+            int binaryStoreId;
+            public DefaultBinaryStore nextBinaryStore() {
+                //one binary store per id+threadId
+                String storeKey = Thread.currentThread().getId() + "-" + binaryStoreId++;
+                return createBinaryStore(storeKey);
+            }
+
+            public Store<ResolvedComponentResult> oldModelStore() {
+                if (oldModelCache == null) {
+                    oldModelCache = new CachedStoreFactory("Resolution result");
+                    cleanUpLater.add(oldModelCache);
+                }
+                return oldModelCache.createCachedStore(storeSetId);
+            }
+
+            public Store<TransientConfigurationResults> newModelStore() {
+                if (newModelCache == null) {
+                    newModelCache = new CachedStoreFactory("Resolved configuration");
+                    cleanUpLater.add(newModelCache);
+                }
+                return newModelCache.createCachedStore(storeSetId);
             }
         };
     }
@@ -94,21 +116,5 @@ public class ResolutionResultsStoreFactory implements Closeable {
             newModelCache = null;
             stores.clear();
         }
-    }
-
-    public <T> Store<T> createOldModelCache(Object id) {
-        if (oldModelCache == null) {
-            oldModelCache = new CachedStoreFactory("Resolution result");
-            cleanUpLater.add(oldModelCache);
-        }
-        return oldModelCache.createCachedStore(id);
-    }
-
-    public <T> Store<T> createNewModelCache(Object id) {
-        if (newModelCache == null) {
-            newModelCache = new CachedStoreFactory("Resolved configuration");
-            cleanUpLater.add(newModelCache);
-        }
-        return newModelCache.createCachedStore(id);
     }
 }

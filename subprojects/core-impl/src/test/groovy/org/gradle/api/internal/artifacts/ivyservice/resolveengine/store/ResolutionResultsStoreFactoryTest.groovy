@@ -26,23 +26,23 @@ class ResolutionResultsStoreFactoryTest extends Specification {
     def f = new ResolutionResultsStoreFactory(new TmpDirTemporaryFileProvider())
 
     def "provides binary stores"() {
-        def stores = f.createBinaryStores()
-        def store1 = stores.nextStore()
-        def store2 = stores.nextStore()
+        def stores = f.createStoreSet()
+        def store1 = stores.nextBinaryStore()
+        def store2 = stores.nextBinaryStore()
 
         expect:
         store1 != store2
-        store1 == f.createBinaryStores().nextStore()
+        store1 == f.createStoreSet().nextBinaryStore()
     }
 
     def "rolls the file"() {
         f = new ResolutionResultsStoreFactory(new TmpDirTemporaryFileProvider(), 2)
 
         when:
-        def store = f.createBinaryStores().nextStore()
+        def store = f.createStoreSet().nextBinaryStore()
         store.write({it.writeByte(1); it.writeByte(2) } as BinaryStore.WriteAction)
         store.done()
-        def store2 = f.createBinaryStores().nextStore()
+        def store2 = f.createStoreSet().nextBinaryStore()
 
         then:
         store.file == store2.file
@@ -52,19 +52,19 @@ class ResolutionResultsStoreFactoryTest extends Specification {
         store2.done()
 
         then:
-        f.createBinaryStores().nextStore().file != store2.file
+        f.createStoreSet().nextBinaryStore().file != store2.file
     }
 
     def "cleans up binary files"() {
         f = new ResolutionResultsStoreFactory(new TmpDirTemporaryFileProvider(), 1);
-        def stores1 = f.createBinaryStores()
+        def stores1 = f.createStoreSet()
 
         when:
-        def store = stores1.nextStore()
+        def store = stores1.nextBinaryStore()
         store.write({it.writeByte(1); it.writeByte(2) } as BinaryStore.WriteAction)
         store.done()
-        def store2 = stores1.nextStore() // rolled
-        def store3 = f.createBinaryStores().nextStore()
+        def store2 = stores1.nextBinaryStore() // rolled
+        def store3 = f.createStoreSet().nextBinaryStore()
 
         then:
         store.file != store2.file //rolled
@@ -77,14 +77,17 @@ class ResolutionResultsStoreFactoryTest extends Specification {
         [store.file, store2.file, store3.file].each { !it.exists() }
     }
 
-    def "provides caches"() {
-        expect:
-        f.createNewModelCache("x").load({"x"} as org.gradle.internal.Factory) == "x"
-        f.createNewModelCache("y").load({"y"} as org.gradle.internal.Factory) == "y"
-        f.createNewModelCache("y").load({"yyyy"} as org.gradle.internal.Factory) == "y"
+    def "provides stores"() {
+        def set1 = f.createStoreSet()
+        def set2 = f.createStoreSet()
 
-        f.createOldModelCache("x").load({"x"} as org.gradle.internal.Factory) == "x"
-        f.createOldModelCache("y").load({"y"} as org.gradle.internal.Factory) == "y"
-        f.createOldModelCache("y").load({"yyyy"} as org.gradle.internal.Factory) == "y"
+        expect:
+        set1.newModelStore().load({"1"} as org.gradle.internal.Factory) == "1"
+        set1.newModelStore().load({"2"} as org.gradle.internal.Factory) == "1"
+        set2.newModelStore().load({"3"} as org.gradle.internal.Factory) == "3"
+
+        set1.oldModelStore().load({"1"} as org.gradle.internal.Factory) == "1"
+        set1.oldModelStore().load({"2"} as org.gradle.internal.Factory) == "1"
+        set2.oldModelStore().load({"3"} as org.gradle.internal.Factory) == "3"
     }
 }
