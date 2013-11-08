@@ -22,7 +22,7 @@ public interface OptionDescriptor extends Comparable<OptionDescriptor> {
 
     String getName();
 
-    Class getArgumentType();
+    Class<?> getArgumentType();
 
     List<String> getAvailableValues();
 

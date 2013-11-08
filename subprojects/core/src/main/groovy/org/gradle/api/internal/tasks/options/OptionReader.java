@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.options;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
-import org.gradle.api.Task;
 import org.gradle.util.CollectionUtils;
 
 import java.lang.reflect.Field;
@@ -30,34 +29,34 @@ public class OptionReader {
 
     private ListMultimap<Class, OptionElement> cachedStaticClassDescriptors = ArrayListMultimap.create();
 
-    public List<OptionDescriptor> getOptions(Task task) {
-        final Class<? extends Task> taskClazz = task.getClass();
+    public List<OptionDescriptor> getOptions(Object target) {
+        final Class<?> targetClass = target.getClass();
         Map<String, OptionDescriptor> options = new HashMap<String, OptionDescriptor>();
-        if (!cachedStaticClassDescriptors.containsKey(taskClazz)) {
-            loadClassDescriptorInCache(task);
+        if (!cachedStaticClassDescriptors.containsKey(targetClass)) {
+            loadClassDescriptorInCache(target);
         }
-        for (OptionElement optionElement : cachedStaticClassDescriptors.get(taskClazz)) {
-            options.put(optionElement.getOptionName(), new InstanceOptionDescriptor(task, optionElement));
+        for (OptionElement optionElement : cachedStaticClassDescriptors.get(targetClass)) {
+            options.put(optionElement.getOptionName(), new InstanceOptionDescriptor(target, optionElement));
         }
         return CollectionUtils.sort(options.values());
     }
 
-    private void loadClassDescriptorInCache(Task task) {
-        final Collection<OptionElement> optionElements = getOptionElements(task);
+    private void loadClassDescriptorInCache(Object target) {
+        final Collection<OptionElement> optionElements = getOptionElements(target);
         Set<String> processedOptionElements = new HashSet<String>();
         for (OptionElement optionElement : optionElements) {
             if (processedOptionElements.contains(optionElement.getOptionName())) {
                 throw new OptionValidationException(String.format("Option '%s' linked to multiple elements in class '%s'.",
-                        optionElement.getOptionName(), task.getClass().getName()));
+                        optionElement.getOptionName(), target.getClass().getName()));
             }
             processedOptionElements.add(optionElement.getOptionName());
-            cachedStaticClassDescriptors.put(task.getClass(), optionElement);
+            cachedStaticClassDescriptors.put(target.getClass(), optionElement);
         }
     }
 
-    private Collection<OptionElement> getOptionElements(Task task) {
+    private Collection<OptionElement> getOptionElements(Object target) {
         List<OptionElement> allOptionElements = new ArrayList<OptionElement>();
-        for (Class<?> type = task.getClass(); type != Object.class && type != null; type = type.getSuperclass()) {
+        for (Class<?> type = target.getClass(); type != Object.class && type != null; type = type.getSuperclass()) {
             allOptionElements.addAll(getMethodAnnotations(type));
             allOptionElements.addAll(getFieldAnnotations(type));
         }

@@ -16,9 +16,7 @@
 
 package org.gradle.api.internal.tasks.options
 
-import org.gradle.api.DefaultTask
 import org.gradle.api.Project
-import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
 
 class OptionReaderTest extends Specification {
@@ -28,12 +26,11 @@ class OptionReaderTest extends Specification {
 
     def setup() {
         reader = new OptionReader()
-        project = ProjectBuilder.builder().build();
     }
 
     def "can read options linked to setter methods of a task"() {
         when:
-        List<InstanceOptionDescriptor> options = reader.getOptions(project.tasks.create("aTask", TestTask1))
+        List<InstanceOptionDescriptor> options = reader.getOptions(new TestClass1())
         then:
         options[0].name == "aFlag"
         options[0].description == "simple flag"
@@ -69,15 +66,15 @@ class OptionReaderTest extends Specification {
 
     def "fail when multiple methods define same option"() {
         when:
-        reader.getOptions(project.tasks.create("aTask", TestTask2))
+        reader.getOptions(new TestClass2())
         then:
         def e = thrown(OptionValidationException)
-        e.message == "Option 'stringValue' linked to multiple elements in class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$TestTask2_Decorated'."
+        e.message == "Option 'stringValue' linked to multiple elements in class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$TestClass2'."
     }
 
     def "ignores static methods and fields"() {
         when:
-        List<InstanceOptionDescriptor> options = reader.getOptions(Mock(TestTask3))
+        List<InstanceOptionDescriptor> options = reader.getOptions(new TestClass3())
         then:
         options.isEmpty()
     }
@@ -85,23 +82,23 @@ class OptionReaderTest extends Specification {
 
     def "fail when parameter cannot be converted from the command-line"() {
         when:
-        reader.getOptions(project.tasks.create("aTask", TestTask5))
+        reader.getOptions(new TestClass5())
         then:
         def e = thrown(OptionValidationException)
-        e.message == "Option 'fileValue' cannot be casted to parameter type 'java.io.File' in class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$TestTask5'."
+        e.message == "Option 'fileValue' cannot be casted to parameter type 'java.io.File' in class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$TestClass5'."
     }
 
     def "fails when method has > 1 parameter"() {
         when:
-        reader.getOptions(project.tasks.create("aTask", TestTask4));
+        reader.getOptions(new TestClass4());
         then:
         def e = thrown(OptionValidationException)
-        e.message == "Option 'stringValue' cannot be linked to methods with multiple parameters in class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$TestTask4#setStrings'."
+        e.message == "Option 'stringValue' cannot be linked to methods with multiple parameters in class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$TestClass4#setStrings'."
     }
 
     def "handles field options"() {
         when:
-        List<InstanceOptionDescriptor> options = reader.getOptions(project.tasks.create("aTask", TestTask6))
+        List<InstanceOptionDescriptor> options = reader.getOptions(new TestClass6())
         then:
         options[0].name == "customOptionName"
         options[0].description == "custom description"
@@ -126,28 +123,28 @@ class OptionReaderTest extends Specification {
 
     def "throws decent error when description not set"() {
         when:
-        reader.getOptions(project.tasks.create("aTask", TestTask7));
+        reader.getOptions(new TestClass7());
         then:
         def e = thrown(OptionValidationException)
-        e.message == "No description set on option 'aValue' at for class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$TestTask7'."
+        e.message == "No description set on option 'aValue' at for class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$TestClass7'."
 
         when:
-        reader.getOptions(project.tasks.create("bTask", TestTask8));
+        reader.getOptions(new TestClass8());
         then:
         e = thrown(OptionValidationException)
-        e.message == "No description set on option 'field' at for class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$TestTask8'."
+        e.message == "No description set on option 'field' at for class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$TestClass8'."
     }
 
     def "throws decent error when method annotated without option name set"() {
         when:
-        reader.getOptions(project.tasks.create("aTask", TestTask9));
+        reader.getOptions(new TestClass9());
         then:
         def e = thrown(OptionValidationException)
-        e.message == "No option name set on 'setStrings' in class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$TestTask9'."
+        e.message == "No option name set on 'setStrings' in class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$TestClass9'."
     }
 
 
-    public static class TestTask1 extends DefaultTask {
+    public static class TestClass1{
         @Option(option = "stringValue", description = "string value")
         public void setStringValue(String value) {
         }
@@ -182,7 +179,7 @@ class OptionReaderTest extends Specification {
         }
     }
 
-    public static class TestTask2 extends DefaultTask {
+    public static class TestClass2{
         @Option(option = "stringValue", description = "string value")
         public void setStringValue(String value) {
         }
@@ -192,7 +189,7 @@ class OptionReaderTest extends Specification {
         }
     }
 
-    public static class TestTask3 extends DefaultTask {
+    public static class TestClass3{
         @Option(option = "staticString", description = "string value")
         public static void setStaticString(String value) {
         }
@@ -200,19 +197,19 @@ class OptionReaderTest extends Specification {
         static String staticField
     }
 
-    public static class TestTask4 extends DefaultTask {
+    public static class TestClass4{
         @Option(option = 'stringValue', description = "string value")
         public void setStrings(String value1, String value2) {
         }
     }
 
-    public static class TestTask5 extends DefaultTask {
+    public static class TestClass5{
         @Option(option = 'fileValue', description = "file value")
         public void setStrings(File file) {
         }
     }
 
-    public static class TestTask6 extends DefaultTask {
+    public static class TestClass6{
         @Option(option = 'customOptionName', description = "custom description")
         String field1
 
@@ -231,18 +228,18 @@ class OptionReaderTest extends Specification {
         }
     }
 
-    public static class TestTask7 extends DefaultTask {
+    public static class TestClass7{
         @Option(option = 'aValue')
         public void setStrings(String value) {
         }
     }
 
-    public static class TestTask8 extends DefaultTask {
+    public static class TestClass8{
         @Option
         String field
     }
 
-    public static class TestTask9 extends DefaultTask {
+    public static class TestClass9 {
         @Option(description = "some description")
         public void setStrings(String value) {
         }
