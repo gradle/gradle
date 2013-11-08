@@ -60,9 +60,11 @@ public class CompilerDaemonManager implements CompilerDaemonFactory {
     }
 
     public void stop() {
-        LOGGER.debug("Stopping {} Gradle compiler daemon(s).", clients.size());
-        CompositeStoppable.stoppable(clients).stop();
-        LOGGER.info("Stopped {} Gradle compiler daemon(s).", clients.size());
-        clients.clear();
+        synchronized (lock) {
+            LOGGER.debug("Stopping {} compiler daemon(s).", clients.size());
+            CompositeStoppable.stoppable(clients).stop();
+            LOGGER.info("Stopped {} compiler daemon(s).", clients.size());
+            clients.clear();
+        }
     }
 }
