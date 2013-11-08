@@ -24,6 +24,14 @@ The following features are currently out of scope for this milestone, but certai
 - Installing the Play tools on the build machine.
 - Migrating or importing SBT settings for a Play project.
 
+## Performance
+
+Performance should be comparable to SBT:
+
+- Building and starting an application.
+- Reload after a change.
+- Executing tests for an application.
+
 ## Developer compiles Java and Scala source for Play application
 
 Developer uses the standard build lifecycle, such as `gradle assemble` or `gradle build` to compile the Java and Scala source for a Play application.
@@ -167,6 +175,10 @@ Allow the Scala interactive console to be launched from the command-line.
 - Scalastyle
 - SCCT
 
+## Javascript plugins
+
+- Compile Dust templates to javascript and include in the web application image
+
 ## Bootstrap a new Play project
 
 Extend the build init plugin so that it can bootstrap a new Play project, producing the same output as `play new` except with a Gradle build instead of
@@ -176,6 +188,12 @@ an SBT build.
 
 - Migrating an SBT based Play project to Gradle
 - Writing Gradle plugins that extend the base Play plugin
+
+# Implementation plan - Milestone 2
+
+## Publish Play application to a binary repository
+
+Allow a Play application distribution to be published to a binary repository.
 
 # Implementation plan - Later milestones
 
