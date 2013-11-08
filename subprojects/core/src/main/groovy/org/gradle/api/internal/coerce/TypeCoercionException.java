@@ -20,9 +20,7 @@ import org.gradle.api.GradleException;
 
 // TODO - this is usually a user error, might need a better name
 public class TypeCoercionException extends GradleException {
-
     public TypeCoercionException(String message) {
         super(message);
     }
-
 }

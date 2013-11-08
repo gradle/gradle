@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.tasks.options;
 
+import org.gradle.api.internal.coerce.EnumFromStringNotationParser;
+import org.gradle.api.internal.notations.api.NotationParser;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,7 +26,8 @@ abstract class AbstractOptionElement implements OptionElement {
 
     protected Object getParameterObject(String value) {
         if (getOptionType().isEnum()) {
-            return Enum.valueOf((Class<? extends Enum>) getOptionType(), value);
+            NotationParser parser = new EnumFromStringNotationParser(getOptionType());
+            return parser.parseNotation(value);
         }
         return value;
     }
