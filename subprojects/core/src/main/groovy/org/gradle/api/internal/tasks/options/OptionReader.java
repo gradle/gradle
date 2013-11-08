@@ -28,7 +28,7 @@ import java.util.*;
 
 public class OptionReader {
 
-    private ListMultimap<Class, StaticOptionDescriptor> cachedStaticClassDescriptors = ArrayListMultimap.create();
+    private ListMultimap<Class, OptionElement> cachedStaticClassDescriptors = ArrayListMultimap.create();
 
     public List<OptionDescriptor> getOptions(Task task) {
         final Class<? extends Task> taskClazz = task.getClass();
@@ -36,65 +36,59 @@ public class OptionReader {
         if (!cachedStaticClassDescriptors.containsKey(taskClazz)) {
             loadClassDescriptorInCache(task);
         }
-        for (StaticOptionDescriptor staticCommandLineOptionDescriptor : cachedStaticClassDescriptors.get(taskClazz)) {
-            options.put(staticCommandLineOptionDescriptor.getName(), new InstanceOptionDescriptor(task, staticCommandLineOptionDescriptor));
+        for (OptionElement optionElement : cachedStaticClassDescriptors.get(taskClazz)) {
+            options.put(optionElement.getOptionName(), new InstanceOptionDescriptor(task, optionElement));
         }
         return CollectionUtils.sort(options.values());
     }
 
     private void loadClassDescriptorInCache(Task task) {
-        final Collection<StaticOptionDescriptor> staticDescriptors = getStaticDescriptors(task);
-        Set<String> processedOptionDescriptors = new HashSet<String>();
-        for (StaticOptionDescriptor staticDescriptor : staticDescriptors) {
-            if (processedOptionDescriptors.contains(staticDescriptor.getName())) {
+        final Collection<OptionElement> optionElements = getOptionElements(task);
+        Set<String> processedOptionElements = new HashSet<String>();
+        for (OptionElement optionElement : optionElements) {
+            if (processedOptionElements.contains(optionElement.getOptionName())) {
                 throw new OptionValidationException(String.format("Option '%s' linked to multiple elements in class '%s'.",
-                        staticDescriptor.getName(), task.getClass().getName()));
+                        optionElement.getOptionName(), task.getClass().getName()));
             }
-            processedOptionDescriptors.add(staticDescriptor.getName());
-            cachedStaticClassDescriptors.put(task.getClass(), staticDescriptor);
+            processedOptionElements.add(optionElement.getOptionName());
+            cachedStaticClassDescriptors.put(task.getClass(), optionElement);
         }
     }
 
-    private Collection<StaticOptionDescriptor> getStaticDescriptors(Task task) {
-        List<StaticOptionDescriptor> staticDescriptors = new ArrayList<StaticOptionDescriptor>();
+    private Collection<OptionElement> getOptionElements(Task task) {
+        List<OptionElement> allOptionElements = new ArrayList<OptionElement>();
         for (Class<?> type = task.getClass(); type != Object.class && type != null; type = type.getSuperclass()) {
-            staticDescriptors.addAll(getMethodAnnotations(type));
-            staticDescriptors.addAll(getFieldAnnotations(type));
+            allOptionElements.addAll(getMethodAnnotations(type));
+            allOptionElements.addAll(getFieldAnnotations(type));
         }
-        return staticDescriptors;
+        return allOptionElements;
     }
 
-    private List<StaticOptionDescriptor> getFieldAnnotations(Class<?> type) {
-        List<StaticOptionDescriptor> staticDescriptors = new ArrayList<StaticOptionDescriptor>();
+    private List<OptionElement> getFieldAnnotations(Class<?> type) {
+        List<OptionElement> fieldOptionElements = new ArrayList<OptionElement>();
         for (Field field : type.getDeclaredFields()) {
             if (!Modifier.isStatic(field.getModifiers())) {
                 Option option = field.getAnnotation(Option.class);
                 if (option != null) {
-                    String optionName;
-                    if (option.options()[0].length() == 0) {
-                        optionName = field.getName();
-                    } else {
-                        optionName = option.options()[0];
-                    }
-                    staticDescriptors.add(new StaticOptionDescriptor(optionName, option, new FieldOptionElement(optionName, field)));
+
+                    fieldOptionElements.add(new FieldOptionElement(option, field));
                 }
             }
         }
-        return staticDescriptors;
+        return fieldOptionElements;
     }
 
-    private List<StaticOptionDescriptor> getMethodAnnotations(Class<?> type) {
-        List<StaticOptionDescriptor> staticDescriptors = new ArrayList<StaticOptionDescriptor>();
+    private List<OptionElement> getMethodAnnotations(Class<?> type) {
+        List<OptionElement> methodOptionElements = new ArrayList<OptionElement>();
         for (Method method : type.getDeclaredMethods()) {
             if (!Modifier.isStatic(method.getModifiers())) {
                 Option option = method.getAnnotation(Option.class);
                 if (option != null) {
-                    final String optionName = option.options()[0];
-                    final StaticOptionDescriptor methodOptionDescriptor = new StaticOptionDescriptor(optionName, option, new MethodOptionElement(optionName, method));
-                    staticDescriptors.add(methodOptionDescriptor);
+                    final OptionElement methodOptionDescriptor = new MethodOptionElement(option, method);
+                    methodOptionElements.add(methodOptionDescriptor);
                 }
             }
         }
-        return staticDescriptors;
+        return methodOptionElements;
     }
 }

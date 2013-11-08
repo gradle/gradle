@@ -31,6 +31,5 @@ public interface OptionDescriptor extends Comparable<OptionDescriptor> {
     public OptionElement getOptionElement();
 
     void apply(Object object, List<String> values);
-
 }
 

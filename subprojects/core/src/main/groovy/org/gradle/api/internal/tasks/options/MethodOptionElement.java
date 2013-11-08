@@ -28,10 +28,18 @@ public class MethodOptionElement extends AbstractOptionElement {
     private List<String> availableValues;
     private Class<?> optionType;
 
-    public MethodOptionElement(String optionName, Method method) {
-        assertMethodTypeSupported(optionName, method);
+    public MethodOptionElement(Option option, Method method) {
+        super(option.options()[0], option, method.getDeclaringClass());
         this.method = method;
         this.optionType = calculateOptionType();
+        assertMethodTypeSupported(getOptionName(), method);
+        assertValidOptionName();
+    }
+
+    private void assertValidOptionName() {
+        if (getOptionName()== null || getOptionName().length() == 0) {
+            throw new OptionValidationException(String.format("No option name set on '%s' in class '%s'.", getElementName(), getDeclaredClass().getName()));
+        }
     }
 
     private Class<?> calculateOptionType() {
@@ -59,7 +67,7 @@ public class MethodOptionElement extends AbstractOptionElement {
         return optionType;
     }
 
-    public String getName() {
+    public String getElementName() {
         return method.getName();
     }
 

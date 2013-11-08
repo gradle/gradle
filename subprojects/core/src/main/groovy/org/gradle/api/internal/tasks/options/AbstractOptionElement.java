@@ -19,10 +19,26 @@ package org.gradle.api.internal.tasks.options;
 import org.gradle.api.internal.coerce.EnumFromStringNotationParser;
 import org.gradle.api.internal.notations.api.NotationParser;
 
+import java.lang.annotation.IncompleteAnnotationException;
 import java.util.ArrayList;
 import java.util.List;
 
 abstract class AbstractOptionElement implements OptionElement {
+    private final String optionName;
+    private final String description;
+
+    public AbstractOptionElement(String optionName, Option option, Class<?> declaringClass) {
+        this.description = readDescription(option, optionName, declaringClass);
+        this.optionName = optionName;
+    }
+
+    private String readDescription(Option option, String optionName, Class<?> declaringClass) {
+        try {
+            return option.description();
+        } catch (IncompleteAnnotationException ex) {
+            throw new OptionValidationException(String.format("No description set on option '%s' at for class '%s'.", optionName, declaringClass.getName()));
+        }
+    }
 
     protected Object getParameterObject(String value) {
         if (getOptionType().isEnum()) {
@@ -50,5 +66,13 @@ abstract class AbstractOptionElement implements OptionElement {
             }
         }
         return availableValues;
+    }
+
+    public String getOptionName() {
+        return optionName;
+    }
+
+    public String getDescription() {
+        return description;
     }
 }

@@ -20,12 +20,12 @@ import spock.lang.Specification
 
 class InstanceOptionDescriptorSpec extends Specification{
 
-    OptionDescriptor delegate = Mock(OptionDescriptor)
+    OptionElement delegate = Mock(OptionElement)
 
     def setup(){
-        _ * delegate.getArgumentType() >> String.class
+        _ * delegate.getOptionType() >> String.class
         _ * delegate.getAvailableValues() >> new ArrayList<String>()
-        _ * delegate.getName() >> "someOption"
+        _ * delegate.getOptionName() >> "someOption"
     }
 
     def testGetAvailableValuesWithNoDefaults() {
@@ -47,13 +47,21 @@ class InstanceOptionDescriptorSpec extends Specification{
         new InstanceOptionDescriptor(new WithInvalidSomeOptionMethod(), delegate).getAvailableValues()
         then:
         def e = thrown(OptionValidationException)
-        e.message == "OptionValues annotation not supported on method getValues in class org.gradle.api.internal.tasks.options.WithInvalidSomeOptionMethod. Supported method must return Collection and take no parameters";
+        e.message == "OptionValues annotation not supported on method 'getValues' in class 'org.gradle.api.internal.tasks.options.WithInvalidSomeOptionMethod'. Supported method must be non static, return Collection and take no parameters.";
+
+        when:
+        new InstanceOptionDescriptor(new WithAnnotatedStaticMethod(), delegate).getAvailableValues()
+        then:
+        e = thrown(OptionValidationException)
+        e.message == "OptionValues annotation not supported on method 'getValues' in class 'org.gradle.api.internal.tasks.options.WithAnnotatedStaticMethod'. Supported method must be non static, return Collection and take no parameters.";
 
         when:
         new InstanceOptionDescriptor(new WithDuplicateSomeOptions(), delegate).getAvailableValues()
         then:
         e = thrown(OptionValidationException)
-        e.message == "OptionValues for someOption cannot be attached to multiple methods in class org.gradle.api.internal.tasks.options.WithDuplicateSomeOptions.";
+        e.message == "OptionValues for 'someOption' cannot be attached to multiple methods in class 'org.gradle.api.internal.tasks.options.WithDuplicateSomeOptions'.";
+
+
     }
 }
 
@@ -68,6 +76,11 @@ public class WithDuplicateSomeOptions {
 
     @OptionValues("someOption")
     List<String> getValues2() { return Arrays.asList("somethingElse")}
+}
+
+public class WithAnnotatedStaticMethod {
+    @OptionValues("someOption")
+    static List<String> getValues(String someParam) { return Arrays.asList("something")}
 }
 
 public class NoOptionValues{

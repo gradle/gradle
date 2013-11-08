@@ -21,6 +21,7 @@ import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.util.CollectionUtils;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -28,77 +29,86 @@ import java.util.List;
 public class InstanceOptionDescriptor implements OptionDescriptor {
 
     private final Object object;
-    private final OptionDescriptor delegate;
+    private final OptionElement optionElement;
 
-    public InstanceOptionDescriptor(Object object, OptionDescriptor delegate) {
+    public InstanceOptionDescriptor(Object object, OptionElement optionElement) {
         this.object = object;
-        this.delegate = delegate;
+        this.optionElement = optionElement;
     }
 
     public OptionElement getOptionElement() {
-        return delegate.getOptionElement();
+        return optionElement;
     }
 
     public String getName() {
-        return delegate.getName();
+        return optionElement.getOptionName();
     }
 
     public List<String> getAvailableValues() {
-        final List<String> values = delegate.getAvailableValues();
+        final List<String> values = optionElement.getAvailableValues();
 
         if (String.class.isAssignableFrom(getArgumentType())) {
-            values.addAll(lookupDynamicAvailableValues());
+            values.addAll(readDynamicAvailableValues());
         }
         return values;
     }
 
     public Class getArgumentType() {
-        return delegate.getArgumentType();
+        return optionElement.getOptionType();
     }
 
-    private List<String> lookupDynamicAvailableValues() {
-        List<String> dynamicAvailableValues = null;
-        for (Class<?> type = object.getClass(); type != Object.class && type != null; type = type.getSuperclass()) {
-            for (Method method : type.getDeclaredMethods()) {
-                OptionValues optionValues = method.getAnnotation(OptionValues.class);
-                if (optionValues != null){
-                    if (Collection.class.isAssignableFrom(method.getReturnType()) && method.getParameterTypes().length == 0) {
-                        if(CollectionUtils.toList(optionValues.value()).contains(getName())) {
-                            if(dynamicAvailableValues==null){
-                                final JavaMethod<Object, Collection> methodToInvoke = JavaReflectionUtil.method(Object.class, Collection.class, method);
-                                Collection values = methodToInvoke.invoke(object);
-                                dynamicAvailableValues = CollectionUtils.toStringList(values);
-                            }else{
-                                throw new OptionValidationException(
-                                        String.format("OptionValues for %s cannot be attached to multiple methods in class %s.",
-                                                getName(),
-                                                type.getName()));
-                            }
-                        }
-                    }else{
-                        throw new OptionValidationException(
-                                String.format("OptionValues annotation not supported on method %s in class %s. Supported method must return Collection and take no parameters",
-                                        method.getName(),
-                                        type.getName()));
-                    }
-                }
-            }
+    private List<String> readDynamicAvailableValues() {
+        JavaMethod<Object, Collection> optionValueMethod = getOptionValueMethod(object, getName());
+        if (optionValueMethod != null) {
+            Collection values = optionValueMethod.invoke(object);
+            return CollectionUtils.toStringList(values);
         }
-        return dynamicAvailableValues != null ? dynamicAvailableValues : Collections.<String>emptyList();
+        return Collections.emptyList();
     }
 
     public String getDescription() {
-        return delegate.getDescription();
+        return optionElement.getDescription();
     }
 
     public void apply(Object objectParam, List<String> parameterValues) {
         if (objectParam != object) {
             throw new AssertionError(String.format("Object %s not applyable. Expecting %s", objectParam, object));
         }
-        delegate.apply(objectParam, parameterValues);
+        optionElement.apply(objectParam, parameterValues);
     }
 
     public int compareTo(OptionDescriptor o) {
-        return delegate.compareTo(o);
+        return getName().compareTo(o.getName());
+    }
+
+    private static JavaMethod<Object, Collection> getOptionValueMethod(Object object, String name) {
+        JavaMethod<Object, Collection> optionValueMethod = null;
+        for (Class<?> type = object.getClass(); type != Object.class && type != null; type = type.getSuperclass()) {
+            for (Method method : type.getDeclaredMethods()) {
+                OptionValues optionValues = method.getAnnotation(OptionValues.class);
+                if (optionValues != null) {
+                    if (Collection.class.isAssignableFrom(method.getReturnType())
+                            && method.getParameterTypes().length == 0
+                            && !Modifier.isStatic(method.getModifiers())) {
+                        if (CollectionUtils.toList(optionValues.value()).contains(name)) {
+                            if (optionValueMethod == null) {
+                                optionValueMethod = JavaReflectionUtil.method(Object.class, Collection.class, method);
+                            } else {
+                                throw new OptionValidationException(
+                                        String.format("OptionValues for '%s' cannot be attached to multiple methods in class '%s'.",
+                                                name,
+                                                type.getName()));
+                            }
+                        }
+                    } else {
+                        throw new OptionValidationException(
+                                String.format("OptionValues annotation not supported on method '%s' in class '%s'. Supported method must be non static, return Collection and take no parameters.",
+                                        method.getName(),
+                                        type.getName()));
+                    }
+                }
+            }
+        }
+        return optionValueMethod;
     }
 }

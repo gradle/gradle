@@ -27,19 +27,28 @@ public class FieldOptionElement extends AbstractOptionElement{
     private List<String> availableValues;
     private Class<?> optionType;
 
-    public FieldOptionElement(String name, Field field) {
-        assertFieldSupported(name, field);
+    public FieldOptionElement(Option option, Field field) {
+        super(calOptionName(option, field), option, field.getDeclaringClass());
+        assertFieldSupported(field);
         this.field = field;
         this.optionType = calculateOptionType(field.getType());
     }
 
-    private void assertFieldSupported(String name, Field field) {
+    private static String calOptionName(Option option, Field field) {
+        if (option.options()[0].length() == 0) {
+            return field.getName();
+        } else {
+            return option.options()[0];
+        }
+    }
+
+    private void assertFieldSupported(Field field) {
         final Class<?> type = field.getType();
         if (!(type == Boolean.class || type == Boolean.TYPE)
                 && !type.isAssignableFrom(String.class)
                 && !type.isEnum()) {
             throw new OptionValidationException(String.format("Option '%s' cannot be casted to type '%s' in class '%s'.",
-                    name, type.getName(), field.getDeclaringClass().getName()));
+                    getOptionName(), type.getName(), field.getDeclaringClass().getName()));
         }
     }
 
@@ -47,7 +56,7 @@ public class FieldOptionElement extends AbstractOptionElement{
         return optionType;
     }
 
-    public String getName() {
+    public String getElementName() {
         return field.getName();
     }
 

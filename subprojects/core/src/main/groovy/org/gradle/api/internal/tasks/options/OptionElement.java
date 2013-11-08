@@ -25,7 +25,11 @@ public interface OptionElement {
 
     Class<?> getOptionType();
 
-    String getName();
+    String getElementName();
+
+    String getOptionName();
 
     void apply(Object object, List<String> parameterValues);
+
+    String getDescription();
 }
