@@ -101,7 +101,7 @@ class OptionReaderTest extends Specification {
 
     def "handles field options"() {
         when:
-        List<InstanceOptionDescriptor> options = reader.getOptions(Mock(TestTask6))
+        List<InstanceOptionDescriptor> options = reader.getOptions(project.tasks.create("aTask", TestTask6))
         then:
         options[0].name == "customOptionName"
         options[0].description == "custom description"
@@ -110,7 +110,7 @@ class OptionReaderTest extends Specification {
         options[1].name == "field2"
         options[1].description == "Descr Field2"
         options[1].argumentType == String
-        options[1].availableValues.isEmpty()
+        options[1].availableValues == ["dynValue1", "dynValue2"]
 
         options[2].name == "field3"
         options[2].description == "Descr Field3"

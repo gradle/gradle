@@ -57,19 +57,34 @@ public class InstanceOptionDescriptor implements OptionDescriptor {
     }
 
     private List<String> lookupDynamicAvailableValues() {
+        List<String> dynamicAvailableValues = null;
         for (Class<?> type = object.getClass(); type != Object.class && type != null; type = type.getSuperclass()) {
             for (Method method : type.getDeclaredMethods()) {
-                if (Collection.class.isAssignableFrom(method.getReturnType()) && method.getParameterTypes().length == 0) {
-                    OptionValues optionValues = method.getAnnotation(OptionValues.class);
-                    if (optionValues != null && optionValues.value()[0].equals(getName())) {
-                        final JavaMethod<Object, Collection> methodToInvoke = JavaReflectionUtil.method(Object.class, Collection.class, method);
-                        Collection values = methodToInvoke.invoke(object);
-                        return CollectionUtils.stringize(CollectionUtils.toList(values));
+                OptionValues optionValues = method.getAnnotation(OptionValues.class);
+                if (optionValues != null){
+                    if (Collection.class.isAssignableFrom(method.getReturnType()) && method.getParameterTypes().length == 0) {
+                        if(CollectionUtils.toList(optionValues.value()).contains(getName())) {
+                            if(dynamicAvailableValues==null){
+                                final JavaMethod<Object, Collection> methodToInvoke = JavaReflectionUtil.method(Object.class, Collection.class, method);
+                                Collection values = methodToInvoke.invoke(object);
+                                dynamicAvailableValues = CollectionUtils.toStringList(values);
+                            }else{
+                                throw new OptionValidationException(
+                                        String.format("OptionValues for %s cannot be attached to multiple methods in class %s.",
+                                                getName(),
+                                                type.getName()));
+                            }
+                        }
+                    }else{
+                        throw new OptionValidationException(
+                                String.format("OptionValues annotation not supported on method %s in class %s. Supported method must return Collection and take no parameters",
+                                        method.getName(),
+                                        type.getName()));
                     }
                 }
             }
         }
-        return Collections.emptyList();
+        return dynamicAvailableValues != null ? dynamicAvailableValues : Collections.<String>emptyList();
     }
 
     public String getDescription() {
