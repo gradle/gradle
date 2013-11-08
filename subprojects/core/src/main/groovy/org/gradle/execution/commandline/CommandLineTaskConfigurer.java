@@ -17,6 +17,7 @@
 package org.gradle.execution.commandline;
 
 import org.gradle.api.Task;
+import org.gradle.api.internal.coerce.TypeCoercionException;
 import org.gradle.api.internal.tasks.options.OptionDescriptor;
 import org.gradle.api.internal.tasks.options.OptionReader;
 import org.gradle.cli.CommandLineArgumentException;
@@ -69,7 +70,7 @@ public class CommandLineTaskConfigurer {
                     ParsedCommandLineOption o = parsed.option(name);
                     try {
                         commandLineOptionDescriptor.apply(task, o.getValues());
-                    } catch (Exception ex) {
+                    } catch (TypeCoercionException ex) {
                         throw new TaskConfigurationException(task.getPath(),
                                 String.format("Problem configuring option '%s' on task '%s' from command line.", name, task.getPath()), ex);
                     }
