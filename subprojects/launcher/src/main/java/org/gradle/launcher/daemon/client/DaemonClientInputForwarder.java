@@ -46,7 +46,7 @@ public class DaemonClientInputForwarder implements Stoppable {
 
     public DaemonClientInputForwarder(InputStream inputStream, final Dispatch<? super IoCommand> dispatch, ExecutorFactory executorFactory, final IdGenerator<?> idGenerator, int bufferSize) {
         TextStream handler = new TextStream() {
-            public void execute(String input) {
+            public void text(String input) {
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("Forwarding input to daemon: '{}'", input.replace("\n", "\\n"));
                 }

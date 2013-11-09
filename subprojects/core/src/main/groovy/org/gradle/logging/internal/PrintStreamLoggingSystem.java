@@ -15,10 +15,11 @@
  */
 package org.gradle.logging.internal;
 
-import org.gradle.api.Action;
+import org.gradle.api.Nullable;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.internal.TimeProvider;
+import org.gradle.internal.io.TextStream;
 import org.gradle.util.LinePerThreadBufferingOutputStream;
 
 import java.io.PrintStream;
@@ -31,9 +32,12 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 abstract class PrintStreamLoggingSystem implements LoggingSystem {
     private final AtomicReference<StandardOutputListener> destination = new AtomicReference<StandardOutputListener>();
-    private final PrintStream outstr = new LinePerThreadBufferingOutputStream(new Action<String>() {
-        public void execute(String output) {
+    private final PrintStream outstr = new LinePerThreadBufferingOutputStream(new TextStream() {
+        public void text(String output) {
             destination.get().onOutput(output);
+        }
+
+        public void endOfStream(@Nullable Throwable failure) {
         }
     });
     private StandardOutputListener original;

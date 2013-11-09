@@ -16,8 +16,9 @@
 
 package org.gradle.logging.internal;
 
-import org.gradle.api.Action;
+import org.gradle.api.Nullable;
 import org.gradle.api.logging.StandardOutputListener;
+import org.gradle.internal.io.TextStream;
 import org.gradle.logging.StandardOutputCapture;
 import org.gradle.logging.StandardOutputRedirector;
 import org.gradle.util.LinePerThreadBufferingOutputStream;
@@ -76,11 +77,14 @@ public class DefaultStandardOutputRedirector implements StandardOutputRedirector
         }
     }
 
-    private static class WriteAction implements Action<String> {
+    private static class WriteAction implements TextStream {
         private StandardOutputListener destination;
 
-        public void execute(String message) {
+        public void text(String message) {
             destination.onOutput(message);
+        }
+
+        public void endOfStream(@Nullable Throwable failure) {
         }
 
         public void setDestination(StandardOutputListener destination) {

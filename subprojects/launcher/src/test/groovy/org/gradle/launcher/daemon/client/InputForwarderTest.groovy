@@ -38,7 +38,7 @@ class InputForwarderTest extends Specification {
     def finishedHolder = new BlockingVariable(2)
 
     def action = new TextStream() {
-        void execute(String text) {
+        void text(String text) {
             received << text
         }
 

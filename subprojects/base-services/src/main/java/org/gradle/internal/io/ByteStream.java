@@ -18,11 +18,11 @@ package org.gradle.internal.io;
 
 import org.gradle.api.Nullable;
 
-public interface TextStream {
+public interface ByteStream {
     /**
-     * Called when some chunk of text is available.
+     * Called when some chunk of binary content is available. The provided values should not be considered immutable.
      */
-    void text(String text);
+    void bytes(byte[] bytes, int offset, int count);
 
     /**
      * Called when the end of the stream is reached for some reason.
