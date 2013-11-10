@@ -37,7 +37,7 @@ public class CommandLineOption {
         return options;
     }
 
-    public CommandLineOption hasArgument(Class argumentType) {
+    public CommandLineOption hasArgument(Class<?> argumentType) {
         this.argumentType = argumentType;
         return this;
     }
