@@ -218,6 +218,18 @@ For example, running `gradle help` should not configure any native binary tasks.
 
 If a source set is empty and is not generated, then do not define the tasks for that source set.
 
+## Command-line options are applied to tasks before closing the task
+
+This story integrates command-line configuration with model rules, so ensure that the values provided on the command-line 'win' over those values
+provided by the build logic, and are visible to build logic with uses the tasks.
+
+## Build logic uses rules to influence dependency resolution
+
+- Replaces `ResolutionStrategy.eachDependency()`
+- Replaces `ComponentMetadataHandler.eachComponent()`
+- Plus whichever other hooks have since been added
+- Possibly expose the cache control hooks as rules too
+
 ## Other things to consider
 
 - Integration with old DSL.

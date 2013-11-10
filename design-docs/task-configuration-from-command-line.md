@@ -137,7 +137,7 @@ The usage message of running `gradle help --task <task>` lists commandline optio
 - Change configuration error message in `CommandLineTaskConfigurer` to suggest that the user run `gradle help --task <broken-task>`.
 - Update the 'using Gradle from the command-line' user guide chapter.
 
-## Help task shows legal values for each command-line option.
+## Help task shows legal values for each command-line option
 
 ### User visible changes
 
@@ -199,37 +199,25 @@ The user can run `gradle init --type java-lib` instead of `gradle init --type ja
 
 ### User visible changes
 
-TBD
-
-### Test coverage
-
-TBD
-
-### Implementation approach
-
-1. Add option to `DependencyReportTask` to select the configuration(s) to be reported on.
-2. Add option to `Test` task to select which tests to include, which tests to exclude, and whether to run with debugging enabled.
-3. Probably more - see use cases above.
+- Add `@OptionValues` annotations for the options on `DependencyInsightReportTask`
+- Add `@OptionValues` annotations for the options on `DependencyReportTask`
+- Add `@OptionValues` annotations for the options on `Help`
+- Add option to `Test` task to select which tests to include, which tests to exclude, and whether to run with debugging enabled.
+- Probably more - see use cases above.
 
 ## Include the command-line options in the generated DSL reference
 
 The reference page for a task type should show which command-line options are available for the type.
 
-### User visible changes
-
-TBD
-
-### Test coverage
-
-TBD
-
-### Implementation approach
-
-TBD
-
 ## Add an API to allow command-line options for a task to be declared programmatically
 
 TBD
+
+## Support additional property types
+
+- Collection of any supported scalar type
+- Conversion to `File`
+- Conversion to `Number` or subclass
 
 # Open issues
 
@@ -237,7 +225,6 @@ TBD
 For example, 'foo' option that requires a string value in one task type but is a boolean flag in some other task type.
 This is not a blocker because we have very little command line options, yet.
 1. Decide on precedence order if task is configured from the command line and in the build script. Add coverage, etc.
-1. If a method marked with `@CommandLineOption` accepts varargs or a Collection type as parameter, allow the command-line option to be specified multiple
+1. If a method marked with `@Option` accepts varargs or a Collection type as parameter, allow the command-line option to be specified multiple
    time on the command-line.
-1. Add support for more types in the conversion from command-line option value to property value, in particular File.
 1. Output of `gradle help --task x` provides link to task documentation.
