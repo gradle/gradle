@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.notations.parsers;
 
-import org.gradle.api.internal.notations.api.NotationParser;
+import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.util.GUtil;
 
 import java.util.Collection;

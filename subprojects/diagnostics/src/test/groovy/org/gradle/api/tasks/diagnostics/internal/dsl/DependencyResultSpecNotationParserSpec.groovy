@@ -19,7 +19,7 @@ package org.gradle.api.tasks.diagnostics.internal.dsl
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.result.DependencyResult
 import org.gradle.api.internal.artifacts.result.ResolutionResultDataBuilder
-import org.gradle.api.internal.notations.api.NotationParser
+import org.gradle.internal.typeconversion.NotationParser
 import org.gradle.api.specs.Spec
 import spock.lang.Specification
 

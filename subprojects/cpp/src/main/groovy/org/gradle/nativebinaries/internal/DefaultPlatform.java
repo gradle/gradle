@@ -16,7 +16,7 @@
 
 package org.gradle.nativebinaries.internal;
 
-import org.gradle.api.internal.notations.api.NotationParser;
+import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.nativebinaries.Architecture;
 import org.gradle.nativebinaries.OperatingSystem;
 

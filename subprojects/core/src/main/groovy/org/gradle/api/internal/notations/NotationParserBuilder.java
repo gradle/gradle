@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.notations;
 
-import org.gradle.api.internal.notations.api.NotationParser;
+import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.api.internal.notations.parsers.CompositeNotationParser;
 import org.gradle.api.internal.notations.parsers.ErrorHandlingNotationParser;
 import org.gradle.api.internal.notations.parsers.FlatteningNotationParser;

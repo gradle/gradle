@@ -20,7 +20,7 @@ import org.gradle.api.*;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.notations.api.NotationParser;
+import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.publish.maven.MavenPublication;

@@ -56,7 +56,7 @@ import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
 import org.gradle.api.internal.filestore.PathKeyFileStore;
 import org.gradle.api.internal.filestore.ivy.ArtifactRevisionIdFileStore;
 import org.gradle.api.internal.notations.*;
-import org.gradle.api.internal.notations.api.NotationParser;
+import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.cache.CacheRepository;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.SystemProperties;

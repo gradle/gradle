@@ -17,8 +17,8 @@
 package org.gradle.api.internal.notations.parsers;
 
 import groovy.lang.Closure;
-import org.gradle.api.internal.notations.api.NotationParser;
-import org.gradle.api.internal.notations.api.UnsupportedNotationException;
+import org.gradle.internal.typeconversion.NotationParser;
+import org.gradle.internal.typeconversion.UnsupportedNotationException;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 

@@ -18,7 +18,7 @@ package org.gradle.api.internal.file;
 import org.gradle.api.PathValidation;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.internal.notations.api.NotationParser;
+import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.api.resources.ReadableResource;
 import org.gradle.internal.Factory;
 

@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.coerce
 
-import org.gradle.api.internal.notations.api.NotationParser
+import org.gradle.internal.typeconversion.NotationParser
 import spock.lang.Specification
 
 class EnumFromStringNotationParserTest extends Specification{

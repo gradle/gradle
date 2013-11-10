@@ -16,7 +16,7 @@
 package org.gradle.api.internal.notations.parsers
 
 import spock.lang.Specification
-import org.gradle.api.internal.notations.api.UnsupportedNotationException
+import org.gradle.internal.typeconversion.UnsupportedNotationException
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.tasks.Optional
 

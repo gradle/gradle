@@ -18,7 +18,7 @@ package org.gradle.nativebinaries.internal;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
-import org.gradle.api.internal.notations.api.NotationParser;
+import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.nativebinaries.FlavorContainer;

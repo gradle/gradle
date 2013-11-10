@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.ClassGeneratorBackedInstantiator
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.notations.api.NotationParser
+import org.gradle.internal.typeconversion.NotationParser
 import org.gradle.api.publish.ivy.IvyArtifact
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity
 import org.gradle.api.tasks.TaskDependency

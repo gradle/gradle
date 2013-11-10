@@ -17,7 +17,7 @@
 package org.gradle.nativebinaries.internal;
 
 import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
-import org.gradle.api.internal.notations.api.NotationParser;
+import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.nativebinaries.OperatingSystem;
 import org.gradle.nativebinaries.Platform;

@@ -26,7 +26,7 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.component.Usage
 import org.gradle.api.internal.file.collections.SimpleFileCollection
-import org.gradle.api.internal.notations.api.NotationParser
+import org.gradle.internal.typeconversion.NotationParser
 import org.gradle.api.internal.plugins.ExtensionContainerInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.publish.PublishingExtension

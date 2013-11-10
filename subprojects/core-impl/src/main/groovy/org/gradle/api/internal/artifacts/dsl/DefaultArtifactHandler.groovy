@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.dsl.ArtifactHandler
-import org.gradle.api.internal.notations.api.NotationParser
+import org.gradle.internal.typeconversion.NotationParser
 import org.gradle.util.ConfigureUtil
 import org.gradle.util.GUtil
 

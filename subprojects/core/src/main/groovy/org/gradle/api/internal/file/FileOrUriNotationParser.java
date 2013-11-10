@@ -17,8 +17,8 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.internal.notations.api.NotationParser;
-import org.gradle.api.internal.notations.api.UnsupportedNotationException;
+import org.gradle.internal.typeconversion.NotationParser;
+import org.gradle.internal.typeconversion.UnsupportedNotationException;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.util.DeprecationLogger;
 

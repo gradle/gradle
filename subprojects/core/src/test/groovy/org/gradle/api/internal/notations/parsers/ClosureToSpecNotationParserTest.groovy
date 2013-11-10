@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.notations.parsers
 
-import org.gradle.api.internal.notations.api.UnsupportedNotationException
+import org.gradle.internal.typeconversion.UnsupportedNotationException
 import spock.lang.Specification
 
 class ClosureToSpecNotationParserTest extends Specification {

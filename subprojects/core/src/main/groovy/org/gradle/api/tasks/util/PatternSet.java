@@ -26,7 +26,7 @@ import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.RelativePathSpec;
 import org.gradle.api.internal.file.pattern.PatternMatcherFactory;
 import org.gradle.api.internal.notations.NotationParserBuilder;
-import org.gradle.api.internal.notations.api.NotationParser;
+import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.api.internal.notations.parsers.CharSequenceNotationParser;
 import org.gradle.api.specs.*;
 import org.gradle.api.tasks.AntBuilderAware;

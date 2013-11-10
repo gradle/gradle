@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.notations.api;
+package org.gradle.internal.typeconversion;
 
 import java.util.Collection;
 

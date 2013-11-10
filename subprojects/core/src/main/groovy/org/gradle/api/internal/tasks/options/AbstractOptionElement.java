@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks.options;
 
 import org.gradle.api.internal.coerce.EnumFromStringNotationParser;
-import org.gradle.api.internal.notations.api.NotationParser;
+import org.gradle.internal.typeconversion.NotationParser;
 
 import java.lang.annotation.IncompleteAnnotationException;
 import java.util.ArrayList;
