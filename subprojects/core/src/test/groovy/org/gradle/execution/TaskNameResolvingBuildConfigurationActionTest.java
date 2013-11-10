@@ -25,6 +25,8 @@ import org.gradle.api.internal.project.AbstractProject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.options.Option;
 import org.gradle.api.internal.tasks.options.OptionReader;
+import org.gradle.execution.commandline.CommandLineTaskConfigurer;
+import org.gradle.execution.commandline.CommandLineTaskParser;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.util.GUtil;
 import org.gradle.util.JUnit4GroovyMockery;
@@ -56,9 +58,10 @@ public class TaskNameResolvingBuildConfigurationActionTest {
     private final BuildExecutionContext executionContext = context.mock(BuildExecutionContext.class);
     private final StartParameter startParameter = context.mock(StartParameter.class);
     private final ServiceRegistryFactory services = context.mock(ServiceRegistryFactory.class);
-    private final TaskSelector selector = new TaskSelector(gradle, resolver);
-    private final TaskNameResolvingBuildConfigurationAction action = new TaskNameResolvingBuildConfigurationAction();
     private final OptionReader optionReader = new OptionReader();
+    private final CommandLineTaskParser parser = new CommandLineTaskParser(new CommandLineTaskConfigurer(optionReader));
+    private final TaskSelector selector = new TaskSelector(gradle, resolver);
+    private final TaskNameResolvingBuildConfigurationAction action = new TaskNameResolvingBuildConfigurationAction(parser, selector);
 
     @Before
     public void setUp() {

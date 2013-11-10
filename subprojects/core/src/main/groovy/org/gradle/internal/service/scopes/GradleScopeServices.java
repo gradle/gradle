@@ -27,6 +27,8 @@ import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.internal.tasks.options.OptionReader;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.execution.*;
+import org.gradle.execution.commandline.CommandLineTaskConfigurer;
+import org.gradle.execution.commandline.CommandLineTaskParser;
 import org.gradle.execution.taskgraph.DefaultTaskGraphExecuter;
 import org.gradle.execution.taskgraph.TaskPlanExecutor;
 import org.gradle.internal.service.DefaultServiceRegistry;
@@ -57,15 +59,18 @@ public class GradleScopeServices extends DefaultServiceRegistry implements Servi
         return new OptionReader();
     }
 
+    CommandLineTaskParser createCommandLineTaskParser(OptionReader optionReader) {
+        return new CommandLineTaskParser(new CommandLineTaskConfigurer(optionReader));
+    }
 
-    BuildExecuter createBuildExecuter() {
+    BuildExecuter createBuildExecuter(CommandLineTaskParser commandLineTaskParser, TaskSelector taskSelector) {
         List<BuildConfigurationAction> configs = new LinkedList<BuildConfigurationAction>();
         if (get(StartParameter.class).isConfigureOnDemand()) {
             configs.add(new ProjectEvaluatingAction());
         }
         configs.add(new DefaultTasksBuildExecutionAction());
         configs.add(new ExcludedTaskFilteringBuildConfigurationAction());
-        configs.add(new TaskNameResolvingBuildConfigurationAction());
+        configs.add(new TaskNameResolvingBuildConfigurationAction(commandLineTaskParser, taskSelector));
 
         return new DefaultBuildExecuter(
                 configs,
