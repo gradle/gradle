@@ -185,47 +185,4 @@ public class LineBufferingOutputStreamTest {
         outputStream.close();
         outputStream.write("ignore me".getBytes());
     }
-
-    @Test
-    public void buffersBytesWrittenAsByteStream() {
-        System.setProperty("line.separator", "-");
-        LineBufferingOutputStream outputStream = new LineBufferingOutputStream(action, 8);
-
-        context.checking(new Expectations() {{
-            one(action).text("line 1-");
-            one(action).text("line 2-");
-        }});
-
-        byte[] content = "line 1".getBytes();
-        outputStream.bytes(content, 0, content.length);
-
-        content = "-line 2-".getBytes();
-        outputStream.bytes(content, 0, content.length);
-    }
-
-    @Test
-    public void logsPartialLineOnEndOfStream() throws IOException {
-        LineBufferingOutputStream outputStream = new LineBufferingOutputStream(action, 8);
-
-        context.checking(new Expectations() {{
-            one(action).text("line 1");
-            one(action).endOfStream(null);
-        }});
-
-        byte[] content = "line 1".getBytes();
-        outputStream.bytes(content, 0, content.length);
-        outputStream.endOfStream(null);
-    }
-
-    @Test
-    public void forwardsStreamFailure() {
-        LineBufferingOutputStream outputStream = new LineBufferingOutputStream(action, 8);
-        final RuntimeException failure = new RuntimeException();
-
-        context.checking(new Expectations() {{
-            one(action).endOfStream(failure);
-        }});
-
-        outputStream.endOfStream(failure);
-    }
 }

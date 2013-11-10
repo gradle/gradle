@@ -15,10 +15,7 @@
  */
 package org.gradle.util;
 
-import org.gradle.api.Nullable;
 import org.gradle.internal.SystemProperties;
-import org.gradle.internal.UncheckedException;
-import org.gradle.internal.io.ByteStream;
 import org.gradle.internal.io.TextStream;
 
 import java.io.IOException;
@@ -27,7 +24,7 @@ import java.io.OutputStream;
 /**
  * An OutputStream which separates bytes written into lines of text. Uses the platform default encoding. Is not thread safe.
  */
-public class LineBufferingOutputStream extends OutputStream implements ByteStream {
+public class LineBufferingOutputStream extends OutputStream {
     private boolean hasBeenClosed;
     private final byte[] lineSeparator;
     private final int bufferIncrement;
@@ -53,21 +50,9 @@ public class LineBufferingOutputStream extends OutputStream implements ByteStrea
      * cannot be reopened.
      */
     public void close() throws IOException {
-        endOfStream(null);
-    }
-
-    public void endOfStream(@Nullable Throwable failure) {
         hasBeenClosed = true;
         flush();
-        handler.endOfStream(failure);
-    }
-
-    public void bytes(byte[] bytes, int offset, int count) {
-        try {
-            write(bytes, offset, count);
-        } catch (IOException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
+        handler.endOfStream(null);
     }
 
     /**
