@@ -143,6 +143,15 @@ class OptionReaderTest extends Specification {
         e.message == "No option name set on 'setStrings' in class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$TestClass9'."
     }
 
+    def "throws decent error when private field is annotated as option and no setter declared"() {
+        def class10 = new TestClass10()
+        def options = reader.getOptions(class10)
+        when:
+        options[0].apply(class10, Arrays.asList("someValue"))
+        then:
+        def e = thrown(OptionValidationException)
+        e.message == "No setter for Option annotated field 'field' in class 'class org.gradle.api.internal.tasks.options.OptionReaderTest\$TestClass10'."
+    }
 
     public static class TestClass1{
         @Option(option = "stringValue", description = "string value")
@@ -243,6 +252,11 @@ class OptionReaderTest extends Specification {
         @Option(description = "some description")
         public void setStrings(String value) {
         }
+    }
+
+    public static class TestClass10{
+        @Option(description = "some description")
+        private String field
     }
 
     enum TestEnum {

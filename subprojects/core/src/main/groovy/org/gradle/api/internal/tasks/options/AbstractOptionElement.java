@@ -18,8 +18,11 @@ package org.gradle.api.internal.tasks.options;
 
 import org.gradle.api.internal.coerce.EnumFromStringNotationParser;
 import org.gradle.internal.typeconversion.NotationParser;
+import org.gradle.internal.reflect.JavaMethod;
+import org.gradle.internal.reflect.JavaReflectionUtil;
 
 import java.lang.annotation.IncompleteAnnotationException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -66,6 +69,11 @@ abstract class AbstractOptionElement implements OptionElement {
             }
         }
         return availableValues;
+    }
+
+    protected Object invokeMethod(Object object, Method method, Object... parameterValues) {
+        final JavaMethod<Object, Object> javaMethod = JavaReflectionUtil.method(Object.class, Object.class, method);
+        return javaMethod.invoke(object, parameterValues);
     }
 
     public String getOptionName() {

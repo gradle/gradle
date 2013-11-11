@@ -16,9 +16,6 @@
 
 package org.gradle.api.internal.tasks.options;
 
-import org.gradle.internal.reflect.JavaMethod;
-import org.gradle.internal.reflect.JavaReflectionUtil;
-
 import java.lang.reflect.Method;
 import java.util.List;
 
@@ -72,14 +69,12 @@ public class MethodOptionElement extends AbstractOptionElement {
     }
 
     public void apply(Object object, List<String> parameterValues) {
-        final JavaMethod<Object, Object> javaMethod = JavaReflectionUtil.method(Object.class, Object.class, method);
         if (parameterValues.size() == 0) {
-            javaMethod.invoke(object, true);
+            invokeMethod(object, method, true);
         } else if (parameterValues.size() > 1) {
             throw new IllegalArgumentException(String.format("Lists not supported for option."));
         } else {
-            Object arg = getParameterObject(parameterValues.get(0));
-            javaMethod.invoke(object, arg);
+            invokeMethod(object, method, getParameterObject(parameterValues.get(0)));
         }
     }
 

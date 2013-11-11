@@ -16,12 +16,12 @@
 
 package org.gradle.api.internal.tasks.options;
 
-import org.gradle.api.GradleException;
-
+import org.apache.commons.lang.StringUtils;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.List;
 
-public class FieldOptionElement extends AbstractOptionElement{
+public class FieldOptionElement extends AbstractOptionElement {
 
     private final Field field;
     private List<String> availableValues;
@@ -85,11 +85,12 @@ public class FieldOptionElement extends AbstractOptionElement{
     }
 
     private void setFieldValue(Object object, Object value) {
-        field.setAccessible(true);
         try {
-            field.set(object, value);
-        } catch (IllegalAccessException e) {
-            throw new GradleException(String.format("Cannot apply option value %s on field %s of object %s", value, field.getName(), object));
+            Method setter = object.getClass().getMethod("set" + StringUtils.capitalize(field.getName()), optionType);
+            invokeMethod(object, setter, value);
+        } catch (NoSuchMethodException e) {
+            throw new OptionValidationException(String.format("No setter for Option annotated field '%s' in class '%s'.",
+                    getElementName(), getDeclaredClass()));
         }
     }
 }

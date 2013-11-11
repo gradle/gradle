@@ -44,7 +44,7 @@ class TaskCommandLineConfigurationIntegrationSpec extends AbstractIntegrationSpe
             this.second = second.toString()
         }
 
-       @Option(option = "third", description = "configures 'third' field")
+        @Option(option = "third", description = "configures 'third' field")
         void setThird(TestEnum blubb) {
             this.third = blubb
         }
