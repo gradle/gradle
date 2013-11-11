@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.notations.parsers;
+package org.gradle.internal.typeconversion;
 
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.internal.typeconversion.NotationParser;
-import org.gradle.internal.typeconversion.UnsupportedNotationException;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.UncheckedException;
 import org.gradle.util.ConfigureUtil;

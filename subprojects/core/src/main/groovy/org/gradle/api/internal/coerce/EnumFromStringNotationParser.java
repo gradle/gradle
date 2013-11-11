@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.coerce;
 
-import org.gradle.api.internal.notations.parsers.TypedNotationParser;
+import org.gradle.internal.typeconversion.TypedNotationParser;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.CollectionUtils;
 

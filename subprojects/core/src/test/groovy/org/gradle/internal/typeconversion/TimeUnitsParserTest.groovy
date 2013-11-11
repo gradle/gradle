@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.notations.parsers
+package org.gradle.internal.typeconversion
 
 import org.gradle.api.InvalidUserDataException
 import spock.lang.Specification

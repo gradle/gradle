@@ -18,8 +18,8 @@ package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ExcludeRule;
-import org.gradle.api.internal.notations.parsers.MapKey;
-import org.gradle.api.internal.notations.parsers.MapNotationParser;
+import org.gradle.internal.typeconversion.MapKey;
+import org.gradle.internal.typeconversion.MapNotationParser;
 import org.gradle.api.tasks.Optional;
 
 import java.util.Collection;

@@ -14,24 +14,34 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.notations.parsers
+package org.gradle.internal.typeconversion
 
-import org.gradle.internal.typeconversion.UnsupportedNotationException
 import spock.lang.Specification
 
-class ClosureToSpecNotationParserTest extends Specification {
+class CharSequenceNotationParserTest extends Specification {
+    def parser = new CharSequenceNotationParser()
 
-    private ClosureToSpecNotationParser parser = new ClosureToSpecNotationParser()
-
-    def "converts closures"() {
+    def "handles Strings"() {
         expect:
-        parser.parseNotation({ it == 'foo' }).isSatisfiedBy("foo")
-        !parser.parseNotation({ it == 'foo' }).isSatisfiedBy("bar")
+        converts("abc", "abc")
+    }
 
-        when:
-        parser.parseNotation("oups")
+    def "handles GStrings"() {
+        expect:
+        def foo = "abc"
+        converts("$foo", "abc")
+    }
 
-        then:
-        thrown(UnsupportedNotationException)
+    def "handles StringBuilders"() {
+        def builder = new StringBuilder()
+        builder.append("abc")
+
+        expect:
+        converts(builder, "abc")
+    }
+
+    void converts(from, to) {
+        assert parser.parseNotation(from).getClass() == String
+        assert parser.parseNotation(from) == to
     }
 }

@@ -19,7 +19,7 @@ package org.gradle.api.internal.notations;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.artifacts.DefaultProjectDependencyFactory;
-import org.gradle.api.internal.notations.parsers.TypedNotationParser;
+import org.gradle.internal.typeconversion.TypedNotationParser;
 
 import java.util.Collection;
 

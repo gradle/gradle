@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.notations.parsers;
+package org.gradle.internal.typeconversion;
 
 
-import org.gradle.internal.typeconversion.UnsupportedNotationException
 import spock.lang.Specification
 
 public class TypedNotationParserTest extends Specification {

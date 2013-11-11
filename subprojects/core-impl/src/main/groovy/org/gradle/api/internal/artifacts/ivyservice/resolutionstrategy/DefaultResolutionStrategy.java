@@ -26,8 +26,8 @@ import org.gradle.api.internal.Actions;
 import org.gradle.api.internal.artifacts.DependencyResolveDetailsInternal;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.dsl.ModuleVersionSelectorParsers;
-import org.gradle.api.internal.notations.parsers.NormalizedTimeUnit;
-import org.gradle.api.internal.notations.parsers.TimeUnitsParser;
+import org.gradle.internal.typeconversion.NormalizedTimeUnit;
+import org.gradle.internal.typeconversion.TimeUnitsParser;
 
 import java.util.Collection;
 import java.util.LinkedHashSet;

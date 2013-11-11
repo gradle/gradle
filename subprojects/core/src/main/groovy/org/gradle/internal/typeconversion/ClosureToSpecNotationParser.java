@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.notations.parsers;
+package org.gradle.internal.typeconversion;
 
 import groovy.lang.Closure;
-import org.gradle.internal.typeconversion.NotationParser;
-import org.gradle.internal.typeconversion.UnsupportedNotationException;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 

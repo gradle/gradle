@@ -19,7 +19,7 @@ package org.gradle.nativebinaries.internal;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.internal.typeconversion.TypeInfo;
 import org.gradle.internal.typeconversion.NotationParser;
-import org.gradle.api.internal.notations.parsers.TypedNotationParser;
+import org.gradle.internal.typeconversion.TypedNotationParser;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
 

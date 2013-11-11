@@ -20,7 +20,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency;
 import org.gradle.internal.typeconversion.NotationParser;
-import org.gradle.api.internal.notations.parsers.TypedNotationParser;
+import org.gradle.internal.typeconversion.TypedNotationParser;
 
 import java.util.Collection;
 

@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.notations.parsers;
+package org.gradle.internal.typeconversion;
 
 import org.gradle.api.InvalidUserDataException;
 
 import java.util.concurrent.TimeUnit;
 
-import static org.gradle.api.internal.notations.parsers.NormalizedTimeUnit.millis;
+import static org.gradle.internal.typeconversion.NormalizedTimeUnit.millis;
 
 public class TimeUnitsParser {
 

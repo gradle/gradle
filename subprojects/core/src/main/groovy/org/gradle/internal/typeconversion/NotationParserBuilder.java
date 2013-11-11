@@ -16,10 +16,6 @@
 
 package org.gradle.internal.typeconversion;
 
-import org.gradle.api.internal.notations.parsers.CompositeNotationParser;
-import org.gradle.api.internal.notations.parsers.ErrorHandlingNotationParser;
-import org.gradle.api.internal.notations.parsers.FlatteningNotationParser;
-import org.gradle.api.internal.notations.parsers.JustReturningParser;
 import org.gradle.util.GUtil;
 
 import java.util.Collection;
