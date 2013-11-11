@@ -61,6 +61,10 @@ The following are the newly deprecated items in this Gradle release. If you have
     * `allModuleVersions(Closure)` to `allComponents(Closure)`.
 * Various interface method signatures were changed to return the new component types: `DependencyResult`, `ResolvedComponentResult`, `UnresolvedDependencyResult` and `ResolutionResult`.
 
+### Dependency resolution prefers the latest version regardless of whether it has meta-data or not
+
+TBD
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
