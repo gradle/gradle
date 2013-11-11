@@ -1366,3 +1366,5 @@ TBD
 * Install task should generate a shell script as well as a batch script when running under cygwin.
 * GCC and Clang under cygwin target the cygwin runtime, not the windows runtime.
 * Add language level to C and C++ source sets.
+* The `gcc` provided by XCode on OS X is actually a repackaged `clang`. Should distinguish between building with the `gcc` provided by XCode, and building with a real `gcc`
+  install, eg via a ports toolkit.
