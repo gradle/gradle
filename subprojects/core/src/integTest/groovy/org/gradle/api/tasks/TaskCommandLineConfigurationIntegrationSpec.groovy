@@ -56,7 +56,7 @@ class TaskCommandLineConfigurationIntegrationSpec extends AbstractIntegrationSpe
 
 
         enum TestEnum {
-            ABC, DEF, GHIJKL
+            valid1, valid2, valid3
         }
     }
 
@@ -262,9 +262,23 @@ class TaskCommandLineConfigurationIntegrationSpec extends AbstractIntegrationSpe
 
         then:
         failure.assertHasDescription("Problem configuring option 'third' on task ':someTask' from command line.")
-        failure.assertHasCause("Cannot coerce string value 'unsupportedValue' to an enum value of type 'SomeTask\$TestEnum' (valid case insensitive values: [ABC, DEF, GHIJKL])")
+        failure.assertHasCause("Cannot coerce string value 'unsupportedValue' to an enum value of type 'SomeTask\$TestEnum' (valid case insensitive values: [valid1, valid2, valid3])")
     }
 
+    def "can set enum value from commandline"() {
+        given:
+        file("build.gradle") << """
+            task someTask(type: SomeTask)
+            $someConfigurableTaskType
+"""
+
+        when:
+        run 'someTask', '--third', 'valid1'
+
+        then:
+        output.contains 'third=valid1'
+        result.assertTasksExecuted(":someTask")
+    }
 
     @Ignore
     //some existing problems with command line interface
