@@ -15,7 +15,7 @@
  */
 package org.gradle.nativebinaries.internal;
 
-import org.gradle.api.internal.notations.NotationParserBuilder;
+import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
 import org.gradle.api.internal.notations.parsers.TypedNotationParser;

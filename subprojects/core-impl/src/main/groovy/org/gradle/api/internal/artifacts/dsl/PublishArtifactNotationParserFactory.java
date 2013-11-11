@@ -22,7 +22,7 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
-import org.gradle.api.internal.notations.NotationParserBuilder;
+import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.api.internal.notations.parsers.MapKey;
 import org.gradle.api.internal.notations.parsers.MapNotationParser;

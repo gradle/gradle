@@ -19,7 +19,7 @@ package org.gradle.api.publish.maven.internal.artifact;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.notations.NotationParserBuilder;
+import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
 import org.gradle.api.internal.notations.parsers.MapKey;

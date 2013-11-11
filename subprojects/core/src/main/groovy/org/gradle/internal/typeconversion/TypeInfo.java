@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.notations;
+package org.gradle.internal.typeconversion;
 
 /**
  * Type literal, useful for nested Generics.

@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.notations;
+package org.gradle.internal.typeconversion;
 
-import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.api.internal.notations.parsers.CompositeNotationParser;
 import org.gradle.api.internal.notations.parsers.ErrorHandlingNotationParser;
 import org.gradle.api.internal.notations.parsers.FlatteningNotationParser;

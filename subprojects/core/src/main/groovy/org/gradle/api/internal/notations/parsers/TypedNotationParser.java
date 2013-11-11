@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.notations.parsers;
 
-import org.gradle.api.internal.notations.TypeInfo;
+import org.gradle.internal.typeconversion.TypeInfo;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
 

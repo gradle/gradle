@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.dsl;
 import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.internal.notations.NotationParserBuilder;
+import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.api.internal.notations.parsers.MapKey;
 import org.gradle.api.internal.notations.parsers.MapNotationParser;
