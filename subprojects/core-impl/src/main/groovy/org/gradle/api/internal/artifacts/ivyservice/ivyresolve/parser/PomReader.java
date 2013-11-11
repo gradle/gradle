@@ -323,7 +323,7 @@ public class PomReader {
                 Node node = childs.item(i);
                 if (node instanceof Element && DEPENDENCY.equals(node.getNodeName())) {
                     PomDependencyData pomDependencyData = new PomDependencyData((Element) node);
-                    MavenDependencyKey key = new MavenDependencyKey(pomDependencyData.getGroupId(), pomDependencyData.getArtifactId(), pomDependencyData.getType(), pomDependencyData.getClassifier());
+                    MavenDependencyKey key = pomDependencyData.getId();
                     dependencies.put(key, pomDependencyData);
                 }
             }
@@ -370,7 +370,7 @@ public class PomReader {
                 Node node = childs.item(i);
                 if (node instanceof Element && DEPENDENCY.equals(node.getNodeName())) {
                     PomDependencyMgt pomDependencyMgt = new PomDependencyMgtElement((Element) node);
-                    MavenDependencyKey key = new MavenDependencyKey(pomDependencyMgt.getGroupId(), pomDependencyMgt.getArtifactId(), pomDependencyMgt.getType(), pomDependencyMgt.getClassifier());
+                    MavenDependencyKey key = pomDependencyMgt.getId();
                     depMgmtElements.put(key, pomDependencyMgt);
                 }
             }
@@ -397,9 +397,13 @@ public class PomReader {
             this.depElement = depElement;
         }
 
+        public MavenDependencyKey getId() {
+            return new MavenDependencyKey(getGroupId(), getArtifactId(), getType(), getClassifier());
+        }
+
         /* (non-Javadoc)
-         * @see org.apache.ivy.plugins.parser.m2.PomDependencyMgt#getGroupId()
-         */
+                 * @see org.apache.ivy.plugins.parser.m2.PomDependencyMgt#getGroupId()
+                 */
         public String getGroupId() {
             String val = getFirstChildText(depElement , GROUP_ID);
             return replaceProps(val);

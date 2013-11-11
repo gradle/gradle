@@ -1712,7 +1712,7 @@ class GradlePomModuleDescriptorParserTest extends Specification {
         def depTest = descriptor.dependencies[1]
         depTest.dependencyRevisionId == moduleId('group-two', 'artifact-two', '1.2')
         depTest.moduleConfigurations == ['test']
-        hasDefaultDependencyArtifact(depTest)
+        hasDependencyArtifact(depTest, 'artifact-two', 'test-jar', 'jar', 'tests')
     }
 
     @Issue("GRADLE-2931")
@@ -1780,7 +1780,7 @@ class GradlePomModuleDescriptorParserTest extends Specification {
         def depTest = descriptor.dependencies[1]
         depTest.dependencyRevisionId != moduleId('group-two', 'artifact-two', '1.1')
         depTest.moduleConfigurations == ['test']
-        hasDefaultDependencyArtifact(depTest)
+        hasDependencyArtifact(depTest, 'artifact-two', 'test-jar', 'jar', 'tests')
     }
 
     @Issue("GRADLE-2931")
@@ -1848,23 +1848,34 @@ class GradlePomModuleDescriptorParserTest extends Specification {
         <dependency>
             <groupId>group-two</groupId>
             <artifactId>artifact-two</artifactId>
+            <version>version-two</version>
+        </dependency>
+        <dependency>
+            <groupId>group-two</groupId>
+            <artifactId>artifact-two</artifactId>
             <type>jar</type>
             <classifier>myjar</classifier>
-            <version>version-two</version>
+            <version>version-three</version>
+        </dependency>
+        <dependency>
+            <groupId>group-two</groupId>
+            <artifactId>artifact-two</artifactId>
+            <type>test-jar</type>
+            <version>version-four</version>
         </dependency>
         <dependency>
             <groupId>group-two</groupId>
             <artifactId>artifact-two</artifactId>
             <type>test-jar</type>
             <classifier>test</classifier>
-            <version>version-three</version>
+            <version>version-five</version>
         </dependency>
         <dependency>
             <groupId>group-two</groupId>
             <artifactId>artifact-two</artifactId>
             <type>ejb-client</type>
             <classifier>client</classifier>
-            <version>version-four</version>
+            <version>version-six</version>
         </dependency>
     </dependencies>
 </project>
@@ -1878,19 +1889,88 @@ class GradlePomModuleDescriptorParserTest extends Specification {
         then:
         descriptor.moduleRevisionId == moduleId('group-one', 'artifact-one', 'version-one')
         hasArtifact(descriptor, 'artifact-one', 'jar', 'jar')
-        descriptor.dependencies.length == 3
-        def depJar = descriptor.dependencies[0]
-        depJar.dependencyRevisionId == moduleId('group-two', 'artifact-two', 'version-two')
+        descriptor.dependencies.length == 5
+        def defDep = descriptor.dependencies[0]
+        defDep.dependencyRevisionId == moduleId('group-two', 'artifact-two', 'version-two')
+        defDep.moduleConfigurations == ['compile', 'runtime']
+        hasDefaultDependencyArtifact(defDep)
+        def depJar = descriptor.dependencies[1]
+        depJar.dependencyRevisionId == moduleId('group-two', 'artifact-two', 'version-three')
         depJar.moduleConfigurations == ['compile', 'runtime']
         hasDependencyArtifact(depJar, 'artifact-two' , 'jar', 'jar', 'myjar')
-        def depTestJar = descriptor.dependencies[1]
-        depTestJar.dependencyRevisionId == moduleId('group-two', 'artifact-two', 'version-three')
+        def depTestJar = descriptor.dependencies[2]
+        depTestJar.dependencyRevisionId == moduleId('group-two', 'artifact-two', 'version-four')
         depTestJar.moduleConfigurations == ['compile', 'runtime']
-        hasDependencyArtifact(depTestJar, 'artifact-two' , 'test-jar', 'jar', 'test')
-        def depEjbClient = descriptor.dependencies[2]
-        depEjbClient.dependencyRevisionId == moduleId('group-two', 'artifact-two', 'version-four')
+        hasDependencyArtifact(depTestJar, 'artifact-two' , 'test-jar', 'jar', 'tests')
+        def depTestJarWithClassifier = descriptor.dependencies[3]
+        depTestJarWithClassifier.dependencyRevisionId == moduleId('group-two', 'artifact-two', 'version-five')
+        depTestJarWithClassifier.moduleConfigurations == ['compile', 'runtime']
+        hasDependencyArtifact(depTestJarWithClassifier, 'artifact-two' , 'test-jar', 'jar', 'test')
+        def depEjbClient = descriptor.dependencies[4]
+        depEjbClient.dependencyRevisionId == moduleId('group-two', 'artifact-two', 'version-six')
         depEjbClient.moduleConfigurations == ['compile', 'runtime']
         hasDependencyArtifact(depEjbClient, 'artifact-two' , 'ejb-client', 'ejb-client', 'client')
+    }
+
+    @Issue("GRADLE-2371")
+    def "can declare multiple dependencies with same artifact ID and group ID but different type and classifier and scope"() {
+        given:
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+
+    <dependencyManagement>
+    <dependencies>
+        <dependency>
+            <groupId>group-one</groupId>
+            <artifactId>artifact-two</artifactId>
+            <version>version-one</version>
+        </dependency>
+        <dependency>
+            <groupId>group-one</groupId>
+            <artifactId>artifact-two</artifactId>
+            <type>test-jar</type>
+            <version>version-one</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>\${project.groupId}</groupId>
+            <artifactId>artifact-two</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>\${project.groupId}</groupId>
+            <artifactId>artifact-two</artifactId>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>
+"""
+        and:
+        parseContext.currentRevisionId >> moduleId('group-one', 'artifact-one', 'version-one')
+
+        when:
+        def descriptor = parsePom()
+
+        then:
+        descriptor.moduleRevisionId == moduleId('group-one', 'artifact-one', 'version-one')
+        hasArtifact(descriptor, 'artifact-one', 'jar', 'jar')
+        descriptor.dependencies.length == 2
+        def defDep = descriptor.dependencies[0]
+        defDep.dependencyRevisionId == moduleId('group-one', 'artifact-two', 'version-one')
+        defDep.moduleConfigurations == ['compile', 'runtime']
+        hasDefaultDependencyArtifact(defDep)
+        def depJar = descriptor.dependencies[1]
+        depJar.dependencyRevisionId == moduleId('group-one', 'artifact-two', 'version-one')
+        depJar.moduleConfigurations == ['test']
+        hasDependencyArtifact(depJar, 'artifact-two' , 'test-jar', 'jar', 'tests')
     }
 
     @Issue("GRADLE-2938")
@@ -1982,11 +2062,11 @@ class GradlePomModuleDescriptorParserTest extends Specification {
     }
     
     private void hasDefaultDependencyArtifact(DependencyDescriptor descriptor) {
-        descriptor.allDependencyArtifacts.length == 0
+        assert descriptor.allDependencyArtifacts.length == 0
     }
 
     private void hasDependencyArtifact(DependencyDescriptor descriptor, String name, String type, String ext, String classifier = null) {
-        descriptor.allDependencyArtifacts.length == 1
+        assert descriptor.allDependencyArtifacts.length == 1
         def artifact = descriptor.allDependencyArtifacts.first()
         assert artifact.name == name
         assert artifact.type == type
