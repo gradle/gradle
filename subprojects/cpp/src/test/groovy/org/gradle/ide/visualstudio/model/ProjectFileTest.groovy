@@ -21,39 +21,29 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import spock.lang.Specification
 
-class FiltersFileTest extends Specification {
+class ProjectFileTest extends Specification {
     TestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
-    def filtersFile = new FiltersFile()
+    def projectFile = new ProjectFile()
 
-    def "empty filters file"() {
+    def "set project uuid"() {
         when:
-        filtersFile.loadDefaults()
+        projectFile.loadDefaults()
+        projectFile.setProjectUuid("THE_PROJECT_UUID")
 
         then:
-        Node sourceFiles = itemGroup('Filters').Filter.find({it.'@Include' == 'Source Files'}) as Node
-        sourceFiles.Extensions[0].text() == 'cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx'
-
-        Node headerFiles = itemGroup('Filters').Filter.find({it.'@Include' == 'Header Files'}) as Node
-        headerFiles.Extensions[0].text() == 'h;hpp;hxx;hm;inl;inc;xsd'
-
-        Node resourceFiles = itemGroup('Filters').Filter.find({it.'@Include' == 'Resource Files'}) as Node
-        resourceFiles.Extensions[0].text() == 'rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav'
-
-        and:
-        itemGroup('Sources').children().isEmpty()
-        itemGroup('Headers').children().isEmpty()
+        globals.ProjectGUID[0].text() == "THE_PROJECT_UUID"
     }
 
-    def "adds sources and header files"() {
+    def "add source and headers"() {
         when:
-        filtersFile.loadDefaults()
+        projectFile.loadDefaults()
 
         and:
-        filtersFile.addSource("sourceOne")
-        filtersFile.addSource("sourceTwo")
+        projectFile.addSourceFile("sourceOne")
+        projectFile.addSourceFile("sourceTwo")
 
-        filtersFile.addHeader("headerOne")
-        filtersFile.addHeader("headerTwo")
+        projectFile.addHeaderFile("headerOne")
+        projectFile.addHeaderFile("headerTwo")
 
         then:
         assert sourceFile(0) == "sourceOne"
@@ -65,27 +55,29 @@ class FiltersFileTest extends Specification {
 
     private String sourceFile(int index) {
         def source = itemGroup('Sources').ClCompile[index]
-        assert source.Filter[0].text() == 'Source Files'
         return source.'@Include'
     }
 
     private String headerFile(int index) {
         def header = itemGroup('Headers').ClInclude[index]
-        assert header.Filter[0].text() == 'Header Files'
         return header.'@Include'
     }
 
     private Node itemGroup(String label) {
-        return filtersXml.ItemGroup.find({it.'@Label' == label}) as Node
+        return projectXml.ItemGroup.find({it.'@Label' == label}) as Node
     }
 
-    private def getFiltersXml() {
-        return new XmlParser().parse(filtersFileContent)
+    private Node getGlobals() {
+        return projectXml.PropertyGroup.find({it.'@Label' == 'Globals'}) as Node
     }
 
-    private TestFile getFiltersFileContent() {
-        def file = testDirectoryProvider.testDirectory.file("filters.xml")
-        filtersFile.store(file)
+    private def getProjectXml() {
+        return new XmlParser().parse(projectFileContent)
+    }
+
+    private TestFile getProjectFileContent() {
+        def file = testDirectoryProvider.testDirectory.file("project.xml")
+        projectFile.store(file)
         return file
     }
 }
