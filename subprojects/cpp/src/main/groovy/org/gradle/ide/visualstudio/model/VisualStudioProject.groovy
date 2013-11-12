@@ -27,17 +27,21 @@ import org.gradle.nativebinaries.NativeComponent
 
 class VisualStudioProject {
     final NativeComponent component
-    final String uuid
+    private final String uuid
     private final String nameSuffix
 
     VisualStudioProject(NativeComponent component, String nameSuffix) {
         this.component = component
         this.nameSuffix = nameSuffix
-        uuid = '{' + UUID.randomUUID().toString() + '}'
+        this.uuid = '{' + UUID.randomUUID().toString() + '}'
     }
 
     String getName() {
         return "${component.name.capitalize()}${nameSuffix}"
+    }
+
+    String getUuid() {
+        return uuid
     }
 
     String getProjectFile() {
