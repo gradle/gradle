@@ -42,4 +42,47 @@ class ProjectFile extends XmlPersistableConfigurationObject {
         def headers = xml.ItemGroup.find({ it.'@Label' == 'Headers' }) as Node
         headers.appendNode("ClInclude", [Include: it])
     }
+
+    def addConfiguration(VisualStudioProjectConfiguration configuration) {
+        def configNode = configurations.appendNode("ProjectConfiguration", [Include: configuration.name])
+        configNode.appendNode("Configuration", configuration.configurationName)
+        configNode.appendNode("Platform", configuration.platformName)
+
+        Node defaultProps = xml.Import.find({ it.'@Project' == '$(VCTargetsPath)\\Microsoft.Cpp.Default.props'}) as Node
+        defaultProps + {
+            PropertyGroup(Label: "Configuration", Condition: "'\$(Configuration)|\$(Platform)'=='${configuration.name}'") {
+                ConfigurationType(configuration.type)
+                UseDebugLibraries(configuration.debug)
+            }
+        }
+
+        final configCondition = "'\$(Configuration)|\$(Platform)'=='${configuration.name}'"
+        Node userMacros = xml.PropertyGroup.find({ it.'@Label' == 'UserMacros'}) as Node
+        userMacros + {
+            PropertyGroup(Condition: configCondition) {
+                NMakeBuildCommandLine("gradlew.bat ${configuration.buildTask}")
+                NMakeCleanCommandLine("gradlew.bat ${configuration.cleanTask}")
+                NMakeReBuildCommandLine("gradlew.bat ${configuration.cleanTask} ${configuration.buildTask}")
+                NMakePreprocessorDefinitions(configuration.defines.join(";"))
+                NMakeIncludeSearchPath(configuration.includePaths.join(";"))
+                NMakeOutput(configuration.outputFile)
+            }
+            ItemDefinitionGroup(Condition: configCondition) {
+                ClCompile {
+                    AdditionalIncludeDirectories(configuration.includePaths.join(";"))
+                    PreprocessorDefinitions(configuration.defines.join(";"))
+                }
+            }
+        }
+    }
+
+    def addProjectReference(VisualStudioLibraryProject visualStudioLibraryProject) {
+        Node references = xml.ItemGroup.find({ it.'@Label' == 'References' }) as Node
+        references.appendNode("ProjectReference", [Include: visualStudioLibraryProject.projectFile])
+                  .appendNode("Project", visualStudioLibraryProject.uuid)
+    }
+
+    private Node getConfigurations() {
+        return xml.ItemGroup.find({ it.'@Label' == 'ProjectConfigurations' }) as Node
+    }
 }

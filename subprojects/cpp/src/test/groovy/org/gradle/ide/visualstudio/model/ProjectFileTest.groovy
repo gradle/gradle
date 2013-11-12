@@ -25,9 +25,19 @@ class ProjectFileTest extends Specification {
     TestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
     def projectFile = new ProjectFile()
 
+    def "setup"() {
+        projectFile.loadDefaults()
+    }
+
+    def "empty project file"() {
+        expect:
+        itemGroup('ProjectConfigurations').children().isEmpty()
+        itemGroup('Sources').children().isEmpty()
+        itemGroup('Headers').children().isEmpty()
+    }
+
     def "set project uuid"() {
         when:
-        projectFile.loadDefaults()
         projectFile.setProjectUuid("THE_PROJECT_UUID")
 
         then:
@@ -36,9 +46,6 @@ class ProjectFileTest extends Specification {
 
     def "add source and headers"() {
         when:
-        projectFile.loadDefaults()
-
-        and:
         projectFile.addSourceFile("sourceOne")
         projectFile.addSourceFile("sourceTwo")
 
