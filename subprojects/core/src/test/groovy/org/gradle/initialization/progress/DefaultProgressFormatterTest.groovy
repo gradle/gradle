@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.initialization
+package org.gradle.initialization.progress
 
 import spock.lang.Specification
 
 /**
  * By Szczepan Faber on 7/5/13
  */
-class ProgressFormatterTest extends Specification {
+class DefaultProgressFormatterTest extends Specification {
 
     def "knows progress"() {
-        def progress = new ProgressFormatter("Building", 3);
+        def progress = new DefaultProgressFormatter("Building", 3);
 
         expect:
         progress.progress() == "Building 33%"

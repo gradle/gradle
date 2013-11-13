@@ -27,6 +27,8 @@ import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.tasks.TaskState;
+import org.gradle.initialization.progress.DefaultProgressFormatter;
+import org.gradle.initialization.progress.ProgressFormatter;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
 
@@ -68,7 +70,7 @@ class BuildProgressLogger extends BuildAdapter implements TaskExecutionGraphList
             totalProjects = gradle.getRootProject().getAllprojects().size();
             configurationProgress = progressLoggerFactory.newOperation(BuildProgressLogger.class);
             configurationProgress.setDescription("Configure projects");
-            configurationProgress.setShortDescription("0/" + totalProjects + " projects"); //TODO SF encapsulate in some formatter
+            configurationProgress.setShortDescription("0/" + totalProjects + " projects");
             configurationProgress.started();
         }
     }
@@ -84,7 +86,7 @@ class BuildProgressLogger extends BuildAdapter implements TaskExecutionGraphList
             buildProgress.setDescription("Execute tasks");
             String desc = "Building";
             buildProgress.setShortDescription(desc + " 0%");
-            buildProgressFormatter = new ProgressFormatter(desc, graph.getAllTasks().size());
+            buildProgressFormatter = new DefaultProgressFormatter(desc, graph.getAllTasks().size());
             buildProgress.started();
         }
     }
