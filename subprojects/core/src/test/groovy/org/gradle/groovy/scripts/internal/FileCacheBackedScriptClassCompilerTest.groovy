@@ -15,15 +15,16 @@
  */
 package org.gradle.groovy.scripts.internal
 
-import spock.lang.Specification
-import org.gradle.cache.CacheRepository
 import org.gradle.api.internal.resource.Resource
+import org.gradle.cache.CacheRepository
+import org.gradle.cache.CacheValidator
 import org.gradle.cache.DirectoryCacheBuilder
 import org.gradle.cache.PersistentCache
+import org.gradle.groovy.scripts.Script
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.Transformer
-import org.gradle.groovy.scripts.Script
-import org.gradle.cache.CacheValidator
+import org.gradle.logging.ProgressLoggerFactory
+import spock.lang.Specification
 
 class FileCacheBackedScriptClassCompilerTest extends Specification {
     final ScriptCompilationHandler scriptCompilationHandler = Mock()
@@ -35,7 +36,7 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
     final ClassLoader classLoader = Mock()
     final Transformer transformer = Mock()
     final File cacheDir = new File("base-dir")
-    final FileCacheBackedScriptClassCompiler compiler = new FileCacheBackedScriptClassCompiler(cacheRepository, validator, scriptCompilationHandler)
+    final FileCacheBackedScriptClassCompiler compiler = new FileCacheBackedScriptClassCompiler(cacheRepository, validator, scriptCompilationHandler, Stub(ProgressLoggerFactory))
 
     def setup() {
         Resource resource = Mock()
