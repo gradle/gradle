@@ -21,7 +21,6 @@ package org.gradle.initialization.progress
 import org.gradle.BuildResult
 import org.gradle.api.execution.TaskExecutionGraph
 import org.gradle.api.invocation.Gradle
-import org.gradle.initialization.progress.BuildProgressLogger
 import org.gradle.logging.ProgressLogger
 import org.gradle.logging.ProgressLoggerFactory
 import spock.lang.Ignore
@@ -42,7 +41,7 @@ class BuildProgressLoggerTest extends Specification {
         result.getGradle() >> gradle
 
         when:
-        logger.buildStarted(gradle)
+        logger.buildStarted()
 
         then:
         1 * progressLoggerFactory.newOperation(BuildProgressLogger) >> progressLogger
@@ -52,7 +51,7 @@ class BuildProgressLoggerTest extends Specification {
         0 * progressLogger._
 
         when:
-        logger.graphPopulated(graph)
+        logger.graphPopulated(0)
 
         then:
         1 * progressLogger.completed()
@@ -75,7 +74,7 @@ class BuildProgressLoggerTest extends Specification {
         gradle.getParent() >> Mock(Gradle)
         
         when:
-        logger.buildStarted(gradle)
+        logger.buildStarted()
 
         then:
         0 * progressLoggerFactory._

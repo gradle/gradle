@@ -16,27 +16,15 @@
 
 package org.gradle.initialization.progress;
 
-import org.gradle.BuildAdapter;
-import org.gradle.BuildResult;
-import org.gradle.api.Project;
-import org.gradle.api.ProjectEvaluationListener;
-import org.gradle.api.ProjectState;
-import org.gradle.api.Task;
-import org.gradle.api.execution.TaskExecutionGraph;
-import org.gradle.api.execution.TaskExecutionGraphListener;
-import org.gradle.api.execution.TaskExecutionListener;
-import org.gradle.api.invocation.Gradle;
-import org.gradle.api.tasks.TaskState;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class BuildProgressLogger extends BuildAdapter implements TaskExecutionGraphListener, TaskExecutionListener, ProjectEvaluationListener {
+public class BuildProgressLogger {
 
     private final ProgressLoggerFactory progressLoggerFactory;
-    private Gradle gradle;
 
     private ProgressLogger buildProgress;
     private ProgressLogger configurationProgress;
@@ -49,76 +37,60 @@ public class BuildProgressLogger extends BuildAdapter implements TaskExecutionGr
         this.progressLoggerFactory = progressLoggerFactory;
     }
 
-    @Override
-    public void buildStarted(Gradle gradle) {
-        if (gradle.getParent() == null) { //TODO SF push the logic of filtering nested builds out of here
-            buildProgress = progressLoggerFactory.newOperation(BuildProgressLogger.class);
-            buildProgress.setDescription("Initialize build");
-            buildProgress.setShortDescription("Configuring");
-            buildProgress.started();
-            this.gradle = gradle;
-        }
+    public void buildStarted() {
+        buildProgress = progressLoggerFactory.newOperation(BuildProgressLogger.class);
+        buildProgress.setDescription("Initialize build");
+        buildProgress.setShortDescription("Configuring");
+        buildProgress.started();
     }
 
-    @Override
-    public void projectsLoaded(Gradle gradle) {
-        if (gradle.getParent() == null) {
-            configurationProgressFormatter = new SimpleProgressFormatter(gradle.getRootProject().getAllprojects().size(), "projects");
-            configurationProgress = progressLoggerFactory.newOperation(BuildProgressLogger.class);
-            configurationProgress.setDescription("Configure projects");
-            configurationProgress.setShortDescription(configurationProgressFormatter.getProgress());
-            configurationProgress.started();
-        }
+    public void projectsLoaded(int totalProjects) {
+        configurationProgressFormatter = new SimpleProgressFormatter(totalProjects, "projects");
+        configurationProgress = progressLoggerFactory.newOperation(BuildProgressLogger.class);
+        configurationProgress.setDescription("Configure projects");
+        configurationProgress.setShortDescription(configurationProgressFormatter.getProgress());
+        configurationProgress.started();
     }
 
-    public void graphPopulated(TaskExecutionGraph graph) {
-        if (graph == gradle.getTaskGraph()) {
-            configurationProgress.completed();
-            configurationProgress = null;
+    public void graphPopulated(int totalTasks) {
+        configurationProgress.completed();
+        configurationProgress = null;
 
-            buildProgress.completed("Task graph ready");
+        buildProgress.completed("Task graph ready");
 
-            buildProgress = progressLoggerFactory.newOperation(BuildProgressLogger.class);
-            buildProgressFormatter = new PercentageProgressFormatter("Building", graph.getAllTasks().size());
-            buildProgress.setDescription("Execute tasks");
-            buildProgress.setShortDescription(buildProgressFormatter.getProgress());
-            buildProgress.started();
-        }
+        buildProgress = progressLoggerFactory.newOperation(BuildProgressLogger.class);
+        buildProgressFormatter = new PercentageProgressFormatter("Building", totalTasks);
+        buildProgress.setDescription("Execute tasks");
+        buildProgress.setShortDescription(buildProgressFormatter.getProgress());
+        buildProgress.started();
     }
 
-    @Override
-    public void buildFinished(BuildResult result) {
-        if (result.getGradle() == gradle) {
-            buildProgress.completed();
-            buildProgress = null;
-            gradle = null;
-            buildProgressFormatter = null;
-            configurationProgress = null;
-        }
+    public void buildFinished() {
+        buildProgress.completed();
+        buildProgress = null;
+        buildProgressFormatter = null;
+        configurationProgress = null;
     }
 
-    public void beforeExecute(Task task) {
+    public void afterExecute() {
+        buildProgress.progress(buildProgressFormatter.incrementAndGetProgress());
     }
 
-    public void afterExecute(Task task, TaskState state) {
-        if (task.getProject().getGradle() == gradle) {
-            buildProgress.progress(buildProgressFormatter.incrementAndGetProgress());
-        }
-    }
+    public void settingsEvaluated() {}
 
-    public void beforeEvaluate(Project project) {
-        if (project.getGradle() == gradle && configurationProgress != null) {
+    public void beforeEvaluate(String projectPath) {
+        if (configurationProgress != null) {
             ProgressLogger logger = progressLoggerFactory.newOperation(BuildProgressLogger.class);
-            logger.setDescription("Configuring project " + project.getPath());
-            logger.setShortDescription(project.getPath().equals(":") ? "root project" : project.getPath());
+            logger.setDescription("Configuring project " + projectPath);
+            logger.setShortDescription(projectPath.equals(":") ? "root project" : projectPath);
             logger.started();
-            projectConfigurationProgress.put(project.getPath(), logger);
+            projectConfigurationProgress.put(projectPath, logger);
         }
     }
 
-    public void afterEvaluate(Project project, ProjectState state) {
-        if (project.getGradle() == gradle && configurationProgress != null) {
-            ProgressLogger logger = projectConfigurationProgress.remove(project.getPath());
+    public void afterEvaluate(String projectPath) {
+        if (configurationProgress != null) {
+            ProgressLogger logger = projectConfigurationProgress.remove(projectPath);
             if (logger == null) {
                 throw new IllegalStateException("Unexpected afterEvaluate event received without beforeEvaluate");
             }
