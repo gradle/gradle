@@ -42,7 +42,7 @@ public class BuildProgressLogger {
     }
 
     public void buildStarted() {
-        buildProgress = loggerProvider.start("Initialize build", "Configuring");
+        buildProgress = loggerProvider.start("Initialize build", "Loading");
     }
 
     public void projectsLoaded(int totalProjects) {
@@ -71,7 +71,9 @@ public class BuildProgressLogger {
         buildProgress.progress(buildProgressFormatter.incrementAndGetProgress());
     }
 
-    public void settingsEvaluated() {}
+    public void settingsEvaluated() {
+        buildProgress.progress("Configuring");
+    }
 
     public void beforeEvaluate(String projectPath) {
         if (configurationProgress != null) {

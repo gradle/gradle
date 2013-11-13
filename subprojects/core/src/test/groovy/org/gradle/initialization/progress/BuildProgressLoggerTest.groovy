@@ -30,15 +30,19 @@ class BuildProgressLoggerTest extends Specification {
     @Subject logger = new BuildProgressLogger(provider)
 
     def "logs initialisation stage"() {
-        when:
-        logger.buildStarted()
+        when: logger.buildStarted()
 
         then:
-        1 * provider.start('Initialize build', 'Configuring') >> progress
+        1 * provider.start('Initialize build', 'Loading') >> progress
         0 * _
 
-        when:
-        logger.projectsLoaded(6)
+        when: logger.settingsEvaluated()
+
+        then:
+        1 * progress.progress("Configuring")
+        0 * _
+
+        when: logger.projectsLoaded(6)
 
         then:
         1 * provider.start("Configure projects", '0/6 projects') >> confProgress
