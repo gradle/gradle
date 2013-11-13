@@ -41,6 +41,7 @@ public class BuildProgressFilter implements BuildListener, TaskExecutionGraphLis
     public void buildStarted(Gradle gradle) {
         if (gradle.getParent() == null) {
             this.gradle = gradle;
+            logger.buildStarted();
         }
     }
 
@@ -57,7 +58,7 @@ public class BuildProgressFilter implements BuildListener, TaskExecutionGraphLis
     }
 
     public void graphPopulated(TaskExecutionGraph graph) {
-        if (graph == gradle.getTaskGraph()) {
+        if (gradle != null && graph == gradle.getTaskGraph()) {
             logger.graphPopulated(graph.getAllTasks().size());
         }
     }
