@@ -34,7 +34,7 @@ class InitBuildSpec extends Specification {
     ProjectInitDescriptor projectSetupDescriptor3
 
     def setup() {
-        init = TestUtil.builder().build().tasks.create("init", InitBuild)
+        init = TestUtil.createTask(InitBuild)
         projectLayoutRegistry = Mock()
         projectSetupDescriptor1 = Mock()
         projectSetupDescriptor2 = Mock()

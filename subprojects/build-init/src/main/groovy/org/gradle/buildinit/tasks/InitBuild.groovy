@@ -66,7 +66,6 @@ class InitBuild extends DefaultTask {
         this.type = type;
     }
 
-
     @OptionValues("type")
     List<String> getAvailableBuildTypes(){
         return getProjectLayoutRegistry().getSupportedTypes();
