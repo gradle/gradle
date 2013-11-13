@@ -38,8 +38,8 @@ public class DependencyResolutionLogger implements DependencyResolutionListener 
     public void beforeResolve(ResolvableDependencies dependencies) {
         LinkedList<ProgressLogger> loggers = progressLoggers.get();
         progressLoggers.set(loggers);
-        ProgressLogger logger = loggerFactory.newOperation(DependencyResolutionLogger.class)
-                .start(String.format("Resolve %s", dependencies), String.format("Resolving %s", dependencies));
+        ProgressLogger logger = loggerFactory.newOperation(DependencyResolutionLogger.class);
+        logger.start(String.format("Resolve %s", dependencies), String.format("Resolving %s", dependencies));
         loggers.add(logger);
     }
 
