@@ -82,8 +82,8 @@ class BuildProgressLoggerTest extends Specification {
         logger.graphPopulated(10)
 
         then:
-        1 * provider.start("Configure projects", '0/16 projects') >> confProgress
-        1 * provider.start('Initialize build', 'Configuring') >> progress
+        1 * provider.start("Configure projects", _) >> confProgress
+        1 * provider.start('Initialize build', _) >> progress
         0 * _
 
         then:
@@ -102,9 +102,9 @@ class BuildProgressLoggerTest extends Specification {
         logger.graphPopulated(10)
 
         then:
-        1 * provider.start("Configure projects", '0/16 projects') >> confProgress
-        1 * provider.start('Initialize build', 'Configuring') >> progress
-        1 * provider.start("Execute tasks", "Building 0%") >> executeProgress
+        1 * provider.start("Configure projects", _) >> confProgress
+        1 * provider.start('Initialize build', _) >> progress
+        1 * provider.start("Execute tasks", _) >> executeProgress
 
         when:
         logger.afterExecute()
@@ -119,6 +119,25 @@ class BuildProgressLoggerTest extends Specification {
 
         then:
         1 * executeProgress.completed()
+        0 * _
+    }
+
+    def "don't log progress for projects configured after official configuration phase"() {
+        //currently this can happen, see the ConfigurationOnDemandIntegrationTest
+        when:
+        logger.buildStarted()
+        logger.projectsLoaded(16)
+        logger.graphPopulated(10)
+
+        then:
+        1 * provider.start("Configure projects", _) >> confProgress
+        1 * provider.start('Initialize build', _) >> progress
+
+        when:
+        logger.beforeEvaluate(":foo")
+        logger.afterEvaluate(":bar")
+
+        then:
         0 * _
     }
 }
