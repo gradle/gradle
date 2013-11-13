@@ -81,6 +81,13 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
             this.loggingHeader = loggingHeader;
         }
 
+        public ProgressLogger start(String description, String shortDescription) {
+            setDescription(description);
+            setShortDescription(shortDescription);
+            started();
+            return this;
+        }
+
         public void started() {
             started(null);
         }
