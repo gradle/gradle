@@ -191,19 +191,20 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
                 }
             }
 
+            // Adds a set method for each mutable property
             for (MetaBeanProperty property : settableProperties) {
                 Collection<MetaMethod> methodsForProperty = methods.get(property.getName());
-                boolean anyOverridden = false;
-                if (conventionProperties.contains(property)) {
-                    for (MetaMethod method : methodsForProperty) {
-                        if (method.getParameterTypes().length == 1) {
+                boolean hasSetMethod = false;
+                for (MetaMethod method : methodsForProperty) {
+                    if (method.getParameterTypes().length == 1) {
+                        if (conventionProperties.contains(property)) {
                             builder.overrideSetMethod(property, method);
-                            anyOverridden = true;
                         }
+                        hasSetMethod = true;
                     }
                 }
 
-                if (!anyOverridden) {
+                if (!hasSetMethod) {
                     builder.addSetMethod(property);
                 }
             }

@@ -654,6 +654,13 @@ public class AsmBackedClassGeneratorTest {
     }
 
     @Test
+    public void doesNotOverrideSetValueMethodForPropertyThatIsNotConventionMappingAware() throws Exception {
+        BeanWithMultiArgDslMethodsAndNoConventionMapping bean = generator.generate(BeanWithMultiArgDslMethodsAndNoConventionMapping.class).newInstance();
+        call("{ it.prop 'value'}", bean);
+        assertThat(bean.getProp(), equalTo("(value)"));
+    }
+
+    @Test
     public void mixesInClosureOverloadForActionMethod() throws Exception {
         Bean bean = generator.generate(Bean.class).newInstance();
         bean.prop = "value";
@@ -816,6 +823,31 @@ public class AsmBackedClassGeneratorTest {
         public BeanWithMultiArgDslMethods prop(String part1, String part2, String part3) {
             this.prop = String.format("[%s%s%s]", part1, part2, part3);
             return this;
+        }
+    }
+
+    @NoConventionMapping
+    public static class BeanWithMultiArgDslMethodsAndNoConventionMapping extends Bean {
+        private String prop;
+
+        public String getProp() {
+            return prop;
+        }
+
+        public void setProp(String prop) {
+            this.prop = prop;
+        }
+
+        public void prop(String value) {
+            this.prop = String.format("(%s)", value);
+        }
+
+        public void prop(String part1, String part2) {
+            this.prop = String.format("<%s%s>", part1, part2);
+        }
+
+        public void prop(String part1, String part2, String part3) {
+            this.prop = String.format("[%s%s%s]", part1, part2, part3);
         }
     }
 
