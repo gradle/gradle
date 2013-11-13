@@ -29,12 +29,12 @@ import org.gradle.api.invocation.Gradle;
 import org.gradle.api.tasks.TaskState;
 
 //Filters out nested projects
-public class FilteringBuildProgressLogger implements BuildListener, TaskExecutionGraphListener, TaskExecutionListener, ProjectEvaluationListener {
+public class BuildProgressFilter implements BuildListener, TaskExecutionGraphListener, TaskExecutionListener, ProjectEvaluationListener {
 
     private Gradle gradle;
     private BuildProgressLogger logger;
 
-    public FilteringBuildProgressLogger(BuildProgressLogger logger) {
+    public BuildProgressFilter(BuildProgressLogger logger) {
         this.logger = logger;
     }
 
