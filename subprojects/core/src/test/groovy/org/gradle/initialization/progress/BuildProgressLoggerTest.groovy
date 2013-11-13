@@ -16,11 +16,12 @@
 
 
 
-package org.gradle.initialization
+package org.gradle.initialization.progress
 
 import org.gradle.BuildResult
 import org.gradle.api.execution.TaskExecutionGraph
 import org.gradle.api.invocation.Gradle
+import org.gradle.initialization.progress.BuildProgressLogger
 import org.gradle.logging.ProgressLogger
 import org.gradle.logging.ProgressLoggerFactory
 import spock.lang.Ignore

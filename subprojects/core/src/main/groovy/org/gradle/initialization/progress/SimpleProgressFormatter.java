@@ -15,7 +15,7 @@
  */
 package org.gradle.initialization.progress;
 
-public class SimpleProgressFormatter implements ProgressFormatter {
+class SimpleProgressFormatter implements ProgressFormatter {
     private final int total;
     private int current;
     private String postfix;

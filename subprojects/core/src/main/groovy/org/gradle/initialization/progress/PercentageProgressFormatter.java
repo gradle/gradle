@@ -19,7 +19,7 @@ package org.gradle.initialization.progress;
 /**
  * By Szczepan Faber on 7/5/13
  */
-public class PercentageProgressFormatter implements ProgressFormatter {
+class PercentageProgressFormatter implements ProgressFormatter {
     private int current;
     private int total;
     private String prefix;

@@ -19,6 +19,7 @@ package org.gradle.initialization;
 import org.gradle.*;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.initialization.progress.BuildProgressLogger;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.StandardOutputListener;

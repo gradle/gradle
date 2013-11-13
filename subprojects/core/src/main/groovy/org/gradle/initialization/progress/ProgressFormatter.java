@@ -15,7 +15,7 @@
  */
 package org.gradle.initialization.progress;
 
-public interface ProgressFormatter {
+interface ProgressFormatter {
     String incrementAndGetProgress();
     String getProgress();
 }

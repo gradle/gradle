@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.initialization;
+package org.gradle.initialization.progress;
 
 import org.gradle.BuildAdapter;
 import org.gradle.BuildResult;
@@ -27,16 +27,13 @@ import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.tasks.TaskState;
-import org.gradle.initialization.progress.PercentageProgressFormatter;
-import org.gradle.initialization.progress.ProgressFormatter;
-import org.gradle.initialization.progress.SimpleProgressFormatter;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
 
-class BuildProgressLogger extends BuildAdapter implements TaskExecutionGraphListener, TaskExecutionListener, ProjectEvaluationListener {
+public class BuildProgressLogger extends BuildAdapter implements TaskExecutionGraphListener, TaskExecutionListener, ProjectEvaluationListener {
 
     private final ProgressLoggerFactory progressLoggerFactory;
     private Gradle gradle;
@@ -82,8 +79,8 @@ class BuildProgressLogger extends BuildAdapter implements TaskExecutionGraphList
             buildProgress.completed("Task graph ready");
 
             buildProgress = progressLoggerFactory.newOperation(BuildProgressLogger.class);
-            buildProgress.setDescription("Execute tasks");
             buildProgressFormatter = new PercentageProgressFormatter("Building", graph.getAllTasks().size());
+            buildProgress.setDescription("Execute tasks");
             buildProgress.setShortDescription(buildProgressFormatter.getProgress());
             buildProgress.started();
         }
