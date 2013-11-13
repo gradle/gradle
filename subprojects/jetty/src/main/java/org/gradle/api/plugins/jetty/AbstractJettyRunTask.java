@@ -193,10 +193,8 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
 
     public void startJettyInternal() {
         ProgressLoggerFactory progressLoggerFactory = getServices().get(ProgressLoggerFactory.class);
-        ProgressLogger progressLogger = progressLoggerFactory.newOperation(AbstractJettyRunTask.class);
-        progressLogger.setDescription("Start Jetty server");
-        progressLogger.setShortDescription("Starting Jetty");
-        progressLogger.started();
+        ProgressLogger progressLogger = progressLoggerFactory.newOperation(AbstractJettyRunTask.class)
+                .start("Start Jetty server", "Starting Jetty");
         try {
             setServer(createServer());
 
@@ -261,10 +259,9 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
             progressLogger.completed();
         }
 
-        progressLogger = progressLoggerFactory.newOperation(AbstractJettyRunTask.class);
-        progressLogger.setDescription(String.format("Run Jetty at http://localhost:%d/%s", getHttpPort(), getContextPath()));
-        progressLogger.setShortDescription(String.format("Running at http://localhost:%d/%s", getHttpPort(), getContextPath()));
-        progressLogger.started();
+        progressLogger = progressLoggerFactory.newOperation(AbstractJettyRunTask.class)
+                .start(String.format("Run Jetty at http://localhost:%d/%s", getHttpPort(), getContextPath()),
+                        String.format("Running at http://localhost:%d/%s", getHttpPort(), getContextPath()));
         try {
             // keep the thread going if not in daemon mode
             server.join();

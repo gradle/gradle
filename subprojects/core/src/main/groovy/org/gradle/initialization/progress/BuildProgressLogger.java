@@ -38,18 +38,14 @@ public class BuildProgressLogger {
     }
 
     public void buildStarted() {
-        buildProgress = progressLoggerFactory.newOperation(BuildProgressLogger.class);
-        buildProgress.setDescription("Initialize build");
-        buildProgress.setShortDescription("Configuring");
-        buildProgress.started();
+        buildProgress = progressLoggerFactory.newOperation(BuildProgressLogger.class)
+                .start("Initialize build", "Configuring");
     }
 
     public void projectsLoaded(int totalProjects) {
         configurationProgressFormatter = new SimpleProgressFormatter(totalProjects, "projects");
-        configurationProgress = progressLoggerFactory.newOperation(BuildProgressLogger.class);
-        configurationProgress.setDescription("Configure projects");
-        configurationProgress.setShortDescription(configurationProgressFormatter.getProgress());
-        configurationProgress.started();
+        configurationProgress = progressLoggerFactory.newOperation(BuildProgressLogger.class)
+                .start("Configure projects", configurationProgressFormatter.getProgress());
     }
 
     public void graphPopulated(int totalTasks) {
@@ -58,11 +54,9 @@ public class BuildProgressLogger {
 
         buildProgress.completed("Task graph ready");
 
-        buildProgress = progressLoggerFactory.newOperation(BuildProgressLogger.class);
         buildProgressFormatter = new PercentageProgressFormatter("Building", totalTasks);
-        buildProgress.setDescription("Execute tasks");
-        buildProgress.setShortDescription(buildProgressFormatter.getProgress());
-        buildProgress.started();
+        buildProgress = progressLoggerFactory.newOperation(BuildProgressLogger.class)
+                .start("Execute tasks", buildProgressFormatter.getProgress());
     }
 
     public void buildFinished() {
@@ -80,10 +74,8 @@ public class BuildProgressLogger {
 
     public void beforeEvaluate(String projectPath) {
         if (configurationProgress != null) {
-            ProgressLogger logger = progressLoggerFactory.newOperation(BuildProgressLogger.class);
-            logger.setDescription("Configuring project " + projectPath);
-            logger.setShortDescription(projectPath.equals(":") ? "root project" : projectPath);
-            logger.started();
+            ProgressLogger logger = progressLoggerFactory.newOperation(BuildProgressLogger.class)
+                    .start("Configuring project " + projectPath, projectPath.equals(":") ? "root project" : projectPath);
             projectConfigurationProgress.put(projectPath, logger);
         }
     }
