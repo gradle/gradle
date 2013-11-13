@@ -24,7 +24,7 @@ import java.util.Map;
 
 public class BuildProgressLogger {
 
-    private final ProgressLoggerFactory progressLoggerFactory;
+    private final ProgressLoggerProvider loggerProvider;
 
     private ProgressLogger buildProgress;
     private ProgressLogger configurationProgress;
@@ -34,18 +34,20 @@ public class BuildProgressLogger {
     private ProgressFormatter configurationProgressFormatter;
 
     public BuildProgressLogger(ProgressLoggerFactory progressLoggerFactory) {
-        this.progressLoggerFactory = progressLoggerFactory;
+        this(new ProgressLoggerProvider(progressLoggerFactory, BuildProgressLogger.class));
+    }
+
+    BuildProgressLogger(ProgressLoggerProvider loggerProvider) {
+        this.loggerProvider = loggerProvider;
     }
 
     public void buildStarted() {
-        buildProgress = progressLoggerFactory.newOperation(BuildProgressLogger.class)
-                .start("Initialize build", "Configuring");
+        buildProgress = loggerProvider.start("Initialize build", "Configuring");
     }
 
     public void projectsLoaded(int totalProjects) {
         configurationProgressFormatter = new SimpleProgressFormatter(totalProjects, "projects");
-        configurationProgress = progressLoggerFactory.newOperation(BuildProgressLogger.class)
-                .start("Configure projects", configurationProgressFormatter.getProgress());
+        configurationProgress = loggerProvider.start("Configure projects", configurationProgressFormatter.getProgress());
     }
 
     public void graphPopulated(int totalTasks) {
@@ -55,8 +57,7 @@ public class BuildProgressLogger {
         buildProgress.completed("Task graph ready");
 
         buildProgressFormatter = new PercentageProgressFormatter("Building", totalTasks);
-        buildProgress = progressLoggerFactory.newOperation(BuildProgressLogger.class)
-                .start("Execute tasks", buildProgressFormatter.getProgress());
+        buildProgress = loggerProvider.start("Execute tasks", buildProgressFormatter.getProgress());
     }
 
     public void buildFinished() {
@@ -74,8 +75,7 @@ public class BuildProgressLogger {
 
     public void beforeEvaluate(String projectPath) {
         if (configurationProgress != null) {
-            ProgressLogger logger = progressLoggerFactory.newOperation(BuildProgressLogger.class)
-                    .start("Configuring project " + projectPath, projectPath.equals(":") ? "root project" : projectPath);
+            ProgressLogger logger = loggerProvider.start("Configure project " + projectPath, projectPath.equals(":") ? "root project" : projectPath);
             projectConfigurationProgress.put(projectPath, logger);
         }
     }

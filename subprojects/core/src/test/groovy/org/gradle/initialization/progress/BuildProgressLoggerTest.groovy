@@ -18,65 +18,107 @@
 
 package org.gradle.initialization.progress
 
-import org.gradle.BuildResult
-import org.gradle.api.execution.TaskExecutionGraph
-import org.gradle.api.invocation.Gradle
 import org.gradle.logging.ProgressLogger
-import org.gradle.logging.ProgressLoggerFactory
-import spock.lang.Ignore
 import spock.lang.Specification
+import spock.lang.Subject
 
 class BuildProgressLoggerTest extends Specification {
-    private final ProgressLoggerFactory progressLoggerFactory = Mock()
-    private final ProgressLogger progressLogger = Mock()
-    private final Gradle gradle = Mock()
-    private final TaskExecutionGraph graph = Stub()
-    private final BuildResult result = Mock()
-    private final BuildProgressLogger logger = new BuildProgressLogger(progressLoggerFactory)
+    ProgressLoggerProvider provider = Mock()
+    ProgressLogger progress = Mock()
+    ProgressLogger confProgress = Mock()
 
-    @Ignore //TODO SF this will be reworked in the next commit or two
-    def logsBuildStages() {
-        given:
-        gradle.getTaskGraph() >> graph
-        result.getGradle() >> gradle
+    @Subject logger = new BuildProgressLogger(provider)
 
+    def "logs initialisation stage"() {
         when:
         logger.buildStarted()
 
         then:
-        1 * progressLoggerFactory.newOperation(BuildProgressLogger) >> progressLogger
-        1 * progressLogger.setDescription('Initialize build')
-        1 * progressLogger.setShortDescription('Configuring')
-        1 * progressLogger.started()
-        0 * progressLogger._
+        1 * provider.start('Initialize build', 'Configuring') >> progress
+        0 * _
 
         when:
-        logger.graphPopulated(0)
+        logger.projectsLoaded(6)
 
         then:
-        1 * progressLogger.completed()
-        1 * progressLoggerFactory.newOperation(BuildProgressLogger) >> progressLogger
-        1 * progressLogger.setDescription('Execute tasks')
-        1 * progressLogger.setShortDescription('Building')
-        1 * progressLogger.started()
-        0 * progressLogger._
-
-        when:
-        logger.buildFinished(result)
-
-        then:
-        1 * progressLogger.completed()
-        0 * progressLogger._
+        1 * provider.start("Configure projects", '0/6 projects') >> confProgress
+        0 * _
     }
 
-    def ignoresNestedBuilds() {
-        given:
-        gradle.getParent() >> Mock(Gradle)
-        
+    def "logs configuration progress"() {
+        def progress1 = Mock(ProgressLogger)
+        def progress2 = Mock(ProgressLogger)
+
         when:
-        logger.buildStarted()
+        logger.projectsLoaded(16)
+        logger.beforeEvaluate(":")
+        logger.beforeEvaluate(":foo:bar")
 
         then:
-        0 * progressLoggerFactory._
+        1 * provider.start("Configure projects", '0/16 projects') >> confProgress
+        1 * provider.start("Configure project :", 'root project') >> progress1
+        1 * provider.start("Configure project :foo:bar", ':foo:bar') >> progress2
+        0 * _
+
+        when: logger.afterEvaluate(":foo:bar")
+
+        then:
+        1 * progress2.completed()
+        1 * confProgress.progress("1/16 projects")
+        0 * _
+
+        when: logger.afterEvaluate(":")
+
+        then:
+        1 * progress1.completed()
+        1 * confProgress.progress("2/16 projects")
+        0 * _
+    }
+
+    def "logs configuration completion"() {
+        when:
+        logger.buildStarted()
+        logger.projectsLoaded(16)
+        logger.graphPopulated(10)
+
+        then:
+        1 * provider.start("Configure projects", '0/16 projects') >> confProgress
+        1 * provider.start('Initialize build', 'Configuring') >> progress
+        0 * _
+
+        then:
+        1 * confProgress.completed()
+        1 * progress.completed("Task graph ready")
+        1 * provider.start("Execute tasks", "Building 0%");
+        0 * _
+    }
+
+    def "logs execution progress"() {
+        def executeProgress = Mock(ProgressLogger)
+
+        when:
+        logger.buildStarted()
+        logger.projectsLoaded(16)
+        logger.graphPopulated(10)
+
+        then:
+        1 * provider.start("Configure projects", '0/16 projects') >> confProgress
+        1 * provider.start('Initialize build', 'Configuring') >> progress
+        1 * provider.start("Execute tasks", "Building 0%") >> executeProgress
+
+        when:
+        logger.afterExecute()
+        logger.afterExecute()
+
+        then:
+        1 * executeProgress.progress("Building 10%")
+        1 * executeProgress.progress("Building 20%")
+        0 * _
+
+        when: logger.buildFinished()
+
+        then:
+        1 * executeProgress.completed()
+        0 * _
     }
 }
