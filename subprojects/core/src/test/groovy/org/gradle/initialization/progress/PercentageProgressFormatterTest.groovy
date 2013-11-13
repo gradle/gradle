@@ -21,10 +21,10 @@ import spock.lang.Specification
 /**
  * By Szczepan Faber on 7/5/13
  */
-class DefaultProgressFormatterTest extends Specification {
+class PercentageProgressFormatterTest extends Specification {
 
     def "knows progress"() {
-        def f = new DefaultProgressFormatter("Building", 3);
+        def f = new PercentageProgressFormatter("Building", 3);
 
         expect:
         f.progress == "Building 0%"

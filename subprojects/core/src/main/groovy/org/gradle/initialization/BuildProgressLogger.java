@@ -27,7 +27,7 @@ import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.tasks.TaskState;
-import org.gradle.initialization.progress.DefaultProgressFormatter;
+import org.gradle.initialization.progress.PercentageProgressFormatter;
 import org.gradle.initialization.progress.ProgressFormatter;
 import org.gradle.initialization.progress.SimpleProgressFormatter;
 import org.gradle.logging.ProgressLogger;
@@ -83,7 +83,7 @@ class BuildProgressLogger extends BuildAdapter implements TaskExecutionGraphList
 
             buildProgress = progressLoggerFactory.newOperation(BuildProgressLogger.class);
             buildProgress.setDescription("Execute tasks");
-            buildProgressFormatter = new DefaultProgressFormatter("Building", graph.getAllTasks().size());
+            buildProgressFormatter = new PercentageProgressFormatter("Building", graph.getAllTasks().size());
             buildProgress.setShortDescription(buildProgressFormatter.getProgress());
             buildProgress.started();
         }
