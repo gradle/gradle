@@ -467,18 +467,6 @@ This story adds support for building a native component using multiple tool chai
 - Reasonable error message any defined tool chain not available.
 - Build an executable with multiple toolchains that uses a library with a single toolchain that uses a library with multiple toolchains.
 
-### Open issues
-
-- Reasonable behaviour when no tool chains are available on the current machine.
-- Need separate compiler, linker and assembler options for each toolchain.
-- Need shared compiler, linker and assembler options for all toolchains.
-- Need to consume locally and between projects and between builds.
-- Need to be able to build for a single toolchain only.
-- Easy way to detect (and use) the set of available tool chains.
-- Define a tool chain as a type and required version (eg GCC v4.+)
-    - Attempt to locate the tool chain in path (if no `path` provided)
-    - Verify the version for defined tool chain (if `path` is provided)
-
 ## Story: Build a native component for multiple architectures
 
 This story adds support for building a component for multiple architectures.
@@ -1291,8 +1279,16 @@ TBD
 - Model cross compilation as a single toolchain
 - Don't create variants that can never be built
 - Don't create variants that are not desired - e.g linkage, target platform, build types
-- Allow a plugin to define the set of available tool chains, build type, platforms, flavors etc and allow a component to declare which of these make sense.
-  Can infer tool chain from target platform
+- Allow a plugin to define the set of available tool chains, build types, platforms, flavors etc and allow a component to declare which of these make sense.
+  Tool chain is NOT a dimension: Can infer tool chain from target platform and source dialect
+- Model language dialect and add this to source set, e.g. GCC, visual C++, ANSI C. A tool chain can compile some set of dialects.
+- Model operating system as a dependency declared by a source set.
+    - Can use this to determine which source sets to include in a given binary.
+- Model ABI as part of platform. A tool chain can produce binaries for some set of ABIs.
+- Tool chain is not a variant dimension. Instead, select a tool chain based on input source dialect and target platform.
+- Use 'Visual Studio' consistently.
+- Test coverage for Visual studio 2012, 2013
+- Tool chain represents an installation. Must be easy to configure the discovered tool chain, and configure extra installations.
 
 ## Source
 
@@ -1330,7 +1326,13 @@ TBD
 
 - Add a 'development' install task, which chooses a single variant for an executable to install
 - Need to make standard 'build', 'check' lifecycle tasks available too. The `assemble` task should build all buildable variants.
+    - Reasonable behaviour when nothing is buildable on the current machine.
 - Come up with consistent naming scheme for language plugins: 'cpp', 'c', 'assembler', 'java-lang', 'scala-lang', etc
+
+### Performance
+
+- Add some performance tests
+- Parallel compilation, some kind of consistency between parallel test execution, parallel task execution, etc.
 
 ## Later
 
@@ -1339,7 +1341,6 @@ TBD
 
 # Open issues
 
-* Parallel compilation
 * Output of any custom post link task should be treated as input to anything that depends on the binary.
 * Add 'position independent' setting to 'NativeBinary'.
 * Add a position independent variant for all static libraries.
@@ -1368,3 +1369,4 @@ TBD
 * Add language level to C and C++ source sets.
 * The `gcc` provided by XCode on OS X is actually a repackaged `clang`. Should distinguish between building with the `gcc` provided by XCode, and building with a real `gcc`
   install, eg via a ports toolkit.
+* Adding other languages as external plugins
