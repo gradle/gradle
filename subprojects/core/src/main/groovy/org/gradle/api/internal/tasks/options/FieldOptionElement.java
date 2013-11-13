@@ -29,9 +29,9 @@ public class FieldOptionElement extends AbstractOptionElement {
 
     public FieldOptionElement(Option option, Field field) {
         super(calOptionName(option, field), option, field.getDeclaringClass());
-        assertFieldSupported(field);
         this.field = field;
         this.optionType = calculateOptionType(field.getType());
+        assertFieldSupported();
     }
 
     private static String calOptionName(Option option, Field field) {
@@ -42,13 +42,25 @@ public class FieldOptionElement extends AbstractOptionElement {
         }
     }
 
-    private void assertFieldSupported(Field field) {
+    private void assertFieldSupported() {
         final Class<?> type = field.getType();
         if (!(type == Boolean.class || type == Boolean.TYPE)
                 && !type.isAssignableFrom(String.class)
                 && !type.isEnum()) {
             throw new OptionValidationException(String.format("Option '%s' cannot be casted to type '%s' in class '%s'.",
                     getOptionName(), type.getName(), field.getDeclaringClass().getName()));
+        }
+        getSetter();
+
+    }
+
+    private Method getSetter() {
+        try{
+            String setterName = "set" + StringUtils.capitalize(field.getName());
+            return field.getDeclaringClass().getMethod(setterName, field.getType());
+        } catch (NoSuchMethodException e) {
+            throw new OptionValidationException(String.format("No setter for Option annotated field '%s' in class '%s'.",
+                    getElementName(), getDeclaredClass()));
         }
     }
 
@@ -85,13 +97,8 @@ public class FieldOptionElement extends AbstractOptionElement {
     }
 
     private void setFieldValue(Object object, Object value) {
-        try {
-            Method setter = object.getClass().getMethod("set" + StringUtils.capitalize(field.getName()), optionType);
+            Method setter = getSetter();
             invokeMethod(object, setter, value);
-        } catch (NoSuchMethodException e) {
-            throw new OptionValidationException(String.format("No setter for Option annotated field '%s' in class '%s'.",
-                    getElementName(), getDeclaredClass()));
-        }
     }
 }
 

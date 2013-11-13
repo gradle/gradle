@@ -144,10 +144,8 @@ class OptionReaderTest extends Specification {
     }
 
     def "throws decent error when private field is annotated as option and no setter declared"() {
-        def class10 = new TestClass10()
-        def options = reader.getOptions(class10)
         when:
-        options[0].apply(class10, Arrays.asList("someValue"))
+        reader.getOptions(new TestClass10())
         then:
         def e = thrown(OptionValidationException)
         e.message == "No setter for Option annotated field 'field' in class 'class org.gradle.api.internal.tasks.options.OptionReaderTest\$TestClass10'."
@@ -230,6 +228,7 @@ class OptionReaderTest extends Specification {
 
         @Option(description = "Descr Field4")
         boolean field4
+
 
         @OptionValues("field2")
         List<String> getField2Options() {
