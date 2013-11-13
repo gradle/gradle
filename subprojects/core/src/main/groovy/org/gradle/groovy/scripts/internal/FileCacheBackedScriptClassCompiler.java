@@ -56,7 +56,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler {
                 .withProperties(properties)
                 .withValidator(validator)
                 .withDisplayName(String.format("%s class cache for %s", transformer.getId(), source.getDisplayName()))
-                .withInitializer(new CacheInitializer(source, classLoader, transformer, scriptBaseClass)).open();
+                .withInitializer(new ProgressReportingInitializer(progressLoggerFactory, new CacheInitializer(source, classLoader, transformer, scriptBaseClass))).open();
 
         File classesDir = classesDir(cache);
         return scriptCompilationHandler.loadFromDir(source, classLoader, classesDir, scriptBaseClass);
@@ -81,11 +81,24 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler {
 
         public void execute(PersistentCache cache) {
             File classesDir = classesDir(cache);
-            ProgressLogger op = progressLoggerFactory.newOperation(DefaultScriptCompilationHandler.class)
-                    .start("Compile script " + source + "into cache", "Compiling script into cache");
+            scriptCompilationHandler.compileToDir(source, classLoader, classesDir, transformer, scriptBaseClass);
+        }
+    }
 
+    static class ProgressReportingInitializer implements Action<PersistentCache> {
+        private ProgressLoggerFactory progressLoggerFactory;
+        private Action<? super PersistentCache> delegate;
+
+        public ProgressReportingInitializer(ProgressLoggerFactory progressLoggerFactory, Action<PersistentCache> delegate) {
+            this.progressLoggerFactory = progressLoggerFactory;
+            this.delegate = delegate;
+        }
+
+        public void execute(PersistentCache cache) {
+            ProgressLogger op = progressLoggerFactory.newOperation(FileCacheBackedScriptClassCompiler.class)
+                    .start("Compile script into cache", "Compiling script into cache");
             try {
-                scriptCompilationHandler.compileToDir(source, classLoader, classesDir, transformer, scriptBaseClass);
+                delegate.execute(cache);
             } finally {
                 op.completed();
             }
