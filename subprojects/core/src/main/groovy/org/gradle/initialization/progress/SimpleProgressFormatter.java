@@ -15,7 +15,25 @@
  */
 package org.gradle.initialization.progress;
 
-public interface ProgressFormatter {
-    String incrementAndGetProgress();
-    String getProgress();
+public class SimpleProgressFormatter implements ProgressFormatter {
+    private final int total;
+    private int current;
+    private String postfix;
+
+    public SimpleProgressFormatter(int total, String postfix) {
+        this.total = total;
+        this.postfix = postfix;
+    }
+
+    public String incrementAndGetProgress() {
+        if (current == total) {
+            throw new IllegalStateException("Cannot increment beyond the total of: " + total);
+        }
+        current++;
+        return getProgress();
+    }
+
+    public String getProgress() {
+        return current + "/" + total + " " + postfix;
+    }
 }

@@ -16,31 +16,28 @@
 
 package org.gradle.initialization.progress;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
 /**
  * By Szczepan Faber on 7/5/13
  */
 public class DefaultProgressFormatter implements ProgressFormatter {
-    private AtomicInteger remainingItems;
-    private int totalItems;
-    private String shortDescription;
+    private int current;
+    private int total;
+    private String prefix;
 
-    public DefaultProgressFormatter(String shortDescription, int totalItems) {
-        this.totalItems = totalItems;
-        remainingItems = new AtomicInteger(0);
-        this.shortDescription = shortDescription;
+    public DefaultProgressFormatter(String prefix, int total) {
+        this.total = total;
+        this.prefix = prefix;
     }
 
-    public String progress() {
-        String progress = getProgress(remainingItems.incrementAndGet());
-        return shortDescription + " " + progress;
-    }
-
-    private String getProgress(int current) {
-        if (current > totalItems) {
-            throw new IllegalStateException("All operations have already completed.");
+    public String incrementAndGetProgress() {
+        if (current == total) {
+            throw new IllegalStateException("Cannot increment beyond the total of: " + total);
         }
-        return (int) (current * 100.0 / totalItems) + "%";
+        current++;
+        return getProgress();
+    }
+
+    public String getProgress() {
+        return prefix + " " + (int) (current * 100.0 / total) + "%";
     }
 }

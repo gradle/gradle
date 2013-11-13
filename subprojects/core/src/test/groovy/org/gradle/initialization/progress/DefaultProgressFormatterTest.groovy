@@ -24,15 +24,17 @@ import spock.lang.Specification
 class DefaultProgressFormatterTest extends Specification {
 
     def "knows progress"() {
-        def progress = new DefaultProgressFormatter("Building", 3);
+        def f = new DefaultProgressFormatter("Building", 3);
 
         expect:
-        progress.progress() == "Building 33%"
-        progress.progress() == "Building 66%"
-        progress.progress() == "Building 100%"
+        f.progress == "Building 0%"
+        f.incrementAndGetProgress() == "Building 33%"
+        f.incrementAndGetProgress() == "Building 66%"
+        f.progress == "Building 66%"
+        f.incrementAndGetProgress() == "Building 100%"
 
         when:
-        progress.progress()
+        f.incrementAndGetProgress()
 
         then:
         thrown(IllegalStateException)

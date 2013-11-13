@@ -29,6 +29,7 @@ import org.gradle.api.invocation.Gradle;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.initialization.progress.DefaultProgressFormatter;
 import org.gradle.initialization.progress.ProgressFormatter;
+import org.gradle.initialization.progress.SimpleProgressFormatter;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
 
@@ -45,8 +46,7 @@ class BuildProgressLogger extends BuildAdapter implements TaskExecutionGraphList
     private Map<String, ProgressLogger> projectConfigurationProgress = new HashMap<String, ProgressLogger>();
 
     private ProgressFormatter buildProgressFormatter;
-    private int configuredProjects;
-    private int totalProjects;
+    private ProgressFormatter configurationProgressFormatter;
 
     public BuildProgressLogger(ProgressLoggerFactory progressLoggerFactory) {
         this.progressLoggerFactory = progressLoggerFactory;
@@ -66,11 +66,10 @@ class BuildProgressLogger extends BuildAdapter implements TaskExecutionGraphList
     @Override
     public void projectsLoaded(Gradle gradle) {
         if (gradle.getParent() == null) {
-            configuredProjects = 0;
-            totalProjects = gradle.getRootProject().getAllprojects().size();
+            configurationProgressFormatter = new SimpleProgressFormatter(gradle.getRootProject().getAllprojects().size(), "projects");
             configurationProgress = progressLoggerFactory.newOperation(BuildProgressLogger.class);
             configurationProgress.setDescription("Configure projects");
-            configurationProgress.setShortDescription("0/" + totalProjects + " projects");
+            configurationProgress.setShortDescription(configurationProgressFormatter.getProgress());
             configurationProgress.started();
         }
     }
@@ -84,9 +83,8 @@ class BuildProgressLogger extends BuildAdapter implements TaskExecutionGraphList
 
             buildProgress = progressLoggerFactory.newOperation(BuildProgressLogger.class);
             buildProgress.setDescription("Execute tasks");
-            String desc = "Building";
-            buildProgress.setShortDescription(desc + " 0%");
-            buildProgressFormatter = new DefaultProgressFormatter(desc, graph.getAllTasks().size());
+            buildProgressFormatter = new DefaultProgressFormatter("Building", graph.getAllTasks().size());
+            buildProgress.setShortDescription(buildProgressFormatter.getProgress());
             buildProgress.started();
         }
     }
@@ -107,7 +105,7 @@ class BuildProgressLogger extends BuildAdapter implements TaskExecutionGraphList
 
     public void afterExecute(Task task, TaskState state) {
         if (task.getProject().getGradle() == gradle) {
-            buildProgress.progress(buildProgressFormatter.progress());
+            buildProgress.progress(buildProgressFormatter.incrementAndGetProgress());
         }
     }
 
@@ -128,7 +126,7 @@ class BuildProgressLogger extends BuildAdapter implements TaskExecutionGraphList
                 throw new IllegalStateException("Unexpected afterEvaluate event received without beforeEvaluate");
             }
             logger.completed();
-            configurationProgress.progress(++configuredProjects + "/" + totalProjects + " projects");
+            configurationProgress.progress(configurationProgressFormatter.incrementAndGetProgress());
         }
     }
 }
