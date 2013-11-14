@@ -16,6 +16,7 @@
 
 package org.gradle.ide.visualstudio.model
 
+import org.gradle.api.Transformer
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -23,7 +24,8 @@ import spock.lang.Specification
 
 class FiltersFileTest extends Specification {
     TestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
-    def filtersFile = new FiltersFile()
+    Transformer<String, File> fileNameTransformer = { it.name } as Transformer<String, File>
+    def filtersFile = new FiltersFile(fileNameTransformer)
 
     def "empty filters file"() {
         when:
@@ -49,11 +51,11 @@ class FiltersFileTest extends Specification {
         filtersFile.loadDefaults()
 
         and:
-        filtersFile.addSource("sourceOne")
-        filtersFile.addSource("sourceTwo")
+        filtersFile.addSource(file("sourceOne"))
+        filtersFile.addSource(file("sourceTwo"))
 
-        filtersFile.addHeader("headerOne")
-        filtersFile.addHeader("headerTwo")
+        filtersFile.addHeader(file("headerOne"))
+        filtersFile.addHeader(file("headerTwo"))
 
         then:
         assert sourceFile(0) == "sourceOne"
@@ -87,5 +89,9 @@ class FiltersFileTest extends Specification {
         def file = testDirectoryProvider.testDirectory.file("filters.xml")
         filtersFile.store(file)
         return file
+    }
+
+    private TestFile file(String name) {
+        testDirectoryProvider.testDirectory.file(name)
     }
 }

@@ -14,14 +14,18 @@
  * limitations under the License.
  */
 
-
 package org.gradle.ide.visualstudio.model
+
+import org.gradle.api.Transformer
 import org.gradle.api.internal.xml.XmlTransformer
 import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject
 
 class ProjectFile extends XmlPersistableConfigurationObject {
-    ProjectFile() {
+    private final Transformer<String, File> fileLocationResolver
+
+    ProjectFile(Transformer<String, File> fileLocationResolver) {
         super(new XmlTransformer())
+        this.fileLocationResolver = fileLocationResolver
     }
 
     protected String getDefaultResourceName() {
@@ -33,14 +37,14 @@ class ProjectFile extends XmlPersistableConfigurationObject {
         globals.appendNode("ProjectGUID", uuid)
     }
 
-    def addSourceFile(String it) {
+    def addSourceFile(File it) {
         def sources = xml.ItemGroup.find({ it.'@Label' == 'Sources' }) as Node
-        sources.appendNode("ClCompile", [Include: it])
+        sources.appendNode("ClCompile", [Include: toPath(it)])
     }
 
-    def addHeaderFile(String it) {
+    def addHeaderFile(File it) {
         def headers = xml.ItemGroup.find({ it.'@Label' == 'Headers' }) as Node
-        headers.appendNode("ClInclude", [Include: it])
+        headers.appendNode("ClInclude", [Include: toPath(it)])
     }
 
     def addConfiguration(VisualStudioProjectConfiguration configuration) {
@@ -57,6 +61,7 @@ class ProjectFile extends XmlPersistableConfigurationObject {
         }
 
         final configCondition = "'\$(Configuration)|\$(Platform)'=='${configuration.name}'"
+        final includePath = toPath(configuration.includePaths).join(";")
         Node userMacros = xml.PropertyGroup.find({ it.'@Label' == 'UserMacros'}) as Node
         userMacros + {
             PropertyGroup(Condition: configCondition) {
@@ -64,12 +69,12 @@ class ProjectFile extends XmlPersistableConfigurationObject {
                 NMakeCleanCommandLine("gradlew.bat ${configuration.cleanTask}")
                 NMakeReBuildCommandLine("gradlew.bat ${configuration.cleanTask} ${configuration.buildTask}")
                 NMakePreprocessorDefinitions(configuration.defines.join(";"))
-                NMakeIncludeSearchPath(configuration.includePaths.join(";"))
-                NMakeOutput(configuration.outputFile)
+                NMakeIncludeSearchPath(includePath)
+                NMakeOutput(toPath(configuration.outputFile))
             }
             ItemDefinitionGroup(Condition: configCondition) {
                 ClCompile {
-                    AdditionalIncludeDirectories(configuration.includePaths.join(";"))
+                    AdditionalIncludeDirectories(includePath)
                     PreprocessorDefinitions(configuration.defines.join(";"))
                 }
             }
@@ -84,5 +89,13 @@ class ProjectFile extends XmlPersistableConfigurationObject {
 
     private Node getConfigurations() {
         return xml.ItemGroup.find({ it.'@Label' == 'ProjectConfigurations' }) as Node
+    }
+
+    private List<String> toPath(List<File> files) {
+        return files.collect({toPath(it)})
+    }
+
+    private String toPath(File it) {
+        fileLocationResolver.transform(it)
     }
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.ide.visualstudio.model
 
+import org.gradle.api.Transformer
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -23,7 +24,8 @@ import spock.lang.Specification
 
 class ProjectFileTest extends Specification {
     TestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
-    def projectFile = new ProjectFile()
+    Transformer<String, File> fileNameTransformer = { it.name } as Transformer<String, File>
+    def projectFile = new ProjectFile(fileNameTransformer)
 
     def "setup"() {
         projectFile.loadDefaults()
@@ -46,11 +48,11 @@ class ProjectFileTest extends Specification {
 
     def "add source and headers"() {
         when:
-        projectFile.addSourceFile("sourceOne")
-        projectFile.addSourceFile("sourceTwo")
+        projectFile.addSourceFile(file("sourceOne"))
+        projectFile.addSourceFile(file("sourceTwo"))
 
-        projectFile.addHeaderFile("headerOne")
-        projectFile.addHeaderFile("headerTwo")
+        projectFile.addHeaderFile(file("headerOne"))
+        projectFile.addHeaderFile(file("headerTwo"))
 
         then:
         assert sourceFile(0) == "sourceOne"
@@ -86,5 +88,9 @@ class ProjectFileTest extends Specification {
         def file = testDirectoryProvider.testDirectory.file("project.xml")
         projectFile.store(file)
         return file
+    }
+
+    private TestFile file(String name) {
+        testDirectoryProvider.testDirectory.file(name)
     }
 }

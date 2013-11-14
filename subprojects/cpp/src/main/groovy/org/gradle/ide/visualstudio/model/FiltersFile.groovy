@@ -14,25 +14,29 @@
  * limitations under the License.
  */
 package org.gradle.ide.visualstudio.model
+
+import org.gradle.api.Transformer
 import org.gradle.api.internal.xml.XmlTransformer
 import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject
 
 class FiltersFile extends XmlPersistableConfigurationObject {
+    private final Transformer<String, File> fileLocationResolver
 
-    FiltersFile() {
-       super(new XmlTransformer())
-   }
-
-   protected String getDefaultResourceName() {
-       'default.vcxproj.filters'
-   }
-
-    def addSource(String sourceFile) {
-        sources.appendNode("ClCompile", [Include: sourceFile]).appendNode('Filter', 'Source Files')
+    FiltersFile(Transformer<String, File> fileLocationResolver) {
+        super(new XmlTransformer())
+        this.fileLocationResolver = fileLocationResolver
     }
 
-    def addHeader(String headerFile) {
-        headers.appendNode("ClInclude", [Include: headerFile]).appendNode('Filter', 'Header Files')
+    protected String getDefaultResourceName() {
+        'default.vcxproj.filters'
+    }
+
+    def addSource(File sourceFile) {
+        sources.appendNode("ClCompile", [Include: toPath(sourceFile)]).appendNode('Filter', 'Source Files')
+    }
+
+    def addHeader(File headerFile) {
+        headers.appendNode("ClInclude", [Include: toPath(headerFile)]).appendNode('Filter', 'Header Files')
     }
 
     def getFilters() {
@@ -45,6 +49,10 @@ class FiltersFile extends XmlPersistableConfigurationObject {
 
     private Node getHeaders() {
         return xml.ItemGroup.find({ it.'@Label' == 'Headers' }) as Node
+    }
+
+    private String toPath(File it) {
+        fileLocationResolver.transform(it)
     }
 
 }
