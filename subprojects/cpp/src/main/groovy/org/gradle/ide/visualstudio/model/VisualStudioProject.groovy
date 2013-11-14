@@ -25,7 +25,7 @@ import org.gradle.nativebinaries.LibraryBinary
 import org.gradle.nativebinaries.NativeBinary
 import org.gradle.nativebinaries.NativeComponent
 
-class VisualStudioProject {
+abstract class VisualStudioProject {
     final NativeComponent component
     private final String uuid
     private final String nameSuffix
@@ -85,4 +85,6 @@ class VisualStudioProject {
     protected DomainObjectSet<NativeBinary> getCandidateBinaries() {
         return component.binaries
     }
+
+    abstract List<? extends VisualStudioProjectConfiguration> getConfigurations()
 }
