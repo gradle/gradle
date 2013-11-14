@@ -19,12 +19,16 @@ package org.gradle.ide.visualstudio.model
 import org.gradle.plugins.ide.internal.generator.AbstractPersistableConfigurationObject
 
 class SolutionFile extends AbstractPersistableConfigurationObject {
-    def uuid = '{' + UUID.randomUUID().toString() + '}'
+    private String uuid
     private baseText
     private vsProjects = []
 
     protected String getDefaultResourceName() {
         'default.sln'
+    }
+
+    void setUuid(String uuid) {
+        this.uuid = uuid
     }
 
     void addProject(VisualStudioProject vsProject) {
