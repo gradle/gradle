@@ -23,7 +23,7 @@ class VisualStudioExeProjectConfiguration extends VisualStudioProjectConfigurati
         super(binary)
     }
 
-    def getType() {
+    String getType() {
         return "Application"
     }
 }

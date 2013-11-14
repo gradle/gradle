@@ -25,7 +25,7 @@ class VisualStudioLibraryProject extends VisualStudioProject {
         super(library, "Library")
     }
 
-    def getConfigurations() {
+    List<? extends VisualStudioProjectConfiguration> getConfigurations() {
         candidateBinaries.withType(LibraryBinary).collect {
             new VisualStudioLibraryProjectConfiguration(it)
         }

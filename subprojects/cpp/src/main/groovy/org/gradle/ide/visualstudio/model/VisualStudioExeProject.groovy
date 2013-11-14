@@ -24,7 +24,7 @@ class VisualStudioExeProject extends VisualStudioProject {
         super(component, "Exe")
     }
 
-    def getConfigurations() {
+    List<? extends VisualStudioProjectConfiguration> getConfigurations() {
         candidateBinaries.withType(ExecutableBinary).collect {
             new VisualStudioExeProjectConfiguration(it)
         }

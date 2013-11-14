@@ -27,11 +27,11 @@ class VisualStudioLibraryProjectConfiguration extends VisualStudioProjectConfigu
         this.binary = binary
     }
 
-    def getType() {
+    String getType() {
         return staticLibrary ? "StaticLibrary" : "DynamicLibrary"
     }
 
-    def getConfigurationName() {
+    String getConfigurationName() {
         if (staticLibrary) {
             return "static_" + super.configurationName
         }

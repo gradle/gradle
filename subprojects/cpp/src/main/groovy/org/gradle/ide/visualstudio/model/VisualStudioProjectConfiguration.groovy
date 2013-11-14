@@ -30,25 +30,11 @@ abstract class VisualStudioProjectConfiguration {
         this.binary = binary
     }
 
-    def getName() {
+    String getName() {
         return "${configurationName}|${platformName}"
     }
 
-    abstract def getType()
-
-    def getBuildTask() {
-        return binary.name
-    }
-
-    def getCleanTask() {
-        return "clean" + binary.name.capitalize()
-    }
-
-    def getOutputFile() {
-        return binary.outputFile
-    }
-
-    def getConfigurationName() {
+    String getConfigurationName() {
         def configName = binary.buildType.name
         if (binary.component.flavors.size() > 1) {
             configName = "${binary.flavor.name}_${configName}"
@@ -56,12 +42,26 @@ abstract class VisualStudioProjectConfiguration {
         return configName
     }
 
-    def getPlatformName() {
+    String getPlatformName() {
         ArchitectureInternal arch = binary.targetPlatform.architecture as ArchitectureInternal
         return arch.ia64 ? "Itanium" : arch.amd64 ? "x64" : "Win32"
     }
 
-    def getDebug() {
+    abstract String getType()
+
+    String getBuildTask() {
+        return binary.name
+    }
+
+    String getCleanTask() {
+        return "clean" + binary.name.capitalize()
+    }
+
+    File getOutputFile() {
+        return binary.outputFile
+    }
+
+    boolean isDebug() {
         return binary.buildType.name != 'release'
     }
 
@@ -75,7 +75,7 @@ abstract class VisualStudioProjectConfiguration {
         return extendedBinary.extensions.findByName('cppCompiler') ?: extendedBinary.extensions.findByName('cCompiler') as PreprocessingTool
     }
 
-    def getIncludePaths() {
+    List<File> getIncludePaths() {
         List<File> includes = []
         binary.source.withType(HeaderExportingSourceSet).each { HeaderExportingSourceSet sourceSet ->
             includes.addAll sourceSet.exportedHeaders.srcDirs
