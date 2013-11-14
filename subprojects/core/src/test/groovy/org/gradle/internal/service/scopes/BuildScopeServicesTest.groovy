@@ -45,6 +45,7 @@ import org.gradle.invocation.DefaultBuildClassLoaderRegistry
 import org.gradle.listener.DefaultListenerManager
 import org.gradle.listener.ListenerManager
 import org.gradle.logging.LoggingManagerInternal
+import org.gradle.logging.ProgressLoggerFactory
 import org.gradle.messaging.remote.MessagingServer
 import org.gradle.process.internal.DefaultWorkerProcessFactory
 import org.gradle.process.internal.WorkerProcessBuilder
@@ -82,6 +83,7 @@ public class BuildScopeServicesTest extends Specification {
         parent.get(DependencyManagementServices) >> Stub(DependencyManagementServices)
         parent.get(Instantiator) >> ThreadGlobalInstantiator.getOrCreate()
         parent.get(FileResolver) >> Stub(FileResolver)
+        parent.get(ProgressLoggerFactory) >> Stub(ProgressLoggerFactory)
     }
 
     def delegatesToParentForUnknownService() {
