@@ -279,4 +279,10 @@ TBD
 
 Allow some substitutions to be expressed declaratively, rather than imperatively as a rule.
 
+## Feature: Expose APIs for additional questions that can be asked about components
+
+- List versions of a component
+- Get meta-data of a component
+- Get certain artifacts of a component. Includes meta-data artifacts
+
 # Open issues
