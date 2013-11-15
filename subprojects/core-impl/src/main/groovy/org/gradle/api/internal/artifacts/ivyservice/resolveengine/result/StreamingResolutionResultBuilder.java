@@ -22,7 +22,6 @@ import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.internal.artifacts.ModuleVersionIdentifierSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.EncodedWriteAction;
 import org.gradle.api.internal.artifacts.result.DefaultResolutionResult;
 import org.gradle.api.internal.cache.BinaryStore;
 import org.gradle.api.internal.cache.Store;
@@ -30,7 +29,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.Factory;
 import org.gradle.messaging.serialize.Decoder;
-import org.gradle.messaging.serialize.FlushableEncoder;
+import org.gradle.messaging.serialize.Encoder;
 import org.gradle.messaging.serialize.InputStreamBackedDecoder;
 import org.gradle.util.Clock;
 
@@ -61,8 +60,8 @@ public class StreamingResolutionResultBuilder implements ResolutionResultBuilder
     }
 
     public ResolutionResult complete() {
-        store.write(new EncodedWriteAction() {
-            public void write(FlushableEncoder encoder) throws IOException {
+        store.write(new BinaryStore.WriteAction() {
+            public void write(Encoder encoder) throws IOException {
                 encoder.writeByte(DONE);
             }
         });
@@ -72,8 +71,8 @@ public class StreamingResolutionResultBuilder implements ResolutionResultBuilder
     }
 
     public ResolutionResultBuilder start(final ModuleVersionIdentifier root) {
-        store.write(new EncodedWriteAction() {
-            public void write(FlushableEncoder encoder) throws IOException {
+        store.write(new BinaryStore.WriteAction() {
+            public void write(Encoder encoder) throws IOException {
                 encoder.writeByte(ROOT);
                 moduleVersionIdentifierSerializer.write(encoder, root);
             }
@@ -85,8 +84,8 @@ public class StreamingResolutionResultBuilder implements ResolutionResultBuilder
 
     public void resolvedModuleVersion(final ModuleVersionSelection moduleVersion) {
         if (visitedModules.add(moduleVersion.getSelectedId())) {
-            store.write(new EncodedWriteAction() {
-                public void write(FlushableEncoder encoder) throws IOException {
+            store.write(new BinaryStore.WriteAction() {
+                public void write(Encoder encoder) throws IOException {
                     encoder.writeByte(MODULE);
                     moduleVersionSelectionSerializer.write(encoder, moduleVersion);
                 }
@@ -96,8 +95,8 @@ public class StreamingResolutionResultBuilder implements ResolutionResultBuilder
 
     public void resolvedConfiguration(final ModuleVersionIdentifier from, final Collection<? extends InternalDependencyResult> dependencies) {
         if (!dependencies.isEmpty()) {
-            store.write(new EncodedWriteAction() {
-                public void write(FlushableEncoder encoder) throws IOException {
+            store.write(new BinaryStore.WriteAction() {
+                public void write(Encoder encoder) throws IOException {
                     encoder.writeByte(DEPENDENCY);
                     moduleVersionIdentifierSerializer.write(encoder, from);
                     encoder.writeInt(dependencies.size());

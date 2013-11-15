@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.store;
 import org.gradle.api.internal.cache.BinaryStore;
 import org.gradle.cache.internal.stream.RandomAccessFileInputStream;
 import org.gradle.internal.CompositeStoppable;
+import org.gradle.messaging.serialize.OutputStreamBackedEncoder;
 
 import java.io.*;
 
@@ -48,7 +49,7 @@ class DefaultBinaryStore implements BinaryStore {
             }
         }
         try {
-            write.write(outputStream);
+            write.write(new OutputStreamBackedEncoder(outputStream));
         } catch (Exception e) {
             throw new RuntimeException("Problems writing to " + diagnose(), e);
         }

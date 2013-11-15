@@ -16,11 +16,13 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
 import org.gradle.api.internal.cache.BinaryStore
+import org.gradle.messaging.serialize.FlushableEncoder
+import org.gradle.messaging.serialize.OutputStreamBackedEncoder
 
 public class DummyBinaryStore implements BinaryStore {
 
     private final ByteArrayOutputStream bytes = new ByteArrayOutputStream()
-    private DataOutputStream output = new DataOutputStream(bytes)
+    private FlushableEncoder output = new OutputStreamBackedEncoder(bytes)
 
     void write(BinaryStore.WriteAction write) {
         write.write(output)

@@ -16,8 +16,9 @@
 
 package org.gradle.api.internal.cache;
 
+import org.gradle.messaging.serialize.Encoder;
+
 import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 
 public interface BinaryStore {
@@ -26,7 +27,7 @@ public interface BinaryStore {
     BinaryData done();
 
     public static interface WriteAction {
-        void write(DataOutputStream output) throws IOException;
+        void write(Encoder output) throws IOException;
     }
 
     public static interface ReadAction<T> {

@@ -30,9 +30,9 @@ class DefaultBinaryStoreTest extends Specification {
 
         when:
         store.write({ it.writeInt(10) } as BinaryStore.WriteAction)
-        store.write({ it.writeUTF("x") } as BinaryStore.WriteAction)
+        store.write({ it.writeString("x") } as BinaryStore.WriteAction)
         def data1 = store.done()
-        store.write({ it.writeUTF("y") } as BinaryStore.WriteAction)
+        store.write({ it.writeString("y") } as BinaryStore.WriteAction)
         def data2 = store.done()
 
         then:
@@ -52,7 +52,7 @@ class DefaultBinaryStoreTest extends Specification {
 
         when:
         store.write({ it.writeInt(10) } as BinaryStore.WriteAction)
-        store.write({ it.writeUTF("x") } as BinaryStore.WriteAction)
+        store.write({ it.writeString("x") } as BinaryStore.WriteAction)
         def data = store.done()
 
         then:

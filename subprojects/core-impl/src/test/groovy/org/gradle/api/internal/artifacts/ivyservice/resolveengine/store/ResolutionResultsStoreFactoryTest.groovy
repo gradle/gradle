@@ -40,7 +40,7 @@ class ResolutionResultsStoreFactoryTest extends Specification {
 
         when:
         def store = f.createStoreSet().nextBinaryStore()
-        store.write({it.writeByte(1); it.writeByte(2) } as BinaryStore.WriteAction)
+        store.write({it.writeByte((byte) 1); it.writeByte((byte) 2) } as BinaryStore.WriteAction)
         store.done()
         def store2 = f.createStoreSet().nextBinaryStore()
 
@@ -48,7 +48,7 @@ class ResolutionResultsStoreFactoryTest extends Specification {
         store.file == store2.file
 
         when:
-        store2.write({it.writeByte(4)} as BinaryStore.WriteAction)
+        store2.write({it.writeByte((byte) 4)} as BinaryStore.WriteAction)
         store2.done()
 
         then:
@@ -61,7 +61,7 @@ class ResolutionResultsStoreFactoryTest extends Specification {
 
         when:
         def store = stores1.nextBinaryStore()
-        store.write({it.writeByte(1); it.writeByte(2) } as BinaryStore.WriteAction)
+        store.write({it.writeByte((byte) 1); it.writeByte((byte) 2) } as BinaryStore.WriteAction)
         store.done()
         def store2 = stores1.nextBinaryStore() // rolled
         def store3 = f.createStoreSet().nextBinaryStore()

@@ -20,18 +20,16 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
 import org.gradle.api.internal.artifacts.DefaultResolvedDependency;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifierSerializer;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.EncodedWriteAction;
 import org.gradle.api.internal.cache.BinaryStore;
 import org.gradle.api.internal.cache.Store;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.Factory;
-import org.gradle.messaging.serialize.FlushableEncoder;
+import org.gradle.messaging.serialize.Encoder;
 import org.gradle.messaging.serialize.InputStreamBackedDecoder;
 import org.gradle.util.Clock;
 
 import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 
 import static com.google.common.collect.Sets.newHashSet;
@@ -60,8 +58,8 @@ public class TransientConfigurationResultsBuilder {
     }
 
     private void writeId(final byte type, final ResolvedConfigurationIdentifier... ids) {
-        binaryStore.write(new EncodedWriteAction() {
-            public void write(FlushableEncoder encoder) throws IOException {
+        binaryStore.write(new BinaryStore.WriteAction() {
+            public void write(Encoder encoder) throws IOException {
                 encoder.writeByte(type);
                 for (ResolvedConfigurationIdentifier id : ids) {
                     resolvedConfigurationIdentifierSerializer.write(encoder, id);
@@ -91,8 +89,8 @@ public class TransientConfigurationResultsBuilder {
     public void parentSpecificArtifact(ResolvedConfigurationIdentifier child, ResolvedConfigurationIdentifier parent, final long artifactId) {
         writeId(PARENT_ARTIFACT, child, parent);
         binaryStore.write(new BinaryStore.WriteAction() {
-            public void write(DataOutputStream output) throws IOException {
-                output.writeLong(artifactId);
+            public void write(Encoder encoder) throws IOException {
+                encoder.writeLong(artifactId);
             }
         });
     }
