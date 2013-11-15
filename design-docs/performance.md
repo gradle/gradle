@@ -36,6 +36,7 @@ Useful for regular builds. Very useful for daemon builds as the daemon can keep 
 ## Other stories
 
 1. Use finer-grained cache locking to allow concurrent dependency resolution.
+ - some objects that are build-global are used to setup resolution (ResolutionResultsStoreFactory) and they are not thread safe atm.
 2. Use a Gradle artifact id rather than an Ivy Artifact to refer to an artifact to be resolved, to reduce heap usage.
 3. Perform all artifact resolutions in one batch, rather than on-demand.
 4. Use a binary format for cached module meta-data.
