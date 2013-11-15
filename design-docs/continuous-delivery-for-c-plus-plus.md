@@ -531,23 +531,6 @@ Each variant has a platform associated with it.
     - On Windows run `dumpbin` over the object files and binaries
 - Build an executable with multiple architectures that uses a library with a single architecture that uses a library with multiple architectures.
 
-### Open issues
-
-- Need to be able to build for a single architecture or all available architectures.
-- Need to discover which architectures a tool chain can build for.
-- Need to handle universal binaries.
-- Need separate compiler, linker and assembler options for each platform.
-- Infer the default platform and architecture.
-- Define some conventions for architecture names.
-    - Intel 32bit: `ia-32`, `i386`, `x86`
-    - Intel 64bit: `x86-64`, `x64` (Windows), `amd64` (BSD and Debian linux distributions, Solaris), `x86_64` (linux kernel, OS X, Fedora, GCC tools)
-    - Intel Itanium: `ia-64`
-    - PowerPC 32bit: `ppc`
-    - PowerPC 64bit: `ppc64`
-    - Sparc: ??
-    - ARM: ??
-- VisualCppToolChain should automatically switch between different executables for different target architectures.
-
 ## Story: Produce build type variants of a native component
 
 This story adds support for building variants of a native component based on 'build type'.
@@ -618,11 +601,6 @@ specifying arguments to use with GCC when targeting a particular platform.
         }
     }
 
-### Open issues
-
-- Need to be able to build for a single platform or all available platforms.
-- Add some opt-in way to define variants using a matrix of (flavour, tool chain, architecture, operating system).
-
 ## Story: Build a native component for multiple operating systems
 
 This story adds the concept of an operating system to the platform. A tool chain may only be able to build for a particular
@@ -634,6 +612,7 @@ target operating system, an for GCC additional support may be added to target an
       windows, linux, osx and solaris.
 
 ### User visible changes
+
     targetPlatforms {
         linux_x86 {
             operatingSystem "linux"
@@ -652,11 +631,6 @@ target operating system, an for GCC additional support may be added to target an
             // Use the tool chain default operating system
         }
     }
-
-### Open issues
-
-- Different source files by platform
-- Define some conventions for operating system names.
 
 ## Story: Incremental compilation for C and C++
 
@@ -1276,19 +1250,17 @@ TBD
 - Improve doing stuff with the install task
 - Some way to configure/use all native components (instead of `libraries.all { ... }` and `components.all { ... }`)
 - Have some way to replace the default source sets or configure one without redefining all
-- Model cross compilation as a single toolchain
 - Don't create variants that can never be built
-- Don't create variants that are not desired - e.g linkage, target platform, build types
 - Allow a plugin to define the set of available tool chains, build types, platforms, flavors etc and allow a component to declare which of these make sense.
   Tool chain is NOT a dimension: Can infer tool chain from target platform and source dialect
 - Model language dialect and add this to source set, e.g. GCC, visual C++, ANSI C. A tool chain can compile some set of dialects.
 - Model operating system as a dependency declared by a source set.
     - Can use this to determine which source sets to include in a given binary.
 - Model ABI as part of platform. A tool chain can produce binaries for some set of ABIs.
-- Tool chain is not a variant dimension. Instead, select a tool chain based on input source dialect and target platform.
-- Use 'Visual Studio' consistently.
+- Use the term 'Visual Studio' consistently instead of 'Visual C++'
 - Test coverage for Visual studio 2012, 2013
 - Tool chain represents an installation. Must be easy to configure the discovered tool chain, and configure extra installations.
+- Improve name spacing in the DSL, so that only the current thing (or no thing) is reachable without some kind of qualification.
 
 ## Source
 
@@ -1306,6 +1278,8 @@ TBD
 - A library component has an API, defaults to the shared headers
 - When compiling, only the API of dependencies should be visible
 - AssemblerSourceSet should implement DependentSourceSet (has source dependencies)
+- Add source sets only to a component, have some way to describe how to include/exclude a source set
+- Some conventional location for os specific source for a component
 
 ## Compilation
 
@@ -1316,6 +1290,55 @@ TBD
 - Don't fail if g++ is not installed when it is not required
 - Support preprocessor macros for assembler
 - Understand build and release build types and drive the compiler and linker appropriately
+
+## Target platforms
+
+- Separate the model for how you select a target platform, and the details of a particular target platform.
+    - Use an alias or some kind of selector to define which target platforms to build for.
+    - Selector can select multiple target platforms
+- Define some conventions for platforms, along with some conventions for aliases/selectors and names
+- Conventional architecture names
+    - Intel 32bit: `ia-32`, `i386`, `x86`
+    - Intel 64bit: `x86-64`, `x64` (Windows), `amd64` (BSD and Debian linux distributions, Solaris), `x86_64` (linux kernel, OS X, Fedora, GCC tools)
+    - Intel Itanium: `ia-64`
+    - PowerPC 32bit: `ppc`
+    - PowerPC 64bit: `ppc64`
+    - Sparc: ??
+    - ARM: ??
+- Conventional operating system names
+- Infer the default target platform, as the current operating system and a 'standard' architecture for that operating system on the current machine.
+
+## Variants
+
+- Add linkage as a variant dimension
+- Model build type better, follow the same pattern as target platform
+- Define some conventional build types (say `release` and `debug`). Have the tool chain and dependency resolution understand these.
+- Model flavors better, follow the same pattern as other variant dimensions.
+- Need to handle universal binaries.
+    - Use `lipo` to merge two binaries into a single universal binary.
+    - Transforms the meta-data for the component - same set of variants but different set of binaries.
+
+## Toolchains
+
+- DSL to declare that a toolchain supports certain target platform, and how to invoke the tools to do so.
+
+
+    toolchains {
+        gcc {
+            platform(...) {
+                ... configure platform implementation
+                cppCompiler { compileSpec ->
+                    ... compiler compiler invocation
+                }
+            }
+        }
+        visualStudio {
+            ...
+        }
+        gcc3(Gcc) {
+            installDir = 'someWhere'
+        }
+    }
 
 ## Structure
 
@@ -1331,6 +1354,7 @@ TBD
 
 ### Performance
 
+- Improve incremental build where the task needs to do some work to figure out the inputs.
 - Add some performance tests
 - Parallel compilation, some kind of consistency between parallel test execution, parallel task execution, etc.
 
