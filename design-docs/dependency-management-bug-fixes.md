@@ -54,7 +54,7 @@ See [GRADLE-2516](http://issues.gradle.org/browse/GRADLE-2516)
 
 - Change the local dependencies (eg `gradleApi()`, `localGroovy()`) to imply the various modules that they contribute to the result.
 
-# Lastest status dynamic versions work across multiple repositories
+# Latest status dynamic versions work across multiple repositories
 
 See [GRADLE-2502](http://issues.gradle.org/browse/GRADLE-2502)
 

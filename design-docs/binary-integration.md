@@ -104,4 +104,4 @@ An artefact has direct dependencies (that might have dependencies on other artif
 - Provide some VCS integration to allow a CI build to change the dependencies.
 - Storage of the resolved graph
     - In source
-    - In the repository indexed by hash of the dependency selectors
+    - In some repository indexed by hash of the dependency selectors
