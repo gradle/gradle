@@ -69,6 +69,55 @@ class DefaultBinaryStoreTest extends Specification {
         store.close()
     }
 
+    class SomeException extends RuntimeException {}
+
+    def "write action exception is propagated to the client"() {
+        def store = new DefaultBinaryStore(temp.file("foo.bin"))
+
+        when:
+        store.write({ throw new SomeException() } as BinaryStore.WriteAction)
+
+        then:
+        def e = thrown(Exception)
+        e.cause.class == SomeException
+    }
+
+    def "read action exception is propagated to the client"() {
+        def store = new DefaultBinaryStore(temp.file("foo.bin"))
+        store.write({ it.writeInt(10) } as BinaryStore.WriteAction)
+        def data = store.done()
+
+        when:
+        data.read({ throw new SomeException() } as BinaryStore.ReadAction)
+
+        then:
+        def e = thrown(Exception)
+        e.cause.class == SomeException
+    }
+
+    def "may not read beyond what was written"() {
+        def store = new DefaultBinaryStore(temp.file("foo.bin"))
+
+        when:
+        store.write({ it.writeInt(10) } as BinaryStore.WriteAction)
+        def data1 = store.done()
+
+        store.write({ it.writeInt(20) } as BinaryStore.WriteAction)
+        def data2 = store.done()
+
+        then:
+        data1.read({ it.readInt() } as BinaryStore.ReadAction) == 10
+
+        when:
+        data1.read({ it.readInt() } as BinaryStore.ReadAction)
+
+        then:
+        1==1
+
+        cleanup:
+        store.close()
+    }
+
     def "may be empty"() {
         def store = new DefaultBinaryStore(temp.file("foo.bin"))
 

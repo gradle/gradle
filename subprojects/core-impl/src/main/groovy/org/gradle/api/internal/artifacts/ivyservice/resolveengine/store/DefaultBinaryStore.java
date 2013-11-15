@@ -49,7 +49,7 @@ class DefaultBinaryStore implements BinaryStore {
         }
         try {
             write.write(outputStream);
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new RuntimeException("Problems writing to " + diagnose(), e);
         }
     }
