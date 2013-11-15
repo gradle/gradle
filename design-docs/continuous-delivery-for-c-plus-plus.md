@@ -824,11 +824,9 @@ Depends on a number of stories in [dependency-resolution.md](dependency-resoluti
 
 ### Open issues
 
-- Add a hook to allow the generated compiler and linker command-line options to be tweaked before forking.
 - Add properties to set macros and include directories for a binary, allow these to be set as toolchain specific compiler args (ie -D and -I) as well.
 - Add properties to set system libs and lib directories for a binary, allow these to be set as toolchain specific linker args (ie -l and -L) as well.
 - Add set methods for each of these properties.
-- Split the compiler and linker settings out to separate types.
 
 ## Story: Link Windows resource files into native binaries
 
@@ -891,6 +889,8 @@ Here's an example:
 - Include headers?
 - Don't define the compile task if the source set is empty.
 
+# Milestone 3
+
 ## Story: Generate source from Microsoft IDL files
 
 - Add a `microsoft-idl` plugin
@@ -925,8 +925,6 @@ Here's an example:
 
 * A `.def` file lists `__stdcall` functions to export from a DLL. Can also use `__declspec(dllexport)` in source to export a function.
 * Functions are imported from a DLL using `__declspec(dllimport)`.
-
-# Milestone 3
 
 ## Story: Build binaries against a library in another project
 
@@ -975,11 +973,11 @@ TBD
 ### Implementation
 
 * Change C++ and C compiler implementations (GCC and VisualCpp) so that only a single sources file is compiled per execution 
-** Create a single compiler options file to reuse for compiling all source files
-** For each source file specify the source file name and the output file name on the command line
+    * Create a single compiler options file to reuse for compiling all source files
+    * For each source file specify the source file name and the output file name on the command line
 * Make the generated object file include the project-relative path to the source file
-** For a source file that is located within the project directory, use the project relative path
-** For a source file that is located outside of the project directory, use the absolute path to the source file, appropriately escaped
+    * For a source file that is located within the project directory, use the project relative path
+    * For a source file that is located outside of the project directory, use the absolute path to the source file, appropriately escaped
 * Update `OutputCleaningCompiler` with knowledge of the new source->object file mapping
 
 If we are inspired by CMake, the output file rules would be:
@@ -1086,11 +1084,11 @@ There are 2 main parts to the architecture that we are interested in: The CPU in
 but not always, a 32-bit processor instruction set is used with 32-bit data model, and a 64-bit processor instruction set is used with 64-bit
 data model.
 
-Usually, it is possible to combine different instruction sets in the same binary. So, when linking a binary targetting the amd64 CPU, it is fine to link
+Usually, it is possible to combine different instruction sets in the same binary. So, when linking a binary targeting the amd64 CPU, it is fine to link
 against a library built for the x86 CPU. It is not possible to combine different data models in the same executable.
 
 On OS X, a binary may target multiple architectures, as a universal binary. It should be noted that a universal binary simply supports more than one
-architectures, but not necessarily every architecture as the name suggests. For example, a universal binary might include x86 & amd64 suport but no
+architectures, but not necessarily every architecture as the name suggests. For example, a universal binary might include x86 & amd64 support but no
 ppc or ppc64 support.
 
 File names are important here. Generally, architecture is not encoded in the binary file name. The build must be able to distinguish between binaries
@@ -1129,7 +1127,7 @@ Native architecture names:
 A producer project compiles, links and publishes a shared library for multiple combinations of operating system and architecture. The library depends
 on zero or more shared libraries. The library is published to a repository.
 
-A consumer project compiles, links and runs an executable against the libary.
+A consumer project compiles, links and runs an executable against the library.
 
 Out of scope is cross compilation for other platforms, or building binaries for multiple versions of the same operating system.
 
@@ -1189,7 +1187,7 @@ Consumer project compiles, links and debugs an executable against this library.
 
 Implementation-wise, this problem is similar in some respects to handling multiple architectures.
 
-Usually, it is fine to link a release build of a libary into a debug binary, if the debug variant is not available. It is not fine to link a debug
+Usually, it is fine to link a release build of a library into a debug binary, if the debug variant is not available. It is not fine to link a debug
 build of a library into a release binary. On Windows, it is not ok to link a release build of a library into a debug binary.
 
 On some platforms, additional artifacts are required to debug a binary. On gcc based platforms, the debug information is linked into the binary.
@@ -1203,7 +1201,7 @@ To implement this:
 * Producer project publishes the source files for the library.
 * Include in the published meta-data, information about whether the binary is a release or debug binary.
 * Separate out debug time dependencies from runtime.
-* Consumer project selects the approprate release or debug library binraries when resolving link, execute and debug dependencies.
+* Consumer project selects the appropriate release or debug library binaries when resolving link, execute and debug dependencies.
 * Consumer project installs the pdb and source files into the appropriate locations, so the debugger can find them.
 * Allow compiler and linker settings to be specified separately for release and debug binaries.
 * Define a set of default build types (debug and release, say).
