@@ -15,6 +15,7 @@
  */
 package org.gradle.nativebinaries.language.cpp
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -226,4 +227,9 @@ class CppSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         installation("native-binaries/multi-project/exe/build/install/mainExecutable").exec().out == "Hello, World!\n"
     }
 
+    @Override
+    protected ExecutionResult run(String... tasks) {
+        executer.withArgument('-S')
+        return super.run(tasks)
+    }
 }
