@@ -95,29 +95,6 @@ class DefaultBinaryStoreTest extends Specification {
         e.cause.class == SomeException
     }
 
-    def "may not read beyond what was written"() {
-        def store = new DefaultBinaryStore(temp.file("foo.bin"))
-
-        when:
-        store.write({ it.writeInt(10) } as BinaryStore.WriteAction)
-        def data1 = store.done()
-
-        store.write({ it.writeInt(20) } as BinaryStore.WriteAction)
-        def data2 = store.done()
-
-        then:
-        data1.read({ it.readInt() } as BinaryStore.ReadAction) == 10
-
-        when:
-        data1.read({ it.readInt() } as BinaryStore.ReadAction)
-
-        then:
-        1==1
-
-        cleanup:
-        store.close()
-    }
-
     def "may be empty"() {
         def store = new DefaultBinaryStore(temp.file("foo.bin"))
 
