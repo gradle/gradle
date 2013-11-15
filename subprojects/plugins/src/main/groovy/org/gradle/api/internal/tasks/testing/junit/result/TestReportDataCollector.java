@@ -74,6 +74,7 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
             classResult = new TestClassResult(internalIdCounter++, className, result.getStartTime());
             results.put(className, classResult);
         } else if (classResult.getStartTime() == 0) {
+            //class results may be created earlier, where we don't yet have access to the start time
             classResult.setStartTime(result.getStartTime());
         }
         classResult.add(methodResult);
