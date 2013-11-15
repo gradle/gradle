@@ -35,6 +35,8 @@ import org.gradle.util.Clock;
 import java.io.IOException;
 import java.util.*;
 
+import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
+
 /**
  * by Szczepan Faber on 7/28/13
  */
@@ -141,7 +143,11 @@ public class StreamingResolutionResultBuilder implements ResolutionResultBuilder
                                 }
                             });
                         } finally {
-                            data.done();
+                            try {
+                                data.close();
+                            } catch (IOException e) {
+                                throw throwAsUncheckedException(e);
+                            }
                         }
                     }
                 });

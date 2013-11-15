@@ -19,6 +19,7 @@ package org.gradle.api.internal.cache;
 import org.gradle.messaging.serialize.Decoder;
 import org.gradle.messaging.serialize.Encoder;
 
+import java.io.Closeable;
 import java.io.IOException;
 
 public interface BinaryStore {
@@ -34,9 +35,7 @@ public interface BinaryStore {
         T read(Decoder decoder) throws IOException;
     }
 
-    public static interface BinaryData {
+    public static interface BinaryData extends Closeable {
         <T> T read(ReadAction<T> readAction);
-        //done reading data, release any resources
-        void done();
     }
 }

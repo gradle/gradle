@@ -128,7 +128,7 @@ class DefaultBinaryStore implements BinaryStore {
             }
         }
 
-        public void done() {
+        public void close() {
             try {
                 if (resources != null) {
                     resources.stop();

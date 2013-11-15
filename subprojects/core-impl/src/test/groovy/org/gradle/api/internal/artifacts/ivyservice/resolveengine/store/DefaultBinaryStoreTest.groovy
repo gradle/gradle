@@ -38,10 +38,10 @@ class DefaultBinaryStoreTest extends Specification {
         then:
         data1.read({ it.readInt() } as BinaryStore.ReadAction) == 10
         data1.read({ it.readString() } as BinaryStore.ReadAction) == "x"
-        data1.done()
+        data1.close()
 
         data2.read({ it.readString() } as BinaryStore.ReadAction) == "y"
-        data2.done()
+        data2.close()
 
         cleanup:
         store.close()
@@ -58,12 +58,12 @@ class DefaultBinaryStoreTest extends Specification {
         then:
         data.read({ it.readInt() } as BinaryStore.ReadAction) == 10
         data.read({ it.readString() } as BinaryStore.ReadAction) == "x"
-        data.done()
+        data.close()
 
         then:
         data.read({ it.readInt() } as BinaryStore.ReadAction) == 10
         data.read({ it.readString() } as BinaryStore.ReadAction) == "x"
-        data.done()
+        data.close()
 
         cleanup:
         store.close()
@@ -103,6 +103,6 @@ class DefaultBinaryStoreTest extends Specification {
         store.close()
 
         then:
-        data.done()
+        data.close()
     }
 }

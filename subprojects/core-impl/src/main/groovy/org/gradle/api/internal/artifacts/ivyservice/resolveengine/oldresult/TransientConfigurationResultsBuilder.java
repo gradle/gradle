@@ -32,6 +32,7 @@ import org.gradle.util.Clock;
 import java.io.IOException;
 
 import static com.google.common.collect.Sets.newHashSet;
+import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
 
 //TODO SF unit coverage
 public class TransientConfigurationResultsBuilder {
@@ -105,7 +106,11 @@ public class TransientConfigurationResultsBuilder {
                             }
                         });
                     } finally {
-                        binaryData.done();
+                        try {
+                            binaryData.close();
+                        } catch (IOException e) {
+                            throw throwAsUncheckedException(e);
+                        }
                     }
                 }
             });

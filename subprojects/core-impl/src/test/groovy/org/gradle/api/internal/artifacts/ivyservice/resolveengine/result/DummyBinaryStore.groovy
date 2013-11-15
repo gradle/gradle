@@ -40,7 +40,7 @@ public class DummyBinaryStore implements BinaryStore {
                 readAction.read(decoder)
             }
 
-            void done() {
+            void close() {
                 decoder = null
             }
         }
