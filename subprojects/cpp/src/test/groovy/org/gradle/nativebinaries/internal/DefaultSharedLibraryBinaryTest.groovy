@@ -19,6 +19,7 @@ import org.gradle.api.Task
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.language.HeaderExportingSourceSet
 import org.gradle.language.base.internal.DefaultBinaryNamingScheme
+import org.gradle.language.rc.WindowsResourceSet
 import org.gradle.nativebinaries.BuildType
 import org.gradle.nativebinaries.Library
 import org.gradle.nativebinaries.Platform
@@ -81,14 +82,22 @@ class DefaultSharedLibraryBinaryTest extends Specification {
         nativeDependency.runtimeFiles.toString() == "shared library 'main:sharedLibrary'"
     }
 
-    def "has empty link files when no symbols are exported from library"() {
-        given:
+    def "has empty link files when has resources and no symbols are exported from library"() {
+        when:
         def binary = sharedLibrary
+        def sourceDirSet = Stub(SourceDirectorySet) {
+            getFiles() >> [tmpDir.createFile("input.rc")]
+        }
+        def resourceSet = Stub(WindowsResourceSet) {
+            getSource() >> sourceDirSet
+        }
+        binary.source resourceSet
+
         def binaryFile = tmpDir.createFile("binary.run")
         def linkFile = tmpDir.createFile("binary.link")
         toolChain.getSharedLibraryLinkFileName(binaryFile.path) >> linkFile.path
 
-        expect:
+        then:
         def nativeDependency = binary.resolve()
         nativeDependency.linkFiles.files == [] as Set
     }

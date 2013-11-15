@@ -58,11 +58,24 @@ public class DefaultSharedLibraryBinary extends DefaultLibraryBinary implements 
 
     private class SharedLibraryLinkOutputs implements MinimalFileSet, Buildable {
         public Set<File> getFiles() {
-            if (hasExportedSymbols()) {
-                String sharedLibraryLinkFileName = getToolChain().getSharedLibraryLinkFileName(getOutputFile().getPath());
-                return Collections.singleton(new File(sharedLibraryLinkFileName));
+            if (isResourceOnly()) {
+                return Collections.emptySet();
             }
-            return Collections.emptySet();
+            String sharedLibraryLinkFileName = getToolChain().getSharedLibraryLinkFileName(getOutputFile().getPath());
+            return Collections.singleton(new File(sharedLibraryLinkFileName));
+        }
+
+        private boolean isResourceOnly() {
+            return hasResources() && !hasExportedSymbols();
+        }
+
+        private boolean hasResources() {
+            for (WindowsResourceSet windowsResourceSet : getSource().withType(WindowsResourceSet.class)) {
+                if (windowsResourceSet.getSource().getFiles().size() > 0) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         private boolean hasExportedSymbols() {
