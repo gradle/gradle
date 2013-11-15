@@ -25,11 +25,10 @@ import org.gradle.api.internal.cache.Store;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.Factory;
+import org.gradle.messaging.serialize.Decoder;
 import org.gradle.messaging.serialize.Encoder;
-import org.gradle.messaging.serialize.InputStreamBackedDecoder;
 import org.gradle.util.Clock;
 
-import java.io.DataInputStream;
 import java.io.IOException;
 
 import static com.google.common.collect.Sets.newHashSet;
@@ -101,8 +100,8 @@ public class TransientConfigurationResultsBuilder {
                 public TransientConfigurationResults create() {
                     try {
                         return binaryData.read(new BinaryStore.ReadAction<TransientConfigurationResults>() {
-                            public TransientConfigurationResults read(DataInputStream input) throws IOException {
-                                return deserialize(input, mapping);
+                            public TransientConfigurationResults read(Decoder decoder) throws IOException {
+                                return deserialize(decoder, mapping);
                             }
                         });
                     } finally {
@@ -113,12 +112,11 @@ public class TransientConfigurationResultsBuilder {
         }
     }
 
-    private TransientConfigurationResults deserialize(DataInputStream input, ResolvedContentsMapping mapping) {
+    private TransientConfigurationResults deserialize(Decoder decoder, ResolvedContentsMapping mapping) {
         Clock clock = new Clock();
         DefaultTransientConfigurationResults results = new DefaultTransientConfigurationResults();
         int valuesRead = 0;
         byte type = -1;
-        InputStreamBackedDecoder decoder = new InputStreamBackedDecoder(input);
         try {
             while (true) {
                 type = decoder.readByte();

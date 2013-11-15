@@ -30,10 +30,8 @@ import org.gradle.api.logging.Logging;
 import org.gradle.internal.Factory;
 import org.gradle.messaging.serialize.Decoder;
 import org.gradle.messaging.serialize.Encoder;
-import org.gradle.messaging.serialize.InputStreamBackedDecoder;
 import org.gradle.util.Clock;
 
-import java.io.DataInputStream;
 import java.io.IOException;
 import java.util.*;
 
@@ -138,8 +136,8 @@ public class StreamingResolutionResultBuilder implements ResolutionResultBuilder
                     public ResolvedComponentResult create() {
                         try {
                             return data.read(new BinaryStore.ReadAction<ResolvedComponentResult>() {
-                                public ResolvedComponentResult read(DataInputStream input) throws IOException {
-                                    return deserialize(input);
+                                public ResolvedComponentResult read(Decoder decoder) throws IOException {
+                                    return deserialize(decoder);
                                 }
                             });
                         } finally {
@@ -150,13 +148,12 @@ public class StreamingResolutionResultBuilder implements ResolutionResultBuilder
             }
         }
 
-        private ResolvedComponentResult deserialize(DataInputStream input) {
+        private ResolvedComponentResult deserialize(Decoder decoder) {
             int valuesRead = 0;
             byte type = -1;
             Clock clock = new Clock();
             try {
                 DefaultResolutionResultBuilder builder = new DefaultResolutionResultBuilder();
-                Decoder decoder = new InputStreamBackedDecoder(input);
                 while (true) {
                     type = decoder.readByte();
                     valuesRead++;
