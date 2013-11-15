@@ -73,6 +73,8 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
         if (classResult == null) {
             classResult = new TestClassResult(internalIdCounter++, className, result.getStartTime());
             results.put(className, classResult);
+        } else if (classResult.getStartTime() == 0) {
+            classResult.setStartTime(result.getStartTime());
         }
         classResult.add(methodResult);
     }
@@ -116,6 +118,9 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
         }
         TestClassResult classResult = results.get(className);
         if (classResult == null) {
+            //it's possible that we receive an output for a suite here
+            //in this case we will create the test result for a suite that normally would not be created
+            //feels like this scenario should modelled more explicitly
             classResult = new TestClassResult(internalIdCounter++, className, 0);
             results.put(className, classResult);
         }

@@ -24,7 +24,7 @@ import java.util.List;
 public class TestClassResult {
     private final List<TestMethodResult> methodResults = new ArrayList<TestMethodResult>();
     private final String className;
-    private final long startTime;
+    private long startTime;
     private int failuresCount;
     private long id;
 
@@ -77,5 +77,9 @@ public class TestClassResult {
             }
         }
         return end - startTime;
+    }
+
+    public void setStartTime(long startTime) {
+        this.startTime = startTime;
     }
 }

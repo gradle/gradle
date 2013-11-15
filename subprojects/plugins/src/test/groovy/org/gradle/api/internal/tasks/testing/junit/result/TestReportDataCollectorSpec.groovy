@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.testing.junit.result
 import org.gradle.api.internal.tasks.testing.*
 import org.gradle.api.internal.tasks.testing.results.DefaultTestResult
 import org.gradle.messaging.remote.internal.PlaceholderException
+import spock.lang.Issue
 import spock.lang.Specification
 
 import static java.util.Arrays.asList
@@ -204,5 +205,18 @@ class TestReportDataCollectorSpec extends Specification {
         result.duration == 400
         result.results.size() == 1
         result.results[0].failures.size() == 1
+    }
+
+    @Issue("GRADLE-2730")
+    def "test case timestamp is correct even if output received for given class"() {
+        def test = new DefaultTestDescriptor("1.1.1", "FooTest", "testMethod")
+
+        when:
+        collector.beforeTest(test)
+        collector.onOutput(test, new DefaultTestOutputEvent(StdOut, "suite-out"))
+        collector.afterTest(test, new DefaultTestResult(SUCCESS, 100, 200, 1, 1, 0, asList()))
+
+        then:
+        results.get("FooTest").startTime == 100
     }
 }
