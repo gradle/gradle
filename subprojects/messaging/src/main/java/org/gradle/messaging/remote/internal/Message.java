@@ -60,8 +60,8 @@ public abstract class Message implements Serializable {
     }
 
     private static class ExceptionPlaceholder implements Serializable {
+        private final String type;
         private byte[] serializedException;
-        private String type;
         private String message;
         private String toString;
         private ExceptionPlaceholder cause;
@@ -69,24 +69,36 @@ public abstract class Message implements Serializable {
         private RuntimeException toStringRuntimeExec;
 
         public ExceptionPlaceholder(final Throwable throwable) throws IOException {
-            try {
-                tryPopulateFrom(throwable);
-            } catch (Throwable ignored) {
-                // it is inherently unsafe to inspect user-throw exceptions (e.g. from tests)
-                LOGGER.info("Ignoring error serializing exception", ignored);
-            }
-        }
-
-        private void tryPopulateFrom(final Throwable throwable) throws Throwable {
             type = throwable.getClass().getName();
-            stackTrace = throwable.getStackTrace();
-            message = throwable.getMessage();
+
+            try {
+                stackTrace = throwable.getStackTrace();
+            } catch (Throwable ignored) {
+                LOGGER.debug("Ignoring error extracting stack trace", ignored);
+            }
+
+            try {
+                message = throwable.getMessage();
+            } catch (Throwable ignored) {
+                LOGGER.debug("Ignoring error extracting message", ignored);
+            }
+
             try {
                 toString = throwable.toString();
             } catch (RuntimeException toStringRE) {
-                toString = null;
                 toStringRuntimeExec = toStringRE;
+            } catch (Throwable ignored) {
+                LOGGER.debug("Ignoring error calling toString", ignored);
             }
+
+            Throwable causeTmp;
+            try {
+                causeTmp = throwable.getCause();
+            } catch (Throwable ignored) {
+                LOGGER.debug("Ignoring error extracting cause", ignored);
+                causeTmp = null;
+            }
+            final Throwable causeFinal = causeTmp;
 
             ByteArrayOutputStream outstr = new ByteArrayOutputStream();
             ObjectOutputStream oos = new ExceptionReplacingObjectOutputStream(outstr) {
@@ -96,22 +108,23 @@ public abstract class Message implements Serializable {
                         return throwable;
                     }
                     // Don't serialize the cause - we'll serialize it separately later
-                    if (obj == throwable.getCause()) {
+                    if (obj == causeFinal) {
                         return new CausePlaceholder();
                     }
                     return super.replaceObject(obj);
                 }
             };
+
             try {
                 oos.writeObject(throwable);
                 oos.close();
                 serializedException = outstr.toByteArray();
-            } catch (NotSerializableException e) {
-                // Ignore
+            } catch (Throwable ignored) {
+                LOGGER.debug("Ignoring error serializing throwable", ignored);
             }
 
-            if (throwable.getCause() != null) {
-                cause = new ExceptionPlaceholder(throwable.getCause());
+            if (causeFinal != null) {
+                cause = new ExceptionPlaceholder(causeFinal);
             }
         }
 
