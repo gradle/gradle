@@ -14,10 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.coerce
+package org.gradle.internal.typeconversion
 
-import org.gradle.internal.typeconversion.NotationParser
-import org.gradle.internal.typeconversion.TypeConversionException
 import spock.lang.Specification
 
 class EnumFromStringNotationParserTest extends Specification{
@@ -37,7 +35,7 @@ class EnumFromStringNotationParserTest extends Specification{
         parser.parseNotation("notKnown")
         then:
         def e = thrown(TypeConversionException)
-        e.message == "Cannot coerce string value 'notKnown' to an enum value of type 'org.gradle.api.internal.coerce.EnumFromStringNotationParserTest\$TestEnum' (valid case insensitive values: [ENUM1, ENUM2, ENUM3])"
+        e.message == "Cannot coerce string value 'notKnown' to an enum value of type 'org.gradle.internal.typeconversion.EnumFromStringNotationParserTest\$TestEnum' (valid case insensitive values: [ENUM1, ENUM2, ENUM3])"
     }
 
     static enum TestEnum {

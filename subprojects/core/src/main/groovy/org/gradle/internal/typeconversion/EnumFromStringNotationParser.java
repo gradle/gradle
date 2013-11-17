@@ -14,10 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.coerce;
+package org.gradle.internal.typeconversion;
 
-import org.gradle.internal.typeconversion.TypeConversionException;
-import org.gradle.internal.typeconversion.TypedNotationParser;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.CollectionUtils;
 

@@ -17,6 +17,7 @@
 package org.gradle.api.internal.coerce;
 
 import org.gradle.api.Transformer;
+import org.gradle.internal.typeconversion.EnumFromStringNotationParser;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 
