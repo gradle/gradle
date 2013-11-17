@@ -31,6 +31,6 @@ public class ClosureToSpecNotationParser<T> implements NotationParser<Spec<T>> {
     }
 
     public void describe(Collection<String> candidateFormats) {
-        candidateFormats.add("Closure that returns boolean. See the dsl reference for information what parameters are passed into the closure.");
+        candidateFormats.add("Closure that returns boolean. See the DSL reference for information what parameters are passed into the closure.");
     }
 }
