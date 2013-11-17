@@ -37,4 +37,47 @@ class TaskRemovalIntegrationTest extends AbstractIntegrationSpec {
         failure.assertThatDescription(Matchers.startsWith("Task 'foo' not found in root project"))
     }
 
+    def "can remove task in after evaluate"() {
+        given:
+        buildScript """
+            task foo {}
+            afterEvaluate {
+                tasks.remove(foo)
+            }
+        """
+
+        when:
+        fails "foo"
+
+        then:
+        failure.assertThatDescription(Matchers.startsWith("Task 'foo' not found in root project"))
+    }
+
+    def "cant remove task in after evaluate if task is used by other model"() {
+        given:
+        buildScript """
+            import org.gradle.model.*
+
+            task foo {}
+            task bar {}
+
+            afterEvaluate {
+                tasks.remove(foo)
+            }
+
+            // No DSL for rules dependent on other model yet
+            project.services.get(ModelRules).rule(new ModelRule() {
+                void linkFooToBar(@Path("tasks.bar") Task bar, @Path("tasks.foo") Task foo) {
+                    // do nothing
+                }
+            })
+        """
+
+        when:
+        fails "foo"
+
+        then:
+        failure.assertThatCause(Matchers.startsWith("Tried to remove model tasks.foo but it is depended on by other model elements"))
+    }
+
 }

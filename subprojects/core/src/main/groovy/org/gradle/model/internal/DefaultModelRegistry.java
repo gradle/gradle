@@ -17,11 +17,12 @@
 package org.gradle.model.internal;
 
 
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.Transformers;
 import org.gradle.model.ModelPath;
 
 import java.util.*;
@@ -34,6 +35,7 @@ public class DefaultModelRegistry implements ModelRegistry {
 
     private final Map<ModelPath, ModelCreation> creations = new HashMap<ModelPath, ModelCreation>();
     private final Multimap<ModelPath, ModelMutation<?>> mutators = ArrayListMultimap.create();
+    private final Multimap<ModelPath, ImmutableList<ModelPath>> usedMutators = ArrayListMultimap.create();
 
     private final List<ModelCreationListener> modelCreationListeners = new LinkedList<ModelCreationListener>();
 
@@ -92,9 +94,41 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     public void remove(String path) {
-        if (creations.remove(ModelPath.path(path)) == null) {
-            throw new RuntimeException("Tried to remove model " + path + " but it is not registered");
+        ModelPath modelPath = ModelPath.path(path);
+        if (creations.remove(modelPath) == null) {
+            if (store.remove(modelPath) == null) {
+                throw new RuntimeException("Tried to remove model " + path + " but it is not registered");
+            } else {
+                if (isDependedOn(modelPath)) {
+                    throw new RuntimeException("Tried to remove model " + path + " but it is depended on by other model elements");
+                }
+            }
         }
+    }
+
+    private boolean isDependedOn(ModelPath candidate) {
+        Transformer<Iterable<ModelPath>, ModelMutation<?>> extractInputPaths = new Transformer<Iterable<ModelPath>, ModelMutation<?>>() {
+            public Iterable<ModelPath> transform(ModelMutation<?> original) {
+                return original.getInputPaths();
+            }
+        };
+
+        Transformer<ImmutableList<ModelPath>, ImmutableList<ModelPath>> passThrough = Transformers.noOpTransformer();
+
+        return hasModelPath(candidate, mutators.values(), extractInputPaths)
+                || hasModelPath(candidate, usedMutators.values(), passThrough);
+    }
+
+    private <T> boolean hasModelPath(ModelPath candidate, Iterable<T> things, Transformer<? extends Iterable<ModelPath>, T> transformer) {
+        for (T thing : things) {
+            for (ModelPath path : transformer.transform(thing)) {
+                if (path.equals(candidate)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     private Set<ModelPath> getPromisedPaths() {
@@ -110,6 +144,8 @@ public class DefaultModelRegistry implements ModelRegistry {
         Collection<ModelMutation<?>> modelMutations = mutators.removeAll(path);
         for (ModelMutation modelMutation : modelMutations) {
             fireMutation(model, modelMutation);
+            @SuppressWarnings("unchecked") ImmutableList<ModelPath> inputPaths = modelMutation.getInputPaths();
+            usedMutators.put(path, inputPaths);
         }
 
         // close all the child objects
