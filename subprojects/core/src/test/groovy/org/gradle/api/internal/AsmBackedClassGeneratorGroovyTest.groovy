@@ -18,9 +18,9 @@ package org.gradle.api.internal
 
 import org.gradle.api.Action
 import org.gradle.api.NonExtensible
-import org.gradle.api.internal.coerce.TypeCoercionException
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.internal.typeconversion.TypeConversionException
 import org.gradle.util.ConfigureUtil
 import spock.lang.Issue
 import spock.lang.Specification
@@ -167,7 +167,7 @@ class AsmBackedClassGeneratorGroovyTest extends Specification {
         i.enumProperty "foo"
 
         then:
-        thrown TypeCoercionException
+        thrown TypeConversionException
 
         when:
         i.enumMethodWithStringOverload("foo")

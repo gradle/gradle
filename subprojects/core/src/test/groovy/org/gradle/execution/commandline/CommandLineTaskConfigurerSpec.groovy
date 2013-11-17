@@ -17,11 +17,11 @@ package org.gradle.execution.commandline
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
-import org.gradle.api.internal.coerce.TypeCoercionException
 import org.gradle.api.internal.tasks.options.Option
 import org.gradle.api.internal.tasks.options.OptionReader
 import org.gradle.api.tasks.TaskAction
 import org.gradle.execution.TaskSelector
+import org.gradle.internal.typeconversion.TypeConversionException
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
 
@@ -85,7 +85,7 @@ class CommandLineTaskConfigurerSpec extends Specification {
         then:
         def e = thrown(TaskConfigurationException)
         e.message == "Problem configuring option 'someEnum' on task ':someTask' from command line."
-        e.cause instanceof TypeCoercionException
+        e.cause instanceof TypeConversionException
         e.cause.message == "Cannot coerce string value 'unsupportedEnumValue' to an enum value of type 'org.gradle.execution.commandline.CommandLineTaskConfigurerSpec\$TestEnum' (valid case insensitive values: [value1, value2])"
 
     }

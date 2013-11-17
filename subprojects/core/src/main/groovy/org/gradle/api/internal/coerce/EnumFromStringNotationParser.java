@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.coerce;
 
+import org.gradle.internal.typeconversion.TypeConversionException;
 import org.gradle.internal.typeconversion.TypedNotationParser;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.CollectionUtils;
@@ -42,7 +43,7 @@ public class EnumFromStringNotationParser<T extends Enum<T>> extends TypedNotati
             }
         });
         if (match == null) {
-            throw new TypeCoercionException(
+            throw new TypeConversionException(
                     String.format("Cannot coerce string value '%s' to an enum value of type '%s' (valid case insensitive values: %s)",
                             enumString, enumType.getName(), CollectionUtils.toStringList(Arrays.asList(enumType.getEnumConstants()))
                     )

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.coerce
 
+import org.gradle.internal.typeconversion.TypeConversionException
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -60,7 +61,7 @@ class TypeCoercingMethodArgumentsTransformerTest extends Specification {
         transformer.transform(i, "oneArgEnumMethod", "invalid")
 
         then:
-        def e = thrown TypeCoercionException
+        def e = thrown TypeConversionException
         e.message.contains TestEnum.values().toString() // error message shows valid values
     }
 

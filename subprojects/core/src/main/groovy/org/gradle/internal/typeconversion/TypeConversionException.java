@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.coerce;
+package org.gradle.internal.typeconversion;
 
-import org.gradle.api.GradleException;
-
-// TODO - this is usually a user error, might need a better name
-public class TypeCoercionException extends GradleException {
-    public TypeCoercionException(String message) {
+/**
+ * Thrown when a given value cannot be converted to the target type.
+ */
+public class TypeConversionException extends RuntimeException {
+    public TypeConversionException(String message) {
         super(message);
     }
 }
