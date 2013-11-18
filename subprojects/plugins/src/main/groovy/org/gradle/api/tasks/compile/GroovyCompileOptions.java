@@ -194,7 +194,7 @@ public class GroovyCompileOptions extends AbstractOptions {
      */
     @Deprecated
     public void setStacktrace(boolean stacktrace) {
-        DeprecationLogger.nagUserOfDiscontinuedProperty("GroovyCompileOptions.stacktrack", "This property has no replacement.");
+        DeprecationLogger.nagUserOfDiscontinuedProperty("GroovyCompileOptions.stacktrace", "This property has no replacement.");
         this.stacktrace = stacktrace;
     }
 
