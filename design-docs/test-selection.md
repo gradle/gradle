@@ -78,7 +78,8 @@ Legacy integration tests are slow, @ need a way to execute a single test method,
 1. Change the semantics of test.include so that it supports syntax like {ant-file-pattern}#{testMethodName}, e.g. **/FooTest#someMethod
 Test implements PatternFilterable, which declares the exact behavior of include / exclude. In order to implement this option, we would need to introduce a mildly breaking change and make Test no longer extend PatternFilterable. It is kind of a mildly breaking because we would keep all the existing public methods in the Test type. If users extends Test task, they would probably need to recompile. For command line, we introduce --include option for the Test task. Pros: api remains small, Cons: breaking change.
 
-2. Introduce new dsl (various ideas all lumped together):
+2. Introduce new dsl - various ideas all lumped together
+
 
     test {
       selection {
