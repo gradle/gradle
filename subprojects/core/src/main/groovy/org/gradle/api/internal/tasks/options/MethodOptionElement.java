@@ -24,9 +24,8 @@ public class MethodOptionElement extends AbstractOptionElement {
     private final Method method;
 
     public MethodOptionElement(Option option, Method method) {
-        super(option.option(), option, method.getDeclaringClass());
+        super(option.option(), option, calculateOptionType(method), method.getDeclaringClass());
         this.method = method;
-        this.optionType = calculateOptionType();
         assertMethodTypeSupported(getOptionName(), method);
         assertValidOptionName();
     }
@@ -37,12 +36,12 @@ public class MethodOptionElement extends AbstractOptionElement {
         }
     }
 
-    private Class<?> calculateOptionType() {
-        if (method.getParameterTypes().length == 0) {
+    private static Class<?> calculateOptionType(Method optionMethod) {
+        if (optionMethod.getParameterTypes().length == 0) {
             //flag method
             return Void.TYPE;
         } else {
-            return calculateOptionType(method.getParameterTypes()[0]);
+            return calculateOptionType(optionMethod.getParameterTypes()[0]);
         }
     }
 

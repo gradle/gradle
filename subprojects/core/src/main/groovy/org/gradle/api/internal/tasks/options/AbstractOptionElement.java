@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.options;
 
-import org.gradle.internal.typeconversion.FromStringNotationParser;
+import org.gradle.internal.typeconversion.FromStringNotationParserFactory;
 import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.typeconversion.NotationParser;
@@ -29,20 +29,30 @@ import java.util.List;
 abstract class AbstractOptionElement implements OptionElement {
     private final String optionName;
     private final String description;
-    private List<String> availableValues;
-    protected Class<?> optionType;
+    private final Class<?> optionType;
+    private final NotationParser notationParser;
 
-    public AbstractOptionElement(String optionName, Option option, Class<?> declaringClass) {
+    public AbstractOptionElement(String optionName, Option option, Class<?> optionType, Class<?> declaringClass) {
         this.description = readDescription(option, optionName, declaringClass);
         this.optionName = optionName;
+        this.optionType = optionType;
+        notationParser = new FromStringNotationParserFactory(optionType).toComposite();
+
+    }
+
+    protected static Class<?> calculateOptionType(Class<?> type) {
+        //we don't want to support "--flag true" syntax
+        if (type == Boolean.class || type == Boolean.TYPE) {
+            return Void.TYPE;
+        } else {
+            return type;
+        }
     }
 
     public List<String> getAvailableValues() {
-        //calculate list lazy to avoid overhead upfront
-        if (availableValues == null) {
-            availableValues = calculdateAvailableValues(getOptionType());
-        }
-        return availableValues;
+        List<String> describes = new ArrayList<String>();
+        notationParser.describe(describes);
+        return describes;
     }
 
     public Class<?> getOptionType() {
@@ -58,29 +68,11 @@ abstract class AbstractOptionElement implements OptionElement {
     }
 
     protected Object getParameterObject(String value) {
-        NotationParser<?> notationParser = new FromStringNotationParser(getOptionType());
+        NotationParser<?> notationParser = new FromStringNotationParserFactory(getOptionType()).toComposite();
         return notationParser.parseNotation(value);
     }
 
-    protected Class<?> calculateOptionType(Class<?> type) {
-        //we don't want to support "--flag true" syntax
-        if (type == Boolean.class || type == Boolean.TYPE) {
-            return Void.TYPE;
-        } else {
-            return type;
-        }
-    }
 
-    protected List<String> calculdateAvailableValues(Class<?> type) {
-        List<String> availableValues = new ArrayList<String>();
-        if (type.isEnum()) {
-            final Enum[] enumConstants = (Enum[]) type.getEnumConstants();
-            for (Enum enumConstant : enumConstants) {
-                availableValues.add(enumConstant.name());
-            }
-        }
-        return availableValues;
-    }
 
     protected Object invokeMethod(Object object, Method method, Object... parameterValues) {
         final JavaMethod<Object, Object> javaMethod = JavaReflectionUtil.method(Object.class, Object.class, method);

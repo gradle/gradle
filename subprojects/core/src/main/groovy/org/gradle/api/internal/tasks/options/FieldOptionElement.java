@@ -24,14 +24,14 @@ import java.util.List;
 public class FieldOptionElement extends AbstractOptionElement {
 
     private final Field field;
-    private Class<?> optionType;
 
     public FieldOptionElement(Option option, Field field) {
-        super(calOptionName(option, field), option, field.getDeclaringClass());
+        super(calOptionName(option, field), option, calculateOptionType(field.getType()), field.getDeclaringClass());
         this.field = field;
-        this.optionType = calculateOptionType(field.getType());
         assertFieldSupported();
     }
+
+
 
     private static String calOptionName(Option option, Field field) {
         if (option.option().length() == 0) {
@@ -63,10 +63,6 @@ public class FieldOptionElement extends AbstractOptionElement {
         }
     }
 
-    public Class<?> getOptionType() {
-        return optionType;
-    }
-
     public String getElementName() {
         return field.getName();
     }
@@ -76,7 +72,7 @@ public class FieldOptionElement extends AbstractOptionElement {
     }
 
     public void apply(Object object, List<String> parameterValues) {
-        if (optionType == Void.TYPE && parameterValues.size() == 0) {
+        if (getOptionType() == Void.TYPE && parameterValues.size() == 0) {
             setFieldValue(object, true);
         } else if (parameterValues.size() > 1) {
             throw new IllegalArgumentException(String.format("Lists not supported for option"));

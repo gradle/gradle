@@ -27,6 +27,7 @@ public class NotationParserBuilder<T> {
     private TypeInfo<T> resultingType;
     private String invalidNotationMessage;
     private Collection<NotationParser<? extends T>> notationParsers = new LinkedList<NotationParser<? extends T>>();
+    private boolean withJustReturningParser = true;
 
     public NotationParserBuilder<T> resultingType(Class<T> resultingType) {
         return resultingType(new TypeInfo<T>(resultingType));
@@ -34,6 +35,11 @@ public class NotationParserBuilder<T> {
 
     public NotationParserBuilder<T> resultingType(TypeInfo<T> resultingType) {
         this.resultingType = resultingType;
+        return this;
+    }
+
+    public NotationParserBuilder<T> withDefaultJustReturnParser(boolean withJustReturningParser) {
+        this.withJustReturningParser = withJustReturningParser;
         return this;
     }
 
@@ -68,7 +74,9 @@ public class NotationParserBuilder<T> {
         assert resultingType != null : "resultingType cannot be null";
 
         List<NotationParser<? extends T>> composites = new LinkedList<NotationParser<? extends T>>();
-        composites.add(new JustReturningParser<T>(resultingType.getTargetType()));
+        if(withJustReturningParser){
+            composites.add(new JustReturningParser<T>(resultingType.getTargetType()));
+        }
         composites.addAll(this.notationParsers);
 
         return new CompositeNotationParser<T>(composites);

@@ -25,18 +25,18 @@ import java.util.List;
 
 public class EnumFromStringNotationParser<T extends Object> extends TypedNotationParser<CharSequence, T> {
 
-    private final Class<T> enumType;
+    private final Class<T> type;
 
     public EnumFromStringNotationParser(Class<T> enumType){
         super(CharSequence.class);
-        this.enumType = enumType;
+        this.type = enumType;
     }
 
     @Override
     protected T parseType(CharSequence notation) {
-        if(enumType.isEnum()) {
+        if(type.isEnum()) {
             final String enumString = notation.toString();
-            List<T> enumConstants = Arrays.asList(enumType.getEnumConstants());
+            List<T> enumConstants = Arrays.asList(type.getEnumConstants());
             T match = CollectionUtils.findFirst(enumConstants, new Spec<T>() {
                 public boolean isSatisfiedBy(T enumValue) {
                     return ((Enum)enumValue).name().equalsIgnoreCase(enumString);
@@ -45,7 +45,7 @@ public class EnumFromStringNotationParser<T extends Object> extends TypedNotatio
             if (match == null) {
                 throw new TypeConversionException(
                         String.format("Cannot coerce string value '%s' to an enum value of type '%s' (valid case insensitive values: %s)",
-                                enumString, enumType.getName(), CollectionUtils.toStringList(Arrays.asList(enumType.getEnumConstants()))
+                                enumString, type.getName(), CollectionUtils.toStringList(Arrays.asList(type.getEnumConstants()))
                         )
                 );
             } else {
@@ -58,6 +58,11 @@ public class EnumFromStringNotationParser<T extends Object> extends TypedNotatio
     }
 
     public void describe(Collection<String> candidateFormats) {
-        candidateFormats.add(String.format("Strings, valid case insensitive values: %s", CollectionUtils.toStringList(Arrays.asList(enumType.getEnumConstants()))));
+        if (type.isEnum()) {
+            final Enum[] enumConstants = (Enum[]) type.getEnumConstants();
+            for (Enum enumConstant : enumConstants) {
+                candidateFormats.add(enumConstant.name());
+            }
+        }
     }
 }
