@@ -1,23 +1,61 @@
 
-This specification defines some improvements to dependency management.
+This specification is a proposal for a deep reworking of the Gradle dependency management and publication model.
+
+# Why?
+
+* To come up with a concrete plan for solving dependency management problems for projects that are not simply 'build my jar' projects. For example,
+  projects that build and publish C/C++ binaries, Javascript libraries, and so on.
+* To provide a richer model that will allow projects to collaborate through the dependency management system, making these projects less coupled at
+  configuration time. This will allow us to introduce some nice performance and scalability features.
+* To allow Gradle to move beyond simply building things, and into release management, promotion, deployment and so on.
 
 # Use cases
 
 - Replace the old dependency result graph with one that is easier to use and consumes less heap space.
-- Plugin implements a custom component type.
+- Replace the old dependency result graph with one that better models dependency management.
+- Publish and resolve C and C++ libraries and executables.
+- Publish and resolve Android libraries and applications.
+- Publish and resolve Scala and Groovy libraries which target multiple incompatible Scala/Groovy language versions.
+- Publish and resolve some custom component type
+
+# Terminology
+
+## Software component
+
+A logical software component, such as a JVM library, a native executable, a Javascript library or a web application.
+
+## Component instance
+
+Some physical representation of a component. Most components are represented as more than one instance.
+
+From an abstract point of view, component instances are arranged in a multi-dimensional space. The dimensions might include:
+
+- Time, for a component which changes over time. This dimension is often represented by some version number or a source code revision.
+- Packaging, which is how the component is physically represented as files.
+- Target platform, which is where the instance can run. For example, on a java 6 vs java 8 JVM, or on a 64 bit Windows NT machine.
+- Build type, which is some non-functional dimension. For example, a debug development build vs an optimized release build.
+- Some component type specific dimensions.
+
+# Requirement
+
+Also known as a 'dependency', this is some description of some requirement of a component which must be satisfied by another component.
+
+# Module version
+
+A component instance with a (group, module, version) identifier. This is a backwards-compatibility concern.
 
 # Implementation plan
 
-## Story: Dependency resolution result produces a graph of components instead of a graph of module versions
+## Story: Dependency resolution result produces a graph of component instances instead of a graph of module versions
 
-Currently, dependency resolution effectively produces a graph of 'module versions'. There are a number of issues with this approach.
-One fundamental problem is that not all of the things that participate in dependency resolution are modules in a repository or
-are versioned. This series of stories changes dependency resolution so that it can deal with things which are not 'module versions'.
+Currently, the output of dependency resolution is effectively a graph of module versions. There are a number of issues with this approach.
+One fundamental problem is that not all of the things that participate in dependency resolution are modules in a repository nor
+are they necessarily all versioned. This series of stories changes dependency resolution so that it can deal with things which are not module versions.
 
-The approach here is to introduce the more general concept of a _component_ and base dependency resolution on this concept. Then, different
-types of components will be introduced to model the different kinds of things that participate in dependency resolution.
+The approach here is to introduce the more general concept of a component and base dependency resolution on this concept. Then, different
+types of components will later be introduced to model the different kinds of things that participate in dependency resolution.
 
-In this story, the dependency resolution result is changed so that it produces a graph of components, rather than a graph of module versions.
+In this story, the dependency resolution result is changed so that it produces a graph of component instances, rather than a graph of module versions.
 
 1. Rename `ResolvedModuleVersionResult` to `ResolvedComponentResult`.
     - Rename the `allModuleVersions` methods on `ResolutionResult` to `allComponents`.
@@ -48,10 +86,14 @@ In this story, the dependency resolution result is changed so that it produces a
 
 - Packages for the new types
 
-## Story: Dependency resolution result exposes local components
+## Story: Dependency resolution result exposes local component instances
 
-This story changes the dependency resolution result to distinguish between components that are produced by the build and those that are
-produced outside the build. This will allow IDE integrations to map dependencies by exposing this information about the source of a component.
+This story changes the dependency resolution model to distinguish between components that are produced by the build and those that are
+produced outside the build. This will allow IDE integrations to map dependencies by exposing this information about the source of a component
+instance.
+
+This story also changes the dependency resolution model so that local components are no longer identified using a (group, module, version)
+identifier. Instead, a local project path is used to identify these instances. For now, a local component is still considered a module version.
 
 1. Introduce a `BuildComponentIdentifier` type that extends `ComponentIdentifier` and add a private implementation.
     - `project` property
@@ -114,17 +156,16 @@ This will allow a consumer to extract the external and project components as fol
 
 This story changes the `idea` and `eclipse` plugins to use the resolution result to determine the IDE project classpath.
 
-- Change IdeDependenciesExtractor and JavadocAndSourcesDownloader to use the resolution result to determine the project and
+- Change `IdeDependenciesExtractor` and `JavadocAndSourcesDownloader` to use the resolution result to determine the project and
   external dependencies.
 
-## Story: Dependency resolution result exposes local components that are not published
+## Story: Dependency resolution result exposes local component instances that are not module versions
 
-This story changes the resolution result to distinguish between local components that are published and those that are not published.
-The main change in this story is expose the fact that a component may not necessarily have a module identifier, and may have multiple
-different kinds of identifiers.
+This story changes the resolution result to distinguish between local components that are not module versions. That is, components that do not
+have an associated (group, module, version) identifier.
 
 It introduces local and external identifiers for a component, and associates an external identifier only with those components that are published
-(or are to be published).
+or publishable.
 
 1. Change `ModuleVersionMetaData` to add a `ModuleComponentIdentifier getPublishedAs()`
     - Default is to return the same as `getComponentId()`
@@ -161,26 +202,26 @@ It introduces local and external identifiers for a component, and associates an 
 * Add Ivy and Maven specific ids and sources.
 * Rename and garbage internal types.
 
-## Story: GRADLE-2713/GRADLE-2678 Dependency resolution uses local component identity to when resolving project dependencies
+## Story: GRADLE-2713/GRADLE-2678 Dependency resolution uses local component identity when resolving project dependencies
 
-Currently, dependency management uses the module version (group, module, version) of the target of a project dependency to detect conflicts. However, the
-module version of a project is not necessarily unique. This leads to a number of problems:
+Currently, dependency management uses the module version identifier (group, module, version) of the target of a project dependency to detect conflicts.
+However, some projects do not have a meaningful module version identifier, and so one is assigned. The result is not always unique. This leads to a number of problems:
 
-- A project with a given module version depends on another project with the same module version.
-- A project depends on multiple projects with the same module version.
-- A project declares an external dependency on a module version, and a project dependency on a project with the same module version.
+- A project with a given module version identifier depends on another project with the same module version identifier.
+- A project depends on multiple projects with the same module version identifier.
+- A project declares an external dependency on a module version identifier, and a project dependency on a project with the same module version identifier.
 
 In all cases, the first dependency encountered during traversal determines which dependency is used. The other dependency is ignored. Clearly, this leads to
 very confusing behaviour.
 
-Instead, a project dependency will use the identity of the target project instead of its module version. The module version will be used to detect and resolve
-conflicts.
+Instead, a project dependency will use the identity of the target project instead of its generated module version. The module version, if assigned, will be used to
+detect and resolve conflicts.
 
 ### Open issues
 
 - Excludes should not apply to local components. This is a breaking change.
 
-## Story: Conflict resolution prefers local components over external components
+## Story: Conflict resolution prefers local components over other components
 
 When two components have conflicting external identifiers, select a local component.
 
