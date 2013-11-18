@@ -22,6 +22,14 @@ includes task type, path, description and available commandline options. To get 
     Description
          Initializes a new Gradle build. [incubating]
 
+<!-- TODO:DAZ Fill these in -->
+### Incremental compile for C++ (i)
+
+### Use Visual Studio to compile Windows Resources (i)
+
+### Fine-grained control of command line arguments for GCC (i)
+
+### Auto-detection of Visual Studio 2012 and Windows SDK 7.1A (i)
 
 ## Promoted features
 
