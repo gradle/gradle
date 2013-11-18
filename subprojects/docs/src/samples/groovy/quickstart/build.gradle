@@ -9,7 +9,7 @@ repositories {
 }
 
 dependencies {
-    compile 'org.codehaus.groovy:groovy-all:2.0.5'
+    compile 'org.codehaus.groovy:groovy-all:2.2.0'
 // END SNIPPET groovy-dependency
     testCompile 'junit:junit:4.11'
 // START SNIPPET groovy-dependency

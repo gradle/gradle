@@ -15,7 +15,7 @@ class PersonTest {
     }
 
     @Test public void usingCorrectVersionOfGroovy() {
-        assertEquals('2.0.5', GroovySystem.version)
+        assertEquals('2.2.0', GroovySystem.version)
     }
     
     @Test public void testResourcesAreAvailable() {
