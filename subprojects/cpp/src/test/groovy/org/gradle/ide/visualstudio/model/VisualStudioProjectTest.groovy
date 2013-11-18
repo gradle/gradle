@@ -29,7 +29,7 @@ import spock.lang.Specification
 
 class VisualStudioProjectTest extends Specification {
     def component = Mock(NativeComponent)
-    def vsProject = new VisualStudioProject(component, "Suffix")
+    def vsProject = new TestVisualStudioProject(component, "Suffix")
 
     def "names"() {
         when:
@@ -106,5 +106,16 @@ class VisualStudioProjectTest extends Specification {
         def sourceSet = Mock(DependentSourceSet)
         1 * sourceSet.libs >> libs
         return sourceSet
+    }
+
+    private static class TestVisualStudioProject extends VisualStudioProject {
+        TestVisualStudioProject(NativeComponent component, String nameSuffix) {
+            super(component, nameSuffix)
+        }
+
+        @Override
+        List<? extends VisualStudioProjectConfiguration> getConfigurations() {
+            return null
+        }
     }
 }

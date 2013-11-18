@@ -45,7 +45,7 @@ class SolutionFile extends AbstractPersistableConfigurationObject {
         outputStream << baseText
         vsProjects.each { VisualStudioProject vsProject ->
             outputStream << """
-Project("${uuid}") = "${vsProject.name}", "${vsProject.projectFile}", "${vsProject.uuid}"
+Project("${uuid}") = "${vsProject.getName()}", "${vsProject.getProjectFile()}", "${vsProject.getUuid()}"
 EndProject
 """
         }
