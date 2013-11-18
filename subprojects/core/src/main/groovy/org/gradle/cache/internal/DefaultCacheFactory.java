@@ -27,19 +27,22 @@ import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.util.*;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import static org.gradle.cache.internal.FileLockManager.LockMode;
 
 public class DefaultCacheFactory implements Factory<CacheFactory> {
     private final Map<File, DirCacheReference> dirCaches = new HashMap<File, DirCacheReference>();
     private final FileLockManager lockManager;
+    private final Lock lock = new ReentrantLock();
 
     public DefaultCacheFactory(FileLockManager fileLockManager) {
         this.lockManager = fileLockManager;
     }
 
     public CacheFactory create() {
-        return new CacheFactoryImpl();
+        return new LockingCacheFactory(new CacheFactoryImpl());
     }
 
     void onOpen(Object cache) {
@@ -49,8 +52,66 @@ public class DefaultCacheFactory implements Factory<CacheFactory> {
     }
 
     public void close() {
-        for (DirCacheReference dirCacheReference : dirCaches.values()) {
-            dirCacheReference.close();
+        lock.lock();
+        try {
+            for (DirCacheReference dirCacheReference : dirCaches.values()) {
+                dirCacheReference.close();
+            }
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private class LockingCacheFactory implements CacheFactory {
+        private final CacheFactoryImpl delegate;
+
+        private LockingCacheFactory(CacheFactoryImpl delegate) {
+            this.delegate = delegate;
+        }
+
+        public PersistentCache open(File cacheDir, String displayName, CacheUsage usage, CacheValidator cacheValidator, Map<String, ?> properties, LockOptions lockOptions, Action<? super PersistentCache> initializer) throws CacheOpenException {
+            lock.lock();
+            try {
+                return delegate.open(cacheDir, displayName, usage, cacheValidator, properties, lockOptions, initializer);
+            } finally {
+                lock.unlock();
+            }
+        }
+
+        public <K, V> PersistentIndexedCache<K, V> openIndexedCache(File cacheDir, CacheUsage usage, CacheValidator validator, Map<String, ?> properties, LockOptions lockOptions, Serializer<V> serializer) {
+            lock.lock();
+            try {
+                return delegate.openIndexedCache(cacheDir, usage, validator, properties, lockOptions, serializer);
+            } finally {
+                lock.unlock();
+            }
+        }
+
+        public <E> PersistentStateCache<E> openStateCache(File cacheDir, CacheUsage usage, CacheValidator validator, Map<String, ?> properties, LockOptions lockOptions, Serializer<E> serializer) {
+            lock.lock();
+            try {
+                return delegate.openStateCache(cacheDir, usage, validator, properties, lockOptions, serializer);
+            } finally {
+                lock.unlock();
+            }
+        }
+
+        public PersistentCache openStore(File storeDir, String displayName, LockOptions lockOptions, Action<? super PersistentCache> initializer) throws CacheOpenException {
+            lock.lock();
+            try {
+                return delegate.openStore(storeDir, displayName, lockOptions, initializer);
+            } finally {
+                lock.unlock();
+            }
+        }
+
+        public void close() {
+            lock.lock();
+            try {
+                delegate.close();
+            } finally {
+                lock.unlock();
+            }
         }
     }
 
