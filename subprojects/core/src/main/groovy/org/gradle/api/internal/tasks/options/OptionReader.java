@@ -66,12 +66,13 @@ public class OptionReader {
     private List<OptionElement> getFieldAnnotations(Class<?> type) {
         List<OptionElement> fieldOptionElements = new ArrayList<OptionElement>();
         for (Field field : type.getDeclaredFields()) {
-            if (!Modifier.isStatic(field.getModifiers())) {
-                Option option = field.getAnnotation(Option.class);
-                if (option != null) {
-
-                    fieldOptionElements.add(new FieldOptionElement(option, field));
+            Option option = field.getAnnotation(Option.class);
+            if (option != null) {
+                if (Modifier.isStatic(field.getModifiers())) {
+                    throw new OptionValidationException(String.format("Option on static field '%s' not supported in class '%s'.",
+                            field.getName(), field.getDeclaringClass().getName()));
                 }
+                fieldOptionElements.add(new FieldOptionElement(option, field));
             }
         }
         return fieldOptionElements;
@@ -80,12 +81,14 @@ public class OptionReader {
     private List<OptionElement> getMethodAnnotations(Class<?> type) {
         List<OptionElement> methodOptionElements = new ArrayList<OptionElement>();
         for (Method method : type.getDeclaredMethods()) {
-            if (!Modifier.isStatic(method.getModifiers())) {
-                Option option = method.getAnnotation(Option.class);
-                if (option != null) {
-                    final OptionElement methodOptionDescriptor = new MethodOptionElement(option, method);
-                    methodOptionElements.add(methodOptionDescriptor);
+            Option option = method.getAnnotation(Option.class);
+            if (option != null) {
+                if (Modifier.isStatic(method.getModifiers())) {
+                    throw new OptionValidationException(String.format("Option on static method '%s' not supported in class '%s'.",
+                            method.getName(), method.getDeclaringClass().getName()));
                 }
+                final OptionElement methodOptionDescriptor = new MethodOptionElement(option, method);
+                methodOptionElements.add(methodOptionDescriptor);
             }
         }
         return methodOptionElements;

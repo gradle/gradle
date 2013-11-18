@@ -72,13 +72,22 @@ class OptionReaderTest extends Specification {
         e.message == "Option 'stringValue' linked to multiple elements in class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$TestClass2'."
     }
 
-    def "ignores static methods and fields"() {
+    def "fails on static methods"() {
         when:
-        List<InstanceOptionDescriptor> options = reader.getOptions(new TestClass3())
+        reader.getOptions(new TestClass31())
         then:
-        options.isEmpty()
+        def e = thrown(OptionValidationException)
+        e.message == "Option on static method 'setStaticString' not supported in class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$TestClass31'."
     }
 
+    def "fails on static fields"() {
+        when:
+        reader.getOptions(new TestClass32())
+        then:
+        def e = thrown(OptionValidationException)
+        e.message == "Option on static field 'staticField' not supported in class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$TestClass32'."
+
+    }
 
     def "fail when parameter cannot be converted from the command-line"() {
         when:
@@ -196,10 +205,13 @@ class OptionReaderTest extends Specification {
         }
     }
 
-    public static class TestClass3{
+    public static class TestClass31{
         @Option(option = "staticString", description = "string value")
         public static void setStaticString(String value) {
         }
+    }
+
+    public static class TestClass32{
         @Option(description = "staticOption")
         static String staticField
     }
