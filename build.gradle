@@ -112,6 +112,8 @@ allprojects {
 
     repositories {
         maven { url 'http://repo.gradle.org/gradle/libs' }
+        //TODO jcenter should be remote repo in repo.gradle.org (aggregated in libs)
+        jcenter()
     }
 }
 

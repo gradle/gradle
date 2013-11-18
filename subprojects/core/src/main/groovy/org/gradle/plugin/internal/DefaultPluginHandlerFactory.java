@@ -30,10 +30,7 @@ import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.PluginAware;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.plugin.resolve.internal.AndroidPluginMapper;
-import org.gradle.plugin.resolve.internal.ModuleMappingPluginResolver;
-import org.gradle.plugin.resolve.internal.PluginRegistryPluginResolver;
-import org.gradle.plugin.resolve.internal.TomcatPluginMapper;
+import org.gradle.plugin.resolve.internal.*;
 
 public class DefaultPluginHandlerFactory implements PluginHandlerFactory {
 
@@ -73,6 +70,7 @@ public class DefaultPluginHandlerFactory implements PluginHandlerFactory {
         pluginHandler.getResolvers().add(new PluginRegistryPluginResolver(pluginRegistry));
         pluginHandler.getResolvers().add(new ModuleMappingPluginResolver("android plugin resolver", scriptClassLoader, createDependencyResolutionServices(), instantiator, new AndroidPluginMapper(), new JCenterRepositoryConfigurer()));
         pluginHandler.getResolvers().add(new ModuleMappingPluginResolver("tomcat plugin resolver", scriptClassLoader, createDependencyResolutionServices(), instantiator, new TomcatPluginMapper(), new JCenterRepositoryConfigurer()));
+        pluginHandler.getResolvers().add(new ModuleMappingPluginResolver("jcenter plugin resolver", scriptClassLoader, createDependencyResolutionServices(), instantiator, new JCenterPluginMapper(), new JCenterRepositoryConfigurer()));
     }
 
     private DependencyResolutionServices createDependencyResolutionServices() {
