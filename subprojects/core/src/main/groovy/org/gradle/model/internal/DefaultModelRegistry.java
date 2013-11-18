@@ -37,6 +37,7 @@ public class DefaultModelRegistry implements ModelRegistry {
     private final Multimap<ModelPath, ModelMutation<?>> mutators = ArrayListMultimap.create();
     private final Multimap<ModelPath, ImmutableList<ModelPath>> usedMutators = ArrayListMultimap.create();
     private final Multimap<ModelPath, ModelMutation<?>> finalizers = ArrayListMultimap.create();
+    private final Multimap<ModelPath, ImmutableList<ModelPath>> usedFinalizers = ArrayListMultimap.create();
 
     private final List<ModelCreationListener> modelCreationListeners = new LinkedList<ModelCreationListener>();
 
@@ -130,7 +131,9 @@ public class DefaultModelRegistry implements ModelRegistry {
         Transformer<ImmutableList<ModelPath>, ImmutableList<ModelPath>> passThrough = Transformers.noOpTransformer();
 
         return hasModelPath(candidate, mutators.values(), extractInputPaths)
-                || hasModelPath(candidate, usedMutators.values(), passThrough);
+                || hasModelPath(candidate, usedMutators.values(), passThrough)
+                || hasModelPath(candidate, finalizers.values(), extractInputPaths)
+                || hasModelPath(candidate, usedFinalizers.values(), passThrough);
     }
 
     private <T> boolean hasModelPath(ModelPath candidate, Iterable<T> things, Transformer<? extends Iterable<ModelPath>, T> transformer) {
@@ -165,6 +168,8 @@ public class DefaultModelRegistry implements ModelRegistry {
         modelMutations = finalizers.removeAll(path);
         for (ModelMutation modelMutation : modelMutations) {
             fireMutation(model, modelMutation);
+            @SuppressWarnings("unchecked") ImmutableList<ModelPath> inputPaths = modelMutation.getInputPaths();
+            usedFinalizers.put(path, inputPaths);
         }
 
         // close all the child objects
