@@ -22,8 +22,6 @@ import java.util.List;
 public class MethodOptionElement extends AbstractOptionElement {
 
     private final Method method;
-    private List<String> availableValues;
-    private Class<?> optionType;
 
     public MethodOptionElement(Option option, Method method) {
         super(option.option(), option, method.getDeclaringClass());
@@ -50,18 +48,6 @@ public class MethodOptionElement extends AbstractOptionElement {
 
     public Class<?> getDeclaredClass() {
         return method.getDeclaringClass();
-    }
-
-    public List<String> getAvailableValues() {
-        //calculate list lazy to avoid overhead upfront
-        if (availableValues == null) {
-            availableValues = calculdateAvailableValues(optionType);
-        }
-        return availableValues;
-    }
-
-    public Class<?> getOptionType() {
-        return optionType;
     }
 
     public String getElementName() {

@@ -24,7 +24,6 @@ import java.util.List;
 public class FieldOptionElement extends AbstractOptionElement {
 
     private final Field field;
-    private List<String> availableValues;
     private Class<?> optionType;
 
     public FieldOptionElement(Option option, Field field) {
@@ -75,15 +74,6 @@ public class FieldOptionElement extends AbstractOptionElement {
     public Class<?> getDeclaredClass() {
         return field.getDeclaringClass();
     }
-
-    public List<String> getAvailableValues() {
-        //calculate list lazy to avoid overhead upfront
-        if (availableValues == null) {
-            availableValues = calculdateAvailableValues(field.getType());
-        }
-        return availableValues;
-    }
-
 
     public void apply(Object object, List<String> parameterValues) {
         if (optionType == Void.TYPE && parameterValues.size() == 0) {

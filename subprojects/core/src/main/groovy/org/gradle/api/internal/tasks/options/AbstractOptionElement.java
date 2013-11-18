@@ -29,10 +29,24 @@ import java.util.List;
 abstract class AbstractOptionElement implements OptionElement {
     private final String optionName;
     private final String description;
+    private List<String> availableValues;
+    protected Class<?> optionType;
 
     public AbstractOptionElement(String optionName, Option option, Class<?> declaringClass) {
         this.description = readDescription(option, optionName, declaringClass);
         this.optionName = optionName;
+    }
+
+    public List<String> getAvailableValues() {
+        //calculate list lazy to avoid overhead upfront
+        if (availableValues == null) {
+            availableValues = calculdateAvailableValues(getOptionType());
+        }
+        return availableValues;
+    }
+
+    public Class<?> getOptionType() {
+        return optionType;
     }
 
     private String readDescription(Option option, String optionName, Class<?> declaringClass) {
