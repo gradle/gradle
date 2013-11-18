@@ -198,7 +198,7 @@ class GradlePomModuleDescriptorParserTest extends Specification {
         hasDefaultDependencyArtifact(dep)
     }
 
-    def "fails to resolve dependency if parent pom dependency management section to does not provide default values"() {
+    def "throws exception if parent pom dependency management section to does not provide default values for dependency"() {
         given:
         def parent = tmpDir.file("parent.xml") << """
 <project>
@@ -245,15 +245,12 @@ class GradlePomModuleDescriptorParserTest extends Specification {
         parseContext.getArtifact(_) >> { new DefaultLocallyAvailableExternalResource(parent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(parent)) }
 
         when:
-        def descriptor = parsePom()
+        parsePom()
 
         then:
-        descriptor.dependencies.length == 1
-        def dep = descriptor.dependencies.first()
-        dep.dependencyRevisionId.organisation == 'group-two'
-        dep.dependencyRevisionId.name == 'artifact-two'
-        dep.dependencyRevisionId.revision != '1.2'
-        hasDefaultDependencyArtifact(dep)
+        Throwable t = thrown(MetaDataParseException)
+        t.cause instanceof UnresolvedDependencyVersionException
+        t.cause.message == "Unable to resolve version for dependency 'group-two:artifact-two'"
     }
 
     def "uses parent pom dependency management section to provide default values for a dependency"() {
@@ -1716,7 +1713,7 @@ class GradlePomModuleDescriptorParserTest extends Specification {
     }
 
     @Issue("GRADLE-2931")
-    def "fails to resolve dependency if parent dependency management doesn't provide correct defaults"() {
+    def "throws exception if parent dependency management doesn't provide correct defaults for dependency"() {
         given:
         def parent = tmpDir.file("parent.xml") << """
 <project>
@@ -1769,18 +1766,12 @@ class GradlePomModuleDescriptorParserTest extends Specification {
         parseContext.getArtifact({it.id.moduleVersionIdentifier.name == 'parent' }) >> { new DefaultLocallyAvailableExternalResource(parent.toURI().toURL().toString(), new DefaultLocallyAvailableResource(parent)) }
 
         when:
-        def descriptor = parsePom()
+        parsePom()
 
         then:
-        descriptor.dependencies.length == 2
-        def depCompile = descriptor.dependencies[0]
-        depCompile.dependencyRevisionId == moduleId('group-two', 'artifact-two', '1.1')
-        depCompile.moduleConfigurations == ['compile', 'runtime']
-        hasDefaultDependencyArtifact(depCompile)
-        def depTest = descriptor.dependencies[1]
-        depTest.dependencyRevisionId != moduleId('group-two', 'artifact-two', '1.1')
-        depTest.moduleConfigurations == ['test']
-        hasDependencyArtifact(depTest, 'artifact-two', 'test-jar', 'jar', 'tests')
+        Throwable t = thrown(MetaDataParseException)
+        t.cause instanceof UnresolvedDependencyVersionException
+        t.cause.message == "Unable to resolve version for dependency 'group-two:artifact-two'"
     }
 
     @Issue("GRADLE-2931")
