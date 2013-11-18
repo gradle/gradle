@@ -80,45 +80,44 @@ Test implements PatternFilterable, which declares the exact behavior of include 
 
 2. Introduce new dsl - various ideas all lumped together
 
-
     test {
-      selection {
-        //using 'include' wording here could make it confusing with test.include
-        select "**/Foo*#someOtherMethod", "**/Foo*#someMethod"
-        selections = []
+        selection {
+            //using 'include' wording here could make it confusing with test.include
+            select "**/Foo*#someOtherMethod", "**/Foo*#someMethod"
+            selections = []
 
-        //in/out
-        in "**/Foo*#someOtherMethod", "**/Foo*#someMethod"
-        out "**/Foo*#someOtherMethod", "**/Foo*#someMethod"
+            //in/out
+            in "**/Foo*#someOtherMethod", "**/Foo*#someMethod"
+            out "**/Foo*#someOtherMethod", "**/Foo*#someMethod"
 
-        //if we deprecate test.include, we could do
-        include "**/Foo*#someOtherMethod", "**/Foo*#someMethod"
-        includes = []
+            //if we deprecate test.include, we could do
+            include "**/Foo*#someOtherMethod", "**/Foo*#someMethod"
+            includes = []
 
-        //keep method selection separate
-        includeMethod
-        includeMethods = []
+            //keep method selection separate
+            includeMethod
+            includeMethods = []
 
-        include {
-          method
-          methods = []
+            include {
+                method
+                methods = []
+            }
+
+            //some other elements we could add in future
+            exclude
+            excludes = []
+
+            unselect
+            unselections = []
+
+            include {
+                descendantsOf 'com.foo.SomeBaseClass'
+                annotatedWith 'com.foo.Slow'
+                matching { descriptor, testClass ->
+                    //...
+                }
+            }
         }
-
-        //some other elements we could add in future
-        exclude
-        excludes = []
-
-        unselect
-        unselections = []
-
-        include {
-          descendantsOf 'com.foo.SomeBaseClass'
-          annotatedWith 'com.foo.Slow'
-          matching { descriptor, testClass ->
-            //...
-          }
-        }
-      }
     }
 
 Then add consistent commandline support, e.g.
