@@ -23,7 +23,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-public class EnumFromStringNotationParser<T extends Enum<T>> extends TypedNotationParser<CharSequence, T> {
+public class EnumFromStringNotationParser<T extends Object> extends TypedNotationParser<CharSequence, T> {
+
     private final Class<T> enumType;
 
     public EnumFromStringNotationParser(Class<T> enumType){
@@ -33,22 +34,27 @@ public class EnumFromStringNotationParser<T extends Enum<T>> extends TypedNotati
 
     @Override
     protected T parseType(CharSequence notation) {
-        final String enumString = notation.toString();
-        List<T> enumConstants = Arrays.asList(enumType.getEnumConstants());
-        T match = CollectionUtils.findFirst(enumConstants, new Spec<T>() {
-            public boolean isSatisfiedBy(T enumValue) {
-                return enumValue.name().equalsIgnoreCase(enumString);
+        if(enumType.isEnum()) {
+            final String enumString = notation.toString();
+            List<T> enumConstants = Arrays.asList(enumType.getEnumConstants());
+            T match = CollectionUtils.findFirst(enumConstants, new Spec<T>() {
+                public boolean isSatisfiedBy(T enumValue) {
+                    return ((Enum)enumValue).name().equalsIgnoreCase(enumString);
+                }
+            });
+            if (match == null) {
+                throw new TypeConversionException(
+                        String.format("Cannot coerce string value '%s' to an enum value of type '%s' (valid case insensitive values: %s)",
+                                enumString, enumType.getName(), CollectionUtils.toStringList(Arrays.asList(enumType.getEnumConstants()))
+                        )
+                );
+            } else {
+                return match;
             }
-        });
-        if (match == null) {
-            throw new TypeConversionException(
-                    String.format("Cannot coerce string value '%s' to an enum value of type '%s' (valid case insensitive values: %s)",
-                            enumString, enumType.getName(), CollectionUtils.toStringList(Arrays.asList(enumType.getEnumConstants()))
-                    )
-            );
-        } else {
-            return match;
+        }else{
+            throw new UnsupportedNotationException("type must be an Enum");
         }
+
     }
 
     public void describe(Collection<String> candidateFormats) {

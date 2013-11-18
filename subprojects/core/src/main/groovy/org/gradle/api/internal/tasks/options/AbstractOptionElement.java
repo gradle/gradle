@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.tasks.options;
 
-import org.gradle.internal.typeconversion.EnumFromStringNotationParser;
-import org.gradle.internal.typeconversion.NotationParser;
+import org.gradle.internal.typeconversion.FromStringNotationParser;
 import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.internal.reflect.JavaReflectionUtil;
+import org.gradle.internal.typeconversion.NotationParser;
 
 import java.lang.annotation.IncompleteAnnotationException;
 import java.lang.reflect.Method;
@@ -58,11 +58,8 @@ abstract class AbstractOptionElement implements OptionElement {
     }
 
     protected Object getParameterObject(String value) {
-        if (getOptionType().isEnum()) {
-            NotationParser<? extends Enum> parser = new EnumFromStringNotationParser(getOptionType());
-            return parser.parseNotation(value);
-        }
-        return value;
+        NotationParser<?> notationParser = new FromStringNotationParser(getOptionType());
+        return notationParser.parseNotation(value);
     }
 
     protected Class<?> calculateOptionType(Class<?> type) {
