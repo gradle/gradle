@@ -69,7 +69,6 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
 """
 
         and:
-        executer.withArgument("--debug")
         succeeds "buildExecutables"
 
         then:
