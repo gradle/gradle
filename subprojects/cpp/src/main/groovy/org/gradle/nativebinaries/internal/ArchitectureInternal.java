@@ -31,4 +31,8 @@ public interface ArchitectureInternal extends Architecture {
     boolean isAmd64();
 
     boolean isIa64();
+
+    boolean isArm();
+
+    boolean isArmv8();
 }

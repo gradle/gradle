@@ -49,4 +49,12 @@ public class DefaultArchitecture implements ArchitectureInternal {
     public boolean isIa64() {
         return instructionSet == InstructionSet.ITANIUM && registerSize == 64;
     }
+
+    public boolean isArm() {
+        return instructionSet == InstructionSet.ARM && registerSize == 32;
+    }
+
+    public boolean isArmv8() {
+        return instructionSet == InstructionSet.ARM && registerSize == 64;
+    }
 }

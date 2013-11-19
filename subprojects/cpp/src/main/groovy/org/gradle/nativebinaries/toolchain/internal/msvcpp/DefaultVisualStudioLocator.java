@@ -24,6 +24,26 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DefaultVisualStudioLocator implements VisualStudioLocator {
+    private static final String COMPILER_PATH = "VC/bin/";
+    private static final String COMPILER_FILENAME = "cl.exe";
+    private static final String RESOURCE_PATH = "bin/";
+    private static final String RESOURCE_PATH_WINSDK8 = "bin/x86/";
+    private static final String RESOURCE_FILENAME = "rc.exe";
+    private static final String KERNEL32_PATH = "lib/";
+    private static final String KERNEL32_PATH_WINSDK8 = "lib/winv6.3/um/x86/";
+    private static final String KERNEL32_FILENAME = "kernel32.lib";
+    private static final String[] VISUALSTUDIO_PATHS = {
+        "/Microsoft Visual Studio 12.0",
+        "/Microsoft Visual Studio 11.0",
+        "/Microsoft Visual Studio 10.0"
+    };
+    private static final String[] WINDOWSSDK_PATHS = {
+        "Windows Kits/8.1",
+        "Microsoft SDKs/Windows/v7.1A",
+        "Microsoft SDKs/Windows/v7.1",
+        "Microsoft SDKs/Windows/v7.0A"
+    };
+
     private final OperatingSystem os;
 
     public DefaultVisualStudioLocator() {
@@ -41,20 +61,18 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
     public Search locateDefaultVisualStudio() {
         Spec<File> isVisualStudio = isVisualStudio();
         // If cl.exe is on the path, assume it is contained within a visual studio install
-        File compilerInPath = os.findInPath("cl.exe");
+        File compilerInPath = os.findInPath(COMPILER_FILENAME);
         if (compilerInPath != null) {
             return locateInHierarchy(compilerInPath, isVisualStudio);
         }
 
-        return locateInProgramFiles(isVisualStudio,
-                "/Microsoft Visual Studio 11.0",
-                "/Microsoft Visual Studio 10.0");
+        return locateInProgramFiles(isVisualStudio, VISUALSTUDIO_PATHS);
     }
 
     private Spec<File> isVisualStudio() {
         return new Spec<File>() {
             public boolean isSatisfiedBy(File element) {
-                return new File(element, "VC/bin/cl.exe").isFile();
+                return new File(element, COMPILER_PATH + COMPILER_FILENAME).isFile();
             }
         };
     }
@@ -65,15 +83,12 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
 
     public Search locateDefaultWindowsSdk() {
         // If rc.exe is on the path, assume it is contained within a Windows SDK
-        File resourceCompilerInPath = os.findInPath("rc.exe");
+        File resourceCompilerInPath = os.findInPath(RESOURCE_FILENAME);
         if (resourceCompilerInPath != null) {
             return locateInHierarchy(resourceCompilerInPath, isWindowsSdk());
         }
 
-        return locateInProgramFiles(isWindowsSdk(),
-                "Microsoft SDKs/Windows/v7.1A",
-                "Microsoft SDKs/Windows/v7.1",
-                "Microsoft SDKs/Windows/v7.0A");
+        return locateInProgramFiles(isWindowsSdk(), WINDOWSSDK_PATHS);
     }
 
     private Spec<File> isWindowsSdk() {
@@ -85,7 +100,8 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
     }
 
     private boolean isWindowsSdk(File candidate) {
-        return new File(candidate, "bin/rc.exe").isFile() && new File(candidate, "lib/kernel32.lib").isFile();
+        return (new File(candidate, RESOURCE_PATH + RESOURCE_FILENAME).isFile() || new File(candidate, RESOURCE_PATH_WINSDK8 + RESOURCE_FILENAME).isFile())
+            && (new File(candidate, KERNEL32_PATH + KERNEL32_FILENAME).isFile() || new File(candidate, KERNEL32_PATH_WINSDK8 + KERNEL32_FILENAME).isFile());
     }
 
     private Search locateInProgramFiles(Spec<File> condition, String... candidateLocations) {
