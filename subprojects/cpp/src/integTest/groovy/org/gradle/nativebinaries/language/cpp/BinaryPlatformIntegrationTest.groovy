@@ -57,7 +57,6 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
                     architecture "ia-64"
                 }
                 arm {
-                    // ARM is not yet supported on any tool chain
                     architecture "arm"
                 }
             }
@@ -92,8 +91,13 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
             executable("build/binaries/mainExecutable/itanium/main").assertDoesNotExist()
         }
 
-        // ARM not supported on any platform
-        executable("build/binaries/mainExecutable/arm/main").assertDoesNotExist()
+        // ARM only supported on visualCpp 2013
+        if (toolChain.visualCpp && toolChain.version == "2013") {
+            executable("build/binaries/mainExecutable/arm/main").binaryInfo.arch.name == "arm"
+            binaryInfo(objectFile("build/objectFiles/mainExecutable/arm/mainCpp/main")).arch.name == "arm"
+        } else {
+            executable("build/binaries/mainExecutable/arm/main").assertDoesNotExist()
+        }
     }
 
     def "can configure binary for multiple target operating systems"() {

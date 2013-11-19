@@ -107,9 +107,10 @@ public class AvailableToolChains {
         }
 
         VisualStudioLocator vsLocator = new DefaultVisualStudioLocator();
-        File visualStudioDir = vsLocator.locateDefaultVisualStudio().getResult();
+        VisualStudioLocator.SearchResult searchResult = vsLocator.locateDefaultVisualStudio();
+        File visualStudioDir = searchResult.getResult();
         if (visualStudioDir != null) {
-            VisualStudioInstall install = new VisualStudioInstall(visualStudioDir);
+            VisualStudioInstall install = new VisualStudioInstall(visualStudioDir, searchResult.getVersion());
             return new InstalledVisualCpp("visual c++").withInstall(install);
         }
 
@@ -308,6 +309,7 @@ public class AvailableToolChains {
     }
 
     public static class InstalledVisualCpp extends InstalledToolChain {
+        private String version;
         private File installDir;
 
         public InstalledVisualCpp(String name) {
@@ -317,6 +319,7 @@ public class AvailableToolChains {
         public InstalledVisualCpp withInstall(VisualStudioInstall install) {
             DefaultPlatform targetPlatform = new DefaultPlatform("default", ArchitectureNotationParser.parser(), OperatingSystemNotationParser.parser());
             installDir = install.getVisualStudioDir();
+            version = install.getVisualStudioVersion();
             pathEntries.add(install.getVisualCppBin(targetPlatform));
             pathEntries.add(install.getCommonIdeBin());
             return this;
@@ -342,6 +345,10 @@ public class AvailableToolChains {
 
         public boolean isVisualCpp() {
             return true;
+        }
+
+        public String getVersion() {
+            return version;
         }
 
         @Override

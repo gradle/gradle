@@ -32,10 +32,10 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
     private static final String KERNEL32_PATH = "lib/";
     private static final String KERNEL32_PATH_WINSDK8 = "lib/winv6.3/um/x86/";
     private static final String KERNEL32_FILENAME = "kernel32.lib";
-    private static final String[] VISUALSTUDIO_PATHS = {
-        "/Microsoft Visual Studio 12.0",
-        "/Microsoft Visual Studio 11.0",
-        "/Microsoft Visual Studio 10.0"
+    private static final VersionLookupPath[] VISUALSTUDIO_PATHS = {
+        new VersionLookupPath("/Microsoft Visual Studio 12.0", VisualStudioVersion.VS_2013),
+        new VersionLookupPath("/Microsoft Visual Studio 11.0", VisualStudioVersion.VS_2012),
+        new VersionLookupPath("/Microsoft Visual Studio 10.0", VisualStudioVersion.VS_2010)
     };
     private static final String[] WINDOWSSDK_PATHS = {
         "Windows Kits/8.1",
@@ -116,6 +116,18 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
         return search;
     }
 
+    private Search locateInProgramFiles(Spec<File> condition, VersionLookupPath... candidateLocations) {
+        Search search = new Search();
+        for (VersionLookupCandidate candidate : programFileCandidates(candidateLocations)) {
+            if (condition.isSatisfiedBy(candidate.file)) {
+                search.found(candidate);
+                break;
+            }
+            search.notFound(candidate.file);
+        }
+        return search;
+    }
+
     private List<File> programFileCandidates(String... candidateDirectory) {
         String[] programFilesDirectories;
 
@@ -138,6 +150,16 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
         return candidates;
     }
 
+    private List<VersionLookupCandidate> programFileCandidates(VersionLookupPath... candidateDirectory) {
+        List<VersionLookupCandidate> candidates = new ArrayList<VersionLookupCandidate>(candidateDirectory.length * 2);
+        for (VersionLookupPath candidateLocation : candidateDirectory) {
+            for (File file : programFileCandidates(candidateLocation.path)) {
+                candidates.add(new VersionLookupCandidate(file, candidateLocation.version));
+            }
+        }
+        return candidates;
+    }
+
     private Search locateInHierarchy(File candidate, Spec<File> condition) {
         Search search = new Search();
         while (candidate != null) {
@@ -151,12 +173,39 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
         return search;
     }
 
+    private static class VersionLookupPath {
+        String path;
+        String version;
+
+        public VersionLookupPath(String path, String version) {
+            this.path = path;
+            this.version = version;
+        }
+
+    }
+ 
+    private static class VersionLookupCandidate {
+        File file;
+        String version;
+
+        public VersionLookupCandidate(File file, String version) {
+            this.file = file;
+            this.version = version;
+        }
+
+    }
+
     public class Search implements SearchResult {
+        private String version;
         private File file;
         private List<File> searchLocations = new ArrayList<File>();
 
         public boolean isFound() {
             return file != null;
+        }
+
+        public String getVersion() {
+            return version;
         }
 
         public File getResult() {
@@ -173,6 +222,11 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
 
         void found(File candidate) {
             this.file = candidate;
+        }
+
+        void found(VersionLookupCandidate candidate) {
+            this.file = candidate.file;
+            this.version = candidate.version;
         }
     }
 }

@@ -13,27 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.nativebinaries.toolchain.internal.msvcpp;
 
-import java.io.File;
-import java.util.List;
-
-public interface VisualStudioLocator {
-    SearchResult locateVisualStudio(File candidate);
-
-    SearchResult locateDefaultVisualStudio();
-
-    SearchResult locateWindowsSdk(File candidate);
-
-    SearchResult locateDefaultWindowsSdk();
-
-    interface SearchResult {
-        String getVersion();
-
-        boolean isFound();
-
-        File getResult();
-
-        List<File> getSearchLocations();
-    }
+public class VisualStudioVersion {
+    public static final String VS_2010 = "2010";
+    public static final String VS_2012 = "2012";
+    public static final String VS_2013 = "2013";
 }

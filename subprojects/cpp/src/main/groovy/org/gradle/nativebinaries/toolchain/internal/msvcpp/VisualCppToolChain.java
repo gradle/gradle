@@ -72,6 +72,11 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
         }
     }
 
+    private VisualStudioInstall locateVisualStudioInstall() {
+        VisualStudioLocator.SearchResult searchResult = locateVisualStudio();
+        return new VisualStudioInstall(searchResult.getResult(), searchResult.getVersion());
+    }
+
     private VisualStudioLocator.SearchResult locateVisualStudio() {
         if (installDir != null) {
             return visualStudioLocator.locateVisualStudio(installDir);
@@ -105,33 +110,19 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
     public PlatformToolChain target(Platform targetPlatform) {
         checkAvailable();
         checkPlatform(targetPlatform);
-
-        VisualStudioInstall visualStudioInstall = new VisualStudioInstall(locateVisualStudio().getResult());
+        VisualStudioInstall visualStudioInstall = locateVisualStudioInstall();
         WindowsSdk windowsSdk = new WindowsSdk(locateWindowsSdk().getResult());
         return new VisualCppPlatformToolChain(visualStudioInstall, windowsSdk, targetPlatform);
     }
 
     private void checkPlatform(Platform targetPlatform) {
-        ArchitectureInternal targetArch = (ArchitectureInternal) targetPlatform.getArchitecture();
-        org.gradle.nativebinaries.OperatingSystem targetOs = targetPlatform.getOperatingSystem();
-
-        if (!targetOs.isWindows() || !isSupportedArchitecture(targetArch)) {
+        if (!canTargetPlatform(targetPlatform)) {
             throw new IllegalStateException(String.format("Tool chain %s cannot build for platform: %s", getName(), targetPlatform.getName()));
         }
     }
 
     public boolean canTargetPlatform(Platform targetPlatform) {
-        org.gradle.nativebinaries.OperatingSystem targetOs = targetPlatform.getOperatingSystem();
-        ArchitectureInternal targetArch = (ArchitectureInternal) targetPlatform.getArchitecture();
-
-        return targetOs.isWindows() && isSupportedArchitecture(targetArch);
-    }
-
-    private boolean isSupportedArchitecture(ArchitectureInternal targetArch) {
-        return targetArch == ArchitectureInternal.TOOL_CHAIN_DEFAULT
-                || targetArch.isI386()
-                || targetArch.isAmd64()
-                || targetArch.isIa64();
+        return locateVisualStudioInstall().isSupportedPlatform(targetPlatform);
     }
 
     @Override
