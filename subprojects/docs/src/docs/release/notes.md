@@ -78,7 +78,8 @@ TBD
 We would like to thank the following community members for making contributions to this release of Gradle.
 
 * [Christo Zietsman](https://github.com/czietsman) - added support for locating the Visual Studio 2012 tool set
-* [Andrew Oberstar](https://github.com/ajoberstar) - Fix GRADLE-2695: ClassFormatError introduced in 1.3
+* [Andrew Oberstar](https://github.com/ajoberstar) - fixed GRADLE-2695: ClassFormatError introduced in 1.3
+* [Bobby Warner](https://github.com/ajoberstar) - updated Groovy samples to Groovy 2.2.0
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
