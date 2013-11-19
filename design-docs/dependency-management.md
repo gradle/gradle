@@ -62,18 +62,18 @@ In this story, the dependency resolution result is changed so that it produces a
 2. Rename `ModuleVersionSelectionReason` to `ComponentSelectionReason`.
 3. Introduce a `org.gradle.api.artifacts.component.ComponentIdentifier` type.
     - `displayName` property returns some arbitrary human-consumable value.
-4. Introduce a `ModuleComponentIdentifier` type that extends `ComponentIdentifier` and add a private implementation.
+4. Introduce a `ModuleComponentIdentifier` type that extends `ComponentIdentifier` and add an internal implementation.
     - `group` property
     - `name` property
     - `version` property
 5. Introduce a `org.gradle.api.artifacts.component.ComponentSelector` type.
     - `displayName` property returns some arbitrary human-consumable value.
-6. Introduce a `ModuleComponentSelector` type that extends `ComponentSelector` and add a private implementation.
+6. Introduce a `ModuleComponentSelector` type that extends `ComponentSelector` and add an internal implementation.
     - `group` property
     - `name` property
     - `version` property
 7. Change `ResolvedComponentResult`:
-    - Change `getId()` to return a `ComponentIdentifier`. Implementation should implement `ModuleComponentIdentifier`.
+    - Change `getId()` to return a `ComponentIdentifier`. Implementation should return a `ModuleComponentIdentifier` implementation.
     - Add `ModuleComponentIdentifier getPublishedAs()`. Mark method as `@Nullable`. Implementation should return the same as
       value as `getId()` (for now).
 8. Change the methods of `DependencyResult` and `UnresolvedDependencyResult` to use `ComponentSelector` instead of `ModuleVersionSelector`.
@@ -97,7 +97,7 @@ This story also changes the dependency resolution model so that local component 
 path will be used to identify these instances. For now, every local component instance will have an associated (group, module, version) identifier.
 
 1. Introduce a `BuildComponentIdentifier` type that extends `ComponentIdentifier` and add a private implementation.
-    - `project` property
+    - `project` property, as the project path.
     - `displayName` should be something like `project :path`.
 2. Change `ModuleVersionMetaData` to add a `ComponentIdentifier getComponentId()` method.
     - Default should be a `ModuleComponentIdentifier` with the same attributes as `getId()`.
@@ -107,11 +107,11 @@ path will be used to identify these instances. For now, every local component in
     - `getPublishedAs()` returns a `ModuleComponentIdentifier` with the same attributes as `ModuleVersionMetaData.getId()`.
     - Add `<T extends ComponentIdentifier> T getId(Class<T> type)` that returns an id of the requested type.
 4. Introduce `BuildComponentSelector` type that extends `ComponentSelector` and add a private implementation.
-    - `project` property
+    - `project` property, as the project path.
 5. Change `DependencyMetaData` to add a `ComponentSelector getSelector()`
     - Default should be a `ModuleComponentSelector` with the same attributes as `getRequested()`.
     - For project dependencies this should return a `BuildComponentSelector` instance.
-4. Change the dependency reports so that they render both `id` and `publishedAs` when they are not the equal.
+6. Change the dependency reports so that they render both `id` and `publishedAs` when they are not the equal.
 
 This will allow a consumer to extract the external and project components as follows:
 
@@ -142,16 +142,45 @@ This will allow a consumer to extract the external and project components as fol
         - `publishedAs` == `id`.
         - `getId(ModuleComponentIdentifier) == id`
         - `getId(BuildComponentIdentifier) == null`
+
+### Open issues
+
+- Replace `publishedAs()` with something more general such as `getModuleVersionIdentifier()`, as this id is the maven/ivy domain identifier for the component regardless
+  of whether it happens to be publishable
+- Convenience for casting selector and id?
+- Convenience for selecting things with a given id type or selector type?
+
+## Story: Dependency reports indicate the source of a component
+
+The dependency reporting will change to give some indication of the source of the component:
+
+For an external component instance, this will be unchanged:
+
++- group:name:1.2
++- group:other:1.3 -> group:other:1.3.1
+
+For a local component that is not a module version, this will look something like:
+
++- project :some:path
++- project :some:path -> group:other:1.2
+
+For a local component that is a module version, this will look something like
+
++- project :some:path (group:name:1.2)
++- project :some:path (group:name:1.2) -> group:other:1.2
+
+1. Change the `RenderableDependency` hierarchy to use the component id and publishedAs id.
+2. Update the the dependency report tests as appropriate.
+
+The HTML report should change in a similar way.
+
+### Open issues
+
 - Ensure there is coverage for the dependency report and the dependency HTML report where
     - There are project dependencies in the graph
 - Ensure there is coverage for the dependency insight report where:
     - There are project dependencies in the graph
     - There are project dependencies in the graph and the `--dependency` option is used.
-
-### Open issues
-
-- Convenience for casting selector and id?
-- Convenience for selecting things with a given id type or selector type?
 
 ## Story: IDE plugins use dependency resolution result to determine IDE classpaths
 
@@ -254,21 +283,31 @@ reports.
 - Introduce a new type of component identifier to represent a file-only component.
 - Update reporting to understand this kind of component identifier.
 
-## Story: Plugin contributes a local component type
+## Story: Plugin contributes a component type implementation
 
-Allow a plugin to contribute a local component instance to component meta-data conversion.
+Allow a plugin to contribute a component type implementation, which is responsible for defining some component type. For this story, the definition is
+responsible for extracting the component meta-data from some local component instance. Later stories will generalise this to make the definition
+reusable for other purposes, such as publishing.
 
-- Use this in the native binary plugins to convert native library and binary instances to meta-data
+- Use this in the native binary plugins to convert native library and binary instances to meta-data.
+
+### Open issues
+
+- Add some way to influence the target of a project dependency
+- Generalise so that the meta-data model can be reused for publishing and resolving external components
+    - Version the model
+- Detangle the usage context from the dependency implementation and pass through to the resolvers
+    - Needs to be considered when caching stuff
+- Add some sugar to infer the meta-data model from some static types
+- Expose the component instance graph from the new requirements API
+- Remove `NativeDependencySet` and `LibraryResolver` interfaces
+- Replace the existing headers and files configurations
 
 ## Story: Conflict resolution prefers local components over other components
 
 When two components have conflicting external identifiers, select a local component.
 
 Note: This is a breaking change.
-
-## Story: Select target component for a project dependency
-
-Introduce some mechanism for a component type implementation to influence which component from the target project is selected for a project dependency.
 
 ## Story: Generate and publish component meta-data artifact
 
