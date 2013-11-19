@@ -84,10 +84,7 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
                     pomReader.getParentArtifactId(),
                     pomReader.getParentVersion());
             parentDescr = parseOtherPom(parserSettings, parentModRevID);
-            Map<String, String> parentPomProps = parentDescr.getProperties();
-            for (Map.Entry<String, String> entry : parentPomProps.entrySet()) {
-                pomReader.setProperty(entry.getKey(), entry.getValue());
-            }
+            pomReader.setPomParent(parentDescr);
         }
         pomReader.resolveGAV();
 
@@ -133,17 +130,16 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
                 mdBuilder.addDependency(dd);
             }
         } else {
-            if (parentDescr != null) {
-
-                pomReader.addInheritedDependencyMgts(parentDescr.getDependencyMgt());
-                pomReader.addInheritedDependencies(parentDescr.getDependencies());
-            }
-
             overrideDependencyMgtsWithImported(parserSettings, pomReader);
-            addDependencyMgtsToBuilder(mdBuilder, pomReader.getDependencyMgt().values());
 
-            for (PomDependencyData dependency : pomReader.getDependencies().values()) {
-                mdBuilder.addDependency(dependency);
+            for (Map.Entry<MavenDependencyKey, PomDependencyData> dependency : pomReader.getDependencies().entrySet()) {
+                PomDependencyMgt dependencyMgt = pomReader.findDependencyDefaults(dependency.getKey());
+
+                if(dependencyMgt != null) {
+                    mdBuilder.addDependencyMgt(dependencyMgt);
+                }
+
+                mdBuilder.addDependency(dependency.getValue());
             }
         }
     }
@@ -158,7 +154,7 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
      */
     private void overrideDependencyMgtsWithImported(DescriptorParseContext parseContext, PomReader pomReader) throws IOException, SAXException {
         Map<MavenDependencyKey, PomDependencyMgt> importedDependencyMgts = parseImportedDependencyMgts(parseContext, pomReader.getPomDependencyMgt().values());
-        pomReader.addInheritedDependencyMgts(importedDependencyMgts);
+        pomReader.addImportedDependencyMgts(importedDependencyMgts);
     }
 
     /**
@@ -181,20 +177,6 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
         }
 
         return importedDependencyMgts;
-    }
-
-    /**
-     * Adds dependency management information to builder. Excludes elements with scope "import".
-     *
-     * @param mdBuilder Module descriptor builder
-     * @param dependencyMgts Dependency management information
-     */
-    private void addDependencyMgtsToBuilder(GradlePomModuleDescriptorBuilder mdBuilder, Collection<PomDependencyMgt> dependencyMgts) {
-        for(PomDependencyMgt dependencyMgt : dependencyMgts) {
-            if(!isDependencyImportScoped(dependencyMgt)) {
-                mdBuilder.addDependencyMgt(dependencyMgt);
-            }
-        }
     }
 
     /**

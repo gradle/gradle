@@ -41,7 +41,7 @@ import java.util.*;
 /**
  * Copied from org.apache.ivy.plugins.parser.m2.PomReader.
  */
-public class PomReader {
+public class PomReader implements PomParent {
 
     private static final String PACKAGING = "packaging";
     private static final String DEPENDENCY = "dependency";
@@ -69,10 +69,10 @@ public class PomReader {
     private static final String PROPERTIES = "properties";
     private static final String TYPE = "type";
 
+    private PomParent pomParent = new RootPomParent();
     private final Map<String, String> properties = new HashMap<String, String>();
-    private final Map<MavenDependencyKey, PomDependencyMgt> inheritedDependencyMgts = new LinkedHashMap<MavenDependencyKey, PomDependencyMgt>();
     private Map<MavenDependencyKey, PomDependencyMgt> dependencyMgts;
-    private final Map<MavenDependencyKey, PomDependencyData> inheritedDependencies = new LinkedHashMap<MavenDependencyKey, PomDependencyData>();
+    private final Map<MavenDependencyKey, PomDependencyMgt> importedDependencyMgts = new LinkedHashMap<MavenDependencyKey, PomDependencyMgt>();
     private Map<MavenDependencyKey, PomDependencyData> dependencies;
 
     private final Element projectElement;
@@ -97,6 +97,19 @@ public class PomReader {
 
         setDefaultParentGavProperties();
         setPomProperties();
+    }
+
+    public void setPomParent(PomParent pomParent) {
+        this.pomParent = pomParent;
+        setPomParentProperties();
+    }
+
+    private void setPomParentProperties() {
+        Map<String, String> parentPomProps = pomParent.getProperties();
+
+        for(Map.Entry<String, String> entry : parentPomProps.entrySet()) {
+            setProperty(entry.getKey(), entry.getValue());
+        }
     }
 
     private void setPomProperties() {
@@ -173,18 +186,11 @@ public class PomReader {
         return properties;
     }
 
-    public void addInheritedDependencyMgts(Map<MavenDependencyKey, PomDependencyMgt> inherited) {
+    public void addImportedDependencyMgts(Map<MavenDependencyKey, PomDependencyMgt> inherited) {
         if (dependencyMgts != null) {
-            throw new IllegalStateException("Cannot add inherited dependency management elements after dependency management elements have been resolved for this POM.");
+            throw new IllegalStateException("Cannot add imported dependency management elements after dependency management elements have been resolved for this POM.");
         }
-        inheritedDependencyMgts.putAll(inherited);
-    }
-
-    public void addInheritedDependencies(Map<MavenDependencyKey, PomDependencyData> inherited) {
-        if (dependencies != null) {
-            throw new IllegalStateException("Cannot add inherited dependencies after dependencies have been resolved for this POM.");
-        }
-        inheritedDependencies.putAll(inherited);
+        importedDependencyMgts.putAll(inherited);
     }
 
     public String getGroupId() {
@@ -330,7 +336,7 @@ public class PomReader {
         }
 
         // Maven adds inherited dependencies last
-        for (Map.Entry<MavenDependencyKey, PomDependencyData> entry : inheritedDependencies.entrySet()) {
+        for (Map.Entry<MavenDependencyKey, PomDependencyData> entry : pomParent.getDependencies().entrySet()) {
             if (!dependencies.containsKey(entry.getKey())) {
                 dependencies.put(entry.getKey(), entry.getValue());
             }
@@ -352,7 +358,8 @@ public class PomReader {
 
     private Map<MavenDependencyKey, PomDependencyMgt> resolveDependencyMgt() {
         Map<MavenDependencyKey, PomDependencyMgt> dependencies = new LinkedHashMap<MavenDependencyKey, PomDependencyMgt>();
-        dependencies.putAll(inheritedDependencyMgts);
+        dependencies.putAll(pomParent.getDependencyMgt());
+        dependencies.putAll(importedDependencyMgts);
         dependencies.putAll(getPomDependencyMgt());
         return dependencies;
     }
@@ -376,6 +383,10 @@ public class PomReader {
             }
         }
         return depMgmtElements;
+    }
+
+    public PomDependencyMgt findDependencyDefaults(MavenDependencyKey dependencyKey) {
+        return getDependencyMgt().get(dependencyKey);
     }
 
     public void resolveGAV() {
@@ -402,8 +413,8 @@ public class PomReader {
         }
 
         /* (non-Javadoc)
-                 * @see org.apache.ivy.plugins.parser.m2.PomDependencyMgt#getGroupId()
-                 */
+         * @see org.apache.ivy.plugins.parser.m2.PomDependencyMgt#getGroupId()
+         */
         public String getGroupId() {
             String val = getFirstChildText(depElement , GROUP_ID);
             return replaceProps(val);

@@ -738,6 +738,106 @@ class PomReaderTest extends Specification {
         assertResolvedPomDependencyManagement(keyGroupFour, 'version-four')
     }
 
+    def "finds dependency default if declared in same POM"() {
+        when:
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>group-two</groupId>
+                <artifactId>artifact-two</artifactId>
+                <version>version-two</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>group-two</groupId>
+            <artifactId>artifact-two</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>group-two</groupId>
+            <artifactId>artifact-three</artifactId>
+        </dependency>
+    </dependencies>
+</project>
+"""
+        pomReader = new PomReader(locallyAvailableExternalResource)
+        MavenDependencyKey keyGroupTwo = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null)
+        MavenDependencyKey keyGroupThree = new MavenDependencyKey('group-two', 'artifact-three', 'jar', null)
+
+        then:
+        pomReader.getDependencyMgt().size() == 1
+        assertResolvedPomDependencyManagement(keyGroupTwo, 'version-two')
+        pomReader.findDependencyDefaults(keyGroupTwo) == pomReader.dependencyMgt[keyGroupTwo]
+        !pomReader.findDependencyDefaults(keyGroupThree)
+    }
+
+    def "finds dependency default if declared in parent POM"() {
+        when:
+        String parentPom = """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-two</groupId>
+    <artifactId>artifact-two</artifactId>
+    <version>version-two</version>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>group-two</groupId>
+                <artifactId>artifact-two</artifactId>
+                <version>version-two</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+</project>
+"""
+        PomReader parentPomReader = createPomReader('parent-pom.xml', parentPom)
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+
+    <parent>
+        <groupId>group-two</groupId>
+        <artifactId>artifact-two</artifactId>
+        <version>version-two</version>
+    </parent>
+
+    <dependencies>
+        <dependency>
+            <groupId>group-four</groupId>
+            <artifactId>artifact-four</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>group-five</groupId>
+            <artifactId>artifact-five</artifactId>
+        </dependency>
+    </dependencies>
+</project>
+"""
+        pomReader = new PomReader(locallyAvailableExternalResource)
+        pomReader.setPomParent(parentPomReader)
+        MavenDependencyKey keyGroupTwo = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null)
+        MavenDependencyKey keyGroupThree = new MavenDependencyKey('group-two', 'artifact-three', 'jar', null)
+
+        then:
+        pomReader.getDependencyMgt().size() == 1
+        assertResolvedPomDependencyManagement(keyGroupTwo, 'version-two')
+        pomReader.findDependencyDefaults(keyGroupTwo) == pomReader.dependencyMgt[keyGroupTwo]
+        !pomReader.findDependencyDefaults(keyGroupThree)
+    }
+
     private void assertResolvedPomDependency(MavenDependencyKey key, String version) {
         assert pomReader.dependencies.containsKey(key)
         PomDependencyData dependency = pomReader.dependencies[key]
@@ -756,5 +856,14 @@ class PomReaderTest extends Specification {
         assert dependency.type == key.type
         assert dependency.classifier == key.classifier
         assert dependency.version == version
+    }
+
+    private PomReader createPomReader(String pomFileName, String pomDefinition) {
+        TestFile pomFile = tmpDir.file(pomFileName)
+        pomFile.createFile()
+        pomFile << pomDefinition
+        LocallyAvailableResource locallyAvailableResource = new DefaultLocallyAvailableResource(pomFile)
+        LocallyAvailableExternalResource locallyAvailableExternalResource = new DefaultLocallyAvailableExternalResource(pomFile.toURI().toURL().toString(), locallyAvailableResource)
+        return new PomReader(locallyAvailableExternalResource)
     }
 }
