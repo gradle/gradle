@@ -15,15 +15,13 @@
  */
 
 package org.gradle.nativebinaries.toolchain.plugins
-
 import org.gradle.api.Plugin
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.ExtraPropertiesExtension
 import org.gradle.nativebinaries.ToolChain
+import org.gradle.nativebinaries.language.cpp.fixtures.RequiresInstalledToolChain
 import org.gradle.nativebinaries.toolchain.Gcc
 import org.gradle.nativebinaries.toolchain.internal.gcc.GccToolChain
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.gradle.util.TestUtil
 
 class GccCompilerPluginTest extends ToolChainPluginTest {
@@ -52,7 +50,7 @@ class GccCompilerPluginTest extends ToolChainPluginTest {
         getToolchain() instanceof GccToolChain
     }
 
-    @Requires(TestPrecondition.NOT_WINDOWS)
+    @RequiresInstalledToolChain("gcc 4")
     def "registers default Gcc tool chain"() {
         when:
         addDefaultToolchain()
