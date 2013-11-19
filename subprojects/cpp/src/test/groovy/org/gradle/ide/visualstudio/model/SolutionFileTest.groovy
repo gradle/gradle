@@ -15,10 +15,9 @@
  */
 
 package org.gradle.ide.visualstudio.model
-
 import org.gradle.test.fixtures.file.TestDirectoryProvider
-import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.TextUtil
 import spock.lang.Specification
 
 class SolutionFileTest extends Specification {
@@ -32,7 +31,7 @@ class SolutionFileTest extends Specification {
 
     def "empty solution file"() {
         expect:
-        solutionFileContent.text ==
+        solutionFileContent ==
 """Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual C++ Express 2010
 
@@ -58,7 +57,7 @@ EndGlobal
         solutionFile.addProject(project2)
 
         then:
-        solutionFileContent.text ==
+        solutionFileContent ==
 """Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual C++ Express 2010
 
@@ -76,9 +75,9 @@ EndGlobal
 """
     }
 
-    private TestFile getSolutionFileContent() {
+    private String getSolutionFileContent() {
         def file = testDirectoryProvider.testDirectory.file("solution.txt")
         solutionFile.store(file)
-        return file
+        return TextUtil.normaliseLineSeparators(file.text)
     }
 }
