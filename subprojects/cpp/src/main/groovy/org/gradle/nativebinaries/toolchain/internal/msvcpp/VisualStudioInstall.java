@@ -55,18 +55,22 @@ public class VisualStudioInstall {
     }
 
     public File getVisualCppBin(Platform platform) {
-        String systemPlatform = org.gradle.internal.os.OperatingSystem.current().getNativePrefix();
+        boolean hostIsAmd64 = "win32-amd64".equals(org.gradle.internal.os.OperatingSystem.current().getNativePrefix());
 
         if (architecture(platform).isAmd64()) {
-            if ("win32-amd64".equals(systemPlatform)) {
-                return new File(visualCppDir, "bin/amd64");
-            } else {
-                return new File(visualCppDir, "bin/x86_amd64");
-            }
+            return new File(visualCppDir, hostIsAmd64 ? "bin/amd64" : "bin/x86_amd64");
         }
 
         if (architecture(platform).isIa64()) {
             return new File(visualCppDir, "bin/ia64");
+        }
+
+        if (architecture(platform).isArm()) {
+            return new File(visualCppDir, hostIsAmd64 ? "bin/amd64_arm" : "bin/x86_arm");
+        }
+
+        if (architecture(platform).isI386()) {
+            return new File(visualCppDir, hostIsAmd64 ? "bin/amd64_x86" : "bin");
         }
 
         return new File(visualCppDir, "bin");
