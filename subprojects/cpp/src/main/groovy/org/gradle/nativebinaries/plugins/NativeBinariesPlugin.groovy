@@ -44,12 +44,12 @@ public class NativeBinariesPlugin implements Plugin<Project> {
 
         final BinaryContainer binaries = project.getExtensions().getByType(BinaryContainer.class);
         binaries.withType(NativeBinary) { NativeBinaryInternal binary ->
-            if (!binary.toolChain.canTargetPlatform(binary.getTargetPlatform())) {
-                binary.setBuildable(false)
-            }
+            binary.setBuildable(
+                            binary.toolChain.availability.available &&
+                            binary.toolChain.canTargetPlatform(binary.getTargetPlatform())
+            )
             createTasks(project, binary)
         }
-
     }
 
     def createTasks(ProjectInternal project, NativeBinaryInternal binary) {

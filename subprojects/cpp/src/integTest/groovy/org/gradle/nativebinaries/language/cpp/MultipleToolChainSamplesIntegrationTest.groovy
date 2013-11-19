@@ -15,15 +15,12 @@
  */
 
 package org.gradle.nativebinaries.language.cpp
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.nativebinaries.language.cpp.fixtures.AvailableToolChains
 import org.gradle.nativebinaries.language.cpp.fixtures.RequiresInstalledToolChain
 import org.junit.Rule
-import spock.lang.Ignore
 
-@Ignore //TODO:DAZ
 @RequiresInstalledToolChain
 class MultipleToolChainSamplesIntegrationTest extends AbstractIntegrationSpec {
     @Rule public final Sample toolChains = new Sample(temporaryFolder, 'native-binaries/tool-chains')
@@ -46,7 +43,7 @@ class MultipleToolChainSamplesIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private def checkToolChainBuild(def toolChain, String id, String output) {
-            if (toolChain?.available) {
+        if (toolChain?.available) {
             executedAndNotSkipped ":${id}MainExecutable"
             assert toolChain.executable(file("native-binaries/tool-chains/build/binaries/mainExecutable/${id}/main")).exec().out == "Hello from ${output}!\n"
         }
