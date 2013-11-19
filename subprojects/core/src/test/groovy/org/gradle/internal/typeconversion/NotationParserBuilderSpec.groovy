@@ -19,6 +19,8 @@ package org.gradle.internal.typeconversion
 import org.gradle.api.InvalidUserDataException
 import spock.lang.Specification
 
+import static org.gradle.util.TextUtil.toPlatformLineSeparators
+
 class NotationParserBuilderSpec extends Specification {
 
     def "adds just return parser as default"(){
@@ -38,7 +40,8 @@ class NotationParserBuilderSpec extends Specification {
         parser.parseNotation("Some String")
         then:
         def e = thrown(InvalidUserDataException)
-        e.message == "Cannot convert the provided notation to an object of type String: Some String.\nThe following types/formats are supported:"
+        e.message == toPlatformLineSeparators("""Cannot convert the provided notation to an object of type String: Some String.
+The following types/formats are supported:""")
     }
 
 }
