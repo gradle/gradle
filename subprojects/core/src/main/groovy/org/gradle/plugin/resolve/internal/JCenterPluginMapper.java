@@ -27,13 +27,10 @@ public class JCenterPluginMapper implements ModuleMappingPluginResolver.Mapper {
     private static final String GRADLE_PLUGINS_ORG = "gradle-plugins-development";
     private static final String GRADLE_PLUGINS_REPO = "gradle-plugins";
     private static final String PLUGIN_ID_ATTRIBUTE_NAME = "gradle-plugin-id";
-    public static final String BINTRAY_USER_TODO_REMOVE = "bintray-user";
-    public static final String BINTRAY_APIKEY_TODO_REMOVE = "bintray-key";
 
     public Dependency map(PluginRequest request, DependencyHandler dependencyHandler) {
         String pluginId = request.getId();
-        //TODO should work anonymously, ATM attribute search requires user
-        List<Pkg> results = BintrayClient.create(System.getProperty(BINTRAY_USER_TODO_REMOVE), System.getProperty(BINTRAY_APIKEY_TODO_REMOVE)).subject(GRADLE_PLUGINS_ORG).repository(GRADLE_PLUGINS_REPO).searchForPackage().byAttributeName(PLUGIN_ID_ATTRIBUTE_NAME).equals(pluginId).search();
+        List<Pkg> results = BintrayClient.create().subject(GRADLE_PLUGINS_ORG).repository(GRADLE_PLUGINS_REPO).searchForPackage().byAttributeName(PLUGIN_ID_ATTRIBUTE_NAME).equals(pluginId).search();
         if (results.isEmpty()) {
             throw new InvalidPluginRequest("No plugins found for plugin id " + pluginId);
         }
