@@ -42,7 +42,7 @@ Also known as a 'dependency', this is some description of some requirement of a 
 
 # Module version
 
-A component instance with a (group, module, version) identifier. This is a backwards-compatibility concern.
+A component instance with an associated (group, module, version) identifier.
 
 # Implementation plan
 
@@ -85,15 +85,16 @@ In this story, the dependency resolution result is changed so that it produces a
 ### Open issues
 
 - Packages for the new types
+- The results are actually component _instances_ rather than components (as per the definition above). Perhaps come up with a new name for 'component'.
 
 ## Story: Dependency resolution result exposes local component instances
 
-This story changes the dependency resolution model to distinguish between components that are produced by the build and those that are
+This story changes the dependency resolution model to distinguish between component instances that are produced by the build and those that are
 produced outside the build. This will allow IDE integrations to map dependencies by exposing this information about the source of a component
 instance.
 
-This story also changes the dependency resolution model so that local components are no longer identified using a (group, module, version)
-identifier. Instead, a local project path is used to identify these instances. For now, a local component is still considered a module version.
+This story also changes the dependency resolution model so that local component instances are no longer treated as module versions. Instead, a local project
+path will be used to identify these instances. For now, every local component instance will have an associated (group, module, version) identifier.
 
 1. Introduce a `BuildComponentIdentifier` type that extends `ComponentIdentifier` and add a private implementation.
     - `project` property
@@ -161,7 +162,7 @@ This story changes the `idea` and `eclipse` plugins to use the resolution result
 
 ## Story: Dependency resolution result exposes local component instances that are not module versions
 
-This story changes the resolution result to distinguish between local components that are not module versions. That is, components that do not
+This story changes the resolution result to expose local component instances that are not module versions. That is, component instances that do not
 have an associated (group, module, version) identifier.
 
 It introduces local and external identifiers for a component, and associates an external identifier only with those components that are published
@@ -202,6 +203,10 @@ or publishable.
 * Add Ivy and Maven specific ids and sources.
 * Rename and garbage internal types.
 
+## Story: User guide describes the dependency management problem in terms of components
+
+Update the user guide to use the term 'component' instead of 'module version' or 'module' where appropriate.
+
 ## Story: GRADLE-2713/GRADLE-2678 Dependency resolution uses local component identity when resolving project dependencies
 
 Currently, dependency management uses the module version identifier (group, module, version) of the target of a project dependency to detect conflicts.
@@ -221,81 +226,76 @@ detect and resolve conflicts.
 
 - Excludes should not apply to local components. This is a breaking change.
 
+## Story: Model the native binary dependencies as requirements
+
+This story introduces a new API which can take an arbitrary set of requirements and some usage context and produce a set of files which
+meet the requirements.
+
+- Split up `NativeDependencyResolver` into several pieces:
+    - A public API that takes a collection of objects plus some object that represents a usage and returns a buildable collection of files. This API should not
+      refer to any native domain concepts.
+    - A service that implements the API.
+    - A registry of requirement -> buildable file collection converters.
+- Add some way to query the resolved include roots, link files and runtime files for a native binary.
+
+## Story: Implement native binary dependency resolution using self resolving dependencies
+
+This story starts to push the resolution mechanism introduced in the above story down into the dependency management engine. For this story,
+native binary dependencies will be converted to self-resolving dependencies which are then fed into the dependency management engine.
+
+This story is simply a refactoring. No new user-visible behaviour will be added.
+
+## Story: Model self resolving dependencies as component instances
+
+Expose self-resolving dependencies as component instances in the resolution result. This will make these dependencies visible via the dependency
+reports.
+
+- Merge the special case resolution algorithm for self-resolving dependencies into the general purpose resolution algorithm.
+- Introduce a new type of component identifier to represent a file-only component.
+- Update reporting to understand this kind of component identifier.
+
+## Story: Plugin contributes a local component type
+
+Allow a plugin to contribute a local component instance to component meta-data conversion.
+
+- Use this in the native binary plugins to convert native library and binary instances to meta-data
+
 ## Story: Conflict resolution prefers local components over other components
 
 When two components have conflicting external identifiers, select a local component.
 
 Note: This is a breaking change.
 
-## Story: Plugin selects the target component for a project dependency
+## Story: Select target component for a project dependency
 
-This story allows a plugin some control over which component a project dependency is resolved to for a given dependency resolution.
-Generally, this would be used to select components of a given type (eg select the Java library, if present).
+Introduce some mechanism for a component type implementation to influence which component from the target project is selected for a project dependency.
 
-- Wrap the meta-data and artifacts that are currently used in a 'legacy' component for backwards compatibility. This is used as the default.
-- Add a new type of rule to `ResolutionStrategy` that is given the set of components in the target project + the currently selected component
-  and can select a different component.
-- The rule is invoked once for each target project. The result is reused for subsequent dependencies with the same target project.
-- Expose the component identifier/source of the selected component through the resolution result.
-
-### Open issues
-
-- Possibly add a declarative shortcut to select components of a given type (and implicitly, ignore the legacy component).
-- What component meta-data is exposed to the rule?
-
-## Story: Plugin selects the target packaging for a local component
-
-This story allows a plugin some control over which packaging of a component will be used for a given project dependency.
-Generally, this would be used to select a variant + usage of a component.
-
-- Add a new type of rule to `ResolutionStrategy` that is given the selected component + the requested packaging + the selected packaging. The rule can select a
-  different packaging.
-- The rule is invoked once for each selected component + requested packaging. The result is reused for all dependencies that have selected this component and requested
-  the same packaging.
-
-#### Open issues
-
-- What component meta-data is exposed to the rule?
-- Handle dependencies that declare a target configuration. Options:
-    - Don't invoke this rule for these dependencies.
-    - If the legacy component has not been selected, assert that at least one rule selects a packaging.
-    - Map configuration to a packaging using the component meta-data.
-- Artifacts are implicit in the packaging.
-- Introduce rules that can tweak the selected packaging, define new ones, and so on.
-- Introduce rules that given a selected packaging, select the artifacts to use.
-
-## Story: Plugin selects the target packaging for an external component
-
-Map an external component to component meta-data and pass to the packaging rules.
-
-## Story: Introduce a direct component dependency
-
-Allow a dependency to be declared on a component instance. This will allow a plugin to include components built by the current project in dependency
-resolution, including conflict detection and resolution.
-
-- Allow `SoftwareComponent` instances to be used on the RHS of a dependency declaration.
-- Use the meta-data and artifacts defined by `SoftwareComponentInternal`.
-- Expose the component identifier/source through the resolution result.
-- If the component is published, use the publication identifier to apply conflict resolution.
-
-## Story: Native binary plugins resolve variants for dependencies
-
-- Expose native components as `SoftwareComponent` implementations.
-- Add direct dependencies for libraries in the same project.
-- Use the resolve rules to select native libraries for a project dependency.
-- Use the resolve rules to select the appropriate variant + usage for each selected component.
-
-### Open stories
-
-- Allow plugin to package up the rules into a component type definition.
-
-## Story: Generate and publish component descriptor
+## Story: Generate and publish component meta-data artifact
 
 Introduce a native Gradle component descriptor file, generate and publish this.
 
-## Story: Dependency resolution uses component descriptor
+## Story: Dependency resolution uses component meta-data artifact
 
 Use the component descriptor, if present, during resolution.
+
+## Story: Improve error messages when things cannot be found
+
+Handle the following reasons why no matching component cannot be found for a selector:
+
+- Typo in version selector:
+    - List the available versions, if any are available. Present some candidates which might match the selector.
+- Typo in (group, module) selector:
+    - Inform that the module version was not found, if not. Present some candidates which might match the selector, by listing the groups and modules.
+- Typo in repository configuration:
+    - Inform which URLs were used to locate the module and versions
+    - Inform about a missing meta-data artifact
+
+Handle the following reasons why a given artifact cannot be found:
+
+- Typo in artifact selector:
+    - List the available artifacts, if any are available. Present some candidates which might match the selector.
+- Typo in repository configuration:
+    - Inform which URLs were used to locate the artifact
 
 ## Story: New dependency graph uses less heap
 
