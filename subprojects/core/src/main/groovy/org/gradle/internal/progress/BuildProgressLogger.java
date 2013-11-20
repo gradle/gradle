@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.initialization.progress;
+package org.gradle.internal.progress;
 
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;

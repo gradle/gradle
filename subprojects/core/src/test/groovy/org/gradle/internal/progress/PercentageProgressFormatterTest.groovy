@@ -14,30 +14,30 @@
  * limitations under the License.
  */
 
-package org.gradle.initialization.progress;
+package org.gradle.internal.progress
+
+import org.gradle.internal.progress.PercentageProgressFormatter
+import spock.lang.Specification
 
 /**
  * By Szczepan Faber on 7/5/13
  */
-class PercentageProgressFormatter implements ProgressFormatter {
-    private int current;
-    private int total;
-    private String prefix;
+class PercentageProgressFormatterTest extends Specification {
 
-    public PercentageProgressFormatter(String prefix, int total) {
-        this.total = total;
-        this.prefix = prefix;
-    }
+    def "knows progress"() {
+        def f = new PercentageProgressFormatter("Building", 3);
 
-    public String incrementAndGetProgress() {
-        if (current == total) {
-            throw new IllegalStateException("Cannot increment beyond the total of: " + total);
-        }
-        current++;
-        return getProgress();
-    }
+        expect:
+        f.progress == "Building 0%"
+        f.incrementAndGetProgress() == "Building 33%"
+        f.incrementAndGetProgress() == "Building 66%"
+        f.progress == "Building 66%"
+        f.incrementAndGetProgress() == "Building 100%"
 
-    public String getProgress() {
-        return prefix + " " + (int) (current * 100.0 / total) + "%";
+        when:
+        f.incrementAndGetProgress()
+
+        then:
+        thrown(IllegalStateException)
     }
 }

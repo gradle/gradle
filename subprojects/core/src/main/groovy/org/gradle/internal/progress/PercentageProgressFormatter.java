@@ -13,16 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.initialization.progress;
 
-class SimpleProgressFormatter implements ProgressFormatter {
-    private final int total;
+package org.gradle.internal.progress;
+
+/**
+ * By Szczepan Faber on 7/5/13
+ */
+class PercentageProgressFormatter implements ProgressFormatter {
     private int current;
-    private String postfix;
+    private int total;
+    private String prefix;
 
-    public SimpleProgressFormatter(int total, String postfix) {
+    public PercentageProgressFormatter(String prefix, int total) {
         this.total = total;
-        this.postfix = postfix;
+        this.prefix = prefix;
     }
 
     public String incrementAndGetProgress() {
@@ -34,6 +38,6 @@ class SimpleProgressFormatter implements ProgressFormatter {
     }
 
     public String getProgress() {
-        return current + "/" + total + " " + postfix;
+        return prefix + " " + (int) (current * 100.0 / total) + "%";
     }
 }

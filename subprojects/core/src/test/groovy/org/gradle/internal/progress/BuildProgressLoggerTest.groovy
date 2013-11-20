@@ -16,8 +16,10 @@
 
 
 
-package org.gradle.initialization.progress
+package org.gradle.internal.progress
 
+import org.gradle.internal.progress.BuildProgressLogger
+import org.gradle.internal.progress.ProgressLoggerProvider
 import org.gradle.logging.ProgressLogger
 import spock.lang.Specification
 import spock.lang.Subject

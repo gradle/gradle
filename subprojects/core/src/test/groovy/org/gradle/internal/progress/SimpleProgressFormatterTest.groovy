@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,28 @@
  * limitations under the License.
  */
 
-package org.gradle.initialization.progress
 
+package org.gradle.internal.progress
+
+import org.gradle.internal.progress.SimpleProgressFormatter
 import spock.lang.Specification
 
-/**
- * By Szczepan Faber on 7/5/13
- */
-class PercentageProgressFormatterTest extends Specification {
+class SimpleProgressFormatterTest extends Specification {
 
-    def "knows progress"() {
-        def f = new PercentageProgressFormatter("Building", 3);
+    def "formats progress"() {
+        def f = new SimpleProgressFormatter(10, "things")
 
         expect:
-        f.progress == "Building 0%"
-        f.incrementAndGetProgress() == "Building 33%"
-        f.incrementAndGetProgress() == "Building 66%"
-        f.progress == "Building 66%"
-        f.incrementAndGetProgress() == "Building 100%"
+        f.progress == "0/10 things"
+        f.incrementAndGetProgress() == "1/10 things"
+        f.incrementAndGetProgress() == "2/10 things"
+        f.progress == "2/10 things"
+    }
+
+    def "does not allow overflow"() {
+        def f = new SimpleProgressFormatter(2, "cats");
+        f.incrementAndGetProgress()
+        f.incrementAndGetProgress()
 
         when:
         f.incrementAndGetProgress()
