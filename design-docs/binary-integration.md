@@ -105,3 +105,4 @@ An artefact has direct dependencies (that might have dependencies on other artif
 - Storage of the resolved graph
     - In source
     - In some repository indexed by hash of the dependency selectors
+- When in update mode, set the cache timeouts to 0.

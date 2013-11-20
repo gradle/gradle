@@ -222,3 +222,4 @@ We could possibly fix it by starting redirecting the output at suite start in th
 # Other issues
 
 - Provide some way to generate only the old TestNG reports, so that both test report and test XML generation can be disabled.
+- Reports should distinguish between tests and configure operations.

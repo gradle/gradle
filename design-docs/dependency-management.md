@@ -172,7 +172,7 @@ For a local component that is a module version, this will look something like
 1. Change the `RenderableDependency` hierarchy to use the component id and publishedAs id.
 2. Update the the dependency report tests as appropriate.
 
-The HTML report should change in a similar way.
+The HTML dependency report should change in a similar way.
 
 ### Open issues
 

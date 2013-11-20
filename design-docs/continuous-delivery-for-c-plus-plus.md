@@ -30,7 +30,7 @@ An executable native binary.
 
 ### Shared library binary
 
-A library binary that is linked into an executable or shared library at runtime
+A library binary that is linked into an executable or shared library at runtime.
 
 ### Static library binary
 
@@ -39,6 +39,8 @@ A library binary that is linked into an executable or shared library at link tim
 ### Native component
 
 A software component that runs on the native C runtime. This refers to the logical entity, rather than the physical.
+
+A given component usually has one or more binaries associated with it, for various different operating systems, architectures and so on.
 
 ### Native application
 
@@ -1288,6 +1290,7 @@ TBD
 - Don't fail if g++ is not installed when it is not required
 - Support preprocessor macros for assembler
 - Understand build and release build types and drive the compiler and linker appropriately
+- Clean the environment prior to invoking the visual studio tools (eg clear `%INCLUDE%`, `%LIB%` etc)
 
 ## Target platforms
 
