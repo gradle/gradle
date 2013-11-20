@@ -38,9 +38,12 @@ See the User guide section on the “[Feature Lifecycle](userguide/feature_lifec
 
 The following are the features that have been promoted in this Gradle release.
 
-<!--
-### Example promoted
--->
+### Promoted methods
+
+The following methods have been promoted and are no longer incubating:
+
+- `NamedDomainObjectContainer.maybeCreate()`
+- `RepositoryHandler.jcenter()`
 
 ## Fixed issues
 
