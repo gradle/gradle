@@ -195,40 +195,6 @@ The user can run `gradle init --type java-lib` instead of `gradle init --type ja
 
 - Use NameMatcher in commandline configuration.
 
-## Add --include @Option to the test task
-
-### Test coverage:
-
-    - check existing coverage of test.single for inspiration
-    - for --include
-        - happy path
-        - include from command line takes precedence over the one declared in the build script
-        (the include provided via commandline completely replaces existing includes)
-        - is correctly incremental (e.g. same VS different values passed with --include)
-        - "Could not find matching test" error is emitted when no tests found for given --include
-        - 2 different test tasks, both use the option with different tests included
-
-## Add --exclude @Option to the test task:
-
-### Test coverage:
-
-    - for --exclude
-        - happy path
-        - exclude from command line replaces any excludes declared in the build script
-        (this behavior is consistent with --include)
-        - is correctly incremental (e.g. same VS different values passed with the option)
-        - "Could not find any tests" error is emitted when no tests found for given --exclude
-        (consistently with --include)
-    - for --include and --exclude both working together together
-        - include declares a dir, exclude declares a single test from this dir
-        - the behavior should be consistent to how it works currently via DSL API (given both: includes and excludes configured in the build script)
-
-## Add --debug @Option to the test task
-
-### Test coverage:
-
-    - smoke test, make sure the task is happy with the option and that debug property is set on the task
-
 ## Add command-line options to more tasks
 
 ### User visible changes

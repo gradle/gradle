@@ -73,18 +73,13 @@ Add some "by-convention" plugins (say one for JVM and one for native environment
 
 Legacy integration tests are slow, @ need a way to execute a single test method, from command line.
 
-## Options:
-
-1. Change the semantics of test.include so that it supports syntax like {ant-file-pattern}#{testMethodName}, e.g. **/FooTest#someMethod
-Test implements PatternFilterable, which declares the exact behavior of include / exclude. In order to implement this option, we would need to introduce a mildly breaking change and make Test no longer extend PatternFilterable. It is kind of a mildly breaking because we would keep all the existing public methods in the Test type. If users extends Test task, they would probably need to recompile. For command line, we introduce --include option for the Test task. Pros: api remains small, Cons: breaking change.
-
-2. Introduce new dsl - various ideas all lumped together
+## New dsl brainstorm
 
     test {
         selection {
             //using 'include' wording here could make it confusing with test.include
-            select "**/Foo*#someOtherMethod", "**/Foo*#someMethod"
-            selections = []
+            only "**/Foo*#someOtherMethod", "**/Foo*#someMethod"
+            only = []
 
             //in/out
             in "**/Foo*#someOtherMethod", "**/Foo*#someMethod"
@@ -120,7 +115,7 @@ Test implements PatternFilterable, which declares the exact behavior of include 
         }
     }
 
-Then add consistent commandline support, e.g.
+Plus consistent commandline support, e.g.
 
 gradle test --select **/Foo.java#someTest
 
@@ -131,13 +126,65 @@ The convenient command line should support:
 
 	- selecting class + method in one option
 	- allow wildcards for classes (wildcards for methods are not practical to implement)
-	- support both, file separators '/' or fqn separators '.'
 
 Examples:
 
-    --select com/bar/**/Foo.java#someTest
+    --select com.bar.**.Foo#someTest
     --select Foo#someTest
     --select com.foo.bar.Foo#otherTest
+
+## Plan
+
+    1. Add --only @Option, that maps to new dsl: test.selection.only
+    1. Add --include @Option and deprecate test.single. The new option is equiv of test.include
+    1. Add --exclude @Option, the option maps to test.exclude
+    1. Add --debug (while we're in the area)
+
+## Stories
+
+### Add --only @Option, that maps to new dsl: test.selection.only
+
+#### Test coverage:
+
+    - happy path, allows running tests for single methods
+    - when running the same test with different method, make sure it is not up-to-date
+    - works with JUnit and TestNG
+    - selected test(s) ignores completely any existing include configured in the build script but respects excludes
+    - is correctly incremental (e.g. same VS different values passed with --only)
+    - "Could not find matching test" error is emitted when no tests found for given --only
+    - 2 different test tasks, both use the option with different tests included
+
+### Add --include @Option to the test task, deprecate test.single property
+
+#### Test coverage:
+
+    - happy path
+    - selected test ignores completely any existing include configured in the build script
+    - is correctly incremental (e.g. same VS different values passed with --include)
+    - "Could not find matching test" error is emitted when no tests found for given --include
+    - 2 different test tasks, both use the option with different tests included
+    - if combined with --only, --only wins and --include is ignored
+
+### Add --exclude @Option to the test task:
+
+#### Test coverage:
+
+    - happy path
+    - exclude from command line replaces any excludes declared in the build script
+        (this behavior is consistent with --include)
+    - is correctly incremental (e.g. same VS different values passed with the option)
+    - "Could not find any tests" error is emitted when no tests found for given --exclude
+        (consistently with --include)
+    - --include and --exclude both working together together
+        - include declares a dir, exclude declares a single test from this dir,
+        the behavior should be consistent to how it works currently via DSL API (given both: includes and excludes configured in the build script)
+    - if combined with --only, --only wins and --exclude is ignored
+
+### Add --debug @Option to the test task
+
+#### Test coverage:
+
+    - smoke test, make sure the task is happy with the option and that debug property is set on the task
 
 ## The api I currently think on implementing as a first story, please give feedback:
 
@@ -167,3 +214,11 @@ Then, command line support could be:
     gradle test --select **/*SomeIntegrationTest#method1,method2
 
 I would also deprecate test.single property
+
+
+
+
+
+
+
+
