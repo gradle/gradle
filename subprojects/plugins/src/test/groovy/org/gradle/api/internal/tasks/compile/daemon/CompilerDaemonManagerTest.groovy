@@ -17,12 +17,11 @@
 package org.gradle.api.internal.tasks.compile.daemon
 
 import org.gradle.api.internal.tasks.compile.CompileSpec
-import org.gradle.util.ConcurrentSpecification
+import org.gradle.api.internal.tasks.compile.Compiler
+import spock.lang.Specification
 import spock.lang.Subject
 
-import org.gradle.api.internal.tasks.compile.Compiler
-
-class CompilerDaemonManagerTest extends ConcurrentSpecification {
+class CompilerDaemonManagerTest extends Specification {
 
     def clientsManager = Mock(CompilerClientsManager)
     def client = Mock(CompilerDaemonClient)
