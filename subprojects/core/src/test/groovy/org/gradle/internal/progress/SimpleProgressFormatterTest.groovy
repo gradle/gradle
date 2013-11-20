@@ -17,7 +17,6 @@
 
 package org.gradle.internal.progress
 
-import org.gradle.internal.progress.SimpleProgressFormatter
 import spock.lang.Specification
 
 class SimpleProgressFormatterTest extends Specification {

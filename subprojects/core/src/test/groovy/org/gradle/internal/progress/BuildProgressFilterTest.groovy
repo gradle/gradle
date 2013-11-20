@@ -22,8 +22,6 @@ import org.gradle.api.Task
 import org.gradle.api.execution.TaskExecutionGraph
 import org.gradle.api.initialization.Settings
 import org.gradle.api.invocation.Gradle
-import org.gradle.internal.progress.BuildProgressFilter
-import org.gradle.internal.progress.BuildProgressLogger
 import spock.lang.Specification
 import spock.lang.Subject
 

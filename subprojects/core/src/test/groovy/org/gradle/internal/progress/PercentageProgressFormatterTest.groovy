@@ -16,7 +16,6 @@
 
 package org.gradle.internal.progress
 
-import org.gradle.internal.progress.PercentageProgressFormatter
 import spock.lang.Specification
 
 /**
