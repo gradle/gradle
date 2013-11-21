@@ -30,6 +30,7 @@ class JacocoPluginSpec extends Specification {
     }
 
     def 'jacoco plugin adds coverage report for test task when java plugin applied'() {
+        project.file("src/main/java").mkdirs()
         when:
         project.apply plugin:"java"
         and:
@@ -37,7 +38,7 @@ class JacocoPluginSpec extends Specification {
         then:
         project.test.extensions.getByType(JacocoTaskExtension) != null
         project.jacocoTestReport instanceof JacocoReport
-        project.jacocoTestReport.sourceDirectories == project.sourceSets.main.allJava
+        project.jacocoTestReport.sourceDirectories*.absolutePath == project.files("src/main/java")*.absolutePath
         project.jacocoTestReport.classDirectories == project.sourceSets.main.output
     }
 

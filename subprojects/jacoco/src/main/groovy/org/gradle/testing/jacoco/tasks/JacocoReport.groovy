@@ -179,9 +179,9 @@ class JacocoReport extends JacocoBase implements Reporting<JacocoReportsContaine
         getProject().afterEvaluate {
             sourceSets.each { sourceSet ->
                 if (this.sourceDirectories == null) {
-                    this.sourceDirectories = sourceSet.allJava
+                    this.sourceDirectories = getProject().files(sourceSet.allJava.getSrcDirs())
                 } else {
-                    this.sourceDirectories = this.sourceDirectories + sourceSet.allJava
+                    this.sourceDirectories = this.sourceDirectories + getProject().files(sourceSet.allJava.getSrcDirs())
                 }
                 if (this.classDirectories == null) {
                     this.classDirectories = sourceSet.output
