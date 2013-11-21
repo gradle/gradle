@@ -13,35 +13,49 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.testing.junit
+package org.gradle.testing
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import spock.lang.Shared
+import spock.lang.Unroll
 
 public class SingleTestMethodExecutionIntegrationTest extends AbstractIntegrationSpec {
 
-    def "executes single method from a test class"() {
+    class TestFramework {
+        String name
+        String dependency
+        String imports
+        String toString() { name }
+    }
+
+    @Shared TestFramework jUnit = new TestFramework(name: "JUnit", dependency: "junit:junit:4.11", imports: "org.junit.*")
+    @Shared TestFramework testNG = new TestFramework(name: "TestNG", dependency: "org.testng:testng:6.3.1", imports: "org.testng.annotations.*")
+
+    @Unroll
+    def "#framework executes single method from a test class"() {
         buildFile << """
             apply plugin: 'java'
             repositories { mavenCentral() }
-            dependencies { testCompile 'junit:junit:4.11' }
+            dependencies { testCompile "$framework.dependency" }
             test {
+              use$framework.name()
               include 'FooTest*'
               selection {
                 includeMethod('pass')
               }
             }
         """
-        file("src/test/java/FooTest.java") << """import org.junit.*;
+        file("src/test/java/FooTest.java") << """import $framework.imports;
             public class FooTest {
                 @Test public void pass() {}
-                @Test public void fail() { Assert.fail("Boo!"); }
+                @Test public void fail() { throw new RuntimeException("Boo!"); }
             }
         """
-        file("src/test/java/OtherTest.java") << """import org.junit.*;
+        file("src/test/java/OtherTest.java") << """import $framework.imports;
             public class OtherTest {
                 @Test public void pass() {}
-                @Test public void fail() { Assert.fail("Boo!"); }
+                @Test public void fail() { throw new RuntimeException("Boo!"); }
             }
         """
 
@@ -52,14 +66,19 @@ public class SingleTestMethodExecutionIntegrationTest extends AbstractIntegratio
         def result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted("FooTest")
         result.testClass("FooTest").assertTestCount(1, 0, 0)
+
+        where:
+        framework << [jUnit]
     }
 
-    def "executes multiple methods from a test class"() {
+    @Unroll
+    def "#framework executes multiple methods from a test class"() {
         buildFile << """
             apply plugin: 'java'
             repositories { mavenCentral() }
-            dependencies { testCompile 'junit:junit:4.11' }
+            dependencies { testCompile "$framework.dependency" }
             test {
+              use$framework.name()
               include 'FooTest*'
               selection {
                 includeMethod('passOne')
@@ -67,14 +86,14 @@ public class SingleTestMethodExecutionIntegrationTest extends AbstractIntegratio
               }
             }
         """
-        file("src/test/java/FooTest.java") << """import org.junit.*;
+        file("src/test/java/FooTest.java") << """import $framework.imports;
             public class FooTest {
                 @Test public void passOne() {}
                 @Test public void passTwo() {}
                 @Test public void fail() { Assert.fail("Boo!"); }
             }
         """
-        file("src/test/java/OtherTest.java") << """import org.junit.*;
+        file("src/test/java/OtherTest.java") << """import $framework.imports;
             public class OtherTest {
                 @Test public void passOne() {}
                 @Test public void fail() { Assert.fail("Boo!"); }
@@ -88,26 +107,31 @@ public class SingleTestMethodExecutionIntegrationTest extends AbstractIntegratio
         def result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted("FooTest")
         result.testClass("FooTest").assertTestCount(2, 0, 0)
+
+        where:
+        framework << [jUnit]
     }
 
-    def "executes multiple methods from different classes"() {
+    @Unroll
+    def "#framework executes multiple methods from different classes"() {
         buildFile << """
             apply plugin: 'java'
             repositories { mavenCentral() }
-            dependencies { testCompile 'junit:junit:4.11' }
+            dependencies { testCompile "$framework.dependency" }
             test {
+              use$framework.name()
               selection {
                 includeMethod('pass')
               }
             }
         """
-        file("src/test/java/FooTest.java") << """import org.junit.*;
+        file("src/test/java/FooTest.java") << """import $framework.imports;
             public class FooTest {
                 @Test public void pass() {}
                 @Test public void fail() { Assert.fail("Boo!"); }
             }
         """
-        file("src/test/java/OtherTest.java") << """import org.junit.*;
+        file("src/test/java/OtherTest.java") << """import $framework.imports;
             public class OtherTest {
                 @Test public void pass() {}
                 @Test public void fail() { Assert.fail("Boo!"); }
@@ -122,5 +146,8 @@ public class SingleTestMethodExecutionIntegrationTest extends AbstractIntegratio
         result.assertTestClassesExecuted("FooTest", "OtherTest")
         result.testClass("FooTest").assertTestCount(1, 0, 0)
         result.testClass("OtherTest").assertTestCount(1, 0, 0)
+
+        where:
+        framework << [jUnit]
     }
 }
