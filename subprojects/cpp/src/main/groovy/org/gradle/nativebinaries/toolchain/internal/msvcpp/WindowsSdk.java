@@ -36,20 +36,24 @@ public class WindowsSdk implements Named {
     private static final String[] BINPATHS_ARM = {
         "bin/arm"
     };
+    private static final String LIBPATH_SDK8 = "Lib/win8/";
     private static final String LIBPATH_SDK81 = "Lib/winv6.3/um/";
     private static final String[] LIBPATHS_X86 = {
         LIBPATH_SDK81 + "x86",
+        LIBPATH_SDK8 + "x86",
         "lib"
     };
     private static final String[] LIBPATHS_AMD64 = {
         LIBPATH_SDK81 + "x64",
+        LIBPATH_SDK8 + "x64",
         "lib/x64"
     };
     private static final String[] LIBPATHS_IA64 = {
         "lib/IA64"
     };
     private static final String[] LIBPATHS_ARM = {
-        LIBPATH_SDK81 + "arm"
+        LIBPATH_SDK81 + "arm",
+        LIBPATH_SDK8 + "arm"
     };
 
     private final File baseDir;
@@ -84,18 +88,18 @@ public class WindowsSdk implements Named {
     }
 
     public File[] getIncludeDirs() {
-        File[] includesSdk81 = new File[] {
+        File[] includesSdk8 = new File[] {
             new File(baseDir, "Include/shared"),
             new File(baseDir, "Include/um")
         };
-        for (File file : includesSdk81) {
-            if (!file.isFile()) {
+        for (File file : includesSdk8) {
+            if (!file.isDirectory()) {
                 return new File[] {
                     new File(baseDir, "Include")
                 };
             }
         }
-        return includesSdk81;
+        return includesSdk8;
     }
 
     public File getLibDir(Platform platform) {
@@ -118,7 +122,7 @@ public class WindowsSdk implements Named {
     private File getAvailableFile(String... candidates) {
         for (String candidate : candidates) {
             File file = new File(baseDir, candidate);
-            if (file.isFile()) {
+            if (file.isDirectory()) {
                 return file;
             }
         }
