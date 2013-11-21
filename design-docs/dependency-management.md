@@ -105,7 +105,6 @@ path will be used to identify these instances. For now, every local component in
 3. Change `ResolvedComponentResult` implementations so that:
     - `getId()` returns the identifier from `ModuleVersionMetaData.getComponentId()`.
     - `getPublishedAs()` returns a `ModuleComponentIdentifier` with the same attributes as `ModuleVersionMetaData.getId()`.
-    - Add `<T extends ComponentIdentifier> T getId(Class<T> type)` that returns an id of the requested type.
 4. Introduce `BuildComponentSelector` type that extends `ComponentSelector` and add a private implementation.
     - `project` property, as the project path.
 5. Change `DependencyMetaData` to add a `ComponentSelector getSelector()`
