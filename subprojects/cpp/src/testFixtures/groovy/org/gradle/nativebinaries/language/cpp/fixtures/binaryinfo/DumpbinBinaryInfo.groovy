@@ -35,7 +35,8 @@ class DumpbinBinaryInfo implements BinaryInfo {
     }
 
     static VisualStudioInstall findVisualStudio() {
-        new VisualStudioInstall(new DefaultVisualStudioLocator().locateDefaultVisualStudio().result)
+        def searchResult = new DefaultVisualStudioLocator().locateDefaultVisualStudio();
+        new VisualStudioInstall(searchResult.result, searchResult.version);
     }
 
     private findExe(String exe) {

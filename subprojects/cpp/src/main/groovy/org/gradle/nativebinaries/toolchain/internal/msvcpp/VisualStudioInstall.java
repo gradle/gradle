@@ -41,7 +41,7 @@ public class VisualStudioInstall {
 
     public VisualStudioInstall(File visualStudioDir, String visualStudioVersion) {
         this.visualStudioDir = visualStudioDir;
-        this.visualStudioVersion = visualStudioVersion;
+        this.visualStudioVersion = (visualStudioVersion != null) ? visualStudioVersion : VisualStudioVersion.VS_2010; // TODO: detect version from directory
         visualCppDir = new File(visualStudioDir, "VC");
     }
 

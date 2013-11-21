@@ -163,7 +163,7 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
         }
 
         public <T extends BinaryToolSpec> Compiler<T> createWindowsResourceCompiler() {
-            CommandLineTool<WindowsResourceCompileSpec> commandLineTool = commandLineTool("Windows resource compiler", sdk.getResourceCompiler());
+            CommandLineTool<WindowsResourceCompileSpec> commandLineTool = commandLineTool("Windows resource compiler", sdk.getResourceCompiler(targetPlatform));
             Transformer<WindowsResourceCompileSpec, WindowsResourceCompileSpec> specTransformer = addIncludePath();
             commandLineTool.withSpecTransformer(specTransformer);
             WindowsResourceCompiler windowsResourceCompiler = new WindowsResourceCompiler(commandLineTool);
@@ -185,7 +185,7 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
             CommandLineTool<T> tool = new CommandLineTool<T>(toolName, exe, execActionFactory);
 
             // The visual C++ tools use the path to find other executables
-            tool.withPath(install.getVisualCppBin(targetPlatform), sdk.getBinDir(), install.getCommonIdeBin());
+            tool.withPath(install.getVisualCppBin(targetPlatform), sdk.getBinDir(targetPlatform), install.getCommonIdeBin());
 
             return tool;
         }
@@ -197,7 +197,8 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
         private <T extends NativeCompileSpec> Transformer<T, T> addIncludePath() {
             return new Transformer<T, T>() {
                 public T transform(T original) {
-                    original.include(install.getVisualCppInclude(), sdk.getIncludeDir());
+                    original.include(install.getVisualCppInclude());
+                    original.include(sdk.getIncludeDirs());
                     return original;
                 }
             };

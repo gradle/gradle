@@ -23,6 +23,35 @@ import org.gradle.nativebinaries.internal.ArchitectureInternal;
 import java.io.File;
 
 public class WindowsSdk implements Named {
+    private static final String[] BINPATHS_X86 = {
+        "bin/x86",
+        "Bin"
+    };
+    private static final String[] BINPATHS_AMD64 = {
+        "bin/x64"
+    };
+    private static final String[] BINPATHS_IA64 = {
+        "bin/IA64"
+    };
+    private static final String[] BINPATHS_ARM = {
+        "bin/arm"
+    };
+    private static final String LIBPATH_SDK81 = "Lib/winv6.3/um/";
+    private static final String[] LIBPATHS_X86 = {
+        LIBPATH_SDK81 + "x86",
+        "lib"
+    };
+    private static final String[] LIBPATHS_AMD64 = {
+        LIBPATH_SDK81 + "x64",
+        "lib/x64"
+    };
+    private static final String[] LIBPATHS_IA64 = {
+        "lib/IA64"
+    };
+    private static final String[] LIBPATHS_ARM = {
+        LIBPATH_SDK81 + "arm"
+    };
+
     private final File baseDir;
 
     public WindowsSdk(File baseDir) {
@@ -33,33 +62,68 @@ public class WindowsSdk implements Named {
         return "Windows SDK " + getVersion();
     }
 
-    public File getResourceCompiler() {
-        return new File(getBinDir(), "rc.exe");
+    public File getResourceCompiler(Platform platform) {
+        return new File(getBinDir(platform), "rc.exe");
     }
 
     public String getVersion() {
         return baseDir.getName();
     }
 
-    public File getBinDir() {
-        return new File(baseDir, "Bin");
+    public File getBinDir(Platform platform) {
+        if (architecture(platform).isAmd64()) {
+            return getAvailableFile(BINPATHS_AMD64);
+        }
+        if (architecture(platform).isIa64()) {
+            return getAvailableFile(BINPATHS_IA64);
+        }
+        if (architecture(platform).isArm()) {
+            return getAvailableFile(BINPATHS_ARM);
+        }
+        return getAvailableFile(BINPATHS_X86);
     }
 
-    public File getIncludeDir() {
-        return new File(baseDir, "Include");
+    public File[] getIncludeDirs() {
+        File[] includesSdk81 = new File[] {
+            new File(baseDir, "Include/shared"),
+            new File(baseDir, "Include/um")
+        };
+        for (File file : includesSdk81) {
+            if (!file.isFile()) {
+                return new File[] {
+                    new File(baseDir, "Include")
+                };
+            }
+        }
+        return includesSdk81;
     }
 
     public File getLibDir(Platform platform) {
         if (architecture(platform).isAmd64()) {
-            return new File(baseDir, "lib/x64");
+            return getAvailableFile(LIBPATHS_AMD64);
         }
         if (architecture(platform).isIa64()) {
-            return new File(baseDir, "lib/IA64");
+            return getAvailableFile(LIBPATHS_IA64);
         }
-        return new File(baseDir, "lib");
+        if (architecture(platform).isArm()) {
+            return getAvailableFile(LIBPATHS_ARM);
+        }
+        return getAvailableFile(LIBPATHS_X86);
     }
 
     private ArchitectureInternal architecture(Platform platform) {
         return (ArchitectureInternal) platform.getArchitecture();
     }
+
+    private File getAvailableFile(String... candidates) {
+        for (String candidate : candidates) {
+            File file = new File(baseDir, candidate);
+            if (file.isFile()) {
+                return file;
+            }
+        }
+
+        return new File(baseDir, candidates[0]);
+    }
+
 }
