@@ -28,6 +28,7 @@ import org.jmock.Expectations;
 import org.junit.Before;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.Collections;
 
 import static junit.framework.Assert.assertNotNull;
@@ -85,6 +86,8 @@ public class JUnitTestFrameworkTest extends AbstractTestFrameworkTest {
             will(returnValue(Collections.emptySet()));
             allowing(jUnitOptionsMock).getExcludeCategories();
             will(returnValue(Collections.emptySet()));
+            allowing(testMock).getTestNames();
+            will(returnValue(Arrays.asList("foo")));
             one(serviceRegistry).get(IdGenerator.class);
             will(returnValue(idGenerator));
             one(serviceRegistry).get(ActorFactory.class);

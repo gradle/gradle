@@ -47,8 +47,8 @@ class JUnitTestClassProcessorTest {
     private final TestResultProcessor resultProcessor = context.mock(TestResultProcessor.class);
     private final ActorFactory actorFactory = new TestActorFactory()
     private final JUnitSpec spec = new JUnitSpec(new JUnitOptions());
-    private final JUnitTestClassProcessor processor = new JUnitTestClassProcessor(spec, new LongIdGenerator(), actorFactory, {} as StandardOutputRedirector);
-
+    private final JUnitTestClassProcessor processor = new JUnitTestClassProcessor(spec, [], new LongIdGenerator(), actorFactory, {} as StandardOutputRedirector);
+    
     @Test
     public void executesAJUnit4TestClass() {
         context.checking {
@@ -79,6 +79,40 @@ class JUnitTestClassProcessorTest {
         processor.startProcessing(resultProcessor);
         processor.processTestClass(testClass(ATestClass.class));
         processor.stop();
+    }
+
+    @Test
+    public void executesAJUnit4TestClassWithGivenTestMethods() {
+        def anotherProcessor = new JUnitTestClassProcessor(spec, ['another'], new LongIdGenerator(), actorFactory, {} as StandardOutputRedirector);
+
+        context.checking {
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestDescriptorInternal suite, TestStartEvent event ->
+                assertThat(suite.id, equalTo(1L))
+                assertThat(suite.name, equalTo(ATestClassWithManyMethods.class.name))
+                assertThat(suite.className, equalTo(ATestClassWithManyMethods.class.name))
+                assertThat(event.parentId, nullValue())
+            }
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestDescriptorInternal test, TestStartEvent event ->
+                assertThat(test.id, equalTo(2L))
+                assertThat(test.name, equalTo('another'))
+                assertThat(test.className, equalTo(ATestClassWithManyMethods.class.name))
+                assertThat(event.parentId, equalTo(1L))
+            }
+            one(resultProcessor).completed(withParam(equalTo(2L)), withParam(notNullValue()))
+            will { id, TestCompleteEvent event ->
+                assertThat(event.resultType, nullValue())
+            }
+            one(resultProcessor).completed(withParam(equalTo(1L)), withParam(notNullValue()))
+            will { id, TestCompleteEvent event ->
+                assertThat(event.resultType, nullValue())
+            }
+        }
+
+        anotherProcessor.startProcessing(resultProcessor);
+        anotherProcessor.processTestClass(testClass(ATestClassWithManyMethods.class));
+        anotherProcessor.stop();
     }
 
     @Test
@@ -765,6 +799,16 @@ class JUnitTestClassProcessorTest {
 public class ATestClass {
     @Test
     public void ok() {
+    }
+}
+
+public class ATestClassWithManyMethods {
+    @Test
+    public void ok() {
+    }
+
+    @Test
+    public void another() {
     }
 }
 

@@ -41,7 +41,7 @@ class TestNGTestClassProcessorTest extends Specification {
 
     void setup(){
         options = Spy(TestNGSpec, constructorArgs:[new TestNGOptions(reportDir.testDirectory)]);
-        processor = new TestNGTestClassProcessor(reportDir.testDirectory, options, [], new LongIdGenerator(), {} as StandardOutputRedirector);
+        processor = new TestNGTestClassProcessor(reportDir.testDirectory, options, [], [], new LongIdGenerator(), {} as StandardOutputRedirector);
     }
 
     void "executes the test class"() {
@@ -74,6 +74,26 @@ class TestNGTestClassProcessorTest extends Specification {
         1 * resultProcessor.started({ it.name == 'ok' && it.className == ATestNGClass.class.name }, _ as TestStartEvent)
 
         1 * resultProcessor.completed(2, { it.resultType == ResultType.SUCCESS })
+        1 * resultProcessor.completed(1, { it.resultType == null })
+
+        0 * resultProcessor._
+    }
+
+    void "executes test class for only the given test methods"() {
+        when:
+        processor = new TestNGTestClassProcessor(reportDir.testDirectory, options, [], ['another'], new LongIdGenerator(), {} as StandardOutputRedirector);
+        processor.startProcessing(resultProcessor);
+        processor.processTestClass(testClass(ATestNGClassWithManyMethods.class));
+        processor.stop();
+
+        then:
+        1 * resultProcessor.started({ it.id == 1 && it.name == 'Gradle test' && it.className == null }, { it.parentId == null })
+        then:
+        1 * resultProcessor.started({ it.id == 2 && it.name == 'another' && it.className == ATestNGClassWithManyMethods.class.name }, { it.parentId == 1 })
+
+        then:
+        1 * resultProcessor.completed(2, { it.resultType == ResultType.SUCCESS })
+        then:
         1 * resultProcessor.completed(1, { it.resultType == null })
 
         0 * resultProcessor._
@@ -232,6 +252,16 @@ public class ATestNGClassWithExpectedException {
     @org.testng.annotations.Test(expectedExceptions = RuntimeException.class)
     public void ok() {
         throw new RuntimeException()
+    }
+}
+
+public class ATestNGClassWithManyMethods {
+    @org.testng.annotations.Test
+    public void ok() {
+    }
+
+    @org.testng.annotations.Test
+    public void another() {
     }
 }
 

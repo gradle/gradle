@@ -231,7 +231,24 @@ class JavaBasePluginTest extends Specification {
 
         then:
         task.includes == ['**/pattern*.class'] as Set
+        task.testNames == []
         task.inputs.getSourceFiles().empty
+    }
+
+    def "configures test task when test.single is used with test method names"() {
+        javaBasePlugin.apply(project)
+        def task = project.tasks.create('test', Test.class)
+        task.include 'ignoreme'
+
+        when:
+        System.setProperty("test.single", "pattern#test1,test2")
+        project.projectEvaluationBroadcaster.afterEvaluate(project, null)
+
+        then:
+        task.includes == ['**/pattern*.class'] as Set
+        task.testNames == ['test1', 'test2']
+        task.inputs.getSourceFiles().empty
+
     }
 
     def "adds functional and language source sets for each source set added to the 'sourceSets' container"() {

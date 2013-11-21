@@ -32,6 +32,7 @@ import org.gradle.process.internal.WorkerProcessBuilder;
 
 import java.io.Serializable;
 import java.net.URLClassLoader;
+import java.util.List;
 
 public class JUnitTestFramework implements TestFramework {
     private JUnitOptions options;
@@ -46,7 +47,7 @@ public class JUnitTestFramework implements TestFramework {
 
     public WorkerTestClassProcessorFactory getProcessorFactory() {
         verifyJUnitCategorySupport();
-        return new TestClassProcessorFactoryImpl(new JUnitSpec(options));
+        return new TestClassProcessorFactoryImpl(new JUnitSpec(options), testTask.getTestNames());
     }
 
     private void verifyJUnitCategorySupport() {
@@ -84,13 +85,15 @@ public class JUnitTestFramework implements TestFramework {
 
     private static class TestClassProcessorFactoryImpl implements WorkerTestClassProcessorFactory, Serializable {
         private final JUnitSpec spec;
+        private final List<String> testNames;
 
-        public TestClassProcessorFactoryImpl(JUnitSpec spec) {
+        public TestClassProcessorFactoryImpl(JUnitSpec spec, List<String> testNames) {
             this.spec = spec;
+            this.testNames = testNames;
         }
 
         public TestClassProcessor create(ServiceRegistry serviceRegistry) {
-            return new JUnitTestClassProcessor(spec, serviceRegistry.get(IdGenerator.class), serviceRegistry.get(ActorFactory.class), new JULRedirector());
+            return new JUnitTestClassProcessor(spec, testNames, serviceRegistry.get(IdGenerator.class), serviceRegistry.get(ActorFactory.class), new JULRedirector());
         }
     }
 }

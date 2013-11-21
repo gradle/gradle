@@ -25,6 +25,8 @@ import org.junit.runner.Runner;
 import org.junit.runner.notification.RunListener;
 import org.junit.runner.notification.RunNotifier;
 
+import java.util.List;
+
 public class JUnitTestClassExecuter {
     private final ClassLoader applicationClassLoader;
     private final RunListener listener;
@@ -39,12 +41,19 @@ public class JUnitTestClassExecuter {
         this.executionListener = executionListener;
     }
 
-    public void execute(String testClassName) {
+    public void execute(String testClassName, List<String> testNames) {
         executionListener.testClassStarted(testClassName);
 
         Throwable failure = null;
         try {
-            runTestClass(testClassName);
+            if (testNames.isEmpty()) {
+                runTestClass(testClassName, "");    
+            } else {
+                for (String testName : testNames) {
+                    runTestClass(testClassName, testName);
+                }
+            }
+            
         } catch (Throwable throwable) {
             failure = throwable;
         }
@@ -52,9 +61,9 @@ public class JUnitTestClassExecuter {
         executionListener.testClassFinished(failure);
     }
 
-    private void runTestClass(String testClassName) throws ClassNotFoundException {
+    private void runTestClass(String testClassName, String testName) throws ClassNotFoundException {
         final Class<?> testClass = Class.forName(testClassName, true, applicationClassLoader);
-        Request request = Request.aClass(testClass);
+        Request request = (testName == null || testName.isEmpty()) ? Request.aClass(testClass) : Request.method(testClass, testName);
         if (options.hasCategoryConfiguration()) {
             Transformer<Class<?>, String> transformer = new Transformer<Class<?>, String>() {
                 public Class<?> transform(final String original) {

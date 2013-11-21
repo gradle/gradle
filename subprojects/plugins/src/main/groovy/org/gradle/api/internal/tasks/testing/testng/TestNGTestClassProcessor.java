@@ -27,27 +27,37 @@ import org.gradle.util.CollectionUtils;
 import org.gradle.util.GFileUtils;
 import org.testng.ITestListener;
 import org.testng.TestNG;
+import org.testng.xml.XmlClass;
+import org.testng.xml.XmlInclude;
+import org.testng.xml.XmlSuite;
+import org.testng.xml.XmlTest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
+
 public class TestNGTestClassProcessor implements TestClassProcessor {
+    private static final Logger LOGGER = LoggerFactory.getLogger(TestNGTestClassProcessor.class);
     private final List<Class<?>> testClasses = new ArrayList<Class<?>>();
     private final File testReportDir;
     private final TestNGSpec options;
     private final List<File> suiteFiles;
+    private final List<String> testNames;
     private final IdGenerator<?> idGenerator;
     private final StandardOutputRedirector outputRedirector;
     private TestNGTestResultProcessorAdapter testResultProcessor;
     private ClassLoader applicationClassLoader;
 
-    public TestNGTestClassProcessor(File testReportDir, TestNGSpec options, List<File> suiteFiles, IdGenerator<?> idGenerator,
+    public TestNGTestClassProcessor(File testReportDir, TestNGSpec options, List<File> suiteFiles, List<String> testNames, IdGenerator<?> idGenerator,
                                     StandardOutputRedirector outputRedirector) {
         this.testReportDir = testReportDir;
         this.options = options;
         this.suiteFiles = suiteFiles;
+        this.testNames = testNames;
         this.idGenerator = idGenerator;
         this.outputRedirector = outputRedirector;
     }
@@ -103,8 +113,23 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
         if (!suiteFiles.isEmpty()) {
             testNg.setTestSuites(GFileUtils.toPaths(suiteFiles));
         } else {
-            Class[] classes = testClasses.toArray(new Class[testClasses.size()]);
-            testNg.setTestClasses(classes);
+            XmlSuite suite = new XmlSuite();
+            XmlTest xmlTest = new XmlTest(suite);
+            xmlTest.setName("Gradle test");
+            for (Class klass : testClasses) {
+                LOGGER.debug("Adding test class {}", klass);
+                XmlClass xmlClass = new XmlClass(klass);
+
+                for (String testName : testNames) {
+                    LOGGER.debug("Adding test method {}", testName);
+                    XmlInclude meth = new XmlInclude(testName);
+                    xmlClass.getIncludedMethods().add(meth);
+                }
+
+                xmlTest.getXmlClasses().add(xmlClass);
+            }
+
+            testNg.setCommandLineSuite(suite);
         }
 
         testNg.run();
