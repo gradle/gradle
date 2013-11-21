@@ -31,7 +31,7 @@ import javax.inject.Inject;
 import java.io.File;
 
 /**
- * Generates an Ivy XML Module Descriptor file.
+ * Generates a Maven module descriptor (POM) file.
  *
  * @since 1.4
  */
