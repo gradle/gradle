@@ -16,7 +16,10 @@
 
 package org.gradle.nativebinaries.language.cpp.fixtures.binaryinfo
 import org.gradle.nativebinaries.internal.ArchitectureInternal
+import org.gradle.nativebinaries.internal.ArchitectureNotationParser;
 import org.gradle.nativebinaries.internal.DefaultArchitecture
+import org.gradle.nativebinaries.internal.DefaultPlatform;
+import org.gradle.nativebinaries.internal.OperatingSystemNotationParser;
 import org.gradle.nativebinaries.language.cpp.fixtures.AvailableToolChains.InstalledToolChain
 import org.gradle.nativebinaries.toolchain.internal.msvcpp.DefaultVisualStudioLocator
 import org.gradle.nativebinaries.toolchain.internal.msvcpp.VisualStudioInstall
@@ -30,12 +33,14 @@ class DumpbinBinaryInfo implements BinaryInfo {
         this.binaryFile = binaryFile
 
         VisualStudioInstall vsInstall = findVisualStudio()
-        vcBin = vsInstall.getVisualCppBin()
+        DefaultPlatform targetPlatform = new DefaultPlatform("default", ArchitectureNotationParser.parser(), OperatingSystemNotationParser.parser());
+        vcBin = vsInstall.getVisualCppBin(targetPlatform)
         commonBin = vsInstall.getCommonIdeBin()
     }
 
     static VisualStudioInstall findVisualStudio() {
-        new VisualStudioInstall(new DefaultVisualStudioLocator().locateDefaultVisualStudio().result)
+        def searchResult = new DefaultVisualStudioLocator().locateDefaultVisualStudio();
+        new VisualStudioInstall(searchResult.result, searchResult.version);
     }
 
     private findExe(String exe) {
