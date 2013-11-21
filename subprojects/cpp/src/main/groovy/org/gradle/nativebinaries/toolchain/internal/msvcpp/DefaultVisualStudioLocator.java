@@ -38,8 +38,8 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
         new VersionLookupPath("/Microsoft Visual Studio 10.0", VisualStudioVersion.VS_2010)
     };
     private static final String[] WINDOWSSDK_PATHS = {
-        "Windows Kits/8.0",
         "Windows Kits/8.1",
+        "Windows Kits/8.0",
         "Microsoft SDKs/Windows/v7.1A",
         "Microsoft SDKs/Windows/v7.1",
         "Microsoft SDKs/Windows/v7.0A"
