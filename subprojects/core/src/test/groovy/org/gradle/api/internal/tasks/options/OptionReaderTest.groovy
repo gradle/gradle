@@ -86,7 +86,6 @@ class OptionReaderTest extends Specification {
         then:
         def e = thrown(OptionValidationException)
         e.message == "Option on static field 'staticField' not supported in class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$TestClass32'."
-
     }
 
     def "fail when parameter cannot be converted from the command-line"() {
@@ -94,7 +93,7 @@ class OptionReaderTest extends Specification {
         reader.getOptions(new TestClass5())
         then:
         def e = thrown(OptionValidationException)
-        e.message == "Option 'fileValue' cannot be casted to parameter type 'java.io.File' in class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$TestClass5'."
+        e.message == "Option 'fileValue' cannot be casted to type 'java.io.File' in class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$TestClass5'."
     }
 
     def "fails when method has > 1 parameter"() {

@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.options;
 
-import org.gradle.internal.typeconversion.FromStringNotationParserFactory;
+import org.gradle.internal.typeconversion.OptionNotationParserFactory;
 import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.typeconversion.NotationParser;
@@ -36,8 +36,16 @@ abstract class AbstractOptionElement implements OptionElement {
         this.description = readDescription(option, optionName, declaringClass);
         this.optionName = optionName;
         this.optionType = optionType;
-        notationParser = new FromStringNotationParserFactory(optionType).toComposite();
+        this.notationParser = createNotationParser(optionName, optionType, declaringClass);
+    }
 
+    private NotationParser createNotationParser(String optionName, Class<?> optionType, Class<?> declaringClass) {
+        try{
+            return new OptionNotationParserFactory(optionType).toComposite();
+        }   catch(Exception ex){
+            throw new OptionValidationException(String.format("Option '%s' cannot be casted to type '%s' in class '%s'.",
+                    optionName, optionType.getName(), declaringClass.getName()));
+        }
     }
 
     protected static Class<?> calculateOptionType(Class<?> type) {
@@ -67,13 +75,6 @@ abstract class AbstractOptionElement implements OptionElement {
         }
     }
 
-    protected Object getParameterObject(String value) {
-        NotationParser<?> notationParser = new FromStringNotationParserFactory(getOptionType()).toComposite();
-        return notationParser.parseNotation(value);
-    }
-
-
-
     protected Object invokeMethod(Object object, Method method, Object... parameterValues) {
         final JavaMethod<Object, Object> javaMethod = JavaReflectionUtil.method(Object.class, Object.class, method);
         return javaMethod.invoke(object, parameterValues);
@@ -85,5 +86,9 @@ abstract class AbstractOptionElement implements OptionElement {
 
     public String getDescription() {
         return description;
+    }
+
+    protected NotationParser getNotationParser() {
+        return notationParser;
     }
 }

@@ -38,7 +38,6 @@ public class MethodOptionElement extends AbstractOptionElement {
 
     private static Class<?> calculateOptionType(Method optionMethod) {
         if (optionMethod.getParameterTypes().length == 0) {
-            //flag method
             return Void.TYPE;
         } else {
             return calculateOptionType(optionMethod.getParameterTypes()[0]);
@@ -59,7 +58,7 @@ public class MethodOptionElement extends AbstractOptionElement {
         } else if (parameterValues.size() > 1) {
             throw new IllegalArgumentException(String.format("Lists not supported for option."));
         } else {
-            invokeMethod(object, method, getParameterObject(parameterValues.get(0)));
+            invokeMethod(object, method, getNotationParser().parseNotation(parameterValues.get(0)));
         }
     }
 
@@ -68,16 +67,6 @@ public class MethodOptionElement extends AbstractOptionElement {
         if (parameterTypes.length > 1) {
             throw new OptionValidationException(String.format("Option '%s' cannot be linked to methods with multiple parameters in class '%s#%s'.",
                     optionName, method.getDeclaringClass().getName(), method.getName()));
-        }
-
-        if (parameterTypes.length == 1) {
-            final Class<?> parameterType = parameterTypes[0];
-            if (!(parameterType == Boolean.class || parameterType == Boolean.TYPE)
-                    && !parameterType.isAssignableFrom(String.class)
-                    && !parameterType.isEnum()) {
-                throw new OptionValidationException(String.format("Option '%s' cannot be casted to parameter type '%s' in class '%s'.",
-                        optionName, parameterType.getName(), method.getDeclaringClass().getName()));
-            }
         }
     }
 }

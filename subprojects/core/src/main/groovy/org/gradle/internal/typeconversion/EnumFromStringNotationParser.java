@@ -29,6 +29,7 @@ public class EnumFromStringNotationParser<T extends Object> extends TypedNotatio
 
     public EnumFromStringNotationParser(Class<T> enumType){
         super(CharSequence.class);
+        assert enumType.isEnum() : "resultingType must be enum";
         this.type = enumType;
     }
 
