@@ -19,6 +19,7 @@ import junit.extensions.TestSetup
 import junit.framework.TestCase
 import junit.framework.TestSuite
 import org.gradle.api.internal.tasks.testing.*
+import org.gradle.api.internal.tasks.testing.selection.DefaultTestSelection
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.api.tasks.testing.junit.JUnitOptions
 import org.gradle.internal.id.LongIdGenerator
@@ -46,7 +47,7 @@ class JUnitTestClassProcessorTest {
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
     private final TestResultProcessor resultProcessor = context.mock(TestResultProcessor.class);
     private final ActorFactory actorFactory = new TestActorFactory()
-    private final JUnitSpec spec = new JUnitSpec(new JUnitOptions());
+    private final JUnitSpec spec = new JUnitSpec(new JUnitOptions(), new DefaultTestSelection());
     private final JUnitTestClassProcessor processor = new JUnitTestClassProcessor(spec, new LongIdGenerator(), actorFactory, {} as StandardOutputRedirector);
 
     @Test

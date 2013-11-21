@@ -46,7 +46,7 @@ public class JUnitTestFramework implements TestFramework {
 
     public WorkerTestClassProcessorFactory getProcessorFactory() {
         verifyJUnitCategorySupport();
-        return new TestClassProcessorFactoryImpl(new JUnitSpec(options));
+        return new TestClassProcessorFactoryImpl(new JUnitSpec(options, testTask.getSelection()));
     }
 
     private void verifyJUnitCategorySupport() {

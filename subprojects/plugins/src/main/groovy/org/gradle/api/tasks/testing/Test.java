@@ -35,6 +35,7 @@ import org.gradle.api.internal.tasks.testing.junit.report.TestReporter;
 import org.gradle.api.internal.tasks.testing.junit.result.*;
 import org.gradle.api.internal.tasks.testing.logging.*;
 import org.gradle.api.internal.tasks.testing.results.TestListenerAdapter;
+import org.gradle.api.internal.tasks.testing.selection.DefaultTestSelection;
 import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.reporting.DirectoryReport;
@@ -116,6 +117,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     private final ProgressLoggerFactory progressLoggerFactory;
     private final TestLoggingContainer testLogging;
     private final DefaultJavaForkOptions forkOptions;
+    private final DefaultTestSelection selection;
 
     private TestExecuter testExecuter;
     private List<File> testSrcDirs = new ArrayList<File>();
@@ -150,6 +152,8 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         reports = instantiator.newInstance(DefaultTestTaskReports.class, this);
         reports.getJunitXml().setEnabled(true);
         reports.getHtml().setEnabled(true);
+
+        selection = instantiator.newInstance(DefaultTestSelection.class);
     }
 
     /**
@@ -1074,6 +1078,28 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     public TestTaskReports reports(Closure closure) {
         reports.configure(closure);
         return reports;
+    }
+
+    /**
+     * Allows selecting tests for execution
+     *
+     * @return selection object
+     */
+    @Incubating
+    public TestSelection getSelection() {
+        return selection;
+    }
+
+    /**
+     * Allows selecting tests for execution
+     *
+     * @param closure to configure the test selection
+     * @return selection object
+     */
+    @Incubating
+    public TestSelection selection(Closure closure) {
+        ConfigureUtil.configure(closure, selection);
+        return selection;
     }
 
     // only way I know of to determine current log level

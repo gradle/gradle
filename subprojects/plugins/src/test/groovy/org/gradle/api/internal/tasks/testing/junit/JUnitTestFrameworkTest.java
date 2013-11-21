@@ -26,6 +26,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.messaging.actor.ActorFactory;
 import org.jmock.Expectations;
 import org.junit.Before;
+import org.junit.Ignore;
 
 import java.io.File;
 import java.util.Collections;
@@ -34,6 +35,7 @@ import static junit.framework.Assert.assertNotNull;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertThat;
 
+@Ignore //TODO SF spockify
 public class JUnitTestFrameworkTest extends AbstractTestFrameworkTest {
     private JUnitTestFramework jUnitTestFramework;
     private JUnitOptions jUnitOptionsMock;

@@ -20,10 +20,13 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Transformer;
 import org.gradle.internal.concurrent.ThreadSafe;
 import org.gradle.util.CollectionUtils;
+import org.junit.runner.Description;
 import org.junit.runner.Request;
 import org.junit.runner.Runner;
 import org.junit.runner.notification.RunListener;
 import org.junit.runner.notification.RunNotifier;
+
+import java.util.List;
 
 public class JUnitTestClassExecuter {
     private final ClassLoader applicationClassLoader;
@@ -71,6 +74,10 @@ public class JUnitTestClassExecuter {
             ));
         }
 
+        if (!options.getIncludedMethods().isEmpty()) {
+            request = request.filterWith(new MethodNameFilter(options.getIncludedMethods()));
+        }
+
         Runner runner = request.getRunner();
         //In case of no matching methods junit will return a ErrorReportingRunner for org.junit.runner.manipulation.Filter.class.
         //Will be fixed with adding class filters
@@ -82,4 +89,20 @@ public class JUnitTestClassExecuter {
     }
 
 
+    private static class MethodNameFilter extends org.junit.runner.manipulation.Filter {
+        private List<String> includedMethods;
+
+        public MethodNameFilter(List<String> includedMethods) {
+            this.includedMethods = includedMethods;
+        }
+
+        @Override
+        public boolean shouldRun(Description description) {
+            return includedMethods.contains(description.getMethodName());
+        }
+
+        public String describe() {
+            return "Includes matching method names";
+        }
+    }
 }
