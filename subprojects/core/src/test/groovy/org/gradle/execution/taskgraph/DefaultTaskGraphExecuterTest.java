@@ -536,6 +536,8 @@ public class DefaultTaskGraphExecuterTest {
             will(returnValue(new DefaultTaskDependency()));
             allowing(task).getFinalizedBy();
             will(returnValue(new DefaultTaskDependency()));
+            allowing(task).getShouldRunAfter();
+            will(returnValue(new DefaultTaskDependency()));
             allowing(task).getDidWork();
             will(returnValue(true));
             allowing(task).compareTo(with(notNullValue(TaskInternal.class)));

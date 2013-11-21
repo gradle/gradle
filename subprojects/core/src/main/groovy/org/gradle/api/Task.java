@@ -76,8 +76,9 @@ import java.util.Set;
  * all of its dependencies and any "must run after" tasks have been executed.</p>
  *
  * <p>Dependencies to a task are controlled using {@link #dependsOn(Object...)} or {@link #setDependsOn(Iterable)},
- * and {@link #mustRunAfter(Object...)} or {@link #setMustRunAfter(Iterable)} are used to specify ordering between tasks. You can use objects
- * of any of the following types to specify dependencies and ordering:</p>
+ * and {@link #mustRunAfter(Object...)}, {@link #setMustRunAfter(Iterable)}, {@link #shouldRunAfter(Object...)} and
+ * {@link #setShouldRunAfter(Iterable)} are used to specify ordering between tasks. You can use objects of any of
+ * the following types to specify dependencies and ordering:</p>
  *
  * <ul>
  *
@@ -633,5 +634,56 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      */
     @Incubating
     TaskDependency getFinalizedBy();
+
+    /**
+     * <p>Specifies that this task should run after all of the supplied tasks.</p>
+     *
+     * <pre autoTested="true">
+     * task taskY {
+     *     shouldRunAfter "taskX"
+     * }
+     * </pre>
+     *
+     * <p>For each supplied task, this action adds a task 'ordering', and does not specify a 'dependency' between the tasks.
+     * As such, it is still possible to execute 'taskY' without first executing the 'taskX' in the example.</p>
+     *
+     * <p>See <a href="#dependencies">here</a> for a description of the types of objects which can be used to specify
+     * an ordering relationship.</p>
+     *
+     * @param paths The tasks this task should run after.
+     *
+     * @return the task object this method is applied to
+     */
+    @Incubating
+    TaskDependency shouldRunAfter(Object... paths);
+
+    /**
+     * <p>Specifies the set of tasks that this task should run after.</p>
+     *
+     * <pre autoTested="true">
+     * task taskY {
+     *     shouldRunAfter = ["taskX1", "taskX2"]
+     * }
+     * </pre>
+     *
+     * <p>For each supplied task, this action adds a task 'ordering', and does not specify a 'dependency' between the tasks.
+     * As such, it is still possible to execute 'taskY' without first executing the 'taskX' in the example.</p>
+     *
+     * <p>See <a href="#dependencies">here</a> for a description of the types of objects which can be used to specify
+     * an ordering relationship.</p>
+     *
+     * @param shouldRunAfter The set of task paths this task should run after.
+     */
+    @Incubating
+    void setShouldRunAfter(Iterable<?> shouldRunAfter);
+
+
+    /**
+     * <p>Returns tasks that this task should run after.</p>
+     *
+     * @return The tasks that this task should run after. Returns an empty set if this task has no tasks it must run after.
+     */
+    @Incubating
+    TaskDependency getShouldRunAfter();
 }
 

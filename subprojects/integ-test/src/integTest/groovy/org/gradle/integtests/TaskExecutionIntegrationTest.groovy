@@ -339,22 +339,106 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
     def "checked exceptions thrown by tasks are reported correctly"() {
         buildFile << """
             class SomeTask extends DefaultTask {
-            
+
                 @TaskAction
                 void explode() {
                     throw new Exception("I am the checked exception")
                 }
             }
-            
+
             task explode(type: SomeTask) {
-            
+
             }
         """
-        
+
         when:
         fails "explode"
 
         then:
         failure.assertHasCause "java.lang.Exception: I am the checked exception"
+    }
+
+    def "honours shouldRunAfter task ordering"() {
+        buildFile << """
+    task a {
+        dependsOn 'b'
+    }
+    task b {
+        shouldRunAfter 'c'
+    }
+    task c
+    task d {
+        dependsOn 'c'
+    }
+"""
+        when:
+        succeeds 'a', 'd'
+
+        then:
+        executedTasks == [':c', ':b', ':a', ':d']
+    }
+
+    def "multiple should run after ordering can be ignored for one execution plan"() {
+        buildFile << """
+    task a {
+        dependsOn 'b', 'h'
+    }
+    task b {
+        dependsOn 'c'
+    }
+    task c {
+        dependsOn 'g'
+        shouldRunAfter 'd'
+    }
+    task d {
+        finalizedBy 'e'
+        dependsOn 'f'
+    }
+    task e
+    task f {
+        dependsOn 'c'
+    }
+    task g {
+        shouldRunAfter 'h'
+    }
+    task h {
+        dependsOn 'b'
+    }
+"""
+
+        when:
+        succeeds 'a', 'd'
+
+        then:
+        executedTasks == [':g', ':c', ':b', ':h', ':a', ':f', ':d', ':e']
+    }
+
+    void 'tasks with should run after ordering rules are preferred when running over an idle worker thread'() {
+        settingsFile << """
+            include 'a', 'b'
+        """
+
+        file('a/build.gradle') << """
+            task a {
+                shouldRunAfter ':b:d'
+            }
+        """
+
+        file('b/build.gradle') << """
+            task b
+            task c {
+                dependsOn 'b'
+            }
+            task d {
+                dependsOn 'c'
+            }
+        """
+        executer.withArguments('--parallel')
+
+        when:
+        succeeds 'a', 'd'
+
+        then:
+        executedTasks == [':b:b', ':a:a', ':b:c', ':b:d']
     }
 }

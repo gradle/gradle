@@ -157,35 +157,41 @@
             <listitem>A task that aggregates the results of all tasks of a particular type: eg. test report task combines the outputs of all executed test tasks.</listitem>
         </itemizedlist>
         <para>
-            Presently, the only task ordering rule available is "<emphasis>must run after</emphasis>", which allows you to specify that <literal>taskB</literal> must always run after <literal>taskA</literal>,
-            whenever both <literal>taskA</literal> and <literal>taskB</literal> are scheduled for execution. This is expressed as <literal>taskB.mustRunAfter(taskA)</literal>.
-            With this rule present it is still possible to execute <literal>taskA</literal> without <literal>taskB</literal> and vice-versa.
+            There are two ordering rules available: "<emphasis>must run after</emphasis>" and "<emphasis>should run after</emphasis>".
         </para>
-        <note>
-            <para>
-                While 'must-run-after' is useful in many cases, there are times when your ordering requirements are slightly different.
-                An example is an ordering preference for faster feedback, where the ordering is helpful but not strictly required.
-                We plan to add different types of task ordering in the future, to better support the full gamut of ordering use cases.
-            </para>
-        </note>
+        <para>By using 'must run after" ordering rule you can specify that <literal>taskB</literal> must always run after <literal>taskA</literal>,
+            whenever both <literal>taskA</literal> and <literal>taskB</literal> are scheduled for execution. This is expressed as <literal>taskB.mustRunAfter(taskA)</literal>. The 'should run after' ordering rule is similar but less strict as it will be ignored in two situations. Firstly if using that rule introduces an ordering cycle. Secondly when using parallel execution and all dependencies of a task have been satisfied apart from should run after then this task will be run regardless of weather its 'should run after' dependencies have been run or not. You would use 'should run after' rule when ordering preference for faster feedback, where the ordering is helpful but not strictly required.
+        </para>
+        <para>
+            With these rules present it is still possible to execute <literal>taskA</literal> without <literal>taskB</literal> and vice-versa.
+        </para>
         <sample id="mustRunAfter" dir="userguide/tasks/mustRunAfter" title="Adding a 'must run after' task ordering">
             <sourcefile file="build.gradle"/>
             <output args="-q taskY taskX"/>
         </sample>
-        <para>In the example, it is still possible to execute <literal>taskY</literal> without causing <literal>taskX</literal> to run:</para>
+        <sample id="shouldRunAfter" dir="userguide/tasks/shouldRunAfter" title="Adding a 'should run after' task ordering">
+            <sourcefile file="build.gradle"/>
+            <output args="-q taskY taskX"/>
+        </sample>
+        <para>In the examples above, it is still possible to execute <literal>taskY</literal> without causing <literal>taskX</literal> to run:</para>
         <sample id="mustRunAfterSingleTask" dir="userguide/tasks/mustRunAfter" title="Task ordering does not imply task execution">
             <output args="-q taskY"/>
         </sample>
-        <para>To specify a "must run after" ordering between 2 tasks, you use the <apilink class="org.gradle.api.Task" method="mustRunAfter"/> method.
-            This method accepts a task instance, a task name or any other input accepted by <apilink class="org.gradle.api.Task" method="dependsOn"/>.
+        <para>To specify a "must run after" or "should run after" ordering between 2 tasks, you use the <apilink class="org.gradle.api.Task" method="mustRunAfter"/> and <apilink class="org.gradle.api.Task" method="shouldRunAfter"/> methods.
+            These method accept a task instance, a task name or any other input accepted by <apilink class="org.gradle.api.Task" method="dependsOn"/>.
         </para>
         <para>
-            Note that "<literal>B.mustRunAfter(A)</literal>" does not imply any execution dependency between the tasks:
+            Note that "<literal>B.mustRunAfter(A)</literal>" or "<literal>B.shouldRunAfter(A)</literal>" does not imply any execution dependency between the tasks:
         </para>
         <itemizedlist>
             <listitem>It is possible to execute tasks <literal>A</literal> and <literal>B</literal> independently. The ordering rule only has an effect when both tasks are scheduled for execution.</listitem>
             <listitem>When run with <literal>--continue</literal>, it is possible for <literal>B</literal> to execute in the event that <literal>A</literal> fails.</listitem>
         </itemizedlist>
+        <para>As mentioned before 'should run after' ordering rule will be ignored if it introduces an ordering cycle:</para>
+        <sample id="shouldRunAfterWithCycle" dir="userguide/tasks/shouldRunAfterWithCycle" title="A 'should run after' task ordering is ignored if it introduces an ordering cycle">
+            <sourcefile file="build.gradle"/>
+            <output args="-q taskX"/>
+        </sample>
     </section>
     <section>
         <title>Adding a description to a task</title>

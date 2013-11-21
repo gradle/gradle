@@ -75,6 +75,8 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private DefaultTaskDependency finalizedBy;
 
+    private DefaultTaskDependency shouldRunAfter;
+
     private ExtensibleDynamicObject extensibleDynamicObject;
 
     private String description;
@@ -122,6 +124,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         dependencies = new DefaultTaskDependency(project.getTasks());
         mustRunAfter = new DefaultTaskDependency(project.getTasks());
         finalizedBy = new DefaultTaskDependency(project.getTasks());
+        shouldRunAfter = new DefaultTaskDependency(project.getTasks());
         services = project.getServices().createFor(this);
         extensibleDynamicObject = new ExtensibleDynamicObject(this, getServices().get(Instantiator.class));
         taskStatusNagger = services.get(TaskStatusNagger.class);
@@ -585,6 +588,21 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     public TaskDependency getFinalizedBy() {
         return finalizedBy;
+    }
+
+    public TaskDependency shouldRunAfter(Object... paths) {
+        taskStatusNagger.nagIfTaskNotInConfigurableState("Task.shouldRunAfter(Object...)");
+        shouldRunAfter.add(paths);
+        return shouldRunAfter;
+    }
+
+    public void setShouldRunAfter(Iterable<?> shouldRunAfterTasks) {
+        taskStatusNagger.nagIfTaskNotInConfigurableState("Task.setShouldRunAfter(Iterable)");
+        shouldRunAfter.setValues(shouldRunAfterTasks);
+    }
+
+    public TaskDependency getShouldRunAfter() {
+        return shouldRunAfter;
     }
 
     private class ObservableActionWrapperList extends ObservableList {

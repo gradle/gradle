@@ -96,7 +96,7 @@ class DefaultTaskTest extends AbstractTaskTest {
     @Test
     public void testMustRunAfter() {
         Task mustRunAfterTask = createTask(project, "mustRunAfter")
-        Task mustRunAfterTaskUsingPath = project.getTasks().add("path")
+        Task mustRunAfterTaskUsingPath = project.getTasks().create("path")
         Task task = createTask(project, TEST_TASK_NAME)
 
         task.mustRunAfter(mustRunAfterTask, "path")
@@ -121,6 +121,26 @@ class DefaultTaskTest extends AbstractTaskTest {
 
         finalized.finalizedBy = [finalizer, "path"]
         assert finalized.finalizedBy.getDependencies(finalized) == [finalizer, finalizerFromPath] as Set
+    }
+
+    @Test
+    void testShouldRunAfter() {
+        Task shouldRunAfterTask = createTask(project, "shouldRunAfter")
+        Task shouldRunAfterFromPath = project.getTasks().create("path")
+        Task task = createTask(project, TEST_TASK_NAME)
+
+        task.shouldRunAfter(shouldRunAfterTask, shouldRunAfterFromPath)
+        assert task.shouldRunAfter.getDependencies(task) == [shouldRunAfterTask, shouldRunAfterFromPath] as Set
+    }
+
+    @Test
+    void testSetShouldRunAfter() {
+        Task shouldRunAfterTask = createTask(project, "shouldRunAfter")
+        Task shouldRunAfterFromPath = project.getTasks().create("path")
+        Task task = createTask(project, TEST_TASK_NAME)
+
+        task.shouldRunAfter = [shouldRunAfterTask, shouldRunAfterFromPath]
+        assert task.shouldRunAfter.getDependencies(task) == [shouldRunAfterTask, shouldRunAfterFromPath] as Set
     }
 
     @Test
