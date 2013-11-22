@@ -29,7 +29,15 @@ includes task type, path, description and available commandline options. To get 
 
 ### Fine-grained control of command line arguments for GCC (i)
 
-### Auto-detection of Visual Studio 2012 and Windows SDK 7.1A (i)
+### Better auto-detection of Visual Studio and Windows SDK (i)
+
+Gradle will now automatically locate and use more versions of Visual Studio and the Windows SDK for the `VisualCpp` tool chain.
+
+- Visual Studio 2012 & Visual Studio 2013
+- Windows SDK versions 7.1A, 8.0 & 8.1
+
+Support for Visual Studio remains experimental.
+Please let us know via the Gradle forums if you experience problems with Gradle using your Visual Studio installation.
 
 ## Promoted features
 
