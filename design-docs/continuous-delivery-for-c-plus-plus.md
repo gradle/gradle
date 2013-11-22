@@ -406,13 +406,6 @@ This will define 4 binaries:
     - Executable depends on a library with multiple flavors
     - Executable with flavors depends on a library with multiple flavors that do not match the executable's flavors.
 
-### Open issues
-
-- Need to consume locally and between projects and between builds.
-- Need a hook to infer the default variant.
-- Need to handle dependencies.
-- Need to publish all variants.
-
 ## Story: Build a native component using multiple tool chains
 
 This story adds support for building a native component using multiple tool chains. Each variant will have a tool chain associated with it.
@@ -695,46 +688,228 @@ The arguments hook should be seen as a 'last-resort' mechanism, with preference 
 - Similar functionality for Visual C++
 - Use only 'g++' and 'gcc' frontends for GCC (see http://stackoverflow.com/questions/172587/what-is-the-difference-between-g-and-gcc)
 
-## Story: Allow sources to be specified that apply to a particular Target Platform
+## Story: Support Clang compiler
 
-In some cases, different sources should be used depending on ToolChain or Target Platform. Assembler sources are almost always different
-for different platforms. This story will allow different sources to be used to build a Native Binary depending on the target platform.
+### Test cases
 
-## Story: Build native binaries with Visual C++ that target different Windows SDK versions
+- Build all types of binaries from all supported languages using Clang.
+- Change test apps to detect which compiler is used to compile and assert that the correct compiler is being used.
 
-## Story: Influence which variant is chosen for a library dependency
+## Story: Link Windows resource files into native binaries
 
-This story adds the ability to define the variant attributes that should be matched when resolving a library dependency to a binary.
-For now, it will be possible to specify the linkage, flavor, buildType and platform of the variant. These values will be specified
-as string selectors, which will be matched to the respective attributes of each candidate binary.
+Allow resource files to be linked into a Windows binary.
 
-When a variant attribute is not specified, it will be matched to the consuming binary.
+This story adds a new `windows-resources` plugin which adds support for compiling and linking resource files into a native binary. Windows resource will be treated
+as another native language, and the plugin will follow a similar pattern to the C and C++ language plugins.
 
-### User visible changes
+Here's an example:
 
-    sources.main.cpp {
-        lib(libraries.hello) {
-            linkage "static"
-            flavor "chocolate"
-            buildType "debug-optimised"
-            platform "x86_64"
+    apply plugin: `windows-resources`
+
+    sources {
+        myExe {
+            rc {
+                include '**/*.rc'
+            }
         }
     }
+
     executables {
-        main {}
+        myExe
     }
 
-### Test cases:
+1. Add a `windows-resources` plugin. This will follow a similar pattern as the `cpp` and `c` plugins (see `CppPlugin` for example). For now, this can do nothing.
+2. Add a `WindowsResourcesSet` which extends `LanguageSourceSet`.
+3. For each `FunctionalSourceSet`, the `windows-resources` plugin defines a `WindowsResourceSet` called `rc` (see `CppLangPlugin` for example).
+4. Add a `WindowsResourcesCompile` task type. For now, this can do nothing.
+5. For each `WindowsResourceSet` added as input to a `NativeBinary`, then the `windows-resources` plugin:
+    - If target platform is not Windows, ignores the source set.
+    - If target platform is Windows, adds a `WindowsResourceCompile` task which takes as input all of the resource files in the source set.
+      Naming scheme as per the other language plugins (see `CppNativeBinariesPlugin` for example).
+6. The `WindowsResourcesCompile` task compiles source resources to `.res` format:
+    - For the gcc/clang toolchains, should use [`windres`](http://sourceware.org/binutils/docs/binutils/windres.html) to compile each source file.
+    - For the Visual C++ toolchain, should use [`rc`](http://msdn.microsoft.com/en-us/library/windows/desktop/aa381055.aspx) to compile each source file.
+    - Should implement this by adding a new tool method on `PlatformToolChain`.
+7. Include the resulting `.res` files as input to the link task  (see `CppNativeBinariesPlugin` for example).
+8. For each `NativeBinary`, the `windows-resources` plugin defines a `PreprocessingTool` extension called `rcCompiler` (see `CppNativeBinariesPlugin` for example).
+    - If the target platform is not Windows, do not add.
+    - Wire up the args and macros defined in this extension as defaults for the resource compile task.
+9. Add a sample
 
-- Executable with single flavor chooses which flavor of library to link
-- Executable chooses custom buildType for static library variant
-- Build fails when executable attempts to define multiple selection criteria for same library
+### Test cases
 
-### Open issues:
+- Can compile and link multiple resource files into an executable and a shared library.
+    - Possibly use a STRING resource and the `LoadString()` function to verify that the resources are included.
+    - Possibly find some tool that can query the resources linked into a binary and use this.
+- Can define preprocessor macros and provide command-line args to `rc` and `windres`.
+- Compilation and linking is incremental wrt resource source files and resource compiler args.
+- Stale `.res` files are removed when a resource source file is renamed.
+- User receives a reasonable error message when resource compilation fails.
+- Can create a resources-only executable and shared library.
+- Resource source files are ignored on non-Windows platforms.
 
-- Handle multiple definitions of selection criteria for the same library
-- Allow different library variants to be selected for different consuming variants
-- Need a way to define rules like: 'use all static variants'
+### Open issues
+
+- Source set with srcdirs + patterns probably does not work for resource files
+- For a static library, the .res file forms part of the library outputs
+- Generate and link a version resource by convention into every binary?
+- Include headers?
+
+# Milestone 3
+
+## Story: Create functional Visual Studio solution for single-project build with multiple components
+
+- For each available component choose a single binary variant that is the 'development binary'. Later stories will allow these to be specified.
+- Add a task to create a Visual Studio solution file for each 'development binary'.
+- For each binary in the dependency graph of the 'development binary', create a Visual Studio project file.
+- When mapping binary to Visual Studio project:
+    - map `buildType` to `configuration`
+    - map `targetPlatform.architecture` to `platform`
+    - map linkage and `flavor` to separate project files
+- Wire the default configuration for the solution to the correct configurations in the various visual studio projects.
+
+### Test Cases
+
+- Single executable gets mapped to Visual Studio solution + project. Generating solution for executable creates project file
+  with configuration for 'development binary' which is wired into solution file.
+- Generate solution for executable that depends on the shared variant of a library and the static variant of another.
+    - Separate project file for static library and shared library.
+    - Project file for executable includes references to library projects.
+    - Solution file references 3 projects and links to correct configurations for 'development binary'
+- Generate solution for executable that depends on a shared library that in turn depends on another shared library.
+- Generate solutions for 2 executables that depend on same shared library
+- Generate solutions for 2 executables that depend on different linkages of same shared library.
+- Generate solution for component with no sources
+- Generate solution for component with windows resource files
+
+### Open Issues
+
+- Handle dependency cycles
+
+## Story: Add hooks to allow the customization of the generated Visual Studio files
+
+- Expose `visualStudio` extension with `solutions` container of `VisualStudioSolution` and `projects` container of `VisualStudioProject`
+- Add `VisualStudioSolution.solutionFile.withText(Action<? super StringBuilder>)` to modify the solution files.
+- Add `VisualStudioProject.projectFile.withXml(Action<? super XmlProvider>)` and
+  `VisualStudioProject.filtersFile.withXml(Action<? super XmlProvider>)` to modify these files
+
+## Story: Create functional Visual Studio solution for multi-project build with multiple components
+
+- Change `VisualStudioProjectRegistry` so that it is a global service across all executing Visual Studio plugins
+- When adding a `VisualStudioProject` to the registry, include the Gradle project that owns the component in the key for that vs project.
+    - When adding a reference to a dependent project to a `VisualStudioProject`, supply a key that can be used to resolve the project and the mapped component+flavor+linkage.
+    - Add a function to get all `VisualStudioProject` instances from the registry for a particular Gradle project.
+- Each Gradle project only creates tasks for the projects and solutions related to it's components.
+- `VisualStudioProject` and `VisualStudioSolution` will need to deal with files rather than file names to be able to reference vs project files from other projects.
+- When creating a Visual Studio project for a native binary, create configurations for all buildable variants that differ only in `buildType` and `targetPlatform`.
+    - This prevents any problems where a partial graph will result in breaking existing solutions that use the same projects:
+      the same visual studio project is always produced given a particular native binary.
+- Visual studio project files will live with Gradle project that owns the relevant component.
+
+### Test Cases
+
+- All test cases for single project build should also function where components are in separate Gradle builds
+- Mixed multi-project with multiple components per project
+- Multi-project where :a:exe -> :b:lib1 -> :a:lib2 (Gradle project cycle)
+
+## Story: Build binaries against a library in another project
+
+### Open issues
+
+- When linking a native binary, link against exactly the same version of each library that we compiled against, plus any additional link-time dependencies (resources, for example).
+- When installing a native executable, also install exactly the same versions of each library that we linked against, plus any additional runtime dependencies.
+
+## Story: Expose only public header files for a library
+
+TBD
+
+
+## Story: Generate source from Microsoft IDL files
+
+- Add a `microsoft-idl` plugin
+- For each `FunctionalSourceSet` add an IDL source set.
+- Add the IDL source set as input to the C source set.
+- Add some way to declare what type of thing is being built: RPC client, RPC server, COM component, etc
+- For each IDL source set adds a generate task for each target architecture
+    - Not on Windows
+    - Fail if toolchain is not Visual C++
+    - Use `midl` to generate server, client and header source files.
+        - Invoke with `/env win32` or `/env amd64` according to target architecture.
+        - Invoke with `/nologo /out <output-dir>`
+- Add `midl` macros and args to each `NativeBinary` with Windows as the target platform
+- Add a sample
+
+### Test cases
+
+- Can build a client and server executable.
+- Can build a COM DLL.
+- Incremental
+- Removes stale `.c` and `.h` files
+
+### Open issues
+
+- Source set with srcdirs + patterns probably does not work for IDL files.
+- Include headers?
+- Need to make `LanguageSourceSet` extend `BuildableModelElement`.
+
+## Story: Use Windows linker def files
+
+### Implementation
+
+* A `.def` file lists `__stdcall` functions to export from a DLL. Can also use `__declspec(dllexport)` in source to export a function.
+* Functions are imported from a DLL using `__declspec(dllimport)`.
+
+## Story: Support CUnit test execution
+
+### Use cases
+
+### Implementation
+
+Generally, C++ test frameworks compile and link a test launcher executable, which is then run to execute the tests.
+
+To implement this:
+* Define a test source set and associated tasks to compile, link and run the test executable.
+* It should be possible to run the tests for all architectures supported by the current machine.
+* Generate the test launcher source and compile it into the executable.
+* It would be nice to generate a test launcher that is integrated with Gradle's test eventing.
+* It would be nice to generate a test launcher that runs test cases detected from the test source (as we do for JUnit and TestNG tests).
+
+### Open issues
+
+* Need a `unitTest` lifecycle task, plus a test execution task for each variant of the unit tests.
+* Unit test executable needs to link with the object files that would be linked into the main executable.
+* Need to exclude the `main` method.
+
+# Bugfixes
+
+## Files with identical names in C/C++ source tree are silently excluded from compilation (GRADLE-2923)
+
+### Implementation
+
+* Change C++ and C compiler implementations (GCC and VisualCpp) so that only a single sources file is compiled per execution 
+    * Create a single compiler options file to reuse for compiling all source files
+    * For each source file specify the source file name and the output file name on the command line
+* Make the generated object file include the project-relative path to the source file
+    * For a source file that is located within the project directory, use the project relative path
+    * For a source file that is located outside of the project directory, use the absolute path to the source file, appropriately escaped
+* Update `OutputCleaningCompiler` with knowledge of the new source->object file mapping
+
+If we are inspired by CMake, the output file rules would be:
+
+* For a source file found at `src/main/cpp/main.cpp`, create the object file `build/objectFiles/<component>/<sourceSet>/src/main/cpp/main.cpp.obj`
+* For a source file found at `../../src/main/cpp/main.cpp`, create the object file `build/objectFiles/<component>/<sourceSet>/C_/dev/gradle/samples/native-binaries/cpp-exe/src/main/cpp/main.cpp.obj`
+
+### Test cases
+
+* Source set includes files with the same name located within project directory
+* Source set includes files with the  files with the same name where 1 is located outside the project directory
+* Removes stale outputs when source file is moved to a different directory
+
+### Open issues
+
+* Nice way between a project directory and an absolute directory with the same path
+
+# Milestone 4
 
 ## Story: Allow library binaries to be used as input to other libraries
 
@@ -805,13 +980,6 @@ Depends on a number of stories in [dependency-resolution.md](dependency-resoluti
     - Build shared library variants
     - Build for the current Operating System and architecture
 
-## Story: Support Clang compiler
-
-### Test cases
-
-- Build all types of binaries from all supported languages using Clang.
-- Change test apps to detect which compiler is used to compile and assert that the correct compiler is being used.
-
 ## Story: Allow a binary to be defined that is not part of a component
 
 - Allow native binary instances to be added manually.
@@ -829,175 +997,6 @@ Depends on a number of stories in [dependency-resolution.md](dependency-resoluti
 - Add properties to set macros and include directories for a binary, allow these to be set as toolchain specific compiler args (ie -D and -I) as well.
 - Add properties to set system libs and lib directories for a binary, allow these to be set as toolchain specific linker args (ie -l and -L) as well.
 - Add set methods for each of these properties.
-
-## Story: Link Windows resource files into native binaries
-
-Allow resource files to be linked into a Windows binary.
-
-This story adds a new `windows-resources` plugin which adds support for compiling and linking resource files into a native binary. Windows resource will be treated
-as another native language, and the plugin will follow a similar pattern to the C and C++ language plugins.
-
-Here's an example:
-
-    apply plugin: `windows-resources`
-
-    sources {
-        myExe {
-            rc {
-                include '**/*.rc'
-            }
-        }
-    }
-
-    executables {
-        myExe
-    }
-
-1. Add a `windows-resources` plugin. This will follow a similar pattern as the `cpp` and `c` plugins (see `CppPlugin` for example). For now, this can do nothing.
-2. Add a `WindowsResourcesSet` which extends `LanguageSourceSet`.
-3. For each `FunctionalSourceSet`, the `windows-resources` plugin defines a `WindowsResourceSet` called `rc` (see `CppLangPlugin` for example).
-4. Add a `WindowsResourcesCompile` task type. For now, this can do nothing.
-5. For each `WindowsResourceSet` added as input to a `NativeBinary`, then the `windows-resources` plugin:
-    - If target platform is not Windows, ignores the source set.
-    - If target platform is Windows, adds a `WindowsResourceCompile` task which takes as input all of the resource files in the source set.
-      Naming scheme as per the other language plugins (see `CppNativeBinariesPlugin` for example).
-6. The `WindowsResourcesCompile` task compiles source resources to `.res` format:
-    - For the gcc/clang toolchains, should use [`windres`](http://sourceware.org/binutils/docs/binutils/windres.html) to compile each source file.
-    - For the Visual C++ toolchain, should use [`rc`](http://msdn.microsoft.com/en-us/library/windows/desktop/aa381055.aspx) to compile each source file.
-    - Should implement this by adding a new tool method on `PlatformToolChain`.
-7. Include the resulting `.res` files as input to the link task  (see `CppNativeBinariesPlugin` for example).
-8. For each `NativeBinary`, the `windows-resources` plugin defines a `PreprocessingTool` extension called `rcCompiler` (see `CppNativeBinariesPlugin` for example).
-    - If the target platform is not Windows, do not add.
-    - Wire up the args and macros defined in this extension as defaults for the resource compile task.
-9. Add a sample
-
-### Test cases
-
-- Can compile and link multiple resource files into an executable and a shared library.
-    - Possibly use a STRING resource and the `LoadString()` function to verify that the resources are included.
-    - Possibly find some tool that can query the resources linked into a binary and use this.
-- Can define preprocessor macros and provide command-line args to `rc` and `windres`.
-- Compilation and linking is incremental wrt resource source files and resource compiler args.
-- Stale `.res` files are removed when a resource source file is renamed.
-- User receives a reasonable error message when resource compilation fails.
-- Can create a resources-only executable and shared library.
-- Resource source files are ignored on non-Windows platforms.
-
-### Open issues
-
-- Source set with srcdirs + patterns probably does not work for resource files
-- For a static library, the .res file forms part of the library outputs
-- Generate and link a version resource by convention into every binary?
-- Include headers?
-- Don't define the compile task if the source set is empty.
-
-# Milestone 3
-
-## Story: Generate source from Microsoft IDL files
-
-- Add a `microsoft-idl` plugin
-- For each `FunctionalSourceSet` add an IDL source set.
-- Add the IDL source set as input to the C source set.
-- Add some way to declare what type of thing is being built: RPC client, RPC server, COM component, etc
-- For each IDL source set adds a generate task for each target architecture
-    - Not on Windows
-    - Fail if toolchain is not Visual C++
-    - Use `midl` to generate server, client and header source files.
-        - Invoke with `/env win32` or `/env amd64` according to target architecture.
-        - Invoke with `/nologo /out <output-dir>`
-- Add `midl` macros and args to each `NativeBinary` with Windows as the target platform
-- Add a sample
-
-### Test cases
-
-- Can build a client and server executable.
-- Can build a COM DLL.
-- Incremental
-- Removes stale `.c` and `.h` files
-
-### Open issues
-
-- Source set with srcdirs + patterns probably does not work for IDL files.
-- Include headers?
-- Need to make `LanguageSourceSet` extend `BuildableModelElement`.
-
-## Story: Use Windows linker def files
-
-### Implementation
-
-* A `.def` file lists `__stdcall` functions to export from a DLL. Can also use `__declspec(dllexport)` in source to export a function.
-* Functions are imported from a DLL using `__declspec(dllimport)`.
-
-## Story: Build binaries against a library in another project
-
-### Open issues
-
-- When linking a native binary, link against exactly the same version of each library that we compiled against, plus any additional link-time dependencies (resources, for example).
-- When installing a native executable, also install exactly the same versions of each library that we linked against, plus any additional runtime dependencies.
-
-## Story: Support CUnit test execution
-
-### Use cases
-
-### Implementation
-
-Generally, C++ test frameworks compile and link a test launcher executable, which is then run to execute the tests.
-
-To implement this:
-* Define a test source set and associated tasks to compile, link and run the test executable.
-* It should be possible to run the tests for all architectures supported by the current machine.
-* Generate the test launcher source and compile it into the executable.
-* It would be nice to generate a test launcher that is integrated with Gradle's test eventing.
-* It would be nice to generate a test launcher that runs test cases detected from the test source (as we do for JUnit and TestNG tests).
-
-### Open issues
-
-* Need a `unitTest` lifecycle task, plus a test execution task for each variant of the unit tests.
-* Unit test executable needs to link with the object files that would be linked into the main executable.
-* Need to exclude the `main` method.
-
-## Story: Expose only public header files for a library
-
-TBD
-
-## Story: Visual studio integration
-
-### Implementation
-
-* Allow the visual studio project file to be generated.
-* Merge with existing project file, as for IDEA and Eclipse.
-* Add hooks for customizing the generated XML.
-
-# Bugfixes
-
-## Files with identical names in C/C++ source tree are silently excluded from compilation (GRADLE-2923)
-
-### Implementation
-
-* Change C++ and C compiler implementations (GCC and VisualCpp) so that only a single sources file is compiled per execution 
-    * Create a single compiler options file to reuse for compiling all source files
-    * For each source file specify the source file name and the output file name on the command line
-* Make the generated object file include the project-relative path to the source file
-    * For a source file that is located within the project directory, use the project relative path
-    * For a source file that is located outside of the project directory, use the absolute path to the source file, appropriately escaped
-* Update `OutputCleaningCompiler` with knowledge of the new source->object file mapping
-
-If we are inspired by CMake, the output file rules would be:
-
-* For a source file found at `src/main/cpp/main.cpp`, create the object file `build/objectFiles/<component>/<sourceSet>/src/main/cpp/main.cpp.obj`
-* For a source file found at `../../src/main/cpp/main.cpp`, create the object file `build/objectFiles/<component>/<sourceSet>/C_/dev/gradle/samples/native-binaries/cpp-exe/src/main/cpp/main.cpp.obj`
-
-### Test cases
-
-* Source set includes files with the same name located within project directory
-* Source set includes files with the  files with the same name where 1 is located outside the project directory
-* Removes stale outputs when source file is moved to a different directory
-
-### Open issues
-
-* Nice way between a project directory and an absolute directory with the same path
-
-# Milestone 4
 
 ## Story: Automatically include debug symbols in 'debug' build types
 
@@ -1244,11 +1243,13 @@ TBD
 
 TBD
 
+
+
 ## DSL cleanups
 
 - Improve customising the tasks for building a binary
 - Improve doing stuff with the install task
-- Some way to configure/use all native components (instead of `libraries.all { ... }` and `components.all { ... }`)
+- Some way to configure/use all native components (instead of `libraries.all { ... }` and `executables.all { ... }`)
 - Have some way to replace the default source sets or configure one without redefining all
 - Don't create variants that can never be built
 - Allow a plugin to define the set of available tool chains, build types, platforms, flavors etc and allow a component to declare which of these make sense.
@@ -1291,6 +1292,7 @@ TBD
 - Support preprocessor macros for assembler
 - Understand build and release build types and drive the compiler and linker appropriately
 - Clean the environment prior to invoking the visual studio tools (eg clear `%INCLUDE%`, `%LIB%` etc)
+- Don't create compile tasks for empty source sets
 
 ## Target platforms
 
