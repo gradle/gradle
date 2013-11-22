@@ -35,7 +35,7 @@ public class GccVersionDeterminer implements Transformer<String, File> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GccVersionDeterminer.class);
     private static final String GCC_VERSION_PATTERN = ".*gcc version (\\S+).*";
-    private static final String APPLE_LLVM_PATTERN = "Apple LLVM.*";
+    private static final String APPLE_LLVM_PATTERN = ".*Apple LLVM.*";
 
     private final Transformer<String, String> outputScraper;
     private final Transformer<String, File> outputProducer;
