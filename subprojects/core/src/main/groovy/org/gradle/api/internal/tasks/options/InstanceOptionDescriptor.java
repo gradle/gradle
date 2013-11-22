@@ -47,7 +47,7 @@ public class InstanceOptionDescriptor implements OptionDescriptor {
     public List<String> getAvailableValues() {
         final List<String> values = optionElement.getAvailableValues();
 
-        if (String.class.isAssignableFrom(getArgumentType())) {
+        if (getArgumentType().isAssignableFrom(String.class)) {
             values.addAll(readDynamicAvailableValues());
         }
         return values;
