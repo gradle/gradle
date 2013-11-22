@@ -81,6 +81,7 @@ TBD
 We would like to thank the following community members for making contributions to this release of Gradle.
 
 * [Christo Zietsman](https://github.com/czietsman) - added support for locating the Visual Studio 2012 tool set
+* [Michael Putters](https://github.com/mputters) - added support the Visual Studio 2013 tool set and Windows 8 SDK
 * [Andrew Oberstar](https://github.com/ajoberstar) - fixed GRADLE-2695: ClassFormatError introduced in 1.3
 * [Bobby Warner](https://github.com/ajoberstar) - updated Groovy samples to Groovy 2.2.0
 
