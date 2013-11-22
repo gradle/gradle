@@ -16,13 +16,14 @@
 
 package org.gradle.nativebinaries.toolchain.internal.msvcpp;
 
+import org.gradle.nativebinaries.Platform;
+import org.gradle.nativebinaries.internal.ArchitectureInternal;
+
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.gradle.nativebinaries.Platform;
-import org.gradle.nativebinaries.internal.ArchitectureInternal;
-
+// TODO:DAZ Move any detection of available tools to the VisualStudioLocator: this class should be constructed with knowledge of the complete install
 public class VisualStudioInstall {
     private static final String NATIVEPREFIX_AMD64 = "win32-amd64";
 
@@ -208,20 +209,20 @@ public class VisualStudioInstall {
         Map<String, String> availableBinPaths = new HashMap<String, String>();
 
         if (NATIVEPREFIX_AMD64.equals(org.gradle.internal.os.OperatingSystem.current().getNativePrefix())) {
-            testAvailableBinPath(availableBinPaths, visualCppDir, BINPATH_AMD64_AMD64, PLATFORM_AMD64_AMD64);
-            testAvailableBinPath(availableBinPaths, visualCppDir, BINPATH_AMD64_ARM, PLATFORM_AMD64_ARM);
-            testAvailableBinPath(availableBinPaths, visualCppDir, BINPATH_AMD64_X86, PLATFORM_AMD64_X86);
+            addBinPathIfAvailable(availableBinPaths, visualCppDir, BINPATH_AMD64_AMD64, PLATFORM_AMD64_AMD64);
+            addBinPathIfAvailable(availableBinPaths, visualCppDir, BINPATH_AMD64_ARM, PLATFORM_AMD64_ARM);
+            addBinPathIfAvailable(availableBinPaths, visualCppDir, BINPATH_AMD64_X86, PLATFORM_AMD64_X86);
         }
 
-        testAvailableBinPath(availableBinPaths, visualCppDir, BINPATH_X86_AMD64, PLATFORM_X86_AMD64);
-        testAvailableBinPath(availableBinPaths, visualCppDir, BINPATH_X86_ARM, PLATFORM_X86_ARM);
-        testAvailableBinPath(availableBinPaths, visualCppDir, BINPATH_X86_IA64, PLATFORM_X86_IA64);
-        testAvailableBinPath(availableBinPaths, visualCppDir, BINPATH_X86_X86, PLATFORM_X86_X86);
+        addBinPathIfAvailable(availableBinPaths, visualCppDir, BINPATH_X86_AMD64, PLATFORM_X86_AMD64);
+        addBinPathIfAvailable(availableBinPaths, visualCppDir, BINPATH_X86_ARM, PLATFORM_X86_ARM);
+        addBinPathIfAvailable(availableBinPaths, visualCppDir, BINPATH_X86_IA64, PLATFORM_X86_IA64);
+        addBinPathIfAvailable(availableBinPaths, visualCppDir, BINPATH_X86_X86, PLATFORM_X86_X86);
 
         return availableBinPaths;
     }
 
-    private static void testAvailableBinPath(Map<String, String> availableBinPaths, File visualCppDir, String path, String platform) {
+    private static void addBinPathIfAvailable(Map<String, String> availableBinPaths, File visualCppDir, String path, String platform) {
         File file = new File(visualCppDir, path);
         if (file.isDirectory()) {
             availableBinPaths.put(platform, path);

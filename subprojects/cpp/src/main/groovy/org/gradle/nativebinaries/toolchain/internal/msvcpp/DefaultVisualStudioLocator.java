@@ -32,14 +32,15 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
     private static final String KERNEL32_PATH = "lib/";
     private static final String KERNEL32_PATH_WINSDK8 = "lib/winv6.3/um/x86/";
     private static final String KERNEL32_FILENAME = "kernel32.lib";
+
     private static final VersionLookupPath[] VISUALSTUDIO_PATHS = {
         new VersionLookupPath("/Microsoft Visual Studio 12.0", VisualStudioVersion.VS_2013),
         new VersionLookupPath("/Microsoft Visual Studio 11.0", VisualStudioVersion.VS_2012),
         new VersionLookupPath("/Microsoft Visual Studio 10.0", VisualStudioVersion.VS_2010)
     };
     private static final String[] WINDOWSSDK_PATHS = {
-        "Windows Kits/8.0",
         "Windows Kits/8.1",
+        "Windows Kits/8.0",
         "Microsoft SDKs/Windows/v7.1A",
         "Microsoft SDKs/Windows/v7.1",
         "Microsoft SDKs/Windows/v7.0A"
