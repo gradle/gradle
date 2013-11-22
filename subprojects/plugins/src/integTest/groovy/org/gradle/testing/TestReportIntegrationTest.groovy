@@ -75,7 +75,7 @@ public class LoggingTest {
         run "testReport"
 
         then:
-        def htmlReport = new HtmlTestExecutionResult(sample.dir, "allTests")
+        def htmlReport = new HtmlTestExecutionResult(sample.dir, "build/reports/allTests")
         htmlReport.testClass("org.gradle.sample.CoreTest").assertTestCount(1, 0, 0).assertTestPassed("ok").assertStdout(equalTo("hello from CoreTest.\n"))
         htmlReport.testClass("org.gradle.sample.UtilTest").assertTestCount(1, 0, 0).assertTestPassed("ok").assertStdout(equalTo("hello from UtilTest.\n"))
     }
@@ -109,7 +109,7 @@ public class LoggingTest {
         then:
         ":otherTests" in skippedTasks
         ":test" in nonSkippedTasks
-        new HtmlTestExecutionResult(testDirectory, "tr").assertTestClassesExecuted("Thing")
+        new HtmlTestExecutionResult(testDirectory, "build/reports/tr").assertTestClassesExecuted("Thing")
     }
 
     @Issue("http://issues.gradle.org//browse/GRADLE-2915")

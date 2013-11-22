@@ -16,7 +16,7 @@
 package org.gradle.testing.testng
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
-import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
+import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestNGExecutionResult
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.ExecutionResult
@@ -46,7 +46,7 @@ class TestNGIntegrationTest extends AbstractIntegrationTest {
         assertThat(result.error, not(containsString('stderr')))
         assertThat(result.error, not(containsString('a warning')))
 
-        new JUnitXmlTestExecutionResult(testDirectory).testClass('org.gradle.OkTest').assertTestPassed('ok')
+        new DefaultTestExecutionResult(testDirectory).testClass('org.gradle.OkTest').assertTestPassed('ok')
     }
 
     @Test
@@ -73,7 +73,7 @@ class TestNGIntegrationTest extends AbstractIntegrationTest {
     void groovyJdk15Failing() {
         executer.withTasks("test").runWithFailure().assertTestsFailed()
 
-        def result = new JUnitXmlTestExecutionResult(testDirectory)
+        def result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('org.gradle.BadTest')
         result.testClass('org.gradle.BadTest').assertTestFailed('failingTest', equalTo('java.lang.IllegalArgumentException: broken'))
     }
@@ -82,7 +82,7 @@ class TestNGIntegrationTest extends AbstractIntegrationTest {
     void groovyJdk15Passing() {
         executer.withTasks("test").run()
 
-        def result = new JUnitXmlTestExecutionResult(testDirectory)
+        def result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('org.gradle.OkTest')
         result.testClass('org.gradle.OkTest').assertTestPassed('passingTest')
     }
@@ -91,7 +91,7 @@ class TestNGIntegrationTest extends AbstractIntegrationTest {
     void javaJdk14Failing() {
         executer.withTasks("test").runWithFailure().assertTestsFailed()
 
-        def result = new JUnitXmlTestExecutionResult(testDirectory)
+        def result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('org.gradle.BadTest')
         result.testClass('org.gradle.BadTest').assertTestFailed('failingTest', equalTo('java.lang.IllegalArgumentException: broken'))
     }
@@ -106,7 +106,7 @@ class TestNGIntegrationTest extends AbstractIntegrationTest {
     private void doJavaJdk15Failing(String testNGVersion) {
         executer.withTasks("test").withArguments("-PtestNGVersion=$testNGVersion").runWithFailure().assertTestsFailed()
 
-        def result = new JUnitXmlTestExecutionResult(testDirectory)
+        def result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('org.gradle.BadTest', 'org.gradle.TestWithBrokenSetup', 'org.gradle.BrokenAfterSuite', 'org.gradle.TestWithBrokenMethodDependency')
         result.testClass('org.gradle.BadTest').assertTestFailed('failingTest', equalTo('java.lang.IllegalArgumentException: broken'))
         result.testClass('org.gradle.TestWithBrokenMethodDependency').assertTestFailed('broken', equalTo('java.lang.RuntimeException: broken'))
@@ -157,7 +157,7 @@ test {
     @Test
     void supportsTestGroups() {
         executer.withTasks("test").run()
-        def result = new JUnitXmlTestExecutionResult(testDirectory)
+        def result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('org.gradle.groups.SomeTest')
         result.testClass('org.gradle.groups.SomeTest').assertTestsExecuted("databaseTest")
     }
@@ -165,7 +165,7 @@ test {
     @Test
     void supportsTestFactory() {
         executer.withTasks("test").run()
-        def result = new JUnitXmlTestExecutionResult(testDirectory)
+        def result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('org.gradle.factory.FactoryTest')
         result.testClass('org.gradle.factory.FactoryTest').assertTestCount(2, 0, 0)
         result.testClass('org.gradle.factory.FactoryTest').assertStdout(containsString('TestingFirst'))

@@ -16,7 +16,7 @@
 package org.gradle.scala.test
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
+import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 
@@ -57,7 +57,7 @@ class MultiLineSuite extends FunSuite {
         then:
         succeeds("test")
 
-        JUnitXmlTestExecutionResult result = new JUnitXmlTestExecutionResult(testDirectory)
+        def result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted("org.gradle.MultiLineSuite")
 	    result.testClass("org.gradle.MultiLineSuite").assertTestPassed("This test method name\nspans many\nlines")
     }

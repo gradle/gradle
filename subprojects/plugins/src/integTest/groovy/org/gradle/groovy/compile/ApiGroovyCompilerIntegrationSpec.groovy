@@ -16,7 +16,7 @@
 
 package org.gradle.groovy.compile
 
-import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
+import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 
 abstract class ApiGroovyCompilerIntegrationSpec extends GroovyCompilerIntegrationSpec {
     def canEnableAndDisableIntegerOptimization() {
@@ -53,7 +53,7 @@ abstract class ApiGroovyCompilerIntegrationSpec extends GroovyCompilerIntegratio
 
         then:
         noExceptionThrown()
-        def result = new JUnitXmlTestExecutionResult(testDirectory)
+        def result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted("Person")
         result.testClass("Person").assertTestPassed("testMe")
     }

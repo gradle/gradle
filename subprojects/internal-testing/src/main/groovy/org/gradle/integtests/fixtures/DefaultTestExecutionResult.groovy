@@ -24,7 +24,7 @@ class DefaultTestExecutionResult implements TestExecutionResult {
     def results = []
 
     public DefaultTestExecutionResult(TestFile projectDir, String buildDirName = 'build') {
-        results << new HtmlTestExecutionResult(projectDir)
+        results << new HtmlTestExecutionResult(projectDir, "$buildDirName/reports/tests")
         results << new JUnitXmlTestExecutionResult(projectDir, buildDirName)
     }
 
