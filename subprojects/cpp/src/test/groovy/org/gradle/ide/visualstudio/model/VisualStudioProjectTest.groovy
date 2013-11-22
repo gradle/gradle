@@ -29,16 +29,13 @@ import spock.lang.Specification
 
 class VisualStudioProjectTest extends Specification {
     def component = Mock(NativeComponent)
-    def vsProject = new TestVisualStudioProject(component, "Suffix")
+    def vsProject = new VisualStudioProject("projectName", component)
 
     def "names"() {
-        when:
-        component.name >> "componentName"
-
-        then:
-        vsProject.name == "ComponentNameSuffix"
-        vsProject.projectFile == "ComponentNameSuffix.vcxproj"
-        vsProject.filtersFile == "ComponentNameSuffix.vcxproj.filters"
+        expect:
+        vsProject.name == "projectName"
+        vsProject.projectFile == "projectName.vcxproj"
+        vsProject.filtersFile == "projectName.vcxproj.filters"
     }
 
     def "includes source files from all source sets"() {
@@ -106,16 +103,5 @@ class VisualStudioProjectTest extends Specification {
         def sourceSet = Mock(DependentSourceSet)
         1 * sourceSet.libs >> libs
         return sourceSet
-    }
-
-    private static class TestVisualStudioProject extends VisualStudioProject {
-        TestVisualStudioProject(NativeComponent component, String nameSuffix) {
-            super(component, nameSuffix)
-        }
-
-        @Override
-        List<? extends VisualStudioProjectConfiguration> getConfigurations() {
-            return null
-        }
     }
 }

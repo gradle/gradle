@@ -47,8 +47,8 @@ public class DefaultStaticLibraryBinary extends DefaultLibraryBinary implements 
         this.additionalLinkFiles.add(files);
     }
 
-    public NativeDependencySet resolve() {
-        return new NativeDependencySet() {
+    public LibraryNativeDependencySet resolve() {
+        return new LibraryNativeDependencySet() {
             public FileCollection getIncludeRoots() {
                 return getHeaderDirs();
             }
@@ -59,6 +59,10 @@ public class DefaultStaticLibraryBinary extends DefaultLibraryBinary implements 
 
             public FileCollection getRuntimeFiles() {
                 return new FileCollectionAdapter(new StaticLibraryRuntimeOutputs());
+            }
+
+            public LibraryBinary getLibraryBinary() {
+                return DefaultStaticLibraryBinary.this;
             }
         };
     }

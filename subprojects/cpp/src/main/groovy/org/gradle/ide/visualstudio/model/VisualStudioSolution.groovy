@@ -15,9 +15,27 @@
  */
 
 package org.gradle.ide.visualstudio.model
+import org.gradle.language.base.internal.AbstractBuildableModelElement
+import org.gradle.nativebinaries.internal.NativeBinaryInternal
 
-class VisualStudioSolution {
+class VisualStudioSolution extends AbstractBuildableModelElement {
+    private final NativeBinaryInternal rootBinary
     final uuid = '{' + UUID.randomUUID().toString() + '}'
-    List<VisualStudioExeProject> exeProjects = []
-    List<VisualStudioLibraryProject> libraryProjects = []
+    List<VisualStudioProject> projects = []
+    String name
+
+    VisualStudioSolution(String name, NativeBinaryInternal rootBinary) {
+        this.name = name
+        this.rootBinary = rootBinary
+    }
+
+    void addProjectConfiguration(VisualStudioProjectConfiguration projectConfiguration) {
+        def project = projectConfiguration.project
+        this.projects << project
+        builtBy project
+    }
+
+    String getSolutionFile() {
+        return "${name}.sln"
+    }
 }

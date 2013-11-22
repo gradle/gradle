@@ -23,11 +23,15 @@ import org.gradle.nativebinaries.internal.ArchitectureInternal
 import org.gradle.nativebinaries.language.PreprocessingTool
 import org.gradle.nativebinaries.toolchain.internal.MacroArgsConverter
 
-abstract class VisualStudioProjectConfiguration {
-    private final NativeBinary binary
+class VisualStudioProjectConfiguration {
+    private final VisualStudioProject vsProject
+    final NativeBinary binary
+    final String type
 
-    VisualStudioProjectConfiguration(NativeBinary binary) {
+    VisualStudioProjectConfiguration(VisualStudioProject vsProject, NativeBinary binary, String type) {
+        this.vsProject = vsProject
         this.binary = binary
+        this.type = type
     }
 
     String getName() {
@@ -35,19 +39,13 @@ abstract class VisualStudioProjectConfiguration {
     }
 
     String getConfigurationName() {
-        def configName = binary.buildType.name
-        if (binary.component.flavors.size() > 1) {
-            configName = "${binary.flavor.name}_${configName}"
-        }
-        return configName
+        return binary.buildType.name
     }
 
     String getPlatformName() {
         ArchitectureInternal arch = binary.targetPlatform.architecture as ArchitectureInternal
         return arch.ia64 ? "Itanium" : arch.amd64 ? "x64" : "Win32"
     }
-
-    abstract String getType()
 
     String getBuildTask() {
         return binary.name
@@ -84,5 +82,9 @@ abstract class VisualStudioProjectConfiguration {
             includes.addAll it.files
         }
         return includes
+    }
+
+    VisualStudioProject getProject() {
+        return vsProject
     }
 }

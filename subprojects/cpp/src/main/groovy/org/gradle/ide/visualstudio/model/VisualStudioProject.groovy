@@ -15,33 +15,23 @@
  */
 
 package org.gradle.ide.visualstudio.model
-
-import org.gradle.api.DomainObjectSet
 import org.gradle.language.DependentSourceSet
 import org.gradle.language.HeaderExportingSourceSet
 import org.gradle.language.base.LanguageSourceSet
-import org.gradle.nativebinaries.Library
-import org.gradle.nativebinaries.LibraryBinary
-import org.gradle.nativebinaries.NativeBinary
-import org.gradle.nativebinaries.NativeComponent
+import org.gradle.language.base.internal.AbstractBuildableModelElement
+import org.gradle.nativebinaries.*
+import org.gradle.util.CollectionUtils
 
-abstract class VisualStudioProject {
+class VisualStudioProject extends AbstractBuildableModelElement {
+    final String name
     final NativeComponent component
-    private final String uuid
-    private final String nameSuffix
+    final String uuid
+    final Map<NativeBinary, VisualStudioProjectConfiguration> configurations = [:]
 
-    VisualStudioProject(NativeComponent component, String nameSuffix) {
+    VisualStudioProject(String name, NativeComponent component) {
+        this.name = name
         this.component = component
-        this.nameSuffix = nameSuffix
         this.uuid = '{' + UUID.randomUUID().toString() + '}'
-    }
-
-    String getName() {
-        return "${component.name.capitalize()}${nameSuffix}"
-    }
-
-    String getUuid() {
-        return uuid
     }
 
     String getProjectFile() {
@@ -82,9 +72,25 @@ abstract class VisualStudioProject {
         return libraries
     }
 
-    protected DomainObjectSet<NativeBinary> getCandidateBinaries() {
-        return component.binaries
+    VisualStudioProjectConfiguration addConfiguration(NativeBinary nativeBinary) {
+        def configuration = configurations[nativeBinary]
+        if (configuration == null) {
+            configuration = new VisualStudioProjectConfiguration(this, nativeBinary, configurationType(nativeBinary))
+            configurations[nativeBinary] = configuration
+
+            // TODO:DAZ Add dependencies and sources from binary
+        }
+        return configuration
     }
 
-    abstract List<? extends VisualStudioProjectConfiguration> getConfigurations()
+    List<VisualStudioProjectConfiguration> getConfigurations() {
+        return CollectionUtils.toList(configurations.values())
+    }
+
+    private static String configurationType(NativeBinary nativeBinary) {
+        return nativeBinary instanceof StaticLibraryBinary ? "StaticLibrary" :
+               nativeBinary instanceof SharedLibraryBinary ? "DynamicLibrary" :
+               "Application"
+    }
+
 }

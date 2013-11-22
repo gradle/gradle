@@ -16,12 +16,12 @@
 package org.gradle.ide.visualstudio
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.Task
 import org.gradle.api.Transformer
 import org.gradle.api.tasks.Delete
 import org.gradle.ide.cdt.tasks.GenerateMetadataFileTask
 import org.gradle.ide.visualstudio.model.*
-import org.gradle.nativebinaries.Library
+import org.gradle.nativebinaries.NativeComponent
+import org.gradle.nativebinaries.internal.NativeBinaryInternal
 import org.gradle.nativebinaries.plugins.NativeBinariesModelPlugin
 
 class VisualStudioPlugin implements Plugin<Project> {
@@ -29,53 +29,72 @@ class VisualStudioPlugin implements Plugin<Project> {
     void apply(Project project) {
         project.plugins.apply(NativeBinariesModelPlugin)
 
-        final solution = new VisualStudioSolution()
 
-        final cleanTask = project.task("cleanVisualStudio", type: Delete)
-        final lifecycleTask = project.task("visualStudio")
+        // TODO:DAZ Use a model rule
+        project.afterEvaluate {
+            VisualStudioProjectRegistry projectRegistry = new VisualStudioProjectRegistry();
+            VisualStudioSolutionBuilder solutionBuilder = new VisualStudioSolutionBuilder(projectRegistry);
 
-        project.executables.all {
-            final exeProject = new VisualStudioExeProject(it)
-            solution.exeProjects << exeProject
+            project.executables.all { NativeComponent component ->
+                createVisualStudioSolution(solutionBuilder, component, project)
+            }
 
-            attachToLifecycle projectsFileTask(project, exeProject, solution), lifecycleTask, cleanTask
-            attachToLifecycle filtersFileTask(project, exeProject), lifecycleTask, cleanTask
+            project.libraries.all { NativeComponent component ->
+                createVisualStudioSolution(solutionBuilder, component, project)
+            }
+
+            // TODO:DAZ For now, all vs project files are created within this project:
+            // this will change so that we have more of a global vsproject registry and the 'owning' gradle project is responsible for building
+            projectRegistry.allProjects.each { vsProject ->
+                vsProject.builtBy addProjectsFileTask(project, vsProject)
+                vsProject.builtBy addFiltersFileTask(project, vsProject)
+            }
         }
-        project.libraries.all {
-            final libProject = new VisualStudioLibraryProject(it)
-            solution.libraryProjects << libProject
 
-            attachToLifecycle projectsFileTask(project, libProject, solution), lifecycleTask, cleanTask
-            attachToLifecycle filtersFileTask(project, libProject), lifecycleTask, cleanTask
+        project.task("cleanVisualStudio", type: Delete) {
+            delete "visualStudio"
         }
-        attachToLifecycle solutionFileTask(project, solution), lifecycleTask, cleanTask
     }
 
-    private void attachToLifecycle(Task solutionTask, Task lifecycleTask, Task cleanTask) {
-        cleanTask.delete solutionTask.outputs.files
-        lifecycleTask.dependsOn solutionTask
+    private void createVisualStudioSolution(VisualStudioSolutionBuilder builder, NativeComponent component, Project project) {
+        def rootBinary = chooseDevelopmentVariant(component)
+        if (rootBinary != null) {
+            createVisualStudioSolution(builder, rootBinary, project)
+        }
     }
 
-    private solutionFileTask(Project project, VisualStudioSolution solution) {
-        def taskName = "generateSolutionFile"
-        project.task("generateSolutionFile", type:GenerateMetadataFileTask) {
+    // TODO:DAZ This should be a service, and should allow user to override default
+    // TODO:DAZ Should probably choose VisualC++ variant...
+    private NativeBinaryInternal chooseDevelopmentVariant(NativeComponent component) {
+        component.binaries.find {
+            it.buildable
+        } as NativeBinaryInternal
+    }
+
+    private void createVisualStudioSolution(VisualStudioSolutionBuilder builder, NativeBinaryInternal developmentBinary, Project project) {
+        VisualStudioSolution solution = builder.createSolution(developmentBinary)
+        def solutionTask = project.task("${solution.name}VisualStudio")
+        solution.lifecycleTask = solutionTask
+        solution.builtBy createSolutionTask(project, solution)
+    }
+
+    private createSolutionTask(Project project, VisualStudioSolution solution) {
+        String taskName = "${solution.name}VisualStudioSolution"
+        project.task(taskName, type:GenerateMetadataFileTask) {
             inputFile = new File("not a file")
-            outputFile = configFile(project, project.name + ".sln")
+            outputFile = configFile(project, solution.solutionFile)
             factory { new SolutionFile() }
             onConfigure { SolutionFile solutionFile ->
                 solutionFile.uuid = solution.uuid
-                solution.exeProjects.each {
-                    solutionFile.addProject(it)
-                }
-                solution.libraryProjects.each {
+                solution.projects.each {
                     solutionFile.addProject(it)
                 }
             }
         }
     }
 
-    private projectsFileTask(Project project, VisualStudioProject vsProject, VisualStudioSolution solution) {
-        def taskName = "generateProjectFileFor${vsProject.name}"
+    private addProjectsFileTask(Project project, VisualStudioProject vsProject) {
+        String taskName = "${vsProject.name}VisualStudioProject"
         project.task(taskName, type: GenerateMetadataFileTask) {
             inputFile = new File("not a file")
             outputFile = configFile(project, vsProject.projectFile)
@@ -93,16 +112,15 @@ class VisualStudioPlugin implements Plugin<Project> {
                     projectFile.addConfiguration(it)
                 }
 
-                vsProject.libraryDependencies.each { Library lib ->
-                    def dependencyProject = solution.libraryProjects.find {it.component == lib}
-                    projectFile.addProjectReference(dependencyProject)
-                }
+//                vsProject.libraryDependencyProjects.each { VisualStudioProject libraryDependencyProject ->
+//                    projectFile.addProjectReference(libraryDependencyProject)
+//                }
             }
         }
     }
 
-    private filtersFileTask(Project project, VisualStudioProject vsProject) {
-        def taskName = "generateFiltersFileFor${vsProject.name}"
+    private addFiltersFileTask(Project project, VisualStudioProject vsProject) {
+        String taskName = "${vsProject.name}VisualStudioFilters"
         project.task(taskName, type: GenerateMetadataFileTask) {
             inputFile = new File("not a file")
             outputFile = configFile(project, vsProject.filtersFile)
@@ -120,9 +138,10 @@ class VisualStudioPlugin implements Plugin<Project> {
 
     private File configFile(Project project, String fileName) {
         // TODO:DAZ Allow the output directory to be configured
-        return project.file(fileName)
+        return project.file("visualStudio/${fileName}")
     }
 
+    // TODO:DAZ Decide if this is necessary and implement, or remove
     private static class ProjectRelativeFileTransformer implements Transformer<String, File> {
         private final Project project
 
@@ -131,7 +150,7 @@ class VisualStudioPlugin implements Plugin<Project> {
         }
 
         String transform(File file) {
-            return project.projectDir.toURI().relativize(file.toURI()).getPath()
+            return file.absolutePath
         }
     }
 

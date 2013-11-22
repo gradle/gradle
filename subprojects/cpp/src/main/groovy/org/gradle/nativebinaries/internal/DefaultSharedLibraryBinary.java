@@ -40,8 +40,8 @@ public class DefaultSharedLibraryBinary extends DefaultLibraryBinary implements 
         return getToolChain().getSharedLibraryName(getComponent().getBaseName());
     }
 
-    public NativeDependencySet resolve() {
-        return new NativeDependencySet() {
+    public LibraryNativeDependencySet resolve() {
+        return new LibraryNativeDependencySet() {
             public FileCollection getIncludeRoots() {
                 return getHeaderDirs();
             }
@@ -52,6 +52,10 @@ public class DefaultSharedLibraryBinary extends DefaultLibraryBinary implements 
 
             public FileCollection getRuntimeFiles() {
                 return new FileCollectionAdapter(new SharedLibraryRuntimeOutputs());
+            }
+
+            public LibraryBinary getLibraryBinary() {
+                return DefaultSharedLibraryBinary.this;
             }
         };
     }

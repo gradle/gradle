@@ -32,7 +32,7 @@ import org.gradle.nativebinaries.internal.*
 import org.gradle.nativebinaries.language.PreprocessingTool
 import spock.lang.Specification
 
-class VisualStudioExeProjectConfigurationTest extends Specification {
+class VisualStudioProjectConfigurationTest extends Specification {
     final flavor = new DefaultFlavor("flavor1")
     def flavors = new DefaultFlavorContainer(new DirectInstantiator())
     def exe = Mock(Executable) {
@@ -46,13 +46,13 @@ class VisualStudioExeProjectConfigurationTest extends Specification {
         getComponent() >> exe
         getTargetPlatform() >> platform
     }
-    def configuration = new VisualStudioExeProjectConfiguration(exeBinary)
+    def configuration = new VisualStudioProjectConfiguration(null, exeBinary, "Application")
 
     def "setup"() {
         flavors.add(flavor)
     }
 
-    def "configuration is named for flavor and build type"() {
+    def "configuration is named for build type"() {
         when:
         exeBinary.name >> "exeBinary"
         exeBinary.buildType >> new DefaultBuildType("buildType")
@@ -60,12 +60,6 @@ class VisualStudioExeProjectConfigurationTest extends Specification {
 
         then:
         configuration.configurationName == "buildType"
-
-        when: "Component has multiple flavors"
-        flavors.add(new DefaultFlavor("flavor2"))
-
-        then:
-        configuration.configurationName == "flavor1_buildType"
     }
 
     def "configuration tasks are binary tasks"() {

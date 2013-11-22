@@ -45,15 +45,9 @@ EndGlobal
 
     def "includes project references"() {
         when:
-        def project1 = Mock(VisualStudioProject)
-        project1.name >> "project_name"
-        project1.projectFile >> "project_file"
-        project1.uuid >> "project_uuid"
+        def project1 = new VisualStudioProject("project1", null)
         solutionFile.addProject(project1)
-        def project2 = Mock(VisualStudioProject)
-        project2.name >> "project2_name"
-        project2.projectFile >> "project2_file"
-        project2.uuid >> "project2_uuid"
+        def project2 = new VisualStudioProject("project2", null)
         solutionFile.addProject(project2)
 
         then:
@@ -61,10 +55,10 @@ EndGlobal
 """Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual C++ Express 2010
 
-Project("THE_SOLUTION_UUID") = "project_name", "project_file", "project_uuid"
+Project("THE_SOLUTION_UUID") = "project1", "project1.vcxproj", "${project1.uuid}"
 EndProject
 
-Project("THE_SOLUTION_UUID") = "project2_name", "project2_file", "project2_uuid"
+Project("THE_SOLUTION_UUID") = "project2", "project2.vcxproj", "${project2.uuid}"
 EndProject
 
 Global

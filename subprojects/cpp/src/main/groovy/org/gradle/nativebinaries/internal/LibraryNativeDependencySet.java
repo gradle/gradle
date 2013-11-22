@@ -14,20 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.ide.visualstudio.model
+package org.gradle.nativebinaries.internal;
 
-import org.gradle.nativebinaries.Library
-import org.gradle.nativebinaries.LibraryBinary
+import org.gradle.nativebinaries.LibraryBinary;
+import org.gradle.nativebinaries.NativeDependencySet;
 
-class VisualStudioLibraryProject extends VisualStudioProject {
-
-    VisualStudioLibraryProject(Library library) {
-        super(library, "Library")
-    }
-
-    List<? extends VisualStudioProjectConfiguration> getConfigurations() {
-        candidateBinaries.withType(LibraryBinary).collect {
-            new VisualStudioLibraryProjectConfiguration(it)
-        }
-    }
+public interface LibraryNativeDependencySet extends NativeDependencySet {
+    LibraryBinary getLibraryBinary();
 }
