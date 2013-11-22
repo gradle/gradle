@@ -150,4 +150,32 @@ public class SingleTestMethodExecutionIntegrationTest extends AbstractIntegratio
         where:
         framework << [jUnit, testNG]
     }
+
+    @Unroll
+    def "#framework reports when no matching methods found"() {
+        buildFile << """
+            apply plugin: 'java'
+            repositories { mavenCentral() }
+            dependencies { testCompile "$framework.dependency" }
+            test {
+              use$framework.name()
+              selection.includeMethod('does not exist')
+            }
+        """
+        file("src/test/java/FooTest.java") << """import $framework.imports;
+            public class FooTest {
+                @Test public void pass() {}
+            }
+        """
+
+        when:
+        fails("test")
+
+        then:
+        failure.assertHasCause("No tests found for given included methods: [does not exist]")
+
+        where:
+        framework << [jUnit, testNG]
+    }
+
 }

@@ -46,6 +46,7 @@ import org.gradle.util.WrapUtil;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.List;
 import java.util.concurrent.Callable;
 
 /**
@@ -260,6 +261,7 @@ public class JavaBasePlugin implements Plugin<Project> {
                 project.getTasks().withType(Test.class, new Action<Test>() {
                     public void execute(Test test) {
                         configureBasedOnSingleProperty(test);
+                        configureBasedOnIncludedMethods(test);
                         overwriteDebugIfDebugPropertyIsSet(test);
                     }
                 });
@@ -294,10 +296,17 @@ public class JavaBasePlugin implements Plugin<Project> {
             }
         });
         test.setIncludes(WrapUtil.toSet(String.format("**/%s*.class", singleTest)));
-        failIfNoTestIsExecuted(test, singleTest);
+        failIfNoTestIsExecuted(test, "Could not find matching test for pattern: " + singleTest);
     }
 
-    private void failIfNoTestIsExecuted(Test test, final String pattern) {
+    private void configureBasedOnIncludedMethods(final Test test) {
+        List<String> included = test.getSelection().getIncludedMethods();
+        if (!included.isEmpty()) {
+            failIfNoTestIsExecuted(test, "No tests found for given included methods: " + included);
+        }
+    }
+
+    private void failIfNoTestIsExecuted(Test test, final String message) {
         test.addTestListener(new TestListener() {
             public void beforeSuite(TestDescriptor suite) {
                 // do nothing
@@ -305,7 +314,7 @@ public class JavaBasePlugin implements Plugin<Project> {
 
             public void afterSuite(TestDescriptor suite, TestResult result) {
                 if (suite.getParent() == null && result.getTestCount() == 0) {
-                    throw new GradleException("Could not find matching test for pattern: " + pattern);
+                    throw new GradleException(message);
                 }
             }
 
