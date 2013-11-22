@@ -18,6 +18,7 @@ package org.gradle.integtests
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.TextUtil
 import org.junit.Test
+import spock.lang.Ignore
 import spock.lang.Issue
 
 import static org.hamcrest.Matchers.startsWith
@@ -413,6 +414,7 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         executedTasks == [':g', ':c', ':b', ':h', ':a', ':f', ':d', ':e']
     }
 
+    @Ignore("Temporarily until better strategy is identified")
     void 'tasks with should run after ordering rules are preferred when running over an idle worker thread'() {
         settingsFile << """
             include 'a', 'b'
