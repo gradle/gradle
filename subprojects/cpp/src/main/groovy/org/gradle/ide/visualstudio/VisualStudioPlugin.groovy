@@ -46,7 +46,7 @@ class VisualStudioPlugin implements Plugin<Project> {
             // TODO:DAZ For now, all vs project files are created within this project:
             // this will change so that we have more of a global vsproject registry and the 'owning' gradle project is responsible for building
             projectRegistry.allProjects.each { vsProject ->
-                vsProject.builtBy addProjectsFileTask(project, vsProject)
+                vsProject.builtBy addProjectsFileTask(project, vsProject, projectRegistry)
                 vsProject.builtBy addFiltersFileTask(project, vsProject)
             }
         }
@@ -93,7 +93,7 @@ class VisualStudioPlugin implements Plugin<Project> {
         }
     }
 
-    private addProjectsFileTask(Project project, VisualStudioProject vsProject) {
+    private addProjectsFileTask(Project project, VisualStudioProject vsProject, VisualStudioProjectRegistry vsProjectRegistry) {
         String taskName = "${vsProject.name}VisualStudioProject"
         project.task(taskName, type: GenerateMetadataFileTask) {
             inputFile = new File("not a file")
@@ -112,9 +112,9 @@ class VisualStudioPlugin implements Plugin<Project> {
                     projectFile.addConfiguration(it)
                 }
 
-//                vsProject.libraryDependencyProjects.each { VisualStudioProject libraryDependencyProject ->
-//                    projectFile.addProjectReference(libraryDependencyProject)
-//                }
+                vsProject.projectReferences.each { projectKey ->
+                    projectFile.addProjectReference(vsProjectRegistry.getProject(projectKey))
+                }
             }
         }
     }

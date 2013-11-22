@@ -21,6 +21,7 @@ import org.gradle.nativebinaries.*
 import org.gradle.nativebinaries.internal.ArchitectureNotationParser
 import org.gradle.nativebinaries.internal.DefaultBuildType
 import org.gradle.nativebinaries.internal.DefaultFlavorContainer
+import org.gradle.nativebinaries.internal.LibraryNativeDependencySet
 import spock.lang.Specification
 
 class VisualStudioProjectRegistryTest extends Specification {
@@ -34,6 +35,9 @@ class VisualStudioProjectRegistryTest extends Specification {
     def setup() {
         executable.flavors >> new DefaultFlavorContainer(new DirectInstantiator())
         library.flavors >> new DefaultFlavorContainer(new DirectInstantiator())
+        executableBinary.libs >> []
+        sharedLibraryBinary.libs >> []
+        staticLibraryBinary.libs >> []
     }
 
     def "creates a matching visual studio project configuration for NativeBinary"() {
@@ -113,17 +117,19 @@ class VisualStudioProjectRegistryTest extends Specification {
     def "uses same visual studio project for native binaries that differ only in build type or architecture"() {
         when:
         def sharedLibraryBinary1 = Mock(SharedLibraryBinary)
-        def sharedLibraryBinary2 = Mock(SharedLibraryBinary)
-        sharedLibraryBinary1.component >> library
-        sharedLibraryBinary2.component >> library
-        sharedLibraryBinary1.buildType >> new DefaultBuildType(buildType1)
-        sharedLibraryBinary2.buildType >> new DefaultBuildType(buildType2)
-
         def platform1 = Mock(Platform)
-        def platform2 = Mock(Platform)
+        sharedLibraryBinary1.component >> library
+        sharedLibraryBinary1.buildType >> new DefaultBuildType(buildType1)
+        sharedLibraryBinary1.libs >> []
         sharedLibraryBinary1.targetPlatform >> platform1
-        sharedLibraryBinary2.targetPlatform >> platform2
         platform1.architecture >> arch1
+
+        def sharedLibraryBinary2 = Mock(SharedLibraryBinary)
+        def platform2 = Mock(Platform)
+        sharedLibraryBinary2.component >> library
+        sharedLibraryBinary2.buildType >> new DefaultBuildType(buildType2)
+        sharedLibraryBinary2.libs >> []
+        sharedLibraryBinary2.targetPlatform >> platform2
         platform2.architecture >> arch2
 
         then:
@@ -141,6 +147,29 @@ class VisualStudioProjectRegistryTest extends Specification {
         buildType1 | buildType2 | arch1        | arch2
         "debug"    | "debug"    | arch("i386") | arch("x86-64")
         "debug"    | "release"  | arch("i386") | arch("ia-64")
+    }
+
+    def "adds project reference for each lib of native binary"() {
+        when:
+        def binary = Mock(ExecutableBinary)
+        def dep1 = Mock(LibraryNativeDependencySet)
+        def dep2 = Mock(LibraryNativeDependencySet)
+
+        executable.baseName >> "myTest"
+        library.baseName >> "myLibrary"
+
+        binary.component >> executable
+        binary.libs >> [dep1, dep2]
+
+        dep1.libraryBinary >> sharedLibraryBinary
+        sharedLibraryBinary.component >> library
+
+        dep2.libraryBinary >> staticLibraryBinary
+        staticLibraryBinary.component >> library
+
+        then:
+        def vsProject = registry.getProjectConfiguration(binary).project
+        vsProject.projectReferences == ["myLibraryLib", "myLibraryDll"] as Set
     }
 
     private static Architecture arch(String name) {

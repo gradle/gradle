@@ -17,10 +17,8 @@
 package org.gradle.ide.visualstudio.model;
 
 import org.apache.commons.lang.StringUtils;
-import org.gradle.nativebinaries.NativeBinary;
-import org.gradle.nativebinaries.NativeComponent;
-import org.gradle.nativebinaries.SharedLibraryBinary;
-import org.gradle.nativebinaries.StaticLibraryBinary;
+import org.gradle.nativebinaries.*;
+import org.gradle.nativebinaries.internal.LibraryNativeDependencySet;
 import org.gradle.util.CollectionUtils;
 
 import java.util.HashMap;
@@ -31,14 +29,30 @@ public class VisualStudioProjectRegistry {
     private Map<String, VisualStudioProject> projects = new HashMap<String, VisualStudioProject>();
 
     public VisualStudioProjectConfiguration getProjectConfiguration(NativeBinary nativeBinary) {
+        VisualStudioProject vsProject = getProject(nativeBinary);
+
+        for (NativeDependencySet dep : nativeBinary.getLibs()) {
+            if (dep instanceof LibraryNativeDependencySet) {
+                LibraryBinary dependencyBinary = ((LibraryNativeDependencySet) dep).getLibraryBinary();
+                vsProject.addProjectReference(projectName(dependencyBinary));
+            }
+        }
+        // TODO:DAZ Not sure if adding these on demand is sufficient
+        return vsProject.addConfiguration(nativeBinary);
+    }
+
+    private VisualStudioProject getProject(NativeBinary nativeBinary) {
         String projectName = projectName(nativeBinary);
         VisualStudioProject vsProject = projects.get(projectName);
         if (vsProject == null) {
             vsProject = new VisualStudioProject(projectName, nativeBinary.getComponent());
             projects.put(projectName, vsProject);
         }
-        // TODO:DAZ Not sure if adding these on demand is sufficient
-        return vsProject.addConfiguration(nativeBinary);
+        return vsProject;
+    }
+
+    public VisualStudioProject getProject(String name) {
+        return projects.get(name);
     }
 
     public List<VisualStudioProject> getAllProjects() {

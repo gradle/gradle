@@ -15,15 +15,12 @@
  */
 
 package org.gradle.ide.visualstudio.model
-
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.DefaultDomainObjectSet
 import org.gradle.language.DependentSourceSet
 import org.gradle.language.HeaderExportingSourceSet
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.cpp.CppSourceSet
-import org.gradle.nativebinaries.Library
-import org.gradle.nativebinaries.LibraryBinary
 import org.gradle.nativebinaries.NativeComponent
 import spock.lang.Specification
 
@@ -62,23 +59,6 @@ class VisualStudioProjectTest extends Specification {
 
         then:
         vsProject.headerFiles == [file1, file2, file3]
-    }
-
-    def "includes library dependencies from all source sets"() {
-        when:
-        def lib1 = Mock(Library)
-        def lib2 = Mock(Library)
-        def binary2 = Mock(LibraryBinary)
-        binary2.component >> lib2
-        def lib3 = Mock(Library)
-
-        def sourceSet1 = dependentSourceSet(lib1, binary2)
-        def sourceSet2 = dependentSourceSet(lib3)
-
-        component.source >> new DefaultDomainObjectSet<LanguageSourceSet>(CppSourceSet, [sourceSet1, sourceSet2])
-
-        then:
-        vsProject.libraryDependencies == [lib1, lib2, lib3]
     }
 
     private LanguageSourceSet sourceSet(File... files) {

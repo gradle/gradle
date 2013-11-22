@@ -15,18 +15,21 @@
  */
 
 package org.gradle.ide.visualstudio.model
-import org.gradle.language.DependentSourceSet
 import org.gradle.language.HeaderExportingSourceSet
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.internal.AbstractBuildableModelElement
 import org.gradle.nativebinaries.*
 import org.gradle.util.CollectionUtils
-
+/**
+ * A VisualStudio project represents a set of binaries for a component that may vary in build type and target platform.
+ */
+// TODO:DAZ Sources and header files should be taken from all binaries added to project
 class VisualStudioProject extends AbstractBuildableModelElement {
+    final String uuid
     final String name
     final NativeComponent component
-    final String uuid
     final Map<NativeBinary, VisualStudioProjectConfiguration> configurations = [:]
+    final Set<String> projectReferences = []
 
     VisualStudioProject(String name, NativeComponent component) {
         this.name = name
@@ -58,18 +61,8 @@ class VisualStudioProject extends AbstractBuildableModelElement {
         return allHeaders
     }
 
-    List<Library> getLibraryDependencies() {
-        def libraries = []
-        component.source.withType(DependentSourceSet).each {
-            it.libs.each { lib ->
-                if (lib instanceof Library) {
-                    libraries << lib
-                } else if (lib instanceof LibraryBinary) {
-                    libraries << lib.component
-                }
-            }
-        }
-        return libraries
+    void addProjectReference(String projectName) {
+        projectReferences << projectName
     }
 
     VisualStudioProjectConfiguration addConfiguration(NativeBinary nativeBinary) {
@@ -77,8 +70,6 @@ class VisualStudioProject extends AbstractBuildableModelElement {
         if (configuration == null) {
             configuration = new VisualStudioProjectConfiguration(this, nativeBinary, configurationType(nativeBinary))
             configurations[nativeBinary] = configuration
-
-            // TODO:DAZ Add dependencies and sources from binary
         }
         return configuration
     }
@@ -92,5 +83,4 @@ class VisualStudioProject extends AbstractBuildableModelElement {
                nativeBinary instanceof SharedLibraryBinary ? "DynamicLibrary" :
                "Application"
     }
-
 }

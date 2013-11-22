@@ -71,7 +71,7 @@ class ProjectFile extends XmlPersistableConfigurationObject {
                 NMakePreprocessorDefinitions(configuration.defines.join(";"))
                 NMakeIncludeSearchPath(includePath)
                 NMakeOutput(toPath(configuration.outputFile))
-                IntDir("\$(ProjectName)")
+                IntDir("\$(ProjectName)\\\$(Configuration)\\")
             }
             ItemDefinitionGroup(Condition: configCondition) {
                 ClCompile {
