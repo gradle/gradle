@@ -37,7 +37,11 @@ class JUnitTestClassProcessorTest extends Specification {
     def resultProcessor = Mock(TestResultProcessor)
     def spec = new JUnitSpec(new JUnitOptions(), new DefaultTestSelection())
     
-    @Subject processor = new JUnitTestClassProcessor(spec, new LongIdGenerator(), new TestActorFactory(), {} as StandardOutputRedirector)
+    @Subject processor = withSpec(spec)
+
+    JUnitTestClassProcessor withSpec(spec) {
+        new JUnitTestClassProcessor(spec, new LongIdGenerator(), new TestActorFactory(), {} as StandardOutputRedirector)
+    }
 
     void process(Class ... clazz) {
         process(clazz*.name)
@@ -213,6 +217,28 @@ class JUnitTestClassProcessorTest extends Specification {
         then: 1 * resultProcessor.started({ it.id == 1 }, { it.parentId == null })
         then: 1 * resultProcessor.started({ it.id == 2 && it.name == 'testOk' && it.className == AJunit3TestThatRenamesItself.name }, { it.parentId == 1 })
         then: 1 * resultProcessor.completed(2, { it.resultType == null })
+        then: 1 * resultProcessor.completed(1, { it.resultType == null })
+        0 * resultProcessor._
+    }
+
+    def "executes specific method"() {
+        processor = withSpec(new JUnitSpec(new JUnitOptions(), new DefaultTestSelection().includeMethod("pass")))
+
+        when: process(ATestClassWith2Methods)
+
+        then: 1 * resultProcessor.started({ it.id == 1 }, { it.parentId == null })
+        then: 1 * resultProcessor.started({ it.id == 2 && it.name == "pass" && it.className == ATestClassWith2Methods.name }, { it.parentId == 1 })
+        then: 1 * resultProcessor.completed(2, { it.resultType == null })
+        then: 1 * resultProcessor.completed(1, { it.resultType == null })
+        0 * resultProcessor._
+    }
+
+    def "executes no methods when method name does not match"() {
+        processor = withSpec(new JUnitSpec(new JUnitOptions(), new DefaultTestSelection().includeMethod("does not exist")))
+
+        when: process(ATestClassWith2Methods)
+
+        then: 1 * resultProcessor.started({ it.id == 1 }, { it.parentId == null })
         then: 1 * resultProcessor.completed(1, { it.resultType == null })
         0 * resultProcessor._
     }

@@ -103,7 +103,7 @@ class TestNGTestClassProcessorTest extends Specification {
     }
 
     void "executes not tests if none of the included test methods match"() {
-        options.getIncludedMethods() >> ['foo']
+        options.getIncludedMethods() >> ['does not exist']
 
         when:
         processor = new TestNGTestClassProcessor(reportDir.testDirectory, options, [], new LongIdGenerator(), {} as StandardOutputRedirector);

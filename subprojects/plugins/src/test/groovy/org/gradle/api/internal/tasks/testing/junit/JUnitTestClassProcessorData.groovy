@@ -261,3 +261,8 @@ public class ATestClassWhichCannotBeLoaded {
         throw new NoClassDefFoundError()
     }
 }
+
+public class ATestClassWith2Methods {
+    @Test public void pass() {}
+    @Test public void fail() { throw new RuntimeException("Boo!") }
+}
