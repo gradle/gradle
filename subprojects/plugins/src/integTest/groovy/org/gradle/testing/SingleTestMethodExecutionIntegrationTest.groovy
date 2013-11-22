@@ -172,4 +172,37 @@ public class SingleTestMethodExecutionIntegrationTest extends AbstractIntegratio
         where:
         framework << [jUnit, testNG]
     }
+
+    @Unroll
+    def "#framework task is out of date when included methods change"() {
+        buildFile << """
+            test {
+              use$framework.name()
+              selection.includeMethod('pass')
+            }
+        """
+        file("src/test/java/FooTest.java") << """import $framework.imports;
+            public class FooTest {
+                @Test public void pass() {}
+                @Test public void pass2() {}
+            }
+        """
+
+        when: run("test")
+        then: new DefaultTestExecutionResult(testDirectory).testClass("FooTest").assertTestsExecuted("pass")
+
+        when: run("test")
+        then: result.skippedTasks.contains(":test") //up-to-date
+
+        when:
+        buildFile << "test.selection.includeMethod 'pass2'"
+        run("test")
+
+        then:
+        !result.skippedTasks.contains(":test")
+        new DefaultTestExecutionResult(testDirectory).testClass("FooTest").assertTestsExecuted("pass", "pass2")
+
+        where:
+        framework << [jUnit, testNG]
+    }
 }

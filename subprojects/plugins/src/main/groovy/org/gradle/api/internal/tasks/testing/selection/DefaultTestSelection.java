@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.tasks.testing.selection;
 
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.testing.TestSelection;
 
 import java.util.LinkedList;
@@ -29,6 +30,7 @@ public class DefaultTestSelection implements TestSelection {
         return this;
     }
 
+    @Input
     public List<String> getIncludedMethods() {
         return includedMethods;
     }

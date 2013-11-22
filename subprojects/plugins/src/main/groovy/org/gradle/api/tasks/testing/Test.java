@@ -1084,8 +1084,10 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * Allows selecting tests for execution
      *
      * @return selection object
+     * @since 1.10
      */
     @Incubating
+    @Nested
     public TestSelection getSelection() {
         return selection;
     }
@@ -1095,6 +1097,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      *
      * @param closure to configure the test selection
      * @return selection object
+     * @since 1.10
      */
     @Incubating
     public TestSelection selection(Closure closure) {
