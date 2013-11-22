@@ -24,7 +24,7 @@ import org.gradle.process.internal.WorkerProcess;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.SynchronousQueue;
 
-public class CompilerDaemonClient implements CompilerDaemon, CompilerDaemonClientProtocol, Stoppable {
+class CompilerDaemonClient implements CompilerDaemon, CompilerDaemonClientProtocol, Stoppable {
     private final DaemonForkOptions forkOptions;
     private final WorkerProcess workerProcess;
     private final CompilerDaemonServerProtocol server;
