@@ -71,20 +71,24 @@ class ProjectFile extends XmlPersistableConfigurationObject {
                 NMakePreprocessorDefinitions(configuration.defines.join(";"))
                 NMakeIncludeSearchPath(includePath)
                 NMakeOutput(toPath(configuration.outputFile))
+                IntDir("\$(ProjectName)")
             }
             ItemDefinitionGroup(Condition: configCondition) {
                 ClCompile {
                     AdditionalIncludeDirectories(includePath)
                     PreprocessorDefinitions(configuration.defines.join(";"))
                 }
+                Link {
+                    GenerateDebugInformation("true")
+                }
             }
         }
     }
 
-    def addProjectReference(VisualStudioLibraryProject visualStudioLibraryProject) {
+    def addProjectReference(VisualStudioProject referencedProject) {
         Node references = xml.ItemGroup.find({ it.'@Label' == 'References' }) as Node
-        references.appendNode("ProjectReference", [Include: visualStudioLibraryProject.projectFile])
-                  .appendNode("Project", visualStudioLibraryProject.uuid)
+        references.appendNode("ProjectReference", [Include: referencedProject.projectFile])
+                  .appendNode("Project", referencedProject.uuid)
     }
 
     private Node getConfigurations() {
