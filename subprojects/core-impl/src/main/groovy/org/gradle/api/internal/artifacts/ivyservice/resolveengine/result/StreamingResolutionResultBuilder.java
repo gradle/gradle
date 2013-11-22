@@ -37,9 +37,6 @@ import java.util.*;
 
 import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
 
-/**
- * by Szczepan Faber on 7/28/13
- */
 public class StreamingResolutionResultBuilder implements ResolutionResultBuilder {
 
     private final static byte ROOT = 1;

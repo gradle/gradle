@@ -18,9 +18,6 @@ package org.gradle.internal.progress
 
 import spock.lang.Specification
 
-/**
- * By Szczepan Faber on 7/5/13
- */
 class PercentageProgressFormatterTest extends Specification {
 
     def "knows progress"() {
