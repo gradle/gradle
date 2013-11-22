@@ -68,7 +68,7 @@ public class SingleTestMethodExecutionIntegrationTest extends AbstractIntegratio
         result.testClass("FooTest").assertTestCount(1, 0, 0)
 
         where:
-        framework << [jUnit]
+        framework << [jUnit, testNG]
     }
 
     @Unroll
@@ -90,13 +90,13 @@ public class SingleTestMethodExecutionIntegrationTest extends AbstractIntegratio
             public class FooTest {
                 @Test public void passOne() {}
                 @Test public void passTwo() {}
-                @Test public void fail() { Assert.fail("Boo!"); }
+                @Test public void fail() { throw new RuntimeException("Boo!"); }
             }
         """
         file("src/test/java/OtherTest.java") << """import $framework.imports;
             public class OtherTest {
                 @Test public void passOne() {}
-                @Test public void fail() { Assert.fail("Boo!"); }
+                @Test public void fail() { throw new RuntimeException("Boo!"); }
             }
         """
 
@@ -109,7 +109,7 @@ public class SingleTestMethodExecutionIntegrationTest extends AbstractIntegratio
         result.testClass("FooTest").assertTestCount(2, 0, 0)
 
         where:
-        framework << [jUnit]
+        framework << [jUnit, testNG]
     }
 
     @Unroll
@@ -128,13 +128,13 @@ public class SingleTestMethodExecutionIntegrationTest extends AbstractIntegratio
         file("src/test/java/FooTest.java") << """import $framework.imports;
             public class FooTest {
                 @Test public void pass() {}
-                @Test public void fail() { Assert.fail("Boo!"); }
+                @Test public void fail() { throw new RuntimeException("Boo!"); }
             }
         """
         file("src/test/java/OtherTest.java") << """import $framework.imports;
             public class OtherTest {
                 @Test public void pass() {}
-                @Test public void fail() { Assert.fail("Boo!"); }
+                @Test public void fail() { throw new RuntimeException("Boo!"); }
             }
         """
 
@@ -148,6 +148,6 @@ public class SingleTestMethodExecutionIntegrationTest extends AbstractIntegratio
         result.testClass("OtherTest").assertTestCount(1, 0, 0)
 
         where:
-        framework << [jUnit]
+        framework << [jUnit, testNG]
     }
 }

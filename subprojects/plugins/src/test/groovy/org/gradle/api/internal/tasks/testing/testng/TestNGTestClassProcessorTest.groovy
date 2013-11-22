@@ -20,6 +20,7 @@ import org.gradle.api.GradleException
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
 import org.gradle.api.internal.tasks.testing.TestStartEvent
+import org.gradle.api.internal.tasks.testing.selection.DefaultTestSelection
 import org.gradle.api.tasks.testing.TestResult.ResultType
 import org.gradle.api.tasks.testing.testng.TestNGOptions
 import org.gradle.internal.id.LongIdGenerator
@@ -40,7 +41,7 @@ class TestNGTestClassProcessorTest extends Specification {
     private TestNGTestClassProcessor processor
 
     void setup(){
-        options = Spy(TestNGSpec, constructorArgs:[new TestNGOptions(reportDir.testDirectory)]);
+        options = Spy(TestNGSpec, constructorArgs:[new TestNGOptions(reportDir.testDirectory), new DefaultTestSelection()]);
         processor = new TestNGTestClassProcessor(reportDir.testDirectory, options, [], new LongIdGenerator(), {} as StandardOutputRedirector);
     }
 
@@ -76,6 +77,43 @@ class TestNGTestClassProcessorTest extends Specification {
         1 * resultProcessor.completed(2, { it.resultType == ResultType.SUCCESS })
         1 * resultProcessor.completed(1, { it.resultType == null })
 
+        0 * resultProcessor._
+    }
+
+    void "executes test class for included test methods"() {
+        options.getIncludedMethods() >> ['another']
+
+        when:
+        processor = new TestNGTestClassProcessor(reportDir.testDirectory, options, [], new LongIdGenerator(), {} as StandardOutputRedirector);
+        processor.startProcessing(resultProcessor);
+        processor.processTestClass(testClass(ATestNGClassWithManyMethods.class));
+        processor.stop();
+
+        then:
+        1 * resultProcessor.started({ it.id == 1 && it.name == 'Gradle test' && it.className == null }, { it.parentId == null })
+        then:
+        1 * resultProcessor.started({ it.id == 2 && it.name == 'another' && it.className == ATestNGClassWithManyMethods.class.name }, { it.parentId == 1 })
+
+        then:
+        1 * resultProcessor.completed(2, { it.resultType == ResultType.SUCCESS })
+        then:
+        1 * resultProcessor.completed(1, { it.resultType == null })
+
+        0 * resultProcessor._
+    }
+
+    void "executes not tests if none of the included test methods match"() {
+        options.getIncludedMethods() >> ['foo']
+
+        when:
+        processor = new TestNGTestClassProcessor(reportDir.testDirectory, options, [], new LongIdGenerator(), {} as StandardOutputRedirector);
+        processor.startProcessing(resultProcessor);
+        processor.processTestClass(testClass(ATestNGClassWithManyMethods.class));
+        processor.stop();
+
+        then:
+        1 * resultProcessor.started({ it.id == 1 && it.className == null }, { it.parentId == null })
+        1 * resultProcessor.completed(1, { it.resultType == null })
         0 * resultProcessor._
     }
 
@@ -232,6 +270,16 @@ public class ATestNGClassWithExpectedException {
     @org.testng.annotations.Test(expectedExceptions = RuntimeException.class)
     public void ok() {
         throw new RuntimeException()
+    }
+}
+
+public class ATestNGClassWithManyMethods {
+    @org.testng.annotations.Test
+    public void ok() {
+    }
+
+    @org.testng.annotations.Test
+    public void another() {
     }
 }
 

@@ -27,6 +27,10 @@ import org.gradle.util.CollectionUtils;
 import org.gradle.util.GFileUtils;
 import org.testng.ITestListener;
 import org.testng.TestNG;
+import org.testng.xml.XmlClass;
+import org.testng.xml.XmlInclude;
+import org.testng.xml.XmlSuite;
+import org.testng.xml.XmlTest;
 
 import java.io.File;
 import java.lang.reflect.Method;
@@ -103,11 +107,34 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
         if (!suiteFiles.isEmpty()) {
             testNg.setTestSuites(GFileUtils.toPaths(suiteFiles));
         } else {
-            Class[] classes = testClasses.toArray(new Class[testClasses.size()]);
-            testNg.setTestClasses(classes);
+            if (options.getIncludedMethods().isEmpty()) {
+                //includedMethods was introduced in 1.10, before that we used to configure classes this way:
+                testNg.setTestClasses(testClasses.toArray(new Class[testClasses.size()]));
+                //let's leave it for backwards compatibility
+            } else {
+                //in order to respect the included methods, we need to manually create the suite
+                configureXmlTestSuite(testNg, testClasses, options.getIncludedMethods());
+            }
         }
 
         testNg.run();
+    }
+
+    private static void configureXmlTestSuite(TestNG testNg, List<Class<?>> testClasses, List<String> includedMethods) {
+        XmlSuite suite = new XmlSuite();
+        XmlTest xmlTest = new XmlTest(suite);
+        xmlTest.setName("Gradle test");
+        for (Class klass : testClasses) {
+            XmlClass xmlClass = new XmlClass(klass, true);
+            for (String testName : includedMethods) {
+                XmlInclude meth = new XmlInclude(testName);
+                xmlClass.getIncludedMethods().add(meth);
+            }
+            //need to configure exclude for all other methods (pattern)§
+            xmlClass.getExcludedMethods().add(".*");
+            xmlTest.getXmlClasses().add(xmlClass);
+        }
+        testNg.setCommandLineSuite(suite);
     }
 
     private ITestListener adaptListener(ITestListener listener) {
