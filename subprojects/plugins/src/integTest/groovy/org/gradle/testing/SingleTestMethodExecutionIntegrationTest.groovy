@@ -24,20 +24,24 @@ public class SingleTestMethodExecutionIntegrationTest extends AbstractIntegratio
 
     class TestFramework {
         String name
-        String dependency
         String imports
         String toString() { name }
     }
 
-    @Shared TestFramework jUnit = new TestFramework(name: "JUnit", dependency: "junit:junit:4.11", imports: "org.junit.*")
-    @Shared TestFramework testNG = new TestFramework(name: "TestNG", dependency: "org.testng:testng:6.3.1", imports: "org.testng.annotations.*")
+    @Shared TestFramework jUnit = new TestFramework(name: "JUnit", imports: "org.junit.*")
+    @Shared TestFramework testNG = new TestFramework(name: "TestNG", imports: "org.testng.annotations.*")
+
+    void setup() {
+        buildFile << """
+            apply plugin: 'java'
+            repositories { mavenCentral() }
+            dependencies { testCompile "org.testng:testng:6.3.1", "junit:junit:4.11" }
+        """
+    }
 
     @Unroll
     def "#framework executes single method from a test class"() {
         buildFile << """
-            apply plugin: 'java'
-            repositories { mavenCentral() }
-            dependencies { testCompile "$framework.dependency" }
             test {
               use$framework.name()
               include 'FooTest*'
@@ -74,9 +78,6 @@ public class SingleTestMethodExecutionIntegrationTest extends AbstractIntegratio
     @Unroll
     def "#framework executes multiple methods from a test class"() {
         buildFile << """
-            apply plugin: 'java'
-            repositories { mavenCentral() }
-            dependencies { testCompile "$framework.dependency" }
             test {
               use$framework.name()
               include 'FooTest*'
@@ -115,9 +116,6 @@ public class SingleTestMethodExecutionIntegrationTest extends AbstractIntegratio
     @Unroll
     def "#framework executes multiple methods from different classes"() {
         buildFile << """
-            apply plugin: 'java'
-            repositories { mavenCentral() }
-            dependencies { testCompile "$framework.dependency" }
             test {
               use$framework.name()
               selection {
@@ -154,9 +152,6 @@ public class SingleTestMethodExecutionIntegrationTest extends AbstractIntegratio
     @Unroll
     def "#framework reports when no matching methods found"() {
         buildFile << """
-            apply plugin: 'java'
-            repositories { mavenCentral() }
-            dependencies { testCompile "$framework.dependency" }
             test {
               use$framework.name()
               selection.includeMethod('does not exist')
@@ -177,5 +172,4 @@ public class SingleTestMethodExecutionIntegrationTest extends AbstractIntegratio
         where:
         framework << [jUnit, testNG]
     }
-
 }
