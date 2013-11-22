@@ -168,6 +168,16 @@ class CollectionUtilsTest extends Specification {
         every([], spec { false })
     }
 
+    def "intersection"() {
+        expect:
+        intersection([collA, collB]) == collC
+        where:
+        collA              | collB            | collC
+        []                 | ["a", "b", "c"]  | []
+        ['a', 'b', 'c']    | ["a", "b", "c"]  | ['a', 'b', 'c']
+        ['a', 'b', 'c']    | ["b", "c"]       | ['b', 'c']
+    }
+
     def "flattenToList"() {
         given:
         def integers = [1, 2, 3]

@@ -150,11 +150,14 @@ public class TaskDetailPrinter {
             final String optionString = String.format("--%s", currentOption);
             output.text(INDENT).withStyle(UserInput).text(optionString);
 
-            final List<String> availableValues = withoutDuplicates(flattenToList(String.class, collect(descriptorsForCurrentName, new Transformer<List<String>, OptionDescriptor>() {
+            List<List<String>> availableValuesByDescriptor = collect(descriptorsForCurrentName, new Transformer<List<String>, OptionDescriptor>() {
                 public List<String> transform(OptionDescriptor original) {
                     return original.getAvailableValues();
                 }
-            })));
+            });
+
+            List<String> commonAvailableValues = intersection(availableValuesByDescriptor);
+            final List<String> availableValues = withoutDuplicates(commonAvailableValues);
             //description does not differ between task objects, grab first one
             output.text(INDENT).text(descriptorsForCurrentName.iterator().next().getDescription());
             if (!availableValues.isEmpty()) {
@@ -174,6 +177,7 @@ public class TaskDetailPrinter {
             }
         }
     }
+
 
     private ListMultimap<String, OptionDescriptor> groupDescriptorsByName(List<OptionDescriptor> allOptions) {
         ListMultimap<String, OptionDescriptor> optionsGroupedByName = ArrayListMultimap.create();

@@ -257,14 +257,15 @@ Description
      -"""))
     }
 
-    def "listsDynamicAvailableValues"() {
+    def "listsCommonDynamicAvailableValues"() {
         when:
         run "help", "--task", "hello"
         then:
         output.contains(toPlatformLineSeparators("""Detailed task information for hello
 
-Path
-     :hello
+Paths
+     :sub1:hello
+     :sub2:hello
 
 Type
      CustomTask (CustomTask)

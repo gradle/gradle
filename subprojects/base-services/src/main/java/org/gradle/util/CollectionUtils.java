@@ -236,6 +236,22 @@ public abstract class CollectionUtils {
         return list;
     }
 
+
+    public static <T> List<T> intersection(Collection<? extends Collection<T>> availableValuesByDescriptor) {
+        List<T> result = new ArrayList<T>();
+        Iterator<? extends Collection<T>> iterator = availableValuesByDescriptor.iterator();
+        if(iterator.hasNext()){
+            Collection<T> firstSet = iterator.next();
+            result.addAll(firstSet);
+            while(iterator.hasNext()){
+                Collection<T> next = iterator.next();
+                result.retainAll(next);
+            }
+        }
+        return result;
+        
+    }
+
     public static <T> List<T> withoutDuplicates(List<T> things){
         return toList(toSet(things));
     }
