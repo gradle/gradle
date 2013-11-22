@@ -25,9 +25,9 @@ import java.lang.annotation.*;
 @Inherited
 public @interface Option {
     /**
-     * The options to map to this property.
+     * The option to map to this property.
      *
-     * @return The options.
+     * @return The option.
      */
     String option() default "";
 
