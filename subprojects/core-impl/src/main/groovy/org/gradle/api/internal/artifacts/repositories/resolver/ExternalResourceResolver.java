@@ -17,7 +17,10 @@
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import com.google.common.base.Joiner;
-import org.apache.ivy.core.module.descriptor.*;
+import org.apache.ivy.core.module.descriptor.Artifact;
+import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
+import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.settings.IvySettings;
@@ -25,9 +28,9 @@ import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.apache.ivy.util.ChecksumHelper;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
@@ -234,20 +237,17 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         return metaDataParser.parseMetaData(new ExternalResourceResolverDescriptorParseContext(nestedResolver, this, dependencyRevisionId), cachedResource);
     }
 
-    protected void checkMetadataConsistency(ModuleVersionSelector selector, ModuleVersionMetaData metadata,
-                                          ResolvedArtifact ivyRef) throws MetaDataParseException {
+    protected void checkMetadataConsistency(ModuleVersionIdentifier expectedId, ModuleVersionMetaData metadata,
+                                            ResolvedArtifact ivyRef) throws MetaDataParseException {
         List<String> errors = new ArrayList<String>();
-        if (!selector.getGroup().equals(metadata.getId().getGroup())) {
-            errors.add("bad group: expected='" + selector.getGroup() + "' found='" + metadata.getId().getGroup() + "'");
+        if (!expectedId.getGroup().equals(metadata.getId().getGroup())) {
+            errors.add("bad group: expected='" + expectedId.getGroup() + "' found='" + metadata.getId().getGroup() + "'");
         }
-        if (!selector.getName().equals(metadata.getId().getName())) {
-            errors.add("bad module name: expected='" + selector.getName() + "' found='" + metadata.getId().getName() + "'");
+        if (!expectedId.getName().equals(metadata.getId().getName())) {
+            errors.add("bad module name: expected='" + expectedId.getName() + "' found='" + metadata.getId().getName() + "'");
         }
-        String revision = ivyRef.artifact.getModuleRevisionId().getRevision();
-        if (revision != null && !revision.startsWith("working@")) {
-            if (!versionMatcher.accept(revision, metadata)) {
-                errors.add("bad version: expected='" + revision + "' found='" + metadata.getId().getVersion() + "'");
-            }
+        if (!expectedId.getVersion().equals(metadata.getId().getVersion())) {
+            errors.add("bad version: expected='" + expectedId.getVersion() + "' found='" + metadata.getId().getVersion() + "'");
         }
         if (!metadata.getStatusScheme().contains(metadata.getStatus())) {
             errors.add("bad status: '" + metadata.getStatus() + "'; ");
@@ -270,7 +270,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         MutableModuleVersionMetaData moduleVersionMetaData = getArtifactMetadata(metaDataResource.getArtifact(), metaDataResource.getResource());
 
         if (isCheckconsistency()) {
-            checkMetadataConsistency(DefaultModuleVersionSelector.newSelector(moduleRevisionId), moduleVersionMetaData, metaDataResource);
+            checkMetadataConsistency(DefaultModuleVersionIdentifier.newId(moduleRevisionId), moduleVersionMetaData, metaDataResource);
         }
 
         return new DownloadedAndParsedMetaDataArtifact(metaDataResource.resource, metaDataResource.artifact, moduleVersionMetaData);
