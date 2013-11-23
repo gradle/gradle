@@ -22,10 +22,10 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import spock.lang.Specification
 
-class FiltersFileTest extends Specification {
+class VisualStudioFiltersFileTest extends Specification {
     TestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
     Transformer<String, File> fileNameTransformer = { it.name } as Transformer<String, File>
-    def filtersFile = new FiltersFile(fileNameTransformer)
+    def filtersFile = new VisualStudioFiltersFile(fileNameTransformer)
 
     def "empty filters file"() {
         when:

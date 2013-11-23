@@ -15,23 +15,23 @@
  */
 
 package org.gradle.ide.visualstudio.model
+
+import org.gradle.ide.visualstudio.fixtures.SolutionFile
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.TextUtil
 import spock.lang.Specification
 
-class SolutionFileTest extends Specification {
+class VisualStudioSolutionFileTest extends Specification {
     TestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
-    def solutionFile = new SolutionFile()
+    def solutionFile = new VisualStudioSolutionFile()
 
     def "setup"() {
         solutionFile.loadDefaults()
-        solutionFile.uuid = "THE_SOLUTION_UUID"
     }
 
     def "empty solution file"() {
         expect:
-        solutionFileContent ==
+        generatedSolution.content ==
 """Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual C++ Express 2010
 
@@ -51,27 +51,15 @@ EndGlobal
         solutionFile.addProject(project2)
 
         then:
-        solutionFileContent ==
-"""Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual C++ Express 2010
-
-Project("THE_SOLUTION_UUID") = "project1", "project1.vcxproj", "${project1.uuid}"
-EndProject
-
-Project("THE_SOLUTION_UUID") = "project2", "project2.vcxproj", "${project2.uuid}"
-EndProject
-
-Global
-    GlobalSection(SolutionConfigurationPlatforms) = preSolution
-        debug|Win32=debug|Win32
-    EndGlobalSection
-EndGlobal
-"""
+        generatedSolution.assertHasProjects(
+                [name: "project1", file: "project1.vcxproj", uuid: project1.uuid],
+                [name: "project2", file: "project2.vcxproj", uuid: project2.uuid]
+        )
     }
 
-    private String getSolutionFileContent() {
+    private SolutionFile getGeneratedSolution() {
         def file = testDirectoryProvider.testDirectory.file("solution.txt")
         solutionFile.store(file)
-        return TextUtil.normaliseLineSeparators(file.text)
+        return new SolutionFile(file)
     }
 }

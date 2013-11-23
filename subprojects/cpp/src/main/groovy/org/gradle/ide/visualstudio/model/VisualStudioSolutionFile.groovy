@@ -18,17 +18,12 @@ package org.gradle.ide.visualstudio.model
 
 import org.gradle.plugins.ide.internal.generator.AbstractPersistableConfigurationObject
 
-class SolutionFile extends AbstractPersistableConfigurationObject {
-    private String uuid
+class VisualStudioSolutionFile extends AbstractPersistableConfigurationObject {
     private baseText
     private vsProjects = []
 
     protected String getDefaultResourceName() {
         'default.sln'
-    }
-
-    void setUuid(String uuid) {
-        this.uuid = uuid
     }
 
     void addProject(VisualStudioProject vsProject) {
@@ -45,7 +40,7 @@ class SolutionFile extends AbstractPersistableConfigurationObject {
         outputStream << baseText
         vsProjects.each { VisualStudioProject vsProject ->
             outputStream << """
-Project("${uuid}") = "${vsProject.getName()}", "${vsProject.getProjectFile()}", "${vsProject.getUuid()}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "${vsProject.getName()}", "${vsProject.getProjectFile()}", "${vsProject.getUuid()}"
 EndProject
 """
         }

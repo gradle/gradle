@@ -47,6 +47,6 @@ public class VisualStudioSolutionBuilder {
     }
 
     private String solutionName(NativeBinary nativeBinary) {
-        return projectRegistry.getProjectConfiguration(nativeBinary).getProject().getName();
+        return nativeBinary.getComponent().getName();
     }
 }

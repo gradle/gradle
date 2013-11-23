@@ -29,7 +29,6 @@ class VisualStudioPlugin implements Plugin<Project> {
     void apply(Project project) {
         project.plugins.apply(NativeBinariesModelPlugin)
 
-
         // TODO:DAZ Use a model rule
         project.afterEvaluate {
             VisualStudioProjectRegistry projectRegistry = new VisualStudioProjectRegistry();
@@ -83,9 +82,8 @@ class VisualStudioPlugin implements Plugin<Project> {
         project.task(taskName, type:GenerateMetadataFileTask) {
             inputFile = new File("not a file")
             outputFile = configFile(project, solution.solutionFile)
-            factory { new SolutionFile() }
-            onConfigure { SolutionFile solutionFile ->
-                solutionFile.uuid = solution.uuid
+            factory { new VisualStudioSolutionFile() }
+            onConfigure { VisualStudioSolutionFile solutionFile ->
                 solution.projects.each {
                     solutionFile.addProject(it)
                 }
@@ -98,8 +96,8 @@ class VisualStudioPlugin implements Plugin<Project> {
         project.task(taskName, type: GenerateMetadataFileTask) {
             inputFile = new File("not a file")
             outputFile = configFile(project, vsProject.projectFile)
-            factory { new ProjectFile(new ProjectRelativeFileTransformer(project)) }
-            onConfigure { ProjectFile projectFile ->
+            factory { new VisualStudioProjectFile(new ProjectRelativeFileTransformer(project)) }
+            onConfigure { VisualStudioProjectFile projectFile ->
                 projectFile.setProjectUuid(vsProject.uuid)
                 vsProject.sourceFiles.each {
                     projectFile.addSourceFile(it)
@@ -124,8 +122,8 @@ class VisualStudioPlugin implements Plugin<Project> {
         project.task(taskName, type: GenerateMetadataFileTask) {
             inputFile = new File("not a file")
             outputFile = configFile(project, vsProject.filtersFile)
-            factory { new FiltersFile(new ProjectRelativeFileTransformer(project)) }
-            onConfigure { FiltersFile filtersFile ->
+            factory { new VisualStudioFiltersFile(new ProjectRelativeFileTransformer(project)) }
+            onConfigure { VisualStudioFiltersFile filtersFile ->
                 vsProject.sourceFiles.each {
                     filtersFile.addSource(it)
                 }

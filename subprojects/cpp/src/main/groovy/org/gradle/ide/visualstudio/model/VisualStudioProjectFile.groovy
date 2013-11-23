@@ -20,10 +20,10 @@ import org.gradle.api.Transformer
 import org.gradle.api.internal.xml.XmlTransformer
 import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject
 
-class ProjectFile extends XmlPersistableConfigurationObject {
+class VisualStudioProjectFile extends XmlPersistableConfigurationObject {
     private final Transformer<String, File> fileLocationResolver
 
-    ProjectFile(Transformer<String, File> fileLocationResolver) {
+    VisualStudioProjectFile(Transformer<String, File> fileLocationResolver) {
         super(new XmlTransformer())
         this.fileLocationResolver = fileLocationResolver
     }

@@ -22,10 +22,10 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import spock.lang.Specification
 
-class ProjectFileTest extends Specification {
+class VisualStudioProjectFileTest extends Specification {
     TestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
     Transformer<String, File> fileNameTransformer = { it.name } as Transformer<String, File>
-    def projectFile = new ProjectFile(fileNameTransformer)
+    def projectFile = new VisualStudioProjectFile(fileNameTransformer)
 
     def "setup"() {
         projectFile.loadDefaults()
