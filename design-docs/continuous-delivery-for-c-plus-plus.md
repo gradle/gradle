@@ -778,8 +778,9 @@ Here's an example:
     - Solution file references 3 projects and links to correct configurations for 'development binary'
 - Generate solution for executable that depends on a shared library that in turn depends on another shared library.
 - Generate solutions for 2 executables that depend on same shared library
-- Generate solutions for 2 executables that depend on different linkages of same shared library.
+- Generate solutions for 2 executables that depend on different linkages of same library.
 - Generate solution for component with no sources
+- Generate solution for component with mixed sources
 - Generate solution for component with windows resource files
 
 ### Open Issues
