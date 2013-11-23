@@ -86,6 +86,9 @@ In this story, the dependency resolution result is changed so that it produces a
 
 - Packages for the new types
 - The results are actually component _instances_ rather than components (as per the definition above). Perhaps come up with a new name for 'component'.
+- Rename `DependencyResult` to use 'requirement' instead of 'dependency'.
+- Rename `ResolvedComponentResult.getId()` to something that is more explicit about the lack of guarantees. Maybe `getLocalId()` or ...
+- Rename `getPublishedAs()` to `getModuleIdentifier()` and return `ModuleIdentifier`. This returns the module which the component instance is mapped to.
 
 ## Story: Dependency resolution result exposes local component instances
 
@@ -110,7 +113,6 @@ path will be used to identify these instances. For now, every local component in
 5. Change `DependencyMetaData` to add a `ComponentSelector getSelector()`
     - Default should be a `ModuleComponentSelector` with the same attributes as `getRequested()`.
     - For project dependencies this should return a `BuildComponentSelector` instance.
-6. Change the dependency reports so that they render both `id` and `publishedAs` when they are not the equal.
 
 This will allow a consumer to extract the external and project components as follows:
 
@@ -144,8 +146,8 @@ This will allow a consumer to extract the external and project components as fol
 
 ### Open issues
 
-- Replace `publishedAs()` with something more general such as `getModuleVersionIdentifier()`, as this id is the maven/ivy domain identifier for the component regardless
-  of whether it happens to be publishable
+- Renamed `BuildComponentIdentifier` to `ProjectComponentIdentifier` or something else
+- Do the same for `BuildComponentSelector`
 - Convenience for casting selector and id?
 - Convenience for selecting things with a given id type or selector type?
 
@@ -230,6 +232,8 @@ or publishable.
 * Need to sync up with `ComponentMetadataDetails`.
 * Add Ivy and Maven specific ids and sources.
 * Rename and garbage internal types.
+* Maybe don't use the new publication stuff until project dependencies are resolved to a component within the project, or until the engine understands multiple
+  IDs for conflict resolution.
 
 ## Story: User guide describes the dependency management problem in terms of components
 
