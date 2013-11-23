@@ -173,7 +173,7 @@ public class PomReader implements PomParent {
 
     /**
      * Add a property if not yet set and value is not null.
-     * This garantee that property keep the first value that is put on it and that the properties
+     * This guarantee that property keep the first value that is put on it and that the properties
      * are never null.
      */
     public void setProperty(String prop, String val) {
