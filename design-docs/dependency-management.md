@@ -175,6 +175,12 @@ For a local component that is a module version, this will look something like
 
 The HTML dependency report should change in a similar way.
 
+### Test coverage
+
+- Update the existing test coverage for the new display values.
+- Ensure that the int test coverage for the dependency report, dependency insight report and HTML dependency report all verify that the report can be used
+  with a mix of project and external dependencies.
+
 ### Open issues
 
 - Ensure there is coverage for the dependency report and the dependency HTML report where
@@ -285,6 +291,13 @@ reports.
 - Merge the special case resolution algorithm for self-resolving dependencies into the general purpose resolution algorithm.
 - Introduce a new type of component identifier to represent a file-only component.
 - Update reporting to understand this kind of component identifier.
+
+### Test coverage
+
+- Ensure that the int test coverage for the dependency report, dependency insight report and HTML dependency report all verify that the report can be used
+  with a mix of project, external and file dependencies.
+- Verify that when a local component is replaced by an external component (via conflict resolution or dependency substitution) then none of the files
+  from the local component are included in the result. For example, when a local component includes some file dependency declarations.
 
 ## Story: Plugin contributes a component type implementation
 
