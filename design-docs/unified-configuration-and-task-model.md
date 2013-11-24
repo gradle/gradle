@@ -116,6 +116,23 @@ For location #3, this is an incubating element, so we can simply defer all confi
 
 Similarly, this work should consider how the existing task DSL can be used to access these tasks: Is it an error? Does it trigger model rules?
 
+## Plugin author uses model rules to define tasks after plugin model has been configured
+
+A common problem when authoring a plugin is how to handle configuration that happens after the plugin is applied.
+
+This story exposes model rules as a public (but very much experimental) feature which a plugin can use to solve this problem. Implementation-wise, this
+story is mostly about exposing and documenting the features that already exist, possibly along with some sugar to help solve this very common use case.
+
+- Provide a mechanism for the plugin to register a model object and some logic which later receives the immutable model object and defines some tasks from this object.
+- Add documentation and samples.
+- Add some mechanism to expose the model object also as an extension, to provide the plugin with a migration path to the new DSL.
+    - Generate a warning when the build script author uses the extension DSL to configure the model.
+    - Generate a warning when the extension DSL is used after the model object has been closed.
+
+### Open issues
+
+- Detect and handle attempts to mutate the model object via the extension DSL after the model object has been closed.
+
 ## Model DSL allows native components and source sets to be configured in dependency order
 
 A source set can take a native library as a dependency, and this library can in turn take another source set as input. The model DSL should not require the build
