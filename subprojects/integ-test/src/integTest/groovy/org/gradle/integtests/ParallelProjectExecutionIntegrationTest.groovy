@@ -101,6 +101,19 @@ allprojects {
         run 'b:pingC'
     }
 
+    void 'tasks with should run after ordering rules are preferred when running over an idle worker thread'() {
+        buildFile << """
+            tasks.getByPath(':a:pingA').shouldRunAfter(':b:pingB')
+            tasks.getByPath(':b:pingB').dependsOn(':b:pingA')
+        """
+
+        expect:
+        blockingServer.expectConcurrentExecution(':a:pingA', ':b:pingA')
+        blockingServer.expectConcurrentExecution(':b:pingB')
+
+        run 'a:pingA', 'b:pingB'
+    }
+
     def projectDependency(def link) {
         def from = link['from']
         def to = link['to']
