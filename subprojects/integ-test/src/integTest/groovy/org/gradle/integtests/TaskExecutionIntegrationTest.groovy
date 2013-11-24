@@ -413,34 +413,4 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         then:
         executedTasks == [':g', ':c', ':b', ':h', ':a', ':f', ':d', ':e']
     }
-
-    @Ignore("Temporarily until better strategy is identified")
-    void 'tasks with should run after ordering rules are preferred when running over an idle worker thread'() {
-        settingsFile << """
-            include 'a', 'b'
-        """
-
-        file('a/build.gradle') << """
-            task a {
-                shouldRunAfter ':b:d'
-            }
-        """
-
-        file('b/build.gradle') << """
-            task b
-            task c {
-                dependsOn 'b'
-            }
-            task d {
-                dependsOn 'c'
-            }
-        """
-        executer.withArguments('--parallel')
-
-        when:
-        succeeds 'a', 'd'
-
-        then:
-        executedTasks == [':b:b', ':a:a', ':b:c', ':b:d']
-    }
 }
