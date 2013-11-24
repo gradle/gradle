@@ -32,6 +32,7 @@ import org.gradle.execution.DefaultBuildExecuter
 import org.gradle.execution.TaskGraphExecuter
 import org.gradle.execution.TaskSelector
 import org.gradle.execution.taskgraph.DefaultTaskGraphExecuter
+import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.invocation.BuildClassLoaderRegistry
 import org.gradle.listener.ListenerManager
@@ -57,6 +58,7 @@ public class GradleScopeServicesTest extends Specification {
         parent.get(PluginRegistry) >> pluginRegistryParent
         parent.get(BuildClassLoaderRegistry) >> Stub(BuildClassLoaderRegistry)
         parent.get(DependencyManagementServices) >> Stub(DependencyManagementServices)
+        parent.get(ExecutorFactory) >> Stub(ExecutorFactory)
         gradle.getStartParameter() >> startParameter
         pluginRegistryParent.createChild(_, _) >> pluginRegistryChild
     }

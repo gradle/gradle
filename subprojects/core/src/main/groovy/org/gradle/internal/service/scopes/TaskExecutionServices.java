@@ -29,6 +29,7 @@ import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheRepository;
 import org.gradle.execution.taskgraph.TaskPlanExecutor;
 import org.gradle.execution.taskgraph.TaskPlanExecutorFactory;
+import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.id.RandomLongIdGenerator;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.listener.ListenerManager;
@@ -76,7 +77,7 @@ public class TaskExecutionServices {
         );
     }
 
-    TaskPlanExecutor createTaskExecutorFactory(StartParameter startParameter, TaskArtifactStateCacheAccess cacheAccess) {
-        return new TaskPlanExecutorFactory(cacheAccess, startParameter.getParallelThreadCount()).create();
+    TaskPlanExecutor createTaskExecutorFactory(StartParameter startParameter, TaskArtifactStateCacheAccess cacheAccess, ExecutorFactory executorFactory) {
+        return new TaskPlanExecutorFactory(cacheAccess, startParameter.getParallelThreadCount(), executorFactory).create();
     }
 }

@@ -18,22 +18,35 @@ package org.gradle.execution.taskgraph;
 
 import org.gradle.api.internal.changedetection.state.TaskArtifactStateCacheAccess;
 import org.gradle.internal.Factory;
+import org.gradle.internal.concurrent.ExecutorFactory;
 
 public class TaskPlanExecutorFactory implements Factory<TaskPlanExecutor> {
 
     private final TaskArtifactStateCacheAccess taskArtifactStateCacheAccess;
     private final int parallelThreads;
+    private final ExecutorFactory executorFactory;
 
-    public TaskPlanExecutorFactory(TaskArtifactStateCacheAccess taskArtifactStateCacheAccess, int parallelThreads) {
+    public TaskPlanExecutorFactory(TaskArtifactStateCacheAccess taskArtifactStateCacheAccess, int parallelThreads, ExecutorFactory executorFactory) {
         this.taskArtifactStateCacheAccess = taskArtifactStateCacheAccess;
         this.parallelThreads = parallelThreads;
+        this.executorFactory = executorFactory;
     }
 
     public TaskPlanExecutor create() {
-        ExecutionOptions options = new ExecutionOptions(parallelThreads);
-        if (options.executeProjectsInParallel()) {
-            return new ParallelTaskPlanExecutor(taskArtifactStateCacheAccess, options.numberOfParallelThreads());
+        if (executeProjectsInParallel()) {
+            return new ParallelTaskPlanExecutor(taskArtifactStateCacheAccess, numberOfParallelThreads(), executorFactory);
         }
         return new DefaultTaskPlanExecutor(taskArtifactStateCacheAccess);
+    }
+
+    private boolean executeProjectsInParallel() {
+        return parallelThreads != 0;
+    }
+
+    private int numberOfParallelThreads() {
+        if (parallelThreads == -1) {
+            return Runtime.getRuntime().availableProcessors();
+        }
+        return parallelThreads;
     }
 }
