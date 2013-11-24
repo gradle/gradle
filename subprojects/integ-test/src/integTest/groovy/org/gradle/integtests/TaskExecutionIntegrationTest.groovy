@@ -15,10 +15,10 @@
  */
 
 package org.gradle.integtests
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.TextUtil
 import org.junit.Test
-import spock.lang.Ignore
 import spock.lang.Issue
 
 import static org.hamcrest.Matchers.startsWith
