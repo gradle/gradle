@@ -15,16 +15,13 @@
  */
 package org.gradle.api.internal.artifacts.component;
 
-import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 
 public class DefaultModuleComponentIdentifier implements ModuleComponentIdentifier {
     private final String displayName;
     private final String group;
     private final String name;
     private final String version;
-    private final ModuleIdentifier id;
 
     public DefaultModuleComponentIdentifier(String group, String name, String version) {
         assert group != null : "group cannot be null";
@@ -34,7 +31,6 @@ public class DefaultModuleComponentIdentifier implements ModuleComponentIdentifi
         this.group = group;
         this.name = name;
         this.version = version;
-        id = new DefaultModuleIdentifier(group, name);
     }
 
     public String getDisplayName() {
@@ -51,10 +47,6 @@ public class DefaultModuleComponentIdentifier implements ModuleComponentIdentifi
 
     public String getVersion() {
         return version;
-    }
-
-    public ModuleIdentifier getModule() {
-        return id;
     }
 
     @Override
