@@ -94,6 +94,10 @@ public class IncrementalCompileProcessor {
                 return processed.get(file);
             }
 
+            if (!file.exists()) {
+                return true;
+            }
+
             // Assume unchanged if we recurse to the same file due to dependency cycle
             processed.put(file, false);
 
