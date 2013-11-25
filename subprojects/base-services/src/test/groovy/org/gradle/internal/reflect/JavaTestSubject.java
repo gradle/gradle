@@ -16,9 +16,12 @@
 
 package org.gradle.internal.reflect;
 
+import java.io.IOException;
+
 @SuppressWarnings("UnusedDeclaration")
 public class JavaTestSubject {
 
+    final IllegalStateException failure = new IllegalStateException();
     private String myProp = "myValue";
     private boolean myBooleanProp = true;
 
@@ -72,7 +75,11 @@ public class JavaTestSubject {
     }
 
     public void throwsException() {
-        throw new IllegalStateException();
+        throw failure;
+    }
+
+    public void throwsCheckedException() throws IOException {
+        throw new IOException(failure);
     }
 
     protected String protectedMethod() {

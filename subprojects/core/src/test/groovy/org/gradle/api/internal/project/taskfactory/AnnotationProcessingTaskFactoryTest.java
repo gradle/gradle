@@ -26,6 +26,7 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.api.tasks.*;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
+import org.gradle.internal.UncheckedException;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.GFileUtils;
@@ -40,10 +41,10 @@ import org.junit.runner.RunWith;
 import spock.lang.Issue;
 
 import java.io.File;
+import java.lang.reflect.Field;
 import java.util.*;
 import java.util.concurrent.Callable;
 
-import static org.gradle.internal.reflect.JavaReflectionUtil.readField;
 import static org.gradle.util.Matchers.isEmpty;
 import static org.gradle.util.WrapUtil.toList;
 import static org.gradle.util.WrapUtil.toSet;
@@ -697,6 +698,26 @@ public class AnnotationProcessingTaskFactoryTest {
             assertThat(actualMessages, equalTo(new HashSet<String>(Arrays.asList(expectedErrorMessages))));
         }
     }
+
+    public static <T> T readField(Object target, Class<T> type, String name) {
+        Class<?> objectType = target.getClass();
+        while (objectType != null) {
+            try {
+                Field field = objectType.getDeclaredField(name);
+                field.setAccessible(true);
+                return (T) field.get(target);
+            } catch (NoSuchFieldException ignore) {
+                // ignore
+            } catch (Exception e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+
+            objectType = objectType.getSuperclass();
+        }
+
+        throw new RuntimeException("Could not find field '" + name + "' with type '" + type.getClass() + "' on class '" + target.getClass() + "'");
+    }
+
 
     public static class TestTask extends DefaultTask {
         final Runnable action;
