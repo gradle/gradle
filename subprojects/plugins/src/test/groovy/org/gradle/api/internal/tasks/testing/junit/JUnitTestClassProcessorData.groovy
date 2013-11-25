@@ -278,7 +278,8 @@ public class ATestClassWhichCannotBeLoaded {
     }
 }
 
-public class ATestClassWith2Methods {
+public class ATestClassWithFewMethods {
     @Test public void pass() {}
+    @Test public void pass2() {}
     @Test public void fail() { throw new RuntimeException("Boo!") }
 }

@@ -24,6 +24,8 @@ import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.SourceSetCompileClasspath;
+import org.gradle.api.internal.tasks.testing.selection.DefaultTestSelectionSpec;
+import org.gradle.api.internal.tasks.testing.selection.DefaultTestSelection;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.compile.AbstractCompile;
@@ -300,9 +302,10 @@ public class JavaBasePlugin implements Plugin<Project> {
     }
 
     private void configureBasedOnIncludedMethods(final Test test) {
-        List<String> included = test.getSelection().getIncludedMethods();
+        //TODO SF casting
+        List<DefaultTestSelectionSpec> included = ((DefaultTestSelection) test.getSelection()).getIncludedTests();
         if (!included.isEmpty()) {
-            failIfNoTestIsExecuted(test, "No tests found for given included methods: " + included);
+            failIfNoTestIsExecuted(test, "No tests found for given includes: " + included);
         }
     }
 

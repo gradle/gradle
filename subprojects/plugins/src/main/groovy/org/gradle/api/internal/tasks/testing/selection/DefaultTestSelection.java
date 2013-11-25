@@ -23,15 +23,15 @@ import java.util.List;
 
 public class DefaultTestSelection implements TestSelection {
 
-    private List<String> includedMethods = new LinkedList<String>();
+    private List<DefaultTestSelectionSpec> includedTests = new LinkedList<DefaultTestSelectionSpec>();
 
-    public TestSelection includeMethod(String testMethod) {
-        includedMethods.add(testMethod);
+    public DefaultTestSelection includeTest(String testClass, String testMethod) {
+        includedTests.add(new DefaultTestSelectionSpec(testClass, testMethod));
         return this;
     }
 
     @Input
-    public List<String> getIncludedMethods() {
-        return includedMethods;
+    public List<DefaultTestSelectionSpec> getIncludedTests() {
+        return includedTests;
     }
 }

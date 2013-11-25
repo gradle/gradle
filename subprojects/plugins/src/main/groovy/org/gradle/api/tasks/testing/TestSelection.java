@@ -16,9 +16,6 @@
 package org.gradle.api.tasks.testing;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.tasks.Input;
-
-import java.util.List;
 
 /**
  * Allows selecting tests for execution
@@ -29,21 +26,12 @@ import java.util.List;
 public interface TestSelection {
 
     /**
-     * Configures a test method to be included in the execution.
+     * Includes given test in execution.
      *
-     * @param testMethod the exact method name
-     *
+     * @param testClass test class name
+     * @param testMethod test method name
      * @return this selection object
      * @since 1.10
      */
-    TestSelection includeMethod(String testMethod);
-
-    /**
-     * Test methods to be included in the execution.
-     *
-     * @return included methods
-     * @since 1.10
-     */
-    @Input
-    List<String> getIncludedMethods();
+    TestSelection includeTest(String testClass, String testMethod);
 }

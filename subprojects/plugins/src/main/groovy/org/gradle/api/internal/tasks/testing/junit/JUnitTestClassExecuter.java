@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.testing.junit;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.tasks.testing.selection.DefaultTestSelectionSpec;
 import org.gradle.internal.concurrent.ThreadSafe;
 import org.gradle.util.CollectionUtils;
 import org.junit.runner.Description;
@@ -74,8 +75,8 @@ public class JUnitTestClassExecuter {
             ));
         }
 
-        if (!options.getIncludedMethods().isEmpty()) {
-            request = request.filterWith(new MethodNameFilter(options.getIncludedMethods()));
+        if (!options.getIncludedTests().isEmpty()) {
+            request = request.filterWith(new MethodNameFilter(options.getIncludedTests()));
         }
 
         Runner runner = request.getRunner();
@@ -88,17 +89,23 @@ public class JUnitTestClassExecuter {
         }
     }
 
-
     private static class MethodNameFilter extends org.junit.runner.manipulation.Filter {
-        private List<String> includedMethods;
 
-        public MethodNameFilter(List<String> includedMethods) {
-            this.includedMethods = includedMethods;
+        private List<DefaultTestSelectionSpec> includedTests;
+
+        public MethodNameFilter(List<DefaultTestSelectionSpec> includedTests) {
+            this.includedTests = includedTests;
         }
 
         @Override
         public boolean shouldRun(Description description) {
-            return includedMethods.contains(description.getMethodName());
+            for (DefaultTestSelectionSpec t : includedTests) {
+                if (description.getMethodName().equals(t.getMethodName())
+                    && description.getClassName().equals(t.getClassName())) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         public String describe() {

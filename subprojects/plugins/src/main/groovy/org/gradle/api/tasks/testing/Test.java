@@ -878,7 +878,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * @param testFrameworkConfigure A closure used to configure the JUnit options.
      */
     public void useJUnit(Closure testFrameworkConfigure) {
-        useTestFramework(new JUnitTestFramework(this), testFrameworkConfigure);
+        useTestFramework(new JUnitTestFramework(this, selection), testFrameworkConfigure);
     }
 
     /**
@@ -895,7 +895,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * @param testFrameworkConfigure A closure used to configure the TestNG options.
      */
     public void useTestNG(Closure testFrameworkConfigure) {
-        useTestFramework(new TestNGTestFramework(this), testFrameworkConfigure);
+        useTestFramework(new TestNGTestFramework(this, this.selection), testFrameworkConfigure);
     }
 
     /**

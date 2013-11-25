@@ -21,6 +21,7 @@ import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.processors.CaptureTestOutputTestResultProcessor;
+import org.gradle.api.internal.tasks.testing.selection.DefaultTestSelectionSpec;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.reflect.NoSuchMethodException;
@@ -105,32 +106,37 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
         if (!suiteFiles.isEmpty()) {
             testNg.setTestSuites(GFileUtils.toPaths(suiteFiles));
         } else {
-            if (options.getIncludedMethods().isEmpty()) {
+            if (options.getIncludedTests().isEmpty()) {
                 //includedMethods was introduced in 1.10, before that we used to configure classes this way:
                 testNg.setTestClasses(testClasses.toArray(new Class[testClasses.size()]));
                 //let's leave it for backwards compatibility
             } else {
                 //in order to respect the included methods, we need to manually create the suite
-                configureXmlTestSuite(testNg, testClasses, options.getIncludedMethods());
+                configureXmlTestSuite(testNg, testClasses, options.getIncludedTests());
             }
         }
 
         testNg.run();
     }
 
-    private static void configureXmlTestSuite(TestNG testNg, List<Class<?>> testClasses, List<String> includedMethods) {
+    private static void configureXmlTestSuite(TestNG testNg, List<Class<?>> testClasses, List<DefaultTestSelectionSpec> includedTests) {
         XmlSuite suite = new XmlSuite();
         XmlTest xmlTest = new XmlTest(suite);
         xmlTest.setName("Gradle test");
         for (Class klass : testClasses) {
-            XmlClass xmlClass = new XmlClass(klass, true);
-            for (String testName : includedMethods) {
-                XmlInclude meth = new XmlInclude(testName);
-                xmlClass.getIncludedMethods().add(meth);
+            XmlClass xmlClass = null;
+            for (DefaultTestSelectionSpec includedTest : includedTests) {
+                if (includedTest.matchesClass(klass.getName())) {
+                    if (xmlClass == null) {
+                        xmlClass = new XmlClass(klass, true);
+                        xmlTest.getXmlClasses().add(xmlClass);
+                    }
+                    XmlInclude method = new XmlInclude(includedTest.getMethodName());
+                    xmlClass.getIncludedMethods().add(method);
+                    //need to configure exclude for all other methods (pattern)
+                    xmlClass.getExcludedMethods().add(".*");
+                }
             }
-            //need to configure exclude for all other methods (pattern)§
-            xmlClass.getExcludedMethods().add(".*");
-            xmlTest.getXmlClasses().add(xmlClass);
         }
         testNg.setCommandLineSuite(suite);
     }

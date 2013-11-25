@@ -223,21 +223,35 @@ class JUnitTestClassProcessorTest extends Specification {
     }
 
     def "executes specific method"() {
-        classProcessor = withSpec(new JUnitSpec(new JUnitOptions(), new DefaultTestSelection().includeMethod("pass")))
+        classProcessor = withSpec(new JUnitSpec(new JUnitOptions(), new DefaultTestSelection().includeTest(ATestClassWithFewMethods.name, "pass")))
 
-        when: process(ATestClassWith2Methods)
+        when: process(ATestClassWithFewMethods)
 
         then: 1 * processor.started({ it.id == 1 }, { it.parentId == null })
-        then: 1 * processor.started({ it.id == 2 && it.name == "pass" && it.className == ATestClassWith2Methods.name }, { it.parentId == 1 })
+        then: 1 * processor.started({ it.id == 2 && it.name == "pass" && it.className == ATestClassWithFewMethods.name }, { it.parentId == 1 })
         then: 1 * processor.completed(2, { it.resultType == null })
         then: 1 * processor.completed(1, { it.resultType == null })
         0 * processor._
     }
 
-    def "executes no methods when method name does not match"() {
-        classProcessor = withSpec(new JUnitSpec(new JUnitOptions(), new DefaultTestSelection().includeMethod("does not exist")))
+    def "executes multiple specific methods"() {
+        classProcessor = withSpec(new JUnitSpec(new JUnitOptions(), new DefaultTestSelection()
+                .includeTest(ATestClassWithFewMethods.name, "pass")
+                .includeTest(ATestClassWithFewMethods.name, "pass2")))
 
-        when: process(ATestClassWith2Methods)
+        when: process(ATestClassWithFewMethods)
+
+        then:
+        1 * processor.started({ it.id == 1 }, { it.parentId == null })
+        1 * processor.started({ it.id == 2 && it.name == "pass" && it.className == ATestClassWithFewMethods.name }, { it.parentId == 1 })
+        1 * processor.started({ it.id == 3 && it.name == "pass2" && it.className == ATestClassWithFewMethods.name }, { it.parentId == 1 })
+        0 * processor.started(_, _)
+    }
+
+    def "executes no methods when method name does not match"() {
+        classProcessor = withSpec(new JUnitSpec(new JUnitOptions(), new DefaultTestSelection().includeTest(ATestClassWithFewMethods.name, "does not exist")))
+
+        when: process(ATestClassWithFewMethods)
 
         then: 1 * processor.started({ it.id == 1 }, { it.parentId == null })
         then: 1 * processor.completed(1, { it.resultType == null })
