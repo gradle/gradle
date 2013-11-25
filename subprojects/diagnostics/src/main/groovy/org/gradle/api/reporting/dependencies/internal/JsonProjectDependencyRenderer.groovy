@@ -135,18 +135,18 @@ class JsonProjectDependencyRenderer {
     private List createDependencies(Configuration configuration) {
         ResolutionResult result = configuration.incoming.resolutionResult
         RenderableDependency root = new RenderableModuleResult(result.getRoot())
-        Set<ModuleVersionIdentifier> visited = new HashSet<>()
+        Set<ComponentIdentifier> visited = new HashSet<>()
         return createDependencyChildren(root, visited);
     }
 
-    private List createDependencyChildren(RenderableDependency dependency, Set<ModuleVersionIdentifier> visited) {
+    private List createDependencyChildren(RenderableDependency dependency, Set<ComponentIdentifier> visited) {
         dependency.children.collect { childDependency ->
             boolean alreadyVisited = !visited.add(childDependency.id);
             boolean alreadyRendered = alreadyVisited && !childDependency.children.empty
             String name = replaceArrow(childDependency.name)
             boolean hasConflict = name != childDependency.name
             def result = [
-                module : childDependency.id.group + ':' + childDependency.id.name,
+                module : childDependency.id.group + ':' + childDependency.id.module,
                 name : name,
                 resolvable : childDependency.resolvable,
                 hasConflict : hasConflict,
@@ -178,7 +178,7 @@ class JsonProjectDependencyRenderer {
 
     private void populateModulesWithChildDependencies(RenderableDependency dependency, Set<ComponentIdentifier> visited, Set<ModuleIdentifier> modules) {
         for (RenderableDependency childDependency : dependency.children) {
-            def moduleId = new DefaultModuleIdentifier(childDependency.id.group, childDependency.id.name)
+            def moduleId = new DefaultModuleIdentifier(childDependency.id.group, childDependency.id.module)
             modules.add(moduleId)
             boolean alreadyVisited = !visited.add(childDependency.id);
             if (!alreadyVisited) {

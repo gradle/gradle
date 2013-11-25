@@ -110,8 +110,8 @@ class DefaultResolutionResultBuilderSpec extends Specification {
         def deps = builder.complete().root.dependencies
 
         then:
-        def b = deps.find { it.selected.id.name == 'b' }
-        def c = deps.find { it.selected.id.name == 'c' }
+        def b = deps.find { it.selected.id.module == 'b' }
+        def c = deps.find { it.selected.id.module == 'c' }
 
         b.selected.selectionReason.forced
         c.selected.selectionReason.conflictResolution
