@@ -173,7 +173,7 @@ class JavaReflectionUtilTest extends Specification {
 
         then:
         UncheckedException checkedFailure = thrown()
-        checkedFailure.cause instanceof IOException
+        checkedFailure.cause instanceof JavaTestSubject.TestCheckedException
         checkedFailure.cause.cause == myProperties.failure
     }
 

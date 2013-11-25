@@ -16,8 +16,6 @@
 
 package org.gradle.internal.reflect;
 
-import java.io.IOException;
-
 @SuppressWarnings("UnusedDeclaration")
 public class JavaTestSubject {
 
@@ -78,8 +76,14 @@ public class JavaTestSubject {
         throw failure;
     }
 
-    public void throwsCheckedException() throws IOException {
-        throw new IOException(failure);
+    static class TestCheckedException extends Exception {
+        public TestCheckedException(Throwable cause) {
+            super(cause);
+        }
+    }
+
+    public void throwsCheckedException() throws TestCheckedException {
+        throw new TestCheckedException(failure);
     }
 
     protected String protectedMethod() {
