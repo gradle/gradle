@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.internal;
+package org.gradle.internal.concurrent;
 
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

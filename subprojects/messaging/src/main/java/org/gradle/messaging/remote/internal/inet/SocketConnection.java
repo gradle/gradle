@@ -17,7 +17,7 @@
 package org.gradle.messaging.remote.internal.inet;
 
 import com.google.common.base.Objects;
-import org.gradle.internal.CompositeStoppable;
+import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.UncheckedException;
 import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.internal.Connection;

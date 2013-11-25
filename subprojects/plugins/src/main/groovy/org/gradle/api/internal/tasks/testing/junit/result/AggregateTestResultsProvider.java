@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.testing.junit.result;
 import org.gradle.api.Action;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.testing.TestOutputEvent;
-import org.gradle.internal.CompositeStoppable;
+import org.gradle.internal.concurrent.CompositeStoppable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

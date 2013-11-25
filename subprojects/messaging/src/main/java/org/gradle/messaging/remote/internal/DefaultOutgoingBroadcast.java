@@ -15,8 +15,8 @@
  */
 package org.gradle.messaging.remote.internal;
 
-import org.gradle.internal.CompositeStoppable;
-import org.gradle.internal.Stoppable;
+import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.StoppableExecutor;
 import org.gradle.internal.id.IdGenerator;

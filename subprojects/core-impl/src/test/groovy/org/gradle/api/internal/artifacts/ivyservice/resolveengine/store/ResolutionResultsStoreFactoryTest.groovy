@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.store
 
 import org.gradle.api.internal.cache.BinaryStore
 import org.gradle.api.internal.file.TmpDirTemporaryFileProvider
-import org.gradle.internal.CompositeStoppable
+import org.gradle.internal.concurrent.CompositeStoppable
 import spock.lang.Specification
 
 class ResolutionResultsStoreFactoryTest extends Specification {

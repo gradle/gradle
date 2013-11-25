@@ -16,7 +16,7 @@
 
 package org.gradle.messaging.actor;
 
-import org.gradle.internal.Stoppable;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.concurrent.ThreadSafe;
 import org.gradle.messaging.dispatch.Dispatch;
 import org.gradle.messaging.dispatch.DispatchException;

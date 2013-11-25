@@ -17,7 +17,7 @@
 package org.gradle.launcher.daemon.server.exec;
 
 import org.gradle.api.Nullable;
-import org.gradle.internal.Stoppable;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.launcher.daemon.protocol.BuildStarted;
 import org.gradle.launcher.daemon.protocol.DaemonUnavailable;
 import org.gradle.launcher.daemon.protocol.Result;

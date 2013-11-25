@@ -17,7 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.store;
 
 import org.gradle.api.internal.cache.BinaryStore;
 import org.gradle.cache.internal.stream.RandomAccessFileInputStream;
-import org.gradle.internal.CompositeStoppable;
+import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.messaging.serialize.Decoder;
 import org.gradle.messaging.serialize.InputStreamBackedDecoder;
 import org.gradle.messaging.serialize.OutputStreamBackedEncoder;

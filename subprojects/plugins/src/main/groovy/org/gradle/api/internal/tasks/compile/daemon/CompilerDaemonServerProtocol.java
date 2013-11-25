@@ -17,7 +17,7 @@ package org.gradle.api.internal.tasks.compile.daemon;
 
 import org.gradle.api.internal.tasks.compile.CompileSpec;
 import org.gradle.api.internal.tasks.compile.Compiler;
-import org.gradle.internal.Stoppable;
+import org.gradle.internal.concurrent.Stoppable;
 
 /**
  * Server part of the compiler daemon protocol. Used to submit compilation jobs.

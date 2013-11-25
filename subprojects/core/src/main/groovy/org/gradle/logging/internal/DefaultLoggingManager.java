@@ -18,8 +18,8 @@ package org.gradle.logging.internal;
 
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputListener;
-import org.gradle.internal.CompositeStoppable;
-import org.gradle.internal.Stoppable;
+import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.logging.LoggingManagerInternal;
 
 import java.util.LinkedHashSet;

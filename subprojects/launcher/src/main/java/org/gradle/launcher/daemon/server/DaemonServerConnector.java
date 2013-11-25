@@ -15,7 +15,7 @@
  */
 package org.gradle.launcher.daemon.server;
 
-import org.gradle.internal.Stoppable;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.messaging.remote.Address;
 
 /**

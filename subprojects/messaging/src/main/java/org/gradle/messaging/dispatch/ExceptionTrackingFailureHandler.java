@@ -16,7 +16,7 @@
 
 package org.gradle.messaging.dispatch;
 
-import org.gradle.internal.Stoppable;
+import org.gradle.internal.concurrent.Stoppable;
 import org.slf4j.Logger;
 
 public class ExceptionTrackingFailureHandler implements DispatchFailureHandler<Object>, Stoppable {

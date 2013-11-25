@@ -22,7 +22,7 @@ import org.gradle.api.artifacts.Dependency
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
-import org.gradle.internal.CompositeStoppable
+import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.internal.nativeplatform.services.NativeServices
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.ServiceRegistryBuilder

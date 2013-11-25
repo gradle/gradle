@@ -18,7 +18,7 @@ package org.gradle.process.internal;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.internal.CompositeStoppable;
+import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.UncheckedException;
 import org.gradle.messaging.remote.ConnectionAcceptor;
 import org.gradle.messaging.remote.ObjectConnection;

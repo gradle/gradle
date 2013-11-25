@@ -17,7 +17,7 @@
 package org.gradle.messaging.remote
 
 import org.gradle.api.Action
-import org.gradle.internal.CompositeStoppable
+import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.messaging.remote.internal.MessagingServices
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec

@@ -35,7 +35,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-import static org.gradle.internal.CompositeStoppable.stoppable;
+import static org.gradle.internal.concurrent.CompositeStoppable.stoppable;
 import static org.gradle.util.CollectionUtils.collect;
 
 /**

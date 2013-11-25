@@ -17,7 +17,7 @@
 package org.gradle.messaging.remote.internal.inet;
 
 import org.gradle.api.Action;
-import org.gradle.internal.CompositeStoppable;
+import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.StoppableExecutor;
