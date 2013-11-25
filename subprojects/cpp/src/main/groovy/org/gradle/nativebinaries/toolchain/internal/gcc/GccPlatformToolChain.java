@@ -24,6 +24,8 @@ import org.gradle.nativebinaries.internal.StaticLibraryArchiverSpec;
 import org.gradle.nativebinaries.language.assembler.internal.AssembleSpec;
 import org.gradle.nativebinaries.language.c.internal.CCompileSpec;
 import org.gradle.nativebinaries.language.cpp.internal.CppCompileSpec;
+import org.gradle.nativebinaries.language.objectivec.internal.ObjectiveCCompileSpec;
+import org.gradle.nativebinaries.language.objectivecpp.internal.ObjectiveCppCompileSpec;
 import org.gradle.nativebinaries.toolchain.TargetPlatformConfiguration;
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
 import org.gradle.nativebinaries.toolchain.internal.OutputCleaningCompiler;
@@ -57,6 +59,20 @@ class GccPlatformToolChain implements PlatformToolChain {
         commandLineTool.withSpecTransformer(withSystemArgs(CCompileSpec.class, platformConfiguration.getCCompilerArgs()));
         CCompiler cCompiler = new CCompiler(commandLineTool, tools.getArgTransformer(ToolType.C_COMPILER), useCommandFile);
         return (Compiler<T>) new OutputCleaningCompiler<CCompileSpec>(cCompiler, ".o");
+    }
+
+    public <T extends BinaryToolSpec> org.gradle.api.internal.tasks.compile.Compiler<T> createObjectiveCppCompiler() {
+        CommandLineTool<ObjectiveCppCompileSpec> commandLineTool = commandLineTool(ToolType.OBJECTIVECPP_COMPILER);
+        commandLineTool.withSpecTransformer(withSystemArgs(ObjectiveCppCompileSpec.class, platformConfiguration.getObjectiveCppCompilerArgs()));
+        ObjectiveCppCompiler objectiveCppCompiler = new ObjectiveCppCompiler(commandLineTool, tools.getArgTransformer(ToolType.OBJECTIVECPP_COMPILER), useCommandFile);
+        return (Compiler<T>) new OutputCleaningCompiler<ObjectiveCppCompileSpec>(objectiveCppCompiler, ".o");
+    }
+
+    public <T extends BinaryToolSpec> org.gradle.api.internal.tasks.compile.Compiler<T> createObjectiveCCompiler() {
+        CommandLineTool<ObjectiveCCompileSpec> commandLineTool = commandLineTool(ToolType.OBJECTIVEC_COMPILER);
+        commandLineTool.withSpecTransformer(withSystemArgs(ObjectiveCCompileSpec.class, platformConfiguration.getObjectiveCCompilerArgs()));
+        ObjectiveCCompiler objectiveCCompiler = new ObjectiveCCompiler(commandLineTool, tools.getArgTransformer(ToolType.OBJECTIVEC_COMPILER), useCommandFile);
+        return (Compiler<T>) new OutputCleaningCompiler<ObjectiveCCompileSpec>(objectiveCCompiler, ".o");
     }
 
     public <T extends BinaryToolSpec> Compiler<T> createAssembler() {

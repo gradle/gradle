@@ -14,31 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries.internal;
-
-import java.io.File;
-import java.util.List;
-
 /**
- * A high level interface to the linker, specifying what is to be linked and how.
+ * Plugins for building Objective-C projects.
  */
-public interface LinkerSpec extends BinaryToolSpec {
-
-    List<File> getObjectFiles();
-
-    void objectFiles(Iterable<File> objectFiles);
-
-    List<File> getLibraries();
-
-    void libraries(Iterable<File> libraries);
-
-    // TODO:DAZ Work out how to test this
-    List<File> getLibraryPath();
-
-    void libraryPath(File... libraryPath);
-
-    File getOutputFile();
-
-    void setOutputFile(File outputFile);
-
-}
+package org.gradle.nativebinaries.language.objectivec.plugins;

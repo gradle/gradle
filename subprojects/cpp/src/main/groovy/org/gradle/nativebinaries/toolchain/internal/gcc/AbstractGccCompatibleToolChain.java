@@ -15,6 +15,12 @@
  */
 package org.gradle.nativebinaries.toolchain.internal.gcc;
 
+import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.os.OperatingSystem;
@@ -28,12 +34,6 @@ import org.gradle.nativebinaries.toolchain.internal.AbstractToolChain;
 import org.gradle.nativebinaries.toolchain.internal.ToolType;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.util.CollectionUtils;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static java.util.Arrays.asList;
-import static java.util.Collections.emptyList;
 
 /**
  * A tool chain that has GCC semantics, where all platform variants are produced by varying the tool args.
@@ -113,6 +113,14 @@ public abstract class AbstractGccCompatibleToolChain extends AbstractToolChain i
             return emptyList();
         }
 
+        public List<String> getObjectiveCppCompilerArgs() {
+            return emptyList();
+        }
+
+        public List<String> getObjectiveCCompilerArgs() {
+            return emptyList();
+        }
+
         public List<String> getStaticLibraryArchiverArgs() {
             return emptyList();
         }
@@ -133,6 +141,14 @@ public abstract class AbstractGccCompatibleToolChain extends AbstractToolChain i
         }
 
         public List<String> getCCompilerArgs() {
+            return asList("-m32");
+        }
+
+        public List<String> getObjectiveCppCompilerArgs() {
+            return asList("-m32");
+        }
+
+        public List<String> getObjectiveCCompilerArgs() {
             return asList("-m32");
         }
 
@@ -164,6 +180,14 @@ public abstract class AbstractGccCompatibleToolChain extends AbstractToolChain i
         }
 
         public List<String> getCCompilerArgs() {
+            return asList("-m64");
+        }
+
+        public List<String> getObjectiveCppCompilerArgs() {
+            return asList("-m64");
+        }
+
+        public List<String> getObjectiveCCompilerArgs() {
             return asList("-m64");
         }
 

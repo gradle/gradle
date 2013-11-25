@@ -26,6 +26,10 @@ public interface PlatformToolChain {
 
     <T extends BinaryToolSpec> Compiler<T> createCCompiler();
 
+    <T extends BinaryToolSpec> Compiler<T> createObjectiveCppCompiler();
+
+    <T extends BinaryToolSpec> Compiler<T> createObjectiveCCompiler();
+
     <T extends BinaryToolSpec> Compiler<T> createAssembler();
 
     <T extends BinaryToolSpec> Compiler<T> createWindowsResourceCompiler();
