@@ -15,6 +15,7 @@
  */
 package org.gradle.ide.visualstudio
 
+import org.gradle.ide.visualstudio.fixtures.ProjectFile
 import org.gradle.ide.visualstudio.fixtures.SolutionFile
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativebinaries.language.cpp.fixtures.app.CppHelloWorldApp
@@ -50,12 +51,21 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
     executables {
         main {}
     }
+    binaries.all {
+        cppCompiler.define "TEST"
+    }
 """
         and:
         run "mainVisualStudio"
 
         then:
         solutionFile("visualStudio/main.sln").assertHasProjects("mainExe")
+
+        and:
+        final projectFile = projectFile("visualStudio/mainExe.vcxproj")
+        projectFile.sourceFiles == file("src/main/cpp").listFiles()*.absolutePath as List
+        projectFile.headerFiles == file("src/main/headers").listFiles()*.absolutePath as List
+        projectFile.projectConfigurations.size() == 1
     }
 
     def "create visual studio solution for single library"() {
@@ -71,6 +81,12 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
 
         then:
         solutionFile("visualStudio/main.sln").assertHasProjects("mainDll")
+
+        and:
+        final projectFile = projectFile("visualStudio/mainDll.vcxproj")
+        projectFile.sourceFiles == file("src/main/cpp").listFiles()*.absolutePath as List
+        projectFile.headerFiles == file("src/main/headers").listFiles()*.absolutePath as List
+        projectFile.projectConfigurations.size() == 1
     }
 
 
@@ -92,6 +108,18 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
 
         then:
         solutionFile("visualStudio/main.sln").assertHasProjects("mainExe", "helloLib")
+
+        and:
+        final exeProject = projectFile("visualStudio/mainExe.vcxproj")
+        exeProject.sourceFiles == file("src/main/cpp").listFiles()*.absolutePath as List
+        exeProject.headerFiles.isEmpty()
+        exeProject.projectConfigurations.size() == 1
+
+        and:
+        final dllProject = projectFile("visualStudio/helloLib.vcxproj")
+        dllProject.sourceFiles == file("src/hello/cpp").listFiles()*.absolutePath as List
+        dllProject.headerFiles == file("src/hello/headers").listFiles()*.absolutePath as List
+        dllProject.projectConfigurations.size() == 1
     }
 
     def "create visual studio solution for executable that depends on shared library"() {
@@ -112,6 +140,18 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
 
         then:
         solutionFile("visualStudio/main.sln").assertHasProjects("mainExe", "helloDll")
+
+        and:
+        final exeProject = projectFile("visualStudio/mainExe.vcxproj")
+        exeProject.sourceFiles == file("src/main/cpp").listFiles()*.absolutePath as List
+        exeProject.headerFiles.isEmpty()
+        exeProject.projectConfigurations.size() == 1
+
+        and:
+        final dllProject = projectFile("visualStudio/helloDll.vcxproj")
+        dllProject.sourceFiles == file("src/hello/cpp").listFiles()*.absolutePath as List
+        dllProject.headerFiles == file("src/hello/headers").listFiles()*.absolutePath as List
+        dllProject.projectConfigurations.size() == 1
     }
 
     def "create visual studio solution for executable that depends on library that depends on another library"() {
@@ -162,9 +202,26 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         then:
         solutionFile("visualStudio/main.sln").assertHasProjects("mainExe", "helloDll")
         solutionFile("visualStudio/mainStatic.sln").assertHasProjects("mainStaticExe", "helloLib")
+
+        and:
+        final exeProject = projectFile("visualStudio/mainExe.vcxproj")
+        final staticExeProject = projectFile("visualStudio/mainStaticExe.vcxproj")
+        exeProject.sourceFiles == staticExeProject.sourceFiles
+        exeProject.headerFiles == []
+        staticExeProject.headerFiles == []
+
+        and:
+        final dllProject = projectFile("visualStudio/helloDll.vcxproj")
+        final libProject = projectFile("visualStudio/helloLib.vcxproj")
+        dllProject.sourceFiles == libProject.sourceFiles
+        dllProject.headerFiles == libProject.headerFiles
     }
 
     private SolutionFile solutionFile(String path) {
         return new SolutionFile(file(path))
+    }
+
+    private ProjectFile projectFile(String path) {
+        return new ProjectFile(file(path))
     }
 }

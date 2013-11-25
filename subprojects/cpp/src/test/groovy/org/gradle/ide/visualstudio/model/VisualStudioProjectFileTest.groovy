@@ -15,8 +15,10 @@
  */
 
 package org.gradle.ide.visualstudio.model
-
 import org.gradle.api.Transformer
+import org.gradle.api.plugins.ExtensionAware
+import org.gradle.ide.visualstudio.fixtures.ProjectFile
+import org.gradle.nativebinaries.NativeBinary
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -25,72 +27,78 @@ import spock.lang.Specification
 class VisualStudioProjectFileTest extends Specification {
     TestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
     Transformer<String, File> fileNameTransformer = { it.name } as Transformer<String, File>
-    def projectFile = new VisualStudioProjectFile(fileNameTransformer)
+    def generator = new VisualStudioProjectFile(fileNameTransformer)
 
     def "setup"() {
-        projectFile.loadDefaults()
+        generator.loadDefaults()
     }
 
     def "empty project file"() {
         expect:
-        itemGroup('ProjectConfigurations').children().isEmpty()
-        itemGroup('Sources').children().isEmpty()
-        itemGroup('Headers').children().isEmpty()
+        projectFile.projectConfigurations.isEmpty()
+        projectFile.sourceFiles == []
+        projectFile.headerFiles == []
     }
 
     def "set project uuid"() {
         when:
-        projectFile.setProjectUuid("THE_PROJECT_UUID")
+        generator.setProjectUuid("THE_PROJECT_UUID")
 
         then:
-        globals.ProjectGUID[0].text() == "THE_PROJECT_UUID"
+        projectFile.projectGuid == "THE_PROJECT_UUID"
     }
 
     def "add source and headers"() {
         when:
-        projectFile.addSourceFile(file("sourceOne"))
-        projectFile.addSourceFile(file("sourceTwo"))
+        generator.addSourceFile(file("sourceOne"))
+        generator.addSourceFile(file("sourceTwo"))
 
-        projectFile.addHeaderFile(file("headerOne"))
-        projectFile.addHeaderFile(file("headerTwo"))
+        generator.addHeaderFile(file("headerOne"))
+        generator.addHeaderFile(file("headerTwo"))
 
         then:
-        assert sourceFile(0) == "sourceOne"
-        assert sourceFile(1) == "sourceTwo"
-
-        assert headerFile(0) == "headerOne"
-        assert headerFile(1) == "headerTwo"
+        projectFile.sourceFiles == ["sourceOne", "sourceTwo"]
+        projectFile.headerFiles == ["headerOne", "headerTwo"]
     }
 
-    private String sourceFile(int index) {
-        def source = itemGroup('Sources').ClCompile[index]
-        return source.'@Include'
+    def "add configuration"() {
+        when:
+        def configuration = Mock(VisualStudioProjectConfiguration)
+        configuration.configurationName >> "debug"
+        configuration.platformName >> "Win32"
+        configuration.buildTask >> "buildMe"
+        configuration.cleanTask >> "cleanMe"
+        configuration.defines >> ["foo", "bar"]
+        configuration.includePaths >> [file("include1"), file("include2")]
+
+        generator.addConfiguration(configuration)
+
+        debugText()
+
+        then:
+        final configurations = projectFile.projectConfigurations
+        configurations.size() == 1
+        configurations[0].configName == 'debug'
+        configurations[0].platformName == 'Win32'
+        configurations[0].macros == "foo;bar"
+        configurations[0].includePath == "include1;include2"
     }
 
-    private String headerFile(int index) {
-        def header = itemGroup('Headers').ClInclude[index]
-        return header.'@Include'
-    }
-
-    private Node itemGroup(String label) {
-        return projectXml.ItemGroup.find({it.'@Label' == label}) as Node
-    }
-
-    private Node getGlobals() {
-        return projectXml.PropertyGroup.find({it.'@Label' == 'Globals'}) as Node
-    }
-
-    private def getProjectXml() {
-        return new XmlParser().parse(projectFileContent)
-    }
-
-    private TestFile getProjectFileContent() {
+    private ProjectFile getProjectFile() {
         def file = testDirectoryProvider.testDirectory.file("project.xml")
-        projectFile.store(file)
-        return file
+        generator.store(file)
+        return new ProjectFile(file)
+    }
+
+    private void debugText() {
+        def file = testDirectoryProvider.testDirectory.file("debug.xml")
+        generator.store(file)
+        println file.text
     }
 
     private TestFile file(String name) {
         testDirectoryProvider.testDirectory.file(name)
     }
+
+    interface ExtensionAwareBinary extends NativeBinary, ExtensionAware {}
 }

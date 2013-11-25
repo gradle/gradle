@@ -51,20 +51,20 @@ class VisualStudioProjectFile extends XmlPersistableConfigurationObject {
         def configNode = configurations.appendNode("ProjectConfiguration", [Include: configuration.name])
         configNode.appendNode("Configuration", configuration.configurationName)
         configNode.appendNode("Platform", configuration.platformName)
+        final configCondition = "'\$(Configuration)|\$(Platform)'=='${configuration.name}'"
 
         Node defaultProps = xml.Import.find({ it.'@Project' == '$(VCTargetsPath)\\Microsoft.Cpp.Default.props'}) as Node
         defaultProps + {
-            PropertyGroup(Label: "Configuration", Condition: "'\$(Configuration)|\$(Platform)'=='${configuration.name}'") {
+            PropertyGroup(Label: "Configuration", Condition: configCondition) {
                 ConfigurationType(configuration.type)
                 UseDebugLibraries(configuration.debug)
             }
         }
 
-        final configCondition = "'\$(Configuration)|\$(Platform)'=='${configuration.name}'"
         final includePath = toPath(configuration.includePaths).join(";")
         Node userMacros = xml.PropertyGroup.find({ it.'@Label' == 'UserMacros'}) as Node
         userMacros + {
-            PropertyGroup(Condition: configCondition) {
+            PropertyGroup(Label: "NMakeConfiguration", Condition: configCondition) {
                 NMakeBuildCommandLine("gradlew.bat ${configuration.buildTask}")
                 NMakeCleanCommandLine("gradlew.bat ${configuration.cleanTask}")
                 NMakeReBuildCommandLine("gradlew.bat ${configuration.cleanTask} ${configuration.buildTask}")
@@ -73,7 +73,7 @@ class VisualStudioProjectFile extends XmlPersistableConfigurationObject {
                 NMakeOutput(toPath(configuration.outputFile))
                 IntDir("\$(ProjectName)\\\$(Configuration)\\")
             }
-            ItemDefinitionGroup(Condition: configCondition) {
+            ItemDefinitionGroup(Label: "VSBuildConfiguration", Condition: configCondition) {
                 ClCompile {
                     AdditionalIncludeDirectories(includePath)
                     PreprocessorDefinitions(configuration.defines.join(";"))
