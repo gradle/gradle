@@ -152,6 +152,7 @@ class JavaReflectionUtilTest extends Specification {
     def "call methods successfully reflectively"() {
         expect:
         method(myProperties.class, String, "getMyProperty").invoke(myProperties) == myProperties.myProp
+        method(myProperties.class, String, "doSomeStuff", int.class, Integer.class).invoke(myProperties, 1, 2) == "1.2"
 
         when:
         method(myProperties.class, Void, "setMyProperty", String).invoke(myProperties, "foo")

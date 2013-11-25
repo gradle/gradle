@@ -25,6 +25,10 @@ public class JavaTestSubject {
 
     public int publicField;
 
+    public String doSomeStuff(int a, Integer b) {
+        return String.format("%s.%s", a, b);
+    }
+
     public String getMyProperty() {
         return myProp;
     }
