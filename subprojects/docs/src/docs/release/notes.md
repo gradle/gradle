@@ -2,6 +2,36 @@
 
 Here are the new features introduced in this Gradle release.
 
+### `shouldRunAfter` task ordering
+
+Gradle 1.6 introduced task ordering by way of the `mustRunAfter` method(s) added to tasks.
+This release brings a new ordering mechanism: `shouldRunAfter`.
+This feature was contributed by [Marcin Erdmann](https://github.com/erdi).
+
+If it is specified that…
+
+    task a {}
+    task b { 
+        mustRunAfter a 
+    }
+
+Then under all circumstances Gradle will ensure that `b` is only executed after `a` has executed. 
+However it does not imply that task `b` _depends on_ task `a`.
+It is only used to order the execution if both `a` and `b` are to be executed in a given build.
+
+The new `shouldRunAfter` ordering works much the same way, except that it specifies an ordering preference and not a requirement.
+If it is specified that…
+
+    task a {}
+    task b { 
+        shouldRunAfter a 
+    }
+
+Then Gradle will execute `b` after `a` if there is not a good reason to do otherwise.
+This means that use of `shouldRunAfter` can not create a dependency cycle and it also does not prevent parallel execution of tasks.
+
+For more examples please see [Ordering tasks](userguide/more_about_tasks.html#sec:ordering_tasks) in the User Guide.
+
 ### Show task usage details via help task
 
 You can run the help task now with a commandline option '--task' to get detailed usage information for a specific task. The usage information
@@ -92,6 +122,7 @@ We would like to thank the following community members for making contributions 
 * [Michael Putters](https://github.com/mputters) - added support the Visual Studio 2013 tool set and Windows 8 SDK
 * [Andrew Oberstar](https://github.com/ajoberstar) - fixed GRADLE-2695: ClassFormatError introduced in 1.3
 * [Bobby Warner](https://github.com/ajoberstar) - updated Groovy samples to Groovy 2.2.0
+* [Marcin Erdmann](https://github.com/erdi) - `shouldRunAfter` task ordering rule
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
