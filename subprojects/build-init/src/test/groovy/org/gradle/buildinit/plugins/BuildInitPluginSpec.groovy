@@ -18,9 +18,9 @@ package org.gradle.buildinit.plugins
 
 import org.gradle.api.internal.file.TemporaryFileProvider
 import org.gradle.api.internal.file.TmpDirTemporaryFileProvider
+import org.gradle.api.tasks.TaskDependencyMatchers
 import org.gradle.api.tasks.wrapper.Wrapper
 import org.gradle.util.TestUtil
-import org.gradle.util.Matchers
 import spock.lang.Specification
 
 class BuildInitPluginSpec extends Specification {
@@ -33,7 +33,7 @@ class BuildInitPluginSpec extends Specification {
         project.evaluate()
         then:
         project.tasks.wrapper instanceof Wrapper
-        Matchers.dependsOn("wrapper").matches(project.tasks.init)
+        TaskDependencyMatchers.dependsOn("wrapper").matches(project.tasks.init)
     }
 
     def "no wrapper task configured if build file already exists"() {

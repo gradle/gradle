@@ -35,7 +35,7 @@ import spock.lang.Issue
 
 import java.util.concurrent.Callable
 
-import static org.gradle.util.Matchers.dependsOn
+import static org.gradle.api.tasks.TaskDependencyMatchers.dependsOn
 import static org.gradle.util.Matchers.isEmpty
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*

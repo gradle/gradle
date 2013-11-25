@@ -19,6 +19,7 @@ import org.gradle.api.Project
 import org.gradle.api.plugins.GroovyPlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.ReportingBasePlugin
+import org.gradle.api.tasks.TaskDependencyMatchers
 import org.gradle.util.TestUtil
 import org.junit.Test
 import static org.gradle.util.Matchers.*
@@ -67,7 +68,7 @@ class CodeQualityPluginTest {
         assertThat(task.configFile, equalTo(project.checkstyleConfigFile))
         assertThat(task.resultFile, equalTo(project.file("build/checkstyle/main.xml")))
         assertThat(task.configProperties, equalTo(project.checkstyleProperties))
-        assertThat(task, dependsOn(JavaPlugin.CLASSES_TASK_NAME))
+        assertThat(task, TaskDependencyMatchers.dependsOn(JavaPlugin.CLASSES_TASK_NAME))
 
         task = project.tasks[CodeQualityPlugin.CHECKSTYLE_TEST_TASK]
         assertThat(task, instanceOf(Checkstyle))
@@ -76,7 +77,7 @@ class CodeQualityPluginTest {
         assertThat(task.configFile, equalTo(project.checkstyleConfigFile))
         assertThat(task.resultFile, equalTo(project.file("build/checkstyle/test.xml")))
         assertThat(task.properties, equalTo(project.checkstyleProperties))
-        assertThat(task, dependsOn(JavaPlugin.TEST_CLASSES_TASK_NAME))
+        assertThat(task, TaskDependencyMatchers.dependsOn(JavaPlugin.TEST_CLASSES_TASK_NAME))
 
         project.sourceSets.create('custom')
         task = project.tasks['checkstyleCustom']
@@ -86,10 +87,10 @@ class CodeQualityPluginTest {
         assertThat(task.configFile, equalTo(project.checkstyleConfigFile))
         assertThat(task.resultFile, equalTo(project.file("build/checkstyle/custom.xml")))
         assertThat(task.properties, equalTo(project.checkstyleProperties))
-        assertThat(task, dependsOn("customClasses"))
+        assertThat(task, TaskDependencyMatchers.dependsOn("customClasses"))
 
         task = project.tasks[JavaBasePlugin.CHECK_TASK_NAME]
-        assertThat(task, dependsOn(hasItems(CodeQualityPlugin.CHECKSTYLE_MAIN_TASK, CodeQualityPlugin.CHECKSTYLE_TEST_TASK, 'checkstyleCustom')))
+        assertThat(task, TaskDependencyMatchers.dependsOn(hasItems(CodeQualityPlugin.CHECKSTYLE_MAIN_TASK, CodeQualityPlugin.CHECKSTYLE_TEST_TASK, 'checkstyleCustom')))
     }
 
     @Test public void createsTasksAndAppliesMappingsForEachGroovySourceSet() {
@@ -103,7 +104,7 @@ class CodeQualityPluginTest {
         assertThat(task.codenarcClasspath, equalTo(project.configurations.codenarc))
         assertThat(task.configFile, equalTo(project.codeNarcConfigFile))
         assertThat(task.reportFile, equalTo(project.file("build/reports/codenarc/main.html")))
-        assertThat(task, dependsOn())
+        assertThat(task, TaskDependencyMatchers.dependsOn())
 
         task = project.tasks[CodeQualityPlugin.CODE_NARC_TEST_TASK]
         assertThat(task, instanceOf(CodeNarc))
@@ -112,7 +113,7 @@ class CodeQualityPluginTest {
         assertThat(task.configFile, equalTo(project.codeNarcConfigFile))
         assertThat(task.reportFormat, equalTo(project.codeNarcReportsFormat))
         assertThat(task.reportFile, equalTo(project.file("build/reports/codenarc/test.html")))
-        assertThat(task, dependsOn())
+        assertThat(task, TaskDependencyMatchers.dependsOn())
 
         project.sourceSets.create('custom')
         task = project.tasks['codenarcCustom']
@@ -122,12 +123,12 @@ class CodeQualityPluginTest {
         assertThat(task.configFile, equalTo(project.codeNarcConfigFile))
         assertThat(task.reportFormat, equalTo(project.codeNarcReportsFormat))
         assertThat(task.reportFile, equalTo(project.file("build/reports/codenarc/custom.html")))
-        assertThat(task, dependsOn())
+        assertThat(task, TaskDependencyMatchers.dependsOn())
 
         task = project.tasks[JavaBasePlugin.CHECK_TASK_NAME]
-        assertThat(task, dependsOn(hasItem(CodeQualityPlugin.CODE_NARC_MAIN_TASK)))
-        assertThat(task, dependsOn(hasItem(CodeQualityPlugin.CODE_NARC_TEST_TASK)))
-        assertThat(task, dependsOn(hasItem('codenarcCustom')))
+        assertThat(task, TaskDependencyMatchers.dependsOn(hasItem(CodeQualityPlugin.CODE_NARC_MAIN_TASK)))
+        assertThat(task, TaskDependencyMatchers.dependsOn(hasItem(CodeQualityPlugin.CODE_NARC_TEST_TASK)))
+        assertThat(task, TaskDependencyMatchers.dependsOn(hasItem('codenarcCustom')))
     }
 
     @Test public void appliesMappingsForCheckstyleTasksWithoutRequiringTheJavaBasePluginToBeApplied() {

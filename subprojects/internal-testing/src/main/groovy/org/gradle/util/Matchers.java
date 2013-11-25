@@ -16,20 +16,18 @@
 
 package org.gradle.util;
 
-import org.gradle.api.Buildable;
-import org.gradle.api.Task;
-import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.file.CompositeFileCollection;
-import org.gradle.api.internal.file.UnionFileCollection;
-import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
-import org.gradle.api.internal.file.collections.DefaultFileCollectionResolveContext;
-import org.hamcrest.*;
+import org.hamcrest.BaseMatcher;
+import org.hamcrest.Description;
+import org.hamcrest.Factory;
+import org.hamcrest.Matcher;
 import org.jmock.api.Action;
 import org.jmock.api.Invocation;
 import org.jmock.internal.ReturnDefaultValueAction;
 
 import java.io.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 import static org.hamcrest.Matchers.equalTo;
@@ -61,7 +59,7 @@ public class Matchers {
     public static <T, S extends Iterable<? extends T>> Matcher<S> hasSameItems(final S items) {
         return new BaseMatcher<S>() {
             public boolean matches(Object o) {
-                Iterable<? extends T> iterable = (Iterable<? extends T>) o;
+                @SuppressWarnings("unchecked") Iterable<? extends T> iterable = (Iterable<? extends T>) o;
                 List<T> actual = new ArrayList<T>();
                 for (T t : iterable) {
                     actual.add(t);
@@ -252,7 +250,7 @@ public class Matchers {
             }
         };
     }
-    
+
     @Factory
     public static Matcher<Throwable> hasMessage(final Matcher<String> matcher) {
         return new BaseMatcher<Throwable>() {
@@ -263,114 +261,6 @@ public class Matchers {
 
             public void describeTo(Description description) {
                 description.appendText("an exception with message that is ").appendDescriptionOf(matcher);
-            }
-        };
-    }
-
-    @Factory
-    public static Matcher<Task> dependsOn(final String... tasks) {
-        return dependsOn(equalTo(new HashSet<String>(Arrays.asList(tasks))));
-    }
-
-    @Factory
-    public static Matcher<Task> dependsOn(Matcher<? extends Iterable<String>> matcher) {
-        return dependsOn(matcher, false);
-    }
-
-    @Factory
-    public static Matcher<Task> dependsOnPaths(Matcher<? extends Iterable<String>> matcher) {
-        return dependsOn(matcher, true);
-    }
-
-    private static Matcher<Task> dependsOn(final Matcher<? extends Iterable<String>> matcher, final boolean matchOnPaths) {
-        return new BaseMatcher<Task>() {
-            public boolean matches(Object o) {
-                Task task = (Task) o;
-                Set<String> names = new HashSet<String>();
-                Set<? extends Task> depTasks = task.getTaskDependencies().getDependencies(task);
-                for (Task depTask : depTasks) {
-                    names.add(matchOnPaths ? depTask.getPath() : depTask.getName());
-                }
-                boolean matches = matcher.matches(names);
-                if (!matches) {
-                    StringDescription description = new StringDescription();
-                    matcher.describeTo(description);
-                    System.out.println(String.format("expected %s, got %s.", description.toString(), names));
-                }
-                return matches;
-            }
-
-            public void describeTo(Description description) {
-                description.appendText("a Task that depends on ").appendDescriptionOf(matcher);
-            }
-        };
-    }
-
-    @Factory
-    public static <T extends Buildable> Matcher<T> builtBy(String... tasks) {
-        return builtBy(equalTo(new HashSet<String>(Arrays.asList(tasks))));
-    }
-
-    @Factory
-    public static <T extends Buildable> Matcher<T> builtBy(final Matcher<? extends Iterable<String>> matcher) {
-        return new BaseMatcher<T>() {
-            public boolean matches(Object o) {
-                Buildable task = (Buildable) o;
-                Set<String> names = new HashSet<String>();
-                Set<? extends Task> depTasks = task.getBuildDependencies().getDependencies(null);
-                for (Task depTask : depTasks) {
-                    names.add(depTask.getName());
-                }
-                boolean matches = matcher.matches(names);
-                if (!matches) {
-                    StringDescription description = new StringDescription();
-                    matcher.describeTo(description);
-                    System.out.println(String.format("expected %s, got %s.", description.toString(), names));
-                }
-                return matches;
-            }
-
-            public void describeTo(Description description) {
-                description.appendText("a Buildable that is built by ").appendDescriptionOf(matcher);
-            }
-        };
-    }
-
-    @Factory
-    public static <T extends FileCollection> Matcher<T> sameCollection(final FileCollection expected) {
-        return new BaseMatcher<T>() {
-            public boolean matches(Object o) {
-                FileCollection actual = (FileCollection) o;
-                List<? extends FileCollection> actualCollections = unpack(actual);
-                List<? extends FileCollection> expectedCollections = unpack(expected);
-                boolean equals = actualCollections.equals(expectedCollections);
-                if (!equals) {
-                    System.out.println("expected: " + expectedCollections);
-                    System.out.println("actual: " + actualCollections);
-                }
-                return equals;
-            }
-
-            private List<? extends FileCollection> unpack(FileCollection expected) {
-                if (expected instanceof UnionFileCollection) {
-                    UnionFileCollection collection = (UnionFileCollection) expected;
-                    return new ArrayList<FileCollection>(collection.getSources());
-                }
-                if (expected instanceof DefaultConfigurableFileCollection) {
-                    DefaultConfigurableFileCollection collection = (DefaultConfigurableFileCollection) expected;
-                    return new ArrayList<FileCollection>((Set) collection.getFrom());
-                }
-                if (expected instanceof CompositeFileCollection) {
-                    CompositeFileCollection collection = (CompositeFileCollection) expected;
-                    DefaultFileCollectionResolveContext context = new DefaultFileCollectionResolveContext();
-                    collection.resolve(context);
-                    return context.resolveAsFileCollections();
-                }
-                throw new RuntimeException("Cannot get children of " + expected);
-            }
-
-            public void describeTo(Description description) {
-                description.appendText("same file collection as ").appendValue(expected);
             }
         };
     }
@@ -421,6 +311,7 @@ public class Matchers {
             return value;
         }
 
+        @SuppressWarnings("unchecked")
         void setValue(Object parameter) {
             value = (T) parameter;
             set = true;

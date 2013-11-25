@@ -16,15 +16,15 @@
 package org.gradle.api.plugins.scala
 
 import org.gradle.api.Project
+import org.gradle.api.file.FileCollectionMatchers
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.scala.ScalaCompile
 import org.gradle.api.tasks.scala.ScalaDoc
-import org.gradle.util.Matchers
 import org.gradle.util.TestUtil
 import org.junit.Test
 
-import static org.gradle.util.Matchers.dependsOn
+import static org.gradle.api.tasks.TaskDependencyMatchers.dependsOn
 import static org.gradle.util.WrapUtil.toLinkedSet
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.assertThat
@@ -87,7 +87,7 @@ class ScalaPluginTest {
         assertThat(task, dependsOn(JavaPlugin.CLASSES_TASK_NAME))
         assertThat(task.destinationDir, equalTo(project.file("$project.docsDir/scaladoc")))
         assertThat(task.source as List, equalTo(project.sourceSets.main.scala as List))
-        assertThat(task.classpath, Matchers.sameCollection(project.files(project.sourceSets.main.output, project.sourceSets.main.compileClasspath)))
+        assertThat(task.classpath, FileCollectionMatchers.sameCollection(project.files(project.sourceSets.main.output, project.sourceSets.main.compileClasspath)))
         assertThat(task.title, equalTo(project.extensions.getByType(ReportingExtension).apiDocTitle))
     }
 
@@ -96,6 +96,6 @@ class ScalaPluginTest {
 
         def task = project.task('otherScaladoc', type: ScalaDoc)
         assertThat(task, dependsOn(JavaPlugin.CLASSES_TASK_NAME))
-        assertThat(task.classpath, Matchers.sameCollection(project.files(project.sourceSets.main.output, project.sourceSets.main.compileClasspath)))
+        assertThat(task.classpath, FileCollectionMatchers.sameCollection(project.files(project.sourceSets.main.output, project.sourceSets.main.compileClasspath)))
     }
 }

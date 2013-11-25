@@ -15,6 +15,8 @@
  */
 
 package org.gradle.nativebinaries.language.c.plugins
+
+import org.gradle.api.tasks.TaskDependencyMatchers
 import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.language.c.CSourceSet
 import org.gradle.nativebinaries.ExecutableBinary
@@ -22,7 +24,6 @@ import org.gradle.nativebinaries.NativeBinary
 import org.gradle.nativebinaries.SharedLibraryBinary
 import org.gradle.nativebinaries.StaticLibraryBinary
 import org.gradle.nativebinaries.language.c.tasks.CCompile
-import org.gradle.util.Matchers
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -135,7 +136,7 @@ class CNativeBinariesPluginTest extends Specification {
 
         and:
         def linkTask = binary.tasks.link
-        linkTask Matchers.dependsOn("compileTestExecutableTestAnotherOne", "compileTestExecutableTestC")
+        linkTask TaskDependencyMatchers.dependsOn("compileTestExecutableTestAnotherOne", "compileTestExecutableTestC")
     }
 
     def "creates compile task for each library source set"() {
@@ -173,7 +174,7 @@ class CNativeBinariesPluginTest extends Specification {
             compile.compilerArgs == ["ARG1", "ARG2", "SHARED1", "SHARED2"]
         }
         def sharedLinkTask = sharedLib.tasks.link
-        sharedLinkTask Matchers.dependsOn("compileTestSharedLibraryTestAnotherOne", "compileTestSharedLibraryTestC")
+        sharedLinkTask TaskDependencyMatchers.dependsOn("compileTestSharedLibraryTestAnotherOne", "compileTestSharedLibraryTestC")
 
         and:
         StaticLibraryBinary staticLib = project.binaries.testStaticLibrary
@@ -184,7 +185,7 @@ class CNativeBinariesPluginTest extends Specification {
             compile.compilerArgs == ["ARG1", "ARG2", "STATIC1", "STATIC2"]
         }
         def staticLibTask = staticLib.tasks.createStaticLib
-        staticLibTask Matchers.dependsOn("compileTestStaticLibraryTestAnotherOne", "compileTestStaticLibraryTestC")
+        staticLibTask TaskDependencyMatchers.dependsOn("compileTestStaticLibraryTestAnotherOne", "compileTestStaticLibraryTestC")
     }
 
     def dsl(Closure closure) {

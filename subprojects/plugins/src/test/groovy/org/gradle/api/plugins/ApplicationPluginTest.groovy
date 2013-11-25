@@ -16,13 +16,13 @@
 package org.gradle.api.plugins
 
 import org.gradle.api.Project
+import org.gradle.api.tasks.TaskDependencyMatchers
 import org.gradle.api.tasks.application.CreateStartScripts
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.api.tasks.bundling.Tar
 import org.gradle.util.TestUtil
-import org.gradle.util.Matchers
 import spock.lang.Specification
 import org.gradle.api.tasks.Sync
 import org.gradle.api.file.CopySpec
@@ -52,7 +52,7 @@ class ApplicationPluginTest extends Specification {
         def task = project.tasks[ApplicationPlugin.TASK_RUN_NAME]
         task instanceof JavaExec
         task.classpath == project.sourceSets[SourceSet.MAIN_SOURCE_SET_NAME].runtimeClasspath
-        task Matchers.dependsOn('classes')
+        task TaskDependencyMatchers.dependsOn('classes')
     }
 
     public void "adds startScripts task to project"() {

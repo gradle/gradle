@@ -25,7 +25,7 @@ import org.gradle.api.tasks.diagnostics.TaskReportTask
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
-import static org.gradle.util.Matchers.dependsOn
+import static org.gradle.api.tasks.TaskDependencyMatchers.dependsOn
 import static org.hamcrest.Matchers.instanceOf
 
 public class ProjectReportsPluginTest extends Specification {

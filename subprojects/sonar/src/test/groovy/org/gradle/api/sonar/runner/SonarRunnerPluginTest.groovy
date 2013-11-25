@@ -17,6 +17,7 @@ package org.gradle.api.sonar.runner
 
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.tasks.TaskDependencyMatchers
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.SetSystemProperties
@@ -26,7 +27,6 @@ import org.junit.Rule
 import spock.lang.Specification
 
 import static spock.util.matcher.HamcrestSupport.*
-import static org.gradle.util.Matchers.*
 import static org.hamcrest.Matchers.*
 
 class SonarRunnerPluginTest extends Specification {
@@ -70,7 +70,7 @@ class SonarRunnerPluginTest extends Specification {
         childProject.plugins.apply(JavaPlugin)
 
         then:
-        expect(parentProject.tasks.sonarRunner, dependsOnPaths(containsInAnyOrder(":parent:test", ":parent:child:test")))
+        expect(parentProject.tasks.sonarRunner, TaskDependencyMatchers.dependsOnPaths(containsInAnyOrder(":parent:test", ":parent:child:test")))
     }
 
     def "doesn't make sonarRunner task depend on test task of skipped projects"() {
@@ -81,7 +81,7 @@ class SonarRunnerPluginTest extends Specification {
         childProject.sonarRunner.skipProject = true
 
         then:
-        expect(parentProject.tasks.sonarRunner, dependsOnPaths(contains(":parent:test")))
+        expect(parentProject.tasks.sonarRunner, TaskDependencyMatchers.dependsOnPaths(contains(":parent:test")))
     }
 
     def "adds default properties for target project and its subprojects"() {

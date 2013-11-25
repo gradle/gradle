@@ -35,7 +35,6 @@ import org.gradle.api.specs.Spec
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GUtil
-import org.gradle.util.Matchers
 import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
@@ -120,13 +119,13 @@ public abstract class AbstractSpockTaskTest extends Specification {
         task.dependsOn(Project.PATH_SEPARATOR + "path1");
 
         then:
-        Matchers.dependsOn("path1").matches(task)
+        TaskDependencyMatchers.dependsOn("path1").matches(task)
 
         when:
         task.dependsOn("path2", dependsOnTask);
 
         then:
-        Matchers.dependsOn("path1", "path2", "somename").matches(task)
+        TaskDependencyMatchers.dependsOn("path1", "path2", "somename").matches(task)
     }
 
     def testToString() {

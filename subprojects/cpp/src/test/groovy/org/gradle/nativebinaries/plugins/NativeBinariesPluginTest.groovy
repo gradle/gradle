@@ -15,12 +15,13 @@
  */
 
 package org.gradle.nativebinaries.plugins
+
+import org.gradle.api.tasks.TaskDependencyMatchers
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.nativebinaries.tasks.CreateStaticLibrary
 import org.gradle.nativebinaries.tasks.InstallExecutable
 import org.gradle.nativebinaries.tasks.LinkExecutable
 import org.gradle.nativebinaries.tasks.LinkSharedLibrary
-import org.gradle.util.Matchers
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -49,7 +50,7 @@ class NativeBinariesPluginTest extends Specification {
 
         and:
         def lifecycleTask = project.tasks.testExecutable
-        lifecycleTask Matchers.dependsOn("linkTestExecutable")
+        lifecycleTask TaskDependencyMatchers.dependsOn("linkTestExecutable")
 
         and:
         project.tasks.installTestExecutable instanceof InstallExecutable
@@ -73,7 +74,7 @@ class NativeBinariesPluginTest extends Specification {
 
         and:
         def sharedLibTask = project.tasks.testSharedLibrary
-        sharedLibTask Matchers.dependsOn("linkTestSharedLibrary")
+        sharedLibTask TaskDependencyMatchers.dependsOn("linkTestSharedLibrary")
 
         and:
         def staticLibraryBinary = project.binaries.testStaticLibrary
@@ -88,7 +89,7 @@ class NativeBinariesPluginTest extends Specification {
 
         and:
         def staticLibTask = project.tasks.testStaticLibrary
-        staticLibTask Matchers.dependsOn("createTestStaticLibrary")
+        staticLibTask TaskDependencyMatchers.dependsOn("createTestStaticLibrary")
     }
 
     def "attaches existing functional source set with same name to component"() {

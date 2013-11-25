@@ -30,7 +30,7 @@ import org.gradle.util.TestUtil
 import org.junit.Before
 import org.junit.Test
 
-import static org.gradle.util.Matchers.dependsOn
+import static org.gradle.api.tasks.TaskDependencyMatchers.dependsOn
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
