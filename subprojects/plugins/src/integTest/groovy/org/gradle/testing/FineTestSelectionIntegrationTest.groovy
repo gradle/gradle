@@ -120,20 +120,31 @@ public class FineTestSelectionIntegrationTest extends AbstractIntegrationSpec {
             test {
               use$framework.name()
               selection {
-                includeTest('.*', 'pass')
+                includeTest('Foo.*', 'pass.*')
               }
             }
         """
-        file("src/test/java/FooTest.java") << """import $framework.imports;
-            public class FooTest {
-                @Test public void pass() {}
-                @Test public void fail() { throw new RuntimeException("Boo!"); }
+        file("src/test/java/Foo1Test.java") << """import $framework.imports;
+            public class Foo1Test {
+                @Test public void pass1() {}
+                @Test public void boo() {}
+            }
+        """
+        file("src/test/java/Foo2Test.java") << """import $framework.imports;
+            public class Foo2Test {
+                @Test public void pass2() {}
+                @Test public void boo() {}
+            }
+        """
+        file("src/test/java/Foo3Test.java") << """import $framework.imports;
+            public class Foo3Test {
+                @Test public void boo() {}
             }
         """
         file("src/test/java/OtherTest.java") << """import $framework.imports;
             public class OtherTest {
-                @Test public void pass() {}
-                @Test public void fail() { throw new RuntimeException("Boo!"); }
+                @Test public void pass3() {}
+                @Test public void boo() {}
             }
         """
 
@@ -142,9 +153,9 @@ public class FineTestSelectionIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         def result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted("FooTest", "OtherTest")
-        result.testClass("FooTest").assertTestCount(1, 0, 0)
-        result.testClass("OtherTest").assertTestCount(1, 0, 0)
+        result.assertTestClassesExecuted("Foo1Test", "Foo2Test")
+        result.testClass("Foo1Test").assertTestsExecuted("pass1")
+        result.testClass("Foo2Test").assertTestsExecuted("pass2")
 
         where:
         framework << [jUnit, testNG]
@@ -168,7 +179,7 @@ public class FineTestSelectionIntegrationTest extends AbstractIntegrationSpec {
         fails("test")
 
         then:
-        failure.assertHasCause("No tests found for given includes: [FooTest.missingMethod]")
+        failure.assertHasCause("No tests found for given includes: [class: 'FooTest', method: 'missingMethod']")
 
         where:
         framework << [jUnit, testNG]

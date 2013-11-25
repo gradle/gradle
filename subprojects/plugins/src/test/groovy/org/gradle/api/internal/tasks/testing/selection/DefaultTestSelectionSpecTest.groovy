@@ -33,4 +33,15 @@ class DefaultTestSelectionSpecTest extends Specification {
         spec.hashCode() != differentClass.hashCode()
         spec != differentMethod
     }
+
+    def "knows if test matches"() {
+        def spec = new DefaultTestSelectionSpec("foo.*", ".*bar")
+
+        expect:
+        spec.matchesTest("fooxxx", "xxxbar")
+        spec.matchesTest("foo", "bar")
+
+        !spec.matchesTest("com.fooxxx", "xxxbar")
+        !spec.matchesTest("fooxxx", "bar.foo")
+    }
 }

@@ -223,12 +223,12 @@ class JUnitTestClassProcessorTest extends Specification {
     }
 
     def "executes specific method"() {
-        classProcessor = withSpec(new JUnitSpec(new JUnitOptions(), new DefaultTestSelection().includeTest(ATestClassWithFewMethods.name, "pass")))
+        classProcessor = withSpec(new JUnitSpec(new JUnitOptions(), new DefaultTestSelection().includeTest(ATestClassWithSeveralMethods.name, "pass")))
 
-        when: process(ATestClassWithFewMethods)
+        when: process(ATestClassWithSeveralMethods)
 
         then: 1 * processor.started({ it.id == 1 }, { it.parentId == null })
-        then: 1 * processor.started({ it.id == 2 && it.name == "pass" && it.className == ATestClassWithFewMethods.name }, { it.parentId == 1 })
+        then: 1 * processor.started({ it.id == 2 && it.name == "pass" && it.className == ATestClassWithSeveralMethods.name }, { it.parentId == 1 })
         then: 1 * processor.completed(2, { it.resultType == null })
         then: 1 * processor.completed(1, { it.resultType == null })
         0 * processor._
@@ -236,22 +236,38 @@ class JUnitTestClassProcessorTest extends Specification {
 
     def "executes multiple specific methods"() {
         classProcessor = withSpec(new JUnitSpec(new JUnitOptions(), new DefaultTestSelection()
-                .includeTest(ATestClassWithFewMethods.name, "pass")
-                .includeTest(ATestClassWithFewMethods.name, "pass2")))
+                .includeTest(ATestClassWithSeveralMethods.name, "pass")
+                .includeTest(ATestClassWithSeveralMethods.name, "pass2")))
 
-        when: process(ATestClassWithFewMethods)
+        when: process(ATestClassWithSeveralMethods)
 
         then:
-        1 * processor.started({ it.id == 1 }, { it.parentId == null })
-        1 * processor.started({ it.id == 2 && it.name == "pass" && it.className == ATestClassWithFewMethods.name }, { it.parentId == 1 })
-        1 * processor.started({ it.id == 3 && it.name == "pass2" && it.className == ATestClassWithFewMethods.name }, { it.parentId == 1 })
+        1 * processor.started({ it.name == ATestClassWithSeveralMethods.name }, _)
+        1 * processor.started({ it.name == "pass" && it.className == ATestClassWithSeveralMethods.name }, _)
+        1 * processor.started({ it.name == "pass2" && it.className == ATestClassWithSeveralMethods.name }, _)
+        0 * processor.started(_, _)
+    }
+
+    def "executes methods from multiple classes by pattern"() {
+        classProcessor = withSpec(new JUnitSpec(new JUnitOptions(), new DefaultTestSelection()
+                .includeTest(".*Methods", ".*Slowly.*")))
+
+        when: process(ATestClassWithSeveralMethods, ATestClassWithSlowMethods, ATestClass)
+
+        then:
+        1 * processor.started({ it.name == ATestClassWithSeveralMethods.name }, _)
+        1 * processor.started({ it.name == "passSlowly" && it.className == ATestClassWithSeveralMethods.name }, _)
+        1 * processor.started({ it.name == "passSlowly2" && it.className == ATestClassWithSeveralMethods.name }, _)
+        1 * processor.started({ it.name == ATestClassWithSlowMethods.name }, _)
+        1 * processor.started({ it.name == "passSlowly" && it.className == ATestClassWithSlowMethods.name }, _)
+        1 * processor.started({ it.name == ATestClass.name }, _)
         0 * processor.started(_, _)
     }
 
     def "executes no methods when method name does not match"() {
-        classProcessor = withSpec(new JUnitSpec(new JUnitOptions(), new DefaultTestSelection().includeTest(ATestClassWithFewMethods.name, "does not exist")))
+        classProcessor = withSpec(new JUnitSpec(new JUnitOptions(), new DefaultTestSelection().includeTest(ATestClassWithSeveralMethods.name, "does not exist")))
 
-        when: process(ATestClassWithFewMethods)
+        when: process(ATestClassWithSeveralMethods)
 
         then: 1 * processor.started({ it.id == 1 }, { it.parentId == null })
         then: 1 * processor.completed(1, { it.resultType == null })

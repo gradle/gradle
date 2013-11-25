@@ -19,30 +19,34 @@ import java.io.Serializable;
 
 public class DefaultTestSelectionSpec implements Serializable {
 
-    private final String className;
-    private final String methodName;
+    private final String classPattern;
+    private final String methodPattern;
 
-    public DefaultTestSelectionSpec(String className, String methodName) {
-        assert className != null : "class name for included test cannot be null";
-        assert methodName != null : "method name for included test cannot be null";
-        this.className = className;
-        this.methodName = methodName;
+    public DefaultTestSelectionSpec(String classPattern, String methodPattern) {
+        assert classPattern != null : "class pattern for included test cannot be null";
+        assert methodPattern != null : "method pattern for included test cannot be null";
+        this.classPattern = classPattern;
+        this.methodPattern = methodPattern;
     }
 
-    public String getMethodName() {
-        return methodName;
+    public String getMethodPattern() {
+        return methodPattern;
     }
 
-    public String getClassName() {
-        return className;
+    public String getClassPattern() {
+        return classPattern;
+    }
+
+    public boolean matchesTest(String className, String methodName) {
+        return className.matches(classPattern) && methodName.matches(methodPattern);
     }
 
     public boolean matchesClass(String className) {
-        return this.className.equals(className);
+        return this.classPattern.equals(className);
     }
 
     public String toString() {
-        return className + "." + methodName;
+        return "class: '" + classPattern + "', method: '" + methodPattern + "'";
     }
 
     @Override
@@ -56,10 +60,10 @@ public class DefaultTestSelectionSpec implements Serializable {
 
         DefaultTestSelectionSpec that = (DefaultTestSelectionSpec) o;
 
-        if (!className.equals(that.className)) {
+        if (!classPattern.equals(that.classPattern)) {
             return false;
         }
-        if (!methodName.equals(that.methodName)) {
+        if (!methodPattern.equals(that.methodPattern)) {
             return false;
         }
 
@@ -68,8 +72,8 @@ public class DefaultTestSelectionSpec implements Serializable {
 
     @Override
     public int hashCode() {
-        int result = className.hashCode();
-        result = 31 * result + methodName.hashCode();
+        int result = classPattern.hashCode();
+        result = 31 * result + methodPattern.hashCode();
         return result;
     }
 }

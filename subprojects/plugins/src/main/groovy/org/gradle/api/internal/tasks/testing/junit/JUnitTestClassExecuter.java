@@ -100,8 +100,7 @@ public class JUnitTestClassExecuter {
         @Override
         public boolean shouldRun(Description description) {
             for (DefaultTestSelectionSpec t : includedTests) {
-                if (description.getMethodName().equals(t.getMethodName())
-                    && description.getClassName().equals(t.getClassName())) {
+                if (t.matchesTest(description.getClassName(), description.getMethodName())) {
                     return true;
                 }
             }
@@ -109,7 +108,7 @@ public class JUnitTestClassExecuter {
         }
 
         public String describe() {
-            return "Includes matching method names";
+            return "Includes matching test methods";
         }
     }
 }

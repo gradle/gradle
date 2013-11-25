@@ -278,8 +278,14 @@ public class ATestClassWhichCannotBeLoaded {
     }
 }
 
-public class ATestClassWithFewMethods {
+public class ATestClassWithSeveralMethods {
     @Test public void pass() {}
     @Test public void pass2() {}
+    @Test public void passSlowly() {}
+    @Test public void passSlowly2() {}
     @Test public void fail() { throw new RuntimeException("Boo!") }
+}
+public class ATestClassWithSlowMethods {
+    @Test public void pass() {}
+    @Test public void passSlowly() {}
 }
