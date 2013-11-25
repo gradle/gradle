@@ -20,14 +20,16 @@ import org.gradle.plugins.ide.internal.generator.AbstractPersistableConfiguratio
 
 class VisualStudioSolutionFile extends AbstractPersistableConfigurationObject {
     private baseText
-    private vsProjects = []
+    private vsProjects = [] as Set
+    private vsConfigurations = []
 
     protected String getDefaultResourceName() {
         'default.sln'
     }
 
-    void addProject(VisualStudioProject vsProject) {
-        vsProjects << vsProject
+    void addProjectConfiguration(VisualStudioProjectConfiguration vsConfiguration) {
+        vsConfigurations << vsConfiguration
+        vsProjects << vsConfiguration.project
     }
 
     @Override
@@ -49,9 +51,20 @@ Global
     GlobalSection(SolutionConfigurationPlatforms) = preSolution
         debug|Win32=debug|Win32
     EndGlobalSection
+    GlobalSection(ProjectConfigurationPlatforms) = postSolution"""
+
+        vsConfigurations.each { VisualStudioProjectConfiguration vsConfiguration ->
+            outputStream << """
+                ${vsConfiguration.project.getUuid()}.${vsConfiguration.name}.ActiveCfg = debug|Win32
+                ${vsConfiguration.project.getUuid()}.${vsConfiguration.name}.Build.0 = debug|Win32"""
+        }
+
+        outputStream << """
+    EndGlobalSection
+    GlobalSection(SolutionProperties) = preSolution
+        HideSolutionNode = FALSE
+    EndGlobalSection
 EndGlobal
 """
-
-
     }
 }

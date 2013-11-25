@@ -20,8 +20,7 @@ import org.gradle.nativebinaries.internal.NativeBinaryInternal
 
 class VisualStudioSolution extends AbstractBuildableModelElement {
     private final NativeBinaryInternal rootBinary
-    final uuid = '{' + UUID.randomUUID().toString() + '}'
-    List<VisualStudioProject> projects = []
+    List<VisualStudioProjectConfiguration> projectConfigurations = []
     String name
 
     VisualStudioSolution(String name, NativeBinaryInternal rootBinary) {
@@ -30,9 +29,8 @@ class VisualStudioSolution extends AbstractBuildableModelElement {
     }
 
     void addProjectConfiguration(VisualStudioProjectConfiguration projectConfiguration) {
-        def project = projectConfiguration.project
-        this.projects << project
-        builtBy project
+        this.projectConfigurations << projectConfiguration
+        builtBy projectConfiguration.project
     }
 
     String getSolutionFile() {

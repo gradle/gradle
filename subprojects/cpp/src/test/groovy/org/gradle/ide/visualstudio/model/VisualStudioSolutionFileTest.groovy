@@ -46,9 +46,12 @@ EndGlobal
     def "includes project references"() {
         when:
         def project1 = new VisualStudioProject("project1", null)
-        solutionFile.addProject(project1)
+        def configuration1 = new VisualStudioProjectConfiguration(project1, null, "type")
+        solutionFile.addProjectConfiguration(configuration1)
+
         def project2 = new VisualStudioProject("project2", null)
-        solutionFile.addProject(project2)
+        def configuration2 = new VisualStudioProjectConfiguration(project2, null, "type")
+        solutionFile.addProjectConfiguration(configuration2)
 
         then:
         generatedSolution.assertHasProjects(

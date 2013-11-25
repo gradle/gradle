@@ -84,8 +84,8 @@ class VisualStudioPlugin implements Plugin<Project> {
             outputFile = configFile(project, solution.solutionFile)
             factory { new VisualStudioSolutionFile() }
             onConfigure { VisualStudioSolutionFile solutionFile ->
-                solution.projects.each {
-                    solutionFile.addProject(it)
+                solution.projectConfigurations.each {
+                    solutionFile.addProjectConfiguration(it)
                 }
             }
         }

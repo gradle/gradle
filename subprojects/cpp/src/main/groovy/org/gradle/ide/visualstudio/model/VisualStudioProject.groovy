@@ -34,7 +34,7 @@ class VisualStudioProject extends AbstractBuildableModelElement {
     VisualStudioProject(String name, NativeComponent component) {
         this.name = name
         this.component = component
-        this.uuid = '{' + UUID.randomUUID().toString() + '}'
+        this.uuid = '{' + UUID.randomUUID().toString().toUpperCase() + '}'
     }
 
     String getProjectFile() {
