@@ -30,8 +30,6 @@ public interface OptionDescriptor extends Comparable<OptionDescriptor> {
 
     String getDescription();
 
-    public OptionElement getOptionElement();
-
     /**
      * @throws TypeConversionException On failure to convert the given values to the required types.
      */

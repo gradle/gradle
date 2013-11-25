@@ -23,7 +23,7 @@ import java.util.List;
 public interface OptionElement {
     Class<?> getDeclaredClass();
 
-    List getAvailableValues();
+    List<String> getAvailableValues();
 
     Class<?> getOptionType();
 

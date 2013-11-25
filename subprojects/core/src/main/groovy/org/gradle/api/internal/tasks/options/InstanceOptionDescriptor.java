@@ -53,7 +53,7 @@ public class InstanceOptionDescriptor implements OptionDescriptor {
         return values;
     }
 
-    public Class getArgumentType() {
+    public Class<?> getArgumentType() {
         return optionElement.getOptionType();
     }
 
