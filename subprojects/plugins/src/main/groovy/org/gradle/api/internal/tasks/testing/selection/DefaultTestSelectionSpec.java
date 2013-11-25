@@ -16,6 +16,7 @@
 package org.gradle.api.internal.tasks.testing.selection;
 
 import java.io.Serializable;
+import java.lang.reflect.Method;
 
 public class DefaultTestSelectionSpec implements Serializable {
 
@@ -38,11 +39,11 @@ public class DefaultTestSelectionSpec implements Serializable {
     }
 
     public boolean matchesTest(String className, String methodName) {
-        return className.matches(classPattern) && methodName.matches(methodPattern);
+        return matchesClass(className) && methodName.matches(methodPattern);
     }
 
     public boolean matchesClass(String className) {
-        return this.classPattern.equals(className);
+        return className.matches(classPattern);
     }
 
     public String toString() {
@@ -75,5 +76,19 @@ public class DefaultTestSelectionSpec implements Serializable {
         int result = classPattern.hashCode();
         result = 31 * result + methodPattern.hashCode();
         return result;
+    }
+
+    public boolean matchesAnyMethodIn(Class cls) {
+        assert cls != null;
+        while (Object.class != cls) {
+            Method[] allMethods = cls.getDeclaredMethods();
+            for (Method m : allMethods) {
+                if (m.getName().matches(methodPattern)) {
+                    return true;
+                }
+            }
+            cls = cls.getSuperclass();
+        }
+        return false;
     }
 }

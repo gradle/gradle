@@ -123,18 +123,19 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
         XmlSuite suite = new XmlSuite();
         XmlTest xmlTest = new XmlTest(suite);
         xmlTest.setName("Gradle test");
+
         for (Class klass : testClasses) {
             XmlClass xmlClass = null;
             for (DefaultTestSelectionSpec includedTest : includedTests) {
-                if (includedTest.matchesClass(klass.getName())) {
+                //I need to manually check if given class contains any matching method
+                //otherwise TestNG runs *all* methods if none of the methods match
+                if (includedTest.matchesClass(klass.getName()) && includedTest.matchesAnyMethodIn(klass)) {
                     if (xmlClass == null) {
                         xmlClass = new XmlClass(klass, true);
                         xmlTest.getXmlClasses().add(xmlClass);
                     }
                     XmlInclude method = new XmlInclude(includedTest.getMethodPattern());
                     xmlClass.getIncludedMethods().add(method);
-                    //need to configure exclude for all other methods (pattern)
-                    xmlClass.getExcludedMethods().add(".*");
                 }
             }
         }

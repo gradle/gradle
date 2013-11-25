@@ -100,6 +100,20 @@ class TestNGTestClassProcessorTest extends Specification {
         0 * processor.started(_, _)
     }
 
+    void "executes methods from multiple classes by pattern"() {
+        options.getIncludedTests() >> new DefaultTestSelection()
+                .includeTest(".*Methods", "ok.*")
+                .includedTests
+
+        when: process(ATestNGClassWithManyMethods)
+
+        then:
+        1 * processor.started({ it.id == 1 && it.name == 'Gradle test' }, _)
+        1 * processor.started({ it.name == 'ok' && it.className == ATestNGClassWithManyMethods.name }, { it.parentId == 1 })
+        1 * processor.started({ it.name == 'ok2' && it.className == ATestNGClassWithManyMethods.name }, { it.parentId == 1 })
+        0 * processor.started(_, _)
+    }
+
     void "executes not tests if none of the included test methods match"() {
         options.getIncludedTests() >> new DefaultTestSelection().includeTest(ATestNGClassWithManyMethods.name, "does not exist").includedTests
 
@@ -226,17 +240,10 @@ public class ATestNGClassWithExpectedException {
 }
 
 public class ATestNGClassWithManyMethods {
-    @org.testng.annotations.Test
-    public void ok() {
-    }
-
-    @org.testng.annotations.Test
-    public void another() {
-    }
-
-    @org.testng.annotations.Test
-    public void yetAnother() {
-    }
+    @org.testng.annotations.Test public void ok() {}
+    @org.testng.annotations.Test public void ok2() {}
+    @org.testng.annotations.Test public void another() {}
+    @org.testng.annotations.Test public void yetAnother() {}
 }
 
 public class ATestNGClassWithGroups {

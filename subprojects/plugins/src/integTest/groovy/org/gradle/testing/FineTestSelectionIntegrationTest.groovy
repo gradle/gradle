@@ -114,7 +114,6 @@ public class FineTestSelectionIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    @Ignore
     def "#framework executes multiple methods from different classes"() {
         buildFile << """
             test {
