@@ -21,9 +21,7 @@ import org.apache.ivy.plugins.matcher.NoMatcher;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.apache.ivy.plugins.resolver.AbstractResolver;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.gradle.api.GradleException;
-
-import java.lang.reflect.Method;
+import org.gradle.internal.reflect.JavaReflectionUtil;
 
 public class ChangingModuleDetector {
     private final DependencyResolver resolver;
@@ -42,8 +40,8 @@ public class ChangingModuleDetector {
         }
 
         AbstractResolver abstractResolver = (AbstractResolver) resolver;
-        String changingMatcherName = readAbstractResolverProperty(resolver, "getChangingMatcherName");
-        String changingPattern = readAbstractResolverProperty(resolver, "getChangingPattern");
+        String changingMatcherName = JavaReflectionUtil.method(AbstractResolver.class, String.class, "getChangingMatcherName").invoke(abstractResolver);
+        String changingPattern = JavaReflectionUtil.method(AbstractResolver.class, String.class, "getChangingPattern").invoke(abstractResolver);
         if (changingMatcherName == null || changingPattern == null) {
             return NoMatcher.INSTANCE;
         }
@@ -53,15 +51,5 @@ public class ChangingModuleDetector {
                     + "'. It is set as changing matcher in " + this);
         }
         return matcher.getMatcher(changingPattern);
-    }
-
-    private String readAbstractResolverProperty(DependencyResolver resolver, String getter) {
-        try {
-            Method method = AbstractResolver.class.getDeclaredMethod(getter);
-            method.setAccessible(true);
-            return (String) method.invoke(resolver);
-        } catch (Exception e) {
-            throw new GradleException("Could not get cache options from AbstractResolver", e);
-        }
     }
 }

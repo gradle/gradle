@@ -22,6 +22,8 @@ import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.processors.CaptureTestOutputTestResultProcessor;
 import org.gradle.internal.id.IdGenerator;
+import org.gradle.internal.reflect.JavaReflectionUtil;
+import org.gradle.internal.reflect.NoSuchMethodException;
 import org.gradle.logging.StandardOutputRedirector;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GFileUtils;
@@ -33,7 +35,6 @@ import org.testng.xml.XmlSuite;
 import org.testng.xml.XmlTest;
 
 import java.io.File;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -80,12 +81,9 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
         testNg.setParallel(options.getParallel());
         testNg.setThreadCount(options.getThreadCount());
         try {
-            final Method setAnnotations = TestNG.class.getMethod("setAnnotations");
-            setAnnotations.invoke(testNg, options.getAnnotations());
+            JavaReflectionUtil.method(TestNG.class, Object.class, "setAnnotations").invoke(testNg, options.getAnnotations());
         } catch (NoSuchMethodException e) {
             /* do nothing; method has been removed in TestNG 6.3 */
-        } catch (Exception e) {
-            throw new GradleException(String.format("Could not configure TestNG annotations with value '%s'.", options.getAnnotations()), e);
         }
         if (options.getJavadocAnnotations()) {
             testNg.setSourcePath(CollectionUtils.join(File.pathSeparator, options.getTestResources()));

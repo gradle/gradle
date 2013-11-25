@@ -18,9 +18,10 @@ package org.gradle.internal.classloader;
 
 import org.gradle.api.GradleException;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.reflect.JavaMethod;
+import org.gradle.internal.reflect.JavaReflectionUtil;
 
 import java.io.File;
-import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -34,8 +35,7 @@ public class ClasspathUtil {
             for (URL url : classLoader.getURLs()) {
                 original.add(url.toURI());
             }
-            Method method = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
-            method.setAccessible(true);
+            JavaMethod<URLClassLoader, Object> method = JavaReflectionUtil.method(URLClassLoader.class, Object.class, "addURL", URL.class);
             for (URL classpathElement : classpathElements) {
                 if (original.add(classpathElement.toURI())) {
                     method.invoke(classLoader, classpathElement);

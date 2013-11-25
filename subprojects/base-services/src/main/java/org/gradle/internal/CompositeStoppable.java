@@ -16,12 +16,12 @@
 
 package org.gradle.internal;
 
+import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -55,15 +55,8 @@ public class CompositeStoppable implements Stoppable {
         return this;
     }
 
-    private static Object invoke(Method method, Object target, Object... args) {
-        try {
-            method.setAccessible(true);
-            return method.invoke(target, args);
-        } catch (InvocationTargetException e) {
-            throw UncheckedException.throwAsUncheckedException(e.getCause());
-        } catch (Exception e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
+    private static void invoke(Method method, Object target, Object... args) {
+        JavaReflectionUtil.method(target, Object.class, method).invoke(target, args);
     }
 
     private static Stoppable toStoppable(final Object object) {

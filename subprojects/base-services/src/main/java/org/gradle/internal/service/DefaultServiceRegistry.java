@@ -21,7 +21,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.internal.CompositeStoppable;
 import org.gradle.internal.Factory;
 import org.gradle.internal.Stoppable;
-import org.gradle.internal.UncheckedException;
+import org.gradle.internal.reflect.JavaReflectionUtil;
 
 import java.lang.reflect.*;
 import java.util.*;
@@ -312,14 +312,7 @@ public class DefaultServiceRegistry implements ServiceRegistry {
     }
 
     private static Object invoke(Method method, Object target, Object... args) {
-        try {
-            method.setAccessible(true);
-            return method.invoke(target, args);
-        } catch (InvocationTargetException e) {
-            throw UncheckedException.throwAsUncheckedException(e.getCause());
-        } catch (Exception e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
+        return JavaReflectionUtil.method(target, Object.class, method).invoke(target, args);
     }
 
     interface ServiceProvider {
