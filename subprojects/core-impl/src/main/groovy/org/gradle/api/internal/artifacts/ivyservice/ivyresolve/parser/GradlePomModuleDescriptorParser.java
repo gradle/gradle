@@ -55,9 +55,8 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
     }
 
     protected MutableModuleVersionMetaData doParseDescriptor(DescriptorParseContext parserSettings, LocallyAvailableExternalResource resource, boolean validate) throws IOException, ParseException, SAXException {
-        GradlePomModuleDescriptorBuilder mdBuilder = new GradlePomModuleDescriptorBuilder(resource, parserSettings);
-
         PomReader pomReader = new PomReader(resource);
+        GradlePomModuleDescriptorBuilder mdBuilder = new GradlePomModuleDescriptorBuilder(resource, parserSettings, pomReader);
 
         doParsePom(parserSettings, mdBuilder, pomReader);
 
@@ -132,14 +131,8 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
         } else {
             overrideDependencyMgtsWithImported(parserSettings, pomReader);
 
-            for (Map.Entry<MavenDependencyKey, PomDependencyData> dependency : pomReader.getDependencies().entrySet()) {
-                PomDependencyMgt dependencyMgt = pomReader.findDependencyDefaults(dependency.getKey());
-
-                if(dependencyMgt != null) {
-                    mdBuilder.addDependencyMgt(dependencyMgt);
-                }
-
-                mdBuilder.addDependency(dependency.getValue());
+            for (PomDependencyData dependency : pomReader.getDependencies().values()) {
+                mdBuilder.addDependency(dependency);
             }
         }
     }
@@ -216,8 +209,8 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
         Artifact pomArtifact = DefaultArtifact.newPomArtifact(parentModRevID, new Date());
         ModuleVersionArtifactMetaData artifactIdentifier = new DefaultModuleVersionArtifactMetaData(pomArtifact);
         LocallyAvailableExternalResource localResource = parseContext.getArtifact(artifactIdentifier);
-        GradlePomModuleDescriptorBuilder mdBuilder = new GradlePomModuleDescriptorBuilder(localResource, parseContext);
         PomReader pomReader = new PomReader(localResource);
+        GradlePomModuleDescriptorBuilder mdBuilder = new GradlePomModuleDescriptorBuilder(localResource, parseContext, pomReader);
         doParsePom(parseContext, mdBuilder, pomReader);
         return pomReader;
     }

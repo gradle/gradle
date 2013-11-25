@@ -24,7 +24,7 @@ import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.apache.ivy.plugins.parser.xml.XmlModuleDescriptorParser;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.MavenDependencyKey;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomReader.PomDependencyData;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.PomDependencyMgt;
 import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
@@ -84,7 +84,6 @@ public class GradlePomModuleDescriptorBuilder {
     static final Map<String, ConfMapper> MAVEN2_CONF_MAPPING = new HashMap<String, ConfMapper>();
 
     private static final Collection<String> JAR_PACKAGINGS = Arrays.asList("ejb", "bundle", "maven-plugin", "eclipse-plugin");
-    private final Map<MavenDependencyKey, PomDependencyMgt> dependencyMgt = new HashMap<MavenDependencyKey, PomDependencyMgt>();
 
     static interface ConfMapper {
         public void addMappingConfs(DefaultDependencyDescriptor dd, boolean isOptional);
@@ -156,8 +155,9 @@ public class GradlePomModuleDescriptorBuilder {
     private ModuleRevisionId mrid;
 
     private DescriptorParseContext parserSettings;
+    private final PomReader pomReader;
 
-    public GradlePomModuleDescriptorBuilder(ExternalResource res, DescriptorParseContext ivySettings) {
+    public GradlePomModuleDescriptorBuilder(ExternalResource res, DescriptorParseContext ivySettings, PomReader pomReader) {
         ivyModuleDescriptor = new DefaultModuleDescriptor(XmlModuleDescriptorParser.getInstance(), null);
         ivyModuleDescriptor.setResolvedPublicationDate(new Date(res.getLastModified()));
         for (Configuration maven2Configuration : MAVEN2_CONFIGURATIONS) {
@@ -166,6 +166,7 @@ public class GradlePomModuleDescriptorBuilder {
         ivyModuleDescriptor.setMappingOverride(true);
         ivyModuleDescriptor.addExtraAttributeNamespace("m", Ivy.getIvyHomeURL() + "maven");
         parserSettings = ivySettings;
+        this.pomReader = pomReader;
     }
 
     public DefaultModuleDescriptor getModuleDescriptor() {
@@ -226,7 +227,7 @@ public class GradlePomModuleDescriptorBuilder {
         return "jar".equals(packaging) || JAR_PACKAGINGS.contains(packaging);
     }
 
-    public void addDependency(PomReader.PomDependencyData dep) {
+    public void addDependency(PomDependencyData dep) {
         String scope = dep.getScope();
         if ((scope != null) && (scope.length() > 0) && !MAVEN2_CONF_MAPPING.containsKey(scope)) {
             // unknown scope, defaulting to 'compile'
@@ -309,7 +310,7 @@ public class GradlePomModuleDescriptorBuilder {
      * @param dependency Dependency
      * @return Resolved dependency version
      */
-    private String determineVersion(PomReader.PomDependencyData dependency) {
+    private String determineVersion(PomDependencyData dependency) {
         String version = dependency.getVersion();
         version = (version == null || version.length() == 0) ? getDefaultVersion(dependency) : version;
 
@@ -333,21 +334,16 @@ public class GradlePomModuleDescriptorBuilder {
         ivyModuleDescriptor.addDependency(descriptor);
     }
 
-
-    public void addDependencyMgt(PomDependencyMgt dep) {
-        dependencyMgt.put(dep.getId(), dep);
-    }
-
-    private String getDefaultVersion(PomReader.PomDependencyData dep) {
-        PomDependencyMgt pomDependencyMgt = dependencyMgt.get(dep.getId());
+    private String getDefaultVersion(PomDependencyData dep) {
+        PomDependencyMgt pomDependencyMgt = findDependencyDefault(dep);
         if (pomDependencyMgt != null) {
             return pomDependencyMgt.getVersion();
         }
         return null;
     }
 
-    private String getDefaultScope(PomReader.PomDependencyData dep) {
-        PomDependencyMgt pomDependencyMgt = dependencyMgt.get(dep.getId());
+    private String getDefaultScope(PomDependencyData dep) {
+        PomDependencyMgt pomDependencyMgt = findDependencyDefault(dep);
         String result = null;
         if (pomDependencyMgt != null) {
             result = pomDependencyMgt.getScope();
@@ -358,12 +354,16 @@ public class GradlePomModuleDescriptorBuilder {
         return result;
     }
 
-    private List<ModuleId> getDependencyMgtExclusions(PomReader.PomDependencyData dep) {
-        PomDependencyMgt pomDependencyMgt = dependencyMgt.get(dep.getId());
+    private List<ModuleId> getDependencyMgtExclusions(PomDependencyData dep) {
+        PomDependencyMgt pomDependencyMgt = findDependencyDefault(dep);
         if (pomDependencyMgt != null) {
             return pomDependencyMgt.getExcludedModules();
         }
 
         return Collections.emptyList();
+    }
+
+    private PomDependencyMgt findDependencyDefault(PomDependencyData dependency) {
+        return pomReader.findDependencyDefaults(dependency.getId());
     }
 }

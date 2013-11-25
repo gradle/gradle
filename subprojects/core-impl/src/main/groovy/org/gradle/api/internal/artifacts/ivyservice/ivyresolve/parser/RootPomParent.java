@@ -20,13 +20,13 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomReader.
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.MavenDependencyKey;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.PomDependencyMgt;
 
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.Map;
 
 public class RootPomParent implements PomParent {
-    private final Map<String, String> properties = new HashMap<String, String>();
-    private final Map<MavenDependencyKey, PomReader.PomDependencyData> dependencies = new HashMap<MavenDependencyKey, PomReader.PomDependencyData>();
-    private final Map<MavenDependencyKey, PomDependencyMgt> dependencyMgts = new HashMap<MavenDependencyKey, PomDependencyMgt>();
+    private final Map<String, String> properties = Collections.emptyMap();
+    private final Map<MavenDependencyKey, PomReader.PomDependencyData> dependencies = Collections.emptyMap();
+    private final Map<MavenDependencyKey, PomDependencyMgt> dependencyMgts = Collections.emptyMap();
 
     public Map<String, String> getProperties() {
         return properties;
