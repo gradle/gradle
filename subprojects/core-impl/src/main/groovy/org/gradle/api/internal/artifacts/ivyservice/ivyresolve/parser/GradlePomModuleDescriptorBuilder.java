@@ -314,7 +314,7 @@ public class GradlePomModuleDescriptorBuilder {
         version = (version == null || version.length() == 0) ? getDefaultVersion(dependency) : version;
 
         if(version == null) {
-            throw new UnresolvedDependencyVersionException(dependency.getGroupId(), dependency.getArtifactId());
+            throw new UnresolvedDependencyVersionException(dependency.getId());
         }
 
         return version;

@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data;
 
 public class MavenDependencyKey {
+    private static final String KEY_SEPARATOR = ":";
     private final String groupId;
     private final String artifactId;
     private final String type;
@@ -78,5 +79,17 @@ public class MavenDependencyKey {
         result = 31 * result + (type != null ? type.hashCode() : 0);
         result = 31 * result + (classifier != null ? classifier.hashCode() : 0);
         return result;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder key = new StringBuilder();
+        key.append(groupId).append(KEY_SEPARATOR).append(artifactId).append(KEY_SEPARATOR).append(type);
+
+        if(classifier != null) {
+            key.append(KEY_SEPARATOR).append(classifier);
+        }
+
+        return key.toString();
     }
 }

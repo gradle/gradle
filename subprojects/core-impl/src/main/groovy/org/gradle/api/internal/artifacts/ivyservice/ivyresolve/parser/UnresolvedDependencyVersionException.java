@@ -15,8 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.MavenDependencyKey;
+
 public class UnresolvedDependencyVersionException extends RuntimeException {
-    public UnresolvedDependencyVersionException(String groupId, String artifactId) {
-        super(String.format("Unable to resolve version for dependency '%s:%s'", groupId, artifactId));
+    public UnresolvedDependencyVersionException(MavenDependencyKey key) {
+        super(String.format("Unable to resolve version for dependency '%s'", key.toString()));
     }
 }

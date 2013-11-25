@@ -198,7 +198,7 @@ class GradlePomModuleDescriptorParserTest extends Specification {
         hasDefaultDependencyArtifact(dep)
     }
 
-    def "throws exception if parent pom dependency management section to does not provide default values for dependency"() {
+    def "throws exception if parent pom dependency management section does not provide default values for dependency"() {
         given:
         def parent = tmpDir.file("parent.xml") << """
 <project>
@@ -250,7 +250,7 @@ class GradlePomModuleDescriptorParserTest extends Specification {
         then:
         Throwable t = thrown(MetaDataParseException)
         t.cause instanceof UnresolvedDependencyVersionException
-        t.cause.message == "Unable to resolve version for dependency 'group-two:artifact-two'"
+        t.cause.message == "Unable to resolve version for dependency 'group-two:artifact-two:jar'"
     }
 
     def "uses parent pom dependency management section to provide default values for a dependency"() {
@@ -1771,7 +1771,7 @@ class GradlePomModuleDescriptorParserTest extends Specification {
         then:
         Throwable t = thrown(MetaDataParseException)
         t.cause instanceof UnresolvedDependencyVersionException
-        t.cause.message == "Unable to resolve version for dependency 'group-two:artifact-two'"
+        t.cause.message == "Unable to resolve version for dependency 'group-two:artifact-two:test-jar'"
     }
 
     @Issue("GRADLE-2931")
