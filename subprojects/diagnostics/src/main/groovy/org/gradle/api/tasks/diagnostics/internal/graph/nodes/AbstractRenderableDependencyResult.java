@@ -50,8 +50,8 @@ public abstract class AbstractRenderableDependencyResult implements RenderableDe
     private String getVerboseName() {
         ModuleComponentSelector requested = getRequested();
         ModuleComponentIdentifier selected = getActual();
-        if(!selected.getGroup().equals(requested.getGroup()) || !selected.getName().equals(requested.getName())) {
-            return getSimpleName() + " -> " + selected.getGroup() + ":" + selected.getName() + ":" + selected.getVersion();
+        if(!selected.getGroup().equals(requested.getGroup()) || !selected.getModule().equals(requested.getName())) {
+            return getSimpleName() + " -> " + selected.getGroup() + ":" + selected.getModule() + ":" + selected.getVersion();
         }
         if (!selected.getVersion().equals(requested.getVersion())) {
             return getSimpleName() + " -> " + selected.getVersion();

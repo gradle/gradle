@@ -34,7 +34,7 @@ public interface ModuleComponentIdentifier extends ComponentIdentifier {
      *
      * @return Component identifier name
      */
-    String getName();
+    String getModule();
 
     /**
      * The version of a component identifier.

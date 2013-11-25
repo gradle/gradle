@@ -31,7 +31,7 @@ public class RequestedVersion extends AbstractRenderableDependencyResult {
     private final Set<RenderableDependency> children = new LinkedHashSet<RenderableDependency>();
 
     public RequestedVersion(ModuleComponentIdentifier actual, boolean resolvable, String description) {
-        this(DefaultModuleComponentSelector.newSelector(actual.getGroup(), actual.getName(), actual.getVersion()), actual, resolvable, description);
+        this(DefaultModuleComponentSelector.newSelector(actual.getGroup(), actual.getModule(), actual.getVersion()), actual, resolvable, description);
     }
 
     public RequestedVersion(ModuleComponentSelector requested, ModuleComponentIdentifier actual, boolean resolvable, String description) {

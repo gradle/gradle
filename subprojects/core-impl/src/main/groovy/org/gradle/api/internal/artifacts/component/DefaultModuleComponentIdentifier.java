@@ -41,7 +41,7 @@ public class DefaultModuleComponentIdentifier implements ModuleComponentIdentifi
         return group;
     }
 
-    public String getName() {
+    public String getModule() {
         return name;
     }
 

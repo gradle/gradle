@@ -96,7 +96,7 @@ public class DependencyResultSorter {
                 return byGroup;
             }
 
-            byModule = leftFrom.getName().compareTo(rightFrom.getName());
+            byModule = leftFrom.getModule().compareTo(rightFrom.getModule());
             if (byModule != 0) {
                 return byModule;
             }

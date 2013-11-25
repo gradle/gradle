@@ -50,6 +50,6 @@ public class StrictDependencyResultSpec implements Spec<DependencyResult> {
     private boolean matchesSelected(ResolvedDependencyResult candidate) {
         ModuleComponentIdentifier selected = (ModuleComponentIdentifier)candidate.getSelected().getId();
         return selected.getGroup().equals(moduleIdentifier.getGroup())
-               && selected.getName().equals(moduleIdentifier.getName());
+               && selected.getModule().equals(moduleIdentifier.getName());
     }
 }

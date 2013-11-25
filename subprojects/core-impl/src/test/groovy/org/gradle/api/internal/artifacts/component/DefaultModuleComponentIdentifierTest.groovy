@@ -29,7 +29,7 @@ class DefaultModuleComponentIdentifierTest extends Specification {
 
         then:
         defaultModuleComponentIdentifier.group == 'some-group'
-        defaultModuleComponentIdentifier.name == 'some-name'
+        defaultModuleComponentIdentifier.module == 'some-name'
         defaultModuleComponentIdentifier.version == '1.0'
         defaultModuleComponentIdentifier.displayName == 'some-group:some-name:1.0'
         defaultModuleComponentIdentifier.toString() == 'some-group:some-name:1.0'
@@ -73,7 +73,7 @@ class DefaultModuleComponentIdentifierTest extends Specification {
 
         then:
         defaultModuleComponentIdentifier.group == 'some-group'
-        defaultModuleComponentIdentifier.name == 'some-name'
+        defaultModuleComponentIdentifier.module == 'some-name'
         defaultModuleComponentIdentifier.version == '1.0'
         defaultModuleComponentIdentifier.displayName == 'some-group:some-name:1.0'
         defaultModuleComponentIdentifier.toString() == 'some-group:some-name:1.0'
