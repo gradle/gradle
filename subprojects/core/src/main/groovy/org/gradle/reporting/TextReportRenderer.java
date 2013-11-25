@@ -15,8 +15,8 @@
  */
 package org.gradle.reporting;
 
-import org.gradle.api.internal.ErroringAction;
-import org.gradle.api.internal.IoActions;
+import org.gradle.internal.ErroringAction;
+import org.gradle.internal.IoActions;
 
 import java.io.File;
 import java.io.Writer;

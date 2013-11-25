@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal
+package org.gradle.internal
 
 import org.gradle.api.Action
 import org.gradle.api.Transformer
 import org.gradle.api.specs.Spec
 import spock.lang.Specification
 
-import static org.gradle.api.internal.Actions.*
+import static Actions.*
 
 class ActionsTest extends Specification {
 

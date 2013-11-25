@@ -15,7 +15,7 @@
  */
 package org.gradle.api.artifacts.repositories;
 
-import org.gradle.api.internal.HasInternalProtocol;
+import org.gradle.internal.HasInternalProtocol;
 
 /**
  * A repository for resolving and publishing artifacts.

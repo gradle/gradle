@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.tasks.testing.junit.report;
 
-import org.gradle.api.internal.ErroringAction;
+import org.gradle.internal.ErroringAction;
 import org.gradle.api.internal.html.SimpleHtmlWriter;
 import org.gradle.api.internal.tasks.testing.junit.result.TestFailure;
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;

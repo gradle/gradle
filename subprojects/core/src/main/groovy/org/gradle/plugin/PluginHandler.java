@@ -17,7 +17,7 @@
 package org.gradle.plugin;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.internal.HasInternalProtocol;
+import org.gradle.internal.HasInternalProtocol;
 
 /**
  * A manager of plugins.

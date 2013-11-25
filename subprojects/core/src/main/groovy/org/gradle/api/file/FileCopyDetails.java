@@ -16,7 +16,7 @@
 package org.gradle.api.file;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.internal.HasInternalProtocol;
+import org.gradle.internal.HasInternalProtocol;
 import org.gradle.api.NonExtensible;
 
 /**

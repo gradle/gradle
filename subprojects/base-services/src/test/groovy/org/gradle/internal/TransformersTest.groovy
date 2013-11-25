@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal
+package org.gradle.internal
 
 import org.gradle.api.Action
 import org.gradle.api.Named
 import org.gradle.api.Namer
 import spock.lang.Specification
 
-import static org.gradle.api.internal.Transformers.*
+import static Transformers.*
 
 class TransformersTest extends Specification {
 

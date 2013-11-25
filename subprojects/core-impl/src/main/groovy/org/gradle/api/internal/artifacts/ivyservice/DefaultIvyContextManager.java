@@ -22,7 +22,7 @@ import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.util.Message;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
-import org.gradle.api.internal.Transformers;
+import org.gradle.internal.Transformers;
 
 import java.util.LinkedList;
 import java.util.concurrent.locks.Lock;

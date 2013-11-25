@@ -16,7 +16,7 @@
 package org.gradle.api.internal.collections;
 
 import org.gradle.api.Action;
-import org.gradle.api.internal.Actions;
+import org.gradle.internal.Actions;
 import org.gradle.api.specs.Specs;
 import org.gradle.listener.ActionBroadcast;
 

@@ -14,39 +14,31 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal
+package org.gradle.internal
 
 import spock.lang.Specification
 
-class ErroringActionTest extends Specification {
+import static Cast.cast
 
-    def "checked exceptions are wrapped"() {
-        when:
-        new ErroringAction() {
-            @Override
-            void doExecute(Object thing) {
-                throw new Exception()
-            }
-        }.execute("foo")
+class CastTest extends Specification {
 
-        then:
-        thrown(RuntimeException)
-    }
-
-    def "unchecked exceptions are passed through"() {
+    def "casting"() {
         given:
-        def e = new RuntimeException()
+        def arg = "1"
 
         when:
-        new ErroringAction() {
-            @Override
-            void doExecute(Object thing) {
-                throw e
-            }
-        }.execute("foo")
+        cast(Integer, arg)
 
         then:
-        def t = thrown(RuntimeException)
-        t.is(e)
+        def e = thrown(ClassCastException)
+        e.message == "Failed to cast object $arg of type ${arg.class.name} to target type ${Integer.name}"
+
+        when:
+        def result = cast(CharSequence, arg)
+
+        then:
+        notThrown(ClassCastException)
+        result.is arg
     }
+
 }

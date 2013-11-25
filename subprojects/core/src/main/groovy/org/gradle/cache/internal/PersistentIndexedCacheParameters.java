@@ -16,7 +16,7 @@
 package org.gradle.cache.internal;
 
 import org.gradle.api.Transformer;
-import org.gradle.api.internal.Transformers;
+import org.gradle.internal.Transformers;
 import org.gradle.messaging.serialize.DefaultSerializer;
 import org.gradle.messaging.serialize.Serializer;
 

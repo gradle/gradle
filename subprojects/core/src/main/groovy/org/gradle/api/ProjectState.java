@@ -16,7 +16,7 @@
 
 package org.gradle.api;
 
-import org.gradle.api.internal.HasInternalProtocol;
+import org.gradle.internal.HasInternalProtocol;
 
 /**
  * {@code ProjectState} provides information about the execution state of a project.

@@ -19,7 +19,7 @@ package org.gradle.api.publish.maven;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.XmlProvider;
-import org.gradle.api.internal.HasInternalProtocol;
+import org.gradle.internal.HasInternalProtocol;
 
 /**
  * The POM for a Maven publication.

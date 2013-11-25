@@ -21,7 +21,7 @@ import org.gradle.api.Action
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.FileTree
 import org.gradle.api.file.RelativePath
-import org.gradle.api.internal.Actions
+import org.gradle.internal.Actions
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.util.PatternSet

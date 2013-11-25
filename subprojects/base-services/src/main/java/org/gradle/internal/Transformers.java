@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal;
+package org.gradle.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.Named;
 import org.gradle.api.Namer;
 import org.gradle.api.Transformer;
-import org.gradle.internal.UncheckedException;
 
 import java.net.MalformedURLException;
 import java.net.URI;

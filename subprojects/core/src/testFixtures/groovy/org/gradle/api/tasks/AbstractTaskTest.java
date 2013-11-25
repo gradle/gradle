@@ -22,7 +22,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.AbstractTask;
-import org.gradle.api.internal.Actions;
+import org.gradle.internal.Actions;
 import org.gradle.api.internal.DependencyInjectingInstantiator;
 import org.gradle.api.internal.project.AbstractProject;
 import org.gradle.api.internal.project.DefaultProject;

@@ -22,7 +22,7 @@ import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
-import org.gradle.api.internal.Actions;
+import org.gradle.internal.Actions;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.internal.Factory;
 

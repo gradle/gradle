@@ -22,6 +22,7 @@ import org.gradle.api.tasks.AbstractTaskTest
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.TaskExecutionException
 import org.gradle.api.tasks.TaskInstantiationException
+import org.gradle.internal.Actions
 import org.gradle.listener.ListenerManager
 import org.gradle.util.WrapUtil
 import org.jmock.Expectations

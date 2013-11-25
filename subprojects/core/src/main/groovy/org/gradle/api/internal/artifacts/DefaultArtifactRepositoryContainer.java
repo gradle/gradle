@@ -25,7 +25,7 @@ import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.artifacts.ArtifactRepositoryContainer;
 import org.gradle.api.artifacts.UnknownRepositoryException;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
-import org.gradle.api.internal.Actions;
+import org.gradle.internal.Actions;
 import org.gradle.api.internal.DefaultNamedDomainObjectList;
 import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal;
 import org.gradle.internal.reflect.Instantiator;
@@ -36,7 +36,7 @@ import org.gradle.util.GUtil;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.gradle.api.internal.Cast.cast;
+import static org.gradle.internal.Cast.cast;
 
 public class DefaultArtifactRepositoryContainer extends DefaultNamedDomainObjectList<ArtifactRepository>
         implements ArtifactRepositoryContainer {

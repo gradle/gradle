@@ -15,8 +15,6 @@
  */
 package org.gradle.api;
 
-import org.gradle.internal.SystemProperties;
-
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -71,7 +69,7 @@ public enum JavaVersion {
      * @return The version of the current JVM.
      */
     public static JavaVersion current() {
-        return toVersion(SystemProperties.getJavaVersion());
+        return toVersion(System.getProperty("java.version"));
     }
 
     public boolean isJava5() {

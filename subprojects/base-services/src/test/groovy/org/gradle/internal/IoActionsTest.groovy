@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal
+package org.gradle.internal
 
 import org.gradle.api.Action
 import org.gradle.api.UncheckedIOException
@@ -22,7 +22,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
-import static org.gradle.api.internal.IoActions.*
+import static IoActions.*
 
 class IoActionsTest extends Specification {
 

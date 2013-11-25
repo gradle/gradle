@@ -21,7 +21,7 @@ import org.apache.tools.zip.ZipOutputStream;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCopyDetails;
-import org.gradle.api.internal.IoActions;
+import org.gradle.internal.IoActions;
 import org.gradle.api.internal.file.CopyActionProcessingStreamAction;
 import org.gradle.api.internal.file.copy.CopyAction;
 import org.gradle.api.internal.file.copy.CopyActionProcessingStream;

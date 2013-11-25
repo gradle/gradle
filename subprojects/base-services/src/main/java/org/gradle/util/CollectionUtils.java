@@ -17,13 +17,13 @@ package org.gradle.util;
 
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
-import org.gradle.api.internal.Transformers;
+import org.gradle.internal.Transformers;
 import org.gradle.api.specs.Spec;
 
 import java.lang.reflect.Array;
 import java.util.*;
 
-import static org.gradle.api.internal.Cast.cast;
+import static org.gradle.internal.Cast.cast;
 
 public abstract class CollectionUtils {
 

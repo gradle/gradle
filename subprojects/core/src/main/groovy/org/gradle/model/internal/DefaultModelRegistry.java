@@ -22,7 +22,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 import org.gradle.api.Transformer;
-import org.gradle.api.internal.Transformers;
+import org.gradle.internal.Transformers;
 import org.gradle.model.ModelPath;
 
 import java.util.*;

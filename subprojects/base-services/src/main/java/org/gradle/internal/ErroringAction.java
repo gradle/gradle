@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal;
+package org.gradle.internal;
 
 import org.gradle.api.Action;
-import org.gradle.internal.UncheckedException;
 
 /**
  * Action adapter/implementation for action code that may throw exceptions.

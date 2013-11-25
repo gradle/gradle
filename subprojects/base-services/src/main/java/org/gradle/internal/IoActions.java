@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal;
+package org.gradle.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.internal.UncheckedException;
 
 import java.io.*;
 import java.nio.charset.Charset;

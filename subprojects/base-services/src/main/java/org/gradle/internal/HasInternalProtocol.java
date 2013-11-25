@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal;
+package org.gradle.internal;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
