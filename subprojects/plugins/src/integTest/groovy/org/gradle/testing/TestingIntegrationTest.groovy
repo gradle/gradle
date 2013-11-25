@@ -57,6 +57,30 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
         ":test" in nonSkippedTasks
     }
 
+    def "fails cleanly if the test class calls System#exit(int)"() {
+        given:
+        file('src/test/java/CallsSystemExitTest.java') << """
+            import org.junit.*;
+            public class CallsSystemExitTest {
+                @Test
+                public void testSystemExit() {
+                    System.exit(0);
+                }
+            }
+        """
+        file('build.gradle') << """
+            apply plugin: 'java'
+            repositories { mavenCentral() }
+            dependencies { testCompile 'junit:junit:4.10' }
+        """
+
+        when:
+        runAndFail "test"
+
+        then:
+        failureHasCause "There were failing tests"
+    }
+
     @IgnoreIf({ OperatingSystem.current().isWindows() })
     def "can use long paths for working directory"() {
         given:

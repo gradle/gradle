@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.worker;
 
+import org.apache.tools.ant.util.optional.NoExitSecurityManager;
 import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
@@ -99,11 +100,18 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
 
     public void processTestClass(final TestClassRunInfo testClass) {
         Thread.currentThread().setName("Test worker");
+        boolean setSecurityManager = System.getSecurityManager() == null;
+        if (setSecurityManager) {
+            System.setSecurityManager(new NoExitSecurityManager());
+        }
         try {
             processor.processTestClass(testClass);
         } finally {
             // Clean the interrupted status
             Thread.interrupted();
+            if (setSecurityManager) {
+                System.setSecurityManager(null);
+            }
         }
     }
 
