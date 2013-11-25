@@ -53,6 +53,8 @@ public class GccToolChain extends AbstractGccCompatibleToolChain implements Gcc 
 
         tools.setExeName(ToolType.CPP_COMPILER, "g++");
         tools.setExeName(ToolType.C_COMPILER, "gcc");
+        tools.setExeName(ToolType.OBJECTIVECPP_COMPILER, "g++");
+        tools.setExeName(ToolType.OBJECTIVEC_COMPILER, "gcc");
         tools.setExeName(ToolType.ASSEMBLER, "as");
         tools.setExeName(ToolType.LINKER, "g++");
         tools.setExeName(ToolType.STATIC_LIB_ARCHIVER, "ar");

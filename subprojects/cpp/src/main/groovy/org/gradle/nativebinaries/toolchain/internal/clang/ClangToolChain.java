@@ -32,6 +32,8 @@ public class ClangToolChain extends AbstractGccCompatibleToolChain implements Cl
 
         tools.setExeName(ToolType.CPP_COMPILER, "clang++");
         tools.setExeName(ToolType.C_COMPILER, "clang");
+        tools.setExeName(ToolType.OBJECTIVECPP_COMPILER, "clang++");
+        tools.setExeName(ToolType.OBJECTIVEC_COMPILER, "clang");
         tools.setExeName(ToolType.ASSEMBLER, "as");
         tools.setExeName(ToolType.LINKER, "clang++");
         tools.setExeName(ToolType.STATIC_LIB_ARCHIVER, "ar");

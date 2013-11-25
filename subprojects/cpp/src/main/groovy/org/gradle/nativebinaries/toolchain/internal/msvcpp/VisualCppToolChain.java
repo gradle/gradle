@@ -148,6 +148,14 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
             return (Compiler<T>) new OutputCleaningCompiler<CCompileSpec>(cCompiler, ".obj");
         }
 
+        public <T extends BinaryToolSpec> Compiler<T> createObjectiveCppCompiler() {
+            throw new RuntimeException("Objective-C++ is not available on the Visual C++ toolchain");
+        }
+
+        public <T extends BinaryToolSpec> Compiler<T> createObjectiveCCompiler() {
+            throw new RuntimeException("Objective-C is not available on the Visual C++ toolchain");
+        }
+
         public <T extends BinaryToolSpec> Compiler<T> createAssembler() {
             CommandLineTool<AssembleSpec> commandLineTool = commandLineTool("Assembler", visualCpp.getAssembler(targetPlatform));
             return (Compiler<T>) new Assembler(commandLineTool);

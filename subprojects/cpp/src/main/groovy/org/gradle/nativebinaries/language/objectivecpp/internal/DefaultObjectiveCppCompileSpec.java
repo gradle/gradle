@@ -14,31 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries.internal;
+package org.gradle.nativebinaries.language.objectivecpp.internal;
 
-import java.io.File;
-import java.util.List;
+import org.gradle.nativebinaries.language.internal.AbstractNativeCompileSpec;
 
-/**
- * A high level interface to the linker, specifying what is to be linked and how.
- */
-public interface LinkerSpec extends BinaryToolSpec {
-
-    List<File> getObjectFiles();
-
-    void objectFiles(Iterable<File> objectFiles);
-
-    List<File> getLibraries();
-
-    void libraries(Iterable<File> libraries);
-
-    // TODO:DAZ Work out how to test this
-    List<File> getLibraryPath();
-
-    void libraryPath(File... libraryPath);
-
-    File getOutputFile();
-
-    void setOutputFile(File outputFile);
+public class DefaultObjectiveCppCompileSpec extends AbstractNativeCompileSpec implements ObjectiveCppCompileSpec {
 
 }
