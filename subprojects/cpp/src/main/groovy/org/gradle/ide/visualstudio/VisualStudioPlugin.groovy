@@ -14,16 +14,19 @@
  * limitations under the License.
  */
 package org.gradle.ide.visualstudio
+
+import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Transformer
 import org.gradle.api.tasks.Delete
 import org.gradle.ide.cdt.tasks.GenerateMetadataFileTask
-import org.gradle.ide.visualstudio.model.*
+import org.gradle.ide.visualstudio.internal.*
 import org.gradle.nativebinaries.NativeComponent
 import org.gradle.nativebinaries.internal.NativeBinaryInternal
 import org.gradle.nativebinaries.plugins.NativeBinariesModelPlugin
 
+@Incubating
 class VisualStudioPlugin implements Plugin<Project> {
 
     void apply(Project project) {
