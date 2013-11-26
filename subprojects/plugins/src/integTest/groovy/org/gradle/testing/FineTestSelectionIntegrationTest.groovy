@@ -17,7 +17,6 @@ package org.gradle.testing
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import spock.lang.Ignore
 import spock.lang.Shared
 import spock.lang.Unroll
 
