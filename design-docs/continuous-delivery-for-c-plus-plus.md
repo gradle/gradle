@@ -731,7 +731,6 @@ Here's an example:
     - If target platform is Windows, adds a `WindowsResourceCompile` task which takes as input all of the resource files in the source set.
       Naming scheme as per the other language plugins (see `CppNativeBinariesPlugin` for example).
 6. The `WindowsResourcesCompile` task compiles source resources to `.res` format:
-    - For the gcc/clang toolchains, should use [`windres`](http://sourceware.org/binutils/docs/binutils/windres.html) to compile each source file.
     - For the Visual C++ toolchain, should use [`rc`](http://msdn.microsoft.com/en-us/library/windows/desktop/aa381055.aspx) to compile each source file.
     - Should implement this by adding a new tool method on `PlatformToolChain`.
 7. Include the resulting `.res` files as input to the link task  (see `CppNativeBinariesPlugin` for example).
@@ -788,10 +787,6 @@ Here's an example:
 - Generate solution for component with mixed sources
 - Generate solution for component with windows resource files
 
-### Open Issues
-
-- Handle dependency cycles
-
 ## Story: Add hooks to allow the customization of the generated Visual Studio files
 
 - Expose `visualStudio` extension with `solutions` container of `VisualStudioSolution` and `projects` container of `VisualStudioProject`
@@ -818,6 +813,10 @@ Here's an example:
 - All test cases for single project build should also function where components are in separate Gradle builds
 - Mixed multi-project with multiple components per project
 - Multi-project where :a:exe -> :b:lib1 -> :a:lib2 (Gradle project cycle)
+
+### Open Issues
+
+- Handle dependency cycles
 
 ## Story: Build binaries against a library in another project
 
@@ -1316,6 +1315,8 @@ TBD
 - Understand build and release build types and drive the compiler and linker appropriately
 - Clean the environment prior to invoking the visual studio tools (eg clear `%INCLUDE%`, `%LIB%` etc)
 - Don't create compile tasks for empty source sets
+- Compile windows resource files with gcc/clang using [`windres`](http://sourceware.org/binutils/docs/binutils/windres.html)
+
 
 ## Target platforms
 
