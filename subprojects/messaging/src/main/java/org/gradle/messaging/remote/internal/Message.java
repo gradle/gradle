@@ -75,6 +75,7 @@ public abstract class Message implements Serializable {
                 stackTrace = throwable.getStackTrace();
             } catch (Throwable ignored) {
                 LOGGER.debug("Ignoring error extracting stack trace", ignored);
+                stackTrace = new StackTraceElement[0];
             }
 
             try {
