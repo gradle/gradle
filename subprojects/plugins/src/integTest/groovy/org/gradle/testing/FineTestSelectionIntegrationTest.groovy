@@ -121,7 +121,7 @@ public class FineTestSelectionIntegrationTest extends AbstractIntegrationSpec {
             test {
               use$framework.name()
               selection {
-                includeTest('Foo.*', 'pass.*')
+                includeTest('Foo*', 'pass*')
               }
             }
         """

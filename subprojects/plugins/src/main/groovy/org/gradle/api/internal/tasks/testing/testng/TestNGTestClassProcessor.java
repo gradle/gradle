@@ -136,7 +136,7 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
                         xmlClass = new XmlClass(klass, true);
                         xmlTest.getXmlClasses().add(xmlClass);
                     }
-                    XmlInclude method = new XmlInclude(included.getMethodPattern());
+                    XmlInclude method = new XmlInclude(included.getMethodPattern().replaceAll("\\*", ".*"));
                     xmlClass.getIncludedMethods().add(method);
                 }
             }

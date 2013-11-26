@@ -32,11 +32,11 @@ class DefaultTestSelectionTest extends Specification {
 
         when:
         selection.includedTests = [new DefaultTestSelectionSpec("hey", "Joe!")]
-        selection.includedTests = [new DefaultTestSelectionSpec(".*", ".*")]
+        selection.includedTests = [new DefaultTestSelectionSpec("*", "*")]
         selection.includeTest("Foo", "bar")
 
         then:
-        selection.includedTests == [new DefaultTestSelectionSpec(".*", ".*"), new DefaultTestSelectionSpec("Foo", "bar")] as Set
+        selection.includedTests == [new DefaultTestSelectionSpec("*", "*"), new DefaultTestSelectionSpec("Foo", "bar")] as Set
     }
 
     def "included tests are configurable by instances of TestSelectionSpec"() {

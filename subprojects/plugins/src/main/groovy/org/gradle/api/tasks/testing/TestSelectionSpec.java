@@ -23,12 +23,12 @@ package org.gradle.api.tasks.testing;
 public interface TestSelectionSpec {
 
     /**
-     * Pattern that the method should match
+     * Pattern that the method should match, wildcard '*' supported
      */
     String getMethodPattern();
 
     /**
-     * Pattern that the class should match
+     * Pattern that the class should match, wildcard '*' supported
      */
     String getClassPattern();
 }

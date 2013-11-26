@@ -102,7 +102,7 @@ class TestNGTestClassProcessorTest extends Specification {
 
     void "executes methods from multiple classes by pattern"() {
         options.getIncludedTests() >> new DefaultTestSelection()
-                .includeTest(".*Methods", "ok.*")
+                .includeTest("*Methods", "ok*")
                 .includedTests
 
         when: process(ATestNGClassWithManyMethods)

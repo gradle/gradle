@@ -250,7 +250,7 @@ class JUnitTestClassProcessorTest extends Specification {
 
     def "executes methods from multiple classes by pattern"() {
         classProcessor = withSpec(new JUnitSpec(new JUnitOptions(), new DefaultTestSelection()
-                .includeTest(".*Methods", ".*Slowly.*")))
+                .includeTest("*Methods", "*Slowly*")))
 
         when: process(ATestClassWithSeveralMethods, ATestClassWithSlowMethods, ATestClass)
 

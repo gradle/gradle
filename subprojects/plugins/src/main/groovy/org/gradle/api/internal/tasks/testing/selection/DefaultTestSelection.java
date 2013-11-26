@@ -26,8 +26,8 @@ public class DefaultTestSelection implements TestSelection {
 
     private Set<TestSelectionSpec> includedTests = new HashSet<TestSelectionSpec>();
 
-    public DefaultTestSelection includeTest(String testClass, String testMethod) {
-        includedTests.add(new DefaultTestSelectionSpec(testClass, testMethod));
+    public DefaultTestSelection includeTest(String classPattern, String methodPattern) {
+        includedTests.add(new DefaultTestSelectionSpec(classPattern, methodPattern));
         return this;
     }
 
@@ -36,7 +36,7 @@ public class DefaultTestSelection implements TestSelection {
         return includedTests;
     }
 
-    public void setIncludedTests(Object ... includedTests) {
+    public void setIncludedTests(Object... includedTests) {
         this.includedTests = new NotationParserBuilder<TestSelectionSpec>()
             .resultingType(TestSelectionSpec.class)
             .parser(new TestSelectionSpecParser())

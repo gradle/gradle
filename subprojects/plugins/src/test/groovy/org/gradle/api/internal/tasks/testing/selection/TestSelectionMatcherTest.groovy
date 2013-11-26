@@ -25,7 +25,7 @@ class TestSelectionMatcherTest extends Specification {
     }
 
     def "knows if test matches"() {
-        def m = matcher("foo.*", ".*bar")
+        def m = matcher("foo*", "*bar")
 
         expect:
         m.matchesTest("fooxxx", "xxxbar")
@@ -36,7 +36,7 @@ class TestSelectionMatcherTest extends Specification {
     }
 
     def "knows if class matches"() {
-        def m = matcher("foo.*", ".*bar")
+        def m = matcher("foo*", "*bar")
 
         expect:
         m.matchesClass("foo")
@@ -45,13 +45,39 @@ class TestSelectionMatcherTest extends Specification {
         !m.matchesClass("com.foo")
     }
 
+    def "regexp is escaped"() {
+        expect:
+        !matcher("com.Foo*", "").matchesClass("com_Foo")
+        matcher("com.Foo*", "").matchesClass("com.FooTest")
+
+        !matcher("*Foo+Bar*", "").matchesClass("FooBar")
+        matcher("*Foo+Bar*", "").matchesClass("xFoo+Barx")
+    }
+
+    def "supports wildcard"() {
+        def m = matcher("*Foo*", "slow***Test")
+
+        expect:
+        m.matchesClass("com.Foo")
+        m.matchesClass("FooTest")
+        m.matchesClass("Foo")
+        m.matchesClass(".Foo.")
+        m.matchesClass("  Foo  ")
+
+        m.matchesTest("Foo", "slowUiTest")
+        m.matchesTest("Foo", "slowTest")
+        m.matchesTest("Foo", "slow.Test")
+        m.matchesTest("Foo", "slow***Test")
+        m.matchesTest("Foo", "slow  Test")
+    }
+
     def "knows if matches any method in class"() {
         expect:
-        matcher("", "bar.*").matchesAnyMethodIn(Bar)
-        matcher("", "bar.*").matchesAnyMethodIn(Foo)
+        matcher("", "bar*").matchesAnyMethodIn(Bar)
+        matcher("", "bar*").matchesAnyMethodIn(Foo)
 
-        !matcher("", ".*bar").matchesAnyMethodIn(Bar)
-        !matcher("", ".*bar").matchesAnyMethodIn(Foo)
+        !matcher("", "*bar").matchesAnyMethodIn(Bar)
+        !matcher("", "*bar").matchesAnyMethodIn(Foo)
 
         matcher("", "foo").matchesAnyMethodIn(Foo)
         !matcher("", "foo").matchesAnyMethodIn(Bar)

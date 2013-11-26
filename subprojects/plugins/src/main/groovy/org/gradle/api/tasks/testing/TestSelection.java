@@ -28,13 +28,13 @@ import java.util.Set;
 public interface TestSelection {
 
     /**
-     * Appends criteria for including a particular test(s).
+     * Appends criteria for including a particular test(s). Wildcard '*' can be used for matching any substrings.
      *
-     * @param testClass test class name
-     * @param testMethod test method name
+     * @param classPattern test class name, wildcard '*' supported
+     * @param methodPattern test method name, wildcard '*' supported
      * @return this selection object
      */
-    TestSelection includeTest(String testClass, String testMethod);
+    TestSelection includeTest(String classPattern, String methodPattern);
 
     /**
      * Criteria for the tests that are included
