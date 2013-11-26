@@ -15,8 +15,11 @@
  */
 
 package org.gradle.ide.visualstudio.model
-
 import org.gradle.ide.visualstudio.fixtures.SolutionFile
+import org.gradle.nativebinaries.NativeBinary
+import org.gradle.nativebinaries.NativeComponent
+import org.gradle.nativebinaries.internal.DefaultBuildType
+import org.gradle.nativebinaries.internal.DefaultPlatform
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import spock.lang.Specification
@@ -39,25 +42,49 @@ Global
     GlobalSection(SolutionConfigurationPlatforms) = preSolution
         debug|Win32=debug|Win32
     EndGlobalSection
+    GlobalSection(ProjectConfigurationPlatforms) = postSolution
+    EndGlobalSection
+    GlobalSection(SolutionProperties) = preSolution
+        HideSolutionNode = FALSE
+    EndGlobalSection
 EndGlobal
 """
     }
 
     def "includes project references"() {
         when:
-        def project1 = new VisualStudioProject("project1", null)
-        def configuration1 = new VisualStudioProjectConfiguration(project1, null, "type")
+        def binary1 = binary("one")
+        def project1 = new VisualStudioProject("project1", binary1.component)
+        def configuration1 = new VisualStudioProjectConfiguration(project1, binary1, "type")
         solutionFile.addProjectConfiguration(configuration1)
 
-        def project2 = new VisualStudioProject("project2", null)
-        def configuration2 = new VisualStudioProjectConfiguration(project2, null, "type")
+        def binary2 = binary("two")
+        def project2 = new VisualStudioProject("project2", binary2.component)
+        def configuration2 = new VisualStudioProjectConfiguration(project2, binary2, "type")
         solutionFile.addProjectConfiguration(configuration2)
 
         then:
-        generatedSolution.assertHasProjects(
-                [name: "project1", file: "project1.vcxproj", uuid: project1.uuid],
-                [name: "project2", file: "project2.vcxproj", uuid: project2.uuid]
-        )
+        with (generatedSolution.projects['project1']) {
+            file == 'project1.vcxproj'
+            uuid == project1.uuid
+            configurations == ['debug|Win32']
+        }
+        with (generatedSolution.projects['project2']) {
+            file == 'project2.vcxproj'
+            uuid == project2.uuid
+            configurations == ['debug|Win32']
+        }
+    }
+
+    private NativeBinary binary(def name) {
+        def component = Mock(NativeComponent)
+        def binary = Mock(NativeBinary)
+        component.name >> "${name}Component"
+        binary.name >> name
+        binary.component >> component
+        binary.buildType >> new DefaultBuildType("debug")
+        binary.targetPlatform >> new DefaultPlatform("win32")
+        return binary
     }
 
     private SolutionFile getGeneratedSolution() {

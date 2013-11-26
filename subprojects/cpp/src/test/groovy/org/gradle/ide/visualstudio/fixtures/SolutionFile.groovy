@@ -20,35 +20,42 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.TextUtil
 
 class SolutionFile {
-    def content
-    List<String> projects
+    String content
+    Map<String, Project> projects = [:]
 
     SolutionFile(TestFile solutionFile) {
         assert solutionFile.exists()
         content = TextUtil.normaliseLineSeparators(solutionFile.text)
-        projects = content.readLines().findAll {
-            it.startsWith("Project(")
-        }
+
+        content.findAll(~/(?m)^Project\(\"\{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942\}\"\) = \"(\w+)\", \"(\w+\.vcxproj)\", \"\{([\w\-]+)\}\"$/, {
+            projects.put(it[1], new Project(it[1], it[2], it[3]))
+        })
     }
 
     def assertHasProjects(String... names) {
-        assert projects.size() == names.length
-        for (String name : names) {
-            assert projects.find {
-                it.startsWith(/Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "${name}", "${"${name}.vcxproj"}"/)
-            } != null
-        }
+        assert projects.keySet() == names as Set
         return true
     }
 
-    def assertHasProjects(Map... projects) {
-        assert this.projects.size() == projects.length
-        for (Map project : projects) {
-            final projectString = /Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "${project.name}", "${project.file}", "${project.uuid}"/
-            assert this.projects.find {
-                it == projectString
-            } != null
+    class Project {
+        final String name
+        final String file
+        final String rawUuid
+
+        Project(String name, String file, String rawUuid) {
+            this.name = name
+            this.file = file
+            this.rawUuid = rawUuid
         }
-        return true
+
+        String getUuid() {
+            return '{' + rawUuid + '}'
+        }
+
+        List<String> getConfigurations() {
+            content.findAll(~/\{${rawUuid}\}\.(\w+\|\w+)\.ActiveCfg = debug\|Win32/, {
+                it[1]
+            })
+        }
     }
 }

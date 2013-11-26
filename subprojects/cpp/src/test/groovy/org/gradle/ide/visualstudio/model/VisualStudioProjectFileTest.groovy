@@ -16,9 +16,7 @@
 
 package org.gradle.ide.visualstudio.model
 import org.gradle.api.Transformer
-import org.gradle.api.plugins.ExtensionAware
 import org.gradle.ide.visualstudio.fixtures.ProjectFile
-import org.gradle.nativebinaries.NativeBinary
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -61,27 +59,45 @@ class VisualStudioProjectFileTest extends Specification {
         projectFile.headerFiles == ["headerOne", "headerTwo"]
     }
 
-    def "add configuration"() {
+    def "add configurations"() {
         when:
-        def configuration = Mock(VisualStudioProjectConfiguration)
-        configuration.configurationName >> "debug"
-        configuration.platformName >> "Win32"
-        configuration.buildTask >> "buildMe"
-        configuration.cleanTask >> "cleanMe"
-        configuration.defines >> ["foo", "bar"]
-        configuration.includePaths >> [file("include1"), file("include2")]
-
-        generator.addConfiguration(configuration)
-
-        debugText()
+        generator.addConfiguration(configuration("debug", "Win32", ["foo", "bar"], ["include1", "include2"]))
+        generator.addConfiguration(configuration("release", "Win32", ["foo", "bar"], ["include1", "include2", "include3"]))
+        generator.addConfiguration(configuration("debug", "x64", ["foo", "bar"], ["include1", "include2"]))
 
         then:
         final configurations = projectFile.projectConfigurations
-        configurations.size() == 1
-        configurations[0].configName == 'debug'
-        configurations[0].platformName == 'Win32'
-        configurations[0].macros == "foo;bar"
-        configurations[0].includePath == "include1;include2"
+        configurations.size() == 3
+        with (configurations['debug|Win32']) {
+            configName == 'debug'
+            platformName == 'Win32'
+            macros == "foo;bar"
+            includePath == "include1;include2"
+        }
+        with (configurations['release|Win32']) {
+            configName == 'release'
+            platformName == 'Win32'
+            macros == "foo;bar"
+            includePath == "include1;include2;include3"
+        }
+        with (configurations['debug|x64']) {
+            configName == 'debug'
+            platformName == 'x64'
+            macros == "foo;bar"
+            includePath == "include1;include2"
+        }
+    }
+
+    private VisualStudioProjectConfiguration configuration(def configName, def platformName, def defines, def includes) {
+        return Stub(VisualStudioProjectConfiguration) {
+            getName() >> "${configName}|${platformName}"
+            getConfigurationName() >> configName
+            getPlatformName() >> platformName
+            getBuildTask() >> "buildMe"
+            getCleanTask() >> "cleanMe"
+            getDefines() >> defines
+            getIncludePaths() >> includes.collect { file(it) }
+        }
     }
 
     private ProjectFile getProjectFile() {
@@ -90,15 +106,7 @@ class VisualStudioProjectFileTest extends Specification {
         return new ProjectFile(file)
     }
 
-    private void debugText() {
-        def file = testDirectoryProvider.testDirectory.file("debug.xml")
-        generator.store(file)
-        println file.text
-    }
-
     private TestFile file(String name) {
         testDirectoryProvider.testDirectory.file(name)
     }
-
-    interface ExtensionAwareBinary extends NativeBinary, ExtensionAware {}
 }

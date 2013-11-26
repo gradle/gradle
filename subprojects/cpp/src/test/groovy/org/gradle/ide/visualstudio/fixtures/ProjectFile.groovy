@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-
-
 package org.gradle.ide.visualstudio.fixtures
 import org.gradle.test.fixtures.file.TestFile
 
@@ -27,9 +25,12 @@ class ProjectFile {
         this.projectXml = new XmlParser().parse(projectFile)
     }
 
-    public List<Configuration> getProjectConfigurations() {
-        itemGroup("ProjectConfigurations").collect {
+    public Map<String, Configuration> getProjectConfigurations() {
+        def configs = itemGroup("ProjectConfigurations").collect {
             new Configuration(it.Configuration[0].text(), it.Platform[0].text())
+        }
+        return configs.collectEntries {
+            [it.name, it]
         }
     }
 
@@ -64,6 +65,10 @@ class ProjectFile {
             this.platformName = platformName
         }
 
+        String getName() {
+            "${configName}|${platformName}"
+        }
+
         String getMacros() {
             buildConfiguration.ClCompile[0].PreprocessorDefinitions[0].text()
         }
@@ -73,7 +78,11 @@ class ProjectFile {
         }
 
         private Node getBuildConfiguration() {
-            return projectXml.ItemDefinitionGroup.find({ it.'@Label' == 'VSBuildConfiguration' }) as Node
+            projectXml.ItemDefinitionGroup.find({ it.'@Label' == 'VSBuildConfiguration' && it.'@Condition' == condition}) as Node
+        }
+
+        private String getCondition() {
+            "'\$(Configuration)|\$(Platform)'=='${configName}|${platformName}'"
         }
     }
 }
