@@ -120,7 +120,7 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
         testNg.run();
     }
 
-    private static void configureXmlTestSuite(TestNG testNg, List<Class<?>> testClasses, List<TestSelectionSpec> includedTests) {
+    private static void configureXmlTestSuite(TestNG testNg, Iterable<Class<?>> testClasses, Iterable<TestSelectionSpec> includedTests) {
         XmlSuite suite = new XmlSuite();
         XmlTest xmlTest = new XmlTest(suite);
         xmlTest.setName("Gradle test");

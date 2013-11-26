@@ -28,8 +28,6 @@ import org.junit.runner.Runner;
 import org.junit.runner.notification.RunListener;
 import org.junit.runner.notification.RunNotifier;
 
-import java.util.List;
-
 public class JUnitTestClassExecuter {
     private final ClassLoader applicationClassLoader;
     private final RunListener listener;
@@ -92,9 +90,9 @@ public class JUnitTestClassExecuter {
 
     private static class MethodNameFilter extends org.junit.runner.manipulation.Filter {
 
-        private List<TestSelectionSpec> includedTests;
+        private Iterable<TestSelectionSpec> includedTests;
 
-        public MethodNameFilter(List<TestSelectionSpec> includedTests) {
+        public MethodNameFilter(Iterable<TestSelectionSpec> includedTests) {
             this.includedTests = includedTests;
         }
 

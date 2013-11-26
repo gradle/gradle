@@ -43,7 +43,7 @@ import org.gradle.util.WrapUtil;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Callable;
 
 /**
@@ -297,7 +297,7 @@ public class JavaBasePlugin implements Plugin<Project> {
     }
 
     private void configureBasedOnIncludedMethods(final Test test) {
-        List<TestSelectionSpec> included = test.getSelection().getIncludedTests();
+        Set<TestSelectionSpec> included = test.getSelection().getIncludedTests();
         if (!included.isEmpty()) {
             failIfNoTestIsExecuted(test, "No tests found for given includes: " + included);
         }

@@ -19,6 +19,9 @@ package org.gradle.api.internal.tasks.testing.selection
 import org.gradle.util.Matchers
 import spock.lang.Specification
 
+import static org.gradle.util.Matchers.isSerializable
+import static org.hamcrest.MatcherAssert.assertThat
+
 class DefaultTestSelectionSpecTest extends Specification {
 
     def "equals and hashcode"() {
@@ -32,5 +35,10 @@ class DefaultTestSelectionSpecTest extends Specification {
         spec != differentClass
         spec.hashCode() != differentClass.hashCode()
         spec != differentMethod
+    }
+
+    def "is serializable"() {
+        expect:
+        assertThat(new DefaultTestSelectionSpec("foo", "bar"), isSerializable())
     }
 }

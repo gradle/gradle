@@ -38,7 +38,7 @@ public class TestNGSpec implements Serializable {
     private final Set<String> includeGroups;
     private final Set<String> excludeGroups;
     private final Set<String> listeners;
-    private final List<TestSelectionSpec> includedTests;
+    private final Set<TestSelectionSpec> includedTests;
 
     public TestNGSpec(TestNGOptions options, DefaultTestSelection selection) {
         this.defaultSuiteName = options.getSuiteName();
@@ -99,7 +99,7 @@ public class TestNGSpec implements Serializable {
         return defaultSuiteName;
     }
 
-    public List<TestSelectionSpec> getIncludedTests() {
+    public Set<TestSelectionSpec> getIncludedTests() {
         return includedTests;
     }
 }
