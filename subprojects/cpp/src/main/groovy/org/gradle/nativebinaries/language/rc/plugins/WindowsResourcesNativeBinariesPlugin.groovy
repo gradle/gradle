@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,9 @@
  * limitations under the License.
  */
 package org.gradle.nativebinaries.language.rc.plugins
-
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.language.c.CSourceSet
-import org.gradle.language.c.plugins.CLangPlugin
 import org.gradle.language.rc.WindowsResourceSet
 import org.gradle.language.rc.plugins.WindowsResourceScriptPlugin
 import org.gradle.nativebinaries.Executable
@@ -28,17 +25,16 @@ import org.gradle.nativebinaries.NativeBinary
 import org.gradle.nativebinaries.NativeComponent
 import org.gradle.nativebinaries.internal.NativeBinaryInternal
 import org.gradle.nativebinaries.internal.StaticLibraryBinaryInternal
-import org.gradle.nativebinaries.language.c.tasks.CCompile
 import org.gradle.nativebinaries.language.internal.DefaultPreprocessingTool
 import org.gradle.nativebinaries.language.rc.tasks.WindowsResourceCompile
 import org.gradle.nativebinaries.plugins.NativeBinariesPlugin
-
 /**
  * A plugin for projects wishing to build native binary components from Windows Resource sources.
  *
- * <p>Automatically includes the {@link CLangPlugin} for core C++ support and the {@link NativeBinariesPlugin} for native binary support.</p>
+ * <p>Automatically includes the {@link WindowsResourceScriptPlugin} for core Windows Resource source support
+ * and the {@link NativeBinariesPlugin} for native binary support.</p>
  *
- * <li>Creates a {@link CCompile} task for each {@link CSourceSet} to compile the C sources.</li>
+ * <li>Creates a {@link WindowsResourceCompile} task for each {@link WindowsResourceSet} to compile the sources.</li>
  */
 @Incubating
 class WindowsResourcesNativeBinariesPlugin implements Plugin<ProjectInternal> {
