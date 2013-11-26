@@ -88,7 +88,7 @@ public class VisualStudioInstall {
             return (isNativeAmd64 && availableBinPaths.containsKey(PLATFORM_AMD64_AMD64)) || availableBinPaths.containsKey(PLATFORM_X86_AMD64);
         }
 
-        if (targetArch.isArm()) {
+        if (targetArch.isArmv7()) {
             return (isNativeAmd64 && availableBinPaths.containsKey(PLATFORM_AMD64_ARM)) || availableBinPaths.containsKey(PLATFORM_X86_ARM);
         }
 
@@ -142,7 +142,7 @@ public class VisualStudioInstall {
             return new File(visualCppDir, BINPATH_X86_IA64);
         }
 
-        if (targetArch.isArm()) {
+        if (targetArch.isArmv7()) {
             return getCompatibleVisualCppBin(isNativeAMD64, PLATFORM_AMD64_ARM, PLATFORM_X86_ARM);
         }
 
@@ -179,7 +179,7 @@ public class VisualStudioInstall {
         if (architecture(platform).isAmd64()) {
             return new File(visualCppDir, LIBPATH_AMD64);
         }
-        if (architecture(platform).isArm()) {
+        if (architecture(platform).isArmv7()) {
             return new File(visualCppDir, LIBPATH_ARM);
         }
         if (architecture(platform).isIa64()) {
@@ -192,7 +192,7 @@ public class VisualStudioInstall {
         if (architecture(platform).isAmd64()) {
             return ASSEMBLER_FILENAME_AMD64;
         }
-        if (architecture(platform).isArm()) {
+        if (architecture(platform).isArmv7()) {
             return ASSEMBLER_FILENAME_ARM;
         }
         if (architecture(platform).isIa64()) {

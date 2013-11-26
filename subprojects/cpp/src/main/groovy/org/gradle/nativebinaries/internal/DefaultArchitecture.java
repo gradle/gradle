@@ -50,7 +50,7 @@ public class DefaultArchitecture implements ArchitectureInternal {
         return instructionSet == InstructionSet.ITANIUM && registerSize == 64;
     }
 
-    public boolean isArm() {
+    public boolean isArmv7() {
         return instructionSet == InstructionSet.ARM && registerSize == 32;
     }
 

@@ -53,6 +53,8 @@ public abstract class AbstractGccCompatibleToolChain extends AbstractToolChain i
         addPlatformConfiguration(new ToolChainDefaultArchitecture());
         addPlatformConfiguration(new Intel32Architecture());
         addPlatformConfiguration(new Intel64Architecture());
+        addPlatformConfiguration(new ARMv7Architecture());
+        addPlatformConfiguration(new ARMv8Architecture());
         configInsertLocation = 0;
     }
 
@@ -177,6 +179,58 @@ public abstract class AbstractGccCompatibleToolChain extends AbstractToolChain i
 
         public List<String> getLinkerArgs() {
             return asList("-m64");
+        }
+
+        public List<String> getStaticLibraryArchiverArgs() {
+            return emptyList();
+        }
+    }
+
+    private static class ARMv7Architecture implements TargetPlatformConfiguration {
+        public boolean supportsPlatform(Platform targetPlatform) {
+            return ((ArchitectureInternal) targetPlatform.getArchitecture()).isArmv7();
+        }
+
+        public List<String> getCppCompilerArgs() {
+            return asList("-m32", "-arch", "armv7");
+        }
+
+        public List<String> getCCompilerArgs() {
+            return asList("-m32", "-arch", "armv7");
+        }
+
+        public List<String> getAssemblerArgs() {
+            return asList("-arch", "armv7");
+        }
+
+        public List<String> getLinkerArgs() {
+            return asList("-m32", "-arch", "armv7");
+        }
+
+        public List<String> getStaticLibraryArchiverArgs() {
+            return emptyList();
+        }
+    }
+
+    private static class ARMv8Architecture implements TargetPlatformConfiguration {
+        public boolean supportsPlatform(Platform targetPlatform) {
+            return ((ArchitectureInternal) targetPlatform.getArchitecture()).isArmv8();
+        }
+
+        public List<String> getCppCompilerArgs() {
+            return asList("-m64", "-arch", "armv8");
+        }
+
+        public List<String> getCCompilerArgs() {
+            return asList("-m64", "-arch", "armv8");
+        }
+
+        public List<String> getAssemblerArgs() {
+            return asList("-arch", "armv8");
+        }
+
+        public List<String> getLinkerArgs() {
+            return asList("-m64", "-arch", "armv8");
         }
 
         public List<String> getStaticLibraryArchiverArgs() {

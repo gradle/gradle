@@ -32,7 +32,7 @@ public interface ArchitectureInternal extends Architecture {
 
     boolean isIa64();
 
-    boolean isArm();
+    boolean isArmv7();
 
     boolean isArmv8();
 }
