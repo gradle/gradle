@@ -144,8 +144,10 @@ public abstract class Message implements Serializable {
                 };
                 try {
                     return (Throwable) ois.readObject();
+                } catch (ClassNotFoundException ignored) {
+                    // Don't log
                 } catch (Throwable failure) {
-                    LOGGER.info("Ignoring failure to de-serialize throwable.", failure);
+                    LOGGER.debug("Ignoring failure to de-serialize throwable.", failure);
                 }
             }
 
@@ -161,7 +163,7 @@ public abstract class Message implements Serializable {
             } catch (NoSuchMethodException ignored) {
                 // Don't log
             } catch (Throwable ignored) {
-                LOGGER.info("Ignoring failure to recreate throwable.", ignored);
+                LOGGER.debug("Ignoring failure to recreate throwable.", ignored);
             }
 
             Throwable placeholder = new PlaceholderException(type, message, getMessageExec, toString, toStringRuntimeExec, causeThrowable);
