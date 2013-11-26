@@ -20,11 +20,13 @@ import org.apache.ivy.core.module.descriptor.Configuration
 import org.apache.ivy.core.module.descriptor.DefaultArtifact
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
 import org.apache.ivy.core.module.id.ModuleRevisionId
+import org.gradle.api.artifacts.component.ComponentIdentifier
 import spock.lang.Specification
 
 class DefaultLocalComponentMetaDataTest extends Specification {
     def moduleDescriptor = DefaultModuleDescriptor.newDefaultInstance(ModuleRevisionId.newInstance("group", "module", "version"))
-    def metaData = new DefaultLocalComponentMetaData(moduleDescriptor)
+    def componentIdentifier = Mock(ComponentIdentifier)
+    def metaData = new DefaultLocalComponentMetaData(moduleDescriptor, componentIdentifier)
 
     def "can add artifacts"() {
         def artifact = artifact()

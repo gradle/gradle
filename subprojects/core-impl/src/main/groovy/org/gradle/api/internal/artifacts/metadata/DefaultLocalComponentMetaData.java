@@ -22,6 +22,7 @@ import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 
 import java.io.File;
@@ -32,10 +33,12 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
     private final Multimap<String, DefaultLocalArtifactMetaData> artifactsByConfig = LinkedHashMultimap.create();
     private final DefaultModuleDescriptor moduleDescriptor;
     private final ModuleVersionIdentifier id;
+    private final ComponentIdentifier componentIdentifier;
 
-    public DefaultLocalComponentMetaData(DefaultModuleDescriptor moduleDescriptor) {
+    public DefaultLocalComponentMetaData(DefaultModuleDescriptor moduleDescriptor, ComponentIdentifier componentIdentifier) {
         this.moduleDescriptor = moduleDescriptor;
         id = DefaultModuleVersionIdentifier.newId(moduleDescriptor.getModuleRevisionId());
+        this.componentIdentifier = componentIdentifier;
     }
 
     public ModuleVersionIdentifier getId() {
@@ -64,7 +67,7 @@ public class DefaultLocalComponentMetaData implements MutableLocalComponentMetaD
 
     public ModuleVersionMetaData toResolveMetaData() {
         // TODO:ADAM - need to clone the descriptor
-        return new ModuleDescriptorAdapter(id, moduleDescriptor) {
+        return new ModuleDescriptorAdapter(id, moduleDescriptor, componentIdentifier) {
             @Override
             protected Set<ModuleVersionArtifactMetaData> getArtifactsForConfiguration(ConfigurationMetaData configurationMetaData) {
                 Set<ModuleVersionArtifactMetaData> result = new LinkedHashSet<ModuleVersionArtifactMetaData>();

@@ -31,6 +31,7 @@ class ProjectBackedModuleTest extends Specification {
         module.group == project.group.toString()
         module.version == project.version.toString()
         module.status == project.status.toString()
+        module.projectPath == project.path
 
         when:
         project.group = "fo${1}o"

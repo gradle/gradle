@@ -21,6 +21,10 @@ package org.gradle.api.internal.artifacts.metadata
 import org.apache.ivy.core.module.descriptor.*
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.artifacts.ModuleVersionIdentifier
+import org.gradle.api.artifacts.component.ComponentIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.component.DefaultBuildComponentIdentifier
+import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier
 import spock.lang.Specification
 
 class ModuleDescriptorAdapterTest extends Specification {
@@ -251,5 +255,24 @@ class ModuleDescriptorAdapterTest extends Specification {
         copy.dependencies == [dependency1, dependency2]
         copy.status == 'a'
         copy.statusScheme == ['a', 'b', 'c']
+    }
+
+    def "creates ModuleComponentIdentifier as component ID if not provided in constructor"() {
+        when:
+        ModuleVersionIdentifier moduleVersionIdentifier = new DefaultModuleVersionIdentifier('group', 'name', 'version')
+        def metaData = new ModuleDescriptorAdapter(moduleVersionIdentifier, moduleDescriptor)
+
+        then:
+        metaData.componentId == new DefaultModuleComponentIdentifier('group', 'name', 'version')
+    }
+
+    def "uses component ID if provided in constructor"() {
+        when:
+        ModuleVersionIdentifier moduleVersionIdentifier = new DefaultModuleVersionIdentifier('group', 'name', 'version')
+        ComponentIdentifier componentIdentifier = new DefaultBuildComponentIdentifier(':myPath')
+        def metaData = new ModuleDescriptorAdapter(moduleVersionIdentifier, moduleDescriptor, componentIdentifier)
+
+        then:
+        metaData.componentId == componentIdentifier
     }
 }
