@@ -16,6 +16,7 @@
 package org.gradle.nativebinaries.language.cpp
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativebinaries.language.cpp.fixtures.RequiresInstalledToolChain
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
@@ -31,6 +32,7 @@ class CppSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
     @Rule public final Sample multiProject = new Sample(temporaryFolder, 'native-binaries/multi-project')
     @Rule public final Sample flavors = new Sample(temporaryFolder, 'native-binaries/flavors')
     @Rule public final Sample variants = new Sample(temporaryFolder, 'native-binaries/variants')
+    @Rule public final Sample windowsResources = new Sample(temporaryFolder, 'native-binaries/windows-resources')
 
     def "assembler"() {
         given:
@@ -75,6 +77,23 @@ class CppSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
 
         and:
         installation("native-binaries/cpp/build/install/mainExecutable").exec().out == "Hello world!\n"
+    }
+
+    @RequiresInstalledToolChain("visual c++")
+    def "windows resources"() {
+        given:
+        sample windowsResources
+
+        when:
+        run "installMainExecutable"
+
+        then:
+        executedAndNotSkipped ":compileHelloSharedLibraryHelloCpp", ":resourceCompileHelloSharedLibraryHelloRc",
+                              ":linkHelloSharedLibrary", ":helloSharedLibrary",
+                              ":compileMainExecutableMainCpp", ":linkMainExecutable", ":mainExecutable"
+
+        and:
+        installation("native-binaries/windows-resources/build/install/mainExecutable").exec().out == "Hello world!\n"
     }
 
     def "custom layout"() {
