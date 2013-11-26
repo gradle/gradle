@@ -2,6 +2,10 @@
 
 Here are the new features introduced in this Gradle release.
 
+### Single test method execution (and more)
+
+tbd.
+
 ### `shouldRunAfter` task ordering
 
 Gradle 1.6 introduced task ordering by way of the `mustRunAfter` method(s) added to tasks.
