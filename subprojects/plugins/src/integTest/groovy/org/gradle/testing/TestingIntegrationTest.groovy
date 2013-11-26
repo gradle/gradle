@@ -19,6 +19,7 @@ import org.apache.commons.lang.RandomStringUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.internal.os.OperatingSystem
+import org.hamcrest.Matchers
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Timeout
@@ -57,7 +58,6 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
         ":test" in nonSkippedTasks
     }
 
-    @Timeout(30)
     def "fails cleanly even if an exception is thrown that doesn't serialize cleanly"() {
         given:
         file('src/test/java/ExceptionTest.java') << """
@@ -67,6 +67,10 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
             public class ExceptionTest {
 
                 static class BadlyBehavedException extends Exception {
+                    BadlyBehavedException() {
+                        super("Broken writeObject()");
+                    }
+
                     private void writeObject(ObjectOutputStream os) throws IOException {
                         throw new IOException("Failed strangely");
                     }
@@ -89,27 +93,34 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failureHasCause "There were failing tests"
+
+        and:
+        def results = new DefaultTestExecutionResult(file("."))
+        results.assertTestClassesExecuted("ExceptionTest")
+        results.testClass("ExceptionTest").assertTestFailed("testThrow", Matchers.equalTo('ExceptionTest$BadlyBehavedException: Broken writeObject()'))
     }
 
-    @Timeout(30)
     def "fails cleanly even if an exception is thrown that doesn't de-serialize cleanly"() {
         given:
 
-        // I'm not sure what it is exactly about InvalidRequestException
-        // that brings out this problem. It's a thrift-generated
-        // class and it has a "readObject" method. I couldn't reproduce the issue
-        // using a simple class as in the previous case, presumably because it has to be
-        // on the Gradle worker classpath as well as the Gradle main classpath -
-        // could this be the case for Thrift?
-
         file('src/test/java/ExceptionTest.java') << """
             import org.junit.*;
-            import org.apache.cassandra.thrift.InvalidRequestException;
+            import java.io.*;
 
             public class ExceptionTest {
+                static class BadlyBehavedException extends Exception {
+                    BadlyBehavedException() {
+                        super("Broken readObject()");
+                    }
+
+                    private void readObject(ObjectInputStream os) throws IOException {
+                        throw new IOException("Failed strangely");
+                    }
+                }
+
                 @Test
                 public void testThrow() throws Throwable {
-                    throw new InvalidRequestException("causes de-serialization failure");
+                    throw new BadlyBehavedException();
                 }
             }
         """
@@ -118,7 +129,6 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
             repositories { mavenCentral() }
             dependencies {
                 testCompile 'junit:junit:4.10'
-                compile 'org.hectorclient:hector-core:1.1-3'
             }
         """
 
@@ -128,6 +138,11 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failureHasCause "There were failing tests"
+
+        and:
+        def results = new DefaultTestExecutionResult(file("."))
+        results.assertTestClassesExecuted("ExceptionTest")
+        results.testClass("ExceptionTest").assertTestFailed("testThrow", Matchers.equalTo('ExceptionTest$BadlyBehavedException: Broken readObject()'))
     }
 
     @IgnoreIf({ OperatingSystem.current().isWindows() })
