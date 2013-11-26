@@ -57,6 +57,32 @@ includes task type, path, description and available commandline options. To get 
 
 ### Use Visual Studio to compile Windows Resources (i)
 
+When building native binaries with the `VisualCpp` tool chain, Gradle can now compile Windows Resource (.rc) files and link them
+into the binary. This functionality is made available by the `windows-resources` plugin.
+
+    apply plugin: 'cpp'
+    apply plugin: 'windows-resources'
+
+    libraries {
+        hello {}
+    }
+
+By default, Gradle creates a single `WindowsResourceSet` for each component, which will includes any sources found under `src/$component.name/rc`.
+The windows resource source directories can be configured via the associated `WindowsResourceSet`.
+
+    sources {
+        hello {
+            rc {
+                source {
+                    srcDirs "src/main/rc", "src/common/resources"
+                    include "**/*.rc", "**/*.res"
+                }
+            }
+        }
+    }
+
+For more details please see the [Windows Resources](userguide/nativeBinaries.html#native_binaries:windows-resources) section in the User Guide.
+
 ### Fine-grained control of command line arguments for GCC (i)
 
 ### Better auto-detection of Visual Studio and Windows SDK (i)

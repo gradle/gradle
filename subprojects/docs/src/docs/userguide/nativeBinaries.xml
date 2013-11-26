@@ -253,7 +253,7 @@
         </sample>
     </section>
 
-    <section>
+    <section id="native_binaries:windows-resources">
         <title>Windows Resources</title>
         <para>
             When using the <apilink class="org.gradle.nativebinaries.toolchain.VisualCpp"/> tool chain, Gradle is able to compile Window Resource (<literal>rc</literal>)
