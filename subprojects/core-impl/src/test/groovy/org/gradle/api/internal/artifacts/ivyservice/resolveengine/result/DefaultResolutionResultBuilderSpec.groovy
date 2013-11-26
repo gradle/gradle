@@ -18,7 +18,9 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ModuleVersionSelector
-import org.gradle.api.artifacts.result.*
+import org.gradle.api.artifacts.component.ComponentIdentifier
+import org.gradle.api.artifacts.result.ComponentSelectionReason
+import org.gradle.api.artifacts.result.ResolvedDependencyResult
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException
 import spock.lang.Specification
 
@@ -231,6 +233,7 @@ class DefaultResolutionResultBuilderSpec extends Specification {
     class DummyModuleVersionSelection implements ModuleVersionSelection {
         ModuleVersionIdentifier selectedId
         ComponentSelectionReason selectionReason
+        ComponentIdentifier componentId
     }
 
     class DummyInternalDependencyResult implements InternalDependencyResult {
