@@ -20,39 +20,15 @@ import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.internal.DocumentationRegistry
-import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider
-import org.gradle.api.internal.file.FileResolver
-import org.gradle.buildinit.plugins.internal.ProjectLayoutSetupRegistry
-import org.gradle.buildinit.plugins.internal.ProjectLayoutSetupRegistryFactory
 import org.gradle.buildinit.tasks.InitBuild
-
-import javax.inject.Inject
 
 @Incubating
 class BuildInitPlugin implements Plugin<Project> {
     public static final String INIT_BUILD_TASK_NAME = "init"
     public static final String GROUP = 'Build Setup'
 
-    private final MavenSettingsProvider mavenSettingsProvider
-    private final DocumentationRegistry documentationRegistry
-    private final FileResolver fileResolver
-
-    @Inject
-    BuildInitPlugin(MavenSettingsProvider mavenSettingsProvider, DocumentationRegistry documentationRegistry, FileResolver fileResolver) {
-        this.fileResolver = fileResolver
-        this.documentationRegistry = documentationRegistry
-        this.mavenSettingsProvider = mavenSettingsProvider
-    }
-
     void apply(Project project) {
-        ProjectLayoutSetupRegistryFactory projectLayoutRegistryFactory = new ProjectLayoutSetupRegistryFactory(mavenSettingsProvider,
-                documentationRegistry,
-                fileResolver);
-
-        Task init = project.getTasks().create(INIT_BUILD_TASK_NAME, InitBuild);
-        ProjectLayoutSetupRegistry projectLayoutRegistry = projectLayoutRegistryFactory.createProjectLayoutSetupRegistry()
-        init.projectLayoutRegistry = projectLayoutRegistry
+        Task init = project.tasks.create(INIT_BUILD_TASK_NAME, InitBuild)
         init.group = GROUP
         init.description = "Initializes a new Gradle build. [incubating]"
         Closure setupCanBeSkipped = {

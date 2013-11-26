@@ -62,7 +62,7 @@ public class IvyBackedArtifactPublisher implements ArtifactPublisher {
                     ivyModuleDescriptorWriter.write(moduleDescriptor, descriptor);
                 }
 
-                // Need to convert a second time, to determine which artifacts to publish
+                // Need to convert a second time, to determine which artifacts to publish (and yes, this isn't a great way to do things...)
                 componentMetaData = publishLocalComponentFactory.convert(configurationsToPublish, module);
                 BuildableModuleVersionPublishMetaData publishMetaData = componentMetaData.toPublishMetaData();
                 if (descriptor != null) {

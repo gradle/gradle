@@ -23,7 +23,7 @@ import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
-import org.gradle.api.internal.LocationAwareException;
+import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.logging.StandardOutputListener;
@@ -374,6 +374,11 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
         public ExecutionFailure assertHasFileName(String filename) {
             assertThat(this.fileName, equalTo(filename));
             outputFailure.assertHasFileName(filename);
+            return this;
+        }
+
+        public ExecutionFailure assertHasResolution(String resolution) {
+            outputFailure.assertHasResolution(resolution);
             return this;
         }
 

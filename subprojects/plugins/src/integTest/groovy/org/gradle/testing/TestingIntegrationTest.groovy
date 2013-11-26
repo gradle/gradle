@@ -17,8 +17,9 @@ package org.gradle.testing
 
 import org.apache.commons.lang.RandomStringUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
+import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.internal.os.OperatingSystem
+import org.hamcrest.Matchers
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Timeout
@@ -55,6 +56,93 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         ":test" in nonSkippedTasks
+    }
+
+    def "fails cleanly even if an exception is thrown that doesn't serialize cleanly"() {
+        given:
+        file('src/test/java/ExceptionTest.java') << """
+            import org.junit.*;
+            import java.io.*;
+
+            public class ExceptionTest {
+
+                static class BadlyBehavedException extends Exception {
+                    BadlyBehavedException() {
+                        super("Broken writeObject()");
+                    }
+
+                    private void writeObject(ObjectOutputStream os) throws IOException {
+                        throw new IOException("Failed strangely");
+                    }
+                }
+
+                @Test
+                public void testThrow() throws Throwable {
+                    throw new BadlyBehavedException();
+                }
+            }
+        """
+        file('build.gradle') << """
+            apply plugin: 'java'
+            repositories { mavenCentral() }
+            dependencies { testCompile 'junit:junit:4.10' }
+        """
+
+        when:
+        runAndFail "test"
+
+        then:
+        failureHasCause "There were failing tests"
+
+        and:
+        def results = new DefaultTestExecutionResult(file("."))
+        results.assertTestClassesExecuted("ExceptionTest")
+        results.testClass("ExceptionTest").assertTestFailed("testThrow", Matchers.equalTo('ExceptionTest$BadlyBehavedException: Broken writeObject()'))
+    }
+
+    def "fails cleanly even if an exception is thrown that doesn't de-serialize cleanly"() {
+        given:
+
+        file('src/test/java/ExceptionTest.java') << """
+            import org.junit.*;
+            import java.io.*;
+
+            public class ExceptionTest {
+                static class BadlyBehavedException extends Exception {
+                    BadlyBehavedException() {
+                        super("Broken readObject()");
+                    }
+
+                    private void readObject(ObjectInputStream os) throws IOException {
+                        throw new IOException("Failed strangely");
+                    }
+                }
+
+                @Test
+                public void testThrow() throws Throwable {
+                    throw new BadlyBehavedException();
+                }
+            }
+        """
+        file('build.gradle') << """
+            apply plugin: 'java'
+            repositories { mavenCentral() }
+            dependencies {
+                testCompile 'junit:junit:4.10'
+            }
+        """
+
+        when:
+        // an exception was thrown so we should fail here
+        runAndFail "test"
+
+        then:
+        failureHasCause "There were failing tests"
+
+        and:
+        def results = new DefaultTestExecutionResult(file("."))
+        results.assertTestClassesExecuted("ExceptionTest")
+        results.testClass("ExceptionTest").assertTestFailed("testThrow", Matchers.equalTo('ExceptionTest$BadlyBehavedException: Broken readObject()'))
     }
 
     @IgnoreIf({ OperatingSystem.current().isWindows() })
@@ -160,7 +248,7 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
         when:
         run "othertestsTest"
         then:
-        def result = new JUnitXmlTestExecutionResult(testDirectory)
+        def result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted("TestCaseExtendsAbstractClass")
     }
 }

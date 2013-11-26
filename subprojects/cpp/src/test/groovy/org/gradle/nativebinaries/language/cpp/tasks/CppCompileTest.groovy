@@ -17,7 +17,7 @@
 package org.gradle.nativebinaries.language.cpp.tasks
 import org.gradle.api.internal.tasks.compile.Compiler
 import org.gradle.api.tasks.WorkResult
-import org.gradle.nativebinaries.Platform
+import org.gradle.nativebinaries.internal.PlatformInternal
 import org.gradle.nativebinaries.internal.PlatformToolChain
 import org.gradle.nativebinaries.internal.ToolChainInternal
 import org.gradle.nativebinaries.language.cpp.internal.CppCompileSpec
@@ -29,12 +29,12 @@ class CppCompileTest extends Specification {
     def testDir = new TestNameTestDirectoryProvider().testDirectory
     CppCompile cppCompile = TestUtil.createTask(CppCompile)
     def toolChain = Mock(ToolChainInternal)
-    def platform = Mock(Platform)
+    def platform = Mock(PlatformInternal)
     def platformToolChain = Mock(PlatformToolChain)
     Compiler<CppCompileSpec> cppCompiler = Mock(Compiler)
 
     def "executes using the CppCompiler"() {
-        def inputDir = testDir.file("sourceFile")
+        def sourceFile = testDir.createFile("sourceFile")
         def result = Mock(WorkResult)
         when:
         cppCompile.toolChain = toolChain
@@ -42,11 +42,12 @@ class CppCompileTest extends Specification {
         cppCompile.compilerArgs = ["arg"]
         cppCompile.macros = [def: "value"]
         cppCompile.objectFileDir = testDir.file("outputFile")
-        cppCompile.source inputDir
+        cppCompile.source sourceFile
         cppCompile.execute()
 
         then:
         _ * toolChain.outputType >> "cpp"
+        _ * platform.compatibilityString >> "p"
         1 * toolChain.target(platform) >> platformToolChain
         1 * platformToolChain.createCppCompiler() >> cppCompiler
         1 * cppCompiler.execute({ CppCompileSpec spec ->

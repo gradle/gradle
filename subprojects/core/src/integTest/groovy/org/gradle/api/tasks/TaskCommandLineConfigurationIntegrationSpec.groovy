@@ -22,18 +22,19 @@ import spock.lang.Ignore
 class TaskCommandLineConfigurationIntegrationSpec extends AbstractIntegrationSpec {
 
     final String someConfigurableTaskType = """
-    import org.gradle.api.internal.tasks.CommandLineOption
+    import org.gradle.api.internal.tasks.options.Option
 
     class SomeTask extends DefaultTask {
         boolean first
         String second
+        TestEnum third
 
-        @CommandLineOption(options = "first", description = "configures 'first' field")
+        @Option(option = "first", description = "configures 'first' field")
         void setFirst(boolean first) {
             this.first = first
         }
 
-        @CommandLineOption(options = "second", description = "configures 'second' field")
+        @Option(option = "second", description = "configures 'second' field")
         void setSecond(String second) {
             this.second = second
         }
@@ -43,11 +44,24 @@ class TaskCommandLineConfigurationIntegrationSpec extends AbstractIntegrationSpe
             this.second = second.toString()
         }
 
+        @Option(option = "third", description = "configures 'third' field")
+        void setThird(TestEnum blubb) {
+            this.third = blubb
+        }
+
         @TaskAction
         void renderFields() {
-            println "first=" + first + ",second=" + second
+            println "first=" + first + ",second=" + second + ",third=" + third
         }
-    }"""
+
+
+        enum TestEnum {
+            valid1, valid2, valid3
+        }
+    }
+
+
+    """
 
     def "can configure task from command line in multiple projects"() {
         given:
@@ -166,7 +180,8 @@ class TaskCommandLineConfigurationIntegrationSpec extends AbstractIntegrationSpe
         def failure = runAndFail 'someTask', '--first'
 
         then:
-        failure.assertHasDescription("Problem configuring task :other:someTask from command line. Unknown command-line option '--first'.")
+        failure.assertHasDescription("Problem configuring task :other:someTask from command line.")
+        failure.assertHasCause("Unknown command-line option '--first'.")
     }
 
     def "using an unknown option yields decent error message"() {
@@ -183,7 +198,8 @@ class TaskCommandLineConfigurationIntegrationSpec extends AbstractIntegrationSpe
         runAndFail 'someTask', '--second', 'foo', 'someTask2', '--secon', 'bar'
 
         then:
-        failure.assertHasDescription("Problem configuring task :someTask2 from command line. Unknown command-line option '--secon'.")
+        failure.assertHasDescription("Problem configuring task :someTask2 from command line.")
+        failure.assertHasCause("Unknown command-line option '--secon'.")
 
         //TODO it's not fixable easily we would need to change some stuff in options parsing. See also ignored test method below.
 //        when:
@@ -196,13 +212,15 @@ class TaskCommandLineConfigurationIntegrationSpec extends AbstractIntegrationSpe
         runAndFail 'someTask', '--second'
 
         then:
-        failure.assertHasDescription("Problem configuring task :someTask from command line. No argument was provided for command-line option '--second'.")
+        failure.assertHasDescription("Problem configuring task :someTask from command line.")
+        failure.assertHasCause("No argument was provided for command-line option '--second'.")
 
         when:
         runAndFail 'someTask', '--second', 'hey', '--second', 'buddy'
 
         then:
-        failure.assertHasDescription("Problem configuring task :someTask from command line. Multiple arguments were provided for command-line option '--second'.")
+        failure.assertHasDescription("Problem configuring task :someTask from command line.")
+        failure.assertHasCause("Multiple arguments were provided for command-line option '--second'.")
     }
 
     def "single dash user error yields decent error message"() {
@@ -210,7 +228,8 @@ class TaskCommandLineConfigurationIntegrationSpec extends AbstractIntegrationSpe
         runAndFail 'tasks', '-all'
 
         then:
-        failure.assertHasDescription("Problem configuring task :tasks from command line. Unknown command-line option '-l'.")
+        failure.assertHasDescription("Problem configuring task :tasks from command line.")
+        failure.assertHasCause("Unknown command-line option '-l'.")
     }
 
     @Ignore
@@ -228,6 +247,37 @@ class TaskCommandLineConfigurationIntegrationSpec extends AbstractIntegrationSpe
 
         then:
         failure.assertHasDescription("Incorrect command line arguments: [-l, -l]. Task options require double dash, for example: 'gradle tasks --all'.")
+    }
+
+
+    def "decent error for invalid enum value"() {
+        given:
+        file("build.gradle") << """
+            task someTask(type: SomeTask)
+            $someConfigurableTaskType
+"""
+
+        when:
+        runAndFail 'someTask', '--third', 'unsupportedValue'
+
+        then:
+        failure.assertHasDescription("Problem configuring option 'third' on task ':someTask' from command line.")
+        failure.assertHasCause("Cannot coerce string value 'unsupportedValue' to an enum value of type 'SomeTask\$TestEnum' (valid case insensitive values: [valid1, valid2, valid3])")
+    }
+
+    def "can set enum value from commandline"() {
+        given:
+        file("build.gradle") << """
+            task someTask(type: SomeTask)
+            $someConfigurableTaskType
+"""
+
+        when:
+        run 'someTask', '--third', 'valid1'
+
+        then:
+        output.contains 'third=valid1'
+        result.assertTasksExecuted(":someTask")
     }
 
     @Ignore

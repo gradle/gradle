@@ -99,6 +99,30 @@ class VisualCppToolChainTest extends Specification {
         availability.available
     }
 
+    def "uses provided installDir and windowsSdkDir for location"() {
+        when:
+        toolChain.installDir = "install-dir"
+        toolChain.windowsSdkDir = "windows-sdk-dir"
+
+        and:
+        fileResolver.resolve("install-dir") >> file("vs")
+        visualStudioLocator.locateVisualStudio(file("vs")) >> visualStudio
+        visualStudio.found >> true
+
+        and:
+        fileResolver.resolve("windows-sdk-dir") >> file("win-sdk")
+        visualStudioLocator.locateWindowsSdk(file("win-sdk")) >> windowsSdk
+        windowsSdk.found >> true
+
+        and:
+        0 * _._
+
+        then:
+        def availability = new ToolChainAvailability()
+        toolChain.checkAvailable(availability);
+        availability.available
+    }
+
     def "resolves install directory"() {
         when:
         toolChain.installDir = "The Path"
@@ -108,6 +132,17 @@ class VisualCppToolChainTest extends Specification {
 
         and:
         toolChain.installDir == file("one")
+    }
+
+    def "resolves windows sdk directory"() {
+        when:
+        toolChain.windowsSdkDir = "The Path"
+
+        then:
+        fileResolver.resolve("The Path") >> file("one")
+
+        and:
+        toolChain.windowsSdkDir == file("one")
     }
 
     def file(String name) {

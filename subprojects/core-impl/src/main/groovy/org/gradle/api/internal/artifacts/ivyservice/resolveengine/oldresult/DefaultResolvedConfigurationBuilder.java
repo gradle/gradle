@@ -83,7 +83,7 @@ public class DefaultResolvedConfigurationBuilder implements
         Factory<File> artifactSource = resolvedArtifactFactory.artifactSource(artifact, artifactResolver);
         Factory<ResolvedDependency> dependencySource = new ResolvedDependencyFactory(owner, builder, this);
         long id = idGenerator.generateId();
-        ResolvedArtifact newArtifact = new DefaultResolvedArtifact(new DefaultResolvedModuleVersion(owner.getId()), dependencySource, artifact.getArtifact(), artifactSource, id);
+        ResolvedArtifact newArtifact = new DefaultResolvedArtifact(new DefaultResolvedModuleVersion(owner.getId()), dependencySource, artifact.getName(), artifactSource, id);
         artifacts.put(id, newArtifact);
         return newArtifact;
     }

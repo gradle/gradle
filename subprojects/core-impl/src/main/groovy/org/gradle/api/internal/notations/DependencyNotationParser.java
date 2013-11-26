@@ -18,7 +18,8 @@ package org.gradle.api.internal.notations;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.internal.notations.api.NotationParser;
+import org.gradle.internal.typeconversion.NotationParser;
+import org.gradle.internal.typeconversion.NotationParserBuilder;
 
 import java.util.Collection;
 

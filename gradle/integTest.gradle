@@ -25,10 +25,13 @@ ext.integTestTasks = tasks.withType(Test).matching { it.name.toLowerCase().endsW
 // TODO:ADAM - remove this
 task cleanUpCaches {
     doLast {
-        // Clean up the lock files for previous versions
-        File previousVersionsDir = rootProject.file("intTestHomeDir/previousVersion")
+        File intTestHomeDir = rootProject.file("intTestHomeDir")
+
+        // Clean up files for previous versions
+        File previousVersionsDir = new File(intTestHomeDir, "previousVersion")
         if (previousVersionsDir.directory) {
             for (File versionDir: previousVersionsDir.listFiles()) {
+                // Clean up the old lock files
                 File lockFile = new File(versionDir, "cache.properties.lock")
                 if (lockFile.file && lockFile.length() > 0) {
                     def version = lockFile.bytes[0]
@@ -36,6 +39,22 @@ task cleanUpCaches {
                         println "Cleaning lock file for ${versionDir}"
                         lockFile.delete()
                     }
+                }
+                // Clean up exploded distribution from old location
+                File oldDistDir = new File(versionDir, "cache-lock-5")
+                if (oldDistDir.directory) {
+                    println "Cleaning unused previous distribution from ${oldDistDir}"
+                    delete(oldDistDir)
+                }
+            }
+        }
+
+        // Clean up the downloaded distribution from old location
+        if (intTestHomeDir.directory) {
+            for (File child: intTestHomeDir.listFiles()) {
+                if (child.file && child.name.matches("gradle-.*-bin.zip")) {
+                    println "Cleaning unused previous distribution ${child}"
+                    delete(child)
                 }
             }
         }

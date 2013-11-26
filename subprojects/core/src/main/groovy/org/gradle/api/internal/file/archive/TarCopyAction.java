@@ -15,12 +15,13 @@
  */
 package org.gradle.api.internal.file.archive;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.tools.tar.TarEntry;
 import org.apache.tools.tar.TarOutputStream;
 import org.apache.tools.zip.UnixStat;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCopyDetails;
+import org.gradle.internal.ErroringAction;
+import org.gradle.internal.IoActions;
 import org.gradle.api.internal.file.CopyActionProcessingStreamAction;
 import org.gradle.api.internal.file.archive.compression.ArchiveOutputStreamFactory;
 import org.gradle.api.internal.file.copy.CopyAction;
@@ -28,7 +29,6 @@ import org.gradle.api.internal.file.copy.CopyActionProcessingStream;
 import org.gradle.api.internal.file.copy.FileCopyDetailsInternal;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.internal.UncheckedException;
 
 import java.io.File;
 import java.io.OutputStream;
@@ -42,32 +42,29 @@ public class TarCopyAction implements CopyAction {
         this.compressor = compressor;
     }
 
-    public WorkResult execute(CopyActionProcessingStream stream) {
-        final TarOutputStream tarOutStr;
+    public WorkResult execute(final CopyActionProcessingStream stream) {
 
-        OutputStream outStr;
+        final OutputStream outStr;
         try {
             outStr = compressor.createArchiveOutputStream(tarFile);
         } catch (Exception e) {
             throw new GradleException(String.format("Could not create TAR '%s'.", tarFile), e);
         }
 
-        try {
-            tarOutStr = new TarOutputStream(outStr);
-        } catch (Exception e) {
-            IOUtils.closeQuietly(outStr);
-            throw new GradleException(String.format("Could not create TAR '%s'.", tarFile), e);
-        }
-
-        tarOutStr.setLongFileMode(TarOutputStream.LONGFILE_GNU);
-
-        try {
-            stream.process(new StreamAction(tarOutStr));
-        } catch (Exception e) {
-            UncheckedException.throwAsUncheckedException(e);
-        } finally {
-            IOUtils.closeQuietly(tarOutStr);
-        }
+        IoActions.withResource(outStr, new ErroringAction<OutputStream>() {
+            @Override
+            protected void doExecute(final OutputStream outStr) throws Exception {
+                TarOutputStream tarOutStr;
+                try {
+                    tarOutStr = new TarOutputStream(outStr);
+                } catch (Exception e) {
+                    throw new GradleException(String.format("Could not create TAR '%s'.", tarFile), e);
+                }
+                tarOutStr.setLongFileMode(TarOutputStream.LONGFILE_GNU);
+                stream.process(new StreamAction(tarOutStr));
+                tarOutStr.close();
+            }
+        });
 
         return new SimpleWorkResult(true);
     }

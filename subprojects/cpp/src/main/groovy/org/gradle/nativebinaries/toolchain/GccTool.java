@@ -16,6 +16,7 @@
 
 package org.gradle.nativebinaries.toolchain;
 
+import groovy.lang.Closure;
 import org.gradle.api.Incubating;
 
 /**
@@ -33,4 +34,9 @@ public interface GccTool {
      * The executable will be located in the tool chain path.
      */
     void setExecutable(String file);
+
+    /**
+     * Adds an action that will be applied to the command-line arguments prior to execution.
+     */
+    void withArguments(Closure arguments);
 }

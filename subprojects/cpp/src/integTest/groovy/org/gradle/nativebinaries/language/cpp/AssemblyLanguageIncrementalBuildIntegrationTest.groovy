@@ -34,7 +34,7 @@ class AssemblyLanguageIncrementalBuildIntegrationTest extends AbstractInstalledT
             apply plugin: 'c'
             apply plugin: 'cpp'
 
-            $app.targetPlatformsScript
+            $app.extraConfiguration
 
             libraries {
                 hello {}
@@ -82,6 +82,20 @@ class AssemblyLanguageIncrementalBuildIntegrationTest extends AbstractInstalledT
                 }
             }
 """
+
+        run "installMainExecutable"
+
+        then:
+        executedAndNotSkipped ":assembleHelloSharedLibraryHelloAsm"
+
+        and:
+        install.exec().out == app.englishOutput
+    }
+
+    @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+    def "reassembles binary with target platform change"() {
+        when:
+        buildFile.text = buildFile.text.replace("i386", "x86")
 
         run "installMainExecutable"
 

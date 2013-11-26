@@ -15,11 +15,11 @@
  */
 package org.gradle.launcher.daemon.client;
 
-import org.gradle.api.Action;
-import org.gradle.internal.Stoppable;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.StoppableExecutor;
+import org.gradle.internal.io.TextStream;
 import org.gradle.util.DisconnectableInputStream;
 import org.gradle.util.LineBufferingOutputStream;
 
@@ -38,8 +38,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public class InputForwarder implements Stoppable {
 
     private final InputStream input;
-    private final Action<String> forwardTo;
-    private final Runnable onFinish;
+    private final TextStream handler;
     private final ExecutorFactory executorFactory;
     private final int bufferSize;
     private StoppableExecutor forwardingExecuter;
@@ -49,10 +48,9 @@ public class InputForwarder implements Stoppable {
     private boolean started;
     private boolean stopped;
 
-    public InputForwarder(InputStream input, Action<String> forwardTo, Runnable onFinish, ExecutorFactory executerFactory, int bufferSize) {
+    public InputForwarder(InputStream input, TextStream handler, ExecutorFactory executerFactory, int bufferSize) {
         this.input = input;
-        this.forwardTo = forwardTo;
-        this.onFinish = onFinish;
+        this.handler = handler;
         this.executorFactory = executerFactory;
         this.bufferSize = bufferSize;
     }
@@ -65,13 +63,14 @@ public class InputForwarder implements Stoppable {
             }
 
             disconnectableInput = new DisconnectableInputStream(input, bufferSize);
-            outputBuffer = new LineBufferingOutputStream(forwardTo, bufferSize);
+            outputBuffer = new LineBufferingOutputStream(handler, bufferSize);
 
             forwardingExecuter = executorFactory.create("forward input");
             forwardingExecuter.execute(new Runnable() {
                 public void run() {
                     byte[] buffer = new byte[bufferSize];
                     int readCount;
+                    Throwable readFailure = null;
                     try {
                         while (true) {
                             try {
@@ -82,27 +81,19 @@ public class InputForwarder implements Stoppable {
                             } catch (AsynchronousCloseException e) {
                                 break;
                             } catch (IOException e) {
-                                // Unsure what the best thing to do is here, should we forward the error?
-                                throw UncheckedException.throwAsUncheckedException(e);
+                                readFailure = e;
+                                break;
                             }
 
-                            try {
-                                outputBuffer.write(buffer, 0, readCount);
-                            } catch (IOException e) {
-                                // this shouldn't happen as outputBuffer will only throw if close has been called
-                                // and we own this object exclusively and will not have done that at this time
-                                throw UncheckedException.throwAsUncheckedException(e);
-                            }
+                            outputBuffer.write(buffer, 0, readCount);
                         }
+                        outputBuffer.flush(); // will flush any unterminated lines out synchronously
+                    } catch(IOException e) {
+                        // should not happen
+                        throw UncheckedException.throwAsUncheckedException(e);
                     } finally {
-                        try {
-                            outputBuffer.close(); // will flush any unterminated lines out synchronously
-                        } catch (IOException e) {
-                            throw UncheckedException.throwAsUncheckedException(e);
-                        }
+                        handler.endOfStream(readFailure);
                     }
-                    
-                    onFinish.run();
                 }
             });
 

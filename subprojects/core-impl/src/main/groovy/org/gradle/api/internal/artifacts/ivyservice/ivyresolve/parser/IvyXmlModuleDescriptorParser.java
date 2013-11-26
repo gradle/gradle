@@ -31,9 +31,11 @@ import org.apache.ivy.util.XMLHelper;
 import org.apache.ivy.util.extendable.DefaultExtendableItem;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
-import org.gradle.api.internal.artifacts.metadata.ModuleDescriptorAdapter;
-import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
+import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactMetaData;
+import org.gradle.api.internal.artifacts.metadata.ModuleDescriptorAdapter;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
+import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData;
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
 import org.gradle.api.internal.externalresource.UrlExternalResource;
@@ -744,7 +746,8 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             ModuleId parentModuleId = new ModuleId(parentOrganisation, parentModule);
             ModuleRevisionId parentMrid = new ModuleRevisionId(parentModuleId, parentRevision);
             Artifact pomArtifact = DefaultArtifact.newIvyArtifact(parentMrid, new Date());
-            LocallyAvailableExternalResource externalResource = parseContext.getArtifact(pomArtifact);
+            ModuleVersionArtifactMetaData artifactIdentifier = new DefaultModuleVersionArtifactMetaData(pomArtifact);
+            LocallyAvailableExternalResource externalResource = parseContext.getArtifact(artifactIdentifier);
             return parseModuleDescriptor(externalResource, externalResource.getLocalResource().getFile().toURI().toURL());
         }
 

@@ -5,7 +5,7 @@ command line options & task configuration
 1. User selects the dependency criteria to run dependency reports for.
 2. User selects which tests to include/exclude for test execution.
 3. User requests that tests be executed with debugging enabled.
-4. User specifies which Gradle version to perform an upgrade comparision build against.
+4. User specifies which Gradle version to perform an upgrade comparison build against.
 5. User specifies which Gradle version the wrapper should use.
 
 ## State of things
@@ -110,12 +110,14 @@ If multiple tasks match, details of the matching tasks are shown
     - lookup project tasks and implicit tasks using the task selector
     - throw decent error message when requested task cannot be found
     - task details (task name, task type, path)
+    - the default message informs the user about using `gradle help --task n`
 
 - Update the 'using Gradle from the command-line' user guide chapter to mention the help task.
 
-## Help task shows command-line options for a task (but not the legal values for each option)
+## Help task shows command-line options for a task
 
-Commandline options of the task passed to help are listed including a description.
+Commandline options of the task passed to help are listed including a description. The legal values for each property are not shown - this
+is added in a later story.
 
 ### User visible changes
 
@@ -135,7 +137,7 @@ The usage message of running `gradle help --task <task>` lists commandline optio
 - Change configuration error message in `CommandLineTaskConfigurer` to suggest that the user run `gradle help --task <broken-task>`.
 - Update the 'using Gradle from the command-line' user guide chapter.
 
-## Help task shows legal values for each command-line option.
+## Help task shows legal values for each command-line option
 
 ### User visible changes
 
@@ -151,23 +153,32 @@ The usage message of running `gradle help --task init` includes the available va
 
 - A reasonable error message is provided when user specified an illegal value for an enum property from the command-line.
 - A reasonable error message is provided when user specified an illegal value for an string property from the command-line.
-- A reasonable error message is provided when a string property is configured with an illegal value in the build script.
 
 ### Implementation approach
 
 - Introduce marker annotation `Option("optionName")` to mark a task property mapped to a commandline option.
-- `@Option` with not provided "optionName" is mapped to option with same name as the property
+- `@Option` with not provided "optionName" is mapped to option with same name as the annotated field
 - `@Option("optionName")` annotated on Enums includes enum values as possible option values
 - `@Option("optionName")` annotated on boolean includes true/false as possible option values
 - `@Option("optionName")` annotated on a setter method evaluates the available options from the parameter type)
-- `@Option("optionName")` annotated on a getter method evaluates the available options from the parameter type)
-
 - Introduce marker annotation `OptionValues("optionName")` to to allow a dynamic value lookup in the task implementation itself.
 - Adapt InitBuild task to use `@OptionValues` to map values for the `--type` command line option.
-- Add a task validator that validates a string property has a legal value at execution time.
 - Update the 'using Gradle from the command-line' user guide chapter.
 
-## Support camel-case matching for task commandline properties
+## Add task validator for task options
+
+### User visible changes
+
+When task options that have unsupported option values, will throw an Exception pointing to the wrong assigned option value and hints
+what values are supported.
+
+### Implementation approach
+- Add a task validator that validates a string property has a legal value at execution time.
+
+## Support camel-case matching for task commandline property values
+
+### Test coverage
+- A reasonable error message is provided when a string property is configured with an illegal value in the build script.
 
 ### User visible changes
 
@@ -188,37 +199,24 @@ The user can run `gradle init --type java-lib` instead of `gradle init --type ja
 
 ### User visible changes
 
-TBD
-
-### Test coverage
-
-TBD
-
-### Implementation approach
-
-1. Add option to `DependencyReportTask` to select the configuration(s) to be reported on.
-2. Add option to `Test` task to select which tests to include, which tests to exclude, and whether to run with debugging enabled.
-3. Probably more - see use cases above.
+- Add `@OptionValues` annotations for the options on `DependencyInsightReportTask`
+- Add `@OptionValues` annotations for the options on `DependencyReportTask`
+- Add `@OptionValues` annotations for the options on `Help`
+- Probably more - see use cases above.
 
 ## Include the command-line options in the generated DSL reference
 
 The reference page for a task type should show which command-line options are available for the type.
 
-### User visible changes
-
-TBD
-
-### Test coverage
-
-TBD
-
-### Implementation approach
-
-TBD
-
 ## Add an API to allow command-line options for a task to be declared programmatically
 
 TBD
+
+## Support additional property types
+
+- Collection of any supported scalar type
+- Conversion to `File`
+- Conversion to `Number` or subclass
 
 # Open issues
 
@@ -226,6 +224,6 @@ TBD
 For example, 'foo' option that requires a string value in one task type but is a boolean flag in some other task type.
 This is not a blocker because we have very little command line options, yet.
 1. Decide on precedence order if task is configured from the command line and in the build script. Add coverage, etc.
-1. If a method marked with `@CommandLineOption` accepts varargs or a Collection type as parameter, allow the command-line option to be specified multiple
+1. If a method marked with `@Option` accepts varargs or a Collection type as parameter, allow the command-line option to be specified multiple
    time on the command-line.
-1. Add support for more types in the conversion from command-line option value to property value, in particular File.
+1. Output of `gradle help --task x` provides link to task documentation.

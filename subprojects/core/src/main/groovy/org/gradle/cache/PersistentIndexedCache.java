@@ -15,6 +15,8 @@
  */
 package org.gradle.cache;
 
+import org.gradle.api.Nullable;
+
 /**
  * A persistent store of objects of type V indexed by a key of type K.
  */
@@ -24,6 +26,7 @@ public interface PersistentIndexedCache<K, V> {
      *
      * @return The value, or null if no value associated with the key.
      */
+    @Nullable
     V get(K key);
 
     /**

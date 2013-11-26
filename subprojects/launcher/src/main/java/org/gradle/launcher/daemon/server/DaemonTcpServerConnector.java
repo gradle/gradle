@@ -16,7 +16,7 @@
 package org.gradle.launcher.daemon.server;
 
 import org.gradle.api.Action;
-import org.gradle.internal.CompositeStoppable;
+import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.id.UUIDGenerator;
 import org.gradle.messaging.remote.Address;

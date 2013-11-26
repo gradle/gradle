@@ -86,6 +86,21 @@ class ProjectScopeServicesTest extends Specification {
         registry.createFor(Stub(TaskInternal)) instanceof TaskScopeServices
     }
 
+    def "adds all project scoped plugin services"() {
+        def plugin2 = Mock(PluginServiceRegistry)
+        def plugin1 = Mock(PluginServiceRegistry)
+
+        given:
+        parent.getAll(PluginServiceRegistry) >> [plugin1, plugin2]
+
+        when:
+        new ProjectScopeServices(parent, project)
+
+        then:
+        1 * plugin1.registerProjectServices(_)
+        1 * plugin2.registerProjectServices(_)
+    }
+
     def "provides a TaskContainerFactory"() {
         1 * taskFactory.createChild({ it.is project }, { it instanceof ClassGeneratorBackedInstantiator }) >> Stub(ITaskFactory)
 

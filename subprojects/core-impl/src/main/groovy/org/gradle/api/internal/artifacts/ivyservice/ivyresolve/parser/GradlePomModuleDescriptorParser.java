@@ -19,10 +19,11 @@ import org.apache.ivy.core.module.descriptor.*;
 import org.apache.ivy.core.module.descriptor.Configuration.Visibility;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomReader.PomDependencyData;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomReader.PomPluginElement;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.MavenDependencyKey;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.PomDependencyMgt;
+import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.ModuleDescriptorAdapter;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 import org.gradle.api.internal.artifacts.metadata.MutableModuleVersionMetaData;
 import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
 import org.slf4j.Logger;
@@ -31,7 +32,10 @@ import org.xml.sax.SAXException;
 
 import java.io.IOException;
 import java.text.ParseException;
-import java.util.*;
+import java.util.Collection;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * This a straight copy of org.apache.ivy.plugins.parser.m2.PomModuleDescriptorParser, with one change: we do NOT attempt to retrieve source and javadoc artifacts when parsing the POM. This cuts the
@@ -51,9 +55,8 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
     }
 
     protected MutableModuleVersionMetaData doParseDescriptor(DescriptorParseContext parserSettings, LocallyAvailableExternalResource resource, boolean validate) throws IOException, ParseException, SAXException {
-        GradlePomModuleDescriptorBuilder mdBuilder = new GradlePomModuleDescriptorBuilder(resource, parserSettings);
-
         PomReader pomReader = new PomReader(resource);
+        GradlePomModuleDescriptorBuilder mdBuilder = new GradlePomModuleDescriptorBuilder(resource, parserSettings, pomReader);
 
         doParsePom(parserSettings, mdBuilder, pomReader);
 
@@ -80,10 +83,7 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
                     pomReader.getParentArtifactId(),
                     pomReader.getParentVersion());
             parentDescr = parseOtherPom(parserSettings, parentModRevID);
-            Map<String, String> parentPomProps = parentDescr.getProperties();
-            for (Map.Entry<String, String> entry : parentPomProps.entrySet()) {
-                pomReader.setProperty(entry.getKey(), entry.getValue());
-            }
+            pomReader.setPomParent(parentDescr);
         }
         pomReader.resolveGAV();
 
@@ -129,27 +129,10 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
                 mdBuilder.addDependency(dd);
             }
         } else {
-            if (parentDescr != null) {
-                // add plugins from parent
-                List<PomPluginElement> plugins = parentDescr.getPlugins();
-                for(PomPluginElement plugin : plugins) {
-                    mdBuilder.addPlugin(plugin);
-                }
-
-                pomReader.addInheritedDependencyMgts(parentDescr.getDependencyMgt());
-                pomReader.addInheritedDependencies(parentDescr.getDependencies());
-            }
-
             overrideDependencyMgtsWithImported(parserSettings, pomReader);
-            addDependencyMgtsToBuilder(mdBuilder, pomReader.getDependencyMgt().values());
 
             for (PomDependencyData dependency : pomReader.getDependencies().values()) {
                 mdBuilder.addDependency(dependency);
-            }
-
-            for (Object o : pomReader.getPlugins()) {
-                PomPluginElement plugin = (PomPluginElement) o;
-                mdBuilder.addPlugin(plugin);
             }
         }
     }
@@ -164,7 +147,7 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
      */
     private void overrideDependencyMgtsWithImported(DescriptorParseContext parseContext, PomReader pomReader) throws IOException, SAXException {
         Map<MavenDependencyKey, PomDependencyMgt> importedDependencyMgts = parseImportedDependencyMgts(parseContext, pomReader.getPomDependencyMgt().values());
-        pomReader.addInheritedDependencyMgts(importedDependencyMgts);
+        pomReader.addImportedDependencyMgts(importedDependencyMgts);
     }
 
     /**
@@ -187,20 +170,6 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
         }
 
         return importedDependencyMgts;
-    }
-
-    /**
-     * Adds dependency management information to builder. Excludes elements with scope "import".
-     *
-     * @param mdBuilder Module descriptor builder
-     * @param dependencyMgts Dependency management information
-     */
-    private void addDependencyMgtsToBuilder(GradlePomModuleDescriptorBuilder mdBuilder, Collection<PomDependencyMgt> dependencyMgts) {
-        for(PomDependencyMgt dependencyMgt : dependencyMgts) {
-            if(!isDependencyImportScoped(dependencyMgt)) {
-                mdBuilder.addDependencyMgt(dependencyMgt);
-            }
-        }
     }
 
     /**
@@ -238,9 +207,10 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
      */
     private PomReader parseOtherPom(DescriptorParseContext parseContext, ModuleRevisionId parentModRevID) throws IOException, SAXException {
         Artifact pomArtifact = DefaultArtifact.newPomArtifact(parentModRevID, new Date());
-        LocallyAvailableExternalResource localResource = parseContext.getArtifact(pomArtifact);
-        GradlePomModuleDescriptorBuilder mdBuilder = new GradlePomModuleDescriptorBuilder(localResource, parseContext);
+        ModuleVersionArtifactMetaData artifactIdentifier = new DefaultModuleVersionArtifactMetaData(pomArtifact);
+        LocallyAvailableExternalResource localResource = parseContext.getArtifact(artifactIdentifier);
         PomReader pomReader = new PomReader(localResource);
+        GradlePomModuleDescriptorBuilder mdBuilder = new GradlePomModuleDescriptorBuilder(localResource, parseContext, pomReader);
         doParsePom(parseContext, mdBuilder, pomReader);
         return pomReader;
     }

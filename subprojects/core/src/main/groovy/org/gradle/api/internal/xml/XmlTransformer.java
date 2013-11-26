@@ -26,7 +26,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.DomNode;
-import org.gradle.api.internal.IoActions;
+import org.gradle.internal.IoActions;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.UncheckedException;
 import org.gradle.util.GUtil;

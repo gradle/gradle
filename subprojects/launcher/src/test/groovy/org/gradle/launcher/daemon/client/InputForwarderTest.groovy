@@ -15,14 +15,16 @@
  */
 package org.gradle.launcher.daemon.client
 
-import org.gradle.api.Action
+import org.gradle.api.Nullable
 import org.gradle.internal.concurrent.DefaultExecutorFactory
+import org.gradle.internal.io.TextStream
+import spock.lang.Specification
+import spock.util.concurrent.BlockingVariable
+
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
-import static org.gradle.util.TextUtil.*
 
-import spock.lang.*
-import spock.util.concurrent.BlockingVariable
+import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 class InputForwarderTest extends Specification {
 
@@ -35,21 +37,20 @@ class InputForwarderTest extends Specification {
     def received = new LinkedBlockingQueue()
     def finishedHolder = new BlockingVariable(2)
 
-    def action = action { received << it }
-    def onFinish = finished { finishedHolder.set(true) }
+    def action = new TextStream() {
+        void text(String text) {
+            received << text
+        }
 
-    def action(Closure action) {
-        this.action = action as Action
-    }
-
-    def finished(Closure runnable) {
-        this.onFinish = runnable
+        void endOfStream(@Nullable Throwable failure) {
+            finishedHolder.set(true)
+        }
     }
 
     def forwarder
 
     def createForwarder() {
-        forwarder = new InputForwarder(inputStream, action, onFinish, executerFactory, bufferSize)
+        forwarder = new InputForwarder(inputStream, action, executerFactory, bufferSize)
         forwarder.start()
     }
 

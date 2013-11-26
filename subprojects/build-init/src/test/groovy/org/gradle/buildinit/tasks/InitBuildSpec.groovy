@@ -34,7 +34,7 @@ class InitBuildSpec extends Specification {
     ProjectInitDescriptor projectSetupDescriptor3
 
     def setup() {
-        init = TestUtil.builder().build().tasks.create("init", InitBuild)
+        init = TestUtil.createTask(InitBuild)
         projectLayoutRegistry = Mock()
         projectSetupDescriptor1 = Mock()
         projectSetupDescriptor2 = Mock()
@@ -45,13 +45,13 @@ class InitBuildSpec extends Specification {
     def "throws GradleException if requested setupDescriptor not supported"() {
         setup:
         _ * projectLayoutRegistry.get("aType") >> null
-        _ * projectLayoutRegistry.getSupportedTypes() >> ["supported-type", 'another-supported-type']
+        _ * projectLayoutRegistry.getSupportedTypes() >> ['supported-type', 'another-supported-type']
         when:
         init.type = "aType"
         init.setupProjectLayout()
         then:
         def e = thrown(GradleException)
-        e.message == "The requested build setup type 'aType' is not supported. Supported types: 'supported-type', 'another-supported-type'."
+        e.message == "The requested build setup type 'aType' is not supported. Supported types: 'another-supported-type', 'supported-type'."
 
     }
 
@@ -62,6 +62,6 @@ class InitBuildSpec extends Specification {
         when:
         init.setupProjectLayout()
         then:
-        1 * projectSetupDescriptor1.generateProject()
+        1 * projectSetupDescriptor1.generate()
     }
 }

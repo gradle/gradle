@@ -20,7 +20,7 @@ import org.gradle.api.Action
 import org.gradle.api.file.FileCopyDetails
 import org.gradle.api.file.FileTree
 import org.gradle.api.file.RelativePath
-import org.gradle.api.internal.Actions
+import org.gradle.internal.Actions
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.reflect.DirectInstantiator
 import spock.lang.Specification

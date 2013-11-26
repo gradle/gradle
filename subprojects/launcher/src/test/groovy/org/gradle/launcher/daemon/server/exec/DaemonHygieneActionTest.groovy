@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.daemon.server.exec
 
+import org.gradle.internal.TimeProvider
 import spock.lang.Specification
 
 
@@ -33,16 +34,19 @@ class DaemonHygieneActionTest extends Specification {
     }
 
     def "does not trigger gc too often"() {
-        def a = Spy(DaemonHygieneAction, constructorArgs: [100])
+        def timeProvider = Stub(TimeProvider) {
+            getCurrentTime() >>> [10, 100, 200]
+        }
+        def a = Spy(DaemonHygieneAction, constructorArgs: [100, timeProvider])
 
         when:
+        //executed X3
         a.execute(Mock(DaemonCommandExecution))
-        a.execute(Mock(DaemonCommandExecution))
-        sleep(200)
         a.execute(Mock(DaemonCommandExecution))
         a.execute(Mock(DaemonCommandExecution))
 
         then:
+        //gc() called X2
         2 * a.gc()
     }
 }

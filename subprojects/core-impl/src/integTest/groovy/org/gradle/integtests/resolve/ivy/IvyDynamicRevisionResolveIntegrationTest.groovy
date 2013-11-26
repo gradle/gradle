@@ -16,10 +16,14 @@
 package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import spock.lang.Ignore
+import org.gradle.integtests.resolve.ResolveTestFixture
 import spock.lang.Issue
 
 class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolutionTest {
+    def setup() {
+        settingsFile << "rootProject.name = 'test' "
+    }
+
     @Issue("GRADLE-2502")
     def "latest.integration selects highest version regardless of status"() {
         given:
@@ -33,68 +37,62 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
   dependencies {
       compile 'org.test:projectA:latest.integration'
   }
-  task retrieve(type: Sync) {
-      from configurations.compile
-      into 'libs'
-  }
   """
 
+        and:
+        def resolve = new ResolveTestFixture(buildFile)
+        resolve.prepare()
+
         when:
-        runAndFail 'retrieve'
+        runAndFail 'checkDeps'
 
         then:
         failureHasCause 'Could not find any version that matches org.test:projectA:latest.integration.'
 
         when:
         ivyRepo.module('org.test', 'projectA', '1.0').withNoMetaData().publish()
-        run 'retrieve'
+        run 'checkDeps'
 
         then:
-        file('libs').assertHasDescendants('projectA-1.0.jar')
+        resolve.expectGraph {
+            root(":test:") {
+                edge("org.test:projectA:latest.integration", "org.test:projectA:1.0")
+            }
+        }
 
         when:
         ivyRepo.module('org.test', 'projectA', '1.1').withStatus('integration').publish()
         ivyRepo.module('org.test', 'projectA', '1.2').withStatus('integration').publish()
-        run 'retrieve'
+        run 'checkDeps'
 
         then:
-        file('libs').assertHasDescendants('projectA-1.2.jar')
+        resolve.expectGraph {
+            root(":test:") {
+                edge("org.test:projectA:latest.integration", "org.test:projectA:1.2")
+            }
+        }
 
         when:
         ivyRepo.module('org.test', 'projectA', '1.3').withStatus('release').publish()
-        run 'retrieve'
+        run 'checkDeps'
 
         then:
-        file('libs').assertHasDescendants('projectA-1.3.jar')
-    }
-
-    @Ignore
-    @Issue("GRADLE-2502")
-    def "latest.integration selects highest version regardless of status even if metadata is missing"() {
-        given:
-        buildFile << """
-  repositories {
-      ivy {
-          url "${ivyRepo.uri}"
-      }
-  }
-  configurations { compile }
-  dependencies {
-      compile 'org.test:projectA:latest.integration'
-  }
-  task retrieve(type: Sync) {
-      from configurations.compile
-      into 'libs'
-  }
-  """
+        resolve.expectGraph {
+            root(":test:") {
+                edge("org.test:projectA:latest.integration", "org.test:projectA:1.3")
+            }
+        }
 
         when:
-        ivyRepo.module('org.test', 'projectA', '1.1').withStatus('integration').publish()
         ivyRepo.module('org.test', 'projectA', '1.4').withNoMetaData().publish()
-        run 'retrieve'
+        run 'checkDeps'
 
         then:
-        file('libs').assertHasDescendants('projectA-1.4.jar')
+        resolve.expectGraph {
+            root(":test:") {
+                edge("org.test:projectA:latest.integration", "org.test:projectA:1.4")
+            }
+        }
     }
 
     @Issue("GRADLE-2502")
@@ -110,27 +108,27 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
   dependencies {
       compile 'org.test:projectA:latest.milestone'
   }
-  task retrieve(type: Sync) {
-      from configurations.compile
-      into 'libs'
-  }
   """
+        and:
+        def resolve = new ResolveTestFixture(buildFile)
+        resolve.prepare()
+
         when:
-        runAndFail 'retrieve'
+        runAndFail 'checkDeps'
 
         then:
         failureHasCause 'Could not find any version that matches org.test:projectA:latest.milestone.'
 
         when:
         ivyRepo.module('org.test', 'projectA', '2.0').withNoMetaData().publish()
-        runAndFail 'retrieve'
+        runAndFail 'checkDeps'
 
         then:
         failureHasCause 'Could not find any version that matches org.test:projectA:latest.milestone.'
 
         when:
         ivyRepo.module('org.test', 'projectA', '1.3').withStatus('integration').publish()
-        runAndFail 'retrieve'
+        runAndFail 'checkDeps'
 
         then:
         failureHasCause 'Could not find any version that matches org.test:projectA:latest.milestone.'
@@ -138,17 +136,36 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
         when:
         ivyRepo.module('org.test', 'projectA', '1.0').withStatus('milestone').publish()
         ivyRepo.module('org.test', 'projectA', '1.1').withStatus('milestone').publish()
-        run 'retrieve'
+        run 'checkDeps'
 
         then:
-        file('libs').assertHasDescendants('projectA-1.1.jar')
+        resolve.expectGraph {
+            root(":test:") {
+                edge("org.test:projectA:latest.milestone", "org.test:projectA:1.1")
+            }
+        }
 
         when:
         ivyRepo.module('org.test', 'projectA', '1.2').withStatus('release').publish()
-        run 'retrieve'
+        run 'checkDeps'
 
         then:
-        file('libs').assertHasDescendants('projectA-1.2.jar')
+        resolve.expectGraph {
+            root(":test:") {
+                edge("org.test:projectA:latest.milestone", "org.test:projectA:1.2")
+            }
+        }
+
+        when:
+        ivyRepo.module('org.test', 'projectA', '1.3').withStatus('integration').publish()
+        run 'checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":test:") {
+                edge("org.test:projectA:latest.milestone", "org.test:projectA:1.2")
+            }
+        }
     }
 
     @Issue("GRADLE-2502")
@@ -164,21 +181,20 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
   dependencies {
       compile 'org.test:projectA:latest.release'
   }
-  task retrieve(type: Sync) {
-      from configurations.compile
-      into 'libs'
-  }
   """
+        and:
+        def resolve = new ResolveTestFixture(buildFile)
+        resolve.prepare()
 
         when:
-        runAndFail 'retrieve'
+        runAndFail 'checkDeps'
 
         then:
         failureHasCause 'Could not find any version that matches org.test:projectA:latest.release.'
 
         when:
         ivyRepo.module('org.test', 'projectA', '2.0').withNoMetaData().publish()
-        runAndFail 'retrieve'
+        runAndFail 'checkDeps'
 
         then:
         failureHasCause 'Could not find any version that matches org.test:projectA:latest.release.'
@@ -186,7 +202,7 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
         when:
         ivyRepo.module('org.test', 'projectA', '1.3').withStatus('integration').publish()
         ivyRepo.module('org.test', 'projectA', '1.2').withStatus('milestone').publish()
-        runAndFail 'retrieve'
+        runAndFail 'checkDeps'
 
         then:
         failureHasCause 'Could not find any version that matches org.test:projectA:latest.release.'
@@ -194,13 +210,29 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
         when:
         ivyRepo.module('org.test', 'projectA', '1.0').withStatus('release').publish()
         ivyRepo.module('org.test', 'projectA', '1.1').withStatus('release').publish()
-        run 'retrieve'
+        run 'checkDeps'
 
         then:
-        file('libs').assertHasDescendants('projectA-1.1.jar')
+        resolve.expectGraph {
+            root(":test:") {
+                edge("org.test:projectA:latest.release", "org.test:projectA:1.1")
+            }
+        }
+
+        when:
+        ivyRepo.module('org.test', 'projectA', '1.2').withStatus('milestone').publish()
+        ivyRepo.module('org.test', 'projectA', '1.3').withStatus('integration').publish()
+        run 'checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":test:") {
+                edge("org.test:projectA:latest.release", "org.test:projectA:1.1")
+            }
+        }
     }
 
-    @Issue("GRADLE-2502")
+    @Issue(["GRADLE-2502", "GRADLE-2794"])
     def "version selector ending in + selects highest matching version"() {
         given:
         buildFile << """
@@ -213,72 +245,64 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
   dependencies {
       compile 'org.test:projectA:1.2+'
   }
-  task retrieve(type: Sync) {
-      from configurations.compile
-      into 'libs'
-  }
   """
         and:
         ivyRepo.module('org.test', 'projectA', '1.1.2').publish()
         ivyRepo.module('org.test', 'projectA', '2.0').publish()
 
+        and:
+        def resolve = new ResolveTestFixture(buildFile)
+        resolve.prepare()
+
         when:
-        runAndFail 'retrieve'
+        runAndFail 'checkDeps'
 
         then:
         failureHasCause 'Could not find any version that matches org.test:projectA:1.2+'
 
         when:
         ivyRepo.module('org.test', 'projectA', '1.2').withNoMetaData().publish()
-        run 'retrieve'
+        run 'checkDeps'
 
         then:
-        file('libs').assertHasDescendants('projectA-1.2.jar')
+        resolve.expectGraph {
+            root(":test:") {
+                edge("org.test:projectA:1.2+", "org.test:projectA:1.2")
+            }
+        }
 
         when:
         ivyRepo.module('org.test', 'projectA', '1.2.1').publish()
-        run 'retrieve'
+        run 'checkDeps'
 
         then:
-        file('libs').assertHasDescendants('projectA-1.2.1.jar')
+        resolve.expectGraph {
+            root(":test:") {
+                edge("org.test:projectA:1.2+", "org.test:projectA:1.2.1")
+            }
+        }
 
         when:
         ivyRepo.module('org.test', 'projectA', '1.2.9').publish()
-        run 'retrieve'
+        run 'checkDeps'
 
         then:
-        file('libs').assertHasDescendants('projectA-1.2.9.jar')
-    }
-
-    @Ignore
-    @Issue("GRADLE-2502")
-    def "version selector ending in + selects highest matching version even if metadata is missing"() {
-        given:
-        buildFile << """
-  repositories {
-      ivy {
-          url "${ivyRepo.uri}"
-      }
-  }
-  configurations { compile }
-  dependencies {
-      compile 'org.test:projectA:1.2+'
-  }
-  task retrieve(type: Sync) {
-      from configurations.compile
-      into 'libs'
-  }
-  """
-        and:
-        ivyRepo.module('org.test', 'projectA', '1.2.1').publish()
-        ivyRepo.module('org.test', 'projectA', '2.0').publish()
+        resolve.expectGraph {
+            root(":test:") {
+                edge("org.test:projectA:1.2+", "org.test:projectA:1.2.9")
+            }
+        }
 
         when:
-        ivyRepo.module('org.test', 'projectA', '1.2.12').withNoMetaData().publish()
-        run 'retrieve'
+        ivyRepo.module('org.test', 'projectA', '1.2.10').withNoMetaData().publish()
+        run 'checkDeps'
 
         then:
-        file('libs').assertHasDescendants('projectA-1.2.12.jar')
+        resolve.expectGraph {
+            root(":test:") {
+                edge("org.test:projectA:1.2+", "org.test:projectA:1.2.10")
+            }
+        }
     }
 
     @Issue("GRADLE-2502")
@@ -294,71 +318,64 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
   dependencies {
       compile 'org.test:projectA:[1.2,2.0]'
   }
-  task retrieve(type: Sync) {
-      from configurations.compile
-      into 'libs'
-  }
   """
+        and:
+        def resolve = new ResolveTestFixture(buildFile)
+        resolve.prepare()
+
         and:
         ivyRepo.module('org.test', 'projectA', '1.1.2').publish()
         ivyRepo.module('org.test', 'projectA', '2.1').publish()
 
         when:
-        runAndFail 'retrieve'
+        runAndFail 'checkDeps'
 
         then:
         failureHasCause 'Could not find any version that matches org.test:projectA:[1.2,2.0]'
 
         when:
         ivyRepo.module('org.test', 'projectA', '1.2').withNoMetaData().publish()
-        run 'retrieve'
+        run 'checkDeps'
 
         then:
-        file('libs').assertHasDescendants('projectA-1.2.jar')
+        resolve.expectGraph {
+            root(":test:") {
+                edge("org.test:projectA:[1.2,2.0]", "org.test:projectA:1.2")
+            }
+        }
 
         when:
         ivyRepo.module('org.test', 'projectA', '1.2.1').publish()
-        run 'retrieve'
+        run 'checkDeps'
 
         then:
-        file('libs').assertHasDescendants('projectA-1.2.1.jar')
+        resolve.expectGraph {
+            root(":test:") {
+                edge("org.test:projectA:[1.2,2.0]", "org.test:projectA:1.2.1")
+            }
+        }
 
         when:
         ivyRepo.module('org.test', 'projectA', '1.3').publish()
-        run 'retrieve'
+        run 'checkDeps'
 
         then:
-        file('libs').assertHasDescendants('projectA-1.3.jar')
-    }
-
-    @Ignore
-    @Issue("GRADLE-2502")
-    def "version range selects highest matching version even if metadata is missing"() {
-        given:
-        buildFile << """
-  repositories {
-      ivy {
-          url "${ivyRepo.uri}"
-      }
-  }
-  configurations { compile }
-  dependencies {
-      compile 'org.test:projectA:[1.2,2.0]'
-  }
-  task retrieve(type: Sync) {
-      from configurations.compile
-      into 'libs'
-  }
-  """
-        and:
-        ivyRepo.module('org.test', 'projectA', '1.2.1').publish()
+        resolve.expectGraph {
+            root(":test:") {
+                edge("org.test:projectA:[1.2,2.0]", "org.test:projectA:1.3")
+            }
+        }
 
         when:
-        ivyRepo.module('org.test', 'projectA', '1.3.12').withNoMetaData().publish()
-        run 'retrieve'
+        ivyRepo.module('org.test', 'projectA', '1.4').withNoMetaData().publish()
+        run 'checkDeps'
 
         then:
-        file('libs').assertHasDescendants('projectA-1.3.12.jar')
+        resolve.expectGraph {
+            root(":test:") {
+                edge("org.test:projectA:[1.2,2.0]", "org.test:projectA:1.4")
+            }
+        }
     }
 
     @Issue("GRADLE-2502")
@@ -366,8 +383,6 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
         given:
         def repo1 = ivyRepo("ivyRepo1")
         def repo2 = ivyRepo("ivyRepo2")
-        repo1.module('org.test', 'projectA', '1.1').withStatus("milestone").publish()
-        repo2.module('org.test', 'projectA', '1.2').withStatus("integration").publish()
 
         and:
         buildFile << """
@@ -384,17 +399,33 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
   dependencies {
       compile 'org.test:projectA:latest.milestone'
   }
-  task retrieve(type: Sync) {
-      from configurations.compile
-      into 'libs'
-  }
   """
+        and:
+        def resolve = new ResolveTestFixture(buildFile)
+        resolve.prepare()
 
         when:
-        run 'retrieve'
+        repo1.module('org.test', 'projectA', '1.1').withStatus("milestone").publish()
+        repo2.module('org.test', 'projectA', '1.2').withStatus("integration").publish()
+        run 'checkDeps'
 
         then:
-        file('libs').assertHasDescendants('projectA-1.1.jar')
+        resolve.expectGraph {
+            root(":test:") {
+                edge("org.test:projectA:latest.milestone", "org.test:projectA:1.1")
+            }
+        }
+
+        when:
+        repo2.module('org.test', 'projectA', '1.3').withStatus("milestone").publish()
+        run 'checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":test:") {
+                edge("org.test:projectA:latest.milestone", "org.test:projectA:1.3")
+            }
+        }
     }
 
     def "can resolve dynamic versions with multiple ivy patterns"() {

@@ -19,7 +19,7 @@ package org.gradle.api.publish.ivy;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.component.SoftwareComponent;
-import org.gradle.api.internal.HasInternalProtocol;
+import org.gradle.internal.HasInternalProtocol;
 import org.gradle.api.publish.Publication;
 
 /**

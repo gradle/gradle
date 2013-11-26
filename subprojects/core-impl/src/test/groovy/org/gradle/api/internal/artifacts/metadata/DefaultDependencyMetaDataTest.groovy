@@ -112,6 +112,6 @@ class DefaultDependencyMetaDataTest extends Specification {
         descriptor.addDependencyArtifact("super", new DefaultDependencyArtifactDescriptor(descriptor, "art3", "type", "ext", null, [:]))
 
         expect:
-        metaData.getArtifacts(fromConfiguration, toConfiguration)*.name == ['art1', 'art3']
+        metaData.getArtifacts(fromConfiguration, toConfiguration)*.name*.name == ['art1', 'art3']
     }
 }

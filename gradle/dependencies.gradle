@@ -25,7 +25,7 @@ libraries.ant = dependencies.module('org.apache.ant:ant:1.9.2') {
     dependency 'org.apache.ant:ant-launcher:1.9.2@jar'
 }
 
-libraries.asm =  'org.ow2.asm:asm-all:4.0@jar'
+libraries.asm =  'org.ow2.asm:asm-all:5.0_BETA@jar'
 libraries.commons_cli = 'commons-cli:commons-cli:1.2@jar'
 libraries.commons_io = dependencies.module(versions.commons_io)
 libraries.commons_lang = 'commons-lang:commons-lang:2.6@jar'
@@ -37,18 +37,18 @@ libraries.jcip = "net.jcip:jcip-annotations:1.0@jar"
 libraries.inject = dependencies.module('javax.inject:javax.inject:1')
 
 // Logging
-libraries.slf4j_api = 'org.slf4j:slf4j-api:1.7.2@jar'
-libraries.jcl_to_slf4j = dependencies.module('org.slf4j:jcl-over-slf4j:1.7.2') {
+libraries.slf4j_api = dependencies.module('org.slf4j:slf4j-api:1.7.5')
+libraries.jcl_to_slf4j = dependencies.module('org.slf4j:jcl-over-slf4j:1.7.5') {
     dependency libraries.slf4j_api
 }
-libraries.jul_to_slf4j = dependencies.module('org.slf4j:jul-to-slf4j:1.7.2') {
+libraries.jul_to_slf4j = dependencies.module('org.slf4j:jul-to-slf4j:1.7.5') {
     dependency libraries.slf4j_api
 }
-libraries.log4j_to_slf4j = dependencies.module('org.slf4j:log4j-over-slf4j:1.7.2') {
+libraries.log4j_to_slf4j = dependencies.module('org.slf4j:log4j-over-slf4j:1.7.5') {
     dependency libraries.slf4j_api
 }
-libraries.logback_core = 'ch.qos.logback:logback-core:1.0.9@jar'
-libraries.logback_classic = dependencies.module('ch.qos.logback:logback-classic:1.0.9') {
+libraries.logback_core = dependencies.module('ch.qos.logback:logback-core:1.0.13')
+libraries.logback_classic = dependencies.module('ch.qos.logback:logback-classic:1.0.13') {
     dependency libraries.logback_core
     dependency libraries.slf4j_api
 }

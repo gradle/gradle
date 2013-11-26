@@ -19,6 +19,8 @@ package org.gradle.initialization;
 import org.gradle.*;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.internal.progress.BuildProgressFilter;
+import org.gradle.internal.progress.BuildProgressLogger;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.StandardOutputListener;
@@ -53,7 +55,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
 
         // Register default loggers 
         ListenerManager listenerManager = sharedServices.get(ListenerManager.class);
-        listenerManager.addListener(new BuildProgressLogger(sharedServices.get(ProgressLoggerFactory.class)));
+        listenerManager.addListener(new BuildProgressFilter(new BuildProgressLogger(sharedServices.get(ProgressLoggerFactory.class))));
         listenerManager.useLogger(new DependencyResolutionLogger(sharedServices.get(ProgressLoggerFactory.class)));
 
         GradleLauncher.injectCustomFactory(this);

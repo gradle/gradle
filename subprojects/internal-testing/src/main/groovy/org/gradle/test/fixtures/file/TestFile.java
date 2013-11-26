@@ -536,6 +536,11 @@ public class TestFile extends File {
         assertTrue(now.modTime != snapshot.modTime || !Arrays.equals(now.hash, snapshot.hash));
     }
 
+    public void assertContentsHaveChangedSince(Snapshot snapshot) {
+        Snapshot now = snapshot();
+        assertTrue(String.format("contents of %s have not changed", this), !Arrays.equals(now.hash, snapshot.hash));
+    }
+
     public void assertContentsHaveNotChangedSince(Snapshot snapshot) {
         Snapshot now = snapshot();
         assertArrayEquals(String.format("contents of %s has changed", this), snapshot.hash, now.hash);

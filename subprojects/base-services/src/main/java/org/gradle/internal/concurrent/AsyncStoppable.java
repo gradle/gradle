@@ -15,15 +15,13 @@
  */
 package org.gradle.internal.concurrent;
 
-import org.gradle.internal.Stoppable;
-
 /**
  * A {@link Stoppable} object whose stop process can be performed asynchronously.
  */
 public interface AsyncStoppable extends Stoppable {
     /**
      * <p>Requests that this stoppable commence a graceful stop. Does not block. You should call {@link
-     * org.gradle.internal.Stoppable#stop} to wait for the stop process to complete.</p>
+     * Stoppable#stop} to wait for the stop process to complete.</p>
      *
      * <p>Generally, an {@code AsyncStoppable} should continue to complete existing work after this method has returned.
      * It should, however, stop accepting new work.</p>

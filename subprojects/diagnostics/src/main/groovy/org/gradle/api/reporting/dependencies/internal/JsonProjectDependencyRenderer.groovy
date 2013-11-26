@@ -20,8 +20,10 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.artifacts.ModuleVersionIdentifier
+import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.result.DependencyResult
 import org.gradle.api.artifacts.result.ResolutionResult
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency
@@ -133,18 +135,18 @@ class JsonProjectDependencyRenderer {
     private List createDependencies(Configuration configuration) {
         ResolutionResult result = configuration.incoming.resolutionResult
         RenderableDependency root = new RenderableModuleResult(result.getRoot())
-        Set<ModuleVersionIdentifier> visited = new HashSet<>()
+        Set<ComponentIdentifier> visited = new HashSet<>()
         return createDependencyChildren(root, visited);
     }
 
-    private List createDependencyChildren(RenderableDependency dependency, Set<ModuleVersionIdentifier> visited) {
+    private List createDependencyChildren(RenderableDependency dependency, Set<ComponentIdentifier> visited) {
         dependency.children.collect { childDependency ->
             boolean alreadyVisited = !visited.add(childDependency.id);
             boolean alreadyRendered = alreadyVisited && !childDependency.children.empty
             String name = replaceArrow(childDependency.name)
             boolean hasConflict = name != childDependency.name
             def result = [
-                module : childDependency.id.module.group + ':' + childDependency.id.module.name,
+                module : childDependency.id.group + ':' + childDependency.id.module,
                 name : name,
                 resolvable : childDependency.resolvable,
                 hasConflict : hasConflict,
@@ -169,14 +171,15 @@ class JsonProjectDependencyRenderer {
         ResolutionResult result = configuration.incoming.resolutionResult
         RenderableDependency root = new RenderableModuleResult(result.getRoot())
         Set<ModuleIdentifier> modules = new HashSet<>()
-        Set<ModuleVersionIdentifier> visited = new HashSet<>()
+        Set<ComponentIdentifier> visited = new HashSet<>()
         populateModulesWithChildDependencies(root, visited, modules)
         return modules
     }
 
-    private void populateModulesWithChildDependencies(RenderableDependency dependency, Set<ModuleVersionIdentifier> visited, Set<ModuleIdentifier> modules) {
+    private void populateModulesWithChildDependencies(RenderableDependency dependency, Set<ComponentIdentifier> visited, Set<ModuleIdentifier> modules) {
         for (RenderableDependency childDependency : dependency.children) {
-            modules.add(childDependency.id.module)
+            def moduleId = new DefaultModuleIdentifier(childDependency.id.group, childDependency.id.module)
+            modules.add(moduleId)
             boolean alreadyVisited = !visited.add(childDependency.id);
             if (!alreadyVisited) {
                 populateModulesWithChildDependencies(childDependency, visited, modules)

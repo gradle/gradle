@@ -18,7 +18,7 @@ package org.gradle.api.internal.notations;
 
 
 import org.gradle.api.GradleException
-import org.gradle.api.internal.notations.api.NotationParser
+import org.gradle.internal.typeconversion.NotationParser
 import spock.lang.Specification
 
 public class DependencyNotationParserTest extends Specification {

@@ -44,13 +44,12 @@ class CreateStaticLibrary extends DefaultTask implements BuildBinaryTask {
     /**
      * The platform being targeted.
      */
-    // TODO:DAZ This should form an @Input
     Platform targetPlatform
 
     // Invalidate output when the tool chain output changes
     @Input
     def getOutputType() {
-        return toolChain.outputType
+        return "${toolChain.outputType}:${targetPlatform.compatibilityString}"
     }
 
     /**

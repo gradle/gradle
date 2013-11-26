@@ -48,10 +48,8 @@ public class JettyStop extends ConventionTask {
             throw new InvalidUserDataException("Please specify a valid stopKey");
         }
 
-        ProgressLogger progressLogger = getServices().get(ProgressLoggerFactory.class).newOperation(JettyStop.class);
-        progressLogger.setDescription("Stop Jetty server");
-        progressLogger.setShortDescription("Stopping Jetty");
-        progressLogger.started();
+        ProgressLogger progressLogger = getServices().get(ProgressLoggerFactory.class).newOperation(JettyStop.class)
+                .start("Stop Jetty server", "Stopping Jetty");
         try {
             Socket s = new Socket(InetAddress.getByName("127.0.0.1"), getStopPort());
             s.setSoLinger(false, 0);

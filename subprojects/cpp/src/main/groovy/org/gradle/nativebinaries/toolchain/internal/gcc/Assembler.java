@@ -17,50 +17,56 @@
 package org.gradle.nativebinaries.toolchain.internal.gcc;
 
 import org.apache.commons.io.FilenameUtils;
+import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
-import org.gradle.api.internal.tasks.compile.ArgCollector;
-import org.gradle.api.internal.tasks.compile.CompileSpecToArguments;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.nativebinaries.language.assembler.internal.AssembleSpec;
+import org.gradle.nativebinaries.toolchain.internal.ArgsTransformer;
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 class Assembler implements Compiler<AssembleSpec> {
 
     private final CommandLineTool<AssembleSpec> commandLineTool;
+    private final Action<List<String>> argsAction;
 
-    public Assembler(CommandLineTool<AssembleSpec> commandLineTool) {
+    public Assembler(CommandLineTool<AssembleSpec> commandLineTool, Action<List<String>> argsAction) {
         this.commandLineTool = commandLineTool;
+        this.argsAction = argsAction;
     }
 
     public WorkResult execute(AssembleSpec spec) {
         boolean didWork = false;
         CommandLineTool<AssembleSpec> commandLineAssembler = commandLineTool.inWorkDirectory(spec.getObjectFileDir());
         for (File sourceFile : spec.getSourceFiles()) {
-            WorkResult result = commandLineAssembler.withArguments(new AssemblerSpecToArguments(sourceFile)).execute(spec);
+            ArgsTransformer<AssembleSpec> arguments = new AssembleSpecToArgsList(sourceFile);
+            arguments = new UserArgsTransformer<AssembleSpec>(arguments, argsAction);
+            WorkResult result = commandLineAssembler.withArguments(arguments).execute(spec);
             didWork = didWork || result.getDidWork();
         }
         return new SimpleWorkResult(didWork);
     }
 
-
-    private static class AssemblerSpecToArguments implements CompileSpecToArguments<AssembleSpec> {
+    private static class AssembleSpecToArgsList implements ArgsTransformer<AssembleSpec> {
         private final File inputFile;
         private final String outputFileName;
 
-        public AssemblerSpecToArguments(File inputFile) {
+        public AssembleSpecToArgsList(File inputFile) {
             this.inputFile = inputFile;
             this.outputFileName = FilenameUtils.removeExtension(inputFile.getName()) + ".o";
         }
 
-        public void collectArguments(AssembleSpec spec, ArgCollector collector) {
-            for (String rawArg : spec.getAllArgs()) {
-                collector.args(rawArg);
-            }
-            collector.args("-o", outputFileName);
-            collector.args(inputFile.getAbsolutePath());
+        public List<String> transform(AssembleSpec spec) {
+            List<String> args = new ArrayList<String>();
+            args.addAll(spec.getAllArgs());
+            Collections.addAll(args, "-o", outputFileName);
+            args.add(inputFile.getAbsolutePath());
+            return args;
         }
     }
 }

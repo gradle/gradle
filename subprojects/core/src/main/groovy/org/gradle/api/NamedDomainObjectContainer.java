@@ -47,7 +47,6 @@ public interface NamedDomainObjectContainer<T> extends NamedDomainObjectSet<T>, 
      * @param name The name to find or assign to the created object
      * @return The found or created object. Never null.
      */
-    @Incubating
     T maybeCreate(String name);
 
     /**

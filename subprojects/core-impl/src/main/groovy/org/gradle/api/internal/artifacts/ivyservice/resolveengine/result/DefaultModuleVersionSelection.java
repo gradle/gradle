@@ -17,13 +17,13 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
+import org.gradle.api.artifacts.result.ComponentSelectionReason;
 
 class DefaultModuleVersionSelection implements ModuleVersionSelection {
     private ModuleVersionIdentifier id;
-    private ModuleVersionSelectionReason reason;
+    private ComponentSelectionReason reason;
 
-    public DefaultModuleVersionSelection(ModuleVersionIdentifier id, ModuleVersionSelectionReason reason) {
+    public DefaultModuleVersionSelection(ModuleVersionIdentifier id, ComponentSelectionReason reason) {
         this.id = id;
         this.reason = reason;
     }
@@ -32,7 +32,7 @@ class DefaultModuleVersionSelection implements ModuleVersionSelection {
         return id;
     }
 
-    public ModuleVersionSelectionReason getSelectionReason() {
+    public ComponentSelectionReason getSelectionReason() {
         return reason;
     }
 }

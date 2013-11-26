@@ -18,10 +18,10 @@ package org.gradle.internal.service;
 import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.api.specs.Spec;
-import org.gradle.internal.CompositeStoppable;
+import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.Factory;
-import org.gradle.internal.Stoppable;
-import org.gradle.internal.UncheckedException;
+import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.reflect.JavaReflectionUtil;
 
 import java.lang.reflect.*;
 import java.util.*;
@@ -312,14 +312,7 @@ public class DefaultServiceRegistry implements ServiceRegistry {
     }
 
     private static Object invoke(Method method, Object target, Object... args) {
-        try {
-            method.setAccessible(true);
-            return method.invoke(target, args);
-        } catch (InvocationTargetException e) {
-            throw UncheckedException.throwAsUncheckedException(e.getCause());
-        } catch (Exception e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
+        return JavaReflectionUtil.method(target, Object.class, method).invoke(target, args);
     }
 
     interface ServiceProvider {
@@ -807,7 +800,9 @@ public class DefaultServiceRegistry implements ServiceRegistry {
         }
 
         public <T> void getAll(LookupContext context, Class<T> serviceType, List<T> result) {
-            result.addAll(parent.getAll(serviceType));
+            List<T> services = parent.getAll(serviceType);
+            assert services != null : String.format("parent returned null for services of type %s", format(serviceType));
+            result.addAll(services);
         }
 
         public void stop() {

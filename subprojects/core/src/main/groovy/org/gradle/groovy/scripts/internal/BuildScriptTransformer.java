@@ -19,18 +19,21 @@ import org.codehaus.groovy.control.CompilationUnit;
 import org.gradle.groovy.scripts.Transformer;
 
 public class BuildScriptTransformer implements Transformer {
-    private final BuildScriptClasspathScriptTransformer classpathScriptTransformer;
 
-    public BuildScriptTransformer(BuildScriptClasspathScriptTransformer transformer) {
-        classpathScriptTransformer = transformer;
+    private final String id;
+    private final Transformer extractionTransformer;
+
+    public BuildScriptTransformer(String id, Transformer extractionTransformer) {
+        this.id = id;
+        this.extractionTransformer = extractionTransformer;
     }
 
     public String getId() {
-        return "no_" + classpathScriptTransformer.getId();
+        return id;
     }
 
     public void register(CompilationUnit compilationUnit) {
-        classpathScriptTransformer.invert().register(compilationUnit);
+        extractionTransformer.register(compilationUnit);
         new TaskDefinitionScriptTransformer().register(compilationUnit);
         new FixMainScriptTransformer().register(compilationUnit); // TODO - remove this
         new StatementLabelsScriptTransformer().register(compilationUnit);

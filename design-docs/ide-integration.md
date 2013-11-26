@@ -28,7 +28,7 @@ See [tooling-api-improvements.md](tooling-api-improvements.md#story-tooling-api-
 
 ## Expose build script compilation details
 
-See [tooling-api-improvements.md](tooling-api-improvements.md):
+See [tooling-api-improvements.md](tooling-api-improvements.md#story-expose-the-compile-details-of-a-build-script):
 
 Expose some details to allow some basic content assistance for build scripts:
 
@@ -80,7 +80,7 @@ Expose the corresponding Eclipse and IDEA model.
 
 ## Expose the publications of a project
 
-See [tooling-api-improvements.md](tooling-api-improvements.md):
+See [tooling-api-improvements.md](tooling-api-improvements.md#story-expose-the-publications-of-a-project):
 
 Expose the publications of a project so that the IDE can wire together Gradle and Maven builds.
 

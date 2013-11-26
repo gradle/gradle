@@ -30,8 +30,10 @@ abstract class AbstractInstalledToolChainIntegrationSpec extends AbstractIntegra
         initScript = file("init.gradle") << """
 allprojects {
     apply plugin: ${toolChain.pluginClass}
-    toolChains {
-        ${toolChain.buildScriptConfig}
+    model {
+        toolChains {
+            ${toolChain.buildScriptConfig}
+        }
     }
 }
 """
@@ -54,7 +56,11 @@ allprojects {
         return toolChain.sharedLibrary(file(path))
     }
 
-    def NativeBinaryFixture staticLibrary(Object path) {
+    def StaticLibraryFixture staticLibrary(Object path) {
         return toolChain.staticLibrary(file(path))
+    }
+
+    def NativeBinaryFixture resourceOnlyLibrary(Object path) {
+        return toolChain.resourceOnlyLibrary(file(path))
     }
 }

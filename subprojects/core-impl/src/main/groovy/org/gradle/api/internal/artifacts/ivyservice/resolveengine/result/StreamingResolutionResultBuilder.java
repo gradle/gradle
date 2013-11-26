@@ -19,10 +19,9 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.result.ResolutionResult;
-import org.gradle.api.artifacts.result.ResolvedModuleVersionResult;
+import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.internal.artifacts.ModuleVersionIdentifierSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.EncodedWriteAction;
 import org.gradle.api.internal.artifacts.result.DefaultResolutionResult;
 import org.gradle.api.internal.cache.BinaryStore;
 import org.gradle.api.internal.cache.Store;
@@ -30,17 +29,14 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.Factory;
 import org.gradle.messaging.serialize.Decoder;
-import org.gradle.messaging.serialize.FlushableEncoder;
-import org.gradle.messaging.serialize.InputStreamBackedDecoder;
+import org.gradle.messaging.serialize.Encoder;
 import org.gradle.util.Clock;
 
-import java.io.DataInputStream;
 import java.io.IOException;
 import java.util.*;
 
-/**
- * by Szczepan Faber on 7/28/13
- */
+import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
+
 public class StreamingResolutionResultBuilder implements ResolutionResultBuilder {
 
     private final static byte ROOT = 1;
@@ -52,17 +48,17 @@ public class StreamingResolutionResultBuilder implements ResolutionResultBuilder
     private final BinaryStore store;
     private final ModuleVersionIdentifierSerializer moduleVersionIdentifierSerializer = new ModuleVersionIdentifierSerializer();
     private final ModuleVersionSelectionSerializer moduleVersionSelectionSerializer = new ModuleVersionSelectionSerializer();
-    private Store<ResolvedModuleVersionResult> cache;
+    private Store<ResolvedComponentResult> cache;
     private final InternalDependencyResultSerializer internalDependencyResultSerializer = new InternalDependencyResultSerializer();
 
-    public StreamingResolutionResultBuilder(BinaryStore store, Store<ResolvedModuleVersionResult> cache) {
+    public StreamingResolutionResultBuilder(BinaryStore store, Store<ResolvedComponentResult> cache) {
         this.store = store;
         this.cache = cache;
     }
 
     public ResolutionResult complete() {
-        store.write(new EncodedWriteAction() {
-            public void write(FlushableEncoder encoder) throws IOException {
+        store.write(new BinaryStore.WriteAction() {
+            public void write(Encoder encoder) throws IOException {
                 encoder.writeByte(DONE);
             }
         });
@@ -72,8 +68,8 @@ public class StreamingResolutionResultBuilder implements ResolutionResultBuilder
     }
 
     public ResolutionResultBuilder start(final ModuleVersionIdentifier root) {
-        store.write(new EncodedWriteAction() {
-            public void write(FlushableEncoder encoder) throws IOException {
+        store.write(new BinaryStore.WriteAction() {
+            public void write(Encoder encoder) throws IOException {
                 encoder.writeByte(ROOT);
                 moduleVersionIdentifierSerializer.write(encoder, root);
             }
@@ -85,8 +81,8 @@ public class StreamingResolutionResultBuilder implements ResolutionResultBuilder
 
     public void resolvedModuleVersion(final ModuleVersionSelection moduleVersion) {
         if (visitedModules.add(moduleVersion.getSelectedId())) {
-            store.write(new EncodedWriteAction() {
-                public void write(FlushableEncoder encoder) throws IOException {
+            store.write(new BinaryStore.WriteAction() {
+                public void write(Encoder encoder) throws IOException {
                     encoder.writeByte(MODULE);
                     moduleVersionSelectionSerializer.write(encoder, moduleVersion);
                 }
@@ -96,8 +92,8 @@ public class StreamingResolutionResultBuilder implements ResolutionResultBuilder
 
     public void resolvedConfiguration(final ModuleVersionIdentifier from, final Collection<? extends InternalDependencyResult> dependencies) {
         if (!dependencies.isEmpty()) {
-            store.write(new EncodedWriteAction() {
-                public void write(FlushableEncoder encoder) throws IOException {
+            store.write(new BinaryStore.WriteAction() {
+                public void write(Encoder encoder) throws IOException {
                     encoder.writeByte(DEPENDENCY);
                     moduleVersionIdentifierSerializer.write(encoder, from);
                     encoder.writeInt(dependencies.size());
@@ -114,50 +110,53 @@ public class StreamingResolutionResultBuilder implements ResolutionResultBuilder
         }
     }
 
-    private static class RootFactory implements Factory<ResolvedModuleVersionResult> {
+    private static class RootFactory implements Factory<ResolvedComponentResult> {
 
         private final static Logger LOG = Logging.getLogger(RootFactory.class);
         private final ModuleVersionSelectionSerializer moduleVersionSelectionSerializer = new ModuleVersionSelectionSerializer();
 
         private BinaryStore.BinaryData data;
         private final Map<ModuleVersionSelector, ModuleVersionResolveException> failures;
-        private Store<ResolvedModuleVersionResult> cache;
+        private Store<ResolvedComponentResult> cache;
         private final Object lock = new Object();
         private final ModuleVersionIdentifierSerializer moduleVersionIdentifierSerializer = new ModuleVersionIdentifierSerializer();
         private final InternalDependencyResultSerializer internalDependencyResultSerializer = new InternalDependencyResultSerializer();
 
         public RootFactory(BinaryStore.BinaryData data, Map<ModuleVersionSelector, ModuleVersionResolveException> failures,
-                           Store<ResolvedModuleVersionResult> cache) {
+                           Store<ResolvedComponentResult> cache) {
             this.data = data;
             this.failures = failures;
             this.cache = cache;
         }
 
-        public ResolvedModuleVersionResult create() {
+        public ResolvedComponentResult create() {
             synchronized (lock) {
-                return cache.load(new Factory<ResolvedModuleVersionResult>() {
-                    public ResolvedModuleVersionResult create() {
+                return cache.load(new Factory<ResolvedComponentResult>() {
+                    public ResolvedComponentResult create() {
                         try {
-                            return data.read(new BinaryStore.ReadAction<ResolvedModuleVersionResult>() {
-                                public ResolvedModuleVersionResult read(DataInputStream input) throws IOException {
-                                    return deserialize(input);
+                            return data.read(new BinaryStore.ReadAction<ResolvedComponentResult>() {
+                                public ResolvedComponentResult read(Decoder decoder) throws IOException {
+                                    return deserialize(decoder);
                                 }
                             });
                         } finally {
-                            data.done();
+                            try {
+                                data.close();
+                            } catch (IOException e) {
+                                throw throwAsUncheckedException(e);
+                            }
                         }
                     }
                 });
             }
         }
 
-        private ResolvedModuleVersionResult deserialize(DataInputStream input) {
+        private ResolvedComponentResult deserialize(Decoder decoder) {
             int valuesRead = 0;
             byte type = -1;
             Clock clock = new Clock();
             try {
                 DefaultResolutionResultBuilder builder = new DefaultResolutionResultBuilder();
-                Decoder decoder = new InputStreamBackedDecoder(input);
                 while (true) {
                     type = decoder.readByte();
                     valuesRead++;
@@ -180,7 +179,7 @@ public class StreamingResolutionResultBuilder implements ResolutionResultBuilder
                             builder.resolvedConfiguration(id, deps);
                             break;
                         case DONE:
-                            ResolvedModuleVersionResult root = builder.complete().getRoot();
+                            ResolvedComponentResult root = builder.complete().getRoot();
                             LOG.debug("Loaded resolution results ({}) from {}", clock.getTime(), data);
                             return root;
                         default:

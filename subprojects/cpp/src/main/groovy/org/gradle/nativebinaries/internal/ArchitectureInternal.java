@@ -18,7 +18,7 @@ package org.gradle.nativebinaries.internal;
 import org.gradle.nativebinaries.Architecture;
 
 public interface ArchitectureInternal extends Architecture {
-    static final Architecture TOOL_CHAIN_DEFAULT = new DefaultArchitecture("default", null, 0);
+    static final ArchitectureInternal TOOL_CHAIN_DEFAULT = new DefaultArchitecture("default", null, 0);
 
     enum InstructionSet { X86, ITANIUM, PPC, SPARC, ARM }
 
@@ -31,4 +31,8 @@ public interface ArchitectureInternal extends Architecture {
     boolean isAmd64();
 
     boolean isIa64();
+
+    boolean isArm();
+
+    boolean isArmv8();
 }

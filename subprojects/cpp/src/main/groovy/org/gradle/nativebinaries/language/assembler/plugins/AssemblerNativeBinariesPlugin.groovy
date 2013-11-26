@@ -43,7 +43,7 @@ class AssemblerNativeBinariesPlugin implements Plugin<ProjectInternal> {
         project.plugins.apply(NativeBinariesPlugin)
         project.plugins.apply(AssemblerLangPlugin)
 
-        // TODO:DAZ Clean this up
+        // TODO:DAZ Clean this up (see CppNativeBinariesPlugin)
         project.executables.all { Executable executable ->
             addLanguageExtensionsToComponent(executable)
         }

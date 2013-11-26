@@ -19,7 +19,7 @@ package org.gradle.api.publish.maven.internal.artifact
 import org.gradle.api.Task
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.notations.api.NotationParser
+import org.gradle.internal.typeconversion.NotationParser
 import org.gradle.api.publish.maven.MavenArtifact
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.bundling.Jar

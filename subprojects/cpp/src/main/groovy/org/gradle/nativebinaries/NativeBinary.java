@@ -18,7 +18,7 @@ package org.gradle.nativebinaries;
 
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
-import org.gradle.api.internal.HasInternalProtocol;
+import org.gradle.internal.HasInternalProtocol;
 import org.gradle.language.base.Binary;
 import org.gradle.language.base.LanguageSourceSet;
 

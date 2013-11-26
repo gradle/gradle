@@ -38,7 +38,7 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
     private final Instantiator instantiator;
 
     /**
-     * This method should be used in runtime code proper as means that the convention cannot create
+     * This method should not be used in runtime code proper as means that the convention cannot create
      * dynamic extensions.
      *
      * It's here for backwards compatibility with our tests and for convenience.

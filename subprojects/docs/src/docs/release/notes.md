@@ -1,308 +1,155 @@
-This release of Gradle primarily provides relief through important bug fixes.
-It also boosts Gradle's performance through optimizations to incremental building when using the Gradle Daemon and when building in parallel.
-
-The support for building native applications gained an important new feature in this release: “variants”. 
-Variants can be used to model different ways to construct and build a binary (e.g. including debug symbols or not, x86 vs x64).
-In a given build invocation, all variants may be built in one invocation or just a subset.
-
-The new HTML dependency report added in this release is a compelling alternative to the existing console based report as it leverages the richer medium of HTML to offer more
-information and navigability. It is extremely useful for analyzing and understanding large dependency graphs.
-
-Two new project types for use with the `init` command (formerly named `buildSetup`) have been added, `groovy-library` and `scala-library` for creating Groovy and Scala libraries respectively.
-
-Several of the new features and improvements have been contributed by the community. 
-Thank you to all who contributed and please keep the pull requests coming.
-
 ## New and noteworthy
 
 Here are the new features introduced in this Gradle release.
 
-### Faster incremental builds when using the Gradle Daemon
+### `shouldRunAfter` task ordering
 
-Gradle's incremental build support enables a fast feedback cycle by only performing build tasks that are affected by changes that have occurred since the last build.
-The [Gradle Daemon](userguide/gradle_daemon.html) also improves performance by reusing a long lived process, 
-instead of incurring the process initialization cost for each build invocation.
-In Gradle 1.9, these two features combine to make incremental building even faster when using the Gradle Daemon.
+Gradle 1.6 introduced task ordering by way of the `mustRunAfter` method(s) added to tasks.
+This release brings a new ordering mechanism: `shouldRunAfter`.
+This feature was contributed by [Marcin Erdmann](https://github.com/erdi).
 
-Incremental building support requires internal activities and record keeping (all completely transparent to Gradle users) to track changes to files and configuration.
-The data required to do this is now cached within the Gradle Daemon, reducing the overhead of the record keeping and making subsequent incremental builds faster.
+If it is specified that…
 
-This is but one example of the kind of optimization that the Gradle Daemon can offer, by way of it being a long lived process.
-Expect to see further optimizations in future versions of Gradle of this nature.
+    task a {}
+    task b { 
+        mustRunAfter a 
+    }
 
-### Faster parallel builds when using forked Java compilation
+Then under all circumstances Gradle will ensure that `b` is only executed after `a` has executed. 
+However it does not imply that task `b` _depends on_ task `a`.
+It is only used to order the execution if both `a` and `b` are to be executed in a given build.
 
-Gradle has long supported using an external Java process to compile Java code
-(see the [JavaCompile](dsl/org.gradle.api.tasks.compile.JavaCompile.html) task for configuration details).
-In previous versions of Gradle, forked Java compilation was a performance bottleneck when
-[building in parallel](userguide/multi_project_builds.html#sec:parallel_execution).
-As of Gradle 1.9, extra compilation processes will be created as needed when building in parallel.
+The new `shouldRunAfter` ordering works much the same way, except that it specifies an ordering preference and not a requirement.
+If it is specified that…
 
-Forked compilation is generally safer and allows fine grained control of the JVM options of the compilation process as well as decoupling the target JDK from the build JVM.
-It will become the default way that Java code is compiled in a future version of Gradle.
+    task a {}
+    task b { 
+        shouldRunAfter a 
+    }
 
-### HTML dependency report
+Then Gradle will execute `b` after `a` if there is not a good reason to do otherwise.
+This means that use of `shouldRunAfter` can not create a dependency cycle and it also does not prevent parallel execution of tasks.
 
-Thanks to a contribution by [Jean-Baptiste Nizet](https://github.com/jnizet), the `project-report` plugin can now generate an HTML dependency report.
+For more examples please see [Ordering tasks](userguide/more_about_tasks.html#sec:ordering_tasks) in the User Guide.
 
-To use the report just apply the plugin:
+### Show task usage details via help task
 
-    apply plugin: "project-report"
+You can run the help task now with a commandline option '--task' to get detailed usage information for a specific task. The usage information
+includes task type, path, description and available commandline options. To get details about the incubating `init` task you can run
+`gradle help --task init` which will give you the following output
 
-And run `gradle htmlDependencyReport` or `gradle projectReport`
+    Detailed task information for init
 
-### Initializing `Groovy` or a `Scala` project
+    Path
+         :init
 
-The `build-init` plugin now ships with two additional templates for initializing a new project:
+    Type
+         InitBuild (org.gradle.buildinit.tasks.InitBuild)
 
-* `groovy-library` creates a simple [Groovy](http://groovy.codehaus.org/) project with [Spock](http://spockframework.org/) as the testing framework.
-* `scala-library` creates a simple [Scala](http://www.scala-lang.org/) project with [scalatest](http://www.scalatest.org/) as the testing framework.
+    Options
+         --type     Set type of build to create.
 
-To initialize a new project just run
+    Description
+         Initializes a new Gradle build. [incubating]
 
-<pre><tt>gradle init --type groovy-library</tt></pre>
+<!-- TODO:DAZ Fill these in -->
+### Incremental compile for C++ (i)
 
-on the commandline.
+### Use Visual Studio to compile Windows Resources (i)
 
-### FindBugs plugin provides new reporting capabilities
+When building native binaries with the `VisualCpp` tool chain, Gradle can now compile Windows Resource (.rc) files and link them
+into the binary. This functionality is made available by the `windows-resources` plugin.
 
-If the a FindBugs task is configured to produce an XML report, the output can be augmented with human-readable messages. 
+    apply plugin: 'cpp'
+    apply plugin: 'windows-resources'
 
-The follow example demonstrates its use:
+    libraries {
+        hello {}
+    }
 
-    findbugsMain.reports {
-        xml {
-            enabled true
-            withMessages true
+By default, Gradle creates a single `WindowsResourceSet` for each component, which will includes any sources found under `src/$component.name/rc`.
+The windows resource source directories can be configured via the associated `WindowsResourceSet`.
+
+    sources {
+        hello {
+            rc {
+                source {
+                    srcDirs "src/main/rc", "src/common/resources"
+                    include "**/*.rc", "**/*.res"
+                }
+            }
         }
     }
 
-Additionally, reports in text and Emacs formats can now be produced.
+For more details please see the [Windows Resources](userguide/nativeBinaries.html#native_binaries:windows-resources) section in the User Guide.
 
-    findbugsMain.reports {
-        text.enabled true
-        emacs.enabled true
-    }
+### Fine-grained control of command line arguments for GCC (i)
 
+### Better auto-detection of Visual Studio and Windows SDK (i)
 
-### Build multiple variants of a native binary (i)
+Gradle will now automatically locate and use more versions of Visual Studio and the Windows SDK for the `VisualCpp` tool chain.
 
-Gradle is rapidly becoming a capable build system for 'native' code projects.
+- Visual Studio 2012 & Visual Studio 2013
+- Windows SDK versions 7.1A, 8.0 & 8.1
 
-A key goal of the native binary support in Gradle is to make it easy to create multiple different variants of a native binary
-from the same (or similar) set of sources. In Gradle 1.8 is was trivial to generate a shared and static version of the same
-library, but in Gradle 1.9 this concept has been taken a lot further. It is now simple to create 'debug' and 'release' variants,
-binaries targeting different cpu architectures, or variants built using different tool chains.
+Support for Visual Studio remains experimental.
+Please let us know via the Gradle forums if you experience problems with Gradle using your Visual Studio installation.
 
-Here's an example creating 'debug' and 'release' variants targeting 'i386' and 'x86_64' cpu architectures:
+## Promoted features
 
-    buildTypes {
-        debug {}
-        release {}
-    }
+Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
+See the User guide section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 
-    targetPlatforms {
-        x86 {
-            architecture "i386"
-        }
-        x64 {
-            architecture "x86_64"
-        }
-    }
+The following are the features that have been promoted in this Gradle release.
 
-    binaries.all {
-        if (buildType == buildTypes.debug) {
-            cppCompiler.args "-g"
-        }
-    }
+### Promoted methods
 
-Four native binary variants will be produced: 'debugX86', 'releaseX86', 'debugX64' and 'releaseX64'.
+The following methods have been promoted and are no longer incubating:
 
-As well as `buildTypes` and `targetPlatforms`, it's also possible to define variants based on `toolChains` and custom `flavors`.
-
-Please check out the [user guide section on variants](./userguide/nativeBinaries.html#native_binaries:variants) for complete details
-on how to define the set of variants to be produced.
-
-### Improved native binary tool chain support (i)
-
-Gradle 1.9 makes it easier to build native binaries using a variety of tool chains.
-
-New features include:
-
-* A build file can define the set of tool chains used to build
-* Visual Studio and Windows SDK installations are automatically discovered and do not need to be in the path
-* Use multiple different versions of GCC within the same build invocation
-* Build binaries using the [Clang](http://clang.llvm.org) compiler
-
-#### A build file can define the set of tool chains used to build.
-
-    toolChains {
-        visualCpp(VisualCpp)
-        gcc(Gcc)
-    }
-
-#### Visual Studio and Windows SDK installations are automatically discovered and do not need to be in the path
-
-This means you can compile using the Visual C++ tools from the cygwin command prompt. If Visual Studio is installed into
-  a non-standard location, you can provide the installation directory directly.
-
-    toolChains {
-        visualCpp(VisualCpp) {
-            installDir "C:/Apps/MSVS10"
-        }
-    }
-
-#### Use multiple versions of GCC within the same build invocation
-
-Different `Gcc` tool chain instances can be added with different 'path' values.
-
-    toolChains {
-        // Use GCC found on the PATH
-        gcc4(Gcc)
-
-        // Use GCC at the specified location
-        gcc3(Gcc) {
-            path '/opt/gcc/3.4.6/bin'
-        }
-    }
-
-#### Build binaries using the [Clang](http://clang.llvm.org) compiler
-
-    toolChains {
-        clang(Clang)
-    }
-
-### Better support for building binaries from C/C++/Assembler (i)
-
-This release improves the support for building binaries from C, C++ and Assembly Language source code. Improvements include:
-
-* Separate plugins for C, C++ and Assembler support
-* Separate compiler options for C++ and C sources
-* Automatic configuration of source sets for native components
-
-Be sure to check out the [user guide section](./userguide/nativeBinaries.html#native_binaries:languages) for even more details.
-
-#### New 'assembler' and 'c' plugins provide separate language support.
-
-In this release, the 'cpp' plugin now only provides support for compiling and linking from C++ sources. If your project
-contains C or Assembly language sources, you will need to apply the 'c' or 'assembler' plugins respectively.
-
-By splitting the support for different languages into separate plugins, this release paves the way for adding
-more supported languages in the future.
-
-To complement this change, the `compilerArgs`, `assemblerArgs` and `linkerArgs` on NativeBinary have been
- replaced with language-specific extensions.
-
-<table>
-    <tr><th>Gradle 1.8</th><th>Gradle 1.9</th></tr>
-    <tr>
-    <td>compilerArgs "-W"</td>
-    <td>cppCompiler.args "-W"</td>
-    </tr>
-    <tr>
-    <td>compilerArgs "-W"</td>
-    <td>cCompiler.args "-W"</td>
-    </tr>
-    <tr>
-    <td>assemblerArgs "-arch", "i386"</td>
-    <td>assembler.args "-arch", "i386"</td>
-    </tr>
-    <tr>
-    <td>linkerArgs "-no_pie"</td>
-    <td>linker.args "-no_pie"</td>
-    </tr>
-    <tr>
-    <td>staticLibArgs "-v"</td>
-    <td>staticLibArchiver.args "-v"</td>
-    </tr>
-</table>
-
-Note that the language-specific element is only present if the appropriate plugin has been applied. So the 'cCompiler' extension
-is only available if the 'c' plugin has been applied.
-
-#### Source sets for a native component (executable or library) are automatically configured
-
-In earlier versions, a native component was not automatically associated with any source sets.
-To simplify configuration, Gradle now creates and attaches the relevant source sets for every defined `executable` or `library`.
-
-<table>
-    <tr><th>Gradle 1.8</th><th>Gradle 1.9</th></tr>
-    <tr>
-    <td>
-<pre>apply plugin: 'cpp'
-sources {
-    main {
-        cpp {}
-    }
-}
-executables {
-    main {
-        source sources.main.cpp
-    }
-}</pre>
-    </td>
-    <td>
-<pre>apply plugin: 'cpp'
-executables {
-    main {}
-}</pre>
-    </td>
-    </tr>
-</table>
-
-This means that given a executable named 'main', a functional source set named 'main' will be created, with a language source
-set added for each supported language. So applying the 'assembler' plugin would result in the 'sources.main.asm'
-language source set being added, with the conventional source directory `src/main/asm`.
-
-Note that conventional source directories eg: `src/main/cpp` and `src/main/headers` are now only applied if no
-source directories are explicitly configured. If you don't define any source directories, the conventions apply.
-If you wish to define custom source locations, then _all_ of the source locations must be specified (not just those in
-addition to the convention).
-
-### Tooling API supports GradleBuild for all Gradle versions
-
-In this release, the `GradleBuild` tooling model is now supported for all target Gradle versions supported by the tooling API. Previously,
-this model was only available for target Gradle versions 1.8 and later.
+- `NamedDomainObjectContainer.maybeCreate()`
+- `RepositoryHandler.jcenter()`
 
 ## Fixed issues
 
+## Deprecations
+
+Features that have become superseded or irrelevant due to the natural evolution of Gradle become *deprecated*, and scheduled to be removed
+in the next major Gradle version (Gradle 2.0). See the User guide section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
+
+The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](http://forums.gradle.org).
+
+<!--
+### Example deprecation
+-->
+
 ## Potential breaking changes
 
-### Renames in incubating BuildSetup plugin
+### Dependency resolution result produces a graph of components instead of a graph of module versions.
 
-* The ´BuildSetup´ task was renamed to ´InitBuild´.
-* The plugin ´build-setup was renamed to ´build-init´.
-* The task ´setupBuild´ provided by the auto-applied BuildInit plugin was renamed to ´init´.
-* The package name for the ´build-init´ related classes has changed from ´org.gradle.buildsetup´ to ´org.gradle.buildinit´.
+* The dependency resolution result is changed so that it produces a graph of components.
+* Various interfaces were renamed to reflect this change:
+    * `ResolvedModuleVersionResult` to `ResolvedComponentResult`
+    * `ModuleVersionSelectionReason` to `ComponentSelectionReason`
+* Renamed methods on `ResolutionResult`:
+    * `getAllModuleVersions()` to `getAllComponents()`.
+    * `allModuleVersions(Action)` to `allComponents(Action)`.
+    * `allModuleVersions(Closure)` to `allComponents(Closure)`.
+* Various interface method signatures were changed to return the new component types: `DependencyResult`, `ResolvedComponentResult`, `UnresolvedDependencyResult` and `ResolutionResult`.
 
-### Changes to incubating Native Binary support
+### Dependency resolution prefers the latest version regardless of whether it has meta-data or not
 
-* The 'cpp' plugin no longer automatically adds support for C and Assembler sources.
-* Replaced `compilerArgs` and `linkerArgs` with `cppCompiler.args` and `linker.args`.
-* Renamed and restructure package organisation for domain, plugin and task classes. If you are referencing
-  these classes directly you may need to update your build script for this reorganisation.
-* The temporary file generated for compiler/linker input has been renamed from "compiler-options.txt" to "options.txt".
-    * This file now only contains file inputs to the tool - all other options are supplied directly via the command line.
-* Object files generated from the assembly of Assembler sources are no longer named '<file>.s.o'.
-* Renamed method: BuildableModelElement.dependsOn() -> BuildableModelElement.builtBy()
-* The `gpp-compiler` plugin was renamed to `gcc`. Class name was changed to `GccCompilerPlugin`.
-* The conventional source directories eg: `src/main/cpp` and `src/main/headers` are only applied if no source directories are explicitly
-  configured. If you wish to define custom source locations, you must define _all_ of the source locations.
+TBD
 
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
-* [John Engelman](https://github.com/johnrengelman)
-    - Existence of pom file requires that declared artifacts can be found in the same repository (GRADLE-2034).
-    - Fix publishing to Maven Local to follow Maven rules (GRADLE-2762).
-* [Jean-Baptiste Nizet](https://github.com/jnizet) - Added an HTML dependency report.
-* [Valdis Rigdon](https://github.com/valdisrigdon) - Adds the ability to specify xml:withMessages, text, or emacs for the FindBugs report.
-* [Robert Kühne](https://github.com/sponiro)
-    - Documentation fixes.
-    - Fix a regression when adding Action instances to tasks (GRADLE-2774).
-* [Mark Petrovic](https://github.com/ae6rt) - Cucumber test report file formation is failing (GRADLE-2739).
-* [Bryan Keller](https://github.com/bryanck) - JAR manifest should be first entry in a archive file (GRADLE-2886).
+* [Christo Zietsman](https://github.com/czietsman) - added support for locating the Visual Studio 2012 tool set
+* [Michael Putters](https://github.com/mputters) - added support the Visual Studio 2013 tool set and Windows 8 SDK
+* [Andrew Oberstar](https://github.com/ajoberstar) - fixed GRADLE-2695: ClassFormatError introduced in 1.3
+* [Bobby Warner](https://github.com/ajoberstar) - updated Groovy samples to Groovy 2.2.0
+* [Marcin Erdmann](https://github.com/erdi) - `shouldRunAfter` task ordering rule
+* [Ramon Nogueira](https://github.com/ramonza) - fixed issues serializing test failures
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 

@@ -24,6 +24,28 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DefaultVisualStudioLocator implements VisualStudioLocator {
+    private static final String COMPILER_PATH = "VC/bin/";
+    private static final String COMPILER_FILENAME = "cl.exe";
+    private static final String RESOURCE_PATH = "bin/";
+    private static final String RESOURCE_PATH_WINSDK8 = "bin/x86/";
+    private static final String RESOURCE_FILENAME = "rc.exe";
+    private static final String KERNEL32_PATH = "lib/";
+    private static final String KERNEL32_PATH_WINSDK8 = "lib/winv6.3/um/x86/";
+    private static final String KERNEL32_FILENAME = "kernel32.lib";
+
+    private static final VersionLookupPath[] VISUALSTUDIO_PATHS = {
+        new VersionLookupPath("/Microsoft Visual Studio 12.0", VisualStudioVersion.VS_2013),
+        new VersionLookupPath("/Microsoft Visual Studio 11.0", VisualStudioVersion.VS_2012),
+        new VersionLookupPath("/Microsoft Visual Studio 10.0", VisualStudioVersion.VS_2010)
+    };
+    private static final String[] WINDOWSSDK_PATHS = {
+        "Windows Kits/8.1",
+        "Windows Kits/8.0",
+        "Microsoft SDKs/Windows/v7.1A",
+        "Microsoft SDKs/Windows/v7.1",
+        "Microsoft SDKs/Windows/v7.0A"
+    };
+
     private final OperatingSystem os;
 
     public DefaultVisualStudioLocator() {
@@ -41,32 +63,34 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
     public Search locateDefaultVisualStudio() {
         Spec<File> isVisualStudio = isVisualStudio();
         // If cl.exe is on the path, assume it is contained within a visual studio install
-        File compilerInPath = os.findInPath("cl.exe");
+        File compilerInPath = os.findInPath(COMPILER_FILENAME);
         if (compilerInPath != null) {
             return locateInHierarchy(compilerInPath, isVisualStudio);
         }
 
-        return locateInProgramFiles(isVisualStudio, "/Microsoft Visual Studio 10.0");
+        return locateInProgramFiles(isVisualStudio, VISUALSTUDIO_PATHS);
     }
 
     private Spec<File> isVisualStudio() {
         return new Spec<File>() {
             public boolean isSatisfiedBy(File element) {
-                return new File(element, "VC/bin/cl.exe").isFile();
+                return new File(element, COMPILER_PATH + COMPILER_FILENAME).isFile();
             }
         };
     }
 
+    public Search locateWindowsSdk(File candidate) {
+        return locateInHierarchy(candidate, isWindowsSdk());
+    }
+
     public Search locateDefaultWindowsSdk() {
         // If rc.exe is on the path, assume it is contained within a Windows SDK
-        File resourceCompilerInPath = os.findInPath("rc.exe");
+        File resourceCompilerInPath = os.findInPath(RESOURCE_FILENAME);
         if (resourceCompilerInPath != null) {
             return locateInHierarchy(resourceCompilerInPath, isWindowsSdk());
         }
 
-        return locateInProgramFiles(isWindowsSdk(),
-                "Microsoft SDKs/Windows/v7.1",
-                "Microsoft SDKs/Windows/v7.0A");
+        return locateInProgramFiles(isWindowsSdk(), WINDOWSSDK_PATHS);
     }
 
     private Spec<File> isWindowsSdk() {
@@ -78,7 +102,8 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
     }
 
     private boolean isWindowsSdk(File candidate) {
-        return new File(candidate, "bin/rc.exe").isFile() && new File(candidate, "lib/kernel32.lib").isFile();
+        return (new File(candidate, RESOURCE_PATH + RESOURCE_FILENAME).isFile() || new File(candidate, RESOURCE_PATH_WINSDK8 + RESOURCE_FILENAME).isFile())
+            && (new File(candidate, KERNEL32_PATH + KERNEL32_FILENAME).isFile() || new File(candidate, KERNEL32_PATH_WINSDK8 + KERNEL32_FILENAME).isFile());
     }
 
     private Search locateInProgramFiles(Spec<File> condition, String... candidateLocations) {
@@ -89,6 +114,18 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
                 break;
             }
             search.notFound(candidate);
+        }
+        return search;
+    }
+
+    private Search locateInProgramFiles(Spec<File> condition, VersionLookupPath... candidateLocations) {
+        Search search = new Search();
+        for (VersionLookupCandidate candidate : programFileCandidates(candidateLocations)) {
+            if (condition.isSatisfiedBy(candidate.file)) {
+                search.found(candidate);
+                break;
+            }
+            search.notFound(candidate.file);
         }
         return search;
     }
@@ -115,6 +152,16 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
         return candidates;
     }
 
+    private List<VersionLookupCandidate> programFileCandidates(VersionLookupPath... candidateDirectory) {
+        List<VersionLookupCandidate> candidates = new ArrayList<VersionLookupCandidate>(candidateDirectory.length * 2);
+        for (VersionLookupPath candidateLocation : candidateDirectory) {
+            for (File file : programFileCandidates(candidateLocation.path)) {
+                candidates.add(new VersionLookupCandidate(file, candidateLocation.version));
+            }
+        }
+        return candidates;
+    }
+
     private Search locateInHierarchy(File candidate, Spec<File> condition) {
         Search search = new Search();
         while (candidate != null) {
@@ -128,12 +175,39 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
         return search;
     }
 
+    private static class VersionLookupPath {
+        String path;
+        String version;
+
+        public VersionLookupPath(String path, String version) {
+            this.path = path;
+            this.version = version;
+        }
+
+    }
+ 
+    private static class VersionLookupCandidate {
+        File file;
+        String version;
+
+        public VersionLookupCandidate(File file, String version) {
+            this.file = file;
+            this.version = version;
+        }
+
+    }
+
     public class Search implements SearchResult {
+        private String version;
         private File file;
         private List<File> searchLocations = new ArrayList<File>();
 
         public boolean isFound() {
             return file != null;
+        }
+
+        public String getVersion() {
+            return version;
         }
 
         public File getResult() {
@@ -150,6 +224,11 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
 
         void found(File candidate) {
             this.file = candidate;
+        }
+
+        void found(VersionLookupCandidate candidate) {
+            this.file = candidate.file;
+            this.version = candidate.version;
         }
     }
 }

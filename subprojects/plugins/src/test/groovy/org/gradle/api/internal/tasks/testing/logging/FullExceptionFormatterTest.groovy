@@ -199,15 +199,15 @@ class FullExceptionFormatterTest extends Specification {
 """
     }
 
-    def "formats PlaceholderException's correctly"() {
+    def "formats PlaceholderException correctly"() {
         testLogging.getShowCauses() >> true
         testLogging.getShowStackTraces() >> true
         testLogging.getStackTraceFilters() >> EnumSet.of(TestStackTraceFilter.ENTRY_POINT)
 
-        def cause = new PlaceholderException(RuntimeException.name, "oops", "java.lang.RuntimeException: oops", null, null)
+        def cause = new PlaceholderException(RuntimeException.name, "oops", null, "java.lang.RuntimeException: oops", null, null)
         cause.stackTrace = createGroovyTrace()
 
-        def exception = new PlaceholderException(Exception.name, "ouch", "java.lang.Exception: ouch", null, cause)
+        def exception = new PlaceholderException(Exception.name, "ouch", null, "java.lang.Exception: ouch", null, cause)
         exception.stackTrace = createGroovyTrace()[1..-1]
 
         expect:

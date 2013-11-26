@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 import org.apache.ivy.Ivy;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ResolveException;
-import org.gradle.api.artifacts.result.ResolvedModuleVersionResult;
+import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
@@ -36,7 +36,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.Tran
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.StreamingResolutionResultBuilder;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.BinaryStores;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.StoreSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.ResolutionResultsStoreFactory;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.cache.BinaryStore;
@@ -94,13 +94,14 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
 
                 DependencyGraphBuilder builder = new DependencyGraphBuilder(idResolver, projectDependencyResolver, conflictResolver, new DefaultDependencyToConfigurationResolver());
 
-                BinaryStores stores = storeFactory.createBinaryStores();
-                BinaryStore newModelStore = stores.next();
-                Store<ResolvedModuleVersionResult> newModelCache = storeFactory.createNewModelCache(configuration);
+                StoreSet stores = storeFactory.createStoreSet();
+
+                BinaryStore newModelStore = stores.nextBinaryStore();
+                Store<ResolvedComponentResult> newModelCache = stores.oldModelStore();
                 ResolutionResultBuilder newModelBuilder = new StreamingResolutionResultBuilder(newModelStore, newModelCache);
 
-                BinaryStore oldModelStore = stores.next();
-                Store<TransientConfigurationResults> oldModelCache = storeFactory.createOldModelCache(configuration);
+                BinaryStore oldModelStore = stores.nextBinaryStore();
+                Store<TransientConfigurationResults> oldModelCache = stores.newModelStore();
                 TransientConfigurationResultsBuilder oldTransientModelBuilder = new TransientConfigurationResultsBuilder(oldModelStore, oldModelCache);
                 DefaultResolvedConfigurationBuilder oldModelBuilder = new DefaultResolvedConfigurationBuilder(resolvedArtifactFactory, oldTransientModelBuilder);
 

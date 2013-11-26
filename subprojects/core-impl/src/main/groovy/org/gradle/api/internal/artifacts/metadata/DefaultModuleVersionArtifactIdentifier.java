@@ -16,73 +16,36 @@
 
 package org.gradle.api.internal.artifacts.metadata;
 
-import com.google.common.base.Objects;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.gradle.api.Nullable;
-import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.util.GUtil;
 
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 
 public class DefaultModuleVersionArtifactIdentifier implements ModuleVersionArtifactIdentifier {
     private final ModuleVersionIdentifier moduleVersionIdentifier;
-    private final String name;
-    private final String type;
-    private final String extension;
-    private final Map<String, String> attributes;
+    private final IvyArtifactName name;
 
     public DefaultModuleVersionArtifactIdentifier(ModuleVersionIdentifier moduleVersionIdentifier, Artifact artifact) {
-        this(moduleVersionIdentifier, artifact.getName(), artifact.getType(), artifact.getExt(), artifact.getQualifiedExtraAttributes());
+        this.moduleVersionIdentifier = moduleVersionIdentifier;
+        this.name = new DefaultIvyArtifactName(artifact);
     }
 
     public DefaultModuleVersionArtifactIdentifier(ModuleVersionIdentifier moduleVersionIdentifier, String name, String type, @Nullable String extension, Map<String, String> attributes) {
         this.moduleVersionIdentifier = moduleVersionIdentifier;
-        this.name = name;
-        this.type = type;
-        this.extension = extension;
-        this.attributes = attributes.isEmpty() ? Collections.<String, String>emptyMap() : new HashMap<String, String>(attributes);
+        this.name = new DefaultIvyArtifactName(name, type, extension, attributes);
     }
 
     public String getDisplayName() {
-        StringBuilder result = new StringBuilder();
-        result.append(moduleVersionIdentifier);
-        result.append(":");
-        result.append(name);
-        String classifier = attributes.get(Dependency.CLASSIFIER);
-        if (GUtil.isTrue(classifier)) {
-            result.append("-");
-            result.append(classifier);
-        }
-        if (GUtil.isTrue(extension)) {
-            result.append(".");
-            result.append(extension);
-        }
-
-        return result.toString();
+        return String.format("%s:%s", moduleVersionIdentifier, name);
     }
 
-    public String getType() {
-        return type;
-    }
-
-    public String getName() {
+    public IvyArtifactName getName() {
         return name;
     }
 
     public ModuleVersionIdentifier getModuleVersionIdentifier() {
         return moduleVersionIdentifier;
-    }
-
-    @Nullable
-    public String getExtension() {
-        return extension;
-    }
-
-    public Map<String, String> getAttributes() {
-        return attributes;
     }
 
     @Override
@@ -92,7 +55,7 @@ public class DefaultModuleVersionArtifactIdentifier implements ModuleVersionArti
 
     @Override
     public int hashCode() {
-        return moduleVersionIdentifier.hashCode() ^ name.hashCode() ^ type.hashCode() ^ (extension == null ? 0 : extension.hashCode()) ^ attributes.hashCode();
+        return moduleVersionIdentifier.hashCode() ^ name.hashCode();
     }
 
     @Override
@@ -105,9 +68,6 @@ public class DefaultModuleVersionArtifactIdentifier implements ModuleVersionArti
         }
         DefaultModuleVersionArtifactIdentifier other = (DefaultModuleVersionArtifactIdentifier) obj;
         return other.moduleVersionIdentifier.equals(moduleVersionIdentifier)
-                && other.name.equals(name)
-                && other.type.equals(type)
-                && Objects.equal(other.extension, extension)
-                && other.attributes.equals(attributes);
+                && other.name.equals(name);
     }
 }

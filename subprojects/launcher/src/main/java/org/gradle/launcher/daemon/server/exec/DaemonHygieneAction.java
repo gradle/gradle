@@ -15,28 +15,32 @@
  */
 package org.gradle.launcher.daemon.server.exec;
 
-import static java.lang.System.currentTimeMillis;
+import org.gradle.internal.TimeProvider;
+import org.gradle.internal.TrueTimeProvider;
 
 public class DaemonHygieneAction implements DaemonCommandAction {
 
     private final long gcDelay;
+    private TimeProvider timeProvider;
     private long nextGcHint;
 
     public DaemonHygieneAction() {
         //by default, don't hint for gc more often than once per 2 minutes
         //because it is a full scan
-        this(1000 * 60 * 2);
+        this(1000 * 60 * 2, new TrueTimeProvider());
     }
 
-    DaemonHygieneAction(long gcDelay) {
+    DaemonHygieneAction(long gcDelay, TimeProvider timeProvider) {
         this.gcDelay = gcDelay;
+        this.timeProvider = timeProvider;
     }
 
     public void execute(DaemonCommandExecution execution) {
         execution.proceed();
-        if (currentTimeMillis() > nextGcHint) {
+        long time = timeProvider.getCurrentTime();
+        if (time > nextGcHint) {
             gc();
-            nextGcHint = currentTimeMillis() + gcDelay;
+            nextGcHint = time + gcDelay;
         }
     }
 

@@ -55,8 +55,8 @@ uploadArchives {
 """
 
         and:
-        module.expectJarPut();
-        module.expectIvyPut();
+        module.jar.expectPut()
+        module.ivy.expectPut()
 
         and:
         executer.withDeprecationChecksDisabled()

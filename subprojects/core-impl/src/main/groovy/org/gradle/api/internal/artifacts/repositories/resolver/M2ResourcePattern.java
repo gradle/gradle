@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.apache.ivy.core.IvyPatternHelper;
 import org.apache.ivy.core.module.descriptor.Artifact;
+import org.gradle.api.artifacts.ModuleIdentifier;
 
 import java.util.Map;
 
@@ -32,13 +33,13 @@ public class M2ResourcePattern extends IvyResourcePattern {
     }
 
     @Override
-    public String toModulePath(Artifact artifact) {
+    public String toModulePath(ModuleIdentifier module) {
         String pattern = getPattern();
         if (!pattern.endsWith(MavenPattern.M2_PATTERN)) {
             throw new UnsupportedOperationException("Cannot locate module for non-maven layout.");
         }
         String metaDataPattern = pattern.substring(0, pattern.length() - MavenPattern.M2_PER_MODULE_PATTERN.length() - 1);
-        return IvyPatternHelper.substituteTokens(metaDataPattern, toAttributes(artifact));
+        return IvyPatternHelper.substituteTokens(metaDataPattern, toAttributes(module));
     }
 
     @Override
@@ -64,7 +65,15 @@ public class M2ResourcePattern extends IvyResourcePattern {
 
     @Override
     protected Map<String, Object> toAttributes(Artifact artifact) {
-        Map<String, Object> attributes = super.toAttributes(artifact);
+        return mapOrganisation(super.toAttributes(artifact));
+    }
+
+    @Override
+    protected Map<String, Object> toAttributes(ModuleIdentifier module) {
+        return mapOrganisation(super.toAttributes(module));
+    }
+
+    private Map<String, Object> mapOrganisation(Map<String, Object> attributes) {
         String org = (String) attributes.get(IvyPatternHelper.ORGANISATION_KEY);
         if (org != null) {
             attributes.put(IvyPatternHelper.ORGANISATION_KEY, org.replace(".", "/"));

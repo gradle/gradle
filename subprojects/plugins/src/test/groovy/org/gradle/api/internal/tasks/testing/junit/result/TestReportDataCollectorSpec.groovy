@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.testing.junit.result
 import org.gradle.api.internal.tasks.testing.*
 import org.gradle.api.internal.tasks.testing.results.DefaultTestResult
 import org.gradle.messaging.remote.internal.PlaceholderException
+import spock.lang.Issue
 import spock.lang.Specification
 
 import static java.util.Arrays.asList
@@ -124,7 +125,7 @@ class TestReportDataCollectorSpec extends Specification {
 
     def "handle PlaceholderExceptions for test failures"() {
         def test = new DefaultTestDescriptor("1.1.1", "FooTest", "testMethod")
-        def failure = new PlaceholderException("OriginalClassName", "failure2", "toString()", null, null)
+        def failure = new PlaceholderException("OriginalClassName", "failure2", null, "toString()", null, null)
         def result = new DefaultTestResult(SUCCESS, 0, 0, 1, 0, 1, [failure])
 
         when:
@@ -181,5 +182,41 @@ class TestReportDataCollectorSpec extends Specification {
         failures.size() == 1
         failures[0].message == failure1.toString()
         failures[0].stackTrace.startsWith(failure2.toString())
+    }
+
+    def "synthesises result when suite fails without running any tests"() {
+        def root = new DefaultTestSuiteDescriptor("1", "Suite")
+        def testWorker = new DefaultTestSuiteDescriptor("2", "Test Worker 1")
+
+        when:
+        //simulating a scenario with TestNG suite failing fatally to initialise
+        collector.beforeSuite(root)
+        collector.beforeSuite(testWorker)
+        collector.afterSuite(testWorker, new DefaultTestResult(FAILURE, 50, 450, 2, 1, 1, [new TestSuiteExecutionException("Boo!", new RuntimeException())]))
+        collector.afterSuite(root, new DefaultTestResult(FAILURE, 0, 500, 2, 1, 1, []))
+
+        then:
+        results.size() == 1
+        def result = results.values().toList().first()
+        result.className == 'Test Worker 1'
+        result.startTime == 50
+        result.testsCount == 1
+        result.failuresCount == 1
+        result.duration == 400
+        result.results.size() == 1
+        result.results[0].failures.size() == 1
+    }
+
+    @Issue("GRADLE-2730")
+    def "test case timestamp is correct even if output received for given class"() {
+        def test = new DefaultTestDescriptor("1.1.1", "FooTest", "testMethod")
+
+        when:
+        collector.beforeTest(test)
+        collector.onOutput(test, new DefaultTestOutputEvent(StdOut, "suite-out"))
+        collector.afterTest(test, new DefaultTestResult(SUCCESS, 100, 200, 1, 1, 0, asList()))
+
+        then:
+        results.get("FooTest").startTime == 100
     }
 }

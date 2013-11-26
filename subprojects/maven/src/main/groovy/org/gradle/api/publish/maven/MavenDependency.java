@@ -16,7 +16,7 @@
 package org.gradle.api.publish.maven;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.internal.HasInternalProtocol;
+import org.gradle.internal.HasInternalProtocol;
 
 /**
  * A dependency declared as part of an {@link MavenPublication}.

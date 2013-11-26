@@ -15,11 +15,11 @@
  */
 package org.gradle.api.internal.artifacts;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
+import org.gradle.api.internal.artifacts.metadata.IvyArtifactName;
 import org.gradle.internal.Factory;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.jmock.Expectations;
@@ -91,19 +91,15 @@ public class DefaultResolvedDependencyTest {
     }
 
     public static DefaultResolvedArtifact createResolvedArtifact(final Mockery context, final String name, final String type, final String extension, final File file) {
-        final Artifact artifactStub = context.mock(Artifact.class, "artifact" + name);
+        final IvyArtifactName artifactStub = context.mock(IvyArtifactName.class, "artifact" + name);
         context.checking(new Expectations() {{
             allowing(artifactStub).getName();
             will(returnValue(name));
             allowing(artifactStub).getType();
             will(returnValue(type));
-            allowing(artifactStub).getExt();
+            allowing(artifactStub).getExtension();
             will(returnValue(extension));
-            allowing(artifactStub).getExtraAttributes();
-            will(returnValue(Collections.emptyMap()));
-            allowing(artifactStub).getQualifiedExtraAttributes();
-            will(returnValue(Collections.emptyMap()));
-            allowing(artifactStub).getExtraAttribute(with(org.hamcrest.Matchers.notNullValue(String.class)));
+            allowing(artifactStub).getClassifier();
             will(returnValue(null));
         }});
         final Factory artifactSource = context.mock(Factory.class);

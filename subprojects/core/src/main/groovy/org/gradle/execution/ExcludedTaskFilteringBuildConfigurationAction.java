@@ -31,7 +31,7 @@ public class ExcludedTaskFilteringBuildConfigurationAction implements BuildConfi
         GradleInternal gradle = context.getGradle();
         Set<String> excludedTaskNames = gradle.getStartParameter().getExcludedTaskNames();
         if (!excludedTaskNames.isEmpty()) {
-            TaskSelector selector = createSelector(gradle);
+            TaskSelector selector = gradle.getServices().get(TaskSelector.class);
             final Set<Task> excludedTasks = new HashSet<Task>();
             for (String taskName : excludedTaskNames) {
                 excludedTasks.addAll(selector.getSelection(taskName).getTasks());
@@ -44,9 +44,5 @@ public class ExcludedTaskFilteringBuildConfigurationAction implements BuildConfi
         }
 
         context.proceed();
-    }
-
-    TaskSelector createSelector(GradleInternal gradle) {
-        return new TaskSelector(gradle);
     }
 }

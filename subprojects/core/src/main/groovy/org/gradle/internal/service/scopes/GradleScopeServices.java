@@ -24,8 +24,11 @@ import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.project.DefaultProjectRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
+import org.gradle.api.internal.tasks.options.OptionReader;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.execution.*;
+import org.gradle.execution.commandline.CommandLineTaskConfigurer;
+import org.gradle.execution.commandline.CommandLineTaskParser;
 import org.gradle.execution.taskgraph.DefaultTaskGraphExecuter;
 import org.gradle.execution.taskgraph.TaskPlanExecutor;
 import org.gradle.internal.service.DefaultServiceRegistry;
@@ -42,31 +45,40 @@ import static java.util.Arrays.asList;
  * Contains the services for a given {@link GradleInternal} instance.
  */
 public class GradleScopeServices extends DefaultServiceRegistry implements ServiceRegistryFactory {
-    private final GradleInternal gradle;
-
     public GradleScopeServices(ServiceRegistry parent, GradleInternal gradle) {
         super(parent);
-        this.gradle = gradle;
         add(GradleInternal.class, gradle);
         addProvider(new TaskExecutionServices());
     }
 
-    protected BuildExecuter createBuildExecuter() {
+    TaskSelector createTaskSelector(GradleInternal gradle) {
+        return new TaskSelector(gradle);
+    }
+
+    OptionReader createOptionReader() {
+        return new OptionReader();
+    }
+
+    CommandLineTaskParser createCommandLineTaskParser(OptionReader optionReader) {
+        return new CommandLineTaskParser(new CommandLineTaskConfigurer(optionReader));
+    }
+
+    BuildExecuter createBuildExecuter(CommandLineTaskParser commandLineTaskParser, TaskSelector taskSelector) {
         List<BuildConfigurationAction> configs = new LinkedList<BuildConfigurationAction>();
         if (get(StartParameter.class).isConfigureOnDemand()) {
             configs.add(new ProjectEvaluatingAction());
         }
         configs.add(new DefaultTasksBuildExecutionAction());
         configs.add(new ExcludedTaskFilteringBuildConfigurationAction());
-        configs.add(new TaskNameResolvingBuildConfigurationAction());
+        configs.add(new TaskNameResolvingBuildConfigurationAction(commandLineTaskParser, taskSelector));
 
         return new DefaultBuildExecuter(
                 configs,
                 asList(new DryRunBuildExecutionAction(),
-                       new SelectedTaskExecutionAction()));
+                        new SelectedTaskExecutionAction()));
     }
 
-    protected ProjectFinder createProjectFinder() {
+    ProjectFinder createProjectFinder(final GradleInternal gradle) {
         return new ProjectFinder() {
             public ProjectInternal getProject(String path) {
                 return gradle.getRootProject().project(path);
@@ -74,12 +86,12 @@ public class GradleScopeServices extends DefaultServiceRegistry implements Servi
         };
     }
 
-    protected ProjectRegistry createIProjectRegistry() {
+    ProjectRegistry createIProjectRegistry() {
         return new DefaultProjectRegistry<ProjectInternal>();
     }
 
-    protected TaskGraphExecuter createTaskGraphExecuter() {
-        return new DefaultTaskGraphExecuter(get(ListenerManager.class), get(TaskPlanExecutor.class));
+    TaskGraphExecuter createTaskGraphExecuter(ListenerManager listenerManager, TaskPlanExecutor taskPlanExecutor) {
+        return new DefaultTaskGraphExecuter(listenerManager, taskPlanExecutor);
     }
 
     public ServiceRegistryFactory createFor(Object domainObject) {
@@ -89,11 +101,11 @@ public class GradleScopeServices extends DefaultServiceRegistry implements Servi
         throw new UnsupportedOperationException();
     }
 
-    protected PluginRegistry createPluginRegistry(PluginRegistry parentRegistry) {
+    PluginRegistry createPluginRegistry(PluginRegistry parentRegistry) {
         return parentRegistry.createChild(get(BuildClassLoaderRegistry.class).getScriptClassLoader(), new DependencyInjectingInstantiator(this));
     }
 
-    protected PluginContainer createPluginContainer() {
-        return new DefaultPluginContainer(get(PluginRegistry.class), gradle);
+    PluginContainer createPluginContainer(GradleInternal gradle, PluginRegistry pluginRegistry) {
+        return new DefaultPluginContainer<GradleInternal>(pluginRegistry, gradle);
     }
 }

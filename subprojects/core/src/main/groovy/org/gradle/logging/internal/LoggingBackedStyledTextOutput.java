@@ -15,85 +15,48 @@
  */
 package org.gradle.logging.internal;
 
-import org.gradle.api.Action;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.TimeProvider;
-import org.gradle.util.LineBufferingOutputStream;
 
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
  * A {@link org.gradle.logging.StyledTextOutput} implementation which generates events of type {@link
  * org.gradle.logging.internal.StyledTextOutputEvent}. This implementation is not thread-safe.
  */
-public class LoggingBackedStyledTextOutput extends AbstractStyledTextOutput {
-    private final LineBufferingOutputStream outstr;
+public class LoggingBackedStyledTextOutput extends AbstractLineChoppingStyledTextOutput {
+    private final OutputEventListener listener;
+    private final String category;
+    private final LogLevel logLevel;
+    private final TimeProvider timeProvider;
+    private final StringBuilder buffer = new StringBuilder();
+    private List<StyledTextOutputEvent.Span> spans = new ArrayList<StyledTextOutputEvent.Span>();
     private Style style = Style.Normal;
-    private boolean styleChange;
 
     public LoggingBackedStyledTextOutput(OutputEventListener listener, String category, LogLevel logLevel, TimeProvider timeProvider) {
-        outstr = new LineBufferingOutputStream(new LogAction(listener, category, logLevel, timeProvider));
+        this.listener = listener;
+        this.category = category;
+        this.logLevel = logLevel;
+        this.timeProvider = timeProvider;
     }
 
     protected void doStyleChange(Style style) {
-        styleChange = true;
-        try {
-            outstr.flush();
-        } finally {
-            styleChange = false;
+        if (buffer.length() > 0) {
+            spans.add(new StyledTextOutputEvent.Span(this.style, buffer.toString()));
+            buffer.setLength(0);
         }
         this.style = style;
     }
 
     @Override
-    protected void doAppend(String text) {
-        try {
-            outstr.write(text.getBytes());
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-    }
-
-    private class LogAction implements Action<String> {
-        private final OutputEventListener listener;
-        private final String category;
-        private final LogLevel logLevel;
-        private final TimeProvider timeProvider;
-        private List<StyledTextOutputEvent.Span> spans;
-
-        public LogAction(OutputEventListener listener, String category, LogLevel logLevel, TimeProvider timeProvider) {
-            this.listener = listener;
-            this.category = category;
-            this.logLevel = logLevel;
-            this.timeProvider = timeProvider;
-        }
-
-        public void execute(String text) {
-            if (text.length() == 0) {
-                return;
-            }
-
-            StyledTextOutputEvent.Span span = new StyledTextOutputEvent.Span(style, text);
-            if (styleChange) {
-                if (spans == null) {
-                    spans = new ArrayList<StyledTextOutputEvent.Span>();
-                }
-                spans.add(span);
-                return;
-            } else if (spans != null) {
-                spans.add(span);
-            } else {
-                spans = Collections.singletonList(span);
-            }
-
-            StyledTextOutputEvent event = new StyledTextOutputEvent(timeProvider.getCurrentTime(), category, logLevel, spans);
-            spans = null;
-            
-            listener.onOutput(event);
+    protected void doLineText(CharSequence text, boolean terminatesLine) {
+        buffer.append(text);
+        if (terminatesLine) {
+            spans.add(new StyledTextOutputEvent.Span(this.style, buffer.toString()));
+            buffer.setLength(0);
+            listener.onOutput(new StyledTextOutputEvent(timeProvider.getCurrentTime(), category, logLevel, spans));
+            spans = new ArrayList<StyledTextOutputEvent.Span>();
         }
     }
 }

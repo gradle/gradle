@@ -21,58 +21,77 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.FileCollectionAdapter;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.DefaultBinaryNamingScheme;
+import org.gradle.language.rc.WindowsResourceSet;
 import org.gradle.nativebinaries.*;
 
 import java.io.File;
 import java.util.Collections;
 import java.util.Set;
 
-public class DefaultSharedLibraryBinary extends DefaultNativeBinary implements SharedLibraryBinary {
-    private final Library library;
+public class DefaultSharedLibraryBinary extends DefaultLibraryBinary implements SharedLibraryBinary {
 
     public DefaultSharedLibraryBinary(Library library, Flavor flavor, ToolChainInternal toolChain, Platform platform, BuildType buildType, DefaultBinaryNamingScheme namingScheme) {
         super(library, flavor, toolChain, platform, buildType, namingScheme.withTypeString("SharedLibrary"));
-        this.library = library;
-    }
-
-    public Library getComponent() {
-        return library;
     }
 
     public String getOutputFileName() {
         return getToolChain().getSharedLibraryName(getComponent().getBaseName());
     }
 
-    private File getLinkFile() {
-        return new File(getToolChain().getSharedLibraryLinkFileName(getOutputFile().getPath()));
-    }
-
-    public NativeDependencySet resolve() {
-        return new NativeDependencySet() {
+    public LibraryNativeDependencySet resolve() {
+        return new LibraryNativeDependencySet() {
             public FileCollection getIncludeRoots() {
-                return library.getHeaders();
+                return getHeaderDirs();
             }
 
             public FileCollection getLinkFiles() {
-                return new FileCollectionAdapter(new RuntimeFiles(getLinkFile()));
+                return new FileCollectionAdapter(new SharedLibraryLinkOutputs());
             }
 
             public FileCollection getRuntimeFiles() {
-                return new FileCollectionAdapter(new RuntimeFiles(getOutputFile()));
+                return new FileCollectionAdapter(new SharedLibraryRuntimeOutputs());
+            }
+
+            public LibraryBinary getLibraryBinary() {
+                return DefaultSharedLibraryBinary.this;
             }
         };
     }
 
-    private class RuntimeFiles implements MinimalFileSet, Buildable {
-        private final File outputFile;
-
-        private RuntimeFiles(File outputFile) {
-            this.outputFile = outputFile;
+    private class SharedLibraryLinkOutputs implements MinimalFileSet, Buildable {
+        public Set<File> getFiles() {
+            if (isResourceOnly()) {
+                return Collections.emptySet();
+            }
+            String sharedLibraryLinkFileName = getToolChain().getSharedLibraryLinkFileName(getOutputFile().getPath());
+            return Collections.singleton(new File(sharedLibraryLinkFileName));
         }
 
-        public Set<File> getFiles() {
-            return Collections.singleton(outputFile);
+        private boolean isResourceOnly() {
+            return hasResources() && !hasExportedSymbols();
+        }
+
+        private boolean hasResources() {
+            for (WindowsResourceSet windowsResourceSet : getSource().withType(WindowsResourceSet.class)) {
+                if (windowsResourceSet.getSource().getFiles().size() > 0) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private boolean hasExportedSymbols() {
+            // TODO:DAZ This is a very rough approximation: actually inspect the binary to determine if there are exported symbols
+            for (LanguageSourceSet languageSourceSet : getSource()) {
+                if (!(languageSourceSet instanceof WindowsResourceSet)) {
+                    if (languageSourceSet.getSource().getFiles().size() > 0) {
+                        return true;
+                    }
+                }
+            }
+            return false;
         }
 
         public String getDisplayName() {
@@ -83,4 +102,19 @@ public class DefaultSharedLibraryBinary extends DefaultNativeBinary implements S
             return DefaultSharedLibraryBinary.this.getBuildDependencies();
         }
     }
+
+    private class SharedLibraryRuntimeOutputs implements MinimalFileSet, Buildable {
+        public Set<File> getFiles() {
+            return Collections.singleton(getOutputFile());
+        }
+
+        public String getDisplayName() {
+            return DefaultSharedLibraryBinary.this.toString();
+        }
+
+        public TaskDependency getBuildDependencies() {
+            return DefaultSharedLibraryBinary.this.getBuildDependencies();
+        }
+    }
+
 }

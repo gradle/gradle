@@ -43,7 +43,7 @@ public class StatementLabelsScriptTransformer extends AbstractScriptTransformer 
         final List<Statement> logStats = Lists.newArrayList();
 
         // currently we only look in script code; could extend this to build script classes
-        visitScriptCode(source, new ClassCodeVisitorSupport() {
+        AstUtils.visitScriptCode(source, new ClassCodeVisitorSupport() {
             @Override
             protected SourceUnit getSourceUnit() {
                 return source;

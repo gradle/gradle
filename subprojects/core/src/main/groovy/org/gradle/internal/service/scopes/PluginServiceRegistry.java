@@ -24,7 +24,20 @@ import org.gradle.internal.service.ServiceRegistration;
  * <p>Implementations are discovered using the JAR service locator mechanism (see {@link org.gradle.internal.service.ServiceLocator}).
  */
 public interface PluginServiceRegistry {
+    /**
+     * Called once per process, to register any globally scoped services. These services are reused across builds in the same process.
+     */
     void registerGlobalServices(ServiceRegistration registration);
 
+    /**
+     * Called once per build, to registry any build scoped services. These services are discarded at the end of the current build.
+     * All global scoped services are visible to the build scope services, but not vice versa.
+     */
     void registerBuildServices(ServiceRegistration registration);
+
+    /**
+     * Called once per project per build, to registry any project scoped services. These services are discarded at the end of the current build.
+     * All global and build scoped services are visible to the project scope services, but not vice versa.
+     */
+    void registerProjectServices(ServiceRegistration registration);
 }

@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.internal.Contextual;
+import org.gradle.internal.exceptions.Contextual;
 import org.gradle.api.internal.externalresource.ExternalResource;
 
 @Contextual

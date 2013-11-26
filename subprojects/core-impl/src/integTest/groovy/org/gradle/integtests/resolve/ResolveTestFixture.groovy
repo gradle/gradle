@@ -18,7 +18,7 @@ package org.gradle.integtests.resolve
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.result.ModuleVersionSelectionReason
+import org.gradle.api.artifacts.result.ComponentSelectionReason
 import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.test.fixtures.file.TestFile
@@ -271,7 +271,7 @@ public class GenerateGraphTask extends DefaultTask {
             }
             def root = configuration.incoming.resolutionResult.root
             writer.println("root:[${root.id}][${formatReason(root.selectionReason)}]")
-            configuration.incoming.resolutionResult.allModuleVersions.each {
+            configuration.incoming.resolutionResult.allComponents.each {
                 writer.println("module-version:[${it.id}][${formatReason(it.selectionReason)}]")
             }
             configuration.incoming.resolutionResult.allDependencies.each {
@@ -283,7 +283,7 @@ public class GenerateGraphTask extends DefaultTask {
         }
     }
 
-    def formatReason(ModuleVersionSelectionReason reason) {
+    def formatReason(ComponentSelectionReason reason) {
         def reasons = []
         if (reason.conflictResolution) {
             reasons << "conflict"

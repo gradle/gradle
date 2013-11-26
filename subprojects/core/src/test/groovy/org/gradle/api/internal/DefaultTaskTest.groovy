@@ -22,6 +22,7 @@ import org.gradle.api.tasks.AbstractTaskTest
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.TaskExecutionException
 import org.gradle.api.tasks.TaskInstantiationException
+import org.gradle.internal.Actions
 import org.gradle.listener.ListenerManager
 import org.gradle.util.WrapUtil
 import org.jmock.Expectations
@@ -34,7 +35,7 @@ import spock.lang.Issue
 
 import java.util.concurrent.Callable
 
-import static org.gradle.util.Matchers.dependsOn
+import static org.gradle.api.tasks.TaskDependencyMatchers.dependsOn
 import static org.gradle.util.Matchers.isEmpty
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
@@ -96,7 +97,7 @@ class DefaultTaskTest extends AbstractTaskTest {
     @Test
     public void testMustRunAfter() {
         Task mustRunAfterTask = createTask(project, "mustRunAfter")
-        Task mustRunAfterTaskUsingPath = project.getTasks().add("path")
+        Task mustRunAfterTaskUsingPath = project.getTasks().create("path")
         Task task = createTask(project, TEST_TASK_NAME)
 
         task.mustRunAfter(mustRunAfterTask, "path")
@@ -121,6 +122,26 @@ class DefaultTaskTest extends AbstractTaskTest {
 
         finalized.finalizedBy = [finalizer, "path"]
         assert finalized.finalizedBy.getDependencies(finalized) == [finalizer, finalizerFromPath] as Set
+    }
+
+    @Test
+    void testShouldRunAfter() {
+        Task shouldRunAfterTask = createTask(project, "shouldRunAfter")
+        Task shouldRunAfterFromPath = project.getTasks().create("path")
+        Task task = createTask(project, TEST_TASK_NAME)
+
+        task.shouldRunAfter(shouldRunAfterTask, shouldRunAfterFromPath)
+        assert task.shouldRunAfter.getDependencies(task) == [shouldRunAfterTask, shouldRunAfterFromPath] as Set
+    }
+
+    @Test
+    void testSetShouldRunAfter() {
+        Task shouldRunAfterTask = createTask(project, "shouldRunAfter")
+        Task shouldRunAfterFromPath = project.getTasks().create("path")
+        Task task = createTask(project, TEST_TASK_NAME)
+
+        task.shouldRunAfter = [shouldRunAfterTask, shouldRunAfterFromPath]
+        assert task.shouldRunAfter.getDependencies(task) == [shouldRunAfterTask, shouldRunAfterFromPath] as Set
     }
 
     @Test

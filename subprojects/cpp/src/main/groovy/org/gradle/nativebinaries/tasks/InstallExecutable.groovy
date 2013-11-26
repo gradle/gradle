@@ -79,7 +79,7 @@ public class InstallExecutable extends DefaultTask {
         this.libs.from libs
     }
 
-    // TODO:DAZ Once we introduce a public type for OperatingSystem, make it configurable here
+    // TODO:DAZ Allow this to be configured
     private OperatingSystem os = OperatingSystem.current()
 
     @TaskAction

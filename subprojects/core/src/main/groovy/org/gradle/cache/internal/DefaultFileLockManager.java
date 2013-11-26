@@ -19,11 +19,10 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.internal.filelock.*;
 import org.gradle.cache.internal.locklistener.FileLockContentionHandler;
-import org.gradle.internal.CompositeStoppable;
+import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.Factory;
-import org.gradle.internal.Stoppable;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.id.IdGenerator;
-import org.gradle.internal.id.NoZeroIntegerIdGenerator;
 import org.gradle.internal.id.RandomLongIdGenerator;
 import org.gradle.util.GFileUtils;
 
@@ -52,7 +51,6 @@ public class DefaultFileLockManager implements FileLockManager {
     private final IdGenerator<Long> generator;
     private final FileLockContentionHandler fileLockContentionHandler;
     private final long shortTimeoutMs = 10000;
-    private final int ownerId = new NoZeroIntegerIdGenerator().generateId();
 
     public DefaultFileLockManager(ProcessMetaDataProvider metaDataProvider, FileLockContentionHandler fileLockContentionHandler) {
         this(metaDataProvider, DEFAULT_LOCK_TIMEOUT, fileLockContentionHandler);
@@ -127,7 +125,9 @@ public class DefaultFileLockManager implements FileLockManager {
 
             GFileUtils.mkdirs(lockFile.getParentFile());
             lockFile.createNewFile();
-            lockFileAccess = new LockFileAccess(lockFile, new LockStateAccess(options.getLockStateSerializer()));
+
+            LockStateSerializer stateProtocol = options.isUseCrossVersionImplementation() ? new Version1LockStateSerializer() : new DefaultLockStateSerializer();
+            lockFileAccess = new LockFileAccess(lockFile, new LockStateAccess(stateProtocol));
             try {
                 lockState = lock(options.getMode());
             } catch (Throwable t) {

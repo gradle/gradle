@@ -19,7 +19,7 @@ import com.google.common.collect.Sets;
 import org.gradle.api.Project;
 import org.gradle.api.Rule;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.CommandLineOption;
+import org.gradle.api.internal.tasks.options.Option;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.tasks.diagnostics.internal.*;
 
@@ -42,7 +42,7 @@ public class TaskReportTask extends AbstractReportTask {
         this.renderer = renderer;
     }
 
-    @CommandLineOption(options = "all", description = "Show additional tasks and detail.")
+    @Option(option = "all", description = "Show additional tasks and detail.")
     public void setShowDetail(boolean detail) {
         this.detail = detail;
     }

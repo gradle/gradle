@@ -413,6 +413,11 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
 
         then:
         descriptor.allArtifacts.length == 3
+        descriptor.allArtifacts[0].configurations == ['a', 'b', 'c', 'd']
+        descriptor.allArtifacts[1].configurations == ['a', 'b', 'c', 'd']
+        descriptor.allArtifacts[2].configurations == ['a', 'b']
+
+        and:
         descriptor.getArtifacts("a")*.name == ['mymodule', 'art2', 'art3']
         descriptor.getArtifacts("a")*.type == ['jar', 'type', 'type2']
         descriptor.getArtifacts("a")*.ext == ['jar', 'ext', 'type2']

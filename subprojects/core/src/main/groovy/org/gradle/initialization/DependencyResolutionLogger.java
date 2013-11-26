@@ -39,9 +39,7 @@ public class DependencyResolutionLogger implements DependencyResolutionListener 
         LinkedList<ProgressLogger> loggers = progressLoggers.get();
         progressLoggers.set(loggers);
         ProgressLogger logger = loggerFactory.newOperation(DependencyResolutionLogger.class);
-        logger.setDescription(String.format("Resolve %s", dependencies));
-        logger.setShortDescription(String.format("Resolving %s", dependencies));
-        logger.started();
+        logger.start(String.format("Resolve %s", dependencies), String.format("Resolving %s", dependencies));
         loggers.add(logger);
     }
 

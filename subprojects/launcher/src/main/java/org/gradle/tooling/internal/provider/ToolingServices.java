@@ -26,4 +26,7 @@ public class ToolingServices implements PluginServiceRegistry {
 
     public void registerBuildServices(ServiceRegistration registration) {
     }
+
+    public void registerProjectServices(ServiceRegistration registration) {
+    }
 }

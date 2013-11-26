@@ -30,18 +30,18 @@ class DefaultBinaryStoreTest extends Specification {
 
         when:
         store.write({ it.writeInt(10) } as BinaryStore.WriteAction)
-        store.write({ it.writeUTF("x") } as BinaryStore.WriteAction)
+        store.write({ it.writeString("x") } as BinaryStore.WriteAction)
         def data1 = store.done()
-        store.write({ it.writeUTF("y") } as BinaryStore.WriteAction)
+        store.write({ it.writeString("y") } as BinaryStore.WriteAction)
         def data2 = store.done()
 
         then:
         data1.read({ it.readInt() } as BinaryStore.ReadAction) == 10
-        data1.read({ it.readUTF() } as BinaryStore.ReadAction) == "x"
-        data1.done()
+        data1.read({ it.readString() } as BinaryStore.ReadAction) == "x"
+        data1.close()
 
-        data2.read({ it.readUTF() } as BinaryStore.ReadAction) == "y"
-        data2.done()
+        data2.read({ it.readString() } as BinaryStore.ReadAction) == "y"
+        data2.close()
 
         cleanup:
         store.close()
@@ -52,21 +52,47 @@ class DefaultBinaryStoreTest extends Specification {
 
         when:
         store.write({ it.writeInt(10) } as BinaryStore.WriteAction)
-        store.write({ it.writeUTF("x") } as BinaryStore.WriteAction)
+        store.write({ it.writeString("x") } as BinaryStore.WriteAction)
         def data = store.done()
 
         then:
         data.read({ it.readInt() } as BinaryStore.ReadAction) == 10
-        data.read({ it.readUTF() } as BinaryStore.ReadAction) == "x"
-        data.done()
+        data.read({ it.readString() } as BinaryStore.ReadAction) == "x"
+        data.close()
 
         then:
         data.read({ it.readInt() } as BinaryStore.ReadAction) == 10
-        data.read({ it.readUTF() } as BinaryStore.ReadAction) == "x"
-        data.done()
+        data.read({ it.readString() } as BinaryStore.ReadAction) == "x"
+        data.close()
 
         cleanup:
         store.close()
+    }
+
+    class SomeException extends RuntimeException {}
+
+    def "write action exception is propagated to the client"() {
+        def store = new DefaultBinaryStore(temp.file("foo.bin"))
+
+        when:
+        store.write({ throw new SomeException() } as BinaryStore.WriteAction)
+
+        then:
+        def e = thrown(Exception)
+        e.cause.class == SomeException
+    }
+
+    def "read action exception is propagated to the client"() {
+        def store = new DefaultBinaryStore(temp.file("foo.bin"))
+        store.write({ it.writeInt(10) } as BinaryStore.WriteAction)
+        def data = store.done()
+
+        when:
+        data.read({ throw new SomeException() } as BinaryStore.ReadAction)
+
+        then:
+        def e = thrown(Exception)
+        e.cause.class == SomeException
     }
 
     def "may be empty"() {
@@ -77,6 +103,6 @@ class DefaultBinaryStoreTest extends Specification {
         store.close()
 
         then:
-        data.done()
+        data.close()
     }
 }

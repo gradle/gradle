@@ -16,35 +16,35 @@
 
 package org.gradle.nativebinaries.toolchain.internal.gcc;
 
-import org.gradle.api.internal.tasks.compile.ArgCollector;
+import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.nativebinaries.language.c.internal.CCompileSpec;
+import org.gradle.nativebinaries.toolchain.internal.ArgsTransformer;
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
+
+import java.util.List;
 
 class CCompiler implements Compiler<CCompileSpec> {
 
     private final CommandLineTool<CCompileSpec> commandLineTool;
 
-    public CCompiler(CommandLineTool<CCompileSpec> commandLineTool, boolean useCommandFile) {
-        GccSpecToArguments<CCompileSpec> specToArguments = new GccSpecToArguments<CCompileSpec>(
-                new CCompileSpecToArguments(),
-                useCommandFile
-        );
-        this.commandLineTool = commandLineTool.withArguments(specToArguments);
+    public CCompiler(CommandLineTool<CCompileSpec> commandLineTool, Action<List<String>> argsAction, boolean useCommandFile) {
+        ArgsTransformer<CCompileSpec> argsTransformer = new CCompileArgsTransformer();
+        argsTransformer = new UserArgsTransformer<CCompileSpec>(argsTransformer, argsAction);
+        if (useCommandFile) {
+            argsTransformer = new GccOptionsFileArgTransformer<CCompileSpec>(argsTransformer);
+        }
+        this.commandLineTool = commandLineTool.withArguments(argsTransformer);
     }
 
     public WorkResult execute(CCompileSpec spec) {
         return commandLineTool.inWorkDirectory(spec.getObjectFileDir()).execute(spec);
     }
 
-    private static class CCompileSpecToArguments extends CommonGccCompileSpecToArguments<CCompileSpec> {
-        @Override
-        public void collectArguments(CCompileSpec spec, ArgCollector collector) {
-            // C-compiling options
-            collector.args("-x", "c");
-
-            super.collectArguments(spec, collector);
+    private static class CCompileArgsTransformer extends GccCompilerArgsTransformer<CCompileSpec> {
+        protected String getLanguage() {
+            return "c";
         }
     }
 }

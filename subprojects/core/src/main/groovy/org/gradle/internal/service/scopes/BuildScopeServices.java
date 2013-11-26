@@ -61,9 +61,12 @@ import org.gradle.invocation.BuildClassLoaderRegistry;
 import org.gradle.invocation.DefaultBuildClassLoaderRegistry;
 import org.gradle.listener.ListenerManager;
 import org.gradle.logging.LoggingManagerInternal;
+import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.messaging.actor.ActorFactory;
 import org.gradle.messaging.actor.internal.DefaultActorFactory;
 import org.gradle.messaging.remote.MessagingServer;
+import org.gradle.plugin.internal.DefaultPluginHandlerFactory;
+import org.gradle.plugin.internal.PluginHandlerFactory;
 import org.gradle.process.internal.DefaultWorkerProcessFactory;
 import org.gradle.process.internal.WorkerProcessBuilder;
 import org.gradle.process.internal.child.WorkerProcessClassPathProvider;
@@ -175,7 +178,7 @@ public class BuildScopeServices extends DefaultServiceRegistry implements Servic
                                         get(CacheRepository.class),
                                         scriptCacheInvalidator,
                                         new DefaultScriptCompilationHandler(
-                                                emptyScriptGenerator)),
+                                                emptyScriptGenerator), get(ProgressLoggerFactory.class)),
                                 emptyScriptGenerator)),
                 new DefaultScriptRunnerFactory(scriptExecutionListener));
     }
@@ -187,7 +190,8 @@ public class BuildScopeServices extends DefaultServiceRegistry implements Servic
                 get(ScriptHandlerFactory.class),
                 get(BuildClassLoaderRegistry.class).getScriptClassLoader(),
                 getFactory(LoggingManagerInternal.class),
-                get(Instantiator.class)
+                get(Instantiator.class),
+                get(PluginHandlerFactory.class)
         );
     }
 
@@ -219,6 +223,17 @@ public class BuildScopeServices extends DefaultServiceRegistry implements Servic
                 get(DependencyManagementServices.class),
                 get(FileResolver.class),
                 new DependencyMetaDataProviderImpl());
+    }
+
+    protected PluginHandlerFactory createPluginHandlerFactory() {
+        return new DefaultPluginHandlerFactory(
+                get(PluginRegistry.class),
+                get(Instantiator.class),
+                get(DependencyManagementServices.class),
+                get(FileResolver.class),
+                new DependencyMetaDataProviderImpl(),
+                get(ClassLoaderRegistry.class).getPluginsClassLoader()
+        );
     }
 
     protected Factory<WorkerProcessBuilder> createWorkerProcessFactory() {

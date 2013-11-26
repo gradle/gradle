@@ -22,7 +22,7 @@ import org.gradle.api.tasks.SourceSet
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
-import static org.gradle.util.Matchers.dependsOn
+import static org.gradle.api.tasks.TaskDependencyMatchers.dependsOn
 import static org.hamcrest.Matchers.*
 import static spock.util.matcher.HamcrestSupport.that
 

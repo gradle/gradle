@@ -17,8 +17,8 @@
 package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
 import org.gradle.api.artifacts.result.DependencyResult;
+import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
-import org.gradle.api.artifacts.result.ResolvedModuleVersionResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 
 import java.util.LinkedHashSet;
@@ -26,7 +26,7 @@ import java.util.Set;
 
 public class RenderableModuleResult extends AbstractRenderableModuleResult {
 
-    public RenderableModuleResult(ResolvedModuleVersionResult module) {
+    public RenderableModuleResult(ResolvedComponentResult module) {
         super(module);
     }
 

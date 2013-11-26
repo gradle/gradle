@@ -19,7 +19,7 @@ package org.gradle.nativebinaries.internal;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
-import org.gradle.api.internal.notations.api.NotationParser;
+import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.language.DependentSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.AbstractBuildableModelElement;
@@ -121,7 +121,7 @@ public abstract class DefaultNativeBinary extends AbstractBuildableModelElement 
     }
 
     private Collection<NativeDependencySet> getLibs(Collection<? extends DependentSourceSet> sourceSets) {
-        Set<? super Object> allLibs = new HashSet<Object>(libs);
+        Set<? super Object> allLibs = new LinkedHashSet<Object>(libs);
         for (DependentSourceSet dependentSourceSet : sourceSets) {
             allLibs.addAll(dependentSourceSet.getLibs());
         }

@@ -15,11 +15,11 @@
  */
 package org.gradle.api.tasks.diagnostics.internal.graph.nodes
 
-import org.gradle.api.artifacts.ModuleVersionSelector
+import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult
 import spock.lang.Specification
 
-import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
+import static org.gradle.api.internal.artifacts.component.DefaultModuleComponentSelector.newSelector
 
 class RenderableUnresolvedDependencyResultTest extends Specification {
 
@@ -38,7 +38,7 @@ class RenderableUnresolvedDependencyResultTest extends Specification {
         dep(requested, differentGroup).name == 'org.mockito:mockito-core:1.0 -> com.mockito:mockito:2.0'
     }
 
-    private RenderableUnresolvedDependencyResult dep(ModuleVersionSelector requested, ModuleVersionSelector attempted) {
+    private RenderableUnresolvedDependencyResult dep(ModuleComponentSelector requested, ModuleComponentSelector attempted) {
         UnresolvedDependencyResult dependencyResult = Stub() {
             getRequested() >> requested
             getAttempted() >> attempted

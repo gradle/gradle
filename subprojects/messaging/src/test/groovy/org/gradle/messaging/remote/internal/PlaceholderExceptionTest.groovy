@@ -22,7 +22,7 @@ import spock.lang.Issue
 class PlaceholderExceptionTest extends Specification {
     def "toString() generally produces same output as original exception"() {
         def original = new Exception("original exception")
-        def placeholder = new PlaceholderException(original.getClass().name, original.message, original.toString(), null, original.cause)
+        def placeholder = new PlaceholderException(original.getClass().name, original.message, null, original.toString(), null, original.cause)
         
         expect:
         placeholder.toString() == original.toString()
@@ -34,7 +34,7 @@ class PlaceholderExceptionTest extends Specification {
                 "fancy customized toString"
             }
         }
-        def placeholder = new PlaceholderException(original.getClass().name, original.message, original.toString(), null, original.cause)
+        def placeholder = new PlaceholderException(original.getClass().name, original.message, null, original.toString(), null, original.cause)
 
         expect:
         placeholder.toString() == original.toString()

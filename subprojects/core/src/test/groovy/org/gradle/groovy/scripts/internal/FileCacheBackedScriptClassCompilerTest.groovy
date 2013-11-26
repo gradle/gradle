@@ -15,15 +15,18 @@
  */
 package org.gradle.groovy.scripts.internal
 
-import spock.lang.Specification
-import org.gradle.cache.CacheRepository
+import org.gradle.api.Action
 import org.gradle.api.internal.resource.Resource
+import org.gradle.cache.CacheRepository
+import org.gradle.cache.CacheValidator
 import org.gradle.cache.DirectoryCacheBuilder
 import org.gradle.cache.PersistentCache
+import org.gradle.groovy.scripts.Script
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.Transformer
-import org.gradle.groovy.scripts.Script
-import org.gradle.cache.CacheValidator
+import org.gradle.logging.ProgressLogger
+import org.gradle.logging.ProgressLoggerFactory
+import spock.lang.Specification
 
 class FileCacheBackedScriptClassCompilerTest extends Specification {
     final ScriptCompilationHandler scriptCompilationHandler = Mock()
@@ -35,7 +38,7 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
     final ClassLoader classLoader = Mock()
     final Transformer transformer = Mock()
     final File cacheDir = new File("base-dir")
-    final FileCacheBackedScriptClassCompiler compiler = new FileCacheBackedScriptClassCompiler(cacheRepository, validator, scriptCompilationHandler)
+    final FileCacheBackedScriptClassCompiler compiler = new FileCacheBackedScriptClassCompiler(cacheRepository, validator, scriptCompilationHandler, Stub(ProgressLoggerFactory))
 
     def setup() {
         Resource resource = Mock()
@@ -103,5 +106,30 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
         1 * scriptCompilationHandler.compileToDir(source, classLoader, new File(cacheDir, "classes"), transformer, Script)
         1 * scriptCompilationHandler.loadFromDir(source, classLoader, new File(cacheDir, "classes"), Script) >> Script
         0 * scriptCompilationHandler._
+    }
+
+    def "reports compilation progress even in case of a failure"() {
+        def factory = Mock(ProgressLoggerFactory)
+        def delegate = Mock(Action)
+        def cache = Mock(PersistentCache)
+        def logger = Mock(ProgressLogger)
+
+        def initializer = new FileCacheBackedScriptClassCompiler.ProgressReportingInitializer(factory, delegate)
+
+        when:
+        initializer.execute(cache)
+
+        then:
+        def ex = thrown(RuntimeException)
+        ex.message == "Boo!"
+
+        1 * factory.newOperation(FileCacheBackedScriptClassCompiler) >> logger
+        1 * logger.start("Compile script into cache", "Compiling script into cache") >> logger
+
+        then:
+        1 * delegate.execute(cache) >> { throw new RuntimeException("Boo!")} //stress it a bit with a failure
+
+        then:
+        1 * logger.completed()
     }
 }

@@ -16,7 +16,7 @@
 
 package org.gradle.api.tasks.testing;
 
-import org.gradle.api.internal.HasInternalProtocol;
+import org.gradle.internal.HasInternalProtocol;
 
 /**
  * Describes a test. A test may be a single atomic test, such as the execution of a test method, or it may be a

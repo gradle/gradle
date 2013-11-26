@@ -17,6 +17,7 @@ package org.gradle.api.internal.changedetection.state
 
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.changedetection.changes.NoOpInMemoryPersistentCacheDecoratorFactory
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.DirectoryCacheBuilder
 import org.gradle.cache.PersistentCache
@@ -33,6 +34,7 @@ class DefaultTaskArtifactStateCacheAccessTest extends Specification {
         DirectoryCacheBuilder cacheBuilder = Mock()
         PersistentCache backingCache = Mock()
         PersistentIndexedCache<String, Integer> backingIndexedCache = Mock()
+        ProjectInternal project = Mock()
 
         def serializer = new DefaultSerializer<Integer>()
         when:
@@ -51,6 +53,8 @@ class DefaultTaskArtifactStateCacheAccessTest extends Specification {
         _ * backingCache.baseDir >> new File("baseDir")
         1 * backingCache.createCache({it.cacheFile == new File("baseDir/some-cache.bin")}) >> backingIndexedCache
         1 * backingIndexedCache.get("key")
+        1 * gradle.getRootProject() >> project
+        1 * project.getRootProject() >> project
         0 * _._
     }
 }

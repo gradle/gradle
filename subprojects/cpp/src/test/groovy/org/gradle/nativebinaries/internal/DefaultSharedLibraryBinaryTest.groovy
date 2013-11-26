@@ -17,7 +17,9 @@
 package org.gradle.nativebinaries.internal
 import org.gradle.api.Task
 import org.gradle.api.file.SourceDirectorySet
+import org.gradle.language.HeaderExportingSourceSet
 import org.gradle.language.base.internal.DefaultBinaryNamingScheme
+import org.gradle.language.rc.WindowsResourceSet
 import org.gradle.nativebinaries.BuildType
 import org.gradle.nativebinaries.Library
 import org.gradle.nativebinaries.Platform
@@ -49,13 +51,25 @@ class DefaultSharedLibraryBinaryTest extends Specification {
         binary.outputFile = binaryFile
 
         and:
-        def headers = Stub(SourceDirectorySet)
-        library.headers >> headers
         toolChain.getSharedLibraryLinkFileName(binaryFile.path) >> linkFile.path
+
+        and: "has at least one header exporting source set"
+        final headerDir = tmpDir.createDir("headerDir")
+        def headerDirSet = Stub(SourceDirectorySet) {
+            getSrcDirs() >> [headerDir]
+        }
+        def sourceDirSet = Stub(SourceDirectorySet) {
+            getFiles() >> [tmpDir.createFile("input.src")]
+        }
+        def sourceSet = Stub(HeaderExportingSourceSet) {
+            getSource() >> sourceDirSet
+            getExportedHeaders() >> headerDirSet
+        }
+        binary.source sourceSet
 
         expect:
         def nativeDependency = binary.resolve()
-        nativeDependency.includeRoots == headers
+        nativeDependency.includeRoots.files == [headerDir] as Set
 
         and:
         nativeDependency.linkFiles.files == [linkFile] as Set
@@ -66,6 +80,26 @@ class DefaultSharedLibraryBinaryTest extends Specification {
         nativeDependency.runtimeFiles.files == [binaryFile] as Set
         nativeDependency.runtimeFiles.buildDependencies.getDependencies(Stub(Task)) == [lifecycleTask] as Set
         nativeDependency.runtimeFiles.toString() == "shared library 'main:sharedLibrary'"
+    }
+
+    def "has empty link files when has resources and no symbols are exported from library"() {
+        when:
+        def binary = sharedLibrary
+        def sourceDirSet = Stub(SourceDirectorySet) {
+            getFiles() >> [tmpDir.createFile("input.rc")]
+        }
+        def resourceSet = Stub(WindowsResourceSet) {
+            getSource() >> sourceDirSet
+        }
+        binary.source resourceSet
+
+        def binaryFile = tmpDir.createFile("binary.run")
+        def linkFile = tmpDir.createFile("binary.link")
+        toolChain.getSharedLibraryLinkFileName(binaryFile.path) >> linkFile.path
+
+        then:
+        def nativeDependency = binary.resolve()
+        nativeDependency.linkFiles.files == [] as Set
     }
 
     private DefaultSharedLibraryBinary getSharedLibrary() {

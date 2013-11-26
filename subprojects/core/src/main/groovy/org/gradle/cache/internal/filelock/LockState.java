@@ -18,12 +18,19 @@ package org.gradle.cache.internal.filelock;
 
 import org.gradle.cache.internal.FileLock;
 
+/**
+ * An immutable snapshot of the state of a lock.
+ */
 public interface LockState extends FileLock.State {
-    int UNKNOWN_PREVIOUS_OWNER = 0;
-
     boolean isDirty();
 
+    /**
+     * Called after an update is complete, returns a new clean state based on this state.
+     */
     LockState completeUpdate();
 
+    /**
+     * Called before an update is complete, returns a new dirty state based on this state.
+     */
     LockState beforeUpdate();
 }

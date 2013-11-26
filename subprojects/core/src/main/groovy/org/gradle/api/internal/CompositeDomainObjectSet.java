@@ -19,6 +19,7 @@ import org.apache.commons.collections.collection.CompositeCollection;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.Actions;
 
 import java.util.Collection;
 import java.util.Iterator;

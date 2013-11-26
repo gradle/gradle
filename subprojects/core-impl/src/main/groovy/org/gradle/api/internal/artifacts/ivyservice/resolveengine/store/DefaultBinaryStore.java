@@ -17,7 +17,10 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.store;
 
 import org.gradle.api.internal.cache.BinaryStore;
 import org.gradle.cache.internal.stream.RandomAccessFileInputStream;
-import org.gradle.internal.CompositeStoppable;
+import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.messaging.serialize.Decoder;
+import org.gradle.messaging.serialize.InputStreamBackedDecoder;
+import org.gradle.messaging.serialize.OutputStreamBackedEncoder;
 
 import java.io.*;
 
@@ -48,8 +51,8 @@ class DefaultBinaryStore implements BinaryStore {
             }
         }
         try {
-            write.write(outputStream);
-        } catch (IOException e) {
+            write.write(new OutputStreamBackedEncoder(outputStream));
+        } catch (Exception e) {
             throw new RuntimeException("Problems writing to " + diagnose(), e);
         }
     }
@@ -102,7 +105,7 @@ class DefaultBinaryStore implements BinaryStore {
         private final File inputFile;
         private final String sourceDescription;
 
-        private DataInputStream input;
+        private Decoder decoder;
         private CompositeStoppable resources;
 
         public SimpleBinaryData(File inputFile, int offset, String sourceDescription) {
@@ -113,19 +116,19 @@ class DefaultBinaryStore implements BinaryStore {
 
         public <T> T read(BinaryStore.ReadAction<T> readAction) {
             try {
-                if (input == null) {
+                if (decoder == null) {
                     RandomAccessFile randomAccess = new RandomAccessFile(inputFile, "r");
                     randomAccess.seek(offset);
-                    input = new DataInputStream(new BufferedInputStream(new RandomAccessFileInputStream(randomAccess)));
-                    resources = new CompositeStoppable().add(randomAccess, input);
+                    decoder = new InputStreamBackedDecoder(new BufferedInputStream(new RandomAccessFileInputStream(randomAccess)));
+                    resources = new CompositeStoppable().add(randomAccess, decoder);
                 }
-                return readAction.read(input);
+                return readAction.read(decoder);
             } catch (Exception e) {
                 throw new RuntimeException("Problems reading data from " + sourceDescription, e);
             }
         }
 
-        public void done() {
+        public void close() {
             try {
                 if (resources != null) {
                     resources.stop();
@@ -133,7 +136,7 @@ class DefaultBinaryStore implements BinaryStore {
             } catch (Exception e) {
                 throw new RuntimeException("Problems cleaning resources of " + sourceDescription, e);
             }
-            input = null;
+            decoder = null;
             resources = null;
         }
 

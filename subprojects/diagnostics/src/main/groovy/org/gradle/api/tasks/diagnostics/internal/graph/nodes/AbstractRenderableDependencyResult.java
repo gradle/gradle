@@ -16,11 +16,11 @@
 package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
 import org.gradle.api.Nullable;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
 
 public abstract class AbstractRenderableDependencyResult implements RenderableDependency {
-    public ModuleVersionIdentifier getId() {
+    public ModuleComponentIdentifier getId() {
         return getActual();
     }
 
@@ -43,15 +43,15 @@ public abstract class AbstractRenderableDependencyResult implements RenderableDe
     }
 
     private String getSimpleName() {
-        ModuleVersionSelector requested = getRequested();
+        ModuleComponentSelector requested = getRequested();
         return requested.getGroup() + ":" + requested.getName() + ":" + requested.getVersion();
     }
 
     private String getVerboseName() {
-        ModuleVersionSelector requested = getRequested();
-        ModuleVersionIdentifier selected = getActual();
-        if(!selected.getGroup().equals(requested.getGroup()) || !selected.getName().equals(requested.getName())) {
-            return getSimpleName() + " -> " + selected.getGroup() + ":" + selected.getName() + ":" + selected.getVersion();
+        ModuleComponentSelector requested = getRequested();
+        ModuleComponentIdentifier selected = getActual();
+        if(!selected.getGroup().equals(requested.getGroup()) || !selected.getModule().equals(requested.getName())) {
+            return getSimpleName() + " -> " + selected.getGroup() + ":" + selected.getModule() + ":" + selected.getVersion();
         }
         if (!selected.getVersion().equals(requested.getVersion())) {
             return getSimpleName() + " -> " + selected.getVersion();
@@ -59,7 +59,7 @@ public abstract class AbstractRenderableDependencyResult implements RenderableDe
         return getSimpleName();
     }
 
-    protected abstract ModuleVersionSelector getRequested();
+    protected abstract ModuleComponentSelector getRequested();
 
-    protected abstract ModuleVersionIdentifier getActual();
+    protected abstract ModuleComponentIdentifier getActual();
 }

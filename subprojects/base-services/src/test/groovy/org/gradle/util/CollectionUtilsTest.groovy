@@ -168,6 +168,16 @@ class CollectionUtilsTest extends Specification {
         every([], spec { false })
     }
 
+    def "intersection"() {
+        expect:
+        intersection([collA, collB]) == collC
+        where:
+        collA              | collB            | collC
+        []                 | ["a", "b", "c"]  | []
+        ['a', 'b', 'c']    | ["a", "b", "c"]  | ['a', 'b', 'c']
+        ['a', 'b', 'c']    | ["b", "c"]       | ['b', 'c']
+    }
+
     def "flattenToList"() {
         given:
         def integers = [1, 2, 3]
@@ -273,9 +283,9 @@ class CollectionUtilsTest extends Specification {
         toSet([]).empty
     }
 
-    def "sorting"() {
+    def "sorting with comparator"() {
         given:
-        def naturalComparator = { a, b -> a <=> b } as Comparator
+        def naturalComparator = { a, b -> a<=>b } as Comparator
 
         expect:
         def l = [1, 2, 3]
@@ -287,6 +297,26 @@ class CollectionUtilsTest extends Specification {
         sort([], naturalComparator) == []
         sort([] as Set, naturalComparator) == []
     }
+
+    def "sorting"() {
+        expect:
+        def l = [1, 2, 3]
+        !sort(l).is(l)
+
+        and:
+        sort([2, 1, 3]) == [1, 2, 3]
+        sort([2, 1, 3] as Set) == [1, 2, 3]
+        sort([]) == []
+        sort([] as Set) == []
+    }
+
+    def "without duplicates"(){
+        given:
+        def l = [1, 2, 2, 3, 3]
+        expect:
+        withoutDuplicates(l) == [1, 2, 3]
+    }
+
 
     Spec<?> spec(Closure c) {
         Specs.convertClosureToSpec(c)

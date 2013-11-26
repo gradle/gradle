@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
-import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.resource.ResourceException;
 import org.gradle.api.internal.resource.ResourceNotFoundException;
 import org.gradle.util.DeprecationLogger;
@@ -35,10 +35,10 @@ public class ChainedVersionLister implements VersionLister {
         this.versionListers = Arrays.asList(versionlisters);
     }
 
-    public VersionList getVersionList(final ModuleVersionSelector selector)  {
+    public VersionList getVersionList(final ModuleIdentifier module)  {
         final List<VersionList> versionLists = new ArrayList<VersionList>();
         for (VersionLister lister : versionListers) {
-            versionLists.add(lister.getVersionList(selector));
+            versionLists.add(lister.getVersionList(module));
         }
         return new AbstractVersionList() {
             public void visit(ResourcePattern pattern, Artifact artifact) throws ResourceNotFoundException, ResourceException {
@@ -56,12 +56,12 @@ public class ChainedVersionLister implements VersionLister {
                         if (versionListIterator.hasNext()) {
                             String deprecationMessage = String.format(
                                     "Error listing versions of %s using %s. Will attempt an alternate way to list versions",
-                                    selector, list.getClass()
+                                    module, list.getClass()
                             );
                             DeprecationLogger.nagUserOfDeprecatedBehaviour(deprecationMessage);
                             LOGGER.debug(deprecationMessage, e);
                         } else {
-                            throw new ResourceException(String.format("Failed to list versions for %s.", selector), e);
+                            throw new ResourceException(String.format("Failed to list versions for %s.", module), e);
                         }
                     }
                 }

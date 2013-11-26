@@ -64,7 +64,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private File settingsFile;
     private InputStream stdin;
     private String defaultCharacterEncoding;
-    private Integer daemonIdleTimeoutSecs = 10;
+    private int daemonIdleTimeoutSecs = 60;
     private File daemonBaseDir = buildContext.getDaemonBaseDir();
     private final List<String> gradleOpts = new ArrayList<String>();
     private boolean noDefaultJvmArgs;

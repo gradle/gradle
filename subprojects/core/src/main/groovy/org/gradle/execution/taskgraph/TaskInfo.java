@@ -21,7 +21,7 @@ import org.gradle.api.internal.TaskInternal;
 
 import java.util.TreeSet;
 
-class TaskInfo implements Comparable<TaskInfo> {
+public class TaskInfo implements Comparable<TaskInfo> {
 
     private enum TaskExecutionState {
         UNKNOWN, NOT_REQUIRED, SHOULD_RUN, MUST_RUN, MUST_NOT_RUN, EXECUTING, EXECUTED, SKIPPED
@@ -31,9 +31,10 @@ class TaskInfo implements Comparable<TaskInfo> {
     private TaskExecutionState state;
     private Throwable executionFailure;
     private boolean dependenciesProcessed;
-    private final TreeSet<TaskInfo> hardPredecessors = new TreeSet<TaskInfo>();
-    private final TreeSet<TaskInfo> hardSuccessors = new TreeSet<TaskInfo>();
-    private final TreeSet<TaskInfo> softSuccessors = new TreeSet<TaskInfo>();
+    private final TreeSet<TaskInfo> dependencyPredecessors = new TreeSet<TaskInfo>();
+    private final TreeSet<TaskInfo> dependencySuccessors = new TreeSet<TaskInfo>();
+    private final TreeSet<TaskInfo> mustSuccessors = new TreeSet<TaskInfo>();
+    private final TreeSet<TaskInfo> shouldSuccessors = new TreeSet<TaskInfo>();
     private final TreeSet<TaskInfo> finalizers = new TreeSet<TaskInfo>();
 
     public TaskInfo(TaskInternal task) {
@@ -129,7 +130,7 @@ class TaskInfo implements Comparable<TaskInfo> {
     }
 
     public boolean allDependenciesComplete() {
-        for (TaskInfo dependency : Iterables.concat(softSuccessors, hardSuccessors)) {
+        for (TaskInfo dependency : Iterables.concat(mustSuccessors, dependencySuccessors)) {
             if (!dependency.isComplete()) {
                 return false;
             }
@@ -138,7 +139,7 @@ class TaskInfo implements Comparable<TaskInfo> {
     }
 
     public boolean allDependenciesSuccessful() {
-        for (TaskInfo dependency : hardSuccessors) {
+        for (TaskInfo dependency : dependencySuccessors) {
             if (!dependency.isSuccessful()) {
                 return false;
             }
@@ -146,20 +147,24 @@ class TaskInfo implements Comparable<TaskInfo> {
         return true;
     }
 
-    public TreeSet<TaskInfo> getHardPredecessors() {
-        return hardPredecessors;
+    public TreeSet<TaskInfo> getDependencyPredecessors() {
+        return dependencyPredecessors;
     }
 
-    public TreeSet<TaskInfo> getHardSuccessors() {
-        return hardSuccessors;
+    public TreeSet<TaskInfo> getDependencySuccessors() {
+        return dependencySuccessors;
     }
 
-    public TreeSet<TaskInfo> getSoftSuccessors() {
-        return softSuccessors;
+    public TreeSet<TaskInfo> getMustSuccessors() {
+        return mustSuccessors;
     }
 
     public TreeSet<TaskInfo> getFinalizers() {
         return finalizers;
+    }
+
+    public TreeSet<TaskInfo> getShouldSuccessors() {
+        return shouldSuccessors;
     }
 
     public boolean getDependenciesProcessed() {
@@ -170,17 +175,25 @@ class TaskInfo implements Comparable<TaskInfo> {
         dependenciesProcessed = true;
     }
 
-    public void addHardSuccessor(TaskInfo toNode) {
-        hardSuccessors.add(toNode);
-        toNode.hardPredecessors.add(this);
+    public void addDependencySuccessor(TaskInfo toNode) {
+        dependencySuccessors.add(toNode);
+        toNode.dependencyPredecessors.add(this);
     }
 
-    public void addSoftSuccessor(TaskInfo toNode) {
-        softSuccessors.add(toNode);
+    public void addMustSuccessor(TaskInfo toNode) {
+        mustSuccessors.add(toNode);
     }
 
     public void addFinalizer(TaskInfo finalizerNode) {
         finalizers.add(finalizerNode);
+    }
+
+    public void addShouldSuccessor(TaskInfo toNode) {
+        shouldSuccessors.add(toNode);
+    }
+
+    public void removeShouldRunAfterSuccessor(TaskInfo toNode) {
+        shouldSuccessors.remove(toNode);
     }
 
     public int compareTo(TaskInfo otherInfo) {

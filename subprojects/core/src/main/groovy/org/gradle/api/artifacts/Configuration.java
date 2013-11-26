@@ -17,7 +17,7 @@ package org.gradle.api.artifacts;
 
 import groovy.lang.Closure;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.HasInternalProtocol;
+import org.gradle.internal.HasInternalProtocol;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
 

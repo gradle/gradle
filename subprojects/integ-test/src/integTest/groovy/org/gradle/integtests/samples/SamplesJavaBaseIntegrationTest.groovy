@@ -17,12 +17,11 @@
 package org.gradle.integtests.samples
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
-import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
+import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
 import org.junit.Test
-
 
 class SamplesJavaBaseIntegrationTest extends AbstractIntegrationTest {
 
@@ -36,7 +35,7 @@ class SamplesJavaBaseIntegrationTest extends AbstractIntegrationTest {
         executer.inDirectory(javaprojectDir).withTasks('clean', 'build').run()
 
         // Check tests have run
-        JUnitXmlTestExecutionResult result = new JUnitXmlTestExecutionResult(javaprojectDir.file('test'))
+        def result = new DefaultTestExecutionResult(javaprojectDir.file('test'))
         result.assertTestClassesExecuted('org.gradle.PersonTest')
 
         // Check jar exists

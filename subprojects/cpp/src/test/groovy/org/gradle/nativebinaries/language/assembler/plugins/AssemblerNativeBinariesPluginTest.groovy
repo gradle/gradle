@@ -15,6 +15,8 @@
  */
 
 package org.gradle.nativebinaries.language.assembler.plugins
+
+import org.gradle.api.tasks.TaskDependencyMatchers
 import org.gradle.language.assembler.AssemblerSourceSet
 import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.nativebinaries.ExecutableBinary
@@ -22,7 +24,6 @@ import org.gradle.nativebinaries.NativeBinary
 import org.gradle.nativebinaries.SharedLibraryBinary
 import org.gradle.nativebinaries.StaticLibraryBinary
 import org.gradle.nativebinaries.language.assembler.tasks.Assemble
-import org.gradle.util.Matchers
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -116,7 +117,7 @@ class AssemblerNativeBinariesPluginTest extends Specification {
 
         and:
         def linkTask = binary.tasks.link
-        linkTask Matchers.dependsOn("assembleTestExecutableTestAnotherOne", "assembleTestExecutableTestAsm")
+        linkTask TaskDependencyMatchers.dependsOn("assembleTestExecutableTestAnotherOne", "assembleTestExecutableTestAsm")
     }
 
     def "creates assemble tasks for each library source set"() {
@@ -151,7 +152,7 @@ class AssemblerNativeBinariesPluginTest extends Specification {
             compile.assemblerArgs == ["ARG1", "ARG2", "SHARED1", "SHARED2"]
         }
         def sharedLinkTask = sharedLib.tasks.link
-        sharedLinkTask Matchers.dependsOn("assembleTestSharedLibraryTestAnotherOne", "assembleTestSharedLibraryTestAsm")
+        sharedLinkTask TaskDependencyMatchers.dependsOn("assembleTestSharedLibraryTestAnotherOne", "assembleTestSharedLibraryTestAsm")
 
         and:
         StaticLibraryBinary staticLib = project.binaries.testStaticLibrary
@@ -161,7 +162,7 @@ class AssemblerNativeBinariesPluginTest extends Specification {
             compile.assemblerArgs == ["ARG1", "ARG2", "STATIC1", "STATIC2"]
         }
         def staticLibTask = staticLib.tasks.createStaticLib
-        staticLibTask Matchers.dependsOn("assembleTestStaticLibraryTestAnotherOne", "assembleTestStaticLibraryTestAsm")
+        staticLibTask TaskDependencyMatchers.dependsOn("assembleTestStaticLibraryTestAnotherOne", "assembleTestStaticLibraryTestAsm")
     }
 
     def dsl(Closure closure) {

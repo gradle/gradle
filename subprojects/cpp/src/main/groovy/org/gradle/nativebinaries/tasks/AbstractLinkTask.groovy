@@ -46,7 +46,7 @@ abstract class AbstractLinkTask extends DefaultTask implements BuildBinaryTask {
     // Invalidate output when the tool chain output changes
     @Input
     def getOutputType() {
-        return toolChain.outputType
+        return "${toolChain.outputType}:${targetPlatform.compatibilityString}"
     }
 
     // To pick up auxiliary files produced alongside the main output file

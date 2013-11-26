@@ -26,6 +26,10 @@ public interface ModelRegistry {
 
     <T> void mutate(String path, ModelMutation<T> mutation);
 
+    public <T> void finalize(String path, List<String> inputPaths, ModelMutator<T> mutator);
+
+    <T> void finalize(String path, ModelMutation<T> mutation);
+
     public <T> T get(String path, Class<T> type);
 
     public void registerListener(ModelCreationListener listener);

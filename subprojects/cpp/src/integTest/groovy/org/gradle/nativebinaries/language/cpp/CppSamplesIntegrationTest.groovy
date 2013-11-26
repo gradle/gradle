@@ -16,6 +16,7 @@
 package org.gradle.nativebinaries.language.cpp
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativebinaries.language.cpp.fixtures.RequiresInstalledToolChain
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
@@ -31,7 +32,7 @@ class CppSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
     @Rule public final Sample multiProject = new Sample(temporaryFolder, 'native-binaries/multi-project')
     @Rule public final Sample flavors = new Sample(temporaryFolder, 'native-binaries/flavors')
     @Rule public final Sample variants = new Sample(temporaryFolder, 'native-binaries/variants')
-    @Rule public final Sample dependencies = new Sample(temporaryFolder, 'native-binaries/dependencies')
+    @Rule public final Sample windowsResources = new Sample(temporaryFolder, 'native-binaries/windows-resources')
 
     def "assembler"() {
         given:
@@ -76,6 +77,30 @@ class CppSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
 
         and:
         installation("native-binaries/cpp/build/install/mainExecutable").exec().out == "Hello world!\n"
+    }
+
+    @RequiresInstalledToolChain("visual c++")
+    def "windows resources"() {
+        given:
+        sample windowsResources
+
+        when:
+        run "installMainExecutable"
+
+        then:
+        executedAndNotSkipped ":compileHelloSharedLibraryHelloCpp", ":resourceCompileHelloSharedLibraryHelloRc",
+                              ":linkHelloSharedLibrary", ":helloSharedLibrary",
+                              ":compileMainExecutableMainCpp", ":linkMainExecutable", ":mainExecutable"
+
+        and:
+        installation("native-binaries/windows-resources/build/install/mainExecutable").exec().out == "Hello world!\n"
+
+        when:
+        executer.usingBuildScript(windowsResources.dir.file('build-resource-only-dll.gradle'))
+        run "helloResourcesSharedLibrary"
+
+        then:
+        file("native-binaries/windows-resources/build/binaries/helloResourcesSharedLibrary/helloResources.dll").assertExists()
     }
 
     def "custom layout"() {
@@ -225,29 +250,5 @@ class CppSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         sharedLibrary("native-binaries/multi-project/lib/build/binaries/mainSharedLibrary/lib").assertExists()
         executable("native-binaries/multi-project/exe/build/binaries/mainExecutable/exe").assertExists()
         installation("native-binaries/multi-project/exe/build/install/mainExecutable").exec().out == "Hello, World!\n"
-    }
-
-    // Does not work on windows, due to GRADLE-2118
-    @Requires(TestPrecondition.NOT_WINDOWS)
-    def "dependencies"() {
-        when:
-        sample dependencies
-        run ":lib:uploadArchives"
-
-        then:
-        sharedLibrary("native-binaries/dependencies/lib/build/binaries/mainSharedLibrary/lib").assertExists()
-        file("native-binaries/dependencies/lib/build/repo/some-org/some-lib/1.0/some-lib-1.0-so.so").isFile()
-
-        when:
-        sample dependencies
-        run ":exe:uploadArchives"
-
-        then:
-        ":exe:mainCppExtractHeaders" in nonSkippedTasks
-        ":exe:mainExecutable" in nonSkippedTasks
-
-        and:
-        executable("native-binaries/dependencies/exe/build/binaries/mainExecutable/exe").assertExists()
-        file("native-binaries/dependencies/exe/build/repo/dependencies/exe/1.0/exe-1.0.exe").exists()
     }
 }

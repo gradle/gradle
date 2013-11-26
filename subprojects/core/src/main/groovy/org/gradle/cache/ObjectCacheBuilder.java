@@ -20,10 +20,6 @@ import org.gradle.messaging.serialize.Serializer;
 import java.util.Map;
 
 public interface ObjectCacheBuilder<E, T> extends CacheBuilder<T> {
-    /**
-     * {@inheritDoc}
-     */
-    ObjectCacheBuilder<E, T> forObject(Object target);
 
     /**
      * {@inheritDoc}
@@ -33,7 +29,7 @@ public interface ObjectCacheBuilder<E, T> extends CacheBuilder<T> {
     /**
      * {@inheritDoc}
      */
-    ObjectCacheBuilder<E, T> withVersionStrategy(VersionStrategy strategy);
+    ObjectCacheBuilder<E, T> withLayout(CacheLayout layout);
 
     ObjectCacheBuilder<E, T> withSerializer(Serializer<E> serializer);
 }

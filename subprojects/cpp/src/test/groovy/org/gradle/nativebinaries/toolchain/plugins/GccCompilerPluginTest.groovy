@@ -15,45 +15,56 @@
  */
 
 package org.gradle.nativebinaries.toolchain.plugins
+import org.gradle.api.Plugin
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.ExtraPropertiesExtension
+import org.gradle.nativebinaries.ToolChain
+import org.gradle.nativebinaries.language.cpp.fixtures.RequiresInstalledToolChain
 import org.gradle.nativebinaries.toolchain.Gcc
 import org.gradle.nativebinaries.toolchain.internal.gcc.GccToolChain
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.gradle.util.TestUtil
-import spock.lang.Specification
 
-class GccCompilerPluginTest extends Specification {
+class GccCompilerPluginTest extends ToolChainPluginTest {
     def project = TestUtil.createRootProject()
 
-    def setup() {
-        project.plugins.apply(GccCompilerPlugin)
+    @Override
+    Class<? extends Plugin> getPluginClass() {
+        GccCompilerPlugin
+    }
+
+    @Override
+    Class<? extends ToolChain> getToolchainClass() {
+        Gcc
+    }
+
+    @Override
+    String getToolchainName() {
+        "gcc"
     }
 
     def "makes a Gcc tool chain available"() {
         when:
-        project.toolChains.create("gcc", Gcc)
+        register()
 
         then:
-        project.toolChains.gcc instanceof GccToolChain
+        getToolchain() instanceof GccToolChain
     }
 
-    @Requires(TestPrecondition.NOT_WINDOWS)
+    @RequiresInstalledToolChain("gcc 4")
     def "registers default Gcc tool chain"() {
         when:
-        project.toolChains.addDefaultToolChain()
+        addDefaultToolchain()
 
         then:
-        project.toolChains.gcc instanceof GccToolChain
+        getToolchain() instanceof GccToolChain
     }
 
     def "Gcc tool chain is extended"() {
         when:
-        project.toolChains.create("gcc", Gcc)
+        register()
 
         then:
-        with (project.toolChains.gcc) {
+        with (getToolchain()) {
             it instanceof ExtensionAware
             it.ext instanceof ExtraPropertiesExtension
         }

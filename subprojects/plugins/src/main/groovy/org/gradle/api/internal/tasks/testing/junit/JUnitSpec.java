@@ -15,19 +15,24 @@
  */
 package org.gradle.api.internal.tasks.testing.junit;
 
+import org.gradle.api.internal.tasks.testing.selection.DefaultTestSelectionSpec;
+import org.gradle.api.internal.tasks.testing.selection.DefaultTestSelection;
 import org.gradle.api.tasks.testing.junit.JUnitOptions;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.Set;
 
 public class JUnitSpec implements Serializable {
 
     private final Set<String> includeCategories;
     private final Set<String> excludeCategories;
+    private final List<DefaultTestSelectionSpec> includedTests;
 
-    public JUnitSpec(final JUnitOptions options){
+    public JUnitSpec(final JUnitOptions options, DefaultTestSelection selection) {
         this.includeCategories = options.getIncludeCategories();
         this.excludeCategories = options.getExcludeCategories();
+        this.includedTests = selection.getIncludedTests();
     }
 
     public Set<String> getIncludeCategories() {
@@ -40,6 +45,9 @@ public class JUnitSpec implements Serializable {
 
     public boolean hasCategoryConfiguration() {
         return !(excludeCategories.isEmpty() && includeCategories.isEmpty());
+    }
 
+    public List<DefaultTestSelectionSpec> getIncludedTests() {
+        return includedTests;
     }
 }

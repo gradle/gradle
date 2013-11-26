@@ -20,13 +20,13 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.Module;
 import org.gradle.util.GUtil;
 
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.Map;
 
 public class IvyUtil {
 
     public static ModuleRevisionId createModuleRevisionId(Module module) {
-        return createModuleRevisionId(module, new HashMap<String, String>());
+        return createModuleRevisionId(module, Collections.<String, String>emptyMap());
     }
 
     public static ModuleRevisionId createModuleRevisionId(Module module, Map<String, String> extraAttributes) {
@@ -34,7 +34,7 @@ public class IvyUtil {
     }
 
     public static ModuleRevisionId createModuleRevisionId(Dependency dependency) {
-        return createModuleRevisionId(dependency, new HashMap<String, String>());
+        return createModuleRevisionId(dependency, Collections.<String, String>emptyMap());
     }
 
     public static ModuleRevisionId createModuleRevisionId(Dependency dependency, Map<String, String> extraAttributes) {

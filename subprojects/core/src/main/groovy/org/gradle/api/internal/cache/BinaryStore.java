@@ -16,8 +16,10 @@
 
 package org.gradle.api.internal.cache;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
+import org.gradle.messaging.serialize.Decoder;
+import org.gradle.messaging.serialize.Encoder;
+
+import java.io.Closeable;
 import java.io.IOException;
 
 public interface BinaryStore {
@@ -26,16 +28,14 @@ public interface BinaryStore {
     BinaryData done();
 
     public static interface WriteAction {
-        void write(DataOutputStream output) throws IOException;
+        void write(Encoder encoder) throws IOException;
     }
 
     public static interface ReadAction<T> {
-        T read(DataInputStream input) throws IOException;
+        T read(Decoder decoder) throws IOException;
     }
 
-    public static interface BinaryData {
+    public static interface BinaryData extends Closeable {
         <T> T read(ReadAction<T> readAction);
-        //done reading data, release any resources
-        void done();
     }
 }

@@ -36,7 +36,7 @@ public class TaskDefinitionScriptTransformer extends AbstractScriptTransformer {
     }
 
     public void call(SourceUnit source) throws CompilationFailedException {
-        visitScriptCode(source, new TaskDefinitionTransformer());
+        AstUtils.visitScriptCode(source, new TaskDefinitionTransformer());
     }
 
     private class TaskDefinitionTransformer extends CodeVisitorSupport {
@@ -129,7 +129,7 @@ public class TaskDefinitionScriptTransformer extends AbstractScriptTransformer {
         }
 
         private boolean maybeTransformNestedMethodCall(MethodCallExpression nestedMethod, MethodCallExpression target) {
-            if (!(isTaskIdentifier(nestedMethod.getMethod()) && targetIsThis(nestedMethod))) {
+            if (!(isTaskIdentifier(nestedMethod.getMethod()) && AstUtils.targetIsThis(nestedMethod))) {
                 return false;
             }
 
@@ -171,7 +171,7 @@ public class TaskDefinitionScriptTransformer extends AbstractScriptTransformer {
         }
 
         private boolean isInstanceMethod(MethodCallExpression call, String name) {
-            boolean isTaskMethod = isMethodOnThis(call, name);
+            boolean isTaskMethod = AstUtils.isMethodOnThis(call, name);
             if (!isTaskMethod) {
                 return false;
             }

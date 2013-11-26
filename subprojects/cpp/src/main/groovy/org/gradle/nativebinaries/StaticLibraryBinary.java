@@ -17,11 +17,13 @@
 package org.gradle.nativebinaries;
 
 import org.gradle.api.Incubating;
+import org.gradle.internal.HasInternalProtocol;
 
 /**
  * A {@link Library} that has been compiled and archived into a static library.
  */
 @Incubating
+@HasInternalProtocol
 public interface StaticLibraryBinary extends LibraryBinary {
 
     /**

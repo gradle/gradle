@@ -16,17 +16,17 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
-import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
+import org.gradle.api.artifacts.result.ComponentSelectionReason;
 
 public class VersionSelectionReasons {
-    public static final ModuleVersionSelectionReason REQUESTED = new DefaultModuleVersionSelectionReason(false, false, false, "requested");
-    public static final ModuleVersionSelectionReason ROOT = new DefaultModuleVersionSelectionReason(false, false, false, "root");
-    public static final ModuleVersionSelectionReason FORCED = new DefaultModuleVersionSelectionReason(true, false, false, "forced");
-    public static final ModuleVersionSelectionReason CONFLICT_RESOLUTION = new DefaultModuleVersionSelectionReason(false, true, false, "conflict resolution");
-    public static final ModuleVersionSelectionReason SELECTED_BY_RULE = new DefaultModuleVersionSelectionReason(false, false, true, "selected by rule");
-    public static final ModuleVersionSelectionReason CONFLICT_RESOLUTION_BY_RULE = new DefaultModuleVersionSelectionReason(false, true, true, "selected by rule and conflict resolution");
+    public static final ComponentSelectionReason REQUESTED = new DefaultComponentSelectionReason(false, false, false, "requested");
+    public static final ComponentSelectionReason ROOT = new DefaultComponentSelectionReason(false, false, false, "root");
+    public static final ComponentSelectionReason FORCED = new DefaultComponentSelectionReason(true, false, false, "forced");
+    public static final ComponentSelectionReason CONFLICT_RESOLUTION = new DefaultComponentSelectionReason(false, true, false, "conflict resolution");
+    public static final ComponentSelectionReason SELECTED_BY_RULE = new DefaultComponentSelectionReason(false, false, true, "selected by rule");
+    public static final ComponentSelectionReason CONFLICT_RESOLUTION_BY_RULE = new DefaultComponentSelectionReason(false, true, true, "selected by rule and conflict resolution");
 
-    public static ModuleVersionSelectionReason withConflictResolution(ModuleVersionSelectionReason reason) {
+    public static ComponentSelectionReason withConflictResolution(ComponentSelectionReason reason) {
         if (reason.isConflictResolution()) {
             return reason;
         } else if (reason == SELECTED_BY_RULE) {
@@ -37,14 +37,14 @@ public class VersionSelectionReasons {
         throw new IllegalArgumentException("Cannot create conflict resolution selection reason for input: " + reason);
     }
 
-    private static class DefaultModuleVersionSelectionReason implements ModuleVersionSelectionReason {
+    private static class DefaultComponentSelectionReason implements ComponentSelectionReason {
 
         private final boolean forced;
         private final boolean conflictResolution;
         private final boolean selectedByRule;
         private final String description;
 
-        private DefaultModuleVersionSelectionReason(boolean forced, boolean conflictResolution, boolean selectedByRule, String description) {
+        private DefaultComponentSelectionReason(boolean forced, boolean conflictResolution, boolean selectedByRule, String description) {
             this.forced = forced;
             this.conflictResolution = conflictResolution;
             this.selectedByRule = selectedByRule;

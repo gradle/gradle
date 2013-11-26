@@ -17,23 +17,19 @@ package org.gradle.cache.internal;
 
 import org.gradle.CacheUsage;
 import org.gradle.api.Action;
-import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.*;
 import org.gradle.cache.internal.filelock.LockOptions;
 import org.gradle.messaging.serialize.DefaultSerializer;
 import org.gradle.messaging.serialize.Serializer;
-import org.gradle.util.GradleVersion;
 
 import java.io.File;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 
 import static org.gradle.cache.internal.FileLockManager.LockMode;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class DefaultCacheRepository implements CacheRepository {
-    private final GradleVersion version = GradleVersion.current();
     private final File globalCacheDir;
     private final CacheUsage cacheUsage;
     private final File projectCacheDir;
@@ -65,12 +61,12 @@ public class DefaultCacheRepository implements CacheRepository {
     private abstract class AbstractCacheBuilder<T> implements CacheBuilder<T> {
         private final String key;
         private Map<String, ?> properties = Collections.emptyMap();
-        private Object target;
-        private VersionStrategy versionStrategy = VersionStrategy.CachePerVersion;
+        private CacheLayout layout;
         private CacheValidator validator;
 
         protected AbstractCacheBuilder(String key) {
             this.key = key;
+            this.layout = new CacheLayoutBuilder().build();
         }
 
         public CacheBuilder<T> withProperties(Map<String, ?> properties) {
@@ -78,13 +74,8 @@ public class DefaultCacheRepository implements CacheRepository {
             return this;
         }
 
-        public CacheBuilder<T> withVersionStrategy(VersionStrategy strategy) {
-            this.versionStrategy = strategy;
-            return this;
-        }
-
-        public CacheBuilder<T> forObject(Object target) {
-            this.target = target;
+        public CacheBuilder<T> withLayout(CacheLayout layout) {
+            this.layout = layout;
             return this;
         }
 
@@ -94,43 +85,13 @@ public class DefaultCacheRepository implements CacheRepository {
         }
 
         public T open() {
-            File cacheBaseDir;
-            Map<String, Object> properties = new HashMap<String, Object>(this.properties);
-            if (target == null) {
-                cacheBaseDir = globalCacheDir;
-            } else if (target instanceof Gradle) {
-                Gradle gradle = (Gradle) target;
-                File rootProjectDir = gradle.getRootProject().getProjectDir();
-                cacheBaseDir = maybeProjectCacheDir(rootProjectDir);
-            } else if (target instanceof File) {
-                cacheBaseDir = new File((File) target, ".gradle");
-            } else {
-                throw new IllegalArgumentException(String.format("Cannot create cache for unrecognised domain object %s.", target));
-            }
-            switch (versionStrategy) {
-                case SharedCache:
-                    // Use the root directory
-                    break;
-                case CachePerVersion:
-                    cacheBaseDir = new File(cacheBaseDir, version.getVersion());
-                    break;
-                case SharedCacheInvalidateOnVersionChange:
-                    // Include the 'noVersion' suffix for backwards compatibility
-                    cacheBaseDir = new File(cacheBaseDir, "noVersion");
-                    properties.put("gradle.version", version.getVersion());
-                    break;
-            }
-            return doOpen(new File(cacheBaseDir, key), properties, validator);
+            File cacheBaseDir = layout.getCacheDir(globalCacheDir, projectCacheDir, key);
+            Map<String, ?> props = layout.applyLayoutProperties(properties);
+            return doOpen(cacheBaseDir, props, validator);
         }
 
         protected abstract T doOpen(File cacheDir, Map<String, ?> properties, CacheValidator validator);
 
-        private File maybeProjectCacheDir(File potentialParentDir) {
-            if (projectCacheDir != null) {
-                return projectCacheDir;
-            }
-            return new File(potentialParentDir, ".gradle");
-        }
     }
 
     private class PersistentCacheBuilder extends AbstractCacheBuilder<PersistentCache> implements DirectoryCacheBuilder {
@@ -143,20 +104,14 @@ public class DefaultCacheRepository implements CacheRepository {
         }
 
         @Override
-        public DirectoryCacheBuilder forObject(Object target) {
-            super.forObject(target);
+        public DirectoryCacheBuilder withLayout(CacheLayout layout) {
+            super.withLayout(layout);
             return this;
         }
 
         @Override
         public DirectoryCacheBuilder withProperties(Map<String, ?> properties) {
             super.withProperties(properties);
-            return this;
-        }
-
-        @Override
-        public DirectoryCacheBuilder withVersionStrategy(VersionStrategy strategy) {
-            super.withVersionStrategy(strategy);
             return this;
         }
 
@@ -209,20 +164,14 @@ public class DefaultCacheRepository implements CacheRepository {
         }
 
         @Override
-        public ObjectCacheBuilder<E, T> forObject(Object target) {
-            super.forObject(target);
-            return this;
-        }
-
-        @Override
         public ObjectCacheBuilder<E, T> withProperties(Map<String, ?> properties) {
             super.withProperties(properties);
             return this;
         }
 
         @Override
-        public ObjectCacheBuilder<E, T> withVersionStrategy(VersionStrategy strategy) {
-            super.withVersionStrategy(strategy);
+        public ObjectCacheBuilder<E, T> withLayout(CacheLayout layout) {
+            super.withLayout(layout);
             return this;
         }
 

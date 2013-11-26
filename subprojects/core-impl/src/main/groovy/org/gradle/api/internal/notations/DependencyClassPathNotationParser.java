@@ -22,8 +22,8 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.notations.api.NotationParser;
-import org.gradle.api.internal.notations.parsers.TypedNotationParser;
+import org.gradle.internal.typeconversion.NotationParser;
+import org.gradle.internal.typeconversion.TypedNotationParser;
 
 import java.io.File;
 import java.util.Collection;

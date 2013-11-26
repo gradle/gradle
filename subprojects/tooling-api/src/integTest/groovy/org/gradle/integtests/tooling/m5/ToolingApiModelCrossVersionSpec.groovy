@@ -32,10 +32,10 @@ System.err.println 'this is stderr'
 
         when:
         def progress = withModel(GradleProject.class).progressMessages
+        progress.pop()
 
         then:
         progress.size() >= 2
-        progress.pop() == ''
         progress.every { it }
     }
 

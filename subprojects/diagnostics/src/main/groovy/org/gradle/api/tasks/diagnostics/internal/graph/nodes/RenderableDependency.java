@@ -16,12 +16,12 @@
 
 package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 
 import java.util.Set;
 
 public interface RenderableDependency {
-    ModuleVersionIdentifier getId();
+    ComponentIdentifier getId();
     String getName();
     String getDescription();
     boolean isResolvable();

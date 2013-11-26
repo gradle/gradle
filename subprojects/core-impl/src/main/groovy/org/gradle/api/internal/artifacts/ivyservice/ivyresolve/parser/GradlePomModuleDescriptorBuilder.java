@@ -24,14 +24,14 @@ import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.apache.ivy.plugins.parser.xml.XmlModuleDescriptorParser;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomReader.PomDependencyData;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.PomDependencyMgt;
+import org.gradle.api.internal.artifacts.metadata.DefaultModuleVersionArtifactMetaData;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 import org.gradle.api.internal.externalresource.ExternalResource;
 import org.gradle.util.DeprecationLogger;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.*;
-import java.util.Map.Entry;
 
 
 /**
@@ -39,8 +39,6 @@ import java.util.Map.Entry;
  * classifiers)
  */
 public class GradlePomModuleDescriptorBuilder {
-    private static final Logger LOGGER = LoggerFactory.getLogger(GradlePomModuleDescriptorBuilder.class);
-
     public static final Configuration[] MAVEN2_CONFIGURATIONS = new Configuration[]{
             new Configuration("default", Visibility.PUBLIC,
                     "runtime dependencies and master artifact can be used with this conf",
@@ -85,10 +83,7 @@ public class GradlePomModuleDescriptorBuilder {
 
     static final Map<String, ConfMapper> MAVEN2_CONF_MAPPING = new HashMap<String, ConfMapper>();
 
-    private static final String DEPENDENCY_MANAGEMENT = "m:dependency.management";
-    private static final String EXTRA_INFO_DELIMITER = "__";
     private static final Collection<String> JAR_PACKAGINGS = Arrays.asList("ejb", "bundle", "maven-plugin", "eclipse-plugin");
-    private final Map<String, String> extraInfo = new HashMap<String, String>();
 
     static interface ConfMapper {
         public void addMappingConfs(DefaultDependencyDescriptor dd, boolean isOptional);
@@ -160,8 +155,9 @@ public class GradlePomModuleDescriptorBuilder {
     private ModuleRevisionId mrid;
 
     private DescriptorParseContext parserSettings;
+    private final PomReader pomReader;
 
-    public GradlePomModuleDescriptorBuilder(ExternalResource res, DescriptorParseContext ivySettings) {
+    public GradlePomModuleDescriptorBuilder(ExternalResource res, DescriptorParseContext ivySettings, PomReader pomReader) {
         ivyModuleDescriptor = new DefaultModuleDescriptor(XmlModuleDescriptorParser.getInstance(), null);
         ivyModuleDescriptor.setResolvedPublicationDate(new Date(res.getLastModified()));
         for (Configuration maven2Configuration : MAVEN2_CONFIGURATIONS) {
@@ -170,6 +166,7 @@ public class GradlePomModuleDescriptorBuilder {
         ivyModuleDescriptor.setMappingOverride(true);
         ivyModuleDescriptor.addExtraAttributeNamespace("m", Ivy.getIvyHomeURL() + "maven");
         parserSettings = ivySettings;
+        this.pomReader = pomReader;
     }
 
     public DefaultModuleDescriptor getModuleDescriptor() {
@@ -204,7 +201,8 @@ public class GradlePomModuleDescriptorBuilder {
     public void addMainArtifact(String artifactId, String packaging) {
         if ("pom".equals(packaging)) {
             DefaultArtifact artifact = new DefaultArtifact(mrid, new Date(), artifactId, "jar", "jar");
-            if (parserSettings.artifactExists(artifact)) {
+            ModuleVersionArtifactMetaData artifactIdentifier = new DefaultModuleVersionArtifactMetaData(artifact);
+            if (parserSettings.artifactExists(artifactIdentifier)) {
                 ivyModuleDescriptor.addArtifact("master", artifact);
             }
 
@@ -213,8 +211,8 @@ public class GradlePomModuleDescriptorBuilder {
 
         if (!isKnownJarPackaging(packaging)) {
             DefaultArtifact artifact = new DefaultArtifact(mrid, new Date(), artifactId, packaging, packaging);
-
-            if (parserSettings.artifactExists(artifact)) {
+            ModuleVersionArtifactMetaData artifactIdentifier = new DefaultModuleVersionArtifactMetaData(artifact);
+            if (parserSettings.artifactExists(artifactIdentifier)) {
                 ivyModuleDescriptor.addArtifact("master", artifact);
 
                 DeprecationLogger.nagUserOfDeprecated("Relying on packaging to define the extension of the main artifact");
@@ -229,15 +227,14 @@ public class GradlePomModuleDescriptorBuilder {
         return "jar".equals(packaging) || JAR_PACKAGINGS.contains(packaging);
     }
 
-    public void addDependency(PomReader.PomDependencyData dep) {
+    public void addDependency(PomDependencyData dep) {
         String scope = dep.getScope();
         if ((scope != null) && (scope.length() > 0) && !MAVEN2_CONF_MAPPING.containsKey(scope)) {
             // unknown scope, defaulting to 'compile'
             scope = "compile";
         }
 
-        String version = dep.getVersion();
-        version = (version == null || version.length() == 0) ? getDefaultVersion(dep) : version;
+        String version = determineVersion(dep);
         ModuleRevisionId moduleRevId = ModuleRevisionId.newInstance(dep.getGroupId(), dep.getArtifactId(), version);
 
         // Some POMs depend on themselves, don't add this dependency: Ivy doesn't allow this!
@@ -288,7 +285,7 @@ public class GradlePomModuleDescriptorBuilder {
         // is present, but empty.
         List /*<ModuleId>*/ excluded = dep.getExcludedModules();
         if (excluded.isEmpty()) {
-            excluded = getDependencyMgtExclusions(dep.getGroupId(), dep.getArtifactId());
+            excluded = getDependencyMgtExclusions(dep);
         }
         for (Object anExcluded : excluded) {
             ModuleId excludedModule = (ModuleId) anExcluded;
@@ -305,6 +302,25 @@ public class GradlePomModuleDescriptorBuilder {
         ivyModuleDescriptor.addDependency(dd);
     }
 
+    /**
+     * Determines the version of a dependency. Uses the specified version if declared for the as coordinate. If the version is not declared, try to resolve it
+     * from the dependency management section. In case the version cannot be resolved with any of these methods, throw an exception of type
+     * {@see org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.UnresolvedDependencyVersionException}.
+     *
+     * @param dependency Dependency
+     * @return Resolved dependency version
+     */
+    private String determineVersion(PomDependencyData dependency) {
+        String version = dependency.getVersion();
+        version = (version == null || version.length() == 0) ? getDefaultVersion(dependency) : version;
+
+        if(version == null) {
+            throw new UnresolvedDependencyVersionException(dependency.getId());
+        }
+
+        return version;
+    }
+
     public void addDependency(DependencyDescriptor descriptor) {
         // Some POMs depend on themselves through their parent POM, don't add this dependency
         // since Ivy doesn't allow this!
@@ -318,158 +334,36 @@ public class GradlePomModuleDescriptorBuilder {
         ivyModuleDescriptor.addDependency(descriptor);
     }
 
-
-    public void addDependencyMgt(PomDependencyMgt dep) {
-        String key = getDependencyMgtExtraInfoKeyForVersion(dep);
-        addExtraInfo(key, dep.getVersion());
-        if (dep.getScope() != null) {
-            String scopeKey = getDependencyMgtExtraInfoKeyForScope(dep.getGroupId(), dep.getArtifactId());
-            addExtraInfo(scopeKey, dep.getScope());
+    private String getDefaultVersion(PomDependencyData dep) {
+        PomDependencyMgt pomDependencyMgt = findDependencyDefault(dep);
+        if (pomDependencyMgt != null) {
+            return pomDependencyMgt.getVersion();
         }
-        if (!dep.getExcludedModules().isEmpty()) {
-            final String exclusionPrefix = getDependencyMgtExtraInfoPrefixForExclusion(dep.getGroupId(), dep.getArtifactId());
-            int index = 0;
-            for (Object o : dep.getExcludedModules()) {
-                final ModuleId excludedModule = (ModuleId) o;
-                addExtraInfo(exclusionPrefix + index,
-                        excludedModule.getOrganisation() + EXTRA_INFO_DELIMITER + excludedModule.getName());
-                index += 1;
-            }
-        }
+        return null;
     }
 
-    public void addPlugin(PomDependencyMgt plugin) {
-        String pluginValue = plugin.getGroupId() + EXTRA_INFO_DELIMITER + plugin.getArtifactId()
-                + EXTRA_INFO_DELIMITER + plugin.getVersion();
-        String pluginExtraInfo = extraInfo.get("m:maven.plugins");
-        if (pluginExtraInfo == null) {
-            pluginExtraInfo = pluginValue;
-        } else {
-            pluginExtraInfo = pluginExtraInfo + "|" + pluginValue;
+    private String getDefaultScope(PomDependencyData dep) {
+        PomDependencyMgt pomDependencyMgt = findDependencyDefault(dep);
+        String result = null;
+        if (pomDependencyMgt != null) {
+            result = pomDependencyMgt.getScope();
         }
-        addExtraInfo("m:maven.plugins", pluginExtraInfo);
-    }
-
-    public List<PomDependencyMgt> getPlugins(ModuleDescriptor md) {
-        List<PomDependencyMgt> result = new ArrayList<PomDependencyMgt>();
-        String plugins = (String) md.getExtraInfo().get("m:maven.plugins");
-        if (plugins == null) {
-            return new ArrayList<PomDependencyMgt>();
-        }
-        String[] pluginsArray = plugins.split("\\|");
-        for (String plugin : pluginsArray) {
-            String[] parts = plugin.split(EXTRA_INFO_DELIMITER);
-            result.add(new PomPluginElement(parts[0], parts[1], parts[2]));
-        }
-
-        return result;
-    }
-
-    private static class PomPluginElement implements PomDependencyMgt {
-        private String groupId;
-        private String artifactId;
-        private String version;
-
-        public PomPluginElement(String groupId, String artifactId, String version) {
-            this.groupId = groupId;
-            this.artifactId = artifactId;
-            this.version = version;
-        }
-
-        public String getGroupId() {
-            return groupId;
-        }
-
-        public String getArtifactId() {
-            return artifactId;
-        }
-
-        public String getVersion() {
-            return version;
-        }
-
-        public String getScope() {
-            return null;
-        }
-
-        public String getType() {
-            return null;
-        }
-
-        public String getClassifier() {
-            return null;
-        }
-
-        public List /*<ModuleId>*/ getExcludedModules() {
-            return Collections.EMPTY_LIST; // probably not used?
-        }
-    }
-
-    private String getDefaultVersion(PomReader.PomDependencyData dep) {
-        String key = getDependencyMgtExtraInfoKeyForVersion(dep);
-        return extraInfo.get(key);
-    }
-
-    private String getDefaultScope(PomReader.PomDependencyData dep) {
-        String key = getDependencyMgtExtraInfoKeyForScope(dep.getGroupId(), dep.getArtifactId());
-        String result = extraInfo.get(key);
         if ((result == null) || !MAVEN2_CONF_MAPPING.containsKey(result)) {
             result = "compile";
         }
         return result;
     }
 
-    private String getDependencyMgtExtraInfoKeyForVersion(PomDependencyMgt dep) {
-        StringBuilder key = new StringBuilder();
-        key.append(DEPENDENCY_MANAGEMENT).append(EXTRA_INFO_DELIMITER).append(dep.getGroupId()).append(EXTRA_INFO_DELIMITER).append(dep.getArtifactId());
-
-        if(dep.getType() != null) {
-            key.append(EXTRA_INFO_DELIMITER).append(dep.getType());
+    private List<ModuleId> getDependencyMgtExclusions(PomDependencyData dep) {
+        PomDependencyMgt pomDependencyMgt = findDependencyDefault(dep);
+        if (pomDependencyMgt != null) {
+            return pomDependencyMgt.getExcludedModules();
         }
 
-        if(dep.getClassifier() != null) {
-            key.append(EXTRA_INFO_DELIMITER).append(dep.getClassifier());
-        }
-
-        key.append(EXTRA_INFO_DELIMITER).append("version");
-        return key.toString();
+        return Collections.emptyList();
     }
 
-    private String getDependencyMgtExtraInfoKeyForScope(String groupId, String artifaceId) {
-        return DEPENDENCY_MANAGEMENT + EXTRA_INFO_DELIMITER + groupId
-                + EXTRA_INFO_DELIMITER + artifaceId + EXTRA_INFO_DELIMITER + "scope";
-    }
-
-    private String getDependencyMgtExtraInfoPrefixForExclusion(
-            String groupId, String artifaceId) {
-        return DEPENDENCY_MANAGEMENT + EXTRA_INFO_DELIMITER + groupId
-                + EXTRA_INFO_DELIMITER + artifaceId + EXTRA_INFO_DELIMITER + "exclusion_";
-    }
-
-    private List<ModuleId> getDependencyMgtExclusions(String groupId, String artifactId) {
-        String exclusionPrefix = getDependencyMgtExtraInfoPrefixForExclusion(groupId, artifactId);
-        List<ModuleId> exclusionIds = new LinkedList<ModuleId>();
-        Map<String, String> extras = extraInfo;
-        for (Entry<String, String> entry : extras.entrySet()) {
-            String key = entry.getKey();
-            if (key.startsWith(exclusionPrefix)) {
-                String fullExclusion = entry.getValue();
-                String[] exclusionParts = fullExclusion.split(EXTRA_INFO_DELIMITER);
-                if (exclusionParts.length != 2) {
-                    LOGGER.error("Wrong number of parts for dependency management extra info exclusion: expect 2, found {}: {}",
-                            exclusionParts.length, fullExclusion);
-                    continue;
-                }
-                exclusionIds.add(ModuleId.newInstance(exclusionParts[0], exclusionParts[1]));
-            }
-        }
-
-        return exclusionIds;
-    }
-
-    private void addExtraInfo(String key, String value) {
-        if (!extraInfo.containsKey(key)) {
-            extraInfo.put(key, value);
-        }
+    private PomDependencyMgt findDependencyDefault(PomDependencyData dependency) {
+        return pomReader.findDependencyDefaults(dependency.getId());
     }
 }

@@ -17,16 +17,19 @@
 package org.gradle.api.internal.artifacts.metadata;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
-import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ArtifactIdentifier;
-import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 
 public class DefaultModuleVersionArtifactMetaData implements ModuleVersionArtifactMetaData {
     private final ModuleVersionIdentifier moduleVersionIdentifier;
     private final Artifact artifact;
     private final DefaultModuleVersionArtifactIdentifier id;
+
+    public DefaultModuleVersionArtifactMetaData(Artifact artifact) {
+        this(DefaultModuleVersionIdentifier.newId(artifact.getModuleRevisionId()), artifact);
+    }
 
     public DefaultModuleVersionArtifactMetaData(ModuleVersionIdentifier moduleVersionIdentifier, Artifact artifact) {
         this.moduleVersionIdentifier = moduleVersionIdentifier;
@@ -55,21 +58,7 @@ public class DefaultModuleVersionArtifactMetaData implements ModuleVersionArtifa
         return new DefaultArtifactIdentifier(artifact);
     }
 
-    @Nullable
-    public String getClassifier() {
-        return (String) artifact.getQualifiedExtraAttributes().get(Dependency.CLASSIFIER);
-    }
-
-    public String getName() {
-        return artifact.getName();
-    }
-
-    public String getType() {
-        return artifact.getType();
-    }
-
-    @Nullable
-    public String getExtension() {
-        return artifact.getExt();
+    public IvyArtifactName getName() {
+        return id.getName();
     }
 }

@@ -21,11 +21,9 @@ import org.gradle.cache.internal.filelock.LockOptions;
 import java.util.Map;
 
 public interface DirectoryCacheBuilder extends CacheBuilder<PersistentCache> {
-    DirectoryCacheBuilder withVersionStrategy(VersionStrategy strategy);
-
     DirectoryCacheBuilder withProperties(Map<String, ?> properties);
 
-    DirectoryCacheBuilder forObject(Object target);
+    DirectoryCacheBuilder withLayout(CacheLayout layout);
 
     /**
      * Specifies the display name for this cache. This display name is used in logging and error messages.

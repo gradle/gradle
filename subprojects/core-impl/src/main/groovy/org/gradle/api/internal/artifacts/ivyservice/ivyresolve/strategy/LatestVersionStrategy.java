@@ -15,11 +15,12 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
 
-import com.google.common.collect.Lists;
-
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.Versioned;
+import org.gradle.util.CollectionUtils;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 public class LatestVersionStrategy implements LatestStrategy {
     private final VersionMatcher versionMatcher;
@@ -29,9 +30,7 @@ public class LatestVersionStrategy implements LatestStrategy {
     }
 
     public <T extends Versioned> List<T> sort(Collection<T> versions) {
-        List<T> result = Lists.newArrayList(versions);
-        Collections.sort(result, this);
-        return result;
+        return CollectionUtils.sort(versions, this);
     }
 
     public <T extends Versioned> T findLatest(Collection<T> elements) {

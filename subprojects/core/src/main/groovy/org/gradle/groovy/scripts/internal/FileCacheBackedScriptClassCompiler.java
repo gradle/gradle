@@ -23,6 +23,8 @@ import org.gradle.cache.PersistentCache;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.Transformer;
 import org.gradle.internal.hash.HashUtil;
+import org.gradle.logging.ProgressLogger;
+import org.gradle.logging.ProgressLoggerFactory;
 
 import java.io.File;
 import java.util.HashMap;
@@ -33,13 +35,15 @@ import java.util.Map;
  */
 public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler {
     private final ScriptCompilationHandler scriptCompilationHandler;
+    private ProgressLoggerFactory progressLoggerFactory;
     private final CacheRepository cacheRepository;
     private final CacheValidator validator;
 
-    public FileCacheBackedScriptClassCompiler(CacheRepository cacheRepository, CacheValidator validator, ScriptCompilationHandler scriptCompilationHandler) {
+    public FileCacheBackedScriptClassCompiler(CacheRepository cacheRepository, CacheValidator validator, ScriptCompilationHandler scriptCompilationHandler, ProgressLoggerFactory progressLoggerFactory) {
         this.cacheRepository = cacheRepository;
         this.validator = validator;
         this.scriptCompilationHandler = scriptCompilationHandler;
+        this.progressLoggerFactory = progressLoggerFactory;
     }
 
     public <T extends Script> Class<? extends T> compile(ScriptSource source, ClassLoader classLoader, Transformer transformer, Class<T> scriptBaseClass) {
@@ -52,7 +56,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler {
                 .withProperties(properties)
                 .withValidator(validator)
                 .withDisplayName(String.format("%s class cache for %s", transformer.getId(), source.getDisplayName()))
-                .withInitializer(new CacheInitializer(source, classLoader, transformer, scriptBaseClass)).open();
+                .withInitializer(new ProgressReportingInitializer(progressLoggerFactory, new CacheInitializer(source, classLoader, transformer, scriptBaseClass))).open();
 
         File classesDir = classesDir(cache);
         return scriptCompilationHandler.loadFromDir(source, classLoader, classesDir, scriptBaseClass);
@@ -78,6 +82,26 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler {
         public void execute(PersistentCache cache) {
             File classesDir = classesDir(cache);
             scriptCompilationHandler.compileToDir(source, classLoader, classesDir, transformer, scriptBaseClass);
+        }
+    }
+
+    static class ProgressReportingInitializer implements Action<PersistentCache> {
+        private ProgressLoggerFactory progressLoggerFactory;
+        private Action<? super PersistentCache> delegate;
+
+        public ProgressReportingInitializer(ProgressLoggerFactory progressLoggerFactory, Action<PersistentCache> delegate) {
+            this.progressLoggerFactory = progressLoggerFactory;
+            this.delegate = delegate;
+        }
+
+        public void execute(PersistentCache cache) {
+            ProgressLogger op = progressLoggerFactory.newOperation(FileCacheBackedScriptClassCompiler.class)
+                    .start("Compile script into cache", "Compiling script into cache");
+            try {
+                delegate.execute(cache);
+            } finally {
+                op.completed();
+            }
         }
     }
 }

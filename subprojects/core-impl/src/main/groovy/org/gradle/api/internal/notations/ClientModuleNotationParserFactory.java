@@ -17,9 +17,10 @@ package org.gradle.api.internal.notations;
 
 import org.gradle.api.artifacts.ClientModule;
 import org.gradle.api.internal.artifacts.dependencies.DefaultClientModule;
-import org.gradle.api.internal.notations.api.NotationParser;
+import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.typeconversion.NotationParserBuilder;
 
 public class ClientModuleNotationParserFactory implements Factory<NotationParser<ClientModule>> {
 

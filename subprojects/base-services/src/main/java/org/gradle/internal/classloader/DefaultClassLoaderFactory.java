@@ -15,7 +15,7 @@
  */
 package org.gradle.internal.classloader;
 
-import org.gradle.api.internal.Transformers;
+import org.gradle.internal.Transformers;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.service.ServiceLocator;

@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
 
 /**
@@ -30,11 +30,11 @@ class CachedModuleDescriptorParseContext implements DescriptorParseContext {
         throw new UnsupportedOperationException();
     }
 
-    public boolean artifactExists(Artifact artifact) {
+    public boolean artifactExists(ModuleVersionArtifactMetaData artifact) {
         throw new UnsupportedOperationException();
     }
 
-    public LocallyAvailableExternalResource getArtifact(Artifact artifact) {
+    public LocallyAvailableExternalResource getArtifact(ModuleVersionArtifactMetaData artifact) {
         throw new UnsupportedOperationException();
     }
 }

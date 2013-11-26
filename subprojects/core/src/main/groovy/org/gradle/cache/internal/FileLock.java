@@ -47,6 +47,9 @@ public interface FileLock extends Closeable, FileAccess {
      */
     FileLockManager.LockMode getMode();
 
+    /**
+     * An immutable snapshot of the state of a lock.
+     */
     interface State {
         boolean hasBeenUpdatedSince(State state);
     }

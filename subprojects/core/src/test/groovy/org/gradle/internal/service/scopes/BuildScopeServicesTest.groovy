@@ -45,6 +45,7 @@ import org.gradle.invocation.DefaultBuildClassLoaderRegistry
 import org.gradle.listener.DefaultListenerManager
 import org.gradle.listener.ListenerManager
 import org.gradle.logging.LoggingManagerInternal
+import org.gradle.logging.ProgressLoggerFactory
 import org.gradle.messaging.remote.MessagingServer
 import org.gradle.process.internal.DefaultWorkerProcessFactory
 import org.gradle.process.internal.WorkerProcessBuilder
@@ -64,9 +65,7 @@ public class BuildScopeServicesTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     StartParameter startParameter = new StartParameter()
-    ServiceRegistry parent = Mock() {
-        getAll(PluginServiceRegistry) >> []
-    }
+    ServiceRegistry parent = Stub()
     Factory<CacheFactory> cacheFactoryFactory = Mock()
     ClosableCacheFactory cacheFactory = Mock()
     ClassLoaderRegistry classLoaderRegistry = Mock()
@@ -84,6 +83,7 @@ public class BuildScopeServicesTest extends Specification {
         parent.get(DependencyManagementServices) >> Stub(DependencyManagementServices)
         parent.get(Instantiator) >> ThreadGlobalInstantiator.getOrCreate()
         parent.get(FileResolver) >> Stub(FileResolver)
+        parent.get(ProgressLoggerFactory) >> Stub(ProgressLoggerFactory)
     }
 
     def delegatesToParentForUnknownService() {
@@ -92,6 +92,21 @@ public class BuildScopeServicesTest extends Specification {
 
         expect:
         registry.get(String) == "value"
+    }
+
+    def addsAllPluginBuildScopeServices() {
+        def plugin2 = Mock(PluginServiceRegistry)
+        def plugin1 = Mock(PluginServiceRegistry)
+
+        given:
+        parent.getAll(PluginServiceRegistry) >> [plugin1, plugin2]
+
+        when:
+        new BuildScopeServices(parent, startParameter)
+
+        then:
+        1 * plugin1.registerBuildServices(_)
+        1 * plugin2.registerBuildServices(_)
     }
 
     def throwsExceptionForUnknownDomainObject() {

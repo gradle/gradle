@@ -16,19 +16,20 @@
 
 package org.gradle.buildinit.plugins.internal
 
+import org.gradle.internal.Factory;
+
 class ConditionalTemplateOperation implements TemplateOperation {
 
     private final TemplateOperation[] optionalOperations
-    private final Closure<Boolean> condition
+    private final Factory<Boolean> condition
 
-    ConditionalTemplateOperation(Closure<Boolean> precondition, TemplateOperation... optionalOperations){
+    ConditionalTemplateOperation(Factory<Boolean> precondition, TemplateOperation... optionalOperations){
         this.condition = precondition
         this.optionalOperations = optionalOperations
     }
 
-    @Override
     void generate() {
-        if(condition.call()){
+        if(condition.create()){
             optionalOperations.each {
                 it.generate()
             }

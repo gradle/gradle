@@ -41,7 +41,7 @@ import java.util.*;
 /**
  * Copied from org.apache.ivy.plugins.parser.m2.PomReader.
  */
-public class PomReader {
+public class PomReader implements PomParent {
 
     private static final String PACKAGING = "packaging";
     private static final String DEPENDENCY = "dependency";
@@ -67,14 +67,12 @@ public class PomReader {
     private static final String DISTRIBUTION_MGT = "distributionManagement";
     private static final String RELOCATION = "relocation";
     private static final String PROPERTIES = "properties";
-    private static final String PLUGINS = "plugins";
-    private static final String PLUGIN = "plugin";
     private static final String TYPE = "type";
 
+    private PomParent pomParent = new RootPomParent();
     private final Map<String, String> properties = new HashMap<String, String>();
-    private final Map<MavenDependencyKey, PomDependencyMgt> inheritedDependencyMgts = new LinkedHashMap<MavenDependencyKey, PomDependencyMgt>();
     private Map<MavenDependencyKey, PomDependencyMgt> dependencyMgts;
-    private final Map<MavenDependencyKey, PomDependencyData> inheritedDependencies = new LinkedHashMap<MavenDependencyKey, PomDependencyData>();
+    private final Map<MavenDependencyKey, PomDependencyMgt> importedDependencyMgts = new LinkedHashMap<MavenDependencyKey, PomDependencyMgt>();
     private Map<MavenDependencyKey, PomDependencyData> dependencies;
 
     private final Element projectElement;
@@ -99,6 +97,19 @@ public class PomReader {
 
         setDefaultParentGavProperties();
         setPomProperties();
+    }
+
+    public void setPomParent(PomParent pomParent) {
+        this.pomParent = pomParent;
+        setPomParentProperties();
+    }
+
+    private void setPomParentProperties() {
+        Map<String, String> parentPomProps = pomParent.getProperties();
+
+        for(Map.Entry<String, String> entry : parentPomProps.entrySet()) {
+            setProperty(entry.getKey(), entry.getValue());
+        }
     }
 
     private void setPomProperties() {
@@ -162,7 +173,7 @@ public class PomReader {
 
     /**
      * Add a property if not yet set and value is not null.
-     * This garantee that property keep the first value that is put on it and that the properties
+     * This guarantee that property keep the first value that is put on it and that the properties
      * are never null.
      */
     public void setProperty(String prop, String val) {
@@ -175,18 +186,11 @@ public class PomReader {
         return properties;
     }
 
-    public void addInheritedDependencyMgts(Map<MavenDependencyKey, PomDependencyMgt> inherited) {
+    public void addImportedDependencyMgts(Map<MavenDependencyKey, PomDependencyMgt> inherited) {
         if (dependencyMgts != null) {
-            throw new IllegalStateException("Cannot add inherited dependency management elements after dependency management elements have been resolved for this POM.");
+            throw new IllegalStateException("Cannot add imported dependency management elements after dependency management elements have been resolved for this POM.");
         }
-        inheritedDependencyMgts.putAll(inherited);
-    }
-
-    public void addInheritedDependencies(Map<MavenDependencyKey, PomDependencyData> inherited) {
-        if (dependencies != null) {
-            throw new IllegalStateException("Cannot add inherited dependencies after dependencies have been resolved for this POM.");
-        }
-        inheritedDependencies.putAll(inherited);
+        importedDependencyMgts.putAll(inherited);
     }
 
     public String getGroupId() {
@@ -325,14 +329,14 @@ public class PomReader {
                 Node node = childs.item(i);
                 if (node instanceof Element && DEPENDENCY.equals(node.getNodeName())) {
                     PomDependencyData pomDependencyData = new PomDependencyData((Element) node);
-                    MavenDependencyKey key = new MavenDependencyKey(pomDependencyData.getGroupId(), pomDependencyData.getArtifactId(), pomDependencyData.getType(), pomDependencyData.getClassifier());
+                    MavenDependencyKey key = pomDependencyData.getId();
                     dependencies.put(key, pomDependencyData);
                 }
             }
         }
 
         // Maven adds inherited dependencies last
-        for (Map.Entry<MavenDependencyKey, PomDependencyData> entry : inheritedDependencies.entrySet()) {
+        for (Map.Entry<MavenDependencyKey, PomDependencyData> entry : pomParent.getDependencies().entrySet()) {
             if (!dependencies.containsKey(entry.getKey())) {
                 dependencies.put(entry.getKey(), entry.getValue());
             }
@@ -354,7 +358,8 @@ public class PomReader {
 
     private Map<MavenDependencyKey, PomDependencyMgt> resolveDependencyMgt() {
         Map<MavenDependencyKey, PomDependencyMgt> dependencies = new LinkedHashMap<MavenDependencyKey, PomDependencyMgt>();
-        dependencies.putAll(inheritedDependencyMgts);
+        dependencies.putAll(pomParent.getDependencyMgt());
+        dependencies.putAll(importedDependencyMgts);
         dependencies.putAll(getPomDependencyMgt());
         return dependencies;
     }
@@ -372,12 +377,16 @@ public class PomReader {
                 Node node = childs.item(i);
                 if (node instanceof Element && DEPENDENCY.equals(node.getNodeName())) {
                     PomDependencyMgt pomDependencyMgt = new PomDependencyMgtElement((Element) node);
-                    MavenDependencyKey key = new MavenDependencyKey(pomDependencyMgt.getGroupId(), pomDependencyMgt.getArtifactId(), pomDependencyMgt.getType(), pomDependencyMgt.getClassifier());
+                    MavenDependencyKey key = pomDependencyMgt.getId();
                     depMgmtElements.put(key, pomDependencyMgt);
                 }
             }
         }
         return depMgmtElements;
+    }
+
+    public PomDependencyMgt findDependencyDefaults(MavenDependencyKey dependencyKey) {
+        return getDependencyMgt().get(dependencyKey);
     }
 
     public void resolveGAV() {
@@ -397,6 +406,10 @@ public class PomReader {
 
         PomDependencyMgtElement(Element depElement) {
             this.depElement = depElement;
+        }
+
+        public MavenDependencyKey getId() {
+            return new MavenDependencyKey(getGroupId(), getArtifactId(), getType(), getClassifier());
         }
 
         /* (non-Javadoc)
@@ -463,67 +476,6 @@ public class PomReader {
             return exclusions;
         }
     }
-
-    public List<PomPluginElement> getPlugins() {
-        List<PomPluginElement> plugins = new LinkedList<PomPluginElement>();
-
-        Element buildElement = getFirstChildElement(projectElement, "build");
-        if (buildElement == null) {
-            return plugins;
-        }
-
-        Element pluginsElement = getFirstChildElement(buildElement, PLUGINS);
-        if (pluginsElement != null) {
-            NodeList childs = pluginsElement.getChildNodes();
-            for (int i = 0; i < childs.getLength(); i++) {
-                Node node = childs.item(i);
-                if (node instanceof Element && PLUGIN.equals(node.getNodeName())) {
-                    plugins.add(new PomPluginElement((Element) node));
-                }
-            }
-        }
-        return plugins;
-    }
-
-    public class PomPluginElement implements PomDependencyMgt {
-        private Element pluginElement;
-
-        PomPluginElement(Element pluginElement) {
-            this.pluginElement = pluginElement;
-        }
-
-        public String getGroupId() {
-            String val = getFirstChildText(pluginElement , GROUP_ID);
-            return replaceProps(val);
-        }
-
-        public String getArtifactId() {
-            String val = getFirstChildText(pluginElement , ARTIFACT_ID);
-            return replaceProps(val);
-        }
-
-        public String getVersion() {
-            String val = getFirstChildText(pluginElement , VERSION);
-            return replaceProps(val);
-        }
-
-        public String getScope() {
-            return null; // not used
-        }
-
-        public String getType() {
-            return null; // not used
-        }
-
-        public String getClassifier() {
-            return null; // not used
-        }
-
-        public List<ModuleId> getExcludedModules() {
-            return Collections.emptyList(); // probably not used?
-        }
-    }
-
 
     public class PomDependencyData extends PomDependencyMgtElement {
         private final Element depElement;

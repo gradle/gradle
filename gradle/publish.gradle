@@ -23,7 +23,7 @@ task generatePom {
             configurations.publishCompile.allDependencies.withType(ProjectDependency).each {
                 publishRuntime "org.gradle:${it.dependencyProject.archivesBaseName}:${version}"
             }
-            configurations.publishCompile.allDependencies.withType(ExternalModuleDependency).each {
+            configurations.publishCompile.allDependencies.withType(ExternalDependency).each {
                 publishRuntime it
             }
         }

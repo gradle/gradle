@@ -161,7 +161,7 @@ class CommandLineActionFactoryTest extends Specification {
         outputs.stdErr.contains('--some-option')
 
         and:
-        1 * loggingConfigurationConverter.configure(!null) >> {CommandLineParser parser -> parser.option("logging").hasArgument()}
+        1 * loggingConfigurationConverter.configure(!null) >> {CommandLineParser parser -> parser.option("logging").hasArgument(String)}
         1 * actionFactory1.configureCommandLineParser(!null) >> {CommandLineParser parser -> parser.option('some-option')}
         1 * executionListener.onFailure({it instanceof CommandLineArgumentException})
         0 * executionListener._

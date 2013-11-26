@@ -114,15 +114,11 @@ class JacocoPlugin implements Plugin<Project> {
      * @param extension the extension that has the tool version to use
      */
     private void configureAgentDependencies(JacocoAgentJar jacocoAgentJar, JacocoPluginExtension extension) {
-        jacocoAgentJar.conventionMapping.with {
-            agentConf = {
-                def config = this.project.configurations[AGENT_CONFIGURATION_NAME]
-                if (config.dependencies.empty) {
-                    this.project.dependencies {
-                        jacocoAgent "org.jacoco:org.jacoco.agent:${extension.toolVersion}"
-                    }
-                }
-                config
+        def config = this.project.configurations[AGENT_CONFIGURATION_NAME]
+        jacocoAgentJar.conventionMapping.agentConf = { config }
+        config.incoming.beforeResolve {
+            if (config.dependencies.empty) {
+                config.dependencies.add(this.project.dependencies.create("org.jacoco:org.jacoco.agent:${extension.toolVersion}"))
             }
         }
     }
@@ -133,17 +129,13 @@ class JacocoPlugin implements Plugin<Project> {
      * @param extension the JacocoPluginExtension
      */
     private void configureTaskClasspathDefaults(JacocoPluginExtension extension) {
+        def config = this.project.configurations[ANT_CONFIGURATION_NAME]
         this.project.tasks.withType(JacocoBase) { task ->
-            task.conventionMapping.with {
-                jacocoClasspath = {
-                    def config = this.project.configurations[ANT_CONFIGURATION_NAME]
-                    if (config.dependencies.empty) {
-                        this.project.dependencies {
-                            jacocoAnt "org.jacoco:org.jacoco.ant:${extension.toolVersion}"
-                        }
-                    }
-                    config
-                }
+            task.conventionMapping.jacocoClasspath = { config }
+        }
+        config.incoming.beforeResolve {
+            if (config.dependencies.empty) {
+                config.dependencies.add(this.project.dependencies.create("org.jacoco:org.jacoco.ant:${extension.toolVersion}"))
             }
         }
     }

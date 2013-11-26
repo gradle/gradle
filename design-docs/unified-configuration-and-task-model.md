@@ -44,86 +44,221 @@ be rolled out to other incubating plugins, and later, to existing plugins in a b
 
 # Implementation plan
 
-## Allow the configuration of publications to be deferred
+## Native language plugins use model rules to configure the native components model
 
-This story allows the lazy configuration of publications, so that the configuration code is deferred until after all the
-other things it uses as input have themselves been configured. It will introduce a public mechanism for plugins to use to
-implement this pattern.
+`NativeBinariesModelPlugin` currently uses a sequence of project configuration actions to configure:
 
-The `publishing { }` closure will become lazy, so that it is deferred until after the project has been configured.
-Accessing the `publishing` extension directly in the script or programmatically will trigger the configuration of
-the publishing extension.
+- Default source directories for each language source set, if none defined.
+- A default tool chain, if none defined. This requires configuring the candidate tool chains and then determining which of these are available.
+- A default platform, if none defined.
+- A default build type, if none defined.
+- Default flavours for each native component, if none defined.
+- The binaries for each native component. This requires configuring each component, which in turn requires configuring all of the above.
 
-The publishing tasks will continue to be created and configured as the publications are defined. Later stories will
-allow deferred creation.
+These should be refactored to use model rules instead. Remove `ProjectConfigurationActionContainer` once this is complete.
 
-An example:
+There are a number of other places where the plugins use `container.all { }` to configure:
 
-    apply plugin: 'maven-publish'
+- `NativeBinariesPlugin` defines a default source set for each native library and executable.
+- `NativeBinariesPlugin` determines whether each binary is buildable and attaches the tool implementation to the binary.
+  This requires determining the set of binaries for each component. The target platform and tool chain for each binary are not configurable, so the
+  binary does not need to be completely closed at this point.
+- `CppLangPlugin` adds a C++ source set to each functional source set. This needs to happen such that the C++ source set can be configured as part of the
+  functional source set.
+- `CppNativeBinariesPlugin` adds C++ extensions to each binary. This needs to happen such that these extensions can be configured as part of the binary.
 
-    publishing {
-        // this closure is lazy and is not executed until after this build script has been executed
-        repositories {
-        }
-        publications {
-        }
-    }
+These should be refactored to use model rules instead. These will probably require some DSL and rules support.
 
-    // The following are not lazy
-    publishing.repositories {
-        maven { ... }
-    }
-    publishing.repositories.maven { ... }
-    publishing.repositories.mavenLocal()
-    publishing.repositories.myRepo.rootUrl = 'http://somehost/'
-    def extension = project.extensions.getByType(PublishingExtension)
+## Native language plugins use model rules to define and configure tasks
 
-    // This will not work as the tasks have not been defined
-    generatePomFileForMavenPublication {
-    }
-    tasks.generatePomFileForMavenPublication {
-    }
+There are a number of places where the native language plugins use `container.all { }` to configure:
 
-For a multiproject build:
+- `LanguageBasePlugin` defines the lifecycle task for each binary.
+- `NativeBinariesPlugin` defines the builder (link or assemble) task for each binary and attaches it as a dependency of the lifecycle task.
+  This requires that the binary has been configured.
+- `NativeBinariesPlugin` defines the install task for each executable binary and attaches the binary as input of the install task.
+  This requires that the binary has been configured.
+- `CppNativeBinariesPlugin` defines a compile task for each C++ source set which is input to each binary and attaches as input to the builder task.
+  This requires that the binary and source set have been configured.
 
-    // root build.gradle
+These should be refactored to use model rules instead.
 
-    subprojects {
-        apply plugin: 'java'
-        apply plugin: 'maven-publish'
-        publishing {
-            repositories.maven { ... }
-            publications {
-                maven(MavenPublication) {
-                    from components.java
-                }
+## Build author uses the model DSL to configure the native components model
+
+The model DSL should allow the native language model to be configured.
+
+Currently, the native language plugins use extensions to represent the various parts of the model and the build author uses the extension DSL to configure the model.
+There are two approaches we might take here:
+
+1. Integrate the existing extension DSL and the model rules so that either can be used to configure the model. This isn't really required for the native language plugins,
+   as they are still incubating, but will help drive backwards compatibility with the existing DSL for stable plugins.
+2. Change the native language plugins so that they do not use extensions and ignore integration between the old and new DSL for now.
+
+## Build author uses the model DSL to configure the native components tasks
+
+The model DSL should allow the tasks for a native binary and component to be configured. The configuration should happen only when the task is added to the task graph.
+
+Part of this work is to consider how the existing task DSL can be used to configure these tasks. Currently, the build author can configure a task in several locations:
+
+1. As a top-level property of the project.
+2. As an element of the `tasks` container attached to the project.
+3. As an element of the `tasks` container attached to the native binary.
+
+For locations #1 and #2, there are a few approaches we might take:
+
+1. Fail with a "unknown task" error.
+2. Trigger evaluation of rules to attempt to close the matching tasks.
+3. Defer the configuration and fail only if the task is unknown.
+4. Mark the block as "broken" and skip it. At the end of configuration, fail with an error message that informs the user that they need to use the new DSL to
+   configure this task, or that the task is unknown.
+
+For location #3, this is an incubating element, so we can simply defer all configuration.
+
+Similarly, this work should consider how the existing task DSL can be used to access these tasks: Is it an error? Does it trigger model rules?
+
+## Plugin author uses model rules to define tasks after plugin model has been configured
+
+A common problem when authoring a plugin is how to handle configuration that happens after the plugin is applied.
+
+This story exposes model rules as a public (but very much experimental) feature which a plugin can use to solve this problem. Implementation-wise, this
+story is mostly about exposing and documenting the features that already exist, possibly along with some sugar to help solve this very common use case.
+
+- Provide a mechanism for the plugin to register a model object and some logic which later receives the immutable model object and defines some tasks from this object.
+- Add documentation and samples.
+- Add some mechanism to expose the model object also as an extension, to provide the plugin with a migration path to the new DSL.
+    - Generate a warning when the build script author uses the extension DSL to configure the model.
+    - Generate a warning when the extension DSL is used after the model object has been closed.
+
+### Open issues
+
+- Detect and handle attempts to mutate the model object via the extension DSL after the model object has been closed.
+
+## Model DSL allows native components and source sets to be configured in dependency order
+
+A source set can take a native library as a dependency, and this library can in turn take another source set as input. The model DSL should not require the build
+author to sequence their model rules in a particular way.
+
+For example, something like this should be possible:
+
+    sources {
+        greeter { ... }
+        exe {
+            cpp {
+                lib libraries.greeter
             }
         }
     }
 
-    // project build.gradle
+    libraries {
+        greeter { ... }
+    }
 
-    dependencies { ... }
+    executables {
+        exe { ... }
+    }
 
-Once the publishing extension has been configured, it will be an error to make further calls to `publishing { ... }`.
+A similar problem is that a native component may have dependency declarations:
 
-### Implementation plan
+    dependencies {
+        myLib 'some-dep'
+    }
 
-1. Add a `DeferredConfigurable` annotation. This annotation marks an extension as requiring a single, deferred configuration event, rather than progressive configuration.
-2. Update the ExtensionContainer so that for any added extension that is annotated with DeferredConfigurable:
-    - `configure` will add an action for later execution when the target extension object is to be configured.
-       It is an error to attempt to configure a DeferredConfigurable extension after it has been configured.
-    - Accessing the extension triggers the execution of the registered configuration actions, if the extension has not already been configured.
-3. Add `DeferredConfigurable` to `DefaultPublishingExtension`.
+    libraries {
+        myLib { ... }
+    }
 
-### Test coverage
+## Plugin author uses model rules to define native language conventions plugin
 
-- Update the publishing integration tests so that the publications are declared along with the other injected configuration in `allprojects`/`subprojects`
-- A custom plugin can use a `DeferredConfigurable` extension to implement lazy configuration. Verify that that extension is configured before the
-  project's afterEvaluate {} event is fired.
-- Attempting to configure a `DeferredConfigurable` extension after access provides reasonable failure message.
-- A reasonable error message is given when the configuration of an extension fails.
-- A reasonable error message is given when attempting to access an extension whose configuration has previously failed.
+Most (all?) organisations will need to be able define their own conventions for native languages and package these into plugins:
+
+- source set layouts
+- default platforms, toolchains, flavours and build types
+
+Will need to document and provide samples for using model rules from plugins in general, and for native language conventions in particular.
+
+## Generalise the native components DSL
+
+The native language plugins currently use `executables { }` and `libraries { }` to declare the native executables and libraries. This has a number of issues:
+
+- The terms `executables` and `libraries` are too general and will collide with executables and libraries for other runtimes, such as Java or Javascript libraries and
+  applications.
+- There are other types of native components we need to build that are neither an executable or a library, such as kernel drivers and firmware.
+- There are specific types of executables we need to build, such as command-line applications, GUI applications, server daemons and so on.
+- There are different ways that an executable or a library may be built. For example, the build may delegate to `make` to build the binaries for a native component.
+- It is awkward to declare things like: for all native components define the 'debug' and 'release' build types.
+
+It should be possible to configure native components and binaries based on their properties, rather than their name. Some examples:
+
+- all binaries that use any version of visual C++, all binaries that use a toolchain other than visual C++, all binaries that use visual C++ 9 and later.
+- all unix platforms, all windows platforms, all windows platforms for windows 2000 and later.
+- all binaries that have linker settings (ExecutableBinary + SharedLibraryBinary).
+
+The implementation should be able to detect and report on typos and predicates that will never match anything.
+
+## Enforce model rule inputs and outputs
+
+- Model rule uses an object which is not a declared input
+- Model rule mutates an object which is not a declared output
+- Model element is mutated after it is closed
+- Integration with old DSL.
+
+## Native language plugins do not create tasks for binaries that cannot be built
+
+## Plugins use model rules to define implicit tasks
+
+Replace usages of `TaskContainerInternal.addPlaceholderAction()`
+
+## User discovers which model elements are available
+
+- Add some command-line and HTML reporting tasks that can present the model, or parts of the model, to the user.
+- Include the model DSL in the DSL reference guide.
+
+## Publishing plugins use rules to define and configure publications and publishing tasks
+
+Address some of the current problems with the publishing plugins:
+
+- Almost always need to determine the project version before closing the publications. This may happen in various places.
+- Warn when maven repositories are defined but no maven publications are defined, and vice versa. Same for Ivy.
+- Validate publications once they have been configured.
+
+Remove support for `@DeferredConfigurable` once this is complete.
+
+## Configuration of publications depends on the output of some task
+
+For example, generate source and then determine based on this which publications and artifacts to define for the project
+
+## Native language tasks are not created when not required for the current build
+
+For example, running `gradle help` should not configure any native binary tasks.
+
+## Native language plugins do not define tasks for empty source sets
+
+If a source set is empty and is not generated, then do not define the tasks for that source set.
+
+## Command-line options are applied to tasks before closing the task
+
+This story integrates command-line configuration with model rules, so ensure that the values provided on the command-line 'win' over those values
+provided by the build logic, and are visible to build logic with uses the tasks.
+
+## Build logic uses rules to influence dependency resolution
+
+- Replaces `ResolutionStrategy.eachDependency()`
+- Replaces `ComponentMetadataHandler.eachComponent()`
+- Plus whichever other hooks have since been added
+- Possibly expose the cache control hooks as rules too
+
+## Other things to consider
+
+- Integration with old DSL.
+- Enforcement of model element lifecycle (eg detect attempts to mutate a model element that has been closed).
+- Configure model elements on demand.
+- Error handling and reporting.
+- IDE integration.
+- Flesh out the JVM language plugins.
+
+# Old stories
+
+These need to be garbage collected and reworked ...
 
 ## Prevent `object.properties` triggering configuration of any deferred configurable properties (GRADLE-2754)
 
@@ -253,8 +388,6 @@ Reuse the domain object lifecycle mechanism to warn when:
 ## Reuse in the sonar-runner plugin
 
 ## Reuse in all incubating plugins
-
-## Reuse in the c++ plugins
 
 # Open issues
 

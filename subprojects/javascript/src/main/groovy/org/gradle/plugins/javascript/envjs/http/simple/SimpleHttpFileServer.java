@@ -16,7 +16,7 @@
 
 package org.gradle.plugins.javascript.envjs.http.simple;
 
-import org.gradle.internal.Stoppable;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.plugins.javascript.envjs.http.HttpFileServer;
 
 import java.io.File;

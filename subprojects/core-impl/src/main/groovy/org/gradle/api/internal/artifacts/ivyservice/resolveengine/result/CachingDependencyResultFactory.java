@@ -17,13 +17,13 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
 import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
+import org.gradle.api.artifacts.result.ComponentSelectionReason;
+import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
-import org.gradle.api.artifacts.result.ResolvedModuleVersionResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
+import org.gradle.api.internal.artifacts.result.DefaultResolvedComponentResult;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedDependencyResult;
-import org.gradle.api.internal.artifacts.result.DefaultResolvedModuleVersionResult;
 import org.gradle.api.internal.artifacts.result.DefaultUnresolvedDependencyResult;
 
 import java.util.HashMap;
@@ -37,8 +37,8 @@ public class CachingDependencyResultFactory {
     private final Map<List, DefaultUnresolvedDependencyResult> unresolvedDependencies = new HashMap<List, DefaultUnresolvedDependencyResult>();
     private final Map<List, DefaultResolvedDependencyResult> resolvedDependencies = new HashMap<List, DefaultResolvedDependencyResult>();
 
-    public UnresolvedDependencyResult createUnresolvedDependency(ModuleVersionSelector requested, ResolvedModuleVersionResult from,
-                                                       ModuleVersionSelectionReason reason, ModuleVersionResolveException failure) {
+    public UnresolvedDependencyResult createUnresolvedDependency(ModuleVersionSelector requested, ResolvedComponentResult from,
+                                                       ComponentSelectionReason reason, ModuleVersionResolveException failure) {
         List<Object> key = asList(requested, from);
         if (!unresolvedDependencies.containsKey(key)) {
             unresolvedDependencies.put(key, new DefaultUnresolvedDependencyResult(requested, reason, from, failure));
@@ -46,7 +46,7 @@ public class CachingDependencyResultFactory {
         return unresolvedDependencies.get(key);
     }
 
-    public ResolvedDependencyResult createResolvedDependency(ModuleVersionSelector requested, ResolvedModuleVersionResult from, DefaultResolvedModuleVersionResult selected) {
+    public ResolvedDependencyResult createResolvedDependency(ModuleVersionSelector requested, ResolvedComponentResult from, DefaultResolvedComponentResult selected) {
         List<Object> key = asList(requested, from, selected);
         if (!resolvedDependencies.containsKey(key)) {
             resolvedDependencies.put(key, new DefaultResolvedDependencyResult(requested, selected, from));

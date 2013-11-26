@@ -36,8 +36,20 @@ abstract class HttpResource {
         server.expectGetBroken(getPath())
     }
 
+    void expectGetMissing(PasswordCredentials credentials = null) {
+        server.expectGetMissing(getPath(), credentials)
+    }
+
     void expectHead() {
         server.expectHead(getPath(), file)
+    }
+
+    void expectHeadMissing() {
+        server.expectHeadMissing(path)
+    }
+
+    void expectHeadBroken() {
+        server.expectHeadBroken(path)
     }
 
     void expectPut(PasswordCredentials credentials) {
@@ -47,8 +59,6 @@ abstract class HttpResource {
     void expectPut(Integer statusCode = 200, PasswordCredentials credentials = null) {
         server.expectPut(getPath(), getFile(), statusCode, credentials)
     }
-
-    abstract void expectGetMissing();
 
     abstract TestFile getFile();
 

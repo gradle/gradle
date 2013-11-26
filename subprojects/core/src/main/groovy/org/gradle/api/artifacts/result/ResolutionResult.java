@@ -38,7 +38,7 @@ public interface ResolutionResult {
      *
      * @return the root node of the resolved dependency graph
      */
-    ResolvedModuleVersionResult getRoot();
+    ResolvedComponentResult getRoot();
 
     /**
      * Retrieves all dependencies, including unresolved dependencies.
@@ -68,26 +68,26 @@ public interface ResolutionResult {
     void allDependencies(Closure closure);
 
     /**
-     * Retrieves all instances of {@link ResolvedModuleVersionResult} from the graph,
+     * Retrieves all instances of {@link ResolvedComponentResult} from the graph,
      * e.g. all nodes of the dependency graph.
      *
      * @return all nodes of the dependency graph.
      */
-    Set<ResolvedModuleVersionResult> getAllModuleVersions();
+    Set<ResolvedComponentResult> getAllComponents();
 
     /**
-     * Applies given action for each module.
-     * An instance of {@link ResolvedModuleVersionResult} is passed as parameter to the action.
+     * Applies given action for each component.
+     * An instance of {@link ResolvedComponentResult} is passed as parameter to the action.
      *
-     * @param action - action that is applied for each module
+     * @param action - action that is applied for each component
      */
-    void allModuleVersions(Action<? super ResolvedModuleVersionResult> action);
+    void allComponents(Action<? super ResolvedComponentResult> action);
 
     /**
-     * Applies given closure for each module.
-     * An instance of {@link ResolvedModuleVersionResult} is passed as parameter to the closure.
+     * Applies given closure for each component.
+     * An instance of {@link ResolvedComponentResult} is passed as parameter to the closure.
      *
-     * @param closure - closure that is applied for each module
+     * @param closure - closure that is applied for each component
      */
-    void allModuleVersions(Closure closure);
+    void allComponents(Closure closure);
 }

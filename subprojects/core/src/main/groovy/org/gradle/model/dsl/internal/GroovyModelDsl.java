@@ -17,13 +17,14 @@
 package org.gradle.model.dsl.internal;
 
 import groovy.lang.Closure;
+import groovy.lang.GroovyObjectSupport;
 import groovy.lang.MissingMethodException;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.model.ModelPath;
 import org.gradle.model.ModelRules;
 import org.gradle.model.dsl.ModelDsl;
 
-public class GroovyModelDsl implements ModelDsl {
+public class GroovyModelDsl extends GroovyObjectSupport implements ModelDsl {
 
     private final ModelPath modelPath;
     private final ModelRules modelRules;

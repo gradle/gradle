@@ -16,7 +16,7 @@
 
 package org.gradle.util;
 
-import org.gradle.api.Action;
+import org.gradle.internal.io.TextStream;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -26,21 +26,21 @@ import java.security.PrivilegedAction;
 import java.util.Locale;
 
 public class LinePerThreadBufferingOutputStream extends PrintStream {
-    private final Action<String> listener;
+    private final TextStream handler;
     private final ThreadLocal<PrintStream> stream = new ThreadLocal<PrintStream>(){
         @Override
         protected PrintStream initialValue() {
             return AccessController.doPrivileged(new PrivilegedAction<PrintStream>() {
                 public PrintStream run() {
-                    return new PrintStream(new LineBufferingOutputStream(listener));
+                    return new PrintStream(new LineBufferingOutputStream(handler));
                 }
             });
         }
     };
 
-    public LinePerThreadBufferingOutputStream(Action<String> listener) {
+    public LinePerThreadBufferingOutputStream(TextStream handler) {
         super(new ByteArrayOutputStream(), true);
-        this.listener = listener;
+        this.handler = handler;
     }
 
     private PrintStream getStream() {

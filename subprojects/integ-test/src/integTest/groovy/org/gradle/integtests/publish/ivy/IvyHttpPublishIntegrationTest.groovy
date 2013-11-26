@@ -69,10 +69,10 @@ uploadArchives {
 }
 """
         and:
-        module.expectJarPut()
-        module.expectJarSha1Put()
-        module.expectIvyPut(HttpStatus.ORDINAL_201_Created)
-        module.expectIvySha1Put(HttpStatus.ORDINAL_201_Created)
+        module.jar.expectPut()
+        module.jar.sha1.expectPut()
+        module.ivy.expectPut(HttpStatus.ORDINAL_201_Created)
+        module.ivy.sha1.expectPut(HttpStatus.ORDINAL_201_Created)
 
         when:
         run 'uploadArchives'
@@ -233,10 +233,10 @@ uploadArchives {
     """
 
         and:
-        module.expectJarPut()
-        module.expectJarSha1Put()
-        module.expectIvyPut()
-        module.expectIvySha1Put()
+        module.jar.expectPut()
+        module.jar.sha1.expectPut()
+        module.ivy.expectPut()
+        module.ivy.sha1.expectPut()
 
         when:
         run 'uploadArchives'
@@ -311,7 +311,7 @@ uploadArchives {
 }
 """
         and:
-        module.expectJarPut(HttpStatus.ORDINAL_500_Internal_Server_Error)
+        module.jar.expectPut(HttpStatus.ORDINAL_500_Internal_Server_Error)
 
         when:
         fails 'uploadArchives'

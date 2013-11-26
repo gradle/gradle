@@ -17,6 +17,7 @@
 package org.gradle.model.internal
 
 import org.gradle.api.Action
+import org.gradle.model.ModelFinalizer
 import org.gradle.model.ModelRule
 import spock.lang.Specification
 
@@ -74,5 +75,28 @@ class ModelRegistryBackedModelRulesTest extends Specification {
         then:
         element
         element.names == ["name0", "name1", "name2"]
+    }
+
+    def "can finalize"() {
+        when:
+        rules.register("element", new ModelElement())
+
+        rules.rule(new ModelFinalizer() {
+            void addFinal(ModelElement modelElement) {
+                modelElement.names << "final"
+            }
+        })
+
+        3.times { int i ->
+            rules.config("element", { ModelElement it ->
+                it.names << "name$i"
+            } as Action)
+        }
+
+
+        def element = modelRegistry.get("element", ModelElement)
+        then:
+        element
+        element.names == ["name0", "name1", "name2", "final"]
     }
 }

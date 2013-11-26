@@ -17,7 +17,7 @@ package org.gradle.launcher.cli;
 
 import org.gradle.BuildExceptionReporter;
 import org.gradle.api.Action;
-import org.gradle.api.internal.Actions;
+import org.gradle.internal.Actions;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineConverter;
 import org.gradle.cli.CommandLineParser;

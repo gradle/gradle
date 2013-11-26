@@ -15,9 +15,9 @@
  */
 package org.gradle.cli;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.HashSet;
 
 public class CommandLineOption {
     private final Set<String> options = new HashSet<String>();
@@ -37,8 +37,13 @@ public class CommandLineOption {
         return options;
     }
 
+    public CommandLineOption hasArgument(Class<?> argumentType) {
+        this.argumentType = argumentType;
+        return this;
+    }
+
     public CommandLineOption hasArgument() {
-        argumentType = String.class;
+        this.argumentType = String.class;
         return this;
     }
 
@@ -91,7 +96,7 @@ public class CommandLineOption {
         incubating = true;
         return this;
     }
-    
+
     public String getDeprecationWarning() {
         return deprecationWarning;
     }

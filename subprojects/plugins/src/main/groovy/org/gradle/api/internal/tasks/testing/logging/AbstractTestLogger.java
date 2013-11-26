@@ -51,7 +51,7 @@ public abstract class AbstractTestLogger {
     protected void logEvent(TestDescriptor descriptor, TestLogEvent event, @Nullable String details) {
         StyledTextOutput output = textOutputFactory.create("TestEventLogger", logLevel);
         if (!descriptor.equals(lastSeenTestDescriptor) || event != lastSeenTestEvent) {
-            output.append(TextUtil.getPlatformLineSeparator() + getEventPath(descriptor));
+            output.println().append(getEventPath(descriptor));
             output.withStyle(getStyle(event)).println(event.toString());
         }
         lastSeenTestDescriptor = descriptor;

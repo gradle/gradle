@@ -19,7 +19,8 @@ package org.gradle.buildinit.tasks
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.Incubating
-import org.gradle.api.internal.tasks.CommandLineOption
+import org.gradle.api.internal.tasks.options.Option
+import org.gradle.api.internal.tasks.options.OptionValues
 import org.gradle.api.tasks.TaskAction
 import org.gradle.buildinit.plugins.internal.BuildInitTypeIds
 import org.gradle.buildinit.plugins.internal.ProjectLayoutSetupRegistry
@@ -43,17 +44,30 @@ class InitBuild extends DefaultTask {
         type ?: project.file("pom.xml").exists() ? BuildInitTypeIds.POM : BuildInitTypeIds.BASIC
     }
 
+    ProjectLayoutSetupRegistry getProjectLayoutRegistry() {
+        if (projectLayoutRegistry == null) {
+            projectLayoutRegistry = services.get(ProjectLayoutSetupRegistry)
+        }
+        return projectLayoutRegistry
+    }
+
     @TaskAction
     void setupProjectLayout() {
         def type = getType()
+        def projectLayoutRegistry = getProjectLayoutRegistry()
         if (!projectLayoutRegistry.supports(type)) {
-            throw new GradleException("The requested build setup type '${type}' is not supported. Supported types: ${projectLayoutRegistry.supportedTypes.collect{"'$it'"}.join(", ")}.")
+            throw new GradleException("The requested build setup type '${type}' is not supported. Supported types: ${projectLayoutRegistry.supportedTypes.collect{"'$it'"}.sort().join(", ")}.")
         }
-        projectLayoutRegistry.get(type).generateProject()
+        projectLayoutRegistry.get(type).generate()
     }
 
-    @CommandLineOption(options = "type", description = "Set type of build to create.")
+    @Option(option = "type", description = "Set type of build to create.")
     public void setType(String type) {
         this.type = type;
+    }
+
+    @OptionValues("type")
+    List<String> getAvailableBuildTypes(){
+        return getProjectLayoutRegistry().getSupportedTypes();
     }
 }

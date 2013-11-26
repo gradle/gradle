@@ -88,6 +88,22 @@ task retrieve(type: Sync) {
         file('libs').assertHasDescendants('projectA-1.2.jar', 'projectB-2.2.jar')
         file('libs/projectA-1.2.jar').assertIsCopyOf(projectA2.jarFile)
         file('libs/projectB-2.2.jar').assertIsCopyOf(projectB2.jarFile)
+
+        when:
+        server.resetExpectations()
+        ivyHttpRepo.expectDirectoryListGet("group", "projectA")
+        ivyHttpRepo.expectDirectoryListGet("group", "projectB")
+        // TODO - these should not happen - only the version list is dynamic, not the version meta-data
+        projectA2.ivy.expectHead()
+        projectB2.ivy.expectHead()
+
+        and:
+        run 'retrieve'
+
+        then:
+        file('libs').assertHasDescendants('projectA-1.2.jar', 'projectB-2.2.jar')
+        file('libs/projectA-1.2.jar').assertIsCopyOf(projectA2.jarFile)
+        file('libs/projectB-2.2.jar').assertIsCopyOf(projectB2.jarFile)
     }
 
     def "determines latest version with jar only"() {
@@ -114,17 +130,14 @@ task retrieve(type: Sync) {
 """
 
         when: "Version 1.1 is published"
-        def projectA11 = ivyHttpRepo.module("group", "projectA", "1.1").withNoMetaData().publish()
+        ivyHttpRepo.module("group", "projectA", "1.1").withNoMetaData().publish()
         def projectA12 = ivyHttpRepo.module("group", "projectA", "1.2").withNoMetaData().publish()
         ivyHttpRepo.module("group", "projectA", "2.0").withNoMetaData().publish()
 
         and: "Server handles requests"
         ivyHttpRepo.expectDirectoryListGet("group", "projectA")
         projectA12.ivy.expectGetMissing()
-        projectA11.ivy.expectGetMissing()
 
-        // TODO - Should not list twice
-        ivyHttpRepo.expectDirectoryListGet("group", "projectA")
         projectA12.jar.expectHead()
         projectA12.jar.expectGet()
 
@@ -132,6 +145,15 @@ task retrieve(type: Sync) {
         run 'retrieve'
 
         then: "Version 1.2 is used"
+        file('libs').assertHasDescendants('projectA-1.2.jar')
+
+        when:
+        server.resetExpectations()
+
+        and:
+        run 'retrieve'
+
+        then:
         file('libs').assertHasDescendants('projectA-1.2.jar')
     }
 
@@ -199,6 +221,15 @@ task retrieveMilestone(type: Sync) {
 
         then:
         file('milestone').assertHasDescendants('projectA-2.1.jar')
+
+        when:
+        server.resetExpectations()
+
+        and:
+        run 'retrieveMilestone'
+
+        then:
+        file('milestone').assertHasDescendants('projectA-2.1.jar')
     }
 
     def "can use latest version from different remote repositories"() {
@@ -241,10 +272,15 @@ task retrieveMilestone(type: Sync) {
         version11.jar.expectGet()
         repo2.expectDirectoryListGet("group", "projectA")
         version12.ivy.expectGet()
-        // TODO - shouldn't need this
-        repo2.expectDirectoryListGet("group", "projectA")
-        // TODO - shouldn't need this
-        version12.jar.expectGet()
+
+        and:
+        run 'retrieveMilestone'
+
+        then:
+        file('milestone').assertHasDescendants('projectA-1.1.jar')
+
+        when:
+        server.resetExpectations()
 
         and:
         run 'retrieveMilestone'
@@ -258,10 +294,10 @@ task retrieveMilestone(type: Sync) {
 
         given:
         def repo1 = ivyHttpRepo("ivyRepo1")
-        repo1.module('org.test', 'projectA', '1.1').withStatus("integration").publish()
         def repo1version2 = repo1.module('org.test', 'projectA', '1.2').withStatus("milestone").publish()
+        def repo1version3 = repo1.module('org.test', 'projectA', '1.3')
         def repo2 = ivyHttpRepo("ivyRepo2")
-        def repo2version1 = repo2.module('org.test', 'projectA', '1.1').withStatus("milestone").publish()
+        repo2.module('org.test', 'projectA', '1.1').withStatus("integration").publish()
         def repo2version3 = repo2.module('org.test', 'projectA', '1.3').withStatus("integration").publish()
 
         and:
@@ -269,8 +305,8 @@ task retrieveMilestone(type: Sync) {
 repositories {
     ivy {
         url "${repo1.uri}"
-        ivyPattern "${repo2.uri}/[organisation]/[module]/[revision]/ivy-[revision].xml"
-        artifactPattern "${repo2.uri}/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]"
+        ivyPattern "${repo2.ivyPattern}"
+        artifactPattern "${repo2.artifactPattern}"
     }
 }
 configurations { milestone }
@@ -285,9 +321,20 @@ task retrieveMilestone(type: Sync) {
         when:
         repo1.expectDirectoryListGet("org.test", "projectA")
         repo2.expectDirectoryListGet("org.test", "projectA")
+        // TODO - don't need this request
+        repo1version3.ivy.expectGetMissing()
         repo2version3.ivy.expectGet()
         repo1version2.ivy.expectGet()
         repo1version2.jar.expectGet()
+
+        then:
+        succeeds 'retrieveMilestone'
+
+        and:
+        file('milestone').assertHasDescendants('projectA-1.2.jar')
+
+        when:
+        server.resetExpectations()
 
         then:
         succeeds 'retrieveMilestone'
@@ -352,6 +399,16 @@ task retrieve(type: Sync) {
 
         then: "Version 1.2 is used"
         file('libs').assertHasDescendants('projectA-1.2.jar')
+
+        when:
+        server.resetExpectations()
+
+        and:
+        executer.withArguments("-PaddRepo2")
+        run 'retrieve'
+
+        then:
+        file('libs').assertHasDescendants('projectA-1.2.jar')
     }
 
     def "does not cache information about broken modules"() {
@@ -405,6 +462,15 @@ task retrieve(type: Sync) {
 
         then: "Version 1.2 is used"
         file('libs').assertHasDescendants('projectA-1.2.jar')
+
+        when:
+        server.resetExpectations()
+
+        and:
+        run 'retrieve'
+
+        then:
+        file('libs').assertHasDescendants('projectA-1.2.jar')
     }
 
     def "uses and caches latest of versions obtained from multiple HTTP repositories"() {
@@ -441,8 +507,6 @@ task retrieve(type: Sync) {
         repo1.expectDirectoryListGet("group", "projectA")
         // TODO Should not need to get this
         projectA11.ivy.expectGet()
-        // TODO Should only list missing directory once
-        repo2.expectDirectoryListGet("group", "projectA")
         repo2.expectDirectoryListGet("group", "projectA")
         repo3.expectDirectoryListGet("group", "projectA")
         projectA12.ivy.expectGet()
@@ -507,6 +571,15 @@ task retrieve2(type: Sync) {
         server.resetExpectations()
         ivyHttpRepo.expectDirectoryListGet("org.test", "projectA")
         projectA12.ivy.expectHead()
+
+        and:
+        run 'retrieve2'
+
+        then:
+        file('libs1').assertHasDescendants('projectA-1.2.jar')
+
+        when:
+        server.resetExpectations()
 
         and:
         run 'retrieve2'
@@ -696,8 +769,6 @@ task retrieve(type: Sync) {
             """
 
         when:
-        repo1.expectDirectoryListGetMissing("group", "projectA")
-        // TODO - should only list versions once
         repo1.expectDirectoryListGetMissing("group", "projectA")
         repo2.expectDirectoryListGet("group", "projectA")
         moduleA.ivy.expectGet()

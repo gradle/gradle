@@ -16,7 +16,7 @@
 
 package org.gradle.util
 
-import org.gradle.api.Action
+import org.gradle.internal.io.TextStream
 import org.junit.Test
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
@@ -25,7 +25,7 @@ class LinePerThreadBufferingOutputStreamTest extends MultithreadedTestCase {
     @Test
     public void interleavesLinesFromEachThread() {
         List<String> output = [].asSynchronized()
-        Action<String> action = { String line -> output << line.replace(TextUtil.platformLineSeparator, "<EOL>") } as Action
+        TextStream action = { String line -> output << line.replace(TextUtil.platformLineSeparator, "<EOL>") } as TextStream
         LinePerThreadBufferingOutputStream outstr = new LinePerThreadBufferingOutputStream(action)
         10.times {
             start {

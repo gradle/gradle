@@ -23,6 +23,7 @@ import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.api.internal.tasks.testing.detection.ClassFileExtractionManager;
 import org.gradle.api.internal.tasks.testing.junit.JULRedirector;
+import org.gradle.api.internal.tasks.testing.selection.DefaultTestSelection;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.testng.TestNGOptions;
 import org.gradle.internal.id.IdGenerator;
@@ -37,9 +38,11 @@ public class TestNGTestFramework implements TestFramework {
     private TestNGOptions options;
     private TestNGDetector detector;
     final Test testTask;
+    private DefaultTestSelection selection;
 
-    public TestNGTestFramework(Test testTask) {
+    public TestNGTestFramework(Test testTask, DefaultTestSelection selection) {
         this.testTask = testTask;
+        this.selection = selection;
         options = new TestNGOptions(testTask.getProject().getProjectDir());
         options.setAnnotationsOnSourceCompatibility(JavaVersion.toVersion(testTask.getProject().property("sourceCompatibility")));
         detector = new TestNGDetector(new ClassFileExtractionManager(testTask.getTemporaryDirFactory()));
@@ -48,7 +51,7 @@ public class TestNGTestFramework implements TestFramework {
     public WorkerTestClassProcessorFactory getProcessorFactory() {
         options.setTestResources(testTask.getTestSrcDirs());
         List<File> suiteFiles = options.getSuites(testTask.getTemporaryDir());
-        return new TestClassProcessorFactoryImpl(testTask.getReports().getHtml().getDestination(), new TestNGSpec(options), suiteFiles);
+        return new TestClassProcessorFactoryImpl(testTask.getReports().getHtml().getDestination(), new TestNGSpec(options, selection), suiteFiles);
     }
 
     public Action<WorkerProcessBuilder> getWorkerConfigurationAction() {

@@ -190,7 +190,6 @@ public class CompileOptions extends AbstractOptions {
      *
      * @deprecated No replacement
      */
-    // @Input not recognized if there is only an "is" method
     @Input
     @Deprecated
     public boolean getOptimize() {
@@ -225,7 +224,7 @@ public class CompileOptions extends AbstractOptions {
      */
     @Deprecated
     public boolean getDebug() {
-        DeprecationLogger.nagUserOfReplacedMethod("getDebug()", "isDebug()");
+        DeprecationLogger.nagUserOfReplacedMethod("CompileOptions.getDebug()", "CompileOptions.isDebug()");
         return debug;
     }
 
@@ -357,7 +356,6 @@ public class CompileOptions extends AbstractOptions {
      *
      * @deprecated No replacement
      */
-    // @Input not recognized if there is only an "is" method
     @Input
     @Deprecated
     public boolean getIncludeJavaRuntime() {

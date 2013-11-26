@@ -18,6 +18,7 @@ package org.gradle.nativebinaries;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
+import org.gradle.internal.HasInternalProtocol;
 
 /**
  * A target platform for building native binaries. Each target platform is given a name, and may optionally be given
@@ -33,6 +34,7 @@ import org.gradle.api.Named;
  * </pre>
  */
 @Incubating
+@HasInternalProtocol
 public interface Platform extends Named {
 
     /**

@@ -15,17 +15,23 @@
  */
 package org.gradle.messaging.remote.internal;
 
+import org.gradle.api.Nullable;
+import org.gradle.internal.UncheckedException;
+
 /**
  * A {@code PlaceholderException} is used when an exception cannot be serialized or deserialized.
  */
 public class PlaceholderException extends RuntimeException {
     private final String exceptionClassName;
+    private final Throwable getMessageException;
     private final String toString;
-    private final RuntimeException toStringRuntimeEx;
+    private final Throwable toStringRuntimeEx;
 
-    public PlaceholderException(String exceptionClassName, String message, String toString, RuntimeException toStringException, Throwable cause) {
+    public PlaceholderException(String exceptionClassName, @Nullable String message, @Nullable Throwable getMessageException, @Nullable String toString,
+                                @Nullable Throwable toStringException, @Nullable Throwable cause) {
         super(message, cause);
         this.exceptionClassName = exceptionClassName;
+        this.getMessageException = getMessageException;
         this.toString = toString;
         this.toStringRuntimeEx = toStringException;
     }
@@ -34,9 +40,17 @@ public class PlaceholderException extends RuntimeException {
         return exceptionClassName;
     }
 
+    @Override
+    public String getMessage() {
+        if (getMessageException != null) {
+            throw UncheckedException.throwAsUncheckedException(getMessageException);
+        }
+        return super.getMessage();
+    }
+
     public String toString() {
-        if(toStringRuntimeEx !=null){
-            throw toStringRuntimeEx;
+        if (toStringRuntimeEx != null) {
+            throw UncheckedException.throwAsUncheckedException(toStringRuntimeEx);
         }
         return toString;
     }

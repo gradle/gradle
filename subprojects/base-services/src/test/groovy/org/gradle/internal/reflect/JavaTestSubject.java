@@ -19,10 +19,15 @@ package org.gradle.internal.reflect;
 @SuppressWarnings("UnusedDeclaration")
 public class JavaTestSubject {
 
+    final IllegalStateException failure = new IllegalStateException();
     private String myProp = "myValue";
     private boolean myBooleanProp = true;
 
     public int publicField;
+
+    public String doSomeStuff(int a, Integer b) {
+        return String.format("%s.%s", a, b);
+    }
 
     public String getMyProperty() {
         return myProp;
@@ -72,7 +77,17 @@ public class JavaTestSubject {
     }
 
     public void throwsException() {
-        throw new IllegalStateException();
+        throw failure;
+    }
+
+    static class TestCheckedException extends Exception {
+        public TestCheckedException(Throwable cause) {
+            super(cause);
+        }
+    }
+
+    public void throwsCheckedException() throws TestCheckedException {
+        throw new TestCheckedException(failure);
     }
 
     protected String protectedMethod() {

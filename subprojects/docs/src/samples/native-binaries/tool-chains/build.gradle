@@ -1,16 +1,18 @@
 apply plugin: 'cpp'
 
 // START SNIPPET toolChains
-toolChains {
-    visualCpp(VisualCpp) {
-        // Specify the installDir if Visual Studio cannot be located by default
-        // installDir "C:/Apps/Microsoft Visual Studio 10.0"
+model {
+    toolChains {
+        visualCpp(VisualCpp) {
+            // Specify the installDir if Visual Studio cannot be located by default
+            // installDir "C:/Apps/Microsoft Visual Studio 10.0"
+        }
+        gcc(Gcc) {
+            // Uncomment to use a GCC install that is not in the PATH
+            // path "/usr/bin/gcc"
+        }
+        clang(Clang)
     }
-    gcc(Gcc) {
-        // Uncomment to use a GCC install that is not in the PATH
-        // path "/usr/bin/gcc"
-    }
-    clang(Clang)
 }
 // END SNIPPET toolChains
 

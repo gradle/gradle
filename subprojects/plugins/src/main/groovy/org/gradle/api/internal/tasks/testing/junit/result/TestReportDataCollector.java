@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.junit.result;
 
+import org.gradle.api.internal.tasks.testing.TestSuiteExecutionException;
 import org.gradle.api.tasks.testing.*;
 import org.gradle.messaging.remote.internal.PlaceholderException;
 
@@ -43,6 +44,18 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
     }
 
     public void afterSuite(TestDescriptor suite, TestResult result) {
+        if (result.getResultType() == TestResult.ResultType.FAILURE && result.getException() instanceof TestSuiteExecutionException) {
+            //something went wrong initialising test execution, most likely no test results were created
+            //let's synthesize the error so that it can show up in the test reports
+            TestMethodResult methodResult = new TestMethodResult(internalIdCounter++, result.getException().getMessage());
+            for (Throwable throwable : result.getExceptions()) {
+                methodResult.addFailure(failureMessage(throwable), stackTrace(throwable), exceptionClassName(throwable));
+            }
+            methodResult.completed(result);
+            TestClassResult classResult = new TestClassResult(internalIdCounter++, suite.getName(), result.getStartTime());
+            classResult.add(methodResult);
+            results.put(suite.getName(), classResult);
+        }
     }
 
     public void beforeTest(TestDescriptor testDescriptor) {
@@ -60,6 +73,9 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
         if (classResult == null) {
             classResult = new TestClassResult(internalIdCounter++, className, result.getStartTime());
             results.put(className, classResult);
+        } else if (classResult.getStartTime() == 0) {
+            //class results may be created earlier, where we don't yet have access to the start time
+            classResult.setStartTime(result.getStartTime());
         }
         classResult.add(methodResult);
     }
@@ -103,6 +119,9 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
         }
         TestClassResult classResult = results.get(className);
         if (classResult == null) {
+            //it's possible that we receive an output for a suite here
+            //in this case we will create the test result for a suite that normally would not be created
+            //feels like this scenario should modelled more explicitly
             classResult = new TestClassResult(internalIdCounter++, className, 0);
             results.put(className, classResult);
         }

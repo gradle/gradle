@@ -97,8 +97,6 @@ public class JUnitIntegrationTest extends AbstractIntegrationTest {
         result.testClass("org.gradle.SomeTest").assertTestsExecuted("ok", "ok")
     }
 
-
-
     @Test
     public void canRunTestsUsingJUnit3() {
         resources.maybeCopy('JUnitIntegrationTest/junit3Tests')

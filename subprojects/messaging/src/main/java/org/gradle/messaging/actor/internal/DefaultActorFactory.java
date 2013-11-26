@@ -16,8 +16,8 @@
 
 package org.gradle.messaging.actor.internal;
 
-import org.gradle.internal.CompositeStoppable;
-import org.gradle.internal.Stoppable;
+import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.StoppableExecutor;
 import org.gradle.internal.concurrent.ThreadSafe;

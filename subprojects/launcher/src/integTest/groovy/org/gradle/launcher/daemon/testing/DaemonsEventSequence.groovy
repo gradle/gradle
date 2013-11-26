@@ -18,7 +18,7 @@ package org.gradle.launcher.daemon.testing
 import org.gradle.launcher.daemon.registry.DaemonRegistry
 import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.concurrent.StoppableExecutor
-import org.gradle.internal.Stoppable
+import org.gradle.internal.concurrent.Stoppable
 
 import java.util.concurrent.LinkedBlockingQueue
 

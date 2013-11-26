@@ -108,7 +108,6 @@ run {
             return new GradleContextualExecuter(distribution, temporaryFolder)
                     .inDirectory(sample.dir)
                     .withTasks('run')
-                    .withDaemonIdleTimeoutSecs(60)
                     .run()
         } catch (Exception e) {
             throw new IntegrationTestHint(e);

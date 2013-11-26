@@ -17,11 +17,11 @@
 package org.gradle.api.tasks.diagnostics.internal.dsl;
 
 import org.gradle.api.artifacts.result.DependencyResult;
-import org.gradle.api.internal.notations.NotationParserBuilder;
-import org.gradle.api.internal.notations.TypeInfo;
-import org.gradle.api.internal.notations.api.NotationParser;
-import org.gradle.api.internal.notations.api.UnsupportedNotationException;
-import org.gradle.api.internal.notations.parsers.ClosureToSpecNotationParser;
+import org.gradle.internal.typeconversion.NotationParserBuilder;
+import org.gradle.internal.typeconversion.TypeInfo;
+import org.gradle.internal.typeconversion.NotationParser;
+import org.gradle.internal.typeconversion.UnsupportedNotationException;
+import org.gradle.internal.typeconversion.ClosureToSpecNotationParser;
 import org.gradle.api.specs.Spec;
 
 import java.util.Collection;

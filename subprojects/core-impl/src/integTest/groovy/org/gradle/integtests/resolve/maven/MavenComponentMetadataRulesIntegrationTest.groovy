@@ -36,7 +36,7 @@ dependencies {
     }
 }
 
-task verify {
+task verify << {
     configurations.compile.resolve()
 
     def projectA = allDetails.find { it.id.name == 'projectA' }

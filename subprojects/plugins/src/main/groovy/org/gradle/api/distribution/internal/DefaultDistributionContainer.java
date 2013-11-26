@@ -18,7 +18,7 @@ package org.gradle.api.distribution.internal;
 import org.gradle.api.distribution.Distribution;
 import org.gradle.api.distribution.DistributionContainer;
 import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
-import org.gradle.api.internal.Actions;
+import org.gradle.internal.Actions;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.internal.reflect.Instantiator;
 

@@ -17,14 +17,15 @@
 package org.gradle.nativebinaries.toolchain.internal.msvcpp;
 
 import org.gradle.api.internal.tasks.SimpleWorkResult;
-import org.gradle.api.internal.tasks.compile.ArgCollector;
-import org.gradle.api.internal.tasks.compile.CompileSpecToArguments;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.nativebinaries.language.assembler.internal.AssembleSpec;
+import org.gradle.nativebinaries.toolchain.internal.ArgsTransformer;
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 class Assembler implements Compiler<AssembleSpec> {
 
@@ -38,27 +39,27 @@ class Assembler implements Compiler<AssembleSpec> {
         boolean didWork = false;
         CommandLineTool<AssembleSpec> commandLineAssembler = commandLineTool.inWorkDirectory(spec.getObjectFileDir());
         for (File sourceFile : spec.getSourceFiles()) {
-            WorkResult result = commandLineAssembler.withArguments(new AssemblerSpecToArguments(sourceFile)).execute(spec);
+            WorkResult result = commandLineAssembler.withArguments(new AssemblerArgsTransformer(sourceFile)).execute(spec);
             didWork = didWork || result.getDidWork();
         }
         return new SimpleWorkResult(didWork);
     }
 
 
-    private static class AssemblerSpecToArguments implements CompileSpecToArguments<AssembleSpec> {
+    private static class AssemblerArgsTransformer implements ArgsTransformer<AssembleSpec> {
         private final File inputFile;
 
-        public AssemblerSpecToArguments(File inputFile) {
+        public AssemblerArgsTransformer(File inputFile) {
             this.inputFile = inputFile;
         }
 
-        public void collectArguments(AssembleSpec spec, ArgCollector collector) {
-            for (String arg : spec.getAllArgs()) {
-                collector.args(arg);
-            }
-            collector.args("/nologo");
-            collector.args("/c");
-            collector.args(inputFile.getAbsolutePath());
+        public List<String> transform(AssembleSpec spec) {
+            List<String> args = new ArrayList<String>();
+            args.addAll(spec.getAllArgs());
+            args.add("/nologo");
+            args.add("/c");
+            args.add(inputFile.getAbsolutePath());
+            return args;
         }
     }
 }

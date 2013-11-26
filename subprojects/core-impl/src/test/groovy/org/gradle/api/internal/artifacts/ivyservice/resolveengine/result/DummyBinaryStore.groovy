@@ -16,11 +16,15 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
 import org.gradle.api.internal.cache.BinaryStore
+import org.gradle.messaging.serialize.Decoder
+import org.gradle.messaging.serialize.Encoder
+import org.gradle.messaging.serialize.InputStreamBackedDecoder
+import org.gradle.messaging.serialize.OutputStreamBackedEncoder
 
 public class DummyBinaryStore implements BinaryStore {
 
     private final ByteArrayOutputStream bytes = new ByteArrayOutputStream()
-    private DataOutputStream output = new DataOutputStream(bytes)
+    private Encoder output = new OutputStreamBackedEncoder(bytes)
 
     void write(BinaryStore.WriteAction write) {
         write.write(output)
@@ -28,16 +32,16 @@ public class DummyBinaryStore implements BinaryStore {
 
     BinaryStore.BinaryData done() {
         new BinaryStore.BinaryData() {
-            DataInputStream input
+            Decoder decoder
             def <T> T read(BinaryStore.ReadAction<T> readAction) {
-                if (input == null) {
-                    input = new DataInputStream(new ByteArrayInputStream(bytes.toByteArray()))
+                if (decoder == null) {
+                    decoder = new InputStreamBackedDecoder(new ByteArrayInputStream(bytes.toByteArray()))
                 }
-                readAction.read(input)
+                readAction.read(decoder)
             }
 
-            void done() {
-                input = null
+            void close() {
+                decoder = null
             }
         }
     }

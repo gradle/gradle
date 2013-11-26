@@ -24,12 +24,15 @@ import org.gradle.api.internal.plugins.PluginRegistry
 import org.gradle.api.internal.project.DefaultProjectRegistry
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectRegistry
+import org.gradle.api.internal.tasks.options.OptionReader
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.cache.CacheRepository
 import org.gradle.execution.BuildExecuter
 import org.gradle.execution.DefaultBuildExecuter
 import org.gradle.execution.TaskGraphExecuter
+import org.gradle.execution.TaskSelector
 import org.gradle.execution.taskgraph.DefaultTaskGraphExecuter
+import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.invocation.BuildClassLoaderRegistry
 import org.gradle.listener.ListenerManager
@@ -38,23 +41,24 @@ import spock.lang.Specification
 import static org.hamcrest.Matchers.sameInstance
 
 public class GradleScopeServicesTest extends Specification {
-    private GradleInternal gradle = Mock()
-    private ServiceRegistry parent = Mock()
-    private ListenerManager listenerManager = Mock()
-    private CacheRepository cacheRepository = Mock()
+    private GradleInternal gradle = Stub()
+    private ServiceRegistry parent = Stub()
+    private ListenerManager listenerManager = Stub()
+    private CacheRepository cacheRepository = Stub()
     private GradleScopeServices registry = new GradleScopeServices(parent, gradle)
     private StartParameter startParameter = new StartParameter()
-    private PluginRegistry pluginRegistryParent = Mock()
-    private PluginRegistry pluginRegistryChild = Mock()
+    private PluginRegistry pluginRegistryParent = Stub()
+    private PluginRegistry pluginRegistryChild = Stub()
 
     public void setup() {
-        parent.get(StartParameter) >> Mock(StartParameter)
-        parent.get(InMemoryTaskArtifactCache) >> Mock(InMemoryTaskArtifactCache)
+        parent.get(StartParameter) >> Stub(StartParameter)
+        parent.get(InMemoryTaskArtifactCache) >> Stub(InMemoryTaskArtifactCache)
         parent.get(ListenerManager) >> listenerManager
         parent.get(CacheRepository) >> cacheRepository
         parent.get(PluginRegistry) >> pluginRegistryParent
         parent.get(BuildClassLoaderRegistry) >> Stub(BuildClassLoaderRegistry)
         parent.get(DependencyManagementServices) >> Stub(DependencyManagementServices)
+        parent.get(ExecutorFactory) >> Stub(ExecutorFactory)
         gradle.getStartParameter() >> startParameter
         pluginRegistryParent.createChild(_, _) >> pluginRegistryChild
     }
@@ -117,5 +121,25 @@ public class GradleScopeServicesTest extends Specification {
         then:
         graphExecuter instanceof DefaultTaskGraphExecuter
         graphExecuter sameInstance(secondExecuter)
+    }
+
+    def "provides a task selector"() {
+        when:
+        def selector = registry.get(TaskSelector)
+        def secondSelector = registry.get(TaskSelector)
+
+        then:
+        selector instanceof TaskSelector
+        secondSelector sameInstance(selector)
+    }
+
+    def "provides an option reader"() {
+        when:
+        def optionReader = registry.get(OptionReader)
+        def secondOptionReader = registry.get(OptionReader)
+
+        then:
+        optionReader instanceof OptionReader
+        secondOptionReader sameInstance(optionReader)
     }
 }

@@ -31,20 +31,18 @@ import java.util.List;
  */
 public class TaskNameResolvingBuildConfigurationAction implements BuildConfigurationAction {
     private static final Logger LOGGER = LoggerFactory.getLogger(TaskNameResolvingBuildConfigurationAction.class);
-    private final TaskNameResolver taskNameResolver;
+    private final CommandLineTaskParser commandLineTaskParser;
+    private final TaskSelector selector;
 
-    public TaskNameResolvingBuildConfigurationAction() {
-        this(new TaskNameResolver());
-    }
-
-    TaskNameResolvingBuildConfigurationAction(TaskNameResolver taskNameResolver) {
-        this.taskNameResolver = taskNameResolver;
+    public TaskNameResolvingBuildConfigurationAction(CommandLineTaskParser commandLineTaskParser, TaskSelector selector) {
+        this.commandLineTaskParser = commandLineTaskParser;
+        this.selector = selector;
     }
 
     public void configure(BuildExecutionContext context) {
         GradleInternal gradle = context.getGradle();
         List<String> taskNames = gradle.getStartParameter().getTaskNames();
-        Multimap<String, Task> selectedTasks = doSelect(gradle, taskNames, taskNameResolver);
+        Multimap<String, Task> selectedTasks = commandLineTaskParser.parseTasks(taskNames, selector);
 
         TaskGraphExecuter executer = gradle.getTaskGraph();
         for (String name : selectedTasks.keySet()) {
@@ -60,8 +58,4 @@ public class TaskNameResolvingBuildConfigurationAction implements BuildConfigura
         context.proceed();
     }
 
-    private Multimap<String, Task> doSelect(GradleInternal gradle, List<String> paths, TaskNameResolver taskNameResolver) {
-        TaskSelector selector = new TaskSelector(gradle, taskNameResolver);
-        return new CommandLineTaskParser().parseTasks(paths, selector);
-    }
 }

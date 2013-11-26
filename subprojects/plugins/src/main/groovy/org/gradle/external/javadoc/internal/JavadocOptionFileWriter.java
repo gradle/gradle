@@ -16,8 +16,8 @@
 
 package org.gradle.external.javadoc.internal;
 
-import org.gradle.api.internal.ErroringAction;
-import org.gradle.api.internal.IoActions;
+import org.gradle.internal.ErroringAction;
+import org.gradle.internal.IoActions;
 import org.gradle.external.javadoc.JavadocOptionFileOption;
 
 import java.io.BufferedWriter;

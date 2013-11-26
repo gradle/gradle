@@ -218,7 +218,7 @@ dependencies {
 task checkDeps(dependsOn: configurations.compile) << {
     assert configurations.compile*.name == ['child-2.jar', 'dep-2.jar', 'parent-2.jar']
     configurations.compile.resolvedConfiguration.firstLevelModuleDependencies*.name
-    configurations.compile.incoming.resolutionResult.allModuleVersions*.id
+    configurations.compile.incoming.resolutionResult.allComponents*.id
 }
 """
 
@@ -446,12 +446,12 @@ task checkDeps << {
             task checkDeps << {
                 assert configurations.conf*.name == ['a-2.0.jar', 'b-2.0.jar']
                 def result = configurations.conf.incoming.resolutionResult
-                assert result.allModuleVersions.size() == 3
+                assert result.allComponents.size() == 3
                 def root = result.root
                 assert root.dependencies*.toString() == ['org:a:1.0 -> org:a:2.0', 'org:a:2.0']
-                def a = result.allModuleVersions.find { it.id.name == 'a' }
+                def a = result.allComponents.find { it.id.module == 'a' }
                 assert a.dependencies*.toString() == ['org:b:2.0']
-                def b = result.allModuleVersions.find { it.id.name == 'b' }
+                def b = result.allComponents.find { it.id.module == 'b' }
                 assert b.dependencies*.toString() == ['org:a:1.0 -> org:a:2.0']
             }
         """
@@ -501,12 +501,12 @@ task checkDeps << {
         task checkDeps << {
             assert configurations.conf*.name == ['a-1.0.jar', 'b-1.0.jar', 'b-child-1.0.jar', 'target-1.0.jar', 'in-conflict-2.0.jar', 'target-child-1.0.jar']
             def result = configurations.conf.incoming.resolutionResult
-            assert result.allModuleVersions.size() == 7
-            def a = result.allModuleVersions.find { it.id.name == 'a' }
+            assert result.allComponents.size() == 7
+            def a = result.allComponents.find { it.id.module == 'a' }
             assert a.dependencies*.toString() == ['org:in-conflict:1.0 -> org:in-conflict:2.0']
-            def bChild = result.allModuleVersions.find { it.id.name == 'b-child' }
+            def bChild = result.allComponents.find { it.id.module == 'b-child' }
             assert bChild.dependencies*.toString() == ['org:in-conflict:2.0']
-            def target = result.allModuleVersions.find { it.id.name == 'target' }
+            def target = result.allComponents.find { it.id.module == 'target' }
             assert target.dependents*.from*.toString() == ['org:in-conflict:2.0']
         }
         """
@@ -689,7 +689,7 @@ dependencies {
 
 task checkDeps(dependsOn: configurations.compile) << {
     assert configurations.compile*.name == ['a-2.jar', 'c-2.jar', 'b-1.jar']
-    assert configurations.compile.incoming.resolutionResult.allModuleVersions.find { it.id.name == 'b' }.dependencies.size() == 1
+    assert configurations.compile.incoming.resolutionResult.allComponents.find { it.id.module == 'b' }.dependencies.size() == 1
 }
 """
 

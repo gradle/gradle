@@ -16,43 +16,43 @@
 
 package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
+import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier;
 
 import java.util.Collections;
 import java.util.Set;
 
 public class UnresolvedDependencyEdge implements DependencyEdge {
     private final UnresolvedDependencyResult dependency;
-    private final ModuleVersionIdentifier actual;
+    private final ModuleComponentIdentifier actual;
 
     public UnresolvedDependencyEdge(UnresolvedDependencyResult dependency) {
         this.dependency = dependency;
-        ModuleVersionSelector attempted = dependency.getAttempted();
-        actual = DefaultModuleVersionIdentifier.newId(attempted.getGroup(), attempted.getName(), attempted.getVersion());
+        ModuleComponentSelector attempted = (ModuleComponentSelector)dependency.getAttempted();
+        actual = DefaultModuleComponentIdentifier.newId(attempted.getGroup(), attempted.getName(), attempted.getVersion());
     }
 
     public boolean isResolvable() {
         return false;
     }
 
-    public ModuleVersionSelector getRequested() {
-        return dependency.getRequested();
+    public ModuleComponentSelector getRequested() {
+        return (ModuleComponentSelector)dependency.getRequested();
     }
 
-    public ModuleVersionIdentifier getActual() {
+    public ModuleComponentIdentifier getActual() {
         return actual;
     }
 
-    public ModuleVersionSelectionReason getReason() {
+    public ComponentSelectionReason getReason() {
         return dependency.getAttemptedReason();
     }
 
-    public ModuleVersionIdentifier getFrom() {
-        return dependency.getFrom().getId();
+    public ModuleComponentIdentifier getFrom() {
+        return (ModuleComponentIdentifier)dependency.getFrom().getId();
     }
 
     public Set<? extends RenderableDependency> getChildren() {

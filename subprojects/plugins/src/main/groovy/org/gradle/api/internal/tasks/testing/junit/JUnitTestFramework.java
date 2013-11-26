@@ -22,6 +22,7 @@ import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.api.internal.tasks.testing.detection.ClassFileExtractionManager;
+import org.gradle.api.internal.tasks.testing.selection.DefaultTestSelection;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.junit.JUnitOptions;
 import org.gradle.internal.classpath.DefaultClassPath;
@@ -37,16 +38,18 @@ public class JUnitTestFramework implements TestFramework {
     private JUnitOptions options;
     private JUnitDetector detector;
     private final Test testTask;
+    private DefaultTestSelection selection;
 
-    public JUnitTestFramework(Test testTask) {
+    public JUnitTestFramework(Test testTask, DefaultTestSelection selection) {
         this.testTask = testTask;
+        this.selection = selection;
         options = new JUnitOptions();
         detector = new JUnitDetector(new ClassFileExtractionManager(testTask.getTemporaryDirFactory()));
     }
 
     public WorkerTestClassProcessorFactory getProcessorFactory() {
         verifyJUnitCategorySupport();
-        return new TestClassProcessorFactoryImpl(new JUnitSpec(options));
+        return new TestClassProcessorFactoryImpl(new JUnitSpec(options, selection));
     }
 
     private void verifyJUnitCategorySupport() {

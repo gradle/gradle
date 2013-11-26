@@ -237,5 +237,15 @@ class DefaultProgressLoggerFactoryTest extends Specification {
         IllegalStateException e = thrown()
         e.message == 'This operation has completed.'
     }
+
+    def "can log start conveniently"() {
+        when:
+        def logger = factory.newOperation('logger').start("foo", "f")
+
+        then:
+        logger.description == "foo"
+        logger.shortDescription == "f"
+        1 * progressListener.started(!null)
+    }
 }
 

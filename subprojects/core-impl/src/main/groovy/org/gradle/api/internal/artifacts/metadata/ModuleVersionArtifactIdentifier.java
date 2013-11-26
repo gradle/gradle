@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.metadata;
 
 /**
- * An immutable identifier for an artifact in a module version.
+ * An immutable identifier for an artifact that belongs to some module version.
  */
 public interface ModuleVersionArtifactIdentifier {
     String getDisplayName();

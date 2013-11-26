@@ -17,7 +17,7 @@
 package org.gradle.api.internal.file.copy;
 
 import groovy.lang.Closure;
-import org.gradle.api.internal.notations.api.NotationParser;
+import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.UncheckedException;
 import org.gradle.util.DeprecationLogger;
 

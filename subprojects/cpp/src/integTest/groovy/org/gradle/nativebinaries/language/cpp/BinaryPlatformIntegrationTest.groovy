@@ -22,8 +22,6 @@ import org.gradle.nativebinaries.language.cpp.fixtures.binaryinfo.DumpbinBinaryI
 import org.gradle.nativebinaries.language.cpp.fixtures.binaryinfo.OtoolBinaryInfo
 import org.gradle.nativebinaries.language.cpp.fixtures.binaryinfo.ReadelfBinaryInfo
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
 class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def helloWorldApp = new CppHelloWorldApp()
@@ -59,7 +57,6 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
                     architecture "ia-64"
                 }
                 arm {
-                    // ARM is not yet supported on any tool chain
                     architecture "arm"
                 }
             }
@@ -71,7 +68,6 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
 """
 
         and:
-        executer.withArgument("--debug")
         succeeds "buildExecutables"
 
         then:
@@ -94,8 +90,13 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
             executable("build/binaries/mainExecutable/itanium/main").assertDoesNotExist()
         }
 
-        // ARM not supported on any platform
-        executable("build/binaries/mainExecutable/arm/main").assertDoesNotExist()
+        // ARM only supported on visualCpp 2013
+        if (toolChain.visualCpp && toolChain.version == "2013") {
+            executable("build/binaries/mainExecutable/arm/main").binaryInfo.arch.name == "arm"
+            binaryInfo(objectFile("build/objectFiles/mainExecutable/arm/mainCpp/main")).arch.name == "arm"
+        } else {
+            executable("build/binaries/mainExecutable/arm/main").assertDoesNotExist()
+        }
     }
 
     def "can configure binary for multiple target operating systems"() {
@@ -138,63 +139,6 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
             executable("build/binaries/mainExecutable/osx/main").exec().out ==  helloWorldApp.englishOutput
         }
     }
-
-    @Requires(TestPrecondition.NOT_WINDOWS)
-    def "can add binary configuration to target a platform"() {
-        when:
-        buildFile << """
-            toolChains {
-                crossCompiler(Gcc) {
-                    addPlatformConfiguration(new ArmArchitecture())
-                }
-            }
-            targetPlatforms {
-                arm {
-                    architecture "arm"
-                }
-                x64 {
-                    architecture "x86_64"
-                }
-            }
-
-            class ArmArchitecture implements TargetPlatformConfiguration {
-                boolean supportsPlatform(Platform element) {
-                    return element.getArchitecture().name == "arm"
-                }
-
-                List<String> getCppCompilerArgs() {
-                    ["-m32"]
-                }
-
-                List<String> getCCompilerArgs() {
-                    ["-m32"]
-                }
-
-                List<String> getAssemblerArgs() {
-                    []
-                }
-
-                List<String> getLinkerArgs() {
-                    ["-m32"]
-                }
-
-                List<String> getStaticLibraryArchiverArgs() {
-                    []
-                }
-            }
-"""
-
-        and:
-        succeeds "crossCompilerArmMainExecutable", "crossCompilerX64MainExecutable"
-
-        then:
-        executable("build/binaries/mainExecutable/crossCompilerArm/main").binaryInfo.arch.name == "x86"
-        executable("build/binaries/mainExecutable/crossCompilerArm/main").exec().out ==  helloWorldApp.englishOutput
-
-        executable("build/binaries/mainExecutable/crossCompilerX64/main").binaryInfo.arch.name == "x86_64"
-        executable("build/binaries/mainExecutable/crossCompilerX64/main").exec().out ==  helloWorldApp.englishOutput
-    }
-
     def "fails with reasonable error message when trying to build for an unavailable architecture"() {
         when:
         buildFile << """

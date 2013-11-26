@@ -24,8 +24,8 @@ class HtmlTestExecutionResult implements TestExecutionResult {
 
     private File htmlReportDirectory
 
-    public HtmlTestExecutionResult(File projectDirectory, String testReportDirectory = "tests") {
-        this.htmlReportDirectory = new File(projectDirectory, "build/reports/$testReportDirectory");
+    public HtmlTestExecutionResult(File projectDirectory, String testReportDirectory = "build/reports/tests") {
+        this.htmlReportDirectory = new File(projectDirectory, testReportDirectory);
     }
 
     TestExecutionResult assertTestClassesExecuted(String... testClasses) {
@@ -68,19 +68,22 @@ class HtmlTestExecutionResult implements TestExecutionResult {
 
         private void parseTestClassFile() {
             html.select("tr > td.success:eq(0)").each {
-                testsExecuted << it.text()
-                testsSucceeded << it.text()
+                def testName = it.textNodes().first().wholeText.trim()
+                testsExecuted << testName
+                testsSucceeded << testName
 
             }
             html.select("tr > td.failures:eq(0)").each {
-                testsExecuted << it.text()
-                def failures = getFailureMessages(it.text());
+                def testName = it.textNodes().first().wholeText.trim()
+                testsExecuted << testName
+                def failures = getFailureMessages(testName);
                 testsFailures[it.text()] = failures
             }
 
             html.select("tr > td.skipped:eq(0)").each {
-                testsSkipped << it.text()
-                testsExecuted << it.text()
+                def testName = it.textNodes().first().wholeText.trim()
+                testsSkipped << testName
+                testsExecuted << testName
             }
         }
 

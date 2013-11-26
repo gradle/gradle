@@ -17,6 +17,7 @@ package org.gradle.api.internal;
 
 import groovy.lang.Closure;
 import org.gradle.api.*;
+import org.gradle.internal.Actions;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.ConfigureUtil;
 

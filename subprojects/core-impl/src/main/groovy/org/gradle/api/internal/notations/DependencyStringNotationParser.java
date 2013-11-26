@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.ClientModule;
 import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.internal.artifacts.dsl.ParsedModuleStringNotation;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ModuleFactoryHelper;
-import org.gradle.api.internal.notations.parsers.TypedNotationParser;
+import org.gradle.internal.typeconversion.TypedNotationParser;
 import org.gradle.internal.reflect.Instantiator;
 
 import java.util.Collection;

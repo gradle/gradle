@@ -25,11 +25,12 @@ import org.gradle.nativebinaries.internal.*;
 import org.gradle.nativebinaries.language.assembler.internal.AssembleSpec;
 import org.gradle.nativebinaries.language.c.internal.CCompileSpec;
 import org.gradle.nativebinaries.language.cpp.internal.CppCompileSpec;
+import org.gradle.nativebinaries.language.rc.internal.WindowsResourceCompileSpec;
 import org.gradle.nativebinaries.toolchain.VisualCpp;
 import org.gradle.nativebinaries.toolchain.internal.AbstractToolChain;
 import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
 import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec;
-import org.gradle.nativebinaries.toolchain.internal.ToolType;
+import org.gradle.nativebinaries.toolchain.internal.OutputCleaningCompiler;
 import org.gradle.process.internal.ExecActionFactory;
 
 import java.io.File;
@@ -41,6 +42,7 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
     private final ExecActionFactory execActionFactory;
     private final VisualStudioLocator visualStudioLocator;
     private File installDir;
+    private File windowsSdkDir;
 
     public VisualCppToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory,
                               VisualStudioLocator visualStudioLocator) {
@@ -70,6 +72,11 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
         }
     }
 
+    private VisualStudioInstall locateVisualStudioInstall() {
+        VisualStudioLocator.SearchResult searchResult = locateVisualStudio();
+        return new VisualStudioInstall(searchResult.getResult(), searchResult.getVersion());
+    }
+
     private VisualStudioLocator.SearchResult locateVisualStudio() {
         if (installDir != null) {
             return visualStudioLocator.locateVisualStudio(installDir);
@@ -78,6 +85,9 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
     }
 
     private VisualStudioLocator.SearchResult locateWindowsSdk() {
+        if (windowsSdkDir != null) {
+            visualStudioLocator.locateWindowsSdk(windowsSdkDir);
+        }
         return visualStudioLocator.locateDefaultWindowsSdk();
     }
 
@@ -89,36 +99,30 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
         this.installDir = resolve(installDirPath);
     }
 
+    public File getWindowsSdkDir() {
+        return windowsSdkDir;
+    }
+
+    public void setWindowsSdkDir(Object windowsSdkDirPath) {
+        this.windowsSdkDir = resolve(windowsSdkDirPath);
+    }
+
     public PlatformToolChain target(Platform targetPlatform) {
         checkAvailable();
         checkPlatform(targetPlatform);
-
-        VisualStudioInstall visualStudioInstall = new VisualStudioInstall(locateVisualStudio().getResult());
+        VisualStudioInstall visualStudioInstall = locateVisualStudioInstall();
         WindowsSdk windowsSdk = new WindowsSdk(locateWindowsSdk().getResult());
         return new VisualCppPlatformToolChain(visualStudioInstall, windowsSdk, targetPlatform);
     }
 
     private void checkPlatform(Platform targetPlatform) {
-        ArchitectureInternal targetArch = (ArchitectureInternal) targetPlatform.getArchitecture();
-        org.gradle.nativebinaries.OperatingSystem targetOs = targetPlatform.getOperatingSystem();
-
-        if (!targetOs.isWindows() || !isSupportedArchitecture(targetArch)) {
+        if (!canTargetPlatform(targetPlatform)) {
             throw new IllegalStateException(String.format("Tool chain %s cannot build for platform: %s", getName(), targetPlatform.getName()));
         }
     }
 
     public boolean canTargetPlatform(Platform targetPlatform) {
-        org.gradle.nativebinaries.OperatingSystem targetOs = targetPlatform.getOperatingSystem();
-        ArchitectureInternal targetArch = (ArchitectureInternal) targetPlatform.getArchitecture();
-
-        return targetOs.isWindows() && isSupportedArchitecture(targetArch);
-    }
-
-    private boolean isSupportedArchitecture(ArchitectureInternal targetArch) {
-        return targetArch == ArchitectureInternal.TOOL_CHAIN_DEFAULT
-                || targetArch.isI386()
-                || targetArch.isAmd64()
-                || targetArch.isIa64();
+        return locateVisualStudioInstall().isSupportedPlatform(targetPlatform);
     }
 
     @Override
@@ -138,40 +142,50 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
         }
 
         public <T extends BinaryToolSpec> Compiler<T> createCppCompiler() {
-            CommandLineTool<CppCompileSpec> commandLineTool = commandLineTool(ToolType.CPP_COMPILER, install.getCompiler(targetPlatform));
+            CommandLineTool<CppCompileSpec> commandLineTool = commandLineTool("C++ compiler", install.getCompiler(targetPlatform));
             Transformer<CppCompileSpec, CppCompileSpec> specTransformer = addIncludePath();
             commandLineTool.withSpecTransformer(specTransformer);
-            return (Compiler<T>) new CppCompiler(commandLineTool);
+            CppCompiler cppCompiler = new CppCompiler(commandLineTool);
+            return (Compiler<T>) new OutputCleaningCompiler<CppCompileSpec>(cppCompiler, ".obj");
         }
 
         public <T extends BinaryToolSpec> Compiler<T> createCCompiler() {
-            CommandLineTool<CCompileSpec> commandLineTool = commandLineTool(ToolType.C_COMPILER, install.getCompiler(targetPlatform));
+            CommandLineTool<CCompileSpec> commandLineTool = commandLineTool("C compiler", install.getCompiler(targetPlatform));
             Transformer<CCompileSpec, CCompileSpec> specTransformer = addIncludePath();
             commandLineTool.withSpecTransformer(specTransformer);
-            return (Compiler<T>) new CCompiler(commandLineTool);
+            CCompiler cCompiler = new CCompiler(commandLineTool);
+            return (Compiler<T>) new OutputCleaningCompiler<CCompileSpec>(cCompiler, ".obj");
         }
 
         public <T extends BinaryToolSpec> Compiler<T> createAssembler() {
-            CommandLineTool<AssembleSpec> commandLineTool = commandLineTool(ToolType.ASSEMBLER, install.getAssembler(targetPlatform));
+            CommandLineTool<AssembleSpec> commandLineTool = commandLineTool("Assembler", install.getAssembler(targetPlatform));
             return (Compiler<T>) new Assembler(commandLineTool);
         }
 
+        public <T extends BinaryToolSpec> Compiler<T> createWindowsResourceCompiler() {
+            CommandLineTool<WindowsResourceCompileSpec> commandLineTool = commandLineTool("Windows resource compiler", sdk.getResourceCompiler(targetPlatform));
+            Transformer<WindowsResourceCompileSpec, WindowsResourceCompileSpec> specTransformer = addIncludePath();
+            commandLineTool.withSpecTransformer(specTransformer);
+            WindowsResourceCompiler windowsResourceCompiler = new WindowsResourceCompiler(commandLineTool);
+            return (Compiler<T>) new OutputCleaningCompiler<WindowsResourceCompileSpec>(windowsResourceCompiler, ".res");
+        }
+
         public <T extends LinkerSpec> Compiler<T> createLinker() {
-            CommandLineTool<LinkerSpec> commandLineTool = commandLineTool(ToolType.LINKER, install.getLinker(targetPlatform));
+            CommandLineTool<LinkerSpec> commandLineTool = commandLineTool("Linker", install.getLinker(targetPlatform));
             commandLineTool.withSpecTransformer(addLibraryPath());
             return (Compiler<T>) new LinkExeLinker(commandLineTool);
         }
 
         public <T extends StaticLibraryArchiverSpec> Compiler<T> createStaticLibraryArchiver() {
-            CommandLineTool<StaticLibraryArchiverSpec> commandLineTool = commandLineTool(ToolType.STATIC_LIB_ARCHIVER, install.getStaticLibArchiver(targetPlatform));
+            CommandLineTool<StaticLibraryArchiverSpec> commandLineTool = commandLineTool("Static library archiver", install.getStaticLibArchiver(targetPlatform));
             return (Compiler<T>) new LibExeStaticLibraryArchiver(commandLineTool);
         }
 
-        private <T extends BinaryToolSpec> CommandLineTool<T> commandLineTool(ToolType key, File exe) {
-            CommandLineTool<T> tool = new CommandLineTool<T>(key.getToolName(), exe, execActionFactory);
+        private <T extends BinaryToolSpec> CommandLineTool<T> commandLineTool(String toolName, File exe) {
+            CommandLineTool<T> tool = new CommandLineTool<T>(toolName, exe, execActionFactory);
 
             // The visual C++ tools use the path to find other executables
-            tool.withPath(install.getVisualCppBin(targetPlatform), sdk.getBinDir(), install.getCommonIdeBin());
+            tool.withPath(install.getVisualCppBin(targetPlatform), sdk.getBinDir(targetPlatform), install.getCommonIdeBin());
 
             return tool;
         }
@@ -184,6 +198,7 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
             return new Transformer<T, T>() {
                 public T transform(T original) {
                     original.include(install.getVisualCppInclude());
+                    original.include(sdk.getIncludeDirs());
                     return original;
                 }
             };

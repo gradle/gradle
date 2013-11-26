@@ -17,7 +17,7 @@
 package org.gradle.nativebinaries.language.c.tasks
 import org.gradle.api.internal.tasks.compile.Compiler
 import org.gradle.api.tasks.WorkResult
-import org.gradle.nativebinaries.Platform
+import org.gradle.nativebinaries.internal.PlatformInternal
 import org.gradle.nativebinaries.internal.PlatformToolChain
 import org.gradle.nativebinaries.internal.ToolChainInternal
 import org.gradle.nativebinaries.language.c.internal.CCompileSpec
@@ -30,12 +30,12 @@ class CCompileTest extends Specification {
     def testDir = new TestNameTestDirectoryProvider().testDirectory
     CCompile cCompile = TestUtil.createTask(CCompile)
     def toolChain = Mock(ToolChainInternal)
-    def platform = Mock(Platform)
+    def platform = Mock(PlatformInternal)
     def platformToolChain = Mock(PlatformToolChain)
     Compiler<CppCompileSpec> cCompiler = Mock(Compiler)
 
     def "executes using the C Compiler"() {
-        def inputDir = testDir.file("sourceFile")
+        def sourceFile = testDir.createFile("sourceFile")
         def result = Mock(WorkResult)
         when:
         cCompile.toolChain = toolChain
@@ -43,11 +43,12 @@ class CCompileTest extends Specification {
         cCompile.compilerArgs = ["arg"]
         cCompile.macros = [def: "value"]
         cCompile.objectFileDir = testDir.file("outputFile")
-        cCompile.source inputDir
+        cCompile.source sourceFile
         cCompile.execute()
 
         then:
         _ * toolChain.outputType >> "c"
+        _ * platform.compatibilityString >> "p"
         1 * toolChain.target(platform) >> platformToolChain
         1 * platformToolChain.createCCompiler() >> cCompiler
         1 * cCompiler.execute({ CCompileSpec spec ->

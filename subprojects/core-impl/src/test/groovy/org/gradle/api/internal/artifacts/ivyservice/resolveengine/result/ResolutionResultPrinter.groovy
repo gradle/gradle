@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
 import org.gradle.api.artifacts.result.DependencyResult
-import org.gradle.api.artifacts.result.ResolvedModuleVersionResult
+import org.gradle.api.artifacts.result.ResolvedComponentResult
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 
 public class ResolutionResultPrinter {
@@ -29,13 +29,13 @@ public class ResolutionResultPrinter {
             return
         }
         String reason = dep.selected.selectionReason.conflictResolution? "(C)" : "";
-        sb.append(indent + dep + reason + " [" + dep.selected.dependents*.from.id.name.join(",") + "]\n");
+        sb.append(indent + dep + reason + " [" + dep.selected.dependents*.from.id.module.join(",") + "]\n");
         for (DependencyResult d : dep.getSelected().getDependencies()) {
             printNode(d, sb, visited, "  " + indent);
         }
     }
 
-    static String printGraph(ResolvedModuleVersionResult root) {
+    static String printGraph(ResolvedComponentResult root) {
         StringBuilder sb = new StringBuilder();
         sb.append(root).append("\n");
         for (DependencyResult d : root.getDependencies()) {

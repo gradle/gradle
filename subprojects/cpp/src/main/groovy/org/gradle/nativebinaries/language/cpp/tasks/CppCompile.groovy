@@ -15,26 +15,31 @@
  */
 
 package org.gradle.nativebinaries.language.cpp.tasks
-
 import org.gradle.api.Incubating
-import org.gradle.api.tasks.WorkResult
+import org.gradle.cache.CacheRepository
 import org.gradle.nativebinaries.internal.PlatformToolChain
 import org.gradle.nativebinaries.language.c.tasks.AbstractNativeCompileTask
 import org.gradle.nativebinaries.language.cpp.internal.DefaultCppCompileSpec
 import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec
 
+import javax.inject.Inject
 /**
  * Compiles C++ source files into object files.
  */
 @Incubating
 class CppCompile extends AbstractNativeCompileTask {
+    @Inject
+    CppCompile(CacheRepository cacheRepository) {
+        super(cacheRepository)
+    }
+
     @Override
     protected NativeCompileSpec createCompileSpec() {
         new DefaultCppCompileSpec()
     }
 
     @Override
-    protected WorkResult execute(PlatformToolChain toolChain, NativeCompileSpec spec) {
-        return toolChain.createCppCompiler().execute(spec)
+    protected org.gradle.api.internal.tasks.compile.Compiler<NativeCompileSpec> createCompiler(PlatformToolChain toolChain) {
+        return toolChain.createCppCompiler()
     }
 }

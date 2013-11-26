@@ -17,14 +17,14 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
+import org.gradle.api.artifacts.result.ComponentSelectionReason;
 
 class SubstitutedModuleVersionIdResolveResult implements ModuleVersionIdResolveResult {
 
     final ModuleVersionIdResolveResult result;
-    private final ModuleVersionSelectionReason selectionReason;
+    private final ComponentSelectionReason selectionReason;
 
-    public SubstitutedModuleVersionIdResolveResult(ModuleVersionIdResolveResult result, ModuleVersionSelectionReason selectionReason) {
+    public SubstitutedModuleVersionIdResolveResult(ModuleVersionIdResolveResult result, ComponentSelectionReason selectionReason) {
         this.result = result;
         this.selectionReason = selectionReason;
     }
@@ -41,7 +41,7 @@ class SubstitutedModuleVersionIdResolveResult implements ModuleVersionIdResolveR
         return result.resolve();
     }
 
-    public ModuleVersionSelectionReason getSelectionReason() {
+    public ComponentSelectionReason getSelectionReason() {
         return selectionReason;
     }
 }

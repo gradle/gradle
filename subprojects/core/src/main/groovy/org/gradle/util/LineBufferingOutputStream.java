@@ -15,29 +15,29 @@
  */
 package org.gradle.util;
 
-import org.gradle.api.Action;
 import org.gradle.internal.SystemProperties;
+import org.gradle.internal.io.TextStream;
 
 import java.io.IOException;
 import java.io.OutputStream;
 
 /**
- * An OutputStream which separates bytes written into lines. Uses the platform default encoding. Is not thread safe.
+ * An OutputStream which separates bytes written into lines of text. Uses the platform default encoding. Is not thread safe.
  */
 public class LineBufferingOutputStream extends OutputStream {
     private boolean hasBeenClosed;
     private final byte[] lineSeparator;
     private final int bufferIncrement;
-    private final Action<String> action;
+    private final TextStream handler;
     private byte[] buf;
     private int count;
 
-    public LineBufferingOutputStream(Action<String> action) {
-        this(action, 2048);
+    public LineBufferingOutputStream(TextStream handler) {
+        this(handler, 2048);
     }
 
-    public LineBufferingOutputStream(Action<String> action, int bufferLength) {
-        this.action = action;
+    public LineBufferingOutputStream(TextStream handler, int bufferLength) {
+        this.handler = handler;
         bufferIncrement = bufferLength;
         buf = new byte[bufferLength];
         count = 0;
@@ -50,8 +50,9 @@ public class LineBufferingOutputStream extends OutputStream {
      * cannot be reopened.
      */
     public void close() throws IOException {
-        flush();
         hasBeenClosed = true;
+        flush();
+        handler.endOfStream(null);
     }
 
     /**
@@ -96,15 +97,9 @@ public class LineBufferingOutputStream extends OutputStream {
         return true;
     }
 
-    /**
-     * Flushes this output stream and forces any buffered output bytes to be written out. The general contract of
-     * <code>flush</code> is that calling it is an indication that, if any bytes previously written have been buffered
-     * by the implementation of the output stream, such bytes should immediately be written to their intended
-     * destination.
-     */
     public void flush() {
         if (count != 0) {
-            action.execute(new String(buf, 0, count));
+            handler.text(new String(buf, 0, count));
         }
         reset();
     }

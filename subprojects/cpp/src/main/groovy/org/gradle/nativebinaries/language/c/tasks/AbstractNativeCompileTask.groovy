@@ -19,11 +19,16 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.Incubating
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.SourceDirectorySet
-import org.gradle.api.tasks.*
-import org.gradle.language.jvm.internal.SimpleStaleClassCleaner
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.incremental.IncrementalTaskInputs
+import org.gradle.cache.CacheRepository
 import org.gradle.nativebinaries.Platform
 import org.gradle.nativebinaries.ToolChain
 import org.gradle.nativebinaries.internal.PlatformToolChain
+import org.gradle.nativebinaries.language.c.internal.incremental.IncrementalCompilerBuilder
 import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec
 
 import javax.inject.Inject
@@ -32,7 +37,7 @@ import javax.inject.Inject
  */
 @Incubating
 abstract class AbstractNativeCompileTask extends DefaultTask {
-    private FileCollection source
+    private final IncrementalCompilerBuilder incrementalCompilerBuilder
 
     /**
      * The tool chain used for compilation.
@@ -42,7 +47,6 @@ abstract class AbstractNativeCompileTask extends DefaultTask {
     /**
      * The platform being targeted.
      */
-    // TODO:DAZ This should form an @Input
     Platform targetPlatform
 
     /**
@@ -66,16 +70,13 @@ abstract class AbstractNativeCompileTask extends DefaultTask {
     /**
      * Returns the source files to be compiled.
      */
-    @InputFiles @SkipWhenEmpty // Workaround for GRADLE-2026
-    FileCollection getSource() {
-        source
-    }
+    @InputFiles
+    FileCollection source
 
-    // TODO:DAZ We also need the platform to form an input
     // Invalidate output when the tool chain output changes
     @Input
     def getOutputType() {
-        return toolChain.outputType
+        return "${toolChain.outputType}:${targetPlatform.compatibilityString}"
     }
 
     /**
@@ -91,20 +92,17 @@ abstract class AbstractNativeCompileTask extends DefaultTask {
     List<String> compilerArgs
 
     @Inject
-    AbstractNativeCompileTask() {
+    AbstractNativeCompileTask(CacheRepository cacheRepository) {
+        incrementalCompilerBuilder = new IncrementalCompilerBuilder(cacheRepository, this)
         includes = project.files()
         source = project.files()
     }
 
     @TaskAction
-    void compile() {
-        def cleaner = new SimpleStaleClassCleaner(getOutputs())
-        cleaner.setDestinationDir(getObjectFileDir())
-        cleaner.execute()
+    void compile(IncrementalTaskInputs inputs) {
 
         def spec = createCompileSpec()
         spec.tempDir = getTemporaryDir()
-
         spec.objectFileDir = getObjectFileDir()
         spec.include getIncludes()
         spec.source getSource()
@@ -113,13 +111,20 @@ abstract class AbstractNativeCompileTask extends DefaultTask {
         spec.positionIndependentCode = isPositionIndependentCode()
 
         PlatformToolChain platformToolChain = toolChain.target(targetPlatform)
-        def result = execute(platformToolChain, spec)
+        if (!inputs.incremental) {
+            incrementalCompilerBuilder.withCleanCompile()
+        }
+        incrementalCompilerBuilder.withIncludes(includes)
+        final compiler = createCompiler(platformToolChain)
+        final incrementalCompiler = incrementalCompilerBuilder.createIncrementalCompiler(compiler)
+
+        def result = incrementalCompiler.execute(spec)
         didWork = result.didWork
     }
 
     protected abstract NativeCompileSpec createCompileSpec();
 
-    protected abstract WorkResult execute(PlatformToolChain toolChain, NativeCompileSpec spec);
+    protected abstract org.gradle.api.internal.tasks.compile.Compiler<NativeCompileSpec> createCompiler(PlatformToolChain toolChain)
 
     /**
      * Add locations where the compiler should search for header files.

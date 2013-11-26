@@ -16,14 +16,19 @@
 
 package org.gradle.nativebinaries.internal
 import org.gradle.api.Task
+import org.gradle.api.file.FileCollection
 import org.gradle.api.file.SourceDirectorySet
+import org.gradle.language.HeaderExportingSourceSet
 import org.gradle.language.base.internal.DefaultBinaryNamingScheme
 import org.gradle.nativebinaries.BuildType
 import org.gradle.nativebinaries.Library
 import org.gradle.nativebinaries.Platform
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.junit.Rule
 import spock.lang.Specification
 
 class DefaultStaticLibraryBinaryTest extends Specification {
+    @Rule TestNameTestDirectoryProvider tmpDir
     def namingScheme = new DefaultBinaryNamingScheme("main")
     def library = Stub(Library)
     def toolChain = Stub(ToolChainInternal)
@@ -48,9 +53,23 @@ class DefaultStaticLibraryBinaryTest extends Specification {
         binary.lifecycleTask = lifecycleTask
         binary.builtBy(Stub(Task))
 
+        and: "has at least one header exporting source set"
+        final headerDir = tmpDir.createDir("headerDir")
+        def headerDirSet = Stub(SourceDirectorySet) {
+            getSrcDirs() >> [headerDir]
+        }
+        def sourceDirSet = Stub(SourceDirectorySet) {
+            getFiles() >> [tmpDir.createFile("input.src")]
+        }
+        def sourceSet = Stub(HeaderExportingSourceSet) {
+            getSource() >> sourceDirSet
+            getExportedHeaders() >> headerDirSet
+        }
+        binary.source sourceSet
+
         expect:
         def nativeDependency = binary.resolve()
-        nativeDependency.includeRoots == headers
+        nativeDependency.includeRoots.files == [headerDir] as Set
 
         and:
         nativeDependency.linkFiles.files == [binary.outputFile] as Set
@@ -59,7 +78,22 @@ class DefaultStaticLibraryBinaryTest extends Specification {
 
         and:
         nativeDependency.runtimeFiles.files.isEmpty()
-        nativeDependency.runtimeFiles.buildDependencies.getDependencies(Stub(Task)).isEmpty()
+        nativeDependency.runtimeFiles.buildDependencies.getDependencies(Stub(Task)) == [lifecycleTask] as Set
         nativeDependency.runtimeFiles.toString() == "static library 'main:staticLibrary'"
+    }
+
+    def "includes additional link files in native dependency"() {
+        final binary = staticLibrary
+        given:
+        def linkFile1 = Mock(File)
+        def linkFile2 = Mock(File)
+        def additionalLinkFiles = Stub(FileCollection) {
+            getFiles() >> [linkFile1, linkFile2]
+        }
+        binary.additionalLinkFiles(additionalLinkFiles)
+
+        expect:
+        def nativeDependency = binary.resolve()
+        nativeDependency.linkFiles.files == [binary.outputFile, linkFile1, linkFile2] as Set
     }
 }

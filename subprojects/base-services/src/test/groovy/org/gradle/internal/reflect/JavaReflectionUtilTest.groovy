@@ -29,35 +29,6 @@ import static org.gradle.internal.reflect.JavaReflectionUtil.*
 class JavaReflectionUtilTest extends Specification {
     JavaTestSubject myProperties = new JavaTestSubject()
 
-    def "read field"() {
-        expect:
-        readField(new JavaTestSubject(), boolean.class, "myBooleanProp")
-        readField(new JavaTestSubject(), String.class, "myProp") == "myValue"
-        readField(new JavaTestSubjectSubclass(), boolean.class, "myBooleanProp")
-        readField(new JavaTestSubjectSubclass(), String.class, "myProp") == "subclass"
-
-        when:
-        readField(new JavaTestSubject(), String.class, "myBooleanProp")
-
-        then:
-        def e = thrown UncheckedException
-        e.cause instanceof NoSuchFieldException
-
-        when:
-        readField(new JavaTestSubject(), String.class, "non existent")
-
-        then:
-        e = thrown UncheckedException
-        e.cause instanceof NoSuchFieldException
-
-        when:
-        readField(new JavaTestSubjectSubclass(), String.class, "non existent")
-
-        then:
-        e = thrown UncheckedException
-        e.cause instanceof NoSuchFieldException
-    }
-
     def "property exists"() {
         expect:
         propertyExists(new JavaTestSubject(), "myBooleanProperty")
@@ -116,7 +87,7 @@ class JavaReflectionUtilTest extends Specification {
         readableProperty(JavaTestSubject, "myBooleanProperty").getValue(myProperties) == false
     }
 
-    def "read property that doesn't have a well formed getter"() {
+    def "cannot read property that doesn't have a well formed getter"() {
         when:
         readableProperty(JavaTestSubject, property)
 
@@ -134,7 +105,7 @@ class JavaReflectionUtilTest extends Specification {
         "writeOnly"           | _
     }
 
-    def "read property that is not public"() {
+    def "cannot read property that is not public"() {
         when:
         readableProperty(JavaTestSubject, property)
 
@@ -148,7 +119,7 @@ class JavaReflectionUtilTest extends Specification {
         "protectedProperty" | _
     }
 
-    def "write property that doesn't have a well formed setter"() {
+    def "cannot write property that doesn't have a well formed setter"() {
         when:
         writeableProperty(JavaTestSubject, property)
 
@@ -164,7 +135,7 @@ class JavaReflectionUtilTest extends Specification {
         "paramProperty"          | _
     }
 
-    def "write property that is not public"() {
+    def "cannot write property that is not public"() {
         when:
         writeableProperty(JavaTestSubject, property)
 
@@ -181,6 +152,7 @@ class JavaReflectionUtilTest extends Specification {
     def "call methods successfully reflectively"() {
         expect:
         method(myProperties.class, String, "getMyProperty").invoke(myProperties) == myProperties.myProp
+        method(myProperties.class, String, "doSomeStuff", int.class, Integer.class).invoke(myProperties, 1, 2) == "1.2"
 
         when:
         method(myProperties.class, Void, "setMyProperty", String).invoke(myProperties, "foo")
@@ -194,13 +166,31 @@ class JavaReflectionUtilTest extends Specification {
         method(myProperties.class, Void, "throwsException").invoke(myProperties)
 
         then:
-        thrown IllegalStateException
+        IllegalStateException e = thrown()
+        e == myProperties.failure
+
+        when:
+        method(myProperties.class, Void, "throwsCheckedException").invoke(myProperties)
+
+        then:
+        UncheckedException checkedFailure = thrown()
+        checkedFailure.cause instanceof JavaTestSubject.TestCheckedException
+        checkedFailure.cause.cause == myProperties.failure
     }
 
     def "call declared method that may not be public"() {
         expect:
         method(JavaTestSubjectSubclass, String, "protectedMethod").invoke(new JavaTestSubjectSubclass()) == "parent"
         method(JavaTestSubjectSubclass, String, "overridden").invoke(new JavaTestSubjectSubclass()) == "subclass"
+    }
+
+    def "cannot call unknown method"() {
+        when:
+        method(JavaTestSubjectSubclass, String, "unknown")
+
+        then:
+        NoSuchMethodException e = thrown()
+        e.message == /Could not find method unknown() on JavaTestSubjectSubclass./
     }
 
     def "find method"() {

@@ -31,9 +31,11 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
     private static final Pattern CAUSE_PATTERN = Pattern.compile("(?m)^\\s*> ");
     private static final Pattern DESCRIPTION_PATTERN = Pattern.compile("(?ms)^\\* What went wrong:$(.+)^\\* Try:$");
     private static final Pattern LOCATION_PATTERN = Pattern.compile("(?ms)^\\* Where:((.+)'.+') line: (\\d+)$");
+    private static final Pattern RESOLUTION_PATTERN = Pattern.compile("(?ms)^\\* Try:$(.+)^\\* Exception is:$");
     private final String description;
     private final String lineNumber;
     private final String fileName;
+    private final String resolution;
     private final List<String> causes = new ArrayList<String>();
 
     public OutputScrapingExecutionFailure(String output, String error) {
@@ -73,6 +75,13 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
                 }
             }
         }
+
+        matcher = RESOLUTION_PATTERN.matcher(error);
+        if (!matcher.find()) {
+            resolution = "";
+        } else {
+            resolution = matcher.group(1).trim();
+        }
     }
 
     public ExecutionFailure assertHasLineNumber(int lineNumber) {
@@ -97,6 +106,11 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
             }
         }
         fail(String.format("No matching cause found in %s", causes));
+        return this;
+    }
+
+    public ExecutionFailure assertHasResolution(String resolution) {
+        assertThat(this.resolution, equalTo(resolution));
         return this;
     }
 

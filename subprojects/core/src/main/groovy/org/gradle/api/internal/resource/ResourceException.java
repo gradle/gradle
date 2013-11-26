@@ -17,7 +17,7 @@
 package org.gradle.api.internal.resource;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.internal.Contextual;
+import org.gradle.internal.exceptions.Contextual;
 
 @Contextual
 public class ResourceException extends GradleException {

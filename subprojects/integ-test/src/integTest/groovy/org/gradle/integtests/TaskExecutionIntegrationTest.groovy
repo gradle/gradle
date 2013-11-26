@@ -15,6 +15,7 @@
  */
 
 package org.gradle.integtests
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.TextUtil
 import org.junit.Test
@@ -339,22 +340,77 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
     def "checked exceptions thrown by tasks are reported correctly"() {
         buildFile << """
             class SomeTask extends DefaultTask {
-            
+
                 @TaskAction
                 void explode() {
                     throw new Exception("I am the checked exception")
                 }
             }
-            
+
             task explode(type: SomeTask) {
-            
+
             }
         """
-        
+
         when:
         fails "explode"
 
         then:
         failure.assertHasCause "java.lang.Exception: I am the checked exception"
+    }
+
+    def "honours shouldRunAfter task ordering"() {
+        buildFile << """
+    task a {
+        dependsOn 'b'
+    }
+    task b {
+        shouldRunAfter 'c'
+    }
+    task c
+    task d {
+        dependsOn 'c'
+    }
+"""
+        when:
+        succeeds 'a', 'd'
+
+        then:
+        executedTasks == [':c', ':b', ':a', ':d']
+    }
+
+    def "multiple should run after ordering can be ignored for one execution plan"() {
+        buildFile << """
+    task a {
+        dependsOn 'b', 'h'
+    }
+    task b {
+        dependsOn 'c'
+    }
+    task c {
+        dependsOn 'g'
+        shouldRunAfter 'd'
+    }
+    task d {
+        finalizedBy 'e'
+        dependsOn 'f'
+    }
+    task e
+    task f {
+        dependsOn 'c'
+    }
+    task g {
+        shouldRunAfter 'h'
+    }
+    task h {
+        dependsOn 'b'
+    }
+"""
+
+        when:
+        succeeds 'a', 'd'
+
+        then:
+        executedTasks == [':g', ':c', ':b', ':h', ':a', ':f', ':d', ':e']
     }
 }

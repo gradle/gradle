@@ -34,6 +34,7 @@ public class ModuleDescriptorAdapter implements MutableModuleVersionMetaData {
     private List<String> statusScheme = DEFAULT_STATUS_SCHEME;
     private List<DependencyMetaData> dependencies;
     private Map<String, DefaultConfigurationMetaData> configurations = new HashMap<String, DefaultConfigurationMetaData>();
+    private Set<ModuleVersionArtifactMetaData> artifacts;
 
     public ModuleDescriptorAdapter(ModuleDescriptor moduleDescriptor) {
         this(DefaultModuleVersionIdentifier.newId(moduleDescriptor.getModuleRevisionId()), moduleDescriptor);
@@ -136,14 +137,25 @@ public class ModuleDescriptorAdapter implements MutableModuleVersionMetaData {
         return configuration;
     }
 
+    public Set<ModuleVersionArtifactMetaData> getArtifacts() {
+        if (artifacts == null) {
+            artifacts = new LinkedHashSet<ModuleVersionArtifactMetaData>();
+            for (Artifact artifact : moduleDescriptor.getAllArtifacts()) {
+                artifacts.add(new DefaultModuleVersionArtifactMetaData(moduleVersionIdentifier, artifact));
+            }
+        }
+        return artifacts;
+    }
+
     protected Set<ModuleVersionArtifactMetaData> getArtifactsForConfiguration(ConfigurationMetaData configurationMetaData) {
-        Set<Artifact> seen = new HashSet<Artifact>();
+        Map<Artifact, ModuleVersionArtifactMetaData> ivyArtifacts = new HashMap<Artifact, ModuleVersionArtifactMetaData>();
+        for (ModuleVersionArtifactMetaData artifact : getArtifacts()) {
+            ivyArtifacts.put(artifact.getArtifact(), artifact);
+        }
         Set<ModuleVersionArtifactMetaData> artifacts = new LinkedHashSet<ModuleVersionArtifactMetaData>();
         for (String ancestor : configurationMetaData.getHierarchy()) {
             for (Artifact artifact : moduleDescriptor.getArtifacts(ancestor)) {
-                if (seen.add(artifact)) {
-                    artifacts.add(new DefaultModuleVersionArtifactMetaData(moduleVersionIdentifier, artifact));
-                }
+                artifacts.add(ivyArtifacts.get(artifact));
             }
         }
         return artifacts;

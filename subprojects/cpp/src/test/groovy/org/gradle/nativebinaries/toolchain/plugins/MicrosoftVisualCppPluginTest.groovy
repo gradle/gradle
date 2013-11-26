@@ -15,55 +15,67 @@
  */
 
 package org.gradle.nativebinaries.toolchain.plugins
+
+import org.gradle.api.Plugin
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.ExtraPropertiesExtension
 import org.gradle.internal.nativeplatform.ProcessEnvironment
 import org.gradle.internal.nativeplatform.services.NativeServices
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.nativebinaries.ToolChain
 import org.gradle.nativebinaries.internal.ToolChainAvailability
+import org.gradle.nativebinaries.language.cpp.fixtures.RequiresInstalledToolChain
 import org.gradle.nativebinaries.toolchain.VisualCpp
 import org.gradle.nativebinaries.toolchain.internal.msvcpp.VisualCppToolChain
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.gradle.util.TestUtil
 import org.junit.Rule
-import spock.lang.Specification
 
-class MicrosoftVisualCppPluginTest extends Specification {
+class MicrosoftVisualCppPluginTest extends ToolChainPluginTest {
     def ProcessEnvironment processEnvironment = NativeServices.getInstance().get(ProcessEnvironment.class);
     def pathVar = OperatingSystem.current().getPathVar()
     @Rule
     TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
-    def project = TestUtil.createRootProject()
 
-    def setup() {
-        project.plugins.apply(MicrosoftVisualCppPlugin)
+    @Override
+    Class<? extends Plugin> getPluginClass() {
+        MicrosoftVisualCppPlugin
+    }
+
+    @Override
+    Class<? extends ToolChain> getToolchainClass() {
+        VisualCpp
+    }
+
+    @Override
+    String getToolchainName() {
+        VisualCppToolChain.DEFAULT_NAME
     }
 
     def "makes a VisualCpp tool chain available"() {
         when:
-        project.toolChains.create("vc", VisualCpp)
+        register()
 
         then:
-        project.toolChains.vc instanceof VisualCppToolChain
+        toolchain instanceof VisualCppToolChain
     }
 
-    @Requires(TestPrecondition.WINDOWS)
+    @RequiresInstalledToolChain("visual c++")
     def "registers default VisualCpp tool chain"() {
         when:
-        project.toolChains.addDefaultToolChain()
+        addDefaultToolchain()
 
         then:
-        project.toolChains.visualCpp instanceof VisualCppToolChain
+        toolchain instanceof VisualCppToolChain
     }
 
     def "VisualCpp tool chain is extended"() {
         when:
-        project.toolChains.create("vc", VisualCpp)
+        register()
 
         then:
-        with (project.toolChains.vc) {
+        with (toolchain) {
             it instanceof ExtensionAware
             it.ext instanceof ExtraPropertiesExtension
         }
@@ -72,13 +84,13 @@ class MicrosoftVisualCppPluginTest extends Specification {
     @Requires(TestPrecondition.NOT_WINDOWS)
     def "installs an unavailable tool chain when not windows"() {
         when:
-        project.toolChains.create("vc", VisualCpp)
+        register()
 
         then:
-        def visualCpp = project.toolChains.vc
+        def visualCpp = toolchain
         !visualCpp.availability.available
         visualCpp.availability.unavailableMessage == 'Not available on this operating system.'
-        visualCpp.toString() == "ToolChain 'vc' (Visual C++)"
+        visualCpp.toString() == "ToolChain '$toolchainName' (Visual C++)"
     }
 
     @Requires(TestPrecondition.WINDOWS)
@@ -91,10 +103,10 @@ class MicrosoftVisualCppPluginTest extends Specification {
         processEnvironment.setEnvironmentVariable(pathVar, dummyCompiler.getParentFile().absolutePath);
 
         when:
-        project.toolChains.create("vc", VisualCpp)
+        register()
 
         then:
-        ToolChainAvailability availability = project.toolChains.vc.availability
+        ToolChainAvailability availability = toolchain.availability
         !availability.available
         availability.unavailableMessage.startsWith 'Visual Studio installation cannot be located. Searched in ['
 

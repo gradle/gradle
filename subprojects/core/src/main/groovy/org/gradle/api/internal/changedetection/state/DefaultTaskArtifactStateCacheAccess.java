@@ -20,6 +20,7 @@ import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.cache.internal.CacheLayoutBuilder;
 import org.gradle.cache.internal.FileLockManager;
 import org.gradle.cache.internal.MultiProcessSafePersistentIndexedCache;
 import org.gradle.cache.internal.PersistentIndexedCacheParameters;
@@ -48,9 +49,10 @@ public class DefaultTaskArtifactStateCacheAccess implements TaskArtifactStateCac
         //TODO SF just do it in the constructor
         synchronized (lock) {
             if (cache == null) {
+                CacheLayoutBuilder layout = new CacheLayoutBuilder().withBuildScope(gradle.getRootProject());
                 cache = cacheRepository
                         .cache("taskArtifacts")
-                        .forObject(gradle)
+                        .withLayout(layout)
                         .withDisplayName("task artifact state cache")
                         .withLockOptions(mode(FileLockManager.LockMode.Exclusive))
                         .open();

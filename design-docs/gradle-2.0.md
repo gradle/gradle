@@ -3,19 +3,20 @@
 Gradle 2.0 is the next major Gradle release that offers the opportunity to make breaking changes to the public interface of Gradle. This document captures a laundry
 list of ideas to consider before shipping Gradle 2.0.
 
-Note: for the change listed below, the old behaviour or feature to be removed should be deprecated in a Gradle 1.x release, probably no later than Gradle 1.8. Similarly
+Note: for the change listed below, the old behaviour or feature to be removed should be deprecated in a Gradle 1.x release, probably no later than Gradle 1.9. Similarly
 for changes to behaviour.
 
 # Planned
 
 The following stories are to be included in Gradle 2.0.
 
-## Remove all features deprecated as at Gradle 1.8
+## Remove all features deprecated as at Gradle 1.9
 
-In the Gradle 2.0-rc-1 release, remove all features that are deprecated as at Gradle 1.8 or earlier:
+In the Gradle 2.0-rc-1 release, remove all features that are deprecated as at Gradle 1.9 or earlier:
 
 * Search for usages of `DeprecationLogger`, `@Deprecated`, `@deprecated` and remove the associated feature.
 * Review usages of `DeprecationLogger.whileDisabled()`.
+* Remove `JavaPluginGoodBehaviourTest#changing debug flag does not produce deprecation warning`
 
 ## Remove Ivy types from the Gradle repository API
 

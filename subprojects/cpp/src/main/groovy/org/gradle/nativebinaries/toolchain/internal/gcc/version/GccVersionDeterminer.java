@@ -34,6 +34,8 @@ import java.util.regex.Pattern;
 public class GccVersionDeterminer implements Transformer<String, File> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GccVersionDeterminer.class);
+    private static final String GCC_VERSION_PATTERN = ".*gcc version (\\S+).*";
+    private static final String APPLE_LLVM_PATTERN = ".*Apple LLVM.*";
 
     private final Transformer<String, String> outputScraper;
     private final Transformer<String, File> outputProducer;
@@ -45,14 +47,19 @@ public class GccVersionDeterminer implements Transformer<String, File> {
 
     static class GccVersionOutputScraper implements Transformer<String, String> {
         public String transform(String output) {
-            Pattern pattern = Pattern.compile(".*gcc version (\\S+).*", Pattern.DOTALL);
+            Pattern pattern = Pattern.compile(GCC_VERSION_PATTERN, Pattern.DOTALL);
             Matcher matcher = pattern.matcher(output);
             if (matcher.matches()) {
                 String scrapedVersion = matcher.group(1);
                 LOGGER.debug("Extracted version {} from g++ -v output", scrapedVersion);
                 return scrapedVersion;
             } else {
-                LOGGER.warn("Unable to extract g++ version number from \"{}\" with pattern \"{}\"", output, pattern);
+                Matcher xcodeGccMatcher = Pattern.compile(APPLE_LLVM_PATTERN, Pattern.DOTALL).matcher(output);
+                if (xcodeGccMatcher.matches()) {
+                    LOGGER.debug("Do not treat g++ as GCC on OSX 10.9: it is actually just a thin wrapper around clang.");
+                } else {
+                    LOGGER.warn("Unable to extract g++ version number from \"{}\" with pattern \"{}\"", output, pattern);
+                }
                 return null;
             }
         }

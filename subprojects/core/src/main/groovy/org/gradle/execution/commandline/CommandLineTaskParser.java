@@ -27,8 +27,11 @@ import java.util.List;
 import java.util.Set;
 
 public class CommandLineTaskParser {
+    private final CommandLineTaskConfigurer taskConfigurer;
 
-    CommandLineTaskConfigurer taskConfigurer =  new CommandLineTaskConfigurer();
+    public CommandLineTaskParser(CommandLineTaskConfigurer commandLineTaskConfigurer) {
+        this.taskConfigurer = commandLineTaskConfigurer;
+    }
 
     public Multimap<String, Task> parseTasks(List<String> taskPaths, TaskSelector taskSelector) {
         SetMultimap<String, Task> out = LinkedHashMultimap.create();

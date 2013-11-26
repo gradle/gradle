@@ -17,13 +17,12 @@
 package org.gradle.api.internal.coerce;
 
 import org.gradle.api.Transformer;
-import org.gradle.api.specs.Spec;
+import org.gradle.internal.typeconversion.EnumFromStringNotationParser;
+import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.reflect.JavaReflectionUtil;
-import org.gradle.util.CollectionUtils;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /*
@@ -86,24 +85,8 @@ public class TypeCoercingMethodArgumentsTransformer implements MethodArgumentsTr
         return new Object[]{toEnumValue(enumType, charSequenceArg)};
     }
 
-    private <T extends Enum<T>> T toEnumValue(Class<T> enumType, CharSequence charSequence) {
-        final String enumString = charSequence.toString();
-        List<T> enumConstants = Arrays.asList(enumType.getEnumConstants());
-        T match = CollectionUtils.findFirst(enumConstants, new Spec<T>() {
-            public boolean isSatisfiedBy(T enumValue) {
-                return enumValue.name().equalsIgnoreCase(enumString);
-            }
-        });
-
-        if (match == null) {
-            throw new TypeCoercionException(
-                    String.format("Cannot coerce string value '%s' to an enum value of type '%s' (valid case insensitive values: %s)",
-                            enumString, enumType.getName(), CollectionUtils.toStringList(Arrays.asList(enumType.getEnumConstants()))
-                    )
-            );
-        } else {
-            return match;
-        }
+    public <T extends Enum<T>> T toEnumValue(Class<T> enumType, CharSequence charSequence) {
+        NotationParser<T> notationParser = new EnumFromStringNotationParser(enumType);
+        return notationParser.parseNotation(charSequence);
     }
-
 }

@@ -18,7 +18,7 @@ package org.gradle.api.publication.maven.internal;
 import groovy.lang.Closure;
 import org.gradle.api.artifacts.maven.GroovyMavenDeployer;
 import org.gradle.api.artifacts.maven.MavenResolver;
-import org.gradle.api.internal.Actions;
+import org.gradle.internal.Actions;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.ConfigureByMapAction;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;

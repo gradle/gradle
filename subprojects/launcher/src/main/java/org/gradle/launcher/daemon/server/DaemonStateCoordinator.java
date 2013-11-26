@@ -17,7 +17,7 @@
 package org.gradle.launcher.daemon.server;
 
 import org.gradle.api.logging.Logging;
-import org.gradle.internal.Stoppable;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.UncheckedException;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.server.exec.DaemonStateControl;

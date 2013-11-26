@@ -22,6 +22,8 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.model.ModelRule
+import org.gradle.model.ModelRules
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.nativebinaries.internal.ToolChainRegistryInternal
 import org.gradle.nativebinaries.plugins.NativeBinariesPlugin
@@ -39,22 +41,26 @@ class MicrosoftVisualCppPlugin implements Plugin<Project> {
     private final FileResolver fileResolver;
     private final ExecActionFactory execActionFactory
     private final Instantiator instantiator
+    private final ModelRules modelRules
 
     @Inject
-    MicrosoftVisualCppPlugin(FileResolver fileResolver, ExecActionFactory execActionFactory, Instantiator instantiator) {
+    MicrosoftVisualCppPlugin(FileResolver fileResolver, ExecActionFactory execActionFactory, ModelRules modelRules, Instantiator instantiator) {
         this.execActionFactory = execActionFactory
         this.fileResolver = fileResolver
         this.instantiator = instantiator
+        this.modelRules = modelRules
     }
 
-    void apply(Project project) {   
+    void apply(Project project) {
         project.plugins.apply(NativeBinariesPlugin)
 
-        def toolChainRegistry = project.extensions.getByType(ToolChainRegistryInternal)
-
-        toolChainRegistry.registerFactory(VisualCpp, { String name ->
-            instantiator.newInstance(VisualCppToolChain, name, OperatingSystem.current(), fileResolver, execActionFactory, new DefaultVisualStudioLocator())
+        modelRules.rule(new ModelRule() {
+            void addToolChain(ToolChainRegistryInternal toolChainRegistry) {
+                toolChainRegistry.registerFactory(VisualCpp, { String name ->
+                    return instantiator.newInstance(VisualCppToolChain, name, OperatingSystem.current(), fileResolver, execActionFactory, new DefaultVisualStudioLocator())
+                })
+                toolChainRegistry.registerDefaultToolChain(VisualCppToolChain.DEFAULT_NAME, VisualCpp)
+            }
         })
-        toolChainRegistry.registerDefaultToolChain(VisualCppToolChain.DEFAULT_NAME, VisualCpp)
     }
 }

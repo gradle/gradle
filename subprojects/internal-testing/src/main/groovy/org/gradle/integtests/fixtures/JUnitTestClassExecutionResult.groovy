@@ -51,6 +51,11 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
         this
     }
 
+    TestClassExecutionResult withResult(Closure action) {
+        action(testClassNode)
+        this
+    }
+
     TestClassExecutionResult assertTestPassed(String name) {
         Map<String, Node> testMethods = findTests()
         Assert.assertThat(testMethods.keySet(), Matchers.hasItem(name))

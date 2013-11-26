@@ -25,6 +25,8 @@ public interface PlatformToolChain {
 
     <T extends BinaryToolSpec> Compiler<T> createAssembler();
 
+    <T extends BinaryToolSpec> Compiler<T> createWindowsResourceCompiler();
+
     <T extends LinkerSpec> Compiler<T> createLinker();
 
     <T extends StaticLibraryArchiverSpec> Compiler<T> createStaticLibraryArchiver();

@@ -41,10 +41,14 @@ class CppNativeBinariesPlugin implements Plugin<ProjectInternal> {
         // TODO:DAZ It's ugly that we can't do this as project.binaries.all, but this is the way I could
         // add the cppCompiler in time to allow it to be configured within the component.binaries.all block.
         project.executables.all { Executable executable ->
-            addLanguageExtensionsToComponent(executable)
+            executable.binaries.all { binary ->
+                binary.extensions.create("cppCompiler", DefaultPreprocessingTool)
+            }
         }
         project.libraries.all { Library library ->
-            addLanguageExtensionsToComponent(library)
+            library.binaries.all { binary ->
+                binary.extensions.create("cppCompiler", DefaultPreprocessingTool)
+            }
         }
 
         project.binaries.withType(NativeBinary) { NativeBinaryInternal binary ->
@@ -53,12 +57,6 @@ class CppNativeBinariesPlugin implements Plugin<ProjectInternal> {
                 binary.tasks.add compileTask
                 binary.tasks.builder.source compileTask.outputs.files.asFileTree.matching { include '**/*.obj', '**/*.o' }
             }
-        }
-    }
-
-    private def addLanguageExtensionsToComponent(NativeComponent component) {
-        component.binaries.all { binary ->
-            binary.extensions.create("cppCompiler", DefaultPreprocessingTool)
         }
     }
 

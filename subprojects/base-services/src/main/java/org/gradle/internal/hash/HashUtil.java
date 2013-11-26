@@ -38,8 +38,9 @@ public class HashUtil {
     }
 
     public static HashValue createHash(InputStream instr, String algorithm) {
-        MessageDigest messageDigest = createMessageDigest(algorithm);
+        MessageDigest messageDigest;
         try {
+            messageDigest = createMessageDigest(algorithm);
             byte[] buffer = new byte[4096];
             try {
                 while (true) {

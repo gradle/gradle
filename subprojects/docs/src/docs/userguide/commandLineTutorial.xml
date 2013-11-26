@@ -154,6 +154,18 @@
                 <output args="-q tasks --all"/>
             </sample>
         </section>
+        <section id="sec:show_task_details">
+            <title>Show task usage details</title>
+            <para>Running <userinput>gradle help --task someTask</userinput> gives you detailed information about a specific task or multiple
+                tasks matching the given task name in your multiproject build <!--TODO RG ref multiproject-->
+                Below is an example of this detailed information:
+            </para>
+            <sample id="taskHelp" dir="userguide/tutorial/projectReports" title="Obtaining detailed help for tasks">
+                <output args="-q help --task libs"/>
+            </sample>
+            <para>This information includes the full task path, the task type, possible commandline options and the description of the given task.
+            </para>
+        </section>
         <section id="sec:listing_dependencies">
             <title>Listing project dependencies</title>
             <para id="para:commandline_dependency_report">Running <userinput>gradle dependencies</userinput>

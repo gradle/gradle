@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.testng
 
+import org.gradle.api.internal.tasks.testing.selection.DefaultTestSelection
 import org.gradle.api.tasks.testing.Test
 import org.gradle.api.tasks.testing.testng.TestNGOptions
 import org.gradle.internal.service.ServiceRegistry
@@ -37,7 +38,7 @@ public class TestNGTestFrameworkTest extends Specification {
         project.ext.sourceCompatibility = "1.4"
 
         when:
-        def framework = new TestNGTestFramework(testTask);
+        def framework = new TestNGTestFramework(testTask, new DefaultTestSelection());
 
         then:
         framework.options.annotations == TestNGOptions.JAVADOC_ANNOTATIONS
@@ -48,12 +49,12 @@ public class TestNGTestFrameworkTest extends Specification {
 
     void "initializes for newer java"() {
         expect:
-        new TestNGTestFramework(testTask).options.annotations == TestNGOptions.JDK_ANNOTATIONS
+        new TestNGTestFramework(testTask, new DefaultTestSelection()).options.annotations == TestNGOptions.JDK_ANNOTATIONS
     }
 
     void "creates test class processor"() {
         when:
-        def framework = new TestNGTestFramework(testTask);
+        def framework = new TestNGTestFramework(testTask, new DefaultTestSelection());
         def processor = framework.getProcessorFactory().create(Mock(ServiceRegistry))
 
         then:

@@ -22,7 +22,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 import org.gradle.api.Transformer;
-import org.gradle.api.internal.Transformers;
+import org.gradle.internal.Transformers;
 import org.gradle.model.ModelPath;
 
 import java.util.*;
@@ -36,6 +36,8 @@ public class DefaultModelRegistry implements ModelRegistry {
     private final Map<ModelPath, ModelCreation> creations = new HashMap<ModelPath, ModelCreation>();
     private final Multimap<ModelPath, ModelMutation<?>> mutators = ArrayListMultimap.create();
     private final Multimap<ModelPath, ImmutableList<ModelPath>> usedMutators = ArrayListMultimap.create();
+    private final Multimap<ModelPath, ModelMutation<?>> finalizers = ArrayListMultimap.create();
+    private final Multimap<ModelPath, ImmutableList<ModelPath>> usedFinalizers = ArrayListMultimap.create();
 
     private final List<ModelCreationListener> modelCreationListeners = new LinkedList<ModelCreationListener>();
 
@@ -61,12 +63,25 @@ public class DefaultModelRegistry implements ModelRegistry {
     }
 
     public <T> void mutate(String path, ModelMutation<T> mutation) {
+        ModelPath mutationModelPath = assertNotFinalized(path);
+        mutators.put(mutationModelPath, mutation);
+    }
+
+    public <T> void finalize(String path, List<String> inputPaths, ModelMutator<T> mutator) {
+        finalize(path, new ModelMutation<T>(mutator, toModelPaths(inputPaths)));
+    }
+
+    public <T> void finalize(String path, ModelMutation<T> mutation) {
+        ModelPath mutationModelPath = assertNotFinalized(path);
+        finalizers.put(mutationModelPath, mutation);
+    }
+
+    private ModelPath assertNotFinalized(String path) {
         ModelPath mutationModelPath = ModelPath.path(path);
         if (store.containsKey(mutationModelPath)) {
             throw new IllegalStateException("model '" + mutationModelPath + "' is finalized");
         }
-
-        mutators.put(mutationModelPath, mutation);
+        return mutationModelPath;
     }
 
     public <T> T get(String path, Class<T> type) {
@@ -116,7 +131,9 @@ public class DefaultModelRegistry implements ModelRegistry {
         Transformer<ImmutableList<ModelPath>, ImmutableList<ModelPath>> passThrough = Transformers.noOpTransformer();
 
         return hasModelPath(candidate, mutators.values(), extractInputPaths)
-                || hasModelPath(candidate, usedMutators.values(), passThrough);
+                || hasModelPath(candidate, usedMutators.values(), passThrough)
+                || hasModelPath(candidate, finalizers.values(), extractInputPaths)
+                || hasModelPath(candidate, usedFinalizers.values(), passThrough);
     }
 
     private <T> boolean hasModelPath(ModelPath candidate, Iterable<T> things, Transformer<? extends Iterable<ModelPath>, T> transformer) {
@@ -146,6 +163,13 @@ public class DefaultModelRegistry implements ModelRegistry {
             fireMutation(model, modelMutation);
             @SuppressWarnings("unchecked") ImmutableList<ModelPath> inputPaths = modelMutation.getInputPaths();
             usedMutators.put(path, inputPaths);
+        }
+
+        modelMutations = finalizers.removeAll(path);
+        for (ModelMutation modelMutation : modelMutations) {
+            fireMutation(model, modelMutation);
+            @SuppressWarnings("unchecked") ImmutableList<ModelPath> inputPaths = modelMutation.getInputPaths();
+            usedFinalizers.put(path, inputPaths);
         }
 
         // close all the child objects

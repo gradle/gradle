@@ -16,6 +16,7 @@
 
 package org.gradle.nativebinaries.language.cpp.fixtures;
 
+import org.apache.commons.lang.StringUtils;
 import org.gradle.integtests.fixtures.AbstractMultiTestRunner;
 
 import java.util.List;
@@ -55,7 +56,13 @@ public class SingleToolChainTestRunner extends AbstractMultiTestRunner {
 
         @Override
         protected boolean isTestEnabled(TestDetails testDetails) {
-            return enabled;
+            if (enabled) {
+                RequiresInstalledToolChain toolChainRestriction = testDetails.getAnnotation(RequiresInstalledToolChain.class);
+                return toolChainRestriction == null
+                        || StringUtils.isEmpty(toolChainRestriction.value())
+                        || toolChainRestriction.value().equals(toolChain.getDisplayName());
+            }
+            return false;
         }
 
         @Override

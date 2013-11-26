@@ -19,7 +19,7 @@ package org.gradle.process.internal;
 import org.apache.tools.ant.Project;
 import org.gradle.CacheUsage;
 import org.gradle.api.Action;
-import org.gradle.api.internal.Actions;
+import org.gradle.internal.Actions;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.internal.DefaultClassPathRegistry;

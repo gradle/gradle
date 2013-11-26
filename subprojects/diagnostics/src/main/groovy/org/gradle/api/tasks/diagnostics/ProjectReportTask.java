@@ -18,16 +18,15 @@ package org.gradle.api.tasks.diagnostics;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
-import org.gradle.internal.graph.GraphRenderer;
 import org.gradle.api.tasks.diagnostics.internal.TextReportRenderer;
 import org.gradle.configuration.ImplicitTasksConfigurer;
 import org.gradle.initialization.BuildClientMetaData;
+import org.gradle.internal.graph.GraphRenderer;
 import org.gradle.logging.StyledTextOutput;
+import org.gradle.util.CollectionUtils;
 import org.gradle.util.GUtil;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import static org.gradle.logging.StyledTextOutput.Style.*;
@@ -96,8 +95,6 @@ public class ProjectReportTask extends AbstractReportTask {
     }
 
     private List<Project> getChildren(Project project) {
-        List<Project> children = new ArrayList<Project>(project.getChildProjects().values());
-        Collections.sort(children);
-        return children;
+        return CollectionUtils.sort(project.getChildProjects().values());
     }
 }

@@ -16,22 +16,22 @@
 
 package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.component.ComponentSelector;
+import org.gradle.api.artifacts.result.ComponentSelectionReason;
 
 import java.util.Set;
 
 public interface DependencyEdge {
     boolean isResolvable();
 
-    ModuleVersionSelector getRequested();
+    ComponentSelector getRequested();
 
-    ModuleVersionIdentifier getActual();
+    ComponentIdentifier getActual();
 
-    ModuleVersionIdentifier getFrom();
+    ComponentIdentifier getFrom();
 
-    ModuleVersionSelectionReason getReason();
+    ComponentSelectionReason getReason();
 
     Set<? extends RenderableDependency> getChildren();
 }

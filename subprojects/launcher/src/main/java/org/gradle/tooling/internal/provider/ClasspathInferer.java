@@ -113,12 +113,6 @@ public class ClasspathInferer {
                         continue;
                     }
 
-                    //TODO:ADAM - remove this
-                    if (className.startsWith("com.sun.jdi.")) {
-                        System.out.println(String.format("=> Skipping JDI class %s.", className));
-                        continue;
-                    }
-
                     Class<?> cl;
                     try {
                         cl = Class.forName(className, false, targetClassLoader);

@@ -21,15 +21,21 @@ import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.processors.CaptureTestOutputTestResultProcessor;
+import org.gradle.api.internal.tasks.testing.selection.DefaultTestSelectionSpec;
 import org.gradle.internal.id.IdGenerator;
+import org.gradle.internal.reflect.JavaReflectionUtil;
+import org.gradle.internal.reflect.NoSuchMethodException;
 import org.gradle.logging.StandardOutputRedirector;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GFileUtils;
 import org.testng.ITestListener;
 import org.testng.TestNG;
+import org.testng.xml.XmlClass;
+import org.testng.xml.XmlInclude;
+import org.testng.xml.XmlSuite;
+import org.testng.xml.XmlTest;
 
 import java.io.File;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -76,12 +82,9 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
         testNg.setParallel(options.getParallel());
         testNg.setThreadCount(options.getThreadCount());
         try {
-            final Method setAnnotations = TestNG.class.getMethod("setAnnotations");
-            setAnnotations.invoke(testNg, options.getAnnotations());
+            JavaReflectionUtil.method(TestNG.class, Object.class, "setAnnotations").invoke(testNg, options.getAnnotations());
         } catch (NoSuchMethodException e) {
             /* do nothing; method has been removed in TestNG 6.3 */
-        } catch (Exception e) {
-            throw new GradleException(String.format("Could not configure TestNG annotations with value '%s'.", options.getAnnotations()), e);
         }
         if (options.getJavadocAnnotations()) {
             testNg.setSourcePath(CollectionUtils.join(File.pathSeparator, options.getTestResources()));
@@ -103,11 +106,40 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
         if (!suiteFiles.isEmpty()) {
             testNg.setTestSuites(GFileUtils.toPaths(suiteFiles));
         } else {
-            Class[] classes = testClasses.toArray(new Class[testClasses.size()]);
-            testNg.setTestClasses(classes);
+            if (options.getIncludedTests().isEmpty()) {
+                //includedMethods was introduced in 1.10, before that we used to configure classes this way:
+                testNg.setTestClasses(testClasses.toArray(new Class[testClasses.size()]));
+                //let's leave it for backwards compatibility
+            } else {
+                //in order to respect the included methods, we need to manually create the suite
+                configureXmlTestSuite(testNg, testClasses, options.getIncludedTests());
+            }
         }
 
         testNg.run();
+    }
+
+    private static void configureXmlTestSuite(TestNG testNg, List<Class<?>> testClasses, List<DefaultTestSelectionSpec> includedTests) {
+        XmlSuite suite = new XmlSuite();
+        XmlTest xmlTest = new XmlTest(suite);
+        xmlTest.setName("Gradle test");
+
+        for (Class klass : testClasses) {
+            XmlClass xmlClass = null;
+            for (DefaultTestSelectionSpec includedTest : includedTests) {
+                //I need to manually check if given class contains any matching method
+                //otherwise TestNG runs *all* methods if none of the methods match
+                if (includedTest.matchesClass(klass.getName()) && includedTest.matchesAnyMethodIn(klass)) {
+                    if (xmlClass == null) {
+                        xmlClass = new XmlClass(klass, true);
+                        xmlTest.getXmlClasses().add(xmlClass);
+                    }
+                    XmlInclude method = new XmlInclude(includedTest.getMethodPattern());
+                    xmlClass.getIncludedMethods().add(method);
+                }
+            }
+        }
+        testNg.setCommandLineSuite(suite);
     }
 
     private ITestListener adaptListener(ITestListener listener) {

@@ -16,9 +16,9 @@
 
 package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.artifacts.result.ModuleVersionSelectionReason;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
+import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 
 import java.util.Collections;
@@ -35,20 +35,20 @@ public class ResolvedDependencyEdge implements DependencyEdge {
         return true;
     }
 
-    public ModuleVersionSelector getRequested() {
-        return dependency.getRequested();
+    public ModuleComponentSelector getRequested() {
+        return (ModuleComponentSelector)dependency.getRequested();
     }
 
-    public ModuleVersionSelectionReason getReason() {
+    public ComponentSelectionReason getReason() {
         return dependency.getSelected().getSelectionReason();
     }
 
-    public ModuleVersionIdentifier getActual() {
-        return dependency.getSelected().getId();
+    public ModuleComponentIdentifier getActual() {
+        return (ModuleComponentIdentifier)dependency.getSelected().getId();
     }
 
-    public ModuleVersionIdentifier getFrom() {
-        return dependency.getFrom().getId();
+    public ModuleComponentIdentifier getFrom() {
+        return (ModuleComponentIdentifier)dependency.getFrom().getId();
     }
 
     public Set<? extends RenderableDependency> getChildren() {

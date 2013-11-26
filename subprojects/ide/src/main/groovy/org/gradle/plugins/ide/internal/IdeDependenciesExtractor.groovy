@@ -65,7 +65,7 @@ class IdeDependenciesExtractor {
     List<IdeRepoFileDependency> extractRepoFileDependencies(ConfigurationContainer confContainer,
                                                            Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations,
                                                            boolean downloadSources, boolean downloadJavadoc) {
-        def out = []
+        List<IdeRepoFileDependency> out = []
 
         def downloader = new JavadocAndSourcesDownloader(confContainer, plusConfigurations, minusConfigurations, downloadSources, downloadJavadoc)
 

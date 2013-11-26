@@ -19,7 +19,7 @@ package org.gradle.api.tasks.diagnostics.internal.insight;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.result.DependencyResult
-import org.gradle.api.artifacts.result.ModuleVersionSelectionReason
+import org.gradle.api.artifacts.result.ComponentSelectionReason
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.*
@@ -67,7 +67,7 @@ public class DependencyInsightReporter {
         out
     }
 
-    private String describeReason(ModuleVersionSelectionReason reason) {
+    private String describeReason(ComponentSelectionReason reason) {
         if (reason.conflictResolution || reason.forced || reason.selectedByRule) {
             return reason.description
         } else {

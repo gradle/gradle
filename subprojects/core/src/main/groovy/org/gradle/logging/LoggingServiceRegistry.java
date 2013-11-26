@@ -16,7 +16,7 @@
 
 package org.gradle.logging;
 
-import org.gradle.api.internal.Actions;
+import org.gradle.internal.Actions;
 import org.gradle.cli.CommandLineConverter;
 import org.gradle.internal.Factory;
 import org.gradle.internal.TimeProvider;

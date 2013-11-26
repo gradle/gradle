@@ -17,7 +17,7 @@ package org.gradle.nativebinaries;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
-import org.gradle.api.internal.HasInternalProtocol;
+import org.gradle.internal.HasInternalProtocol;
 
 /**
  * A cpu architecture.

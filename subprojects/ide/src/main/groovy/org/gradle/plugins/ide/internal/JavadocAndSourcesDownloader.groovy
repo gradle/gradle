@@ -60,7 +60,7 @@ class JavadocAndSourcesDownloader {
     }
 
     private Set<ResolvedDependency> resolveDependencies(Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations) {
-        def result = new LinkedHashSet()
+        Set<ResolvedDependency> result = new LinkedHashSet<ResolvedDependency>()
         for (plusConfiguration in plusConfigurations) {
             result.addAll(getAllDeps(plusConfiguration.resolvedConfiguration.lenientConfiguration.getFirstLevelModuleDependencies({ it instanceof ExternalDependency } as Spec)))
         }
@@ -70,7 +70,7 @@ class JavadocAndSourcesDownloader {
         result
     }
 
-    private List getResolvableDependenciesForAllResolvedDependencies(Set allResolvedDependencies, Closure configureClosure) {
+    private List<ExternalDependency> getResolvableDependenciesForAllResolvedDependencies(Set<ResolvedDependency> allResolvedDependencies, Closure configureClosure) {
         return allResolvedDependencies.collect { ResolvedDependency resolvedDependency ->
             def dependency = new DefaultExternalModuleDependency(resolvedDependency.moduleGroup, resolvedDependency.moduleName, resolvedDependency.moduleVersion,
                     resolvedDependency.configuration)
@@ -98,7 +98,7 @@ class JavadocAndSourcesDownloader {
         }
     }
 
-    private Map getFiles(Configuration configuration, String classifier) {
+    private Map<String, File> getFiles(Configuration configuration, String classifier) {
         return (Map) configuration.resolvedConfiguration.lenientConfiguration.getFiles(Specs.satisfyAll()).inject([:]) { result, sourceFile ->
             String key = sourceFile.name.replace("-${classifier}.jar", '.jar')
             result[key] = sourceFile
@@ -106,7 +106,7 @@ class JavadocAndSourcesDownloader {
         }
     }
 
-    private Set getAllDeps(Collection deps, Set allDeps = new LinkedHashSet()) {
+    private Set<ResolvedDependency> getAllDeps(Collection<ResolvedDependency> deps, Set<ResolvedDependency> allDeps = new LinkedHashSet()) {
         deps.each { ResolvedDependency resolvedDependency ->
             def notSeenBefore = allDeps.add(resolvedDependency)
             if (notSeenBefore) { // defend against circular dependencies

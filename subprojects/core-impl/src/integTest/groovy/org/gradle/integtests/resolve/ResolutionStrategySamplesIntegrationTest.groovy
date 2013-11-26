@@ -31,7 +31,7 @@ public class ResolutionStrategySamplesIntegrationTest extends AbstractIntegratio
         mavenRepo.module("org.gradle", "gradle-core", "1.4").publish()
         mavenRepo.module("org.software", "some-library", "1.2.1").publish()
         mavenRepo.module("org.codehaus", "groovy", "1.7").publish()
-        mavenRepo.module("org.slf4j", "log4j-over-slf4j", "1.7.2").publish()
+        mavenRepo.module("org.slf4j", "log4j-over-slf4j", "1.7.5").publish()
 
         sample.dir.file("build.gradle") << """
             configurations { conf }

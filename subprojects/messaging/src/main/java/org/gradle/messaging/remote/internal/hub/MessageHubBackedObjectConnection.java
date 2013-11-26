@@ -16,7 +16,7 @@
 
 package org.gradle.messaging.remote.internal.hub;
 
-import org.gradle.internal.CompositeStoppable;
+import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ThreadSafe;
 import org.gradle.messaging.dispatch.Dispatch;
 import org.gradle.messaging.dispatch.MethodInvocation;

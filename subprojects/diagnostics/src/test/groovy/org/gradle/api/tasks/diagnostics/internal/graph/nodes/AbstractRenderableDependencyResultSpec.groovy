@@ -16,12 +16,12 @@
 
 package org.gradle.api.tasks.diagnostics.internal.graph.nodes
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier
-import org.gradle.api.artifacts.ModuleVersionSelector
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.artifacts.component.ModuleComponentSelector
 import spock.lang.Specification
 
-import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
-import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
+import static org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier.newId
+import static org.gradle.api.internal.artifacts.component.DefaultModuleComponentSelector.newSelector
 
 class AbstractRenderableDependencyResultSpec extends Specification {
 
@@ -36,13 +36,13 @@ class AbstractRenderableDependencyResultSpec extends Specification {
         dep(requested, newId('com.mockito', 'mockito', '2.0')).name == 'org.mockito:mockito-core:1.0 -> com.mockito:mockito:2.0'
     }
 
-    private AbstractRenderableDependencyResult dep(ModuleVersionSelector requested, ModuleVersionIdentifier selected) {
+    private AbstractRenderableDependencyResult dep(ModuleComponentSelector requested, ModuleComponentIdentifier selected) {
         return new AbstractRenderableDependencyResult() {
-            ModuleVersionSelector getRequested() {
+            ModuleComponentSelector getRequested() {
                 return requested
             }
 
-            ModuleVersionIdentifier getActual() {
+            ModuleComponentIdentifier getActual() {
                 return selected
             }
 

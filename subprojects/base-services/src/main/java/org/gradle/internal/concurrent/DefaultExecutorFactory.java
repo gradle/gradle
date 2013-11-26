@@ -16,8 +16,6 @@
 
 package org.gradle.internal.concurrent;
 
-import org.gradle.internal.CompositeStoppable;
-import org.gradle.internal.Stoppable;
 import org.gradle.internal.UncheckedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

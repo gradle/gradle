@@ -20,7 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolutionResult;
-import org.gradle.api.artifacts.result.ResolvedModuleVersionResult;
+import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
@@ -108,7 +108,7 @@ public class ErrorHandlingArtifactDependencyResolver implements ArtifactDependen
             this.configuration = configuration;
         }
 
-        public ResolvedModuleVersionResult getRoot() {
+        public ResolvedComponentResult getRoot() {
             try {
                 return resolutionResult.getRoot();
             } catch (Throwable e) {
@@ -132,20 +132,20 @@ public class ErrorHandlingArtifactDependencyResolver implements ArtifactDependen
             resolutionResult.allDependencies(closure);
         }
 
-        public Set<ResolvedModuleVersionResult> getAllModuleVersions() {
+        public Set<ResolvedComponentResult> getAllComponents() {
             try {
-                return resolutionResult.getAllModuleVersions();
+                return resolutionResult.getAllComponents();
             } catch (Throwable e) {
                 throw wrapException(e, configuration);
             }
         }
 
-        public void allModuleVersions(Action<? super ResolvedModuleVersionResult> action) {
-            resolutionResult.allModuleVersions(action);
+        public void allComponents(Action<? super ResolvedComponentResult> action) {
+            resolutionResult.allComponents(action);
         }
 
-        public void allModuleVersions(Closure closure) {
-            resolutionResult.allModuleVersions(closure);
+        public void allComponents(Closure closure) {
+            resolutionResult.allComponents(closure);
         }
     }
     

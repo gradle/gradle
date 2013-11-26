@@ -18,6 +18,7 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.hamcrest.Matchers
+import spock.lang.Unroll
 
 class TaskRemovalIntegrationTest extends AbstractIntegrationSpec {
 
@@ -53,7 +54,8 @@ class TaskRemovalIntegrationTest extends AbstractIntegrationSpec {
         failure.assertThatDescription(Matchers.startsWith("Task 'foo' not found in root project"))
     }
 
-    def "cant remove task in after evaluate if task is used by other model"() {
+    @Unroll
+    def "cant remove task in after evaluate if task is used by a #ruleClass"() {
         given:
         buildScript """
             import org.gradle.model.*
@@ -66,7 +68,7 @@ class TaskRemovalIntegrationTest extends AbstractIntegrationSpec {
             }
 
             // No DSL for rules dependent on other model yet
-            project.services.get(ModelRules).rule(new ModelRule() {
+            project.services.get(ModelRules).rule(new $ruleClass() {
                 void linkFooToBar(@Path("tasks.bar") Task bar, @Path("tasks.foo") Task foo) {
                     // do nothing
                 }
@@ -78,6 +80,9 @@ class TaskRemovalIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertThatCause(Matchers.startsWith("Tried to remove model tasks.foo but it is depended on by other model elements"))
+
+        where:
+        ruleClass << ["ModelRule", "ModelFinalizer"]
     }
 
 }

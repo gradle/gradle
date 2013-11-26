@@ -24,8 +24,8 @@ import org.gradle.api.Incubating;
 @Incubating
 public interface ResolvedDependencyResult extends DependencyResult {
     /**
-     * Returns the selected module version. This may not necessarily be the same as the requested module version. For example, a dynamic version
+     * Returns the selected component. This may not necessarily be the same as the requested component. For example, a dynamic version
      * may have been requested, or the version may have been substituted due to conflict resolution, or by being forced, or for some other reason.
      */
-    ResolvedModuleVersionResult getSelected();
+    ResolvedComponentResult getSelected();
 }

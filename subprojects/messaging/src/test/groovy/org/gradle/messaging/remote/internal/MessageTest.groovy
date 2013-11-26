@@ -15,26 +15,86 @@
  */
 package org.gradle.messaging.remote.internal
 
-import spock.lang.Specification
+import org.gradle.internal.exceptions.AbstractMultiCauseException
 import spock.lang.Issue
-import spock.lang.Ignore
+import spock.lang.Specification
 
 class MessageTest extends Specification {
     GroovyClassLoader source = new GroovyClassLoader(getClass().classLoader)
     GroovyClassLoader dest = new GroovyClassLoader(getClass().classLoader)
 
-    def "replaces unserializable exception with placeholder"() {
-        def cause = new RuntimeException("nested")
-        def original = new UnserializableException("message", cause)
+    def "can transport graph of exceptions"() {
+        def cause1 = new ExceptionWithState("nested-1", ["a", 1])
+        def cause2 = new IOException("nested-2")
+        def cause = new AbstractMultiCauseException("nested", cause1, cause2)
+        def original = new ExceptionWithExceptionField("message", cause)
+
+        when:
+        def transported = transport(new TestPayloadMessage(payload: original))
+
+        then:
+        transported.payload.class == ExceptionWithExceptionField
+        transported.payload.message == "message"
+
+        and:
+        transported.payload.throwable.class == AbstractMultiCauseException
+        transported.payload.throwable.message == "nested"
+
+        and:
+        transported.payload.throwable == transported.payload.cause
+
+        and:
+        transported.payload.throwable.causes.size() == 2
+        transported.payload.throwable.causes*.class == [ExceptionWithState, IOException]
+        transported.payload.throwable.causes*.message == ["nested-1", "nested-2"]
+
+        and:
+        transported.payload.throwable.causes[0].values == ["a", 1]
+    }
+
+    def "can transport exception with custom serialization"() {
+        def cause = new IOException("nested")
+        def original = new ExceptionWithCustomSerialization("message", cause)
 
         when:
         def transported = transport(original)
 
         then:
-        transported instanceof PlaceholderException
-        transported.message == original.message
-        transported.stackTrace == original.stackTrace
+        transported.class == ExceptionWithCustomSerialization
+        transported.message == "message"
 
+        and:
+        transported.throwable.class == IOException
+        transported.throwable.message == "nested"
+    }
+
+    def "replaces exception with broken writeObject() method with placeholder"() {
+        def cause = new RuntimeException("nested")
+        def original = new BrokenWriteObjectException("message", cause)
+
+        when:
+        def transported = transport(original)
+
+        then:
+        looksLike original, transported
+
+        and:
+        transported.cause.class == RuntimeException.class
+        transported.cause.message == "nested"
+        transported.cause.stackTrace == cause.getStackTrace()
+    }
+
+    def "replaces exception with field that cannot be serialized with placeholder"() {
+        def cause = new RuntimeException("nested")
+        def original = new ExceptionWithNonSerializableField("message", cause)
+
+        when:
+        def transported = transport(original)
+
+        then:
+        looksLike original, transported
+
+        and:
         transported.cause.class == RuntimeException.class
         transported.cause.message == "nested"
         transported.cause.stackTrace == cause.getStackTrace()
@@ -42,7 +102,7 @@ class MessageTest extends Specification {
 
     def "replaces nested unserializable exception with placeholder"() {
         def cause = new IOException("nested")
-        def original = new UnserializableException("message", cause)
+        def original = new BrokenWriteObjectException("message", cause)
         def outer = new RuntimeException("message", original)
 
         when:
@@ -54,10 +114,10 @@ class MessageTest extends Specification {
         transported.message == "message"
         transported.stackTrace == outer.stackTrace
 
-        transported.cause instanceof PlaceholderException
-        transported.cause.message == original.message
-        transported.cause.stackTrace == original.stackTrace
+        and:
+        looksLike original, transported.cause
 
+        and:
         transported.cause.cause.class == IOException
         transported.cause.cause.message == "nested"
         transported.cause.cause.stackTrace == cause.stackTrace
@@ -65,16 +125,15 @@ class MessageTest extends Specification {
 
     def "replaces undeserializable exception with placeholder"() {
         def cause = new RuntimeException("nested")
-        def original = new UndeserializableException("message", cause)
+        def original = new BrokenReadObjectException("message", cause)
 
         when:
         def transported = transport(original)
 
         then:
-        transported instanceof PlaceholderException
-        transported.message == original.message
-        transported.stackTrace == original.stackTrace
+        looksLike original, transported
 
+        and:
         transported.cause.class == RuntimeException.class
         transported.cause.message == "nested"
         transported.cause.stackTrace == cause.stackTrace
@@ -82,7 +141,7 @@ class MessageTest extends Specification {
 
     def "replaces nested undeserializable exception with placeholder"() {
         def cause = new RuntimeException("nested")
-        def original = new UndeserializableException("message", cause)
+        def original = new BrokenReadObjectException("message", cause)
         def outer = new RuntimeException("message", original)
 
         when:
@@ -94,10 +153,10 @@ class MessageTest extends Specification {
         transported.message == "message"
         transported.stackTrace == outer.stackTrace
 
-        transported.cause instanceof PlaceholderException
-        transported.cause.message == original.message
-        transported.cause.stackTrace == original.stackTrace
+        and:
+        looksLike original, transported.cause
 
+        and:
         transported.cause.cause.class == RuntimeException.class
         transported.cause.cause.message == "nested"
         transported.cause.cause.stackTrace == cause.stackTrace
@@ -105,7 +164,7 @@ class MessageTest extends Specification {
 
     def "replaces unserializable exception field with placeholder"() {
         def cause = new RuntimeException()
-        def original = new UndeserializableException("message", cause)
+        def original = new BrokenReadObjectException("message", cause)
         def outer = new ExceptionWithExceptionField("nested", original)
 
         when:
@@ -114,10 +173,10 @@ class MessageTest extends Specification {
         then:
         transported instanceof ExceptionWithExceptionField
 
-        transported.throwable instanceof PlaceholderException
-        transported.throwable.message == original.message
-        transported.throwable.stackTrace == original.stackTrace
+        and:
+        looksLike original, transported.throwable
 
+        and:
         transported.throwable == transported.cause
     }
 
@@ -156,39 +215,50 @@ class MessageTest extends Specification {
         def transported = transport(original)
 
         then:
-        transported instanceof PlaceholderException
-        transported.message == original.message
-        transported.stackTrace == original.stackTrace
+        looksLike original, transported
 
+        and:
         transported.cause.class == RuntimeException.class
         transported.cause.message == "nested"
         transported.cause.stackTrace == cause.stackTrace
     }
 
-    def "creates placeholder with toString() behaviour as original"() {
-        def cause = new IOException("nested")
-        def broken = new SerializableToStringException("message", cause)
+    def "transports exception with broken methods"() {
+        def broken = new CompletelyBrokenException()
 
         when:
         def transported = transport(broken)
-        transported.toString()
-        then:
-
-        def toStringException = thrown(RuntimeException)
-        toStringException.getMessage() == "broken toString"
-
-        when:
-        cause = new IOException("nested")
-        broken = new UnserializableToStringException("message", cause)
-        transported = transport(broken)
-        transported.toString()
 
         then:
-        toStringException = thrown(PlaceholderException)
-        toStringException.getMessage() == "broken toString"
+        transported.class == CompletelyBrokenException
     }
 
-    @Ignore
+    def "transports unserializable exception with broken methods"() {
+        def broken = new CompletelyBrokenException() { def Object o = new Object() }
+
+        when:
+        def transported = transport(broken)
+
+        then:
+        transported.class == PlaceholderException
+        transported.cause == null
+        transported.stackTrace.length == 0
+
+        when:
+        transported.message
+
+        then:
+        RuntimeException e = thrown()
+        e.message == 'broken getMessage()'
+
+        when:
+        transported.toString()
+
+        then:
+        RuntimeException e2 = thrown()
+        e2.message == 'broken toString()'
+    }
+
     @Issue("GRADLE-1996")
     def "can transport exception that implements writeReplace()"() {
         def original = new WriteReplaceException("original")
@@ -197,9 +267,26 @@ class MessageTest extends Specification {
         def transported = transport(original)
 
         then:
-        noExceptionThrown()
         transported instanceof WriteReplaceException
         transported.message == "replaced"
+    }
+
+    def "can transport exception that implements readResolve()"() {
+        def original = new ReadReplaceException()
+
+        when:
+        def transported = transport(original)
+
+        then:
+        transported == ReadReplaceException.singleton
+    }
+
+    void looksLike(Throwable original, Throwable transported) {
+        assert transported instanceof PlaceholderException
+        assert transported.exceptionClassName == original.class.name
+        assert transported.message == original.message
+        assert transported.toString() == original.toString()
+        assert transported.stackTrace == original.stackTrace
     }
 
     private Object transport(Object arg) {
@@ -215,6 +302,14 @@ class MessageTest extends Specification {
         def payload
     }
 
+    static class ExceptionWithNonSerializableField extends RuntimeException {
+        def canNotSerialize = new Object()
+
+        ExceptionWithNonSerializableField(String message, Throwable cause) {
+            super(message, cause)
+        }
+    }
+
     static class ExceptionWithExceptionField extends RuntimeException {
         Throwable throwable
 
@@ -224,8 +319,17 @@ class MessageTest extends Specification {
         }
     }
 
-    static class UnserializableException extends RuntimeException {
-        UnserializableException(String message, Throwable cause) {
+    static class ExceptionWithState extends RuntimeException {
+        List<?> values
+
+        ExceptionWithState(String message, List<?> values) {
+            super(message)
+            this.values = values
+        }
+    }
+
+    static class BrokenWriteObjectException extends RuntimeException {
+        BrokenWriteObjectException(String message, Throwable cause) {
             super(message, cause)
         }
 
@@ -234,37 +338,54 @@ class MessageTest extends Specification {
         }
     }
 
-    static class UnserializableToStringException extends RuntimeException {
-        UnserializableToStringException (String message, Throwable cause) {
-            super(message, cause)
+    static class CompletelyBrokenException extends RuntimeException {
+        @Override
+        String getMessage() {
+            throw new RuntimeException("broken getMessage()", null);
         }
 
+        @Override
         public String toString() {
-            throw new UnserializableException("broken toString", null);
+            throw new RuntimeException("broken toString()", null);
         }
 
-        private void writeObject(ObjectOutputStream outstr) throws IOException {
-            outstr.writeObject(new Object())
+        @Override
+        public Throwable getCause() {
+            throw new RuntimeException("broken getCause()", null);
+        }
+
+        @Override
+        StackTraceElement[] getStackTrace() {
+            throw new RuntimeException("broken getStackTrace()", null);
         }
     }
 
-    static class SerializableToStringException extends RuntimeException {
-        SerializableToStringException(String message, Throwable cause) {
+    static class BrokenReadObjectException extends RuntimeException {
+        BrokenReadObjectException(String message, Throwable cause) {
             super(message, cause)
         }
 
-        public String toString() {
-            throw new RuntimeException("broken toString", null);
+        private void readObject(ObjectInputStream outstr)  {
+            throw new RuntimeException("broken readObject()")
         }
     }
 
-    static class UndeserializableException extends RuntimeException {
-        UndeserializableException(String message, Throwable cause) {
-            super(message, cause)
+    static class ExceptionWithCustomSerialization extends RuntimeException {
+        def transient throwable
+
+        ExceptionWithCustomSerialization(String message, Throwable cause) {
+            super(message)
+            throwable = cause
         }
 
-        private void readObject(ObjectInputStream outstr) throws ClassNotFoundException {
-            throw new ClassNotFoundException()
+        private void writeObject(ObjectOutputStream outstr)  {
+            outstr.defaultWriteObject()
+            outstr.writeObject(throwable)
+        }
+
+        private void readObject(ObjectInputStream instr)  {
+            instr.defaultReadObject()
+            throwable = instr.readObject()
         }
     }
 
@@ -275,6 +396,14 @@ class MessageTest extends Specification {
 
         private Object writeReplace() {
             return new WriteReplaceException("replaced")
+        }
+    }
+
+    static class ReadReplaceException extends Exception {
+        static Exception singleton = new Exception("replaced")
+
+        private Object readResolve() {
+            return singleton
         }
     }
 }

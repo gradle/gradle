@@ -16,16 +16,16 @@
 
 package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId;
+import static org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier.newId;
 
 public class SimpleDependency implements RenderableDependency {
 
-    private final ModuleVersionIdentifier id;
+    private final ModuleComponentIdentifier id;
     private final String name;
     private final boolean resolvable;
     private final String description;
@@ -42,7 +42,7 @@ public class SimpleDependency implements RenderableDependency {
         this.id = newId(name, name, "1.0");
     }
 
-    public ModuleVersionIdentifier getId() {
+    public ModuleComponentIdentifier getId() {
         return id;
     }
 

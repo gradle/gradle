@@ -19,8 +19,9 @@ package org.gradle.buildinit.plugins.internal
 import org.gradle.api.GradleException
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
+import org.gradle.util.CollectionUtils
 
-class ProjectLayoutSetupRegistry {
+class ProjectLayoutSetupRegistry{
 
     private final Logger logger = Logging.getLogger(ProjectLayoutSetupRegistry.class);
     private final Map<String, ProjectInitDescriptor> registeredProjectDescriptors = new HashMap<String, ProjectInitDescriptor>();
@@ -38,11 +39,11 @@ class ProjectLayoutSetupRegistry {
     }
 
     List<ProjectInitDescriptor> getAll() {
-        return Arrays.asList(registeredProjectDescriptors.values())
+        return CollectionUtils.toList(registeredProjectDescriptors.values())
     }
 
-    List<ProjectInitDescriptor> getSupportedTypes() {
-        return Arrays.asList(registeredProjectDescriptors.keySet())
+    List<String> getSupportedTypes() {
+        return CollectionUtils.sort(registeredProjectDescriptors.keySet())
     }
 
     boolean supports(String type) {

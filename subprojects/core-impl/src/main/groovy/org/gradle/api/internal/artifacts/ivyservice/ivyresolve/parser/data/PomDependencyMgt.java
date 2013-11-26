@@ -21,6 +21,7 @@ import org.apache.ivy.core.module.id.ModuleId;
 import java.util.List;
 
 public interface PomDependencyMgt {
+    MavenDependencyKey getId();
     String getGroupId();
     String getArtifactId();
     String getVersion();

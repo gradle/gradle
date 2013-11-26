@@ -90,11 +90,7 @@ subprojects {
                 if (module.groupId != allProjects[0].groupId) {
                     group = "group = '${module.groupId}'"
                 }
-                String moduleBuild = """
-${group}
-description = '${module.name}'
-
-"""
+                String moduleBuild = "${group}\n"
                 if (warPack) {
                     moduleBuild += """apply plugin: 'war'
 
@@ -107,6 +103,11 @@ description = '${module.name}'
 """
                     }
                 }
+                if (module.name) {
+                    moduleBuild += "description = '${module.name}'\n"
+                }
+
+
                 if (hasDependencies) {
                     moduleBuild += moduleDependencies
                 }
@@ -441,7 +442,7 @@ artifacts.archives packageTests
         }
         def modulePoms = modules(projects, true)
 
-        def modules = new StringBuilder();
+        List<String> moduleNames = new ArrayList<String>();
         def artifactIdToDir = [:]
         if (projects) {
             modulePoms.each { project ->
@@ -450,24 +451,26 @@ artifacts.archives packageTests
                 // don't add project if it's the rootproject
                 if (!workingDir.equals(projectDirectory)) {
                     artifactIdToDir[fqn] = GFileUtils.relativePath(workingDir, projectDirectory)
-                    modules.append("'${fqn}', ")
+                    moduleNames.add(fqn)
                 }
-            }
-            def strLength = modules.length()
-            if (strLength > 2) {
-                modules.delete(strLength - 2, strLength)
             }
         }
         File settingsFile = new File("settings.gradle")
         if (settingsFile.exists()) {
             settingsFile.renameTo(new File("settings.gradle.bak"))
         }
-        def settingsText = "${projectName}${modules.length() > 0 ? "include ${modules.toString()}" : ''}\n"
-        artifactIdToDir.each { entry ->
-            settingsText += """
-project('$entry.key').projectDir = """ + '"$rootDir/' + "${entry.value}" + '" as File'
+        StringBuffer settingsText = new StringBuffer(projectName)
+        if (moduleNames.size() > 0) {
+            moduleNames.each {
+                settingsText.append("include '$it'\n")
+            }
         }
-        settingsFile.text = settingsText
+
+        artifactIdToDir.each { entry ->
+            settingsText.append("""
+project('$entry.key').projectDir = """ + '"$rootDir/' + "${entry.value}" + '" as File')
+        }
+        settingsFile.text = settingsText.toString()
         return qualifiedNames
     }
 

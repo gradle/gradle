@@ -15,7 +15,10 @@
  */
 package org.gradle.nativebinaries.toolchain.internal.gcc;
 
+import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativebinaries.internal.ToolChainAvailability;
@@ -135,6 +138,12 @@ public class GccToolChain extends AbstractGccCompatibleToolChain implements Gcc 
 
         public void setExecutable(String file) {
             tools.setExeName(toolType, file);
+        }
+
+        // TODO:DAZ Decorate class and use an action parameter
+        public void withArguments(Closure arguments) {
+            Action<List<String>> action = new ClosureBackedAction<List<String>>(arguments);
+            tools.addArgsAction(toolType, action);
         }
     }
 

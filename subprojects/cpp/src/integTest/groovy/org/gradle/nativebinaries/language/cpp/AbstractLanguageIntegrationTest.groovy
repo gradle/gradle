@@ -27,7 +27,7 @@ abstract class AbstractLanguageIntegrationTest extends AbstractInstalledToolChai
 
     def "setup"() {
         buildFile << helloWorldApp.pluginScript
-        buildFile << helloWorldApp.targetPlatformsScript
+        buildFile << helloWorldApp.extraConfiguration
     }
 
     def "compile and link executable"() {

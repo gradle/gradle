@@ -15,7 +15,11 @@
  */
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
+import org.apache.ivy.core.module.descriptor.Artifact;
+import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.module.id.ArtifactRevisionId;
+import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.gradle.api.Nullable;
 import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DownloadedIvyModuleDescriptorParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
@@ -46,6 +50,11 @@ public class IvyResolver extends ExternalResourceResolver implements PatternBase
     @Override
     public boolean isDynamicResolveMode() {
         return dynamicResolve;
+    }
+
+    @Nullable
+    protected Artifact getMetaDataArtifactFor(ModuleRevisionId mrid) {
+        return DefaultArtifact.newIvyArtifact(mrid, null);
     }
 
     public void addArtifactLocation(URI baseUri, String pattern) {

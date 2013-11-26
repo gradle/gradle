@@ -17,7 +17,7 @@ package org.gradle.api.tasks.diagnostics;
 
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.internal.tasks.CommandLineOption;
+import org.gradle.api.internal.tasks.options.Option;
 import org.gradle.api.tasks.diagnostics.internal.DependencyReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.ReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.dependencies.AsciiDependencyReportRenderer;
@@ -88,7 +88,7 @@ public class DependencyReportTask extends AbstractReportTask {
      *
      * @param configurationName name of the configuration to generate the report for
      */
-    @CommandLineOption(options = "configuration", description = "The configuration to generate the report for.")
+    @Option(option = "configuration", description = "The configuration to generate the report for.")
     public void setConfiguration(String configurationName) {
         this.configurations = Collections.singleton(getProject().getConfigurations().getByName(configurationName));
     }

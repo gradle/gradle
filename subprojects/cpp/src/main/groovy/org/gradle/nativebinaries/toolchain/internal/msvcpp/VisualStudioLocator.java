@@ -23,10 +23,14 @@ public interface VisualStudioLocator {
 
     SearchResult locateDefaultVisualStudio();
 
+    SearchResult locateWindowsSdk(File candidate);
+
     SearchResult locateDefaultWindowsSdk();
 
     interface SearchResult {
         boolean isFound();
+
+        String getVersion();
 
         File getResult();
 

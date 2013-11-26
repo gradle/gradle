@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks.testing.testng;
 
+import org.gradle.api.internal.tasks.testing.selection.DefaultTestSelectionSpec;
+import org.gradle.api.internal.tasks.testing.selection.DefaultTestSelection;
 import org.gradle.api.tasks.testing.testng.TestNGOptions;
 
 import java.io.Serializable;
@@ -36,8 +38,9 @@ public class TestNGSpec implements Serializable {
     private final Set<String> includeGroups;
     private final Set<String> excludeGroups;
     private final Set<String> listeners;
+    private final List<DefaultTestSelectionSpec> includedTests;
 
-    public TestNGSpec(TestNGOptions options) {
+    public TestNGSpec(TestNGOptions options, DefaultTestSelection selection) {
         this.defaultSuiteName = options.getSuiteName();
         this.defaultTestName = options.getTestName();
         this.parallel = options.getParallel();
@@ -49,6 +52,7 @@ public class TestNGSpec implements Serializable {
         this.includeGroups = options.getIncludeGroups();
         this.excludeGroups = options.getExcludeGroups();
         this.listeners = options.getListeners();
+        this.includedTests = selection.getIncludedTests();
     }
 
     public Set<String> getListeners() {
@@ -93,5 +97,9 @@ public class TestNGSpec implements Serializable {
 
     public String getDefaultSuiteName() {
         return defaultSuiteName;
+    }
+
+    public List<DefaultTestSelectionSpec> getIncludedTests() {
+        return includedTests;
     }
 }

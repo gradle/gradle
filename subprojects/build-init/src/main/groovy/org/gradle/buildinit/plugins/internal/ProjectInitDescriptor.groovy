@@ -16,6 +16,5 @@
 
 package org.gradle.buildinit.plugins.internal
 
-interface ProjectInitDescriptor {
-    void generateProject()
+interface ProjectInitDescriptor extends TemplateOperation{
 }

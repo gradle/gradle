@@ -39,7 +39,7 @@ class IvyResourcePatternTest extends Specification {
         def artifact2 = DefaultArtifact.newIvyArtifact(ModuleRevisionId.newInstance("org.group", "projectA", "1.2"), new Date())
 
         expect:
-        pattern.toPathWithoutRevision(artifact1) == 'prefix/group-projectA/[revision]/ivys/[revision]/ivy.xml'
-        pattern.toPathWithoutRevision(artifact2) == 'prefix/org.group-projectA/[revision]/ivys/[revision]/ivy.xml'
+        pattern.toVersionListPattern(artifact1) == 'prefix/group-projectA/[revision]/ivys/[revision]/ivy.xml'
+        pattern.toVersionListPattern(artifact2) == 'prefix/org.group-projectA/[revision]/ivys/[revision]/ivy.xml'
     }
 }

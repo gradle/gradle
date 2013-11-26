@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.reflect;
 
+import com.google.common.base.Joiner;
 import org.gradle.api.GradleException;
 import org.gradle.internal.UncheckedException;
 
@@ -51,8 +52,7 @@ public class JavaMethod<T, R> {
 
         Class<?> parent = target.getSuperclass();
         if (parent == null) {
-            throw new GradleException(String.format("Could not find method %s(%s) on %s", name, Arrays.toString(paramTypes),
-                    origTarget));
+            throw new NoSuchMethodException(String.format("Could not find method %s(%s) on %s.", name, Joiner.on(", ").join(paramTypes), origTarget.getSimpleName()));
         } else {
             return findMethod(origTarget, parent, name, paramTypes);
         }
@@ -63,14 +63,17 @@ public class JavaMethod<T, R> {
             Object result = method.invoke(target, args);
             return returnType.cast(result);
         } catch (InvocationTargetException e) {
-            Throwable cause = e.getCause();
-            if (cause instanceof RuntimeException) {
-                throw (RuntimeException) cause;
-            }
-            throw UncheckedException.throwAsUncheckedException(cause);
+            throw UncheckedException.throwAsUncheckedException(e.getCause());
         } catch (Exception e) {
             throw new GradleException(String.format("Could not call %s.%s() on %s", method.getDeclaringClass().getSimpleName(), method.getName(), target), e);
         }
     }
 
+    public Method getMethod() {
+        return method;
+    }
+
+    public Class<?>[] getParameterTypes(){
+        return method.getParameterTypes();
+    }
 }

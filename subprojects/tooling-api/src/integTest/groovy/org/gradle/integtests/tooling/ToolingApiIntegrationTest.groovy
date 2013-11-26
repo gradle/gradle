@@ -144,7 +144,7 @@ allprojects {
     def "tooling API does not hold JVM open"() {
         given:
         def buildFile = projectDir.file("build.gradle")
-        def startTimeoutMs = 60000
+        def startTimeoutMs = 90000
         def stateChangeTimeoutMs = 15000
         def stopTimeoutMs = 10000
         def retryIntervalMs = 500
@@ -239,7 +239,6 @@ allprojects {
         when:
         GradleHandle handle = executer.inDirectory(projectDir)
                 .withTasks('run')
-                .withDaemonIdleTimeoutSecs(60)
                 .start()
 
         then:
@@ -270,6 +269,7 @@ allprojects {
             if (System.currentTimeMillis() - stopMarkerAt > stopTimeoutMs) {
                 throw new Exception("timeout after placing stop marker (JVM might have been held open")
             }
+            sleep retryIntervalMs
         }
 
         handle.waitForFinish()

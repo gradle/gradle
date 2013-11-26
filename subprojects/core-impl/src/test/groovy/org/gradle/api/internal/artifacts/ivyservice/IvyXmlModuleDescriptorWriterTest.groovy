@@ -41,7 +41,7 @@ class IvyXmlModuleDescriptorWriterTest extends Specification {
         1 * md.qualifiedExtraAttributes >> [buildNr: "815"]
         1 * md.getExtraInfo() >> Collections.emptyMap()
         1 * md.getLicenses() >> Collections.emptyList()
-        2 * md.inheritedDescriptors >> Collections.emptyList()
+        1 * md.inheritedDescriptors >> Collections.emptyList()
         1 * md.resolvedModuleRevisionId >> resolvedModuleRevisionId
         1 * md.resolvedPublicationDate >> date("20120817120000")
         1 * md.status >> "integration"
@@ -60,8 +60,8 @@ class IvyXmlModuleDescriptorWriterTest extends Specification {
         setup:
         def dependency1 = mockDependencyDescriptor("Dep1")
         def dependency2 = mockDependencyDescriptor("Dep2")
-        2 * dependency2.force >> true
-        2 * dependency2.changing >> true
+        1 * dependency2.force >> true
+        1 * dependency2.changing >> true
         1 * md.dependencies >> [dependency1, dependency2]
         1 * dependency1.transitive >> true
         when:

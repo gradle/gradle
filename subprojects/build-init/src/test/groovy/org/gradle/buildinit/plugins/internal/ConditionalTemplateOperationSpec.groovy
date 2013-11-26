@@ -25,14 +25,15 @@ class ConditionalTemplateOperationSpec extends Specification {
         TemplateOperation operation1 = Mock(TemplateOperation)
         TemplateOperation operation2 = Mock(TemplateOperation)
 
+        Mock(org.gradle.internal.Factory).create() >> true
         when:
-        new ConditionalTemplateOperation({true}, operation1, operation2).generate()
+        new ConditionalTemplateOperation({true} as org.gradle.internal.Factory, operation1, operation2).generate()
         then:
         1 * operation1.generate()
         1 * operation2.generate()
 
         when:
-        new ConditionalTemplateOperation({false}, operation1, operation2).generate()
+        new ConditionalTemplateOperation({false} as org.gradle.internal.Factory, operation1, operation2).generate()
         then:
         0 * operation1.generate()
         0 * operation2.generate()

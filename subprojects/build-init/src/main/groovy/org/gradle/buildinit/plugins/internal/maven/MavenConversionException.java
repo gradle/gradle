@@ -15,7 +15,7 @@
  */
 
 package org.gradle.buildinit.plugins.internal.maven;
-import org.gradle.api.internal.Contextual;
+import org.gradle.internal.exceptions.Contextual;
 
 @Contextual
 public class MavenConversionException extends RuntimeException {
