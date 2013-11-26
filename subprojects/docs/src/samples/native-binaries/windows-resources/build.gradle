@@ -1,5 +1,7 @@
 apply plugin: 'cpp'
+// START SNIPPET apply-plugin
 apply plugin: 'windows-resources'
+// END SNIPPET apply-plugin
 
 libraries {
     hello {}

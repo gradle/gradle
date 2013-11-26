@@ -112,13 +112,13 @@
                 <tr><td>Component Type</td><td>Native Binary Type</td><td>Lifecycle task</td><td>Location of created binary</td></tr>
             </thread>
             <tr>
-                <td><apilink class="org.gradle.nativebinaries.Executable"/></td><td><apilink class="org.gradle.nativebinaries.ExecutableBinary"/></td><td><literal>mainExecutable</literal></td><td><filename><replaceable>$buildDir</replaceable>/binaries/<replaceable>$project.name</replaceable></filename></td>
+                <td><apilink class="org.gradle.nativebinaries.Executable"/></td><td><apilink class="org.gradle.nativebinaries.ExecutableBinary"/></td><td><literal><replaceable>$component.name</replaceable>Executable</literal></td><td><filename><replaceable>$buildDir</replaceable>/binaries/<replaceable>$binary.name</replaceable>/<replaceable>$component.name</replaceable></filename></td>
             </tr>
             <tr>
-                <td><apilink class="org.gradle.nativebinaries.Library"/></td><td><apilink class="org.gradle.nativebinaries.SharedLibraryBinary"/></td><td><literal>mainSharedLibrary</literal></td><td><filename><replaceable>$buildDir</replaceable>/binaries/lib<replaceable>$project.name</replaceable>.so</filename></td>
+                <td><apilink class="org.gradle.nativebinaries.Library"/></td><td><apilink class="org.gradle.nativebinaries.SharedLibraryBinary"/></td><td><literal><replaceable>$component.name</replaceable>SharedLibrary</literal></td><td><filename><replaceable>$buildDir</replaceable>/binaries/<replaceable>$binary.name</replaceable>/lib<replaceable>$component.name</replaceable>.so</filename></td>
             </tr>
             <tr>
-                <td><apilink class="org.gradle.nativebinaries.Library"/></td><td><apilink class="org.gradle.nativebinaries.StaticLibraryBinary"/></td><td><literal>mainStaticLibrary</literal></td><td><filename><replaceable>$buildDir</replaceable>/binaries/<replaceable>$project.name</replaceable>.a</filename></td>
+                <td><apilink class="org.gradle.nativebinaries.Library"/></td><td><apilink class="org.gradle.nativebinaries.StaticLibraryBinary"/></td><td><literal><replaceable>$component.name</replaceable>StaticLibrary</literal></td><td><filename><replaceable>$buildDir</replaceable>/binaries/<replaceable>$binary.name</replaceable>/<replaceable>$component.name</replaceable>.a</filename></td>
             </tr>
         </table>
 
@@ -133,7 +133,7 @@
     </section>
 
     <section id="native_binaries:languages">
-        <title>Supported Languages: C, C++ and Assembler</title>
+        <title>Core language support: C, C++ and Assembler</title>
         <para>
             Presently, Gradle supports building native binaries from any combination of C++, C and Assembler sources.
             A native binary project will contain one or more named <literal>FunctionalSourceSet</literal> instances (eg 'main', 'test', etc),
@@ -141,7 +141,7 @@
         </para>
 
         <section>
-            <title>C++ support</title>
+            <title>C++ sources</title>
             <para>
                 C++ language support is provided by means of the <literal>'cpp'</literal> plugin.
             </para>
@@ -170,7 +170,7 @@
         </section>
 
         <section>
-            <title>C support</title>
+            <title>C sources</title>
             <para>
                 C language support is provided by means of the <literal>'c'</literal> plugin.
             </para>
@@ -199,7 +199,7 @@
         </section>
 
         <section>
-            <title>Assembler support</title>
+            <title>Assembler sources</title>
             <para>
                 Assembly language support is provided by means of the <literal>'assembler'</literal> plugin.
             </para>
@@ -251,6 +251,40 @@
         <sample id="sharedLibraryArgs" dir="native-binaries/cpp-lib" title="Settings that apply only to shared libraries produced for the 'main' library component">
             <sourcefile file="build.gradle" snippet="args"/>
         </sample>
+    </section>
+
+    <section>
+        <title>Windows Resources</title>
+        <para>
+            When using the <apilink class="org.gradle.nativebinaries.toolchain.VisualCpp"/> tool chain, Gradle is able to compile Window Resource (<literal>rc</literal>)
+            files and link them into a native binary. This functionality is provided by the <literal>'windows-resources'</literal> plugin.
+        </para>
+        <sample id="windowsResourcesPlugin" dir="native-binaries/windows-resources" title="The 'windows-resources' plugin">
+            <sourcefile file="build.gradle" snippet="apply-plugin"/>
+        </sample>
+        <para>
+            Windows resources to be included in a native binary are provided via a <apilink class="org.gradle.language.rc.WindowsResourceSet"/>,
+            which defines a set of Windows Resource source files.
+            By default, for any named component the <apilink class="org.gradle.language.rc.WindowsResourceSet"/> contains
+            <filename>.rc</filename> source files under <filename>src/${name}/rc</filename>.
+        </para>
+        <para>
+            As with other source types, you can configure the location of the windows resources that should in included in the binary.
+        </para>
+        <sample id="windowsResourceSet" dir="native-binaries/windows-resources" title="Configuring the location of Windows resource sources">
+            <sourcefile file="build-resource-only-dll.gradle" snippet="windows-resource-set"/>
+        </sample>
+        <para>
+            You are able to construct a resource-only library by providing Windows Resource sources with no other language sources,
+            and configure the linker as appropriate:
+        </para>
+        <sample id="resourceOnlyDll" dir="native-binaries/windows-resources" title="Building a resource-only dll">
+            <sourcefile file="build-resource-only-dll.gradle" snippet="resource-only-library"/>
+        </sample>
+        <para>
+            The above example also demonstrates the mechanism of passing extra command-line arguments to the resource compiler.
+            The <literal>rcCompiler</literal> extension is of type <apilink class="org.gradle.nativebinaries.language.PreprocessingTool"/>.
+        </para>
     </section>
 
     <section>

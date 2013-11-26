@@ -4,6 +4,7 @@ apply plugin: 'windows-resources'
 libraries {
     helloResources {
         binaries.all {
+            rcCompiler.args "/v"
             linker.args "/noentry", "/machine:x86"
         }
     }
