@@ -123,6 +123,7 @@ We would like to thank the following community members for making contributions 
 * [Andrew Oberstar](https://github.com/ajoberstar) - fixed GRADLE-2695: ClassFormatError introduced in 1.3
 * [Bobby Warner](https://github.com/ajoberstar) - updated Groovy samples to Groovy 2.2.0
 * [Marcin Erdmann](https://github.com/erdi) - `shouldRunAfter` task ordering rule
+* [Ramon Nogueira](https://github.com/ramonza) - fixed issues serializing test failures
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
