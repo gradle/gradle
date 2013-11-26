@@ -94,6 +94,13 @@ class CppSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
 
         and:
         installation("native-binaries/windows-resources/build/install/mainExecutable").exec().out == "Hello world!\n"
+
+        when:
+        executer.usingBuildScript(windowsResources.dir.file('build-resource-only-dll.gradle'))
+        run "helloResourcesSharedLibrary"
+
+        then:
+        file("native-binaries/windows-resources/build/binaries/helloResourcesSharedLibrary/helloResources.dll").assertExists()
     }
 
     def "custom layout"() {
