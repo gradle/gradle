@@ -695,6 +695,10 @@ The arguments hook should be seen as a 'last-resort' mechanism, with preference 
 - Build all types of binaries from all supported languages using Clang.
 - Change test apps to detect which compiler is used to compile and assert that the correct compiler is being used.
 
+### Open issues
+
+- Fix when running under cygwin
+
 ## Story: Link Windows resource files into native binaries
 
 Allow resource files to be linked into a Windows binary.
@@ -913,6 +917,22 @@ If we are inspired by CMake, the output file rules would be:
 * Nice way between a project directory and an absolute directory with the same path
 
 # Milestone 4
+
+## Story: Compile Objective-C source files using the Objective-C compiler
+
+### Open issues
+
+- Make toolchain extensible so that not every toolchain implementation necessarily provides every tool, and may provide additional tools beyond the
+  built-in tools.
+- Fix `TargetPlatformConfiguration` so that it extensible, so that not every configuration supports every tool.
+- Incremental compilation.
+- Cross-compilation for iPhone.
+
+## Story: Compile Objective-C++ source files using the Objective-C++ compiler
+
+### Open issues
+
+- Incremental compilation.
 
 ## Story: Allow library binaries to be used as input to other libraries
 

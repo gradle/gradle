@@ -103,7 +103,8 @@ story exposes the outgoing publications of a Gradle project.
     1. An `id` property with type `GradleModuleVersion`.
 2. Add a `publications` property to `GradleProject` with type `DomainObjectSet<GradlePublication>`.
 3. Include an `@since` javadoc tag and an `@Incubating` annotation on the new types and methods.
-4. Introduce a project-scoped internal service which provides some detail about the publications of a project:
+4. Introduce a project-scoped internal service which provides some detail about the publications of a project.
+   This service will also be used during dependency resolution. See [dependency-management.md](design-docs/dependency-management.md#story-dependency-resolution-result-exposes-local-component-instances-that-are-not-module-versions)
     1. The `publishing` plugin registers each publication defined in the `publishing.publications` container.
        For an instance of type `IvyPublicationInternal`, use the publication's `identity` property to determine the publication identifier to use.
        For an instance of type `MavenPublicationInternal`, use the publication's `mavenProjectIdentity` property.

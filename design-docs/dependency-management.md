@@ -150,6 +150,7 @@ This will allow a consumer to extract the external and project components as fol
 - Do the same for `BuildComponentSelector`
 - Convenience for casting selector and id?
 - Convenience for selecting things with a given id type or selector type?
+- Result root.id should be an instance of `BuildComponentIdentifier` not `ModuleComponentIdentifier`
 
 ## Story: Dependency reports indicate the source of a component
 
