@@ -56,8 +56,19 @@ includes task type, path, description and available commandline options. To get 
     Description
          Initializes a new Gradle build. [incubating]
 
-<!-- TODO:DAZ Fill these in -->
-### Incremental compile for C++ (i)
+### Incremental compile for C++ and C sources (i)
+
+Gradle 1.10 introduces support for incremental compile of C++ and C source files. After an initial build, the only sources that will be
+recompiled in subsequent builds are those where:
+
+- The source file has changed
+- One of the header files that is included by that source file has changed (directly or transitively)
+
+No action is required to enable incremental compile. Gradle will always compile incrementally for a non-clean build.
+
+Support for incremental compilation takes Gradle one step closer to the goal of providing a production-scale build tool for
+C++ and C sources. Further performance testing and tuning will be required to attain the rapid speeds that C++ developers are
+used to, but this new feature provides the infrastructure required to make this possible.
 
 ### Use Visual Studio to compile Windows Resources (i)
 
@@ -87,7 +98,75 @@ The windows resource source directories can be configured via the associated `Wi
 
 For more details please see the [Windows Resources](userguide/nativeBinaries.html#native_binaries:windows-resources) section in the User Guide.
 
+### Support for GCC cross-compilers
+
+Due to the wide array of Gcc cross-compilers that may be used, Gradle require the build author to supply specific configuration
+to use a cross-compiler. The build author must define any specific command-line arguments that are required,
+as well as define the target platform of any generated binaries.
+
+Configuring a GCC tool chain as a cross-compiler involves providing a `TargetPlatformConfiguration` to the tool chain.
+Each Gcc tool chain has a set of such configurations, which are queried in turn when attempting to build a binary targeting
+a particular platform. If the configuration indicates that the target platform is supported, then the specified arguments will
+be passed to the compiler, linker or other tool.
+
+    model {
+        toolChains {
+            crossCompiler(Gcc) {
+                addPlatformConfiguration(new ArmSupport())
+            }
+        }
+    }
+
+    class ArmSupport implements TargetPlatformConfiguration {
+        boolean supportsPlatform(Platform element) {
+            return element.getArchitecture().name == "arm"
+        }
+
+        List<String> getCppCompilerArgs() {
+            ["-mcpu=arm"]
+        }
+
+        List<String> getCCompilerArgs() {
+            ["-mcpu=arm"]
+        }
+
+        List<String> getAssemblerArgs() {
+            []
+        }
+
+        List<String> getLinkerArgs() {
+            ["-arch", "arm"]
+        }
+
+        List<String> getStaticLibraryArchiverArgs() {
+            []
+        }
+    }
+
+Note that the current DSL is experimental, and will be simplified in upcoming releases of Gradle.
+
 ### Fine-grained control of command line arguments for GCC (i)
+
+While the goal is to provide a set of tool chain implementations that 'just work', there may be times when the way that Gradle
+drives the underlying command-line tools does not suit your purpose. For these cases it is now possible to tweak the generated
+command-line arguments immediately prior to them being provided to the underlying tool.
+
+The command-line arguments of a tool can be modified via a `withArguments` closure, which is provided with the full set of
+generated arguments as a list. The list can be changed directly, by adding, removing and replacing entries. This modified list
+is the used to actually drive the underlying tool.
+
+    model {
+        toolChains {
+            gcc(Gcc) {
+                cppCompiler.withArguments { args ->
+                    Collections.replaceAll(args, "OPTIMISE", "-O3")
+                    args << "extra_arg"
+                }
+            }
+        }
+    }
+
+Note that the current DSL is experimental, and will be simplified in upcoming releases of Gradle.
 
 ### Better auto-detection of Visual Studio and Windows SDK (i)
 
