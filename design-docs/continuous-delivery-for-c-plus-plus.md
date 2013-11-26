@@ -772,10 +772,11 @@ Here's an example:
 
 - Single executable gets mapped to Visual Studio solution + project. Generating solution for executable creates project file
   with configuration for 'development binary' which is wired into solution file.
-- Generate solution for executable that depends on the shared variant of a library and the static variant of another.
-    - Separate project file for static library and shared library.
+- Generate solution for executable that depends on the shared variant of a library.
+    - Project file for shared library.
     - Project file for executable includes references to library projects.
-    - Solution file references 3 projects and links to correct configurations for 'development binary'
+    - Solution file references both projects and links to correct configurations for 'development binary'
+- Generate solution for executable that depends on the static variant of a library.
 - Generate solution for executable that depends on a shared library that in turn depends on another shared library.
 - Generate solutions for 2 executables that depend on same shared library
 - Generate solutions for 2 executables that depend on different linkages of same library.
@@ -809,6 +810,7 @@ Here's an example:
 
 ### Test Cases
 
+- Solution files for 2 executables that depend on different build types of the same shared library
 - All test cases for single project build should also function where components are in separate Gradle builds
 - Mixed multi-project with multiple components per project
 - Multi-project where :a:exe -> :b:lib1 -> :a:lib2 (Gradle project cycle)
