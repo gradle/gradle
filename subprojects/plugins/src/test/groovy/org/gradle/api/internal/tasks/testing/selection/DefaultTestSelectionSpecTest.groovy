@@ -33,45 +33,4 @@ class DefaultTestSelectionSpecTest extends Specification {
         spec.hashCode() != differentClass.hashCode()
         spec != differentMethod
     }
-
-    def "knows if test matches"() {
-        def spec = new DefaultTestSelectionSpec("foo.*", ".*bar")
-
-        expect:
-        spec.matchesTest("fooxxx", "xxxbar")
-        spec.matchesTest("foo", "bar")
-
-        !spec.matchesTest("com.fooxxx", "xxxbar")
-        !spec.matchesTest("fooxxx", "bar.foo")
-    }
-
-    def "knows if class matches"() {
-        def spec = new DefaultTestSelectionSpec("foo.*", ".*bar")
-
-        expect:
-        spec.matchesClass("foo")
-        spec.matchesClass("fooTest")
-
-        !spec.matchesClass("com.foo")
-    }
-
-    def "knows if matches any method in class"() {
-        expect:
-        new DefaultTestSelectionSpec("", "bar.*").matchesAnyMethodIn(Bar)
-        new DefaultTestSelectionSpec("", "bar.*").matchesAnyMethodIn(Foo)
-
-        !new DefaultTestSelectionSpec("", ".*bar").matchesAnyMethodIn(Bar)
-        !new DefaultTestSelectionSpec("", ".*bar").matchesAnyMethodIn(Foo)
-
-        new DefaultTestSelectionSpec("", "foo").matchesAnyMethodIn(Foo)
-        !new DefaultTestSelectionSpec("", "foo").matchesAnyMethodIn(Bar)
-    }
-
-    private class Bar {
-        void barX() {}
-    }
-
-    private class Foo extends Bar {
-        void foo() {}
-    }
 }

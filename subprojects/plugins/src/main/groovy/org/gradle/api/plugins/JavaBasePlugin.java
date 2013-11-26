@@ -24,17 +24,12 @@ import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.SourceSetCompileClasspath;
-import org.gradle.api.internal.tasks.testing.selection.DefaultTestSelectionSpec;
-import org.gradle.api.internal.tasks.testing.selection.DefaultTestSelection;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.javadoc.Javadoc;
-import org.gradle.api.tasks.testing.Test;
-import org.gradle.api.tasks.testing.TestDescriptor;
-import org.gradle.api.tasks.testing.TestListener;
-import org.gradle.api.tasks.testing.TestResult;
+import org.gradle.api.tasks.testing.*;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.BinaryContainer;
 import org.gradle.language.base.FunctionalSourceSet;
@@ -302,8 +297,7 @@ public class JavaBasePlugin implements Plugin<Project> {
     }
 
     private void configureBasedOnIncludedMethods(final Test test) {
-        //TODO SF casting
-        List<DefaultTestSelectionSpec> included = ((DefaultTestSelection) test.getSelection()).getIncludedTests();
+        List<TestSelectionSpec> included = test.getSelection().getIncludedTests();
         if (!included.isEmpty()) {
             failIfNoTestIsExecuted(test, "No tests found for given includes: " + included);
         }

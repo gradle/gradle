@@ -17,13 +17,14 @@ package org.gradle.api.internal.tasks.testing.selection;
 
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.testing.TestSelection;
+import org.gradle.api.tasks.testing.TestSelectionSpec;
 
 import java.util.LinkedList;
 import java.util.List;
 
 public class DefaultTestSelection implements TestSelection {
 
-    private List<DefaultTestSelectionSpec> includedTests = new LinkedList<DefaultTestSelectionSpec>();
+    private List<TestSelectionSpec> includedTests = new LinkedList<TestSelectionSpec>();
 
     public DefaultTestSelection includeTest(String testClass, String testMethod) {
         includedTests.add(new DefaultTestSelectionSpec(testClass, testMethod));
@@ -31,7 +32,7 @@ public class DefaultTestSelection implements TestSelection {
     }
 
     @Input
-    public List<DefaultTestSelectionSpec> getIncludedTests() {
+    public List<TestSelectionSpec> getIncludedTests() {
         return includedTests;
     }
 }
