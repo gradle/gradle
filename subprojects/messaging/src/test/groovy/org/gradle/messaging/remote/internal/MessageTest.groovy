@@ -107,7 +107,7 @@ class MessageTest extends Specification {
 
     def "replaces undeserializable exception with placeholder"() {
         def cause = new RuntimeException("nested")
-        def original = new UndeserializableException("message", cause)
+        def original = new BrokenReadObjectException("message", cause)
 
         when:
         def transported = transport(original)
@@ -123,7 +123,7 @@ class MessageTest extends Specification {
 
     def "replaces nested undeserializable exception with placeholder"() {
         def cause = new RuntimeException("nested")
-        def original = new UndeserializableException("message", cause)
+        def original = new BrokenReadObjectException("message", cause)
         def outer = new RuntimeException("message", original)
 
         when:
@@ -146,7 +146,7 @@ class MessageTest extends Specification {
 
     def "replaces unserializable exception field with placeholder"() {
         def cause = new RuntimeException()
-        def original = new UndeserializableException("message", cause)
+        def original = new BrokenReadObjectException("message", cause)
         def outer = new ExceptionWithExceptionField("nested", original)
 
         when:
@@ -205,29 +205,6 @@ class MessageTest extends Specification {
         transported.cause.stackTrace == cause.stackTrace
     }
 
-    def "transports exception with broken toString() method"() {
-        def cause = new IOException("nested")
-        def broken = new BrokenToStringException("message", cause)
-
-        when:
-        def transported = transport(broken)
-        transported.toString()
-        then:
-
-        def toStringException = thrown(RuntimeException)
-        toStringException.message == "broken toString"
-
-        when:
-        cause = new IOException("nested")
-        broken = new UnserializableToStringException("message", cause)
-        transported = transport(broken)
-        transported.toString()
-
-        then:
-        toStringException = thrown(PlaceholderException)
-        toStringException.message == "broken toString"
-    }
-
     def "transports exception with broken methods"() {
         def broken = new CompletelyBrokenException()
 
@@ -246,16 +223,22 @@ class MessageTest extends Specification {
 
         then:
         transported.class == PlaceholderException
-        transported.message == null
         transported.cause == null
         transported.stackTrace.length == 0
+
+        when:
+        transported.message
+
+        then:
+        RuntimeException e = thrown()
+        e.message == 'broken getMessage()'
 
         when:
         transported.toString()
 
         then:
-        RuntimeException e = thrown()
-        e.message == 'broken toString()'
+        RuntimeException e2 = thrown()
+        e2.message == 'broken toString()'
     }
 
     @Ignore
@@ -366,13 +349,13 @@ class MessageTest extends Specification {
         }
     }
 
-    static class UndeserializableException extends RuntimeException {
-        UndeserializableException(String message, Throwable cause) {
+    static class BrokenReadObjectException extends RuntimeException {
+        BrokenReadObjectException(String message, Throwable cause) {
             super(message, cause)
         }
 
-        private void readObject(ObjectInputStream outstr) throws ClassNotFoundException {
-            throw new ClassNotFoundException()
+        private void readObject(ObjectInputStream outstr)  {
+            throw new RuntimeException("broken readObject()")
         }
     }
 

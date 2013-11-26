@@ -28,13 +28,11 @@ public abstract class Message implements Serializable {
     private static final Logger LOGGER = LoggerFactory.getLogger(Message.class);
 
     /**
-     * Serialize the <code>message</code> onto the provided <code>outputStream</code>,
-     * replacing all {@link Throwable}s in the object graph with a placeholder object
-     * that can be read back by {@link #receive(java.io.InputStream, ClassLoader)}.
+     * Serialize the <code>message</code> onto the provided <code>outputStream</code>, replacing all {@link Throwable}s in the object graph with a placeholder object that can be read back by {@link
+     * #receive(java.io.InputStream, ClassLoader)}.
      *
      * @param message object to serialize
      * @param outputSteam stream to serialize onto
-     * @throws IOException
      */
     public static void send(Object message, OutputStream outputSteam) throws IOException {
         ObjectOutputStream oos = new ExceptionReplacingObjectOutputStream(outputSteam);
@@ -46,8 +44,8 @@ public abstract class Message implements Serializable {
     }
 
     /**
-     * Read back an object from the provided stream that has been serialized by a call to {@link #send(Object, java.io.OutputStream)}.
-     * Any {@link Throwable} that cannot be de-serialized (for whatever reason) will be replaced by a {@link PlaceholderException}.
+     * Read back an object from the provided stream that has been serialized by a call to {@link #send(Object, java.io.OutputStream)}. Any {@link Throwable} that cannot be de-serialized (for whatever
+     * reason) will be replaced by a {@link PlaceholderException}.
      *
      * @param inputSteam stream to read the object from
      * @param classLoader loader used to load exception classes
@@ -66,7 +64,8 @@ public abstract class Message implements Serializable {
         private String toString;
         private ExceptionPlaceholder cause;
         private StackTraceElement[] stackTrace;
-        private RuntimeException toStringRuntimeExec;
+        private Throwable toStringRuntimeExec;
+        private Throwable getMessageExec;
 
         public ExceptionPlaceholder(final Throwable throwable) throws IOException {
             type = throwable.getClass().getName();
@@ -74,29 +73,27 @@ public abstract class Message implements Serializable {
             try {
                 stackTrace = throwable.getStackTrace();
             } catch (Throwable ignored) {
-                LOGGER.debug("Ignoring error extracting stack trace", ignored);
+                LOGGER.debug("Ignoring failure to extract throwable stack trace.", ignored);
                 stackTrace = new StackTraceElement[0];
             }
 
             try {
                 message = throwable.getMessage();
-            } catch (Throwable ignored) {
-                LOGGER.debug("Ignoring error extracting message", ignored);
+            } catch (Throwable failure) {
+                getMessageExec = failure;
             }
 
             try {
                 toString = throwable.toString();
-            } catch (RuntimeException toStringRE) {
-                toStringRuntimeExec = toStringRE;
-            } catch (Throwable ignored) {
-                LOGGER.debug("Ignoring error calling toString", ignored);
+            } catch (Throwable failure) {
+                toStringRuntimeExec = failure;
             }
 
             Throwable causeTmp;
             try {
                 causeTmp = throwable.getCause();
             } catch (Throwable ignored) {
-                LOGGER.debug("Ignoring error extracting cause", ignored);
+                LOGGER.debug("Ignoring failure to extract throwable cause.", ignored);
                 causeTmp = null;
             }
             final Throwable causeFinal = causeTmp;
@@ -121,7 +118,7 @@ public abstract class Message implements Serializable {
                 oos.close();
                 serializedException = outstr.toByteArray();
             } catch (Throwable ignored) {
-                LOGGER.debug("Ignoring error serializing throwable", ignored);
+                LOGGER.debug("Ignoring failure to serialize throwable.", ignored);
             }
 
             if (causeFinal != null) {
@@ -132,19 +129,8 @@ public abstract class Message implements Serializable {
         public Throwable read(ClassLoader classLoader) throws IOException {
             final Throwable causeThrowable = getCause(classLoader);
 
-            try {
-                return tryDeserialize(classLoader, causeThrowable);
-            } catch (Throwable ignored) {
-                // it is inherently unsafe to de-serialize user thrown exceptions (e.g. from tests)
-                LOGGER.info("Ignoring error de-serializing throwable", ignored);
-                Throwable placeholder = new PlaceholderException(type, message, toString, toStringRuntimeExec, causeThrowable);
-                placeholder.setStackTrace(stackTrace);
-                return placeholder;
-            }
-        }
-
-        private Throwable tryDeserialize(final ClassLoader classLoader, final Throwable causeThrowable) throws Exception {
             if (serializedException != null) {
+                // try to deserialize the original exception
                 final ExceptionReplacingObjectInputStream ois = new ExceptionReplacingObjectInputStream(new ByteArrayInputStream(serializedException), classLoader) {
                     @Override
                     protected Object resolveObject(Object obj) throws IOException {
@@ -156,16 +142,29 @@ public abstract class Message implements Serializable {
                 };
                 try {
                     return (Throwable) ois.readObject();
-                } catch (Exception e) {
-                    LOGGER.info("Ignoring error de-serializing exception", e);
+                } catch (Throwable failure) {
+                    LOGGER.info("Ignoring failure to de-serialize throwable.", failure);
                 }
             }
-            // try to reconstruct the exception - also potentially unsafe
-            Constructor<?> constructor = classLoader.loadClass(type).getConstructor(String.class);
-            Throwable reconstructed = (Throwable) constructor.newInstance(message);
-            reconstructed.initCause(causeThrowable);
-            reconstructed.setStackTrace(stackTrace);
-            return reconstructed;
+
+            try {
+                // try to reconstruct the exception
+                Constructor<?> constructor = classLoader.loadClass(type).getConstructor(String.class);
+                Throwable reconstructed = (Throwable) constructor.newInstance(message);
+                reconstructed.initCause(causeThrowable);
+                reconstructed.setStackTrace(stackTrace);
+                return reconstructed;
+            } catch (ClassNotFoundException ignored) {
+                // Don't log
+            } catch (NoSuchMethodException ignored) {
+                // Don't log
+            } catch (Throwable ignored) {
+                LOGGER.info("Ignoring failure to recreate throwable.", ignored);
+            }
+
+            Throwable placeholder = new PlaceholderException(type, message, getMessageExec, toString, toStringRuntimeExec, causeThrowable);
+            placeholder.setStackTrace(stackTrace);
+            return placeholder;
         }
 
         private Throwable getCause(ClassLoader classLoader) throws IOException {

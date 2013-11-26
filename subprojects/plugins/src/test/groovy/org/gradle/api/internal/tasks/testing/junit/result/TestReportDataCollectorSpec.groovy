@@ -125,7 +125,7 @@ class TestReportDataCollectorSpec extends Specification {
 
     def "handle PlaceholderExceptions for test failures"() {
         def test = new DefaultTestDescriptor("1.1.1", "FooTest", "testMethod")
-        def failure = new PlaceholderException("OriginalClassName", "failure2", "toString()", null, null)
+        def failure = new PlaceholderException("OriginalClassName", "failure2", null, "toString()", null, null)
         def result = new DefaultTestResult(SUCCESS, 0, 0, 1, 0, 1, [failure])
 
         when:
