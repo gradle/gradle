@@ -16,16 +16,15 @@
 package org.gradle.messaging.remote.internal
 
 import org.gradle.internal.exceptions.AbstractMultiCauseException
-import spock.lang.Specification
 import spock.lang.Issue
-import spock.lang.Ignore
+import spock.lang.Specification
 
 class MessageTest extends Specification {
     GroovyClassLoader source = new GroovyClassLoader(getClass().classLoader)
     GroovyClassLoader dest = new GroovyClassLoader(getClass().classLoader)
 
-    def "can transport exception graph"() {
-        def cause1 = new RuntimeException("nested-1")
+    def "can transport graph of exceptions"() {
+        def cause1 = new ExceptionWithState("nested-1", ["a", 1])
         def cause2 = new IOException("nested-2")
         def cause = new AbstractMultiCauseException("nested", cause1, cause2)
         def original = new ExceptionWithExceptionField("message", cause)
@@ -46,8 +45,27 @@ class MessageTest extends Specification {
 
         and:
         transported.payload.throwable.causes.size() == 2
-        transported.payload.throwable.causes*.class == [RuntimeException, IOException]
+        transported.payload.throwable.causes*.class == [ExceptionWithState, IOException]
         transported.payload.throwable.causes*.message == ["nested-1", "nested-2"]
+
+        and:
+        transported.payload.throwable.causes[0].values == ["a", 1]
+    }
+
+    def "can transport exception with custom serialization"() {
+        def cause = new IOException("nested")
+        def original = new ExceptionWithCustomSerialization("message", cause)
+
+        when:
+        def transported = transport(original)
+
+        then:
+        transported.class == ExceptionWithCustomSerialization
+        transported.message == "message"
+
+        and:
+        transported.throwable.class == IOException
+        transported.throwable.message == "nested"
     }
 
     def "replaces exception with broken writeObject() method with placeholder"() {
@@ -241,7 +259,6 @@ class MessageTest extends Specification {
         e2.message == 'broken toString()'
     }
 
-    @Ignore
     @Issue("GRADLE-1996")
     def "can transport exception that implements writeReplace()"() {
         def original = new WriteReplaceException("original")
@@ -250,9 +267,18 @@ class MessageTest extends Specification {
         def transported = transport(original)
 
         then:
-        noExceptionThrown()
         transported instanceof WriteReplaceException
         transported.message == "replaced"
+    }
+
+    def "can transport exception that implements readResolve()"() {
+        def original = new ReadReplaceException()
+
+        when:
+        def transported = transport(original)
+
+        then:
+        transported == ReadReplaceException.singleton
     }
 
     void looksLike(Throwable original, Throwable transported) {
@@ -293,23 +319,18 @@ class MessageTest extends Specification {
         }
     }
 
-    static class BrokenWriteObjectException extends RuntimeException {
-        BrokenWriteObjectException(String message, Throwable cause) {
-            super(message, cause)
-        }
+    static class ExceptionWithState extends RuntimeException {
+        List<?> values
 
-        private void writeObject(ObjectOutputStream outstr) throws IOException {
-            outstr.writeObject(new Object())
+        ExceptionWithState(String message, List<?> values) {
+            super(message)
+            this.values = values
         }
     }
 
-    static class UnserializableToStringException extends RuntimeException {
-        UnserializableToStringException (String message, Throwable cause) {
+    static class BrokenWriteObjectException extends RuntimeException {
+        BrokenWriteObjectException(String message, Throwable cause) {
             super(message, cause)
-        }
-
-        public String toString() {
-            throw new BrokenWriteObjectException("broken toString", null);
         }
 
         private void writeObject(ObjectOutputStream outstr) throws IOException {
@@ -339,16 +360,6 @@ class MessageTest extends Specification {
         }
     }
 
-    static class BrokenToStringException extends RuntimeException {
-        BrokenToStringException(String message, Throwable cause) {
-            super(message, cause)
-        }
-
-        public String toString() {
-            throw new RuntimeException("broken toString", null);
-        }
-    }
-
     static class BrokenReadObjectException extends RuntimeException {
         BrokenReadObjectException(String message, Throwable cause) {
             super(message, cause)
@@ -359,6 +370,25 @@ class MessageTest extends Specification {
         }
     }
 
+    static class ExceptionWithCustomSerialization extends RuntimeException {
+        def transient throwable
+
+        ExceptionWithCustomSerialization(String message, Throwable cause) {
+            super(message)
+            throwable = cause
+        }
+
+        private void writeObject(ObjectOutputStream outstr)  {
+            outstr.defaultWriteObject()
+            outstr.writeObject(throwable)
+        }
+
+        private void readObject(ObjectInputStream instr)  {
+            instr.defaultReadObject()
+            throwable = instr.readObject()
+        }
+    }
+
     static class WriteReplaceException extends Exception {
         WriteReplaceException(String message) {
             super(message)
@@ -366,6 +396,14 @@ class MessageTest extends Specification {
 
         private Object writeReplace() {
             return new WriteReplaceException("replaced")
+        }
+    }
+
+    static class ReadReplaceException extends Exception {
+        static Exception singleton = new Exception("replaced")
+
+        private Object readResolve() {
+            return singleton
         }
     }
 }

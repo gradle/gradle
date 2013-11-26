@@ -100,10 +100,12 @@ public abstract class Message implements Serializable {
 
             ByteArrayOutputStream outstr = new ByteArrayOutputStream();
             ObjectOutputStream oos = new ExceptionReplacingObjectOutputStream(outstr) {
+                boolean seenFirst;
                 @Override
                 protected Object replaceObject(Object obj) throws IOException {
-                    if (obj == throwable) {
-                        return throwable;
+                    if (!seenFirst) {
+                        seenFirst = true;
+                        return obj;
                     }
                     // Don't serialize the cause - we'll serialize it separately later
                     if (obj == causeFinal) {
