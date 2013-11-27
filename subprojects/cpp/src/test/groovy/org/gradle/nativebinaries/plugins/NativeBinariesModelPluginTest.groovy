@@ -41,7 +41,7 @@ class NativeBinariesModelPluginTest extends Specification {
         project.libraries instanceof NamedDomainObjectContainer
         project.modelRegistry.get("toolChains", ToolChainRegistry)
         project.modelRegistry.get("platforms", PlatformContainer)
-        project.buildTypes instanceof NamedDomainObjectContainer
+        project.modelRegistry.get("buildTypes", BuildTypeContainer)
     }
 
     def "adds default tool chain, target platform and build type"() {
@@ -54,7 +54,7 @@ class NativeBinariesModelPluginTest extends Specification {
             name == 'current'
             architecture == ArchitectureInternal.TOOL_CHAIN_DEFAULT
         }
-        with (one(project.buildTypes)) {
+        with (one(project.modelRegistry.get("buildTypes", BuildTypeContainer))) {
             name == 'debug'
         }
     }
@@ -91,8 +91,10 @@ class NativeBinariesModelPluginTest extends Specification {
             platforms {
                 add named(Platform, "platform")
             }
+            buildTypes {
+                add named(BuildType, "bt")
+            }
         }
-        project.buildTypes.add named(BuildType, "bt")
 
         and:
         def exe = project.executables.create "exe"
@@ -104,7 +106,7 @@ class NativeBinariesModelPluginTest extends Specification {
         then:
         one(project.modelRegistry.get("toolChains", ToolChainRegistry)).name == 'tc'
         one(project.modelRegistry.get("platforms", PlatformContainer)).name == 'platform'
-        one(project.buildTypes).name == 'bt'
+        one(project.modelRegistry.get("buildTypes", BuildTypeContainer)).name == 'bt'
         one(one(project.executables).flavors).name == 'flav'
 
     }
@@ -119,8 +121,10 @@ class NativeBinariesModelPluginTest extends Specification {
             platforms {
                 add named(Platform, "platform")
             }
+            buildTypes {
+                add named(BuildType, "bt")
+            }
         }
-        project.buildTypes.add named(BuildType, "bt")
         def executable = project.executables.create "test"
         project.evaluate()
 
@@ -148,8 +152,10 @@ class NativeBinariesModelPluginTest extends Specification {
             platforms {
                 add named(Platform, "platform")
             }
+            buildTypes {
+                add named(BuildType, "bt")
+            }
         }
-        project.buildTypes.add named(BuildType, "bt")
         def library = project.libraries.create "test"
         project.evaluate()
 

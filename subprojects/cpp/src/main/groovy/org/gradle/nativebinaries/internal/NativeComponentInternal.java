@@ -15,9 +15,11 @@
  */
 package org.gradle.nativebinaries.internal;
 
+import org.gradle.nativebinaries.BuildType;
 import org.gradle.nativebinaries.NativeComponent;
 import org.gradle.nativebinaries.Platform;
 
 public interface NativeComponentInternal extends NativeComponent {
-    boolean shouldTarget(Platform platform);
+    boolean buildForPlatform(Platform platform);
+    boolean buildForBuildType(BuildType buildType);
 }

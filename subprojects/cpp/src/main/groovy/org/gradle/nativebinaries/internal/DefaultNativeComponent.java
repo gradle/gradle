@@ -21,6 +21,7 @@ import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.nativebinaries.BuildType;
 import org.gradle.nativebinaries.FlavorContainer;
 import org.gradle.nativebinaries.NativeBinary;
 import org.gradle.nativebinaries.Platform;
@@ -36,6 +37,7 @@ public class DefaultNativeComponent implements NativeComponentInternal {
     private final DefaultDomainObjectSet<NativeBinary> binaries;
     private final DefaultFlavorContainer flavors;
     private final Set<String> targetPlatforms = new HashSet<String>();
+    private final Set<String> buildTypes = new HashSet<String>();
     private String baseName;
 
     public DefaultNativeComponent(String name, Instantiator instantiator) {
@@ -78,12 +80,24 @@ public class DefaultNativeComponent implements NativeComponentInternal {
     }
 
     public void targetPlatforms(Object platformSelector) {
+        // TODO:DAZ Allow Platform instance
+        // TODO:DAZ Allow platform selector
         assert platformSelector instanceof String;
         targetPlatforms.add((String) platformSelector);
     }
 
-    public boolean shouldTarget(Platform platform) {
+    public void buildTypes(Object buildTypeSelector) {
+        // TODO:DAZ Allow BuildType instance
+        assert buildTypeSelector instanceof String;
+        buildTypes.add((String) buildTypeSelector);
+    }
+
+    public boolean buildForPlatform(Platform platform) {
         // TODO:DAZ Only target the current by default
         return targetPlatforms.isEmpty() || targetPlatforms.contains(platform.getName());
+    }
+
+    public boolean buildForBuildType(BuildType buildType) {
+        return buildTypes.isEmpty() || buildTypes.contains(buildType.getName());
     }
 }

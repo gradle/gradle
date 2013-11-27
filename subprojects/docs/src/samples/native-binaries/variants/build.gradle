@@ -17,9 +17,11 @@ model {
 // END SNIPPET target-platforms
 
 // START SNIPPET build-types
-buildTypes {
-    debug {}
-    release {}
+model {
+    buildTypes {
+        create("debug")
+        create("release")
+    }
 }
 // END SNIPPET build-types
 

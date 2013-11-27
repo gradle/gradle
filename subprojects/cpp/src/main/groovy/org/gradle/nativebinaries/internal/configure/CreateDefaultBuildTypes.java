@@ -16,13 +16,13 @@
 
 package org.gradle.nativebinaries.internal.configure;
 
-import org.gradle.api.Action;
-import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.model.ModelFinalizer;
 import org.gradle.nativebinaries.BuildTypeContainer;
 
-public class CreateDefaultBuildTypes implements Action<ProjectInternal> {
-    public void execute(ProjectInternal project) {
-        BuildTypeContainer buildTypes = project.getExtensions().getByType(BuildTypeContainer.class);
+public class CreateDefaultBuildTypes extends ModelFinalizer {
+
+    @SuppressWarnings("UnusedDeclaration")
+    void createDefaultPlatforms(BuildTypeContainer buildTypes) {
         if (buildTypes.isEmpty()) {
             buildTypes.create("debug");
         }

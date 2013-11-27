@@ -40,9 +40,10 @@ public class CreateNativeBinaries extends ModelRule {
         this.project = project;
     }
 
-    public void create(BinaryContainer binaries, ToolChainRegistryInternal toolChains, PlatformContainer platforms) {
-        BuildTypeContainer buildTypes = project.getExtensions().getByType(BuildTypeContainer.class);
-
+    public void create(BinaryContainer binaries, ToolChainRegistryInternal toolChains, PlatformContainer platforms, BuildTypeContainer buildTypes) {
+        // TODO:DAZ Work out the right way to make these containers available to binaries.all
+        project.getExtensions().add("platforms", platforms);
+        project.getExtensions().add("buildTypes", buildTypes);
         NativeBinaryFactory factory = new NativeBinaryFactory(instantiator, project, platforms, buildTypes);
         for (NativeComponentInternal component : allComponents()) {
             for (Platform platform : getPlatforms(component, platforms)) {
@@ -73,12 +74,16 @@ public class CreateNativeBinaries extends ModelRule {
     private Set<Platform> getPlatforms(final NativeComponentInternal component, PlatformContainer platforms) {
         return CollectionUtils.filter(platforms, new Spec<Platform>() {
             public boolean isSatisfiedBy(Platform element) {
-                return component.shouldTarget(element);
+                return component.buildForPlatform(element);
             }
         });
     }
 
-    private Set<BuildType> getBuildTypes(NativeComponentInternal component, BuildTypeContainer buildTypes) {
-        return buildTypes;
+    private Set<BuildType> getBuildTypes(final NativeComponentInternal component, BuildTypeContainer buildTypes) {
+        return CollectionUtils.filter(buildTypes, new Spec<BuildType>() {
+            public boolean isSatisfiedBy(BuildType element) {
+                return component.buildForBuildType(element);
+            }
+        });
     }
 }

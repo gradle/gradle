@@ -16,25 +16,16 @@
 
 package org.gradle.nativebinaries.internal.configure
 
-import org.gradle.api.internal.plugins.ExtensionContainerInternal
-import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.nativebinaries.BuildTypeContainer
 import spock.lang.Specification
 
 class CreateDefaultBuildTypesTest extends Specification {
-    def project = Mock(ProjectInternal)
-    def extensions = Mock(ExtensionContainerInternal)
     def buildTypes = Mock(BuildTypeContainer)
-    def action = new CreateDefaultBuildTypes()
-
-    def setup() {
-        _ * project.getExtensions() >> extensions
-        _ * extensions.getByType(BuildTypeContainer) >> buildTypes
-    }
+    def rule = new CreateDefaultBuildTypes()
 
     def "adds a default build type when none configured"() {
         when:
-        action.execute(project)
+        rule.createDefaultPlatforms(buildTypes)
 
         then:
         1 * buildTypes.empty >> true
@@ -44,7 +35,7 @@ class CreateDefaultBuildTypesTest extends Specification {
 
     def "does not add default build type when some configured"() {
         when:
-        action.execute(project)
+        rule.createDefaultPlatforms(buildTypes)
 
         then:
         1 * buildTypes.empty >> false

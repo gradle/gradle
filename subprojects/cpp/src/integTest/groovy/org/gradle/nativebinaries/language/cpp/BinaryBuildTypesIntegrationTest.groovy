@@ -28,17 +28,18 @@ class BinaryBuildTypesIntegrationTest extends AbstractInstalledToolChainIntegrat
         and:
         buildFile << """
             apply plugin: 'cpp'
-            buildTypes.all {
-                ext.debug = false
-            }
-            buildTypes {
-                debug {
-                    debug = true
+            model {
+                buildTypes {
+                    create("debug") {
+                        ext.debug = true
+                    }
+                    create("integration") {
+                        ext.debug = true
+                    }
+                    create("release") {
+                        ext.debug = false
+                    }
                 }
-                integration {
-                    debug = true
-                }
-                release {}
             }
             binaries.all { binary ->
                 if (toolChain in Gcc && buildType.debug) {
@@ -82,6 +83,38 @@ class BinaryBuildTypesIntegrationTest extends AbstractInstalledToolChainIntegrat
         }
     }
 
+    def "configure component for a single build type"() {
+        when:
+        helloWorldApp.writeSources(file("src/main"))
+        buildFile << """
+            apply plugin: 'cpp'
+            model {
+                buildTypes {
+                    create("debug")
+                    create("release")
+                }
+            }
+            executables {
+                main {
+                    buildTypes "release"
+                }
+            }
+            binaries.all { binary ->
+                if (buildType == buildTypes.release) {
+                    cppCompiler.define "FRENCH"
+                }
+            }
+"""
+
+        and:
+        succeeds "mainExecutable"
+
+        then:
+        // Build type dimension is flattened since there is only one possible value
+        executedAndNotSkipped(":mainExecutable")
+        executable("build/binaries/mainExecutable/main").exec().out == helloWorldApp.frenchOutput
+    }
+
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
     def "executable with build type depends on library with matching build type"() {
         when:
@@ -91,9 +124,11 @@ class BinaryBuildTypesIntegrationTest extends AbstractInstalledToolChainIntegrat
         and:
         buildFile << """
             apply plugin: 'cpp'
-            buildTypes {
-                debug { }
-                release {}
+            model {
+                buildTypes {
+                    create("debug") { }
+                    create("release") {}
+                }
             }
             binaries.all {
                 if (buildType == buildTypes.debug) {

@@ -35,12 +35,12 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
                 architecture "i386"
             }
         }
+        buildTypes {
+            create("debug")
+            create("release")
+        }
     }
 
-    buildTypes {
-        debug {}
-        release {}
-    }
 """
     }
 

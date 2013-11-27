@@ -101,14 +101,16 @@ class NativeBinaryFactoryTest extends Specification {
         binary.namingScheme.getTaskName("compile", "cpp") == 'compilePlatform2Flavor1NameExecutableCpp'
     }
 
-    def "includes buildType in names when targeting multiple build types"() {
-        when:
+    def "includes buildType in names when component has multiple build types"() {
+        given:
         def buildType2 = Stub(BuildType) {
             getName() >> "buildType2"
         }
 
         and:
         def factory = new NativeBinaryFactory(new DirectInstantiator(), project, [platform], [buildType, buildType2])
+
+        when:
         def binary = factory.createNativeBinary(DefaultExecutableBinary, component, toolChain, platform, buildType2, flavor1)
 
         then:
@@ -116,5 +118,15 @@ class NativeBinaryFactoryTest extends Specification {
         binary.namingScheme.outputDirectoryBase == 'nameExecutable/buildType2Flavor1'
         binary.namingScheme.getTaskName("link") == 'linkBuildType2Flavor1NameExecutable'
         binary.namingScheme.getTaskName("compile", "cpp") == 'compileBuildType2Flavor1NameExecutableCpp'
+
+        when:
+        component.buildTypes("buildType2")
+        binary = factory.createNativeBinary(DefaultExecutableBinary, component, toolChain, platform, buildType2, flavor1)
+
+        then:
+        binary.namingScheme.lifecycleTaskName == 'flavor1NameExecutable'
+        binary.namingScheme.outputDirectoryBase == 'nameExecutable/flavor1'
+        binary.namingScheme.getTaskName("link") == 'linkFlavor1NameExecutable'
+        binary.namingScheme.getTaskName("compile", "cpp") == 'compileFlavor1NameExecutableCpp'
     }
 }

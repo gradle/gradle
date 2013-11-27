@@ -31,6 +31,7 @@ import org.gradle.language.base.plugins.LanguageBasePlugin;
 import org.gradle.model.ModelFinalizer;
 import org.gradle.model.ModelRule;
 import org.gradle.model.ModelRules;
+import org.gradle.nativebinaries.BuildTypeContainer;
 import org.gradle.nativebinaries.PlatformContainer;
 import org.gradle.nativebinaries.internal.*;
 import org.gradle.nativebinaries.internal.configure.*;
@@ -62,17 +63,14 @@ public class NativeBinariesModelPlugin implements Plugin<Project> {
 
         modelRules.register("toolChains", ToolChainRegistryInternal.class, new ToolChainFactory(instantiator));
         modelRules.register("platforms", PlatformContainer.class, new PlatformFactory(instantiator));
+        modelRules.register("buildTypes", BuildTypeContainer.class, new BuildTypeFactory(instantiator));
 
         modelRules.rule(new CreateDefaultPlatform());
+        modelRules.rule(new CreateDefaultBuildTypes());
         modelRules.rule(new AddDefaultToolChainsIfRequired());
         modelRules.rule(new CreateNativeBinaries(instantiator, (ProjectInternal) project));
         modelRules.rule(new CloseBinariesForTasks());
 
-        project.getExtensions().create(
-                "buildTypes",
-                DefaultBuildTypeContainer.class,
-                instantiator
-        );
         project.getExtensions().create(
                 "executables",
                 DefaultExecutableContainer.class,
@@ -88,7 +86,6 @@ public class NativeBinariesModelPlugin implements Plugin<Project> {
         // TODO:DAZ Lazy configuration actions: need a better way to accomplish these.
         configurationActions.add(Actions.composite(
                 new ApplySourceSetConventions(),
-                new CreateDefaultBuildTypes(),
                 new CreateDefaultFlavors()
         ));
     }
@@ -130,6 +127,18 @@ public class NativeBinariesModelPlugin implements Plugin<Project> {
 
         public PlatformContainer create() {
             return instantiator.newInstance(DefaultPlatformContainer.class, instantiator);
+        }
+    }
+
+    private static class BuildTypeFactory implements Factory<BuildTypeContainer> {
+        private final Instantiator instantiator;
+
+        private BuildTypeFactory(Instantiator instantiator) {
+            this.instantiator = instantiator;
+        }
+
+        public BuildTypeContainer create() {
+            return instantiator.newInstance(DefaultBuildTypeContainer.class, instantiator);
         }
     }
 }

@@ -31,14 +31,14 @@ class NativeBinaryFactory {
     private final Instantiator instantiator;
     private final Project project;
     private final Collection<Platform> allPlatforms = new ArrayList<Platform>();
-    private final boolean useBuildTypeDimension;
+    private final Collection<BuildType> allBuildTypes = new ArrayList<BuildType>();
 
     public NativeBinaryFactory(Instantiator instantiator, Project project, Collection<? extends Platform> allPlatforms,
                                Collection<? extends BuildType> allBuildTypes) {
         this.instantiator = instantiator;
         this.project = project;
         this.allPlatforms.addAll(allPlatforms);
-        this.useBuildTypeDimension = allBuildTypes.size() > 1;
+        this.allBuildTypes.addAll(allBuildTypes);
     }
 
     public Collection<NativeBinary> createNativeBinaries(NativeComponent component, ToolChain toolChain, Platform platform, BuildType buildType, Flavor flavor) {
@@ -65,7 +65,7 @@ class NativeBinaryFactory {
         if (usePlatformDimension(component)) {
             namingScheme = namingScheme.withVariantDimension(platform.getName());
         }
-        if (useBuildTypeDimension) {
+        if (useBuildTypeDimension(component)) {
             namingScheme = namingScheme.withVariantDimension(buildType.getName());
         }
         if (component.getFlavors().size() > 1) {
@@ -77,7 +77,17 @@ class NativeBinaryFactory {
     private boolean usePlatformDimension(NativeComponent component) {
         int count = 0;
         for (Platform platform : allPlatforms) {
-            if (((NativeComponentInternal) component).shouldTarget(platform)) {
+            if (((NativeComponentInternal) component).buildForPlatform(platform)) {
+                count++;
+            }
+        }
+        return count > 1;
+    }
+
+    private boolean useBuildTypeDimension(NativeComponent component) {
+        int count = 0;
+        for (BuildType buildType : allBuildTypes) {
+            if (((NativeComponentInternal) component).buildForBuildType(buildType)) {
                 count++;
             }
         }

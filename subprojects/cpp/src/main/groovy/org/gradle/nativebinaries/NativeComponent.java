@@ -81,4 +81,15 @@ public interface NativeComponent extends Named {
      */
     void targetPlatforms(Object platformSelector);
 
+    /**
+     * Adds one or more {@link BuildType}s that this component should be built for.
+     * <p/>
+     * This method accepts the following types:
+     *
+     * <ul>
+     *     <li>The String name of a build type.</li>
+     * </ul>
+     */
+    void buildTypes(Object platformSelector);
+
 }
