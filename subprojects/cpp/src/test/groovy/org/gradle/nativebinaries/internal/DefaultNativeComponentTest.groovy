@@ -15,13 +15,12 @@
  */
 
 package org.gradle.nativebinaries.internal
-import org.gradle.api.Action
+
 import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.ClassGeneratorBackedInstantiator
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet
-import org.gradle.nativebinaries.FlavorContainer
 import spock.lang.Specification
 
 class DefaultNativeComponentTest extends Specification {
@@ -50,18 +49,18 @@ class DefaultNativeComponentTest extends Specification {
         component.source.contains(sourceSet2)
     }
 
-    def "flavors can be added and will replace default flavor"() {
+    def "flavors can be chosen and will replace default flavor"() {
         when:
-        component.flavors({
-            it.create("flavor1")
-            it.create("flavor2")
-        } as Action<FlavorContainer>)
+        component.flavors "flavor1", "flavor2"
 
         and:
-        component.flavors.create("flavor3")
+        component.flavors("flavor3")
 
         then:
-        component.flavors.collect { it.name } as Set == ["flavor1", "flavor2", "flavor3"] as Set
+        component.buildFlavor(flavor("flavor1"))
+        component.buildFlavor(flavor("flavor2"))
+        component.buildFlavor(flavor("flavor3"))
+        !component.buildFlavor(flavor("flavor4"))
     }
 
     def flavor(String name) {

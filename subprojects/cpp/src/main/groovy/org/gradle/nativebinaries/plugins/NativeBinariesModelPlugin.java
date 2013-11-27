@@ -32,6 +32,7 @@ import org.gradle.model.ModelFinalizer;
 import org.gradle.model.ModelRule;
 import org.gradle.model.ModelRules;
 import org.gradle.nativebinaries.BuildTypeContainer;
+import org.gradle.nativebinaries.FlavorContainer;
 import org.gradle.nativebinaries.PlatformContainer;
 import org.gradle.nativebinaries.internal.*;
 import org.gradle.nativebinaries.internal.configure.*;
@@ -64,9 +65,11 @@ public class NativeBinariesModelPlugin implements Plugin<Project> {
         modelRules.register("toolChains", ToolChainRegistryInternal.class, new ToolChainFactory(instantiator));
         modelRules.register("platforms", PlatformContainer.class, new PlatformFactory(instantiator));
         modelRules.register("buildTypes", BuildTypeContainer.class, new BuildTypeFactory(instantiator));
+        modelRules.register("flavors", FlavorContainer.class, new FlavorFactory(instantiator));
 
         modelRules.rule(new CreateDefaultPlatform());
         modelRules.rule(new CreateDefaultBuildTypes());
+        modelRules.rule(new CreateDefaultFlavors());
         modelRules.rule(new AddDefaultToolChainsIfRequired());
         modelRules.rule(new CreateNativeBinaries(instantiator, (ProjectInternal) project));
         modelRules.rule(new CloseBinariesForTasks());
@@ -85,8 +88,7 @@ public class NativeBinariesModelPlugin implements Plugin<Project> {
 
         // TODO:DAZ Lazy configuration actions: need a better way to accomplish these.
         configurationActions.add(Actions.composite(
-                new ApplySourceSetConventions(),
-                new CreateDefaultFlavors()
+                new ApplySourceSetConventions()
         ));
     }
 
@@ -139,6 +141,18 @@ public class NativeBinariesModelPlugin implements Plugin<Project> {
 
         public BuildTypeContainer create() {
             return instantiator.newInstance(DefaultBuildTypeContainer.class, instantiator);
+        }
+    }
+
+    private static class FlavorFactory implements Factory<FlavorContainer> {
+        private final Instantiator instantiator;
+
+        private FlavorFactory(Instantiator instantiator) {
+            this.instantiator = instantiator;
+        }
+
+        public FlavorContainer create() {
+            return instantiator.newInstance(DefaultFlavorContainer.class, instantiator);
         }
     }
 }

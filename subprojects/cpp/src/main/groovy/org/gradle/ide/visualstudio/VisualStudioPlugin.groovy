@@ -17,21 +17,24 @@ package org.gradle.ide.visualstudio
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Transformer
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.tasks.Delete
 import org.gradle.ide.cdt.tasks.GenerateMetadataFileTask
 import org.gradle.ide.visualstudio.model.*
+import org.gradle.nativebinaries.FlavorContainer
 import org.gradle.nativebinaries.NativeComponent
 import org.gradle.nativebinaries.internal.NativeBinaryInternal
 import org.gradle.nativebinaries.plugins.NativeBinariesModelPlugin
 
-class VisualStudioPlugin implements Plugin<Project> {
+class VisualStudioPlugin implements Plugin<ProjectInternal> {
 
-    void apply(Project project) {
+    void apply(ProjectInternal project) {
         project.plugins.apply(NativeBinariesModelPlugin)
 
         // TODO:DAZ Use a model rule
         project.afterEvaluate {
-            VisualStudioProjectRegistry projectRegistry = new VisualStudioProjectRegistry();
+            final flavors = project.modelRegistry.get("flavors", FlavorContainer)
+            VisualStudioProjectRegistry projectRegistry = new VisualStudioProjectRegistry(flavors);
             VisualStudioSolutionBuilder solutionBuilder = new VisualStudioSolutionBuilder(projectRegistry);
 
             project.executables.all { NativeComponent component ->

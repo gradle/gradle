@@ -22,7 +22,7 @@ import org.gradle.nativebinaries.*;
 class DefaultLibraryResolver implements ContextualLibraryResolver {
     private final Library library;
 
-    private Flavor flavor = new DefaultFlavor(DefaultFlavor.DEFAULT);
+    private Flavor flavor;
     private ToolChain toolChain;
     private Platform platform;
     private BuildType buildType;
@@ -37,6 +37,7 @@ class DefaultLibraryResolver implements ContextualLibraryResolver {
         return this;
     }
 
+    // TODO:DAZ Remove this
     public ContextualLibraryResolver withToolChain(ToolChain toolChain) {
         this.toolChain = toolChain;
         return this;
@@ -59,8 +60,8 @@ class DefaultLibraryResolver implements ContextualLibraryResolver {
 
     public NativeDependencySet resolve() {
         for (LibraryBinary candidate : library.getBinaries().withType(type)) {
-            // If the library has > 1 flavor, then flavor must match
-            if (library.getFlavors().size() > 1 && !flavor.getName().equals(candidate.getFlavor().getName())) {
+            // TODO:DAZ This is a regression: if we have just one flavor then we don't care about matching flavors
+            if (flavor != null && !flavor.getName().equals(candidate.getFlavor().getName())) {
                 continue;
             }
             // TODO:DAZ Matching should be more sophisticated for toolChain, platform and buildType

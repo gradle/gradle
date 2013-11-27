@@ -22,11 +22,11 @@ import spock.lang.Specification
 
 class CreateDefaultFlavorsTest extends Specification {
     def flavorContainer = new DefaultFlavorContainer(new DirectInstantiator())
-    def action = new CreateDefaultFlavors()
+    def rule = new CreateDefaultFlavors()
 
     def "has a single default flavor when not configured"() {
         when:
-        action.configureDefaultFlavor(flavorContainer)
+        rule.createDefaultFlavor(flavorContainer)
 
         then:
         flavorContainer.size() == 1
@@ -40,7 +40,7 @@ class CreateDefaultFlavorsTest extends Specification {
             flavor2 {}
         }
         and:
-        action.configureDefaultFlavor(flavorContainer)
+        rule.createDefaultFlavor(flavorContainer)
 
         then:
         flavorNames == ["flavor1", "flavor2"] as Set
@@ -54,7 +54,7 @@ class CreateDefaultFlavorsTest extends Specification {
             flavor2 {}
         }
         and:
-        action.configureDefaultFlavor(flavorContainer)
+        rule.createDefaultFlavor(flavorContainer)
 
         then:
         flavorNames == [DefaultFlavor.DEFAULT, "flavor1", "flavor2"] as Set

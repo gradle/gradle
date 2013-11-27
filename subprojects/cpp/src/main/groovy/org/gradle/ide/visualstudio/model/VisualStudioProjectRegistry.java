@@ -17,16 +17,24 @@
 package org.gradle.ide.visualstudio.model;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.specs.Spec;
 import org.gradle.nativebinaries.*;
 import org.gradle.nativebinaries.internal.LibraryNativeDependencySet;
+import org.gradle.nativebinaries.internal.NativeComponentInternal;
 import org.gradle.util.CollectionUtils;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class VisualStudioProjectRegistry {
     private Map<String, VisualStudioProject> projects = new HashMap<String, VisualStudioProject>();
+    private final FlavorContainer allFlavors;
+
+    public VisualStudioProjectRegistry(FlavorContainer allFlavors) {
+        this.allFlavors = allFlavors;
+    }
 
     public VisualStudioProjectConfiguration getProjectConfiguration(NativeBinary nativeBinary) {
         VisualStudioProject vsProject = getProject(nativeBinary);
@@ -59,7 +67,7 @@ public class VisualStudioProjectRegistry {
         return CollectionUtils.toList(projects.values());
     }
 
-    private static String projectName(NativeBinary nativeBinary) {
+    private String projectName(NativeBinary nativeBinary) {
         return projectBaseName(nativeBinary) + projectSuffix(nativeBinary);
     }
 
@@ -70,11 +78,21 @@ public class VisualStudioProjectRegistry {
     }
 
     // TODO:DAZ This needs to be unique for multi-project
-    private static String projectBaseName(NativeBinary nativeBinary) {
+    private String projectBaseName(NativeBinary nativeBinary) {
         NativeComponent component = nativeBinary.getComponent();
-        if (component.getFlavors().size() <= 1) {
+        if (getFlavors(component).size() <=1) {
             return component.getBaseName();
         }
         return nativeBinary.getFlavor().getName() + StringUtils.capitalize(component.getBaseName());
     }
+
+    // TODO:DAZ This needs to be a method on NativeComponentInternal
+    private Set<Flavor> getFlavors(final NativeComponent component) {
+        return CollectionUtils.filter(allFlavors, new Spec<Flavor>() {
+            public boolean isSatisfiedBy(Flavor element) {
+                return ((NativeComponentInternal) component).buildFlavor(element);
+            }
+        });
+    }
 }
+

@@ -32,9 +32,6 @@
             <tr>
                 <td>binaries</td>
             </tr>
-            <tr>
-                <td>flavors</td>
-            </tr>
         </table>
     </section>
     <section>
@@ -50,6 +47,12 @@
             </tr>
             <tr>
                 <td>flavors</td>
+            </tr>
+            <tr>
+                <td>buildTypes</td>
+            </tr>
+            <tr>
+                <td>targetPlatforms</td>
             </tr>
         </table>
     </section>

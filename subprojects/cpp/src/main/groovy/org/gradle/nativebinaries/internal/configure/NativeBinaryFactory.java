@@ -32,13 +32,15 @@ class NativeBinaryFactory {
     private final Project project;
     private final Collection<Platform> allPlatforms = new ArrayList<Platform>();
     private final Collection<BuildType> allBuildTypes = new ArrayList<BuildType>();
+    private final Collection<Flavor> allFlavors = new ArrayList<Flavor>();
 
     public NativeBinaryFactory(Instantiator instantiator, Project project, Collection<? extends Platform> allPlatforms,
-                               Collection<? extends BuildType> allBuildTypes) {
+                               Collection<? extends BuildType> allBuildTypes, Collection<? extends Flavor> allFlavors) {
         this.instantiator = instantiator;
         this.project = project;
         this.allPlatforms.addAll(allPlatforms);
         this.allBuildTypes.addAll(allBuildTypes);
+        this.allFlavors.addAll(allFlavors);
     }
 
     public Collection<NativeBinary> createNativeBinaries(NativeComponent component, ToolChain toolChain, Platform platform, BuildType buildType, Flavor flavor) {
@@ -68,7 +70,7 @@ class NativeBinaryFactory {
         if (useBuildTypeDimension(component)) {
             namingScheme = namingScheme.withVariantDimension(buildType.getName());
         }
-        if (component.getFlavors().size() > 1) {
+        if (useFlavorDimension(component)) {
             namingScheme = namingScheme.withVariantDimension(flavor.getName());
         }
         return namingScheme;
@@ -88,6 +90,16 @@ class NativeBinaryFactory {
         int count = 0;
         for (BuildType buildType : allBuildTypes) {
             if (((NativeComponentInternal) component).buildForBuildType(buildType)) {
+                count++;
+            }
+        }
+        return count > 1;
+    }
+
+    private boolean useFlavorDimension(NativeComponent component) {
+        int count = 0;
+        for (Flavor flavor: allFlavors) {
+            if (((NativeComponentInternal) component).buildFlavor(flavor)) {
                 count++;
             }
         }

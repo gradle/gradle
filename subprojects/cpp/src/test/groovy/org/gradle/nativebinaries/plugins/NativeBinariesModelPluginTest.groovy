@@ -42,9 +42,10 @@ class NativeBinariesModelPluginTest extends Specification {
         project.modelRegistry.get("toolChains", ToolChainRegistry)
         project.modelRegistry.get("platforms", PlatformContainer)
         project.modelRegistry.get("buildTypes", BuildTypeContainer)
+        project.modelRegistry.get("flavors", FlavorContainer)
     }
 
-    def "adds default tool chain, target platform and build type"() {
+    def "adds default tool chain, target platform, build type and flavor"() {
         when:
         project.evaluate()
 
@@ -54,9 +55,8 @@ class NativeBinariesModelPluginTest extends Specification {
             name == 'current'
             architecture == ArchitectureInternal.TOOL_CHAIN_DEFAULT
         }
-        with (one(project.modelRegistry.get("buildTypes", BuildTypeContainer))) {
-            name == 'debug'
-        }
+        one(project.modelRegistry.get("buildTypes", BuildTypeContainer)).name == 'debug'
+        one(project.modelRegistry.get("flavors", FlavorContainer)).name == 'default'
     }
 
     def "default tool chain is unavailable"() {
@@ -71,15 +71,15 @@ class NativeBinariesModelPluginTest extends Specification {
         t.message == "No tool chain is available: [No tool chain plugin applied]"
     }
 
-    def "adds default flavor to every component"() {
+    def "adds default flavor to every binary"() {
         when:
         project.executables.create "exe"
         project.libraries.create "lib"
         project.evaluate()
 
         then:
-        one(project.executables.exe.flavors).name == DefaultFlavor.DEFAULT
-        one(project.libraries.lib.flavors).name == DefaultFlavor.DEFAULT
+        one(project.binaries.withType(ExecutableBinary)).flavor.name == DefaultFlavor.DEFAULT
+        one(project.binaries.withType(SharedLibraryBinary)).flavor.name == DefaultFlavor.DEFAULT
     }
 
     def "does not add defaults when domain is explicitly configured"() {
@@ -94,11 +94,10 @@ class NativeBinariesModelPluginTest extends Specification {
             buildTypes {
                 add named(BuildType, "bt")
             }
+            flavors {
+                add named(Flavor, "flavor1")
+            }
         }
-
-        and:
-        def exe = project.executables.create "exe"
-        exe.flavors.add named(Flavor, 'flav')
 
         and:
         project.evaluate()
@@ -107,8 +106,7 @@ class NativeBinariesModelPluginTest extends Specification {
         one(project.modelRegistry.get("toolChains", ToolChainRegistry)).name == 'tc'
         one(project.modelRegistry.get("platforms", PlatformContainer)).name == 'platform'
         one(project.modelRegistry.get("buildTypes", BuildTypeContainer)).name == 'bt'
-        one(one(project.executables).flavors).name == 'flav'
-
+        one(project.modelRegistry.get("flavors", FlavorContainer)).name == 'flavor1'
     }
 
     def "creates binaries for executable"() {
@@ -124,6 +122,9 @@ class NativeBinariesModelPluginTest extends Specification {
             buildTypes {
                 add named(BuildType, "bt")
             }
+            flavors {
+                add named(Flavor, "flavor1")
+            }
         }
         def executable = project.executables.create "test"
         project.evaluate()
@@ -136,6 +137,7 @@ class NativeBinariesModelPluginTest extends Specification {
             toolChain.name == "tc"
             targetPlatform.name == "platform"
             buildType.name == "bt"
+            flavor.name == "flavor1"
         }
 
         and:
@@ -155,6 +157,9 @@ class NativeBinariesModelPluginTest extends Specification {
             buildTypes {
                 add named(BuildType, "bt")
             }
+            flavors {
+                add named(Flavor, "flavor1")
+            }
         }
         def library = project.libraries.create "test"
         project.evaluate()
@@ -168,6 +173,7 @@ class NativeBinariesModelPluginTest extends Specification {
             toolChain.name == "tc"
             targetPlatform.name == "platform"
             buildType.name == "bt"
+            flavor.name == "flavor1"
         }
 
         and:
@@ -179,6 +185,7 @@ class NativeBinariesModelPluginTest extends Specification {
             toolChain.name == "tc"
             targetPlatform.name == "platform"
             buildType.name == "bt"
+            flavor.name == "flavor1"
         }
 
         and:

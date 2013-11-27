@@ -15,7 +15,6 @@
  */
 package org.gradle.nativebinaries;
 
-import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
@@ -61,14 +60,15 @@ public interface NativeComponent extends Named {
     void setBaseName(String baseName);
 
     /**
-     * The set of flavors defined for this component. All components automatically have a default flavor named "default".
+     * Adds one or more {@link Flavor}s that this component should be built for.
+     * <p/>
+     * This method accepts the following types:
+     *
+     * <ul>
+     *     <li>The String name of the flavor to build.</li>
+     * </ul>
      */
-    FlavorContainer getFlavors();
-
-    /**
-     * Configure the flavors for this component.
-     */
-    void flavors(Action<? super FlavorContainer> config);
+    void flavors(Object... flavorSelector);
 
     /**
      * Adds one or more {@link Platform}s that this component should be built for.

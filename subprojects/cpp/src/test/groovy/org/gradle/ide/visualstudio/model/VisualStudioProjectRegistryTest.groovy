@@ -18,23 +18,20 @@ package org.gradle.ide.visualstudio.model
 
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.nativebinaries.*
-import org.gradle.nativebinaries.internal.ArchitectureNotationParser
-import org.gradle.nativebinaries.internal.DefaultBuildType
-import org.gradle.nativebinaries.internal.DefaultFlavorContainer
-import org.gradle.nativebinaries.internal.LibraryNativeDependencySet
+import org.gradle.nativebinaries.internal.*
 import spock.lang.Specification
 
 class VisualStudioProjectRegistryTest extends Specification {
-    final registry = new VisualStudioProjectRegistry()
-    def executable = Mock(Executable)
+    def allFlavors = new DefaultFlavorContainer(new DirectInstantiator())
+    final registry = new VisualStudioProjectRegistry(allFlavors)
+    def executable = Mock(ExecutableInternal)
     def executableBinary = Mock(ExecutableBinary)
-    def library = Mock(Library)
+    def library = Mock(LibraryInternal)
     def sharedLibraryBinary = Mock(SharedLibraryBinary)
     def staticLibraryBinary = Mock(StaticLibraryBinary)
 
     def setup() {
-        executable.flavors >> new DefaultFlavorContainer(new DirectInstantiator())
-        library.flavors >> new DefaultFlavorContainer(new DirectInstantiator())
+        allFlavors.add(new DefaultFlavor(DefaultFlavor.DEFAULT))
         executableBinary.libs >> []
         sharedLibraryBinary.libs >> []
         staticLibraryBinary.libs >> []
@@ -175,4 +172,7 @@ class VisualStudioProjectRegistryTest extends Specification {
     private static Architecture arch(String name) {
         return ArchitectureNotationParser.parser().parseNotation(name)
     }
+
+    interface ExecutableInternal extends Executable, NativeComponentInternal {}
+    interface LibraryInternal extends Library, NativeComponentInternal {}
 }

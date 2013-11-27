@@ -15,14 +15,13 @@
  */
 package org.gradle.nativebinaries.internal;
 
-import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.nativebinaries.BuildType;
-import org.gradle.nativebinaries.FlavorContainer;
+import org.gradle.nativebinaries.Flavor;
 import org.gradle.nativebinaries.NativeBinary;
 import org.gradle.nativebinaries.Platform;
 import org.gradle.util.GUtil;
@@ -35,16 +34,15 @@ public class DefaultNativeComponent implements NativeComponentInternal {
     private final String name;
     private final DomainObjectSet<LanguageSourceSet> sourceSets;
     private final DefaultDomainObjectSet<NativeBinary> binaries;
-    private final DefaultFlavorContainer flavors;
     private final Set<String> targetPlatforms = new HashSet<String>();
     private final Set<String> buildTypes = new HashSet<String>();
+    private final Set<String> flavors = new HashSet<String>();
     private String baseName;
 
     public DefaultNativeComponent(String name, Instantiator instantiator) {
         this.name = name;
         this.sourceSets = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class);
         binaries = new DefaultDomainObjectSet<NativeBinary>(NativeBinary.class);
-        flavors = instantiator.newInstance(DefaultFlavorContainer.class, instantiator);
     }
 
     public String getName() {
@@ -71,12 +69,12 @@ public class DefaultNativeComponent implements NativeComponentInternal {
         this.baseName = baseName;
     }
 
-    public FlavorContainer getFlavors() {
-        return flavors;
-    }
-
-    public void flavors(Action<? super FlavorContainer> config) {
-        config.execute(flavors);
+    public void flavors(Object... flavorSelectors) {
+        for (Object flavorSelector : flavorSelectors) {
+            // TODO:DAZ Allow Flavor instance and selector
+            assert flavorSelector instanceof String;
+            flavors.add((String) flavorSelector);
+        }
     }
 
     public void targetPlatforms(Object platformSelector) {
@@ -90,6 +88,10 @@ public class DefaultNativeComponent implements NativeComponentInternal {
         // TODO:DAZ Allow BuildType instance
         assert buildTypeSelector instanceof String;
         buildTypes.add((String) buildTypeSelector);
+    }
+
+    public boolean buildFlavor(Flavor flavor) {
+        return flavors.isEmpty() || flavors.contains(flavor.getName());
     }
 
     public boolean buildForPlatform(Platform platform) {

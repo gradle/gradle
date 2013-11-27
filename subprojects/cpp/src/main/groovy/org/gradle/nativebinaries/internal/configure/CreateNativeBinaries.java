@@ -40,16 +40,19 @@ public class CreateNativeBinaries extends ModelRule {
         this.project = project;
     }
 
-    public void create(BinaryContainer binaries, ToolChainRegistryInternal toolChains, PlatformContainer platforms, BuildTypeContainer buildTypes) {
+    public void create(BinaryContainer binaries, ToolChainRegistryInternal toolChains, PlatformContainer platforms,
+                       BuildTypeContainer buildTypes, FlavorContainer flavors) {
         // TODO:DAZ Work out the right way to make these containers available to binaries.all
         project.getExtensions().add("platforms", platforms);
         project.getExtensions().add("buildTypes", buildTypes);
-        NativeBinaryFactory factory = new NativeBinaryFactory(instantiator, project, platforms, buildTypes);
+        project.getExtensions().add("flavors", flavors);
+
+        NativeBinaryFactory factory = new NativeBinaryFactory(instantiator, project, platforms, buildTypes, flavors);
         for (NativeComponentInternal component : allComponents()) {
             for (Platform platform : getPlatforms(component, platforms)) {
                 ToolChain toolChain = toolChains.getForPlatform(platform);
                 for (BuildType buildType : getBuildTypes(component, buildTypes)) {
-                    for (Flavor flavor : component.getFlavors()) {
+                    for (Flavor flavor : getFlavors(component, flavors)) {
                         binaries.addAll(factory.createNativeBinaries(component, toolChain, platform, buildType, flavor));
                     }
                 }
@@ -83,6 +86,15 @@ public class CreateNativeBinaries extends ModelRule {
         return CollectionUtils.filter(buildTypes, new Spec<BuildType>() {
             public boolean isSatisfiedBy(BuildType element) {
                 return component.buildForBuildType(element);
+            }
+        });
+    }
+
+    // TODO:DAZ Maybe add NativeBinaryInternal.selectFlavors(FlavorContainer) >> Set<Flavor>
+    private Set<Flavor> getFlavors(final NativeComponentInternal component, FlavorContainer flavors) {
+        return CollectionUtils.filter(flavors, new Spec<Flavor>() {
+            public boolean isSatisfiedBy(Flavor element) {
+                return component.buildFlavor(element);
             }
         });
     }

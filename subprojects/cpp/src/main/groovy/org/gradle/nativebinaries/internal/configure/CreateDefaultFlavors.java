@@ -16,30 +16,14 @@
 
 package org.gradle.nativebinaries.internal.configure;
 
-import org.gradle.api.Action;
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.nativebinaries.ExecutableContainer;
+import org.gradle.model.ModelFinalizer;
 import org.gradle.nativebinaries.FlavorContainer;
-import org.gradle.nativebinaries.LibraryContainer;
-import org.gradle.nativebinaries.NativeComponent;
 import org.gradle.nativebinaries.internal.DefaultFlavor;
 
-import java.util.Set;
+public class CreateDefaultFlavors extends ModelFinalizer {
 
-public class CreateDefaultFlavors implements Action<ProjectInternal> {
-    public void execute(ProjectInternal project) {
-        configureDefaultFlavor(project.getExtensions().getByType(ExecutableContainer.class));
-        configureDefaultFlavor(project.getExtensions().getByType(LibraryContainer.class));
-    }
-
-    private void configureDefaultFlavor(Set<? extends NativeComponent> components) {
-        for (NativeComponent component : components) {
-            FlavorContainer flavors = component.getFlavors();
-            configureDefaultFlavor(flavors);
-        }
-    }
-
-    protected void configureDefaultFlavor(FlavorContainer flavors) {
+    @SuppressWarnings("UnusedDeclaration")
+    void createDefaultFlavor(FlavorContainer flavors) {
         if (flavors.isEmpty()) {
             flavors.create(DefaultFlavor.DEFAULT);
         }

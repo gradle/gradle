@@ -32,6 +32,13 @@ class BinaryFlavorsIntegrationTest extends AbstractInstalledToolChainIntegration
 
         buildFile << """
             apply plugin: "cpp"
+            model {
+                flavors {
+                    create("english")
+                    create("french")
+                    create("german")
+                }
+            }
             libraries {
                 greetings {
                     binaries.all {
@@ -55,20 +62,61 @@ class BinaryFlavorsIntegrationTest extends AbstractInstalledToolChainIntegration
             }
         """
 
-
         helloWorldApp.writeSources(file("src/main"), file("src/hello"), file("src/greetings"))
     }
 
+    @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+     def "builds executable for each defined flavor when not configured for component"() {
+        when:
+        succeeds "installEnglishMainExecutable", "installFrenchMainExecutable", "installGermanMainExecutable"
+
+        then:
+        installation("build/install/mainExecutable/english").assertInstalled()
+        installation("build/install/mainExecutable/french").assertInstalled()
+        installation("build/install/mainExecutable/german").assertInstalled()
+    }
+
+    @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+    def "executable with flavors depends on library with matching flavors"() {
+        when:
+        buildFile << """
+            executables {
+                main {
+                    flavors "english", "french"
+                    binaries.all {
+                        if (flavor == flavors.french) {
+                            cppCompiler.define "FRENCH"
+                        }
+                    }
+                }
+            }
+            libraries.all {
+                flavors "english", "french"
+                binaries.all {
+                    if (flavor == flavors.french) {
+                        cppCompiler.define "FRENCH"
+                    }
+                }
+            }
+        """
+
+        and:
+        succeeds "installEnglishMainExecutable", "installFrenchMainExecutable"
+
+        then:
+        installation("build/install/mainExecutable/english").exec().out == DEFAULT + " " + DEFAULT
+        installation("build/install/mainExecutable/french").exec().out == FRENCH + " " + FRENCH
+    }
+
+    // TODO:DAZ Un-ignore
+    @Ignore("Requires proper dependency resolution")
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
      def "executable with flavors depends on library with no defined flavor"() {
         when:
         buildFile << """
             executables {
                 main {
-                    flavors {
-                        english {}
-                        french {}
-                    }
+                    flavors "english", "french"
                     binaries.all {
                         if (flavor == flavors.french) {
                             cppCompiler.define "FRENCH"
@@ -86,44 +134,7 @@ class BinaryFlavorsIntegrationTest extends AbstractInstalledToolChainIntegration
         installation("build/install/mainExecutable/french").exec().out == FRENCH + " " + DEFAULT
     }
 
-    @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
-    def "executable with flavors depends on library with matching flavors"() {
-        when:
-        buildFile << """
-            executables {
-                main {
-                    flavors {
-                        english {}
-                        french {}
-                    }
-                    binaries.all {
-                        if (flavor == flavors.french) {
-                            cppCompiler.define "FRENCH"
-                        }
-                    }
-                }
-            }
-            libraries.all {
-                flavors {
-                    english {}
-                    french {}
-                }
-                binaries.all {
-                    if (flavor == flavors.french) {
-                        cppCompiler.define "FRENCH"
-                    }
-                }
-            }
-        """
-
-        and:
-        succeeds "installEnglishMainExecutable", "installFrenchMainExecutable"
-
-        then:
-        installation("build/install/mainExecutable/english").exec().out == DEFAULT + " " + DEFAULT
-        installation("build/install/mainExecutable/french").exec().out == FRENCH + " " + FRENCH
-    }
-
+    // TODO:DAZ Un-ignore
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
     @Ignore("Library resolution does not yet handle this case")
     def "executable with flavors depends on a library with a single flavor which depends on a library with flavors"() {
@@ -131,10 +142,7 @@ class BinaryFlavorsIntegrationTest extends AbstractInstalledToolChainIntegration
         buildFile << """
             executables {
                 main {
-                    flavors {
-                        english {}
-                        french {}
-                    }
+                    flavors "english", "french"
                     binaries.all {
                         if (flavor == flavors.french) {
                             cppCompiler.define "FRENCH"
@@ -144,10 +152,7 @@ class BinaryFlavorsIntegrationTest extends AbstractInstalledToolChainIntegration
             }
             libraries {
                 greetings {
-                    flavors {
-                        english {}
-                        french {}
-                    }
+                    flavors "english", "french"
                     binaries.all {
                         if (flavor == flavors.french) {
                             cppCompiler.define "FRENCH"
@@ -171,18 +176,12 @@ class BinaryFlavorsIntegrationTest extends AbstractInstalledToolChainIntegration
             apply plugin: "cpp"
             libraries {
                 hello {
-                    flavors {
-                        english {}
-                        french {}
-                    }
+                    flavors "english", "french"
                 }
             }
             executables {
                 main {
-                    flavors {
-                        english {}
-                        german {}
-                    }
+                    flavors "english", "german"
                     binaries.all {
                         lib libraries.hello
                     }
