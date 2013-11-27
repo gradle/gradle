@@ -41,7 +41,7 @@ class DependencyResultSpec implements Spec<DependencyResult> {
 
     private boolean matchesRequested(DependencyResult candidate) {
         ModuleComponentSelector requested = (ModuleComponentSelector)candidate.getRequested();
-        String requestedCandidate = requested.getGroup() + ":" + requested.getName() + ":" + requested.getVersion();
+        String requestedCandidate = requested.getGroup() + ":" + requested.getModule() + ":" + requested.getVersion();
         return requestedCandidate.contains(stringNotation);
     }
 

@@ -23,18 +23,16 @@ import org.gradle.api.Incubating;
 import java.util.Set;
 
 /**
- * Contains the information about the resolution result.
- * Gives access to the resolved dependency graph.
- * In future it will contain more convenience methods and
- * other useful information about the resolution results.
+ * Contains the information about the result of dependency resolution. You can use this type to determine all the component instances that are included
+ * in the resolved dependency graph, and the dependencies between them.
  */
 @Incubating
 public interface ResolutionResult {
 
     /**
-     * Gives access to the resolved dependency graph.
+     * Gives access to the root of resolved dependency graph.
      * You can walk the graph recursively from the root to obtain information about resolved dependencies.
-     * For example, Gradle's built-in 'dependencies' uses it to render the dependency tree.
+     * For example, Gradle's built-in 'dependencies' task uses this to render the dependency tree.
      *
      * @return the root node of the resolved dependency graph
      */

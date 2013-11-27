@@ -22,16 +22,16 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector;
 public class DefaultModuleComponentSelector implements ModuleComponentSelector {
     private final String displayName;
     private final String group;
-    private final String name;
+    private final String module;
     private final String version;
 
-    public DefaultModuleComponentSelector(String group, String name, String version) {
+    public DefaultModuleComponentSelector(String group, String module, String version) {
         assert group != null : "group cannot be null";
-        assert name != null : "name cannot be null";
+        assert module != null : "module cannot be null";
         assert version != null : "version cannot be null";
-        displayName = String.format("%s:%s:%s", group, name, version);
+        displayName = String.format("%s:%s:%s", group, module, version);
         this.group = group;
-        this.name = name;
+        this.module = module;
         this.version = version;
     }
 
@@ -43,8 +43,8 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector {
         return group;
     }
 
-    public String getName() {
-        return name;
+    public String getModule() {
+        return module;
     }
 
     public String getVersion() {
@@ -56,7 +56,7 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector {
 
         if(identifier instanceof ModuleComponentIdentifier) {
             ModuleComponentIdentifier moduleComponentIdentifier = (ModuleComponentIdentifier)identifier;
-            return name.equals(moduleComponentIdentifier.getModule())
+            return module.equals(moduleComponentIdentifier.getModule())
                     && group.equals(moduleComponentIdentifier.getGroup())
                     && version.equals(moduleComponentIdentifier.getVersion());
         }
@@ -78,7 +78,7 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector {
         if (!group.equals(that.group)) {
             return false;
         }
-        if (!name.equals(that.name)) {
+        if (!module.equals(that.module)) {
             return false;
         }
         if (!version.equals(that.version)) {
@@ -91,7 +91,7 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector {
     @Override
     public int hashCode() {
         int result = group.hashCode();
-        result = 31 * result + name.hashCode();
+        result = 31 * result + module.hashCode();
         result = 31 * result + version.hashCode();
         return result;
     }

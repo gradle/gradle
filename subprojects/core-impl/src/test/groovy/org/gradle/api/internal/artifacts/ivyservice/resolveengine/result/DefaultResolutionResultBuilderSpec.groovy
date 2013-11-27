@@ -188,7 +188,7 @@ class DefaultResolutionResultBuilderSpec extends Specification {
         then:
         def mid1 = first(result.root.dependencies)
         mid1.selected.dependencies.size() == 2
-        mid1.selected.dependencies*.requested.name == ['leaf1', 'leaf2']
+        mid1.selected.dependencies*.requested.module == ['leaf1', 'leaf2']
     }
 
     def "graph includes unresolved deps"() {

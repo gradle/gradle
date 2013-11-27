@@ -30,7 +30,7 @@ class DefaultModuleComponentSelectorTest extends Specification {
 
         then:
         defaultModuleComponentSelector.group == 'some-group'
-        defaultModuleComponentSelector.name == 'some-name'
+        defaultModuleComponentSelector.module == 'some-name'
         defaultModuleComponentSelector.version == '1.0'
         defaultModuleComponentSelector.displayName == 'some-group:some-name:1.0'
         defaultModuleComponentSelector.toString() == 'some-group:some-name:1.0'
@@ -48,7 +48,7 @@ class DefaultModuleComponentSelectorTest extends Specification {
         where:
         group        | name        | version | assertionMessage
         null         | 'some-name' | '1.0'   | 'group cannot be null'
-        'some-group' | null        | '1.0'   | 'name cannot be null'
+        'some-group' | null        | '1.0'   | 'module cannot be null'
         'some-group' | 'some-name' | null    | 'version cannot be null'
     }
 
@@ -75,7 +75,7 @@ class DefaultModuleComponentSelectorTest extends Specification {
 
         then:
         defaultModuleComponentSelector.group == 'some-group'
-        defaultModuleComponentSelector.name == 'some-name'
+        defaultModuleComponentSelector.module == 'some-name'
         defaultModuleComponentSelector.version == '1.0'
         defaultModuleComponentSelector.displayName == 'some-group:some-name:1.0'
         defaultModuleComponentSelector.toString() == 'some-group:some-name:1.0'
