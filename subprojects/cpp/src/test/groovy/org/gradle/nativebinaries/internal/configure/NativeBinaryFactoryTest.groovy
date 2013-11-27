@@ -42,7 +42,7 @@ class NativeBinaryFactoryTest extends Specification {
         component.flavors.add(flavor1)
 
         and:
-        def factory = new NativeBinaryFactory(new DirectInstantiator(), project, [], [], [])
+        def factory = new NativeBinaryFactory(new DirectInstantiator(), project, [], [])
         def binary = factory.createNativeBinary(DefaultExecutableBinary, component, toolChain, platform, buildType, flavor1)
 
         then:
@@ -58,7 +58,7 @@ class NativeBinaryFactoryTest extends Specification {
         component.flavors.add(flavor1)
 
         and:
-        def factory = new NativeBinaryFactory(new DirectInstantiator(), project, [], [], [])
+        def factory = new NativeBinaryFactory(new DirectInstantiator(), project, [], [])
         def binary = factory.createNativeBinary(DefaultExecutableBinary, component, toolChain, platform, buildType, flavor1)
 
         then:
@@ -66,27 +66,6 @@ class NativeBinaryFactoryTest extends Specification {
         binary.namingScheme.outputDirectoryBase == 'nameExecutable/flavor1'
         binary.namingScheme.getTaskName("link") == 'linkFlavor1NameExecutable'
         binary.namingScheme.getTaskName("compile", "cpp") == 'compileFlavor1NameExecutableCpp'
-    }
-
-    def "includes tool chain in names when building with multiple tool chains"() {
-        when:
-        component.flavors.add(defaultFlavor)
-        component.flavors.add(flavor1)
-
-        and:
-        def toolChain2 = Stub(ToolChainInternal) {
-            getName() >> "toolChain2"
-        }
-
-        and:
-        def factory = new NativeBinaryFactory(new DirectInstantiator(), project, [toolChain, toolChain2], [], [])
-        def binary = factory.createNativeBinary(DefaultExecutableBinary, component, toolChain2, platform, buildType, flavor1)
-
-        then:
-        binary.namingScheme.lifecycleTaskName == 'toolChain2Flavor1NameExecutable'
-        binary.namingScheme.outputDirectoryBase == 'nameExecutable/toolChain2Flavor1'
-        binary.namingScheme.getTaskName("link") == 'linkToolChain2Flavor1NameExecutable'
-        binary.namingScheme.getTaskName("compile", "cpp") == 'compileToolChain2Flavor1NameExecutableCpp'
     }
 
     def "includes platform in names when targeting multiple platforms"() {
@@ -100,7 +79,7 @@ class NativeBinaryFactoryTest extends Specification {
         }
 
         and:
-        def factory = new NativeBinaryFactory(new DirectInstantiator(), project, [], [platform, platform2], [])
+        def factory = new NativeBinaryFactory(new DirectInstantiator(), project, [platform, platform2], [])
         def binary = factory.createNativeBinary(DefaultExecutableBinary, component, toolChain, platform2, buildType, flavor1)
 
         then:
@@ -121,7 +100,7 @@ class NativeBinaryFactoryTest extends Specification {
         }
 
         and:
-        def factory = new NativeBinaryFactory(new DirectInstantiator(), project, [], [platform], [buildType, buildType2])
+        def factory = new NativeBinaryFactory(new DirectInstantiator(), project, [platform], [buildType, buildType2])
         def binary = factory.createNativeBinary(DefaultExecutableBinary, component, toolChain, platform, buildType2, flavor1)
 
         then:

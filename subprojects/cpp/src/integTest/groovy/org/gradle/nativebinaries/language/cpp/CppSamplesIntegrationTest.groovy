@@ -32,6 +32,7 @@ class CppSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
     @Rule public final Sample multiProject = new Sample(temporaryFolder, 'native-binaries/multi-project')
     @Rule public final Sample flavors = new Sample(temporaryFolder, 'native-binaries/flavors')
     @Rule public final Sample variants = new Sample(temporaryFolder, 'native-binaries/variants')
+    @Rule public final Sample toolChains = new Sample(temporaryFolder, 'native-binaries/tool-chains')
     @Rule public final Sample windowsResources = new Sample(temporaryFolder, 'native-binaries/windows-resources')
 
     def "assembler"() {
@@ -234,6 +235,17 @@ class CppSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
             debugIA64.assertDoesNotExist()
             releaseIA64.assertDoesNotExist()
         }
+    }
+
+    def "tool chains"() {
+        given:
+        sample toolChains
+
+        when:
+        run "installMainExecutable"
+
+        then:
+        executable("native-binaries/tool-chains/build/binaries/mainExecutable/main").exec().out == "Hello from ${toolChain.typeDisplayName}!\n"
     }
 
     def multiProject() {
