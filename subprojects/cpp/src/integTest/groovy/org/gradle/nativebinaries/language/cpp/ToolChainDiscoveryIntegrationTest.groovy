@@ -63,10 +63,8 @@ class ToolChainDiscoveryIntegrationTest extends AbstractInstalledToolChainIntegr
         buildFile << """
             apply plugin: CppPlugin
 
-            model {
-                toolChains {
-                    ${toolChain.buildScriptConfig}
-                }
+            toolChains {
+                ${toolChain.buildScriptConfig}
             }
 
             executables {

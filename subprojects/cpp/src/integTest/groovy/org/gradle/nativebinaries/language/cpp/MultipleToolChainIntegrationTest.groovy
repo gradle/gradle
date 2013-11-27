@@ -58,12 +58,11 @@ class MultipleToolChainIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         buildFile << """
-            model {
-                toolChains {
-                    ${toolChainConfig}
-                    unavailable(Gcc) {
-                        linker.executable = "does_not_exist"
-                    }
+            toolChains {
+${toolChainConfig}
+
+                unavailable(Gcc) {
+                    linker.executable = "does_not_exist"
                 }
             }
 
@@ -82,11 +81,9 @@ class MultipleToolChainIntegrationTest extends AbstractIntegrationSpec {
     def "exception when building with unavailable tool chain"() {
         when:
         buildFile << """
-            model {
-                toolChains {
-                    bad(Gcc) {
-                        linker.executable = "does_not_exist"
-                    }
+            toolChains {
+                bad(Gcc) {
+                    linker.executable = "does_not_exist"
                 }
             }
 """
@@ -107,13 +104,11 @@ class MultipleToolChainIntegrationTest extends AbstractIntegrationSpec {
 
         given:
         buildFile << """
-            model {
-                toolChains {
-    ${toolChain.buildScriptConfig}
+            toolChains {
+${toolChain.buildScriptConfig}
 
-                    unavailable(Gcc) {
-                        linker.executable = "does_not_exist"
-                    }
+                unavailable(Gcc) {
+                    linker.executable = "does_not_exist"
                 }
             }
 """

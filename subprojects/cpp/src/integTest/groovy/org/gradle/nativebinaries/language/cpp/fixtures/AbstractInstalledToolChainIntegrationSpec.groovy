@@ -30,10 +30,8 @@ abstract class AbstractInstalledToolChainIntegrationSpec extends AbstractIntegra
         initScript = file("init.gradle") << """
 allprojects {
     apply plugin: ${toolChain.pluginClass}
-    model {
-        toolChains {
-            ${toolChain.buildScriptConfig}
-        }
+    toolChains {
+        ${toolChain.buildScriptConfig}
     }
 }
 """

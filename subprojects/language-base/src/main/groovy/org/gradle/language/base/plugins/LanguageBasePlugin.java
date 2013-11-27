@@ -16,13 +16,11 @@
 package org.gradle.language.base.plugins;
 
 import org.gradle.api.*;
-import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.BinaryContainer;
 import org.gradle.language.base.internal.BinaryInternal;
 import org.gradle.language.base.internal.DefaultBinaryContainer;
 import org.gradle.language.base.internal.DefaultProjectSourceSet;
-import org.gradle.model.ModelRules;
 
 import javax.inject.Inject;
 
@@ -37,23 +35,16 @@ public class LanguageBasePlugin implements Plugin<Project> {
     public static final String BUILD_GROUP = "build";
 
     private final Instantiator instantiator;
-    private final ModelRules modelRules;
+
 
     @Inject
-    public LanguageBasePlugin(Instantiator instantiator, ModelRules modelRules) {
+    public LanguageBasePlugin(Instantiator instantiator) {
         this.instantiator = instantiator;
-        this.modelRules = modelRules;
     }
 
     public void apply(final Project target) {
         target.getExtensions().create("sources", DefaultProjectSourceSet.class, instantiator);
         final BinaryContainer binaries = target.getExtensions().create("binaries", DefaultBinaryContainer.class, instantiator);
-
-        modelRules.register("binaries", BinaryContainer.class, new Factory<BinaryContainer>() {
-            public BinaryContainer create() {
-                return binaries;
-            }
-        });
 
         binaries.withType(BinaryInternal.class).all(new Action<BinaryInternal>() {
             public void execute(BinaryInternal binary) {

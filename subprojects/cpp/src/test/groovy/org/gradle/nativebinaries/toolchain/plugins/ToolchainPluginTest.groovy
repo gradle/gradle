@@ -19,7 +19,7 @@ package org.gradle.nativebinaries.toolchain.plugins
 import org.gradle.api.Plugin
 import org.gradle.nativebinaries.ToolChain
 import org.gradle.nativebinaries.ToolChainRegistry
-import org.gradle.nativebinaries.internal.ToolChainInternal
+import org.gradle.nativebinaries.internal.ToolChainRegistryInternal
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -39,19 +39,19 @@ abstract class ToolChainPluginTest extends Specification {
         "toolchain"
     }
 
-    ToolChainInternal getToolchain() {
-        project.modelRegistry.get("toolChains", ToolChainRegistry).getByName(getToolchainName()) as ToolChainInternal
+    ToolChain getToolchain() {
+        toolchains.getByName(toolchainName)
     }
 
     void register() {
-        project.model {
-            toolChains {
-                create(getToolchainName(), getToolchainClass())
-            }
-        }
+        getToolchains().create(getToolchainName(), getToolchainClass())
+    }
+
+    def ToolChainRegistry getToolchains() {
+        project.extensions.getByType(ToolChainRegistry)
     }
 
     void addDefaultToolchain() {
-        project.model { toolChains { addDefaultToolChain() } }
+        ((ToolChainRegistryInternal)toolchains).addDefaultToolChain()
     }
 }

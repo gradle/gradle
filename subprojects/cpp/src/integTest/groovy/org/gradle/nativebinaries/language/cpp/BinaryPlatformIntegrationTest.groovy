@@ -15,6 +15,7 @@
  */
 
 package org.gradle.nativebinaries.language.cpp
+
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativebinaries.language.cpp.fixtures.app.CppHelloWorldApp

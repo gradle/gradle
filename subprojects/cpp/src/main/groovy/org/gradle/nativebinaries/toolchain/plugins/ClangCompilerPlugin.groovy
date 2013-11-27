@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 package org.gradle.nativebinaries.toolchain.plugins
+
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.model.ModelRule
-import org.gradle.model.ModelRules
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.nativebinaries.internal.ToolChainRegistryInternal
 import org.gradle.nativebinaries.plugins.NativeBinariesPlugin
@@ -29,6 +28,7 @@ import org.gradle.nativebinaries.toolchain.internal.clang.ClangToolChain
 import org.gradle.process.internal.ExecActionFactory
 
 import javax.inject.Inject
+
 /**
  * A {@link Plugin} which makes the <a href="http://clang.llvm.org">Clang</a> compiler available for compiling C/C++ code.
  */
@@ -37,26 +37,21 @@ class ClangCompilerPlugin implements Plugin<Project> {
     private final FileResolver fileResolver
     private final ExecActionFactory execActionFactory
     private final Instantiator instantiator
-    private final ModelRules modelRules
 
     @Inject
-    ClangCompilerPlugin(FileResolver fileResolver, ExecActionFactory execActionFactory, ModelRules modelRules, Instantiator instantiator) {
+    ClangCompilerPlugin(FileResolver fileResolver, ExecActionFactory execActionFactory, Instantiator instantiator) {
         this.execActionFactory = execActionFactory
         this.fileResolver = fileResolver
         this.instantiator = instantiator
-        this.modelRules = modelRules
     }
 
     void apply(Project project) {
         project.plugins.apply(NativeBinariesPlugin)
 
-        modelRules.rule(new ModelRule() {
-            void addToolChain(ToolChainRegistryInternal toolChainRegistry) {
-                toolChainRegistry.registerFactory(Clang, { String name ->
-                    return instantiator.newInstance(ClangToolChain, name, OperatingSystem.current(), fileResolver, execActionFactory)
-                })
-                toolChainRegistry.registerDefaultToolChain(ClangToolChain.DEFAULT_NAME, Clang)
-            }
+        final toolChainRegistry = project.extensions.getByType(ToolChainRegistryInternal)
+        toolChainRegistry.registerFactory(Clang, { String name ->
+            return instantiator.newInstance(ClangToolChain, name, OperatingSystem.current(), fileResolver, execActionFactory)
         })
+        toolChainRegistry.registerDefaultToolChain(ClangToolChain.DEFAULT_NAME, Clang)
     }
 }

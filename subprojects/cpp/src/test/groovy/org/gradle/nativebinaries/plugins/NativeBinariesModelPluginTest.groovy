@@ -37,7 +37,7 @@ class NativeBinariesModelPluginTest extends Specification {
         expect:
         project.executables instanceof NamedDomainObjectContainer
         project.libraries instanceof NamedDomainObjectContainer
-        project.modelRegistry.get("toolChains", ToolChainRegistry)
+        project.toolChains instanceof NamedDomainObjectContainer
         project.targetPlatforms instanceof NamedDomainObjectContainer
         project.buildTypes instanceof NamedDomainObjectContainer
     }
@@ -47,7 +47,7 @@ class NativeBinariesModelPluginTest extends Specification {
         project.evaluate()
 
         then:
-        one(project.modelRegistry.get("toolChains", ToolChainRegistry)).name == 'unavailable'
+        one(project.toolChains).name == 'unavailable'
         with (one(project.targetPlatforms)) {
             name == 'current'
             architecture == ArchitectureInternal.TOOL_CHAIN_DEFAULT
@@ -62,7 +62,7 @@ class NativeBinariesModelPluginTest extends Specification {
         project.evaluate()
 
         when:
-        one(project.modelRegistry.get("toolChains", ToolChainRegistry)).target(null)
+        one(project.toolChains).target(null)
 
         then:
         def t = thrown(IllegalStateException)
@@ -82,11 +82,7 @@ class NativeBinariesModelPluginTest extends Specification {
 
     def "does not add defaults when domain is explicitly configured"() {
         when:
-        project.model {
-            toolChains {
-                add named(ToolChainInternal, "tc")
-            }
-        }
+        project.toolChains.add named(ToolChainInternal, "tc")
         project.targetPlatforms.add named(Platform, "platform")
         project.buildTypes.add named(BuildType, "bt")
 
@@ -98,7 +94,7 @@ class NativeBinariesModelPluginTest extends Specification {
         project.evaluate()
 
         then:
-        one(project.modelRegistry.get("toolChains", ToolChainRegistry)).name == 'tc'
+        one(project.toolChains).name == 'tc'
         one(project.targetPlatforms).name == 'platform'
         one(project.buildTypes).name == 'bt'
         one(one(project.executables).flavors).name == 'flav'
@@ -108,11 +104,7 @@ class NativeBinariesModelPluginTest extends Specification {
     def "creates binaries for executable"() {
         when:
         project.plugins.apply(NativeBinariesModelPlugin)
-        project.model {
-            toolChains {
-                add named(ToolChainInternal, "tc")
-            }
-        }
+        project.toolChains.add named(ToolChainInternal, "tc")
         project.targetPlatforms.add named(Platform, "platform")
         project.buildTypes.add named(BuildType, "bt")
         def executable = project.executables.create "test"
@@ -135,11 +127,7 @@ class NativeBinariesModelPluginTest extends Specification {
     def "creates binaries for library"() {
         when:
         project.plugins.apply(NativeBinariesModelPlugin)
-        project.model {
-            toolChains {
-                add named(ToolChainInternal, "tc")
-            }
-        }
+        project.toolChains.add named(ToolChainInternal, "tc")
         project.targetPlatforms.add named(Platform, "platform")
         project.buildTypes.add named(BuildType, "bt")
         def library = project.libraries.create "test"
@@ -197,7 +185,7 @@ class NativeBinariesModelPluginTest extends Specification {
         }
     }
 
-    static <T> T one(Collection<T> collection) {
+    def one(def collection) {
         assert collection.size() == 1
         return collection.iterator().next()
     }

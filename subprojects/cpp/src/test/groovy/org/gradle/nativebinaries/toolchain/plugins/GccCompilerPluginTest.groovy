@@ -15,6 +15,7 @@
  */
 
 package org.gradle.nativebinaries.toolchain.plugins
+
 import org.gradle.api.Plugin
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.ExtraPropertiesExtension
@@ -64,7 +65,7 @@ class GccCompilerPluginTest extends ToolChainPluginTest {
         register()
 
         then:
-        with (getToolchain()) {
+        with(getToolchain()) {
             it instanceof ExtensionAware
             it.ext instanceof ExtraPropertiesExtension
         }
