@@ -29,7 +29,7 @@ public class DefaultTestSelection implements TestSelection {
         return include;
     }
 
-    public TestSelection include(Action<TestSelectionSpec> configure) {
+    public DefaultTestSelection include(Action<TestSelectionSpec> configure) {
         configure.execute(include);
         return this;
     }
