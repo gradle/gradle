@@ -18,8 +18,16 @@ package org.gradle.api.internal.artifacts.metadata
 
 import org.apache.ivy.core.module.descriptor.DefaultDependencyArtifactDescriptor
 import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor
+import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
 import org.apache.ivy.core.module.id.ModuleRevisionId
+import org.gradle.api.artifacts.component.BuildComponentSelector
+import org.gradle.api.artifacts.component.ComponentSelector
+import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
+import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ProjectDependencyDescriptor
+import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.initialization.ProjectAccessListener
 import spock.lang.Specification
 
 class DefaultDependencyMetaDataTest extends Specification {
@@ -113,5 +121,36 @@ class DefaultDependencyMetaDataTest extends Specification {
 
         expect:
         metaData.getArtifacts(fromConfiguration, toConfiguration)*.name*.name == ['art1', 'art3']
+    }
+
+    def "returns a build component selector if descriptor indicates a project dependency"() {
+        given:
+        def project = Mock(ProjectInternal)
+        def projectDependency = new DefaultProjectDependency(project, 'conf1', {} as ProjectAccessListener, true)
+        def descriptor = new ProjectDependencyDescriptor(projectDependency, DefaultModuleDescriptor.newDefaultInstance(requestedModuleId), requestedModuleId, false, false, false)
+        def metaData = new DefaultDependencyMetaData(descriptor)
+
+        when:
+        ComponentSelector componentSelector = metaData.getSelector()
+
+        then:
+        1 * project.path >> ':myPath'
+        componentSelector instanceof BuildComponentSelector
+        ((BuildComponentSelector)componentSelector).projectPath == ':myPath'
+    }
+
+    def "returns a module component selector if descriptor indicates a default dependency"() {
+        given:
+        def descriptor = new DefaultDependencyDescriptor(DefaultModuleDescriptor.newDefaultInstance(requestedModuleId), requestedModuleId, false, false, false)
+        def metaData = new DefaultDependencyMetaData(descriptor)
+
+        when:
+        ComponentSelector componentSelector = metaData.getSelector()
+
+        then:
+        componentSelector instanceof ModuleComponentSelector
+        ((ModuleComponentSelector)componentSelector).group == 'org'
+        ((ModuleComponentSelector)componentSelector).name == 'module'
+        ((ModuleComponentSelector)componentSelector).version == '1.2+'
     }
 }

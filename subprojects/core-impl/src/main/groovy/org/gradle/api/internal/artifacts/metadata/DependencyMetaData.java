@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.metadata;
 
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.component.ComponentSelector;
 
 import java.util.Set;
 
@@ -54,4 +55,11 @@ public interface DependencyMetaData {
      * Returns a copy of this dependency with the changing flag set.
      */
     DependencyMetaData withChanging();
+
+    /**
+     * Returns the component selector for this dependency.
+     *
+     * @return Component selector
+     */
+    ComponentSelector getSelector();
 }
