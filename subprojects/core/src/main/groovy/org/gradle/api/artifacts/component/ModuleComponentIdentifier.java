@@ -18,28 +18,28 @@ package org.gradle.api.artifacts.component;
 import org.gradle.api.Incubating;
 
 /**
- * An identifier for a module component.
+ * An identifier for a component instance which is available as a module.
  */
 @Incubating
 public interface ModuleComponentIdentifier extends ComponentIdentifier {
     /**
-     * The group of a component identifier.
+     * The module group of the component.
      *
-     * @return Component identifier group
+     * @return Component group
      */
     String getGroup();
 
     /**
-     * The name of a component identifier.
+     * The module name of the component.
      *
-     * @return Component identifier name
+     * @return Component module
      */
     String getModule();
 
     /**
-     * The version of a component identifier.
+     * The module version of the component.
      *
-     * @return Component identifier version
+     * @return Component version
      */
     String getVersion();
 }

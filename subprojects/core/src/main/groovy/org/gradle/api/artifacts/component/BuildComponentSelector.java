@@ -18,9 +18,14 @@ package org.gradle.api.artifacts.component;
 import org.gradle.api.Incubating;
 
 /**
- * Selects a locally built component.
+ * Selects a component instance that is built as part of the current build.
  */
 @Incubating
 public interface BuildComponentSelector extends ComponentSelector {
+    /**
+     * The project to select.
+     *
+     * @return Project path
+     */
     String getProjectPath();
 }

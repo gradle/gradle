@@ -18,7 +18,7 @@ package org.gradle.api.artifacts.component;
 import org.gradle.api.Incubating;
 
 /**
- * Represents the criteria used to select a component during dependency resolution.
+ * Represents the criteria used to select a component instance during dependency resolution.
  */
 @Incubating
 public interface ComponentSelector {
