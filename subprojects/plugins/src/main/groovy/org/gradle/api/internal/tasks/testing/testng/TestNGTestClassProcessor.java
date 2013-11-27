@@ -29,16 +29,13 @@ import org.gradle.internal.reflect.NoSuchMethodException;
 import org.gradle.logging.StandardOutputRedirector;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GFileUtils;
-import org.testng.ITestListener;
-import org.testng.TestNG;
-import org.testng.xml.XmlClass;
-import org.testng.xml.XmlInclude;
-import org.testng.xml.XmlSuite;
-import org.testng.xml.XmlTest;
+import org.testng.*;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 public class TestNGTestClassProcessor implements TestClassProcessor {
     private final List<Class<?>> testClasses = new ArrayList<Class<?>>();
@@ -93,6 +90,9 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
 
         testNg.setUseDefaultListeners(options.getUseDefaultListeners());
         testNg.addListener((Object) adaptListener(testResultProcessor));
+        if (!options.getIncludedTests().isEmpty()) {
+            testNg.addListener(new SelectedTestsFilter(options.getIncludedTests()));
+        }
         testNg.setVerbose(0);
         testNg.setGroups(CollectionUtils.join(",", options.getIncludeGroups()));
         testNg.setExcludedGroups(CollectionUtils.join(",", options.getExcludeGroups()));
@@ -107,45 +107,34 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
         if (!suiteFiles.isEmpty()) {
             testNg.setTestSuites(GFileUtils.toPaths(suiteFiles));
         } else {
-            if (options.getIncludedTests().isEmpty()) {
-                //includedMethods was introduced in 1.10, before that we used to configure classes this way:
-                testNg.setTestClasses(testClasses.toArray(new Class[testClasses.size()]));
-                //let's leave it for backwards compatibility
-            } else {
-                //in order to respect the included methods, we need to manually create the suite
-                configureXmlTestSuite(testNg, testClasses, options.getIncludedTests());
-            }
+            testNg.setTestClasses(testClasses.toArray(new Class[testClasses.size()]));
         }
 
         testNg.run();
     }
 
-    private static void configureXmlTestSuite(TestNG testNg, Iterable<Class<?>> testClasses, Iterable<TestSelectionSpec> includedTests) {
-        XmlSuite suite = new XmlSuite();
-        XmlTest xmlTest = new XmlTest(suite);
-        xmlTest.setName("Gradle test");
-
-        for (Class klass : testClasses) {
-            XmlClass xmlClass = null;
-            for (TestSelectionSpec included : includedTests) {
-                TestSelectionMatcher matcher = new TestSelectionMatcher(included);
-                //I need to manually check if given class contains any matching method
-                //otherwise TestNG runs *all* methods if none of the methods match
-                if (matcher.matchesClass(klass.getName()) && matcher.matchesAnyMethodIn(klass)) {
-                    if (xmlClass == null) {
-                        xmlClass = new XmlClass(klass, true);
-                        xmlTest.getXmlClasses().add(xmlClass);
-                    }
-                    XmlInclude method = new XmlInclude(included.getMethodPattern().replaceAll("\\*", ".*"));
-                    xmlClass.getIncludedMethods().add(method);
-                }
-            }
-        }
-        testNg.setCommandLineSuite(suite);
-    }
-
     private ITestListener adaptListener(ITestListener listener) {
         TestNGListenerAdapterFactory factory = new TestNGListenerAdapterFactory(applicationClassLoader);
         return factory.createAdapter(listener);
+    }
+
+    private static class SelectedTestsFilter implements IMethodInterceptor {
+        private Set<TestSelectionSpec> includedTests;
+
+        public SelectedTestsFilter(Set<TestSelectionSpec> includedTests) {
+            this.includedTests = includedTests;
+        }
+
+        public List<IMethodInstance> intercept(List<IMethodInstance> methods, ITestContext context) {
+            List<IMethodInstance> filtered = new LinkedList<IMethodInstance>();
+            for (IMethodInstance candidate : methods) {
+                for (TestSelectionSpec includedTest : includedTests) {
+                    if (new TestSelectionMatcher(includedTest).matchesTest(candidate.getMethod().getTestClass().getName(), candidate.getMethod().getMethodName())) {
+                        filtered.add(candidate);
+                    }
+                }
+            }
+            return filtered;
+        }
     }
 }
