@@ -75,13 +75,13 @@ class GccToolChainCustomisationIntegrationTest extends AbstractIntegrationSpec {
                         addPlatformConfiguration(new ArmArchitecture())
                     }
                 }
-            }
-            targetPlatforms {
-                arm {
-                    architecture "arm"
-                }
-                x64 {
-                    architecture "x86_64"
+                platforms {
+                    create("arm") {
+                        architecture "arm"
+                    }
+                    create("x64") {
+                        architecture "x86_64"
+                    }
                 }
             }
 

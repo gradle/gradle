@@ -46,18 +46,20 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
     def "build binary for multiple target architectures"() {
         when:
         buildFile << """
-            targetPlatforms {
-                x86 {
-                    architecture "x86"
-                }
-                x86_64 {
-                    architecture "x86_64"
-                }
-                itanium {
-                    architecture "ia-64"
-                }
-                arm {
-                    architecture "arm"
+            model {
+                platforms {
+                    create("x86") {
+                        architecture "x86"
+                    }
+                    create("x86_64") {
+                        architecture "x86_64"
+                    }
+                    create("itanium") {
+                        architecture "ia-64"
+                    }
+                    create("arm") {
+                        architecture "arm"
+                    }
                 }
             }
             task buildExecutables {
@@ -102,15 +104,17 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
     def "can configure binary for multiple target operating systems"() {
         when:
         buildFile << """
-            targetPlatforms {
-                windows {
-                    operatingSystem "windows"
-                }
-                linux {
-                    operatingSystem "linux"
-                }
-                osx {
-                    operatingSystem "osx"
+            model {
+                platforms {
+                    create("windows") {
+                        operatingSystem "windows"
+                    }
+                    create("linux") {
+                        operatingSystem "linux"
+                    }
+                    create("osx") {
+                        operatingSystem "osx"
+                    }
                 }
             }
 
@@ -139,12 +143,15 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
             executable("build/binaries/mainExecutable/osx/main").exec().out ==  helloWorldApp.englishOutput
         }
     }
+
     def "fails with reasonable error message when trying to build for an unavailable architecture"() {
         when:
         buildFile << """
-            targetPlatforms {
-                arm {
-                    architecture "arm"
+            model {
+                platforms {
+                    create("sparc") {
+                        architecture "sparc"
+                    }
                 }
             }
 """
@@ -154,15 +161,17 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
 
         then:
         failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainCpp'.")
-        failure.assertHasCause("No tool chain is available: [Tool chain '${toolChain.id}' cannot build for platform 'arm']")
+        failure.assertHasCause("No tool chain is available: [Tool chain '${toolChain.id}' cannot build for platform 'sparc']")
     }
 
     def "fails with reasonable error message when trying to build for a different operating system"() {
         when:
         buildFile << """
-            targetPlatforms {
-                solaris {
-                    operatingSystem "solaris"
+            model {
+                platforms {
+                    create("solaris") {
+                        operatingSystem "solaris"
+                    }
                 }
             }
 """

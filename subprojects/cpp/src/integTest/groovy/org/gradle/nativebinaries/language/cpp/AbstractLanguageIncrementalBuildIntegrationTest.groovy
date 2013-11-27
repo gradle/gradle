@@ -255,9 +255,11 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
     def "rebuilds binary with target platform change"() {
         given:
         buildFile << """
-    targetPlatforms {
-        arch {
-            // Tool chain defaults
+    model {
+        platforms {
+            create("arch") {
+                // Tool chain defaults
+            }
         }
     }
 """

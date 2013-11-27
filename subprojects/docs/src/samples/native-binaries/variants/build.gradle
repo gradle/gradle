@@ -1,25 +1,27 @@
 apply plugin: 'cpp'
 
+// START SNIPPET target-platforms
+model {
+    platforms {
+        create("x86") {
+            architecture "x86"
+        }
+        create("x64") {
+            architecture "x86_64"
+        }
+        create("ia-64") {
+            architecture "ia-64"
+        }
+    }
+}
+// END SNIPPET target-platforms
+
 // START SNIPPET build-types
 buildTypes {
     debug {}
     release {}
 }
 // END SNIPPET build-types
-
-// START SNIPPET target-platforms
-targetPlatforms {
-    x86 {
-        architecture "x86"
-    }
-    x64 {
-        architecture "x86_64"
-    }
-    itanium {
-        architecture "ia-64"
-    }
-}
-// END SNIPPET target-platforms
 
 executables {
     main {}
@@ -45,7 +47,7 @@ binaries.all {
 
 // Apply custom arguments for different target platforms
 binaries.all {
-    if (toolChain in Gcc && targetPlatform == targetPlatforms.x86) {
+    if (toolChain in Gcc && targetPlatform == platforms.x86) {
         cppCompiler.args '-O3'
     }
 }

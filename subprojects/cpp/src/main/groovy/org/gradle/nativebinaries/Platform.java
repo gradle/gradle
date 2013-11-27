@@ -25,10 +25,12 @@ import org.gradle.internal.HasInternalProtocol;
  * a specific {@link Architecture} and/or {@link OperatingSystem} to target.
  *
  * <pre>
- *     targetPlatforms {
- *         windows_x86 {
- *             architecture "i386"
- *             operatingSystem "windows"
+ *     model {
+ *         platforms {
+ *             create("windows_x86") {
+ *                 architecture "i386"
+ *                 operatingSystem "windows"
+ *             }
  *         }
  *     }
  * </pre>

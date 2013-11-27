@@ -370,7 +370,7 @@
                 An executable or library can be built to run on different operating systems and cpu architectures, with a variant being
                 produced for each target platform.
                 Gradle defines each target OS/architecture combination as a <apilink class="org.gradle.nativebinaries.Platform"/>, and
-                a project may be configured with different <literal>targetPlatforms</literal>.
+                a project may be configured to build variants for different <literal>platforms</literal>.
             </para>
             <sample id="targetPlatforms" dir="native-binaries/variants" title="Defining target platforms">
                 <sourcefile file="build.gradle" snippet="target-platforms"/>

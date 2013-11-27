@@ -18,12 +18,12 @@ package org.gradle.nativebinaries.plugins;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.internal.Actions;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
+import org.gradle.internal.Actions;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.BinaryContainer;
@@ -31,6 +31,7 @@ import org.gradle.language.base.plugins.LanguageBasePlugin;
 import org.gradle.model.ModelFinalizer;
 import org.gradle.model.ModelRule;
 import org.gradle.model.ModelRules;
+import org.gradle.nativebinaries.PlatformContainer;
 import org.gradle.nativebinaries.internal.*;
 import org.gradle.nativebinaries.internal.configure.*;
 
@@ -60,16 +61,13 @@ public class NativeBinariesModelPlugin implements Plugin<Project> {
         project.getPlugins().apply(LanguageBasePlugin.class);
 
         modelRules.register("toolChains", ToolChainRegistryInternal.class, new ToolChainFactory(instantiator));
+        modelRules.register("platforms", PlatformContainer.class, new PlatformFactory(instantiator));
 
-        modelRules.rule(new AddDefaultToolchainIfRequired());
+        modelRules.rule(new CreateDefaultPlatform());
+        modelRules.rule(new AddDefaultToolChainsIfRequired());
         modelRules.rule(new CreateNativeBinaries(instantiator, (ProjectInternal) project));
         modelRules.rule(new CloseBinariesForTasks());
 
-        project.getExtensions().create(
-                "targetPlatforms",
-                DefaultPlatformContainer.class,
-                instantiator
-        );
         project.getExtensions().create(
                 "buildTypes",
                 DefaultBuildTypeContainer.class,
@@ -87,11 +85,9 @@ public class NativeBinariesModelPlugin implements Plugin<Project> {
                 fileResolver
         );
 
-
         // TODO:DAZ Lazy configuration actions: need a better way to accomplish these.
         configurationActions.add(Actions.composite(
                 new ApplySourceSetConventions(),
-                new CreateDefaultPlatform(),
                 new CreateDefaultBuildTypes(),
                 new CreateDefaultFlavors()
         ));
@@ -105,7 +101,7 @@ public class NativeBinariesModelPlugin implements Plugin<Project> {
     }
 
     @SuppressWarnings("UnusedDeclaration")
-    private static class AddDefaultToolchainIfRequired extends ModelFinalizer {
+    private static class AddDefaultToolChainsIfRequired extends ModelFinalizer {
         void createDefaultToolChain(ToolChainRegistryInternal toolChains) {
             if (toolChains.isEmpty()) {
                 toolChains.addDefaultToolChains();
@@ -114,7 +110,7 @@ public class NativeBinariesModelPlugin implements Plugin<Project> {
     }
 
     private static class ToolChainFactory implements Factory<ToolChainRegistryInternal> {
-        private Instantiator instantiator;
+        private final Instantiator instantiator;
 
         public ToolChainFactory(Instantiator instantiator) {
             this.instantiator = instantiator;
@@ -122,6 +118,18 @@ public class NativeBinariesModelPlugin implements Plugin<Project> {
 
         public ToolChainRegistryInternal create() {
             return instantiator.newInstance(DefaultToolChainRegistry.class, instantiator);
+        }
+    }
+
+    private static class PlatformFactory implements Factory<PlatformContainer> {
+        private final Instantiator instantiator;
+
+        private PlatformFactory(Instantiator instantiator) {
+            this.instantiator = instantiator;
+        }
+
+        public PlatformContainer create() {
+            return instantiator.newInstance(DefaultPlatformContainer.class, instantiator);
         }
     }
 }

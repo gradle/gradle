@@ -35,14 +35,13 @@ public class CreateNativeBinaries extends ModelRule {
         this.project = project;
     }
 
-    public void create(BinaryContainer binaries, ToolChainRegistryInternal toolChains) {
-        PlatformContainer targetPlatforms = project.getExtensions().getByType(PlatformContainer.class);
+    public void create(BinaryContainer binaries, ToolChainRegistryInternal toolChains, PlatformContainer platforms) {
         BuildTypeContainer buildTypes = project.getExtensions().getByType(BuildTypeContainer.class);
         ExecutableContainer executables = project.getExtensions().getByType(ExecutableContainer.class);
         LibraryContainer libraries = project.getExtensions().getByType(LibraryContainer.class);
 
-        NativeBinaryFactory factory = new NativeBinaryFactory(instantiator, project, toolChains, targetPlatforms, buildTypes);
-        for (Platform targetPlatform : targetPlatforms) {
+        NativeBinaryFactory factory = new NativeBinaryFactory(instantiator, project, toolChains, platforms, buildTypes);
+        for (Platform targetPlatform : platforms) {
             ToolChain toolChain = toolChains.getForPlatform(targetPlatform);
             for (BuildType buildType : buildTypes) {
                 for (Library library : libraries) {

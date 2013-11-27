@@ -19,9 +19,11 @@ apply plugin: 'assembler'
 // END SNIPPET apply-plugin
 apply plugin: 'c'
 
-targetPlatforms {
-    x86 {
-        architecture "i386"
+model {
+    platforms {
+        create("x86") {
+            architecture "i386"
+        }
     }
 }
 

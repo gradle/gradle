@@ -29,17 +29,18 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
     apply plugin: 'cpp'
     apply plugin: 'visual-studio'
 
+    model {
+        platforms {
+            create("win32") {
+                architecture "i386"
+            }
+        }
+    }
+
     buildTypes {
         debug {}
         release {}
     }
-
-    targetPlatforms {
-        win32 {
-            architecture "i386"
-        }
-    }
-
 """
     }
 

@@ -40,7 +40,7 @@ class NativeBinariesModelPluginTest extends Specification {
         project.executables instanceof NamedDomainObjectContainer
         project.libraries instanceof NamedDomainObjectContainer
         project.modelRegistry.get("toolChains", ToolChainRegistry)
-        project.targetPlatforms instanceof NamedDomainObjectContainer
+        project.modelRegistry.get("platforms", PlatformContainer)
         project.buildTypes instanceof NamedDomainObjectContainer
     }
 
@@ -50,7 +50,7 @@ class NativeBinariesModelPluginTest extends Specification {
 
         then:
         one(project.modelRegistry.get("toolChains", ToolChainRegistry)).name == 'unavailable'
-        with (one(project.targetPlatforms)) {
+        with (one(project.modelRegistry.get("platforms", PlatformContainer))) {
             name == 'current'
             architecture == ArchitectureInternal.TOOL_CHAIN_DEFAULT
         }
@@ -88,8 +88,10 @@ class NativeBinariesModelPluginTest extends Specification {
             toolChains {
                 add named(ToolChainInternal, "tc")
             }
+            platforms {
+                add named(Platform, "platform")
+            }
         }
-        project.targetPlatforms.add named(Platform, "platform")
         project.buildTypes.add named(BuildType, "bt")
 
         and:
@@ -101,7 +103,7 @@ class NativeBinariesModelPluginTest extends Specification {
 
         then:
         one(project.modelRegistry.get("toolChains", ToolChainRegistry)).name == 'tc'
-        one(project.targetPlatforms).name == 'platform'
+        one(project.modelRegistry.get("platforms", PlatformContainer)).name == 'platform'
         one(project.buildTypes).name == 'bt'
         one(one(project.executables).flavors).name == 'flav'
 
@@ -114,8 +116,10 @@ class NativeBinariesModelPluginTest extends Specification {
             toolChains {
                 add toolChain("tc")
             }
+            platforms {
+                add named(Platform, "platform")
+            }
         }
-        project.targetPlatforms.add named(Platform, "platform")
         project.buildTypes.add named(BuildType, "bt")
         def executable = project.executables.create "test"
         project.evaluate()
@@ -141,8 +145,10 @@ class NativeBinariesModelPluginTest extends Specification {
             toolChains {
                 add toolChain("tc")
             }
+            platforms {
+                add named(Platform, "platform")
+            }
         }
-        project.targetPlatforms.add named(Platform, "platform")
         project.buildTypes.add named(BuildType, "bt")
         def library = project.libraries.create "test"
         project.evaluate()

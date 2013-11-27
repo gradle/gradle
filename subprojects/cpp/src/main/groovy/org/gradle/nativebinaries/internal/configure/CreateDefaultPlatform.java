@@ -16,13 +16,12 @@
 
 package org.gradle.nativebinaries.internal.configure;
 
-import org.gradle.api.Action;
-import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.model.ModelFinalizer;
 import org.gradle.nativebinaries.PlatformContainer;
 
-public class CreateDefaultPlatform implements Action<ProjectInternal> {
-    public void execute(ProjectInternal project) {
-        PlatformContainer platforms = project.getExtensions().getByType(PlatformContainer.class);
+public class CreateDefaultPlatform extends ModelFinalizer {
+    @SuppressWarnings("UnusedDeclaration")
+    void createDefaultPlatforms(PlatformContainer platforms) {
         if (platforms.isEmpty()) {
             platforms.create("current");
         }
