@@ -66,3 +66,7 @@ Tweak the teamcity settings so that:
 - Coverage builds for any branch win over nightly builds for any branch
 
 Also remove the fast feedback agent pool
+
+# Leverage incremental build
+
+# Leverage parallel execution
