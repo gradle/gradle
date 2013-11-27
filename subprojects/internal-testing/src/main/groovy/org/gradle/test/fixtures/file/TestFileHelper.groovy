@@ -115,7 +115,7 @@ class TestFileHelper {
             throw new RuntimeException("Could not list permissions for '$file': $error")
         }
         def perms = result.split()[0]
-        assert perms.matches("[d\\-][rwx\\-]{9}[@\\+]?")
+        assert perms.matches("[d\\-][rwx\\-]{9}[@\\.\\+]?")
         return perms.substring(1, 10)
     }
 
