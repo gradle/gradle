@@ -83,10 +83,89 @@ It should be possible to create variations of the installation recipe, e.g. to a
 As far as possible, Salt's KVM module should be used to manage VMs. Initially, it will be good enough to monitor
 availability of VMs via TeamCity's agent page.
 
+## Testing native binaries
+
+For integration testing the native plugins, we need a way to:
+
+* Build a test binary on M *host platforms*
+* For each host platform, test the produced binary on N *target platforms*
+* Collect the results and report on them (e.g. build passed/failed)
+
+A host platform is a particular toolchain on a particular OS. Which target platforms
+to test a binary on is a function of the particular test (suite) and host platform.
+Testing a binary means executing it and collecting its standard output/error and exit code.
+
+We can solve this by:
+
+* Having a ("static", i.e. long-running) build VM and TC agent for each host platform and target platform
+* Having a TC job per host platform that:
+  * Builds a test binary for this platform
+  * Distributes the binary to all compatible (or desired) target platforms (using Salt)
+  * Executes the binary on these target platforms (using Salt)
+  * Collects the results of running the binaries (using Salt)
+  * Inspects the results and fails the build if problems are found
+
+The TC job can be implemented as a Gradle build. The individual steps could be Gradle tasks
+or (one and the same) JUnit/Spock integration test. For distributing, executing, and collecting
+results of running binaries, we can use Salt's rich targeting and remote execution capabilities,
+which make it possible to distribute files and execute commands between all build VMs.
+
+### Host Platforms
+
+We have identified the following host platforms:
+
+* GCC 3 + old Linux
+* GCC 4.0 + new Linux
+* GCC 4.latest + new Linux
+* Same for Clang + Linux (earliest supported Clang + latest Clang)
+* Windows XP + MinGW + gcc 3
+* Windows XP + Visual Studio 10 (2010)
+* Windows 7 (8?) + MinGW + gcc 4.latest
+* Windows 7 (8?) + Visual Studio 12 (2012)
+* WinXP + cygwin (32bit) + gcc 3/4
+* WinXP + cygwin (64bit) + gcc 3/4
+* MinGW/cygwin + Clang
+
+Many of these don't require separate VMs. For example, currently we do WinXP + VS10 +
+MinGW (gcc 4) + cygwin-32 (gcc 4) on the same VM. On Linux, we could
+also use Linux containers (rather than full-blown VMs) to separate environments.
+
+We should start out with a minimal set of host platforms, and gradually
+add new platforms over time.
+
+### Target Platforms
+
+We have identified the following target platforms:
+
+* WinXP
+* Windows 7 (8?)
+* Probably some windows server versions
+* Linux on a 32 bit processor, or maybe just 32 bit linux
+* 64bit linux
+
+The target environments should *not* have the development tools installed, if possible.
+It's easy to produce a binary that runs on a dev machine but not on a clean machine.
+
+We should start out with a minimal set of target platforms, and gradually
+add new platforms over time.
+
+### Host/Target platform combinations
+
+We don't need to test the full matrix of host and target platforms. For many tests, host 
+and target platform will be the same. Some tests will have a single target platform 
+(lowest common denominator?), and some will have multiple.
+
+For Windows, we could do:
+* win* -> 32 bit windows
+* win.latest[mingw/cygwin/visualcpp] -> win.latest
+
+Similar for Linux: We test all hosts building for a common target, then one host building for a range of targets.
+
 # Open issues
 
 * How can we keep VMs secure, in particular if they run insecure or outdated OSes (e.g. Windows XP)?
 * How do we deal with Windows OS updates, in particular security updates?
-* How do we allocate VMs to physical machines? Do all machines run the same number and type of VMs, or do we have specialized machines (e.g. Linux VMs vs. Windows VMs)?
+* How do we allocate VMs to physical machines? Do all machines run the same number and type of VMs,
+  or do we have specialized machines (e.g. Linux VMs vs. Windows VMs)?
 
 
