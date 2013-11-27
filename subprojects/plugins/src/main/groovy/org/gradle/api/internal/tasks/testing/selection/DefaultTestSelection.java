@@ -15,47 +15,22 @@
  */
 package org.gradle.api.internal.tasks.testing.selection;
 
-import org.gradle.api.tasks.Input;
+import org.gradle.api.Action;
+import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.testing.TestSelection;
 import org.gradle.api.tasks.testing.TestSelectionSpec;
-import org.gradle.internal.typeconversion.*;
-
-import java.util.*;
 
 public class DefaultTestSelection implements TestSelection {
 
-    private Set<TestSelectionSpec> includedTests = new HashSet<TestSelectionSpec>();
+    private DefaultTestSelectionSpec include = new DefaultTestSelectionSpec();
 
-    public DefaultTestSelection includeTest(String classPattern, String methodPattern) {
-        includedTests.add(new DefaultTestSelectionSpec(classPattern, methodPattern));
+    @Nested
+    public DefaultTestSelectionSpec getInclude() {
+        return include;
+    }
+
+    public TestSelection include(Action<TestSelectionSpec> configure) {
+        configure.execute(include);
         return this;
-    }
-
-    @Input
-    public Set<TestSelectionSpec> getIncludedTests() {
-        return includedTests;
-    }
-
-    public void setIncludedTests(Object... includedTests) {
-        this.includedTests = new NotationParserBuilder<TestSelectionSpec>()
-            .resultingType(TestSelectionSpec.class)
-            .parser(new TestSelectionSpecParser())
-            .withDefaultJustReturnParser(false) //client implementations may not be Serializable
-            .invalidNotationMessage("Unable to configure the test inclusion criteria.")
-            .toFlatteningComposite().parseNotation(includedTests);
-    }
-
-    private static class TestSelectionSpecParser implements NotationParser<TestSelectionSpec> {
-        public TestSelectionSpec parseNotation(Object notation) throws UnsupportedNotationException, TypeConversionException {
-            if (notation instanceof TestSelectionSpec) {
-                TestSelectionSpec spec = (TestSelectionSpec) notation;
-                return new DefaultTestSelectionSpec(spec.getClassPattern(), spec.getMethodPattern());
-            }
-            throw new UnsupportedNotationException(notation);
-        }
-
-        public void describe(Collection<String> candidateFormats) {
-            candidateFormats.add("Instances of " + TestSelectionSpec.class.getSimpleName());
-        }
     }
 }

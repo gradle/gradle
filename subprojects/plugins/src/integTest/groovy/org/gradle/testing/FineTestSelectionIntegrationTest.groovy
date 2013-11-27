@@ -45,10 +45,9 @@ public class FineTestSelectionIntegrationTest extends AbstractIntegrationSpec {
             test {
               use$framework.name()
               selection {
-                setIncludedTests(new TestSelectionSpec() {
-                    String getClassPattern() { 'FooTest' }
-                    String getMethodPattern() { 'pass' }
-                })
+                include {
+                  name "FooTest.pass"
+                }
               }
             }
         """
@@ -83,9 +82,10 @@ public class FineTestSelectionIntegrationTest extends AbstractIntegrationSpec {
             test {
               use$framework.name()
               include 'FooTest*'
-              selection {
-                includeTest('FooTest', 'passOne')
-                includeTest('FooTest', 'passTwo')
+              def cls = "FooTest"
+              selection.include {
+                name "\${cls}.passOne" //make sure GStrings work
+                name "\${cls}.passTwo"
               }
             }
         """
@@ -120,9 +120,7 @@ public class FineTestSelectionIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             test {
               use$framework.name()
-              selection {
-                includeTest('Foo*', 'pass*')
-              }
+              selection.include.setNames 'Foo*.pass*'
             }
         """
         file("src/test/java/Foo1Test.java") << """import $framework.imports;
@@ -167,7 +165,7 @@ public class FineTestSelectionIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             test {
               use$framework.name()
-              selection.includeTest('FooTest', 'missingMethod')
+              selection.include.name 'FooTest.missingMethod'
             }
         """
         file("src/test/java/FooTest.java") << """import $framework.imports;
@@ -180,7 +178,7 @@ public class FineTestSelectionIntegrationTest extends AbstractIntegrationSpec {
         fails("test")
 
         then:
-        failure.assertHasCause("No tests found for given includes: [class: 'FooTest', method: 'missingMethod']")
+        failure.assertHasCause("No tests found for given includes: [FooTest.missingMethod]")
 
         where:
         framework << [jUnit, testNG]
@@ -191,7 +189,7 @@ public class FineTestSelectionIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             test {
               use$framework.name()
-              selection.includeTest('FooTest', 'pass')
+              selection.include.name 'FooTest.pass'
             }
         """
         file("src/test/java/FooTest.java") << """import $framework.imports;
@@ -208,7 +206,7 @@ public class FineTestSelectionIntegrationTest extends AbstractIntegrationSpec {
         then: result.skippedTasks.contains(":test") //up-to-date
 
         when:
-        buildFile << "test.selection.includeTest 'FooTest', 'pass2'"
+        buildFile << "test.selection.include.name 'FooTest.pass2'"
         run("test")
 
         then:

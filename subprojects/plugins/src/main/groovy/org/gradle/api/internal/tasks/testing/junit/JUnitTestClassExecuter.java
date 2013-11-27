@@ -19,7 +19,6 @@ package org.gradle.api.internal.tasks.testing.junit;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.tasks.testing.selection.TestSelectionMatcher;
-import org.gradle.api.tasks.testing.TestSelectionSpec;
 import org.gradle.internal.concurrent.ThreadSafe;
 import org.gradle.util.CollectionUtils;
 import org.junit.runner.Description;
@@ -90,20 +89,15 @@ public class JUnitTestClassExecuter {
 
     private static class MethodNameFilter extends org.junit.runner.manipulation.Filter {
 
-        private Iterable<TestSelectionSpec> includedTests;
+        private final TestSelectionMatcher matcher;
 
-        public MethodNameFilter(Iterable<TestSelectionSpec> includedTests) {
-            this.includedTests = includedTests;
+        public MethodNameFilter(Iterable<String> includedTests) {
+            matcher = new TestSelectionMatcher(includedTests);
         }
 
         @Override
         public boolean shouldRun(Description description) {
-            for (TestSelectionSpec t : includedTests) {
-                if (new TestSelectionMatcher(t).matchesTest(description.getClassName(), description.getMethodName())) {
-                    return true;
-                }
-            }
-            return false;
+            return matcher.matchesTest(description.getClassName(), description.getMethodName());
         }
 
         public String describe() {

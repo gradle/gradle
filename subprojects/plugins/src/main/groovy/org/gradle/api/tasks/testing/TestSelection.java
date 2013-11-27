@@ -15,9 +15,8 @@
  */
 package org.gradle.api.tasks.testing;
 
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-
-import java.util.Set;
 
 /**
  * Allows selecting tests for execution
@@ -28,23 +27,15 @@ import java.util.Set;
 public interface TestSelection {
 
     /**
-     * Appends criteria for including a particular test(s). Wildcard '*' can be used for matching any substrings.
+     * Allow configuring test inclusions
+     */
+    TestSelectionSpec getInclude();
+
+    /**
+     * Allow configuring test inclusions
      *
-     * @param classPattern test class name, wildcard '*' supported
-     * @param methodPattern test method name, wildcard '*' supported
+     * @param configure configuration action
      * @return this selection object
      */
-    TestSelection includeTest(String classPattern, String methodPattern);
-
-    /**
-     * Criteria for the tests that are included
-     */
-    Set<TestSelectionSpec> getIncludedTests();
-
-    /**
-     * Sets the criteria for including particular test(s).
-     *
-     * @param includedTests
-     */
-    void setIncludedTests(Object... includedTests);
+    TestSelection include(Action<TestSelectionSpec> configure);
 }

@@ -16,29 +16,35 @@
 
 package org.gradle.api.internal.tasks.testing.selection
 
-import org.gradle.util.Matchers
+import org.gradle.api.InvalidUserDataException
 import spock.lang.Specification
-
-import static org.gradle.util.Matchers.isSerializable
-import static org.hamcrest.MatcherAssert.assertThat
 
 class DefaultTestSelectionSpecTest extends Specification {
 
-    def "equals and hashcode"() {
-        def spec = new DefaultTestSelectionSpec("foo", "bar")
-        def differentClass = new DefaultTestSelectionSpec("xxx", "bar")
-        def differentMethod = new DefaultTestSelectionSpec("foo", "ccc")
-        def same = new DefaultTestSelectionSpec("foo", "bar")
+    def spec = new DefaultTestSelectionSpec()
 
-        expect:
-        Matchers.strictlyEquals(spec, same)
-        spec != differentClass
-        spec.hashCode() != differentClass.hashCode()
-        spec != differentMethod
+    def "allows configuring test names"() {
+        expect: spec.names.isEmpty()
+
+        when:
+        spec.name("*fooMethod")
+        spec.name("*.FooTest.*")
+
+        then: spec.names == ["*fooMethod", "*.FooTest.*"] as Set
+
+        when: spec.setNames("x")
+
+        then: spec.names == ["x"] as Set
     }
 
-    def "is serializable"() {
-        expect:
-        assertThat(new DefaultTestSelectionSpec("foo", "bar"), isSerializable())
+    def "prevents empty names"() {
+        when: spec.name(null)
+        then: thrown(InvalidUserDataException)
+
+        when: spec.name("")
+        then: thrown(InvalidUserDataException)
+
+        when: spec.setNames("ok", "")
+        then: thrown(InvalidUserDataException)
     }
 }

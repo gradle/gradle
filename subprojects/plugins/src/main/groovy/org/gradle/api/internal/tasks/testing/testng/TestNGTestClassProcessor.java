@@ -22,7 +22,6 @@ import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.processors.CaptureTestOutputTestResultProcessor;
 import org.gradle.api.internal.tasks.testing.selection.TestSelectionMatcher;
-import org.gradle.api.tasks.testing.TestSelectionSpec;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.reflect.NoSuchMethodException;
@@ -119,19 +118,18 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
     }
 
     private static class SelectedTestsFilter implements IMethodInterceptor {
-        private Set<TestSelectionSpec> includedTests;
 
-        public SelectedTestsFilter(Set<TestSelectionSpec> includedTests) {
-            this.includedTests = includedTests;
+        private final TestSelectionMatcher matcher;
+
+        public SelectedTestsFilter(Set<String> includedTests) {
+            matcher = new TestSelectionMatcher(includedTests);
         }
 
         public List<IMethodInstance> intercept(List<IMethodInstance> methods, ITestContext context) {
             List<IMethodInstance> filtered = new LinkedList<IMethodInstance>();
             for (IMethodInstance candidate : methods) {
-                for (TestSelectionSpec includedTest : includedTests) {
-                    if (new TestSelectionMatcher(includedTest).matchesTest(candidate.getMethod().getTestClass().getName(), candidate.getMethod().getMethodName())) {
-                        filtered.add(candidate);
-                    }
+                if (matcher.matchesTest(candidate.getMethod().getTestClass().getName(), candidate.getMethod().getMethodName())) {
+                    filtered.add(candidate);
                 }
             }
             return filtered;
