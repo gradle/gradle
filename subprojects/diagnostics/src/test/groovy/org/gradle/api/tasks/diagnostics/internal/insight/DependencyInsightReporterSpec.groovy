@@ -17,11 +17,12 @@
 package org.gradle.api.tasks.diagnostics.internal.insight
 
 import org.gradle.api.artifacts.result.ComponentSelectionReason
+import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ExactVersionMatcher
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
-import org.gradle.api.internal.artifacts.result.DefaultResolvedDependencyResult
 import org.gradle.api.internal.artifacts.result.DefaultResolvedComponentResult
+import org.gradle.api.internal.artifacts.result.DefaultResolvedDependencyResult
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
@@ -99,9 +100,9 @@ class DependencyInsightReporterSpec extends Specification {
     }
 
     private dep(String group, String name, String requested, String selected = requested, ComponentSelectionReason selectionReason = VersionSelectionReasons.REQUESTED) {
-        def selectedModule = new DefaultResolvedComponentResult(newId(group, name, selected), selectionReason)
+        def selectedModule = new DefaultResolvedComponentResult(newId(group, name, selected), selectionReason, new DefaultModuleComponentIdentifier(group, name, selected))
         new DefaultResolvedDependencyResult(newSelector(group, name, requested),
                 selectedModule,
-                new DefaultResolvedComponentResult(newId("a", "root", "1"), VersionSelectionReasons.REQUESTED))
+                new DefaultResolvedComponentResult(newId("a", "root", "1"), VersionSelectionReasons.REQUESTED, new DefaultModuleComponentIdentifier(group, name, selected)))
     }
 }

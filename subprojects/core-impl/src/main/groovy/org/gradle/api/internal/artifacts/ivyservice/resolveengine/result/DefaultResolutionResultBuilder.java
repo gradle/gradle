@@ -17,7 +17,9 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.*;
+import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.result.DefaultResolutionResult;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedComponentResult;
 import org.gradle.internal.Factory;
@@ -36,7 +38,7 @@ public class DefaultResolutionResultBuilder implements ResolutionResultBuilder {
     CachingDependencyResultFactory dependencyResultFactory = new CachingDependencyResultFactory();
 
     public DefaultResolutionResultBuilder start(ModuleVersionIdentifier root) {
-        rootModule = createOrGet(root, VersionSelectionReasons.ROOT);
+        rootModule = createOrGet(root, VersionSelectionReasons.ROOT, new DefaultModuleComponentIdentifier(root.getGroup(), root.getName(), root.getVersion()));
         return this;
     }
 
@@ -45,7 +47,7 @@ public class DefaultResolutionResultBuilder implements ResolutionResultBuilder {
     }
 
     public void resolvedModuleVersion(ModuleVersionSelection moduleVersion) {
-        createOrGet(moduleVersion.getSelectedId(), moduleVersion.getSelectionReason());
+        createOrGet(moduleVersion.getSelectedId(), moduleVersion.getSelectionReason(), moduleVersion.getComponentId());
     }
 
     public void resolvedConfiguration(ModuleVersionIdentifier id, Collection<? extends InternalDependencyResult> dependencies) {
@@ -63,9 +65,9 @@ public class DefaultResolutionResultBuilder implements ResolutionResultBuilder {
         }
     }
 
-    private DefaultResolvedComponentResult createOrGet(ModuleVersionIdentifier id, ComponentSelectionReason selectionReason) {
+    private DefaultResolvedComponentResult createOrGet(ModuleVersionIdentifier id, ComponentSelectionReason selectionReason, ComponentIdentifier componentId) {
         if (!modules.containsKey(id)) {
-            modules.put(id, new DefaultResolvedComponentResult(id, selectionReason));
+            modules.put(id, new DefaultResolvedComponentResult(id, selectionReason, componentId));
         }
         return modules.get(id);
     }

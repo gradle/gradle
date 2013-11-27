@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.api.tasks.testing;
 
-package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
+/**
+ * Criteria for the test selection
+ *
+ * @since 1.10
+ */
+public interface TestSelectionSpec {
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.result.ComponentSelectionReason;
+    /**
+     * Pattern that the method should match
+     */
+    String getMethodPattern();
 
-public interface ModuleVersionSelection {
-
-    ModuleVersionIdentifier getSelectedId();
-
-    ComponentSelectionReason getSelectionReason();
-
-    ComponentIdentifier getComponentId();
+    /**
+     * Pattern that the class should match
+     */
+    String getClassPattern();
 }

@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
 import org.gradle.api.artifacts.ModuleVersionSelector
+import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException
 import org.gradle.messaging.serialize.InputStreamBackedDecoder
 import org.gradle.messaging.serialize.OutputStreamBackedEncoder
@@ -33,7 +34,7 @@ class InternalDependencyResultSerializerTest extends Specification {
         def successful = Mock(InternalDependencyResult) {
             getRequested() >> newSelector("org", "foo", "1.0")
             getFailure() >> null
-            getSelected() >> new DefaultModuleVersionSelection(newId("org", "foo", "1.0"), VersionSelectionReasons.REQUESTED)
+            getSelected() >> new DefaultModuleVersionSelection(newId("org", "foo", "1.0"), VersionSelectionReasons.REQUESTED, new DefaultModuleComponentIdentifier("org", "foo", "1.0"))
             getReason() >> VersionSelectionReasons.REQUESTED
         }
 

@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.result
 
 import org.gradle.api.artifacts.result.ComponentSelectionReason
+import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
 
@@ -36,6 +37,6 @@ class ResolutionResultDataBuilder {
 
     static DefaultResolvedComponentResult newModule(String group='a', String module='a', String version='1',
                                                         ComponentSelectionReason selectionReason = VersionSelectionReasons.REQUESTED) {
-        new DefaultResolvedComponentResult(newId(group, module, version), selectionReason)
+        new DefaultResolvedComponentResult(newId(group, module, version), selectionReason, new DefaultModuleComponentIdentifier(group, module, version))
     }
 }

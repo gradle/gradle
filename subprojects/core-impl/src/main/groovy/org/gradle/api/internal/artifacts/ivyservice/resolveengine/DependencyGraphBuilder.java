@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.id.ModuleId;
 import org.gradle.api.artifacts.*;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
@@ -681,6 +682,10 @@ public class DependencyGraphBuilder {
 
         public void setSelectionReason(ComponentSelectionReason reason) {
             this.selectionReason = reason;
+        }
+
+        public ComponentIdentifier getComponentId() {
+            return getMetaData().getComponentId();
         }
     }
 

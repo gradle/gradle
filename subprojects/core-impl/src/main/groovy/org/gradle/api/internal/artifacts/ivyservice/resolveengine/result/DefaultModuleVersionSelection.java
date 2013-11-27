@@ -17,15 +17,18 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 
 class DefaultModuleVersionSelection implements ModuleVersionSelection {
     private ModuleVersionIdentifier id;
     private ComponentSelectionReason reason;
+    private ComponentIdentifier componentIdentifier;
 
-    public DefaultModuleVersionSelection(ModuleVersionIdentifier id, ComponentSelectionReason reason) {
+    public DefaultModuleVersionSelection(ModuleVersionIdentifier id, ComponentSelectionReason reason, ComponentIdentifier componentIdentifier) {
         this.id = id;
         this.reason = reason;
+        this.componentIdentifier = componentIdentifier;
     }
 
     public ModuleVersionIdentifier getSelectedId() {
@@ -34,5 +37,9 @@ class DefaultModuleVersionSelection implements ModuleVersionSelection {
 
     public ComponentSelectionReason getSelectionReason() {
         return reason;
+    }
+
+    public ComponentIdentifier getComponentId() {
+        return componentIdentifier;
     }
 }

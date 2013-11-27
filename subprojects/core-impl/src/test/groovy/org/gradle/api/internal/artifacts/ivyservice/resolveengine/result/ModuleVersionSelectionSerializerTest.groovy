@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
+import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier
 import org.gradle.messaging.serialize.SerializerSpec
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
@@ -25,7 +26,8 @@ class ModuleVersionSelectionSerializerTest extends SerializerSpec {
     def serializer = new ModuleVersionSelectionSerializer()
 
     def "serializes"() {
-        def selection = new DefaultModuleVersionSelection(newId("org", "foo", "2.0"), VersionSelectionReasons.REQUESTED)
+        def componentIdentifier = new DefaultModuleComponentIdentifier('group', 'module', 'version')
+        def selection = new DefaultModuleVersionSelection(newId("org", "foo", "2.0"), VersionSelectionReasons.REQUESTED, componentIdentifier)
 
         when:
         def result = serialize(selection, serializer)
@@ -33,5 +35,6 @@ class ModuleVersionSelectionSerializerTest extends SerializerSpec {
         then:
         result.selectionReason == VersionSelectionReasons.REQUESTED
         result.selectedId == newId("org", "foo", "2.0")
+        result.componentId == componentIdentifier
     }
 }

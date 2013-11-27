@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter
 
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.Module
+import org.gradle.api.internal.artifacts.ModuleInternal
 import org.gradle.api.internal.artifacts.ivyservice.LocalComponentFactory
 import org.gradle.api.internal.artifacts.metadata.MutableLocalComponentMetaData
 import spock.lang.Specification
@@ -28,7 +28,7 @@ public class PublishLocalComponentFactoryTest extends Specification {
     def "converts"() {
         given:
         def configurationsDummy = [Mock(Configuration)] as Set
-        def moduleDummy = Mock(Module)
+        def moduleDummy = Mock(ModuleInternal)
         def moduleDescriptorDummy = Mock(DefaultModuleDescriptor)
         def componentMetaDataDummy = Mock(MutableLocalComponentMetaData)
         def artifactsToModuleDescriptorConverter = Mock(ConfigurationsToArtifactsConverter)

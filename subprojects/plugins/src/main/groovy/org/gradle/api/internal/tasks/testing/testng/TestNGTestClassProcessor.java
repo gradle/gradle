@@ -21,7 +21,8 @@ import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.processors.CaptureTestOutputTestResultProcessor;
-import org.gradle.api.internal.tasks.testing.selection.DefaultTestSelectionSpec;
+import org.gradle.api.internal.tasks.testing.selection.TestSelectionMatcher;
+import org.gradle.api.tasks.testing.TestSelectionSpec;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.reflect.NoSuchMethodException;
@@ -119,22 +120,23 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
         testNg.run();
     }
 
-    private static void configureXmlTestSuite(TestNG testNg, List<Class<?>> testClasses, List<DefaultTestSelectionSpec> includedTests) {
+    private static void configureXmlTestSuite(TestNG testNg, Iterable<Class<?>> testClasses, Iterable<TestSelectionSpec> includedTests) {
         XmlSuite suite = new XmlSuite();
         XmlTest xmlTest = new XmlTest(suite);
         xmlTest.setName("Gradle test");
 
         for (Class klass : testClasses) {
             XmlClass xmlClass = null;
-            for (DefaultTestSelectionSpec includedTest : includedTests) {
+            for (TestSelectionSpec included : includedTests) {
+                TestSelectionMatcher matcher = new TestSelectionMatcher(included);
                 //I need to manually check if given class contains any matching method
                 //otherwise TestNG runs *all* methods if none of the methods match
-                if (includedTest.matchesClass(klass.getName()) && includedTest.matchesAnyMethodIn(klass)) {
+                if (matcher.matchesClass(klass.getName()) && matcher.matchesAnyMethodIn(klass)) {
                     if (xmlClass == null) {
                         xmlClass = new XmlClass(klass, true);
                         xmlTest.getXmlClasses().add(xmlClass);
                     }
-                    XmlInclude method = new XmlInclude(includedTest.getMethodPattern());
+                    XmlInclude method = new XmlInclude(included.getMethodPattern());
                     xmlClass.getIncludedMethods().add(method);
                 }
             }

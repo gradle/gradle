@@ -45,7 +45,10 @@ public class FineTestSelectionIntegrationTest extends AbstractIntegrationSpec {
             test {
               use$framework.name()
               selection {
-                includeTest('FooTest', 'pass')
+                setIncludedTests(new TestSelectionSpec() {
+                    String getClassPattern() { 'FooTest' }
+                    String getMethodPattern() { 'pass' }
+                })
               }
             }
         """

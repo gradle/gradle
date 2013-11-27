@@ -19,6 +19,9 @@ package org.gradle.api.internal.tasks.testing.selection
 import org.gradle.util.Matchers
 import spock.lang.Specification
 
+import static org.gradle.util.Matchers.isSerializable
+import static org.hamcrest.MatcherAssert.assertThat
+
 class DefaultTestSelectionSpecTest extends Specification {
 
     def "equals and hashcode"() {
@@ -34,44 +37,8 @@ class DefaultTestSelectionSpecTest extends Specification {
         spec != differentMethod
     }
 
-    def "knows if test matches"() {
-        def spec = new DefaultTestSelectionSpec("foo.*", ".*bar")
-
+    def "is serializable"() {
         expect:
-        spec.matchesTest("fooxxx", "xxxbar")
-        spec.matchesTest("foo", "bar")
-
-        !spec.matchesTest("com.fooxxx", "xxxbar")
-        !spec.matchesTest("fooxxx", "bar.foo")
-    }
-
-    def "knows if class matches"() {
-        def spec = new DefaultTestSelectionSpec("foo.*", ".*bar")
-
-        expect:
-        spec.matchesClass("foo")
-        spec.matchesClass("fooTest")
-
-        !spec.matchesClass("com.foo")
-    }
-
-    def "knows if matches any method in class"() {
-        expect:
-        new DefaultTestSelectionSpec("", "bar.*").matchesAnyMethodIn(Bar)
-        new DefaultTestSelectionSpec("", "bar.*").matchesAnyMethodIn(Foo)
-
-        !new DefaultTestSelectionSpec("", ".*bar").matchesAnyMethodIn(Bar)
-        !new DefaultTestSelectionSpec("", ".*bar").matchesAnyMethodIn(Foo)
-
-        new DefaultTestSelectionSpec("", "foo").matchesAnyMethodIn(Foo)
-        !new DefaultTestSelectionSpec("", "foo").matchesAnyMethodIn(Bar)
-    }
-
-    private class Bar {
-        void barX() {}
-    }
-
-    private class Foo extends Bar {
-        void foo() {}
+        assertThat(new DefaultTestSelectionSpec("foo", "bar"), isSerializable())
     }
 }

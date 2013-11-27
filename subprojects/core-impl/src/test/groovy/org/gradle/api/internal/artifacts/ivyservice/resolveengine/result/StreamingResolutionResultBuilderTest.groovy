@@ -133,6 +133,6 @@ class StreamingResolutionResultBuilderTest extends Specification {
     }
 
     private DefaultModuleVersionSelection sel(String org, String name, String ver, ComponentSelectionReason reason) {
-        new DefaultModuleVersionSelection(newId(org, name, ver), reason)
+        new DefaultModuleVersionSelection(newId(org, name, ver), reason, new DefaultModuleComponentIdentifier(org, name, ver))
     }
 }

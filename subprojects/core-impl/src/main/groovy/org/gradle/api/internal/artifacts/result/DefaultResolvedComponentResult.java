@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.result;
 
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.artifacts.result.DependencyResult;
@@ -34,13 +35,16 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResult {
     private final Set<DependencyResult> dependencies = new LinkedHashSet<DependencyResult>();
     private final Set<ResolvedDependencyResult> dependents = new LinkedHashSet<ResolvedDependencyResult>();
     private final ComponentSelectionReason selectionReason;
+    //TODO: BEN - use field as return value for method getId()
+    private final ComponentIdentifier componentId;
 
-    public DefaultResolvedComponentResult(ModuleVersionIdentifier id, ComponentSelectionReason selectionReason) {
+    public DefaultResolvedComponentResult(ModuleVersionIdentifier id, ComponentSelectionReason selectionReason, ComponentIdentifier componentId) {
         assert id != null;
         assert selectionReason != null;
 
         this.id = id;
         this.selectionReason = selectionReason;
+        this.componentId = componentId;
     }
 
     public ModuleComponentIdentifier getId() {

@@ -15,9 +15,7 @@
  */
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.artifacts.Module;
-
-public class DefaultModule implements Module {
+public class DefaultModule implements ModuleInternal {
     private String group;
     private String name;
     private String version;
@@ -50,5 +48,9 @@ public class DefaultModule implements Module {
 
     public String getStatus() {
         return status;
+    }
+
+    public String getProjectPath() {
+        return null;
     }
 }

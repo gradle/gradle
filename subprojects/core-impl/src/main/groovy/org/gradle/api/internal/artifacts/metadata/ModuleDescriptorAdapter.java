@@ -18,7 +18,9 @@ package org.gradle.api.internal.artifacts.metadata;
 
 import org.apache.ivy.core.module.descriptor.*;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier;
 import org.gradle.util.CollectionUtils;
 
 import java.util.*;
@@ -28,6 +30,7 @@ public class ModuleDescriptorAdapter implements MutableModuleVersionMetaData {
 
     private final ModuleVersionIdentifier moduleVersionIdentifier;
     private final ModuleDescriptor moduleDescriptor;
+    private final ComponentIdentifier componentIdentifier;
     private boolean changing;
     private boolean metaDataOnly;
     private String status;
@@ -41,8 +44,13 @@ public class ModuleDescriptorAdapter implements MutableModuleVersionMetaData {
     }
 
     public ModuleDescriptorAdapter(ModuleVersionIdentifier identifier, ModuleDescriptor moduleDescriptor) {
-        this.moduleVersionIdentifier = identifier;
+        this(identifier, moduleDescriptor, DefaultModuleComponentIdentifier.newId(identifier.getGroup(), identifier.getName(), identifier.getVersion()));
+    }
+
+    public ModuleDescriptorAdapter(ModuleVersionIdentifier moduleVersionIdentifier, ModuleDescriptor moduleDescriptor, ComponentIdentifier componentIdentifier) {
+        this.moduleVersionIdentifier = moduleVersionIdentifier;
         this.moduleDescriptor = moduleDescriptor;
+        this.componentIdentifier = componentIdentifier;
         status = moduleDescriptor.getStatus();
     }
 
@@ -84,6 +92,10 @@ public class ModuleDescriptorAdapter implements MutableModuleVersionMetaData {
 
     public List<String> getStatusScheme() {
         return statusScheme;
+    }
+
+    public ComponentIdentifier getComponentId() {
+        return componentIdentifier;
     }
 
     public void setChanging(boolean changing) {

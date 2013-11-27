@@ -18,7 +18,11 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
 
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.Module;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.internal.artifacts.ModuleInternal;
+import org.gradle.api.internal.artifacts.ProjectBackedModule;
+import org.gradle.api.internal.artifacts.component.DefaultBuildComponentIdentifier;
+import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.LocalComponentFactory;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependenciesToModuleDescriptorConverter;
 import org.gradle.api.internal.artifacts.metadata.DefaultLocalComponentMetaData;
@@ -39,11 +43,20 @@ public class ResolveLocalComponentFactory implements LocalComponentFactory {
         this.dependenciesToModuleDescriptorConverter = dependenciesToModuleDescriptorConverter;
     }
 
-    public MutableLocalComponentMetaData convert(Set<? extends Configuration> configurations, Module module) {
+    public MutableLocalComponentMetaData convert(Set<? extends Configuration> configurations, ModuleInternal module) {
         assert configurations.size() > 0 : "No configurations found for module: " + module.getName() + ". Configure them or apply a plugin that does it.";
         DefaultModuleDescriptor moduleDescriptor = moduleDescriptorFactory.createModuleDescriptor(module);
         configurationsToModuleDescriptorConverter.addConfigurations(moduleDescriptor, configurations);
         dependenciesToModuleDescriptorConverter.addDependencyDescriptors(moduleDescriptor, configurations);
-        return new DefaultLocalComponentMetaData(moduleDescriptor);
+        ComponentIdentifier componentIdentifier = createComponentIdentifier(module);
+        return new DefaultLocalComponentMetaData(moduleDescriptor, componentIdentifier);
+    }
+
+    private ComponentIdentifier createComponentIdentifier(ModuleInternal module) {
+        if(module instanceof ProjectBackedModule) {
+            return new DefaultBuildComponentIdentifier(module.getProjectPath());
+        }
+
+        return new DefaultModuleComponentIdentifier(module.getGroup(), module.getName(), module.getVersion());
     }
 }

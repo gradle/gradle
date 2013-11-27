@@ -17,13 +17,14 @@ package org.gradle.api.internal.tasks.testing.selection;
 
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.testing.TestSelection;
+import org.gradle.api.tasks.testing.TestSelectionSpec;
+import org.gradle.internal.typeconversion.*;
 
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 public class DefaultTestSelection implements TestSelection {
 
-    private List<DefaultTestSelectionSpec> includedTests = new LinkedList<DefaultTestSelectionSpec>();
+    private Set<TestSelectionSpec> includedTests = new HashSet<TestSelectionSpec>();
 
     public DefaultTestSelection includeTest(String testClass, String testMethod) {
         includedTests.add(new DefaultTestSelectionSpec(testClass, testMethod));
@@ -31,7 +32,30 @@ public class DefaultTestSelection implements TestSelection {
     }
 
     @Input
-    public List<DefaultTestSelectionSpec> getIncludedTests() {
+    public Set<TestSelectionSpec> getIncludedTests() {
         return includedTests;
+    }
+
+    public void setIncludedTests(Object ... includedTests) {
+        this.includedTests = new NotationParserBuilder<TestSelectionSpec>()
+            .resultingType(TestSelectionSpec.class)
+            .parser(new TestSelectionSpecParser())
+            .withDefaultJustReturnParser(false) //client implementations may not be Serializable
+            .invalidNotationMessage("Unable to configure the test inclusion criteria.")
+            .toFlatteningComposite().parseNotation(includedTests);
+    }
+
+    private static class TestSelectionSpecParser implements NotationParser<TestSelectionSpec> {
+        public TestSelectionSpec parseNotation(Object notation) throws UnsupportedNotationException, TypeConversionException {
+            if (notation instanceof TestSelectionSpec) {
+                TestSelectionSpec spec = (TestSelectionSpec) notation;
+                return new DefaultTestSelectionSpec(spec.getClassPattern(), spec.getMethodPattern());
+            }
+            throw new UnsupportedNotationException(notation);
+        }
+
+        public void describe(Collection<String> candidateFormats) {
+            candidateFormats.add("Instances of " + TestSelectionSpec.class.getSimpleName());
+        }
     }
 }

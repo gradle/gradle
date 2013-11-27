@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
 
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.Module;
+import org.gradle.api.internal.artifacts.ModuleInternal;
 import org.gradle.api.internal.artifacts.ivyservice.LocalComponentFactory;
 import org.gradle.api.internal.artifacts.metadata.MutableLocalComponentMetaData;
 
@@ -37,7 +37,7 @@ public class PublishLocalComponentFactory implements LocalComponentFactory {
         this.configurationsToArtifactsConverter = configurationsToArtifactsConverter;
     }
 
-    public MutableLocalComponentMetaData convert(Set<? extends Configuration> configurations, Module module) {
+    public MutableLocalComponentMetaData convert(Set<? extends Configuration> configurations, ModuleInternal module) {
         MutableLocalComponentMetaData publishMetaData = resolveLocalComponentFactory.convert(configurations, module);
         DefaultModuleDescriptor moduleDescriptor = publishMetaData.getModuleDescriptor();
         moduleDescriptor.addExtraAttributeNamespace(IVY_MAVEN_NAMESPACE_PREFIX, IVY_MAVEN_NAMESPACE);

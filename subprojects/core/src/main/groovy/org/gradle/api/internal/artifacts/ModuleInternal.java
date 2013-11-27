@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
+package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.result.ComponentSelectionReason;
+import org.gradle.api.Nullable;
+import org.gradle.api.artifacts.Module;
 
-public interface ModuleVersionSelection {
-
-    ModuleVersionIdentifier getSelectedId();
-
-    ComponentSelectionReason getSelectionReason();
-
-    ComponentIdentifier getComponentId();
+public interface ModuleInternal extends Module {
+    @Nullable
+    String getProjectPath();
 }
