@@ -33,14 +33,39 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
             executables {
                 main {}
             }
-            libraries {
-                hello {}
-            }
-            sources.main.cpp.lib libraries.hello.static
         """
 
-        helloWorldApp.executable.writeSources(file("src/main"))
-        helloWorldApp.library.writeSources(file("src/hello"))
+        helloWorldApp.writeSources(file("src/main"))
+    }
+
+    def "configure component for a single target platform"() {
+        when:
+        buildFile << """
+            model {
+                platforms {
+                    create("x86") {
+                        architecture "x86"
+                    }
+                    create("x86_64") {
+                        architecture "x86_64"
+                    }
+                }
+            }
+            task buildExecutables {
+                dependsOn binaries.withType(ExecutableBinary).matching {
+                    it.buildable
+                }
+            }
+            executables.main.targetPlatforms "x86"
+"""
+
+        and:
+        succeeds "buildExecutables"
+
+        then:
+        // Platform dimension is flattened since there is only one possible value
+        executedAndNotSkipped(":mainExecutable")
+        executable("build/binaries/mainExecutable/main").binaryInfo.arch.name == "x86"
     }
 
     def "build binary for multiple target architectures"() {

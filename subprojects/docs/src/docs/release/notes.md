@@ -2,9 +2,9 @@
 
 Here are the new features introduced in this Gradle release.
 
-<!--
-### Example new and noteworthy
--->
+### Improved configuration model for native components
+
+- Can specify a set of target platforms for a component
 
 ## Promoted features
 

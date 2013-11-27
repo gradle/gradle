@@ -70,4 +70,15 @@ public interface NativeComponent extends Named {
      */
     void flavors(Action<? super FlavorContainer> config);
 
+    /**
+     * Adds one or more {@link Platform}s that this component should be built for.
+     * <p/>
+     * This method accepts the following types:
+     *
+     * <ul>
+     *     <li>The String name of the platform to target.</li>
+     * </ul>
+     */
+    void targetPlatforms(Object platformSelector);
+
 }

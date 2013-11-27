@@ -20,23 +20,36 @@ import org.gradle.api.Project;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.internal.DefaultBinaryNamingScheme;
 import org.gradle.nativebinaries.*;
-import org.gradle.nativebinaries.internal.DefaultNativeBinary;
+import org.gradle.nativebinaries.internal.*;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedList;
 
 class NativeBinaryFactory {
     private final Instantiator instantiator;
     private final Project project;
-    private final boolean usePlatformDimension;
+    private final Collection<Platform> allPlatforms = new ArrayList<Platform>();
     private final boolean useBuildTypeDimension;
 
     public NativeBinaryFactory(Instantiator instantiator, Project project, Collection<? extends Platform> allPlatforms,
                                Collection<? extends BuildType> allBuildTypes) {
         this.instantiator = instantiator;
         this.project = project;
-        this.usePlatformDimension = allPlatforms.size() > 1;
+        this.allPlatforms.addAll(allPlatforms);
         this.useBuildTypeDimension = allBuildTypes.size() > 1;
+    }
+
+    public Collection<NativeBinary> createNativeBinaries(NativeComponent component, ToolChain toolChain, Platform platform, BuildType buildType, Flavor flavor) {
+        Collection<NativeBinary> binaries = new LinkedList<NativeBinary>();
+        if (component instanceof Library) {
+            binaries.add(createNativeBinary(DefaultSharedLibraryBinary.class, component, toolChain, platform, buildType, flavor));
+            binaries.add(createNativeBinary(DefaultStaticLibraryBinary.class, component, toolChain, platform, buildType, flavor));
+        } else {
+            binaries.add(createNativeBinary(DefaultExecutableBinary.class, component, toolChain, platform, buildType, flavor));
+        }
+        return binaries;
     }
 
     public <T extends DefaultNativeBinary> T createNativeBinary(Class<T> type, NativeComponent component, ToolChain toolChain, Platform platform, BuildType buildType, Flavor flavor) {
@@ -49,7 +62,7 @@ class NativeBinaryFactory {
 
     private DefaultBinaryNamingScheme createNamingScheme(NativeComponent component, Platform platform, BuildType buildType, Flavor flavor) {
         DefaultBinaryNamingScheme namingScheme = new DefaultBinaryNamingScheme(component.getName());
-        if (usePlatformDimension) {
+        if (usePlatformDimension(component)) {
             namingScheme = namingScheme.withVariantDimension(platform.getName());
         }
         if (useBuildTypeDimension) {
@@ -61,6 +74,15 @@ class NativeBinaryFactory {
         return namingScheme;
     }
 
+    private boolean usePlatformDimension(NativeComponent component) {
+        int count = 0;
+        for (Platform platform : allPlatforms) {
+            if (((NativeComponentInternal) component).shouldTarget(platform)) {
+                count++;
+            }
+        }
+        return count > 1;
+    }
 
     private void setupDefaults(Project project, DefaultNativeBinary nativeBinary) {
         nativeBinary.setOutputFile(new File(project.getBuildDir(), "binaries/" + nativeBinary.getNamingScheme().getOutputDirectoryBase() + "/" + nativeBinary.getOutputFileName()));

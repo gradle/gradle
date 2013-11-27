@@ -15,6 +15,7 @@
  */
 
 package org.gradle.nativebinaries.internal.configure
+
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.nativebinaries.BuildType
@@ -36,9 +37,16 @@ class NativeBinaryFactoryTest extends Specification {
     def flavor1 = new DefaultFlavor("flavor1")
     def component = new DefaultExecutable("name", new DirectInstantiator())
 
+    def setup() {
+        platform.name >> "platform1"
+
+        component.flavors.add(defaultFlavor)
+        component.flavors.add(flavor1)
+    }
 
     def "does not use flavor in names when component has only one configured flavor"() {
         when:
+        component.flavors.clear()
         component.flavors.add(flavor1)
 
         and:
@@ -54,10 +62,6 @@ class NativeBinaryFactoryTest extends Specification {
 
     def "includes flavor in names when component has multiple flavors"() {
         when:
-        component.flavors.add(defaultFlavor)
-        component.flavors.add(flavor1)
-
-        and:
         def factory = new NativeBinaryFactory(new DirectInstantiator(), project, [], [])
         def binary = factory.createNativeBinary(DefaultExecutableBinary, component, toolChain, platform, buildType, flavor1)
 
@@ -68,19 +72,27 @@ class NativeBinaryFactoryTest extends Specification {
         binary.namingScheme.getTaskName("compile", "cpp") == 'compileFlavor1NameExecutableCpp'
     }
 
-    def "includes platform in names when targeting multiple platforms"() {
-        when:
-        component.flavors.add(defaultFlavor)
-        component.flavors.add(flavor1)
-
-        and:
+    def "includes platform in names when component targets multiple platforms"() {
+        given:
         def platform2 = Stub(Platform) {
             getName() >> "platform2"
         }
-
         and:
         def factory = new NativeBinaryFactory(new DirectInstantiator(), project, [platform, platform2], [])
+
+        when:
+        component.targetPlatforms("platform2")
         def binary = factory.createNativeBinary(DefaultExecutableBinary, component, toolChain, platform2, buildType, flavor1)
+
+        then:
+        binary.namingScheme.lifecycleTaskName == 'flavor1NameExecutable'
+        binary.namingScheme.outputDirectoryBase == 'nameExecutable/flavor1'
+        binary.namingScheme.getTaskName("link") == 'linkFlavor1NameExecutable'
+        binary.namingScheme.getTaskName("compile", "cpp") == 'compileFlavor1NameExecutableCpp'
+
+        when:
+        component.targetPlatforms("platform1")
+        binary = factory.createNativeBinary(DefaultExecutableBinary, component, toolChain, platform2, buildType, flavor1)
 
         then:
         binary.namingScheme.lifecycleTaskName == 'platform2Flavor1NameExecutable'
@@ -91,10 +103,6 @@ class NativeBinaryFactoryTest extends Specification {
 
     def "includes buildType in names when targeting multiple build types"() {
         when:
-        component.flavors.add(defaultFlavor)
-        component.flavors.add(flavor1)
-
-        and:
         def buildType2 = Stub(BuildType) {
             getName() >> "buildType2"
         }

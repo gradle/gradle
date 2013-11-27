@@ -18,22 +18,24 @@ package org.gradle.nativebinaries.internal;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
-import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.nativebinaries.FlavorContainer;
 import org.gradle.nativebinaries.NativeBinary;
-import org.gradle.nativebinaries.NativeComponent;
+import org.gradle.nativebinaries.Platform;
 import org.gradle.util.GUtil;
 
+import java.util.HashSet;
 import java.util.Set;
 
-public class DefaultNativeComponent implements NativeComponent {
+public class DefaultNativeComponent implements NativeComponentInternal {
     private final NotationParser<Object, Set<LanguageSourceSet>> sourcesNotationParser = SourceSetNotationParser.parser();
     private final String name;
     private final DomainObjectSet<LanguageSourceSet> sourceSets;
     private final DefaultDomainObjectSet<NativeBinary> binaries;
     private final DefaultFlavorContainer flavors;
+    private final Set<String> targetPlatforms = new HashSet<String>();
     private String baseName;
 
     public DefaultNativeComponent(String name, Instantiator instantiator) {
@@ -73,5 +75,15 @@ public class DefaultNativeComponent implements NativeComponent {
 
     public void flavors(Action<? super FlavorContainer> config) {
         config.execute(flavors);
+    }
+
+    public void targetPlatforms(Object platformSelector) {
+        assert platformSelector instanceof String;
+        targetPlatforms.add((String) platformSelector);
+    }
+
+    public boolean shouldTarget(Platform platform) {
+        // TODO:DAZ Only target the current by default
+        return targetPlatforms.isEmpty() || targetPlatforms.contains(platform.getName());
     }
 }
