@@ -23,13 +23,13 @@ import java.util.Collection;
 import java.util.List;
 
 public class OptionNotationParserFactory {
-    public NotationParser<Object> toComposite(Class<?> resultingType) {
+    public NotationParser<Object, Object> toComposite(Class<?> resultingType) {
         return create(resultingType);
     }
 
-    private NotationParser<Object> create(Class<?> targetType) {
+    private NotationParser<Object, Object> create(Class<?> targetType) {
         assert targetType != null : "resultingType cannot be null";
-        List<NotationParser<?>> parsers = new ArrayList<NotationParser<?>>();
+        List<NotationParser<Object, ?>> parsers = new ArrayList<NotationParser<Object, ?>>();
 
         if (targetType == Void.TYPE) {
             parsers.add(new UnsupportedNotationParser());
@@ -46,10 +46,10 @@ public class OptionNotationParserFactory {
             // unavailable notationparser error or something like this
             throw new GradleException(String.format("resultingType '%s' not supported", targetType.getName()));
         }
-        return new CompositeNotationParser<Object>(parsers);
+        return new CompositeNotationParser<Object, Object>(parsers);
     }
 
-    private class UnsupportedNotationParser implements NotationParser<Object> {
+    private class UnsupportedNotationParser implements NotationParser<Object, Object> {
         public Object parseNotation(Object notation) throws UnsupportedNotationException, TypeConversionException {
             throw new UnsupportedOperationException();
         }
@@ -58,7 +58,7 @@ public class OptionNotationParserFactory {
         }
     }
 
-    private class NoDescriptionJustReturningParser extends JustReturningParser<Object> {
+    private class NoDescriptionJustReturningParser extends JustReturningParser<Object, Object> {
         public NoDescriptionJustReturningParser(Class<?> targetType) {
             super(targetType);
         }

@@ -91,11 +91,11 @@ class DependencyManagementBuildScopeServices {
         ProjectDependencyFactory projectDependencyFactory = new ProjectDependencyFactory(factory);
         DependencyProjectNotationParser projParser = new DependencyProjectNotationParser(factory);
 
-        NotationParser<? extends Dependency> moduleMapParser = new DependencyMapNotationParser<DefaultExternalModuleDependency>(instantiator, DefaultExternalModuleDependency.class);
-        NotationParser<? extends Dependency> moduleStringParser = new DependencyStringNotationParser<DefaultExternalModuleDependency>(instantiator, DefaultExternalModuleDependency.class);
-        NotationParser<? extends Dependency> selfResolvingDependencyFactory = new DependencyFilesNotationParser(instantiator);
+        NotationParser<Object, ? extends Dependency> moduleMapParser = new DependencyMapNotationParser<DefaultExternalModuleDependency>(instantiator, DefaultExternalModuleDependency.class);
+        NotationParser<Object, ? extends Dependency> moduleStringParser = new DependencyStringNotationParser<DefaultExternalModuleDependency>(instantiator, DefaultExternalModuleDependency.class);
+        NotationParser<Object, ? extends Dependency> selfResolvingDependencyFactory = new DependencyFilesNotationParser(instantiator);
 
-        List<NotationParser<? extends Dependency>> notationParsers = Arrays.asList(
+        List<NotationParser<Object, ? extends Dependency>> notationParsers = Arrays.asList(
                 moduleStringParser,
                 moduleMapParser,
                 selfResolvingDependencyFactory,

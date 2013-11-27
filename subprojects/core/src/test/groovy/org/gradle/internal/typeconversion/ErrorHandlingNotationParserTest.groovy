@@ -21,8 +21,8 @@ import spock.lang.Specification
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 class ErrorHandlingNotationParserTest extends Specification {
-    def NotationParser<String> target = Mock()
-    def parser = new ErrorHandlingNotationParser<String>("String", "<broken>", target)
+    def NotationParser<String, String> target = Mock()
+    def parser = new ErrorHandlingNotationParser<String, String>("String", "<broken>", target)
 
     def "reports unable to parse null"() {
         when:

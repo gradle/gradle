@@ -45,7 +45,7 @@ import spock.lang.Specification
 public class DefaultMavenPublicationTest extends Specification {
     @Shared TestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
     def module = Mock(MavenProjectIdentity)
-    NotationParser<MavenArtifact> notationParser = Mock(NotationParser)
+    NotationParser<Object, MavenArtifact> notationParser = Mock(NotationParser)
     TestFile pomDir
     TestFile pomFile
     File artifactFile

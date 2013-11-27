@@ -23,11 +23,11 @@ import org.gradle.internal.typeconversion.NotationParserBuilder;
 
 import java.util.Collection;
 
-public class DependencyNotationParser implements NotationParser<Dependency> {
+public class DependencyNotationParser implements NotationParser<Object, Dependency> {
 
-    private final NotationParser<Dependency> delegate;
+    private final NotationParser<Object, Dependency> delegate;
 
-    public DependencyNotationParser(Iterable<NotationParser<? extends Dependency>> compositeParsers) {
+    public DependencyNotationParser(Iterable<NotationParser<Object, ? extends Dependency>> compositeParsers) {
         delegate = new NotationParserBuilder<Dependency>()
                 .resultingType(Dependency.class)
                 .parsers(compositeParsers)
@@ -35,7 +35,7 @@ public class DependencyNotationParser implements NotationParser<Dependency> {
                 .toComposite();
     }
 
-    DependencyNotationParser(NotationParser<Dependency> delegate) {
+    DependencyNotationParser(NotationParser<Object, Dependency> delegate) {
         this.delegate = delegate;
     }
 

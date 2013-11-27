@@ -31,7 +31,7 @@ import java.io.File;
 import java.util.*;
 
 public abstract class DefaultNativeBinary extends AbstractBuildableModelElement implements NativeBinaryInternal {
-    private final NotationParser<Set<LanguageSourceSet>> sourcesNotationParser = SourceSetNotationParser.parser();
+    private final NotationParser<Object, Set<LanguageSourceSet>> sourcesNotationParser = SourceSetNotationParser.parser();
     private final Set<? super Object> libs = new LinkedHashSet<Object>();
     private final DomainObjectSet<LanguageSourceSet> source = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class);
     private final DefaultTool linker = new DefaultTool();

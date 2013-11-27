@@ -32,7 +32,7 @@ public class OperatingSystemNotationParser {
     private static final List<String> LINUX_ALIASES = Arrays.asList("linux");
     private static final List<String> SOLARIS_ALIASES = Arrays.asList("solaris", "sunos");
 
-    public static NotationParser<OperatingSystem> parser() {
+    public static NotationParser<Object, OperatingSystem> parser() {
         return new NotationParserBuilder<OperatingSystem>()
                 .resultingType(OperatingSystem.class)
                 .parser(new Parser())

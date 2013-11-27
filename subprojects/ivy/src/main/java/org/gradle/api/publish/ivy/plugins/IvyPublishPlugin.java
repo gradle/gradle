@@ -84,7 +84,7 @@ public class IvyPublishPlugin implements Plugin<Project> {
         public IvyPublication create(String name) {
             Module module = dependencyMetaDataProvider.getModule();
             IvyPublicationIdentity publicationIdentity = new DefaultIvyPublicationIdentity(module.getGroup(), module.getName(), module.getVersion());
-            NotationParser<IvyArtifact> notationParser = new IvyArtifactNotationParserFactory(instantiator, fileResolver, publicationIdentity).create();
+            NotationParser<Object, IvyArtifact> notationParser = new IvyArtifactNotationParserFactory(instantiator, fileResolver, publicationIdentity).create();
             return instantiator.newInstance(
                     DefaultIvyPublication.class,
                     name, instantiator, publicationIdentity, notationParser

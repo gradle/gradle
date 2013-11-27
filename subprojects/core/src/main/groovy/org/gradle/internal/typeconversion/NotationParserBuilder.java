@@ -26,7 +26,7 @@ import java.util.Set;
 public class NotationParserBuilder<T> {
     private TypeInfo<T> resultingType;
     private String invalidNotationMessage;
-    private Collection<NotationParser<? extends T>> notationParsers = new LinkedList<NotationParser<? extends T>>();
+    private Collection<NotationParser<Object, ? extends T>> notationParsers = new LinkedList<NotationParser<Object, ? extends T>>();
     private boolean withJustReturningParser = true;
 
     public NotationParserBuilder<T> resultingType(Class<T> resultingType) {
@@ -43,7 +43,7 @@ public class NotationParserBuilder<T> {
         return this;
     }
 
-    public NotationParserBuilder<T> parser(NotationParser<? extends T> parser) {
+    public NotationParserBuilder<T> parser(NotationParser<Object, ? extends T> parser) {
         this.notationParsers.add(parser);
         return this;
     }
@@ -53,32 +53,32 @@ public class NotationParserBuilder<T> {
         return this;
     }
 
-    public NotationParserBuilder<T> parsers(Iterable<? extends NotationParser<? extends T>> notationParsers) {
+    public NotationParserBuilder<T> parsers(Iterable<? extends NotationParser<Object, ? extends T>> notationParsers) {
         GUtil.addToCollection(this.notationParsers, notationParsers);
         return this;
     }
 
-    public NotationParser<Set<T>> toFlatteningComposite() {
+    public NotationParser<Object, Set<T>> toFlatteningComposite() {
         return wrapInErrorHandling(new FlatteningNotationParser<T>(create()));
     }
 
-    public NotationParser<T> toComposite() {
+    public NotationParser<Object, T> toComposite() {
         return wrapInErrorHandling(create());
     }
 
-    private <S> NotationParser<S> wrapInErrorHandling(NotationParser<S> parser) {
-        return new ErrorHandlingNotationParser<S>(resultingType.getTargetType().getSimpleName(), invalidNotationMessage, parser);
+    private <S> NotationParser<Object, S> wrapInErrorHandling(NotationParser<Object, S> parser) {
+        return new ErrorHandlingNotationParser<Object, S>(resultingType.getTargetType().getSimpleName(), invalidNotationMessage, parser);
     }
 
-    private CompositeNotationParser<T> create() {
+    private CompositeNotationParser<Object, T> create() {
         assert resultingType != null : "resultingType cannot be null";
 
-        List<NotationParser<? extends T>> composites = new LinkedList<NotationParser<? extends T>>();
+        List<NotationParser<Object, ? extends T>> composites = new LinkedList<NotationParser<Object, ? extends T>>();
         if(withJustReturningParser){
-            composites.add(new JustReturningParser<T>(resultingType.getTargetType()));
+            composites.add(new JustReturningParser<Object, T>(resultingType.getTargetType()));
         }
         composites.addAll(this.notationParsers);
 
-        return new CompositeNotationParser<T>(composites);
+        return new CompositeNotationParser<Object, T>(composites);
     }
 }

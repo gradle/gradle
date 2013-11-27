@@ -164,7 +164,7 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
     }
 
     public PatternSet include(Iterable includes) {
-        NotationParser<String> parser = new NotationParserBuilder<String>()
+        NotationParser<Object, String> parser = new NotationParserBuilder<String>()
                 .resultingType(String.class)
                 .parser(new CharSequenceNotationParser())
                 .toComposite();

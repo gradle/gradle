@@ -56,7 +56,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     private SoftwareComponentInternal component;
 
     public DefaultMavenPublication(
-            String name, MavenProjectIdentity projectIdentity, NotationParser<MavenArtifact> mavenArtifactParser, Instantiator instantiator
+            String name, MavenProjectIdentity projectIdentity, NotationParser<Object, MavenArtifact> mavenArtifactParser, Instantiator instantiator
     ) {
         this.name = name;
         this.projectIdentity = new DefaultMavenProjectIdentity(projectIdentity.getGroupId(), projectIdentity.getArtifactId(), projectIdentity.getVersion());

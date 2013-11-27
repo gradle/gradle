@@ -26,7 +26,7 @@ import org.gradle.api.specs.Spec;
 
 import java.util.Collection;
 
-public class DependencyResultSpecNotationParser implements NotationParser<Spec<DependencyResult>> {
+public class DependencyResultSpecNotationParser implements NotationParser<Object, Spec<DependencyResult>> {
 
     public Spec<DependencyResult> parseNotation(final Object notation) throws UnsupportedNotationException {
         if (notation instanceof CharSequence) {
@@ -43,7 +43,7 @@ public class DependencyResultSpecNotationParser implements NotationParser<Spec<D
         candidateFormats.add("Closure that returns boolean and takes a single DependencyResult as parameter.");
     }
 
-    public static NotationParser<Spec<DependencyResult>> create() {
+    public static NotationParser<Object, Spec<DependencyResult>> create() {
         return new NotationParserBuilder<Spec<DependencyResult>>()
                 .resultingType(new TypeInfo<Spec<DependencyResult>>(Spec.class))
                 .invalidNotationMessage("Please check the input for the DependencyInsight.dependency element.")

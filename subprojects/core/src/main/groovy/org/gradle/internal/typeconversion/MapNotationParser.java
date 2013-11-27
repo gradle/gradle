@@ -30,7 +30,7 @@ import java.util.*;
  * for each key value required from the source map. Each parameter should be annotated with a {@code @MapKey} annotation, and can also
  * be annotated with a {@code @optional} annotation.
  */
-public abstract class MapNotationParser<T> extends TypedNotationParser<Map, T> implements NotationParser<T> {
+public abstract class MapNotationParser<T> extends TypedNotationParser<Map, T> {
     private final Method convertMethod;
     private final String[] keyNames;
     private final boolean[] optional;

@@ -21,13 +21,13 @@ import org.gradle.nativebinaries.Architecture;
 import org.gradle.nativebinaries.OperatingSystem;
 
 public class DefaultPlatform implements PlatformInternal {
-    private final NotationParser<ArchitectureInternal> archParser;
-    private final NotationParser<OperatingSystem> osParser;
+    private final NotationParser<Object, ArchitectureInternal> archParser;
+    private final NotationParser<Object, OperatingSystem> osParser;
     private final String name;
     private Architecture architecture;
     private OperatingSystem operatingSystem;
 
-    public DefaultPlatform(String name, NotationParser<ArchitectureInternal> archParser, NotationParser<OperatingSystem> osParser) {
+    public DefaultPlatform(String name, NotationParser<Object, ArchitectureInternal> archParser, NotationParser<Object, OperatingSystem> osParser) {
         this.name = name;
         this.architecture = ArchitectureInternal.TOOL_CHAIN_DEFAULT;
         this.operatingSystem = DefaultOperatingSystem.TOOL_CHAIN_DEFAULT;

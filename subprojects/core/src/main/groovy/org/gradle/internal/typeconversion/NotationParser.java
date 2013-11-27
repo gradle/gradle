@@ -18,12 +18,12 @@ package org.gradle.internal.typeconversion;
 
 import java.util.Collection;
 
-public interface NotationParser<T> {
+public interface NotationParser<N, T> {
     /**
      * @throws UnsupportedNotationException When the supplied notation is not handled by this parser.
      * @throws TypeConversionException When the supplied notation is recognised by this parser but is badly formed and cannot be converted to the target type.
      */
-    T parseNotation(Object notation) throws UnsupportedNotationException, TypeConversionException;
+    T parseNotation(N notation) throws UnsupportedNotationException, TypeConversionException;
 
     void describe(Collection<String> candidateFormats);
 }

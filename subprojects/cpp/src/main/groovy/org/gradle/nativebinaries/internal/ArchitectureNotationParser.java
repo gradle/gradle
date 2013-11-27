@@ -34,7 +34,7 @@ public class ArchitectureNotationParser {
     private static final List<String> SPARC_64_ALIASES = Arrays.asList("sparc64", "ultrasparc", "sparc-v9");
     private static final List<String> ARM_ALIASES = Arrays.asList("arm");
 
-    public static NotationParser<ArchitectureInternal> parser() {
+    public static NotationParser<Object, ArchitectureInternal> parser() {
         return new NotationParserBuilder<ArchitectureInternal>()
                 .resultingType(ArchitectureInternal.class)
                 .parser(new Parser())

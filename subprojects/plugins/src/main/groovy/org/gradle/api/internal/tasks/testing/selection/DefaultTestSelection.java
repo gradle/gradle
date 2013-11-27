@@ -45,7 +45,7 @@ public class DefaultTestSelection implements TestSelection {
             .toFlatteningComposite().parseNotation(includedTests);
     }
 
-    private static class TestSelectionSpecParser implements NotationParser<TestSelectionSpec> {
+    private static class TestSelectionSpecParser implements NotationParser<Object, TestSelectionSpec> {
         public TestSelectionSpec parseNotation(Object notation) throws UnsupportedNotationException, TypeConversionException {
             if (notation instanceof TestSelectionSpec) {
                 TestSelectionSpec spec = (TestSelectionSpec) notation;

@@ -29,7 +29,7 @@ import org.gradle.util.GUtil;
 import java.util.Set;
 
 public class DefaultNativeComponent implements NativeComponent {
-    private final NotationParser<Set<LanguageSourceSet>> sourcesNotationParser = SourceSetNotationParser.parser();
+    private final NotationParser<Object, Set<LanguageSourceSet>> sourcesNotationParser = SourceSetNotationParser.parser();
     private final String name;
     private final DomainObjectSet<LanguageSourceSet> sourceSets;
     private final DefaultDomainObjectSet<NativeBinary> binaries;

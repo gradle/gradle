@@ -60,8 +60,8 @@ public abstract class AbstractFileResolver implements FileResolver {
         return resolve(path, PathValidation.NONE);
     }
 
-    public NotationParser<File> asNotationParser() {
-        return new NotationParser<File>() {
+    public NotationParser<Object, File> asNotationParser() {
+        return new NotationParser<Object, File>() {
             public File parseNotation(Object notation) throws UnsupportedNotationException {
                 // TODO Further differentiate between unsupported notation errors and others (particularly when we remove the deprecated 'notation.toString()' resolution)
                 return resolve(notation, PathValidation.NONE);

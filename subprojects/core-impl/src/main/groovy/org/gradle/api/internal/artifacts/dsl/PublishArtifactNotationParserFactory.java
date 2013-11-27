@@ -34,7 +34,7 @@ import org.gradle.internal.reflect.Instantiator;
 import java.io.File;
 import java.util.Collection;
 
-public class PublishArtifactNotationParserFactory implements Factory<NotationParser<PublishArtifact>> {
+public class PublishArtifactNotationParserFactory implements Factory<NotationParser<Object, PublishArtifact>> {
     private final Instantiator instantiator;
     private final DependencyMetaDataProvider metaDataProvider;
 
@@ -43,7 +43,7 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
         this.metaDataProvider = metaDataProvider;
     }
 
-    public NotationParser<PublishArtifact> create() {
+    public NotationParser<Object, PublishArtifact> create() {
         FileNotationParser fileParser = new FileNotationParser();
         return new NotationParserBuilder<PublishArtifact>()
                 .resultingType(PublishArtifact.class)

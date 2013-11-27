@@ -56,7 +56,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     private SoftwareComponentInternal component;
 
     public DefaultIvyPublication(
-            String name, Instantiator instantiator, IvyPublicationIdentity publicationIdentity, NotationParser<IvyArtifact> ivyArtifactNotationParser
+            String name, Instantiator instantiator, IvyPublicationIdentity publicationIdentity, NotationParser<Object, IvyArtifact> ivyArtifactNotationParser
     ) {
         this.name = name;
         this.publicationIdentity = publicationIdentity;

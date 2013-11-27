@@ -94,7 +94,7 @@ public class MavenPublishPlugin implements Plugin<Project> {
 
             Module module = dependencyMetaDataProvider.getModule();
             MavenProjectIdentity projectIdentity = new DefaultMavenProjectIdentity(module.getGroup(), module.getName(), module.getVersion());
-            NotationParser<MavenArtifact> artifactNotationParser = new MavenArtifactNotationParserFactory(instantiator, fileResolver).create();
+            NotationParser<Object, MavenArtifact> artifactNotationParser = new MavenArtifactNotationParserFactory(instantiator, fileResolver).create();
 
             return instantiator.newInstance(
                     DefaultMavenPublication.class,

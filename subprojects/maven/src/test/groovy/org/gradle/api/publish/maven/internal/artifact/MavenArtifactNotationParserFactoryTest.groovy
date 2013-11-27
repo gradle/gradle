@@ -41,7 +41,7 @@ public class MavenArtifactNotationParserFactoryTest extends Specification {
     def task = Mock(Task)
     def dependencies = Collections.singleton(Mock(Task))
 
-    NotationParser<MavenArtifact> parser
+    NotationParser<Object, MavenArtifact> parser
 
     def "setup"() {
         def fileResolver = Stub(FileResolver) {
