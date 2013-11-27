@@ -272,10 +272,10 @@ public class GenerateGraphTask extends DefaultTask {
             def root = configuration.incoming.resolutionResult.root
             writer.println("root:[${root.id}][${formatReason(root.selectionReason)}]")
             configuration.incoming.resolutionResult.allComponents.each {
-                writer.println("module-version:[${it.id}][${formatReason(it.selectionReason)}]")
+                writer.println("module-version:[${it.publishedAs}][${formatReason(it.selectionReason)}]")
             }
             configuration.incoming.resolutionResult.allDependencies.each {
-                writer.println("dependency:[${it.from.id}][${it.requested}->${it.selected.id}]")
+                writer.println("dependency:[${it.from.publishedAs}][${it.requested}->${it.selected.publishedAs}]")
             }
             configuration.files.each {
                 writer.println("file:${it.name}")

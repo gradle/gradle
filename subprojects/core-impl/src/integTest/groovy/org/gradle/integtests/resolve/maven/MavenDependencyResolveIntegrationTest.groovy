@@ -38,6 +38,25 @@ dependencies {
 
 task check << {
     assert configurations.compile.collect { it.name } == ['test-1.45.jar', 'other-preview-1.jar']
+    def result = configurations.compile.incoming.resolutionResult
+
+    // Check root component
+    def rootId = result.root.id
+    assert rootId instanceof ModuleComponentIdentifier
+    def rootPublishedAs = result.root.publishedAs
+    assert rootPublishedAs instanceof ModuleComponentIdentifier
+    assert rootPublishedAs.group == rootId.group
+    assert rootPublishedAs.module == rootId.module
+    assert rootPublishedAs.version == rootId.version
+
+    // Check external module components
+    def externalComponents = result.root.dependencies.selected.findAll { it.id instanceof ModuleComponentIdentifier }
+    assert externalComponents.size() == 1
+    def selectedExternalComponent = externalComponents[0]
+    assert selectedExternalComponent.id.group == 'org.gradle'
+    assert selectedExternalComponent.id.module == 'test'
+    assert selectedExternalComponent.id.version == '1.45'
+    assert selectedExternalComponent.id == selectedExternalComponent.publishedAs
 }
 """
 

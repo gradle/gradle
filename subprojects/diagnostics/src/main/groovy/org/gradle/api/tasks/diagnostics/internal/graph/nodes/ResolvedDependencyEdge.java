@@ -44,7 +44,7 @@ public class ResolvedDependencyEdge implements DependencyEdge {
     }
 
     public ModuleComponentIdentifier getActual() {
-        return (ModuleComponentIdentifier)dependency.getSelected().getId();
+        return (ModuleComponentIdentifier)dependency.getSelected().getPublishedAs();
     }
 
     public ModuleComponentIdentifier getFrom() {
