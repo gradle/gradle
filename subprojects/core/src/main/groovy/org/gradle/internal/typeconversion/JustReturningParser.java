@@ -19,9 +19,9 @@ import java.util.Collection;
 
 public class JustReturningParser<T> implements NotationParser<T> {
 
-    private final Class<T> passThroughType;
+    private final Class<? extends T> passThroughType;
 
-    public JustReturningParser(Class<T> passThroughType) {
+    public JustReturningParser(Class<? extends T> passThroughType) {
         this.passThroughType = passThroughType;
     }
 

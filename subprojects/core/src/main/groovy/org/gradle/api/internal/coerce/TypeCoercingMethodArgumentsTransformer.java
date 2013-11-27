@@ -86,7 +86,7 @@ public class TypeCoercingMethodArgumentsTransformer implements MethodArgumentsTr
     }
 
     public <T extends Enum<T>> T toEnumValue(Class<T> enumType, CharSequence charSequence) {
-        NotationParser<T> notationParser = new EnumFromStringNotationParser(enumType);
+        NotationParser<T> notationParser = new EnumFromStringNotationParser<T>(enumType);
         return notationParser.parseNotation(charSequence);
     }
 }

@@ -22,49 +22,35 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-public class OptionNotationParserFactory<T> {
-
-    private TypeInfo<T> resultingType;
-
-    public OptionNotationParserFactory<T> resultingType(TypeInfo<T> resultingType) {
-        this.resultingType = resultingType;
-        return this;
+public class OptionNotationParserFactory {
+    public NotationParser<Object> toComposite(Class<?> resultingType) {
+        return create(resultingType);
     }
 
-    public OptionNotationParserFactory(Class<T> optionType) {
-        this.resultingType(new TypeInfo<T>(optionType));
+    private NotationParser<Object> create(Class<?> targetType) {
+        assert targetType != null : "resultingType cannot be null";
+        List<NotationParser<?>> parsers = new ArrayList<NotationParser<?>>();
 
-    }
-
-    public NotationParser<T> toComposite() {
-        return create();
-    }
-
-    private NotationParser<T> create() {
-        assert resultingType != null : "resultingType cannot be null";
-        List<NotationParser<? extends T>> parsers = new ArrayList<NotationParser<? extends T>>();
-        final Class<T> targetType = resultingType.getTargetType();
-
-        if(targetType == Void.TYPE){
+        if (targetType == Void.TYPE) {
             parsers.add(new UnsupportedNotationParser());
         }
-        if(targetType.isAssignableFrom(String.class)){
+        if (targetType.isAssignableFrom(String.class)) {
             parsers.add(new NoDescriptionJustReturningParser(targetType));
         }
         if (targetType.isEnum()) {
             parsers.add(new NoDescriptionJustReturningParser(targetType));
-            parsers.add(new EnumFromStringNotationParser<T>(targetType));
+            parsers.add(new EnumFromStringNotationParser<Enum>(targetType.asSubclass(Enum.class)));
         }
-        if(parsers.isEmpty()){
+        if (parsers.isEmpty()) {
             // not sure this is the right exception it should be more
             // unavailable notationparser error or something like this
             throw new GradleException(String.format("resultingType '%s' not supported", targetType.getName()));
         }
-        return new CompositeNotationParser<T>(parsers);
+        return new CompositeNotationParser<Object>(parsers);
     }
 
-    private class UnsupportedNotationParser implements NotationParser<T> {
-        public T parseNotation(Object notation) throws UnsupportedNotationException, TypeConversionException {
+    private class UnsupportedNotationParser implements NotationParser<Object> {
+        public Object parseNotation(Object notation) throws UnsupportedNotationException, TypeConversionException {
             throw new UnsupportedOperationException();
         }
 
@@ -72,8 +58,8 @@ public class OptionNotationParserFactory<T> {
         }
     }
 
-    private class NoDescriptionJustReturningParser extends JustReturningParser<T> {
-        public NoDescriptionJustReturningParser(Class<T> targetType) {
+    private class NoDescriptionJustReturningParser extends JustReturningParser<Object> {
+        public NoDescriptionJustReturningParser(Class<?> targetType) {
             super(targetType);
         }
 

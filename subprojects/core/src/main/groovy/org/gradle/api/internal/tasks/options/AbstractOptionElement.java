@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.tasks.options;
 
-import org.gradle.internal.typeconversion.OptionNotationParserFactory;
 import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.typeconversion.NotationParser;
+import org.gradle.internal.typeconversion.OptionNotationParserFactory;
 
 import java.lang.annotation.IncompleteAnnotationException;
 import java.lang.reflect.Method;
@@ -30,7 +30,7 @@ abstract class AbstractOptionElement implements OptionElement {
     private final String optionName;
     private final String description;
     private final Class<?> optionType;
-    private final NotationParser notationParser;
+    private final NotationParser<?> notationParser;
 
     public AbstractOptionElement(String optionName, Option option, Class<?> optionType, Class<?> declaringClass) {
         this.description = readDescription(option, optionName, declaringClass);
@@ -39,10 +39,10 @@ abstract class AbstractOptionElement implements OptionElement {
         this.notationParser = createNotationParser(optionName, optionType, declaringClass);
     }
 
-    private NotationParser createNotationParser(String optionName, Class<?> optionType, Class<?> declaringClass) {
-        try{
-            return new OptionNotationParserFactory(optionType).toComposite();
-        }   catch(Exception ex){
+    private NotationParser<Object> createNotationParser(String optionName, Class<?> optionType, Class<?> declaringClass) {
+        try {
+            return new OptionNotationParserFactory().toComposite(optionType);
+        } catch (Exception ex) {
             throw new OptionValidationException(String.format("Option '%s' cannot be casted to type '%s' in class '%s'.",
                     optionName, optionType.getName(), declaringClass.getName()));
         }
@@ -88,7 +88,7 @@ abstract class AbstractOptionElement implements OptionElement {
         return description;
     }
 
-    protected NotationParser getNotationParser() {
+    protected NotationParser<?> getNotationParser() {
         return notationParser;
     }
 }
