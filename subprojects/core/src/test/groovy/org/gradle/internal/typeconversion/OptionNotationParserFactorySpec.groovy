@@ -23,18 +23,18 @@ class OptionNotationParserFactorySpec extends Specification {
 
     def "creates notationparser for handling strings"(){
         given:
-        OptionNotationParserFactory factory = new OptionNotationParserFactory(String.class)
+        OptionNotationParserFactory factory = new OptionNotationParserFactory()
         when:
-        def parser = factory.toComposite();
+        def parser = factory.toComposite(String.class);
         then:
         parser.parseNotation("somestring") == "somestring"
     }
 
     def "creates notationparser for handling handles enums"(){
         given:
-        OptionNotationParserFactory factory = new OptionNotationParserFactory(TestEnum.class)
+        OptionNotationParserFactory factory = new OptionNotationParserFactory()
         when:
-        def parser = factory.toComposite();
+        def parser = factory.toComposite(TestEnum.class);
         then:
         parser.parseNotation(TestEnum.ABC) == TestEnum.ABC
         parser.parseNotation("ABC") == TestEnum.ABC
@@ -42,9 +42,9 @@ class OptionNotationParserFactorySpec extends Specification {
 
     def "fails on creating parser for unsupported"(){
         setup:
-        OptionNotationParserFactory factory = new OptionNotationParserFactory(File.class)
+        OptionNotationParserFactory factory = new OptionNotationParserFactory()
         when:
-        factory.toComposite();
+        factory.toComposite(File.class);
         then:
         def e = thrown(GradleException);
         e.message == "resultingType 'java.io.File' not supported"
