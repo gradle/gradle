@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.Module;
+import org.gradle.api.internal.artifacts.ModuleInternal;
 
 import java.util.Set;
 
@@ -25,5 +25,5 @@ import java.util.Set;
  * Resolves a module to the meta-data for a module.
  */
 public interface ModuleToModuleVersionResolver {
-    void resolve(Module module, Set<? extends Configuration> configurations, BuildableModuleVersionResolveResult result);
+    void resolve(ModuleInternal module, Set<? extends Configuration> configurations, BuildableModuleVersionResolveResult result);
 }

@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
 import org.gradle.api.artifacts.component.BuildComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -30,26 +28,16 @@ import org.gradle.messaging.serialize.Serializer;
 import java.io.IOException;
 
 public class ComponentIdentifierSerializer implements Serializer<ComponentIdentifier> {
-    private static final BiMap<Integer, Class> IMPLEMENTATIONS = HashBiMap.create(2);
-
-    static {
-        IMPLEMENTATIONS.put(1, DefaultModuleComponentIdentifier.class);
-        IMPLEMENTATIONS.put(2, DefaultBuildComponentIdentifier.class);
-    }
-
     public ComponentIdentifier read(Decoder decoder) throws IOException {
-        int id = decoder.readInt();
-        Class componentIdClass = IMPLEMENTATIONS.get(id);
+        byte id = decoder.readByte();
 
-        if(componentIdClass == null) {
-            throw new IllegalArgumentException("Unable to find component identifier with id: " + id);
-        }
-
-        if(componentIdClass == DefaultBuildComponentIdentifier.class) {
+        if(Implementation.BUILD.getId() == id) {
             return new DefaultBuildComponentIdentifier(decoder.readString());
+        } else if(Implementation.MODULE.getId() == id) {
+            return new DefaultModuleComponentIdentifier(decoder.readString(), decoder.readString(), decoder.readString());
         }
 
-        return new DefaultModuleComponentIdentifier(decoder.readString(), decoder.readString(), decoder.readString());
+        throw new IllegalArgumentException("Unable to find component identifier with id: " + id);
     }
 
     public void write(Encoder encoder, ComponentIdentifier value) throws IOException {
@@ -57,21 +45,32 @@ public class ComponentIdentifierSerializer implements Serializer<ComponentIdenti
             throw new IllegalArgumentException("Provided component identifier may not be null");
         }
 
-        if(!IMPLEMENTATIONS.containsValue(value.getClass())) {
-            throw new IllegalArgumentException("Unsupported component identifier class: " + value.getClass());
-        }
-
-        int id = IMPLEMENTATIONS.inverse().get(value.getClass());
-        encoder.writeInt(id);
-
         if(value instanceof DefaultModuleComponentIdentifier) {
             ModuleComponentIdentifier moduleComponentIdentifier = (ModuleComponentIdentifier)value;
+            encoder.writeByte(Implementation.MODULE.getId());
             encoder.writeString(moduleComponentIdentifier.getGroup());
             encoder.writeString(moduleComponentIdentifier.getModule());
             encoder.writeString(moduleComponentIdentifier.getVersion());
         } else if(value instanceof DefaultBuildComponentIdentifier) {
             BuildComponentIdentifier buildComponentIdentifier = (BuildComponentIdentifier)value;
+            encoder.writeByte(Implementation.BUILD.getId());
             encoder.writeString(buildComponentIdentifier.getProjectPath());
+        } else {
+            throw new IllegalArgumentException("Unsupported component identifier class: " + value.getClass());
+        }
+    }
+
+    private static enum Implementation {
+        MODULE((byte) 1), BUILD((byte) 2);
+
+        private final byte id;
+
+        private Implementation(byte id) {
+            this.id = id;
+        }
+
+        private byte getId() {
+            return id;
         }
     }
 }
