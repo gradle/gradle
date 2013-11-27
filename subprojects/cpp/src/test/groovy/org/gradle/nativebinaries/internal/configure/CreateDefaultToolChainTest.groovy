@@ -38,7 +38,7 @@ class CreateDefaultToolChainTest extends Specification {
 
         then:
         1 * toolChains.empty >> true
-        1 * toolChains.addDefaultToolChain()
+        1 * toolChains.addDefaultToolChains()
     }
 
     def "does not add default tool chains when some configured"() {
@@ -47,6 +47,6 @@ class CreateDefaultToolChainTest extends Specification {
 
         then:
         1 * toolChains.empty >> false
-        0 * toolChains.addDefaultToolChain()
+        0 * toolChains.addDefaultToolChains()
     }
 }

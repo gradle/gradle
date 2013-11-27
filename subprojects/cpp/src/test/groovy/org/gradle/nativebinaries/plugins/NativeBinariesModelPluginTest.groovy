@@ -15,6 +15,8 @@
  */
 
 package org.gradle.nativebinaries.plugins
+
+import org.gradle.api.GradleException
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Task
 import org.gradle.api.plugins.BasePlugin
@@ -65,7 +67,7 @@ class NativeBinariesModelPluginTest extends Specification {
         one(project.modelRegistry.get("toolChains", ToolChainRegistry)).target(null)
 
         then:
-        def t = thrown(IllegalStateException)
+        def t = thrown(GradleException)
         t.message == "No tool chain is available: [No tool chain plugin applied]"
     }
 
@@ -110,7 +112,7 @@ class NativeBinariesModelPluginTest extends Specification {
         project.plugins.apply(NativeBinariesModelPlugin)
         project.model {
             toolChains {
-                add named(ToolChainInternal, "tc")
+                add toolChain("tc")
             }
         }
         project.targetPlatforms.add named(Platform, "platform")
@@ -137,7 +139,7 @@ class NativeBinariesModelPluginTest extends Specification {
         project.plugins.apply(NativeBinariesModelPlugin)
         project.model {
             toolChains {
-                add named(ToolChainInternal, "tc")
+                add toolChain("tc")
             }
         }
         project.targetPlatforms.add named(Platform, "platform")
@@ -205,6 +207,13 @@ class NativeBinariesModelPluginTest extends Specification {
     def named(Class type, def name) {
         Stub(type) {
             getName() >> name
+        }
+    }
+
+    def toolChain(def name) {
+        Stub(ToolChainInternal) {
+            getName() >> name
+            canTargetPlatform(_) >> true
         }
     }
 

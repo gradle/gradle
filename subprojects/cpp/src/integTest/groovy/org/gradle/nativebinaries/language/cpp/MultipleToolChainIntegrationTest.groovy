@@ -98,7 +98,7 @@ class MultipleToolChainIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainCpp'.")
-        failure.assertHasCause("Tool chain bad is not available")
+        failure.assertHasCause("No tool chain is available: [Could not load 'bad': Linker cannot be found]")
     }
 
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)

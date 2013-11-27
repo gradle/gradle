@@ -108,7 +108,7 @@ public class NativeBinariesModelPlugin implements Plugin<Project> {
     private static class AddDefaultToolchainIfRequired extends ModelFinalizer {
         void createDefaultToolChain(ToolChainRegistryInternal toolChains) {
             if (toolChains.isEmpty()) {
-                toolChains.addDefaultToolChain();
+                toolChains.addDefaultToolChains();
             }
         }
     }

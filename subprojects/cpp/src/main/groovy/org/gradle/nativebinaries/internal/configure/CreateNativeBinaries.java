@@ -24,6 +24,7 @@ import org.gradle.nativebinaries.*;
 import org.gradle.nativebinaries.internal.DefaultExecutableBinary;
 import org.gradle.nativebinaries.internal.DefaultSharedLibraryBinary;
 import org.gradle.nativebinaries.internal.DefaultStaticLibraryBinary;
+import org.gradle.nativebinaries.internal.ToolChainRegistryInternal;
 
 public class CreateNativeBinaries extends ModelRule {
     private final Instantiator instantiator;
@@ -34,26 +35,25 @@ public class CreateNativeBinaries extends ModelRule {
         this.project = project;
     }
 
-    public void create(BinaryContainer binaries, ToolChainRegistry toolChains) {
+    public void create(BinaryContainer binaries, ToolChainRegistryInternal toolChains) {
         PlatformContainer targetPlatforms = project.getExtensions().getByType(PlatformContainer.class);
         BuildTypeContainer buildTypes = project.getExtensions().getByType(BuildTypeContainer.class);
         ExecutableContainer executables = project.getExtensions().getByType(ExecutableContainer.class);
         LibraryContainer libraries = project.getExtensions().getByType(LibraryContainer.class);
 
         NativeBinaryFactory factory = new NativeBinaryFactory(instantiator, project, toolChains, targetPlatforms, buildTypes);
-        for (ToolChain toolChain : toolChains) {
-            for (Platform targetPlatform : targetPlatforms) {
-                for (BuildType buildType : buildTypes) {
-                    for (Library library : libraries) {
-                        for (Flavor flavor : library.getFlavors()) {
-                            binaries.add(factory.createNativeBinary(DefaultSharedLibraryBinary.class, library, toolChain, targetPlatform, buildType, flavor));
-                            binaries.add(factory.createNativeBinary(DefaultStaticLibraryBinary.class, library, toolChain, targetPlatform, buildType, flavor));
-                        }
+        for (Platform targetPlatform : targetPlatforms) {
+            ToolChain toolChain = toolChains.getForPlatform(targetPlatform);
+            for (BuildType buildType : buildTypes) {
+                for (Library library : libraries) {
+                    for (Flavor flavor : library.getFlavors()) {
+                        binaries.add(factory.createNativeBinary(DefaultSharedLibraryBinary.class, library, toolChain, targetPlatform, buildType, flavor));
+                        binaries.add(factory.createNativeBinary(DefaultStaticLibraryBinary.class, library, toolChain, targetPlatform, buildType, flavor));
                     }
-                    for (Executable executable : executables) {
-                        for (Flavor flavor : executable.getFlavors()) {
-                            binaries.add(factory.createNativeBinary(DefaultExecutableBinary.class, executable, toolChain, targetPlatform, buildType, flavor));
-                        }
+                }
+                for (Executable executable : executables) {
+                    for (Flavor flavor : executable.getFlavors()) {
+                        binaries.add(factory.createNativeBinary(DefaultExecutableBinary.class, executable, toolChain, targetPlatform, buildType, flavor));
                     }
                 }
             }

@@ -52,6 +52,6 @@ abstract class ToolChainPluginTest extends Specification {
     }
 
     void addDefaultToolchain() {
-        project.model { toolChains { addDefaultToolChain() } }
+        project.model { toolChains { addDefaultToolChains() } }
     }
 }

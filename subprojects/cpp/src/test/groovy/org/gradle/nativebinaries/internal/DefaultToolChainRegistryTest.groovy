@@ -15,9 +15,10 @@
  */
 
 package org.gradle.nativebinaries.internal
+
+import org.gradle.api.GradleException
 import org.gradle.api.NamedDomainObjectFactory
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.nativebinaries.Platform
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -26,24 +27,26 @@ class DefaultToolChainRegistryTest extends Specification {
     def instantiator = project.services.get(Instantiator)
     def registry = instantiator.newInstance(DefaultToolChainRegistry, instantiator)
     def NamedDomainObjectFactory<TestToolChain> factory = Mock(NamedDomainObjectFactory)
+    def platform = new DefaultPlatform("platform")
 
     def "setup"() {
         project.extensions.add("toolChains", registry)
         registry.registerFactory(TestToolChain, factory)
     }
 
-    def "adds first available default tool chain when none configured"() {
-        unavailableToolChain("test1")
+    def "adds default tool chains"() {
+        def defaultToolChain1 = unavailableToolChain("test1")
         def defaultToolChain2 = availableToolChain("test2")
+        def defaultToolChain3 = availableToolChain("test3")
 
         when:
         registry.registerDefaultToolChain("test1", TestToolChain)
         registry.registerDefaultToolChain("test2", TestToolChain)
         registry.registerDefaultToolChain("test3", TestToolChain)
-        registry.addDefaultToolChain()
+        registry.addDefaultToolChains()
 
         then:
-        registry.asList() == [defaultToolChain2]
+        registry.asList() == [defaultToolChain1, defaultToolChain2, defaultToolChain3]
     }
 
     def "can add default tool chain when some configured"() {
@@ -57,13 +60,13 @@ class DefaultToolChainRegistryTest extends Specification {
         registry.create("configured", TestToolChain)
 
         and:
-        registry.addDefaultToolChain()
+        registry.addDefaultToolChains()
 
         then:
         registry.asList() == [configuredToolChain, defaultToolChain]
     }
 
-    def "adds unavailable tool chain as default when no tool chain available"() {
+    def "provides unavailable tool chain when no tool chain available"() {
         unavailableToolChain("test", "nope")
         unavailableToolChain("test2", "not me")
         unavailableToolChain("test3", "not me either")
@@ -72,17 +75,17 @@ class DefaultToolChainRegistryTest extends Specification {
         registry.registerDefaultToolChain("test", TestToolChain)
         registry.registerDefaultToolChain("test2", TestToolChain)
         registry.registerDefaultToolChain("test3", TestToolChain)
-        registry.addDefaultToolChain()
+        registry.addDefaultToolChains()
 
         then:
-        registry.size() == 1
+        registry.size() == 3
 
         when:
-        def tc = registry.iterator().next()
-        tc.target(Stub(Platform))
+        def tc = registry.getForPlatform(platform)
+        tc.target(platform)
 
         then:
-        IllegalStateException e = thrown()
+        GradleException e = thrown()
         e.message == "No tool chain is available: [Could not load 'test': nope, Could not load 'test2': not me, Could not load 'test3': not me either]"
     }
 
@@ -92,7 +95,7 @@ class DefaultToolChainRegistryTest extends Specification {
 
         when:
         registry.registerDefaultToolChain("test", TestToolChain)
-        registry.addDefaultToolChain()
+        registry.addDefaultToolChains()
 
         and:
         project.toolChains {
@@ -126,12 +129,45 @@ class DefaultToolChainRegistryTest extends Specification {
         registry.toList() == [tcFirst, test, tc2]
     }
 
+    def "uses first available tool chain that can target platform"() {
+        def defaultToolChain1 = unavailableToolChain("test1")
+        def defaultToolChain2 = availableToolChain("test2")
+        def defaultToolChain3 = availableToolChain("test3")
+
+        when:
+        registry.add(defaultToolChain1)
+        registry.add(defaultToolChain2)
+        registry.add(defaultToolChain3)
+
+        defaultToolChain1.canTargetPlatform(platform) >> true
+        defaultToolChain2.canTargetPlatform(platform) >> false
+        defaultToolChain3.canTargetPlatform(platform) >> true
+
+        then:
+        registry.getForPlatform(platform) == defaultToolChain3
+    }
+
+    def "tool chains are inspected in order added"() {
+        def defaultToolChain1 = availableToolChain("test1")
+        def defaultToolChain2 = availableToolChain("first")
+
+        when:
+        registry.add(defaultToolChain1)
+        registry.add(defaultToolChain2)
+
+        defaultToolChain1.canTargetPlatform(platform) >> true
+        defaultToolChain2.canTargetPlatform(platform) >> true
+
+        then:
+        registry.getForPlatform(platform) == defaultToolChain1
+    }
+
     def availableToolChain(String name) {
         TestToolChain testToolChain = Mock(TestToolChain) {
             _ * getName() >> name
             _ * getAvailability() >> new ToolChainAvailability()
         }
-        1 * factory.create(name) >> testToolChain
+        factory.create(name) >> testToolChain
         return testToolChain
     }
 
@@ -140,7 +176,7 @@ class DefaultToolChainRegistryTest extends Specification {
             _ * getName() >> name
             _ * getAvailability() >> new ToolChainAvailability().unavailable(message)
         }
-        1 * factory.create(name) >> testToolChain
+        factory.create(name) >> testToolChain
         return testToolChain
     }
 

@@ -154,7 +154,7 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
 
         then:
         failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainCpp'.")
-        failure.assertHasCause("Tool chain ${toolChain.id} cannot build for platform: arm")
+        failure.assertHasCause("No tool chain is available: [Tool chain '${toolChain.id}' cannot build for platform 'arm']")
     }
 
     def "fails with reasonable error message when trying to build for a different operating system"() {
@@ -172,7 +172,7 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
 
         then:
         failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainCpp'.")
-        failure.assertHasCause("Tool chain ${toolChain.id} cannot build for platform: solaris")
+        failure.assertHasCause("No tool chain is available: [Tool chain '${toolChain.id}' cannot build for platform 'solaris']")
     }
 
     def binaryInfo(TestFile file) {

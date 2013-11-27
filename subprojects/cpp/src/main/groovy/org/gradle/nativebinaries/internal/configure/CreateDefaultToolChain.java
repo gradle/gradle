@@ -24,7 +24,7 @@ public class CreateDefaultToolChain implements Action<ProjectInternal> {
     public void execute(ProjectInternal project) {
         ToolChainRegistryInternal toolChains = project.getExtensions().getByType(ToolChainRegistryInternal.class);
         if (toolChains.isEmpty()) {
-            toolChains.addDefaultToolChain();
+            toolChains.addDefaultToolChains();
         }
     }
 }

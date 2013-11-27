@@ -15,6 +15,8 @@
  */
 package org.gradle.nativebinaries.internal;
 
+import org.gradle.api.Action;
+import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
 import org.gradle.internal.os.OperatingSystem;
@@ -22,16 +24,24 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.nativebinaries.Platform;
 import org.gradle.nativebinaries.ToolChain;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class DefaultToolChainRegistry extends DefaultPolymorphicDomainObjectContainer<ToolChain> implements ToolChainRegistryInternal {
     private final Map<String, Class<? extends ToolChain>> registeredDefaults = new LinkedHashMap<String, Class<? extends ToolChain>>();
+    private final List<ToolChainInternal> searchOrder = new ArrayList<ToolChainInternal>();
 
     public DefaultToolChainRegistry(Instantiator instantiator) {
         super(ToolChain.class, instantiator);
+        whenObjectAdded(new Action<ToolChain>() {
+            public void execute(ToolChain toolChain) {
+                searchOrder.add((ToolChainInternal) toolChain);
+            }
+        });
+        whenObjectRemoved(new Action<ToolChain>() {
+            public void execute(ToolChain toolChain) {
+                searchOrder.remove(toolChain);
+            }
+        });
     }
 
     @Override
@@ -43,21 +53,30 @@ public class DefaultToolChainRegistry extends DefaultPolymorphicDomainObjectCont
         registeredDefaults.put(name, type);
     }
 
-    public void addDefaultToolChain() {
-        List<String> messages = new ArrayList<String>();
+    public void addDefaultToolChains() {
         for (String name : registeredDefaults.keySet()) {
-            ToolChainInternal toolChain = (ToolChainInternal) doCreate(name, registeredDefaults.get(name));
-            ToolChainAvailability availability = toolChain.getAvailability();
-            if (availability.isAvailable()) {
-                add(toolChain);
-                return;
+            create(name, registeredDefaults.get(name));
+        }
+        if (registeredDefaults.isEmpty()) {
+            add(new UnavailableToolChain(Collections.singletonList("No tool chain plugin applied")));
+        }
+    }
+
+    public ToolChain getForPlatform(Platform targetPlatform) {
+        List<String> messages = new ArrayList<String>();
+        for (ToolChainInternal toolChain : searchOrder) {
+            if (!toolChain.getAvailability().isAvailable()) {
+                messages.add(String.format("Could not load '%s': %s", toolChain.getName(), toolChain.getAvailability().getUnavailableMessage()));
+                continue;
             }
-            messages.add(String.format("Could not load '%s': %s", toolChain.getName(), availability.getUnavailableMessage()));
+            if (toolChain.canTargetPlatform(targetPlatform)) {
+                return toolChain;
+            } else {
+                messages.add(String.format("Tool chain '%s' cannot build for platform '%s'", toolChain.getName(), targetPlatform.getName()));
+            }
         }
-        if (messages.isEmpty()) {
-            messages.add("No tool chain plugin applied");
-        }
-        add(new UnavailableToolChain(messages));
+
+        return new UnavailableToolChain(messages);
     }
 
     private static class UnavailableToolChain implements ToolChainInternal {
@@ -80,8 +99,8 @@ public class DefaultToolChainRegistry extends DefaultPolymorphicDomainObjectCont
             return false;
         }
 
-        private IllegalStateException failure() {
-            return new IllegalStateException(String.format("No tool chain is available: %s", messages));
+        private RuntimeException failure() {
+            return new GradleException(String.format("No tool chain is available: %s", messages));
         }
 
         public ToolChainAvailability getAvailability() {
@@ -105,7 +124,7 @@ public class DefaultToolChainRegistry extends DefaultPolymorphicDomainObjectCont
         }
 
         public String getOutputType() {
-            throw failure();
+            return "unavailable";
         }
     }
 }

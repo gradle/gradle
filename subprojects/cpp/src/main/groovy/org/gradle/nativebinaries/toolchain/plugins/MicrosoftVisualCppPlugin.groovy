@@ -22,9 +22,9 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.model.ModelRule
 import org.gradle.model.ModelRules
-import org.gradle.internal.reflect.Instantiator
 import org.gradle.nativebinaries.internal.ToolChainRegistryInternal
 import org.gradle.nativebinaries.plugins.NativeBinariesPlugin
 import org.gradle.nativebinaries.toolchain.VisualCpp
