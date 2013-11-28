@@ -23,16 +23,14 @@ import org.gradle.nativebinaries.*;
 import org.gradle.nativebinaries.internal.*;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.LinkedList;
+import java.util.*;
 
 class NativeBinaryFactory {
     private final Instantiator instantiator;
     private final Project project;
-    private final Collection<Platform> allPlatforms = new ArrayList<Platform>();
-    private final Collection<BuildType> allBuildTypes = new ArrayList<BuildType>();
-    private final Collection<Flavor> allFlavors = new ArrayList<Flavor>();
+    private final Set<Platform> allPlatforms = new LinkedHashSet<Platform>();
+    private final Set<BuildType> allBuildTypes = new LinkedHashSet<BuildType>();
+    private final Set<Flavor> allFlavors = new LinkedHashSet<Flavor>();
 
     public NativeBinaryFactory(Instantiator instantiator, Project project, Collection<? extends Platform> allPlatforms,
                                Collection<? extends BuildType> allBuildTypes, Collection<? extends Flavor> allFlavors) {
@@ -77,33 +75,15 @@ class NativeBinaryFactory {
     }
 
     private boolean usePlatformDimension(NativeComponent component) {
-        int count = 0;
-        for (Platform platform : allPlatforms) {
-            if (((NativeComponentInternal) component).buildForPlatform(platform)) {
-                count++;
-            }
-        }
-        return count > 1;
+        return ((NativeComponentInternal) component).choosePlatforms(allPlatforms).size() > 1;
     }
 
     private boolean useBuildTypeDimension(NativeComponent component) {
-        int count = 0;
-        for (BuildType buildType : allBuildTypes) {
-            if (((NativeComponentInternal) component).buildForBuildType(buildType)) {
-                count++;
-            }
-        }
-        return count > 1;
+        return ((NativeComponentInternal) component).chooseBuildTypes(allBuildTypes).size() > 1;
     }
 
     private boolean useFlavorDimension(NativeComponent component) {
-        int count = 0;
-        for (Flavor flavor: allFlavors) {
-            if (((NativeComponentInternal) component).buildFlavor(flavor)) {
-                count++;
-            }
-        }
-        return count > 1;
+        return ((NativeComponentInternal) component).chooseFlavors(allFlavors).size() > 1;
     }
 
     private void setupDefaults(Project project, DefaultNativeBinary nativeBinary) {

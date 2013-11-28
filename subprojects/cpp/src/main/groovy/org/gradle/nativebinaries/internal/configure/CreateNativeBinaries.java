@@ -17,14 +17,12 @@
 package org.gradle.nativebinaries.internal.configure;
 
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.specs.Spec;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.BinaryContainer;
 import org.gradle.model.ModelRule;
 import org.gradle.nativebinaries.*;
 import org.gradle.nativebinaries.internal.NativeComponentInternal;
 import org.gradle.nativebinaries.internal.ToolChainRegistryInternal;
-import org.gradle.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -75,27 +73,15 @@ public class CreateNativeBinaries extends ModelRule {
     }
 
     private Set<Platform> getPlatforms(final NativeComponentInternal component, PlatformContainer platforms) {
-        return CollectionUtils.filter(platforms, new Spec<Platform>() {
-            public boolean isSatisfiedBy(Platform element) {
-                return component.buildForPlatform(element);
-            }
-        });
+        return component.choosePlatforms(platforms);
     }
 
     private Set<BuildType> getBuildTypes(final NativeComponentInternal component, BuildTypeContainer buildTypes) {
-        return CollectionUtils.filter(buildTypes, new Spec<BuildType>() {
-            public boolean isSatisfiedBy(BuildType element) {
-                return component.buildForBuildType(element);
-            }
-        });
+        return component.chooseBuildTypes(buildTypes);
     }
 
     // TODO:DAZ Maybe add NativeBinaryInternal.selectFlavors(FlavorContainer) >> Set<Flavor>
     private Set<Flavor> getFlavors(final NativeComponentInternal component, FlavorContainer flavors) {
-        return CollectionUtils.filter(flavors, new Spec<Flavor>() {
-            public boolean isSatisfiedBy(Flavor element) {
-                return component.buildFlavor(element);
-            }
-        });
+        return component.chooseFlavors(flavors);
     }
 }

@@ -20,8 +20,11 @@ import org.gradle.nativebinaries.Flavor;
 import org.gradle.nativebinaries.NativeComponent;
 import org.gradle.nativebinaries.Platform;
 
+import java.util.Set;
+
 public interface NativeComponentInternal extends NativeComponent {
-    boolean buildFlavor(Flavor flavor);
-    boolean buildForPlatform(Platform platform);
-    boolean buildForBuildType(BuildType buildType);
+
+    Set<Flavor> chooseFlavors(Set<? extends Flavor> candidates);
+    Set<Platform> choosePlatforms(Set<? extends Platform> candidates);
+    Set<BuildType> chooseBuildTypes(Set<? extends BuildType> candidates);
 }

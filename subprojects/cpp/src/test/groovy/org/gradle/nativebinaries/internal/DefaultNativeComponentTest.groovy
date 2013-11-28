@@ -57,10 +57,7 @@ class DefaultNativeComponentTest extends Specification {
         component.flavors("flavor3")
 
         then:
-        component.buildFlavor(flavor("flavor1"))
-        component.buildFlavor(flavor("flavor2"))
-        component.buildFlavor(flavor("flavor3"))
-        !component.buildFlavor(flavor("flavor4"))
+        component.chooseFlavors([flavor("flavor1"), flavor("flavor3"), flavor("flavor4")] as Set)*.name == ["flavor1", "flavor3"]
     }
 
     def flavor(String name) {

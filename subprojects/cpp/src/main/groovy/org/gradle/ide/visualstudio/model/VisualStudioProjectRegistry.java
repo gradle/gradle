@@ -88,11 +88,7 @@ public class VisualStudioProjectRegistry {
 
     // TODO:DAZ This needs to be a method on NativeComponentInternal
     private Set<Flavor> getFlavors(final NativeComponent component) {
-        return CollectionUtils.filter(allFlavors, new Spec<Flavor>() {
-            public boolean isSatisfiedBy(Flavor element) {
-                return ((NativeComponentInternal) component).buildFlavor(element);
-            }
-        });
+        return ((NativeComponentInternal) component).chooseFlavors(allFlavors);
     }
 }
 

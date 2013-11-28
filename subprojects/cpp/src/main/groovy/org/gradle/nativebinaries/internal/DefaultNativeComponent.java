@@ -17,6 +17,7 @@ package org.gradle.nativebinaries.internal;
 
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
+import org.gradle.api.specs.Spec;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.language.base.LanguageSourceSet;
@@ -24,6 +25,7 @@ import org.gradle.nativebinaries.BuildType;
 import org.gradle.nativebinaries.Flavor;
 import org.gradle.nativebinaries.NativeBinary;
 import org.gradle.nativebinaries.Platform;
+import org.gradle.util.CollectionUtils;
 import org.gradle.util.GUtil;
 
 import java.util.HashSet;
@@ -77,29 +79,44 @@ public class DefaultNativeComponent implements NativeComponentInternal {
         }
     }
 
-    public void targetPlatforms(Object platformSelector) {
-        // TODO:DAZ Allow Platform instance
-        // TODO:DAZ Allow platform selector
-        assert platformSelector instanceof String;
-        targetPlatforms.add((String) platformSelector);
+    public void targetPlatforms(Object... platformSelectors) {
+        for (Object platformSelector : platformSelectors) {
+            // TODO:DAZ Allow Platform instance
+            // TODO:DAZ Allow platform selector
+            assert platformSelector instanceof String;
+            targetPlatforms.add((String) platformSelector);
+        }
     }
 
-    public void buildTypes(Object buildTypeSelector) {
-        // TODO:DAZ Allow BuildType instance
-        assert buildTypeSelector instanceof String;
-        buildTypes.add((String) buildTypeSelector);
+    public void buildTypes(Object... buildTypeSelectors) {
+        for (Object buildTypeSelector : buildTypeSelectors) {
+            // TODO:DAZ Allow BuildType instance
+            assert buildTypeSelector instanceof String;
+            buildTypes.add((String) buildTypeSelector);
+        }
     }
 
-    public boolean buildFlavor(Flavor flavor) {
-        return flavors.isEmpty() || flavors.contains(flavor.getName());
+    public Set<Flavor> chooseFlavors(Set<? extends Flavor> candidates) {
+        return CollectionUtils.filter(candidates, new Spec<Flavor>() {
+            public boolean isSatisfiedBy(Flavor element) {
+                return flavors.isEmpty() || flavors.contains(element.getName());
+            }
+        });
     }
 
-    public boolean buildForPlatform(Platform platform) {
-        // TODO:DAZ Only target the current by default
-        return targetPlatforms.isEmpty() || targetPlatforms.contains(platform.getName());
+    public Set<BuildType> chooseBuildTypes(Set<? extends BuildType> candidates) {
+        return CollectionUtils.filter(candidates, new Spec<BuildType>() {
+            public boolean isSatisfiedBy(BuildType element) {
+                return buildTypes.isEmpty() || buildTypes.contains(element.getName());
+            }
+        });
     }
 
-    public boolean buildForBuildType(BuildType buildType) {
-        return buildTypes.isEmpty() || buildTypes.contains(buildType.getName());
+    public Set<Platform> choosePlatforms(Set<? extends Platform> candidates) {
+        return CollectionUtils.filter(candidates, new Spec<Platform>() {
+            public boolean isSatisfiedBy(Platform element) {
+                return targetPlatforms.isEmpty() || targetPlatforms.contains(element.getName());
+            }
+        });
     }
 }
