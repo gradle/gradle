@@ -147,4 +147,40 @@ task checkDeps
         fails 'checkDeps'
         failure.assertThatCause(Matchers.startsWith("Cannot convert the provided notation to an object of type Dependency: 100."))
     }
+
+    def "fails gracefully for single null notation"() {
+        when:
+        buildFile <<  """
+configurations {
+    conf
+}
+
+dependencies {
+    conf null
+}
+
+task checkDeps
+"""
+        then:
+        fails 'checkDeps'
+        failure.assertThatCause(Matchers.startsWith("Cannot convert a null value to an object of type Dependency"))
+    }
+
+    def "fails gracefully for null notation in list"() {
+        when:
+        buildFile <<  """
+configurations {
+    conf
+}
+
+dependencies {
+    conf "a:b:c", null, "d:e:f"
+}
+
+task checkDeps
+"""
+        then:
+        fails 'checkDeps'
+        failure.assertThatCause(Matchers.startsWith("Cannot convert a null value to an object of type Dependency"))
+    }
 }

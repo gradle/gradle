@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler
 import org.gradle.api.artifacts.dsl.DependencyHandler
+import org.gradle.util.CollectionUtils
 import org.gradle.util.ConfigureUtil
 import org.gradle.util.GUtil
 
@@ -95,7 +96,7 @@ class DefaultDependencyHandler implements DependencyHandler {
             }
         }
 
-        Object[] normalizedArgs = GUtil.collectionize(args)
+        Object[] normalizedArgs = CollectionUtils.flattenToList(args)
         if (normalizedArgs.length == 2 && normalizedArgs[1] instanceof Closure) {
             return doAdd(configuration, normalizedArgs[0], (Closure) normalizedArgs[1])
         } else if (normalizedArgs.length == 1) {

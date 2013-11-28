@@ -260,4 +260,12 @@ class DefaultDependencyHandlerTest extends Specification {
         then:
         thrown(MissingMethodException)
     }
+
+    void "reasonable error when supplying null as a dependency notation"() {
+        when:
+        dependencyHandler."$TEST_CONF_NAME"(null)
+
+        then:
+        1 * dependencyFactory.createDependency(null)
+    }
 }
