@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.nativebinaries.language.cpp
+
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativebinaries.language.cpp.fixtures.app.ExeWithLibraryUsingLibraryHelloWorldApp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.HelloWorldApp
@@ -65,8 +66,27 @@ class BinaryFlavorsIntegrationTest extends AbstractInstalledToolChainIntegration
         helloWorldApp.writeSources(file("src/main"), file("src/hello"), file("src/greetings"))
     }
 
+    def "can configure components for a single flavor"() {
+        given:
+        buildFile << """
+    binaries.all {
+        if (flavor == flavors.french) {
+            cppCompiler.define "FRENCH"
+        }
+    }
+    executables.main.targetFlavors "french"
+    libraries.hello.targetFlavors "french"
+    libraries.greetings.targetFlavors "french"
+"""
+        when:
+        succeeds "installMainExecutable"
+
+        then:
+        installation("build/install/mainExecutable").exec().out == FRENCH + " " + FRENCH
+    }
+
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
-     def "builds executable for each defined flavor when not configured for component"() {
+    def "builds executable for each defined flavor when not configured for component"() {
         when:
         succeeds "installEnglishMainExecutable", "installFrenchMainExecutable", "installGermanMainExecutable"
 
@@ -111,7 +131,7 @@ class BinaryFlavorsIntegrationTest extends AbstractInstalledToolChainIntegration
     // TODO:DAZ Un-ignore
     @Ignore("Requires proper dependency resolution")
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
-     def "executable with flavors depends on library with no defined flavor"() {
+    def "executable with flavors depends on library with no defined flavor"() {
         when:
         buildFile << """
             executables {
@@ -192,5 +212,21 @@ class BinaryFlavorsIntegrationTest extends AbstractInstalledToolChainIntegration
         then:
         fails "germanMainExecutable"
         failure.assertHasCause("No shared library binary available for library 'hello' with [flavor: 'german'")
-   }
+    }
+
+    def "fails with reasonable error message when trying to target an unknown flavor"() {
+        when:
+        buildFile << """
+            executables.main.targetFlavors "unknown"
+"""
+
+        and:
+        fails "mainExecutable"
+
+        then:
+        failure.assertHasDescription("A problem occurred configuring root project 'test'.")
+        failure.assertHasCause("Invalid Flavor: 'unknown'")
+    }
+
+
 }

@@ -866,7 +866,7 @@ Here's an example:
 - Fix domain object container DSL so that creation on method missing only applies to the innermost container. For back-compatibility
   may only do this for model {} block.
 - Provide instance instead of name to selector DSL: `platforms.win32`. This will require that executables are created in a model rule.
-- Selector DSL to choose all platforms with a particular operating system or architecture
+- Selector DSL to choose all platforms with a particular operating system or architecture.
 - Accept a collection of values to make it easy to use flavors.matching({}) or buildTypes.matching({})
 - Possibly use a single `target` method to accept a platform, buildType or flavor selector. Would require that selectors are typed.
 
@@ -1074,7 +1074,8 @@ Depends on a number of stories in [dependency-resolution.md](dependency-resoluti
 
 ## Story: Automatically include debug symbols in 'debug' build types
 
-- Add a `debug` property to `BuildType`. The default 'debug' build type should have `debug == true`.
+- Add conventional build types: `debug` and `release`
+- Add a `debug` property to `BuildType`. The conventional 'debug' build type should have `debug == true`.
 - Gcc should compile sources for `debug` build types with the `-g` flag
 - Visual C++ should
     - Compile sources for `debug` build types with `/Zi /DDEBUG` and non-debug build types with `/DNDEBUG`.
@@ -1326,8 +1327,6 @@ TBD
 - Some way to configure/use all native components (instead of `libraries.all { ... }` and `executables.all { ... }`)
 - Have some way to replace the default source sets or configure one without redefining all
 - Don't create variants that can never be built
-- Allow a plugin to define the set of available tool chains, build types, platforms, flavors etc and allow a component to declare which of these make sense.
-  Tool chain is NOT a dimension: Can infer tool chain from target platform and source dialect
 - Model language dialect and add this to source set, e.g. GCC, visual C++, ANSI C. A tool chain can compile some set of dialects.
 - Model operating system as a dependency declared by a source set.
     - Can use this to determine which source sets to include in a given binary.
@@ -1364,7 +1363,6 @@ TBD
 - Source set declares a target language runtime, use this to decide which driver to use to link
 - Don't fail if g++ is not installed when it is not required
 - Support preprocessor macros for assembler
-- Understand build and release build types and drive the compiler and linker appropriately
 - Clean the environment prior to invoking the visual studio tools (eg clear `%INCLUDE%`, `%LIB%` etc)
 - Don't create compile tasks for empty source sets
 - Compile windows resource files with gcc/clang using [`windres`](http://sourceware.org/binutils/docs/binutils/windres.html)
@@ -1372,10 +1370,12 @@ TBD
 
 ## Target platforms
 
-- Separate the model for how you select a target platform, and the details of a particular target platform.
+- Provide a better way to select the target platforms for a component
     - Use an alias or some kind of selector to define which target platforms to build for.
     - Selector can select multiple target platforms
 - Define some conventions for platforms, along with some conventions for aliases/selectors and names
+    - Remove the conventional `current` platform, instead infer the default target platform using the current operating system
+      and a 'standard' architecture for that operating system on the current machine.
 - Conventional architecture names
     - Intel 32bit: `ia-32`, `i386`, `x86`
     - Intel 64bit: `x86-64`, `x64` (Windows), `amd64` (BSD and Debian linux distributions, Solaris), `x86_64` (linux kernel, OS X, Fedora, GCC tools)
@@ -1385,14 +1385,10 @@ TBD
     - Sparc: ??
     - ARM: ??
 - Conventional operating system names
-- Infer the default target platform, as the current operating system and a 'standard' architecture for that operating system on the current machine.
 
 ## Variants
 
 - Add linkage as a variant dimension
-- Model build type better, follow the same pattern as target platform
-- Define some conventional build types (say `release` and `debug`). Have the tool chain and dependency resolution understand these.
-- Model flavors better, follow the same pattern as other variant dimensions.
 - Need to handle universal binaries.
     - Use `lipo` to merge two binaries into a single universal binary.
     - Transforms the meta-data for the component - same set of variants but different set of binaries.

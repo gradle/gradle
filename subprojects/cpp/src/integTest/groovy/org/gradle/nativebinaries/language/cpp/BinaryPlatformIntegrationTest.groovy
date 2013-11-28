@@ -209,6 +209,26 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
         failure.assertHasCause("No tool chain is available: [Tool chain '${toolChain.id}' cannot build for platform 'solaris']")
     }
 
+    def "fails with reasonable error message when trying to target an unknown platform"() {
+        when:
+        settingsFile << "rootProject.name = 'bad-platform'"
+        buildFile << """
+            model {
+                platforms {
+                    create("main") {}
+                }
+            }
+            executables.main.targetPlatforms "unknown"
+"""
+
+        and:
+        fails "mainExecutable"
+
+        then:
+        failure.assertHasDescription("A problem occurred configuring root project 'bad-platform'.")
+        failure.assertHasCause("Invalid Platform: 'unknown'")
+    }
+
     def binaryInfo(TestFile file) {
         file.assertIsFile()
         if (OperatingSystem.current().isMacOsX()) {

@@ -150,4 +150,28 @@ class BinaryBuildTypesIntegrationTest extends AbstractInstalledToolChainIntegrat
         installation("build/install/mainExecutable/debug").exec().out == helloWorldApp.frenchOutput
         installation("build/install/mainExecutable/release").exec().out == helloWorldApp.englishOutput
     }
+
+    def "fails with reasonable error message when trying to target an unknown build type"() {
+        when:
+        settingsFile << "rootProject.name = 'bad-build-type'"
+        buildFile << """
+            model {
+                buildTypes {
+                    create("debug") {}
+                }
+            }
+            executables {
+                main {
+                    targetBuildTypes "unknown"
+                }
+            }
+"""
+
+        and:
+        fails "mainExecutable"
+
+        then:
+        failure.assertHasDescription("A problem occurred configuring root project 'bad-build-type'.")
+        failure.assertHasCause("Invalid BuildType: 'unknown'")
+    }
 }

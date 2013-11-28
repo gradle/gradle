@@ -16,8 +16,9 @@
 package org.gradle.nativebinaries.internal;
 
 import org.gradle.api.DomainObjectSet;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Named;
 import org.gradle.api.internal.DefaultDomainObjectSet;
-import org.gradle.api.specs.Spec;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.language.base.LanguageSourceSet;
@@ -25,10 +26,10 @@ import org.gradle.nativebinaries.BuildType;
 import org.gradle.nativebinaries.Flavor;
 import org.gradle.nativebinaries.NativeBinary;
 import org.gradle.nativebinaries.Platform;
-import org.gradle.util.CollectionUtils;
 import org.gradle.util.GUtil;
 
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class DefaultNativeComponent implements NativeComponentInternal {
@@ -96,26 +97,34 @@ public class DefaultNativeComponent implements NativeComponentInternal {
     }
 
     public Set<Flavor> chooseFlavors(Set<? extends Flavor> candidates) {
-        return CollectionUtils.filter(candidates, new Spec<Flavor>() {
-            public boolean isSatisfiedBy(Flavor element) {
-                return flavors.isEmpty() || flavors.contains(element.getName());
-            }
-        });
+        return chooseElements(Flavor.class, candidates, flavors);
     }
 
     public Set<BuildType> chooseBuildTypes(Set<? extends BuildType> candidates) {
-        return CollectionUtils.filter(candidates, new Spec<BuildType>() {
-            public boolean isSatisfiedBy(BuildType element) {
-                return buildTypes.isEmpty() || buildTypes.contains(element.getName());
-            }
-        });
+        return chooseElements(BuildType.class, candidates, buildTypes);
     }
 
     public Set<Platform> choosePlatforms(Set<? extends Platform> candidates) {
-        return CollectionUtils.filter(candidates, new Spec<Platform>() {
-            public boolean isSatisfiedBy(Platform element) {
-                return targetPlatforms.isEmpty() || targetPlatforms.contains(element.getName());
+        return chooseElements(Platform.class, candidates, targetPlatforms);
+    }
+
+    private <T extends Named> Set<T> chooseElements(Class<T> type, Set<? extends T> candidates, final Set<String> names) {
+        if (names.isEmpty()) {
+            return new LinkedHashSet<T>(candidates);
+        }
+
+        Set<String> unusedNames = new HashSet<String>(names);
+        Set<T> chosen = new LinkedHashSet<T>();
+        for (T candidate : candidates) {
+            if (unusedNames.remove(candidate.getName())) {
+                chosen.add(candidate);
             }
-        });
+        }
+
+        if (!unusedNames.isEmpty()) {
+            throw new InvalidUserDataException(String.format("Invalid %s: '%s'", type.getSimpleName(), unusedNames.iterator().next()));
+        }
+
+        return chosen;
     }
 }
