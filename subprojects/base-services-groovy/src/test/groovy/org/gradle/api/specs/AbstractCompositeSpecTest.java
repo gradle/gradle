@@ -48,7 +48,7 @@ abstract public class AbstractCompositeSpecTest {
     @Test
     public void init() {
         org.gradle.api.specs.CompositeSpec<Object> compositeSpec = createCompositeSpec(spec1, spec2);
-        Assert.assertEquals(CollectionUtils.flattenToList(spec1, spec2), compositeSpec.getSpecs());
+        Assert.assertEquals(CollectionUtils.flattenCollections(spec1, spec2), compositeSpec.getSpecs());
     }
 
     protected Spec<Object>[] createAtomicElements(boolean... satisfies) {

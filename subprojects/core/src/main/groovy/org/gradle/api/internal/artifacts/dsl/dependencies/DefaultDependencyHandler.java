@@ -103,7 +103,7 @@ public class DefaultDependencyHandler extends GroovyObjectSupport implements Dep
             throw new MissingMethodException(name, this.getClass(), argsArray);
         }
 
-        List<?> normalizedArgs = CollectionUtils.flattenToList(argsArray);
+        List<?> normalizedArgs = CollectionUtils.flattenCollections(argsArray);
         if (normalizedArgs.size() == 2 && normalizedArgs.get(1) instanceof Closure) {
             return doAdd(configuration, normalizedArgs.get(0), (Closure) normalizedArgs.get(1));
         } else if (normalizedArgs.size() == 1) {

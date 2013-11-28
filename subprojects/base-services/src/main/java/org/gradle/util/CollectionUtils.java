@@ -152,8 +152,8 @@ public abstract class CollectionUtils {
      * @param things The things to flatten
      * @return A flattened list of the given things
      */
-    public static List<?> flattenToList(Object... things) {
-        return flattenToList(Object.class, things);
+    public static List<?> flattenCollections(Object... things) {
+        return flattenCollections(Object.class, things);
     }
 
     /**
@@ -167,7 +167,7 @@ public abstract class CollectionUtils {
      * @param <T> The target type in the flattened list
      * @return A flattened list of the given things
      */
-    public static <T> List<T> flattenToList(Class<T> type, Object... things) {
+    public static <T> List<T> flattenCollections(Class<T> type, Object... things) {
         if (things == null) {
             return Collections.singletonList(null);
         } else if (things.length == 0) {
@@ -183,16 +183,16 @@ public abstract class CollectionUtils {
                 Object[] thingArray = (Object[]) thing;
                 List<T> list = new ArrayList<T>(thingArray.length);
                 for (Object thingThing : thingArray) {
-                    list.addAll(flattenToList(type, thingThing));
+                    list.addAll(flattenCollections(type, thingThing));
                 }
                 return list;
             }
 
-            if (thing instanceof Iterable) {
-                Iterable<?> iterableThing = (Iterable<?>) thing;
+            if (thing instanceof Collection) {
+                Collection<?> collection = (Collection<?>) thing;
                 List<T> list = new ArrayList<T>();
-                for (Object thingThing : iterableThing) {
-                    list.addAll(flattenToList(type, thingThing));
+                for (Object element : collection) {
+                    list.addAll(flattenCollections(type, element));
                 }
                 return list;
             }
@@ -201,7 +201,7 @@ public abstract class CollectionUtils {
         } else {
             List<T> list = new ArrayList<T>();
             for (Object thing : things) {
-                list.addAll(flattenToList(type, thing));
+                list.addAll(flattenCollections(type, thing));
             }
             return list;
         }
