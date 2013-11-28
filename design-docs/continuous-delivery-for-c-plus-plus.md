@@ -805,6 +805,8 @@ Here's an example:
 - When creating a Visual Studio project for a native binary, create configurations for all buildable variants that differ only in `buildType` and `targetPlatform`.
     - This prevents any problems where a partial graph will result in breaking existing solutions that use the same projects:
       the same visual studio project is always produced given a particular native binary.
+    - If multiple platform variants would not be differentiated based on architecture (Visual Studio 'platform),
+      then include platform name in configuration name.
 - Visual studio project files will live with Gradle project that owns the relevant component.
 
 ### Test Cases
@@ -881,41 +883,25 @@ Here's an example:
 
 TBD
 
+## Story: Allow source sets to be generated
 
-## Story: Generate source from Microsoft IDL files
+- GeneratedSourceSet extends CompositeSourceSet implements Buildable
+- Wire task outputs to source/exportedHeaders inputs for each LanguageSourceSet in GeneratedSourceSet
+- Can add a task that will generate the sources
 
-- Add a `microsoft-idl` plugin
-- For each `FunctionalSourceSet` add an IDL source set.
-- Add the IDL source set as input to the C source set.
-- Add some way to declare what type of thing is being built: RPC client, RPC server, COM component, etc
-- For each IDL source set adds a generate task for each target architecture
-    - Not on Windows
-    - Fail if toolchain is not Visual C++
-    - Use `midl` to generate server, client and header source files.
-        - Invoke with `/env win32` or `/env amd64` according to target architecture.
-        - Invoke with `/nologo /out <output-dir>`
-- Add `midl` macros and args to each `NativeBinary` with Windows as the target platform
-- Add a sample
-
-### Test cases
-
-- Can build a client and server executable.
-- Can build a COM DLL.
-- Incremental
-- Removes stale `.c` and `.h` files
+## Story: Build binaries against a library in another project
 
 ### Open issues
 
-- Source set with srcdirs + patterns probably does not work for IDL files.
-- Include headers?
-- Need to make `LanguageSourceSet` extend `BuildableModelElement`.
+- When linking a native binary, link against exactly the same version of each library that we compiled against, plus any additional link-time dependencies (resources, for example).
+- When installing a native executable, also install exactly the same versions of each library that we linked against, plus any additional runtime dependencies.
 
-## Story: Use Windows linker def files
+## Story: Handle pre-built native libraries
 
-### Implementation
-
-* A `.def` file lists `__stdcall` functions to export from a DLL. Can also use `__declspec(dllexport)` in source to export a function.
-* Functions are imported from a DLL using `__declspec(dllimport)`.
+- Add a new container for prebuilt libraries
+- Add a library implementation that doesn't have output-related properties
+- Don't create tasks for generating library binary outputs
+- Allow output file to be specified in a binaries.all {} block
 
 ## Story: Support CUnit test execution
 
@@ -1083,6 +1069,41 @@ Depends on a number of stories in [dependency-resolution.md](dependency-resoluti
 - When resolving the dependencies of a binary `b`, for a dependency on library `l`:
     - Prefer a binary for library `l` that has a build type with a matching name.
     - Otherwise, select a library `l` that has a build type with a matching `debug` flag.
+
+## Story: Generate source from Microsoft IDL files
+
+- Add a `microsoft-idl` plugin
+- For each `FunctionalSourceSet` add an IDL source set.
+- Add the IDL source set as input to the C source set.
+- Add some way to declare what type of thing is being built: RPC client, RPC server, COM component, etc
+- For each IDL source set adds a generate task for each target architecture
+    - Not on Windows
+    - Fail if toolchain is not Visual C++
+    - Use `midl` to generate server, client and header source files.
+        - Invoke with `/env win32` or `/env amd64` according to target architecture.
+        - Invoke with `/nologo /out <output-dir>`
+- Add `midl` macros and args to each `NativeBinary` with Windows as the target platform
+- Add a sample
+
+### Test cases
+
+- Can build a client and server executable.
+- Can build a COM DLL.
+- Incremental
+- Removes stale `.c` and `.h` files
+
+### Open issues
+
+- Source set with srcdirs + patterns probably does not work for IDL files.
+- Include headers?
+- Need to make `LanguageSourceSet` extend `BuildableModelElement`.
+
+## Story: Use Windows linker def files
+
+### Implementation
+
+* A `.def` file lists `__stdcall` functions to export from a DLL. Can also use `__declspec(dllexport)` in source to export a function.
+* Functions are imported from a DLL using `__declspec(dllimport)`.
 
 ## Story: Publish and resolve shared libraries
 
