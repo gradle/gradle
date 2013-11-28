@@ -51,10 +51,10 @@ class DefaultNativeComponentTest extends Specification {
 
     def "flavors can be chosen and will replace default flavor"() {
         when:
-        component.flavors "flavor1", "flavor2"
+        component.targetFlavors "flavor1", "flavor2"
 
         and:
-        component.flavors("flavor3")
+        component.targetFlavors("flavor3")
 
         then:
         component.chooseFlavors([flavor("flavor1"), flavor("flavor3"), flavor("flavor4")] as Set)*.name == ["flavor1", "flavor3"]

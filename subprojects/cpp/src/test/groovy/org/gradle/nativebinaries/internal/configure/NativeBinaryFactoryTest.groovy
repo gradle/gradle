@@ -47,7 +47,7 @@ class NativeBinaryFactoryTest extends Specification {
 
     def "does not use flavor in names when component has only one configured flavor"() {
         when:
-        component.flavors "flavor1"
+        component.targetFlavors "flavor1"
 
         and:
         def factory = new NativeBinaryFactory(new DirectInstantiator(), project, [], [], flavors)
@@ -120,7 +120,7 @@ class NativeBinaryFactoryTest extends Specification {
         binary.namingScheme.getTaskName("compile", "cpp") == 'compileBuildType2Flavor1NameExecutableCpp'
 
         when:
-        component.buildTypes("buildType2")
+        component.targetBuildTypes("buildType2")
         binary = factory.createNativeBinary(DefaultExecutableBinary, component, toolChain, platform, buildType2, flavor1)
 
         then:

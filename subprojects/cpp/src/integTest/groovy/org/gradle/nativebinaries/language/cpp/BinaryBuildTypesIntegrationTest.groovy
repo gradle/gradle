@@ -96,7 +96,7 @@ class BinaryBuildTypesIntegrationTest extends AbstractInstalledToolChainIntegrat
             }
             executables {
                 main {
-                    buildTypes "release"
+                    targetBuildTypes "release"
                 }
             }
             binaries.all { binary ->

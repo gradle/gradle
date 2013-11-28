@@ -82,7 +82,7 @@ class BinaryFlavorsIntegrationTest extends AbstractInstalledToolChainIntegration
         buildFile << """
             executables {
                 main {
-                    flavors "english", "french"
+                    targetFlavors "english", "french"
                     binaries.all {
                         if (flavor == flavors.french) {
                             cppCompiler.define "FRENCH"
@@ -91,7 +91,7 @@ class BinaryFlavorsIntegrationTest extends AbstractInstalledToolChainIntegration
                 }
             }
             libraries.all {
-                flavors "english", "french"
+                targetFlavors "english", "french"
                 binaries.all {
                     if (flavor == flavors.french) {
                         cppCompiler.define "FRENCH"
@@ -116,7 +116,7 @@ class BinaryFlavorsIntegrationTest extends AbstractInstalledToolChainIntegration
         buildFile << """
             executables {
                 main {
-                    flavors "english", "french"
+                    targetFlavors "english", "french"
                     binaries.all {
                         if (flavor == flavors.french) {
                             cppCompiler.define "FRENCH"
@@ -142,7 +142,7 @@ class BinaryFlavorsIntegrationTest extends AbstractInstalledToolChainIntegration
         buildFile << """
             executables {
                 main {
-                    flavors "english", "french"
+                    targetFlavors "english", "french"
                     binaries.all {
                         if (flavor == flavors.french) {
                             cppCompiler.define "FRENCH"
@@ -152,7 +152,7 @@ class BinaryFlavorsIntegrationTest extends AbstractInstalledToolChainIntegration
             }
             libraries {
                 greetings {
-                    flavors "english", "french"
+                    targetFlavors "english", "french"
                     binaries.all {
                         if (flavor == flavors.french) {
                             cppCompiler.define "FRENCH"
@@ -176,12 +176,12 @@ class BinaryFlavorsIntegrationTest extends AbstractInstalledToolChainIntegration
             apply plugin: "cpp"
             libraries {
                 hello {
-                    flavors "english", "french"
+                    targetFlavors "english", "french"
                 }
             }
             executables {
                 main {
-                    flavors "english", "german"
+                    targetFlavors "english", "german"
                     binaries.all {
                         lib libraries.hello
                     }

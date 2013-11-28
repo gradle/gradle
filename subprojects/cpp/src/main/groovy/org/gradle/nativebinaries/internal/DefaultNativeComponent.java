@@ -71,7 +71,7 @@ public class DefaultNativeComponent implements NativeComponentInternal {
         this.baseName = baseName;
     }
 
-    public void flavors(Object... flavorSelectors) {
+    public void targetFlavors(Object... flavorSelectors) {
         for (Object flavorSelector : flavorSelectors) {
             // TODO:DAZ Allow Flavor instance and selector
             assert flavorSelector instanceof String;
@@ -87,7 +87,7 @@ public class DefaultNativeComponent implements NativeComponentInternal {
         }
     }
 
-    public void buildTypes(Object... buildTypeSelectors) {
+    public void targetBuildTypes(Object... buildTypeSelectors) {
         for (Object buildTypeSelector : buildTypeSelectors) {
             // TODO:DAZ Allow BuildType instance and selector
             assert buildTypeSelector instanceof String;

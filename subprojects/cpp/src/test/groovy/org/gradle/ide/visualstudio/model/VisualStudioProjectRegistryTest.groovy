@@ -32,6 +32,8 @@ class VisualStudioProjectRegistryTest extends Specification {
 
     def setup() {
         allFlavors.add(new DefaultFlavor(DefaultFlavor.DEFAULT))
+        executable.chooseFlavors(allFlavors) >> allFlavors
+        library.chooseFlavors(allFlavors) >> allFlavors
         executableBinary.libs >> []
         sharedLibraryBinary.libs >> []
         staticLibraryBinary.libs >> []

@@ -46,10 +46,10 @@
                 <td>source</td>
             </tr>
             <tr>
-                <td>flavors</td>
+                <td>targetFlavors</td>
             </tr>
             <tr>
-                <td>buildTypes</td>
+                <td>targetBuildTypes</td>
             </tr>
             <tr>
                 <td>targetPlatforms</td>

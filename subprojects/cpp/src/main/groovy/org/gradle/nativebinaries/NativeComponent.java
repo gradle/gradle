@@ -60,7 +60,7 @@ public interface NativeComponent extends Named {
     void setBaseName(String baseName);
 
     /**
-     * Adds one or more {@link Flavor}s that this component should be built for.
+     * Specifies one or more {@link Flavor}s that this component should be built for.
      * <p/>
      * This method accepts the following types:
      *
@@ -68,10 +68,10 @@ public interface NativeComponent extends Named {
      *     <li>The String name of the flavor to build.</li>
      * </ul>
      */
-    void flavors(Object... flavorSelectors);
+    void targetFlavors(Object... flavorSelectors);
 
     /**
-     * Adds one or more {@link Platform}s that this component should be built for.
+     * Specifies one or more {@link Platform}s that this component should be built for.
      * <p/>
      * This method accepts the following types:
      *
@@ -82,7 +82,7 @@ public interface NativeComponent extends Named {
     void targetPlatforms(Object... platformSelectors);
 
     /**
-     * Adds one or more {@link BuildType}s that this component should be built for.
+     * Specifies one or more {@link BuildType}s that this component should be built for.
      * <p/>
      * This method accepts the following types:
      *
@@ -90,6 +90,6 @@ public interface NativeComponent extends Named {
      *     <li>The String name of a build type.</li>
      * </ul>
      */
-    void buildTypes(Object... platformSelectors);
+    void targetBuildTypes(Object... platformSelectors);
 
 }
