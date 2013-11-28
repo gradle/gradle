@@ -17,7 +17,6 @@
 package org.gradle.ide.visualstudio.model;
 
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.specs.Spec;
 import org.gradle.nativebinaries.*;
 import org.gradle.nativebinaries.internal.LibraryNativeDependencySet;
 import org.gradle.nativebinaries.internal.NativeComponentInternal;
