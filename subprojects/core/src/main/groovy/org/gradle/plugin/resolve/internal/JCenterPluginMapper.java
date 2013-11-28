@@ -30,7 +30,14 @@ public class JCenterPluginMapper implements ModuleMappingPluginResolver.Mapper {
 
     public Dependency map(PluginRequest request, DependencyHandler dependencyHandler) {
         String pluginId = request.getId();
-        List<Pkg> results = BintrayClient.create().subject(GRADLE_PLUGINS_ORG).repository(GRADLE_PLUGINS_REPO).searchForPackage().byAttributeName(PLUGIN_ID_ATTRIBUTE_NAME).equals(pluginId).search();
+        List<Pkg> results = BintrayClient.create().
+                subject(GRADLE_PLUGINS_ORG).
+                repository(GRADLE_PLUGINS_REPO).
+                searchForPackage().
+                byAttributeName(PLUGIN_ID_ATTRIBUTE_NAME).
+                equals(pluginId).
+                search();
+
         if (results.isEmpty()) {
             throw new InvalidPluginRequest("No plugins found for plugin id " + pluginId);
         }
