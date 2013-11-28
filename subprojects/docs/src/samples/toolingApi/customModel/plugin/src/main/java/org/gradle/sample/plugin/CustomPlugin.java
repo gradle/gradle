@@ -26,7 +26,7 @@ public class CustomPlugin implements Plugin<Project> {
         registry.register(new CustomToolingModelBuilder());
     }
 
-    private static class CustomToolingModelBuilder extends ToolingModelBuilder {
+    private static class CustomToolingModelBuilder implements ToolingModelBuilder {
         public boolean canBuild(String modelName) {
             // The default name for a model is the name of the Java interface
             return modelName.equals(CustomModel.class.getName());
