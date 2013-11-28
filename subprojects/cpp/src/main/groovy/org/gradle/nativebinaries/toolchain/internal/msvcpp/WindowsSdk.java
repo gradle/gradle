@@ -81,7 +81,7 @@ public class WindowsSdk implements Named {
         if (architecture(platform).isIa64()) {
             return getAvailableFile(BINPATHS_IA64);
         }
-        if (architecture(platform).isArm()) {
+        if (architecture(platform).isArmv7()) {
             return getAvailableFile(BINPATHS_ARM);
         }
         return getAvailableFile(BINPATHS_X86);
@@ -109,7 +109,7 @@ public class WindowsSdk implements Named {
         if (architecture(platform).isIa64()) {
             return getAvailableFile(LIBPATHS_IA64);
         }
-        if (architecture(platform).isArm()) {
+        if (architecture(platform).isArmv7()) {
             return getAvailableFile(LIBPATHS_ARM);
         }
         return getAvailableFile(LIBPATHS_X86);
