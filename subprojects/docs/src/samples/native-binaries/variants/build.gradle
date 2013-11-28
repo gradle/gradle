@@ -9,7 +9,7 @@ model {
         create("x64") {
             architecture "x86_64"
         }
-        create("ia-64") {
+        create("itanium") {
             architecture "ia-64"
         }
     }

@@ -86,17 +86,14 @@ public class VisualStudioInstall {
 
         if (targetArch.isAmd64()) {
             return (isNativeAmd64 && availableBinPaths.containsKey(PLATFORM_AMD64_AMD64)) || availableBinPaths.containsKey(PLATFORM_X86_AMD64);
-        }
-
-        if (targetArch.isArm()) {
+        } else if (targetArch.isArm()) {
             return (isNativeAmd64 && availableBinPaths.containsKey(PLATFORM_AMD64_ARM)) || availableBinPaths.containsKey(PLATFORM_X86_ARM);
-        }
-
-        if (targetArch.isIa64()) {
+        } else if (targetArch.isIa64()) {
             return availableBinPaths.containsKey(PLATFORM_X86_IA64);
+        } else if (targetArch.isI386()) {
+            return (isNativeAmd64 && availableBinPaths.containsKey(PLATFORM_AMD64_X86)) || availableBinPaths.containsKey(PLATFORM_X86_X86);
         }
-
-        return (isNativeAmd64 && availableBinPaths.containsKey(PLATFORM_AMD64_X86)) || availableBinPaths.containsKey(PLATFORM_X86_X86);
+        return false;
     }
 
     public File getVisualStudioDir() {
