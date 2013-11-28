@@ -818,6 +818,58 @@ Here's an example:
 
 - Handle dependency cycles
 
+## Story: Allow a component to choose from a set of defined Platform, BuildType and Flavor instances
+
+### User visible changes
+
+    model {
+        platforms {
+            create("win32") {
+                architecture "i386"
+                operatingSystem "windows"
+            }
+            create("linux32") {
+                architecture "i386"
+                operatingSystem "linux"
+            }
+            create("linux64") {
+                architecture "amd64"
+                operatingSystem "linux"
+            }
+        }
+        buildTypes {
+            create("debug")
+            create("release")
+        }
+        flavors {
+            create("free")
+            create("paid")
+        }
+    }
+    executables {
+        main {
+            targetPlatforms "linux32", "linux64"
+            targetFlavors "paid"
+            targetBuildTypes "debug", "release" // same as default
+        }
+    }
+
+### Test cases
+
+- Target a particular platform, or target all platforms if not specified
+- Target a particular flavor, or target all flavors if not specified
+- Target a particular build type, or target all build types if not specified
+- Fails with reasonable exception when supplied name does not match any available element.
+
+### Open issues
+
+- Fix domain object container DSL so that creation on method missing only applies to the innermost container. For back-compatibility
+  may only do this for model {} block.
+- Provide instance instead of name to selector DSL: `platforms.win32`. This will require that executables are created in a model rule.
+- Selector DSL to choose all platforms with a particular operating system or architecture
+- Accept a collection of values to make it easy to use flavors.matching({}) or buildTypes.matching({})
+- Possibly use a single `target` method to accept a platform, buildType or flavor selector. Would require that selectors are typed.
+
 ## Story: Build binaries against a library in another project
 
 ### Open issues
