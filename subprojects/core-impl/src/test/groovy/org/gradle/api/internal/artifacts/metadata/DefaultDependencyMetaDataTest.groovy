@@ -136,7 +136,7 @@ class DefaultDependencyMetaDataTest extends Specification {
         then:
         1 * project.path >> ':myPath'
         componentSelector instanceof BuildComponentSelector
-        ((BuildComponentSelector)componentSelector).projectPath == ':myPath'
+        componentSelector.projectPath == ':myPath'
     }
 
     def "returns a module component selector if descriptor indicates a default dependency"() {
@@ -149,8 +149,8 @@ class DefaultDependencyMetaDataTest extends Specification {
 
         then:
         componentSelector instanceof ModuleComponentSelector
-        ((ModuleComponentSelector)componentSelector).group == 'org'
-        ((ModuleComponentSelector)componentSelector).name == 'module'
-        ((ModuleComponentSelector)componentSelector).version == '1.2+'
+        componentSelector.group == 'org'
+        componentSelector.module == 'module'
+        componentSelector.version == '1.2+'
     }
 }

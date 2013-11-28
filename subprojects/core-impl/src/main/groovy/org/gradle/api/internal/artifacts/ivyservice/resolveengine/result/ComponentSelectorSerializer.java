@@ -49,7 +49,7 @@ public class ComponentSelectorSerializer implements Serializer<ComponentSelector
             ModuleComponentSelector moduleComponentSelector = (ModuleComponentSelector)value;
             encoder.writeByte(Implementation.MODULE.getId());
             encoder.writeString(moduleComponentSelector.getGroup());
-            encoder.writeString(moduleComponentSelector.getName());
+            encoder.writeString(moduleComponentSelector.getModule());
             encoder.writeString(moduleComponentSelector.getVersion());
         } else if(value instanceof DefaultBuildComponentSelector) {
             BuildComponentSelector buildComponentSelector = (BuildComponentSelector)value;

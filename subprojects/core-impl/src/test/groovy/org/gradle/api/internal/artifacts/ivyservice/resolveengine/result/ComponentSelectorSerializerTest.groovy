@@ -43,7 +43,7 @@ public class ComponentSelectorSerializerTest extends SerializerSpec {
 
         then:
         result.group == 'group-one'
-        result.name == 'name-one'
+        result.module == 'name-one'
         result.version == 'version-one'
     }
 
