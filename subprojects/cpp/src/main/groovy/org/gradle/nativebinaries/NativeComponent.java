@@ -68,7 +68,7 @@ public interface NativeComponent extends Named {
      *     <li>The String name of the flavor to build.</li>
      * </ul>
      */
-    void flavors(Object... flavorSelector);
+    void flavors(Object... flavorSelectors);
 
     /**
      * Adds one or more {@link Platform}s that this component should be built for.
@@ -79,7 +79,7 @@ public interface NativeComponent extends Named {
      *     <li>The String name of the platform to target.</li>
      * </ul>
      */
-    void targetPlatforms(Object platformSelector);
+    void targetPlatforms(Object... platformSelectors);
 
     /**
      * Adds one or more {@link BuildType}s that this component should be built for.
@@ -90,6 +90,6 @@ public interface NativeComponent extends Named {
      *     <li>The String name of a build type.</li>
      * </ul>
      */
-    void buildTypes(Object platformSelector);
+    void buildTypes(Object... platformSelectors);
 
 }

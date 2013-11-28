@@ -81,8 +81,7 @@ public class DefaultNativeComponent implements NativeComponentInternal {
 
     public void targetPlatforms(Object... platformSelectors) {
         for (Object platformSelector : platformSelectors) {
-            // TODO:DAZ Allow Platform instance
-            // TODO:DAZ Allow platform selector
+            // TODO:DAZ Allow Platform instance and selector
             assert platformSelector instanceof String;
             targetPlatforms.add((String) platformSelector);
         }
@@ -90,7 +89,7 @@ public class DefaultNativeComponent implements NativeComponentInternal {
 
     public void buildTypes(Object... buildTypeSelectors) {
         for (Object buildTypeSelector : buildTypeSelectors) {
-            // TODO:DAZ Allow BuildType instance
+            // TODO:DAZ Allow BuildType instance and selector
             assert buildTypeSelector instanceof String;
             buildTypes.add((String) buildTypeSelector);
         }
