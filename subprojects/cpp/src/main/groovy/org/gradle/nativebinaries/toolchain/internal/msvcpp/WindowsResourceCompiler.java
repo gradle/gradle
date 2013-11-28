@@ -55,6 +55,7 @@ public class WindowsResourceCompiler implements Compiler<WindowsResourceCompileS
 
         public List<String> transform(WindowsResourceCompileSpec spec) {
             List<String> args = new ArrayList<String>();
+            args.add("/nologo");
             args.add("/fo");
             args.add(getOutputFile(spec).getAbsolutePath());
             for (String macroArg : new MacroArgsConverter().transform(spec.getMacros())) {
