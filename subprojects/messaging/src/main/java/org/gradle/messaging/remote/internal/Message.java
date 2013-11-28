@@ -73,7 +73,8 @@ public abstract class Message implements Serializable {
             try {
                 stackTrace = throwable.getStackTrace();
             } catch (Throwable ignored) {
-                LOGGER.debug("Ignoring failure to extract throwable stack trace.", ignored);
+// TODO:ADAM - switch the logging back on. Need to make sending messages from daemon to client async wrt log event generation
+//                LOGGER.debug("Ignoring failure to extract throwable stack trace.", ignored);
                 stackTrace = new StackTraceElement[0];
             }
 
@@ -93,7 +94,8 @@ public abstract class Message implements Serializable {
             try {
                 causeTmp = throwable.getCause();
             } catch (Throwable ignored) {
-                LOGGER.debug("Ignoring failure to extract throwable cause.", ignored);
+// TODO:ADAM - switch the logging back on.
+//                LOGGER.debug("Ignoring failure to extract throwable cause.", ignored);
                 causeTmp = null;
             }
             final Throwable causeFinal = causeTmp;
@@ -120,7 +122,8 @@ public abstract class Message implements Serializable {
                 oos.close();
                 serializedException = outstr.toByteArray();
             } catch (Throwable ignored) {
-                LOGGER.debug("Ignoring failure to serialize throwable.", ignored);
+// TODO:ADAM - switch the logging back on.
+//                LOGGER.debug("Ignoring failure to serialize throwable.", ignored);
             }
 
             if (causeFinal != null) {
