@@ -957,12 +957,17 @@ If we are inspired by CMake, the output file rules would be:
 
 ## Story: Compile Objective-C source files using the Objective-C compiler
 
+### Test cases
+
+- Attempt to build an Objective-C binary using Visual Studio.
+
 ### Open issues
 
+- CI coverage
 - Make toolchain extensible so that not every toolchain implementation necessarily provides every tool, and may provide additional tools beyond the
   built-in tools.
 - Fix `TargetPlatformConfiguration` so that it extensible, so that not every configuration supports every tool.
-- Incremental compilation.
+- Incremental compilation should understand `#import`
 - Cross-compilation for iPhone.
 
 ## Story: Compile Objective-C++ source files using the Objective-C++ compiler
@@ -1000,9 +1005,11 @@ Given a library `a` that uses another library `b` as input:
 
 - Need to apply conflict resolution as we can't include the static and shared binaries for a given library at link time.
 - Need to be able to deal with the fact that only position-independent binaries can be linked into position-independent binaries
-    - Make it possible to build a position-independent variant of a static library binary
-    - Add the '-fPIC' flag when compiling to ensure that the static library can be included in a shared library
-    - Change dependency resolution to choose the position-independent variant of a static library when linking into a shared library
+    - Make it possible to build a position-independent variant of a static library binary, for those toolchains that don't generate position-independent
+      binaries by default.
+    - Add the '-fPIC' flag when compiling position-independent variant of a static library
+    - Change dependency resolution to choose the position-independent variant of a static library when linking into a shared library, or any other
+      position independent binary.
 - Need a new name for `NativeDependencySet`.
 - Need some way to convert a `NativeDependencySet` to a read-only library.
 - Need to apply a lifecycle to the resolved libs of `CppSourceSet` and `NativeBinary`.
@@ -1462,9 +1469,6 @@ TBD
 # Open issues
 
 * Output of any custom post link task should be treated as input to anything that depends on the binary.
-* Add 'position independent' setting to 'NativeBinary'.
-* Add a position independent variant for all static libraries.
-* Model shared/static linkage as another dimension for library components.
 * Handling for system libraries.
 * Building for multiple chipsets.
 * Selecting a compatible architecture at resolve time. For example, if I'm building for the amd64 cpu, I can use an x86 cpu + 64 bit data model.

@@ -151,6 +151,8 @@ This will allow a consumer to extract the external and project components as fol
 - Convenience for casting selector and id?
 - Convenience for selecting things with a given id type or selector type?
 - Result root.id should be an instance of `BuildComponentIdentifier` not `ModuleComponentIdentifier`
+- Rename internal class `ModuleVersionSelection` and its methods
+- Extract a `ModuleComponentMetadataDetails` out of `ComponentMetadataDetails` and use `ComponentIdentifier` instead of `ModuleVersionIdentifier` as id.
 
 ## Story: Dependency reports indicate the source of a component
 
@@ -383,3 +385,5 @@ Allow some substitutions to be expressed declaratively, rather than imperatively
 - Get certain artifacts of a component. Includes meta-data artifacts
 
 # Open issues
+
+- When resolving a pre-built component, fail if the specified file does not exist/has not been built (if buildable).

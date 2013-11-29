@@ -219,6 +219,9 @@ Address some of the current problems with the publishing plugins:
 
 - Almost always need to determine the project version before closing the publications. This may happen in various places.
 - Warn when maven repositories are defined but no maven publications are defined, and vice versa. Same for Ivy.
+- Don't allow the identifier of a publication to be changed after the identity has been used:
+    - to generate a descriptor for a publication that depends on it
+    - at resolve time.
 - Validate publications once they have been configured.
 
 Remove support for `@DeferredConfigurable` once this is complete.

@@ -49,6 +49,13 @@ For example, we might
 - change each of these to cover only a single version for the environment coverage builds
 - move coverage of the full set of versions to a nightly build
 
+# Run some coverage builds less frequently
+
+Possibly run these as nightly builds:
+
+- Unknown OS coverage
+- IBM JVM coverage
+
 # Profile the commit and coverage builds
 
 Investigate where the time is going and address this.
