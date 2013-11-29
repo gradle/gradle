@@ -23,7 +23,8 @@ class ConsoleBackedProgressRendererTest extends OutputSpecification {
     def console = Mock(Console)
     def statusBar = Mock(Label)
     def statusBarFormatter = new DefaultStatusBarFormatter(Mock(ConsoleMetaData))
-    @Subject ConsoleBackedProgressRenderer renderer = new ConsoleBackedProgressRenderer(listener, console, statusBarFormatter)
+
+    @Subject renderer = new ConsoleBackedProgressRenderer(listener, console, statusBarFormatter)
 
     def setup() {
         (0..1) * console.getStatusBar() >> statusBar
