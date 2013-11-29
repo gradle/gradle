@@ -47,6 +47,7 @@ will need to be updated.
 We would like to thank the following community members for making contributions to this release of Gradle.
 
 * [“Big Guy”](https://github.com/big-guy) - internal test fixes on SELinux
+* [Michael Putters](https://github.com/mputters) - don't show the version/copyright information when invoking the Windows resources compiler
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
