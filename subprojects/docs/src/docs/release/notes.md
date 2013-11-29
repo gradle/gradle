@@ -98,7 +98,7 @@ The windows resource source directories can be configured via the associated `Wi
 
 For more details please see the [Windows Resources](userguide/nativeBinaries.html#native_binaries:windows-resources) section in the User Guide.
 
-### Support for GCC cross-compilers
+### Support for GCC cross-compilers (i)
 
 Due to the wide array of Gcc cross-compilers that may be used, Gradle require the build author to supply specific configuration
 to use a cross-compiler. The build author must define any specific command-line arguments that are required,
@@ -178,6 +178,10 @@ Gradle will now automatically locate and use more versions of Visual Studio and 
 Support for Visual Studio remains experimental.
 Please let us know via the Gradle forums if you experience problems with Gradle using your Visual Studio installation.
 
+### Dependency result API provides information about project dependencies (i)
+
+TBD
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -217,6 +221,7 @@ The following are the newly deprecated items in this Gradle release. If you have
     * `getAllModuleVersions()` to `getAllComponents()`.
     * `allModuleVersions(Action)` to `allComponents(Action)`.
     * `allModuleVersions(Closure)` to `allComponents(Closure)`.
+* Uses `ComponentIdentifier` and `ComponentSelector` instead of `ModuleVersionIdentifier` and `ModuleVersionSelector`.
 * Various interface method signatures were changed to return the new component types: `DependencyResult`, `ResolvedComponentResult`, `UnresolvedDependencyResult` and `ResolutionResult`.
 
 ### Dependency resolution prefers the latest version regardless of whether it has meta-data or not
