@@ -22,14 +22,20 @@ import org.gradle.api.Transformer
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.tasks.Delete
 import org.gradle.ide.cdt.tasks.GenerateMetadataFileTask
-import org.gradle.ide.visualstudio.model.*
+import org.gradle.ide.visualstudio.internal.VisualStudioFiltersFile
+import org.gradle.ide.visualstudio.internal.VisualStudioProject
+import org.gradle.ide.visualstudio.internal.VisualStudioProjectFile
+import org.gradle.ide.visualstudio.internal.VisualStudioProjectRegistry
+import org.gradle.ide.visualstudio.internal.VisualStudioSolution
+import org.gradle.ide.visualstudio.internal.VisualStudioSolutionBuilder
+import org.gradle.ide.visualstudio.internal.VisualStudioSolutionFile
 import org.gradle.nativebinaries.FlavorContainer
 import org.gradle.nativebinaries.NativeComponent
 import org.gradle.nativebinaries.internal.NativeBinaryInternal
 import org.gradle.nativebinaries.plugins.NativeBinariesModelPlugin
+
 @Incubating
 class VisualStudioPlugin implements Plugin<ProjectInternal> {
-
 
     void apply(ProjectInternal project) {
         project.plugins.apply(NativeBinariesModelPlugin)
