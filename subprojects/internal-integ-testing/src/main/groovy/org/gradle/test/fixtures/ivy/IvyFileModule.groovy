@@ -231,10 +231,6 @@ class IvyFileModule extends AbstractModule implements IvyModule {
         for (name in names) {
             allFileNames.addAll([name, "${name}.sha1"])
         }
-        println "test vm: file.encoding=" + System.getProperty("file.encoding")
-        println "test vm: LANG=" + System.getenv("LANG")
-        println "test vm: LC_ALL=" + System.getenv("LC_ALL")
-        println "test vm: LC_CTYPE=" + System.getenv("LC_CTYPE")
 
         assert moduleDir.list() as Set == allFileNames
         for (name in names) {
