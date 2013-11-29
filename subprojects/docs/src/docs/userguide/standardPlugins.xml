@@ -128,30 +128,14 @@
             </tr>
             <tr>
                 <td>
-                    <link linkend='cpp'>
-                        <literal>cpp-exe</literal>
+                    <link linkend='nativeBinaries'>
+                        <literal>windows-resources</literal>
                     </link>
                 </td>
-                <td>
-                    <literal>cpp</literal>
-                </td>
+                <td>-</td>
                 <td>-</td>
                 <td>
-                    <para>Adds C++ executable compilation and linking capabilities to a project.</para>
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    <link linkend='cpp'>
-                        <literal>cpp-lib</literal>
-                    </link>
-                </td>
-                <td>
-                    <literal>cpp</literal>
-                </td>
-                <td>-</td>
-                <td>
-                    <para>Adds C++ library compilation and linking capabilities to a project.</para>
+                    <para>Adds support for including Windows resources in native binaries.</para>
                 </td>
             </tr>
         </table>
