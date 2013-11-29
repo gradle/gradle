@@ -25,5 +25,8 @@ public interface NotationParser<N, T> {
      */
     T parseNotation(N notation) throws UnsupportedNotationException, TypeConversionException;
 
+    /**
+     * Describes the formats that the parser accepts.
+     * */
     void describe(Collection<String> candidateFormats);
 }

@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks.options;
 
+import org.gradle.internal.typeconversion.NotationParser;
+
 import java.lang.reflect.Method;
 import java.util.List;
 
@@ -23,8 +25,8 @@ public class MethodOptionElement extends AbstractOptionElement {
 
     private final Method method;
 
-    public MethodOptionElement(Option option, Method method) {
-        super(option.option(), option, calculateOptionType(method), method.getDeclaringClass());
+    MethodOptionElement(Option option, Method method, NotationParser notationParser) {
+        super(option.option(), option, calculateOptionType(method), method.getDeclaringClass(), notationParser);
         this.method = method;
         assertMethodTypeSupported(getOptionName(), method);
         assertValidOptionName();
@@ -33,14 +35,6 @@ public class MethodOptionElement extends AbstractOptionElement {
     private void assertValidOptionName() {
         if (getOptionName()== null || getOptionName().length() == 0) {
             throw new OptionValidationException(String.format("No option name set on '%s' in class '%s'.", getElementName(), getDeclaredClass().getName()));
-        }
-    }
-
-    private static Class<?> calculateOptionType(Method optionMethod) {
-        if (optionMethod.getParameterTypes().length == 0) {
-            return Void.TYPE;
-        } else {
-            return calculateOptionType(optionMethod.getParameterTypes()[0]);
         }
     }
 
@@ -59,6 +53,21 @@ public class MethodOptionElement extends AbstractOptionElement {
             throw new IllegalArgumentException(String.format("Lists not supported for option."));
         } else {
             invokeMethod(object, method, getNotationParser().parseNotation(parameterValues.get(0)));
+        }
+    }
+
+    public static MethodOptionElement create(Option option, Method method, OptionNotationParserFactory optionNotationParserFactory){
+        Class<?> optionType = calculateOptionType(method);
+        NotationParser notationParser = createNotationParserOrFail(optionNotationParserFactory, option.option(), optionType, method.getDeclaringClass());
+        return new MethodOptionElement(option, method, notationParser);
+    }
+
+
+    private static Class<?> calculateOptionType(Method optionMethod) {
+        if (optionMethod.getParameterTypes().length == 0) {
+            return Void.TYPE;
+        } else {
+            return calculateOptionType(optionMethod.getParameterTypes()[0]);
         }
     }
 

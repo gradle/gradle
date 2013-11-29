@@ -17,16 +17,26 @@
 package org.gradle.api.internal.tasks.options;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.internal.typeconversion.NotationParser;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
 
 public class FieldOptionElement extends AbstractOptionElement {
 
+    public static FieldOptionElement create(Option option, Field field, OptionNotationParserFactory optionNotationParserFactory){
+        String optionName = calOptionName(option, field);
+        Class<?> optionType = calculateOptionType(field.getType());
+        NotationParser notationParser;
+        notationParser = createNotationParserOrFail(optionNotationParserFactory, optionName, optionType, field.getDeclaringClass());
+        return new FieldOptionElement(field, optionName, option, optionType, notationParser);
+    }
+
     private final Field field;
 
-    public FieldOptionElement(Option option, Field field) {
-        super(calOptionName(option, field), option, calculateOptionType(field.getType()), field.getDeclaringClass());
+    public FieldOptionElement(Field field, String optionName, Option option, Class<?> optionType, NotationParser notationParser) {
+        super(optionName, option, optionType, field.getDeclaringClass(), notationParser);
         this.field = field;
         getSetter();
     }

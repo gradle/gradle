@@ -28,6 +28,7 @@ import java.util.*;
 public class OptionReader {
 
     private ListMultimap<Class, OptionElement> cachedStaticClassDescriptors = ArrayListMultimap.create();
+    OptionNotationParserFactory optionNotationParserFactory = new OptionNotationParserFactory();
 
     public List<OptionDescriptor> getOptions(Object target) {
         final Class<?> targetClass = target.getClass();
@@ -72,7 +73,8 @@ public class OptionReader {
                     throw new OptionValidationException(String.format("Option on static field '%s' not supported in class '%s'.",
                             field.getName(), field.getDeclaringClass().getName()));
                 }
-                fieldOptionElements.add(new FieldOptionElement(option, field));
+
+                fieldOptionElements.add(FieldOptionElement.create(option, field, optionNotationParserFactory));
             }
         }
         return fieldOptionElements;
@@ -87,7 +89,7 @@ public class OptionReader {
                     throw new OptionValidationException(String.format("Option on static method '%s' not supported in class '%s'.",
                             method.getName(), method.getDeclaringClass().getName()));
                 }
-                final OptionElement methodOptionDescriptor = new MethodOptionElement(option, method);
+                final OptionElement methodOptionDescriptor = MethodOptionElement.create(option, method, optionNotationParserFactory);
                 methodOptionElements.add(methodOptionDescriptor);
             }
         }

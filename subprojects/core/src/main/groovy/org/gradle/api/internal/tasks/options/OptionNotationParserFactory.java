@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.typeconversion;
+package org.gradle.api.internal.tasks.options;
 
-import org.gradle.api.GradleException;
+import org.gradle.internal.typeconversion.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -25,7 +25,7 @@ import java.util.List;
 public class OptionNotationParserFactory {
     public NotationParser<String, Object> toComposite(Class<?> targetType) {
         assert targetType != null : "resultingType cannot be null";
-        List<NotationParser<Object, ?>> parsers = new ArrayList<NotationParser<Object, ?>>();
+        List<NotationParser<String, Object>> parsers = new ArrayList<NotationParser<String, Object>>();
 
         if (targetType == Void.TYPE) {
             parsers.add(new UnsupportedNotationParser());
@@ -38,15 +38,13 @@ public class OptionNotationParserFactory {
             parsers.add(new EnumFromStringNotationParser<Enum>(targetType.asSubclass(Enum.class)));
         }
         if (parsers.isEmpty()) {
-            // not sure this is the right exception it should be more
-            // unavailable notationparser error or something like this
-            throw new GradleException(String.format("resultingType '%s' not supported", targetType.getName()));
+            throw new OptionValidationException(String.format("resultingType '%s' not supported", targetType.getName()));
         }
         return new CompositeNotationParser<String, Object>(parsers);
     }
 
-    private class UnsupportedNotationParser implements NotationParser<Object, Object> {
-        public Object parseNotation(Object notation) throws UnsupportedNotationException, TypeConversionException {
+    private class UnsupportedNotationParser implements NotationParser<String, Object> {
+        public Object parseNotation(String notation) throws UnsupportedNotationException, TypeConversionException {
             throw new UnsupportedOperationException();
         }
 
@@ -54,7 +52,7 @@ public class OptionNotationParserFactory {
         }
     }
 
-    private class NoDescriptionJustReturningParser extends JustReturningParser<Object, Object> {
+    private class NoDescriptionJustReturningParser extends JustReturningParser<String, Object> {
         public NoDescriptionJustReturningParser(Class<?> targetType) {
             super(targetType);
         }
