@@ -149,11 +149,11 @@ project(':tool') {
         then:
         resolve.expectGraph {
             root("test:tool:") {
-                node("test:api:") {
+                project(":api", "test:api:") {
                     edge("org:foo:1.3.3", "org:foo:1.4.4")
                 }
-                node("test:impl:") {
-                    node("org:foo:1.4.4").byConflictResolution()
+                project(":impl", "test:impl:") {
+                    module("org:foo:1.4.4").byConflictResolution()
                 }
             }
         }
@@ -187,8 +187,8 @@ dependencies {
         then:
         resolve.expectGraph {
             root(":test:") {
-                node("org:external:1.2").byConflictResolution()
-                node("org:dep:2.2") {
+                module("org:external:1.2").byConflictResolution()
+                module("org:dep:2.2") {
                     edge("org:external:1.0", "org:external:1.2")
                 }
             }
@@ -615,7 +615,7 @@ dependencies {
         then:
         resolve.expectGraph {
             root("org:test:1.3") {
-                node("org:other:1.7") {
+                module("org:other:1.7") {
                     edge("org:test:1.2", "org:test:1.3")
                 }
             }
@@ -653,8 +653,8 @@ dependencies {
         then:
         resolve.expectGraph {
             root("org:test:1.3") {
-                node("org:other:1.7") {
-                    node("org:test:2.1").byConflictResolution()
+                module("org:other:1.7") {
+                    module("org:test:2.1").byConflictResolution()
                 }
             }
         }
