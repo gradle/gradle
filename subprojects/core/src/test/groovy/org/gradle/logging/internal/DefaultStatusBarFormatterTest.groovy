@@ -16,13 +16,14 @@
 
 package org.gradle.logging.internal
 
-import spock.lang.Specification
 import org.gradle.internal.nativeplatform.console.ConsoleMetaData
+import spock.lang.Specification
+import spock.lang.Subject
 
 class DefaultStatusBarFormatterTest extends Specification {
 
-    ConsoleMetaData consoleMetaData = Mock()
-    private final StatusBarFormatter statusBarFormatter = new DefaultStatusBarFormatter(consoleMetaData)
+    def consoleMetaData = Mock(ConsoleMetaData)
+    @Subject statusBarFormatter = new DefaultStatusBarFormatter(consoleMetaData)
 
     def "formats multiple operations"(){
         expect:

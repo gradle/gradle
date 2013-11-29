@@ -16,13 +16,14 @@
 package org.gradle.logging.internal
 
 import org.gradle.internal.nativeplatform.console.ConsoleMetaData
+import spock.lang.Subject
 
 class ConsoleBackedProgressRendererTest extends OutputSpecification {
-    private final OutputEventListener listener = Mock()
-    private final Console console = Mock()
-    private final Label statusBar = Mock()
-    private final StatusBarFormatter statusBarFormatter = new DefaultStatusBarFormatter(Mock(ConsoleMetaData))
-    private final ConsoleBackedProgressRenderer renderer = new ConsoleBackedProgressRenderer(listener, console, statusBarFormatter)
+    def listener = Mock(OutputEventListener)
+    def console = Mock(Console)
+    def statusBar = Mock(Label)
+    def statusBarFormatter = new DefaultStatusBarFormatter(Mock(ConsoleMetaData))
+    @Subject ConsoleBackedProgressRenderer renderer = new ConsoleBackedProgressRenderer(listener, console, statusBarFormatter)
 
     def setup() {
         (0..1) * console.getStatusBar() >> statusBar

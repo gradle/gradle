@@ -20,7 +20,7 @@ import org.gradle.internal.nativeplatform.console.ConsoleMetaData;
 
 import java.util.List;
 
-public class DefaultStatusBarFormatter implements StatusBarFormatter {
+public class DefaultStatusBarFormatter {
     private final ConsoleMetaData consoleMetaData;
 
     public DefaultStatusBarFormatter(ConsoleMetaData consoleMetaData) {

@@ -23,10 +23,10 @@ public class ConsoleBackedProgressRenderer implements OutputEventListener {
     private final OutputEventListener listener;
     private final Console console;
     private final LinkedList<Operation> operations = new LinkedList<Operation>();
-    private final StatusBarFormatter statusBarFormatter;
+    private final DefaultStatusBarFormatter statusBarFormatter;
     private Label statusBar;
 
-    public ConsoleBackedProgressRenderer(OutputEventListener listener, Console console, StatusBarFormatter statusBarFormatter) {
+    public ConsoleBackedProgressRenderer(OutputEventListener listener, Console console, DefaultStatusBarFormatter statusBarFormatter) {
         this.listener = listener;
         this.console = console;
         this.statusBarFormatter = statusBarFormatter;
