@@ -15,59 +15,41 @@
  */
 package org.gradle.api.internal.tasks.testing.selection;
 
+import com.google.common.collect.Sets;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.testing.TestSelectionSpec;
 
 import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Set;
 
 public class DefaultTestSelectionSpec implements TestSelectionSpec, Serializable {
 
-    private final String classPattern;
-    private final String methodPattern;
+    private Set<String> names = new HashSet<String>();
 
-    public DefaultTestSelectionSpec(String classPattern, String methodPattern) {
-        assert classPattern != null : "class pattern for included test cannot be null";
-        assert methodPattern != null : "method pattern for included test cannot be null";
-        this.classPattern = classPattern;
-        this.methodPattern = methodPattern;
+    public TestSelectionSpec name(String name) {
+        validateName(name);
+        names.add(name);
+        return this;
     }
 
-    public String getMethodPattern() {
-        return methodPattern;
-    }
-
-    public String getClassPattern() {
-        return classPattern;
-    }
-
-    public String toString() {
-        return "class: '" + classPattern + "', method: '" + methodPattern + "'";
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
+    private void validateName(String name) {
+        if (name == null || name.length() == 0) {
+            throw new InvalidUserDataException("Selected test name cannot be null or empty.");
         }
-        if (!(o instanceof DefaultTestSelectionSpec)) {
-            return false;
-        }
-
-        DefaultTestSelectionSpec that = (DefaultTestSelectionSpec) o;
-
-        if (!classPattern.equals(that.classPattern)) {
-            return false;
-        }
-        if (!methodPattern.equals(that.methodPattern)) {
-            return false;
-        }
-
-        return true;
     }
 
-    @Override
-    public int hashCode() {
-        int result = classPattern.hashCode();
-        result = 31 * result + methodPattern.hashCode();
-        return result;
+    @Input
+    public Set<String> getNames() {
+        return names;
+    }
+
+    public TestSelectionSpec setNames(String... names) {
+        for (String name : names) {
+            validateName(name);
+        }
+        this.names = Sets.newHashSet(names);
+        return this;
     }
 }

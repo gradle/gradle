@@ -29,19 +29,21 @@ import java.util.concurrent.Executor
  * Once the test threads have completed, you can make assertions about the ordering of the various instants relative to each other. You can also block until a given
  * instant has been reached.
  *
- * <p>The main test thread cannot define instants, except within a {@link #async} block.
+ * <p>The main test thread cannot define instants, except within an {@link #async} block.
  *
  * <p>NOTE: Be careful when using this class with Spock mock objects, as these mocks perform some synchronisation of their own. This means that you may not be testing
  * what you think you are testing.
  */
 @Timeout(60)
 class ConcurrentSpec extends Specification {
+    private final TestLogger logger = new TestLogger()
+
     /**
      * An object that allows instants to be defined and queried.
      *
      * @see NamedInstant
      */
-    final Instants instant = new Instants()
+    final Instants instant = new Instants(logger)
 
     /**
      * An object that allows operations to be defined and queried.
@@ -55,7 +57,7 @@ class ConcurrentSpec extends Specification {
      */
     final TestThread thread = new TestThread(instant)
 
-    private final TestExecutor executor = new TestExecutor(instant)
+    private final TestExecutor executor = new TestExecutor(instant, logger)
     private final TestExecutorFactory executorFactory = new TestExecutorFactory(executor)
 
     /**

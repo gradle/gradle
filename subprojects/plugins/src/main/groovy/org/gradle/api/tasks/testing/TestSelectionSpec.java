@@ -15,6 +15,8 @@
  */
 package org.gradle.api.tasks.testing;
 
+import java.util.Set;
+
 /**
  * Criteria for the test selection
  *
@@ -23,12 +25,26 @@ package org.gradle.api.tasks.testing;
 public interface TestSelectionSpec {
 
     /**
-     * Pattern that the method should match
+     * Appends a test for selection, wildcard '*' is supported.
+     * Examples of test names: com.foo.FooTest.someMethod, com.foo.FooTest, *FooTest*, com.foo*
+     *
+     * @param name test's name
+     * @return this selection object
      */
-    String getMethodPattern();
+    TestSelectionSpec name(String name);
 
     /**
-     * Pattern that the class should match
+     * Selected test names
      */
-    String getClassPattern();
+    Set<String> getNames();
+
+    /**
+     * Sets test names for selection. Wildcard '*' is supported.
+     * Examples of test names: com.foo.FooTest.someMethod, com.foo.FooTest, *FooTest*, com.foo*
+     *
+     * @param names test names
+     * @return this selection object
+     */
+    TestSelectionSpec setNames(String ... names);
+
 }

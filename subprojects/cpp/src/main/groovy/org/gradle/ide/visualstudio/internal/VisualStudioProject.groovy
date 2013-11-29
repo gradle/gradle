@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.ide.visualstudio.model
+package org.gradle.ide.visualstudio.internal
 import org.gradle.language.HeaderExportingSourceSet
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.internal.AbstractBuildableModelElement

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.ide.visualstudio.model
+package org.gradle.ide.visualstudio.internal
 import org.gradle.api.Transformer
 import org.gradle.ide.visualstudio.fixtures.ProjectFile
 import org.gradle.test.fixtures.file.TestDirectoryProvider

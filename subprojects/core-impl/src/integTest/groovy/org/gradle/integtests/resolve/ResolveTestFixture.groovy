@@ -19,6 +19,7 @@ package org.gradle.integtests.resolve
 import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.result.ComponentSelectionReason
+import org.gradle.api.artifacts.result.ResolvedComponentResult
 import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.test.fixtures.file.TestFile
@@ -76,7 +77,7 @@ allprojects {
         println(configDetailsFile.text)
 
         def actualArtifacts = configDetails.findAll { it.startsWith('artifact:') }.collect { it.substring(9) }
-        def expectedArtifacts = graph.artifactNodes.collect { "[${it.id}][${it.module}.jar]" }
+        def expectedArtifacts = graph.artifactNodes.collect { "[${it.moduleVersionId}][${it.module}.jar]" }
         assert actualArtifacts == expectedArtifacts
 
         def actualFiles = configDetails.findAll { it.startsWith('file:') }.collect { it.substring(5) }
@@ -84,19 +85,19 @@ allprojects {
         assert actualFiles == expectedFiles
 
         def actualFirstLevel = configDetails.findAll { it.startsWith('first-level:') }.collect { it.substring(12) }
-        def expectedFirstLevel = graph.root.deps.collect { "[${it.selected.id}:default]" }
+        def expectedFirstLevel = graph.root.deps.collect { "[${it.selected.moduleVersionId}:default]" }
         assert actualFirstLevel == expectedFirstLevel
 
         def actualRoot = configDetails.find { it.startsWith('root:') }.substring(5)
-        def expectedRoot = "[${graph.root.id}][${graph.root.reason}]"
+        def expectedRoot = "[id:${graph.root.id}][mv:${graph.root.moduleVersionId}][reason:${graph.root.reason}]"
         assert actualRoot == expectedRoot
 
-        def actualNodes = configDetails.findAll { it.startsWith('module-version:') }.collect { it.substring(15) }
-        def expectedNodes = graph.nodes.values().collect { "[${it.id}][${it.reason}]" }
+        def actualNodes = configDetails.findAll { it.startsWith('component:') }.collect { it.substring(10) }
+        def expectedNodes = graph.nodes.values().collect { "[id:${it.id}][mv:${it.moduleVersionId}][reason:${it.reason}]" }
         assert actualNodes == expectedNodes
 
         def actualEdges = configDetails.findAll { it.startsWith('dependency:') }.collect { it.substring(11) }
-        def expectedEdges = graph.edges.collect { "[${it.from.id}][${it.requested}->${it.selected.id}]" }
+        def expectedEdges = graph.edges.collect { "[from:${it.from.id}][${it.requested}->${it.selected.id}]" }
         assert actualEdges == expectedEdges
     }
 
@@ -145,18 +146,18 @@ allprojects {
             if (root != null) {
                 throw new IllegalStateException("Root node is already defined")
             }
-            root = node(value)
+            root = node(value, value)
             cl.resolveStrategy = Closure.DELEGATE_ONLY
             cl.delegate = root
             cl.call()
             return root
         }
 
-        def node(String value) {
-            def node = nodes[value]
+        def node(String id, String moduleVersion) {
+            def node = nodes[moduleVersion]
             if (!node) {
-                node = new NodeBuilder(value, this)
-                nodes[value] = node
+                node = new NodeBuilder(id, moduleVersion, this)
+                nodes[moduleVersion] = node
             }
             return node
         }
@@ -178,31 +179,37 @@ allprojects {
         final List<EdgeBuilder> deps = []
         private final GraphBuilder graph
         final String id
+        final String moduleVersionId
         final String group
         final String module
         final String version
         private String reason
 
-        NodeBuilder(String id, GraphBuilder graph) {
+        NodeBuilder(String id, String moduleVersionId, GraphBuilder graph) {
             this.graph = graph
-            if (id.matches(':\\w+:')) {
-                def parts = id.split(':')
+            if (moduleVersionId.matches(':\\w+:')) {
+                def parts = moduleVersionId.split(':')
                 this.group = null
                 this.module = parts[1]
                 this.version = null
-                this.id = ":${module}:unspecified"
-            } else if (id.matches('\\w+:\\w+:')) {
-                def parts = id.split(':')
+                this.moduleVersionId = ":${module}:unspecified"
+            } else if (moduleVersionId.matches('\\w+:\\w+:')) {
+                def parts = moduleVersionId.split(':')
                 this.group = parts[0]
                 this.module = parts[1]
                 this.version = null
-                this.id = "${group}:${module}:unspecified"
+                this.moduleVersionId = "${group}:${module}:unspecified"
             } else {
-                def parts = id.split(':')
+                def parts = moduleVersionId.split(':')
                 assert parts.length == 3
                 this.group = parts[0]
                 this.module = parts[1]
                 this.version = parts[2]
+                this.moduleVersionId = moduleVersionId
+            }
+            if (id == moduleVersionId) {
+                this.id = this.moduleVersionId
+            } else {
                 this.id = id
             }
         }
@@ -215,20 +222,35 @@ allprojects {
             "$module${version ? '-' + version : ''}.jar"
         }
 
-        /**
-         * Defines a dependency on the given node.
-         */
-        def node(String value) {
-            def node = graph.node(value)
-            deps << new EdgeBuilder(this, node.id, node)
+        private def addNode(String id, String moduleVersionId = id) {
+            def node = graph.node(id, moduleVersionId)
+            deps << new EdgeBuilder(this, node.moduleVersionId, node)
             return node
         }
 
         /**
-         * Defines a dependency on the given node. The closure delegates to a {@link NodeBuilder} instance that represents the target node.
+         * Defines a dependency on the given external module.
          */
-        def node(String value, Closure cl) {
-            def node = node(value)
+        def module(String moduleVersionId) {
+            return addNode(moduleVersionId)
+        }
+
+        /**
+         * Defines a dependency on the given external module. The closure delegates to a {@link NodeBuilder} instance that represents the target node.
+         */
+        def module(String moduleVersionId, Closure cl) {
+            def node = module(moduleVersionId)
+            cl.resolveStrategy = Closure.DELEGATE_ONLY
+            cl.delegate = node
+            cl.call()
+            return node
+        }
+
+        /**
+         * Defines a dependency on the given project. The closure delegates to a {@link NodeBuilder} instance that represents the target node.
+         */
+        def project(String path, String value, Closure cl) {
+            def node = addNode("project $path", value)
             cl.resolveStrategy = Closure.DELEGATE_ONLY
             cl.delegate = node
             cl.call()
@@ -238,8 +260,8 @@ allprojects {
         /**
          * Defines a dependency on the given node.
          */
-        def edge(String requested, String selected) {
-            def node = graph.node(selected)
+        def edge(String requested, String selectedModuleVersionId) {
+            def node = graph.node(selectedModuleVersionId, selectedModuleVersionId)
             deps << new EdgeBuilder(this, requested, node)
             return node
         }
@@ -270,17 +292,21 @@ public class GenerateGraphTask extends DefaultTask {
                 writer.println("artifact:[${it.moduleVersion.id}][${it.name}${it.classifier ? "-" + it.classifier : ""}.${it.extension}]")
             }
             def root = configuration.incoming.resolutionResult.root
-            writer.println("root:[${root.id}][${formatReason(root.selectionReason)}]")
+            writer.println("root:${formatComponent(root)}")
             configuration.incoming.resolutionResult.allComponents.each {
-                writer.println("module-version:[${it.id}][${formatReason(it.selectionReason)}]")
+                writer.println("component:${formatComponent(it)}")
             }
             configuration.incoming.resolutionResult.allDependencies.each {
-                writer.println("dependency:[${it.from.id}][${it.requested}->${it.selected.id}]")
+                writer.println("dependency:[from:${it.from.id}][${it.requested}->${it.selected.id}]")
             }
             configuration.files.each {
                 writer.println("file:${it.name}")
             }
         }
+    }
+
+    def formatComponent(ResolvedComponentResult result) {
+        return "[id:${result.id}][mv:${result.publishedAs}][reason:${formatReason(result.selectionReason)}]"
     }
 
     def formatReason(ComponentSelectionReason reason) {

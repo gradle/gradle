@@ -33,7 +33,7 @@ class DependencyResultSpecNotationParserSpec extends Specification {
         def other = ResolutionResultDataBuilder.newDependency('org.mockito', 'other')
 
         when:
-        def spec = parser.parseNotation( { it.requested.name == 'mockito-core' } )
+        def spec = parser.parseNotation( { it.requested.module == 'mockito-core' } )
 
         then:
         spec.isSatisfiedBy(mockito)
@@ -61,7 +61,7 @@ class DependencyResultSpecNotationParserSpec extends Specification {
         when:
         def spec = parser.parseNotation(new Spec<DependencyResult>() {
             boolean isSatisfiedBy(DependencyResult element) {
-                return element.getRequested().getName().equals('mockito-core')
+                return element.requested.module == 'mockito-core'
             }
         })
 

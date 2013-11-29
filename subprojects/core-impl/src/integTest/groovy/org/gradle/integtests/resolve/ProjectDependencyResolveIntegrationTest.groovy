@@ -51,8 +51,43 @@ project(":b") {
     dependencies {
         compile project(':a')
     }
+
     task check(dependsOn: configurations.compile) << {
         assert configurations.compile.collect { it.name } == ['a.jar', 'externalA-1.2.jar', 'externalB-2.1.jar']
+        def result = configurations.compile.incoming.resolutionResult
+
+         // Check root component
+        def rootId = result.root.id
+        assert rootId instanceof ModuleComponentIdentifier
+        def rootPublishedAs = result.root.publishedAs
+        assert rootPublishedAs instanceof ModuleComponentIdentifier
+        assert rootPublishedAs.group == rootId.group
+        assert rootPublishedAs.module == rootId.module
+        assert rootPublishedAs.version == rootId.version
+
+        // Check project components
+        def projectDependencies = result.root.dependencies.selected.findAll { it.id instanceof BuildComponentIdentifier }
+        assert projectDependencies.size() == 1
+        def projectA = projectDependencies[0]
+        assert projectA.id.projectPath == ':a'
+        assert projectA.publishedAs instanceof ModuleComponentIdentifier
+        assert projectA.publishedAs.group != null
+        assert projectA.publishedAs.module == 'a'
+        assert projectA.publishedAs.version == 'unspecified'
+
+        // Check external module components
+        def externalComponents = result.allDependencies.selected.findAll { it.id instanceof ModuleComponentIdentifier }
+        assert externalComponents.size() == 2
+        def externalA = externalComponents[0]
+        assert externalA.id.group == 'org.other'
+        assert externalA.id.module == 'externalA'
+        assert externalA.id.version == '1.2'
+        assert externalA.id == externalA.publishedAs
+        def externalB = externalComponents[1]
+        assert externalB.id.group == 'org.other'
+        assert externalB.id.module == 'externalB'
+        assert externalB.id.version == '2.1'
+        assert externalB.id == externalB.publishedAs
     }
 }
 """

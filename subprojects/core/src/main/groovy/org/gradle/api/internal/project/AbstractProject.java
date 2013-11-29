@@ -31,6 +31,8 @@ import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.*;
+import org.gradle.api.internal.artifacts.ModuleInternal;
+import org.gradle.api.internal.artifacts.ProjectBackedModule;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.file.FileOperations;
@@ -1005,5 +1007,9 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     // Longer term it will not be available via Project, but be only available in a build script
     public void model(Action<? super ModelDsl> action) {
         action.execute(new GroovyModelDsl(modelRules));
+    }
+
+    public ModuleInternal getModuleInternal() {
+        return new ProjectBackedModule(this);
     }
 }

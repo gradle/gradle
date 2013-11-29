@@ -16,12 +16,11 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.PublishException;
 import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository;
 
 import java.io.File;
 
 public interface ArtifactPublisher {
-    void publish(Iterable<? extends PublicationAwareRepository> repositories, Module module, Configuration configuration, File descriptor) throws PublishException;
+    void publish(Iterable<? extends PublicationAwareRepository> repositories, ModuleInternal module, Configuration configuration, File descriptor) throws PublishException;
 }

@@ -39,7 +39,7 @@ public class RenderableDependencyResult extends AbstractRenderableDependencyResu
 
     @Override
     protected ModuleComponentIdentifier getActual() {
-        return (ModuleComponentIdentifier)dependency.getSelected().getId();
+        return (ModuleComponentIdentifier)dependency.getSelected().getPublishedAs();
     }
 
     @Override

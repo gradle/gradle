@@ -13,29 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.tasks.testing;
 
-import org.gradle.api.Action;
-import org.gradle.api.Incubating;
+package org.gradle.test.fixtures.concurrent
 
-/**
- * Allows selecting tests for execution
- *
- * @since 1.10
- */
-@Incubating
-public interface TestSelection {
+class TestLogger {
+    private final long startTime = System.currentTimeMillis()
 
-    /**
-     * Allow configuring test inclusions
-     */
-    TestSelectionSpec getInclude();
-
-    /**
-     * Allow configuring test inclusions
-     *
-     * @param configure configuration action
-     * @return this selection object
-     */
-    TestSelection include(Action<TestSelectionSpec> configure);
+    void log(def msg) {
+        println "* [${System.currentTimeMillis() - startTime}ms] [${Thread.currentThread().name}] ${msg}"
+    }
 }

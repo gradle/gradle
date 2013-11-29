@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.result.ComponentSelectionReason
 import org.gradle.api.artifacts.result.ResolvedDependencyResult
+import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException
 import spock.lang.Specification
 
@@ -187,7 +188,7 @@ class DefaultResolutionResultBuilderSpec extends Specification {
         then:
         def mid1 = first(result.root.dependencies)
         mid1.selected.dependencies.size() == 2
-        mid1.selected.dependencies*.requested.name == ['leaf1', 'leaf2']
+        mid1.selected.dependencies*.requested.module == ['leaf1', 'leaf2']
     }
 
     def "graph includes unresolved deps"() {
@@ -209,7 +210,7 @@ class DefaultResolutionResultBuilderSpec extends Specification {
     }
 
     private void resolvedConf(String module, List<InternalDependencyResult> deps) {
-        def moduleVersion = new DummyModuleVersionSelection(selectedId: newId("x", module, "1"), selectionReason: VersionSelectionReasons.REQUESTED)
+        def moduleVersion = new DummyModuleVersionSelection(selectedId: newId("x", module, "1"), selectionReason: VersionSelectionReasons.REQUESTED, componentId: new DefaultModuleComponentIdentifier("x", module, "1"))
         builder.resolvedModuleVersion(moduleVersion)
         deps.each {
             if (it.selected) {
@@ -220,7 +221,7 @@ class DefaultResolutionResultBuilderSpec extends Specification {
     }
 
     private InternalDependencyResult dep(String requested, Exception failure = null, String selected = requested, ComponentSelectionReason selectionReason = VersionSelectionReasons.REQUESTED) {
-        def selection = new DummyModuleVersionSelection(selectedId: newId("x", selected, "1"), selectionReason: selectionReason)
+        def selection = new DummyModuleVersionSelection(selectedId: newId("x", selected, "1"), selectionReason: selectionReason, componentId: new DefaultModuleComponentIdentifier("x", selected, "1"))
         def selector = newSelector("x", requested, "1")
         failure = failure == null ? null : new ModuleVersionResolveException(selector, failure)
         new DummyInternalDependencyResult(requested: selector, selected: selection, failure: failure)

@@ -16,6 +16,7 @@
 
 package org.gradle.nativebinaries.language;
 
+import org.gradle.api.Incubating;
 import org.gradle.nativebinaries.Tool;
 
 import java.util.Map;
@@ -23,6 +24,7 @@ import java.util.Map;
 /**
  * A tool that permits configuration of the C preprocessor.
  */
+@Incubating
 public interface PreprocessingTool extends Tool {
     /**
      * The set of preprocessor macros to define when compiling this binary.

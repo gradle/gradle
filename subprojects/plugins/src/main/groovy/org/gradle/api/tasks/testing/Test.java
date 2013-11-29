@@ -24,6 +24,7 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.tasks.options.Option;
 import org.gradle.api.internal.tasks.testing.DefaultTestTaskReports;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
@@ -46,8 +47,8 @@ import org.gradle.api.tasks.testing.logging.TestLogging;
 import org.gradle.api.tasks.testing.logging.TestLoggingContainer;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.Factory;
+import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.listener.ListenerBroadcast;
@@ -668,6 +669,17 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      */
     public Test exclude(Closure excludeSpec) {
         patternSet.exclude(excludeSpec);
+        return this;
+    }
+
+    @Option(option = "only", description = "Sets test names to be included.")
+    /**
+     * Sets the test names to be included in execution.
+     * Wildcard '*' is supported. Test method names are supported.
+     * See more {@link TestSelection}
+     */
+    public Test only(String testNames) {
+        selection.getInclude().setNames(testNames.split(","));
         return this;
     }
 

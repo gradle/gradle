@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.ide.visualstudio.model;
+package org.gradle.ide.visualstudio.internal;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.nativebinaries.*;

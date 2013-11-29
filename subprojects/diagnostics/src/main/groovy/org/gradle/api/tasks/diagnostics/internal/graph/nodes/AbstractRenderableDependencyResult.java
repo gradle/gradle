@@ -44,13 +44,13 @@ public abstract class AbstractRenderableDependencyResult implements RenderableDe
 
     private String getSimpleName() {
         ModuleComponentSelector requested = getRequested();
-        return requested.getGroup() + ":" + requested.getName() + ":" + requested.getVersion();
+        return requested.getGroup() + ":" + requested.getModule() + ":" + requested.getVersion();
     }
 
     private String getVerboseName() {
         ModuleComponentSelector requested = getRequested();
         ModuleComponentIdentifier selected = getActual();
-        if(!selected.getGroup().equals(requested.getGroup()) || !selected.getModule().equals(requested.getName())) {
+        if(!selected.getGroup().equals(requested.getGroup()) || !selected.getModule().equals(requested.getModule())) {
             return getSimpleName() + " -> " + selected.getGroup() + ":" + selected.getModule() + ":" + selected.getVersion();
         }
         if (!selected.getVersion().equals(requested.getVersion())) {

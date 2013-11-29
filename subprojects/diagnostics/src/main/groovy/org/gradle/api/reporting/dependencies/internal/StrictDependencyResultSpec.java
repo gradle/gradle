@@ -44,7 +44,7 @@ public class StrictDependencyResultSpec implements Spec<DependencyResult> {
     private boolean matchesRequested(DependencyResult candidate) {
         ModuleComponentSelector requested = (ModuleComponentSelector)candidate.getRequested();
         return requested.getGroup().equals(moduleIdentifier.getGroup())
-               && requested.getName().equals(moduleIdentifier.getName());
+               && requested.getModule().equals(moduleIdentifier.getName());
     }
 
     private boolean matchesSelected(ResolvedDependencyResult candidate) {

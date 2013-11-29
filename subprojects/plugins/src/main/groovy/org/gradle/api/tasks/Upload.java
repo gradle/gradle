@@ -23,11 +23,12 @@ import org.gradle.api.artifacts.PublishException;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.internal.Transformers;
 import org.gradle.api.internal.artifacts.ArtifactPublicationServices;
 import org.gradle.api.internal.artifacts.ArtifactPublisher;
+import org.gradle.api.internal.artifacts.ModuleInternal;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository;
+import org.gradle.internal.Transformers;
 import org.gradle.util.ConfigureUtil;
 
 import javax.inject.Inject;
@@ -64,7 +65,7 @@ public class Upload extends ConventionTask {
         List<PublicationAwareRepository> publishRepositories = collect(repositories, Transformers.cast(PublicationAwareRepository.class));
 
         try {
-            artifactPublisher.publish(publishRepositories, module, configuration, descriptorDestination);
+            artifactPublisher.publish(publishRepositories, (ModuleInternal)module, configuration, descriptorDestination);
         } catch (Exception e) {
             throw new PublishException(String.format("Could not publish configuration '%s'", configuration.getName()), e);
         }

@@ -20,48 +20,96 @@ import spock.lang.Specification
 
 class TestSelectionMatcherTest extends Specification {
 
-    private static TestSelectionMatcher matcher(String classPattern, String methodPattern) {
-        new TestSelectionMatcher(new DefaultTestSelectionSpec(classPattern, methodPattern))
+    def "knows if test matches class"() {
+        expect: new TestSelectionMatcher(input).matchesTest(className, methodName) == match
+
+        where:
+        input                    | className                 | methodName            | match
+        ["FooTest"]              | "FooTest"                 | "whatever"            | true
+        ["FooTest"]              | "fooTest"                 | "whatever"            | false
+
+        ["com.foo.FooTest"]      | "com.foo.FooTest"         | "x"                   | true
+        ["com.foo.FooTest"]      | "FooTest"                 | "x"                   | false
+        ["com.foo.FooTest"]      | "com_foo_FooTest"         | "x"                   | false
+
+        ["com.foo.FooTest.*"]    | "com.foo.FooTest"         | "aaa"                 | true
+        ["com.foo.FooTest.*"]    | "com.foo.FooTest"         | "bbb"                 | true
+        ["com.foo.FooTest.*"]    | "com.foo.FooTestx"        | "bbb"                 | false
+
+        ["*.FooTest.*"]          | "com.foo.FooTest"         | "aaa"                 | true
+        ["*.FooTest.*"]          | "com.bar.FooTest"         | "aaa"                 | true
+        ["*.FooTest.*"]          | "FooTest"                 | "aaa"                 | false
+
+        ["com*FooTest"]          | "com.foo.FooTest"         | "aaa"                 | true
+        ["com*FooTest"]          | "com.FooTest"             | "bbb"                 | true
+        ["com*FooTest"]          | "FooTest"                 | "bbb"                 | false
+
+        ["*.foo.*"]              | "com.foo.FooTest"         | "aaaa"                | true
+        ["*.foo.*"]              | "com.foo.bar.BarTest"     | "aaaa"                | true
+        ["*.foo.*"]              | "foo.Test"                | "aaaa"                | false
+        ["*.foo.*"]              | "fooTest"                 | "aaaa"                | false
+        ["*.foo.*"]              | "foo"                     | "aaaa"                | false
     }
 
     def "knows if test matches"() {
-        def m = matcher("foo.*", ".*bar")
+        expect: new TestSelectionMatcher(input).matchesTest(className, methodName) == match
 
-        expect:
-        m.matchesTest("fooxxx", "xxxbar")
-        m.matchesTest("foo", "bar")
+        where:
+        input                    | className                 | methodName            | match
+        ["FooTest.test"]         | "FooTest"                 | "test"                | true
+        ["FooTest.test"]         | "Footest"                 | "test"                | false
+        ["FooTest.test"]         | "FooTest"                 | "TEST"                | false
+        ["FooTest.test"]         | "com.foo.FooTest"         | "test"                | false
+        ["FooTest.test"]         | "Foo.test"                | ""                    | false
 
-        !m.matchesTest("com.fooxxx", "xxxbar")
-        !m.matchesTest("fooxxx", "bar.foo")
+        ["FooTest.*slow*"]       | "FooTest"                 | "slowUiTest"          | true
+        ["FooTest.*slow*"]       | "FooTest"                 | "veryslowtest"        | true
+        ["FooTest.*slow*"]       | "FooTest.SubTest"         | "slow"                | true
+        ["FooTest.*slow*"]       | "FooTest"                 | "a slow test"         | true
+        ["FooTest.*slow*"]       | "FooTest"                 | "aslow"               | true
+        ["FooTest.*slow*"]       | "com.foo.FooTest"         | "slowUiTest"          | false
+        ["FooTest.*slow*"]       | "FooTest"                 | "verySlowTest"        | false
+
+        ["com.FooTest***slow*"]  | "com.FooTest"             | "slowMethod"          | true
+        ["com.FooTest***slow*"]  | "com.FooTest2"            | "aslow"               | true
+        ["com.FooTest***slow*"]  | "com.FooTest.OtherTest"   | "slow"                | true
+        ["com.FooTest***slow*"]  | "FooTest"                 | "slowMethod"          | false
     }
 
-    def "knows if class matches"() {
-        def m = matcher("foo.*", ".*bar")
+    def "matches any of input"() {
+        expect: new TestSelectionMatcher(input).matchesTest(className, methodName) == match
 
-        expect:
-        m.matchesClass("foo")
-        m.matchesClass("fooTest")
+        where:
+        input                               | className                 | methodName            | match
+        ["FooTest.test", "FooTest.bar"]     | "FooTest"                 | "test"                | true
+        ["FooTest.test", "FooTest.bar"]     | "FooTest"                 | "bar"                 | true
+        ["FooTest.test", "FooTest.bar"]     | "FooTest"                 | "baz"                 | false
+        ["FooTest.test", "FooTest.bar"]     | "Footest"                 | "test"                | false
 
-        !m.matchesClass("com.foo")
+        ["FooTest.test", "BarTest.*"]       | "FooTest"                 | "test"                | true
+        ["FooTest.test", "BarTest.*"]       | "BarTest"                 | "xxxx"                | true
+        ["FooTest.test", "BarTest.*"]       | "FooTest"                 | "xxxx"                | false
+
+        ["FooTest.test", "FooTest.*fast*"]  | "FooTest"                 | "test"                | true
+        ["FooTest.test", "FooTest.*fast*"]  | "FooTest"                 | "fast"                | true
+        ["FooTest.test", "FooTest.*fast*"]  | "FooTest"                 | "a fast test"         | true
+        ["FooTest.test", "FooTest.*fast*"]  | "FooTest"                 | "xxxx"                | false
+
+        ["FooTest", "*BarTest"]             | "FooTest"                 | "test"                | true
+        ["FooTest", "*BarTest"]             | "FooTest"                 | "xxxx"                | true
+        ["FooTest", "*BarTest"]             | "BarTest"                 | "xxxx"                | true
+        ["FooTest", "*BarTest"]             | "com.foo.BarTest"         | "xxxx"                | true
+        ["FooTest", "*BarTest"]             | "com.foo.FooTest"         | "xxxx"                | false
     }
 
-    def "knows if matches any method in class"() {
-        expect:
-        matcher("", "bar.*").matchesAnyMethodIn(Bar)
-        matcher("", "bar.*").matchesAnyMethodIn(Foo)
+    def "regexp chars are handled"() {
+        expect: new TestSelectionMatcher(input).matchesTest(className, methodName) == match
 
-        !matcher("", ".*bar").matchesAnyMethodIn(Bar)
-        !matcher("", ".*bar").matchesAnyMethodIn(Foo)
-
-        matcher("", "foo").matchesAnyMethodIn(Foo)
-        !matcher("", "foo").matchesAnyMethodIn(Bar)
-    }
-
-    private class Bar {
-        void barX() {}
-    }
-
-    private class Foo extends Bar {
-        void foo() {}
+        where:
+        input                               | className                 | methodName            | match
+        ["*Foo+Bar*"]                       | "Foo+Bar"                 | "test"                | true
+        ["*Foo+Bar*"]                       | "Foo+Bar"                 | "xxxx"                | true
+        ["*Foo+Bar*"]                       | "com.Foo+Bar"             | "xxxx"                | true
+        ["*Foo+Bar*"]                       | "FooBar"                  | "xxxx"                | false
     }
 }

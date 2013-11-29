@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.ide.visualstudio.model
+package org.gradle.ide.visualstudio.internal
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.DefaultDomainObjectSet
 import org.gradle.language.DependentSourceSet

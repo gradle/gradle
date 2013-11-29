@@ -15,36 +15,47 @@
  */
 package org.gradle.api.internal.tasks.testing.selection;
 
-import org.gradle.api.tasks.testing.TestSelectionSpec;
+import com.google.common.base.Splitter;
 
-import java.lang.reflect.Method;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.regex.Pattern;
 
 public class TestSelectionMatcher {
 
-    private TestSelectionSpec included;
+    private List<Pattern> includePatterns = new LinkedList<Pattern>();
 
-    public TestSelectionMatcher(TestSelectionSpec included) {
-        this.included = included;
+    public TestSelectionMatcher(Iterable<String> includedTests) {
+        for (String includedTest : includedTests) {
+            includePatterns.add(preparePattern(includedTest));
+        }
+    }
+
+    private Pattern preparePattern(String input) {
+        StringBuilder pattern = new StringBuilder();
+        Iterable<String> split = Splitter.on('*').split(input);
+        for (String s : split) {
+            if (s.equals("")) {
+                pattern.append(".*"); //replace wildcard '*' with '.*'
+            } else {
+                if (pattern.length() > 0) {
+                    pattern.append(".*"); //replace wildcard '*' with '.*'
+                }
+                pattern.append(Pattern.quote(s)); //quote everything else
+            }
+        }
+        return Pattern.compile(pattern.toString());
     }
 
     public boolean matchesTest(String className, String methodName) {
-        return matchesClass(className) && methodName.matches(included.getMethodPattern());
-    }
-
-    public boolean matchesClass(String className) {
-        return className.matches(included.getClassPattern());
-    }
-
-    public boolean matchesAnyMethodIn(Class cls) {
-        assert cls != null;
-        while (Object.class != cls) {
-            Method[] allMethods = cls.getDeclaredMethods();
-            for (Method m : allMethods) {
-                if (m.getName().matches(included.getMethodPattern())) {
-                    return true;
-                }
+        String fullName = className + "." + methodName;
+        for (Pattern pattern : includePatterns) {
+            if (pattern.matcher(fullName).matches()) {
+                return true;
             }
-            cls = cls.getSuperclass();
+            if (pattern.matcher(className).matches()) {
+                return true;
+            }
         }
         return false;
     }

@@ -35,7 +35,6 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResult {
     private final Set<DependencyResult> dependencies = new LinkedHashSet<DependencyResult>();
     private final Set<ResolvedDependencyResult> dependents = new LinkedHashSet<ResolvedDependencyResult>();
     private final ComponentSelectionReason selectionReason;
-    //TODO: BEN - use field as return value for method getId()
     private final ComponentIdentifier componentId;
 
     public DefaultResolvedComponentResult(ModuleVersionIdentifier id, ComponentSelectionReason selectionReason, ComponentIdentifier componentId) {
@@ -47,8 +46,8 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResult {
         this.componentId = componentId;
     }
 
-    public ModuleComponentIdentifier getId() {
-        return DefaultModuleComponentIdentifier.newId(id.getGroup(), id.getName(), id.getVersion());
+    public ComponentIdentifier getId() {
+        return componentId;
     }
 
     public Set<DependencyResult> getDependencies() {
@@ -75,7 +74,7 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResult {
 
     @Nullable
     public ModuleComponentIdentifier getPublishedAs() {
-        return getId();
+        return DefaultModuleComponentIdentifier.newId(id.getGroup(), id.getName(), id.getVersion());
     }
 
     @Override

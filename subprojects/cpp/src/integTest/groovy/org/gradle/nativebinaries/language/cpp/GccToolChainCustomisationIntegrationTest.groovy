@@ -15,6 +15,7 @@
  */
 
 package org.gradle.nativebinaries.language.cpp
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.nativebinaries.language.cpp.fixtures.AvailableToolChains
 import org.gradle.nativebinaries.language.cpp.fixtures.AvailableToolChains.ToolChainCandidate
@@ -69,11 +70,9 @@ class GccToolChainCustomisationIntegrationTest extends AbstractIntegrationSpec {
     def "can add binary configuration to target a platform"() {
         when:
         buildFile << """
-            model {
-                toolChains {
-                    crossCompiler(Gcc) {
-                        addPlatformConfiguration(new ArmArchitecture())
-                    }
+            toolChains {
+                crossCompiler(Gcc) {
+                    addPlatformConfiguration(new ArmArchitecture())
                 }
                 platforms {
                     create("arm") {
@@ -117,35 +116,33 @@ class GccToolChainCustomisationIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executable("build/binaries/mainExecutable/arm/main").binaryInfo.arch.name == "x86"
-        executable("build/binaries/mainExecutable/arm/main").exec().out ==  helloWorldApp.englishOutput
+        executable("build/binaries/mainExecutable/arm/main").exec().out == helloWorldApp.englishOutput
 
         executable("build/binaries/mainExecutable/x64/main").binaryInfo.arch.name == "x86_64"
-        executable("build/binaries/mainExecutable/x64/main").exec().out ==  helloWorldApp.englishOutput
+        executable("build/binaries/mainExecutable/x64/main").exec().out == helloWorldApp.englishOutput
     }
 
     def "can add action to tool chain that modifies tool arguments prior to execution"() {
         when:
         buildFile << """
-            model {
-                toolChains {
-                    gcc(Gcc) {
-                        cppCompiler.withArguments { args ->
-                            Collections.replaceAll(args, "CUSTOM", "-O3")
+            toolChains {
+                gcc(Gcc) {
+                    cppCompiler.withArguments { args ->
+                        Collections.replaceAll(args, "CUSTOM", "-O3")
+                    }
+                    CCompiler.withArguments { args ->
+                        Collections.replaceAll(args, "CUSTOM", "-O3")
+                    }
+                    linker.withArguments { args ->
+                        int customIndex = args.indexOf("CUSTOM")
+                        if (customIndex >= 1) {
+                            // Remove "-Xlinker" "CUSTOM"
+                            args.remove(customIndex)
+                            args.remove(customIndex - 1)
                         }
-                        CCompiler.withArguments { args ->
-                            Collections.replaceAll(args, "CUSTOM", "-O3")
-                        }
-                        linker.withArguments { args ->
-                            int customIndex = args.indexOf("CUSTOM")
-                            if (customIndex >= 1) {
-                                // Remove "-Xlinker" "CUSTOM"
-                                args.remove(customIndex)
-                                args.remove(customIndex - 1)
-                            }
-                        }
-                        staticLibArchiver.withArguments { args ->
-                            args.remove "CUSTOM"
-                        }
+                    }
+                    staticLibArchiver.withArguments { args ->
+                        args.remove "CUSTOM"
                     }
                 }
             }
@@ -162,6 +159,6 @@ class GccToolChainCustomisationIntegrationTest extends AbstractIntegrationSpec {
         succeeds "mainExecutable"
 
         then:
-        executable("build/binaries/mainExecutable/main").exec().out ==  helloWorldApp.englishOutput
+        executable("build/binaries/mainExecutable/main").exec().out == helloWorldApp.englishOutput
     }
 }

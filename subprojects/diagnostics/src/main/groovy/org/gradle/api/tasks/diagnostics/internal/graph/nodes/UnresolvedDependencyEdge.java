@@ -32,7 +32,7 @@ public class UnresolvedDependencyEdge implements DependencyEdge {
     public UnresolvedDependencyEdge(UnresolvedDependencyResult dependency) {
         this.dependency = dependency;
         ModuleComponentSelector attempted = (ModuleComponentSelector)dependency.getAttempted();
-        actual = DefaultModuleComponentIdentifier.newId(attempted.getGroup(), attempted.getName(), attempted.getVersion());
+        actual = DefaultModuleComponentIdentifier.newId(attempted.getGroup(), attempted.getModule(), attempted.getVersion());
     }
 
     public boolean isResolvable() {

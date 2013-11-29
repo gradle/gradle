@@ -31,7 +31,7 @@ public class RenderableUnresolvedDependencyResult extends AbstractRenderableDepe
     public RenderableUnresolvedDependencyResult(UnresolvedDependencyResult dependency) {
         this.dependency = dependency;
         ModuleComponentSelector attempted = (ModuleComponentSelector)dependency.getAttempted();
-        this.actual = DefaultModuleComponentIdentifier.newId(attempted.getGroup(), attempted.getName(), attempted.getVersion());
+        this.actual = DefaultModuleComponentIdentifier.newId(attempted.getGroup(), attempted.getModule(), attempted.getVersion());
     }
 
     @Override

@@ -73,7 +73,7 @@ class TestNGTestClassProcessorTest extends Specification {
     }
 
     void "executes selected included method"() {
-        options.getIncludedTests() >> new DefaultTestSelection().includeTest(ATestNGClassWithManyMethods.name, "another").includedTests
+        options.getIncludedTests() >> [ATestNGClassWithManyMethods.name + ".another"]
 
         when: process(ATestNGClassWithManyMethods)
 
@@ -86,10 +86,7 @@ class TestNGTestClassProcessorTest extends Specification {
     }
 
     void "executes multiple included methods"() {
-        options.getIncludedTests() >> new DefaultTestSelection()
-                .includeTest(ATestNGClassWithManyMethods.name, "another")
-                .includeTest(ATestNGClassWithManyMethods.name, "yetAnother")
-                .includedTests
+        options.getIncludedTests() >> [ATestNGClassWithManyMethods.name + ".another", ATestNGClassWithManyMethods.name + ".yetAnother"]
 
         when: process(ATestNGClassWithManyMethods)
 
@@ -101,9 +98,7 @@ class TestNGTestClassProcessorTest extends Specification {
     }
 
     void "executes methods from multiple classes by pattern"() {
-        options.getIncludedTests() >> new DefaultTestSelection()
-                .includeTest(".*Methods", "ok.*")
-                .includedTests
+        options.getIncludedTests() >> ["*Methods.ok*"]
 
         when: process(ATestNGClassWithManyMethods)
 
@@ -115,7 +110,7 @@ class TestNGTestClassProcessorTest extends Specification {
     }
 
     void "executes not tests if none of the included test methods match"() {
-        options.getIncludedTests() >> new DefaultTestSelection().includeTest(ATestNGClassWithManyMethods.name, "does not exist").includedTests
+        options.getIncludedTests() >> [ATestNGClassWithManyMethods.name + "does not exist"]
 
         when: process(ATestNGClassWithManyMethods)
 

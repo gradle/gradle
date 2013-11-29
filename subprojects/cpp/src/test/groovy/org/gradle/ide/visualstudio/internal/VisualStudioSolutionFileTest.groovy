@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.ide.visualstudio.model
+package org.gradle.ide.visualstudio.internal
 import org.gradle.ide.visualstudio.fixtures.SolutionFile
 import org.gradle.nativebinaries.NativeBinary
 import org.gradle.nativebinaries.NativeComponent

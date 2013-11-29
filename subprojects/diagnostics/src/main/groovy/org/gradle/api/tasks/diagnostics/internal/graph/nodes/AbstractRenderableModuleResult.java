@@ -30,11 +30,11 @@ public abstract class AbstractRenderableModuleResult implements RenderableDepend
     }
 
     public ModuleComponentIdentifier getId() {
-        return (ModuleComponentIdentifier)module.getId();
+        return (ModuleComponentIdentifier)module.getPublishedAs();
     }
 
     public String getName() {
-        ModuleComponentIdentifier id = (ModuleComponentIdentifier)module.getId();
+        ModuleComponentIdentifier id = (ModuleComponentIdentifier)module.getPublishedAs();
         return id.getGroup() + ":" + id.getModule() + ":" + id.getVersion();
     }
 
