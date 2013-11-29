@@ -791,39 +791,6 @@ Here's an example:
 - Generate solution for component with mixed sources
 - Generate solution for component with windows resource files
 
-## Story: Add hooks to allow the customization of the generated Visual Studio files
-
-- Expose `visualStudio` extension with `solutions` container of `VisualStudioSolution` and `projects` container of `VisualStudioProject`
-- Add `VisualStudioSolution.solutionFile.withText(Action<? super StringBuilder>)` to modify the solution files.
-- Add `VisualStudioProject.projectFile.withXml(Action<? super XmlProvider>)` and
-  `VisualStudioProject.filtersFile.withXml(Action<? super XmlProvider>)` to modify these files
-
-## Story: Create functional Visual Studio solution for multi-project build with multiple components
-
-- Change `VisualStudioProjectRegistry` so that it is a global service across all executing Visual Studio plugins
-- When adding a `VisualStudioProject` to the registry, include the Gradle project that owns the component in the key for that vs project.
-    - When adding a reference to a dependent project to a `VisualStudioProject`, supply a key that can be used to resolve the project and the mapped component+flavor+linkage.
-    - Add a function to get all `VisualStudioProject` instances from the registry for a particular Gradle project.
-- Each Gradle project only creates tasks for the projects and solutions related to it's components.
-- `VisualStudioProject` and `VisualStudioSolution` will need to deal with files rather than file names to be able to reference vs project files from other projects.
-- When creating a Visual Studio project for a native binary, create configurations for all buildable variants that differ only in `buildType` and `targetPlatform`.
-    - This prevents any problems where a partial graph will result in breaking existing solutions that use the same projects:
-      the same visual studio project is always produced given a particular native binary.
-    - If multiple platform variants would not be differentiated based on architecture (Visual Studio 'platform),
-      then include platform name in configuration name.
-- Visual studio project files will live with Gradle project that owns the relevant component.
-
-### Test Cases
-
-- Solution files for 2 executables that depend on different build types of the same shared library
-- All test cases for single project build should also function where components are in separate Gradle builds
-- Mixed multi-project with multiple components per project
-- Multi-project where :a:exe -> :b:lib1 -> :a:lib2 (Gradle project cycle)
-
-### Open Issues
-
-- Handle dependency cycles
-
 ## Story: Allow a component to choose from a set of defined Platform, BuildType and Flavor instances
 
 ### User visible changes
@@ -876,12 +843,63 @@ Here's an example:
 - Accept a collection of values to make it easy to use flavors.matching({}) or buildTypes.matching({})
 - Possibly use a single `target` method to accept a platform, buildType or flavor selector. Would require that selectors are typed.
 
-## Story: Build binaries against a library in another project
+## Story: Handle project cycles in component dependency graph
 
-### Open issues
+- Add `Map` as an alternative notation for `DependentSourceSet.lib` and `NativeBinary.lib`. All attributes are strings.
+    - Required attributes are: `library` (the library name)
+    - Optional attributes are: `project`, `linkage` (static, shared)
+- Create a lazy NativeDependencySet that can resolve the map of attributes, looking up the project if required.
 
-- When linking a native binary, link against exactly the same version of each library that we compiled against, plus any additional link-time dependencies (resources, for example).
-- When installing a native executable, also install exactly the same versions of each library that we linked against, plus any additional runtime dependencies.
+### Test cases
+
+- Dependency on library in same project
+- Dependency on library in a different project
+- Cycle between projects: A:mainExecutable -> B:library -> A:library
+- Dependency on library in a different project using configuration-on-demand
+- Failure cases where: project does not exist, library does not exist, invalid linkage
+
+## Story: Add hooks to allow the customization of the generated Visual Studio files
+
+- Expose `visualStudio` extension with `solutions` container of `VisualStudioSolution` and `projects` container of `VisualStudioProject`
+- Add `VisualStudioSolution.solutionFile.withText(Action<? super StringBuilder>)` to modify the solution files.
+- Add `VisualStudioProject.projectFile.withXml(Action<? super XmlProvider>)` and
+  `VisualStudioProject.filtersFile.withXml(Action<? super XmlProvider>)` to modify these files
+
+## Story: Create functional Visual Studio solution for multi-project build with multiple components
+
+- Change `VisualStudioProjectRegistry` so that it is responsible for locating a VisualStudioProjectConfiguration base on the NativeDependencySet,
+  rather that the resolved LibraryBinary.
+    - For project dependencies, delegate to the `VisualStudioProjectRegistry` in the depended-on project.
+    - Change `VisualStudioProject.projectFile` to return the path to the generated project file within the owning project
+    - When adding a reference to a dependent project to a `VisualStudioProject`, supply a key that can be used to resolve the project and the mapped component+flavor+linkage.
+- `VisualStudioProject` and `VisualStudioSolution` will need to deal with files rather than file names to be able to reference vs project files from other projects.
+- When creating a Visual Studio project for a native binary, create configurations for all buildable variants that differ only in `buildType` and `targetPlatform`.
+    - This prevents any problems where a partial graph will result in breaking existing solutions that use the same projects:
+      the same visual studio project is always produced given a particular native binary.
+    - If multiple platform variants would not be differentiated based on architecture (Visual Studio 'platform),
+      then include platform name in configuration name.
+- Visual studio project files will live with Gradle project that owns the relevant component.
+
+### Test Cases
+
+- Solution files for 2 executables that depend on different build types of the same shared library
+- All test cases for single project build should also function where components are in separate Gradle builds
+- Mixed multi-project with multiple components per project
+- Multi-project where :a:exe -> :b:lib1 -> :a:lib2 (Gradle project cycle)
+
+### Open Issues
+
+- Handle dependency cycles
+
+## Story: Include all macro definitions in Visual Studio project configuration
+
+Include both cppCompiler.define and `cppCompiler.args '/D...'`.
+
+## Story: Include all include paths in Visual Studio project configuration
+
+Include libraries define as source set dependencies, binary dependencies and values supplied via `cppCompiler.args '/I...'`.
+
+## Story: Component depends on API of native library
 
 ## Story: Expose only public header files for a library
 
