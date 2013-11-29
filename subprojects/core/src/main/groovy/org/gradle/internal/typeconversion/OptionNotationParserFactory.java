@@ -23,11 +23,7 @@ import java.util.Collection;
 import java.util.List;
 
 public class OptionNotationParserFactory {
-    public NotationParser<Object, Object> toComposite(Class<?> resultingType) {
-        return create(resultingType);
-    }
-
-    private NotationParser<Object, Object> create(Class<?> targetType) {
+    public NotationParser<String, Object> toComposite(Class<?> targetType) {
         assert targetType != null : "resultingType cannot be null";
         List<NotationParser<Object, ?>> parsers = new ArrayList<NotationParser<Object, ?>>();
 
@@ -46,7 +42,7 @@ public class OptionNotationParserFactory {
             // unavailable notationparser error or something like this
             throw new GradleException(String.format("resultingType '%s' not supported", targetType.getName()));
         }
-        return new CompositeNotationParser<Object, Object>(parsers);
+        return new CompositeNotationParser<String, Object>(parsers);
     }
 
     private class UnsupportedNotationParser implements NotationParser<Object, Object> {

@@ -30,7 +30,7 @@ abstract class AbstractOptionElement implements OptionElement {
     private final String optionName;
     private final String description;
     private final Class<?> optionType;
-    private final NotationParser<Object, Object> notationParser;
+    private final NotationParser<String, Object> notationParser;
 
     public AbstractOptionElement(String optionName, Option option, Class<?> optionType, Class<?> declaringClass) {
         this.description = readDescription(option, optionName, declaringClass);
@@ -39,7 +39,7 @@ abstract class AbstractOptionElement implements OptionElement {
         this.notationParser = createNotationParser(optionName, optionType, declaringClass);
     }
 
-    private NotationParser<Object, Object> createNotationParser(String optionName, Class<?> optionType, Class<?> declaringClass) {
+    private NotationParser<String, Object> createNotationParser(String optionName, Class<?> optionType, Class<?> declaringClass) {
         try {
             return new OptionNotationParserFactory().toComposite(optionType);
         } catch (Exception ex) {
@@ -88,7 +88,7 @@ abstract class AbstractOptionElement implements OptionElement {
         return description;
     }
 
-    protected NotationParser<Object, Object> getNotationParser() {
+    protected NotationParser<String, Object> getNotationParser() {
         return notationParser;
     }
 }
