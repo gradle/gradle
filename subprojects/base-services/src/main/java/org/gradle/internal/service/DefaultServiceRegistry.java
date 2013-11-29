@@ -18,8 +18,8 @@ package org.gradle.internal.service;
 import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.api.specs.Spec;
-import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.Factory;
+import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 
@@ -195,6 +195,10 @@ public class DefaultServiceRegistry implements ServiceRegistry {
         return new ServiceRegistration(){
             public <T> void add(Class<T> serviceType, T serviceInstance) {
                 DefaultServiceRegistry.this.add(serviceType, serviceInstance);
+            }
+
+            public void add(Class<?> serviceType) {
+                ownServices.add(new LazyInstanceService(serviceType));
             }
 
             public void addProvider(Object provider) {
@@ -651,6 +655,26 @@ public class DefaultServiceRegistry implements ServiceRegistry {
         @Override
         protected Object create() {
             throw new UnsupportedOperationException();
+        }
+    }
+
+    private static class LazyInstanceService extends SingletonService {
+        private LazyInstanceService(Class<?> serviceType) {
+            super(serviceType);
+        }
+
+        @Override
+        protected Object create() {
+            try {
+                // TODO: inject dependencies
+                return serviceClass.newInstance();
+            } catch (Exception e) {
+                throw new ServiceCreationException(String.format("Could not create service of type %s.", format(serviceType)), e);
+            }
+        }
+
+        public String getDisplayName() {
+            return String.format("Service %s", format(serviceType));
         }
     }
 

@@ -15,6 +15,7 @@
  */
 
 package org.gradle.api.publish.ivy.internal.publication
+
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.DependencyArtifact
 import org.gradle.api.artifacts.ModuleDependency
@@ -26,16 +27,13 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.component.Usage
 import org.gradle.api.internal.file.collections.SimpleFileCollection
-import org.gradle.internal.typeconversion.NotationParser
-import org.gradle.api.internal.plugins.ExtensionContainerInternal
-import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.publish.PublishingExtension
-import org.gradle.api.publish.internal.DefaultPublicationContainer
+import org.gradle.api.publish.internal.ProjectDependencyPublicationResolver
 import org.gradle.api.publish.internal.PublicationInternal
 import org.gradle.api.publish.ivy.IvyArtifact
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.internal.typeconversion.NotationParser
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import spock.lang.Shared
@@ -47,6 +45,7 @@ class DefaultIvyPublicationTest extends Specification {
     Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), new DirectInstantiator())
     def projectIdentity = Mock(IvyPublicationIdentity)
     def notationParser = Mock(NotationParser)
+    def projectDependencyResolver = Mock(ProjectDependencyPublicationResolver)
     File descriptorFile
     File artifactFile
 
@@ -140,25 +139,16 @@ class DefaultIvyPublicationTest extends Specification {
         }
     }
 
-    def "adopts dependency on project with single publications"() {
+    def "maps project dependency to ivy dependency"() {
         given:
         def publication = createPublication()
         def projectDependency = Mock(ProjectDependency)
-        def extensionContainer = Mock(ExtensionContainerInternal)
-        def publishingExtension = Mock(PublishingExtension)
-        def publications = new DefaultPublicationContainer(new DirectInstantiator())
-        publications.add(otherPublication("ivyPub1", "pub-org", "pub-module", "pub-revision"))
-
-        when:
-        projectDependency.configuration >> "dep-configuration"
-        projectDependency.artifacts >> []
-        projectDependency.dependencyProject >> Stub(ProjectInternal) {
-            getExtensions() >> extensionContainer
-        }
-        extensionContainer.findByType(PublishingExtension) >> publishingExtension
-        publishingExtension.publications >> publications
 
         and:
+        projectDependencyResolver.resolve(projectDependency) >> DefaultModuleVersionIdentifier.newId("pub-org", "pub-module", "pub-revision")
+        projectDependency.configuration >> "dep-configuration"
+
+        when:
         publication.from(componentWithDependency(projectDependency))
 
         then:
@@ -173,69 +163,6 @@ class DefaultIvyPublicationTest extends Specification {
             organisation == "pub-org"
             module == "pub-module"
             revision == "pub-revision"
-            confMapping == "runtime->dep-configuration"
-            artifacts == []
-        }
-    }
-
-    def "fails to resolve dependency on project with multiple publications"() {
-        given:
-        def publication = createPublication()
-        def projectDependency = Mock(ProjectDependency)
-        def extensionContainer = Mock(ExtensionContainerInternal)
-        def publishingExtension = Mock(PublishingExtension)
-        def publications = new DefaultPublicationContainer(new DirectInstantiator())
-        publications.add(otherPublication("ivyPub1", "pub-org", "pub-module", "pub-revision"))
-        publications.add(otherPublication("ivyPub2", "pub-org-2", "pub-module-2", "pub-revision-2"))
-
-        when:
-        projectDependency.configuration >> "dep-configuration"
-        projectDependency.artifacts >> []
-        projectDependency.dependencyProject >> Stub(ProjectInternal) {
-            getExtensions() >> extensionContainer
-        }
-        extensionContainer.findByType(PublishingExtension) >> publishingExtension
-        publishingExtension.publications >> publications
-
-        and:
-        publication.from(componentWithDependency(projectDependency))
-
-        then:
-        def e = thrown(UnsupportedOperationException)
-        e.message == "Publishing is not yet able to resolve a dependency on a project with multiple different publications."
-    }
-
-    def "adopts dependency on project without a publication"() {
-        given:
-        def publication = createPublication()
-        def projectDependency = Mock(ProjectDependency)
-        def extensionContainer = Mock(ExtensionContainerInternal)
-
-        when:
-        projectDependency.group >> "dep-group"
-        projectDependency.name >> "dep-name-1"
-        projectDependency.version >> "dep-version"
-        projectDependency.configuration >> "dep-configuration"
-        projectDependency.dependencyProject >> Stub(ProjectInternal) {
-            getExtensions() >> extensionContainer
-            getName() >> "project-name"
-        }
-        projectDependency.artifacts >> []
-        extensionContainer.findByType(PublishingExtension) >> null
-
-        and:
-        publication.from(componentWithDependency(projectDependency))
-
-        then:
-        publication.publishableFiles.files == [descriptorFile] as Set
-        publication.artifacts.empty
-
-        and:
-        publication.dependencies.size() == 1
-        with (publication.dependencies.asList().first()) {
-            organisation == "dep-group"
-            module == "project-name"
-            revision == "dep-version"
             confMapping == "runtime->dep-configuration"
             artifacts == []
         }
@@ -329,7 +256,7 @@ class DefaultIvyPublicationTest extends Specification {
     }
 
     def createPublication() {
-        def publication = instantiator.newInstance(DefaultIvyPublication, "pub-name", instantiator, projectIdentity, notationParser)
+        def publication = instantiator.newInstance(DefaultIvyPublication, "pub-name", instantiator, projectIdentity, notationParser, projectDependencyResolver)
         publication.setDescriptorFile(new SimpleFileCollection(descriptorFile))
         return publication;
     }

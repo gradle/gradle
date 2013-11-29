@@ -509,6 +509,7 @@ class DefaultServiceRegistryTest extends Specification {
         given:
         registry.register({ ServiceRegistration registration ->
             registration.add(Number, 12)
+            registration.add(StringBuilder)
             registration.addProvider(new Object() {
                 String createString() {
                     return "hi"
@@ -518,6 +519,7 @@ class DefaultServiceRegistryTest extends Specification {
 
         expect:
         registry.get(Number) == 12
+        registry.get(StringBuilder).length() == 0
         registry.get(String) == "hi"
     }
 
@@ -565,6 +567,19 @@ class DefaultServiceRegistryTest extends Specification {
         ServiceLookupException e = thrown()
         e.message == 'Could not configure services using BrokenConfigureProvider.configure().'
         e.cause == BrokenConfigureProvider.failure
+    }
+
+    def failsWhenCannotCreateServiceInstanceFromImplementationClass() {
+        given:
+        registry.register({ registration -> registration.add(ClassWithBrokenConstructor)} as Action)
+
+        when:
+        registry.get(ClassWithBrokenConstructor)
+
+        then:
+        ServiceCreationException e = thrown()
+        e.message == 'Could not create service of type ClassWithBrokenConstructor.'
+        e.cause == ClassWithBrokenConstructor.failure
     }
 
     def canGetAllServicesOfAGivenType() {
@@ -768,6 +783,18 @@ class DefaultServiceRegistryTest extends Specification {
 
         then:
         noExceptionThrown()
+    }
+
+    def closeInvokesCloseMethodOnEachServiceCreatedFromImplementationClass() {
+        given:
+        registry.register({ registration -> registration.add(ClosableService)} as Action)
+        def service = registry.get(ClosableService)
+
+        when:
+        registry.close()
+
+        then:
+        service.closed
     }
 
     def closeInvokesCloseMethodOnEachServiceCreatedByProviderFactoryMethod() {
@@ -1156,5 +1183,21 @@ class DefaultServiceRegistryTest extends Specification {
 
     public interface ClosableServiceRegistry extends ServiceRegistry {
         void close()
+    }
+
+    static class ClassWithBrokenConstructor {
+        static def failure = new RuntimeException("broken")
+
+        ClassWithBrokenConstructor() {
+            throw failure
+        }
+    }
+
+    static class ClosableService {
+        boolean closed
+
+        void close() {
+            closed = true
+        }
     }
 }

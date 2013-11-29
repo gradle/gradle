@@ -52,13 +52,16 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     private final MavenProjectIdentity projectIdentity;
     private final DefaultMavenArtifactSet mavenArtifacts;
     private final Set<MavenDependencyInternal> runtimeDependencies = new LinkedHashSet<MavenDependencyInternal>();
+    private final ProjectDependencyPublicationResolver projectDependencyResolver;
     private FileCollection pomFile;
     private SoftwareComponentInternal component;
 
     public DefaultMavenPublication(
-            String name, MavenProjectIdentity projectIdentity, NotationParser<Object, MavenArtifact> mavenArtifactParser, Instantiator instantiator
+            String name, MavenProjectIdentity projectIdentity, NotationParser<Object, MavenArtifact> mavenArtifactParser, Instantiator instantiator,
+            ProjectDependencyPublicationResolver projectDependencyResolver
     ) {
         this.name = name;
+        this.projectDependencyResolver = projectDependencyResolver;
         this.projectIdentity = new DefaultMavenProjectIdentity(projectIdentity.getGroupId(), projectIdentity.getArtifactId(), projectIdentity.getVersion());
         mavenArtifacts = instantiator.newInstance(DefaultMavenArtifactSet.class, name, mavenArtifactParser);
         pom = instantiator.newInstance(DefaultMavenPom.class, this);
@@ -105,7 +108,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     }
 
     private void addProjectDependency(ProjectDependency dependency) {
-        ModuleVersionIdentifier identifier = new ProjectDependencyPublicationResolver().resolve(dependency);
+        ModuleVersionIdentifier identifier = projectDependencyResolver.resolve(dependency);
         runtimeDependencies.add(new DefaultMavenDependency(identifier.getGroup(), identifier.getName(), identifier.getVersion()));
     }
 
