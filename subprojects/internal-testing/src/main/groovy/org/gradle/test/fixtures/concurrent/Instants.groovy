@@ -24,7 +24,12 @@ class Instants implements InstantFactory, TestThreadListener, OperationListener 
     private final Object lock = new Object()
     private final Map<String, NamedInstant> timePoints = [:]
     private final Set<Thread> testThreads = new HashSet<Thread>()
+    private final TestLogger logger
     private int operations
+
+    Instants(TestLogger logger) {
+        this.logger = logger
+    }
 
     @Override
     String toString() {
@@ -61,7 +66,7 @@ class Instants implements InstantFactory, TestThreadListener, OperationListener 
         long expiry = System.currentTimeMillis() + 12000;
         synchronized (lock) {
             while (!timePoints.containsKey(name) && System.currentTimeMillis() < expiry) {
-                println "* ${Thread.currentThread().name} waiting for instant '$name' ..."
+                logger.log "waiting for instant '$name' ..."
                 if (testThreads.empty && operations == 0) {
                     throw new IllegalStateException("Cannot wait for instant '$name', as it has not been defined and no test threads are currently running.")
                 }
@@ -108,7 +113,7 @@ class Instants implements InstantFactory, TestThreadListener, OperationListener 
             time = new NamedInstant(name, now, timePoints.size())
             timePoints[name] = time
             lock.notifyAll()
-            println "* ${Thread.currentThread().name} instant $name reached"
+            logger.log "instant '$name' reached"
             return time
         }
     }
