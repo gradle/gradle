@@ -159,6 +159,20 @@ class OptionReaderTest extends Specification {
         e.message == "No setter for Option annotated field 'field' in class 'class org.gradle.api.internal.tasks.options.OptionReaderTest\$TestClass10'."
     }
 
+    def "throws decent error for invalid OptionValues annotated methods"() {
+        when:
+        reader.getOptions(new WithInvalidSomeOptionMethod());
+        then:
+        def e = thrown(OptionValidationException)
+        e.message == "OptionValues annotation not supported on method 'getValues' in class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$WithInvalidSomeOptionMethod'. Supported method must be non static, return Collection and take no parameters.";
+
+        when:
+        reader.getOptions(new TestClass8());
+        then:
+        e = thrown(OptionValidationException)
+        e.message == "No description set on option 'field' at for class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$TestClass8'."
+    }
+
     public static class TestClass1{
         @Option(option = "stringValue", description = "string value")
         public void setStringValue(String value) {
@@ -267,6 +281,30 @@ class OptionReaderTest extends Specification {
     public static class TestClass10{
         @Option(description = "some description")
         private String field
+    }
+
+    public static class WithInvalidSomeOptionMethod {
+        @OptionValues("someOption")
+        List<String> getValues(String someParam) { return Arrays.asList("something")}
+    }
+
+    public static class WithDuplicateSomeOptions {
+        @OptionValues("someOption")
+        List<String> getValues() { return Arrays.asList("something")}
+
+        @OptionValues("someOption")
+        List<String> getValues2() { return Arrays.asList("somethingElse")}
+    }
+
+    public static class WithAnnotatedStaticMethod {
+        @OptionValues("someOption")
+        static List<String> getValues(String someParam) { return Arrays.asList("something")}
+    }
+
+
+    public class SomeOptionValues{
+        @OptionValues("someOption")
+        List<String> getValues() { return Arrays.asList("something")}
     }
 
     enum TestEnum {

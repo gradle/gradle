@@ -25,7 +25,7 @@ import java.util.List;
 public class OptionNotationParserFactory {
     public NotationParser<String, Object> toComposite(Class<?> targetType) {
         assert targetType != null : "resultingType cannot be null";
-        List<NotationParser<String, Object>> parsers = new ArrayList<NotationParser<String, Object>>();
+        List<NotationParser<Object, ?>> parsers = new ArrayList<NotationParser<Object, ?>>();
 
         if (targetType == Void.TYPE) {
             parsers.add(new UnsupportedNotationParser());
@@ -43,8 +43,8 @@ public class OptionNotationParserFactory {
         return new CompositeNotationParser<String, Object>(parsers);
     }
 
-    private class UnsupportedNotationParser implements NotationParser<String, Object> {
-        public Object parseNotation(String notation) throws UnsupportedNotationException, TypeConversionException {
+    private class UnsupportedNotationParser implements NotationParser<Object, Object> {
+        public Object parseNotation(Object notation) throws UnsupportedNotationException, TypeConversionException {
             throw new UnsupportedOperationException();
         }
 
@@ -52,13 +52,12 @@ public class OptionNotationParserFactory {
         }
     }
 
-    private class NoDescriptionJustReturningParser extends JustReturningParser<String, Object> {
+    private class NoDescriptionJustReturningParser extends JustReturningParser<Object, Object> {
         public NoDescriptionJustReturningParser(Class<?> targetType) {
             super(targetType);
         }
 
         public void describe(Collection<String> candidateFormats) {
-
         }
     }
 }

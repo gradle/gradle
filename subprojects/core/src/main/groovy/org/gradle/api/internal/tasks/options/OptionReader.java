@@ -18,6 +18,8 @@ package org.gradle.api.internal.tasks.options;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
+import org.gradle.internal.reflect.JavaMethod;
+import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.util.CollectionUtils;
 
 import java.lang.reflect.Field;
@@ -27,23 +29,26 @@ import java.util.*;
 
 public class OptionReader {
 
-    private ListMultimap<Class, OptionElement> cachedStaticClassDescriptors = ArrayListMultimap.create();
+    private ListMultimap<Class, OptionElement> cachedOptionElements = ArrayListMultimap.create();
+    private Map<OptionElement, JavaMethod<Object, Collection>> cachedOptionValueMethods = new HashMap<OptionElement, JavaMethod<Object, Collection>>();
     OptionNotationParserFactory optionNotationParserFactory = new OptionNotationParserFactory();
 
     public List<OptionDescriptor> getOptions(Object target) {
         final Class<?> targetClass = target.getClass();
         Map<String, OptionDescriptor> options = new HashMap<String, OptionDescriptor>();
-        if (!cachedStaticClassDescriptors.containsKey(targetClass)) {
+        if (!cachedOptionElements.containsKey(targetClass)) {
             loadClassDescriptorInCache(target);
         }
-        for (OptionElement optionElement : cachedStaticClassDescriptors.get(targetClass)) {
-            options.put(optionElement.getOptionName(), new InstanceOptionDescriptor(target, optionElement));
+        for (OptionElement optionElement : cachedOptionElements.get(targetClass)) {
+            JavaMethod<Object, Collection> optionValueMethod = cachedOptionValueMethods.get(optionElement);
+            options.put(optionElement.getOptionName(), new InstanceOptionDescriptor(target, optionElement, optionValueMethod));
         }
         return CollectionUtils.sort(options.values());
     }
 
     private void loadClassDescriptorInCache(Object target) {
         final Collection<OptionElement> optionElements = getOptionElements(target);
+        List<JavaMethod<Object, Collection>> optionValueMethods = loadValueMethodForOption(target.getClass());
         Set<String> processedOptionElements = new HashSet<String>();
         for (OptionElement optionElement : optionElements) {
             if (processedOptionElements.contains(optionElement.getOptionName())) {
@@ -51,8 +56,29 @@ public class OptionReader {
                         optionElement.getOptionName(), target.getClass().getName()));
             }
             processedOptionElements.add(optionElement.getOptionName());
-            cachedStaticClassDescriptors.put(target.getClass(), optionElement);
+            JavaMethod<Object, Collection> optionValueMethodForOption = getOptionValueMethodForOption(optionValueMethods, optionElement);
+
+            cachedOptionElements.put(target.getClass(), optionElement);
+            cachedOptionValueMethods.put(optionElement, optionValueMethodForOption);
         }
+    }
+
+    private static JavaMethod<Object, Collection> getOptionValueMethodForOption(List<JavaMethod<Object, Collection>> optionValueMethods, OptionElement optionElement) {
+        JavaMethod<Object, Collection> valueMethod = null;
+        for (JavaMethod<Object, Collection> optionValueMethod : optionValueMethods) {
+            OptionValues optionValues = optionValueMethod.getMethod().getAnnotation(OptionValues.class);
+            if (CollectionUtils.toList(optionValues.value()).contains(optionElement.getOptionName())) {
+                            if (valueMethod == null) {
+                                valueMethod = optionValueMethod;
+                            } else {
+                                throw new OptionValidationException(
+                                        String.format("OptionValues for '%s' cannot be attached to multiple methods in class '%s'.",
+                                                optionElement.getOptionName(),
+                                                optionValueMethod.getMethod().getDeclaringClass().getName()));
+                            }
+                        }
+        }
+        return valueMethod;
     }
 
     private Collection<OptionElement> getOptionElements(Object target) {
@@ -61,6 +87,7 @@ public class OptionReader {
             allOptionElements.addAll(getMethodAnnotations(type));
             allOptionElements.addAll(getFieldAnnotations(type));
         }
+
         return allOptionElements;
     }
 
@@ -95,4 +122,28 @@ public class OptionReader {
         }
         return methodOptionElements;
     }
+
+    private static List<JavaMethod<Object, Collection>> loadValueMethodForOption(Class<?> declaredClass) {
+        List<JavaMethod<Object, Collection>> methods = new ArrayList<JavaMethod<Object, Collection>>();
+        for (Class<?> type = declaredClass; type != Object.class && type != null; type = type.getSuperclass()) {
+            for (Method method : type.getDeclaredMethods()) {
+                OptionValues optionValues = method.getAnnotation(OptionValues.class);
+                if (optionValues != null) {
+                    if (Collection.class.isAssignableFrom(method.getReturnType())
+                            && method.getParameterTypes().length == 0
+                            && !Modifier.isStatic(method.getModifiers())) {
+
+                        methods.add(JavaReflectionUtil.method(Object.class, Collection.class, method));
+                    } else {
+                        throw new OptionValidationException(
+                                String.format("OptionValues annotation not supported on method '%s' in class '%s'. Supported method must be non static, return Collection and take no parameters.",
+                                        method.getName(),
+                                        type.getName()));
+                    }
+                }
+            }
+        }
+        return methods;
+    }
+
 }

@@ -31,11 +31,11 @@ abstract class AbstractOptionElement implements OptionElement {
     private final Class<?> optionType;
     private final NotationParser<String, Object> notationParser;
 
-    public AbstractOptionElement(String optionName, Option option, Class<?> optionType, Class<?> declaringClass, NotationParser notationParser) {
+    public AbstractOptionElement(String optionName, Option option, Class<?> optionType, Class<?> declaringClass, NotationParser<String, Object> notationParser) {
         this.description = readDescription(option, optionName, declaringClass);
         this.optionName = optionName;
         this.optionType = optionType;
-		this.notationParser = notationParser;
+        this.notationParser = notationParser;
     }
 
     public List<String> getAvailableValues() {
@@ -93,4 +93,6 @@ abstract class AbstractOptionElement implements OptionElement {
             return type;
         }
     }
+
+
 }
