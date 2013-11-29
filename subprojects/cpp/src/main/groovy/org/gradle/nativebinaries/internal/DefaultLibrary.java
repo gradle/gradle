@@ -23,7 +23,11 @@ import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.HeaderExportingSourceSet;
-import org.gradle.nativebinaries.*;
+import org.gradle.nativebinaries.Library;
+import org.gradle.nativebinaries.SharedLibraryBinary;
+import org.gradle.nativebinaries.StaticLibraryBinary;
+import org.gradle.nativebinaries.internal.resolve.DirectLibraryDependency;
+import org.gradle.nativebinaries.NativeLibraryDependency;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,12 +50,12 @@ public class DefaultLibrary extends DefaultNativeComponent implements Library {
         return headers;
     }
 
-    public ContextualLibraryResolver getShared() {
-        return new DefaultLibraryResolver(this).withType(SharedLibraryBinary.class);
+    public NativeLibraryDependency getShared() {
+        return new DirectLibraryDependency(this, SharedLibraryBinary.class);
     }
 
-    public ContextualLibraryResolver getStatic() {
-        return new DefaultLibraryResolver(this).withType(StaticLibraryBinary.class);
+    public NativeLibraryDependency getStatic() {
+        return new DirectLibraryDependency(this, StaticLibraryBinary.class);
     }
 
     private void initExportedHeaderTracking() {

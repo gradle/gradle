@@ -13,20 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.nativebinaries.internal.resolve;
 
-package org.gradle.nativebinaries;
+import org.gradle.nativebinaries.NativeBinary;
+import org.gradle.nativebinaries.NativeDependencySet;
 
-import org.gradle.api.Incubating;
+import java.util.Collection;
 
-// TODO:DAZ Needs a better name
-/**
- * Resolves a library to a single binary to use as a dependency.
- */
-@Incubating
-public interface LibraryResolver {
-
-    /**
-     * Resolves the library to a dependency set.
-     */
-    NativeDependencySet resolve();
+public interface NativeDependencyResolver {
+    Collection<NativeDependencySet> resolve(NativeBinary target, Collection<?> libs);
 }

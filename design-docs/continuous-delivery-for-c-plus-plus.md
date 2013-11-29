@@ -850,6 +850,12 @@ Here's an example:
     - Optional attributes are: `project`, `linkage` (static, shared)
 - Create a lazy NativeDependencySet that can resolve the map of attributes, looking up the project if required.
 
+### User visible changes
+
+    sources.main.cpp.lib library: 'sameProjectLib'
+    sources.main.cpp.lib project: ':projectLib', library: 'mylib'
+    sources.main.cpp.lib project: ':projectLib', library: 'myStaticLib', linkage: 'static'
+
 ### Test cases
 
 - Dependency on library in same project

@@ -19,6 +19,7 @@ package org.gradle.ide.visualstudio.internal
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.nativebinaries.*
 import org.gradle.nativebinaries.internal.*
+import org.gradle.nativebinaries.internal.resolve.LibraryNativeDependencySet
 import spock.lang.Specification
 
 class VisualStudioProjectRegistryTest extends Specification {

@@ -24,14 +24,14 @@ public class ExeWithLibraryUsingLibraryHelloWorldApp extends HelloWorldApp {
         getExecutable().writeSources(mainSourceDir)
         getLibrary().writeSources(librarySourceDir)
         getGreetingsHeader().writeToDir(greetingsLibrarySourceDir);
-        for (SourceFile sourceFile : getGreetingsSources()) {
+        for (SourceFile sourceFile : greetingsSources) {
             sourceFile.writeToDir(greetingsLibrarySourceDir);
         }
     }
 
     @Override
     String getEnglishOutput() {
-        return HELLO_WORLD + "\n" + HELLO_WORLD
+        return HELLO_WORLD + " " + HELLO_WORLD
     }
 
     @Override

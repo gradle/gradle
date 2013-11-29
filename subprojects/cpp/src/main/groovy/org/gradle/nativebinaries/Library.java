@@ -31,10 +31,10 @@ public interface Library extends NativeComponent {
     /**
      * Converts this library to a native dependency that uses the shared library variant. This is the default.
      */
-    LibraryResolver getShared();
+    NativeLibraryDependency getShared();
 
     /**
      * Converts this library to a native dependency that uses the static library variant.
      */
-    LibraryResolver getStatic();
+    NativeLibraryDependency getStatic();
 }

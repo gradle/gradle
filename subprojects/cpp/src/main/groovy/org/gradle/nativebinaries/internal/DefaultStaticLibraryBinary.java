@@ -23,6 +23,8 @@ import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.language.base.internal.DefaultBinaryNamingScheme;
 import org.gradle.nativebinaries.*;
+import org.gradle.nativebinaries.internal.resolve.LibraryNativeDependencySet;
+import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
 
 import java.io.File;
 import java.util.*;
@@ -31,8 +33,9 @@ public class DefaultStaticLibraryBinary extends DefaultLibraryBinary implements 
     private final DefaultTool staticLibArchiver = new DefaultTool();
     private final List<FileCollection> additionalLinkFiles = new ArrayList<FileCollection>();
 
-    public DefaultStaticLibraryBinary(Library library, Flavor flavor, ToolChainInternal toolChain, Platform platform, BuildType buildType, DefaultBinaryNamingScheme namingScheme) {
-        super(library, flavor, toolChain, platform, buildType, namingScheme.withTypeString("StaticLibrary"));
+    public DefaultStaticLibraryBinary(Library library, Flavor flavor, ToolChainInternal toolChain, Platform platform, BuildType buildType,
+                                      DefaultBinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
+        super(library, flavor, toolChain, platform, buildType, namingScheme.withTypeString("StaticLibrary"), resolver);
     }
 
     public String getOutputFileName() {

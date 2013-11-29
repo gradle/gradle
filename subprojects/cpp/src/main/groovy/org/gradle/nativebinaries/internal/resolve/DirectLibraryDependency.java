@@ -13,12 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.nativebinaries.internal.resolve;
 
-package org.gradle.nativebinaries.internal;
-
+import org.gradle.nativebinaries.Library;
 import org.gradle.nativebinaries.LibraryBinary;
-import org.gradle.nativebinaries.NativeDependencySet;
+import org.gradle.nativebinaries.NativeLibraryDependency;
 
-public interface LibraryNativeDependencySet extends NativeDependencySet {
-    LibraryBinary getLibraryBinary();
+public class DirectLibraryDependency implements NativeLibraryDependency {
+    private final Library library;
+    private final Class<? extends LibraryBinary> type;
+
+    public DirectLibraryDependency(Library library, Class<? extends LibraryBinary> type) {
+        this.library = library;
+        this.type = type;
+    }
+
+    public Library getLibrary() {
+        return library;
+    }
+
+    public Class<? extends LibraryBinary> getType() {
+        return type;
+    }
 }

@@ -26,9 +26,13 @@ import org.gradle.language.base.internal.AbstractBuildableModelElement;
 import org.gradle.language.base.internal.BinaryNamingScheme;
 import org.gradle.language.base.internal.DefaultBinaryNamingScheme;
 import org.gradle.nativebinaries.*;
+import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
 
 import java.io.File;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 public abstract class DefaultNativeBinary extends AbstractBuildableModelElement implements NativeBinaryInternal {
     private final NotationParser<Object, Set<LanguageSourceSet>> sourcesNotationParser = SourceSetNotationParser.parser();
@@ -41,16 +45,19 @@ public abstract class DefaultNativeBinary extends AbstractBuildableModelElement 
     private final ToolChainInternal toolChain;
     private final Platform targetPlatform;
     private final BuildType buildType;
+    private final NativeDependencyResolver resolver;
     private File outputFile;
     private boolean buildable;
 
-    protected DefaultNativeBinary(NativeComponent owner, Flavor flavor, ToolChainInternal toolChain, Platform targetPlatform, BuildType buildType, DefaultBinaryNamingScheme namingScheme) {
+    protected DefaultNativeBinary(NativeComponent owner, Flavor flavor, ToolChainInternal toolChain, Platform targetPlatform, BuildType buildType,
+                                  DefaultBinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
         this.namingScheme = namingScheme;
         this.flavor = flavor;
         this.toolChain = toolChain;
         this.targetPlatform = targetPlatform;
         this.buildType = buildType;
         this.buildable = true;
+        this.resolver = resolver;
         owner.getSource().all(new Action<LanguageSourceSet>() {
             public void execute(LanguageSourceSet sourceSet) {
                 source.add(sourceSet);
@@ -125,7 +132,7 @@ public abstract class DefaultNativeBinary extends AbstractBuildableModelElement 
         for (DependentSourceSet dependentSourceSet : sourceSets) {
             allLibs.addAll(dependentSourceSet.getLibs());
         }
-        return new NativeDependencyResolver().resolve(this, allLibs);
+        return resolver.resolve(this, allLibs);
     }
 
     public void lib(Object notation) {

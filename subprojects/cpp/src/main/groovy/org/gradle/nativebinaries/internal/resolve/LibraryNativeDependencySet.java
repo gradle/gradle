@@ -14,21 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries;
+package org.gradle.nativebinaries.internal.resolve;
 
-import org.gradle.api.Incubating;
-import org.gradle.nativebinaries.internal.resolve.LibraryNativeDependencySet;
+import org.gradle.nativebinaries.LibraryBinary;
+import org.gradle.nativebinaries.NativeDependencySet;
 
-/**
- * A physical representation of a {@link Library} component.
- */
-@Incubating
-public interface LibraryBinary extends NativeBinary {
-    /**
-     * The Library that this binary represents.
-     */
-    Library getComponent();
-
-    LibraryNativeDependencySet resolve();
-
+public interface LibraryNativeDependencySet extends NativeDependencySet {
+    LibraryBinary getLibraryBinary();
 }

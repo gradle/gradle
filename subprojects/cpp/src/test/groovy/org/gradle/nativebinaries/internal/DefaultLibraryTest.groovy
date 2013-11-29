@@ -16,10 +16,8 @@
 
 package org.gradle.nativebinaries.internal
 
-import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.nativebinaries.NativeDependencySet
 import org.gradle.nativebinaries.SharedLibraryBinary
 import org.gradle.nativebinaries.StaticLibraryBinary
 import spock.lang.Specification
@@ -34,29 +32,11 @@ class DefaultLibraryTest extends Specification {
 
     def "can use shared and static variants as dependencies"() {
         def library = new DefaultLibrary("someLib", new DirectInstantiator(), Stub(FileResolver))
-        def sharedLinkFiles = Stub(FileCollection)
-        def staticLinkFiles = Stub(FileCollection)
-        def sharedDependency = Stub(NativeDependencySet)
-        def staticDependency = Stub(NativeDependencySet)
-        def sharedBinary = Stub(SharedLibraryBinary) {
-            getFlavor() >> new DefaultFlavor("default")
-        }
-        def staticBinary = Stub(StaticLibraryBinary) {
-            getFlavor() >> new DefaultFlavor("default")
-        }
-
-        given:
-        library.binaries.add(sharedBinary)
-        library.binaries.add(staticBinary)
-
-        and:
-        sharedDependency.linkFiles >> sharedLinkFiles
-        staticDependency.linkFiles >> staticLinkFiles
-        sharedBinary.resolve() >> sharedDependency
-        staticBinary.resolve() >> staticDependency
 
         expect:
-        library.shared.resolve().linkFiles == sharedLinkFiles
-        library.static.resolve().linkFiles == staticLinkFiles
+        library.shared.library == library
+        library.shared.type == SharedLibraryBinary
+        library.static.library == library
+        library.static.type == StaticLibraryBinary
     }
 }

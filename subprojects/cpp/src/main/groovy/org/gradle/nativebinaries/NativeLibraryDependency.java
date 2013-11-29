@@ -13,19 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.nativebinaries;
 
-package org.gradle.nativebinaries.internal;
+/**
+ * A dependency on a native-binaries library.
+ */
+public interface NativeLibraryDependency {
+    /**
+     * Resolve the depended-on library.
+     */
+    Library getLibrary();
 
-import org.gradle.nativebinaries.*;
-
-public interface ContextualLibraryResolver extends LibraryResolver {
-    ContextualLibraryResolver withType(Class<? extends LibraryBinary> type);
-
-    ContextualLibraryResolver withFlavor(Flavor flavor);
-
-    ContextualLibraryResolver withToolChain(ToolChain toolChain);
-
-    ContextualLibraryResolver withPlatform(Platform platform);
-
-    ContextualLibraryResolver withBuildType(BuildType buildType);
+    /**
+     * The type of the resolved binary.
+     */
+    Class<? extends LibraryBinary> getType();
 }

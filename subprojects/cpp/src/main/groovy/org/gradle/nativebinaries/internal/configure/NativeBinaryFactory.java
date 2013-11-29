@@ -17,22 +17,28 @@
 package org.gradle.nativebinaries.internal.configure;
 
 import org.gradle.api.Project;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.internal.DefaultBinaryNamingScheme;
 import org.gradle.nativebinaries.*;
 import org.gradle.nativebinaries.internal.*;
+import org.gradle.nativebinaries.internal.resolve.DefaultNativeDependencyResolver;
+import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
 
 import java.io.File;
-import java.util.*;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.Set;
 
 class NativeBinaryFactory {
     private final Instantiator instantiator;
-    private final Project project;
+    private final ProjectInternal project;
     private final Set<Platform> allPlatforms = new LinkedHashSet<Platform>();
     private final Set<BuildType> allBuildTypes = new LinkedHashSet<BuildType>();
     private final Set<Flavor> allFlavors = new LinkedHashSet<Flavor>();
 
-    public NativeBinaryFactory(Instantiator instantiator, Project project, Collection<? extends Platform> allPlatforms,
+    public NativeBinaryFactory(Instantiator instantiator, ProjectInternal project, Collection<? extends Platform> allPlatforms,
                                Collection<? extends BuildType> allBuildTypes, Collection<? extends Flavor> allFlavors) {
         this.instantiator = instantiator;
         this.project = project;
@@ -53,8 +59,9 @@ class NativeBinaryFactory {
     }
 
     public <T extends DefaultNativeBinary> T createNativeBinary(Class<T> type, NativeComponent component, ToolChain toolChain, Platform platform, BuildType buildType, Flavor flavor) {
+        NativeDependencyResolver resolver = new DefaultNativeDependencyResolver(project);
         DefaultBinaryNamingScheme namingScheme = createNamingScheme(component, platform, buildType, flavor);
-        T nativeBinary = instantiator.newInstance(type, component, flavor, toolChain, platform, buildType, namingScheme);
+        T nativeBinary = instantiator.newInstance(type, component, flavor, toolChain, platform, buildType, namingScheme, resolver);
         setupDefaults(project, nativeBinary);
         component.getBinaries().add(nativeBinary);
         return nativeBinary;

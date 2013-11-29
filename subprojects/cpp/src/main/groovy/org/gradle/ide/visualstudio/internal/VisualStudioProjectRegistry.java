@@ -18,7 +18,7 @@ package org.gradle.ide.visualstudio.internal;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.nativebinaries.*;
-import org.gradle.nativebinaries.internal.LibraryNativeDependencySet;
+import org.gradle.nativebinaries.internal.resolve.LibraryNativeDependencySet;
 import org.gradle.nativebinaries.internal.NativeComponentInternal;
 import org.gradle.util.CollectionUtils;
 

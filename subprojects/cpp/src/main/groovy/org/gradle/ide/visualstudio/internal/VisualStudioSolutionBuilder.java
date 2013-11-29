@@ -18,7 +18,7 @@ package org.gradle.ide.visualstudio.internal;
 import org.gradle.nativebinaries.LibraryBinary;
 import org.gradle.nativebinaries.NativeBinary;
 import org.gradle.nativebinaries.NativeDependencySet;
-import org.gradle.nativebinaries.internal.LibraryNativeDependencySet;
+import org.gradle.nativebinaries.internal.resolve.LibraryNativeDependencySet;
 import org.gradle.nativebinaries.internal.NativeBinaryInternal;
 
 public class VisualStudioSolutionBuilder {

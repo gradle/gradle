@@ -15,13 +15,13 @@
  */
 
 package org.gradle.nativebinaries.internal
-
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.DependentSourceSet
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.internal.DefaultBinaryNamingScheme
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet
 import org.gradle.nativebinaries.*
+import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver
 import spock.lang.Specification
 
 class DefaultNativeBinaryTest extends Specification {
@@ -36,6 +36,7 @@ class DefaultNativeBinaryTest extends Specification {
     def buildType1 = Stub(BuildType) {
         getName() >> "BuildType1"
     }
+    def resolver = Mock(NativeDependencyResolver)
 
     def "binary uses source from its owner component"() {
         given:
@@ -72,65 +73,31 @@ class DefaultNativeBinaryTest extends Specification {
         binary.source.contains(sourceSet2)
     }
 
-    def "can add a resolved library as a dependency of the binary"() {
+    def "uses resolver to resolve lib to dependency"() {
         def binary = testBinary(component, flavor1)
-        def library = Mock(Library)
-        def resolver = Mock(ContextualLibraryResolver)
-        def dependency = Stub(NativeDependencySet)
-
-        given:
-        library.shared >> resolver
-        resolver.withFlavor(flavor1) >> resolver
-        resolver.withToolChain(toolChain1) >> resolver
-        resolver.withPlatform(platform1) >> resolver
-        resolver.withBuildType(buildType1) >> resolver
-        resolver.resolve() >> dependency
-
-        when:
-        binary.lib(library)
-
-        then:
-        binary.libs.size() == 1
-        binary.libs.contains(dependency)
-    }
-
-    def "can add a library binary as a dependency of the binary"() {
-        def binary = testBinary(component)
-        def dependency = Stub(NativeDependencySet)
-        def libraryBinary = Mock(LibraryBinary)
-
-        given:
-        libraryBinary.resolve() >> dependency
-
-        when:
-        binary.lib(libraryBinary)
-
-        then:
-        binary.libs.size() == 1
-        binary.libs.contains(dependency)
-    }
-
-    def "can add a native dependency as a dependency of the binary"() {
-        def binary = testBinary(component)
+        def lib = Mock(Object)
         def dependency = Stub(NativeDependencySet)
 
         when:
-        binary.lib(dependency)
+        binary.lib(lib)
+        1 * resolver.resolve(binary, {it as List == [lib]} as Set) >> [dependency]
 
         then:
-        binary.libs.size() == 1
-        binary.libs.contains(dependency)
+        binary.libs == [dependency]
     }
 
     def "binary libs include source set dependencies"() {
         def binary = testBinary(component)
+        def lib = new Object()
         def dependency = Stub(NativeDependencySet)
 
         when:
         def sourceSet = Stub(DependentSourceSet) {
-            getLibs() >> [dependency]
+            getLibs() >> [lib]
         }
         binary.source sourceSet
+
+        2 * resolver.resolve(binary, {it as List == [lib]} as Set) >> [dependency]
 
         then:
         binary.libs == [dependency]
@@ -139,20 +106,18 @@ class DefaultNativeBinaryTest extends Specification {
 
     def "order of libraries is maintained"() {
         def binary = testBinary(component)
+        def libraryBinary = Mock(LibraryBinary)
         def dependency1 = Stub(NativeDependencySet)
         def dependency2 = Stub(NativeDependencySet)
         def dependency3 = Stub(NativeDependencySet)
 
         when:
         binary.lib(dependency1)
-
-        and:
-        def libraryBinary = Mock(LibraryBinary)
-        libraryBinary.resolve() >> dependency2
         binary.lib(libraryBinary)
+        binary.lib(dependency3)
 
         and:
-        binary.lib(dependency3)
+        resolver.resolve(binary, {it as List == [dependency1, libraryBinary, dependency3]} as Set) >> [dependency1, dependency2, dependency3]
 
         then:
         binary.libs as List == [dependency1, dependency2, dependency3]
@@ -160,34 +125,37 @@ class DefaultNativeBinaryTest extends Specification {
 
     def "library added to binary is ordered before library for source set"() {
         def binary = testBinary(component)
-        def lib1 = Stub(NativeDependencySet)
-        def lib2 = Stub(NativeDependencySet)
-        def sourceLib = Stub(NativeDependencySet)
+        def lib1 = new Object()
+        def dep1 = Stub(NativeDependencySet)
+        def lib2 = new Object()
+        def dep2 = Stub(NativeDependencySet)
+        def sourceLib = new Object()
+        def sourceDep = Stub(NativeDependencySet)
 
         when:
         binary.lib(lib1)
-
-        and:
         def sourceSet = Stub(DependentSourceSet) {
             getLibs() >> [sourceLib]
         }
         binary.source sourceSet
-
-        and:
         binary.lib(lib2)
 
+        and:
+        resolver.resolve(binary, {it as List == [lib1, lib2, sourceLib]} as Set) >> [dep1, dep2, sourceDep]
+
         then:
-        binary.libs as List == [lib1, lib2, sourceLib]
+        binary.libs as List == [dep1, dep2, sourceDep]
     }
 
     def testBinary(NativeComponent owner, Flavor flavor = new DefaultFlavor(DefaultFlavor.DEFAULT)) {
-        return new TestBinary(owner, flavor, toolChain1, platform1, buildType1, new DefaultBinaryNamingScheme("baseName"))
+        return new TestBinary(owner, flavor, toolChain1, platform1, buildType1, new DefaultBinaryNamingScheme("baseName"), resolver)
     }
 
     class TestBinary extends DefaultNativeBinary {
         def owner
-        TestBinary(NativeComponent owner, Flavor flavor, ToolChainInternal toolChain, Platform targetPlatform, BuildType buildType, DefaultBinaryNamingScheme namingScheme) {
-            super(owner, flavor, toolChain, targetPlatform, buildType, namingScheme)
+        TestBinary(NativeComponent owner, Flavor flavor, ToolChainInternal toolChain, Platform targetPlatform, BuildType buildType,
+                   DefaultBinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
+            super(owner, flavor, toolChain, targetPlatform, buildType, namingScheme, resolver)
             this.owner = owner
         }
 

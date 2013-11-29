@@ -23,6 +23,7 @@ import org.gradle.language.rc.WindowsResourceSet
 import org.gradle.nativebinaries.BuildType
 import org.gradle.nativebinaries.Library
 import org.gradle.nativebinaries.Platform
+import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -34,6 +35,7 @@ class DefaultSharedLibraryBinaryTest extends Specification {
     final platform = Stub(Platform)
     final buildType = Stub(BuildType)
     final library = Stub(Library)
+    final resolver = Stub(NativeDependencyResolver)
 
     def "has useful string representation"() {
         expect:
@@ -103,6 +105,6 @@ class DefaultSharedLibraryBinaryTest extends Specification {
     }
 
     private DefaultSharedLibraryBinary getSharedLibrary() {
-        new DefaultSharedLibraryBinary(library, new DefaultFlavor("flavorOne"), toolChain, platform, buildType, namingScheme)
+        new DefaultSharedLibraryBinary(library, new DefaultFlavor("flavorOne"), toolChain, platform, buildType, namingScheme, resolver)
     }
 }

@@ -108,10 +108,16 @@ public class DefaultBinaryNamingScheme implements BinaryNamingScheme {
     }
 
     private void appendCapitalized(StringBuilder builder, String word) {
+        if (word.length() == 0) {
+            return;
+        }
         builder.append(Character.toTitleCase(word.charAt(0))).append(word.substring(1));
     }
 
     private void appendUncapitalized(StringBuilder builder, String word) {
+        if (word.length() == 0) {
+            return;
+        }
         builder.append(Character.toLowerCase(word.charAt(0))).append(word.substring(1));
     }
 }

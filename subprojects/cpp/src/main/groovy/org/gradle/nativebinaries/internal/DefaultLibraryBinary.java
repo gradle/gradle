@@ -21,6 +21,7 @@ import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.language.HeaderExportingSourceSet;
 import org.gradle.language.base.internal.DefaultBinaryNamingScheme;
 import org.gradle.nativebinaries.*;
+import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
 
 import java.io.File;
 import java.util.LinkedHashSet;
@@ -29,8 +30,9 @@ import java.util.Set;
 public abstract class DefaultLibraryBinary extends DefaultNativeBinary implements LibraryBinary {
     private final Library library;
 
-    protected DefaultLibraryBinary(Library library, Flavor flavor, ToolChainInternal toolChain, Platform targetPlatform, BuildType buildType, DefaultBinaryNamingScheme namingScheme) {
-        super(library, flavor, toolChain, targetPlatform, buildType, namingScheme);
+    protected DefaultLibraryBinary(Library library, Flavor flavor, ToolChainInternal toolChain, Platform targetPlatform, BuildType buildType,
+                                   DefaultBinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
+        super(library, flavor, toolChain, targetPlatform, buildType, namingScheme, resolver);
         this.library = library;
     }
 

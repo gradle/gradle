@@ -14,24 +14,30 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries.internal;
+package org.gradle.nativebinaries.internal.resolve;
 
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.nativebinaries.Library;
-import org.gradle.nativebinaries.LibraryResolver;
+import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.nativebinaries.NativeBinary;
 import org.gradle.nativebinaries.NativeDependencySet;
+import org.gradle.nativebinaries.NativeLibraryDependency;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-public class NativeDependencyResolver {
+public class DefaultNativeDependencyResolver implements NativeDependencyResolver {
+    private final NotationParser<Object, NativeLibraryDependency> parser;
+
+    public DefaultNativeDependencyResolver(final ProjectInternal project) {
+        parser = NativeDependencyNotationParser.parser(new RelativeProjectFinder(project));
+    }
+
     public Collection<NativeDependencySet> resolve(NativeBinary target, Collection<?> libs) {
         List<NativeDependencySet> result = new ArrayList<NativeDependencySet>();
         for (Object lib : libs) {
             result.add(resolve(target, lib));
-            resolve(target, lib);
         }
         return result;
     }
@@ -40,21 +46,22 @@ public class NativeDependencyResolver {
         if (lib instanceof NativeDependencySet) {
             return (NativeDependencySet) lib;
         }
-        if (lib instanceof Library) {
-            return resolve(target, ((Library) lib).getShared());
-        }
-        if (lib instanceof ContextualLibraryResolver) {
-            return ((ContextualLibraryResolver) lib)
-                    .withFlavor(target.getFlavor())
-                    .withToolChain(target.getToolChain())
-                    .withPlatform(target.getTargetPlatform())
-                    .withBuildType(target.getBuildType())
-                    .resolve();
-        }
-        if (lib instanceof LibraryResolver) {
-            return ((LibraryResolver) lib).resolve();
+        NativeLibraryDependency libraryDependency = parser.parseNotation(lib);
+        return new DeferredResolutionLibraryNativeDependencySet(libraryDependency, target);
+    }
+
+    private static class RelativeProjectFinder implements ProjectFinder {
+        private final ProjectInternal project;
+
+        public RelativeProjectFinder(ProjectInternal project) {
+            this.project = project;
         }
 
-        throw new InvalidUserDataException("Not a valid type for a library dependency: " + lib);
+        public ProjectInternal getProject(String path) {
+            if (path == null || path.length() == 0) {
+                return project;
+            }
+            return project.findProject(path);
+        }
     }
 }

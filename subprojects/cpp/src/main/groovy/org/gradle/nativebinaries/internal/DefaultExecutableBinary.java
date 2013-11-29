@@ -18,12 +18,14 @@ package org.gradle.nativebinaries.internal;
 
 import org.gradle.language.base.internal.DefaultBinaryNamingScheme;
 import org.gradle.nativebinaries.*;
+import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
 
 public class DefaultExecutableBinary extends DefaultNativeBinary implements ExecutableBinary {
     private final Executable executable;
 
-    public DefaultExecutableBinary(Executable executable, Flavor flavor, ToolChainInternal toolChain, Platform platform, BuildType buildType, DefaultBinaryNamingScheme namingScheme) {
-        super(executable, flavor, toolChain, platform, buildType, namingScheme.withTypeString("Executable"));
+    public DefaultExecutableBinary(Executable executable, Flavor flavor, ToolChainInternal toolChain, Platform platform, BuildType buildType,
+                                   DefaultBinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
+        super(executable, flavor, toolChain, platform, buildType, namingScheme.withTypeString("Executable"), resolver);
         this.executable = executable;
     }
 

@@ -23,6 +23,7 @@ import org.gradle.language.base.internal.DefaultBinaryNamingScheme
 import org.gradle.nativebinaries.BuildType
 import org.gradle.nativebinaries.Library
 import org.gradle.nativebinaries.Platform
+import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -34,6 +35,7 @@ class DefaultStaticLibraryBinaryTest extends Specification {
     def toolChain = Stub(ToolChainInternal)
     def platform = Stub(Platform)
     def buildType = Stub(BuildType)
+    final resolver = Stub(NativeDependencyResolver)
 
     def "has useful string representation"() {  
         expect:
@@ -41,7 +43,7 @@ class DefaultStaticLibraryBinaryTest extends Specification {
     }
 
     def getStaticLibrary() {
-        new DefaultStaticLibraryBinary(library, new DefaultFlavor("flavorOne"), toolChain, platform, buildType, namingScheme)
+        new DefaultStaticLibraryBinary(library, new DefaultFlavor("flavorOne"), toolChain, platform, buildType, namingScheme, resolver)
     }
 
     def "can convert binary to a native dependency"() {

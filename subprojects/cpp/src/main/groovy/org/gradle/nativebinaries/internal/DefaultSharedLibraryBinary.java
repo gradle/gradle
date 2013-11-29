@@ -25,6 +25,8 @@ import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.DefaultBinaryNamingScheme;
 import org.gradle.language.rc.WindowsResourceSet;
 import org.gradle.nativebinaries.*;
+import org.gradle.nativebinaries.internal.resolve.LibraryNativeDependencySet;
+import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
 
 import java.io.File;
 import java.util.Collections;
@@ -32,8 +34,9 @@ import java.util.Set;
 
 public class DefaultSharedLibraryBinary extends DefaultLibraryBinary implements SharedLibraryBinary {
 
-    public DefaultSharedLibraryBinary(Library library, Flavor flavor, ToolChainInternal toolChain, Platform platform, BuildType buildType, DefaultBinaryNamingScheme namingScheme) {
-        super(library, flavor, toolChain, platform, buildType, namingScheme.withTypeString("SharedLibrary"));
+    public DefaultSharedLibraryBinary(Library library, Flavor flavor, ToolChainInternal toolChain, Platform platform, BuildType buildType,
+                                      DefaultBinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
+        super(library, flavor, toolChain, platform, buildType, namingScheme.withTypeString("SharedLibrary"), resolver);
     }
 
     public String getOutputFileName() {

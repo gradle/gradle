@@ -38,6 +38,15 @@ public interface DependentSourceSet extends LanguageSourceSet {
      *     <li>A {@link org.gradle.nativebinaries.Library}</li>
      *     <li>A {@link org.gradle.nativebinaries.LibraryBinary}</li>
      *     <li>A {@link org.gradle.nativebinaries.NativeDependencySet}</li>
+     *     <li>A {@link java.util.Map} containing the library selector.</li>
+     * </ul>
+     *
+     * The Map notation supports the following String attributes:
+     *
+     * <ul>
+     *     <li>project: the path to the project containing the library (optional, defaults to current project)</li>
+     *     <li>library: the name of the library (required)</li>
+     *     <li>linkage: the library linkage required ['shared'/'static'] (optional, defaults to 'shared')</li>
      * </ul>
      */
     void lib(Object library);

@@ -14,21 +14,30 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries;
+package org.gradle.nativebinaries.internal.resolve;
 
 import org.gradle.api.Incubating;
-import org.gradle.nativebinaries.internal.resolve.LibraryNativeDependencySet;
+import org.gradle.nativebinaries.BuildType;
+import org.gradle.nativebinaries.Flavor;
+import org.gradle.nativebinaries.Platform;
+import org.gradle.nativebinaries.ToolChain;
 
+// TODO:DAZ Needs a better name
 /**
- * A physical representation of a {@link Library} component.
+ * Resolves a library to a single binary to use as a dependency.
  */
 @Incubating
-public interface LibraryBinary extends NativeBinary {
+interface LibraryResolver {
+    LibraryResolver withFlavor(Flavor flavor);
+
+    LibraryResolver withToolChain(ToolChain toolChain);
+
+    LibraryResolver withPlatform(Platform platform);
+
+    LibraryResolver withBuildType(BuildType buildType);
+
     /**
-     * The Library that this binary represents.
+     * Resolves the library to a dependency set.
      */
-    Library getComponent();
-
     LibraryNativeDependencySet resolve();
-
 }

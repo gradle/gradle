@@ -14,51 +14,49 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries.internal;
+package org.gradle.nativebinaries.internal.resolve;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.nativebinaries.*;
 
-class DefaultLibraryResolver implements ContextualLibraryResolver {
-    private final Library library;
+class DefaultLibraryResolver implements LibraryResolver {
+    private final NativeLibraryDependency dependency;
 
     private Flavor flavor;
     private ToolChain toolChain;
     private Platform platform;
     private BuildType buildType;
-    private Class<? extends LibraryBinary> type = SharedLibraryBinary.class;
 
-    public DefaultLibraryResolver(Library library) {
-        this.library = library;
+    public DefaultLibraryResolver(NativeLibraryDependency dependency) {
+        this.dependency = dependency;
     }
 
-    public ContextualLibraryResolver withFlavor(Flavor flavor) {
+    public LibraryResolver withFlavor(Flavor flavor) {
         this.flavor = flavor;
         return this;
     }
 
     // TODO:DAZ Remove this
-    public ContextualLibraryResolver withToolChain(ToolChain toolChain) {
+    public LibraryResolver withToolChain(ToolChain toolChain) {
         this.toolChain = toolChain;
         return this;
     }
 
-    public ContextualLibraryResolver withPlatform(Platform platform) {
+    public LibraryResolver withPlatform(Platform platform) {
         this.platform = platform;
         return this;
     }
 
-    public ContextualLibraryResolver withBuildType(BuildType buildType) {
+    public LibraryResolver withBuildType(BuildType buildType) {
         this.buildType = buildType;
         return this;
     }
 
-    public ContextualLibraryResolver withType(Class<? extends LibraryBinary> type) {
-        this.type = type;
-        return this;
-    }
 
-    public NativeDependencySet resolve() {
+    public LibraryNativeDependencySet resolve() {
+        Library library = dependency.getLibrary();
+        Class<? extends LibraryBinary> type = dependency.getType();
+
         for (LibraryBinary candidate : library.getBinaries().withType(type)) {
             // TODO:DAZ This is a regression: if we have just one flavor then we don't care about matching flavors
             if (flavor != null && !flavor.getName().equals(candidate.getFlavor().getName())) {
