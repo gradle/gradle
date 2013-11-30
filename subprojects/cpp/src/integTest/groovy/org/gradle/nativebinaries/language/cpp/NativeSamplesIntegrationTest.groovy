@@ -22,7 +22,7 @@ import org.gradle.util.TestPrecondition
 import org.junit.Rule
 
 @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
-class CppSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+class NativeSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     @Rule public final Sample c = new Sample(temporaryFolder, 'native-binaries/c')
     @Rule public final Sample assembler = new Sample(temporaryFolder, 'native-binaries/assembler')
     @Rule public final Sample cpp = new Sample(temporaryFolder, 'native-binaries/cpp')
