@@ -70,16 +70,18 @@ class GccToolChainCustomisationIntegrationTest extends AbstractIntegrationSpec {
     def "can add binary configuration to target a platform"() {
         when:
         buildFile << """
-            toolChains {
-                crossCompiler(Gcc) {
-                    addPlatformConfiguration(new ArmArchitecture())
-                }
-                platforms {
-                    create("arm") {
-                        architecture "arm"
+            model {
+                toolChains {
+                    crossCompiler(Gcc) {
+                        addPlatformConfiguration(new ArmArchitecture())
                     }
-                    create("x64") {
-                        architecture "x86_64"
+                    platforms {
+                        create("arm") {
+                            architecture "arm"
+                        }
+                        create("x64") {
+                            architecture "x86_64"
+                        }
                     }
                 }
             }
@@ -125,24 +127,26 @@ class GccToolChainCustomisationIntegrationTest extends AbstractIntegrationSpec {
     def "can add action to tool chain that modifies tool arguments prior to execution"() {
         when:
         buildFile << """
-            toolChains {
-                gcc(Gcc) {
-                    cppCompiler.withArguments { args ->
-                        Collections.replaceAll(args, "CUSTOM", "-O3")
-                    }
-                    CCompiler.withArguments { args ->
-                        Collections.replaceAll(args, "CUSTOM", "-O3")
-                    }
-                    linker.withArguments { args ->
-                        int customIndex = args.indexOf("CUSTOM")
-                        if (customIndex >= 1) {
-                            // Remove "-Xlinker" "CUSTOM"
-                            args.remove(customIndex)
-                            args.remove(customIndex - 1)
+            model {
+                toolChains {
+                    gcc(Gcc) {
+                        cppCompiler.withArguments { args ->
+                            Collections.replaceAll(args, "CUSTOM", "-O3")
                         }
-                    }
-                    staticLibArchiver.withArguments { args ->
-                        args.remove "CUSTOM"
+                        CCompiler.withArguments { args ->
+                            Collections.replaceAll(args, "CUSTOM", "-O3")
+                        }
+                        linker.withArguments { args ->
+                            int customIndex = args.indexOf("CUSTOM")
+                            if (customIndex >= 1) {
+                                // Remove "-Xlinker" "CUSTOM"
+                                args.remove(customIndex)
+                                args.remove(customIndex - 1)
+                            }
+                        }
+                        staticLibArchiver.withArguments { args ->
+                            args.remove "CUSTOM"
+                        }
                     }
                 }
             }
