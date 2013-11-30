@@ -16,6 +16,7 @@
 
 package org.gradle.internal.typeconversion;
 
+import org.gradle.api.internal.tasks.options.ValueAwareNotationParser;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.CollectionUtils;
 
@@ -23,17 +24,15 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-public class EnumFromStringNotationParser<T extends Enum> extends TypedNotationParser<CharSequence, T> {
+public class EnumFromCharSequenceNotationParser<T extends Enum> implements ValueAwareNotationParser<T> {
     private final Class<? extends T> type;
 
-    public EnumFromStringNotationParser(Class<? extends T> enumType) {
-        super(CharSequence.class);
+    public EnumFromCharSequenceNotationParser(Class<? extends T> enumType) {
         assert enumType.isEnum() : "resultingType must be enum";
         this.type = enumType;
     }
 
-    @Override
-    protected T parseType(CharSequence notation) {
+    public T parseNotation(CharSequence notation) throws UnsupportedNotationException, TypeConversionException {
         final String enumString = notation.toString();
         List<T> enumConstants = Arrays.asList(type.getEnumConstants());
         T match = CollectionUtils.findFirst(enumConstants, new Spec<T>() {
@@ -53,9 +52,13 @@ public class EnumFromStringNotationParser<T extends Enum> extends TypedNotationP
     }
 
     public void describe(Collection<String> candidateFormats) {
+        candidateFormats.add(String.format("A String representing an Enum instance of type %s", type.getName()));
+    }
+
+    public void describeValues(Collection<String> collector) {
         final Enum[] enumConstants = type.getEnumConstants();
         for (Enum enumConstant : enumConstants) {
-            candidateFormats.add(enumConstant.name());
+            collector.add(enumConstant.name());
         }
     }
 }

@@ -20,7 +20,7 @@ import spock.lang.Specification
 
 class EnumFromStringNotationParserTest extends Specification{
 
-    NotationParser<Object, TestEnum> parser = new EnumFromStringNotationParser(TestEnum.class);
+    NotationParser<Object, TestEnum> parser = new EnumFromCharSequenceNotationParser(TestEnum.class);
 
     def "can convert strings to enums"(){
         expect:

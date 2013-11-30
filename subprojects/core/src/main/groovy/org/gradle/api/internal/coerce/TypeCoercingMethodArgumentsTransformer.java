@@ -17,8 +17,7 @@
 package org.gradle.api.internal.coerce;
 
 import org.gradle.api.Transformer;
-import org.gradle.internal.typeconversion.EnumFromStringNotationParser;
-import org.gradle.internal.typeconversion.NotationParser;
+import org.gradle.internal.typeconversion.EnumFromCharSequenceNotationParser;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 
 import java.lang.reflect.Method;
@@ -86,7 +85,7 @@ public class TypeCoercingMethodArgumentsTransformer implements MethodArgumentsTr
     }
 
     public <T extends Enum<T>> T toEnumValue(Class<T> enumType, CharSequence charSequence) {
-        NotationParser<Object, T> notationParser = new EnumFromStringNotationParser<T>(enumType);
+        EnumFromCharSequenceNotationParser<T> notationParser = new EnumFromCharSequenceNotationParser<T>(enumType);
         return notationParser.parseNotation(charSequence);
     }
 }

@@ -29,9 +29,9 @@ abstract class AbstractOptionElement implements OptionElement {
     private final String optionName;
     private final String description;
     private final Class<?> optionType;
-    private final NotationParser<String, Object> notationParser;
+    private final ValueAwareNotationParser notationParser;
 
-    public AbstractOptionElement(String optionName, Option option, Class<?> optionType, Class<?> declaringClass, NotationParser<String, Object> notationParser) {
+    public AbstractOptionElement(String optionName, Option option, Class<?> optionType, Class<?> declaringClass, ValueAwareNotationParser notationParser) {
         this.description = readDescription(option, optionName, declaringClass);
         this.optionName = optionName;
         this.optionType = optionType;
@@ -40,7 +40,7 @@ abstract class AbstractOptionElement implements OptionElement {
 
     public List<String> getAvailableValues() {
         List<String> describes = new ArrayList<String>();
-        notationParser.describe(describes);
+        notationParser.describeValues(describes);
         return describes;
     }
 
@@ -73,8 +73,8 @@ abstract class AbstractOptionElement implements OptionElement {
         return notationParser;
     }
 
-    protected static NotationParser createNotationParserOrFail(OptionNotationParserFactory optionNotationParserFactory, String optionName, Class<?> optionType, Class<?> declaringClass) {
-        NotationParser notationParser;
+    protected static ValueAwareNotationParser<Object> createNotationParserOrFail(OptionNotationParserFactory optionNotationParserFactory, String optionName, Class<?> optionType, Class<?> declaringClass) {
+        ValueAwareNotationParser<Object> notationParser;
         try {
             notationParser = optionNotationParserFactory.toComposite(optionType);
         } catch (Exception ex) {

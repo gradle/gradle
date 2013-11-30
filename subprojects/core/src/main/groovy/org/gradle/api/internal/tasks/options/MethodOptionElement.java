@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.tasks.options;
 
-import org.gradle.internal.typeconversion.NotationParser;
-
 import java.lang.reflect.Method;
 import java.util.List;
 
@@ -25,8 +23,8 @@ public class MethodOptionElement extends AbstractOptionElement {
 
     private final Method method;
 
-    MethodOptionElement(Option option, Method method, NotationParser notationParser) {
-        super(option.option(), option, calculateOptionType(method), method.getDeclaringClass(), notationParser);
+    MethodOptionElement(Option option, Method method, Class<?> optionType, ValueAwareNotationParser notationParser) {
+        super(option.option(), option, optionType, method.getDeclaringClass(), notationParser);
         this.method = method;
         assertMethodTypeSupported(getOptionName(), method);
         assertValidOptionName();
@@ -58,8 +56,8 @@ public class MethodOptionElement extends AbstractOptionElement {
 
     public static MethodOptionElement create(Option option, Method method, OptionNotationParserFactory optionNotationParserFactory){
         Class<?> optionType = calculateOptionType(method);
-        NotationParser notationParser = createNotationParserOrFail(optionNotationParserFactory, option.option(), optionType, method.getDeclaringClass());
-        return new MethodOptionElement(option, method, notationParser);
+        ValueAwareNotationParser notationParser = createNotationParserOrFail(optionNotationParserFactory, option.option(), optionType, method.getDeclaringClass());
+        return new MethodOptionElement(option, method, optionType, notationParser);
     }
 
 

@@ -23,41 +23,58 @@ import java.util.Collection;
 import java.util.List;
 
 public class OptionNotationParserFactory {
-    public NotationParser<String, Object> toComposite(Class<?> targetType) {
+    public ValueAwareNotationParser toComposite(Class<?> targetType) {
         assert targetType != null : "resultingType cannot be null";
-        List<NotationParser<Object, ?>> parsers = new ArrayList<NotationParser<Object, ?>>();
+        List<NotationParser<CharSequence, ?>> parsers = new ArrayList<NotationParser<CharSequence, ?>>();
 
         if (targetType == Void.TYPE) {
             parsers.add(new UnsupportedNotationParser());
         }
         if (targetType.isAssignableFrom(String.class)) {
-            parsers.add(new NoDescriptionJustReturningParser(targetType));
+            parsers.add(new NoDescriptionValuesJustReturningParser(targetType));
         }
         if (targetType.isEnum()) {
-            parsers.add(new NoDescriptionJustReturningParser(targetType));
-            parsers.add(new EnumFromStringNotationParser<Enum>(targetType.asSubclass(Enum.class)));
+            parsers.add(new NoDescriptionValuesJustReturningParser(targetType));
+            parsers.add(new EnumFromCharSequenceNotationParser<Enum>(targetType.asSubclass(Enum.class)));
         }
         if (parsers.isEmpty()) {
             throw new OptionValidationException(String.format("resultingType '%s' not supported", targetType.getName()));
         }
-        return new CompositeNotationParser<String, Object>(parsers);
+        return new ValueAwareCompositeNotationParser(parsers);
     }
 
-    private class UnsupportedNotationParser implements NotationParser<Object, Object> {
-        public Object parseNotation(Object notation) throws UnsupportedNotationException, TypeConversionException {
+    private class UnsupportedNotationParser implements ValueAwareNotationParser<Object> {
+
+        public Object parseNotation(CharSequence notation) throws UnsupportedNotationException, TypeConversionException {
             throw new UnsupportedOperationException();
         }
 
         public void describe(Collection<String> candidateFormats) {
         }
+
+        public void describeValues(Collection<String> collector) {
+        }
     }
 
-    private class NoDescriptionJustReturningParser extends JustReturningParser<Object, Object> {
-        public NoDescriptionJustReturningParser(Class<?> targetType) {
+    private class NoDescriptionValuesJustReturningParser<T> extends JustReturningParser<CharSequence, T> implements ValueAwareNotationParser<T> {
+        public NoDescriptionValuesJustReturningParser(Class<T> targetType) {
             super(targetType);
         }
 
-        public void describe(Collection<String> candidateFormats) {
+        public void describeValues(Collection<String> collector) {
+
+        }
+    }
+
+    private class ValueAwareCompositeNotationParser<T> extends CompositeNotationParser<CharSequence, T> implements ValueAwareNotationParser<T> {
+        public ValueAwareCompositeNotationParser(Collection<ValueAwareCompositeNotationParser<T>> delegates) {
+            super(delegates);
+        }
+
+        public void describeValues(Collection<String> collector) {
+            for (NotationParser<? super String, ? extends T> delegate : delegates) {
+                ((ValueAwareNotationParser)delegate).describeValues(collector);
+            }
         }
     }
 }
