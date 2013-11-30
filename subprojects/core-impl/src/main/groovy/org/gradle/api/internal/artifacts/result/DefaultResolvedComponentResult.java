@@ -19,12 +19,10 @@ package org.gradle.api.internal.artifacts.result;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
-import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier;
 
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -73,8 +71,8 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResult {
     }
 
     @Nullable
-    public ModuleComponentIdentifier getPublishedAs() {
-        return DefaultModuleComponentIdentifier.newId(id.getGroup(), id.getName(), id.getVersion());
+    public ModuleVersionIdentifier getModuleVersion() {
+        return id;
     }
 
     @Override

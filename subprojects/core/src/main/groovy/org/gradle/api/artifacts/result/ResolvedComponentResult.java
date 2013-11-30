@@ -18,6 +18,7 @@ package org.gradle.api.artifacts.result;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 
 import java.util.Set;
@@ -74,10 +75,11 @@ public interface ResolvedComponentResult {
     ComponentSelectionReason getSelectionReason();
 
     /**
-     * Returns the identifier which this component is published as.
+     * Returns the module version which this component belongs to, if any. A component will belong to a module version if it was found in some repository, or if the
+     * module version for the component has been declared, usually by declaring how the component should be published.
      *
-     * @return the identifier of the component, or {@code null} if this component is not published.
+     * @return the module version of the component, or {@code null} if this component has no associated module version.
      */
     @Nullable
-    ComponentIdentifier getPublishedAs();
+    ModuleVersionIdentifier getModuleVersion();
 }

@@ -306,7 +306,7 @@ public class GenerateGraphTask extends DefaultTask {
     }
 
     def formatComponent(ResolvedComponentResult result) {
-        return "[id:${result.id}][mv:${result.publishedAs}][reason:${formatReason(result.selectionReason)}]"
+        return "[id:${result.id}][mv:${result.moduleVersion}][reason:${formatReason(result.selectionReason)}]"
     }
 
     def formatReason(ComponentSelectionReason reason) {
