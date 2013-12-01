@@ -17,6 +17,7 @@
 package org.gradle.configuration;
 
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
+import org.gradle.api.internal.initialization.ScriptCompileScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.groovy.scripts.*;
@@ -34,7 +35,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private final ScriptCompilerFactory scriptCompilerFactory;
     private final ImportsReader importsReader;
     private final ScriptHandlerFactory scriptHandlerFactory;
-    private final ClassLoader defaultClassLoader;
+    private final ScriptCompileScope defaultCompileScope;
     private final Factory<LoggingManagerInternal> loggingManagerFactory;
     private final Instantiator instantiator;
     private final PluginHandlerFactory pluginHandlerFactory;
@@ -42,7 +43,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     public DefaultScriptPluginFactory(ScriptCompilerFactory scriptCompilerFactory,
                                       ImportsReader importsReader,
                                       ScriptHandlerFactory scriptHandlerFactory,
-                                      ClassLoader defaultClassLoader,
+                                      ScriptCompileScope defaultCompileScope,
                                       Factory<LoggingManagerInternal> loggingManagerFactory,
                                       Instantiator instantiator,
                                       PluginHandlerFactory pluginHandlerFactory
@@ -50,7 +51,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
         this.scriptCompilerFactory = scriptCompilerFactory;
         this.importsReader = importsReader;
         this.scriptHandlerFactory = scriptHandlerFactory;
-        this.defaultClassLoader = defaultClassLoader;
+        this.defaultCompileScope = defaultCompileScope;
         this.loggingManagerFactory = loggingManagerFactory;
         this.instantiator = instantiator;
         this.pluginHandlerFactory = pluginHandlerFactory;
@@ -65,7 +66,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
         private String classpathClosureName = "buildscript";
         private Class<? extends BasicScript> scriptType = DefaultScript.class;
         private ScriptClassLoaderProvider classLoaderProvider;
-        private ClassLoader classLoader = defaultClassLoader;
+        private ScriptCompileScope parentScope = defaultCompileScope;
 
         public ScriptPluginImpl(ScriptSource scriptSource) {
             this.scriptSource = scriptSource;
@@ -80,8 +81,8 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             return this;
         }
 
-        public ScriptPlugin setClassLoader(ClassLoader classLoader) {
-            this.classLoader = classLoader;
+        public ScriptPlugin setParentScope(ScriptCompileScope parentScope) {
+            this.parentScope = parentScope;
             return this;
         }
 
@@ -110,7 +111,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             ScriptSource withImports = importsReader.withImports(scriptSource);
 
             if (classLoaderProvider == null) {
-                ScriptHandlerInternal defaultScriptHandler = scriptHandlerFactory.create(withImports, classLoader);
+                ScriptHandlerInternal defaultScriptHandler = scriptHandlerFactory.create(withImports, parentScope);
                 services.add(ScriptHandlerInternal.class, defaultScriptHandler);
                 classLoaderProvider = defaultScriptHandler;
             }
@@ -134,7 +135,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
 
             classLoaderProvider.updateClassPath();
 
-            compiler.setClassloader(classLoaderProvider.getClassLoader());
+            compiler.setClassloader(classLoaderProvider.getScriptCompileClassLoader());
 
             compiler.setTransformer(new BuildScriptTransformer("no_" + classpathScriptTransformer.getId(), classpathScriptTransformer.invert()));
             ScriptRunner<? extends BasicScript> runner = compiler.compile(scriptType);

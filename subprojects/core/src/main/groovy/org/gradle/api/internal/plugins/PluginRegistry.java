@@ -17,6 +17,7 @@
 package org.gradle.api.internal.plugins;
 
 import org.gradle.api.Plugin;
+import org.gradle.api.internal.initialization.ScriptCompileScope;
 import org.gradle.api.plugins.PluginInstantiationException;
 import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.internal.reflect.Instantiator;
@@ -26,5 +27,8 @@ public interface PluginRegistry {
 
     Class<? extends Plugin> getTypeForId(String pluginId) throws UnknownPluginException, PluginInstantiationException;
 
-    PluginRegistry createChild(ClassLoader childClassPath, Instantiator instantiator);
+    /**
+     * Creates a child registry which uses the plugins declared in the given script scope.
+     */
+    PluginRegistry createChild(ScriptCompileScope lookupScope, Instantiator instantiator);
 }

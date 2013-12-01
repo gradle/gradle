@@ -22,6 +22,8 @@ import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.classloader.CachingClassLoader;
 import org.gradle.internal.classloader.MultiParentClassLoader;
 import org.gradle.internal.classloader.MutableURLClassLoader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.net.MalformedURLException;
@@ -30,7 +32,8 @@ import java.util.List;
 import java.util.Set;
 
 public class DefaultScriptHandler extends AbstractScriptHandler {
-    private final ClassLoader baseClassLoader;
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultScriptHandler.class);
+    private final ScriptCompileScope parentScope;
     private List<ClassLoader> parents = new ArrayList<ClassLoader>();
     private ClassLoader classLoader;
     private MutableURLClassLoader scriptClassPathClassLoader;
@@ -38,20 +41,21 @@ public class DefaultScriptHandler extends AbstractScriptHandler {
 
     public DefaultScriptHandler(ScriptSource scriptSource, RepositoryHandler repositoryHandler,
                                 DependencyHandler dependencyHandler, ConfigurationContainer configContainer,
-                                ClassLoader baseClassLoader) {
+                                ScriptCompileScope parentScope) {
         super(repositoryHandler, dependencyHandler, scriptSource, configContainer);
-        this.baseClassLoader = baseClassLoader;
+        this.parentScope = parentScope;
     }
 
     public ClassLoader getBaseCompilationClassLoader() {
-        return baseClassLoader;
+        return parentScope.getScriptCompileClassLoader();
     }
 
-    public ClassLoader getClassLoader() {
+    public ClassLoader getScriptCompileClassLoader() {
         if (classLoader == null) {
             // This is for backwards compatibility - it is possible to query the script ClassLoader before it has been finalized.
             // So, eagerly create the most flexible ClassLoader structure in case it is required.
-            scriptClassPathClassLoader = new MutableURLClassLoader(baseClassLoader);
+            LOGGER.debug("Eager creation of script class loader for {}. This may result in performance issues.", getSourceFile());
+            scriptClassPathClassLoader = new MutableURLClassLoader(getBaseCompilationClassLoader());
             multiParentClassLoader = new MultiParentClassLoader(scriptClassPathClassLoader);
             classLoader = new CachingClassLoader(multiParentClassLoader);
         }
@@ -67,7 +71,7 @@ public class DefaultScriptHandler extends AbstractScriptHandler {
 
     public void updateClassPath() {
         if (classLoader == null) {
-            ClassLoader current = baseClassLoader;
+            ClassLoader current = getBaseCompilationClassLoader();
             Set<File> classPath = getClasspathConfiguration().getFiles();
             if (!classPath.isEmpty()) {
                 MutableURLClassLoader mutableClassLoader = new MutableURLClassLoader(current);

@@ -67,6 +67,10 @@ public abstract class AbstractScriptHandler implements ScriptHandlerInternal {
         return configContainer;
     }
 
+    public ClassLoader getClassLoader() {
+        return getScriptCompileClassLoader();
+    }
+
     public File getSourceFile() {
         return scriptSource.getResource().getFile();
     }

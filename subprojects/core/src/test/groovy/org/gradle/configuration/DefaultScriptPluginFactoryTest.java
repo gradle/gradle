@@ -15,6 +15,7 @@
  */
 package org.gradle.configuration;
 
+import org.gradle.api.internal.initialization.ScriptCompileScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.groovy.scripts.*;
@@ -50,7 +51,7 @@ public class DefaultScriptPluginFactoryTest {
     private final ScriptRunner scriptRunnerMock = context.mock(ScriptRunner.class, "scriptRunner");
     private final BasicScript scriptMock = context.mock(BasicScript.class);
     private final Instantiator instantiatorMock = context.mock(Instantiator.class);
-    private final URLClassLoader parentClassLoader = new URLClassLoader(new URL[0]);
+    private final ScriptCompileScope parentScope = context.mock(ScriptCompileScope.class);
     private final URLClassLoader baseClassLoader = new URLClassLoader(new URL[0]);
     private final URLClassLoader scriptClassLoader = new URLClassLoader(new URL[0]);
     private final ScriptHandlerFactory scriptHandlerFactoryMock = context.mock(ScriptHandlerFactory.class);
@@ -59,7 +60,7 @@ public class DefaultScriptPluginFactoryTest {
     private final ScriptRunner classPathScriptRunnerMock = context.mock(ScriptRunner.class, "classpathScriptRunner");
     private final BasicScript classPathScriptMock = context.mock(BasicScript.class, "classpathScript");
     private final Factory<LoggingManagerInternal> loggingManagerFactoryMock = context.mock(Factory.class);
-    private final DefaultScriptPluginFactory factory = new DefaultScriptPluginFactory(scriptCompilerFactoryMock, importsReaderMock, scriptHandlerFactoryMock, parentClassLoader, loggingManagerFactoryMock, instantiatorMock, pluginHandlerFactoryMock);
+    private final DefaultScriptPluginFactory factory = new DefaultScriptPluginFactory(scriptCompilerFactoryMock, importsReaderMock, scriptHandlerFactoryMock, parentScope, loggingManagerFactoryMock, instantiatorMock, pluginHandlerFactoryMock);
 
     @Test
     public void configuresATargetObjectUsingScript() {
@@ -80,7 +81,7 @@ public class DefaultScriptPluginFactoryTest {
             one(scriptCompilerFactoryMock).createCompiler(sourceWithImportsMock);
             will(returnValue(scriptCompilerMock));
 
-            one(scriptHandlerFactoryMock).create(sourceWithImportsMock, parentClassLoader);
+            one(scriptHandlerFactoryMock).create(sourceWithImportsMock, parentScope);
             will(returnValue(scriptHandlerMock));
 
             allowing(scriptHandlerMock).getBaseCompilationClassLoader();
@@ -107,7 +108,7 @@ public class DefaultScriptPluginFactoryTest {
             one(scriptHandlerMock).updateClassPath();
             inSequence(sequence);
 
-            one(scriptHandlerMock).getClassLoader();
+            one(scriptHandlerMock).getScriptCompileClassLoader();
             will(returnValue(scriptClassLoader));
             inSequence(sequence);
 
@@ -157,7 +158,7 @@ public class DefaultScriptPluginFactoryTest {
 
             allowing(target).beforeCompile(with(notNullValue(ScriptPlugin.class)));
 
-            one(scriptHandlerFactoryMock).create(sourceWithImportsMock, parentClassLoader);
+            one(scriptHandlerFactoryMock).create(sourceWithImportsMock, parentScope);
             will(returnValue(scriptHandlerMock));
 
             allowing(scriptHandlerMock).getBaseCompilationClassLoader();
@@ -184,7 +185,7 @@ public class DefaultScriptPluginFactoryTest {
             one(scriptHandlerMock).updateClassPath();
             inSequence(sequence);
 
-            one(scriptHandlerMock).getClassLoader();
+            one(scriptHandlerMock).getScriptCompileClassLoader();
             will(returnValue(scriptClassLoader));
             inSequence(sequence);
 

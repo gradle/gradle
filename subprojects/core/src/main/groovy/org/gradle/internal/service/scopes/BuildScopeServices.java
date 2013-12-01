@@ -188,7 +188,7 @@ public class BuildScopeServices extends DefaultServiceRegistry implements Servic
                 get(ScriptCompilerFactory.class),
                 get(ImportsReader.class),
                 get(ScriptHandlerFactory.class),
-                get(BuildClassLoaderRegistry.class).getScriptClassLoader(),
+                get(BuildClassLoaderRegistry.class).getRootCompileScope(),
                 getFactory(LoggingManagerInternal.class),
                 get(Instantiator.class),
                 get(PluginHandlerFactory.class)

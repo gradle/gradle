@@ -36,7 +36,7 @@ public class NoClassLoaderUpdateScriptHandler extends AbstractScriptHandler {
         return baseClassLoader;
     }
 
-    public ClassLoader getClassLoader() {
+    public ClassLoader getScriptCompileClassLoader() {
         return classLoader;
     }
 

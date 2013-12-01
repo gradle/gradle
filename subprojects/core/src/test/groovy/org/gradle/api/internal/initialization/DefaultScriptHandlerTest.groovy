@@ -28,16 +28,19 @@ import org.gradle.util.ConfigureUtil
 import spock.lang.Specification
 
 class DefaultScriptHandlerTest extends Specification {
-    RepositoryHandler repositoryHandler = Mock()
-    DependencyHandler dependencyHandler = Mock()
-    ConfigurationContainer configurationContainer = Mock()
-    Configuration configuration = Mock()
-    ScriptSource scriptSource = Mock()
-    def baseClassLoader = Mock(ClassLoader)
+    def repositoryHandler = Mock(RepositoryHandler)
+    def dependencyHandler = Mock(DependencyHandler)
+    def configurationContainer = Mock(ConfigurationContainer)
+    def configuration = Stub(Configuration)
+    def scriptSource = Stub(ScriptSource)
+    def baseClassLoader = Stub(ClassLoader)
+    def parentScope = Stub(ScriptCompileScope) {
+        getScriptCompileClassLoader() >> baseClassLoader
+    }
 
     def "adds classpath configuration"() {
         when:
-        new DefaultScriptHandler(scriptSource, repositoryHandler, dependencyHandler, configurationContainer, baseClassLoader)
+        new DefaultScriptHandler(scriptSource, repositoryHandler, dependencyHandler, configurationContainer, parentScope)
 
         then:
         1 * configurationContainer.create('classpath')
@@ -188,6 +191,6 @@ class DefaultScriptHandlerTest extends Specification {
 
     private DefaultScriptHandler handler() {
         1 * configurationContainer.create('classpath') >> configuration
-        return new DefaultScriptHandler(scriptSource, repositoryHandler, dependencyHandler, configurationContainer, baseClassLoader)
+        return new DefaultScriptHandler(scriptSource, repositoryHandler, dependencyHandler, configurationContainer, parentScope)
     }
 }

@@ -24,6 +24,17 @@ import spock.lang.Specification
 class DefaultBuildClassLoaderRegistryTest extends Specification {
     final globalRegistry = Mock(ClassLoaderRegistry)
 
+    def "caches root compile scope"() {
+        def rootClassLoader = Mock(ClassLoader)
+
+        given:
+        globalRegistry.gradleApiClassLoader >> rootClassLoader
+        def registry = new DefaultBuildClassLoaderRegistry(globalRegistry)
+
+        expect:
+        registry.rootCompileScope == registry.rootCompileScope
+    }
+
     def "wires up build classloaders"() {
         def rootClassLoader = Mock(ClassLoader)
         def additionalClassLoader = Mock(ClassLoader)
@@ -34,16 +45,19 @@ class DefaultBuildClassLoaderRegistryTest extends Specification {
         when:
         def registry = new DefaultBuildClassLoaderRegistry(globalRegistry)
         def scriptLoader = registry.scriptClassLoader
+        def rootCompileScope = registry.rootCompileScope
 
         then:
         scriptLoader instanceof CachingClassLoader
         scriptLoader.parent instanceof MultiParentClassLoader
         scriptLoader.parent.parents == [rootClassLoader]
+        rootCompileScope.scriptCompileClassLoader == scriptLoader
 
         when:
         registry.addRootClassLoader(additionalClassLoader)
 
         then:
         scriptLoader.parent.parents == [rootClassLoader, additionalClassLoader]
+        rootCompileScope.scriptCompileClassLoader == scriptLoader
     }
 }

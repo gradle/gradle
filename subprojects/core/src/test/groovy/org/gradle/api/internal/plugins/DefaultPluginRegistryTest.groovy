@@ -18,6 +18,7 @@ package org.gradle.api.internal.plugins
 
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Plugin
+import org.gradle.api.internal.initialization.ScriptCompileScope
 import org.gradle.api.internal.project.TestPlugin1
 import org.gradle.api.internal.project.TestPlugin2
 import org.gradle.api.plugins.PluginInstantiationException
@@ -146,12 +147,12 @@ class DefaultPluginRegistryTest extends Specification {
     }
 
     public void childUsesItsOwnInstantiatorToCreatePlugin() {
-        ClassLoader childClassLoader = Mock()
-        Instantiator childInstantiator = Mock()
+        def lookupScope = Mock(ScriptCompileScope)
+        def childInstantiator = Mock(Instantiator)
         def plugin = new TestPlugin1()
 
         given:
-        PluginRegistry child = pluginRegistry.createChild(childClassLoader, childInstantiator)
+        PluginRegistry child = pluginRegistry.createChild(lookupScope, childInstantiator)
 
         when:
         def result = child.loadPlugin(TestPlugin1)
@@ -165,12 +166,12 @@ class DefaultPluginRegistryTest extends Specification {
     }
 
     public void childDelegatesToParentRegistryToLookupPluginType() throws Exception {
-        ClassLoader childClassLoader = Mock()
-        Instantiator childInstantiator = Mock()
+        def lookupScope = Mock(ScriptCompileScope)
+        def childInstantiator = Mock(Instantiator)
         def url = writePluginProperties("somePlugin", TestPlugin1)
 
         given:
-        PluginRegistry child = pluginRegistry.createChild(childClassLoader, childInstantiator)
+        PluginRegistry child = pluginRegistry.createChild(lookupScope, childInstantiator)
         _ * classLoader.getResource("META-INF/gradle-plugins/somePlugin.properties") >> url
         _ * classLoader.loadClass(TestPlugin1.name) >> TestPlugin1
 
@@ -181,16 +182,18 @@ class DefaultPluginRegistryTest extends Specification {
         type == TestPlugin1
 
         and:
-        0 * childClassLoader._
+        0 * lookupScope._
     }
 
     public void childClasspathCanContainAdditionalMappingsForPlugins() throws Exception {
-        ClassLoader childClassLoader = Mock()
-        Instantiator childInstantiator = Mock()
+        def childClassLoader = Mock(ClassLoader)
+        def lookupScope = Mock(ScriptCompileScope)
+        def childInstantiator = Mock(Instantiator)
         def url = writePluginProperties("somePlugin", TestPlugin1)
 
         given:
-        PluginRegistry child = pluginRegistry.createChild(childClassLoader, childInstantiator)
+        PluginRegistry child = pluginRegistry.createChild(lookupScope, childInstantiator)
+        _ * lookupScope.scriptCompileClassLoader >> childClassLoader
         _ * childClassLoader.getResource("META-INF/gradle-plugins/somePlugin.properties") >> url
         _ * childClassLoader.loadClass(TestPlugin1.name) >> TestPlugin1
 
