@@ -121,7 +121,13 @@ class LibraryDependenciesIntegrationTest extends AbstractInstalledToolChainInteg
                 main {}
             }
             libraries {
-                greetings {}
+                greetings {
+                    binaries.withType(StaticLibraryBinary) {
+                        if (toolChain in Gcc) {
+                            cppCompiler.args '-fPIC'
+                        }
+                    }
+                }
             }
             sources.main.cpp.lib project: ':lib', library: 'hello'
         }
