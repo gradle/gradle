@@ -249,9 +249,26 @@ Note that no core plugins will be visible to the plugin implementation by defaul
 
 # Stories
 
+## Story: Spike plugin resolution from bintray
+
+Add some basic DSL and resolver infrastructure to demonstrate plugin resolution from the public plugin repository.
+
 ## Story: Introduce plugins DSL block
 
 Adds the initial DSL support and APIs. At this stage, can only be used to apply core plugins to the script's target object. Later stories make this more useful.
+
+### Test cases
+
+- Script can use a `plugins { ... }` block to apply a core plugin.
+- Can use both `buildscript { ... }` and `plugins { ... }` blocks in a script to apply plugins.
+- Build author receives a nice error message when:
+    - A statement other than `buildscript { ... }` precedes the `plugins { ... }` statement.
+    - Attempting to apply an unknown plugin in a `plugins { ... }` block.
+        - Should give a set of candidate plugin ids that are available.
+    - Attempting to apply a core plugin with a version selector in a `plugins { ... }` block.
+    - Attempting to apply a plugin declared in the script's `buildscript { ... }` from the `plugins { ... }` block.
+    - Attempting to apply a plugin declared a parent project's build script `buildscript { ... }` from the `plugins { ... }` block.
+- The script's delegate object is not visible to the `plugins { ... }` block.
 
 ## Story: Resolve hard-coded set of plugins from public bintray repository
 
@@ -265,15 +282,48 @@ The Gradleware developers will select a small set of plugins to include in this 
 
 At this stage, dependencies on other plugins are not supported. Dependencies on other components are supported.
 
-## Story: Resolve plugins from public bintray repository
+### Test cases
 
-Extend the above mechanism to use plugin meta-data from the public bintray repository to map a plugin name + version to implementation component.
+- The classes from plugins declared in a script's `plugins { ... }` block are visible when compiling the script.
+- When a parent project's build script uses a `plugins { ... }` block to apply non-core plugins:
+    - The classes from plugins are not visible when compiling a child project's build script.
+    - The plugins are not visible via a child project's `Project.apply()` method.
+- Verify that a plugin applied using `plugins { ... }` block is not visible via the project's `Project.apply()` method.
+- When multiple scripts apply the same plugin to different targets, the plugin implementation is downloaded from remote repository once only and cached.
+- When multiple scripts apply the same plugin to different targets, the plugin classes are the same.
+
+### Open issues
+
+- Which classes to make visible for a plugin?
+
+## Story: Resolve plugins from public plugin repository
+
+Extend the above mechanism to use plugin meta-data from the public plugin repository to map a plugin name + version to implementation component.
 
 Uses meta-data manually attached to each package in the repository. Again, the Gradleware developers will select a small set of plugins to include in the repository.
+
+Implementation should use `http://plugins.gradle.org` as the entry point to the public plugin repository.
+
+### Test cases
+
+- When multiple scripts apply the same plugin to different targets, the plugin resolution is done against the remote repository once only and cached.
+- Build author receives a nice error message when using the `plugins { ... }` block to:
+    - Attempt to apply a plugin from a remote repository without declaring a version selector.
+    - Attempt to apply an unknown plugin.
+        - Should list some candidates that are available, including those in the remote repositories.
+    - Attempting to apply an unknown version of a plugin.
+        - Should list some candidate versions that are available.
 
 ## Story: External plugins are usable when offline
 
 Cache the plugin mapping. Periodically check for new versions when a dynamic version selector is used. Reuse cached mapping when `--offline`.
+
+## Story: Make plugin DSL public
+
+- Include new DSL in DSL reference.
+- Include types in the public API.
+- Add some material to the user guide discussion about using plugins.
+- Announce in the release notes.
 
 ## Story: Plugin author requests that plugin version be included in the Gradle plugins repository
 
