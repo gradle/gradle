@@ -33,7 +33,7 @@ class DefaultScriptHandlerTest extends Specification {
     def configurationContainer = Mock(ConfigurationContainer)
     def configuration = Stub(Configuration)
     def scriptSource = Stub(ScriptSource)
-    def baseClassLoader = Stub(ClassLoader)
+    def baseClassLoader = new ClassLoader() {}
     def parentScope = Stub(ScriptCompileScope) {
         getScriptCompileClassLoader() >> baseClassLoader
     }
@@ -126,7 +126,7 @@ class DefaultScriptHandlerTest extends Specification {
         classLoader.parent.visit(visitor)
 
         then:
-        1 * visitor.visitParent({it instanceof MutableURLClassLoader}) >> { ClassLoader cl ->
+        1 * visitor.visitParent({ it instanceof MutableURLClassLoader }) >> { ClassLoader cl ->
             assert cl.parent == baseClassLoader
             assert cl.URLs == [file1.toURI().toURL(), file2.toURI().toURL()] as URL[]
         }
@@ -156,7 +156,7 @@ class DefaultScriptHandlerTest extends Specification {
         classLoader.parent.visit(visitor)
 
         then:
-        1 * visitor.visitParent({it instanceof MutableURLClassLoader}) >> { ClassLoader cl ->
+        1 * visitor.visitParent({ it instanceof MutableURLClassLoader }) >> { ClassLoader cl ->
             assert cl.parent == baseClassLoader
             assert cl.URLs == [file1.toURI().toURL(), file2.toURI().toURL()] as URL[]
         }
