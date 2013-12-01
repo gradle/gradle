@@ -20,10 +20,11 @@ import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.internal.classloader.CachingClassLoader
 import org.gradle.internal.classloader.ClassLoaderVisitor
-import org.gradle.util.WrapUtil
+import org.gradle.internal.classloader.MultiParentClassLoader
+import org.gradle.internal.classloader.MutableURLClassLoader
 import org.gradle.util.ConfigureUtil
-
 import spock.lang.Specification
 
 class DefaultScriptHandlerTest extends Specification {
@@ -42,33 +43,120 @@ class DefaultScriptHandlerTest extends Specification {
         1 * configurationContainer.create('classpath')
     }
 
-    def "creates a class loader and adds contents of classpath configuration"() {
+    def "uses base class loader when classpath configuration is empty and no parents declared"() {
         def handler = handler()
-        def file1 = new File('a')
-        def file2 = new File('b')
+
+        given:
+        configuration.files >> []
 
         when:
         handler.updateClassPath()
         def classLoader = handler.classLoader
 
         then:
-        1 * configuration.getFiles() >> WrapUtil.toSet(file1, file2)
-        classLoader.mutableClassLoader.URLs == [file1.toURI().toURL(), file2.toURI().toURL()] as URL[]
+        classLoader == baseClassLoader
     }
 
-    def "can add parent ClassLoader"() {
+    def "creates a class loader when classpath configuration is not empty and no parents declared"() {
+        def handler = handler()
+        def file1 = new File('a')
+        def file2 = new File('b')
+
+        given:
+        configuration.files >> [file1, file2]
+
+        when:
+        handler.updateClassPath()
+        def classLoader = handler.classLoader
+
+        then:
+        classLoader instanceof MutableURLClassLoader
+        classLoader.parent == baseClassLoader
+        classLoader.URLs == [file1.toURI().toURL(), file2.toURI().toURL()] as URL[]
+    }
+
+    def "creates a class loader when classpath configuration is empty and parents declared"() {
         def handler = handler()
         def parent = Mock(ClassLoader)
         def visitor = Mock(ClassLoaderVisitor)
 
-        when:
+        given:
+        configuration.files >> []
         handler.addParent(parent)
+
+        when:
+        handler.updateClassPath()
         def classLoader = handler.classLoader
-        classLoader.visit(visitor)
+
+        then:
+        classLoader instanceof CachingClassLoader
+        classLoader.parent instanceof MultiParentClassLoader
+
+        when:
+        classLoader.parent.visit(visitor)
 
         then:
         1 * visitor.visitParent(baseClassLoader)
-        1 * visitor.visitParent(handler.classLoader.mutableClassLoader)
+        1 * visitor.visitParent(parent)
+    }
+
+    def "creates a class loader when classpath configuration is not empty and parents declared"() {
+        def handler = handler()
+        def parent = Mock(ClassLoader)
+        def visitor = Mock(ClassLoaderVisitor)
+        def file1 = new File('a')
+        def file2 = new File('b')
+
+        given:
+        configuration.files >> [file1, file2]
+        handler.addParent(parent)
+
+        when:
+        handler.updateClassPath()
+        def classLoader = handler.classLoader
+
+        then:
+        classLoader instanceof CachingClassLoader
+        classLoader.parent instanceof MultiParentClassLoader
+
+        when:
+        classLoader.parent.visit(visitor)
+
+        then:
+        1 * visitor.visitParent({it instanceof MutableURLClassLoader}) >> { ClassLoader cl ->
+            assert cl.parent == baseClassLoader
+            assert cl.URLs == [file1.toURI().toURL(), file2.toURI().toURL()] as URL[]
+        }
+        1 * visitor.visitParent(parent)
+    }
+
+    def "creates script class loader on demand when not finalized and fills in the missing pieces once finalized"() {
+        def handler = handler()
+        def visitor = Mock(ClassLoaderVisitor)
+        def parent = Mock(ClassLoader)
+        def file1 = new File('a')
+        def file2 = new File('b')
+
+        given:
+        configuration.files >> [file1, file2]
+
+        when:
+        def classLoader = handler.classLoader
+
+        then:
+        classLoader instanceof CachingClassLoader
+        classLoader.parent instanceof MultiParentClassLoader
+
+        when:
+        handler.addParent(parent)
+        handler.updateClassPath()
+        classLoader.parent.visit(visitor)
+
+        then:
+        1 * visitor.visitParent({it instanceof MutableURLClassLoader}) >> { ClassLoader cl ->
+            assert cl.parent == baseClassLoader
+            assert cl.URLs == [file1.toURI().toURL(), file2.toURI().toURL()] as URL[]
+        }
         1 * visitor.visitParent(parent)
     }
 

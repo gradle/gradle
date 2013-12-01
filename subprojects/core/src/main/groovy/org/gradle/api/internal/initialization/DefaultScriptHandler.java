@@ -19,35 +19,78 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.internal.classloader.CachingClassLoader;
+import org.gradle.internal.classloader.MultiParentClassLoader;
 import org.gradle.internal.classloader.MutableURLClassLoader;
 
 import java.io.File;
 import java.net.MalformedURLException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 public class DefaultScriptHandler extends AbstractScriptHandler {
-    private final ScriptClassLoader classLoader;
+    private final ClassLoader baseClassLoader;
+    private List<ClassLoader> parents = new ArrayList<ClassLoader>();
+    private ClassLoader classLoader;
+    private MutableURLClassLoader scriptClassPathClassLoader;
+    private MultiParentClassLoader multiParentClassLoader;
 
     public DefaultScriptHandler(ScriptSource scriptSource, RepositoryHandler repositoryHandler,
                                 DependencyHandler dependencyHandler, ConfigurationContainer configContainer,
                                 ClassLoader baseClassLoader) {
         super(repositoryHandler, dependencyHandler, scriptSource, configContainer);
-        this.classLoader = new ScriptClassLoader(baseClassLoader);
+        this.baseClassLoader = baseClassLoader;
     }
 
     public ClassLoader getBaseCompilationClassLoader() {
-        return classLoader.getParentLoader();
+        return baseClassLoader;
     }
 
-    public ScriptClassLoader getClassLoader() {
+    public ClassLoader getClassLoader() {
+        if (classLoader == null) {
+            // This is for backwards compatibility - it is possible to query the script ClassLoader before it has been finalized.
+            // So, eagerly create the most flexible ClassLoader structure in case it is required.
+            scriptClassPathClassLoader = new MutableURLClassLoader(baseClassLoader);
+            multiParentClassLoader = new MultiParentClassLoader(scriptClassPathClassLoader);
+            classLoader = new CachingClassLoader(multiParentClassLoader);
+        }
         return classLoader;
     }
 
     public void addParent(ClassLoader parent) {
-        classLoader.addParent(parent);
+        if (parents == null) {
+            throw new IllegalStateException("Cannot add a parent ClassLoader after script ClassLoader has been finalized.");
+        }
+        parents.add(parent);
     }
 
     public void updateClassPath() {
-        MutableURLClassLoader mutableClassLoader = classLoader.getMutableClassLoader();
+        if (classLoader == null) {
+            ClassLoader current = baseClassLoader;
+            Set<File> classPath = getClasspathConfiguration().getFiles();
+            if (!classPath.isEmpty()) {
+                MutableURLClassLoader mutableClassLoader = new MutableURLClassLoader(current);
+                addClassPath(mutableClassLoader);
+                current = mutableClassLoader;
+            }
+            if (!parents.isEmpty()) {
+                parents.add(0, current);
+                current = new CachingClassLoader(new MultiParentClassLoader(parents));
+            }
+            this.classLoader = current;
+        } else {
+            // This is for backwards compatibility - see the comment in #getClassLoader() above
+            // Here, we fill in the missing bits that weren't available when the ClassLoader was eagerly created
+            addClassPath(scriptClassPathClassLoader);
+            for (ClassLoader parent : parents) {
+                multiParentClassLoader.addParent(parent);
+            }
+        }
+        parents = null;
+    }
+
+    private void addClassPath(MutableURLClassLoader mutableClassLoader) {
         for (File file : getClasspathConfiguration().getFiles()) {
             try {
                 mutableClassLoader.addURL(file.toURI().toURL());
