@@ -50,6 +50,10 @@ A native component that represents an application.
 
 A native component that represents a library to be used in other native components.
 
+# Completed stories
+
+See [continuous-delivery-for-c-plus-plus.md](done/continuous-delivery-for-c-plus-plus.md) for completed stories.
+
 # Milestone 1
 
 ## Story: Allow customization of binaries before and after linking
@@ -959,7 +963,7 @@ If we are inspired by CMake, the output file rules would be:
 
 ### Test cases
 
-- Attempt to build an Objective-C binary using Visual Studio.
+- Reasonable error message when attempting to build an Objective-C binary using Visual Studio.
 
 ### Open issues
 
@@ -1025,7 +1029,7 @@ Given a library `a` that uses another library `b` as input:
 - Allow a `Binary` to be attached to a publication.
 - Update publication so that a binary's include, link and runtime files are published.
 
-## Story: Variant aware dependency resolution
+## Feature: Variant aware dependency resolution
 
 Depends on a number of stories in [dependency-resolution.md](dependency-resolution.md). The plan is roughly:
 
@@ -1346,8 +1350,6 @@ TBD
 
 TBD
 
-
-
 ## DSL cleanups
 
 - Improve customising the tasks for building a binary
@@ -1366,22 +1368,27 @@ TBD
 
 ## Source
 
+- Split headers source set out of HeaderExportingSourceSet subclasses.
+- Introduce a composite source set that groups source into api + impl.
+- Allow dependencies to be declared between source sets
+    - native language source set A depends on header source set B makes the headers of B available when compiling A.
+    - native language source set A depends on native language source B makes the object files of B available when linking A into a binary.
+    - header source set A depends on header source set B makes the headers of B available when compiling something that depends on A.
 - Replace `SourceDirectorySet` with something that is actually a set of source directories.
     - Use this for sources and headers
     - Can access as a set of directories, a set of files or a file tree
     - Allow individual files to be added
     - Allow custom file extensions to be specified
 - Source sets are children of components
-- Cpp source set should include only files with a C++ extension
-- C source set should include only files with a C extension
-- Assembler source set should include only files with an assembler extension
+    - Only add source sets for supported languages to the children of native components
+- Language source sets should filter files with a given set of extensions: C/C++/windows-res/assembler/Objective-C/Objective-C++/header
+- A source set may have its own dependencies, visible only to the source set
 - A native component has a shared headers source set with its own dependencies, visible to all source sets of the component
-- A source set may have private headers and its own dependencies, visible only to the source set
 - A library component has an API, defaults to the shared headers
 - When compiling, only the API of dependencies should be visible
 - AssemblerSourceSet should implement DependentSourceSet (has source dependencies)
 - Add source sets only to a component, have some way to describe how to include/exclude a source set
-- Some conventional location for os specific source for a component
+- Some conventional location for OS specific source for a component
 
 ## Compilation
 
@@ -1418,13 +1425,14 @@ TBD
 
 - Add linkage as a variant dimension
 - Need to handle universal binaries.
+    - A component packaging that satisfies multiple points in the variant space.
     - Use `lipo` to merge two binaries into a single universal binary.
     - Transforms the meta-data for the component - same set of variants but different set of binaries.
 
 ## Toolchains
 
 - DSL to declare that a toolchain supports certain target platform, and how to invoke the tools to do so.
-
+- Introduce `XCode`, `Cygwin`, `MinGW` toolchains, to allow selection of specific gcc or clang implementations.
 
     toolchains {
         gcc {
