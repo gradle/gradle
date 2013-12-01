@@ -42,9 +42,7 @@ class DefaultScriptHandlerFactoryTest extends Specification {
 
         then:
         handler instanceof DefaultScriptHandler
-        handler.classLoader instanceof ScriptClassLoader
-        ScriptClassLoader scriptLoader = handler.classLoader
-        scriptLoader.parentLoader == parentClassLoader
+        handler.baseCompilationClassLoader == parentClassLoader
     }
 
     def reusesClassLoaderForGivenScriptClassAndParentClassLoader() {

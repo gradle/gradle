@@ -25,19 +25,29 @@ import java.io.File;
 import java.net.MalformedURLException;
 
 public class DefaultScriptHandler extends AbstractScriptHandler {
+    private final ScriptClassLoader classLoader;
 
     public DefaultScriptHandler(ScriptSource scriptSource, RepositoryHandler repositoryHandler,
                                 DependencyHandler dependencyHandler, ConfigurationContainer configContainer,
-                                ScriptClassLoader classLoader) {
-        super(classLoader, repositoryHandler, dependencyHandler, scriptSource, configContainer);
+                                ClassLoader baseClassLoader) {
+        super(repositoryHandler, dependencyHandler, scriptSource, configContainer);
+        this.classLoader = new ScriptClassLoader(baseClassLoader);
+    }
+
+    public ClassLoader getBaseCompilationClassLoader() {
+        return classLoader.getParentLoader();
+    }
+
+    public ScriptClassLoader getClassLoader() {
+        return classLoader;
     }
 
     public void addParent(ClassLoader parent) {
-        getClassLoader().addParent(parent);
+        classLoader.addParent(parent);
     }
 
     public void updateClassPath() {
-        MutableURLClassLoader mutableClassLoader = getClassLoader().getMutableClassLoader();
+        MutableURLClassLoader mutableClassLoader = classLoader.getMutableClassLoader();
         for (File file : getClasspathConfiguration().getFiles()) {
             try {
                 mutableClassLoader.addURL(file.toURI().toURL());

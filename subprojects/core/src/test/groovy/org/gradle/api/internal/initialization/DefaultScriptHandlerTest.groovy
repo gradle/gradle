@@ -20,8 +20,8 @@ import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.internal.classloader.ClassLoaderVisitor
 import org.gradle.util.WrapUtil
-import org.gradle.internal.classloader.MutableURLClassLoader
 import org.gradle.util.ConfigureUtil
 
 import spock.lang.Specification
@@ -32,14 +32,11 @@ class DefaultScriptHandlerTest extends Specification {
     ConfigurationContainer configurationContainer = Mock()
     Configuration configuration = Mock()
     ScriptSource scriptSource = Mock()
-    def mutableLoader = Mock(MutableURLClassLoader)
-    def classLoader = Mock(ScriptClassLoader) {
-        getMutableClassLoader() >> mutableLoader
-    }
+    def baseClassLoader = Mock(ClassLoader)
 
     def "adds classpath configuration"() {
         when:
-        new DefaultScriptHandler(scriptSource, repositoryHandler, dependencyHandler, configurationContainer, classLoader)
+        new DefaultScriptHandler(scriptSource, repositoryHandler, dependencyHandler, configurationContainer, baseClassLoader)
 
         then:
         1 * configurationContainer.create('classpath')
@@ -47,32 +44,32 @@ class DefaultScriptHandlerTest extends Specification {
 
     def "creates a class loader and adds contents of classpath configuration"() {
         def handler = handler()
-        def classLoader = handler.classLoader
-
-        expect:
-        classLoader.is this.classLoader
-
         def file1 = new File('a')
         def file2 = new File('b')
 
         when:
         handler.updateClassPath()
+        def classLoader = handler.classLoader
 
         then:
         1 * configuration.getFiles() >> WrapUtil.toSet(file1, file2)
-        1 * mutableLoader.addURL(file1.toURI().toURL())
-        1 * mutableLoader.addURL(file2.toURI().toURL())
+        classLoader.mutableClassLoader.URLs == [file1.toURI().toURL(), file2.toURI().toURL()] as URL[]
     }
 
     def "can add parent ClassLoader"() {
         def handler = handler()
         def parent = Mock(ClassLoader)
+        def visitor = Mock(ClassLoaderVisitor)
 
         when:
         handler.addParent(parent)
+        def classLoader = handler.classLoader
+        classLoader.visit(visitor)
 
         then:
-        1 * classLoader.addParent(parent)
+        1 * visitor.visitParent(baseClassLoader)
+        1 * visitor.visitParent(handler.classLoader.mutableClassLoader)
+        1 * visitor.visitParent(parent)
     }
 
     def "can configure repositories"() {
@@ -103,6 +100,6 @@ class DefaultScriptHandlerTest extends Specification {
 
     private DefaultScriptHandler handler() {
         1 * configurationContainer.create('classpath') >> configuration
-        return new DefaultScriptHandler(scriptSource, repositoryHandler, dependencyHandler, configurationContainer, classLoader)
+        return new DefaultScriptHandler(scriptSource, repositoryHandler, dependencyHandler, configurationContainer, baseClassLoader)
     }
 }

@@ -37,7 +37,7 @@ import java.util.Map;
 public class DefaultScriptHandlerFactory implements ScriptHandlerFactory {
     private final DependencyManagementServices dependencyManagementServices;
     private final DependencyMetaDataProvider dependencyMetaDataProvider;
-    private final Map<Collection<Object>, ScriptClassLoader> classLoaderCache = new HashMap<Collection<Object>, ScriptClassLoader>();
+    private final Map<Collection<Object>, ClassLoader> classLoaderCache = new HashMap<Collection<Object>, ClassLoader>();
     private final FileResolver fileResolver;
     private final ProjectFinder projectFinder = new ProjectFinder() {
         public ProjectInternal getProject(String path) {
@@ -63,14 +63,15 @@ public class DefaultScriptHandlerFactory implements ScriptHandlerFactory {
         ConfigurationContainer configurationContainer = services.getConfigurationContainer();
         DependencyHandler dependencyHandler = services.getDependencyHandler();
         Collection<Object> key = Arrays.asList(scriptSource.getClassName(), parentClassLoader);
-        ScriptClassLoader classLoader = classLoaderCache.get(key);
+        ClassLoader classLoader = classLoaderCache.get(key);
         if (classLoader == null) {
-            classLoader = new ScriptClassLoader(parentClassLoader);
+            DefaultScriptHandler handler = new DefaultScriptHandler(scriptSource, repositoryHandler, dependencyHandler, configurationContainer, parentClassLoader);
+            classLoader = handler.getClassLoader();
             classLoaderCache.put(key, classLoader);
-            return new DefaultScriptHandler(scriptSource, repositoryHandler, dependencyHandler, configurationContainer, classLoader);
+            return handler;
         }
 
-        return new NoClassLoaderUpdateScriptHandler(classLoader, repositoryHandler, dependencyHandler, scriptSource, configurationContainer);
+        return new NoClassLoaderUpdateScriptHandler(parentClassLoader, classLoader, repositoryHandler, dependencyHandler, scriptSource, configurationContainer);
     }
 
     private static class BasicDomainObjectContext implements DomainObjectContext {

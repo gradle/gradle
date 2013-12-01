@@ -16,7 +16,6 @@
 
 package org.gradle.configuration;
 
-import org.gradle.api.internal.initialization.ScriptClassLoader;
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
@@ -116,12 +115,11 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
                 classLoaderProvider = defaultScriptHandler;
             }
 
-            ScriptClassLoader scriptClassLoader = classLoaderProvider.getClassLoader();
             services.add(PluginHandler.class, pluginHandlerFactory.createPluginHandler(target, classLoaderProvider));
 
             ScriptCompiler compiler = scriptCompilerFactory.createCompiler(withImports);
 
-            compiler.setClassloader(scriptClassLoader);
+            compiler.setClassloader(classLoaderProvider.getBaseCompilationClassLoader());
 
             StatementExtractingScriptTransformer classpathScriptTransformer = new StatementExtractingScriptTransformer(
                     classpathClosureName,
@@ -135,6 +133,8 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             classPathScriptRunner.run();
 
             classLoaderProvider.updateClassPath();
+
+            compiler.setClassloader(classLoaderProvider.getClassLoader());
 
             compiler.setTransformer(new BuildScriptTransformer("no_" + classpathScriptTransformer.getId(), classpathScriptTransformer.invert()));
             ScriptRunner<? extends BasicScript> runner = compiler.compile(scriptType);

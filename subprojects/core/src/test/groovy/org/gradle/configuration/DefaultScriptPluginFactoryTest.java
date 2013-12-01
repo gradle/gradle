@@ -15,8 +15,6 @@
  */
 package org.gradle.configuration;
 
-import org.gradle.api.internal.initialization.ScriptClassLoader;
-import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.groovy.scripts.*;
@@ -53,7 +51,8 @@ public class DefaultScriptPluginFactoryTest {
     private final BasicScript scriptMock = context.mock(BasicScript.class);
     private final Instantiator instantiatorMock = context.mock(Instantiator.class);
     private final URLClassLoader parentClassLoader = new URLClassLoader(new URL[0]);
-    private final ScriptClassLoader scriptClassLoader = new ScriptClassLoader(new URLClassLoader(new URL[0]));
+    private final URLClassLoader baseClassLoader = new URLClassLoader(new URL[0]);
+    private final URLClassLoader scriptClassLoader = new URLClassLoader(new URL[0]);
     private final ScriptHandlerFactory scriptHandlerFactoryMock = context.mock(ScriptHandlerFactory.class);
     private final PluginHandlerFactory pluginHandlerFactoryMock = context.mock(PluginHandlerFactory.class);
     private final ScriptHandlerInternal scriptHandlerMock = context.mock(ScriptHandlerInternal.class);
@@ -84,11 +83,10 @@ public class DefaultScriptPluginFactoryTest {
             one(scriptHandlerFactoryMock).create(sourceWithImportsMock, parentClassLoader);
             will(returnValue(scriptHandlerMock));
 
-            //noinspection RedundantCast
-            ((ScriptClassLoaderProvider)allowing(scriptHandlerMock)).getClassLoader();
-            will(returnValue(scriptClassLoader));
+            allowing(scriptHandlerMock).getBaseCompilationClassLoader();
+            will(returnValue(baseClassLoader));
 
-            one(scriptCompilerMock).setClassloader(scriptClassLoader);
+            one(scriptCompilerMock).setClassloader(baseClassLoader);
             inSequence(sequence);
 
             one(scriptCompilerMock).setTransformer(with(any(StatementExtractingScriptTransformer.class)));
@@ -107,6 +105,13 @@ public class DefaultScriptPluginFactoryTest {
             inSequence(sequence);
 
             one(scriptHandlerMock).updateClassPath();
+            inSequence(sequence);
+
+            one(scriptHandlerMock).getClassLoader();
+            will(returnValue(scriptClassLoader));
+            inSequence(sequence);
+
+            one(scriptCompilerMock).setClassloader(scriptClassLoader);
             inSequence(sequence);
 
             one(scriptCompilerMock).setTransformer(with(notNullValue(Transformer.class)));
@@ -155,11 +160,10 @@ public class DefaultScriptPluginFactoryTest {
             one(scriptHandlerFactoryMock).create(sourceWithImportsMock, parentClassLoader);
             will(returnValue(scriptHandlerMock));
 
-            //noinspection RedundantCast
-            ((ScriptClassLoaderProvider)allowing(scriptHandlerMock)).getClassLoader();
-            will(returnValue(scriptClassLoader));
+            allowing(scriptHandlerMock).getBaseCompilationClassLoader();
+            will(returnValue(baseClassLoader));
 
-            one(scriptCompilerMock).setClassloader(scriptClassLoader);
+            one(scriptCompilerMock).setClassloader(baseClassLoader);
             inSequence(sequence);
 
             one(scriptCompilerMock).setTransformer(with(any(StatementExtractingScriptTransformer.class)));
@@ -178,6 +182,13 @@ public class DefaultScriptPluginFactoryTest {
             inSequence(sequence);
 
             one(scriptHandlerMock).updateClassPath();
+            inSequence(sequence);
+
+            one(scriptHandlerMock).getClassLoader();
+            will(returnValue(scriptClassLoader));
+            inSequence(sequence);
+
+            one(scriptCompilerMock).setClassloader(scriptClassLoader);
             inSequence(sequence);
 
             one(scriptCompilerMock).setTransformer(with(notNullValue(Transformer.class)));

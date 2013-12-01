@@ -16,9 +16,24 @@
 package org.gradle.api.internal.initialization;
 
 public interface ScriptClassLoaderProvider {
-    ScriptClassLoader getClassLoader();
+    /**
+     * Returns the ClassLoader which defines the base class path visible for script compilation. The script may declare additional dependencies which are subsequently
+     * made visible for script compilation.
+     */
+    ClassLoader getBaseCompilationClassLoader();
 
+    /**
+     * Returns the final ClassLoader which defines the complete script compilation class path.
+     */
+    ClassLoader getClassLoader();
+
+    /**
+     * Adds an additional ClassLoader to make visible for script compilation.
+     */
     void addParent(ClassLoader parent);
 
+    /**
+     * Makes the class path declared in the script visible for script compilation.
+     */
     void updateClassPath();
 }

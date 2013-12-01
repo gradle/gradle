@@ -21,10 +21,23 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.groovy.scripts.ScriptSource;
 
 public class NoClassLoaderUpdateScriptHandler extends AbstractScriptHandler {
-    public NoClassLoaderUpdateScriptHandler(ScriptClassLoader classLoader, RepositoryHandler repositoryHandler,
+    private final ClassLoader baseClassLoader;
+    private final ClassLoader classLoader;
+
+    public NoClassLoaderUpdateScriptHandler(ClassLoader baseClassLoader, ClassLoader classLoader, RepositoryHandler repositoryHandler,
                                             DependencyHandler dependencyHandler, ScriptSource scriptSource,
                                             ConfigurationContainer configContainer) {
-        super(classLoader, repositoryHandler, dependencyHandler, scriptSource, configContainer);
+        super(repositoryHandler, dependencyHandler, scriptSource, configContainer);
+        this.baseClassLoader = baseClassLoader;
+        this.classLoader = classLoader;
+    }
+
+    public ClassLoader getBaseCompilationClassLoader() {
+        return baseClassLoader;
+    }
+
+    public ClassLoader getClassLoader() {
+        return classLoader;
     }
 
     public void addParent(ClassLoader parent) {
