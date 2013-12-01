@@ -61,6 +61,12 @@ public class BuildProgressLogger {
     }
 
     public void buildFinished() {
+        for (ProgressLogger l : projectConfigurationProgress.values()) {
+            l.completed();
+        }
+        if (configurationProgress != null) {
+            configurationProgress.completed();
+        }
         buildProgress.completed();
         buildProgress = null;
         buildProgressFormatter = null;
