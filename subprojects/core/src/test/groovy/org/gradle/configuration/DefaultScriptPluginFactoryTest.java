@@ -71,7 +71,7 @@ public class DefaultScriptPluginFactoryTest {
             ScriptSource sourceWithImportsMock = context.mock(ScriptSource.class, "imports");
             LoggingManagerInternal loggingManagerMock = context.mock(LoggingManagerInternal.class);
 
-            one(pluginHandlerFactoryMock).createPluginHandler(target, scriptClassLoader);
+            one(pluginHandlerFactoryMock).createPluginHandler(target, scriptHandlerMock);
             one(loggingManagerFactoryMock).create();
             will(returnValue(loggingManagerMock));
 
@@ -139,7 +139,7 @@ public class DefaultScriptPluginFactoryTest {
             ScriptSource sourceWithImportsMock = context.mock(ScriptSource.class, "imports");
             LoggingManagerInternal loggingManagerMock = context.mock(LoggingManagerInternal.class);
 
-            one(pluginHandlerFactoryMock).createPluginHandler(target, scriptClassLoader);
+            one(pluginHandlerFactoryMock).createPluginHandler(target, scriptHandlerMock);
 
             one(loggingManagerFactoryMock).create();
             will(returnValue(loggingManagerMock));

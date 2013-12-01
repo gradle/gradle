@@ -18,5 +18,7 @@ package org.gradle.api.internal.initialization;
 public interface ScriptClassLoaderProvider {
     ScriptClassLoader getClassLoader();
 
+    void addParent(ClassLoader parent);
+
     void updateClassPath();
 }

@@ -32,6 +32,10 @@ public class DefaultScriptHandler extends AbstractScriptHandler {
         super(classLoader, repositoryHandler, dependencyHandler, scriptSource, configContainer);
     }
 
+    public void addParent(ClassLoader parent) {
+        getClassLoader().addParent(parent);
+    }
+
     public void updateClassPath() {
         MutableURLClassLoader mutableClassLoader = getClassLoader().getMutableClassLoader();
         for (File file : getClasspathConfiguration().getFiles()) {

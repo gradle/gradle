@@ -64,6 +64,17 @@ class DefaultScriptHandlerTest extends Specification {
         1 * mutableLoader.addURL(file2.toURI().toURL())
     }
 
+    def "can add parent ClassLoader"() {
+        def handler = handler()
+        def parent = Mock(ClassLoader)
+
+        when:
+        handler.addParent(parent)
+
+        then:
+        1 * classLoader.addParent(parent)
+    }
+
     def "can configure repositories"() {
         def handler = handler()
         def configure = {

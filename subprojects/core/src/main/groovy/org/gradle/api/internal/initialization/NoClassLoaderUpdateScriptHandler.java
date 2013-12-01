@@ -27,6 +27,9 @@ public class NoClassLoaderUpdateScriptHandler extends AbstractScriptHandler {
         super(classLoader, repositoryHandler, dependencyHandler, scriptSource, configContainer);
     }
 
+    public void addParent(ClassLoader parent) {
+    }
+
     public void updateClassPath() {
     }
 }
