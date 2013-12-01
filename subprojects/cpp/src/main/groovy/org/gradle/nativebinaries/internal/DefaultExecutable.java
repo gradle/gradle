@@ -19,8 +19,8 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.nativebinaries.Executable;
 
 public class DefaultExecutable extends DefaultNativeComponent implements Executable {
-    public DefaultExecutable(String name, Instantiator instantiator) {
-        super(name, instantiator);
+    public DefaultExecutable(NativeBuildComponentIdentifier id, Instantiator instantiator) {
+        super(id, instantiator);
     }
 
     @Override

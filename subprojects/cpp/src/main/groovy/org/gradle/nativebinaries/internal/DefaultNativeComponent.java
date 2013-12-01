@@ -22,10 +22,7 @@ import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.nativebinaries.BuildType;
-import org.gradle.nativebinaries.Flavor;
-import org.gradle.nativebinaries.NativeBinary;
-import org.gradle.nativebinaries.Platform;
+import org.gradle.nativebinaries.*;
 import org.gradle.util.GUtil;
 
 import java.util.HashSet;
@@ -34,7 +31,7 @@ import java.util.Set;
 
 public class DefaultNativeComponent implements NativeComponentInternal {
     private final NotationParser<Object, Set<LanguageSourceSet>> sourcesNotationParser = SourceSetNotationParser.parser();
-    private final String name;
+    private final NativeBuildComponentIdentifier id;
     private final DomainObjectSet<LanguageSourceSet> sourceSets;
     private final DefaultDomainObjectSet<NativeBinary> binaries;
     private final Set<String> targetPlatforms = new HashSet<String>();
@@ -42,14 +39,18 @@ public class DefaultNativeComponent implements NativeComponentInternal {
     private final Set<String> flavors = new HashSet<String>();
     private String baseName;
 
-    public DefaultNativeComponent(String name, Instantiator instantiator) {
-        this.name = name;
+    public DefaultNativeComponent(NativeBuildComponentIdentifier id, Instantiator instantiator) {
+        this.id = id;
         this.sourceSets = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class);
         binaries = new DefaultDomainObjectSet<NativeBinary>(NativeBinary.class);
     }
 
+    public String getProjectPath() {
+        return id.getProjectPath();
+    }
+
     public String getName() {
-        return name;
+        return id.getName();
     }
 
     public DomainObjectSet<LanguageSourceSet> getSource() {
@@ -65,7 +66,7 @@ public class DefaultNativeComponent implements NativeComponentInternal {
     }
 
     public String getBaseName() {
-        return GUtil.elvis(baseName, name);
+        return GUtil.elvis(baseName, getName());
     }
 
     public void setBaseName(String baseName) {

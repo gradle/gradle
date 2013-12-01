@@ -24,6 +24,9 @@ import java.util.Set;
 
 public interface NativeComponentInternal extends NativeComponent {
 
+    // TODO:DAZ Use BuildComponentIdentifier
+    String getProjectPath();
+
     Set<Flavor> chooseFlavors(Set<? extends Flavor> candidates);
     Set<Platform> choosePlatforms(Set<? extends Platform> candidates);
     Set<BuildType> chooseBuildTypes(Set<? extends BuildType> candidates);

@@ -26,7 +26,8 @@ import spock.lang.Specification
 
 class DefaultNativeBinaryTest extends Specification {
     def flavor1 = new DefaultFlavor("flavor1")
-    def component = new DefaultNativeComponent("name", new DirectInstantiator())
+    def id = new NativeBuildComponentIdentifier("project", "name")
+    def component = new DefaultNativeComponent(id, new DirectInstantiator())
     def toolChain1 = Stub(ToolChainInternal) {
         getName() >> "ToolChain1"
     }

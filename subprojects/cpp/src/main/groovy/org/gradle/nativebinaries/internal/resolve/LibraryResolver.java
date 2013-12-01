@@ -17,24 +17,13 @@
 package org.gradle.nativebinaries.internal.resolve;
 
 import org.gradle.api.Incubating;
-import org.gradle.nativebinaries.BuildType;
-import org.gradle.nativebinaries.Flavor;
-import org.gradle.nativebinaries.Platform;
-import org.gradle.nativebinaries.ToolChain;
 
 // TODO:DAZ Needs a better name
 /**
- * Resolves a library to a single binary to use as a dependency.
+ * Resolves a library requirement to a native binary dependency.
  */
 @Incubating
 interface LibraryResolver {
-    LibraryResolver withFlavor(Flavor flavor);
-
-    LibraryResolver withToolChain(ToolChain toolChain);
-
-    LibraryResolver withPlatform(Platform platform);
-
-    LibraryResolver withBuildType(BuildType buildType);
 
     /**
      * Resolves the library to a dependency set.

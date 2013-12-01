@@ -16,16 +16,22 @@
 package org.gradle.nativebinaries;
 
 /**
- * A dependency on a native-binaries library.
+ * A dependency on a native-binaries library within the build.
  */
-public interface NativeLibraryDependency {
+public interface NativeLibraryRequirement {
     /**
-     * Resolve the depended-on library.
+     * The path to the project containing the library.
      */
-    Library getLibrary();
+    String getProjectPath();
 
     /**
-     * The type of the resolved binary.
+     * The name of the required library.
      */
-    Class<? extends LibraryBinary> getType();
+    String getLibraryName();
+
+    /**
+     * The required linkage.
+     */
+    // TODO:DAZ Type this
+    String getLinkage();
 }

@@ -15,28 +15,37 @@
  */
 
 package org.gradle.nativebinaries.internal
-
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.nativebinaries.SharedLibraryBinary
-import org.gradle.nativebinaries.StaticLibraryBinary
 import spock.lang.Specification
 
 class DefaultLibraryTest extends Specification {
+    final library = new DefaultLibrary(new NativeBuildComponentIdentifier("project-path", "someLib"), new DirectInstantiator(), Stub(FileResolver))
+
     def "has useful string representation"() {
-        def library = new DefaultLibrary("someLib", new DirectInstantiator(), Stub(FileResolver))
 
         expect:
         library.toString() == "library 'someLib'"
     }
 
-    def "can use shared and static variants as dependencies"() {
-        def library = new DefaultLibrary("someLib", new DirectInstantiator(), Stub(FileResolver))
+    def "can use shared variant as requirement"() {
+        when:
+        def requirement = library.shared
 
-        expect:
-        library.shared.library == library
-        library.shared.type == SharedLibraryBinary
-        library.static.library == library
-        library.static.type == StaticLibraryBinary
+        then:
+        requirement.projectPath == 'project-path'
+        requirement.libraryName == 'someLib'
+        requirement.linkage == 'shared'
     }
-}
+
+    def "can use static variant as requirement"() {
+        when:
+        def requirement = library.static
+
+        then:
+        requirement.projectPath == 'project-path'
+        requirement.libraryName == 'someLib'
+        requirement.linkage == 'static'
+    }
+
+    }

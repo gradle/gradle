@@ -77,13 +77,15 @@ public class NativeBinariesModelPlugin implements Plugin<Project> {
         project.getExtensions().create(
                 "executables",
                 DefaultExecutableContainer.class,
-                instantiator
+                instantiator,
+                project
         );
         project.getExtensions().create(
                 "libraries",
                 DefaultLibraryContainer.class,
                 instantiator,
-                fileResolver
+                fileResolver,
+                project
         );
 
         // TODO:DAZ Lazy configuration actions: need a better way to accomplish these.

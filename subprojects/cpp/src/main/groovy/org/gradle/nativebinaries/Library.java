@@ -29,12 +29,12 @@ public interface Library extends NativeComponent {
     SourceDirectorySet getHeaders();
 
     /**
-     * Converts this library to a native dependency that uses the shared library variant. This is the default.
+     * Converts this library to a native library requirement that uses the shared library variant. This is the default.
      */
-    NativeLibraryDependency getShared();
+    NativeLibraryRequirement getShared();
 
     /**
-     * Converts this library to a native dependency that uses the static library variant.
+     * Converts this library to a native library requirement that uses the static library variant.
      */
-    NativeLibraryDependency getStatic();
+    NativeLibraryRequirement getStatic();
 }

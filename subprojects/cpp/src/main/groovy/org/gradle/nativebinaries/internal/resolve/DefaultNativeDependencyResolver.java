@@ -21,17 +21,19 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.nativebinaries.NativeBinary;
 import org.gradle.nativebinaries.NativeDependencySet;
-import org.gradle.nativebinaries.NativeLibraryDependency;
+import org.gradle.nativebinaries.NativeLibraryRequirement;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
 public class DefaultNativeDependencyResolver implements NativeDependencyResolver {
-    private final NotationParser<Object, NativeLibraryDependency> parser;
+    private final RelativeProjectFinder projectFinder;
+    private final NotationParser<Object, NativeLibraryRequirement> parser;
 
     public DefaultNativeDependencyResolver(final ProjectInternal project) {
-        parser = NativeDependencyNotationParser.parser(new RelativeProjectFinder(project));
+        projectFinder = new RelativeProjectFinder(project);
+        parser = NativeDependencyNotationParser.parser();
     }
 
     public Collection<NativeDependencySet> resolve(NativeBinary target, Collection<?> libs) {
@@ -46,8 +48,10 @@ public class DefaultNativeDependencyResolver implements NativeDependencyResolver
         if (lib instanceof NativeDependencySet) {
             return (NativeDependencySet) lib;
         }
-        NativeLibraryDependency libraryDependency = parser.parseNotation(lib);
-        return new DeferredResolutionLibraryNativeDependencySet(libraryDependency, target);
+        NativeLibraryRequirement libraryDependency = parser.parseNotation(lib);
+        LibraryBinaryLocator registry = new LibraryBinaryLocator(projectFinder);
+        LibraryResolver libraryResolver = new DefaultLibraryResolver(registry, libraryDependency, target);
+        return new DeferredResolutionLibraryNativeDependencySet(libraryResolver);
     }
 
     private static class RelativeProjectFinder implements ProjectFinder {

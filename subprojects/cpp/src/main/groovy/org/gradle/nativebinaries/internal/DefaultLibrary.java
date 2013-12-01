@@ -24,10 +24,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.HeaderExportingSourceSet;
 import org.gradle.nativebinaries.Library;
-import org.gradle.nativebinaries.SharedLibraryBinary;
-import org.gradle.nativebinaries.StaticLibraryBinary;
-import org.gradle.nativebinaries.internal.resolve.DirectLibraryDependency;
-import org.gradle.nativebinaries.NativeLibraryDependency;
+import org.gradle.nativebinaries.NativeLibraryRequirement;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,9 +32,9 @@ import java.util.List;
 public class DefaultLibrary extends DefaultNativeComponent implements Library {
     private final DefaultSourceDirectorySet headers;
 
-    public DefaultLibrary(String name, Instantiator instantiator, FileResolver fileResolver) {
-        super(name, instantiator);
-        this.headers = new DefaultSourceDirectorySet("headers", String.format("Exported headers for native library '%s'", name), fileResolver);
+    public DefaultLibrary(NativeBuildComponentIdentifier id, Instantiator instantiator, FileResolver fileResolver) {
+        super(id, instantiator);
+        this.headers = new DefaultSourceDirectorySet("headers", String.format("Exported headers for native library '%s'", id.getName()), fileResolver);
         initExportedHeaderTracking();
     }
 
@@ -50,12 +47,12 @@ public class DefaultLibrary extends DefaultNativeComponent implements Library {
         return headers;
     }
 
-    public NativeLibraryDependency getShared() {
-        return new DirectLibraryDependency(this, SharedLibraryBinary.class);
+    public NativeLibraryRequirement getShared() {
+        return new ProjectNativeLibraryRequirement(getProjectPath(), this.getName(), "shared");
     }
 
-    public NativeLibraryDependency getStatic() {
-        return new DirectLibraryDependency(this, StaticLibraryBinary.class);
+    public NativeLibraryRequirement getStatic() {
+        return new ProjectNativeLibraryRequirement(getProjectPath(), this.getName(), "static");
     }
 
     private void initExportedHeaderTracking() {

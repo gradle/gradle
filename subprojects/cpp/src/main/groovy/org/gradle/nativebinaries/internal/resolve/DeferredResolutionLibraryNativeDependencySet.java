@@ -18,27 +18,18 @@ package org.gradle.nativebinaries.internal.resolve;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection;
 import org.gradle.nativebinaries.LibraryBinary;
-import org.gradle.nativebinaries.NativeBinary;
-import org.gradle.nativebinaries.NativeLibraryDependency;
 
 class DeferredResolutionLibraryNativeDependencySet implements LibraryNativeDependencySet {
-    private final NativeLibraryDependency dependency;
-    private final NativeBinary target;
+    private final LibraryResolver resolver;
     private LibraryNativeDependencySet delegate;
 
-    public DeferredResolutionLibraryNativeDependencySet(NativeLibraryDependency dependency, NativeBinary target) {
-        this.dependency = dependency;
-        this.target = target;
+    public DeferredResolutionLibraryNativeDependencySet(LibraryResolver resolver) {
+        this.resolver = resolver;
     }
 
     private LibraryNativeDependencySet doResolve() {
         if (delegate == null) {
-            delegate = new DefaultLibraryResolver(dependency)
-                    .withFlavor(target.getFlavor())
-                    .withToolChain(target.getToolChain())
-                    .withPlatform(target.getTargetPlatform())
-                    .withBuildType(target.getBuildType())
-                    .resolve();
+            delegate = resolver.resolve();
         }
         return delegate;
     }

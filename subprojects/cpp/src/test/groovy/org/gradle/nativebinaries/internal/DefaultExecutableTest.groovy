@@ -19,8 +19,8 @@ import org.gradle.internal.reflect.DirectInstantiator
 import spock.lang.Specification
 
 class DefaultExecutableTest extends Specification {
+    def executable = new DefaultExecutable(new NativeBuildComponentIdentifier("project-path", "someExe"), new DirectInstantiator())
     def "has useful string representation"() {
-        def executable = new DefaultExecutable("someExe", new DirectInstantiator())
 
         expect:
         executable.toString() == "executable 'someExe'"

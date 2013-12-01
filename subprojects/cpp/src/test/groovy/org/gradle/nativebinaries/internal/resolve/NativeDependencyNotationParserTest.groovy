@@ -14,139 +14,59 @@
  * limitations under the License.
  */
 package org.gradle.nativebinaries.internal.resolve
-
-import org.gradle.api.InvalidUserDataException
-import org.gradle.api.UnknownDomainObjectException
-import org.gradle.api.UnknownProjectException
-import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
-import org.gradle.api.internal.plugins.ExtensionContainerInternal
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.nativebinaries.*
+import org.gradle.nativebinaries.Library
+import org.gradle.nativebinaries.NativeLibraryRequirement
 import spock.lang.Specification
 
 class NativeDependencyNotationParserTest extends Specification {
-    def projectFinder = Mock(ProjectFinder)
-    def parser = NativeDependencyNotationParser.parser(projectFinder)
-    def nativeDependency = Mock(NativeLibraryDependency)
+    def parser = NativeDependencyNotationParser.parser()
+    def requirement = Mock(NativeLibraryRequirement)
     def library = Mock(Library)
     def project = Mock(ProjectInternal)
 
-    def "parses library"() {
+    def "uses shared variant of library"() {
         when:
         def input = library
 
         and:
-        library.shared >> nativeDependency
+        library.shared >> requirement
 
         then:
-        parser.parseNotation(input) == nativeDependency
+        parser.parseNotation(input) == requirement
     }
 
     def "parses map notation for library in same project"() {
         when:
         def input = [library: 'libName']
-
-        and:
-        projectFinder.getProject(null) >> project
         def dependency = parser.parseNotation(input)
 
-        and:
-        def libraries = findLibraryContainer(project)
-        libraries.getByName("libName") >> library
-
         then:
-        dependency.library == library
-        dependency.type == SharedLibraryBinary
+        dependency.projectPath == null
+        dependency.libraryName == "libName"
+        dependency.linkage == null
     }
 
     def "parses map notation for library in other project"() {
         when:
         def input = [project: 'other', library: 'libName']
-
-        and:
-        projectFinder.getProject("other") >> project
         def dependency = parser.parseNotation(input)
 
-        and:
-        def libraries = findLibraryContainer(project)
-        libraries.getByName("libName") >> library
 
         then:
-        dependency.library == library
-        dependency.type == SharedLibraryBinary
+        dependency.projectPath == "other"
+        dependency.libraryName == "libName"
+        dependency.linkage == null
     }
 
-    def "parses map notation for library with static linkage"() {
+    def "parses map notation for library with defined linkage"() {
         when:
         def input = [project: 'other', library: 'libName', linkage: 'static']
-
-        and:
-        projectFinder.getProject("other") >> project
         def dependency = parser.parseNotation(input)
 
-        and:
-        def libraries = findLibraryContainer(project)
-        libraries.getByName("libName") >> library
-
         then:
-        dependency.library == library
-        dependency.type == StaticLibraryBinary
-    }
-
-    def "fails for unknown project"() {
-        when:
-        def input = [project: 'unknown', library: 'libName']
-
-        and:
-        projectFinder.getProject("unknown") >> { throw new UnknownProjectException("unknown")}
-
-        and:
-        parser.parseNotation(input).library
-
-        then:
-        thrown(UnknownProjectException)
-    }
-
-    def "fails for unknown library"() {
-        when:
-        def input = [project: 'other', library: 'libName']
-
-        and:
-        projectFinder.getProject("other") >> project
-        def libraries = findLibraryContainer(project)
-        libraries.getByName("libName") >> { throw new UnknownDomainObjectException("libName") }
-
-        and:
-        parser.parseNotation(input).library
-
-        then:
-        thrown(UnknownDomainObjectException)
-    }
-
-    def "fails when project does not have libraries"() {
-        when:
-        def input = [project: 'other', library: 'libName']
-
-        and:
-        projectFinder.getProject("other") >> project
-        def extensions = Mock(ExtensionContainerInternal)
-        project.getExtensions() >> extensions
-        extensions.findByName("libraries") >> null
-        project.getPath() >> "project-path"
-
-        and:
-        parser.parseNotation(input).library
-
-        then:
-        def e = thrown(InvalidUserDataException)
-        e.message == "Project does not have a libraries container: 'project-path'"
-    }
-
-    private LibraryContainer findLibraryContainer(ProjectInternal project) {
-        def extensions = Mock(ExtensionContainerInternal)
-        def libraries = Mock(LibraryContainer)
-        project.getExtensions() >> extensions
-        extensions.findByName("libraries") >> libraries
-        return libraries
+        dependency.projectPath == "other"
+        dependency.libraryName == "libName"
+        dependency.linkage == "static"
     }
 }

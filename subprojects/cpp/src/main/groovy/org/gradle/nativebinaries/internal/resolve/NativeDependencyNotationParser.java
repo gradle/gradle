@@ -16,30 +16,44 @@
 
 package org.gradle.nativebinaries.internal.resolve;
 
-import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
-import org.gradle.internal.typeconversion.NotationParser;
-import org.gradle.internal.typeconversion.NotationParserBuilder;
-import org.gradle.internal.typeconversion.TypedNotationParser;
+import org.gradle.api.tasks.Optional;
+import org.gradle.internal.typeconversion.*;
 import org.gradle.nativebinaries.Library;
-import org.gradle.nativebinaries.NativeLibraryDependency;
+import org.gradle.nativebinaries.NativeLibraryRequirement;
+import org.gradle.nativebinaries.internal.ProjectNativeLibraryRequirement;
+
+import java.util.Collection;
 
 class NativeDependencyNotationParser {
-    public static NotationParser<Object, NativeLibraryDependency> parser(ProjectFinder projectFinder) {
-        return new NotationParserBuilder<NativeLibraryDependency>()
-                .resultingType(NativeLibraryDependency.class)
+    public static NotationParser<Object, NativeLibraryRequirement> parser() {
+        return new NotationParserBuilder<NativeLibraryRequirement>()
+                .resultingType(NativeLibraryRequirement.class)
                 .parser(new LibraryConverter())
-                .parser(new NativeDependencyMapNotationParser(projectFinder))
+                .parser(new NativeLibraryRequirementMapNotationParser())
                 .toComposite();
     }
 
-    private static class LibraryConverter extends TypedNotationParser<Library, NativeLibraryDependency> {
+    private static class LibraryConverter extends TypedNotationParser<Library, NativeLibraryRequirement> {
         private LibraryConverter() {
             super(Library.class);
         }
 
         @Override
-        protected NativeLibraryDependency parseType(Library notation) {
+        protected NativeLibraryRequirement parseType(Library notation) {
             return notation.getShared();
         }
     }
+
+    private static class NativeLibraryRequirementMapNotationParser extends MapNotationParser<NativeLibraryRequirement> {
+
+        public void describe(Collection<String> candidateFormats) {
+            candidateFormats.add("Map with mandatory 'library' and optional 'project' and 'linkage' keys, e.g. [project: ':someProj', library: 'mylib', linkage: 'static']");
+        }
+
+        @SuppressWarnings("unused")
+        protected NativeLibraryRequirement parseMap(@MapKey("library") String libraryName, @Optional @MapKey("project") String projectPath, @Optional @MapKey("linkage") String linkage) {
+            return new ProjectNativeLibraryRequirement(projectPath, libraryName, linkage);
+        }
+    }
+
 }

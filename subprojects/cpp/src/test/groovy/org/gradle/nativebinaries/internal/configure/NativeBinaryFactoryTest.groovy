@@ -24,6 +24,7 @@ import org.gradle.nativebinaries.internal.DefaultExecutable
 import org.gradle.nativebinaries.internal.DefaultExecutableBinary
 import org.gradle.nativebinaries.internal.DefaultFlavor
 import org.gradle.nativebinaries.internal.DefaultFlavorContainer
+import org.gradle.nativebinaries.internal.NativeBuildComponentIdentifier
 import org.gradle.nativebinaries.internal.ToolChainInternal
 import spock.lang.Specification
 
@@ -36,7 +37,8 @@ class NativeBinaryFactoryTest extends Specification {
 
     def flavor1 = new DefaultFlavor("flavor1")
     def flavors = new DefaultFlavorContainer(new DirectInstantiator())
-    def component = new DefaultExecutable("name", new DirectInstantiator())
+    def id = new NativeBuildComponentIdentifier("project", "name")
+    def component = new DefaultExecutable(id, new DirectInstantiator())
 
     def setup() {
         platform.name >> "platform1"
