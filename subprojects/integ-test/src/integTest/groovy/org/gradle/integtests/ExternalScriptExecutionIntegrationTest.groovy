@@ -92,7 +92,6 @@ new BuildSrcClass()
 assert 'doStuff' == name
 assert buildscript.classLoader == getClass().classLoader.parent
 assert buildscript.classLoader == Thread.currentThread().contextClassLoader
-assert project.buildscript.classLoader != buildscript.classLoader
 ext.someProp = 'value'
 '''
         testFile('build.gradle') << '''
