@@ -44,20 +44,17 @@ class DefaultBuildClassLoaderRegistryTest extends Specification {
 
         when:
         def registry = new DefaultBuildClassLoaderRegistry(globalRegistry)
-        def scriptLoader = registry.scriptClassLoader
         def rootCompileScope = registry.rootCompileScope
 
         then:
-        scriptLoader instanceof CachingClassLoader
-        scriptLoader.parent instanceof MultiParentClassLoader
-        scriptLoader.parent.parents == [rootClassLoader]
-        rootCompileScope.scriptCompileClassLoader == scriptLoader
+        rootCompileScope.scriptCompileClassLoader instanceof CachingClassLoader
+        rootCompileScope.scriptCompileClassLoader.parent instanceof MultiParentClassLoader
+        rootCompileScope.scriptCompileClassLoader.parent.parents == [rootClassLoader]
 
         when:
         registry.addRootClassLoader(additionalClassLoader)
 
         then:
-        scriptLoader.parent.parents == [rootClassLoader, additionalClassLoader]
-        rootCompileScope.scriptCompileClassLoader == scriptLoader
+        rootCompileScope.scriptCompileClassLoader.parent.parents == [rootClassLoader, additionalClassLoader]
     }
 }

@@ -25,14 +25,6 @@ public interface BuildClassLoaderRegistry {
     void addRootClassLoader(ClassLoader classLoader);
 
     /**
-     * Returns the root {@code ClassLoader} to use for all scripts, including init and settings scripts. This {@code ClassLoader} exposes the Gradle API
-     * plus any classes that are exposed using {@link #addRootClassLoader(ClassLoader)}.
-     *
-     * <p>This {@code ClassLoader} is also used to locate plugins by id.</p>
-     */
-    ClassLoader getScriptClassLoader();
-
-    /**
      * Returns the root compile scope to use for all scripts, including init and settings scripts. This exposes the Gradle API plus any classes that are
      * exposed using {@link #addRootClassLoader(ClassLoader)}.
      *

@@ -41,8 +41,4 @@ public class DefaultBuildClassLoaderRegistry implements BuildClassLoaderRegistry
     public ClassLoader getScriptCompileClassLoader() {
         return scriptClassLoader;
     }
-
-    public ClassLoader getScriptClassLoader() {
-        return scriptClassLoader;
-    }
 }
