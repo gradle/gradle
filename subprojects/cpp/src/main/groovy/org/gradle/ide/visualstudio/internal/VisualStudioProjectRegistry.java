@@ -17,9 +17,11 @@
 package org.gradle.ide.visualstudio.internal;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.Project;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.nativebinaries.*;
-import org.gradle.nativebinaries.internal.resolve.LibraryNativeDependencySet;
 import org.gradle.nativebinaries.internal.NativeComponentInternal;
+import org.gradle.nativebinaries.internal.resolve.LibraryNativeDependencySet;
 import org.gradle.util.CollectionUtils;
 
 import java.util.HashMap;
@@ -28,10 +30,12 @@ import java.util.Map;
 import java.util.Set;
 
 public class VisualStudioProjectRegistry {
+    private final ProjectInternal projectFinder;
     private Map<String, VisualStudioProject> projects = new HashMap<String, VisualStudioProject>();
     private final FlavorContainer allFlavors;
 
-    public VisualStudioProjectRegistry(FlavorContainer allFlavors) {
+    public VisualStudioProjectRegistry(ProjectInternal projectFinder, FlavorContainer allFlavors) {
+        this.projectFinder = projectFinder;
         this.allFlavors = allFlavors;
     }
 
@@ -52,7 +56,8 @@ public class VisualStudioProjectRegistry {
         String projectName = projectName(nativeBinary);
         VisualStudioProject vsProject = projects.get(projectName);
         if (vsProject == null) {
-            vsProject = new VisualStudioProject(projectName, nativeBinary.getComponent());
+            Project project = projectFinder.project(((NativeComponentInternal) nativeBinary.getComponent()).getProjectPath());
+            vsProject = new VisualStudioProject(project, projectName, nativeBinary.getComponent());
             projects.put(projectName, vsProject);
         }
         return vsProject;

@@ -43,7 +43,7 @@ class VisualStudioPlugin implements Plugin<ProjectInternal> {
         // TODO:DAZ Use a model rule
         project.afterEvaluate {
             final flavors = project.modelRegistry.get("flavors", FlavorContainer)
-            VisualStudioProjectRegistry projectRegistry = new VisualStudioProjectRegistry(flavors);
+            VisualStudioProjectRegistry projectRegistry = new VisualStudioProjectRegistry(project, flavors);
             VisualStudioSolutionBuilder solutionBuilder = new VisualStudioSolutionBuilder(projectRegistry);
 
             project.executables.all { NativeComponent component ->
@@ -57,8 +57,8 @@ class VisualStudioPlugin implements Plugin<ProjectInternal> {
             // TODO:DAZ For now, all vs project files are created within this project:
             // this will change so that we have more of a global vsproject registry and the 'owning' gradle project is responsible for building
             projectRegistry.allProjects.each { vsProject ->
-                vsProject.builtBy addProjectsFileTask(project, vsProject, projectRegistry)
-                vsProject.builtBy addFiltersFileTask(project, vsProject)
+                vsProject.builtBy addProjectsFileTask(vsProject, projectRegistry)
+                vsProject.builtBy addFiltersFileTask(vsProject)
             }
         }
 
@@ -93,7 +93,7 @@ class VisualStudioPlugin implements Plugin<ProjectInternal> {
         String taskName = "${solution.name}VisualStudioSolution"
         project.task(taskName, type:GenerateMetadataFileTask) {
             inputFile = new File("not a file")
-            outputFile = configFile(project, solution.solutionFile)
+            outputFile = project.file(solution.solutionFile)
             factory { new VisualStudioSolutionFile() }
             onConfigure { VisualStudioSolutionFile solutionFile ->
                 solution.projectConfigurations.each {
@@ -103,11 +103,12 @@ class VisualStudioPlugin implements Plugin<ProjectInternal> {
         }
     }
 
-    private addProjectsFileTask(Project project, VisualStudioProject vsProject, VisualStudioProjectRegistry vsProjectRegistry) {
+    private addProjectsFileTask(VisualStudioProject vsProject, VisualStudioProjectRegistry vsProjectRegistry) {
+        Project project = vsProject.project
         String taskName = "${vsProject.name}VisualStudioProject"
         project.task(taskName, type: GenerateMetadataFileTask) {
             inputFile = new File("not a file")
-            outputFile = configFile(project, vsProject.projectFile)
+            outputFile = vsProject.projectFile
             factory { new VisualStudioProjectFile(new ProjectRelativeFileTransformer(project)) }
             onConfigure { VisualStudioProjectFile projectFile ->
                 projectFile.setProjectUuid(vsProject.uuid)
@@ -129,11 +130,12 @@ class VisualStudioPlugin implements Plugin<ProjectInternal> {
         }
     }
 
-    private addFiltersFileTask(Project project, VisualStudioProject vsProject) {
+    private addFiltersFileTask(VisualStudioProject vsProject) {
+        Project project = vsProject.project
         String taskName = "${vsProject.name}VisualStudioFilters"
         project.task(taskName, type: GenerateMetadataFileTask) {
             inputFile = new File("not a file")
-            outputFile = configFile(project, vsProject.filtersFile)
+            outputFile = vsProject.filtersFile
             factory { new VisualStudioFiltersFile(new ProjectRelativeFileTransformer(project)) }
             onConfigure { VisualStudioFiltersFile filtersFile ->
                 vsProject.sourceFiles.each {
@@ -144,11 +146,6 @@ class VisualStudioPlugin implements Plugin<ProjectInternal> {
                 }
             }
         }
-    }
-
-    private File configFile(Project project, String fileName) {
-        // TODO:DAZ Allow the output directory to be configured
-        return project.file("visualStudio/${fileName}")
     }
 
     // TODO:DAZ Decide if this is necessary and implement, or remove

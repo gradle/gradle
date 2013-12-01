@@ -15,34 +15,42 @@
  */
 
 package org.gradle.ide.visualstudio.internal
+
+import org.gradle.api.Project
 import org.gradle.language.HeaderExportingSourceSet
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.internal.AbstractBuildableModelElement
-import org.gradle.nativebinaries.*
+import org.gradle.nativebinaries.NativeBinary
+import org.gradle.nativebinaries.NativeComponent
+import org.gradle.nativebinaries.SharedLibraryBinary
+import org.gradle.nativebinaries.StaticLibraryBinary
 import org.gradle.util.CollectionUtils
+
 /**
  * A VisualStudio project represents a set of binaries for a component that may vary in build type and target platform.
  */
 // TODO:DAZ Sources and header files should be taken from all binaries added to project
 class VisualStudioProject extends AbstractBuildableModelElement {
+    final Project project
     final String uuid
     final String name
     final NativeComponent component
     final Map<NativeBinary, VisualStudioProjectConfiguration> configurations = [:]
     final Set<String> projectReferences = []
 
-    VisualStudioProject(String name, NativeComponent component) {
+    VisualStudioProject(Project project, String name, NativeComponent component) {
+        this.project = project
         this.name = name
         this.component = component
         this.uuid = '{' + UUID.randomUUID().toString().toUpperCase() + '}'
     }
 
-    String getProjectFile() {
-        return "${name}.vcxproj"
+    File getProjectFile() {
+        return project.file("visualStudio/${name}.vcxproj")
     }
 
-    String getFiltersFile() {
-        return "${name}.vcxproj.filters"
+    File getFiltersFile() {
+        return project.file("visualStudio/${name}.vcxproj.filters")
     }
 
     List<File> getSourceFiles() {

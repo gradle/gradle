@@ -27,7 +27,7 @@ class SolutionFile {
         assert solutionFile.exists()
         content = TextUtil.normaliseLineSeparators(solutionFile.text)
 
-        content.findAll(~/(?m)^Project\(\"\{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942\}\"\) = \"(\w+)\", \"(\w+\.vcxproj)\", \"\{([\w\-]+)\}\"$/, {
+        content.findAll(~/(?m)^Project\(\"\{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942\}\"\) = \"(\w+)\", \"([^\"]*)\", \"\{([\w\-]+)\}\"$/, {
             projects.put(it[1], new Project(it[1], it[2], it[3]))
         })
     }

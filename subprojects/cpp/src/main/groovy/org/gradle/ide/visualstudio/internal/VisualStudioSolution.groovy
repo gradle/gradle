@@ -34,6 +34,6 @@ class VisualStudioSolution extends AbstractBuildableModelElement {
     }
 
     String getSolutionFile() {
-        return "${name}.sln"
+        return "visualStudio/${name}.sln"
     }
 }

@@ -87,7 +87,7 @@ class VisualStudioProjectFile extends XmlPersistableConfigurationObject {
 
     def addProjectReference(VisualStudioProject referencedProject) {
         Node references = xml.ItemGroup.find({ it.'@Label' == 'References' }) as Node
-        references.appendNode("ProjectReference", [Include: referencedProject.projectFile])
+        references.appendNode("ProjectReference", [Include: referencedProject.projectFile.absolutePath])
                   .appendNode("Project", referencedProject.uuid)
     }
 
