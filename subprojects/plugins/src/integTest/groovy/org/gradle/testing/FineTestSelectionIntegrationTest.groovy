@@ -45,7 +45,7 @@ public class FineTestSelectionIntegrationTest extends AbstractIntegrationSpec {
             test {
               use$framework.name()
               filter {
-                includeTest "FooTest.pass"
+                includeTestsMatching "FooTest.pass"
               }
             }
         """
@@ -82,8 +82,8 @@ public class FineTestSelectionIntegrationTest extends AbstractIntegrationSpec {
               include 'FooTest*'
               def cls = "FooTest"
               filter {
-                includeTest "\${cls}.passOne" //make sure GStrings work
-                includeTest "\${cls}.passTwo"
+                includeTestsMatching "\${cls}.passOne" //make sure GStrings work
+                includeTestsMatching "\${cls}.passTwo"
               }
             }
         """
@@ -118,7 +118,7 @@ public class FineTestSelectionIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             test {
               use$framework.name()
-              filter.setIncludedTests 'Foo*.pass*'
+              filter.setIncludePatterns 'Foo*.pass*'
             }
         """
         file("src/test/java/Foo1Test.java") << """import $framework.imports;
@@ -163,7 +163,7 @@ public class FineTestSelectionIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             test {
               use$framework.name()
-              filter.includeTest 'FooTest.missingMethod'
+              filter.includeTestsMatching 'FooTest.missingMethod'
             }
         """
         file("src/test/java/FooTest.java") << """import $framework.imports;
@@ -187,7 +187,7 @@ public class FineTestSelectionIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             test {
               use$framework.name()
-              filter.includeTest 'FooTest.pass'
+              filter.includeTestsMatching 'FooTest.pass'
             }
         """
         file("src/test/java/FooTest.java") << """import $framework.imports;
@@ -204,7 +204,7 @@ public class FineTestSelectionIntegrationTest extends AbstractIntegrationSpec {
         then: result.skippedTasks.contains(":test") //up-to-date
 
         when:
-        run("test", "--only", "FooTest.pass*")
+        run("test", "--tests", "FooTest.pass*")
 
         then:
         !result.skippedTasks.contains(":test")
