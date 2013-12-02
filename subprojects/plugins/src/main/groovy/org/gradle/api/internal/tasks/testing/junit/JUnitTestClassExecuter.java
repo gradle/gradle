@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks.testing.junit;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Transformer;
-import org.gradle.api.internal.tasks.testing.selection.TestSelectionMatcher;
+import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
 import org.gradle.internal.concurrent.ThreadSafe;
 import org.gradle.util.CollectionUtils;
 import org.junit.runner.Description;

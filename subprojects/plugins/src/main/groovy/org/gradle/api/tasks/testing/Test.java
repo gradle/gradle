@@ -36,7 +36,7 @@ import org.gradle.api.internal.tasks.testing.junit.report.TestReporter;
 import org.gradle.api.internal.tasks.testing.junit.result.*;
 import org.gradle.api.internal.tasks.testing.logging.*;
 import org.gradle.api.internal.tasks.testing.results.TestListenerAdapter;
-import org.gradle.api.internal.tasks.testing.selection.DefaultTestFilter;
+import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.reporting.DirectoryReport;
@@ -679,7 +679,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * See more {@link TestFilter}
      */
     public Test only(String testNames) {
-        filter.getInclude().setNames(testNames.split(","));
+        filter.setIncludedTests(testNames.split(","));
         return this;
     }
 

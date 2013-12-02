@@ -45,9 +45,7 @@ public class FineTestSelectionIntegrationTest extends AbstractIntegrationSpec {
             test {
               use$framework.name()
               filter {
-                include {
-                  name "FooTest.pass"
-                }
+                includeTest "FooTest.pass"
               }
             }
         """
@@ -83,9 +81,9 @@ public class FineTestSelectionIntegrationTest extends AbstractIntegrationSpec {
               use$framework.name()
               include 'FooTest*'
               def cls = "FooTest"
-              filter.include {
-                name "\${cls}.passOne" //make sure GStrings work
-                name "\${cls}.passTwo"
+              filter {
+                includeTest "\${cls}.passOne" //make sure GStrings work
+                includeTest "\${cls}.passTwo"
               }
             }
         """
@@ -120,7 +118,7 @@ public class FineTestSelectionIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             test {
               use$framework.name()
-              filter.include.setNames 'Foo*.pass*'
+              filter.setIncludedTests 'Foo*.pass*'
             }
         """
         file("src/test/java/Foo1Test.java") << """import $framework.imports;
@@ -165,7 +163,7 @@ public class FineTestSelectionIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             test {
               use$framework.name()
-              filter.include.name 'FooTest.missingMethod'
+              filter.includeTest 'FooTest.missingMethod'
             }
         """
         file("src/test/java/FooTest.java") << """import $framework.imports;
@@ -189,7 +187,7 @@ public class FineTestSelectionIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             test {
               use$framework.name()
-              filter.include.name 'FooTest.pass'
+              filter.includeTest 'FooTest.pass'
             }
         """
         file("src/test/java/FooTest.java") << """import $framework.imports;

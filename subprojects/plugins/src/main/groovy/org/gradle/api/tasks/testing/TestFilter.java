@@ -15,8 +15,9 @@
  */
 package org.gradle.api.tasks.testing;
 
-import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+
+import java.util.Set;
 
 /**
  * Allows selecting tests for execution
@@ -27,15 +28,26 @@ import org.gradle.api.Incubating;
 public interface TestFilter {
 
     /**
-     * Allow configuring test inclusions
+     * Appends a test name to the filter. Wildcard '*' is supported.
+     * Examples of test names: com.foo.FooTest.someMethod, com.foo.FooTest, *FooTest*, com.foo*
+     *
+     * @param testName test's name, wildcard '*' is supported.
+     * @return this filter object
      */
-    TestSelectionSpec getInclude();
+    TestFilter includeTest(String testName);
 
     /**
-     * Allow configuring test inclusions
+     * Returns the included test names, wildcard '*' is supported.
      *
-     * @param configure configuration action
-     * @return this selection object
+     * @return included test names, wildcard '*' is supported.
      */
-    TestFilter include(Action<TestSelectionSpec> configure);
+    Set<String> getIncludedTests();
+
+    /**
+     * Sets the test names to be included in the filter. Wildcard '*' is supported.
+     *
+     * @param testNames test names, wildcard '*' is supported.
+     * @return this filter object
+     */
+    TestFilter setIncludedTests(String... testNames);
 }

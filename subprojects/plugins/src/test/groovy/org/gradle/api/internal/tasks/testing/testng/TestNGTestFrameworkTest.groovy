@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.testng
 
-import org.gradle.api.internal.tasks.testing.selection.DefaultTestFilter
+import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter
 import org.gradle.api.tasks.testing.Test
 import org.gradle.api.tasks.testing.testng.TestNGOptions
 import org.gradle.internal.service.ServiceRegistry

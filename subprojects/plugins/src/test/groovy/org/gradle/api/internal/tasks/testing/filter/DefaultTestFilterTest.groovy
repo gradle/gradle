@@ -14,37 +14,40 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.testing.selection
+
+
+package org.gradle.api.internal.tasks.testing.filter
 
 import org.gradle.api.InvalidUserDataException
 import spock.lang.Specification
 
-class DefaultTestSelectionSpecTest extends Specification {
+class DefaultTestFilterTest extends Specification {
 
-    def spec = new DefaultTestSelectionSpec()
+    def spec = new DefaultTestFilter()
 
     def "allows configuring test names"() {
-        expect: spec.names.isEmpty()
+        expect: spec.includedTests.isEmpty()
 
         when:
-        spec.name("*fooMethod")
-        spec.name("*.FooTest.*")
+        spec.includeTest("*fooMethod")
+        spec.includeTest("*.FooTest.*")
 
-        then: spec.names == ["*fooMethod", "*.FooTest.*"] as Set
+        then: spec.includedTests == ["*fooMethod", "*.FooTest.*"] as Set
 
-        when: spec.setNames("x")
+        when: spec.setIncludedTests("x")
 
-        then: spec.names == ["x"] as Set
+        then: spec.includedTests == ["x"] as Set
     }
 
     def "prevents empty names"() {
-        when: spec.name(null)
+        when: spec.includeTest(null)
         then: thrown(InvalidUserDataException)
 
-        when: spec.name("")
+        when: spec.includeTest("")
         then: thrown(InvalidUserDataException)
 
-        when: spec.setNames("ok", "")
+        when: spec.setIncludedTests("ok", "")
         then: thrown(InvalidUserDataException)
     }
+
 }

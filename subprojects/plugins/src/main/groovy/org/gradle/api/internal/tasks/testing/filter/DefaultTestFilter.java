@@ -13,26 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks.testing.selection;
+package org.gradle.api.internal.tasks.testing.filter;
 
 import com.google.common.collect.Sets;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.testing.TestSelectionSpec;
+import org.gradle.api.tasks.testing.TestFilter;
 
-import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
-public class DefaultTestSelectionSpec implements TestSelectionSpec, Serializable {
+public class DefaultTestFilter implements TestFilter {
 
-    private Set<String> names = new HashSet<String>();
-
-    public TestSelectionSpec name(String name) {
-        validateName(name);
-        names.add(name);
-        return this;
-    }
+    private Set<String> testNames = new HashSet<String>();
 
     private void validateName(String name) {
         if (name == null || name.length() == 0) {
@@ -40,16 +33,22 @@ public class DefaultTestSelectionSpec implements TestSelectionSpec, Serializable
         }
     }
 
-    @Input
-    public Set<String> getNames() {
-        return names;
+    public TestFilter includeTest(String testName) {
+        validateName(testName);
+        testNames.add(testName);
+        return this;
     }
 
-    public TestSelectionSpec setNames(String... names) {
-        for (String name : names) {
+    @Input
+    public Set<String> getIncludedTests() {
+        return testNames;
+    }
+
+    public TestFilter setIncludedTests(String... testNames) {
+        for (String name : testNames) {
             validateName(name);
         }
-        this.names = Sets.newHashSet(names);
+        this.testNames = Sets.newHashSet(testNames);
         return this;
     }
 }

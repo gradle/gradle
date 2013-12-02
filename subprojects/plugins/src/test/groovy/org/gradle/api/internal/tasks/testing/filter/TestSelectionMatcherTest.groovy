@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.testing.selection
+package org.gradle.api.internal.tasks.testing.filter
 
 import spock.lang.Specification
 
