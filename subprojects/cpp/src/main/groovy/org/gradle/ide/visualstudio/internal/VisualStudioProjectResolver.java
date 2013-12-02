@@ -17,14 +17,14 @@
 package org.gradle.ide.visualstudio.internal;
 
 import org.gradle.api.Project;
-import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.nativebinaries.NativeBinary;
 import org.gradle.nativebinaries.internal.NativeComponentInternal;
 
 public class VisualStudioProjectResolver {
-    private final ProjectInternal projectFinder;
+    private final ProjectFinder projectFinder;
 
-    public VisualStudioProjectResolver(ProjectInternal projectFinder) {
+    public VisualStudioProjectResolver(ProjectFinder projectFinder) {
         this.projectFinder = projectFinder;
     }
 
@@ -37,7 +37,7 @@ public class VisualStudioProjectResolver {
 
     private Project getComponentProject(NativeBinary nativeBinary) {
         String projectPath = ((NativeComponentInternal) nativeBinary.getComponent()).getProjectPath();
-        return projectFinder.project(projectPath);
+        return projectFinder.getProject(projectPath);
     }
 }
 

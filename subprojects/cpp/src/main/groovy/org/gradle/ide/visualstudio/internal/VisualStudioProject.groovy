@@ -16,28 +16,27 @@
 
 package org.gradle.ide.visualstudio.internal
 
-import org.gradle.api.Project
+import org.gradle.api.internal.file.FileResolver
 import org.gradle.language.HeaderExportingSourceSet
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.internal.AbstractBuildableModelElement
 import org.gradle.nativebinaries.*
 import org.gradle.nativebinaries.internal.resolve.LibraryNativeDependencySet
 import org.gradle.util.CollectionUtils
-
 /**
  * A VisualStudio project represents a set of binaries for a component that may vary in build type and target platform.
  */
 // TODO:DAZ Sources and header files should be taken from all binaries added to project
 class VisualStudioProject extends AbstractBuildableModelElement {
     final VisualStudioProjectResolver projectResolver
-    final Project project
+    final FileResolver fileResolver
     final String uuid
     final String name
     final NativeComponent component
     final Map<NativeBinary, VisualStudioProjectConfiguration> configurations = [:]
 
-    VisualStudioProject(Project project, String name, NativeComponent component, VisualStudioProjectResolver projectResolver) {
-        this.project = project
+    VisualStudioProject(String name, NativeComponent component, FileResolver fileResolver, VisualStudioProjectResolver projectResolver) {
+        this.fileResolver = fileResolver
         this.name = name
         this.component = component
         this.projectResolver = projectResolver
@@ -45,11 +44,11 @@ class VisualStudioProject extends AbstractBuildableModelElement {
     }
 
     File getProjectFile() {
-        return project.file("visualStudio/${name}.vcxproj")
+        return fileResolver.resolve("visualStudio/${name}.vcxproj")
     }
 
     File getFiltersFile() {
-        return project.file("visualStudio/${name}.vcxproj.filters")
+        return fileResolver.resolve("visualStudio/${name}.vcxproj.filters")
     }
 
     List<File> getSourceFiles() {

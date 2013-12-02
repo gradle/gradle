@@ -16,15 +16,17 @@
 
 package org.gradle.ide.visualstudio.internal
 
+import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.nativebinaries.*
 import org.gradle.nativebinaries.internal.*
-import org.gradle.nativebinaries.internal.resolve.LibraryNativeDependencySet
 import spock.lang.Specification
 
 class VisualStudioProjectRegistryTest extends Specification {
+    def fileResolver = Mock(FileResolver)
+    def visualStudioProjectResolver = Mock(VisualStudioProjectResolver)
     def allFlavors = new DefaultFlavorContainer(new DirectInstantiator())
-    final registry = new VisualStudioProjectRegistry(allFlavors)
+    def registry = new VisualStudioProjectRegistry(fileResolver, visualStudioProjectResolver, allFlavors)
     def executable = Mock(ExecutableInternal)
     def executableBinary = Mock(ExecutableBinary)
     def library = Mock(LibraryInternal)
@@ -52,6 +54,9 @@ class VisualStudioProjectRegistryTest extends Specification {
         executableBinary.targetPlatform >> platform
         platform.architecture >> architecture
 
+        and:
+        registry.addProjectConfiguration(executableBinary)
+
         then:
         def vsConfig = registry.getProjectConfiguration(executableBinary)
         vsConfig.configurationName == vsConfiguration
@@ -69,6 +74,9 @@ class VisualStudioProjectRegistryTest extends Specification {
         executableBinary.component >> executable
         executable.baseName >> "myTest"
 
+        and:
+        registry.addProjectConfiguration(executableBinary)
+
         then:
         def vsConfig = registry.getProjectConfiguration(executableBinary)
         vsConfig.type == "Application"
@@ -81,6 +89,9 @@ class VisualStudioProjectRegistryTest extends Specification {
         when:
         sharedLibraryBinary.component >> library
         library.baseName >> "myTest"
+
+        and:
+        registry.addProjectConfiguration(sharedLibraryBinary)
 
         then:
         def vsConfig = registry.getProjectConfiguration(sharedLibraryBinary)
@@ -95,6 +106,9 @@ class VisualStudioProjectRegistryTest extends Specification {
         staticLibraryBinary.component >> library
         library.baseName >> "myTest"
 
+        and:
+        registry.addProjectConfiguration(staticLibraryBinary)
+
         then:
         def vsConfig = registry.getProjectConfiguration(staticLibraryBinary)
         vsConfig.type == "StaticLibrary"
@@ -108,7 +122,11 @@ class VisualStudioProjectRegistryTest extends Specification {
         when:
         sharedLibraryBinary.component >> library
         library.baseName >> "myTest"
+        registry.addProjectConfiguration(sharedLibraryBinary)
         def vsConfig = registry.getProjectConfiguration(sharedLibraryBinary)
+
+        and:
+        registry.addProjectConfiguration(sharedLibraryBinary)
 
         then:
         registry.getProjectConfiguration(sharedLibraryBinary) == vsConfig
@@ -123,7 +141,9 @@ class VisualStudioProjectRegistryTest extends Specification {
         sharedLibraryBinary1.libs >> []
         sharedLibraryBinary1.targetPlatform >> platform1
         platform1.architecture >> arch1
+        registry.addProjectConfiguration(sharedLibraryBinary1)
 
+        and:
         def sharedLibraryBinary2 = Mock(SharedLibraryBinary)
         def platform2 = Mock(Platform)
         sharedLibraryBinary2.component >> library
@@ -131,6 +151,7 @@ class VisualStudioProjectRegistryTest extends Specification {
         sharedLibraryBinary2.libs >> []
         sharedLibraryBinary2.targetPlatform >> platform2
         platform2.architecture >> arch2
+        registry.addProjectConfiguration(sharedLibraryBinary2)
 
         then:
         def vsConfig1 = registry.getProjectConfiguration(sharedLibraryBinary1)
@@ -147,29 +168,6 @@ class VisualStudioProjectRegistryTest extends Specification {
         buildType1 | buildType2 | arch1        | arch2
         "debug"    | "debug"    | arch("i386") | arch("x86-64")
         "debug"    | "release"  | arch("i386") | arch("ia-64")
-    }
-
-    def "adds project reference for each lib of native binary"() {
-        when:
-        def binary = Mock(ExecutableBinary)
-        def dep1 = Mock(LibraryNativeDependencySet)
-        def dep2 = Mock(LibraryNativeDependencySet)
-
-        executable.baseName >> "myTest"
-        library.baseName >> "myLibrary"
-
-        binary.component >> executable
-        binary.libs >> [dep1, dep2]
-
-        dep1.libraryBinary >> sharedLibraryBinary
-        sharedLibraryBinary.component >> library
-
-        dep2.libraryBinary >> staticLibraryBinary
-        staticLibraryBinary.component >> library
-
-        then:
-        def vsProject = registry.getProjectConfiguration(binary).project
-        vsProject.projectReferences == ["myLibraryLib", "myLibraryDll"] as Set
     }
 
     private static Architecture arch(String name) {

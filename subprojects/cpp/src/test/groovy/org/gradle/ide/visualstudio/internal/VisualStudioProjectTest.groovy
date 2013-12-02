@@ -17,6 +17,7 @@
 package org.gradle.ide.visualstudio.internal
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.DefaultDomainObjectSet
+import org.gradle.api.internal.file.FileResolver
 import org.gradle.language.DependentSourceSet
 import org.gradle.language.HeaderExportingSourceSet
 import org.gradle.language.base.LanguageSourceSet
@@ -26,13 +27,21 @@ import spock.lang.Specification
 
 class VisualStudioProjectTest extends Specification {
     def component = Mock(NativeComponent)
-    def vsProject = new VisualStudioProject("projectName", component)
+    def fileResolver = Mock(FileResolver)
+    def projectResolver = Mock(VisualStudioProjectResolver)
+    def vsProject = new VisualStudioProject("projectName", component, fileResolver, projectResolver)
 
     def "names"() {
-        expect:
+        final projectFile = new File("project")
+        final filtersFile = new File("filters")
+        when:
+        fileResolver.resolve("visualStudio/projectName.vcxproj") >> projectFile
+        fileResolver.resolve("visualStudio/projectName.vcxproj.filters") >> filtersFile
+
+        then:
         vsProject.name == "projectName"
-        vsProject.projectFile == "projectName.vcxproj"
-        vsProject.filtersFile == "projectName.vcxproj.filters"
+        vsProject.projectFile == projectFile
+        vsProject.filtersFile == filtersFile
     }
 
     def "includes source files from all source sets"() {

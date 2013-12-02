@@ -15,22 +15,21 @@
  */
 package org.gradle.ide.visualstudio.internal;
 
-import org.gradle.api.Project;
-import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.nativebinaries.NativeBinary;
 import org.gradle.nativebinaries.internal.NativeBinaryInternal;
 
 public class VisualStudioSolutionBuilder {
-    private final Project project;
+    private final FileResolver fileResolver;
     private final VisualStudioProjectResolver projectResolver;
 
-    public VisualStudioSolutionBuilder(ProjectInternal project) {
-        this.project = project;
-        this.projectResolver = new VisualStudioProjectResolver(project);
+    public VisualStudioSolutionBuilder(FileResolver fileResolver, VisualStudioProjectResolver projectResolver) {
+        this.fileResolver = fileResolver;
+        this.projectResolver = projectResolver;
     }
 
     public VisualStudioSolution createSolution(NativeBinary nativeBinary) {
-        return new VisualStudioSolution(project, solutionName(nativeBinary), (NativeBinaryInternal) nativeBinary, projectResolver);
+        return new VisualStudioSolution(solutionName(nativeBinary), (NativeBinaryInternal) nativeBinary, fileResolver, projectResolver);
     }
 
     private String solutionName(NativeBinary nativeBinary) {

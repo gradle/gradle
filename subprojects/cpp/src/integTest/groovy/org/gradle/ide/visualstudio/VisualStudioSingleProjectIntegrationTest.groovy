@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.ide.visualstudio
+
 import org.gradle.ide.visualstudio.fixtures.ProjectFile
 import org.gradle.ide.visualstudio.fixtures.SolutionFile
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec

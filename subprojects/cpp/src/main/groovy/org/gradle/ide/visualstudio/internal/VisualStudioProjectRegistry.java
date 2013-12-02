@@ -17,7 +17,7 @@
 package org.gradle.ide.visualstudio.internal;
 
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.nativebinaries.*;
 import org.gradle.nativebinaries.internal.NativeComponentInternal;
 import org.gradle.util.CollectionUtils;
@@ -28,15 +28,15 @@ import java.util.Map;
 import java.util.Set;
 
 public class VisualStudioProjectRegistry {
-    private final ProjectInternal project;
+    private final FileResolver fileResolver;
     private final FlavorContainer allFlavors;
     private final Map<String, VisualStudioProject> projects = new HashMap<String, VisualStudioProject>();
     private final VisualStudioProjectResolver projectResolver;
 
-    public VisualStudioProjectRegistry(ProjectInternal project, FlavorContainer allFlavors) {
-        this.project = project;
+    public VisualStudioProjectRegistry(FileResolver fileResolver, VisualStudioProjectResolver projectResolver, FlavorContainer allFlavors) {
+        this.fileResolver = fileResolver;
         this.allFlavors = allFlavors;
-        projectResolver = new VisualStudioProjectResolver(project);
+        this.projectResolver = projectResolver;
     }
 
     public VisualStudioProjectConfiguration getProjectConfiguration(NativeBinary nativeBinary) {
@@ -53,7 +53,7 @@ public class VisualStudioProjectRegistry {
         String projectName = projectName(nativeBinary);
         VisualStudioProject vsProject = projects.get(projectName);
         if (vsProject == null) {
-            vsProject = new VisualStudioProject(project, projectName, nativeBinary.getComponent(), projectResolver);
+            vsProject = new VisualStudioProject(projectName, nativeBinary.getComponent(), fileResolver, projectResolver);
             projects.put(projectName, vsProject);
         }
         return vsProject;

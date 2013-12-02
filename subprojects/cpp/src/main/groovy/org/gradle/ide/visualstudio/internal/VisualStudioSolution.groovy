@@ -16,7 +16,7 @@
 
 package org.gradle.ide.visualstudio.internal
 
-import org.gradle.api.Project
+import org.gradle.api.internal.file.FileResolver
 import org.gradle.language.base.internal.AbstractBuildableModelElement
 import org.gradle.nativebinaries.LibraryBinary
 import org.gradle.nativebinaries.NativeBinary
@@ -25,16 +25,16 @@ import org.gradle.nativebinaries.internal.NativeBinaryInternal
 import org.gradle.nativebinaries.internal.resolve.LibraryNativeDependencySet
 
 class VisualStudioSolution extends AbstractBuildableModelElement {
-    private final VisualStudioProjectResolver vsProjectResolver
+    final String name
     private final NativeBinaryInternal rootBinary
-    String name
-    Project project
+    private final FileResolver fileResolver
+    private final VisualStudioProjectResolver vsProjectResolver
 
-    VisualStudioSolution(Project project, String name, NativeBinaryInternal rootBinary, VisualStudioProjectResolver vsProjectResolver) {
-        this.vsProjectResolver = vsProjectResolver
-        this.project = project
+    VisualStudioSolution(String name, NativeBinaryInternal rootBinary, FileResolver fileResolver, VisualStudioProjectResolver vsProjectResolver) {
         this.name = name
         this.rootBinary = rootBinary
+        this.fileResolver = fileResolver
+        this.vsProjectResolver = vsProjectResolver
     }
 
     Set<VisualStudioProjectConfiguration> getProjectConfigurations() {
@@ -56,6 +56,6 @@ class VisualStudioSolution extends AbstractBuildableModelElement {
     }
 
     File getSolutionFile() {
-        return project.file("visualStudio/${name}.sln")
+        return fileResolver.resolve("visualStudio/${name}.sln")
     }
 }

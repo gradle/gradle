@@ -38,11 +38,12 @@ class VisualStudioPlugin implements Plugin<ProjectInternal> {
 
         // TODO:DAZ Use a model rule
         project.afterEvaluate {
-            final flavors = project.modelRegistry.get("flavors", FlavorContainer)
-            VisualStudioProjectRegistry projectRegistry = new VisualStudioProjectRegistry(project, flavors);
-            project.extensions.add("visualStudioProjectRegistry", projectRegistry)
 
-            VisualStudioSolutionBuilder solutionBuilder = new VisualStudioSolutionBuilder(project);
+            final flavors = project.modelRegistry.get("flavors", FlavorContainer)
+            VisualStudioProjectResolver visualStudioProjectResolver = new VisualStudioProjectResolver(new DefaultProjectFinder(project))
+            VisualStudioProjectRegistry projectRegistry = new VisualStudioProjectRegistry(project.getFileResolver(), visualStudioProjectResolver, flavors);
+            VisualStudioSolutionBuilder solutionBuilder = new VisualStudioSolutionBuilder(project.getFileResolver(), visualStudioProjectResolver);
+            project.extensions.add("visualStudioProjectRegistry", projectRegistry)
 
             project.binaries.all { NativeBinary binary ->
                 projectRegistry.addProjectConfiguration(binary)
@@ -57,8 +58,8 @@ class VisualStudioPlugin implements Plugin<ProjectInternal> {
             }
 
             projectRegistry.allProjects.each { vsProject ->
-                vsProject.builtBy addProjectsFileTask(vsProject)
-                vsProject.builtBy addFiltersFileTask(vsProject)
+                vsProject.builtBy addProjectsFileTask(project, vsProject)
+                vsProject.builtBy addFiltersFileTask(project, vsProject)
             }
         }
 
@@ -96,14 +97,14 @@ class VisualStudioPlugin implements Plugin<ProjectInternal> {
         }
     }
 
-    private addProjectsFileTask(VisualStudioProject vsProject) {
-        vsProject.project.task("${vsProject.name}VisualStudioProject", type: GenerateProjectFileTask) {
+    private addProjectsFileTask(Project project, VisualStudioProject vsProject) {
+        project.task("${vsProject.name}VisualStudioProject", type: GenerateProjectFileTask) {
             visualStudioProject = vsProject
         }
     }
 
-    private addFiltersFileTask(VisualStudioProject vsProject) {
-        vsProject.project.task("${vsProject.name}VisualStudioFilters", type: GenerateFiltersFileTask) {
+    private addFiltersFileTask(Project project, VisualStudioProject vsProject) {
+        project.task("${vsProject.name}VisualStudioFilters", type: GenerateFiltersFileTask) {
             visualStudioProject = vsProject
         }
     }

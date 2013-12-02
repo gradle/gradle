@@ -15,6 +15,8 @@
  */
 
 package org.gradle.ide.visualstudio.internal
+
+import org.gradle.api.internal.file.FileResolver
 import org.gradle.ide.visualstudio.fixtures.SolutionFile
 import org.gradle.nativebinaries.NativeBinary
 import org.gradle.nativebinaries.NativeComponent
@@ -26,6 +28,8 @@ import spock.lang.Specification
 
 class VisualStudioSolutionFileTest extends Specification {
     TestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
+    def fileResolver = Mock(FileResolver)
+    def projectResolver = Mock(VisualStudioProjectResolver)
     def solutionFile = new VisualStudioSolutionFile()
 
     def "setup"() {
@@ -53,24 +57,28 @@ EndGlobal
 
     def "includes project references"() {
         when:
+        final project1File = new File("project1")
+        fileResolver.resolve("visualStudio/project1.vcxproj") >> project1File
         def binary1 = binary("one")
-        def project1 = new VisualStudioProject("project1", binary1.component)
+        def project1 = new VisualStudioProject("project1", binary1.component, fileResolver, projectResolver)
         def configuration1 = new VisualStudioProjectConfiguration(project1, binary1, "type")
         solutionFile.addProjectConfiguration(configuration1)
 
+        final project2File = new File("project2")
+        fileResolver.resolve("visualStudio/project2.vcxproj") >> project2File
         def binary2 = binary("two")
-        def project2 = new VisualStudioProject("project2", binary2.component)
+        def project2 = new VisualStudioProject("project2", binary2.component, fileResolver, projectResolver)
         def configuration2 = new VisualStudioProjectConfiguration(project2, binary2, "type")
         solutionFile.addProjectConfiguration(configuration2)
 
         then:
         with (generatedSolution.projects['project1']) {
-            file == 'project1.vcxproj'
+            file == project1File.absolutePath
             uuid == project1.uuid
             configurations == ['debug|Win32']
         }
         with (generatedSolution.projects['project2']) {
-            file == 'project2.vcxproj'
+            file == project2File.absolutePath
             uuid == project2.uuid
             configurations == ['debug|Win32']
         }
