@@ -276,7 +276,22 @@ Adds a basic mechanism to load plugins from a repository. Adds a plugin resolver
 then resolves the implementation from the public repository and `jcenter`. At this stage, the repository is used to resolve the plugin implementation, but the
 plugin meta-data is not used.
 
-Cache implementation ClassLoader with a given build invocation, so that if multiple scripts apply the same plugin, then the same implementation Class is used.
+Cache the implementation ClassLoader within a single build invocation, so that if multiple scripts apply the same plugin, then the same implementation Class is used
+in each location. The implementation ClassLoader should be wrapped in a filtering ClassLoader so that the plugin id resources `/META-INF/gradle-plugins/**` are not
+visible.
+
+Change the construction of the script ClassLoaders so that:
+
+- Each script has a 'parent scope' ClassLoader.
+    - For the build script of a non-root project, this is the 'public scope' of the parent project's build script (for backwards compatibility).
+    - For all other scripts, this is the root ClassLoader, which exposes the Gradle API and core plugins.
+- Each script has a 'public scope' ClassLoader:
+    - When the `buildscript { ... }` block does not declare any classpath, this is the same as the 'parent scope' ClassLoader.
+    - When the `buildscript { ... }` block declares a classpath, these classes are loaded a ClassLoader whose parent is the 'parent scope' ClassLoader.
+      This is 'public scope' ClassLoader for the script.
+- The script classes are loaded in a ClassLoader whose parents are the 'public scope' ClassLoader plus and implementation ClassLoaders for any plugins declared
+  in the `plugins { ... }` block.
+- The 'public scope' of a project's build script is used to find plugins by `Project.apply()`
 
 The Gradleware developers will select a small set of plugins to include in this hard-coded mapping. The mapping should ideally include the Android plugins.
 
@@ -284,7 +299,9 @@ At this stage, dependencies on other plugins are not supported. Dependencies on 
 
 ### Test cases
 
-- The classes from plugins declared in a script's `plugins { ... }` block are visible when compiling the script.
+- The classes from plugins declared in a script's `plugins { ... }` block are visible:
+    - when compiling the script.
+    - from classes declared in a script's `buildscript { ... }` block.
 - When a parent project's build script uses a `plugins { ... }` block to apply non-core plugins:
     - The classes from plugins are not visible when compiling a child project's build script.
     - The plugins are not visible via a child project's `Project.apply()` method.
@@ -294,7 +311,8 @@ At this stage, dependencies on other plugins are not supported. Dependencies on 
 
 ### Open issues
 
-- Which classes to make visible for a plugin?
+- Which classes to make visible from a given plugin?
+- Should possibly allow `buildscript { }` classes to see `plugins { }` classes, so that a custom plugin can extend a public plugin.
 
 ## Story: Resolve plugins from public plugin repository
 
