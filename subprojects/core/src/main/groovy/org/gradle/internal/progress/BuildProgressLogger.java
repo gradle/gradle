@@ -22,7 +22,7 @@ import org.gradle.logging.ProgressLoggerFactory;
 import java.util.HashMap;
 import java.util.Map;
 
-public class BuildProgressLogger {
+public class BuildProgressLogger implements LoggerProvider {
 
     private final ProgressLoggerProvider loggerProvider;
 
@@ -61,6 +61,12 @@ public class BuildProgressLogger {
     }
 
     public void buildFinished() {
+        for (ProgressLogger l : projectConfigurationProgress.values()) {
+            l.completed();
+        }
+        if (configurationProgress != null) {
+            configurationProgress.completed();
+        }
         buildProgress.completed();
         buildProgress = null;
         buildProgressFormatter = null;
@@ -91,5 +97,12 @@ public class BuildProgressLogger {
             logger.completed();
             configurationProgress.progress(configurationProgressFormatter.incrementAndGetProgress());
         }
+    }
+
+    public ProgressLogger getLogger() {
+        if (buildProgress == null) {
+            throw new IllegalStateException("Build logger is unavailable (it hasn't started or is already completed).");
+        }
+        return buildProgress;
     }
 }

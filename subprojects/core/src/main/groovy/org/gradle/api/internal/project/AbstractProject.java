@@ -20,7 +20,6 @@ import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import groovy.lang.Script;
 import org.gradle.api.*;
-import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
@@ -34,7 +33,6 @@ import org.gradle.api.internal.*;
 import org.gradle.api.internal.artifacts.ModuleInternal;
 import org.gradle.api.internal.artifacts.ProjectBackedModule;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
-import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
@@ -881,8 +879,8 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         return services;
     }
 
-    public Module getModule() {
-        return getServices().get(DependencyMetaDataProvider.class).getModule();
+    public ModuleInternal getModule() {
+        return new ProjectBackedModule(this);
     }
 
     public AntBuilder ant(Closure configureClosure) {
@@ -1007,9 +1005,5 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     // Longer term it will not be available via Project, but be only available in a build script
     public void model(Action<? super ModelDsl> action) {
         action.execute(new GroovyModelDsl(modelRules));
-    }
-
-    public ModuleInternal getModuleInternal() {
-        return new ProjectBackedModule(this);
     }
 }

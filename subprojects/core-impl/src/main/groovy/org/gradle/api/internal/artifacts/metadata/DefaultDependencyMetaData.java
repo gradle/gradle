@@ -21,7 +21,7 @@ import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
-import org.gradle.api.internal.artifacts.component.DefaultBuildComponentSelector;
+import org.gradle.api.internal.artifacts.component.DefaultProjectComponentSelector;
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ProjectDependencyDescriptor;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ReflectiveDependencyDescriptorFactory;
@@ -113,7 +113,7 @@ public class DefaultDependencyMetaData implements DependencyMetaData {
 
     public ComponentSelector getSelector() {
         if(dependencyDescriptor instanceof ProjectDependencyDescriptor) {
-            return new DefaultBuildComponentSelector(((ProjectDependencyDescriptor)dependencyDescriptor).getTargetProject().getPath());
+            return new DefaultProjectComponentSelector(((ProjectDependencyDescriptor)dependencyDescriptor).getTargetProject().getPath());
         }
 
         return DefaultModuleComponentSelector.newSelector(requested.getGroup(), requested.getName(), requested.getVersion());

@@ -21,6 +21,7 @@ import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.internal.progress.BuildProgressFilter;
 import org.gradle.internal.progress.BuildProgressLogger;
+import org.gradle.internal.progress.LoggerProvider;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.StandardOutputListener;
@@ -47,6 +48,7 @@ import java.util.Arrays;
 public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
     private final ServiceRegistry sharedServices;
     private final NestedBuildTracker tracker;
+    private final BuildProgressLogger buildProgressLogger;
     private CommandLineConverter<StartParameter> commandLineConverter;
 
     public DefaultGradleLauncherFactory(ServiceRegistry globalServices) {
@@ -55,7 +57,8 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
 
         // Register default loggers 
         ListenerManager listenerManager = sharedServices.get(ListenerManager.class);
-        listenerManager.addListener(new BuildProgressFilter(new BuildProgressLogger(sharedServices.get(ProgressLoggerFactory.class))));
+        buildProgressLogger = new BuildProgressLogger(sharedServices.get(ProgressLoggerFactory.class));
+        listenerManager.addListener(new BuildProgressFilter(buildProgressLogger));
         listenerManager.useLogger(new DependencyResolutionLogger(sharedServices.get(ProgressLoggerFactory.class)));
 
         GradleLauncher.injectCustomFactory(this);
@@ -104,7 +107,8 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         loggingManager.addStandardOutputListener(listenerManager.getBroadcaster(StandardOutputListener.class));
         loggingManager.addStandardErrorListener(listenerManager.getBroadcaster(StandardOutputListener.class));
 
-        listenerManager.useLogger(new TaskExecutionLogger(serviceRegistry.get(ProgressLoggerFactory.class)));
+        LoggerProvider loggerProvider = (tracker.getCurrentBuild() == null)? buildProgressLogger: LoggerProvider.NO_OP;
+        listenerManager.useLogger(new TaskExecutionLogger(serviceRegistry.get(ProgressLoggerFactory.class), loggerProvider));
         if (tracker.getCurrentBuild() == null) {
             listenerManager.useLogger(new BuildLogger(Logging.getLogger(BuildLogger.class), serviceRegistry.get(StyledTextOutputFactory.class), startParameter, requestMetaData));
         }

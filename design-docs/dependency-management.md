@@ -46,7 +46,7 @@ A component instance with an associated (group, module, version) identifier.
 
 # Implementation plan
 
-## Story: Dependency resolution result produces a graph of component instances instead of a graph of module versions
+## Story: Dependency resolution result produces a graph of component instances instead of a graph of module versions (DONE)
 
 Currently, the output of dependency resolution is effectively a graph of module versions. There are a number of issues with this approach.
 One fundamental problem is that not all of the things that participate in dependency resolution are modules in a repository nor
@@ -74,21 +74,13 @@ In this story, the dependency resolution result is changed so that it produces a
     - `version` property
 7. Change `ResolvedComponentResult`:
     - Change `getId()` to return a `ComponentIdentifier`. Implementation should return a `ModuleComponentIdentifier` implementation.
-    - Add `ModuleComponentIdentifier getPublishedAs()`. Mark method as `@Nullable`. Implementation should return the same as
-      value as `getId()` (for now).
+    - Add `ModuleVersionIdentifier getModuleVersion()`. Mark method as `@Nullable`. Implementation should return the same as
+      value as `getId()` for this story.
 8. Change the methods of `DependencyResult` and `UnresolvedDependencyResult` to use `ComponentSelector` instead of `ModuleVersionSelector`.
 
 ### Test coverage
 
 - Nothing beyond some unit tests for the new methods and types.
-
-### Open issues
-
-- Packages for the new types
-- The results are actually component _instances_ rather than components (as per the definition above). Perhaps come up with a new name for 'component'.
-- Rename `DependencyResult` to use 'requirement' instead of 'dependency'.
-- Rename `ResolvedComponentResult.getId()` to something that is more explicit about the lack of guarantees. Maybe `getLocalId()` or ...
-- Rename `getPublishedAs()` to `getModuleIdentifier()` and return `ModuleIdentifier`. This returns the module which the component instance is mapped to.
 
 ## Story: Dependency resolution result exposes local component instances
 
@@ -107,7 +99,7 @@ path will be used to identify these instances. For now, every local component in
     - For project components (as resolved by `ProjectDependencyResolver`) this should return a `BuildComponentIdentifier` instance.
 3. Change `ResolvedComponentResult` implementations so that:
     - `getId()` returns the identifier from `ModuleVersionMetaData.getComponentId()`.
-    - `getPublishedAs()` returns a `ModuleComponentIdentifier` with the same attributes as `ModuleVersionMetaData.getId()`.
+    - `getModuleVersion()` returns a `ModuleVersionIdentifier` with the same attributes as `ModuleVersionMetaData.getId()`.
 4. Introduce `BuildComponentSelector` type that extends `ComponentSelector` and add a private implementation.
     - `project` property, as the project path.
 5. Change `DependencyMetaData` to add a `ComponentSelector getSelector()`
@@ -126,31 +118,29 @@ This will allow a consumer to extract the external and project components as fol
 - Update existing integration test cases so that, for the resolution result:
     - for the root component
         - `id` is a `BuildComponentIdentifier` with `project` value referring to the consuming project.
-        - `publishedAs` is a `ModuleComponentIdentifier` with correct `group`, `module`, `version` values.
-        - `getId(BuildComponentIdentifier) == id`
-        - `getId(ModuleComponentIdentifier) == publishedAs`
+        - `moduleVersion` is a `ModuleVersionIdentifier` with correct `group`, `module`, `version` values.
     - for a project dependency
         - `requested` is a `BuildComponentSelector` with `project` value referring to the target project.
     - for a resolved project component
         - `id` is a `BuildComponentIdentifier` with `project` value referring to the target project.
-        - `publishedAs` is a `ModuleComponentIdentifier` with correct `group`, `module`, `version` values.
-        - `getId(BuildComponentIdentifier) == id`
-        - `getId(ModuleComponentIdentifier) == publishedAs`
+        - `moduleVersion` is a `ModuleVersionIdentifier` with correct `group`, `module`, `version` values.
     - for an external dependency:
         - `requested` is a `ModuleComponentSelector` with correct `group`, `module`, `version` values.
     - for an external module component:
         - `id` is a `ModuleComponentIdentifier` with correct `group`, `module`, `version` values.
-        - `publishedAs` == `id`.
-        - `getId(ModuleComponentIdentifier) == id`
-        - `getId(BuildComponentIdentifier) == null`
+        - `moduleVersion` has the same attributes as `id`.
 
 ### Open issues
 
-- Renamed `BuildComponentIdentifier` to `ProjectComponentIdentifier` or something else
-- Do the same for `BuildComponentSelector`
+- The results are actually component _instances_ rather than components (as per the definition above). Perhaps come up with a new name for 'component'.
+- Packages for the new types.
+- Rename `BuildComponentIdentifier` to `ProjectComponentIdentifier` or something else
+- Rename `BuildComponentSelector`
 - Convenience for casting selector and id?
 - Convenience for selecting things with a given id type or selector type?
-- Result root.id should be an instance of `BuildComponentIdentifier` not `ModuleComponentIdentifier`
+- Result `root.id` should be an instance of `BuildComponentIdentifier` not `ModuleComponentIdentifier`
+- Rename `DependencyResult` to use 'requirement' instead of 'dependency'.
+- Rename `ResolvedComponentResult.getId()` to something that is more explicit about the lack of guarantees. Maybe `getLocalId()` or ...
 - Rename internal class `ModuleVersionSelection` and its methods
 - Extract a `ModuleComponentMetadataDetails` out of `ComponentMetadataDetails` and use `ComponentIdentifier` instead of `ModuleVersionIdentifier` as id.
 
@@ -173,7 +163,7 @@ For a local component that is a module version, this will look something like
 +- project :some:path (group:name:1.2)
 +- project :some:path (group:name:1.2) -> group:other:1.2
 
-1. Change the `RenderableDependency` hierarchy to use the component id and publishedAs id.
+1. Change the `RenderableDependency` hierarchy to use the component id and module version id, if not null.
 2. Update the the dependency report tests as appropriate.
 
 The HTML dependency report should change in a similar way.
@@ -181,16 +171,11 @@ The HTML dependency report should change in a similar way.
 ### Test coverage
 
 - Update the existing test coverage for the new display values.
-- Ensure that the int test coverage for the dependency report, dependency insight report and HTML dependency report all verify that the report can be used
-  with a mix of project and external dependencies.
-
-### Open issues
-
 - Ensure there is coverage for the dependency report and the dependency HTML report where
-    - There are project dependencies in the graph
+    - There are a mix of external and project dependencies in the graph
 - Ensure there is coverage for the dependency insight report where:
-    - There are project dependencies in the graph
-    - There are project dependencies in the graph and the `--dependency` option is used.
+    - There are a mix of external and project dependencies in the graph
+    - There are a mix of external and project dependencies in the graph and the `--dependency` option is used.
 
 ## Story: IDE plugins use dependency resolution result to determine IDE classpaths
 
@@ -202,24 +187,21 @@ This story changes the `idea` and `eclipse` plugins to use the resolution result
 ## Story: Dependency resolution result exposes local component instances that are not module versions
 
 This story changes the resolution result to expose local component instances that are not module versions. That is, component instances that do not
-have an associated (group, module, version) identifier.
+have an associated module version identifier.
 
-It introduces local and external identifiers for a component, and associates an external identifier only with those components that are published
-or publishable.
-
-1. Change `ModuleVersionMetaData` to add a `ModuleComponentIdentifier getPublishedAs()`
-    - Default is to return the same as `getComponentId()`
-    - Change the implementation of `ResolvedComponentResult.getPublishedAs()` to return this value.
+1. Change `ModuleVersionMetaData` to add a `ModuleVersionIdentifier getExternalId()`
+    - Initially return the same as `getId()`
+    - Change the implementation of `ResolvedComponentResult.getModuleVersion()` to return this value.
 2. Add a private `ProjectPublicationRegistry` service, which collects the outgoing publications for each project. This replaces `ProjectModuleRegistry`.
    This service is basically a map from project path to something that can produce the component meta data for that project.
-    - When a project is configured, register an implicit component with a null `publishedAs`.
-    - When an `Upload` task is configured with an ivy repository, register a component with `publishedAs` = `(project.group, project.name, project.version)`
-    - When an `Upload` task is configured with a `MavenDeployer`, register a component with `publishedAs` = `(deployer.pom.groupId, deployer.pom.artifactId, deployer.pom.version)`
-    - When an `IvyPublication` is defined, register a component with `publishedAs` taken from the publication.
-    - When an `MavenPublication` is defined, register a component with `publishedAs` taken from the publication.
-3. Change `ProjectDependencyResolver` to use the identifier and metadata from this service.
-4. Change the dependency tasks so that they handle a component with null `publishedAs`.
-5. Change `ProjectDependencyPublicationResolver` to use the `ProjectPublicationRegistry` service.
+    - When a project is configured, register an implicit component with a null `externalId`.
+    - When an `Upload` task is configured with an ivy repository, register a component with `externalId` = `(project.group, project.name, project.version)`
+    - When an `Upload` task is configured with a `MavenDeployer`, register a component with `externalId` = `(deployer.pom.groupId, deployer.pom.artifactId, deployer.pom.version)`
+    - When an `IvyPublication` is defined, register a component with `externalId` taken from the publication.
+    - When an `MavenPublication` is defined, register a component with `externalId` taken from the publication.
+3. Change `ProjectDependencyResolver` to use this service to determine the identifier and metadata for a project dependency.
+4. Change the dependency tasks so that they handle a component with null `moduleVersion`.
+5. Merge `ProjectDependencyPublicationResolver` into the `ProjectPublicationRegistry` service.
 
 ### Test cases
 
@@ -229,18 +211,17 @@ or publishable.
     - A project that is published rendered as (project) and (group, module, version)
 - Update existing tests so that, for resolution result:
     - For the root component and any dependency components:
-        - A project that is not published has null `publishedAs`.
-        - A project that is published using `uploadArchives` + Ivy has non-null `publishedAs`
-        - A project that is published using `uploadArchives` + Maven deployer has non-null `publishedAs`
-        - A project that is published using a Maven or Ivy publication has non-null `publishedAs`
+        - A project that is not published has null `moduleVersion`.
+        - A project that is published using `uploadArchives` + Ivy has non-null `moduleVersion`
+        - A project that is published using `uploadArchives` + Maven deployer has non-null `moduleVersion`
+        - A project that is published using a Maven or Ivy publication has non-null `moduleVersion`
 
 ### Open issues
 
 * Need to expose component source.
-* Need to expose different kinds of component selectors.
 * Need to sync up with `ComponentMetadataDetails`.
 * Add Ivy and Maven specific ids and sources.
-* Rename and garbage internal types.
+* Rename and garbage collect internal types.
 * Maybe don't use the new publication stuff until project dependencies are resolved to a component within the project, or until the engine understands multiple
   IDs for conflict resolution.
 

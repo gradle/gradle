@@ -102,7 +102,7 @@ public class GradleScopeServices extends DefaultServiceRegistry implements Servi
     }
 
     PluginRegistry createPluginRegistry(PluginRegistry parentRegistry) {
-        return parentRegistry.createChild(get(BuildClassLoaderRegistry.class).getScriptClassLoader(), new DependencyInjectingInstantiator(this));
+        return parentRegistry.createChild(get(BuildClassLoaderRegistry.class).getRootCompileScope(), new DependencyInjectingInstantiator(this));
     }
 
     PluginContainer createPluginContainer(GradleInternal gradle, PluginRegistry pluginRegistry) {

@@ -20,7 +20,7 @@ import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.groovy.scripts.ScriptSource;
 
 public interface ScriptHandlerFactory {
-    ScriptHandlerInternal create(ScriptSource scriptSource, ClassLoader parentClassLoader);
+    ScriptHandlerInternal create(ScriptSource scriptSource, ScriptCompileScope parentScope);
 
-    ScriptHandlerInternal create(ScriptSource scriptSource, ClassLoader parentClassLoader, DomainObjectContext context);
+    ScriptHandlerInternal create(ScriptSource scriptSource, ScriptCompileScope parentScope, DomainObjectContext context);
 }

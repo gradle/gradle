@@ -20,7 +20,7 @@ import org.apache.ivy.core.module.descriptor.DefaultDependencyArtifactDescriptor
 import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
 import org.apache.ivy.core.module.id.ModuleRevisionId
-import org.gradle.api.artifacts.component.BuildComponentSelector
+import org.gradle.api.artifacts.component.ProjectComponentSelector
 import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
@@ -135,7 +135,7 @@ class DefaultDependencyMetaDataTest extends Specification {
 
         then:
         1 * project.path >> ':myPath'
-        componentSelector instanceof BuildComponentSelector
+        componentSelector instanceof ProjectComponentSelector
         componentSelector.projectPath == ':myPath'
     }
 

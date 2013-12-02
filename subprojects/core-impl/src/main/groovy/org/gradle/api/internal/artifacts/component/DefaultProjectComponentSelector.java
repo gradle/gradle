@@ -15,15 +15,15 @@
  */
 package org.gradle.api.internal.artifacts.component;
 
-import org.gradle.api.artifacts.component.BuildComponentIdentifier;
-import org.gradle.api.artifacts.component.BuildComponentSelector;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 
-public class DefaultBuildComponentSelector implements BuildComponentSelector {
+public class DefaultProjectComponentSelector implements ProjectComponentSelector {
     private final String projectPath;
     private final String displayName;
 
-    public DefaultBuildComponentSelector(String projectPath) {
+    public DefaultProjectComponentSelector(String projectPath) {
         assert projectPath != null : "project path cannot be null";
         this.projectPath = projectPath;
         displayName = String.format("project %s", projectPath);
@@ -40,9 +40,9 @@ public class DefaultBuildComponentSelector implements BuildComponentSelector {
     public boolean matchesStrictly(ComponentIdentifier identifier) {
         assert identifier != null : "identifier cannot be null";
 
-        if(identifier instanceof BuildComponentIdentifier) {
-            BuildComponentIdentifier buildComponentIdentifier = (BuildComponentIdentifier)identifier;
-            return projectPath.equals(buildComponentIdentifier.getProjectPath());
+        if(identifier instanceof ProjectComponentIdentifier) {
+            ProjectComponentIdentifier projectComponentIdentifier = (ProjectComponentIdentifier)identifier;
+            return projectPath.equals(projectComponentIdentifier.getProjectPath());
         }
 
         return false;
@@ -57,7 +57,7 @@ public class DefaultBuildComponentSelector implements BuildComponentSelector {
             return false;
         }
 
-        DefaultBuildComponentSelector that = (DefaultBuildComponentSelector) o;
+        DefaultProjectComponentSelector that = (DefaultProjectComponentSelector) o;
 
         if (!projectPath.equals(that.projectPath)) {
             return false;

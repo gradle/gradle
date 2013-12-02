@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.component;
 
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 
 public class DefaultModuleComponentIdentifier implements ModuleComponentIdentifier {
@@ -88,6 +89,10 @@ public class DefaultModuleComponentIdentifier implements ModuleComponentIdentifi
 
     public static ModuleComponentIdentifier newId(String group, String name, String version) {
         return new DefaultModuleComponentIdentifier(group, name, version);
+    }
+
+    public static ModuleComponentIdentifier newId(ModuleVersionIdentifier moduleVersionIdentifier) {
+        return new DefaultModuleComponentIdentifier(moduleVersionIdentifier.getGroup(), moduleVersionIdentifier.getName(), moduleVersionIdentifier.getVersion());
     }
 }
 

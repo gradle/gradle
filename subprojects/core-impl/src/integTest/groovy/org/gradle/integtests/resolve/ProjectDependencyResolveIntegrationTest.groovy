@@ -59,21 +59,19 @@ project(":b") {
          // Check root component
         def rootId = result.root.id
         assert rootId instanceof ModuleComponentIdentifier
-        def rootPublishedAs = result.root.publishedAs
-        assert rootPublishedAs instanceof ModuleComponentIdentifier
+        def rootPublishedAs = result.root.moduleVersion
         assert rootPublishedAs.group == rootId.group
-        assert rootPublishedAs.module == rootId.module
+        assert rootPublishedAs.name == rootId.module
         assert rootPublishedAs.version == rootId.version
 
         // Check project components
-        def projectDependencies = result.root.dependencies.selected.findAll { it.id instanceof BuildComponentIdentifier }
+        def projectDependencies = result.root.dependencies.selected.findAll { it.id instanceof ProjectComponentIdentifier }
         assert projectDependencies.size() == 1
         def projectA = projectDependencies[0]
         assert projectA.id.projectPath == ':a'
-        assert projectA.publishedAs instanceof ModuleComponentIdentifier
-        assert projectA.publishedAs.group != null
-        assert projectA.publishedAs.module == 'a'
-        assert projectA.publishedAs.version == 'unspecified'
+        assert projectA.moduleVersion.group != null
+        assert projectA.moduleVersion.name == 'a'
+        assert projectA.moduleVersion.version == 'unspecified'
 
         // Check external module components
         def externalComponents = result.allDependencies.selected.findAll { it.id instanceof ModuleComponentIdentifier }
@@ -82,12 +80,16 @@ project(":b") {
         assert externalA.id.group == 'org.other'
         assert externalA.id.module == 'externalA'
         assert externalA.id.version == '1.2'
-        assert externalA.id == externalA.publishedAs
+        assert externalA.moduleVersion.group == 'org.other'
+        assert externalA.moduleVersion.name == 'externalA'
+        assert externalA.moduleVersion.version == '1.2'
         def externalB = externalComponents[1]
         assert externalB.id.group == 'org.other'
         assert externalB.id.module == 'externalB'
         assert externalB.id.version == '2.1'
-        assert externalB.id == externalB.publishedAs
+        assert externalB.moduleVersion.group == 'org.other'
+        assert externalB.moduleVersion.name == 'externalB'
+        assert externalB.moduleVersion.version == '2.1'
     }
 }
 """

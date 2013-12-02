@@ -75,9 +75,7 @@ class ProjectScopeServicesTest extends Specification {
         parent.get(FileSystem) >> Stub(FileSystem)
         parent.get(ClassGenerator) >> Stub(ClassGenerator)
         parent.get(ProjectAccessListener) >> Stub(ProjectAccessListener)
-        parent.get(BuildClassLoaderRegistry) >> Stub(BuildClassLoaderRegistry) {
-            getScriptClassLoader() >> new ClassLoader() { }
-        }
+        parent.get(BuildClassLoaderRegistry) >> Stub(BuildClassLoaderRegistry)
         registry = new ProjectScopeServices(parent, project)
     }
 

@@ -37,7 +37,9 @@ import java.util.Map;
 public class DefaultScriptHandlerFactory implements ScriptHandlerFactory {
     private final DependencyManagementServices dependencyManagementServices;
     private final DependencyMetaDataProvider dependencyMetaDataProvider;
-    private final Map<Collection<Object>, ScriptClassLoader> classLoaderCache = new HashMap<Collection<Object>, ScriptClassLoader>();
+    // TODO - this needs to move to where the script class loader is created, to allow classloaders for scripts with the same classpath elements to be reused
+    // Plus, DefaultScriptHandler leaks all kinds of stuff and can't be reused across builds in the daemon
+    private final Map<Collection<Object>, DefaultScriptHandler> classLoaderCache = new HashMap<Collection<Object>, DefaultScriptHandler>();
     private final FileResolver fileResolver;
     private final ProjectFinder projectFinder = new ProjectFinder() {
         public ProjectInternal getProject(String path) {
@@ -53,24 +55,24 @@ public class DefaultScriptHandlerFactory implements ScriptHandlerFactory {
         this.dependencyMetaDataProvider = dependencyMetaDataProvider;
     }
 
-    public ScriptHandlerInternal create(ScriptSource scriptSource, ClassLoader parentClassLoader) {
-        return create(scriptSource, parentClassLoader, new BasicDomainObjectContext());
+    public ScriptHandlerInternal create(ScriptSource scriptSource, ScriptCompileScope parentScope) {
+        return create(scriptSource, parentScope, new BasicDomainObjectContext());
     }
 
-    public ScriptHandlerInternal create(ScriptSource scriptSource, ClassLoader parentClassLoader, DomainObjectContext context) {
+    public ScriptHandlerInternal create(ScriptSource scriptSource, ScriptCompileScope parentScope, DomainObjectContext context) {
         DependencyResolutionServices services = dependencyManagementServices.create(fileResolver, dependencyMetaDataProvider, projectFinder, context);
         RepositoryHandler repositoryHandler = services.getResolveRepositoryHandler();
         ConfigurationContainer configurationContainer = services.getConfigurationContainer();
         DependencyHandler dependencyHandler = services.getDependencyHandler();
-        Collection<Object> key = Arrays.asList(scriptSource.getClassName(), parentClassLoader);
-        ScriptClassLoader classLoader = classLoaderCache.get(key);
-        if (classLoader == null) {
-            classLoader = new ScriptClassLoader(parentClassLoader);
-            classLoaderCache.put(key, classLoader);
-            return new DefaultScriptHandler(scriptSource, repositoryHandler, dependencyHandler, configurationContainer, classLoader);
+        Collection<Object> key = Arrays.asList(scriptSource.getClassName(), parentScope);
+        ScriptHandlerInternal originalHandler = classLoaderCache.get(key);
+        if (originalHandler == null) {
+            DefaultScriptHandler handler = new DefaultScriptHandler(scriptSource, repositoryHandler, dependencyHandler, configurationContainer, parentScope);
+            classLoaderCache.put(key, handler);
+            return handler;
         }
 
-        return new NoClassLoaderUpdateScriptHandler(classLoader, repositoryHandler, dependencyHandler, scriptSource, configurationContainer);
+        return new NoClassLoaderUpdateScriptHandler(originalHandler.getBaseCompilationClassLoader(), originalHandler.getClassLoader(), repositoryHandler, dependencyHandler, scriptSource, configurationContainer);
     }
 
     private static class BasicDomainObjectContext implements DomainObjectContext {

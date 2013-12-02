@@ -19,6 +19,7 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.internal.artifacts.DependencyManagementServices
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.groovy.scripts.ScriptSource
@@ -26,7 +27,9 @@ import spock.lang.Specification
 
 class DefaultScriptHandlerFactoryTest extends Specification {
     private final DependencyMetaDataProvider metaDataProvider = Mock()
-    private final ClassLoader parentClassLoader = new ClassLoader() {}
+    private final ScriptCompileScope parentScope = Stub() {
+        getScriptCompileClassLoader() >> Stub(ClassLoader)
+    }
     private final RepositoryHandler repositoryHandler = Mock()
     private final ConfigurationContainerInternal configurationContainer = Mock()
     private final FileResolver fileResolver = Mock()
@@ -38,27 +41,26 @@ class DefaultScriptHandlerFactoryTest extends Specification {
         expectConfigContainerCreated()
 
         when:
-        def handler = factory.create(script, parentClassLoader)
+        def handler = factory.create(script, parentScope)
 
         then:
         handler instanceof DefaultScriptHandler
-        handler.classLoader instanceof ScriptClassLoader
-        ScriptClassLoader scriptLoader = handler.classLoader
-        scriptLoader.parentLoader == parentClassLoader
     }
 
-    def reusesClassLoaderForGivenScriptClassAndParentClassLoader() {
+    def reusesClassLoaderForGivenScriptClassAndParentScope() {
         ScriptSource script = scriptSource('script')
         ScriptSource other = scriptSource('script')
         expectConfigContainerCreated()
 
         when:
-        def handler1 = factory.create(script, parentClassLoader)
-        def handler2 = factory.create(other, parentClassLoader)
+        def handler1 = factory.create(script, parentScope)
+        handler1.updateClassPath()
+        def handler2 = factory.create(other, parentScope)
 
         then:
-        handler1.classLoader == handler2.classLoader
         handler2 instanceof NoClassLoaderUpdateScriptHandler
+        handler1.baseCompilationClassLoader == handler2.baseCompilationClassLoader
+        handler1.scriptCompileClassLoader == handler2.scriptCompileClassLoader
     }
 
     def doesNotReuseClassLoaderForDifferentScriptClass() {
@@ -67,11 +69,10 @@ class DefaultScriptHandlerFactoryTest extends Specification {
         expectConfigContainerCreated()
 
         when:
-        def handler1 = factory.create(script, parentClassLoader)
-        def handler2 = factory.create(other, parentClassLoader)
+        factory.create(script, parentScope)
+        def handler2 = factory.create(other, parentScope)
 
         then:
-        handler1.classLoader != handler2.classLoader
         handler2 instanceof DefaultScriptHandler
     }
 
@@ -80,6 +81,7 @@ class DefaultScriptHandlerFactoryTest extends Specification {
         _ * dependencyManagementServices.create(fileResolver, metaDataProvider, _, _) >> dependencyResolutionServices
         _ * dependencyResolutionServices.resolveRepositoryHandler >> repositoryHandler
         _ * dependencyResolutionServices.configurationContainer >> configurationContainer
+        _ * configurationContainer.create(_) >> Stub(ConfigurationInternal)
     }
 
     private def scriptSource(String className = 'script') {

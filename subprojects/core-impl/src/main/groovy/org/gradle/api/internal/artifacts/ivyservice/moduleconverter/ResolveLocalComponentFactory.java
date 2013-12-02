@@ -20,7 +20,7 @@ import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ModuleInternal;
-import org.gradle.api.internal.artifacts.component.DefaultBuildComponentIdentifier;
+import org.gradle.api.internal.artifacts.component.DefaultProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.LocalComponentFactory;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependenciesToModuleDescriptorConverter;
@@ -55,7 +55,7 @@ public class ResolveLocalComponentFactory implements LocalComponentFactory {
         String projectPath = module.getProjectPath();
 
         if(projectPath != null) {
-            return new DefaultBuildComponentIdentifier(projectPath);
+            return new DefaultProjectComponentIdentifier(projectPath);
         }
 
         return new DefaultModuleComponentIdentifier(module.getGroup(), module.getName(), module.getVersion());

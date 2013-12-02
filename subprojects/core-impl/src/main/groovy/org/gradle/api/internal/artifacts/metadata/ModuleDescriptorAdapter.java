@@ -44,7 +44,7 @@ public class ModuleDescriptorAdapter implements MutableModuleVersionMetaData {
     }
 
     public ModuleDescriptorAdapter(ModuleVersionIdentifier identifier, ModuleDescriptor moduleDescriptor) {
-        this(identifier, moduleDescriptor, DefaultModuleComponentIdentifier.newId(identifier.getGroup(), identifier.getName(), identifier.getVersion()));
+        this(identifier, moduleDescriptor, DefaultModuleComponentIdentifier.newId(identifier));
     }
 
     public ModuleDescriptorAdapter(ModuleVersionIdentifier moduleVersionIdentifier, ModuleDescriptor moduleDescriptor, ComponentIdentifier componentIdentifier) {

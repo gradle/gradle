@@ -18,7 +18,10 @@ package org.gradle.api.artifacts.component;
 import org.gradle.api.Incubating;
 
 /**
- * An identifier for a component instance.
+ * An opaque identifier for a component instance. There are various sub-interfaces which expose specific details
+ * about the identifier.
+ *
+ * @since 1.10
  */
 @Incubating
 public interface ComponentIdentifier {
@@ -26,6 +29,7 @@ public interface ComponentIdentifier {
      * Returns a human-consumable display name for this identifier.
      *
      * @return Component identifier display name
+     * @since 1.10
      */
     String getDisplayName();
 }

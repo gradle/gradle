@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
-import org.gradle.api.artifacts.component.BuildComponentSelector;
+import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.api.internal.artifacts.component.DefaultBuildComponentSelector;
+import org.gradle.api.internal.artifacts.component.DefaultProjectComponentSelector;
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentSelector;
 import org.gradle.messaging.serialize.Decoder;
 import org.gradle.messaging.serialize.Encoder;
@@ -32,7 +32,7 @@ public class ComponentSelectorSerializer implements Serializer<ComponentSelector
         byte id = decoder.readByte();
 
         if(Implementation.BUILD.getId() == id) {
-            return new DefaultBuildComponentSelector(decoder.readString());
+            return new DefaultProjectComponentSelector(decoder.readString());
         } else if(Implementation.MODULE.getId() == id) {
             return new DefaultModuleComponentSelector(decoder.readString(), decoder.readString(), decoder.readString());
         }
@@ -51,10 +51,10 @@ public class ComponentSelectorSerializer implements Serializer<ComponentSelector
             encoder.writeString(moduleComponentSelector.getGroup());
             encoder.writeString(moduleComponentSelector.getModule());
             encoder.writeString(moduleComponentSelector.getVersion());
-        } else if(value instanceof DefaultBuildComponentSelector) {
-            BuildComponentSelector buildComponentSelector = (BuildComponentSelector)value;
+        } else if(value instanceof DefaultProjectComponentSelector) {
+            ProjectComponentSelector projectComponentSelector = (ProjectComponentSelector)value;
             encoder.writeByte(Implementation.BUILD.getId());
-            encoder.writeString(buildComponentSelector.getProjectPath());
+            encoder.writeString(projectComponentSelector.getProjectPath());
         } else {
             throw new IllegalArgumentException("Unsupported component selector class: " + value.getClass());
         }

@@ -20,12 +20,14 @@ import org.apache.tools.ant.types.FileSet
 import org.gradle.api.*
 import org.gradle.api.artifacts.Module
 import org.gradle.api.artifacts.dsl.ArtifactHandler
-import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler
+import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.component.SoftwareComponentContainer
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.*
+import org.gradle.api.internal.artifacts.ModuleInternal
+import org.gradle.api.internal.artifacts.ProjectBackedModule
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
 import org.gradle.api.internal.file.FileOperations
@@ -930,7 +932,7 @@ def scriptMethod(Closure closure) {
     }
 
     @Test void testGetModule() {
-        Module moduleDummyResolve = [:] as Module
+        ModuleInternal moduleDummyResolve = new ProjectBackedModule(project)
         context.checking {
             allowing(dependencyMetaDataProviderMock).getModule(); will(returnValue(moduleDummyResolve))
         }

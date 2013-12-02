@@ -17,28 +17,30 @@
 package org.gradle.logging.internal;
 
 import org.gradle.internal.nativeplatform.console.ConsoleMetaData;
+import org.gradle.logging.internal.progress.ProgressOperation;
 
-import java.util.List;
-
-public class DefaultStatusBarFormatter implements StatusBarFormatter {
+public class DefaultStatusBarFormatter {
     private final ConsoleMetaData consoleMetaData;
 
     public DefaultStatusBarFormatter(ConsoleMetaData consoleMetaData) {
         this.consoleMetaData = consoleMetaData;
     }
 
-    public String format(List<ConsoleBackedProgressRenderer.Operation> operations) {
+    public String format(ProgressOperation op) {
         StringBuilder builder = new StringBuilder();
-        for (ConsoleBackedProgressRenderer.Operation operation : operations) {
-            String message = operation.getMessage();
+        ProgressOperation current = op;
+        while(current != null) {
+            String message = current.getMessage();
+            current = current.getParent();
+
             if (message == null) {
                 continue;
             }
-            if (builder.length() > 0) {
-                builder.append(' ');
-            }
-            builder.append("> ");
-            builder.append(message);
+
+            builder.insert(0, " > ").insert(3, message);
+        }
+        if (builder.length() > 0) {
+            builder.delete(0, 1);
         }
         return trim(builder);
     }

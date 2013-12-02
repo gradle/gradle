@@ -18,19 +18,16 @@ package org.gradle.internal.service.scopes;
 
 import org.gradle.api.Action;
 import org.gradle.api.AntBuilder;
-import org.gradle.api.artifacts.Module;
 import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.internal.*;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
+import org.gradle.api.internal.artifacts.ModuleInternal;
 import org.gradle.api.internal.artifacts.ProjectBackedModule;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.component.DefaultSoftwareComponentContainer;
 import org.gradle.api.internal.file.*;
-import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
-import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
-import org.gradle.api.internal.initialization.ScriptHandlerFactory;
-import org.gradle.api.internal.initialization.ScriptHandlerInternal;
+import org.gradle.api.internal.initialization.*;
 import org.gradle.api.internal.plugins.DefaultPluginContainer;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.project.DefaultAntBuilderFactory;
@@ -81,7 +78,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry implements Serv
     }
 
     protected PluginRegistry createPluginRegistry(PluginRegistry parentRegistry) {
-        return parentRegistry.createChild(get(ScriptClassLoaderProvider.class).getClassLoader(), new DependencyInjectingInstantiator(this));
+        return parentRegistry.createChild(get(ScriptClassLoaderProvider.class), new DependencyInjectingInstantiator(this));
     }
 
     protected FileResolver createFileResolver() {
@@ -154,18 +151,18 @@ public class ProjectScopeServices extends DefaultServiceRegistry implements Serv
                 get(DependencyManagementServices.class),
                 get(FileResolver.class),
                 get(DependencyMetaDataProvider.class));
-        ClassLoader parentClassLoader;
+        ScriptCompileScope parentScope;
         if (project.getParent() != null) {
-            parentClassLoader = project.getParent().getBuildscript().getClassLoader();
+            parentScope = project.getParent().getServices().get(ScriptCompileScope.class);
         } else {
-            parentClassLoader = get(BuildClassLoaderRegistry.class).getScriptClassLoader();
+            parentScope = get(BuildClassLoaderRegistry.class).getRootCompileScope();
         }
-        return factory.create(project.getBuildScriptSource(), parentClassLoader, project);
+        return factory.create(project.getBuildScriptSource(), parentScope, project);
     }
 
     protected DependencyMetaDataProvider createDependencyMetaDataProvider() {
         return new DependencyMetaDataProvider() {
-            public Module getModule() {
+            public ModuleInternal getModule() {
                 return new ProjectBackedModule(project);
             }
         };

@@ -23,7 +23,6 @@ import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.DynamicObject;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.ProcessOperations;
-import org.gradle.api.internal.artifacts.ModuleInternal;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.file.FileOperations;
@@ -79,6 +78,4 @@ public interface ProjectInternal extends Project, ProjectIdentifier, ScriptAware
     ProjectConfigurationActionContainer getConfigurationActions();
 
     ModelRegistry getModelRegistry();
-
-    ModuleInternal getModuleInternal();
 }

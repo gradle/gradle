@@ -36,7 +36,7 @@ import org.gradle.api.internal.tasks.testing.junit.report.TestReporter;
 import org.gradle.api.internal.tasks.testing.junit.result.*;
 import org.gradle.api.internal.tasks.testing.logging.*;
 import org.gradle.api.internal.tasks.testing.results.TestListenerAdapter;
-import org.gradle.api.internal.tasks.testing.selection.DefaultTestSelection;
+import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.reporting.DirectoryReport;
@@ -118,7 +118,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     private final ProgressLoggerFactory progressLoggerFactory;
     private final TestLoggingContainer testLogging;
     private final DefaultJavaForkOptions forkOptions;
-    private final DefaultTestSelection selection;
+    private final DefaultTestFilter filter;
 
     private TestExecuter testExecuter;
     private List<File> testSrcDirs = new ArrayList<File>();
@@ -154,7 +154,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         reports.getJunitXml().setEnabled(true);
         reports.getHtml().setEnabled(true);
 
-        selection = instantiator.newInstance(DefaultTestSelection.class);
+        filter = instantiator.newInstance(DefaultTestFilter.class);
     }
 
     /**
@@ -672,14 +672,15 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         return this;
     }
 
-    @Option(option = "only", description = "Sets test names to be included.")
+    @Option(option = "tests", description = "Sets tes class or method names to be included, '*' is supported.")
     /**
-     * Sets the test names to be included in execution.
-     * Wildcard '*' is supported. Test method names are supported.
-     * See more {@link TestSelection}
+     * Sets the tests to be included in execution.
+     * Classes or method names are supported, wildcard '*' is supported.
+     *
+     * See more {@link TestFilter}
      */
-    public Test only(String testNames) {
-        selection.getInclude().setNames(testNames.split(","));
+    public Test setTestNameIncludePattern(String testNamePattern) {
+        filter.setIncludePatterns(testNamePattern);
         return this;
     }
 
@@ -890,7 +891,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * @param testFrameworkConfigure A closure used to configure the JUnit options.
      */
     public void useJUnit(Closure testFrameworkConfigure) {
-        useTestFramework(new JUnitTestFramework(this, selection), testFrameworkConfigure);
+        useTestFramework(new JUnitTestFramework(this, filter), testFrameworkConfigure);
     }
 
     /**
@@ -907,7 +908,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * @param testFrameworkConfigure A closure used to configure the TestNG options.
      */
     public void useTestNG(Closure testFrameworkConfigure) {
-        useTestFramework(new TestNGTestFramework(this, this.selection), testFrameworkConfigure);
+        useTestFramework(new TestNGTestFramework(this, this.filter), testFrameworkConfigure);
     }
 
     /**
@@ -1093,28 +1094,28 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     }
 
     /**
-     * Allows selecting tests for execution
+     * Allows filtering tests for execution.
      *
-     * @return selection object
+     * @return filter object
      * @since 1.10
      */
     @Incubating
     @Nested
-    public TestSelection getSelection() {
-        return selection;
+    public TestFilter getFilter() {
+        return filter;
     }
 
     /**
-     * Allows selecting tests for execution
+     * Allows filtering tests that are included in the execution
      *
-     * @param closure to configure the test selection
-     * @return selection object
+     * @param closure to configure the test filter
+     * @return filter object
      * @since 1.10
      */
     @Incubating
-    public TestSelection selection(Closure closure) {
-        ConfigureUtil.configure(closure, selection);
-        return selection;
+    public TestFilter filter(Closure closure) {
+        ConfigureUtil.configure(closure, filter);
+        return filter;
     }
 
     // only way I know of to determine current log level

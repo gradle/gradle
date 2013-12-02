@@ -94,7 +94,7 @@ class DefaultModuleComponentSelectorTest extends Specification {
     def "does not match id for unexpected component selector type"() {
         when:
         ModuleComponentSelector defaultModuleComponentSelector = new DefaultModuleComponentSelector('some-group', 'some-name', '1.0')
-        boolean matches = defaultModuleComponentSelector.matchesStrictly(new DefaultBuildComponentIdentifier(':mypath'))
+        boolean matches = defaultModuleComponentSelector.matchesStrictly(new DefaultProjectComponentIdentifier(':mypath'))
 
         then:
         assert !matches

@@ -16,11 +16,12 @@
 
 package org.gradle.invocation;
 
+import org.gradle.api.internal.initialization.ScriptCompileScope;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.internal.classloader.CachingClassLoader;
 import org.gradle.internal.classloader.MultiParentClassLoader;
 
-public class DefaultBuildClassLoaderRegistry implements BuildClassLoaderRegistry {
+public class DefaultBuildClassLoaderRegistry implements BuildClassLoaderRegistry, ScriptCompileScope {
     private final MultiParentClassLoader rootClassLoader;
     private final CachingClassLoader scriptClassLoader;
 
@@ -33,7 +34,11 @@ public class DefaultBuildClassLoaderRegistry implements BuildClassLoaderRegistry
         rootClassLoader.addParent(classLoader);
     }
 
-    public ClassLoader getScriptClassLoader() {
+    public ScriptCompileScope getRootCompileScope() {
+        return this;
+    }
+
+    public ClassLoader getScriptCompileClassLoader() {
         return scriptClassLoader;
     }
 }

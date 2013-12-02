@@ -32,7 +32,7 @@
     <section>
         <title>Tool chain support</title>
         <para>
-            Gradle offers the ability to execute the same build using different tool chains. You can ontrol which tool chain will be used to build
+            Gradle offers the ability to execute the same build using different tool chains. You can control which tool chain will be used to build
             by changing the operating system PATH to include the desired tool chain compiler. Alternatively, you can configure the tool chains directly,
             as described in the `Native Binary Variants` section, below.
         </para>
@@ -104,7 +104,7 @@
         <title>Tasks</title>
         <para>
             For each <apilink class="org.gradle.nativebinaries.NativeBinary"/> that can be produced by a build,
-            a single <literal>lifecycle task</literal> is constructed that can be used to create that binary, together with a set of sub-tasks that do the actual
+            a single <firstterm>lifecycle task</firstterm> is constructed that can be used to create that binary, together with a set of other tasks that do the actual
             work of compiling, linking or assembling the binary.
         </para>
         <table>

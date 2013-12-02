@@ -44,10 +44,9 @@ task check << {
     // Check root component
     def rootId = result.root.id
     assert rootId instanceof ModuleComponentIdentifier
-    def rootPublishedAs = result.root.publishedAs
-    assert rootPublishedAs instanceof ModuleComponentIdentifier
+    def rootPublishedAs = result.root.moduleVersion
     assert rootPublishedAs.group == rootId.group
-    assert rootPublishedAs.module == rootId.module
+    assert rootPublishedAs.name == rootId.module
     assert rootPublishedAs.version == rootId.version
 
     // Check external module components
@@ -57,7 +56,9 @@ task check << {
     assert selectedExternalComponent.id.group == 'org.gradle'
     assert selectedExternalComponent.id.module == 'test'
     assert selectedExternalComponent.id.version == '1.45'
-    assert selectedExternalComponent.id == selectedExternalComponent.publishedAs
+    assert selectedExternalComponent.moduleVersion.group == 'org.gradle'
+    assert selectedExternalComponent.moduleVersion.name == 'test'
+    assert selectedExternalComponent.moduleVersion.version == '1.45'
 }
 """
 

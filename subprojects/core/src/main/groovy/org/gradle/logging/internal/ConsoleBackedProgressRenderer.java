@@ -15,64 +15,47 @@
  */
 package org.gradle.logging.internal;
 
-import org.gradle.util.GUtil;
-
-import java.util.LinkedList;
+import org.gradle.logging.internal.progress.ProgressOperation;
+import org.gradle.logging.internal.progress.ProgressOperations;
 
 public class ConsoleBackedProgressRenderer implements OutputEventListener {
     private final OutputEventListener listener;
     private final Console console;
-    private final LinkedList<Operation> operations = new LinkedList<Operation>();
-    private final StatusBarFormatter statusBarFormatter;
+    private final ProgressOperations operations = new ProgressOperations();
+    private final DefaultStatusBarFormatter statusBarFormatter;
     private Label statusBar;
 
-    public ConsoleBackedProgressRenderer(OutputEventListener listener, Console console, StatusBarFormatter statusBarFormatter) {
+    public ConsoleBackedProgressRenderer(OutputEventListener listener, Console console, DefaultStatusBarFormatter statusBarFormatter) {
         this.listener = listener;
         this.console = console;
         this.statusBarFormatter = statusBarFormatter;
     }
 
     public void onOutput(OutputEvent event) {
-        if (event instanceof ProgressStartEvent) {
-            ProgressStartEvent startEvent = (ProgressStartEvent) event;
-            operations.addLast(new Operation(startEvent.getShortDescription(), startEvent.getStatus()));
-            updateText();
-        } else if (event instanceof ProgressCompleteEvent) {
-            operations.removeLast();
-            updateText();
-        } else if (event instanceof ProgressEvent) {
-            ProgressEvent progressEvent = (ProgressEvent) event;
-            operations.getLast().status = progressEvent.getStatus();
-            updateText();
+        try {
+            if (event instanceof ProgressStartEvent) {
+                ProgressStartEvent startEvent = (ProgressStartEvent) event;
+                ProgressOperation op = operations.start(startEvent.getShortDescription(), startEvent.getStatus(), startEvent.getOperationId(), startEvent.getParentOperationId());
+                updateText(op);
+            } else if (event instanceof ProgressCompleteEvent) {
+                ProgressOperation op = operations.complete(((ProgressCompleteEvent) event).getOperationId());
+                updateText(op.getParent());
+            } else if (event instanceof ProgressEvent) {
+                ProgressEvent progressEvent = (ProgressEvent) event;
+                ProgressOperation op = operations.progress(progressEvent.getStatus(), progressEvent.getOperationId());
+                updateText(op);
+            }
+            listener.onOutput(event);
+        } catch (Exception e) {
+            throw new RuntimeException("Unable to process incoming event '" + event
+                    + "' (" + event.getClass().getSimpleName() + ")", e);
         }
-        listener.onOutput(event);
     }
 
-    private void updateText() {
+    private void updateText(ProgressOperation op) {
         if (statusBar == null) {
             statusBar = console.getStatusBar();
         }
-        statusBar.setText(statusBarFormatter.format(operations));
+        statusBar.setText(statusBarFormatter.format(op));
     }
-
-    static class Operation {
-        private final String shortDescription;
-        private String status;
-
-        private Operation(String shortDescription, String status) {
-            this.shortDescription = shortDescription;
-            this.status = status;
-        }
-
-        String getMessage() {
-            if (GUtil.isTrue(status)) {
-                return status;
-            }
-            if (GUtil.isTrue(shortDescription)) {
-                return shortDescription;
-            }
-            return null;
-        }
-    }
-
 }

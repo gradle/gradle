@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
+import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -39,7 +40,7 @@ public class RenderableDependencyResult extends AbstractRenderableDependencyResu
 
     @Override
     protected ModuleComponentIdentifier getActual() {
-        return (ModuleComponentIdentifier)dependency.getSelected().getPublishedAs();
+        return DefaultModuleComponentIdentifier.newId(dependency.getSelected().getModuleVersion());
     }
 
     @Override

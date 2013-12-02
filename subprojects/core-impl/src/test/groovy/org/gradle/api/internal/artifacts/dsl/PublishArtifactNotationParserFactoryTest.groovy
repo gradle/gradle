@@ -17,15 +17,15 @@ package org.gradle.api.internal.artifacts.dsl
 
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Task
-import org.gradle.api.artifacts.Module
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.internal.ThreadGlobalInstantiator
+import org.gradle.api.internal.artifacts.ModuleInternal
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
-import org.gradle.internal.typeconversion.NotationParser
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.internal.typeconversion.NotationParser
 import spock.lang.Specification
 
 import java.awt.*
@@ -37,7 +37,7 @@ public class PublishArtifactNotationParserFactoryTest extends Specification {
     final NotationParser<Object, PublishArtifact> publishArtifactNotationParser = publishArtifactNotationParserFactory.create();
 
     def setup() {
-        Module module = Mock()
+        ModuleInternal module = Mock()
         _ * provider.module >> module
         _ * module.version >> '1.2'
     }

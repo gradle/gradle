@@ -20,6 +20,7 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.tasks.TaskState
+import org.gradle.internal.progress.LoggerProvider
 import org.gradle.logging.ProgressLogger
 import org.gradle.logging.ProgressLoggerFactory
 import spock.lang.Specification
@@ -31,7 +32,8 @@ public class TaskExecutionLoggerTest extends Specification {
     def state = Mock(TaskState)
     def progressLogger = Mock(ProgressLogger)
     def gradle = Mock(Gradle)
-    def executionLogger = new TaskExecutionLogger(progressLoggerFactory);
+    def loggerProvider = Stub(LoggerProvider) { getLogger() >> Stub(ProgressLogger) }
+    def executionLogger = new TaskExecutionLogger(progressLoggerFactory, loggerProvider);
     def project = Mock(Project)
 
     def setup() {
@@ -99,7 +101,7 @@ public class TaskExecutionLoggerTest extends Specification {
     }
 
     def startLogTaskExecution(def path) {
-        1 * progressLoggerFactory.newOperation(TaskExecutionLogger) >> progressLogger
+        1 * progressLoggerFactory.newOperation(TaskExecutionLogger, _ as ProgressLogger) >> progressLogger
         1 * progressLogger.setDescription("Execute " + path)
         1 * progressLogger.setShortDescription("$path")
         1 * progressLogger.setLoggingHeader("$path")

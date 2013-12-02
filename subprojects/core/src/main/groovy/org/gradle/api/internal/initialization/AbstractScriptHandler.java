@@ -31,13 +31,11 @@ public abstract class AbstractScriptHandler implements ScriptHandlerInternal {
     private final RepositoryHandler repositoryHandler;
     private final DependencyHandler dependencyHandler;
     private final ConfigurationContainer configContainer;
-    private final ScriptClassLoader classLoader;
     private final Configuration classpathConfiguration;
 
-    public AbstractScriptHandler(ScriptClassLoader classLoader, RepositoryHandler repositoryHandler,
+    public AbstractScriptHandler(RepositoryHandler repositoryHandler,
                                  DependencyHandler dependencyHandler, ScriptSource scriptSource,
                                  ConfigurationContainer configContainer) {
-        this.classLoader = classLoader;
         this.repositoryHandler = repositoryHandler;
         this.dependencyHandler = dependencyHandler;
         this.scriptSource = scriptSource;
@@ -69,8 +67,8 @@ public abstract class AbstractScriptHandler implements ScriptHandlerInternal {
         return configContainer;
     }
 
-    public ScriptClassLoader getClassLoader() {
-        return classLoader;
+    public ClassLoader getClassLoader() {
+        return getScriptCompileClassLoader();
     }
 
     public File getSourceFile() {

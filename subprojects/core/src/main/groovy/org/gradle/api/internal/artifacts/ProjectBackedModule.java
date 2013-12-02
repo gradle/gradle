@@ -45,4 +45,27 @@ public class ProjectBackedModule implements ModuleInternal {
     public String getProjectPath() {
         return project.getPath();
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        ProjectBackedModule that = (ProjectBackedModule) o;
+
+        if (project != null ? !project.equals(that.project) : that.project != null) {
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return project != null ? project.hashCode() : 0;
+    }
 }

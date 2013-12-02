@@ -13,29 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.tasks.testing;
 
-import org.gradle.api.Action;
-import org.gradle.api.Incubating;
+package org.gradle.internal.progress;
 
-/**
- * Allows selecting tests for execution
- *
- * @since 1.10
- */
-@Incubating
-public interface TestSelection {
+import org.gradle.logging.ProgressLogger;
 
-    /**
-     * Allow configuring test inclusions
-     */
-    TestSelectionSpec getInclude();
+public interface LoggerProvider {
 
-    /**
-     * Allow configuring test inclusions
-     *
-     * @param configure configuration action
-     * @return this selection object
-     */
-    TestSelection include(Action<TestSelectionSpec> configure);
+    ProgressLogger getLogger();
+
+    public static LoggerProvider NO_OP = new LoggerProvider() {
+        public ProgressLogger getLogger() {
+            return null;
+        }
+    };
 }

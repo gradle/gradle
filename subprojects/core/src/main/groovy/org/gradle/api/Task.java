@@ -677,7 +677,6 @@ public interface Task extends Comparable<Task>, ExtensionAware {
     @Incubating
     void setShouldRunAfter(Iterable<?> shouldRunAfter);
 
-
     /**
      * <p>Returns tasks that this task should run after.</p>
      *

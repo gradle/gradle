@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
+import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier;
 
 import java.util.Collections;
 import java.util.Set;
@@ -44,7 +45,7 @@ public class ResolvedDependencyEdge implements DependencyEdge {
     }
 
     public ModuleComponentIdentifier getActual() {
-        return (ModuleComponentIdentifier)dependency.getSelected().getPublishedAs();
+        return DefaultModuleComponentIdentifier.newId(dependency.getSelected().getModuleVersion());
     }
 
     public ModuleComponentIdentifier getFrom() {

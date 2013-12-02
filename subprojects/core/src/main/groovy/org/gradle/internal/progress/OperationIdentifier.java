@@ -13,24 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks.testing.selection;
 
-import org.gradle.api.Action;
-import org.gradle.api.tasks.Nested;
-import org.gradle.api.tasks.testing.TestSelection;
-import org.gradle.api.tasks.testing.TestSelectionSpec;
+package org.gradle.internal.progress;
 
-public class DefaultTestSelection implements TestSelection {
+public class OperationIdentifier {
+    private final long id;
+    private final Long parentId;
 
-    private DefaultTestSelectionSpec include = new DefaultTestSelectionSpec();
-
-    @Nested
-    public DefaultTestSelectionSpec getInclude() {
-        return include;
+    public OperationIdentifier(long id, Long parentId) {
+        this.id = id;
+        this.parentId = parentId;
     }
 
-    public DefaultTestSelection include(Action<TestSelectionSpec> configure) {
-        configure.execute(include);
-        return this;
+    public long getId() {
+        return id;
+    }
+
+    public Long getParentId() {
+        return parentId;
+    }
+
+    @Override
+    public String toString() {
+        return id + ":" + parentId;
     }
 }

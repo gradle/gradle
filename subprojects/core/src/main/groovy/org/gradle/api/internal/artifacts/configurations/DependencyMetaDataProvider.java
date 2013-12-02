@@ -15,8 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.configurations;
 
-import org.gradle.api.artifacts.Module;
+import org.gradle.api.internal.artifacts.ModuleInternal;
 
 public interface DependencyMetaDataProvider {
-    Module getModule();
+    ModuleInternal getModule();
 }

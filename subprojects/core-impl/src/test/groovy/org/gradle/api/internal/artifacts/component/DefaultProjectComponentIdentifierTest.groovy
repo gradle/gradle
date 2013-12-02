@@ -15,16 +15,16 @@
  */
 package org.gradle.api.internal.artifacts.component
 
-import org.gradle.api.artifacts.component.BuildComponentIdentifier
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import spock.lang.Specification
 import spock.lang.Unroll
 
 import static org.gradle.util.Matchers.strictlyEquals
 
-class DefaultBuildComponentIdentifierTest extends Specification {
+class DefaultProjectComponentIdentifierTest extends Specification {
     def "is instantiated with non-null constructor parameter values"() {
         when:
-        BuildComponentIdentifier defaultBuildComponentIdentifier = new DefaultBuildComponentIdentifier(':myPath')
+        ProjectComponentIdentifier defaultBuildComponentIdentifier = new DefaultProjectComponentIdentifier(':myPath')
 
         then:
         defaultBuildComponentIdentifier.projectPath == ':myPath'
@@ -34,7 +34,7 @@ class DefaultBuildComponentIdentifierTest extends Specification {
 
     def "is instantiated with null constructor parameter value"() {
         when:
-        new DefaultBuildComponentIdentifier(null)
+        new DefaultProjectComponentIdentifier(null)
 
         then:
         Throwable t = thrown(AssertionError)
@@ -44,8 +44,8 @@ class DefaultBuildComponentIdentifierTest extends Specification {
     @Unroll
     def "can compare with other instance (#projectPath)"() {
         expect:
-        BuildComponentIdentifier defaultBuildComponentIdentifier1 = new DefaultBuildComponentIdentifier(':myProjectPath1')
-        BuildComponentIdentifier defaultBuildComponentIdentifier2 = new DefaultBuildComponentIdentifier(projectPath)
+        ProjectComponentIdentifier defaultBuildComponentIdentifier1 = new DefaultProjectComponentIdentifier(':myProjectPath1')
+        ProjectComponentIdentifier defaultBuildComponentIdentifier2 = new DefaultProjectComponentIdentifier(projectPath)
         strictlyEquals(defaultBuildComponentIdentifier1, defaultBuildComponentIdentifier2) == equality
         (defaultBuildComponentIdentifier1.hashCode() == defaultBuildComponentIdentifier2.hashCode()) == hashCode
         (defaultBuildComponentIdentifier1.toString() == defaultBuildComponentIdentifier2.toString()) == stringRepresentation

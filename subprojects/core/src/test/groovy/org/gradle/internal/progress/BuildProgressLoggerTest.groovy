@@ -144,4 +144,32 @@ class BuildProgressLoggerTest extends Specification {
         then:
         0 * _
     }
+
+    def "build finished cleans up configuration logger"() {
+        when:
+        logger.buildStarted()
+        logger.projectsLoaded(16)
+        logger.buildFinished()
+
+        then:
+        1 * provider.start('Initialize build', _) >> progress
+        1 * provider.start("Configure projects", _) >> confProgress
+        1 * confProgress.completed()
+    }
+
+    def "build finished cleans up any unfinished configuration loggers"() {
+        def progress1 = Mock(ProgressLogger)
+
+        when:
+        logger.buildStarted()
+        logger.projectsLoaded(16)
+        logger.beforeEvaluate(":")
+        logger.buildFinished()
+
+        then:
+        1 * provider.start('Initialize build', _) >> progress
+        1 * provider.start("Configure project :", 'root project') >> progress1
+        1 * provider.start("Configure projects", _) >> confProgress
+        1 * progress1.completed()
+    }
 }
