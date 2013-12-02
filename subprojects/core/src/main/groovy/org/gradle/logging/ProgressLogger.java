@@ -123,4 +123,6 @@ public interface ProgressLogger {
      * @param status The final status message. Can be null or empty.
      */
     void completed(String status);
+
+    long currentOperationId();
 }

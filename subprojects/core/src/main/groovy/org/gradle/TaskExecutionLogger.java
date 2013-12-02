@@ -21,6 +21,7 @@ import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.tasks.TaskState;
+import org.gradle.internal.progress.LoggerProvider;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
 
@@ -34,15 +35,17 @@ public class TaskExecutionLogger implements TaskExecutionListener {
 
     private final Map<Task, ProgressLogger> currentTasks = new HashMap<Task, ProgressLogger>();
     private final ProgressLoggerFactory progressLoggerFactory;
+    private LoggerProvider parentLoggerPovider;
 
-    public TaskExecutionLogger(ProgressLoggerFactory progressLoggerFactory) {
+    public TaskExecutionLogger(ProgressLoggerFactory progressLoggerFactory, LoggerProvider parentLoggerPovider) {
         this.progressLoggerFactory = progressLoggerFactory;
+        this.parentLoggerPovider = parentLoggerPovider;
     }
 
     public void beforeExecute(Task task) {
         assert !currentTasks.containsKey(task);
 
-        ProgressLogger currentTask = progressLoggerFactory.newOperation(TaskExecutionLogger.class);
+        ProgressLogger currentTask = progressLoggerFactory.newOperation(TaskExecutionLogger.class, parentLoggerPovider.getLogger());
         String displayName = getDisplayName(task);
         currentTask.setDescription(String.format("Execute %s", displayName));
         currentTask.setShortDescription(displayName);

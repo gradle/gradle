@@ -39,7 +39,15 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
     }
 
     public ProgressLogger newOperation(String loggerCategory) {
-        return new ProgressLoggerImpl(hierarchyKeeper.currentHierarchy(), loggerCategory, progressListener, timeProvider);
+        return init(loggerCategory, null);
+    }
+
+    public ProgressLogger newOperation(Class loggerCategory, ProgressLogger parent) {
+        return init(loggerCategory.toString(), parent);
+    }
+
+    private ProgressLogger init(String loggerCategory, ProgressLogger parentHint) {
+        return new ProgressLoggerImpl(hierarchyKeeper.currentHierarchy(parentHint), loggerCategory, progressListener, timeProvider);
     }
 
     private static class ProgressLoggerImpl implements ProgressLogger {
@@ -128,6 +136,10 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
             state = State.completed;
             listener.completed(new ProgressCompleteEvent(hierarchy.completeCurrentOperation(),
                     timeProvider.getCurrentTime(), category, description, toStatus(status)));
+        }
+
+        public long currentOperationId() {
+            return hierarchy.currentOperationId();
         }
 
         private String toStatus(String status) {

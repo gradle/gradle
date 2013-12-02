@@ -18,6 +18,7 @@
 
 package org.gradle.internal.progress
 
+import org.gradle.logging.ProgressLogger
 import org.gradle.util.ConcurrentSpecification
 import spock.lang.Subject
 
@@ -26,8 +27,8 @@ class OperationsHierarchyKeeperTest extends ConcurrentSpecification {
     @Subject manager = new OperationsHierarchyKeeper()
 
     def "provides hierarchy"() {
-        def h1 = manager.currentHierarchy()
-        def h2 = manager.currentHierarchy()
+        def h1 = manager.currentHierarchy(null)
+        def h2 = manager.currentHierarchy(null)
 
         expect:
         h1.hierarchy.is(h2.hierarchy)
@@ -39,12 +40,25 @@ class OperationsHierarchyKeeperTest extends ConcurrentSpecification {
         def h2
 
         when:
-        start { h1 = manager.currentHierarchy() }
-        start { h2 = manager.currentHierarchy() }
+        start { h1 = manager.currentHierarchy(null) }
+        start { h2 = manager.currentHierarchy(null) }
         finished()
 
         then:
         !h1.hierarchy.is(h2.hierarchy)
         h1.sharedCounter.is(h2.sharedCounter)
+    }
+
+    def "may feed the parent logger"() {
+        def parent1 = Stub(ProgressLogger) { currentOperationId() >> 1 }
+        def parent2 = Mock(ProgressLogger) { currentOperationId() >> 2 }
+
+        when:
+        def h1 = manager.currentHierarchy(parent1)
+        def h2 = manager.currentHierarchy(parent2)
+
+        then:
+        h1.hierarchy.is(h2.hierarchy)
+        h1.hierarchy == [1]
     }
 }

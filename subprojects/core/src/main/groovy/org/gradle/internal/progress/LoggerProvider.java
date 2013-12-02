@@ -18,23 +18,13 @@ package org.gradle.internal.progress;
 
 import org.gradle.logging.ProgressLogger;
 
-import java.util.LinkedList;
-import java.util.concurrent.atomic.AtomicLong;
+public interface LoggerProvider {
 
-public class OperationsHierarchyKeeper {
+    ProgressLogger getLogger();
 
-    private final AtomicLong sharedCounter = new AtomicLong();
-    private final ThreadLocal<LinkedList<Long>> hierarchy = new ThreadLocal<LinkedList<Long>>();
-
-    public OperationsHierarchy currentHierarchy(ProgressLogger parentHint) {
-        LinkedList<Long> h = hierarchy.get();
-        if (h == null) {
-            h = new LinkedList<Long>();
-            if (parentHint != null) {
-                h.add(parentHint.currentOperationId());
-            }
-            hierarchy.set(h);
+    public static LoggerProvider NO_OP = new LoggerProvider() {
+        public ProgressLogger getLogger() {
+            return null;
         }
-        return new OperationsHierarchy(sharedCounter, h);
-    }
+    };
 }

@@ -16,6 +16,8 @@
 
 package org.gradle.logging;
 
+import org.gradle.TaskExecutionLogger;
+
 public interface ProgressLoggerFactory {
     /**
      * Creates a new long-running operation which has not been started.
@@ -32,4 +34,6 @@ public interface ProgressLoggerFactory {
      * @return The progress logger for the operation.
      */
     ProgressLogger newOperation(Class loggerCategory);
+
+    ProgressLogger newOperation(Class<TaskExecutionLogger> taskExecutionLoggerClass, ProgressLogger parent);
 }
