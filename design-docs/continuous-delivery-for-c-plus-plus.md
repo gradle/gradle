@@ -1006,9 +1006,10 @@ A sequence of stories to make source sets much more flexible, and to improve the
 
 ### Story: Introduce implementation headers for native components
 
-This story introduces a set of headers which are visible to all the source files of a component, but are not visible outside the component.
+This story introduces a set of headers that are visible to all the source files of a component, but are not visible outside the component.
 
 1. Introduce a `HeaderSet` extends `LanguageSourceSet`. This represents a collection of native headers.
+    - Introduce a base native language plugin.
     - Base native language plugin adds a `HeaderSet` called `sharedHeaders` for each native component.
     - Defaults to include source dir `src/${component.name}/include`
 1. Allow `DependentSourceSet` instances to declare dependencies on `HeaderSet` instances.
@@ -1048,9 +1049,10 @@ This story introduces a set of headers which are visible to all the source files
 
 ### Story: Introduce public headers for native libraries
 
-This story introduces a set of headers which are visible to all source files in a component and all components that depend on the component.
+This story introduces a set of headers that are visible to all source files in a component and to all components that depend on the component.
 
 1. Allow `HeaderSet` instances to declare dependencies on `HeaderSet` instances.
+    - Change `HeaderSet` to extend `DependentSourceSet`.
     - These should resolve as above.
     - The transitive dependencies of a header set should be visible at compile time.
 1. Introduce a public header set for native libraries
@@ -1077,13 +1079,20 @@ This story introduces a set of headers which are visible to all source files in 
         }
     }
 
+#### Test cases
+
+- libraries.c depends on libraries.b depends on libraries.a
+    - The public headers of libraries.a and libraries.b should be visible when compiling libraries.c
+    - The implementation headers of libraries.a and libraries.b should not be visible when compiling libraries.c
+
 #### Open issues
 
+- Default location for public headers.
 - Language specific public headers. Eg include these headers when compiling C in a consuming component, and these additional headers when compiling C++.
 
-### Story: Configure the source sets of a component as part of the component definition
+### Story: Configure the source sets of a component in the component definition
 
-This story moves definition and configuration of the source sets for a component to live with the other configuration for a component.
+This story moves definition and configuration of the source sets for a component to live with the other component configuration.
 
 1. Merge `ProjectSourceSet` and `FunctionalSourceSet` into a more general `CompositeSourceSet`.
     - This is simply a source set that contains other source sets.
@@ -1099,8 +1108,12 @@ This story moves definition and configuration of the source sets for a component
     libraries {
         mylib {
             sources {
-                publicHeaders { srcDir = 'src/headers/api' }
-                sharedHeaders { srcDir = 'src/headers/shared' }
+                publicHeaders {
+                    srcDir = 'src/headers/api'
+                }
+                sharedHeaders {
+                    srcDir = 'src/headers/shared'
+                }
                 c {
                     lib libraries.otherlib
                 }
