@@ -23,7 +23,7 @@ import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
-import org.gradle.api.internal.artifacts.component.DefaultBuildComponentIdentifier
+import org.gradle.api.internal.artifacts.component.DefaultProjectComponentIdentifier
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier
 import spock.lang.Specification
 
@@ -269,7 +269,7 @@ class ModuleDescriptorAdapterTest extends Specification {
     def "uses component ID if provided in constructor"() {
         when:
         ModuleVersionIdentifier moduleVersionIdentifier = new DefaultModuleVersionIdentifier('group', 'name', 'version')
-        ComponentIdentifier componentIdentifier = new DefaultBuildComponentIdentifier(':myPath')
+        ComponentIdentifier componentIdentifier = new DefaultProjectComponentIdentifier(':myPath')
         def metaData = new ModuleDescriptorAdapter(moduleVersionIdentifier, moduleDescriptor, componentIdentifier)
 
         then:

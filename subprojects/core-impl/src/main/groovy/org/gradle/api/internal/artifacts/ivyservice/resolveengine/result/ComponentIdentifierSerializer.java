@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
-import org.gradle.api.artifacts.component.BuildComponentIdentifier;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.component.DefaultBuildComponentIdentifier;
+import org.gradle.api.internal.artifacts.component.DefaultProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier;
 import org.gradle.messaging.serialize.Decoder;
 import org.gradle.messaging.serialize.Encoder;
@@ -32,7 +32,7 @@ public class ComponentIdentifierSerializer implements Serializer<ComponentIdenti
         byte id = decoder.readByte();
 
         if(Implementation.BUILD.getId() == id) {
-            return new DefaultBuildComponentIdentifier(decoder.readString());
+            return new DefaultProjectComponentIdentifier(decoder.readString());
         } else if(Implementation.MODULE.getId() == id) {
             return new DefaultModuleComponentIdentifier(decoder.readString(), decoder.readString(), decoder.readString());
         }
@@ -51,10 +51,10 @@ public class ComponentIdentifierSerializer implements Serializer<ComponentIdenti
             encoder.writeString(moduleComponentIdentifier.getGroup());
             encoder.writeString(moduleComponentIdentifier.getModule());
             encoder.writeString(moduleComponentIdentifier.getVersion());
-        } else if(value instanceof DefaultBuildComponentIdentifier) {
-            BuildComponentIdentifier buildComponentIdentifier = (BuildComponentIdentifier)value;
+        } else if(value instanceof DefaultProjectComponentIdentifier) {
+            ProjectComponentIdentifier projectComponentIdentifier = (ProjectComponentIdentifier)value;
             encoder.writeByte(Implementation.BUILD.getId());
-            encoder.writeString(buildComponentIdentifier.getProjectPath());
+            encoder.writeString(projectComponentIdentifier.getProjectPath());
         } else {
             throw new IllegalArgumentException("Unsupported component identifier class: " + value.getClass());
         }

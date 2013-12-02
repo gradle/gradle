@@ -15,17 +15,17 @@
  */
 package org.gradle.api.internal.artifacts.component
 
-import org.gradle.api.artifacts.component.BuildComponentIdentifier
-import org.gradle.api.artifacts.component.BuildComponentSelector
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier
+import org.gradle.api.artifacts.component.ProjectComponentSelector
 import spock.lang.Specification
 import spock.lang.Unroll
 
 import static org.gradle.util.Matchers.strictlyEquals
 
-class DefaultBuildComponentSelectorTest extends Specification {
+class DefaultProjectComponentSelectorTest extends Specification {
     def "is instantiated with non-null constructor parameter values"() {
         when:
-        BuildComponentSelector defaultBuildComponentSelector = new DefaultBuildComponentSelector(':myPath')
+        ProjectComponentSelector defaultBuildComponentSelector = new DefaultProjectComponentSelector(':myPath')
 
         then:
         defaultBuildComponentSelector.projectPath == ':myPath'
@@ -35,7 +35,7 @@ class DefaultBuildComponentSelectorTest extends Specification {
 
     def "is instantiated with null constructor parameter value"() {
         when:
-        new DefaultBuildComponentSelector(null)
+        new DefaultProjectComponentSelector(null)
 
         then:
         Throwable t = thrown(AssertionError)
@@ -45,8 +45,8 @@ class DefaultBuildComponentSelectorTest extends Specification {
     @Unroll
     def "can compare with other instance (#projectPath)"() {
         expect:
-        BuildComponentSelector defaultBuildComponentSelector1 = new DefaultBuildComponentSelector(':myProjectPath1')
-        BuildComponentSelector defaultBuildComponentSelector2 = new DefaultBuildComponentSelector(projectPath)
+        ProjectComponentSelector defaultBuildComponentSelector1 = new DefaultProjectComponentSelector(':myProjectPath1')
+        ProjectComponentSelector defaultBuildComponentSelector2 = new DefaultProjectComponentSelector(projectPath)
         strictlyEquals(defaultBuildComponentSelector1, defaultBuildComponentSelector2) == equality
         (defaultBuildComponentSelector1.hashCode() == defaultBuildComponentSelector2.hashCode()) == hashCode
         (defaultBuildComponentSelector1.toString() == defaultBuildComponentSelector2.toString()) == stringRepresentation
@@ -59,7 +59,7 @@ class DefaultBuildComponentSelectorTest extends Specification {
 
     def "prevents matching of null id"() {
         when:
-        BuildComponentSelector defaultBuildComponentSelector = new DefaultBuildComponentSelector(':myPath')
+        ProjectComponentSelector defaultBuildComponentSelector = new DefaultProjectComponentSelector(':myPath')
         defaultBuildComponentSelector.matchesStrictly(null)
 
         then:
@@ -69,7 +69,7 @@ class DefaultBuildComponentSelectorTest extends Specification {
 
     def "does not match id for unexpected component selector type"() {
         when:
-        BuildComponentSelector defaultBuildComponentSelector = new DefaultBuildComponentSelector(':myPath')
+        ProjectComponentSelector defaultBuildComponentSelector = new DefaultProjectComponentSelector(':myPath')
         boolean matches = defaultBuildComponentSelector.matchesStrictly(new DefaultModuleComponentIdentifier('group', 'name', '1.0'))
 
         then:
@@ -79,8 +79,8 @@ class DefaultBuildComponentSelectorTest extends Specification {
     @Unroll
     def "matches id (#projectPath)"() {
         expect:
-        BuildComponentSelector defaultBuildComponentSelector = new DefaultBuildComponentSelector(':myProjectPath1')
-        BuildComponentIdentifier defaultBuildComponentIdentifier = new DefaultBuildComponentIdentifier(projectPath)
+        ProjectComponentSelector defaultBuildComponentSelector = new DefaultProjectComponentSelector(':myProjectPath1')
+        ProjectComponentIdentifier defaultBuildComponentIdentifier = new DefaultProjectComponentIdentifier(projectPath)
         defaultBuildComponentSelector.matchesStrictly(defaultBuildComponentIdentifier) == matchesId
 
         where:

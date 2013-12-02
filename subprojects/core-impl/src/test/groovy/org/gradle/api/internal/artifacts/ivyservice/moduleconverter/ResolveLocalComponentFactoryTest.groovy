@@ -22,8 +22,8 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.internal.artifacts.DefaultModule
 import org.gradle.api.internal.artifacts.ProjectBackedModule
-import org.gradle.api.internal.artifacts.component.DefaultBuildComponentIdentifier
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier
+import org.gradle.api.internal.artifacts.component.DefaultProjectComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependenciesToModuleDescriptorConverter
 import org.gradle.api.internal.artifacts.metadata.DefaultLocalComponentMetaData
 import spock.lang.Specification
@@ -91,6 +91,6 @@ public class ResolveLocalComponentFactoryTest extends Specification {
         and:
         actualDescriptor instanceof DefaultLocalComponentMetaData
         actualDescriptor.moduleDescriptor == moduleDescriptor
-        actualDescriptor.toResolveMetaData().componentId == new DefaultBuildComponentIdentifier(':myPath')
+        actualDescriptor.toResolveMetaData().componentId == new DefaultProjectComponentIdentifier(':myPath')
     }
 }

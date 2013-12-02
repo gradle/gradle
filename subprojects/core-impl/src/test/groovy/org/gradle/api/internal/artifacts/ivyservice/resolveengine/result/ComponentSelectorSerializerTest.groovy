@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
-import org.gradle.api.artifacts.component.BuildComponentSelector
+import org.gradle.api.artifacts.component.ProjectComponentSelector
 import org.gradle.api.artifacts.component.ModuleComponentSelector
-import org.gradle.api.internal.artifacts.component.DefaultBuildComponentSelector
+import org.gradle.api.internal.artifacts.component.DefaultProjectComponentSelector
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentSelector
 import org.gradle.messaging.serialize.SerializerSpec
 
@@ -49,10 +49,10 @@ public class ComponentSelectorSerializerTest extends SerializerSpec {
 
     def "serializes BuildComponentSelector"() {
         given:
-        BuildComponentSelector selection = new DefaultBuildComponentSelector(':myPath')
+        ProjectComponentSelector selection = new DefaultProjectComponentSelector(':myPath')
 
         when:
-        BuildComponentSelector result = serialize(selection, serializer)
+        ProjectComponentSelector result = serialize(selection, serializer)
 
         then:
         result.projectPath == ':myPath'

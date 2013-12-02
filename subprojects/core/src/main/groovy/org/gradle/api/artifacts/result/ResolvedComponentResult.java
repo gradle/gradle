@@ -36,7 +36,7 @@ public interface ResolvedComponentResult {
      * <p>The return type is declared as an opaque {@link ComponentIdentifier}, however the identifier may also implement one of the following interfaces:</p>
      *
      * <ul>
-     *     <li>{@link org.gradle.api.artifacts.component.BuildComponentIdentifier} for those component instances which are produced by the current build.</li>
+     *     <li>{@link org.gradle.api.artifacts.component.ProjectComponentIdentifier} for those component instances which are produced by the current build.</li>
      *     <li>{@link org.gradle.api.artifacts.component.ModuleComponentIdentifier} for those component instances which are found in some repository.</li>
      * </ul>
      *

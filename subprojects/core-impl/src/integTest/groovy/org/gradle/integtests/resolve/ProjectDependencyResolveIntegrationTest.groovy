@@ -65,7 +65,7 @@ project(":b") {
         assert rootPublishedAs.version == rootId.version
 
         // Check project components
-        def projectDependencies = result.root.dependencies.selected.findAll { it.id instanceof BuildComponentIdentifier }
+        def projectDependencies = result.root.dependencies.selected.findAll { it.id instanceof ProjectComponentIdentifier }
         assert projectDependencies.size() == 1
         def projectA = projectDependencies[0]
         assert projectA.id.projectPath == ':a'

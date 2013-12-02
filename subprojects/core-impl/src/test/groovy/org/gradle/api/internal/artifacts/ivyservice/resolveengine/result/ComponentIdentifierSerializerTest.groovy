@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
-import org.gradle.api.artifacts.component.BuildComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
-import org.gradle.api.internal.artifacts.component.DefaultBuildComponentIdentifier
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier
+import org.gradle.api.internal.artifacts.component.DefaultProjectComponentIdentifier
 import org.gradle.messaging.serialize.SerializerSpec
 
 class ComponentIdentifierSerializerTest extends SerializerSpec {
@@ -49,10 +49,10 @@ class ComponentIdentifierSerializerTest extends SerializerSpec {
 
     def "serializes BuildComponentIdentifier"() {
         given:
-        BuildComponentIdentifier selection = new DefaultBuildComponentIdentifier(':myPath')
+        ProjectComponentIdentifier selection = new DefaultProjectComponentIdentifier(':myPath')
 
         when:
-        BuildComponentIdentifier result = serialize(selection, serializer)
+        ProjectComponentIdentifier result = serialize(selection, serializer)
 
         then:
         result.projectPath == ':myPath'

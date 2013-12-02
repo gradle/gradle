@@ -15,13 +15,13 @@
  */
 package org.gradle.api.internal.artifacts.component;
 
-import org.gradle.api.artifacts.component.BuildComponentIdentifier;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 
-public class DefaultBuildComponentIdentifier implements BuildComponentIdentifier {
+public class DefaultProjectComponentIdentifier implements ProjectComponentIdentifier {
     private final String projectPath;
     private final String displayName;
 
-    public DefaultBuildComponentIdentifier(String projectPath) {
+    public DefaultProjectComponentIdentifier(String projectPath) {
         assert projectPath != null : "project path cannot be null";
         this.projectPath = projectPath;
         displayName = String.format("project %s", projectPath);
@@ -44,7 +44,7 @@ public class DefaultBuildComponentIdentifier implements BuildComponentIdentifier
             return false;
         }
 
-        DefaultBuildComponentIdentifier that = (DefaultBuildComponentIdentifier) o;
+        DefaultProjectComponentIdentifier that = (DefaultProjectComponentIdentifier) o;
 
         if (!projectPath.equals(that.projectPath)) {
             return false;
