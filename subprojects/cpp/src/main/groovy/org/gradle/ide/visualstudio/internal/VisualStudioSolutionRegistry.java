@@ -15,24 +15,35 @@
  */
 package org.gradle.ide.visualstudio.internal;
 
+import org.gradle.api.internal.DefaultNamedDomainObjectSet;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.nativebinaries.NativeBinary;
 import org.gradle.nativebinaries.internal.NativeBinaryInternal;
 
-public class VisualStudioSolutionBuilder {
+public class VisualStudioSolutionRegistry extends DefaultNamedDomainObjectSet<VisualStudioSolution> {
     private final FileResolver fileResolver;
+    private final VisualStudioProjectRegistry localProjects;
     private final VisualStudioProjectResolver projectResolver;
 
-    public VisualStudioSolutionBuilder(FileResolver fileResolver, VisualStudioProjectResolver projectResolver) {
+    public VisualStudioSolutionRegistry(FileResolver fileResolver, VisualStudioProjectResolver projectResolver, VisualStudioProjectRegistry localProjects, Instantiator instantiator) {
+        super(VisualStudioSolution.class, instantiator);
         this.fileResolver = fileResolver;
+        this.localProjects = localProjects;
         this.projectResolver = projectResolver;
     }
 
-    public VisualStudioSolution createSolution(NativeBinary nativeBinary) {
+    public VisualStudioSolution addSolution(NativeBinary nativeBinary) {
+        VisualStudioSolution solution = createSolution(nativeBinary);
+        add(solution);
+        return solution;
+    }
+
+    private VisualStudioSolution createSolution(NativeBinary nativeBinary) {
         return new VisualStudioSolution(solutionName(nativeBinary), (NativeBinaryInternal) nativeBinary, fileResolver, projectResolver);
     }
 
     private String solutionName(NativeBinary nativeBinary) {
-        return projectResolver.lookupProjectConfiguration(nativeBinary).getProject().getName();
+        return localProjects.getProjectConfiguration(nativeBinary).getProject().getName();
     }
 }

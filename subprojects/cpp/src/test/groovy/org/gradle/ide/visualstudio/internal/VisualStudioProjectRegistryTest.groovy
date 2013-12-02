@@ -26,7 +26,7 @@ class VisualStudioProjectRegistryTest extends Specification {
     def fileResolver = Mock(FileResolver)
     def visualStudioProjectResolver = Mock(VisualStudioProjectResolver)
     def allFlavors = new DefaultFlavorContainer(new DirectInstantiator())
-    def registry = new VisualStudioProjectRegistry(fileResolver, visualStudioProjectResolver, allFlavors)
+    def registry = new VisualStudioProjectRegistry(fileResolver, visualStudioProjectResolver, allFlavors, new DirectInstantiator())
     def executable = Mock(ExecutableInternal)
     def executableBinary = Mock(ExecutableBinary)
     def library = Mock(LibraryInternal)

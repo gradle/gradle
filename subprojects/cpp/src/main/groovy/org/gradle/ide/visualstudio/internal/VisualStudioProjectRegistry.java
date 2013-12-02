@@ -17,50 +17,45 @@
 package org.gradle.ide.visualstudio.internal;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.internal.DefaultNamedDomainObjectSet;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.nativebinaries.*;
 import org.gradle.nativebinaries.internal.NativeComponentInternal;
-import org.gradle.util.CollectionUtils;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
-public class VisualStudioProjectRegistry {
+public class VisualStudioProjectRegistry extends DefaultNamedDomainObjectSet<VisualStudioProject> {
     private final FileResolver fileResolver;
     private final FlavorContainer allFlavors;
-    private final Map<String, VisualStudioProject> projects = new HashMap<String, VisualStudioProject>();
     private final VisualStudioProjectResolver projectResolver;
 
-    public VisualStudioProjectRegistry(FileResolver fileResolver, VisualStudioProjectResolver projectResolver, FlavorContainer allFlavors) {
+    public VisualStudioProjectRegistry(FileResolver fileResolver, VisualStudioProjectResolver projectResolver, FlavorContainer allFlavors, Instantiator instantiator) {
+        super(VisualStudioProject.class, instantiator);
         this.fileResolver = fileResolver;
         this.allFlavors = allFlavors;
         this.projectResolver = projectResolver;
     }
 
-    public VisualStudioProjectConfiguration getProjectConfiguration(NativeBinary nativeBinary) {
-        String projectName = projectName(nativeBinary);
-        return projects.get(projectName).getConfiguration(nativeBinary);
-    }
-
     public void addProjectConfiguration(NativeBinary nativeBinary) {
+        // TODO:DAZ Eagerly create all configurations for a component/project?
         VisualStudioProject project = getOrCreateProject(nativeBinary);
         project.addConfiguration(nativeBinary);
     }
 
-    private VisualStudioProject getOrCreateProject(NativeBinary nativeBinary) {
+    public VisualStudioProjectConfiguration getProjectConfiguration(NativeBinary nativeBinary) {
         String projectName = projectName(nativeBinary);
-        VisualStudioProject vsProject = projects.get(projectName);
-        if (vsProject == null) {
-            vsProject = new VisualStudioProject(projectName, nativeBinary.getComponent(), fileResolver, projectResolver);
-            projects.put(projectName, vsProject);
-        }
-        return vsProject;
+        return getByName(projectName).getConfiguration(nativeBinary);
     }
 
-    public List<VisualStudioProject> getAllProjects() {
-        return CollectionUtils.toList(projects.values());
+    private VisualStudioProject getOrCreateProject(NativeBinary nativeBinary) {
+        String projectName = projectName(nativeBinary);
+        VisualStudioProject vsProject = findByName(projectName);
+        if (vsProject == null) {
+            vsProject = new VisualStudioProject(projectName, nativeBinary.getComponent(), fileResolver, projectResolver);
+            add(vsProject);
+        }
+        return vsProject;
     }
 
     private String projectName(NativeBinary nativeBinary) {
@@ -81,7 +76,6 @@ public class VisualStudioProjectRegistry {
                 : "Exe";
     }
 
-    // TODO:DAZ This needs to be a method on NativeComponentInternal
     private Set<Flavor> getFlavors(final NativeComponent component) {
         return ((NativeComponentInternal) component).chooseFlavors(allFlavors);
     }

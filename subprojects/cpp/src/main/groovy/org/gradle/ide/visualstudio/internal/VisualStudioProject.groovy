@@ -16,6 +16,7 @@
 
 package org.gradle.ide.visualstudio.internal
 
+import org.gradle.api.Named
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.language.HeaderExportingSourceSet
 import org.gradle.language.base.LanguageSourceSet
@@ -27,7 +28,7 @@ import org.gradle.util.CollectionUtils
  * A VisualStudio project represents a set of binaries for a component that may vary in build type and target platform.
  */
 // TODO:DAZ Sources and header files should be taken from all binaries added to project
-class VisualStudioProject extends AbstractBuildableModelElement {
+class VisualStudioProject extends AbstractBuildableModelElement implements Named {
     final VisualStudioProjectResolver projectResolver
     final FileResolver fileResolver
     final String uuid

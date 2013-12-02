@@ -16,8 +16,8 @@
 
 package org.gradle.ide.visualstudio.internal;
 
-import org.gradle.api.Project;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.nativebinaries.NativeBinary;
 import org.gradle.nativebinaries.internal.NativeComponentInternal;
 
@@ -30,12 +30,13 @@ public class VisualStudioProjectResolver {
 
     public VisualStudioProjectConfiguration lookupProjectConfiguration(NativeBinary nativeBinary) {
         // Looks in the correct project registry for this binary
-        Project componentProject = getComponentProject(nativeBinary);
-        VisualStudioProjectRegistry projectRegistry = componentProject.getExtensions().getByType(VisualStudioProjectRegistry.class);
+        ProjectInternal componentProject = getComponentProject(nativeBinary);
+        VisualStudioExtension visualStudioExtension = componentProject.getModelRegistry().get("visualStudio", VisualStudioExtension.class);
+        VisualStudioProjectRegistry projectRegistry = visualStudioExtension.getProjectRegistry();
         return projectRegistry.getProjectConfiguration(nativeBinary);
     }
 
-    private Project getComponentProject(NativeBinary nativeBinary) {
+    private ProjectInternal getComponentProject(NativeBinary nativeBinary) {
         String projectPath = ((NativeComponentInternal) nativeBinary.getComponent()).getProjectPath();
         return projectFinder.getProject(projectPath);
     }

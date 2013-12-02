@@ -14,98 +14,76 @@
  * limitations under the License.
  */
 package org.gradle.ide.visualstudio
-
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
-import org.gradle.api.Project
+import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
+import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.tasks.Delete
-import org.gradle.ide.visualstudio.internal.*
-import org.gradle.ide.visualstudio.tasks.GenerateFiltersFileTask
-import org.gradle.ide.visualstudio.tasks.GenerateProjectFileTask
-import org.gradle.ide.visualstudio.tasks.GenerateSolutionFileTask
+import org.gradle.api.tasks.TaskContainer
+import org.gradle.ide.visualstudio.internal.DefaultProjectFinder
+import org.gradle.ide.visualstudio.internal.VisualStudioExtension
+import org.gradle.ide.visualstudio.internal.rules.CreateVisualStudioModel
+import org.gradle.ide.visualstudio.internal.rules.CreateVisualStudioTasks
+import org.gradle.internal.reflect.Instantiator
+import org.gradle.model.ModelRule
+import org.gradle.model.ModelRules
+import org.gradle.model.internal.Inputs
+import org.gradle.model.internal.ModelCreator
 import org.gradle.nativebinaries.FlavorContainer
-import org.gradle.nativebinaries.NativeBinary
-import org.gradle.nativebinaries.NativeComponent
-import org.gradle.nativebinaries.internal.NativeBinaryInternal
 import org.gradle.nativebinaries.plugins.NativeBinariesModelPlugin
+
+import javax.inject.Inject
 
 @Incubating
 class VisualStudioPlugin implements Plugin<ProjectInternal> {
+    private final Instantiator instantiator
+    private final ModelRules modelRules
+
+    @Inject
+    VisualStudioPlugin(Instantiator instantiator, ModelRules modelRules) {
+        this.instantiator = instantiator
+        this.modelRules = modelRules
+    }
 
     void apply(ProjectInternal project) {
         project.plugins.apply(NativeBinariesModelPlugin)
 
-        // TODO:DAZ Use a model rule
-        project.afterEvaluate {
-
-            final flavors = project.modelRegistry.get("flavors", FlavorContainer)
-            VisualStudioProjectResolver visualStudioProjectResolver = new VisualStudioProjectResolver(new DefaultProjectFinder(project))
-            VisualStudioProjectRegistry projectRegistry = new VisualStudioProjectRegistry(project.getFileResolver(), visualStudioProjectResolver, flavors);
-            VisualStudioSolutionBuilder solutionBuilder = new VisualStudioSolutionBuilder(project.getFileResolver(), visualStudioProjectResolver);
-            project.extensions.add("visualStudioProjectRegistry", projectRegistry)
-
-            project.binaries.all { NativeBinary binary ->
-                projectRegistry.addProjectConfiguration(binary)
-            }
-
-            project.executables.all { NativeComponent component ->
-                createVisualStudioSolution(solutionBuilder, component, project)
-            }
-
-            project.libraries.all { NativeComponent component ->
-                createVisualStudioSolution(solutionBuilder, component, project)
-            }
-
-            projectRegistry.allProjects.each { vsProject ->
-                vsProject.builtBy addProjectsFileTask(project, vsProject)
-                vsProject.builtBy addFiltersFileTask(project, vsProject)
-            }
-        }
+        project.modelRegistry.create("visualStudio", ["flavors"], new VisualStudioExtensionFactory(instantiator, new DefaultProjectFinder(project), project.getFileResolver()))
+        modelRules.rule(new CreateVisualStudioModel())
+        modelRules.rule(new CreateVisualStudioTasks())
+        modelRules.rule(new CloseVisualStudioForTasks());
 
         project.task("cleanVisualStudio", type: Delete) {
             delete "visualStudio"
         }
     }
 
-    private void createVisualStudioSolution(VisualStudioSolutionBuilder builder, NativeComponent component, Project project) {
-        def rootBinary = chooseDevelopmentVariant(component)
-        if (rootBinary != null) {
-            final solution = createVisualStudioSolution(builder, rootBinary, project)
-            project.task("${component.name}VisualStudio").dependsOn solution
+    private static class VisualStudioExtensionFactory implements ModelCreator<VisualStudioExtension> {
+        private final Instantiator instantiator;
+        private final ProjectFinder projectFinder;
+        private final FileResolver fileResolver;
+
+        public VisualStudioExtensionFactory(Instantiator instantiator, ProjectFinder projectFinder, FileResolver fileResolver) {
+            this.instantiator = instantiator;
+            this.projectFinder = projectFinder;
+            this.fileResolver = fileResolver;
+        }
+
+        VisualStudioExtension create(Inputs inputs) {
+            FlavorContainer flavors = inputs.get(0, FlavorContainer)
+            return instantiator.newInstance(VisualStudioExtension.class, instantiator, projectFinder, fileResolver, flavors);
+        }
+
+        Class<VisualStudioExtension> getType() {
+            return VisualStudioExtension
         }
     }
 
-    // TODO:DAZ This should be a service, and should allow user to override default
-    // TODO:DAZ Should probably choose VisualC++ variant...
-    private NativeBinaryInternal chooseDevelopmentVariant(NativeComponent component) {
-        component.binaries.find {
-            it.buildable
-        } as NativeBinaryInternal
-    }
-
-    private VisualStudioSolution createVisualStudioSolution(VisualStudioSolutionBuilder builder, NativeBinaryInternal developmentBinary, Project project) {
-        VisualStudioSolution solution = builder.createSolution(developmentBinary)
-        solution.lifecycleTask = project.task("${solution.name}VisualStudio")
-        solution.builtBy createSolutionTask(project, solution)
-        return solution
-    }
-
-    private createSolutionTask(Project project, VisualStudioSolution solution) {
-        project.task("${solution.name}VisualStudioSolution", type: GenerateSolutionFileTask) {
-            visualStudioSolution = solution
-        }
-    }
-
-    private addProjectsFileTask(Project project, VisualStudioProject vsProject) {
-        project.task("${vsProject.name}VisualStudioProject", type: GenerateProjectFileTask) {
-            visualStudioProject = vsProject
-        }
-    }
-
-    private addFiltersFileTask(Project project, VisualStudioProject vsProject) {
-        project.task("${vsProject.name}VisualStudioFilters", type: GenerateFiltersFileTask) {
-            visualStudioProject = vsProject
+    @SuppressWarnings("UnusedDeclaration")
+    private static class CloseVisualStudioForTasks extends ModelRule {
+        void closeForTasks(TaskContainer tasks, VisualStudioExtension extension) {
+            // nothing needed here
         }
     }
 }
