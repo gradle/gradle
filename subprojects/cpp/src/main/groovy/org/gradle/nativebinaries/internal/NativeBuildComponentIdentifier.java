@@ -15,12 +15,12 @@
  */
 package org.gradle.nativebinaries.internal;
 
-import org.gradle.api.artifacts.component.BuildComponentIdentifier;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 
 /**
  * An identifier for a native component that is built as part of the current build.
  */
-public class NativeBuildComponentIdentifier implements BuildComponentIdentifier {
+public class NativeBuildComponentIdentifier implements ProjectComponentIdentifier {
     private final String projectPath;
     private final String name;
 
