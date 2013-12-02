@@ -9,6 +9,20 @@ with the Visual Studio and GCC tool chains.
 
 Here are the new features introduced in this Gradle release.
 
+### Much better progress reporting
+
+When Gradle build is invoked from the command line there is a status bar that informs about the build progress.
+In Gradle 1.10 the information shown in the status bar is way more useful and finally can give insights into:
+
+- How much work the build needs to do until it is done?
+- How is the project configuration progress before any tasks are executed?
+- I use [Configure on Demand](userguide/multi_project_builds.html). How many projects are configured in current run?
+
+Additionally, the progress bar shows correct status in the parallel build. Examples of the progress information visible in the command line:
+
+    > Configuring > 3/34 projects > :someProject
+    > Building 23% > :someProject:compileJava > Resolve dependencies 'runtime'
+
 ### Single test method execution (and more)
 
 tbd.
