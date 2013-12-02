@@ -15,38 +15,25 @@
  */
 package org.gradle.ide.visualstudio.internal;
 
-import org.gradle.nativebinaries.LibraryBinary;
+import org.gradle.api.Project;
 import org.gradle.nativebinaries.NativeBinary;
-import org.gradle.nativebinaries.NativeDependencySet;
-import org.gradle.nativebinaries.internal.resolve.LibraryNativeDependencySet;
 import org.gradle.nativebinaries.internal.NativeBinaryInternal;
 
 public class VisualStudioSolutionBuilder {
+    private final Project project;
     private final VisualStudioProjectRegistry projectRegistry;
 
-    public VisualStudioSolutionBuilder(VisualStudioProjectRegistry projectRegistry) {
+    public VisualStudioSolutionBuilder(Project project, VisualStudioProjectRegistry projectRegistry) {
+        this.project = project;
         this.projectRegistry = projectRegistry;
     }
 
     public VisualStudioSolution createSolution(NativeBinary nativeBinary) {
-        VisualStudioSolution solution = new VisualStudioSolution(solutionName(nativeBinary), (NativeBinaryInternal) nativeBinary);
-        addNativeBinary(solution, nativeBinary);
-        return solution;
+        return new VisualStudioSolution(project, solutionName(nativeBinary), (NativeBinaryInternal) nativeBinary, projectRegistry);
     }
 
-    private void addNativeBinary(VisualStudioSolution solution, NativeBinary nativeBinary) {
-        VisualStudioProjectConfiguration projectConfiguration = projectRegistry.getProjectConfiguration(nativeBinary);
-        solution.addProjectConfiguration(projectConfiguration);
-
-        for (NativeDependencySet dep : nativeBinary.getLibs()) {
-            if (dep instanceof LibraryNativeDependencySet) {
-                LibraryBinary dependencyBinary = ((LibraryNativeDependencySet) dep).getLibraryBinary();
-                addNativeBinary(solution, dependencyBinary);
-            }
-        }
-    }
 
     private String solutionName(NativeBinary nativeBinary) {
-        return nativeBinary.getComponent().getName();
+        return projectRegistry.getProjectConfiguration(nativeBinary).getProject().getName();
     }
 }

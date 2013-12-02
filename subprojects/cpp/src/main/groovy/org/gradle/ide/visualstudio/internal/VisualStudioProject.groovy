@@ -20,10 +20,8 @@ import org.gradle.api.Project
 import org.gradle.language.HeaderExportingSourceSet
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.internal.AbstractBuildableModelElement
-import org.gradle.nativebinaries.NativeBinary
-import org.gradle.nativebinaries.NativeComponent
-import org.gradle.nativebinaries.SharedLibraryBinary
-import org.gradle.nativebinaries.StaticLibraryBinary
+import org.gradle.nativebinaries.*
+import org.gradle.nativebinaries.internal.resolve.LibraryNativeDependencySet
 import org.gradle.util.CollectionUtils
 
 /**
@@ -31,17 +29,18 @@ import org.gradle.util.CollectionUtils
  */
 // TODO:DAZ Sources and header files should be taken from all binaries added to project
 class VisualStudioProject extends AbstractBuildableModelElement {
+    final VisualStudioProjectRegistry projectRegistry
     final Project project
     final String uuid
     final String name
     final NativeComponent component
     final Map<NativeBinary, VisualStudioProjectConfiguration> configurations = [:]
-    final Set<String> projectReferences = []
 
-    VisualStudioProject(Project project, String name, NativeComponent component) {
+    VisualStudioProject(Project project, String name, NativeComponent component, VisualStudioProjectRegistry projectRegistry) {
         this.project = project
         this.name = name
         this.component = component
+        this.projectRegistry = projectRegistry
         this.uuid = '{' + UUID.randomUUID().toString().toUpperCase() + '}'
     }
 
@@ -70,7 +69,19 @@ class VisualStudioProject extends AbstractBuildableModelElement {
     }
 
     void addProjectReference(String projectName) {
-        projectReferences << projectName
+    }
+
+    Set<VisualStudioProject> getProjectReferences() {
+        def projects = [] as Set
+        component.binaries.each { NativeBinary binary ->
+            binary.libs.each { NativeDependencySet dependencySet ->
+                if (dependencySet instanceof LibraryNativeDependencySet) {
+                    LibraryBinary dependencyBinary = ((LibraryNativeDependencySet) dependencySet).getLibraryBinary()
+                    projects << projectRegistry.getProjectConfiguration(dependencyBinary).getProject()
+               }
+            }
+        }
+        return projects
     }
 
     VisualStudioProjectConfiguration addConfiguration(NativeBinary nativeBinary) {
@@ -84,6 +95,10 @@ class VisualStudioProject extends AbstractBuildableModelElement {
 
     List<VisualStudioProjectConfiguration> getConfigurations() {
         return CollectionUtils.toList(configurations.values())
+    }
+
+    VisualStudioProjectConfiguration getConfiguration(NativeBinary nativeBinary) {
+        return configurations[nativeBinary]
     }
 
     private static String configurationType(NativeBinary nativeBinary) {

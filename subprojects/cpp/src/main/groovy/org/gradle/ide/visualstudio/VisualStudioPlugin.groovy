@@ -14,22 +14,20 @@
  * limitations under the License.
  */
 package org.gradle.ide.visualstudio
-
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.Transformer
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.tasks.Delete
-import org.gradle.ide.cdt.tasks.GenerateMetadataFileTask
-import org.gradle.ide.visualstudio.internal.VisualStudioFiltersFile
 import org.gradle.ide.visualstudio.internal.VisualStudioProject
-import org.gradle.ide.visualstudio.internal.VisualStudioProjectFile
 import org.gradle.ide.visualstudio.internal.VisualStudioProjectRegistry
 import org.gradle.ide.visualstudio.internal.VisualStudioSolution
 import org.gradle.ide.visualstudio.internal.VisualStudioSolutionBuilder
-import org.gradle.ide.visualstudio.internal.VisualStudioSolutionFile
+import org.gradle.ide.visualstudio.tasks.GenerateFiltersFileTask
+import org.gradle.ide.visualstudio.tasks.GenerateProjectFileTask
+import org.gradle.ide.visualstudio.tasks.GenerateSolutionFileTask
 import org.gradle.nativebinaries.FlavorContainer
+import org.gradle.nativebinaries.NativeBinary
 import org.gradle.nativebinaries.NativeComponent
 import org.gradle.nativebinaries.internal.NativeBinaryInternal
 import org.gradle.nativebinaries.plugins.NativeBinariesModelPlugin
@@ -44,7 +42,11 @@ class VisualStudioPlugin implements Plugin<ProjectInternal> {
         project.afterEvaluate {
             final flavors = project.modelRegistry.get("flavors", FlavorContainer)
             VisualStudioProjectRegistry projectRegistry = new VisualStudioProjectRegistry(project, flavors);
-            VisualStudioSolutionBuilder solutionBuilder = new VisualStudioSolutionBuilder(projectRegistry);
+            VisualStudioSolutionBuilder solutionBuilder = new VisualStudioSolutionBuilder(project, projectRegistry);
+
+            project.binaries.all { NativeBinary binary ->
+                projectRegistry.addProjectConfiguration(binary)
+            }
 
             project.executables.all { NativeComponent component ->
                 createVisualStudioSolution(solutionBuilder, component, project)
@@ -57,7 +59,7 @@ class VisualStudioPlugin implements Plugin<ProjectInternal> {
             // TODO:DAZ For now, all vs project files are created within this project:
             // this will change so that we have more of a global vsproject registry and the 'owning' gradle project is responsible for building
             projectRegistry.allProjects.each { vsProject ->
-                vsProject.builtBy addProjectsFileTask(vsProject, projectRegistry)
+                vsProject.builtBy addProjectsFileTask(vsProject)
                 vsProject.builtBy addFiltersFileTask(vsProject)
             }
         }
@@ -70,7 +72,8 @@ class VisualStudioPlugin implements Plugin<ProjectInternal> {
     private void createVisualStudioSolution(VisualStudioSolutionBuilder builder, NativeComponent component, Project project) {
         def rootBinary = chooseDevelopmentVariant(component)
         if (rootBinary != null) {
-            createVisualStudioSolution(builder, rootBinary, project)
+            final solution = createVisualStudioSolution(builder, rootBinary, project)
+            project.task("${component.name}VisualStudio").dependsOn solution
         }
     }
 
@@ -82,84 +85,29 @@ class VisualStudioPlugin implements Plugin<ProjectInternal> {
         } as NativeBinaryInternal
     }
 
-    private void createVisualStudioSolution(VisualStudioSolutionBuilder builder, NativeBinaryInternal developmentBinary, Project project) {
+    private VisualStudioSolution createVisualStudioSolution(VisualStudioSolutionBuilder builder, NativeBinaryInternal developmentBinary, Project project) {
         VisualStudioSolution solution = builder.createSolution(developmentBinary)
-        def solutionTask = project.task("${solution.name}VisualStudio")
-        solution.lifecycleTask = solutionTask
+        solution.lifecycleTask = project.task("${solution.name}VisualStudio")
         solution.builtBy createSolutionTask(project, solution)
+        return solution
     }
 
     private createSolutionTask(Project project, VisualStudioSolution solution) {
-        String taskName = "${solution.name}VisualStudioSolution"
-        project.task(taskName, type:GenerateMetadataFileTask) {
-            inputFile = new File("not a file")
-            outputFile = project.file(solution.solutionFile)
-            factory { new VisualStudioSolutionFile() }
-            onConfigure { VisualStudioSolutionFile solutionFile ->
-                solution.projectConfigurations.each {
-                    solutionFile.addProjectConfiguration(it)
-                }
-            }
+        project.task("${solution.name}VisualStudioSolution", type: GenerateSolutionFileTask) {
+            visualStudioSolution = solution
         }
     }
 
-    private addProjectsFileTask(VisualStudioProject vsProject, VisualStudioProjectRegistry vsProjectRegistry) {
-        Project project = vsProject.project
-        String taskName = "${vsProject.name}VisualStudioProject"
-        project.task(taskName, type: GenerateMetadataFileTask) {
-            inputFile = new File("not a file")
-            outputFile = vsProject.projectFile
-            factory { new VisualStudioProjectFile(new ProjectRelativeFileTransformer(project)) }
-            onConfigure { VisualStudioProjectFile projectFile ->
-                projectFile.setProjectUuid(vsProject.uuid)
-                vsProject.sourceFiles.each {
-                    projectFile.addSourceFile(it)
-                }
-                vsProject.headerFiles.each {
-                    projectFile.addHeaderFile(it)
-                }
-
-                vsProject.configurations.each {
-                    projectFile.addConfiguration(it)
-                }
-
-                vsProject.projectReferences.each { projectKey ->
-                    projectFile.addProjectReference(vsProjectRegistry.getProject(projectKey))
-                }
-            }
+    private addProjectsFileTask(VisualStudioProject vsProject) {
+        vsProject.project.task("${vsProject.name}VisualStudioProject", type: GenerateProjectFileTask) {
+            visualStudioProject = vsProject
         }
     }
 
     private addFiltersFileTask(VisualStudioProject vsProject) {
-        Project project = vsProject.project
-        String taskName = "${vsProject.name}VisualStudioFilters"
-        project.task(taskName, type: GenerateMetadataFileTask) {
-            inputFile = new File("not a file")
-            outputFile = vsProject.filtersFile
-            factory { new VisualStudioFiltersFile(new ProjectRelativeFileTransformer(project)) }
-            onConfigure { VisualStudioFiltersFile filtersFile ->
-                vsProject.sourceFiles.each {
-                    filtersFile.addSource(it)
-                }
-                vsProject.headerFiles.each {
-                    filtersFile.addHeader(it)
-                }
-            }
+        vsProject.project.task("${vsProject.name}VisualStudioFilters", type: GenerateFiltersFileTask) {
+            visualStudioProject = vsProject
         }
     }
-
-    // TODO:DAZ Decide if this is necessary and implement, or remove
-    private static class ProjectRelativeFileTransformer implements Transformer<String, File> {
-        private final Project project
-
-        ProjectRelativeFileTransformer(Project project) {
-            this.project = project
-        }
-
-        String transform(File file) {
-            return file.absolutePath
-        }
-    }
-
 }
 

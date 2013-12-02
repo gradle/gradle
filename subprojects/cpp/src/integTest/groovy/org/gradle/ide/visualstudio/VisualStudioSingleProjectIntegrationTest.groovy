@@ -22,6 +22,8 @@ import org.gradle.nativebinaries.language.cpp.fixtures.app.ExeWithLibraryUsingLi
 
 class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
+    private final Set<String> projectConfigurations = ['debug|Win32', 'release|Win32'] as Set
+
     def app = new CppHelloWorldApp()
 
     def setup() {
@@ -60,26 +62,29 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         run "mainVisualStudio"
 
         then:
+        executedAndNotSkipped ":mainExeVisualStudio"
+
+        and:
         final projectFile = projectFile("visualStudio/mainExe.vcxproj")
         projectFile.sourceFiles == allFiles("src/main/cpp")
         projectFile.headerFiles == allFiles("src/main/headers")
-        projectFile.projectConfigurations.keySet() == ['debug|Win32'] as Set
+        projectFile.projectConfigurations.keySet() == projectConfigurations
         with (projectFile.projectConfigurations['debug|Win32']) {
             macros == "TEST;foo=bar"
             includePath == filePath("src/main/headers")
         }
 
         and:
-        final mainSolution = solutionFile("visualStudio/main.sln")
+        final mainSolution = solutionFile("visualStudio/mainExe.sln")
         mainSolution.projects.keySet() == ["mainExe"] as Set
         with (mainSolution.projects['mainExe']) {
-            file == 'mainExe.vcxproj'
+            file == filePath('visualStudio/mainExe.vcxproj')
             uuid == projectFile.projectGuid
             configurations == ['debug|Win32']
         }
     }
 
-    def "create visual studio solution for single library"() {
+    def "create visual studio solution for single shared library"() {
         when:
         app.library.writeSources(file("src/main"))
         buildFile << """
@@ -91,22 +96,58 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         run "mainVisualStudio"
 
         then:
+        executedAndNotSkipped ":mainDllVisualStudio"
+
+        and:
         final projectFile = projectFile("visualStudio/mainDll.vcxproj")
         projectFile.sourceFiles == allFiles("src/main/cpp")
         projectFile.headerFiles == allFiles("src/main/headers")
-        projectFile.projectConfigurations.keySet() == ['debug|Win32'] as Set
+        projectFile.projectConfigurations.keySet() == projectConfigurations
         projectFile.projectConfigurations['debug|Win32'].includePath == filePath("src/main/headers")
 
         and:
-        final mainSolution = solutionFile("visualStudio/main.sln")
+        final mainSolution = solutionFile("visualStudio/mainDll.sln")
         mainSolution.projects.keySet() == ["mainDll"] as Set
         with (mainSolution.projects['mainDll']) {
-            file == 'mainDll.vcxproj'
+            file == filePath('visualStudio/mainDll.vcxproj')
             uuid == projectFile.projectGuid
             configurations == ['debug|Win32']
         }
     }
 
+    def "create visual studio solution for defined static library"() {
+        when:
+        app.library.writeSources(file("src/main"))
+        buildFile << """
+    libraries {
+        main {}
+    }
+    binaries.withType(SharedLibraryBinary) {
+        buildable = false
+    }
+"""
+        and:
+        run "mainVisualStudio"
+
+        then:
+        executedAndNotSkipped ":mainLibVisualStudio"
+
+        and:
+        final projectFile = projectFile("visualStudio/mainLib.vcxproj")
+        projectFile.sourceFiles == allFiles("src/main/cpp")
+        projectFile.headerFiles == allFiles("src/main/headers")
+        projectFile.projectConfigurations.keySet() == projectConfigurations
+        projectFile.projectConfigurations['debug|Win32'].includePath == filePath("src/main/headers")
+
+        and:
+        final mainSolution = solutionFile("visualStudio/mainLib.sln")
+        mainSolution.projects.keySet() == ["mainLib"] as Set
+        with (mainSolution.projects['mainLib']) {
+            file == filePath('visualStudio/mainLib.vcxproj')
+            uuid == projectFile.projectGuid
+            configurations == ['debug|Win32']
+        }
+    }
 
     def "create visual studio solution for executable that depends on static library"() {
         when:
@@ -128,26 +169,26 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         final exeProject = projectFile("visualStudio/mainExe.vcxproj")
         exeProject.sourceFiles == allFiles("src/main/cpp")
         exeProject.headerFiles.isEmpty()
-        exeProject.projectConfigurations.keySet() == ['debug|Win32'] as Set
+        exeProject.projectConfigurations.keySet() == projectConfigurations
         exeProject.projectConfigurations['debug|Win32'].includePath == filePath("src/main/headers", "src/hello/headers")
 
         and:
         final libProject = projectFile("visualStudio/helloLib.vcxproj")
         libProject.sourceFiles == allFiles("src/hello/cpp")
         libProject.headerFiles == allFiles("src/hello/headers")
-        libProject.projectConfigurations.keySet() == ['debug|Win32'] as Set
+        libProject.projectConfigurations.keySet() == projectConfigurations
         libProject.projectConfigurations['debug|Win32'].includePath == filePath("src/hello/headers")
 
         and:
-        final mainSolution = solutionFile("visualStudio/main.sln")
+        final mainSolution = solutionFile("visualStudio/mainExe.sln")
         mainSolution.projects.keySet() == ["mainExe", "helloLib"] as Set
         with (mainSolution.projects['mainExe']) {
-            file == 'mainExe.vcxproj'
+            file == filePath('visualStudio/mainExe.vcxproj')
             uuid == exeProject.projectGuid
             configurations == ['debug|Win32']
         }
         with (mainSolution.projects['helloLib']) {
-            file == 'helloLib.vcxproj'
+            file == filePath('visualStudio/helloLib.vcxproj')
             uuid == libProject.projectGuid
             configurations == ['debug|Win32']
         }
@@ -173,26 +214,26 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         final exeProject = projectFile("visualStudio/mainExe.vcxproj")
         exeProject.sourceFiles == allFiles("src/main/cpp")
         exeProject.headerFiles.isEmpty()
-        exeProject.projectConfigurations.keySet() == ['debug|Win32'] as Set
+        exeProject.projectConfigurations.keySet() == projectConfigurations
         exeProject.projectConfigurations['debug|Win32'].includePath == filePath("src/main/headers", "src/hello/headers")
 
         and:
         final dllProject = projectFile("visualStudio/helloDll.vcxproj")
         dllProject.sourceFiles == allFiles("src/hello/cpp")
         dllProject.headerFiles == allFiles("src/hello/headers")
-        dllProject.projectConfigurations.keySet() == ['debug|Win32'] as Set
+        dllProject.projectConfigurations.keySet() == projectConfigurations
         dllProject.projectConfigurations['debug|Win32'].includePath == filePath("src/hello/headers")
 
         and:
-        final mainSolution = solutionFile("visualStudio/main.sln")
+        final mainSolution = solutionFile("visualStudio/mainExe.sln")
         mainSolution.projects.keySet() == ["mainExe", "helloDll"] as Set
         with (mainSolution.projects['mainExe']) {
-            file == 'mainExe.vcxproj'
+            file == filePath('visualStudio/mainExe.vcxproj')
             uuid == exeProject.projectGuid
             configurations == ['debug|Win32']
         }
         with (mainSolution.projects['helloDll']) {
-            file == 'helloDll.vcxproj'
+            file == filePath('visualStudio/helloDll.vcxproj')
             uuid == dllProject.projectGuid
             configurations == ['debug|Win32']
         }
@@ -221,44 +262,41 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         run "mainVisualStudio"
 
         then:
-        solutionFile("visualStudio/main.sln").assertHasProjects("mainExe", "helloDll", "greetingsDll")
-
-        then:
         final exeProject = projectFile("visualStudio/mainExe.vcxproj")
         exeProject.sourceFiles == allFiles("src/main/cpp")
         exeProject.headerFiles.isEmpty()
-        exeProject.projectConfigurations.keySet() == ['debug|Win32'] as Set
+        exeProject.projectConfigurations.keySet() == projectConfigurations
         exeProject.projectConfigurations['debug|Win32'].includePath == filePath("src/main/headers", "src/hello/headers")
 
         and:
         final helloDllProject = projectFile("visualStudio/helloDll.vcxproj")
         helloDllProject.sourceFiles == allFiles("src/hello/cpp")
         helloDllProject.headerFiles == allFiles("src/hello/headers")
-        helloDllProject.projectConfigurations.keySet() == ['debug|Win32'] as Set
+        helloDllProject.projectConfigurations.keySet() == projectConfigurations
         helloDllProject.projectConfigurations['debug|Win32'].includePath == filePath("src/hello/headers", "src/greetings/headers")
 
         and:
         final greetingsDllProject = projectFile("visualStudio/greetingsDll.vcxproj")
         greetingsDllProject.sourceFiles == allFiles("src/greetings/cpp")
         greetingsDllProject.headerFiles == allFiles("src/greetings/headers")
-        greetingsDllProject.projectConfigurations.keySet() == ['debug|Win32'] as Set
+        greetingsDllProject.projectConfigurations.keySet() == projectConfigurations
         greetingsDllProject.projectConfigurations['debug|Win32'].includePath == file("src/greetings/headers").absolutePath
 
         and:
-        final mainSolution = solutionFile("visualStudio/main.sln")
+        final mainSolution = solutionFile("visualStudio/mainExe.sln")
         mainSolution.projects.keySet() == ["mainExe", "helloDll", "greetingsDll"] as Set
         with (mainSolution.projects['mainExe']) {
-            file == 'mainExe.vcxproj'
+            file == filePath('visualStudio/mainExe.vcxproj')
             uuid == exeProject.projectGuid
             configurations == ['debug|Win32']
         }
         with (mainSolution.projects['helloDll']) {
-            file == 'helloDll.vcxproj'
+            file == filePath('visualStudio/helloDll.vcxproj')
             uuid == helloDllProject.projectGuid
             configurations == ['debug|Win32']
         }
         with (mainSolution.projects['greetingsDll']) {
-            file == 'greetingsDll.vcxproj'
+            file == filePath('visualStudio/greetingsDll.vcxproj')
             uuid == greetingsDllProject.projectGuid
             configurations == ['debug|Win32']
         }
@@ -284,8 +322,8 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         run "mainVisualStudio", "mainStaticVisualStudio"
 
         then:
-        solutionFile("visualStudio/main.sln").assertHasProjects("mainExe", "helloDll")
-        solutionFile("visualStudio/mainStatic.sln").assertHasProjects("mainStaticExe", "helloLib")
+        solutionFile("visualStudio/mainExe.sln").assertHasProjects("mainExe", "helloDll")
+        solutionFile("visualStudio/mainStaticExe.sln").assertHasProjects("mainStaticExe", "helloLib")
 
         and:
         final exeProject = projectFile("visualStudio/mainExe.vcxproj")

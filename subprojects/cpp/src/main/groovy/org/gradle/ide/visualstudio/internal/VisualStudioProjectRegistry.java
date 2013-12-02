@@ -21,7 +21,6 @@ import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.nativebinaries.*;
 import org.gradle.nativebinaries.internal.NativeComponentInternal;
-import org.gradle.nativebinaries.internal.resolve.LibraryNativeDependencySet;
 import org.gradle.util.CollectionUtils;
 
 import java.util.HashMap;
@@ -39,32 +38,26 @@ public class VisualStudioProjectRegistry {
         this.allFlavors = allFlavors;
     }
 
-    public VisualStudioProjectConfiguration getProjectConfiguration(NativeBinary nativeBinary) {
-        VisualStudioProject vsProject = getProject(nativeBinary);
-
-        for (NativeDependencySet dep : nativeBinary.getLibs()) {
-            if (dep instanceof LibraryNativeDependencySet) {
-                LibraryBinary dependencyBinary = ((LibraryNativeDependencySet) dep).getLibraryBinary();
-                vsProject.addProjectReference(projectName(dependencyBinary));
-            }
-        }
-        // TODO:DAZ Not sure if adding these on demand is sufficient
-        return vsProject.addConfiguration(nativeBinary);
+    public void addProjectConfiguration(NativeBinary nativeBinary) {
+        VisualStudioProject project = getOrCreateProject(nativeBinary);
+        project.addConfiguration(nativeBinary);
     }
 
-    private VisualStudioProject getProject(NativeBinary nativeBinary) {
+    public VisualStudioProjectConfiguration getProjectConfiguration(NativeBinary nativeBinary) {
+        String projectName = projectName(nativeBinary);
+        VisualStudioProject vsProject = projects.get(projectName);
+        return vsProject.getConfiguration(nativeBinary);
+    }
+
+    private VisualStudioProject getOrCreateProject(NativeBinary nativeBinary) {
         String projectName = projectName(nativeBinary);
         VisualStudioProject vsProject = projects.get(projectName);
         if (vsProject == null) {
             Project project = projectFinder.project(((NativeComponentInternal) nativeBinary.getComponent()).getProjectPath());
-            vsProject = new VisualStudioProject(project, projectName, nativeBinary.getComponent());
+            vsProject = new VisualStudioProject(project, projectName, nativeBinary.getComponent(), this);
             projects.put(projectName, vsProject);
         }
         return vsProject;
-    }
-
-    public VisualStudioProject getProject(String name) {
-        return projects.get(name);
     }
 
     public List<VisualStudioProject> getAllProjects() {

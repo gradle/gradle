@@ -15,25 +15,47 @@
  */
 
 package org.gradle.ide.visualstudio.internal
+
+import org.gradle.api.Project
 import org.gradle.language.base.internal.AbstractBuildableModelElement
+import org.gradle.nativebinaries.LibraryBinary
+import org.gradle.nativebinaries.NativeBinary
+import org.gradle.nativebinaries.NativeDependencySet
 import org.gradle.nativebinaries.internal.NativeBinaryInternal
+import org.gradle.nativebinaries.internal.resolve.LibraryNativeDependencySet
 
 class VisualStudioSolution extends AbstractBuildableModelElement {
+    private final VisualStudioProjectRegistry projectRegistry
     private final NativeBinaryInternal rootBinary
-    List<VisualStudioProjectConfiguration> projectConfigurations = []
     String name
+    Project project
 
-    VisualStudioSolution(String name, NativeBinaryInternal rootBinary) {
+    VisualStudioSolution(Project project, String name, NativeBinaryInternal rootBinary, VisualStudioProjectRegistry projectRegistry) {
+        this.projectRegistry = projectRegistry
+        this.project = project
         this.name = name
         this.rootBinary = rootBinary
     }
 
-    void addProjectConfiguration(VisualStudioProjectConfiguration projectConfiguration) {
-        this.projectConfigurations << projectConfiguration
-        builtBy projectConfiguration.project
+    Set<VisualStudioProjectConfiguration> getProjectConfigurations() {
+        def configurations = [] as Set
+        addNativeBinary(configurations, rootBinary)
+        return configurations
     }
 
-    String getSolutionFile() {
-        return "visualStudio/${name}.sln"
+    private void addNativeBinary(Set configurations, NativeBinary nativeBinary) {
+        VisualStudioProjectConfiguration projectConfiguration = projectRegistry.getProjectConfiguration(nativeBinary);
+        configurations.add(projectConfiguration)
+
+        for (NativeDependencySet dep : nativeBinary.getLibs()) {
+            if (dep instanceof LibraryNativeDependencySet) {
+                LibraryBinary dependencyBinary = ((LibraryNativeDependencySet) dep).getLibraryBinary();
+                addNativeBinary(configurations, dependencyBinary)
+            }
+        }
+    }
+
+    File getSolutionFile() {
+        return project.file("visualStudio/${name}.sln")
     }
 }
