@@ -649,11 +649,17 @@ The implementation will also remove stale object files.
 
 - Change a header file that is included by one source file, only that source file is recompiled.
 - Change a header file that is not included by any source files, no compilation or linking should happen.
-- Change a header file that is included by another header file.
+- Change a header file that is included by another header file, only the source files that include this header are recompiled.
 - Change a compiler setting, all source files are recompiled.
 - Remove a source file, the corresponding object file is removed.
 - Rename a source file, the corresponding object file is removed.
 - Remove all source files, all object files and binary files are removed.
+- Rename a header file, only source files that include this header file directly or indirectly are recompiled.
+- Remove a header file, source files that include this header directly or indirectly are recompiled and compilation fails.
+- Move a header file from one source directory to another.
+- Error handling:
+    - Change a source file so that it contains an error. Compilation fails.
+    - Change the source file to fix the error and change another source file. Compilation succeeds.
 
 ## Story: Modify command line arguments for binary tool prior to execution
 
@@ -913,9 +919,20 @@ TBD
 
 ## Story: Allow source sets to be generated
 
-- GeneratedSourceSet extends CompositeSourceSet implements Buildable
-- Wire task outputs to source/exportedHeaders inputs for each LanguageSourceSet in GeneratedSourceSet
-- Can add a task that will generate the sources
+- `LanguageSourceSet` extends `BuildableModelElement`
+    - `generatedBy()` method specifies task(s) that generate the source. Source files are inferred from the task outputs.
+- Move `tasks` property up from `NativeBinary` to `BuildableModelElement`. `NativeBinary` may override this to specialise the property type.
+- Wire task outputs to source/exportedHeaders inputs for each `LanguageSourceSet` in a component.
+
+
+    sources {
+        main {
+            generatedC(CSourceSet) {
+                // Source files are inferred from the outputs of the task
+                generatedBy tasks.someTask
+            }
+        }
+    }
 
 ## Story: Build binaries against a library in another project
 
@@ -983,13 +1000,60 @@ If we are inspired by CMake, the output file rules would be:
 
 # Milestone 4
 
-## Story: Compile Objective-C source files using the Objective-C compiler
+## Feature: Flexible source sets
 
-### Test cases
+A sequence of stories to make source sets much more flexible, and to improve the conventions of the source sets for a component:
+
+### Story: Introduce implementation headers for native components
+
+This story introduces a set of headers which are visible to all the source files of a component, but are not visible outside the component.
+
+1. Introduce a `HeaderSet` extends `LanguageSourceSet`. This represents a collection of native headers.
+    - Base native language plugin adds a `HeaderSet` called `sharedHeaders` for each native component.
+    - Defaults to include source dir `src/${component.name}/include`
+1. Allow `DependentSourceSet` instances to declare dependencies on `HeaderSet` instances.
+    - These should resolve to a `NativeDependencySet` instance that contains the source directories in the header set at compile time, and nothing at link or runtime.
+    - Base native language plugin add a dependency from each compiled language source set to the `sharedHeaders` header set.
+    - This step means that any header added to `src/${component.name}/include` is visible to the compilation of every source file in the component.
+
+### Story: Introduce public headers for native libraries
+
+This story introduces a set of headers which are visible to all source files in a component and all components that depend on the component.
+
+1. Allow `HeaderSet` instances to declare dependencies on `HeaderSet` instances.
+    - These should resolve as above.
+    - The transitive dependencies of a header set should be visible at compile time.
+1. Introduce a public header set for native libraries
+    - Base native language plugin adds a header set called `publicHeaders` for each native library component.
+    - Defaults to include source dir `src/${component.name}/public`
+    - Base native language plugin add a dependency from the `sharedHeaders` header set to the `publicHeaders` header set.
+1. Make the public headers of a library visible to other components
+    - When resolving a dependency on a native library component, only the headers in the `publicHeaders` set should be visible.
+    - Remove `HeaderExportingSourceSet`
+    - This step means that only those headers added to `src/${component.name}/public` are visible to consumers and implementation of a library.
+
+### Story: Configure the source sets of a component as part of the component definition
+
+This story moves definition and configuration of the source sets for a component to live with the other configuration for a component.
+
+1. Merge `ProjectSourceSet` and `FunctionalSourceSet` into a more general `CompositeSourceSet`.
+    - This is simply a source set that contains other source sets.
+    - This step allows arbitrary source sets to be added to the `sources { ... }` container.
+1. Allow a component's source sets to be defined as part of the component definition:
+    - Change `NativeComponent.getSource()` to return a `CompositeSourceSet`. This should be the same instance that is added to the `sources { ... }` container.
+    - Add a `NativeComponent.source(Action<? super CompositeSourceSet>)` method.
+    - Change language plugins to add source sets via the component's source container rather than the project's source container.
+    - This step allows configuration via `component.source { ... }`.
+
+## Feature: Objective-C support
+
+### Story: Compile Objective-C source files using the Objective-C compiler
+
+#### Test cases
 
 - Reasonable error message when attempting to build an Objective-C binary using Visual Studio.
 
-### Open issues
+#### Open issues
 
 - CI coverage
 - Make toolchain extensible so that not every toolchain implementation necessarily provides every tool, and may provide additional tools beyond the
@@ -998,11 +1062,13 @@ If we are inspired by CMake, the output file rules would be:
 - Incremental compilation should understand `#import`
 - Cross-compilation for iPhone.
 
-## Story: Compile Objective-C++ source files using the Objective-C++ compiler
+### Story: Compile Objective-C++ source files using the Objective-C++ compiler
 
-### Open issues
+#### Open issues
 
 - Incremental compilation.
+
+# Later Milestones
 
 ## Story: Allow library binaries to be used as input to other libraries
 
