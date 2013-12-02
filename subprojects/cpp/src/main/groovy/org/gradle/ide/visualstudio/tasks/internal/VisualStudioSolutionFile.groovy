@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.ide.visualstudio.internal
+package org.gradle.ide.visualstudio.tasks.internal
 
+import org.gradle.ide.visualstudio.internal.VisualStudioProject
+import org.gradle.ide.visualstudio.internal.VisualStudioProjectConfiguration
 import org.gradle.plugins.ide.internal.generator.AbstractPersistableConfigurationObject
 
 class VisualStudioSolutionFile extends AbstractPersistableConfigurationObject {

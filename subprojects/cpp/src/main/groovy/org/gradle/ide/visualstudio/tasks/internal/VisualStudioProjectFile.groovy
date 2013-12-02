@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.ide.visualstudio.internal
+package org.gradle.ide.visualstudio.tasks.internal
 
 import org.gradle.api.Transformer
 import org.gradle.api.internal.xml.XmlTransformer
+import org.gradle.ide.visualstudio.internal.VisualStudioProject
+import org.gradle.ide.visualstudio.internal.VisualStudioProjectConfiguration
 import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject
 
 class VisualStudioProjectFile extends XmlPersistableConfigurationObject {

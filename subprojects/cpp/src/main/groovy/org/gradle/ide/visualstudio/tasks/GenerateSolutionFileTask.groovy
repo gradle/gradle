@@ -16,7 +16,7 @@
 package org.gradle.ide.visualstudio.tasks
 import org.gradle.api.Incubating
 import org.gradle.ide.visualstudio.internal.VisualStudioSolution
-import org.gradle.ide.visualstudio.internal.VisualStudioSolutionFile
+import org.gradle.ide.visualstudio.tasks.internal.VisualStudioSolutionFile
 import org.gradle.plugins.ide.api.GeneratorTask
 import org.gradle.plugins.ide.internal.generator.generator.PersistableConfigurationObject
 import org.gradle.plugins.ide.internal.generator.generator.PersistableConfigurationObjectGenerator
@@ -36,6 +36,11 @@ class GenerateSolutionFileTask extends GeneratorTask<PersistableConfigurationObj
         dependsOn {
             solution.projectConfigurations*.project
         }
+    }
+
+    @Override
+    File getInputFile() {
+        return null
     }
 
     private class ConfigurationObjectGenerator extends PersistableConfigurationObjectGenerator<PersistableConfigurationObject> {

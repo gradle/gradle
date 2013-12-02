@@ -16,8 +16,8 @@
 package org.gradle.ide.visualstudio.tasks
 import org.gradle.api.Incubating
 import org.gradle.ide.visualstudio.internal.VisualStudioProject
-import org.gradle.ide.visualstudio.internal.VisualStudioProjectFile
-import org.gradle.ide.visualstudio.internal.VisualStudioProjectRegistry
+import org.gradle.ide.visualstudio.tasks.internal.AbsoluteFileNameTransformer
+import org.gradle.ide.visualstudio.tasks.internal.VisualStudioProjectFile
 import org.gradle.plugins.ide.api.GeneratorTask
 import org.gradle.plugins.ide.internal.generator.generator.PersistableConfigurationObject
 import org.gradle.plugins.ide.internal.generator.generator.PersistableConfigurationObjectGenerator
@@ -32,8 +32,12 @@ class GenerateProjectFileTask extends GeneratorTask<PersistableConfigurationObje
 
     void setVisualStudioProject(VisualStudioProject vsProject) {
         this.vsProject = vsProject
-        setInputFile(new File("not a file"))
         setOutputFile(vsProject.getProjectFile())
+    }
+
+    @Override
+    File getInputFile() {
+        return null
     }
 
     private class ConfigurationObjectGenerator extends PersistableConfigurationObjectGenerator<PersistableConfigurationObject> {

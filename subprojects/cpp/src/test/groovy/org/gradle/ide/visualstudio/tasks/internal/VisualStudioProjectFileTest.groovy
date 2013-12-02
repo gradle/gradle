@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.ide.visualstudio.internal
+package org.gradle.ide.visualstudio.tasks.internal
 import org.gradle.api.Transformer
 import org.gradle.ide.visualstudio.fixtures.ProjectFile
+import org.gradle.ide.visualstudio.internal.VisualStudioProjectConfiguration
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider

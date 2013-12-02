@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.ide.visualstudio.internal
-
+package org.gradle.ide.visualstudio.tasks.internal
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.ide.visualstudio.fixtures.SolutionFile
+import org.gradle.ide.visualstudio.internal.VisualStudioProject
+import org.gradle.ide.visualstudio.internal.VisualStudioProjectConfiguration
+import org.gradle.ide.visualstudio.internal.VisualStudioProjectResolver
 import org.gradle.nativebinaries.NativeBinary
 import org.gradle.nativebinaries.NativeComponent
 import org.gradle.nativebinaries.internal.DefaultBuildType

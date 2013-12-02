@@ -15,7 +15,8 @@
  */
 package org.gradle.ide.visualstudio.tasks
 import org.gradle.api.Incubating
-import org.gradle.ide.visualstudio.internal.VisualStudioFiltersFile
+import org.gradle.ide.visualstudio.tasks.internal.AbsoluteFileNameTransformer
+import org.gradle.ide.visualstudio.tasks.internal.VisualStudioFiltersFile
 import org.gradle.ide.visualstudio.internal.VisualStudioProject
 import org.gradle.plugins.ide.api.GeneratorTask
 import org.gradle.plugins.ide.internal.generator.generator.PersistableConfigurationObject
@@ -31,8 +32,12 @@ class GenerateFiltersFileTask extends GeneratorTask<PersistableConfigurationObje
 
     void setVisualStudioProject(VisualStudioProject vsProject) {
         this.vsProject = vsProject
-        setInputFile(new File("not a file"))
         setOutputFile(vsProject.getFiltersFile())
+    }
+
+    @Override
+    File getInputFile() {
+        return null
     }
 
     private class VisualStudioConfigurationObjectGenerator extends PersistableConfigurationObjectGenerator<PersistableConfigurationObject> {
