@@ -204,7 +204,7 @@ public class FineTestSelectionIntegrationTest extends AbstractIntegrationSpec {
         then: result.skippedTasks.contains(":test") //up-to-date
 
         when:
-        run("test", "--only", "FooTest.pass2,FooTest.pass")
+        run("test", "--only", "FooTest.pass*")
 
         then:
         !result.skippedTasks.contains(":test")

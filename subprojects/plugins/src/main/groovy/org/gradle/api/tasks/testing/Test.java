@@ -672,14 +672,15 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         return this;
     }
 
-    @Option(option = "only", description = "Sets test names to be included.")
+    @Option(option = "only", description = "Sets tes class or method names to be included, '*' is supported.")
     /**
-     * Sets the test names to be included in execution.
-     * Wildcard '*' is supported. Test method names are supported.
+     * Sets the tests to be included in execution.
+     * Classes or method names are supported, wildcard '*' is supported.
+     *
      * See more {@link TestFilter}
      */
-    public Test only(String testNames) {
-        filter.setIncludedTests(testNames.split(","));
+    public Test only(String testName) {
+        filter.setIncludedTests(testName);
         return this;
     }
 

@@ -20,7 +20,7 @@ import org.gradle.api.Incubating;
 import java.util.Set;
 
 /**
- * Allows selecting tests for execution
+ * Allows filtering tests for execution
  *
  * @since 1.10
  */
@@ -28,25 +28,26 @@ import java.util.Set;
 public interface TestFilter {
 
     /**
-     * Appends a test name to the filter. Wildcard '*' is supported.
+     * Appends a test name to the filter. Wildcard '*' is supported,
+     * either test method name or class name is supported.
      * Examples of test names: com.foo.FooTest.someMethod, com.foo.FooTest, *FooTest*, com.foo*
      *
-     * @param testName test's name, wildcard '*' is supported.
+     * @param testName test's name to include, can be class or method name, can contain wildcard '*'
      * @return this filter object
      */
     TestFilter includeTest(String testName);
 
     /**
-     * Returns the included test names, wildcard '*' is supported.
+     * Returns the included test names. They can be class or method names and may contain wildcard '*'.
      *
-     * @return included test names, wildcard '*' is supported.
+     * @return included test names
      */
     Set<String> getIncludedTests();
 
     /**
      * Sets the test names to be included in the filter. Wildcard '*' is supported.
      *
-     * @param testNames test names, wildcard '*' is supported.
+     * @param testNames class or method names to set, may contain wildcard '*'
      * @return this filter object
      */
     TestFilter setIncludedTests(String... testNames);
