@@ -202,7 +202,8 @@ The implementation should be able to detect and report on typos and predicates t
 - Model element is mutated after it is closed
 - Integration with old DSL.
 
-- Tool chain is modified once it has been used to define a binary.
+- Tool chain is modified once it has been used to define a binary:
+    - Gcc or Visual Studio install path, Gcc tool configuration, etc.
 - Tool chain is added once tool chains have been selected for a binary.
 
 ## Native language plugins do not create tasks for binaries that cannot be built
