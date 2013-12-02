@@ -1,3 +1,10 @@
+This release adds some nice command-line usability features, with the ability to run a single test method and view task help from the command-line.
+
+Another usability feature is a new 'should run after' task ordering.
+
+This release also brings more features for C and C++ development, with the introduction of incremental compilation for C and C++, plus better integration
+with the Visual Studio and GCC tool chains.
+
 ## New and noteworthy
 
 Here are the new features introduced in this Gradle release.
@@ -178,9 +185,13 @@ Gradle will now automatically locate and use more versions of Visual Studio and 
 Support for Visual Studio remains experimental.
 Please let us know via the Gradle forums if you experience problems with Gradle using your Visual Studio installation.
 
-### Dependency result API provides information about project dependencies (i)
+### Dependency resolution result API provides information about project dependencies (i)
 
-TBD
+The `ResolutionResult` API is used to provide information about about a resolved graph of dependencies. Previously, this API did not
+provide any way to determine which of the dependencies in the graph are produced by a project in the build and which dependencies
+originated outside the current build, such as from a binary repository.
+
+The API has been extended so you can now query whether a given dependency originated from a project in the build or not.
 
 ## Promoted features
 
@@ -211,22 +222,56 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ## Potential breaking changes
 
-### Dependency resolution result produces a graph of components instead of a graph of module versions.
+### Dependency resolution result produces a graph of components instead of a graph of module versions (i)
 
-* The dependency resolution result is changed so that it produces a graph of components.
-* Various interfaces were renamed to reflect this change:
-    * `ResolvedModuleVersionResult` to `ResolvedComponentResult`
-    * `ModuleVersionSelectionReason` to `ComponentSelectionReason`
-* Renamed methods on `ResolutionResult`:
-    * `getAllModuleVersions()` to `getAllComponents()`.
-    * `allModuleVersions(Action)` to `allComponents(Action)`.
-    * `allModuleVersions(Closure)` to `allComponents(Closure)`.
-* Uses `ComponentIdentifier` and `ComponentSelector` instead of `ModuleVersionIdentifier` and `ModuleVersionSelector`.
-* Various interface method signatures were changed to return the new component types: `DependencyResult`, `ResolvedComponentResult`, `UnresolvedDependencyResult` and `ResolutionResult`.
+As part of some initial work to support more powerful dependency management, such as dependency management for native binaries, Android libraries, or
+Scala libraries built for multiple Scala versions, the dependency resolution result API has been changed.
 
-### Dependency resolution prefers the latest version regardless of whether it has meta-data or not
+#### What does this change mean?
 
-TBD
+The model is now that dependency resolution produces a graph of _components_ instead of _module versions_. A component represents things such as a
+Java library, or native executable, and so on. This is a higher level and more general concept than a module version, which simply represents something
+published to a binary repository.
+
+The main change in this release is to model the fact that not all components included in the result of a dependency resolution are necessarily published to
+a binary repository. For example, a component might be built by some other project in the build, or may be prebuilt and installed on the local machine
+somewhere, or might be built by some other build tool.
+
+#### Changes to the `ResolutionResult` API
+
+* The following interfaces were renamed:
+    * `ResolvedModuleVersionResult` is now called `ResolvedComponentResult`
+    * `ModuleVersionSelectionReason` is now called `ComponentSelectionReason`
+* The following interfaces were replaced:
+    * `ComponentSelector` is now used instead of `ModuleVersionSelector`
+    * `ComponentIdentifier` is now used instead of `ModuleVersionIdentifier`
+* The following methods on `ResolutionResult` where renamed:
+    * `getAllModuleVersions()` is now called `getAllComponents()`
+    * `allModuleVersions()` is now called `allComponents()`
+* Method signatures were changed on the following types to reflect these changes:
+    * `ResolutionResult`
+    * `DependencyResult`
+    * `ResolvedComponentResult`
+    * `UnresolvedDependencyResult`
+
+### Dependency resolution prefers the latest version of a module regardless of whether it has meta-data or not
+
+In this release, the way that Gradle selects a matching version for a dynamic version, such as `1.2+` or `latest.integration` has changed. We expect that for
+the large majority of cases, the result will continue to be the same as previous releases. However, there may be cases where this change will produce a different
+result.
+
+#### Selecting a match for dynamic version criteria
+
+Previous versions of Gradle would select a match for a dynamic version by first searching for versions that include a meta-data file, such as a `pom.xml` or
+an `ivy.xml` file. If any such versions were found, Gradle would select the highest version that meet the criteria. If no versions were found with a meta-data file,
+then Gradle would search again, this time for versions without a meta-data file. Gradle would then select the highest version.
+
+There are several problems with this approach: Firstly, it requires two separate repository searches, which can be a performance or stability problem, in
+particular when multiple repositories need to be searched. Secondly, this can give unexpected results when the module, for whatever reason, is sometimes published
+with meta-data and sometimes without meta-data.
+
+In the 1.10 release, Gradle will now search once for all versions of the module and select the highest version that meets the criteria, regardless of whether the version
+includes a meta-data file or not.
 
 ## External contributions
 
