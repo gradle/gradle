@@ -29,6 +29,6 @@ public class DefaultProjectModuleRegistry implements ProjectModuleRegistry {
 
     public LocalComponentMetaData findProject(ProjectDependencyDescriptor descriptor) {
         ProjectInternal project = descriptor.getTargetProject();
-        return localComponentFactory.convert(project.getConfigurations(), project.getModuleInternal());
+        return localComponentFactory.convert(project.getConfigurations(), project.getModule());
     }
 }

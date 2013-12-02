@@ -108,7 +108,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
-    public Module getModule() {
+    public ModuleInternal getModule() {
         return metaDataProvider.getModule();
     }
 

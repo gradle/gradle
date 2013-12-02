@@ -18,10 +18,10 @@ package org.gradle.internal.service.scopes;
 
 import org.gradle.api.Action;
 import org.gradle.api.AntBuilder;
-import org.gradle.api.artifacts.Module;
 import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.internal.*;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
+import org.gradle.api.internal.artifacts.ModuleInternal;
 import org.gradle.api.internal.artifacts.ProjectBackedModule;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
@@ -162,7 +162,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry implements Serv
 
     protected DependencyMetaDataProvider createDependencyMetaDataProvider() {
         return new DependencyMetaDataProvider() {
-            public Module getModule() {
+            public ModuleInternal getModule() {
                 return new ProjectBackedModule(project);
             }
         };
