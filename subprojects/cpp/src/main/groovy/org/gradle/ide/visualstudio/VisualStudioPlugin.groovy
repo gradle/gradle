@@ -14,15 +14,13 @@
  * limitations under the License.
  */
 package org.gradle.ide.visualstudio
+
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.tasks.Delete
-import org.gradle.ide.visualstudio.internal.VisualStudioProject
-import org.gradle.ide.visualstudio.internal.VisualStudioProjectRegistry
-import org.gradle.ide.visualstudio.internal.VisualStudioSolution
-import org.gradle.ide.visualstudio.internal.VisualStudioSolutionBuilder
+import org.gradle.ide.visualstudio.internal.*
 import org.gradle.ide.visualstudio.tasks.GenerateFiltersFileTask
 import org.gradle.ide.visualstudio.tasks.GenerateProjectFileTask
 import org.gradle.ide.visualstudio.tasks.GenerateSolutionFileTask
@@ -42,7 +40,9 @@ class VisualStudioPlugin implements Plugin<ProjectInternal> {
         project.afterEvaluate {
             final flavors = project.modelRegistry.get("flavors", FlavorContainer)
             VisualStudioProjectRegistry projectRegistry = new VisualStudioProjectRegistry(project, flavors);
-            VisualStudioSolutionBuilder solutionBuilder = new VisualStudioSolutionBuilder(project, projectRegistry);
+            project.extensions.add("visualStudioProjectRegistry", projectRegistry)
+
+            VisualStudioSolutionBuilder solutionBuilder = new VisualStudioSolutionBuilder(project);
 
             project.binaries.all { NativeBinary binary ->
                 projectRegistry.addProjectConfiguration(binary)
@@ -56,8 +56,6 @@ class VisualStudioPlugin implements Plugin<ProjectInternal> {
                 createVisualStudioSolution(solutionBuilder, component, project)
             }
 
-            // TODO:DAZ For now, all vs project files are created within this project:
-            // this will change so that we have more of a global vsproject registry and the 'owning' gradle project is responsible for building
             projectRegistry.allProjects.each { vsProject ->
                 vsProject.builtBy addProjectsFileTask(vsProject)
                 vsProject.builtBy addFiltersFileTask(vsProject)

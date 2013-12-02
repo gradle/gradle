@@ -17,7 +17,6 @@
 package org.gradle.ide.visualstudio.internal;
 
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.nativebinaries.*;
 import org.gradle.nativebinaries.internal.NativeComponentInternal;
@@ -29,13 +28,20 @@ import java.util.Map;
 import java.util.Set;
 
 public class VisualStudioProjectRegistry {
-    private final ProjectInternal projectFinder;
-    private Map<String, VisualStudioProject> projects = new HashMap<String, VisualStudioProject>();
+    private final ProjectInternal project;
     private final FlavorContainer allFlavors;
+    private final Map<String, VisualStudioProject> projects = new HashMap<String, VisualStudioProject>();
+    private final VisualStudioProjectResolver projectResolver;
 
-    public VisualStudioProjectRegistry(ProjectInternal projectFinder, FlavorContainer allFlavors) {
-        this.projectFinder = projectFinder;
+    public VisualStudioProjectRegistry(ProjectInternal project, FlavorContainer allFlavors) {
+        this.project = project;
         this.allFlavors = allFlavors;
+        projectResolver = new VisualStudioProjectResolver(project);
+    }
+
+    public VisualStudioProjectConfiguration getProjectConfiguration(NativeBinary nativeBinary) {
+        String projectName = projectName(nativeBinary);
+        return projects.get(projectName).getConfiguration(nativeBinary);
     }
 
     public void addProjectConfiguration(NativeBinary nativeBinary) {
@@ -43,18 +49,11 @@ public class VisualStudioProjectRegistry {
         project.addConfiguration(nativeBinary);
     }
 
-    public VisualStudioProjectConfiguration getProjectConfiguration(NativeBinary nativeBinary) {
-        String projectName = projectName(nativeBinary);
-        VisualStudioProject vsProject = projects.get(projectName);
-        return vsProject.getConfiguration(nativeBinary);
-    }
-
     private VisualStudioProject getOrCreateProject(NativeBinary nativeBinary) {
         String projectName = projectName(nativeBinary);
         VisualStudioProject vsProject = projects.get(projectName);
         if (vsProject == null) {
-            Project project = projectFinder.project(((NativeComponentInternal) nativeBinary.getComponent()).getProjectPath());
-            vsProject = new VisualStudioProject(project, projectName, nativeBinary.getComponent(), this);
+            vsProject = new VisualStudioProject(project, projectName, nativeBinary.getComponent(), projectResolver);
             projects.put(projectName, vsProject);
         }
         return vsProject;
@@ -68,19 +67,18 @@ public class VisualStudioProjectRegistry {
         return projectBaseName(nativeBinary) + projectSuffix(nativeBinary);
     }
 
-    private static String projectSuffix(NativeBinary nativeBinary) {
-        return nativeBinary instanceof StaticLibraryBinary ? "Lib"
-                : nativeBinary instanceof SharedLibraryBinary ? "Dll"
-                : "Exe";
-    }
-
-    // TODO:DAZ This needs to be unique for multi-project
     private String projectBaseName(NativeBinary nativeBinary) {
         NativeComponent component = nativeBinary.getComponent();
         if (getFlavors(component).size() <=1) {
             return component.getBaseName();
         }
         return nativeBinary.getFlavor().getName() + StringUtils.capitalize(component.getBaseName());
+    }
+
+    private String projectSuffix(NativeBinary nativeBinary) {
+        return nativeBinary instanceof StaticLibraryBinary ? "Lib"
+                : nativeBinary instanceof SharedLibraryBinary ? "Dll"
+                : "Exe";
     }
 
     // TODO:DAZ This needs to be a method on NativeComponentInternal

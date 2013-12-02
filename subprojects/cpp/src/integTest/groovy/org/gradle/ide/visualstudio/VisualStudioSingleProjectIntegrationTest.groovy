@@ -21,7 +21,6 @@ import org.gradle.nativebinaries.language.cpp.fixtures.app.CppHelloWorldApp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.ExeWithLibraryUsingLibraryHelloWorldApp
 
 class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
-
     private final Set<String> projectConfigurations = ['debug|Win32', 'release|Win32'] as Set
 
     def app = new CppHelloWorldApp()

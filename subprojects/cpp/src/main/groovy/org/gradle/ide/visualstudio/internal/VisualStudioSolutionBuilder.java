@@ -16,24 +16,24 @@
 package org.gradle.ide.visualstudio.internal;
 
 import org.gradle.api.Project;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.nativebinaries.NativeBinary;
 import org.gradle.nativebinaries.internal.NativeBinaryInternal;
 
 public class VisualStudioSolutionBuilder {
     private final Project project;
-    private final VisualStudioProjectRegistry projectRegistry;
+    private final VisualStudioProjectResolver projectResolver;
 
-    public VisualStudioSolutionBuilder(Project project, VisualStudioProjectRegistry projectRegistry) {
+    public VisualStudioSolutionBuilder(ProjectInternal project) {
         this.project = project;
-        this.projectRegistry = projectRegistry;
+        this.projectResolver = new VisualStudioProjectResolver(project);
     }
 
     public VisualStudioSolution createSolution(NativeBinary nativeBinary) {
-        return new VisualStudioSolution(project, solutionName(nativeBinary), (NativeBinaryInternal) nativeBinary, projectRegistry);
+        return new VisualStudioSolution(project, solutionName(nativeBinary), (NativeBinaryInternal) nativeBinary, projectResolver);
     }
 
-
     private String solutionName(NativeBinary nativeBinary) {
-        return projectRegistry.getProjectConfiguration(nativeBinary).getProject().getName();
+        return projectResolver.lookupProjectConfiguration(nativeBinary).getProject().getName();
     }
 }

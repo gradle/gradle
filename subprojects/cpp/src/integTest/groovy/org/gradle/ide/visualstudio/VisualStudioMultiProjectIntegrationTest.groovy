@@ -20,6 +20,7 @@ import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChai
 import org.gradle.nativebinaries.language.cpp.fixtures.app.CppHelloWorldApp
 
 class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+    private final Set<String> projectConfigurations = ['debug|Win32', 'release|Win32'] as Set
 
     def app = new CppHelloWorldApp()
 
@@ -51,66 +52,17 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
         app.executable.writeSources(file("exe/src/main"))
         app.library.writeSources(file("lib/src/hello"))
         buildFile << """
-    project(':lib') {
-        libraries {
-            hello {}
-        }
-    }
     project(':exe') {
         executables {
             main {}
         }
         sources.main.cpp.lib project: ':lib', library: 'hello', linkage: 'static'
     }
-"""
-        and:
-        run ":exe:mainVisualStudio"
-
-        then:
-        final exeProject = projectFile("exe/visualStudio/mainExe.vcxproj")
-        exeProject.sourceFiles == allFiles("exe/src/main/cpp")
-        exeProject.headerFiles.isEmpty()
-        exeProject.projectConfigurations.keySet() == ['debug|Win32'] as Set
-        exeProject.projectConfigurations['debug|Win32'].includePath == filePath("exe/src/main/headers", "lib/src/hello/headers")
-
-        and:
-        final libProject = projectFile("lib/visualStudio/helloLib.vcxproj")
-        libProject.sourceFiles == allFiles("lib/src/hello/cpp")
-        libProject.headerFiles == allFiles("lib/src/hello/headers")
-        libProject.projectConfigurations.keySet() == ['debug|Win32', 'release|Win32'] as Set
-        libProject.projectConfigurations['debug|Win32'].includePath == filePath("lib/src/hello/headers")
-
-        and:
-        final mainSolution = solutionFile("exe/visualStudio/main.sln")
-        mainSolution.projects.keySet() == ["mainExe", "helloLib"] as Set
-        with (mainSolution.projects['mainExe']) {
-            file == filePath('exe/visualStudio/mainExe.vcxproj')
-            uuid == exeProject.projectGuid
-            configurations == ['debug|Win32']
-        }
-        with (mainSolution.projects['helloLib']) {
-            file == filePath('lib/visualStudio/helloLib.vcxproj')
-            uuid == libProject.projectGuid
-            configurations == ['debug|Win32']
-        }
-    }
-
-    def "create visual studio solution for executable that references static library in another project"() {
-        when:
-        app.executable.writeSources(file("exe/src/main"))
-        app.library.writeSources(file("lib/src/hello"))
-        buildFile << """
     project(':lib') {
         libraries {
             hello {}
         }
     }
-    project(':exe') {
-        executables {
-            main {}
-        }
-        sources.main.cpp.lib project(':lib').libraries.hello.static
-    }
 """
         and:
         run ":exe:mainVisualStudio"
@@ -119,18 +71,18 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
         final exeProject = projectFile("exe/visualStudio/mainExe.vcxproj")
         exeProject.sourceFiles == allFiles("exe/src/main/cpp")
         exeProject.headerFiles.isEmpty()
-        exeProject.projectConfigurations.keySet() == ['debug|Win32'] as Set
+        exeProject.projectConfigurations.keySet() == projectConfigurations
         exeProject.projectConfigurations['debug|Win32'].includePath == filePath("exe/src/main/headers", "lib/src/hello/headers")
 
         and:
         final libProject = projectFile("lib/visualStudio/helloLib.vcxproj")
         libProject.sourceFiles == allFiles("lib/src/hello/cpp")
         libProject.headerFiles == allFiles("lib/src/hello/headers")
-        libProject.projectConfigurations.keySet() == ['debug|Win32', 'release|Win32'] as Set
+        libProject.projectConfigurations.keySet() == projectConfigurations
         libProject.projectConfigurations['debug|Win32'].includePath == filePath("lib/src/hello/headers")
 
         and:
-        final mainSolution = solutionFile("exe/visualStudio/main.sln")
+        final mainSolution = solutionFile("exe/visualStudio/mainExe.sln")
         mainSolution.projects.keySet() == ["mainExe", "helloLib"] as Set
         with (mainSolution.projects['mainExe']) {
             file == filePath('exe/visualStudio/mainExe.vcxproj')

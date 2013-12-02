@@ -25,13 +25,13 @@ import org.gradle.nativebinaries.internal.NativeBinaryInternal
 import org.gradle.nativebinaries.internal.resolve.LibraryNativeDependencySet
 
 class VisualStudioSolution extends AbstractBuildableModelElement {
-    private final VisualStudioProjectRegistry projectRegistry
+    private final VisualStudioProjectResolver vsProjectResolver
     private final NativeBinaryInternal rootBinary
     String name
     Project project
 
-    VisualStudioSolution(Project project, String name, NativeBinaryInternal rootBinary, VisualStudioProjectRegistry projectRegistry) {
-        this.projectRegistry = projectRegistry
+    VisualStudioSolution(Project project, String name, NativeBinaryInternal rootBinary, VisualStudioProjectResolver vsProjectResolver) {
+        this.vsProjectResolver = vsProjectResolver
         this.project = project
         this.name = name
         this.rootBinary = rootBinary
@@ -44,7 +44,7 @@ class VisualStudioSolution extends AbstractBuildableModelElement {
     }
 
     private void addNativeBinary(Set configurations, NativeBinary nativeBinary) {
-        VisualStudioProjectConfiguration projectConfiguration = projectRegistry.getProjectConfiguration(nativeBinary);
+        VisualStudioProjectConfiguration projectConfiguration = vsProjectResolver.lookupProjectConfiguration(nativeBinary);
         configurations.add(projectConfiguration)
 
         for (NativeDependencySet dep : nativeBinary.getLibs()) {

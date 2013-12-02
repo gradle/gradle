@@ -29,18 +29,18 @@ import org.gradle.util.CollectionUtils
  */
 // TODO:DAZ Sources and header files should be taken from all binaries added to project
 class VisualStudioProject extends AbstractBuildableModelElement {
-    final VisualStudioProjectRegistry projectRegistry
+    final VisualStudioProjectResolver projectResolver
     final Project project
     final String uuid
     final String name
     final NativeComponent component
     final Map<NativeBinary, VisualStudioProjectConfiguration> configurations = [:]
 
-    VisualStudioProject(Project project, String name, NativeComponent component, VisualStudioProjectRegistry projectRegistry) {
+    VisualStudioProject(Project project, String name, NativeComponent component, VisualStudioProjectResolver projectResolver) {
         this.project = project
         this.name = name
         this.component = component
-        this.projectRegistry = projectRegistry
+        this.projectResolver = projectResolver
         this.uuid = '{' + UUID.randomUUID().toString().toUpperCase() + '}'
     }
 
@@ -68,16 +68,13 @@ class VisualStudioProject extends AbstractBuildableModelElement {
         return allHeaders
     }
 
-    void addProjectReference(String projectName) {
-    }
-
     Set<VisualStudioProject> getProjectReferences() {
         def projects = [] as Set
         component.binaries.each { NativeBinary binary ->
             binary.libs.each { NativeDependencySet dependencySet ->
                 if (dependencySet instanceof LibraryNativeDependencySet) {
                     LibraryBinary dependencyBinary = ((LibraryNativeDependencySet) dependencySet).getLibraryBinary()
-                    projects << projectRegistry.getProjectConfiguration(dependencyBinary).getProject()
+                    projects << projectResolver.lookupProjectConfiguration(dependencyBinary).getProject()
                }
             }
         }
