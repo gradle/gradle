@@ -208,4 +208,13 @@ class ConsoleBackedProgressRendererTest extends OutputSpecification {
         1 * statusBar.setText('')
         0 * statusBar._
     }
+
+    def "failure to process the event contains the context"() {
+        when:
+        renderer.onOutput(complete('unstarted operation'))
+
+        then:
+        def e = thrown(RuntimeException)
+        e.message.contains('unstarted operation')
+    }
 }
