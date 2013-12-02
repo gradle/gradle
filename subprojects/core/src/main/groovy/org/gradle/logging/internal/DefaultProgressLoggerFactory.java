@@ -17,6 +17,9 @@
 package org.gradle.logging.internal;
 
 import org.gradle.internal.TimeProvider;
+import org.gradle.internal.progress.OperationIdentifier;
+import org.gradle.internal.progress.OperationsHierarchy;
+import org.gradle.internal.progress.OperationsHierarchyKeeper;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.util.GUtil;
@@ -24,6 +27,7 @@ import org.gradle.util.GUtil;
 public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
     private final ProgressListener progressListener;
     private final TimeProvider timeProvider;
+    private final OperationsHierarchyKeeper hierarchyKeeper = new OperationsHierarchyKeeper();
 
     public DefaultProgressLoggerFactory(ProgressListener progressListener, TimeProvider timeProvider) {
         this.progressListener = progressListener;
@@ -35,11 +39,13 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
     }
 
     public ProgressLogger newOperation(String loggerCategory) {
-        return new ProgressLoggerImpl(loggerCategory, progressListener, timeProvider);
+        return new ProgressLoggerImpl(hierarchyKeeper.currentHierarchy(), loggerCategory, progressListener, timeProvider);
     }
 
     private static class ProgressLoggerImpl implements ProgressLogger {
         private enum State { idle, started, completed }
+
+        private final OperationsHierarchy hierarchy;
         private final String category;
         private final ProgressListener listener;
         private final TimeProvider timeProvider;
@@ -48,7 +54,8 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
         private String loggingHeader;
         private State state = State.idle;
 
-        public ProgressLoggerImpl(String category, ProgressListener listener, TimeProvider timeProvider) {
+        public ProgressLoggerImpl(OperationsHierarchy hierarchy, String category, ProgressListener listener, TimeProvider timeProvider) {
+            this.hierarchy = hierarchy;
             this.category = category;
             this.listener = listener;
             this.timeProvider = timeProvider;
@@ -101,13 +108,14 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
             }
             assertNotCompleted();
             state = State.started;
-            listener.started(new ProgressStartEvent(timeProvider.getCurrentTime(), category, description, shortDescription, loggingHeader, toStatus(status)));
+            OperationIdentifier id = hierarchy.start();
+            listener.started(new ProgressStartEvent(id.getId(), id.getParentId(), timeProvider.getCurrentTime(), category, description, shortDescription, loggingHeader, toStatus(status)));
         }
 
         public void progress(String status) {
             assertStarted();
             assertNotCompleted();
-            listener.progress(new ProgressEvent(timeProvider.getCurrentTime(), category, toStatus(status)));
+            listener.progress(new ProgressEvent(hierarchy.currentOperationId(), timeProvider.getCurrentTime(), category, toStatus(status)));
         }
 
         public void completed() {
@@ -118,7 +126,8 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
             assertStarted();
             assertNotCompleted();
             state = State.completed;
-            listener.completed(new ProgressCompleteEvent(timeProvider.getCurrentTime(), category, description, toStatus(status)));
+            listener.completed(new ProgressCompleteEvent(hierarchy.completeCurrentOperation(),
+                    timeProvider.getCurrentTime(), category, description, toStatus(status)));
         }
 
         private String toStatus(String status) {

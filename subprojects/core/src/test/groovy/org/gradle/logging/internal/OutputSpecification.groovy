@@ -15,12 +15,16 @@
  */
 package org.gradle.logging.internal
 
-import spock.lang.Specification
 import org.gradle.api.logging.LogLevel
 import org.gradle.util.TextUtil
+import spock.lang.Specification
+
 import java.text.SimpleDateFormat
 
 class OutputSpecification extends Specification {
+
+    private Long counter
+
     protected String toNative(String value) {
         return TextUtil.toPlatformLineSeparators(value)
     }
@@ -58,18 +62,20 @@ class OutputSpecification extends Specification {
     }
 
     ProgressStartEvent start(String description) {
-        return new ProgressStartEvent(tenAm, 'category', description, null, null, null)
+        start(description: description)
     }
 
     ProgressStartEvent start(Map args) {
-        return new ProgressStartEvent(tenAm, 'category', args.description, args.shortDescription, args.loggingHeader, args.status)
+        Long parent = counter
+        long id = counter == null? counter = 1 : ++counter
+        return new ProgressStartEvent(id, parent, tenAm, 'category', args.description, args.shortDescription, args.loggingHeader, args.status)
     }
 
     ProgressEvent progress(String status) {
-        return new ProgressEvent(tenAm, 'category', status)
+        return new ProgressEvent(counter? counter:1, tenAm, 'category', status)
     }
 
     ProgressCompleteEvent complete(String status) {
-        return new ProgressCompleteEvent(tenAm, 'category', 'description', status)
+        return new ProgressCompleteEvent(counter? counter--:1, tenAm, 'category', 'description', status)
     }
 }
