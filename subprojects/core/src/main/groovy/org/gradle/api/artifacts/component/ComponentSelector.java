@@ -18,7 +18,10 @@ package org.gradle.api.artifacts.component;
 import org.gradle.api.Incubating;
 
 /**
- * Represents the criteria used to select a component instance during dependency resolution.
+ * Represents some opaque criteria used to select a component instance during dependency resolution. Various sub-interfaces
+ * expose specific details about the criteria.
+ *
+ * @since 1.10
  */
 @Incubating
 public interface ComponentSelector {
@@ -26,6 +29,7 @@ public interface ComponentSelector {
      * Returns a human-consumable display name for this selector.
      *
      * @return Display name
+     * @since 1.10
      */
     String getDisplayName();
 
@@ -34,6 +38,7 @@ public interface ComponentSelector {
      *
      * @param identifier Component identifier
      * @return if this selector matches exactly the given component identifier.
+     * @since 1.10
      */
     boolean matchesStrictly(ComponentIdentifier identifier);
 }

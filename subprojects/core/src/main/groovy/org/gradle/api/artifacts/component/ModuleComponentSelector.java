@@ -18,26 +18,29 @@ package org.gradle.api.artifacts.component;
 import org.gradle.api.Incubating;
 
 /**
- * Selects a component instance that is available as a module.
+ * Criteria for selecting a component instance that is available as a module version.
+ *
+ * @since 1.10
  */
 @Incubating
 public interface ModuleComponentSelector extends ComponentSelector {
     /**
-     * The module group to select.
+     * The group of the module to select the component from.
      *
      * @return Module group
+     * @since 1.10
      */
     String getGroup();
 
     /**
-     * The module name to select.
+     * The name of the module to select the component from.
      *
      * @return Module name
      */
     String getModule();
 
     /**
-     * The module version to select.
+     * The version of the module to select the component from.
      *
      * @return Module version
      */
