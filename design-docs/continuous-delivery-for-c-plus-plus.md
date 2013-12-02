@@ -1015,6 +1015,36 @@ This story introduces a set of headers which are visible to all the source files
     - These should resolve to a `NativeDependencySet` instance that contains the source directories in the header set at compile time, and nothing at link or runtime.
     - Base native language plugin add a dependency from each compiled language source set to the `sharedHeaders` header set.
     - This step means that any header added to `src/${component.name}/include` is visible to the compilation of every source file in the component.
+    - This step also allows language-private headers to be defined.
+
+#### Example
+
+    libraries {
+        mylib
+    }
+
+    sources {
+        mylib {
+            // Adjust the defaults for shared headers
+            sharedHeaders {
+                srcDirs = 'src/headers'
+            }
+
+            // Add a language-private header set
+            cPrivateHeaders(HeaderSet) {
+                srcDirs = 'src/c'
+                include '**/*.h'
+            }
+            c {
+                lib cPrivateHeaders
+            }
+        }
+    }
+
+#### Open issues
+
+- Default location for the implementation headers
+- Rename `lib()` to `dependsOn()` or similar?
 
 ### Story: Introduce public headers for native libraries
 
@@ -1032,6 +1062,25 @@ This story introduces a set of headers which are visible to all source files in 
     - Remove `HeaderExportingSourceSet`
     - This step means that only those headers added to `src/${component.name}/public` are visible to consumers and implementation of a library.
 
+#### Example DSL
+
+    libraries {
+        mylib
+    }
+
+    sources {
+        mylib {
+            // Adjust the defaults
+            publicHeaders {
+                srcDir 'src/headers/api'
+            }
+        }
+    }
+
+#### Open issues
+
+- Language specific public headers. Eg include these headers when compiling C in a consuming component, and these additional headers when compiling C++.
+
 ### Story: Configure the source sets of a component as part of the component definition
 
 This story moves definition and configuration of the source sets for a component to live with the other configuration for a component.
@@ -1040,10 +1089,36 @@ This story moves definition and configuration of the source sets for a component
     - This is simply a source set that contains other source sets.
     - This step allows arbitrary source sets to be added to the `sources { ... }` container.
 1. Allow a component's source sets to be defined as part of the component definition:
-    - Change `NativeComponent.getSource()` to return a `CompositeSourceSet`. This should be the same instance that is added to the `sources { ... }` container.
+    - Replace `NativeComponent.getSource()` with a `getSources()` method return a `CompositeSourceSet`. This should be the same instance that is added to the `project.sources { ... }` container.
     - Add a `NativeComponent.source(Action<? super CompositeSourceSet>)` method.
     - Change language plugins to add source sets via the component's source container rather than the project's source container.
     - This step allows configuration via `component.source { ... }`.
+
+#### Example DSL
+
+    libraries {
+        mylib {
+            sources {
+                publicHeaders { srcDir = 'src/headers/api' }
+                sharedHeaders { srcDir = 'src/headers/shared' }
+                c {
+                    lib libraries.otherlib
+                }
+                cpp {
+                    include '**/*.CC'
+                }
+            }
+        }
+    }
+
+    // Can also reach source sets via project.sources
+    sources {
+        mylib { ... }
+    }
+
+#### Open issues
+
+- Flatten out all source sets into `project.sources`. Would need to use something other than a named domain object container.
 
 ## Feature: Objective-C support
 
