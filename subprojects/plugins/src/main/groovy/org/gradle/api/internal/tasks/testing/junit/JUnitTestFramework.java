@@ -49,7 +49,7 @@ public class JUnitTestFramework implements TestFramework {
 
     public WorkerTestClassProcessorFactory getProcessorFactory() {
         verifyJUnitCategorySupport();
-        return new TestClassProcessorFactoryImpl(new JUnitSpec(options, filter.getIncludedTests()));
+        return new TestClassProcessorFactoryImpl(new JUnitSpec(options, filter.getIncludePatterns()));
     }
 
     private void verifyJUnitCategorySupport() {

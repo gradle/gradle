@@ -680,7 +680,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * See more {@link TestFilter}
      */
     public Test only(String testName) {
-        filter.setIncludedTests(testName);
+        filter.setIncludePatterns(testName);
         return this;
     }
 

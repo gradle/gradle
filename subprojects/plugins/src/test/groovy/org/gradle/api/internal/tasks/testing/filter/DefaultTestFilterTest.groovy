@@ -26,27 +26,27 @@ class DefaultTestFilterTest extends Specification {
     def spec = new DefaultTestFilter()
 
     def "allows configuring test names"() {
-        expect: spec.includedTests.isEmpty()
+        expect: spec.includePatterns.isEmpty()
 
         when:
-        spec.includeTest("*fooMethod")
-        spec.includeTest("*.FooTest.*")
+        spec.includeTestsMatching("*fooMethod")
+        spec.includeTestsMatching("*.FooTest.*")
 
-        then: spec.includedTests == ["*fooMethod", "*.FooTest.*"] as Set
+        then: spec.includePatterns == ["*fooMethod", "*.FooTest.*"] as Set
 
-        when: spec.setIncludedTests("x")
+        when: spec.setIncludePatterns("x")
 
-        then: spec.includedTests == ["x"] as Set
+        then: spec.includePatterns == ["x"] as Set
     }
 
     def "prevents empty names"() {
-        when: spec.includeTest(null)
+        when: spec.includeTestsMatching(null)
         then: thrown(InvalidUserDataException)
 
-        when: spec.includeTest("")
+        when: spec.includeTestsMatching("")
         then: thrown(InvalidUserDataException)
 
-        when: spec.setIncludedTests("ok", "")
+        when: spec.setIncludePatterns("ok", "")
         then: thrown(InvalidUserDataException)
     }
 

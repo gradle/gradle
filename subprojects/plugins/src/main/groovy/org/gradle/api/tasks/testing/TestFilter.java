@@ -32,23 +32,23 @@ public interface TestFilter {
      * either test method name or class name is supported.
      * Examples of test names: com.foo.FooTest.someMethod, com.foo.FooTest, *FooTest*, com.foo*
      *
-     * @param testName test's name to include, can be class or method name, can contain wildcard '*'
+     * @param testNamePattern test's name to include, can be class or method name, can contain wildcard '*'
      * @return this filter object
      */
-    TestFilter includeTest(String testName);
+    TestFilter includeTestsMatching(String testNamePattern);
 
     /**
      * Returns the included test names. They can be class or method names and may contain wildcard '*'.
      *
      * @return included test names
      */
-    Set<String> getIncludedTests();
+    Set<String> getIncludePatterns();
 
     /**
      * Sets the test names to be included in the filter. Wildcard '*' is supported.
      *
-     * @param testNames class or method names to set, may contain wildcard '*'
+     * @param testNamePatterns class or method names to set, may contain wildcard '*'
      * @return this filter object
      */
-    TestFilter setIncludedTests(String... testNames);
+    TestFilter setIncludePatterns(String... testNamePatterns);
 }

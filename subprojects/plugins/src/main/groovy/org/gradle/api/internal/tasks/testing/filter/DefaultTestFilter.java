@@ -33,22 +33,22 @@ public class DefaultTestFilter implements TestFilter {
         }
     }
 
-    public TestFilter includeTest(String testName) {
-        validateName(testName);
-        testNames.add(testName);
+    public TestFilter includeTestsMatching(String testNamePattern) {
+        validateName(testNamePattern);
+        testNames.add(testNamePattern);
         return this;
     }
 
     @Input
-    public Set<String> getIncludedTests() {
+    public Set<String> getIncludePatterns() {
         return testNames;
     }
 
-    public TestFilter setIncludedTests(String... testNames) {
-        for (String name : testNames) {
+    public TestFilter setIncludePatterns(String... testNamePatterns) {
+        for (String name : testNamePatterns) {
             validateName(name);
         }
-        this.testNames = Sets.newHashSet(testNames);
+        this.testNames = Sets.newHashSet(testNamePatterns);
         return this;
     }
 }

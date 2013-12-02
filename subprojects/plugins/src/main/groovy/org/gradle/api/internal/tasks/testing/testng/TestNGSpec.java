@@ -51,7 +51,7 @@ public class TestNGSpec implements Serializable {
         this.includeGroups = options.getIncludeGroups();
         this.excludeGroups = options.getExcludeGroups();
         this.listeners = options.getListeners();
-        this.includedTests = filter.getIncludedTests();
+        this.includedTests = filter.getIncludePatterns();
     }
 
     public Set<String> getListeners() {
