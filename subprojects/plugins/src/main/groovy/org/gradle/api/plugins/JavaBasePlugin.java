@@ -297,7 +297,7 @@ public class JavaBasePlugin implements Plugin<Project> {
     }
 
     private void configureBasedOnIncludedMethods(final Test test) {
-        Set included = test.getSelection().getInclude().getNames();
+        Set included = test.getFilter().getInclude().getNames();
         if (!included.isEmpty()) {
             failIfNoTestIsExecuted(test, "No tests found for given includes: " + included);
         }

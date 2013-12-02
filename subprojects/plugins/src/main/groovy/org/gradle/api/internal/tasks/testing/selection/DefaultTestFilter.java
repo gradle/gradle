@@ -13,29 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.tasks.testing;
+package org.gradle.api.internal.tasks.testing.selection;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
+import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.testing.TestFilter;
+import org.gradle.api.tasks.testing.TestSelectionSpec;
 
-/**
- * Allows selecting tests for execution
- *
- * @since 1.10
- */
-@Incubating
-public interface TestSelection {
+public class DefaultTestFilter implements TestFilter {
 
-    /**
-     * Allow configuring test inclusions
-     */
-    TestSelectionSpec getInclude();
+    private DefaultTestSelectionSpec include = new DefaultTestSelectionSpec();
 
-    /**
-     * Allow configuring test inclusions
-     *
-     * @param configure configuration action
-     * @return this selection object
-     */
-    TestSelection include(Action<TestSelectionSpec> configure);
+    @Nested
+    public DefaultTestSelectionSpec getInclude() {
+        return include;
+    }
+
+    public DefaultTestFilter include(Action<TestSelectionSpec> configure) {
+        configure.execute(include);
+        return this;
+    }
 }

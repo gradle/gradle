@@ -23,7 +23,7 @@ import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.api.internal.tasks.testing.detection.ClassFileExtractionManager;
 import org.gradle.api.internal.tasks.testing.junit.JULRedirector;
-import org.gradle.api.internal.tasks.testing.selection.DefaultTestSelection;
+import org.gradle.api.internal.tasks.testing.selection.DefaultTestFilter;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.testng.TestNGOptions;
 import org.gradle.internal.id.IdGenerator;
@@ -38,9 +38,9 @@ public class TestNGTestFramework implements TestFramework {
     private TestNGOptions options;
     private TestNGDetector detector;
     final Test testTask;
-    private DefaultTestSelection selection;
+    private DefaultTestFilter selection;
 
-    public TestNGTestFramework(Test testTask, DefaultTestSelection selection) {
+    public TestNGTestFramework(Test testTask, DefaultTestFilter selection) {
         this.testTask = testTask;
         this.selection = selection;
         options = new TestNGOptions(testTask.getProject().getProjectDir());

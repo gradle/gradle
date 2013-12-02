@@ -44,7 +44,7 @@ public class FineTestSelectionIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             test {
               use$framework.name()
-              selection {
+              filter {
                 include {
                   name "FooTest.pass"
                 }
@@ -83,7 +83,7 @@ public class FineTestSelectionIntegrationTest extends AbstractIntegrationSpec {
               use$framework.name()
               include 'FooTest*'
               def cls = "FooTest"
-              selection.include {
+              filter.include {
                 name "\${cls}.passOne" //make sure GStrings work
                 name "\${cls}.passTwo"
               }
@@ -120,7 +120,7 @@ public class FineTestSelectionIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             test {
               use$framework.name()
-              selection.include.setNames 'Foo*.pass*'
+              filter.include.setNames 'Foo*.pass*'
             }
         """
         file("src/test/java/Foo1Test.java") << """import $framework.imports;
@@ -165,7 +165,7 @@ public class FineTestSelectionIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             test {
               use$framework.name()
-              selection.include.name 'FooTest.missingMethod'
+              filter.include.name 'FooTest.missingMethod'
             }
         """
         file("src/test/java/FooTest.java") << """import $framework.imports;
@@ -189,7 +189,7 @@ public class FineTestSelectionIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             test {
               use$framework.name()
-              selection.include.name 'FooTest.pass'
+              filter.include.name 'FooTest.pass'
             }
         """
         file("src/test/java/FooTest.java") << """import $framework.imports;

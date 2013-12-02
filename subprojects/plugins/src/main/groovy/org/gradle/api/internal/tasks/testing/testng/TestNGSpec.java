@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.testng;
 
-import org.gradle.api.internal.tasks.testing.selection.DefaultTestSelection;
+import org.gradle.api.internal.tasks.testing.selection.DefaultTestFilter;
 import org.gradle.api.tasks.testing.testng.TestNGOptions;
 
 import java.io.Serializable;
@@ -39,7 +39,7 @@ public class TestNGSpec implements Serializable {
     private final Set<String> listeners;
     private final Set<String> includedTests;
 
-    public TestNGSpec(TestNGOptions options, DefaultTestSelection selection) {
+    public TestNGSpec(TestNGOptions options, DefaultTestFilter selection) {
         this.defaultSuiteName = options.getSuiteName();
         this.defaultTestName = options.getTestName();
         this.parallel = options.getParallel();
