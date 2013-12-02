@@ -106,3 +106,4 @@ An artefact has direct dependencies (that might have dependencies on other artif
     - In source
     - In some repository indexed by hash of the dependency selectors
 - When in update mode, set the cache timeouts to 0.
+- Should capture the resolved graph of Gradle plugins too.
