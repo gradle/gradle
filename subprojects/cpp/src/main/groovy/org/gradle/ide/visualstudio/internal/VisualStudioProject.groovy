@@ -15,7 +15,6 @@
  */
 
 package org.gradle.ide.visualstudio.internal
-
 import org.gradle.api.Named
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.language.HeaderExportingSourceSet
@@ -53,19 +52,19 @@ class VisualStudioProject extends AbstractBuildableModelElement implements Named
     }
 
     List<File> getSourceFiles() {
-        def allSource = []
+        def allSource = [] as Set
         component.source.each { LanguageSourceSet sourceSet ->
             allSource.addAll sourceSet.source.files
         }
-        return allSource
+        return allSource as List
     }
 
     List<File> getHeaderFiles() {
-        def allHeaders = []
+        def allHeaders = [] as Set
         component.source.withType(HeaderExportingSourceSet).each { HeaderExportingSourceSet sourceSet ->
             allHeaders.addAll sourceSet.exportedHeaders.files
         }
-        return allHeaders
+        return allHeaders as List
     }
 
     Set<VisualStudioProject> getProjectReferences() {
