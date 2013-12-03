@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.testing.junit;
+package org.gradle.testing.junit
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult;
+import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.integtests.fixtures.UsesSample;
-import org.junit.Rule;
+import org.junit.Rule
 
 public class JUnitTestFilteringSamplesIntegrationTest extends AbstractIntegrationSpec {
 
