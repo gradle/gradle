@@ -866,7 +866,9 @@ Here's an example:
 ### Test cases
 
 - Dependency on library in same project
-- Dependency on library in a different project
+- Dependency on static library in a different project
+- Dependency on shared library in different project
+- Transitive dependency graph A:mainExe -> B:sharedLibrary -> C:sharedLibrary
 - Cycle between projects: A:mainExecutable -> B:library -> A:library
 - Dependency on library in a different project using configuration-on-demand
 - Failure cases where: project does not exist, library does not exist, invalid linkage

@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 package org.gradle.nativebinaries.language.cpp
+
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativebinaries.language.cpp.fixtures.app.CppHelloWorldApp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.ExeWithLibraryUsingLibraryHelloWorldApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Ignore
+import spock.lang.Unroll
 
 @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
 class LibraryDependenciesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
@@ -76,14 +79,56 @@ class LibraryDependenciesIntegrationTest extends AbstractInstalledToolChainInteg
         executable("build/binaries/mainExecutable/main").exec().out == app.englishOutput
     }
 
-    def "can use map notation to reference library in different project"() {
+    @Ignore("Fails due to model rules evaluating before script when project.evaluate() is called")
+    @Unroll
+    def "can use map notation to reference library in different project#label"() {
         given:
         def app = new CppHelloWorldApp()
         app.executable.writeSources(file("exe/src/main"))
         app.library.writeSources(file("lib/src/hello"))
 
         and:
-        settingsFile.text = "include ':exe', ':lib'"
+        settingsFile.text = "include ':lib', ':exe'"
+        buildFile << """
+        project(":lib") {
+            apply plugin: "cpp"
+            libraries {
+                hello {}
+            }
+        }
+        project(":exe") {
+            ${explicitEvaluation ? "evaluationDependsOn(':lib')" : ""}
+            apply plugin: "cpp"
+            executables {
+                main {}
+            }
+            sources.main.cpp.lib project: ':lib', library: 'hello'
+        }
+        """
+
+        when:
+        if (configureOnDemand) {
+            executer.withArgument('--configure-on-demand')
+        }
+        succeeds ":exe:installMainExecutable"
+
+        then:
+        installation("exe/build/install/mainExecutable").exec().out == app.englishOutput
+
+        where:
+        label                       | configureOnDemand | explicitEvaluation
+        ""                          | false             | false
+        " with configure-on-demand" | true              | false
+        " with evaluationDependsOn" | false             | true
+    }
+
+    def "can use map notation to transitively reference libraries in different projects"() {
+        given:
+        def app = new ExeWithLibraryUsingLibraryHelloWorldApp()
+        app.writeSources(file("exe/src/main"), file("lib/src/hello"), file("greet/src/greetings"))
+
+        and:
+        settingsFile.text = "include ':exe', ':lib', ':greet'"
         buildFile << """
         project(":exe") {
             apply plugin: "cpp"
@@ -96,6 +141,19 @@ class LibraryDependenciesIntegrationTest extends AbstractInstalledToolChainInteg
             apply plugin: "cpp"
             libraries {
                 hello {}
+            }
+            sources.hello.cpp.lib project: ':greet', library: 'greetings', linkage: 'static'
+        }
+        project(":greet") {
+            apply plugin: "cpp"
+            libraries {
+                greetings {
+                    binaries.withType(StaticLibraryBinary) {
+                        if (toolChain in Gcc || toolChain in Clang) {
+                            cppCompiler.args '-fPIC'
+                        }
+                    }
+                }
             }
         }
         """

@@ -38,7 +38,6 @@ public class VisualStudioProjectRegistry extends DefaultNamedDomainObjectSet<Vis
     }
 
     public void addProjectConfiguration(NativeBinary nativeBinary) {
-        // TODO:DAZ Eagerly create all configurations for a component/project?
         VisualStudioProject project = getOrCreateProject(nativeBinary);
         project.addConfiguration(nativeBinary);
     }

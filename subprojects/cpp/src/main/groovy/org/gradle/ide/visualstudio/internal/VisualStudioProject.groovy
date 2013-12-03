@@ -26,7 +26,6 @@ import org.gradle.util.CollectionUtils
 /**
  * A VisualStudio project represents a set of binaries for a component that may vary in build type and target platform.
  */
-// TODO:DAZ Sources and header files should be taken from all binaries added to project
 class VisualStudioProject extends AbstractBuildableModelElement implements Named {
     final VisualStudioProjectResolver projectResolver
     final FileResolver fileResolver
@@ -81,6 +80,7 @@ class VisualStudioProject extends AbstractBuildableModelElement implements Named
     }
 
     VisualStudioProjectConfiguration addConfiguration(NativeBinary nativeBinary) {
+        // Assumes that all binaries added in this way will have the same sources and dependencies
         def configuration = configurations[nativeBinary]
         if (configuration == null) {
             configuration = new VisualStudioProjectConfiguration(this, nativeBinary, configurationType(nativeBinary))
