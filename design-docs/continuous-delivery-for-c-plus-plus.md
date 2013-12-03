@@ -796,6 +796,7 @@ Here's an example:
 - Generate solution for component with no sources
 - Generate solution for component with mixed sources
 - Generate solution for component with windows resource files
+- Solution files for 2 executables that reference different build types of the same shared library
 
 ## Story: Allow a component to choose from a set of defined Platform, BuildType and Flavor instances
 
@@ -887,8 +888,8 @@ Here's an example:
 
 ### Test Cases
 
-- Solution files for 2 executables that depend on different build types of the same shared library
 - All test cases for single project build should also function where components are in separate Gradle builds
+- Transitive project dependencies - :a:exe -> :b:lib1 -> :c:lib2
 - Mixed multi-project with multiple components per project
 - Multi-project where :a:exe -> :b:lib1 -> :a:lib2 (Gradle project cycle)
 

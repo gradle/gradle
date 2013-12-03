@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 package org.gradle.ide.visualstudio
-
 import org.gradle.ide.visualstudio.fixtures.ProjectFile
 import org.gradle.ide.visualstudio.fixtures.SolutionFile
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativebinaries.language.cpp.fixtures.app.CppHelloWorldApp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.ExeWithLibraryUsingLibraryHelloWorldApp
+import org.gradle.nativebinaries.language.cpp.fixtures.app.MixedLanguageHelloWorldApp
+import org.gradle.nativebinaries.language.cpp.fixtures.app.WindowsResourceHelloWorldApp
 
 class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     private final Set<String> projectConfigurations = ['debug|Win32', 'release|Win32'] as Set
@@ -339,6 +340,142 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         dllProject.headerFiles == libProject.headerFiles
     }
 
+    def "create visual studio solutions for 2 executables that depend on different build types of the same library"() {
+        when:
+        app.executable.writeSources(file("src/main"))
+        app.library.writeSources(file("src/hello"))
+        buildFile << """
+    libraries {
+        hello {}
+    }
+    executables {
+        main {}
+        mainRelease {
+            targetBuildTypes "release"
+        }
+    }
+    sources.main.cpp.lib libraries.hello
+
+    sources.mainRelease.cpp.source.srcDirs "src/main/cpp"
+    sources.mainRelease.cpp.lib libraries.hello
+"""
+        and:
+        run "mainVisualStudio", "mainReleaseVisualStudio"
+
+        then:
+        solutionFile("visualStudio/mainExe.sln").assertHasProjects("mainExe", "helloDll")
+        solutionFile("visualStudio/mainReleaseExe.sln").assertHasProjects("mainReleaseExe", "helloDll")
+
+        and:
+        final helloProjectFile = projectFile("visualStudio/helloDll.vcxproj")
+        helloProjectFile.projectConfigurations.keySet() == projectConfigurations
+        final mainProjectFile = projectFile("visualStudio/mainExe.vcxproj")
+        mainProjectFile.projectConfigurations.keySet() == projectConfigurations
+        final mainReleaseProjectFile = projectFile("visualStudio/mainReleaseExe.vcxproj")
+        mainReleaseProjectFile.projectConfigurations.keySet() == ['release|Win32'] as Set
+
+        and:
+        final mainSolution = solutionFile("visualStudio/mainExe.sln")
+        mainSolution.projects.keySet() == ["mainExe", "helloDll"] as Set
+        with (mainSolution.projects['helloDll']) {
+            file == filePath('visualStudio/helloDll.vcxproj')
+            uuid == helloProjectFile.projectGuid
+            configurations == ['debug|Win32']
+        }
+
+        and:
+        final mainReleaseSolution = solutionFile("visualStudio/mainReleaseExe.sln")
+        mainReleaseSolution.projects.keySet() == ["mainReleaseExe", "helloDll"] as Set
+        with (mainReleaseSolution.projects['helloDll']) {
+            file == filePath('visualStudio/helloDll.vcxproj')
+            uuid == helloProjectFile.projectGuid
+            configurations == ['release|Win32']
+        }
+    }
+
+    def "generate visual studio solution for executable with mixed sources"() {
+        given:
+        def testApp = new MixedLanguageHelloWorldApp(toolChain)
+        testApp.writeSources(file("src/main"))
+
+        and:
+        buildFile << """
+            apply plugin: 'c'
+            apply plugin: 'assembler'
+            executables {
+                main {}
+            }
+        """
+
+        when:
+        run "mainVisualStudio"
+
+        then:
+        final projectFile = projectFile("visualStudio/mainExe.vcxproj")
+        projectFile.sourceFiles == allFiles("src/main/asm", "src/main/c", "src/main/cpp")
+        projectFile.headerFiles == allFiles("src/main/headers")
+        projectFile.projectConfigurations.keySet() == projectConfigurations
+        with (projectFile.projectConfigurations['debug|Win32']) {
+            includePath == filePath("src/main/headers")
+        }
+
+        and:
+        solutionFile("visualStudio/mainExe.sln").assertHasProjects("mainExe")
+    }
+
+    def "generate visual studio solution for executable with windows resource files"() {
+        given:
+        def resourceApp = new WindowsResourceHelloWorldApp()
+        resourceApp.writeSources(file("src/main"))
+
+        and:
+        buildFile << """
+            apply plugin: 'windows-resources'
+            executables {
+                main {}
+            }
+        """
+
+        when:
+        run "mainVisualStudio"
+
+        then:
+        final projectFile = projectFile("visualStudio/mainExe.vcxproj")
+        projectFile.sourceFiles == allFiles("src/main/cpp", "src/main/rc")
+        projectFile.headerFiles == allFiles("src/main/headers")
+        projectFile.projectConfigurations.keySet() == projectConfigurations
+        with (projectFile.projectConfigurations['debug|Win32']) {
+            includePath == filePath("src/main/headers")
+        }
+
+        and:
+        solutionFile("visualStudio/mainExe.sln").assertHasProjects("mainExe")
+    }
+
+    def "builds solution for component with no source"() {
+        given:
+        buildFile << """
+            executables {
+                main {}
+            }
+        """
+
+        when:
+        run "mainVisualStudio"
+
+        then:
+        final projectFile = projectFile("visualStudio/mainExe.vcxproj")
+        projectFile.sourceFiles == []
+        projectFile.headerFiles == []
+        projectFile.projectConfigurations.keySet() == projectConfigurations
+        with (projectFile.projectConfigurations['debug|Win32']) {
+            includePath == filePath("src/main/headers")
+        }
+
+        and:
+        solutionFile("visualStudio/mainExe.sln").assertHasProjects("mainExe")
+    }
+
     private SolutionFile solutionFile(String path) {
         return new SolutionFile(file(path))
     }
@@ -347,8 +484,12 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         return new ProjectFile(file(path))
     }
 
-    private List<String> allFiles(String path) {
-        return file(path).listFiles()*.absolutePath as List
+    private List<String> allFiles(String... paths) {
+        List allFiles = []
+        paths.each { path ->
+            allFiles.addAll file(path).listFiles()*.absolutePath as List
+        }
+        return allFiles
     }
 
     private String filePath(String... paths) {
