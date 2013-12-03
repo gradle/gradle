@@ -870,13 +870,6 @@ Here's an example:
 - Dependency on library in a different project using configuration-on-demand
 - Failure cases where: project does not exist, library does not exist, invalid linkage
 
-## Story: Add hooks to allow the customization of the generated Visual Studio files
-
-- Expose `visualStudio` extension with `solutions` container of `VisualStudioSolution` and `projects` container of `VisualStudioProject`
-- Add `VisualStudioSolution.solutionFile.withText(Action<? super StringBuilder>)` to modify the solution files.
-- Add `VisualStudioProject.projectFile.withXml(Action<? super XmlProvider>)` and
-  `VisualStudioProject.filtersFile.withXml(Action<? super XmlProvider>)` to modify these files
-
 ## Story: Create functional Visual Studio solution for multi-project build with multiple components
 
 - Change `VisualStudioProjectRegistry` so that it is responsible for locating a VisualStudioProjectConfiguration base on the NativeDependencySet,
@@ -903,19 +896,53 @@ Here's an example:
 
 - Handle dependency cycles
 
-## Story: Include all macro definitions in Visual Studio project configuration
+## Story: Customise generated Visual Studio files
 
-Include both cppCompiler.define and `cppCompiler.args '/D...'`.
+### Use case
 
-## Story: Include all include paths in Visual Studio project configuration
+Developer wishes to use source control integration from within Visual Studio, and must extend generated config files with
+project-specific configuration. Solution file needs to contain additional per-project configuration.
 
-Include libraries define as source set dependencies, binary dependencies and values supplied via `cppCompiler.args '/I...'`.
+### Implementation
 
-## Story: Component depends on API of native library
+- Expose `visualStudio` extension with `solutions` container of `VisualStudioSolution` and `projects` container of `VisualStudioProject`
+- `VisualStudioSolution.projects` provides the set of projects referenced by the solution.
+- Add `VisualStudioSolution.solutionFile.withText(Action<? super StringBuilder>)` to modify the solution files.
+- Add `VisualStudioProject.projectFile.withXml(Action<? super XmlProvider>)` and
+  `VisualStudioProject.filtersFile.withXml(Action<? super XmlProvider>)` to modify these files
 
-## Story: Expose only public header files for a library
+## Story: Allow Header-only libraries
 
-TBD
+### Use case
+
+Producer project publishes a library consisting of header files only (e.g. a library of C++ template classes).
+
+Consumer project compiles an executable against this library.
+
+Alternatively, a producer project may produce a separate `api` library for a library, to avoid dependency cycles where
+library A needs the headers of library B to compile, and library B requires library A to link.
+
+### Implementation
+
+- Fix the NativeDependencySet implementation so that when the selected binary has no source files, then you don’t get anything at link or runtime.
+- Don’t create tasks for empty source sets
+
+### Test cases
+
+### Open issues
+
+- Mapping to Visual Studio
+
+## Story: Component depends on a pre-built library
+
+- Add a new container for prebuilt libraries
+- Add a library implementation that doesn't have output-related properties
+- Don't create tasks for generating library binary outputs
+- Allow output file to be specified in a binaries.all {} block
+
+### Open issues
+
+- Mapping to Visual Studio
 
 ## Story: Allow source sets to be generated
 
@@ -933,20 +960,6 @@ TBD
             }
         }
     }
-
-## Story: Build binaries against a library in another project
-
-### Open issues
-
-- When linking a native binary, link against exactly the same version of each library that we compiled against, plus any additional link-time dependencies (resources, for example).
-- When installing a native executable, also install exactly the same versions of each library that we linked against, plus any additional runtime dependencies.
-
-## Story: Handle pre-built native libraries
-
-- Add a new container for prebuilt libraries
-- Add a library implementation that doesn't have output-related properties
-- Don't create tasks for generating library binary outputs
-- Allow output file to be specified in a binaries.all {} block
 
 ## Story: Support CUnit test execution
 
@@ -968,6 +981,8 @@ To implement this:
 * Need a `unitTest` lifecycle task, plus a test execution task for each variant of the unit tests.
 * Unit test executable needs to link with the object files that would be linked into the main executable.
 * Need to exclude the `main` method.
+
+## Story: Generate HTML reports for CUnit test output
 
 # Bugfixes
 
@@ -1157,6 +1172,14 @@ This story moves definition and configuration of the source sets for a component
 - Incremental compilation.
 
 # Later Milestones
+
+## Story: Include all macro definitions in Visual Studio project configuration
+
+Include both cppCompiler.define and `cppCompiler.args '/D...'`.
+
+## Story: Include all include paths in Visual Studio project configuration
+
+Include libraries define as source set dependencies, binary dependencies and values supplied via `cppCompiler.args '/I...'`.
 
 ## Story: Allow library binaries to be used as input to other libraries
 
