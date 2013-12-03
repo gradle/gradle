@@ -112,4 +112,18 @@ class TestSelectionMatcherTest extends Specification {
         ["*Foo+Bar*"]                       | "com.Foo+Bar"             | "xxxx"                | true
         ["*Foo+Bar*"]                       | "FooBar"                  | "xxxx"                | false
     }
+
+    def "handles null test method"() {
+        expect: new TestSelectionMatcher(input).matchesTest(className, methodName) == match
+
+        where:
+        input                               | className                 | methodName            | match
+        ["FooTest"]                         | "FooTest"                 | null                  | true
+        ["FooTest*"]                        | "FooTest"                 | null                  | true
+        ["FooTest.*"]                       | "FooTest"                 | null                  | true
+
+        ["FooTest"]                         | "OtherTest"               | null                  | false
+        ["FooTest.test"]                    | "FooTest"                 | null                  | false
+        ["FooTest.null"]                    | "FooTest"                 | null                  | false
+    }
 }

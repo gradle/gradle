@@ -48,7 +48,7 @@ public class TestSelectionMatcher {
     }
 
     public boolean matchesTest(String className, String methodName) {
-        String fullName = className + "." + methodName;
+        String fullName = className + "." + ((methodName!=null)? methodName : "");
         for (Pattern pattern : includePatterns) {
             if (pattern.matcher(fullName).matches()) {
                 return true;
