@@ -123,7 +123,7 @@ class LibraryDependenciesIntegrationTest extends AbstractInstalledToolChainInteg
             libraries {
                 greetings {
                     binaries.withType(StaticLibraryBinary) {
-                        if (toolChain in Gcc) {
+                        if (toolChain in Gcc || toolChain in Clang) {
                             cppCompiler.args '-fPIC'
                         }
                     }
