@@ -22,11 +22,11 @@ import org.gradle.language.DependentSourceSet
 import org.gradle.language.HeaderExportingSourceSet
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.cpp.CppSourceSet
-import org.gradle.nativebinaries.NativeComponent
+import org.gradle.nativebinaries.internal.NativeComponentInternal
 import spock.lang.Specification
 
 class VisualStudioProjectTest extends Specification {
-    def component = Mock(NativeComponent)
+    def component = Mock(NativeComponentInternal)
     def fileResolver = Mock(FileResolver)
     def projectResolver = Mock(VisualStudioProjectResolver)
     def vsProject = new VisualStudioProject("projectName", component, fileResolver, projectResolver)
@@ -68,6 +68,28 @@ class VisualStudioProjectTest extends Specification {
 
         then:
         vsProject.headerFiles == [file1, file2, file3]
+    }
+
+    def "has consistent uuid for same mapped component"() {
+        when:
+        def sameComponent = Mock(NativeComponentInternal)
+        def otherComponent = Mock(NativeComponentInternal)
+
+        def sameProject = new VisualStudioProject("projectName", component, fileResolver, projectResolver)
+        def samePath = new VisualStudioProject("projectName", sameComponent, fileResolver, projectResolver)
+        def differentPath = new VisualStudioProject("projectName", otherComponent, fileResolver, projectResolver)
+        def differentName = new VisualStudioProject("otherProject", component, fileResolver, projectResolver)
+
+        and:
+        component.projectPath >> ":projectPath"
+        sameComponent.projectPath >> ":projectPath"
+        otherComponent.projectPath >> ":otherProjectPath"
+
+        then:
+        vsProject.uuid == sameProject.uuid
+        vsProject.uuid == samePath.uuid
+        vsProject.uuid != differentPath.uuid
+        vsProject.uuid != differentName.uuid
     }
 
     private LanguageSourceSet sourceSet(File... files) {

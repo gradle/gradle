@@ -21,6 +21,7 @@ import org.gradle.language.HeaderExportingSourceSet
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.internal.AbstractBuildableModelElement
 import org.gradle.nativebinaries.*
+import org.gradle.nativebinaries.internal.NativeComponentInternal
 import org.gradle.nativebinaries.internal.resolve.LibraryNativeDependencySet
 import org.gradle.util.CollectionUtils
 /**
@@ -29,7 +30,6 @@ import org.gradle.util.CollectionUtils
 class VisualStudioProject extends AbstractBuildableModelElement implements Named {
     final VisualStudioProjectResolver projectResolver
     final FileResolver fileResolver
-    final String uuid
     final String name
     final NativeComponent component
     final Map<NativeBinary, VisualStudioProjectConfiguration> configurations = [:]
@@ -39,11 +39,16 @@ class VisualStudioProject extends AbstractBuildableModelElement implements Named
         this.name = name
         this.component = component
         this.projectResolver = projectResolver
-        this.uuid = '{' + UUID.randomUUID().toString().toUpperCase() + '}'
     }
 
     File getProjectFile() {
         return fileResolver.resolve("visualStudio/${name}.vcxproj")
+    }
+
+    String getUuid() {
+        String projectPath = (component as NativeComponentInternal).projectPath
+        String vsComponentPath = "${projectPath}:${name}"
+        return '{' + UUID.nameUUIDFromBytes(vsComponentPath.bytes).toString().toUpperCase() + '}'
     }
 
     File getFiltersFile() {

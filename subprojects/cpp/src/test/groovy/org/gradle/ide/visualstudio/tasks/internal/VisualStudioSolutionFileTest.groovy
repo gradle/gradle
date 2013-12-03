@@ -21,9 +21,9 @@ import org.gradle.ide.visualstudio.internal.VisualStudioProject
 import org.gradle.ide.visualstudio.internal.VisualStudioProjectConfiguration
 import org.gradle.ide.visualstudio.internal.VisualStudioProjectResolver
 import org.gradle.nativebinaries.NativeBinary
-import org.gradle.nativebinaries.NativeComponent
 import org.gradle.nativebinaries.internal.DefaultBuildType
 import org.gradle.nativebinaries.internal.DefaultPlatform
+import org.gradle.nativebinaries.internal.NativeComponentInternal
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import spock.lang.Specification
@@ -87,9 +87,10 @@ EndGlobal
     }
 
     private NativeBinary binary(def name) {
-        def component = Mock(NativeComponent)
+        def component = Mock(NativeComponentInternal)
         def binary = Mock(NativeBinary)
         component.name >> "${name}Component"
+        component.projectPath >> "project-path"
         binary.name >> name
         binary.component >> component
         binary.buildType >> new DefaultBuildType("debug")
