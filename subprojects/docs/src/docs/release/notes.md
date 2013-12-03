@@ -26,14 +26,14 @@ Additionally, the progress bar shows correct status in the parallel build. Examp
 ### Executing specific tests
 
 New incubating support of filtering tests allows selection at the level of the test method.
-The new feature is aimed to replace and surpass existing -Dtest.single option. It would be useful for:
+The new feature is aimed to replace and surpass existing "-Dtest.single" option and "test.include" file patterns. It would be useful for:
 
 - Running specific test method
-- Conveniently running test methods by pattern that is simple and readable (e.g no regexp)
+- Conveniently running test methods by pattern that is simple and readable (no regexp)
 - Running all classes from package
 - Conveniently running specific tests or test classes from multiple different test tasks
 
-Some examples of filtering from the terminal, using the new '--tests' command line option:
+Some examples of filtering from the terminal, using the new "--tests" command line option:
 
     //select specific test method
     gradle test --tests org.gradle.SomeTest.someFeature
@@ -57,6 +57,8 @@ It is also possible to configure the test filter in the build script:
             includeTestsMatching '*SomeInterestingTest'
         }
     }
+
+For more information please refer to the user guide chapter on [test filtering](userguide/java_plugin.html#sec:java_test).
 
 ### `shouldRunAfter` task ordering
 
