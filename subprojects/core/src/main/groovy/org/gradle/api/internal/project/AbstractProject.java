@@ -31,8 +31,8 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.*;
 import org.gradle.api.internal.artifacts.ModuleInternal;
-import org.gradle.api.internal.artifacts.ProjectBackedModule;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
+import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
@@ -880,7 +880,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     }
 
     public ModuleInternal getModule() {
-        return new ProjectBackedModule(this);
+        return getServices().get(DependencyMetaDataProvider.class).getModule();
     }
 
     public AntBuilder ant(Closure configureClosure) {

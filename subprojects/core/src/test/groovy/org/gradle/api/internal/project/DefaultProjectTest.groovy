@@ -18,7 +18,6 @@ package org.gradle.api.internal.project
 
 import org.apache.tools.ant.types.FileSet
 import org.gradle.api.*
-import org.gradle.api.artifacts.Module
 import org.gradle.api.artifacts.dsl.ArtifactHandler
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler
 import org.gradle.api.artifacts.dsl.DependencyHandler
@@ -737,7 +736,7 @@ def scriptMethod(Closure closure) {
 
     @Test void testProperties() {
         context.checking {
-            allowing(dependencyMetaDataProviderMock).getModule(); will(returnValue({} as Module))
+            allowing(dependencyMetaDataProviderMock).getModule(); will(returnValue({} as ModuleInternal))
             ignoring(fileOperationsMock)
             ignoring(taskContainerMock)
         }

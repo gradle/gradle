@@ -18,7 +18,6 @@ package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.PublishException;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.file.FileCollection;
@@ -58,14 +57,14 @@ public class Upload extends ConventionTask {
     @TaskAction
     protected void upload() {
         getLogger().info("Publishing configuration: " + configuration);
-        Module module = ((ConfigurationInternal) configuration).getModule();
+        ModuleInternal module = ((ConfigurationInternal) configuration).getModule();
 
         ArtifactPublisher artifactPublisher = publicationServices.createArtifactPublisher();
         File descriptorDestination = isUploadDescriptor() ? getDescriptorDestination() : null;
         List<PublicationAwareRepository> publishRepositories = collect(repositories, Transformers.cast(PublicationAwareRepository.class));
 
         try {
-            artifactPublisher.publish(publishRepositories, (ModuleInternal)module, configuration, descriptorDestination);
+            artifactPublisher.publish(publishRepositories, module, configuration, descriptorDestination);
         } catch (Exception e) {
             throw new PublishException(String.format("Could not publish configuration '%s'", configuration.getName()), e);
         }

@@ -13,23 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.artifacts.component;
 
-import org.gradle.api.Incubating;
+apply plugin: 'java'
 
-/**
- * An opaque identifier for a component instance. There are various sub-interfaces that expose specific details
- * about the identifier.
- *
- * @since 1.10
- */
-@Incubating
-public interface ComponentIdentifier {
-    /**
-     * Returns a human-consumable display name for this identifier.
-     *
-     * @return Component identifier display name
-     * @since 1.10
-     */
-    String getDisplayName();
+repositories {
+    mavenCentral()
 }
+
+dependencies {
+    testCompile 'junit:junit:4.11'
+}
+
+// START SNIPPET test-filtering
+test {
+    filter {
+        //include specific method in any of the tests
+        includeTestsMatching "*UiCheck"
+
+        //include all tests from package
+        includeTestsMatching "org.gradle.internal.*"
+
+        //include all integration tests
+        includeTestsMatching "*IntegTest"
+    }
+}
+// END SNIPPET test-filtering

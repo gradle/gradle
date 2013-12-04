@@ -1150,10 +1150,85 @@
             </para>
         </section>
 
+        <section id="test_filtering">
+
+            <title>Test filtering</title>
+
+            <para>Starting with Gradle 1.10, it is possible to include only specific tests, based on the test name pattern.
+                Filtering is a different mechanism than test class inclusion / exclusion that will be described in the next few paragraphs
+                (<literal>-Dtest.single</literal>, <literal>test.include</literal> and friends).
+                The latter is based on files, e.g. the physical location of the test implementation class.
+                File-level test selection does not support many interesting scenarios that are possible with test-level filtering.
+                Some of them Gradle handles now and some will be satisfied in the future releases:
+                <itemizedlist>
+                    <listitem>Filtering at the level of specific test methods; executing a single test method</listitem>
+                    <listitem>Filtering based on custom annotations (future)</listitem>
+                    <listitem>Filtering based on test hierarchy; executing all tests that extend ceratain base class (future)</listitem>
+                    <listitem>Filtering based on some custom runtime rule, e.g. particular value of a system property or some static state (future)</listitem>
+                </itemizedlist>
+            </para>
+
+            <para>
+                Test filtering feature has following characteristic:
+                <itemizedlist>
+                    <listitem>Fully qualified class name or fully qualified method name is supported,
+                        e.g. "org.gradle.SomeTest", "org.gradle.SomeTest.someMethod"</listitem>
+                    <listitem>Wildcard '*' is supported for matching any characters</listitem>
+                    <listitem>Command line option "--tests" is provided to conveniently set the test filter.
+                        Especially useful for the classic 'single test method execution' use case.
+                        When the command line option is used, the inclusion filters declared in the build script are ignored.
+                    </listitem>
+                    <listitem>Gradle tries best to filter the tests given limitations of particular test framework API.
+                        Some advanced, synthetic tests may not be fully compatible with filtering.
+                        However, vast majority of tests and use cases should be handled neatly.
+                    </listitem>
+                    <listitem>Test filtering supersedes the file-based test selection. The latter may be completely replaced in future.
+                        We will grow the the test filtering api and add more kinds of filters.
+                    </listitem>
+                </itemizedlist>
+            </para>
+
+            <para>
+                <sample id="testfiltering" dir="testing/filtering" title="Filtering tests in the build script">
+                    <sourcefile file="build.gradle" snippet="test-filtering"/>
+                </sample>
+                For more details and examples please see the <apilink class="org.gradle.api.tasks.testing.TestFilter"/> reference.
+            </para>
+
+            <para>
+                Some examples of using the command line option:
+
+                <itemizedlist>
+                    <listitem>
+                        <para><literal>gradle test --tests org.gradle.SomeTest.someSpecificFeature</literal></para>
+                    </listitem>
+                    <listitem>
+                        <para><literal>gradle test --tests SomeTest.someSpecificFeature</literal></para>
+                    </listitem>
+                    <listitem>
+                        <para><literal>gradle test --tests SomeSpecificTest</literal></para>
+                    </listitem>
+                    <listitem>
+                        <para><literal>gradle test --tests all.in.specific.package*</literal></para>
+                    </listitem>
+                    <listitem>
+                        <para><literal>gradle test --tests *IntegTest</literal></para>
+                    </listitem>
+                    <listitem>
+                        <para><literal>gradle test --tests *IntegTest*ui*</literal></para>
+                    </listitem>
+                    <listitem>
+                        <para><literal>gradle someTestTask --tests *UiTest someOtherTestTask --tests *WebTest*ui</literal></para>
+                    </listitem>
+                </itemizedlist>
+            </para>
+        </section>
+
         <section>
             <title>System properties</title>
             <para>There are two system properties that can affect test execution.  Both of these are based off
-                  of the name of the test task with a suffix.
+                  of the name of the test task with a suffix. If you are interested in selecting specific tests for execution
+                make sure you read the previous paragraph on test filtering because the latter feature is more robust.
             </para>
             <para>Setting a system property of <replaceable>taskName.single</replaceable> = <replaceable>testNamePattern</replaceable>
                   will only execute tests that match the specified <replaceable>testNamePattern</replaceable>.
@@ -1228,6 +1303,7 @@
                 and the for exclude it is <literal>"**/Abstract*.class"</literal>.
             </para>
         </section>
+
         <section id="test_grouping">
             <title>Test grouping</title>
             <para>JUnit and TestNG allows sophisticated groupings of test methods. </para>
