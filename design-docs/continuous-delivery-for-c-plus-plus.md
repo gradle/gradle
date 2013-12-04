@@ -916,7 +916,7 @@ project-specific configuration. Solution file needs to contain additional per-pr
 - Add `VisualStudioProject.projectFile.withXml(Action<? super XmlProvider>)` and
   `VisualStudioProject.filtersFile.withXml(Action<? super XmlProvider>)` to modify these files
 
-## Story: Allow Header-only libraries
+## Story: Allow a library to depend on the headers of a component
 
 ### Use case
 
@@ -927,16 +927,52 @@ Consumer project compiles an executable against this library.
 Alternatively, a producer project may produce a separate `api` library for a library, to avoid dependency cycles where
 library A needs the headers of library B to compile, and library B requires library A to link.
 
+### User visible changes
+
+    libraries {
+        library1 {}
+        library2 {}
+    }
+    sources.library1.cpp.lib library: 'library2'
+    sources.library2.cpp.lib library: 'library1', linkage: 'api'
+
 ### Implementation
 
-- Fix the NativeDependencySet implementation so that when the selected binary has no source files, then you don’t get anything at link or runtime.
+- Include 'api' as a new linkage for a Library. Add `ApiLibraryBinary` and create instances for each Library.
+- `Library.api` return a `NativeLibraryRequirement` with linkage = 'api'
+- `ApiLibraryBinary.resolve()` will return a NativeDependencySet that contains only the public headers of the library.
+- When mapping to visual studio:
+    - Ensure that the include path of the referencing project includes the header path from the api binary
+    - Do not generate a visual studio project for the api binary
+
+### Test cases
+
+- Executable provides an api with no implementation. Library implements that api, and is linked into executable.
+- LibraryA provides an api and a default implementation. LibraryB implements the api. Executable links to api of LibraryA and implementation of LibraryB.
+- Compilation succeeds and linking fails when executable requires library, but only declares dependency on api.
+
+### Open issues
+
+- Better mapping to Visual Studio
+
+## Story: Header-only libraries
+
+### Use case
+
+Producer project publishes a library consisting of header files only (e.g. a library of C++ template classes).
+
+Consumer project compiles an executable against this library.
+
+### Implementation
+
+- Fix the NativeBinary implementation so that when the selected binary has no source files, the default 'linkage' for that binary is 'api'.
+- The 'static' and 'shared' linkage of a header-only library are not available.
 - Don’t create tasks for empty source sets
 
 ### Test cases
 
-### Open issues
-
-- Mapping to Visual Studio
+- Library provides a set of header files and no source files. Library is used by Executable for compilation.
+- Library provides a different set of header files for debug and release variants.
 
 ## Story: Component depends on a pre-built library
 
