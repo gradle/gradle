@@ -18,9 +18,7 @@ package org.gradle.nativebinaries.language.cpp.plugins
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.nativebinaries.toolchain.plugins.ClangCompilerPlugin
-import org.gradle.nativebinaries.toolchain.plugins.GccCompilerPlugin
-import org.gradle.nativebinaries.toolchain.plugins.MicrosoftVisualCppPlugin
+import org.gradle.nativebinaries.toolchain.internal.plugins.StandardToolChainsPlugin
 
 /**
  * A plugin for projects wishing to build native binary components from C++ sources.
@@ -31,10 +29,7 @@ import org.gradle.nativebinaries.toolchain.plugins.MicrosoftVisualCppPlugin
 class CppPlugin implements Plugin<ProjectInternal> {
 
     void apply(ProjectInternal project) {
-        project.plugins.apply(MicrosoftVisualCppPlugin)
-        project.plugins.apply(GccCompilerPlugin)
-        project.plugins.apply(ClangCompilerPlugin)
-
+        project.plugins.apply(StandardToolChainsPlugin)
         project.plugins.apply(CppNativeBinariesPlugin)
     }
 }
