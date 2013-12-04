@@ -16,9 +16,8 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
-import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
-import org.gradle.api.internal.artifacts.ModuleVersionSelectorSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
 import org.gradle.messaging.serialize.Decoder;
 import org.gradle.messaging.serialize.Encoder;
@@ -29,12 +28,12 @@ import java.util.Map;
 public class InternalDependencyResultSerializer {
     private final static byte SUCCESSFUL = 0;
     private final static byte FAILED = 1;
-    private final ModuleVersionSelectorSerializer moduleVersionSelectorSerializer = new ModuleVersionSelectorSerializer();
+    private final ComponentSelectorSerializer componentSelectorSerializer = new ComponentSelectorSerializer();
     private final ComponentSelectionReasonSerializer componentSelectionReasonSerializer = new ComponentSelectionReasonSerializer();
     private final ModuleVersionSelectionSerializer moduleVersionSelectionSerializer = new ModuleVersionSelectionSerializer();
 
-    public InternalDependencyResult read(Decoder decoder, Map<ModuleVersionSelector, ModuleVersionResolveException> failures) throws IOException {
-        ModuleVersionSelector requested = moduleVersionSelectorSerializer.read(decoder);
+    public InternalDependencyResult read(Decoder decoder, Map<ComponentSelector, ModuleVersionResolveException> failures) throws IOException {
+        ComponentSelector requested = componentSelectorSerializer.read(decoder);
         ComponentSelectionReason reason = componentSelectionReasonSerializer.read(decoder);
         byte resultByte = decoder.readByte();
         if (resultByte == SUCCESSFUL) {
@@ -49,7 +48,7 @@ public class InternalDependencyResultSerializer {
     }
 
     public void write(Encoder encoder, InternalDependencyResult value) throws IOException {
-        moduleVersionSelectorSerializer.write(encoder, value.getRequested());
+        componentSelectorSerializer.write(encoder, value.getRequested());
         componentSelectionReasonSerializer.write(encoder, value.getReason());
         if (value.getFailure() == null) {
             encoder.writeByte(SUCCESSFUL);

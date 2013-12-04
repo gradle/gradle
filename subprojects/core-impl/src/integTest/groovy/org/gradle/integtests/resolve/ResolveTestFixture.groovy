@@ -74,7 +74,6 @@ allprojects {
         def configDetails = configDetailsFile.text.readLines()
 
         println "VALIDATING"
-        println(configDetailsFile.text)
 
         def actualArtifacts = configDetails.findAll { it.startsWith('artifact:') }.collect { it.substring(9) }
         def expectedArtifacts = graph.artifactNodes.collect { "[${it.moduleVersionId}][${it.module}.jar]" }
@@ -224,7 +223,7 @@ allprojects {
 
         private def addNode(String id, String moduleVersionId = id) {
             def node = graph.node(id, moduleVersionId)
-            deps << new EdgeBuilder(this, node.moduleVersionId, node)
+            deps << new EdgeBuilder(this, node.id, node)
             return node
         }
 

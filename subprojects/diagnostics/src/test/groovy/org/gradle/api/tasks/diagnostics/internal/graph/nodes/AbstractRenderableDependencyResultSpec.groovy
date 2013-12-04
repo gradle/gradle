@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks.diagnostics.internal.graph.nodes
 
+import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import spock.lang.Specification
@@ -38,7 +39,7 @@ class AbstractRenderableDependencyResultSpec extends Specification {
 
     private AbstractRenderableDependencyResult dep(ModuleComponentSelector requested, ModuleComponentIdentifier selected) {
         return new AbstractRenderableDependencyResult() {
-            ModuleComponentSelector getRequested() {
+            ComponentSelector getRequested() {
                 return requested
             }
 

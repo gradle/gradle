@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.result;
 
 import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
@@ -28,7 +29,7 @@ public class DefaultUnresolvedDependencyResult extends AbstractDependencyResult 
     private final ComponentSelectionReason reason;
     private final ModuleVersionResolveException failure;
 
-    public DefaultUnresolvedDependencyResult(ModuleVersionSelector requested, ComponentSelectionReason reason,
+    public DefaultUnresolvedDependencyResult(ComponentSelector requested, ComponentSelectionReason reason,
                                              ResolvedComponentResult from, ModuleVersionResolveException failure) {
         super(requested, from);
         this.reason = reason;

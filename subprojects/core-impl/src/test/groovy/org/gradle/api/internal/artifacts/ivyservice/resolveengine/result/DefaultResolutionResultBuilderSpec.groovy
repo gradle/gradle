@@ -17,11 +17,12 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier
-import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.artifacts.component.ComponentIdentifier
+import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.artifacts.result.ComponentSelectionReason
 import org.gradle.api.artifacts.result.ResolvedDependencyResult
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier
+import org.gradle.api.internal.artifacts.component.DefaultModuleComponentSelector
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException
 import spock.lang.Specification
 
@@ -222,8 +223,9 @@ class DefaultResolutionResultBuilderSpec extends Specification {
 
     private InternalDependencyResult dep(String requested, Exception failure = null, String selected = requested, ComponentSelectionReason selectionReason = VersionSelectionReasons.REQUESTED) {
         def selection = new DummyModuleVersionSelection(selectedId: newId("x", selected, "1"), selectionReason: selectionReason, componentId: new DefaultModuleComponentIdentifier("x", selected, "1"))
-        def selector = newSelector("x", requested, "1")
-        failure = failure == null ? null : new ModuleVersionResolveException(selector, failure)
+        def selector = new DefaultModuleComponentSelector("x", requested, "1")
+        def moduleVersionSelector = newSelector("x", requested, "1")
+        failure = failure == null ? null : new ModuleVersionResolveException(moduleVersionSelector, failure)
         new DummyInternalDependencyResult(requested: selector, selected: selection, failure: failure)
     }
 
@@ -238,7 +240,7 @@ class DefaultResolutionResultBuilderSpec extends Specification {
     }
 
     class DummyInternalDependencyResult implements InternalDependencyResult {
-        ModuleVersionSelector requested
+        ComponentSelector requested
         ModuleVersionSelection selected
         ModuleVersionResolveException failure
         ComponentSelectionReason reason

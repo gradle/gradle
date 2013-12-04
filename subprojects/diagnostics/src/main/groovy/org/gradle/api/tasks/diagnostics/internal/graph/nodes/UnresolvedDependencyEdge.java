@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
+import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
@@ -39,8 +40,8 @@ public class UnresolvedDependencyEdge implements DependencyEdge {
         return false;
     }
 
-    public ModuleComponentSelector getRequested() {
-        return (ModuleComponentSelector)dependency.getRequested();
+    public ComponentSelector getRequested() {
+        return dependency.getRequested();
     }
 
     public ModuleComponentIdentifier getActual() {

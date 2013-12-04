@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
+import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
@@ -40,8 +41,8 @@ public class RenderableUnresolvedDependencyResult extends AbstractRenderableDepe
     }
 
     @Override
-    protected ModuleComponentSelector getRequested() {
-        return (ModuleComponentSelector)dependency.getRequested();
+    protected ComponentSelector getRequested() {
+        return dependency.getRequested();
     }
 
     @Override

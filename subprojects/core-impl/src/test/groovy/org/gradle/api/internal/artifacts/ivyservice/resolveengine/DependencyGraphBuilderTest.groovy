@@ -107,9 +107,9 @@ class DependencyGraphBuilderTest extends Specification {
         then:
         1 * resultBuilder.start(newId("group", "root", "1.0"))
         then:
-        1 * resultBuilder.resolvedConfiguration({ it.name == 'root' }, { it*.requested.name == ['a', 'b'] })
+        1 * resultBuilder.resolvedConfiguration({ it.name == 'root' }, { it*.requested.module == ['a', 'b'] })
         then:
-        1 * resultBuilder.resolvedConfiguration({ it.name == 'a' }, { it*.requested.name == ['c', 'd'] && it*.failure.count { it != null } == 1 })
+        1 * resultBuilder.resolvedConfiguration({ it.name == 'a' }, { it*.requested.module == ['c', 'd'] && it*.failure.count { it != null } == 1 })
     }
 
     def "does not resolve a given dynamic module selector more than once"() {

@@ -58,6 +58,14 @@ task check << {
     assert selectedExternalComponent.moduleVersion.group == 'org.gradle'
     assert selectedExternalComponent.moduleVersion.name == 'test'
     assert selectedExternalComponent.moduleVersion.version == '1.45'
+
+    // Check external dependencies
+    def externalDependencies = result.root.dependencies.requested.findAll { it instanceof ModuleComponentSelector }
+    assert externalDependencies.size() == 1
+    def requestedExternalDependency = externalDependencies[0]
+    assert requestedExternalDependency.group == 'org.gradle'
+    assert requestedExternalDependency.module == 'test'
+    assert requestedExternalDependency.version == '1.45'
 }
 """
 

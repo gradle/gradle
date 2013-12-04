@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.internal.artifacts.ModuleVersionIdentifierSerializer;
@@ -44,7 +44,7 @@ public class StreamingResolutionResultBuilder implements ResolutionResultBuilder
     private final static byte DEPENDENCY = 3;
     private final static byte DONE = 4;
 
-    private final Map<ModuleVersionSelector, ModuleVersionResolveException> failures = new HashMap<ModuleVersionSelector, ModuleVersionResolveException>();
+    private final Map<ComponentSelector, ModuleVersionResolveException> failures = new HashMap<ComponentSelector, ModuleVersionResolveException>();
     private final BinaryStore store;
     private final ModuleVersionIdentifierSerializer moduleVersionIdentifierSerializer = new ModuleVersionIdentifierSerializer();
     private final ModuleVersionSelectionSerializer moduleVersionSelectionSerializer = new ModuleVersionSelectionSerializer();
@@ -116,13 +116,13 @@ public class StreamingResolutionResultBuilder implements ResolutionResultBuilder
         private final ModuleVersionSelectionSerializer moduleVersionSelectionSerializer = new ModuleVersionSelectionSerializer();
 
         private BinaryStore.BinaryData data;
-        private final Map<ModuleVersionSelector, ModuleVersionResolveException> failures;
+        private final Map<ComponentSelector, ModuleVersionResolveException> failures;
         private Store<ResolvedComponentResult> cache;
         private final Object lock = new Object();
         private final ModuleVersionIdentifierSerializer moduleVersionIdentifierSerializer = new ModuleVersionIdentifierSerializer();
         private final InternalDependencyResultSerializer internalDependencyResultSerializer = new InternalDependencyResultSerializer();
 
-        public RootFactory(BinaryStore.BinaryData data, Map<ModuleVersionSelector, ModuleVersionResolveException> failures,
+        public RootFactory(BinaryStore.BinaryData data, Map<ComponentSelector, ModuleVersionResolveException> failures,
                            Store<ResolvedComponentResult> cache) {
             this.data = data;
             this.failures = failures;

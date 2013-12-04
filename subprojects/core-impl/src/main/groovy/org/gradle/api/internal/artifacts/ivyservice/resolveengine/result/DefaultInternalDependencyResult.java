@@ -16,18 +16,18 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
-import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException;
 
 public class DefaultInternalDependencyResult implements InternalDependencyResult {
 
-    private final ModuleVersionSelector requested;
+    private final ComponentSelector requested;
     private final ModuleVersionSelection selected;
     private final ComponentSelectionReason reason;
     private ModuleVersionResolveException failure;
 
-    public DefaultInternalDependencyResult(ModuleVersionSelector requested,
+    public DefaultInternalDependencyResult(ComponentSelector requested,
                                            ModuleVersionSelection selected,
                                            ComponentSelectionReason reason,
                                            ModuleVersionResolveException failure) {
@@ -41,7 +41,7 @@ public class DefaultInternalDependencyResult implements InternalDependencyResult
         this.failure = failure;
     }
 
-    public ModuleVersionSelector getRequested() {
+    public ComponentSelector getRequested() {
         return requested;
     }
 

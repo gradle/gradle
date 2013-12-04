@@ -65,13 +65,19 @@ project(":b") {
         assert rootPublishedAs.version == rootId.version
 
         // Check project components
-        def projectDependencies = result.root.dependencies.selected.findAll { it.id instanceof ProjectComponentIdentifier }
-        assert projectDependencies.size() == 1
-        def projectA = projectDependencies[0]
+        def projectComponents = result.root.dependencies.selected.findAll { it.id instanceof ProjectComponentIdentifier }
+        assert projectComponents.size() == 1
+        def projectA = projectComponents[0]
         assert projectA.id.projectPath == ':a'
         assert projectA.moduleVersion.group != null
         assert projectA.moduleVersion.name == 'a'
         assert projectA.moduleVersion.version == 'unspecified'
+
+        // Check project dependencies
+        def projectDependencies = result.root.dependencies.requested.findAll { it instanceof ProjectComponentSelector }
+        assert projectDependencies.size() == 1
+        def projectDependency = projectDependencies[0]
+        assert projectDependency.projectPath == ':a'
 
         // Check external module components
         def externalComponents = result.allDependencies.selected.findAll { it.id instanceof ModuleComponentIdentifier }

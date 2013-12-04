@@ -826,7 +826,7 @@ org:leaf2:1.0
 
         then:
         output.contains(toPlatformLineSeparators("""
-org.foo:root:1.0
+project :
 \\--- org.foo:impl:1.0
      \\--- org.foo:root:1.0 (*)"""))
     }
@@ -857,7 +857,7 @@ org.foo:root:1.0
                 }
             }
             task insight(type: DependencyInsightReportTask) {
-                setDependencySpec { it.requested.module == 'leaf2' }
+                setDependencySpec { it.requested instanceof ModuleComponentSelector && it.requested.module == 'leaf2' }
                 configuration = configurations.compile
             }
         """

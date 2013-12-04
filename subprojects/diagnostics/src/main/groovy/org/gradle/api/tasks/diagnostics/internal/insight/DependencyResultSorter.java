@@ -18,6 +18,7 @@ package org.gradle.api.tasks.diagnostics.internal.insight;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
+import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.DependencyEdge;
 import org.gradle.util.CollectionUtils;
@@ -47,6 +48,16 @@ public class DependencyResultSorter {
         }
 
         public int compare(DependencyEdge left, DependencyEdge right) {
+            if(left.getRequested() instanceof ModuleComponentSelector && right.getRequested() instanceof ModuleComponentSelector) {
+                return compareModuleComponentSelectors(left, right);
+            } else if(left.getRequested() instanceof ProjectComponentSelector && right.getRequested() instanceof ProjectComponentSelector) {
+                return compareProjectComponentSelectors(left, right);
+            }
+
+            throw new IllegalArgumentException("Unexpected type for dependency edges (left: " + left + ", right: " + right + ")");
+        }
+
+        private int compareModuleComponentSelectors(DependencyEdge left, DependencyEdge right) {
             ModuleComponentSelector leftRequested = (ModuleComponentSelector)left.getRequested();
             ModuleComponentSelector rightRequested = (ModuleComponentSelector)right.getRequested();
             int byGroup = leftRequested.getGroup().compareTo(rightRequested.getGroup());
@@ -102,6 +113,12 @@ public class DependencyResultSorter {
             }
 
             return matcher.compare(leftFrom.getVersion(), rightFrom.getVersion());
+        }
+
+        private int compareProjectComponentSelectors(DependencyEdge left, DependencyEdge right) {
+            ProjectComponentSelector leftRequested = (ProjectComponentSelector)left.getRequested();
+            ProjectComponentSelector rightRequested = (ProjectComponentSelector)right.getRequested();
+            return leftRequested.getProjectPath().compareTo(rightRequested.getProjectPath());
         }
     }
 }

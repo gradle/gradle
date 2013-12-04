@@ -281,16 +281,16 @@ rootProject.name = 'root'
         output.contains "compile - Compile classpath for source set 'main'."
 
         output.contains(toPlatformLineSeparators("""
-+--- root:a:1.0
++--- project :a
 |    \\--- foo:bar:1.0 -> 3.0
 |         \\--- foo:baz:5.0
-+--- root:b:1.0
++--- project :b
 |    \\--- foo:bar:0.5.dont.exist -> 3.0 (*)
-+--- root:c:1.0
++--- project :c
 |    \\--- foo:bar:3.0 (*)
-+--- root:d:1.0
++--- project :d
 |    \\--- foo:bar:2.0 -> 3.0 (*)
-\\--- root:e:1.0
+\\--- project :e
      \\--- foo:bar:3.0 (*)
 """))
     }

@@ -16,6 +16,7 @@
 package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
 import org.gradle.api.Nullable;
+import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 
@@ -43,23 +44,28 @@ public abstract class AbstractRenderableDependencyResult implements RenderableDe
     }
 
     private String getSimpleName() {
-        ModuleComponentSelector requested = getRequested();
-        return requested.getGroup() + ":" + requested.getModule() + ":" + requested.getVersion();
+        ComponentSelector requested = getRequested();
+        return requested.getDisplayName();
     }
 
     private String getVerboseName() {
-        ModuleComponentSelector requested = getRequested();
+        ComponentSelector requested = getRequested();
         ModuleComponentIdentifier selected = getActual();
-        if(!selected.getGroup().equals(requested.getGroup()) || !selected.getModule().equals(requested.getModule())) {
-            return getSimpleName() + " -> " + selected.getGroup() + ":" + selected.getModule() + ":" + selected.getVersion();
+
+        if(requested instanceof ModuleComponentSelector) {
+            ModuleComponentSelector requestedModuleComponentSelector = (ModuleComponentSelector)requested;
+            if(!selected.getGroup().equals(requestedModuleComponentSelector.getGroup()) || !selected.getModule().equals(requestedModuleComponentSelector.getModule())) {
+                return getSimpleName() + " -> " + selected.getGroup() + ":" + selected.getModule() + ":" + selected.getVersion();
+            }
+            if (!selected.getVersion().equals(requestedModuleComponentSelector.getVersion())) {
+                return getSimpleName() + " -> " + selected.getVersion();
+            }
         }
-        if (!selected.getVersion().equals(requested.getVersion())) {
-            return getSimpleName() + " -> " + selected.getVersion();
-        }
+
         return getSimpleName();
     }
 
-    protected abstract ModuleComponentSelector getRequested();
+    protected abstract ComponentSelector getRequested();
 
     protected abstract ModuleComponentIdentifier getActual();
 }

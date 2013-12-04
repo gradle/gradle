@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.artifacts.result
 
+import org.gradle.api.internal.artifacts.component.DefaultModuleComponentSelector
+import org.gradle.internal.Factory
 import spock.lang.Specification
 
-import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
-import org.gradle.internal.Factory;
 import static org.gradle.api.internal.artifacts.result.ResolutionResultDataBuilder.*
 
 class DefaultResolutionResultTest extends Specification {
@@ -77,7 +77,7 @@ class DefaultResolutionResultTest extends Specification {
         def root = newModule('a', 'a', '1')
         def dep1 = newDependency('b', 'b', '1')
         root.addDependency(dep1)
-        dep1.selected.addDependency(new DefaultResolvedDependencyResult(newSelector('a', 'a', '1'), root, dep1.selected))
+        dep1.selected.addDependency(new DefaultResolvedDependencyResult(DefaultModuleComponentSelector.newSelector('a', 'a', '1'), root, dep1.selected))
 
         when:
         def deps = new DefaultResolutionResult({root} as Factory).allDependencies

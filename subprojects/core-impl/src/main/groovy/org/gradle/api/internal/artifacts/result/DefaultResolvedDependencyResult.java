@@ -16,14 +16,14 @@
 
 package org.gradle.api.internal.artifacts.result;
 
-import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 
 public class DefaultResolvedDependencyResult extends AbstractDependencyResult implements ResolvedDependencyResult {
     private final ResolvedComponentResult selected;
 
-    public DefaultResolvedDependencyResult(ModuleVersionSelector requested, ResolvedComponentResult selected, ResolvedComponentResult from) {
+    public DefaultResolvedDependencyResult(ComponentSelector requested, ResolvedComponentResult selected, ResolvedComponentResult from) {
         super(requested, from);
         this.selected = selected;
     }

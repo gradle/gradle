@@ -16,15 +16,15 @@
 
 package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
+import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentSelector;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class RequestedVersion extends AbstractRenderableDependencyResult {
-    private final ModuleComponentSelector requested;
+    private final ComponentSelector requested;
     private final ModuleComponentIdentifier actual;
     private final boolean resolvable;
     private final String description;
@@ -34,7 +34,7 @@ public class RequestedVersion extends AbstractRenderableDependencyResult {
         this(DefaultModuleComponentSelector.newSelector(actual.getGroup(), actual.getModule(), actual.getVersion()), actual, resolvable, description);
     }
 
-    public RequestedVersion(ModuleComponentSelector requested, ModuleComponentIdentifier actual, boolean resolvable, String description) {
+    public RequestedVersion(ComponentSelector requested, ModuleComponentIdentifier actual, boolean resolvable, String description) {
         this.requested = requested;
         this.actual = actual;
         this.resolvable = resolvable;
@@ -56,7 +56,7 @@ public class RequestedVersion extends AbstractRenderableDependencyResult {
     }
 
     @Override
-    protected ModuleComponentSelector getRequested() {
+    protected ComponentSelector getRequested() {
         return requested;
     }
 
