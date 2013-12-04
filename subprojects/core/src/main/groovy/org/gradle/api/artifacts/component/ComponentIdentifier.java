@@ -18,7 +18,7 @@ package org.gradle.api.artifacts.component;
 import org.gradle.api.Incubating;
 
 /**
- * An opaque identifier for a component instance. There are various sub-interfaces which expose specific details
+ * An opaque identifier for a component instance. There are various sub-interfaces that expose specific details
  * about the identifier.
  *
  * @since 1.10
