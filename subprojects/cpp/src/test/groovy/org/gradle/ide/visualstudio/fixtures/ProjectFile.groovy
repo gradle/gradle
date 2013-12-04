@@ -86,6 +86,14 @@ class ProjectFile {
             buildConfiguration.ClCompile[0].AdditionalIncludeDirectories[0].text()
         }
 
+        String getResourceMacros() {
+            buildConfiguration.ResourceCompile[0].PreprocessorDefinitions[0].text()
+        }
+
+        String getResourceIncludePath() {
+            buildConfiguration.ResourceCompile[0].AdditionalIncludeDirectories[0].text()
+        }
+
         ProjectFile getProject() {
             return ProjectFile.this
         }

@@ -75,7 +75,7 @@ class VisualStudioProjectFile extends XmlPersistableConfigurationObject {
                 NMakeBuildCommandLine("gradlew.bat ${configuration.buildTask}")
                 NMakeCleanCommandLine("gradlew.bat ${configuration.cleanTask}")
                 NMakeReBuildCommandLine("gradlew.bat ${configuration.cleanTask} ${configuration.buildTask}")
-                NMakePreprocessorDefinitions(configuration.defines.join(";"))
+                NMakePreprocessorDefinitions(configuration.compilerDefines.join(";"))
                 NMakeIncludeSearchPath(includePath)
                 NMakeOutput(toPath(configuration.outputFile))
                 IntDir("\$(ProjectName)\\\$(Configuration)\\")
@@ -83,7 +83,11 @@ class VisualStudioProjectFile extends XmlPersistableConfigurationObject {
             ItemDefinitionGroup(Label: "VSBuildConfiguration", Condition: configCondition) {
                 ClCompile {
                     AdditionalIncludeDirectories(includePath)
-                    PreprocessorDefinitions(configuration.defines.join(";"))
+                    PreprocessorDefinitions(configuration.compilerDefines.join(";"))
+                }
+                ResourceCompile {
+                    AdditionalIncludeDirectories(includePath)
+                    PreprocessorDefinitions(configuration.resourceDefines.join(";"))
                 }
                 Link {
                     GenerateDebugInformation("true")

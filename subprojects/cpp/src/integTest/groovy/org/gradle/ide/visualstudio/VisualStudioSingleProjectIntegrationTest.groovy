@@ -17,6 +17,7 @@ package org.gradle.ide.visualstudio
 import org.gradle.ide.visualstudio.fixtures.ProjectFile
 import org.gradle.ide.visualstudio.fixtures.SolutionFile
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativebinaries.language.cpp.fixtures.RequiresInstalledToolChain
 import org.gradle.nativebinaries.language.cpp.fixtures.app.CppHelloWorldApp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.ExeWithLibraryUsingLibraryHelloWorldApp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.MixedLanguageHelloWorldApp
@@ -371,6 +372,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         solutionFile("visualStudio/mainExe.sln").assertHasProjects("mainExe")
     }
 
+    @RequiresInstalledToolChain("visual c++")
     def "generate visual studio solution for executable with windows resource files"() {
         given:
         def resourceApp = new WindowsResourceHelloWorldApp()
@@ -381,6 +383,10 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
             apply plugin: 'windows-resources'
             executables {
                 main {}
+            }
+            binaries.all {
+                rcCompiler.define "TEST"
+                rcCompiler.define "foo", "bar"
             }
         """
 
@@ -394,7 +400,10 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         projectFile.headerFiles == allFiles("src/main/headers")
         projectFile.projectConfigurations.keySet() == projectConfigurations
         with (projectFile.projectConfigurations['debug|Win32']) {
+            macros == ""
             includePath == filePath("src/main/headers")
+            resourceMacros == "TEST;foo=bar"
+            resourceIncludePath == includePath
         }
 
         and:

@@ -63,14 +63,24 @@ class VisualStudioProjectConfiguration {
         return binary.buildType.name != 'release'
     }
 
-    List<String> getDefines() {
+    List<String> getCompilerDefines() {
         PreprocessingTool compilerTool = findCompiler()
         return compilerTool == null ? [] : new MacroArgsConverter().transform(compilerTool.macros)
     }
 
     private PreprocessingTool findCompiler() {
         ExtensionAware extendedBinary = binary as ExtensionAware;
-        return extendedBinary.extensions.findByName('cppCompiler') ?: extendedBinary.extensions.findByName('cCompiler') as PreprocessingTool
+        return (extendedBinary.extensions.findByName('cppCompiler') ?: extendedBinary.extensions.findByName('cCompiler')) as PreprocessingTool
+    }
+
+    List<String> getResourceDefines() {
+        PreprocessingTool rcCompiler = findRcCompiler()
+        return rcCompiler == null ? [] : new MacroArgsConverter().transform(rcCompiler.macros)
+    }
+
+    private PreprocessingTool findRcCompiler() {
+        ExtensionAware extendedBinary = binary as ExtensionAware;
+        return extendedBinary.extensions.findByName('rcCompiler') as PreprocessingTool
     }
 
     List<File> getIncludePaths() {

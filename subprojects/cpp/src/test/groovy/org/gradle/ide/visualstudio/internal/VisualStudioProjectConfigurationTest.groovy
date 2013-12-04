@@ -86,7 +86,7 @@ class VisualStudioProjectConfigurationTest extends Specification {
         new DefaultArchitecture("x86", ArchitectureInternal.InstructionSet.ITANIUM, 64) | "Itanium"
     }
 
-    def "defines are taken from cpp or c compiler config"() {
+    def "compiler defines are taken from cpp or c compiler config"() {
         def cppCompiler = Mock(PreprocessingTool)
         def cCompiler = Mock(PreprocessingTool)
 
@@ -95,14 +95,14 @@ class VisualStudioProjectConfigurationTest extends Specification {
         1 * extensions.findByName('cCompiler') >> null
 
         then:
-        configuration.defines == []
+        configuration.compilerDefines == []
 
         when:
         1 * extensions.findByName('cppCompiler') >> cppCompiler
         cppCompiler.macros >> [foo: "bar", empty: null]
 
         then:
-        configuration.defines == ["foo=bar", "empty"]
+        configuration.compilerDefines == ["foo=bar", "empty"]
 
         when:
         1 * extensions.findByName('cppCompiler') >> null
@@ -110,7 +110,24 @@ class VisualStudioProjectConfigurationTest extends Specification {
         cCompiler.macros >> [foo: "bar", another: null]
 
         then:
-        configuration.defines == ["foo=bar", "another"]
+        configuration.compilerDefines == ["foo=bar", "another"]
+    }
+
+    def "resource defines are taken from rcCompiler config"() {
+        def rcCompiler = Mock(PreprocessingTool)
+
+        when:
+        1 * extensions.findByName('rcCompiler') >> null
+
+        then:
+        configuration.resourceDefines == []
+
+        when:
+        1 * extensions.findByName('rcCompiler') >> rcCompiler
+        rcCompiler.macros >> [foo: "bar", empty: null]
+
+        then:
+        configuration.resourceDefines == ["foo=bar", "empty"]
     }
 
     def "include paths include component headers"() {

@@ -96,7 +96,7 @@ class VisualStudioProjectFileTest extends Specification {
             getPlatformName() >> platformName
             getBuildTask() >> "buildMe"
             getCleanTask() >> "cleanMe"
-            getDefines() >> defines
+            getCompilerDefines() >> defines
             getIncludePaths() >> includes.collect { file(it) }
         }
     }
