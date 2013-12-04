@@ -1,10 +1,10 @@
 This release adds some nice command-line usability features, with the ability to run a single test method and view task help from the command-line, along with
-improvements to progress reporting on the command-line.
+some very useful improvements to progress reporting.
 
 A new 'should run after' task ordering rule rounds out the task execution rules added over the last several Gradle releases. These rules give you fine-grained control
 when you need to influence task execution.
 
-Work on the native languages support continues with more features for C and C++ development. This release sees the introduction of incremental compilation for C and C++,
+Work on support for native languages continues with more features for C and C++ development. This release sees the introduction of incremental compilation for C and C++,
 plus better integration with the Visual Studio and GCC tool chains.
 
 ## New and noteworthy
@@ -89,7 +89,7 @@ If it is specified that…
     }
 
 Then Gradle will execute `b` after `a` if there is not a good reason to do otherwise.
-This means that use of `shouldRunAfter` can not create a dependency cycle and it also does not prevent parallel execution of tasks.
+This means that use of `shouldRunAfter` can not create a dependency cycle and it also does not prevent the tasks executing in parallel.
 
 For more examples please see [Ordering tasks](userguide/more_about_tasks.html#sec:ordering_tasks) in the User Guide.
 
@@ -157,7 +157,7 @@ The windows resource source directories can be configured via the associated `Wi
         }
     }
 
-For more details please see the [Windows Resources](userguide/nativeBinaries.html#native_binaries:windows-resources) section in the User Guide.
+For more details please see [Windows Resources](userguide/nativeBinaries.html#native_binaries:windows-resources) in the User Guide.
 
 ### Support for GCC cross-compilers (i)
 
@@ -271,17 +271,17 @@ The following methods have been promoted and are no longer incubating:
 
 ### Dependency resolution result produces a graph of components instead of a graph of module versions (i)
 
-As part of initial work to support more powerful dependency management, such as dependency management for native binaries, Android libraries, or
+As part of initial work to support more powerful dependency management, such handling native binaries, Android libraries and applications, and
 Scala libraries built for multiple Scala versions, the dependency resolution result API has been changed.
 
 #### What does this change mean?
 
-The model is now that dependency resolution produces a graph of _components_ instead of _module versions_. A component represents things such as a
-Java library, or native executable and so on. This is a higher level and more general concept than a module version, which simply represents something
+The dependency resolution model is now that the result of dependency resolution is a graph of _components_ rather than _module versions_. A component represents things
+such as a Java library, or native executable and so on. This is a higher level and more general concept than a module version, which simply represents something
 published to a binary repository.
 
-The main change in this release is to model the fact that not all components included in the result of a dependency resolution are necessarily published to
-a binary repository. For example, a component might be built by some other project in the build, or may be pre-built and installed on the local machine
+The main change in this release is to reflect the fact that not all dependencies of a project are published to a binary repository.
+For example, a component might be built by some other project in the build, or may be pre-built and installed on the local machine
 somewhere, or might be built by some other build tool.
 
 #### Changes to the `ResolutionResult` API
@@ -304,20 +304,20 @@ somewhere, or might be built by some other build tool.
 ### Dependency resolution prefers the latest version of a module regardless of whether it has meta-data or not
 
 In this release, the way that Gradle selects a matching version for a dynamic version, such as `1.2+` or `latest.integration` has changed. For
-the large majority of cases, the result will continue to be the same as previous releases. However, there may be cases where this change will produce a different
+the large majority of cases, the result will be the same as previous releases. However, there may be cases where this change will produce a different
 result.
 
 #### Selecting a match for dynamic version criteria
 
 Previously, Gradle would select a match for a dynamic version by first searching for versions that include a meta-data file, such as a `pom.xml` or
-an `ivy.xml` file. If any such versions were found, Gradle would select the highest version that meets the criteria. If no versions were found with a meta-data file,
-then Gradle would search again, this time for versions without a meta-data file. Gradle would then select the highest version from these.
+an `ivy.xml` file. If any such versions were found, Gradle would select the highest version that meets the criteria and use it. If no versions were found with a
+meta-data file, then Gradle would search again, this time for versions without a meta-data file. Gradle would then select the highest version from these.
 
-There are several problems with this approach: Firstly, it requires two separate repository searches, which can be a performance or stability problem, in
-particular when multiple repositories need to be searched. Secondly, this can give unexpected results when the module, for whatever reason, is sometimes published
+There are several problems with this approach: Firstly, it requires two separate repository searches, which can be a performance or stability issue, in
+particular when multiple repositories have to be searched. Secondly, this can give unexpected results when the module, for whatever reason, is sometimes published
 with meta-data and sometimes without meta-data.
 
-In the 1.10 release, Gradle will now search once for all versions of the module and select the highest version that meets the criteria, regardless of whether the version
+In the 1.10 release, Gradle now searches once for all versions of the module and select the highest version that meets the criteria, regardless of whether the version
 includes a meta-data file or not.
 
 ## External contributions
