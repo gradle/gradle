@@ -22,6 +22,7 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Ignore
 
+@Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
 class BinaryFlavorsIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     static final DEFAULT = HelloWorldApp.HELLO_WORLD
     static final FRENCH = HelloWorldApp.HELLO_WORLD_FRENCH
@@ -85,7 +86,6 @@ class BinaryFlavorsIntegrationTest extends AbstractInstalledToolChainIntegration
         installation("build/install/mainExecutable").exec().out == FRENCH + " " + FRENCH
     }
 
-    @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
     def "builds executable for each defined flavor when not configured for component"() {
         when:
         succeeds "installEnglishMainExecutable", "installFrenchMainExecutable", "installGermanMainExecutable"
@@ -96,7 +96,6 @@ class BinaryFlavorsIntegrationTest extends AbstractInstalledToolChainIntegration
         installation("build/install/mainExecutable/german").assertInstalled()
     }
 
-    @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
     def "executable with flavors depends on library with matching flavors"() {
         when:
         buildFile << """
@@ -130,7 +129,6 @@ class BinaryFlavorsIntegrationTest extends AbstractInstalledToolChainIntegration
 
     // TODO:DAZ Un-ignore
     @Ignore("Requires proper dependency resolution")
-    @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
     def "executable with flavors depends on library with no defined flavor"() {
         when:
         buildFile << """
@@ -155,7 +153,6 @@ class BinaryFlavorsIntegrationTest extends AbstractInstalledToolChainIntegration
     }
 
     // TODO:DAZ Un-ignore
-    @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
     @Ignore("Library resolution does not yet handle this case")
     def "executable with flavors depends on a library with a single flavor which depends on a library with flavors"() {
         when:
@@ -227,6 +224,4 @@ class BinaryFlavorsIntegrationTest extends AbstractInstalledToolChainIntegration
         failure.assertHasDescription("A problem occurred configuring root project 'test'.")
         failure.assertHasCause("Invalid Flavor: 'unknown'")
     }
-
-
 }
