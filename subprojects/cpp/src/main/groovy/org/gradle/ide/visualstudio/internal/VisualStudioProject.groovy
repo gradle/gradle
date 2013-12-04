@@ -20,6 +20,7 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.language.HeaderExportingSourceSet
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.internal.AbstractBuildableModelElement
+import org.gradle.language.rc.WindowsResourceSet
 import org.gradle.nativebinaries.*
 import org.gradle.nativebinaries.internal.NativeComponentInternal
 import org.gradle.nativebinaries.internal.resolve.LibraryNativeDependencySet
@@ -58,9 +59,19 @@ class VisualStudioProject extends AbstractBuildableModelElement implements Named
     List<File> getSourceFiles() {
         def allSource = [] as Set
         component.source.each { LanguageSourceSet sourceSet ->
-            allSource.addAll sourceSet.source.files
+            if (!(sourceSet instanceof WindowsResourceSet)) {
+                allSource.addAll sourceSet.source.files
+            }
         }
         return allSource as List
+    }
+
+    List<File> getResourceFiles() {
+        def allResources = [] as Set
+        component.source.withType(WindowsResourceSet).each { WindowsResourceSet sourceSet ->
+            allResources.addAll sourceSet.source.files
+        }
+        return allResources as List
     }
 
     List<File> getHeaderFiles() {

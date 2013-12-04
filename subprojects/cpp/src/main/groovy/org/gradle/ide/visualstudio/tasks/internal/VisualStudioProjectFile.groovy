@@ -44,6 +44,11 @@ class VisualStudioProjectFile extends XmlPersistableConfigurationObject {
         sources.appendNode("ClCompile", [Include: toPath(it)])
     }
 
+    def addResource(File it) {
+        def resources = xml.ItemGroup.find({ it.'@Label' == 'References' }) as Node
+        resources.appendNode("ResourceCompile", [Include: toPath(it)])
+    }
+
     def addHeaderFile(File it) {
         def headers = xml.ItemGroup.find({ it.'@Label' == 'Headers' }) as Node
         headers.appendNode("ClInclude", [Include: toPath(it)])

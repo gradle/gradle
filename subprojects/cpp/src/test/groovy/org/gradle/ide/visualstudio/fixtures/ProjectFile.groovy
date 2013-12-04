@@ -51,6 +51,11 @@ class ProjectFile {
         return sources*.'@Include'
     }
 
+    public List<String> getResourceFiles() {
+        def sources = itemGroup('References').ResourceCompile
+        return sources*.'@Include'
+    }
+
     public List<String> getHeaderFiles() {
         def sources = itemGroup('Headers').ClInclude
         return sources*.'@Include'

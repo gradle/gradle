@@ -53,6 +53,9 @@ class GenerateProjectFileTask extends GeneratorTask<PersistableConfigurationObje
             vsProject.sourceFiles.each {
                 projectFile.addSourceFile(it)
             }
+            vsProject.resourceFiles.each {
+                projectFile.addResource(it)
+            }
             vsProject.headerFiles.each {
                 projectFile.addHeaderFile(it)
             }
