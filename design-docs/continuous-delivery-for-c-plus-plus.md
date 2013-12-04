@@ -849,6 +849,8 @@ Here's an example:
 - Selector DSL to choose all platforms with a particular operating system or architecture.
 - Accept a collection of values to make it easy to use flavors.matching({}) or buildTypes.matching({})
 - Possibly use a single `target` method to accept a platform, buildType or flavor selector. Would require that selectors are typed.
+- Add conventional platforms, build types and flavor
+- When none targeted, choose a single default platform, build type and/or flavor to target.
 
 ## Story: Handle project cycles in component dependency graph
 
