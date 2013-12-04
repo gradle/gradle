@@ -27,12 +27,14 @@ import org.gradle.nativebinaries.internal.resolve.LibraryNativeDependencySet
 
 class VisualStudioSolution extends AbstractBuildableModelElement implements Named {
     final String name
+    final String configurationName
     private final NativeBinaryInternal rootBinary
     private final FileResolver fileResolver
     private final VisualStudioProjectResolver vsProjectResolver
 
-    VisualStudioSolution(String name, NativeBinaryInternal rootBinary, FileResolver fileResolver, VisualStudioProjectResolver vsProjectResolver) {
-        this.name = name
+    VisualStudioSolution(VisualStudioProjectConfiguration rootProjectConfiguration, NativeBinaryInternal rootBinary, FileResolver fileResolver, VisualStudioProjectResolver vsProjectResolver) {
+        this.name = rootProjectConfiguration.project.name
+        this.configurationName = rootProjectConfiguration.name
         this.rootBinary = rootBinary
         this.fileResolver = fileResolver
         this.vsProjectResolver = vsProjectResolver

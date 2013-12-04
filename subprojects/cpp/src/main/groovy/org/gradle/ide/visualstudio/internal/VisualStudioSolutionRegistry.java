@@ -40,10 +40,10 @@ public class VisualStudioSolutionRegistry extends DefaultNamedDomainObjectSet<Vi
     }
 
     private VisualStudioSolution createSolution(NativeBinary nativeBinary) {
-        return new VisualStudioSolution(solutionName(nativeBinary), (NativeBinaryInternal) nativeBinary, fileResolver, projectResolver);
+        return new VisualStudioSolution(rootConfiguration(nativeBinary), (NativeBinaryInternal) nativeBinary, fileResolver, projectResolver);
     }
 
-    private String solutionName(NativeBinary nativeBinary) {
-        return localProjects.getProjectConfiguration(nativeBinary).getProject().getName();
+    private VisualStudioProjectConfiguration rootConfiguration(NativeBinary nativeBinary) {
+        return localProjects.getProjectConfiguration(nativeBinary);
     }
 }

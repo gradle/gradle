@@ -51,6 +51,7 @@ class GenerateSolutionFileTask extends GeneratorTask<PersistableConfigurationObj
         public void configure(PersistableConfigurationObject object) {
             VisualStudioSolutionFile solutionFile = object as VisualStudioSolutionFile;
             VisualStudioSolution solution = GenerateSolutionFileTask.this.solution
+            solutionFile.solutionConfiguration = solution.configurationName
             solution.projectConfigurations.each {
                 solutionFile.addProjectConfiguration(it)
             }

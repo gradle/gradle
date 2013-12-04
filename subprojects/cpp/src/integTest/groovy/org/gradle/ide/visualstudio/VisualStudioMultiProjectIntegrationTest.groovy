@@ -83,17 +83,9 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
 
         and:
         final mainSolution = solutionFile("exe/visualStudio/mainExe.sln")
-        mainSolution.projects.keySet() == ["mainExe", "helloLib"] as Set
-        with (mainSolution.projects['mainExe']) {
-            file == filePath('exe/visualStudio/mainExe.vcxproj')
-            uuid == exeProject.projectGuid
-            configurations == ['debug|Win32']
-        }
-        with (mainSolution.projects['helloLib']) {
-            file == filePath('lib/visualStudio/helloLib.vcxproj')
-            uuid == libProject.projectGuid
-            configurations == ['debug|Win32']
-        }
+        mainSolution.assertHasProjects("mainExe", "helloLib")
+        mainSolution.assertReferencesProject(exeProject, ["debug|Win32"])
+        mainSolution.assertReferencesProject(libProject, ["debug|Win32"])
     }
 
     private SolutionFile solutionFile(String path) {

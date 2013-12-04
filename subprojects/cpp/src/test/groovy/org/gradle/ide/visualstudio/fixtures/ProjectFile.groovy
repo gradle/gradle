@@ -18,10 +18,14 @@ package org.gradle.ide.visualstudio.fixtures
 import org.gradle.test.fixtures.file.TestFile
 
 class ProjectFile {
+    String name
+    TestFile projectFile
     Node projectXml
 
     ProjectFile(TestFile projectFile) {
         assert projectFile.exists()
+        this.projectFile = projectFile
+        this.name = projectFile.name.replace(".vcxproj", "")
         this.projectXml = new XmlParser().parse(projectFile)
     }
 
@@ -75,6 +79,10 @@ class ProjectFile {
 
         String getIncludePath() {
             buildConfiguration.ClCompile[0].AdditionalIncludeDirectories[0].text()
+        }
+
+        ProjectFile getProject() {
+            return ProjectFile.this
         }
 
         private Node getBuildConfiguration() {

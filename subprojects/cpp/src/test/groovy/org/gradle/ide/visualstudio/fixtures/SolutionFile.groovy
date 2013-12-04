@@ -21,14 +21,14 @@ import org.gradle.util.TextUtil
 
 class SolutionFile {
     String content
-    Map<String, Project> projects = [:]
+    Map<String, ProjectReference> projects = [:]
 
     SolutionFile(TestFile solutionFile) {
         assert solutionFile.exists()
         content = TextUtil.normaliseLineSeparators(solutionFile.text)
 
         content.findAll(~/(?m)^Project\(\"\{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942\}\"\) = \"(\w+)\", \"([^\"]*)\", \"\{([\w\-]+)\}\"$/, {
-            projects.put(it[1], new Project(it[1], it[2], it[3]))
+            projects.put(it[1], new ProjectReference(it[1], it[2], it[3]))
         })
     }
 
@@ -37,12 +37,24 @@ class SolutionFile {
         return true
     }
 
-    class Project {
+    def assertReferencesProject(ProjectFile expectedProject, List<String> configurations) {
+        assertReferencesProject(expectedProject, configurations.collectEntries {[(it):it]})
+    }
+
+    def assertReferencesProject(ProjectFile expectedProject, Map<String, String> configurations) {
+        ProjectReference reference = projects.get(expectedProject.name)
+        assert reference.uuid == expectedProject.projectGuid
+        assert reference.file == expectedProject.projectFile.absolutePath
+        assert reference.configurations == configurations
+        return true
+    }
+
+    class ProjectReference {
         final String name
         final String file
         final String rawUuid
 
-        Project(String name, String file, String rawUuid) {
+        ProjectReference(String name, String file, String rawUuid) {
             this.name = name
             this.file = file
             this.rawUuid = rawUuid
@@ -52,10 +64,12 @@ class SolutionFile {
             return '{' + rawUuid + '}'
         }
 
-        List<String> getConfigurations() {
-            content.findAll(~/\{${rawUuid}\}\.(\w+\|\w+)\.ActiveCfg = debug\|Win32/, {
-                it[1]
+        Map<String, String> getConfigurations() {
+            def configurations = [:]
+            content.eachMatch(~/\{${rawUuid}\}\.(\w+\|\w+)\.ActiveCfg = (\w+\|\w+)/, {
+                configurations[it[1]] = it[2]
             })
+            return configurations
         }
     }
 }

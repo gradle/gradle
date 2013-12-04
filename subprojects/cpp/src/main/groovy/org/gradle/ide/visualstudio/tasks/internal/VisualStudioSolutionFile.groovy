@@ -21,17 +21,18 @@ import org.gradle.ide.visualstudio.internal.VisualStudioProjectConfiguration
 import org.gradle.plugins.ide.internal.generator.AbstractPersistableConfigurationObject
 
 class VisualStudioSolutionFile extends AbstractPersistableConfigurationObject {
+    String solutionConfiguration = "debug|Win32"
     private baseText
-    private vsProjects = [] as Set
-    private vsConfigurations = []
+    private projects = [] as Set
+    private projectConfigurations = []
 
     protected String getDefaultResourceName() {
         'default.sln'
     }
 
     void addProjectConfiguration(VisualStudioProjectConfiguration vsConfiguration) {
-        vsConfigurations << vsConfiguration
-        vsProjects << vsConfiguration.project
+        projectConfigurations << vsConfiguration
+        projects << vsConfiguration.project
     }
 
     @Override
@@ -42,7 +43,7 @@ class VisualStudioSolutionFile extends AbstractPersistableConfigurationObject {
     @Override
     void store(OutputStream outputStream) {
         outputStream << baseText
-        vsProjects.each { VisualStudioProject vsProject ->
+        projects.each { VisualStudioProject vsProject ->
             outputStream << """
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "${vsProject.getName()}", "${vsProject.projectFile.absolutePath}", "${vsProject.getUuid()}"
 EndProject
@@ -51,14 +52,14 @@ EndProject
         outputStream << """
 Global
     GlobalSection(SolutionConfigurationPlatforms) = preSolution
-        debug|Win32=debug|Win32
+        ${solutionConfiguration}=${solutionConfiguration}
     EndGlobalSection
     GlobalSection(ProjectConfigurationPlatforms) = postSolution"""
 
-        vsConfigurations.each { VisualStudioProjectConfiguration vsConfiguration ->
+        projectConfigurations.each { VisualStudioProjectConfiguration projectConfiguration ->
             outputStream << """
-                ${vsConfiguration.project.getUuid()}.${vsConfiguration.name}.ActiveCfg = debug|Win32
-                ${vsConfiguration.project.getUuid()}.${vsConfiguration.name}.Build.0 = debug|Win32"""
+                ${projectConfiguration.project.getUuid()}.${projectConfiguration.name}.ActiveCfg = ${solutionConfiguration}
+                ${projectConfiguration.project.getUuid()}.${projectConfiguration.name}.Build.0 = ${solutionConfiguration}"""
         }
 
         outputStream << """

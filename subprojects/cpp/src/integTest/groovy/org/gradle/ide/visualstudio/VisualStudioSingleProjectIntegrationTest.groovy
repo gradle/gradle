@@ -77,12 +77,8 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
 
         and:
         final mainSolution = solutionFile("visualStudio/mainExe.sln")
-        mainSolution.projects.keySet() == ["mainExe"] as Set
-        with (mainSolution.projects['mainExe']) {
-            file == filePath('visualStudio/mainExe.vcxproj')
-            uuid == projectFile.projectGuid
-            configurations == ['debug|Win32']
-        }
+        mainSolution.assertHasProjects("mainExe")
+        mainSolution.assertReferencesProject(projectFile, ["debug|Win32"])
     }
 
     def "create visual studio solution for single shared library"() {
@@ -108,12 +104,8 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
 
         and:
         final mainSolution = solutionFile("visualStudio/mainDll.sln")
-        mainSolution.projects.keySet() == ["mainDll"] as Set
-        with (mainSolution.projects['mainDll']) {
-            file == filePath('visualStudio/mainDll.vcxproj')
-            uuid == projectFile.projectGuid
-            configurations == ['debug|Win32']
-        }
+        mainSolution.assertHasProjects("mainDll")
+        mainSolution.assertReferencesProject(projectFile, ["debug|Win32"])
     }
 
     def "create visual studio solution for defined static library"() {
@@ -142,12 +134,8 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
 
         and:
         final mainSolution = solutionFile("visualStudio/mainLib.sln")
-        mainSolution.projects.keySet() == ["mainLib"] as Set
-        with (mainSolution.projects['mainLib']) {
-            file == filePath('visualStudio/mainLib.vcxproj')
-            uuid == projectFile.projectGuid
-            configurations == ['debug|Win32']
-        }
+        mainSolution.assertHasProjects("mainLib")
+        mainSolution.assertReferencesProject(projectFile, ["debug|Win32"])
     }
 
     def "create visual studio solution for executable that depends on static library"() {
@@ -182,17 +170,9 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
 
         and:
         final mainSolution = solutionFile("visualStudio/mainExe.sln")
-        mainSolution.projects.keySet() == ["mainExe", "helloLib"] as Set
-        with (mainSolution.projects['mainExe']) {
-            file == filePath('visualStudio/mainExe.vcxproj')
-            uuid == exeProject.projectGuid
-            configurations == ['debug|Win32']
-        }
-        with (mainSolution.projects['helloLib']) {
-            file == filePath('visualStudio/helloLib.vcxproj')
-            uuid == libProject.projectGuid
-            configurations == ['debug|Win32']
-        }
+        mainSolution.assertHasProjects("mainExe", "helloLib")
+        mainSolution.assertReferencesProject(exeProject, ["debug|Win32"])
+        mainSolution.assertReferencesProject(libProject, ["debug|Win32"])
     }
 
     def "create visual studio solution for executable that depends on shared library"() {
@@ -227,17 +207,9 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
 
         and:
         final mainSolution = solutionFile("visualStudio/mainExe.sln")
-        mainSolution.projects.keySet() == ["mainExe", "helloDll"] as Set
-        with (mainSolution.projects['mainExe']) {
-            file == filePath('visualStudio/mainExe.vcxproj')
-            uuid == exeProject.projectGuid
-            configurations == ['debug|Win32']
-        }
-        with (mainSolution.projects['helloDll']) {
-            file == filePath('visualStudio/helloDll.vcxproj')
-            uuid == dllProject.projectGuid
-            configurations == ['debug|Win32']
-        }
+        mainSolution.assertHasProjects("mainExe", "helloDll")
+        mainSolution.assertReferencesProject(exeProject, ["debug|Win32"])
+        mainSolution.assertReferencesProject(dllProject, ["debug|Win32"])
     }
 
     def "create visual studio solution for executable that depends on library that depends on another library"() {
@@ -285,22 +257,10 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
 
         and:
         final mainSolution = solutionFile("visualStudio/mainExe.sln")
-        mainSolution.projects.keySet() == ["mainExe", "helloDll", "greetingsDll"] as Set
-        with (mainSolution.projects['mainExe']) {
-            file == filePath('visualStudio/mainExe.vcxproj')
-            uuid == exeProject.projectGuid
-            configurations == ['debug|Win32']
-        }
-        with (mainSolution.projects['helloDll']) {
-            file == filePath('visualStudio/helloDll.vcxproj')
-            uuid == helloDllProject.projectGuid
-            configurations == ['debug|Win32']
-        }
-        with (mainSolution.projects['greetingsDll']) {
-            file == filePath('visualStudio/greetingsDll.vcxproj')
-            uuid == greetingsDllProject.projectGuid
-            configurations == ['debug|Win32']
-        }
+        mainSolution.assertHasProjects("mainExe", "helloDll", "greetingsDll")
+        mainSolution.assertReferencesProject(exeProject, ["debug|Win32"])
+        mainSolution.assertReferencesProject(helloDllProject, ["debug|Win32"])
+        mainSolution.assertReferencesProject(greetingsDllProject, ["debug|Win32"])
     }
 
     def "create visual studio solutions for 2 executables that depend on different linkages of the same library"() {
@@ -376,21 +336,9 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
 
         and:
         final mainSolution = solutionFile("visualStudio/mainExe.sln")
-        mainSolution.projects.keySet() == ["mainExe", "helloDll"] as Set
-        with (mainSolution.projects['helloDll']) {
-            file == filePath('visualStudio/helloDll.vcxproj')
-            uuid == helloProjectFile.projectGuid
-            configurations == ['debug|Win32']
-        }
-
-        and:
+        mainSolution.assertReferencesProject(helloProjectFile, ["debug|Win32"])
         final mainReleaseSolution = solutionFile("visualStudio/mainReleaseExe.sln")
-        mainReleaseSolution.projects.keySet() == ["mainReleaseExe", "helloDll"] as Set
-        with (mainReleaseSolution.projects['helloDll']) {
-            file == filePath('visualStudio/helloDll.vcxproj')
-            uuid == helloProjectFile.projectGuid
-            configurations == ['release|Win32']
-        }
+        mainReleaseSolution.assertReferencesProject(helloProjectFile, ["release|Win32"])
     }
 
     def "generate visual studio solution for executable with mixed sources"() {

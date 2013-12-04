@@ -39,14 +39,16 @@ class VisualStudioSolutionFileTest extends Specification {
     }
 
     def "empty solution file"() {
-        expect:
+        when:
+        solutionFile.solutionConfiguration = "CONFIG"
+        then:
         generatedSolution.content ==
 """Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual C++ Express 2010
 
 Global
     GlobalSection(SolutionConfigurationPlatforms) = preSolution
-        debug|Win32=debug|Win32
+        CONFIG=CONFIG
     EndGlobalSection
     GlobalSection(ProjectConfigurationPlatforms) = postSolution
     EndGlobalSection
@@ -77,12 +79,12 @@ EndGlobal
         with (generatedSolution.projects['project1']) {
             file == project1File.absolutePath
             uuid == project1.uuid
-            configurations == ['debug|Win32']
+            configurations == ['debug|Win32':'debug|Win32']
         }
         with (generatedSolution.projects['project2']) {
             file == project2File.absolutePath
             uuid == project2.uuid
-            configurations == ['debug|Win32']
+            configurations == ['debug|Win32':'debug|Win32']
         }
     }
 
