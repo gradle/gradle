@@ -134,11 +134,8 @@ This will allow a consumer to extract the external and project components as fol
 
 - The results are actually component _instances_ rather than components (as per the definition above). Perhaps come up with a new name for 'component'.
 - Packages for the new types.
-- Rename `BuildComponentIdentifier` to `ProjectComponentIdentifier` or something else
-- Rename `BuildComponentSelector`
 - Convenience for casting selector and id?
 - Convenience for selecting things with a given id type or selector type?
-- Result `root.id` should be an instance of `BuildComponentIdentifier` not `ModuleComponentIdentifier`
 - Rename `DependencyResult` to use 'requirement' instead of 'dependency'.
 - Rename `ResolvedComponentResult.getId()` to something that is more explicit about the lack of guarantees. Maybe `getLocalId()` or ...
 - Rename internal class `ModuleVersionSelection` and its methods
@@ -183,6 +180,26 @@ This story changes the `idea` and `eclipse` plugins to use the resolution result
 
 - Change `IdeDependenciesExtractor` and `JavadocAndSourcesDownloader` to use the resolution result to determine the project and
   external dependencies.
+
+## Story: Dependency resolution result exposes consumer that is not a module version
+
+This story exposes different kinds of consumers for a dependency graph.
+
+- Result `root.id` should return a `ProjectComponentIdentifier` when a project configuration is resolved.
+- Result `root.id` should return an opaque `ComponentIdentifier` implementation when any other kind of configuration is resolved.
+    - This implementation should use the configuration's display name for the component display name.
+
+### Test coverage
+
+- `root.id` has the correct type when resolving a script classpath.
+- `root.id` has the correct type when resolving a project configuration.
+- `root.id` has the correct type when there is a dependency cycle between projects.
+- Update dependency report tests to reflect the change in root id display name.
+
+### Open issues
+
+- Is it a bit of a stretch to call some of these consumers a 'component'?
+- Sync this up with the variant resolution stories below. When resolving a native component's dependencies, the `root` should represent the consuming native component.
 
 ## Story: Dependency resolution result exposes local component instances that are not module versions
 
