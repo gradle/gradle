@@ -341,6 +341,8 @@ Cache the plugin mapping. Periodically check for new versions when a dynamic ver
 - Include new DSL in DSL reference.
 - Include types in the public API.
 - Add some material to the user guide discussion about using plugins.
+- Update website to replace references to the 'plugins' wiki page to instead reference `http://plugins.gradle.org`
+- Update the 'plugins' wiki page to direct build authors and plugin authors to `http://plugins.gradle.org` instead.
 - Announce in the release notes.
 
 ## Story: Plugin author requests that plugin version be included in the Gradle plugins repository
