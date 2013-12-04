@@ -1626,6 +1626,10 @@ TBD
     - Sparc: ??
     - ARM: ??
 - Conventional operating system names
+- More platform test coverage:
+    - ARM
+    - 64 bit assembler
+    - Cross compilation
 
 ## Variants
 
