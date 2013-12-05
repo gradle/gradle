@@ -59,7 +59,7 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
     @Override
     protected void checkAvailable(ToolChainAvailability availability) {
         if (!operatingSystem.isWindows()) {
-            availability.unavailable("Not available on this operating system.");
+            availability.unavailable("Visual Studio is not available on this operating system.");
             return;
         }
         checkFound("Visual Studio installation", locateVisualStudio(), availability);
