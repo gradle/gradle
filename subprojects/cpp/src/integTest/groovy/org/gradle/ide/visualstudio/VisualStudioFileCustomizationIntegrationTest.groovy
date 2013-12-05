@@ -103,7 +103,6 @@ class VisualStudioFileCustomizationIntegrationTest extends AbstractInstalledTool
         projectFile.globals.ProjectName[0].text() == "mainExe"
     }
 
-
     def "can add xml configuration to generated filter files"() {
         when:
         buildFile << """
@@ -123,6 +122,34 @@ class VisualStudioFileCustomizationIntegrationTest extends AbstractInstalledTool
         then:
         final filtersFile = filtersFile("visualStudio/mainExe.vcxproj.filters")
         filtersFile.xml.ExtraContent[0].text() == "Filter - mainExe"
+    }
+
+    def "can add text content to generated solution files"() {
+        when:
+        buildFile << """
+    model {
+        visualStudio {
+            solutions.all { solution ->
+                solution.solutionFile.withText { text ->
+                    int insertPos = text.lastIndexOf("EndGlobal")
+                    text.insert(insertPos, '''
+                    GlobalSection(MyGlobalSection)
+                       Here is my custom config
+                    EndGlobalSection
+                    ''')
+                }
+            }
+        }
+    }
+"""
+
+        and:
+        run "mainVisualStudio"
+
+        then:
+        final solutionFile = solutionFile("visualStudio/mainExe.sln")
+        solutionFile.content.contains "GlobalSection(MyGlobalSection)"
+        solutionFile.content.contains "Here is my custom config"
     }
 
     private SolutionFile solutionFile(String path) {

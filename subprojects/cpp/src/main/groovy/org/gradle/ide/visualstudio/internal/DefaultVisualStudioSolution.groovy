@@ -15,10 +15,12 @@
  */
 
 package org.gradle.ide.visualstudio.internal
-
+import org.gradle.api.Action
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.ide.visualstudio.ConfigFile
+import org.gradle.ide.visualstudio.TextConfigFile
+import org.gradle.ide.visualstudio.VisualStudioProject
 import org.gradle.ide.visualstudio.VisualStudioSolution
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.language.base.internal.AbstractBuildableModelElement
 import org.gradle.nativebinaries.LibraryBinary
 import org.gradle.nativebinaries.NativeBinary
@@ -34,12 +36,13 @@ class DefaultVisualStudioSolution extends AbstractBuildableModelElement implemen
     private final NativeBinaryInternal rootBinary
     private final VisualStudioProjectResolver vsProjectResolver
 
-    DefaultVisualStudioSolution(VisualStudioProjectConfiguration rootProjectConfiguration, NativeBinaryInternal rootBinary, FileResolver fileResolver, VisualStudioProjectResolver vsProjectResolver) {
+    DefaultVisualStudioSolution(VisualStudioProjectConfiguration rootProjectConfiguration, NativeBinaryInternal rootBinary, FileResolver fileResolver,
+                                VisualStudioProjectResolver vsProjectResolver, Instantiator instantiator) {
         this.name = rootProjectConfiguration.project.name
         this.configurationName = rootProjectConfiguration.name
         this.rootBinary = rootBinary
         this.vsProjectResolver = vsProjectResolver
-        this.solutionFile = new SolutionFile(fileResolver, "visualStudio/${name}.sln")
+        this.solutionFile = instantiator.newInstance(SolutionFile, fileResolver, "visualStudio/${name}.sln" as String)
     }
 
     NativeComponent getComponent() {
@@ -64,7 +67,8 @@ class DefaultVisualStudioSolution extends AbstractBuildableModelElement implemen
         }
     }
 
-    private static class SolutionFile implements ConfigFile {
+    static class SolutionFile implements TextConfigFile {
+        private final List<Action<? super StringBuilder>> actions = new ArrayList<Action<? super StringBuilder>>();
         private final FileResolver fileResolver
         private Object location
 
@@ -79,6 +83,14 @@ class DefaultVisualStudioSolution extends AbstractBuildableModelElement implemen
 
         void setLocation(Object location) {
             this.location = location
+        }
+
+        void withText(Action<? super StringBuilder> action) {
+            actions.add(action)
+        }
+
+        List<Action<? super StringBuilder>> getTextActions() {
+            return actions
         }
     }
 }

@@ -40,7 +40,7 @@ public class VisualStudioSolutionRegistry extends DefaultNamedDomainObjectSet<De
     }
 
     private DefaultVisualStudioSolution createSolution(NativeBinary nativeBinary) {
-        return new DefaultVisualStudioSolution(rootConfiguration(nativeBinary), (NativeBinaryInternal) nativeBinary, fileResolver, projectResolver);
+        return new DefaultVisualStudioSolution(rootConfiguration(nativeBinary), (NativeBinaryInternal) nativeBinary, fileResolver, projectResolver, getInstantiator());
     }
 
     private VisualStudioProjectConfiguration rootConfiguration(NativeBinary nativeBinary) {

@@ -16,13 +16,10 @@
 
 package org.gradle.ide.visualstudio;
 
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.api.Named;
-import org.gradle.language.base.BuildableModelElement;
-import org.gradle.nativebinaries.NativeComponent;
 
 @Incubating
-public interface VisualStudioSolution extends Named, BuildableModelElement {
-    NativeComponent getComponent();
-    TextConfigFile getSolutionFile();
+public interface TextConfigFile extends ConfigFile {
+    void withText(Action<? super StringBuilder> action);
 }

@@ -16,11 +16,13 @@
 
 package org.gradle.ide.visualstudio.tasks.internal
 
+import org.gradle.api.Action
 import org.gradle.ide.visualstudio.internal.DefaultVisualStudioProject
 import org.gradle.ide.visualstudio.internal.VisualStudioProjectConfiguration
 import org.gradle.plugins.ide.internal.generator.AbstractPersistableConfigurationObject
 
 class VisualStudioSolutionFile extends AbstractPersistableConfigurationObject {
+    List<Action<? super StringBuilder>> actions = new ArrayList<Action<? super StringBuilder>>();
     String solutionConfiguration = "debug|Win32"
     private baseText
     private projects = [] as Set
@@ -42,14 +44,23 @@ class VisualStudioSolutionFile extends AbstractPersistableConfigurationObject {
 
     @Override
     void store(OutputStream outputStream) {
-        outputStream << baseText
+        def builder = new StringBuilder()
+        generateContent(builder)
+        actions.each {
+            it.execute(builder)
+        }
+        outputStream << builder
+    }
+
+    private void generateContent(StringBuilder builder) {
+        builder << baseText
         projects.each { DefaultVisualStudioProject vsProject ->
-            outputStream << """
+            builder << """
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "${vsProject.getName()}", "${vsProject.projectFile.location.absolutePath}", "${vsProject.getUuid()}"
 EndProject
 """
         }
-        outputStream << """
+        builder << """
 Global
     GlobalSection(SolutionConfigurationPlatforms) = preSolution
         ${solutionConfiguration}=${solutionConfiguration}
@@ -57,12 +68,12 @@ Global
     GlobalSection(ProjectConfigurationPlatforms) = postSolution"""
 
         projectConfigurations.each { VisualStudioProjectConfiguration projectConfiguration ->
-            outputStream << """
+            builder << """
                 ${projectConfiguration.project.getUuid()}.${projectConfiguration.name}.ActiveCfg = ${solutionConfiguration}
                 ${projectConfiguration.project.getUuid()}.${projectConfiguration.name}.Build.0 = ${solutionConfiguration}"""
         }
 
-        outputStream << """
+        builder << """
     EndGlobalSection
     GlobalSection(SolutionProperties) = preSolution
         HideSolutionNode = FALSE

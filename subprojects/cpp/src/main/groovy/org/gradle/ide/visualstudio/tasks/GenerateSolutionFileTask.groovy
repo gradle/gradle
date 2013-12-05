@@ -62,6 +62,10 @@ class GenerateSolutionFileTask extends GeneratorTask<VisualStudioSolutionFile> {
             solution.projectConfigurations.each {
                 solutionFile.addProjectConfiguration(it)
             }
+
+            solution.solutionFile.textActions.each {
+                solutionFile.actions << it
+            }
         }
     }
 }
