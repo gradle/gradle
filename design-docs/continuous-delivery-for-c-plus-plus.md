@@ -797,6 +797,10 @@ Here's an example:
 - Generate solution for component with mixed sources
 - Generate solution for component with windows resource files
 - Solution files for 2 executables that reference different build types of the same shared library
+- Diamond dependency - :a:exe -> :b:lib1 -> :x:lib
+                              -> :x:lib
+- Transitive dependency on both shared and static linkage - :a:exe -> :b:lib1 -> :x:lib.static
+                                                                   -> :x:lib.shared
 
 ## Story: Allow a component to choose from a set of defined Platform, BuildType and Flavor instances
 
@@ -892,10 +896,7 @@ Here's an example:
 
 ### Test Cases
 
-- All test cases for single project build should also function where components are in separate Gradle builds
 - Transitive project dependencies - :a:exe -> :b:lib1 -> :c:lib2
-- Diamond dependency - :a:exe -> :b:lib1 -> :x:lib
-                              -> :c:lib2 -> :x:lib
 - Mixed multi-project with multiple components per project
 - Multi-project where :a:exe -> :b:lib1 -> :a:lib2 (Gradle project cycle)
 

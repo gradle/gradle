@@ -19,6 +19,7 @@ import org.gradle.ide.visualstudio.fixtures.SolutionFile
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativebinaries.language.cpp.fixtures.RequiresInstalledToolChain
 import org.gradle.nativebinaries.language.cpp.fixtures.app.CppHelloWorldApp
+import org.gradle.nativebinaries.language.cpp.fixtures.app.ExeWithDiamondDependencyHelloWorldApp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.ExeWithLibraryUsingLibraryHelloWorldApp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.MixedLanguageHelloWorldApp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.WindowsResourceHelloWorldApp
@@ -340,6 +341,92 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         mainSolution.assertReferencesProject(helloProjectFile, ["debug|Win32"])
         final mainReleaseSolution = solutionFile("visualStudio/mainReleaseExe.sln")
         mainReleaseSolution.assertReferencesProject(helloProjectFile, ["release|Win32"])
+    }
+
+    def "create visual studio solution for executable that has diamond dependency"() {
+        def testApp = new ExeWithDiamondDependencyHelloWorldApp()
+        testApp.writeSources(file("src/main"), file("src/hello"), file("src/greetings"))
+
+        buildFile << """
+            executables {
+                main {}
+            }
+            libraries {
+                hello {}
+                greetings {}
+            }
+            sources.main.cpp.lib libraries.hello.shared
+            sources.main.cpp.lib libraries.greetings.static
+            sources.hello.cpp.lib libraries.greetings.static
+        """
+
+        when:
+        succeeds "mainVisualStudio"
+
+        then:
+        final exeProject = projectFile("visualStudio/mainExe.vcxproj")
+        final helloProject = projectFile("visualStudio/helloDll.vcxproj")
+        final greetProject = projectFile("visualStudio/greetingsLib.vcxproj")
+        final mainSolution = solutionFile("visualStudio/mainExe.sln")
+
+        and:
+        mainSolution.assertHasProjects("mainExe", "helloDll", "greetingsLib")
+        mainSolution.assertReferencesProject(exeProject, ["debug|Win32"])
+        mainSolution.assertReferencesProject(helloProject, ["debug|Win32"])
+        mainSolution.assertReferencesProject(greetProject, ["debug|Win32"])
+
+        and:
+        exeProject.sourceFiles == allFiles("src/main/cpp")
+        exeProject.headerFiles.isEmpty()
+        exeProject.projectConfigurations.keySet() == projectConfigurations
+        exeProject.projectConfigurations['debug|Win32'].includePath == filePath("src/main/headers", "src/hello/headers", "src/greetings/headers")
+    }
+
+    def "create visual studio solution for executable that depends on both static and shared linkage of library"() {
+        given:
+        def app = new ExeWithDiamondDependencyHelloWorldApp()
+        app.writeSources(file("src/main"), file("src/hello"), file("src/greetings"))
+
+        and:
+        buildFile << """
+            executables {
+                main {}
+            }
+            libraries {
+                hello {}
+                greetings {}
+            }
+            sources.main.cpp.lib libraries.hello.shared
+            sources.main.cpp.lib libraries.greetings.shared
+            sources.hello.cpp.lib libraries.greetings.static
+        """
+
+        when:
+        succeeds "mainVisualStudio"
+
+        then:
+        final exeProject = projectFile("visualStudio/mainExe.vcxproj")
+        final helloProject = projectFile("visualStudio/helloDll.vcxproj")
+        final greetDllProject = projectFile("visualStudio/greetingsDll.vcxproj")
+        final greetLibProject = projectFile("visualStudio/greetingsLib.vcxproj")
+        final mainSolution = solutionFile("visualStudio/mainExe.sln")
+
+        and:
+        mainSolution.assertHasProjects("mainExe", "helloDll", "greetingsLib", "greetingsDll")
+        mainSolution.assertReferencesProject(exeProject, ["debug|Win32"])
+        mainSolution.assertReferencesProject(helloProject, ["debug|Win32"])
+        mainSolution.assertReferencesProject(greetDllProject, ["debug|Win32"])
+        mainSolution.assertReferencesProject(greetLibProject, ["debug|Win32"])
+
+        and:
+        exeProject.sourceFiles == allFiles("src/main/cpp")
+        exeProject.projectConfigurations.keySet() == projectConfigurations
+        exeProject.projectConfigurations['debug|Win32'].includePath == filePath("src/main/headers", "src/hello/headers", "src/greetings/headers")
+
+        and:
+        helloProject.sourceFiles == allFiles("src/hello/cpp")
+        helloProject.projectConfigurations.keySet() == projectConfigurations
+        helloProject.projectConfigurations['debug|Win32'].includePath == filePath("src/hello/headers", "src/greetings/headers")
     }
 
     def "generate visual studio solution for executable with mixed sources"() {

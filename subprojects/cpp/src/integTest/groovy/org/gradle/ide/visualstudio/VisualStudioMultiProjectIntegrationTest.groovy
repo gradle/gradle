@@ -18,6 +18,7 @@ import org.gradle.ide.visualstudio.fixtures.ProjectFile
 import org.gradle.ide.visualstudio.fixtures.SolutionFile
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativebinaries.language.cpp.fixtures.app.CppHelloWorldApp
+import org.gradle.nativebinaries.language.cpp.fixtures.app.ExeWithLibraryUsingLibraryHelloWorldApp
 
 class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     private final Set<String> projectConfigurations = ['debug|Win32', 'release|Win32'] as Set
@@ -25,7 +26,6 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
     def app = new CppHelloWorldApp()
 
     def setup() {
-        settingsFile.text = "include ':exe', ':lib'"
         buildFile << """
     subprojects {
         apply plugin: 'cpp'
@@ -51,6 +51,8 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
         when:
         app.executable.writeSources(file("exe/src/main"))
         app.library.writeSources(file("lib/src/hello"))
+
+        settingsFile.text = "include ':exe', ':lib'"
         buildFile << """
     project(':exe') {
         executables {
@@ -86,6 +88,105 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
         mainSolution.assertHasProjects("mainExe", "helloLib")
         mainSolution.assertReferencesProject(exeProject, ["debug|Win32"])
         mainSolution.assertReferencesProject(libProject, ["debug|Win32"])
+    }
+
+    def "create visual studio solution for executable that transitively depends on multiple projects"() {
+        given:
+        def app = new ExeWithLibraryUsingLibraryHelloWorldApp()
+        app.writeSources(file("exe/src/main"), file("lib/src/hello"), file("greet/src/greetings"))
+
+        and:
+        settingsFile.text = "include ':exe', ':lib', ':greet'"
+        buildFile << """
+        project(":exe") {
+            apply plugin: "cpp"
+            executables {
+                main {}
+            }
+            sources.main.cpp.lib project: ':lib', library: 'hello'
+        }
+        project(":lib") {
+            apply plugin: "cpp"
+            libraries {
+                hello {}
+            }
+            sources.hello.cpp.lib project: ':greet', library: 'greetings', linkage: 'static'
+        }
+        project(":greet") {
+            apply plugin: "cpp"
+            libraries {
+                greetings {}
+            }
+        }
+        """
+
+        when:
+        succeeds ":exe:mainVisualStudio"
+
+        then:
+        final exeProject = projectFile("exe/visualStudio/mainExe.vcxproj")
+        final helloProject = projectFile("lib/visualStudio/helloDll.vcxproj")
+        final greetProject = projectFile("greet/visualStudio/greetingsLib.vcxproj")
+        final mainSolution = solutionFile("exe/visualStudio/mainExe.sln")
+
+        and:
+        mainSolution.assertHasProjects("mainExe", "helloDll", "greetingsLib")
+        mainSolution.assertReferencesProject(exeProject, ["debug|Win32"])
+        mainSolution.assertReferencesProject(helloProject, ["debug|Win32"])
+        mainSolution.assertReferencesProject(greetProject, ["debug|Win32"])
+
+        and:
+        exeProject.projectConfigurations['debug|Win32'].includePath == filePath("exe/src/main/headers", "lib/src/hello/headers")
+        helloProject.projectConfigurations['debug|Win32'].includePath == filePath("lib/src/hello/headers", "greet/src/greetings/headers")
+        greetProject.projectConfigurations['debug|Win32'].includePath == filePath("greet/src/greetings/headers")
+    }
+
+    def "create visual studio solution for executable with project dependency cycle"() {
+        given:
+        def app = new ExeWithLibraryUsingLibraryHelloWorldApp()
+        app.writeSources(file("exe/src/main"), file("lib/src/hello"), file("exe/src/greetings"))
+
+        and:
+        settingsFile.text = "include ':exe', ':lib'"
+        buildFile << """
+        project(":exe") {
+            apply plugin: "cpp"
+            executables {
+                main {}
+            }
+            libraries {
+                greetings {}
+            }
+            sources.main.cpp.lib project: ':lib', library: 'hello'
+        }
+        project(":lib") {
+            apply plugin: "cpp"
+            libraries {
+                hello {}
+            }
+            sources.hello.cpp.lib project: ':exe', library: 'greetings', linkage: 'static'
+        }
+        """
+
+        when:
+        succeeds ":exe:mainVisualStudio"
+
+        then:
+        final exeProject = projectFile("exe/visualStudio/mainExe.vcxproj")
+        final helloProject = projectFile("lib/visualStudio/helloDll.vcxproj")
+        final greetProject = projectFile("exe/visualStudio/greetingsLib.vcxproj")
+        final mainSolution = solutionFile("exe/visualStudio/mainExe.sln")
+
+        and:
+        mainSolution.assertHasProjects("mainExe", "helloDll", "greetingsLib")
+        mainSolution.assertReferencesProject(exeProject, ["debug|Win32"])
+        mainSolution.assertReferencesProject(helloProject, ["debug|Win32"])
+        mainSolution.assertReferencesProject(greetProject, ["debug|Win32"])
+
+        and:
+        exeProject.projectConfigurations['debug|Win32'].includePath == filePath("exe/src/main/headers", "lib/src/hello/headers")
+        helloProject.projectConfigurations['debug|Win32'].includePath == filePath("lib/src/hello/headers", "exe/src/greetings/headers")
+        greetProject.projectConfigurations['debug|Win32'].includePath == filePath("exe/src/greetings/headers")
     }
 
     private SolutionFile solutionFile(String path) {
