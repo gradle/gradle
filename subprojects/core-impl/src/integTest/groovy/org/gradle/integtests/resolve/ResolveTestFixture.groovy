@@ -73,8 +73,6 @@ allprojects {
         def configDetailsFile = buildFile.parentFile.file("build/${config}.txt")
         def configDetails = configDetailsFile.text.readLines()
 
-        println "VALIDATING"
-
         def actualArtifacts = configDetails.findAll { it.startsWith('artifact:') }.collect { it.substring(9) }
         def expectedArtifacts = graph.artifactNodes.collect { "[${it.moduleVersionId}][${it.module}.jar]" }
         assert actualArtifacts == expectedArtifacts
