@@ -589,4 +589,76 @@ conf2
 \\--- org.utils:impl:1.3 FAILED
 """))
     }
+
+    def "renders a mix of project and external dependencies"() {
+        given:
+        mavenRepo.module("foo", "bar", 1.0).publish()
+        mavenRepo.module("foo", "bar", 2.0).publish()
+
+        file("settings.gradle") << """include 'a', 'b', 'a:c', 'd', 'e'
+rootProject.name = 'root'
+"""
+
+        file("build.gradle") << """
+            allprojects {
+                apply plugin: 'java'
+                version = '1.0'
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+            }
+
+            project(":a") {
+               dependencies {
+                    compile 'foo:bar:1.0'
+                }
+            }
+
+            project(":b") {
+               dependencies {
+                    compile 'foo:bar:0.5.dont.exist'
+                }
+            }
+
+            project(":a:c") {
+               dependencies {
+                    compile 'foo:bar:2.0'
+               }
+            }
+
+            project(":d") {
+               dependencies {
+                    compile project(":e")
+                }
+            }
+
+            project(":e") {
+               dependencies {
+                    compile 'foo:bar:2.0'
+                }
+            }
+
+            dependencies {
+                compile project(":a"), project(":b"), project(":a:c"), project(":d")
+            }
+        """
+
+        when:
+        run ":dependencies"
+
+        then:
+        output.contains "compile - Compile classpath for source set 'main'."
+
+        output.contains(toPlatformLineSeparators("""
++--- project :a
+|    \\--- foo:bar:1.0 -> 2.0
++--- project :b
+|    \\--- foo:bar:0.5.dont.exist -> 2.0
++--- project :a:c
+|    \\--- foo:bar:2.0
+\\--- project :d
+     \\--- project :e
+          \\--- foo:bar:2.0
+"""))
+    }
 }

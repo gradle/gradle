@@ -16,10 +16,7 @@
 
 package org.gradle.api.tasks.diagnostics.internal.insight;
 
-import org.gradle.api.artifacts.component.ComponentSelector;
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.api.artifacts.component.ProjectComponentSelector;
+import org.gradle.api.artifacts.component.*;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.DependencyEdge;
 import org.gradle.util.CollectionUtils;
@@ -122,6 +119,12 @@ public class DependencyResultSorter {
             }
             if (byVersion != 0) {
                 return byVersion;
+            }
+
+            if(left.getFrom() instanceof ProjectComponentIdentifier && right.getFrom() instanceof ProjectComponentIdentifier) {
+                ProjectComponentIdentifier leftFrom = (ProjectComponentIdentifier)left.getFrom();
+                ProjectComponentIdentifier rightFrom = (ProjectComponentIdentifier)right.getFrom();
+                return leftFrom.getProjectPath().compareTo(rightFrom.getProjectPath());
             }
 
             ModuleComponentIdentifier leftFrom = (ModuleComponentIdentifier)left.getFrom();

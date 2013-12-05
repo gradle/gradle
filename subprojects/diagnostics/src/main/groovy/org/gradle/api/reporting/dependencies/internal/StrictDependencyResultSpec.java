@@ -16,6 +16,8 @@
 package org.gradle.api.reporting.dependencies.internal;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.result.DependencyResult;
@@ -42,14 +44,26 @@ public class StrictDependencyResultSpec implements Spec<DependencyResult> {
     }
 
     private boolean matchesRequested(DependencyResult candidate) {
-        ModuleComponentSelector requested = (ModuleComponentSelector)candidate.getRequested();
-        return requested.getGroup().equals(moduleIdentifier.getGroup())
-               && requested.getModule().equals(moduleIdentifier.getName());
+        ComponentSelector requested = candidate.getRequested();
+
+        if(requested instanceof ModuleComponentSelector) {
+            ModuleComponentSelector requestedSelector = (ModuleComponentSelector)requested;
+            return requestedSelector.getGroup().equals(moduleIdentifier.getGroup())
+                    && requestedSelector.getModule().equals(moduleIdentifier.getName());
+        }
+
+        return false;
     }
 
     private boolean matchesSelected(ResolvedDependencyResult candidate) {
-        ModuleComponentIdentifier selected = (ModuleComponentIdentifier)candidate.getSelected().getId();
-        return selected.getGroup().equals(moduleIdentifier.getGroup())
-               && selected.getModule().equals(moduleIdentifier.getName());
+        ComponentIdentifier selected = candidate.getSelected().getId();
+
+        if(selected instanceof ModuleComponentIdentifier) {
+            ModuleComponentIdentifier selectedModule = (ModuleComponentIdentifier)selected;
+            return selectedModule.getGroup().equals(moduleIdentifier.getGroup())
+                    && selectedModule.getModule().equals(moduleIdentifier.getName());
+        }
+
+        return false;
     }
 }

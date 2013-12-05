@@ -44,8 +44,7 @@ public abstract class AbstractRenderableDependencyResult implements RenderableDe
     }
 
     private String getSimpleName() {
-        ComponentSelector requested = getRequested();
-        return requested.getDisplayName();
+        return getRequested().getDisplayName();
     }
 
     private String getVerboseName() {

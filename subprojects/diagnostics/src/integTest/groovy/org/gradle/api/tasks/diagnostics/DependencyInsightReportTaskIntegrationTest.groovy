@@ -831,7 +831,7 @@ project :
      \\--- org.foo:root:1.0 (*)"""))
     }
 
-    def "shows project dependencies"() {
+    def "selects a module component dependency with a given name"() {
         given:
         mavenRepo.module("org", "leaf1").dependsOn("leaf2").publish()
         mavenRepo.module("org", "leaf2").dependsOn("leaf3").publish()
@@ -871,6 +871,47 @@ org:leaf2:1.0
 \\--- org:leaf1:1.0
      \\--- org.foo:impl:1.0-SNAPSHOT
           \\--- compile
+"""))
+    }
+
+    def "selects a project component dependency with a given project path"() {
+        given:
+        mavenRepo.module("org", "leaf1").dependsOn("leaf2").publish()
+        mavenRepo.module("org", "leaf2").dependsOn("leaf3").publish()
+        mavenRepo.module("org", "leaf3").publish()
+
+        file("settings.gradle") << "include 'impl'; rootProject.name='root'"
+
+        file("build.gradle") << """
+            allprojects {
+                apply plugin: 'java'
+                group = 'org.foo'
+                version = '1.0-SNAPSHOT'
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+            }
+            dependencies {
+                compile project(':impl')
+            }
+            project(':impl') {
+                dependencies {
+                    compile 'org:leaf1:1.0'
+                }
+            }
+            task insight(type: DependencyInsightReportTask) {
+                setDependencySpec { it.requested instanceof ProjectComponentSelector && it.requested.projectPath == ':impl' }
+                configuration = configurations.compile
+            }
+        """
+
+        when:
+        run "insight"
+
+        then:
+        output.contains(toPlatformLineSeparators("""
+project :impl
+\\--- compile
 """))
     }
 }
