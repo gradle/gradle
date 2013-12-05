@@ -44,4 +44,10 @@ class OtoolBinaryInfo implements BinaryInfo {
         def process = ['ar', '-t', binaryFile.getAbsolutePath()].execute()
         return process.inputStream.readLines().drop(1)
     }
+
+    List<String> listLinkedLibraries() {
+        def process = ['otool', '-L', binaryFile.absolutePath].execute()
+        def lines = process.inputStream.readLines()
+        return lines
+    }
 }

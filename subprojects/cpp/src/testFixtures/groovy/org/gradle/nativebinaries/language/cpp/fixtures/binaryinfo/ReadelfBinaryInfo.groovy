@@ -52,4 +52,10 @@ class ReadelfBinaryInfo implements BinaryInfo {
         def process = ['ar', '-t', binaryFile.getAbsolutePath()].execute()
         return process.inputStream.readLines()
     }
+
+    List<String> listLinkedLibraries() {
+        def process = ['readelf', '-d', binaryFile.absolutePath].execute()
+        def lines = process.inputStream.readLines()
+        return lines
+    }
 }

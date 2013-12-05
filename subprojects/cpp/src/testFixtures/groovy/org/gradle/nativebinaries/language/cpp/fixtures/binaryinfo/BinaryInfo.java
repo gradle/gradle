@@ -23,4 +23,5 @@ import java.util.List;
 public interface BinaryInfo {
     ArchitectureInternal getArch();
     List<String> listObjectFiles();
+    List<String> listLinkedLibraries();
 }

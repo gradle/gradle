@@ -83,4 +83,10 @@ class DumpbinBinaryInfo implements BinaryInfo {
         def process = [dumpbin.absolutePath, '/LIST', binaryFile.absolutePath].execute(["PATH=$vcBin;$commonBin"], null)
         return process.inputStream.readLines().drop(3).collect { new File(it).name }
     }
+
+    List<String> listLinkedLibraries() {
+        def dumpbin = findExe("dumpbin.exe")
+        def process = [dumpbin.absolutePath, '/IMPORTS', binaryFile.absolutePath].execute(["PATH=$vcBin;$commonBin"], null)
+        return process.inputStream.readLines()
+    }
 }

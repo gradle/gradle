@@ -894,6 +894,8 @@ Here's an example:
 
 - All test cases for single project build should also function where components are in separate Gradle builds
 - Transitive project dependencies - :a:exe -> :b:lib1 -> :c:lib2
+- Diamond dependency - :a:exe -> :b:lib1 -> :x:lib
+                              -> :c:lib2 -> :x:lib
 - Mixed multi-project with multiple components per project
 - Multi-project where :a:exe -> :b:lib1 -> :a:lib2 (Gradle project cycle)
 

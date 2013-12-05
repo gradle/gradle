@@ -17,6 +17,7 @@ package org.gradle.nativebinaries.language.cpp
 
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativebinaries.language.cpp.fixtures.app.CppHelloWorldApp
+import org.gradle.nativebinaries.language.cpp.fixtures.app.ExeWithDiamondDependencyHelloWorldApp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.ExeWithLibraryUsingLibraryHelloWorldApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -203,5 +204,85 @@ class LibraryDependenciesIntegrationTest extends AbstractInstalledToolChainInteg
 
         then:
         installation("exe/build/install/mainExecutable").exec().out == app.englishOutput
+    }
+
+    def "can have component graph with diamond dependency"() {
+        given:
+        def app = new ExeWithDiamondDependencyHelloWorldApp()
+        app.writeSources(file("src/main"), file("src/hello"), file("src/greetings"))
+
+        and:
+        buildFile << """
+            apply plugin: "cpp"
+            executables {
+                main {}
+            }
+            libraries {
+                hello {}
+                greetings {
+                    binaries.withType(StaticLibraryBinary) {
+                        if (toolChain in Gcc || toolChain in Clang) {
+                            cppCompiler.args '-fPIC'
+                        }
+                    }
+                }
+            }
+            sources.main.cpp.lib libraries.hello.shared
+            sources.main.cpp.lib libraries.greetings.static
+            sources.hello.cpp.lib libraries.greetings.static
+        """
+
+        when:
+        succeeds "installMainExecutable"
+
+        then:
+        installation("build/install/mainExecutable").exec().out == app.englishOutput
+
+        and:
+        notExecuted ":greetingsSharedLibrary"
+        sharedLibrary("build/binaries/greetingsSharedLibrary/greetings").assertDoesNotExist()
+    }
+
+    def "can have component graph with both static and shared variants of same library"() {
+        given:
+        def app = new ExeWithDiamondDependencyHelloWorldApp()
+        app.writeSources(file("src/main"), file("src/hello"), file("src/greetings"))
+
+        and:
+        buildFile << """
+            apply plugin: "cpp"
+            executables {
+                main {}
+            }
+            libraries {
+                hello {}
+                greetings {
+                    binaries.withType(StaticLibraryBinary) {
+                        if (toolChain in Gcc || toolChain in Clang) {
+                            cppCompiler.args '-fPIC'
+                        }
+                    }
+                }
+            }
+            sources.main.cpp.lib libraries.hello.shared
+            sources.main.cpp.lib libraries.greetings.shared
+            sources.hello.cpp.lib libraries.greetings.static
+        """
+
+        when:
+        succeeds "installMainExecutable"
+
+        then:
+        installation("build/install/mainExecutable").exec().out == app.englishOutput
+
+        and:
+        executedAndNotSkipped ":greetingsSharedLibrary", ":greetingsStaticLibrary"
+        sharedLibrary("build/binaries/greetingsSharedLibrary/greetings").assertExists()
+        staticLibrary("build/binaries/greetingsStaticLibrary/greetings").assertExists()
+
+        // TODO:DAZ Investigate this output and parse to ensure that greetings is dynamically linked into mainExe but not helloShared
+        and:
+        println executable("build/binaries/mainExecutable/main").binaryInfo.listLinkedLibraries()
+        println sharedLibrary("build/binaries/helloSharedLibrary/hello").binaryInfo.listLinkedLibraries()
     }
 }
