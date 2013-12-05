@@ -22,6 +22,7 @@ import org.gradle.nativebinaries.language.cpp.fixtures.RequiresInstalledToolChai
 import org.gradle.nativebinaries.language.cpp.fixtures.app.CppCompilerDetectingTestApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.gradle.util.TextUtil
 import spock.lang.Ignore
 
 @RequiresInstalledToolChain
@@ -100,8 +101,8 @@ class MultipleToolChainIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainCpp'.")
-        failure.assertHasCause("""No tool chain is available to build for platform 'current':
-  - Tool chain 'bad': Linker cannot be found""")
+        failure.assertHasCause(TextUtil.toPlatformLineSeparators("""No tool chain is available to build for platform 'current':
+  - Tool chain 'bad': Linker cannot be found"""))
     }
 
     def checkInstall(String path, AvailableToolChains.InstalledToolChain toolChain) {
