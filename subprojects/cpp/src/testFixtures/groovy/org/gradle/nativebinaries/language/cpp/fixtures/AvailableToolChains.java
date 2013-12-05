@@ -216,6 +216,8 @@ public class AvailableToolChains {
             return getDisplayName().replaceAll("\\s+\\d+(\\.\\d+)*$", "");
         }
 
+        public abstract String getInstanceDisplayName();
+
         public ExecutableFixture executable(Object path) {
             return new ExecutableFixture(new TestFile(OperatingSystem.current().getExecutableName(path.toString())), this);
         }
@@ -298,6 +300,10 @@ public class AvailableToolChains {
             return config;
         }
 
+        public String getInstanceDisplayName() {
+            return String.format("Tool chain '%s' (GNU GCC)", getId());
+        }
+
         public String getImplementationClass() {
             return Gcc.class.getSimpleName();
         }
@@ -338,6 +344,10 @@ public class AvailableToolChains {
             return VisualCpp.class.getSimpleName();
         }
 
+        public String getInstanceDisplayName() {
+            return String.format("Tool chain '%s' (Visual Studio)", getId());
+        }
+
         @Override
         public String getPluginClass() {
             return MicrosoftVisualCppPlugin.class.getSimpleName();
@@ -365,6 +375,10 @@ public class AvailableToolChains {
         @Override
         public String getBuildScriptConfig() {
             return "clang(Clang)";
+        }
+
+        public String getInstanceDisplayName() {
+            return String.format("Tool chain '%s' (Clang)", getId());
         }
 
         @Override

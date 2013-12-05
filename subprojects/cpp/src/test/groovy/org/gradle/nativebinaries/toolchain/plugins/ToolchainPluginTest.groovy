@@ -17,6 +17,8 @@
 package org.gradle.nativebinaries.toolchain.plugins
 
 import org.gradle.api.Plugin
+import org.gradle.api.plugins.ExtensionAware
+import org.gradle.api.plugins.ExtraPropertiesExtension
 import org.gradle.nativebinaries.ToolChain
 import org.gradle.nativebinaries.ToolChainRegistry
 import org.gradle.nativebinaries.internal.ToolChainInternal
@@ -53,5 +55,16 @@ abstract class ToolChainPluginTest extends Specification {
 
     void addDefaultToolchain() {
         project.model { toolChains { addDefaultToolChains() } }
+    }
+
+    def "tool chain is extended"() {
+        when:
+        register()
+
+        then:
+        with (toolchain) {
+            it instanceof ExtensionAware
+            it.ext instanceof ExtraPropertiesExtension
+        }
     }
 }

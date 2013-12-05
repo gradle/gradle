@@ -23,7 +23,7 @@ import static org.gradle.util.TextUtil.toPlatformLineSeparators
 class TreeFormatterTest extends Specification {
     def formatter = new TreeFormatter()
 
-    def "formats root with no children"() {
+    def "formats single node"() {
         when:
         formatter.node("Some thing.")
 
@@ -31,9 +31,62 @@ class TreeFormatterTest extends Specification {
         formatter.toString() == "Some thing."
     }
 
-    def "formats root with single child"() {
+    def "formats root with no children"() {
         when:
-        formatter.node("Some things:")
+        formatter.node("Some thing.")
+        formatter.startChildren()
+        formatter.endChildren()
+
+        then:
+        formatter.toString() == "Some thing."
+    }
+
+    def "formats root with single leaf child"() {
+        when:
+        formatter.node("Some things")
+        formatter.startChildren()
+        formatter.node("child 1")
+        formatter.endChildren()
+
+        then:
+        formatter.toString() == 'Some things: child 1'
+    }
+
+    def "formats root with single nested leaf child"() {
+        when:
+        formatter.node("Some things")
+        formatter.startChildren()
+        formatter.node("child 1")
+        formatter.startChildren()
+        formatter.node("child 2")
+        formatter.endChildren()
+        formatter.endChildren()
+
+        then:
+        formatter.toString() == toPlatformLineSeparators("""Some things:
+  - child 1: child 2""")
+    }
+
+    def "formats root with single child with multiple children"() {
+        when:
+        formatter.node("Some things")
+        formatter.startChildren()
+        formatter.node("child 1")
+        formatter.startChildren()
+        formatter.node("child 1.1")
+        formatter.node("child 1.2")
+        formatter.endChildren()
+        formatter.endChildren()
+
+        then:
+        formatter.toString() == toPlatformLineSeparators("""Some things: child 1:
+  - child 1.1
+  - child 1.2""")
+    }
+
+    def "formats root with multiple children"() {
+        when:
+        formatter.node("Some things")
         formatter.startChildren()
         formatter.node("child 1")
         formatter.node("child 2")
@@ -47,7 +100,7 @@ class TreeFormatterTest extends Specification {
 
     def "formats nested children"() {
         when:
-        formatter.node("Some things:")
+        formatter.node("Some things")
         formatter.startChildren()
         formatter.node("child 1")
         formatter.startChildren()
@@ -59,7 +112,7 @@ class TreeFormatterTest extends Specification {
 
         then:
         formatter.toString() == toPlatformLineSeparators("""Some things:
-  - child 1
+  - child 1:
       - child 1.1
       - child 1.2
   - child 2""")
@@ -67,7 +120,7 @@ class TreeFormatterTest extends Specification {
 
     def "indents nested children that span multiple lines"() {
         when:
-        formatter.node(toPlatformLineSeparators("Multiple\nlines:"))
+        formatter.node(toPlatformLineSeparators("Multiple\nlines"))
         formatter.startChildren()
         formatter.node("child 1")
         formatter.startChildren()
@@ -80,7 +133,7 @@ class TreeFormatterTest extends Specification {
         then:
         formatter.toString() == toPlatformLineSeparators("""Multiple
 lines:
-  - child 1
+  - child 1:
       - multiple
         lines
       - another

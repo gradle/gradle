@@ -25,7 +25,10 @@ import org.gradle.internal.text.TreeFormatter;
 import org.gradle.nativebinaries.Platform;
 import org.gradle.nativebinaries.ToolChain;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 public class DefaultToolChainRegistry extends DefaultPolymorphicDomainObjectContainer<ToolChain> implements ToolChainRegistryInternal {
     private final Map<String, Class<? extends ToolChain>> registeredDefaults = new LinkedHashMap<String, Class<? extends ToolChain>>();
@@ -61,27 +64,29 @@ public class DefaultToolChainRegistry extends DefaultPolymorphicDomainObjectCont
     }
 
     public ToolChain getForPlatform(Platform targetPlatform) {
-        List<String> messages = new ArrayList<String>();
         for (ToolChainInternal toolChain : searchOrder) {
-            if (!toolChain.getAvailability().isAvailable()) {
-                messages.add(String.format("Tool chain '%s': %s", toolChain.getName(), toolChain.getAvailability().getUnavailableMessage()));
-                continue;
-            }
-            if (toolChain.canTargetPlatform(targetPlatform)) {
+            if (toolChain.getAvailability().isAvailable() && toolChain.canTargetPlatform(targetPlatform)) {
                 return toolChain;
-            } else {
-                messages.add(String.format("Tool chain '%s' cannot build for platform '%s'.", toolChain.getName(), targetPlatform.getName()));
             }
-        }
-        if (messages.isEmpty()) {
-            messages.add("No tool chain plugin applied.");
         }
 
+        // No tool chains can build for this platform. Assemble a description of why
+
         TreeFormatter failureMessage = new TreeFormatter();
-        failureMessage.node(String.format("No tool chain is available to build for platform '%s':", targetPlatform.getName()));
+        failureMessage.node(String.format("No tool chain is available to build for platform '%s'", targetPlatform.getName()));
         failureMessage.startChildren();
-        for (String message : messages) {
-            failureMessage.node(message);
+        for (ToolChainInternal toolChain : searchOrder) {
+            if (!toolChain.getAvailability().isAvailable()) {
+                failureMessage.node(toolChain.getDisplayName());
+                failureMessage.startChildren();
+                toolChain.getAvailability().visitUnavailableMessages(failureMessage);
+                failureMessage.endChildren();
+            } else {
+                failureMessage.node(String.format("%s cannot build for platform '%s'.", toolChain.getDisplayName(), targetPlatform.getName()));
+            }
+        }
+        if (searchOrder.isEmpty()) {
+            failureMessage.node("No tool chain plugin applied.");
         }
         failureMessage.endChildren();
 
@@ -94,6 +99,10 @@ public class DefaultToolChainRegistry extends DefaultPolymorphicDomainObjectCont
 
         UnavailableToolChain(String failureMessage) {
             this.failureMessage = failureMessage;
+        }
+
+        public String getDisplayName() {
+            return getName();
         }
 
         public String getName() {

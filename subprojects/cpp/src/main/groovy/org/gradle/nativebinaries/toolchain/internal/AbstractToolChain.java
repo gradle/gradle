@@ -41,9 +41,13 @@ public abstract class AbstractToolChain implements ToolChainInternal {
 
     protected abstract String getTypeName();
 
+    public String getDisplayName() {
+        return String.format("Tool chain '%s' (%s)", getName(), getTypeName());
+    }
+
     @Override
     public String toString() {
-        return String.format("ToolChain '%s' (%s)", getName(), getTypeName());
+        return getDisplayName();
     }
 
     public ToolChainAvailability getAvailability() {
@@ -56,7 +60,7 @@ public abstract class AbstractToolChain implements ToolChainInternal {
 
     protected void checkAvailable() {
         if (!getAvailability().isAvailable()) {
-            throw new IllegalStateException(String.format("Tool chain %s is not available: %s", getName(), getAvailability().getUnavailableMessage()));
+            throw new IllegalStateException(String.format("%s is not available: %s", getDisplayName(), getAvailability().getUnavailableMessage()));
         }
     }
 

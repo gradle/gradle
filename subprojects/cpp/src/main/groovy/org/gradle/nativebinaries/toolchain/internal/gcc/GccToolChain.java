@@ -59,7 +59,7 @@ public class GccToolChain extends AbstractGccCompatibleToolChain implements Gcc 
 
     @Override
     protected String getTypeName() {
-        return "GNU G++";
+        return "GNU GCC";
     }
 
     public List<File> getPath() {

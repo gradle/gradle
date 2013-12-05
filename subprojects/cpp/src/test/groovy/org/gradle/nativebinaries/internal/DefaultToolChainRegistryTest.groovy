@@ -179,6 +179,7 @@ class DefaultToolChainRegistryTest extends Specification {
     def unavailableToolChain(String name, String message = "Not available") {
         TestToolChain testToolChain = Mock(TestToolChain) {
             _ * getName() >> name
+            _ * getDisplayName() >> "Tool chain '$name'"
             _ * getAvailability() >> new ToolChainAvailability().unavailable(message)
         }
         factory.create(name) >> testToolChain

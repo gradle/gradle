@@ -24,7 +24,6 @@ import org.gradle.internal.nativeplatform.services.NativeServices
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.ToolChain
 import org.gradle.nativebinaries.internal.ToolChainAvailability
-import org.gradle.nativebinaries.language.cpp.fixtures.RequiresInstalledToolChain
 import org.gradle.nativebinaries.toolchain.VisualCpp
 import org.gradle.nativebinaries.toolchain.internal.msvcpp.VisualCppToolChain
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -61,7 +60,6 @@ class MicrosoftVisualCppPluginTest extends ToolChainPluginTest {
         toolchain instanceof VisualCppToolChain
     }
 
-    @RequiresInstalledToolChain("visual c++")
     def "registers default VisualCpp tool chain"() {
         when:
         addDefaultToolchain()
@@ -90,7 +88,8 @@ class MicrosoftVisualCppPluginTest extends ToolChainPluginTest {
         def visualCpp = toolchain
         !visualCpp.availability.available
         visualCpp.availability.unavailableMessage == 'Visual Studio is not available on this operating system.'
-        visualCpp.toString() == "ToolChain '$toolchainName' (Visual C++)"
+        visualCpp.displayName == "Tool chain '$toolchainName' (Visual Studio)"
+        visualCpp.displayName == visualCpp.toString()
     }
 
     @Requires(TestPrecondition.WINDOWS)
@@ -100,7 +99,7 @@ class MicrosoftVisualCppPluginTest extends ToolChainPluginTest {
 
         and:
         def dummyCompiler = file("dummy/cl.exe").createFile()
-        processEnvironment.setEnvironmentVariable(pathVar, dummyCompiler.getParentFile().absolutePath);
+        processEnvironment.setEnvironmentVariable(pathVar, dummyCompiler.parentFile.absolutePath);
 
         when:
         register()

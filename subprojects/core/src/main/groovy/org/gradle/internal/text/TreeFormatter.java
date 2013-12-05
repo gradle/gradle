@@ -24,8 +24,7 @@ import org.gradle.util.TreeVisitor;
 public class TreeFormatter extends TreeVisitor<String> {
     private final StringBuilder buffer = new StringBuilder();
     private final AbstractStyledTextOutput original;
-    private String prefix = "";
-    private int depth;
+    private Node current;
 
     public TreeFormatter() {
         original = new AbstractStyledTextOutput() {
@@ -34,6 +33,7 @@ public class TreeFormatter extends TreeVisitor<String> {
                 buffer.append(text);
             }
         };
+        current = new Node();
     }
 
     @Override
@@ -43,33 +43,104 @@ public class TreeFormatter extends TreeVisitor<String> {
 
     @Override
     public void node(String node) {
-        if (depth == 0) {
-            buffer.append(node);
-            return;
+        if (current.traversing) {
+            // First child node
+            current = new Node(current, node);
+            if (current.isRoot()) {
+                original.append(node);
+                current.valueWritten = true;
+            }
+        } else {
+            // A sibling node
+            current = new Node(current.parent, node);
         }
-
-        original.format("%n");
-        StyledTextOutput output = new LinePrefixingStyledTextOutput(original, prefix + "    ");
-        output.append(prefix);
-        output.append("  - ");
-        output.append(node);
     }
 
     @Override
     public void startChildren() {
-        depth++;
-        if (depth > 1) {
-            prefix = prefix + "    ";
-        }
+        current.traversing = true;
     }
 
     @Override
     public void endChildren() {
-        depth--;
-        if (depth <= 1) {
+        if (current.parent == null) {
+            throw new IllegalStateException("Not visiting any node.");
+        }
+        if (!current.traversing) {
+            current = current.parent;
+        }
+        if (current.isRoot()) {
+            writeNode(current);
+        }
+        current = current.parent;
+    }
+
+    private void writeNode(Node node) {
+        if (node.prefix == null) {
+            node.prefix = node.isRoot() ? "" : node.parent.prefix + "    ";
+        }
+
+        StyledTextOutput output = new LinePrefixingStyledTextOutput(original, node.prefix);
+        if (!node.valueWritten) {
+            output.append(node.parent.prefix);
+            output.append("  - ");
+            output.append(node.value);
+        }
+
+        if (node.canCollapseFirstChild()) {
+            output.append(": ");
+            Node firstChild = node.firstChild;
+            output.append(firstChild.value);
+            firstChild.valueWritten = true;
+            firstChild.prefix = node.prefix;
+            writeNode(firstChild);
+        } else if (node.firstChild != null) {
+            original.format(":%n");
+            writeNode(node.firstChild);
+        }
+        if (node.nextSibling != null) {
+            original.format("%n");
+            writeNode(node.nextSibling);
+        }
+    }
+
+    private static class Node {
+        final Node parent;
+        final String value;
+        boolean written;
+        boolean traversing;
+        Node firstChild;
+        Node lastChild;
+        Node nextSibling;
+        String prefix;
+        public boolean valueWritten;
+
+        private Node() {
+            this.parent = null;
+            this.value = null;
+            traversing = true;
+            written = true;
             prefix = "";
-        } else {
-            prefix = prefix.substring(4);
+        }
+
+        private Node(Node parent, String value) {
+            this.parent = parent;
+            this.value = value;
+            if (parent.firstChild == null) {
+                parent.firstChild = this;
+                parent.lastChild = this;
+            } else {
+                parent.lastChild.nextSibling = this;
+                parent.lastChild = this;
+            }
+        }
+
+        boolean canCollapseFirstChild() {
+            return firstChild != null && firstChild.nextSibling == null && !firstChild.canCollapseFirstChild();
+        }
+
+        boolean isRoot() {
+            return parent.parent == null;
         }
     }
 }

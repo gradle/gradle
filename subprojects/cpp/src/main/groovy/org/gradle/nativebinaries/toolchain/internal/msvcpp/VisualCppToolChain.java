@@ -53,7 +53,7 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
 
     @Override
     protected String getTypeName() {
-        return "Visual C++";
+        return "Visual Studio";
     }
 
     @Override

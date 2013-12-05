@@ -22,7 +22,6 @@ import org.gradle.nativebinaries.language.cpp.fixtures.binaryinfo.DumpbinBinaryI
 import org.gradle.nativebinaries.language.cpp.fixtures.binaryinfo.OtoolBinaryInfo
 import org.gradle.nativebinaries.language.cpp.fixtures.binaryinfo.ReadelfBinaryInfo
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.TextUtil
 
 class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def helloWorldApp = new CppHelloWorldApp()
@@ -187,8 +186,7 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
 
         then:
         failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainCpp'.")
-        failure.assertHasCause(TextUtil.toPlatformLineSeparators("""No tool chain is available to build for platform 'sparc':
-  - Tool chain '${toolChain.id}' cannot build for platform 'sparc'."""))
+        failure.assertHasCause("No tool chain is available to build for platform 'sparc': ${toolChain.instanceDisplayName} cannot build for platform 'sparc'.")
     }
 
     def "fails with reasonable error message when trying to build for a different operating system"() {
@@ -208,8 +206,7 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
 
         then:
         failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainCpp'.")
-        failure.assertHasCause(TextUtil.toPlatformLineSeparators("""No tool chain is available to build for platform 'solaris':
-  - Tool chain '${toolChain.id}' cannot build for platform 'solaris'."""))
+        failure.assertHasCause("No tool chain is available to build for platform 'solaris': ${toolChain.instanceDisplayName} cannot build for platform 'solaris'.")
     }
 
     def "fails with reasonable error message when trying to target an unknown platform"() {

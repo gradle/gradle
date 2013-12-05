@@ -14,22 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries;
 
-import org.gradle.api.Incubating;
-import org.gradle.api.Named;
-import org.gradle.internal.HasInternalProtocol;
 
-/**
- * A set of compilers and linkers that are used together to construct a native binary.
- */
-@Incubating
-@HasInternalProtocol
-public interface ToolChain extends Named {
-    /**
-     * Returns a human consumable name for this tool chain.
-     *
-     * @since 1.11
-     */
-    String getDisplayName();
+package org.gradle.nativebinaries.internal
+
+import org.gradle.util.TreeVisitor
+import spock.lang.Specification
+
+class ToolChainAvailabilityTest extends Specification {
+    def "visits messages"() {
+        def visitor = Mock(TreeVisitor)
+
+        given:
+        def availability = new ToolChainAvailability()
+        availability.unavailable("some reason")
+
+        when:
+        availability.visitUnavailableMessages(visitor)
+
+        then:
+        visitor.node("some reason")
+    }
 }

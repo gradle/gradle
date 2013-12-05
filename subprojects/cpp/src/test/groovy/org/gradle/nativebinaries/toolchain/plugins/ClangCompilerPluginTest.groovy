@@ -17,13 +17,9 @@
 package org.gradle.nativebinaries.toolchain.plugins
 
 import org.gradle.api.Plugin
-import org.gradle.api.plugins.ExtensionAware
-import org.gradle.api.plugins.ExtraPropertiesExtension
 import org.gradle.nativebinaries.ToolChain
 import org.gradle.nativebinaries.toolchain.Clang
 import org.gradle.nativebinaries.toolchain.internal.clang.ClangToolChain
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
 class ClangCompilerPluginTest extends ToolChainPluginTest {
 
@@ -48,25 +44,14 @@ class ClangCompilerPluginTest extends ToolChainPluginTest {
 
         then:
         toolchain instanceof ClangToolChain
+        toolchain.displayName == "Tool chain 'clang' (Clang)"
     }
 
-    @Requires(TestPrecondition.NOT_WINDOWS)
     def "registers default Clang tool chain"() {
         when:
         addDefaultToolchain()
 
         then:
         toolchain instanceof ClangToolChain
-    }
-
-    def "Clang tool chain is extended"() {
-        when:
-        register()
-
-        then:
-        with (toolchain) {
-            it instanceof ExtensionAware
-            it.ext instanceof ExtraPropertiesExtension
-        }
     }
 }

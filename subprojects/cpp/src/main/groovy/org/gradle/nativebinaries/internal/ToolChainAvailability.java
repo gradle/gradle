@@ -16,6 +16,8 @@
 
 package org.gradle.nativebinaries.internal;
 
+import org.gradle.util.TreeVisitor;
+
 import java.io.File;
 
 public class ToolChainAvailability {
@@ -31,6 +33,12 @@ public class ToolChainAvailability {
 
     public String getUnavailableMessage() {
         return unavailableMessage;
+    }
+
+    public void visitUnavailableMessages(TreeVisitor<? super String> visitor) {
+        if (unavailableMessage != null) {
+            visitor.node(unavailableMessage);
+        }
     }
 
     public void mustExist(String toolName, File tool) {
