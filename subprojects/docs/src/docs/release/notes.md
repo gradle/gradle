@@ -2,9 +2,40 @@
 
 Here are the new features introduced in this Gradle release.
 
-<!--
-### Example new and noteworthy
--->
+### Better support for building native binaries (i)
+
+#### Project-wide definition of build types, platforms and flavors
+
+#### Visual Studio plugin
+
+#### Select the platforms, build types and flavors that a component should target
+
+It is now possible to specify a global set of build types, platforms and flavors and then specifically choose which of
+these should apply for a particular component. This makes it easier to have a single plugin that adds support for a
+platform or build type, and have the build script use this if required.
+
+- `buildTypes` is now `model.buildTypes`
+- `targetPlatforms` is now `model.platforms`
+- `executable.flavors` or `library.flavors` is now `model.flavors`
+- Elements in these containers must be added with the `create(name)` method
+
+
+    model {
+        platforms {
+            create('x86') {
+                ... config
+            }
+        }
+        buildTypes {
+            create('debug')
+        }
+        flavors {
+            create('my-flavor')
+        }
+    }
+
+
+#### Improved support for project dependencies
 
 ## Promoted features
 
@@ -32,9 +63,10 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ## Potential breaking changes
 
-<!--
-### Example breaking change
--->
+### Changes to native binary support
+
+- Moved definitions of `buildTypes`, `targetPlatforms` and `flavors` into model block (see above)
+
 
 ## External contributions
 
