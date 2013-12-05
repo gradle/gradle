@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.result
 
+import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.artifacts.result.ComponentSelectionReason
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentSelector
@@ -39,5 +40,9 @@ class ResolutionResultDataBuilder {
     static DefaultResolvedComponentResult newModule(String group='a', String module='a', String version='1',
                                                         ComponentSelectionReason selectionReason = VersionSelectionReasons.REQUESTED) {
         new DefaultResolvedComponentResult(newId(group, module, version), selectionReason, new DefaultModuleComponentIdentifier(group, module, version))
+    }
+
+    static DefaultResolvedDependencyResult newDependency(ComponentSelector componentSelector, String group='a', String module='a', String selectedVersion='1') {
+        new DefaultResolvedDependencyResult(componentSelector, newModule(group, module, selectedVersion), newModule())
     }
 }

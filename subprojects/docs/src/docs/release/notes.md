@@ -67,6 +67,14 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 - Moved definitions of `buildTypes`, `targetPlatforms` and `flavors` into model block (see above)
 
+### A requested dependency returns different types of selectors
+
+The method `DependencyResult.getRequested()` method was changed to return an implementation of type `ComponentSelector`. This change to the API has to be taken into account
+when writing a `Spec` for the `DependencyInsightReportTask`. Here's an example for such a use case:
+
+    task insight(type: DependencyInsightReportTask) {
+        setDependencySpec { it.requested instanceof ModuleComponentSelector && it.requested.module == 'leaf2' }
+    }
 
 ## External contributions
 

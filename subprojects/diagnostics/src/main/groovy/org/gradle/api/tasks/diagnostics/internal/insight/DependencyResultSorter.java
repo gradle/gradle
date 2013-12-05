@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks.diagnostics.internal.insight;
 
+import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
@@ -48,13 +49,36 @@ public class DependencyResultSorter {
         }
 
         public int compare(DependencyEdge left, DependencyEdge right) {
-            if(left.getRequested() instanceof ModuleComponentSelector && right.getRequested() instanceof ModuleComponentSelector) {
-                return compareModuleComponentSelectors(left, right);
-            } else if(left.getRequested() instanceof ProjectComponentSelector && right.getRequested() instanceof ProjectComponentSelector) {
+            checkRequestedComponentSelectorType(left);
+            checkRequestedComponentSelectorType(right);
+            checkSameComponentSelectorTypeForBothDependencyEdges(left, right);
+
+            if(left.getRequested() instanceof ProjectComponentSelector && right.getRequested() instanceof ProjectComponentSelector) {
                 return compareProjectComponentSelectors(left, right);
             }
 
-            throw new IllegalArgumentException("Unexpected type for dependency edges (left: " + left + ", right: " + right + ")");
+            return compareModuleComponentSelectors(left, right);
+        }
+
+        private void checkRequestedComponentSelectorType(DependencyEdge dependencyEdge) {
+            ComponentSelector requested = dependencyEdge.getRequested();
+
+            if(!isExpectedComponentSelector(requested)) {
+                throw new IllegalArgumentException("Unexpected component selector type for dependency edge: " + requested);
+            }
+        }
+
+        private boolean isExpectedComponentSelector(ComponentSelector componentSelector) {
+            return componentSelector instanceof ProjectComponentSelector || componentSelector instanceof ModuleComponentSelector;
+        }
+
+        private void checkSameComponentSelectorTypeForBothDependencyEdges(DependencyEdge left, DependencyEdge right) {
+            Class leftRequestedClass = left.getRequested().getClass();
+            Class rightRequestedClass = right.getRequested().getClass();
+
+            if(leftRequestedClass != rightRequestedClass) {
+                throw new IllegalArgumentException("Component selector type is different (left: " + leftRequestedClass.getName() + ", right: " + rightRequestedClass.getName() + ")");
+            }
         }
 
         private int compareModuleComponentSelectors(DependencyEdge left, DependencyEdge right) {
