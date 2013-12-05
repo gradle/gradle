@@ -64,23 +64,24 @@ class VisualStudioProjectConfiguration {
     }
 
     List<String> getCompilerDefines() {
-        PreprocessingTool compilerTool = findCompiler()
-        return compilerTool == null ? [] : new MacroArgsConverter().transform(compilerTool.macros)
-    }
-
-    private PreprocessingTool findCompiler() {
-        ExtensionAware extendedBinary = binary as ExtensionAware;
-        return (extendedBinary.extensions.findByName('cppCompiler') ?: extendedBinary.extensions.findByName('cCompiler')) as PreprocessingTool
+        List<String> defines = []
+        defines.addAll getDefines('cCompiler')
+        defines.addAll getDefines('cppCompiler')
+        return defines
     }
 
     List<String> getResourceDefines() {
-        PreprocessingTool rcCompiler = findRcCompiler()
+        return getDefines('rcCompiler')
+    }
+
+    private List<String> getDefines(String tool) {
+        PreprocessingTool rcCompiler = findCompiler(tool)
         return rcCompiler == null ? [] : new MacroArgsConverter().transform(rcCompiler.macros)
     }
 
-    private PreprocessingTool findRcCompiler() {
+    private PreprocessingTool findCompiler(String tool) {
         ExtensionAware extendedBinary = binary as ExtensionAware;
-        return extendedBinary.extensions.findByName('rcCompiler') as PreprocessingTool
+        return extendedBinary.extensions.findByName(tool) as PreprocessingTool
     }
 
     List<File> getIncludePaths() {

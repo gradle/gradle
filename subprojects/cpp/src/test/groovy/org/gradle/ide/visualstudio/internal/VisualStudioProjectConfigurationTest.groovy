@@ -47,6 +47,8 @@ class VisualStudioProjectConfigurationTest extends Specification {
         getTargetPlatform() >> platform
     }
     def configuration = new VisualStudioProjectConfiguration(null, exeBinary, "Application")
+    def cppCompiler = Mock(PreprocessingTool)
+    def cCompiler = Mock(PreprocessingTool)
 
     def "setup"() {
         flavors.add(flavor)
@@ -86,10 +88,28 @@ class VisualStudioProjectConfigurationTest extends Specification {
         new DefaultArchitecture("x86", ArchitectureInternal.InstructionSet.ITANIUM, 64) | "Itanium"
     }
 
-    def "compiler defines are taken from cpp or c compiler config"() {
-        def cppCompiler = Mock(PreprocessingTool)
-        def cCompiler = Mock(PreprocessingTool)
+    def "compiler defines are taken from cpp compiler configuration"() {
+        when:
+        1 * extensions.findByName('cCompiler') >> null
+        1 * extensions.findByName('cppCompiler') >> cppCompiler
+        cppCompiler.macros >> [foo: "bar", empty: null]
 
+        then:
+        configuration.compilerDefines == ["foo=bar", "empty"]
+    }
+
+    def "compiler defines are taken from c compiler configuration"() {
+        when:
+        1 * extensions.findByName('cCompiler') >> cCompiler
+        1 * extensions.findByName('cppCompiler') >> null
+        cCompiler.macros >> [foo: "bar", another: null]
+
+        then:
+        configuration.compilerDefines == ["foo=bar", "another"]
+    }
+
+
+    def "compiler defines are taken from cpp and c compiler configurations combined"() {
         when:
         1 * extensions.findByName('cppCompiler') >> null
         1 * extensions.findByName('cCompiler') >> null
@@ -98,19 +118,13 @@ class VisualStudioProjectConfigurationTest extends Specification {
         configuration.compilerDefines == []
 
         when:
-        1 * extensions.findByName('cppCompiler') >> cppCompiler
-        cppCompiler.macros >> [foo: "bar", empty: null]
-
-        then:
-        configuration.compilerDefines == ["foo=bar", "empty"]
-
-        when:
-        1 * extensions.findByName('cppCompiler') >> null
         1 * extensions.findByName('cCompiler') >> cCompiler
-        cCompiler.macros >> [foo: "bar", another: null]
+        1 * extensions.findByName('cppCompiler') >> cppCompiler
+        cCompiler.macros >> [_c: null]
+        cppCompiler.macros >> [foo: "bar", _cpp: null]
 
         then:
-        configuration.compilerDefines == ["foo=bar", "another"]
+        configuration.compilerDefines == ["_c", "foo=bar", "_cpp"]
     }
 
     def "resource defines are taken from rcCompiler config"() {
