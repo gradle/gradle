@@ -34,11 +34,10 @@ class DependencyResultSorterSpec extends Specification {
         def d2 = newDependency(newSelector("org.aha", "aha", "1.0"), newId("org.gradle", "zzzz", "3.0"))
 
         when:
-        DependencyResultSorter.sort([d2, d1], matcher)
+        DependencyResultSorter.sort([d1, d2], matcher)
 
         then:
-        Throwable e = thrown(IllegalArgumentException)
-        e.message == 'Component selector type is different (left: org.gradle.api.internal.artifacts.component.DefaultProjectComponentSelector, right: org.gradle.api.internal.artifacts.component.DefaultModuleComponentSelector)'
+        thrown(IllegalArgumentException)
     }
 
     def "sorts by requested ModuleComponentSelector by version"() {
