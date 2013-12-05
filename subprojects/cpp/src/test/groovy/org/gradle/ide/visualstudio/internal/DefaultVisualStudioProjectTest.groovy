@@ -18,6 +18,7 @@ package org.gradle.ide.visualstudio.internal
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.DefaultDomainObjectSet
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.DependentSourceSet
 import org.gradle.language.HeaderExportingSourceSet
 import org.gradle.language.base.LanguageSourceSet
@@ -25,11 +26,12 @@ import org.gradle.language.cpp.CppSourceSet
 import org.gradle.nativebinaries.internal.NativeComponentInternal
 import spock.lang.Specification
 
-class DefaultVisualSgtudioProjectTest extends Specification {
+class DefaultVisualStudioProjectTest extends Specification {
+    private DirectInstantiator instantiator = new DirectInstantiator()
     def component = Mock(NativeComponentInternal)
     def fileResolver = Mock(FileResolver)
     def projectResolver = Mock(VisualStudioProjectResolver)
-    def vsProject = new DefaultVisualStudioProject("projectName", component, fileResolver, projectResolver)
+    def vsProject = new DefaultVisualStudioProject("projectName", component, fileResolver, projectResolver, instantiator)
 
     def "names"() {
         final projectFile = new File("project")
@@ -75,10 +77,10 @@ class DefaultVisualSgtudioProjectTest extends Specification {
         def sameComponent = Mock(NativeComponentInternal)
         def otherComponent = Mock(NativeComponentInternal)
 
-        def sameProject = new DefaultVisualStudioProject("projectName", component, fileResolver, projectResolver)
-        def samePath = new DefaultVisualStudioProject("projectName", sameComponent, fileResolver, projectResolver)
-        def differentPath = new DefaultVisualStudioProject("projectName", otherComponent, fileResolver, projectResolver)
-        def differentName = new DefaultVisualStudioProject("otherProject", component, fileResolver, projectResolver)
+        def sameProject = new DefaultVisualStudioProject("projectName", component, fileResolver, projectResolver, instantiator)
+        def samePath = new DefaultVisualStudioProject("projectName", sameComponent, fileResolver, projectResolver, instantiator)
+        def differentPath = new DefaultVisualStudioProject("projectName", otherComponent, fileResolver, projectResolver, instantiator)
+        def differentName = new DefaultVisualStudioProject("otherProject", component, fileResolver, projectResolver, instantiator)
 
         and:
         component.projectPath >> ":projectPath"

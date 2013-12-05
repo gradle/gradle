@@ -16,9 +16,12 @@
 
 package org.gradle.ide.visualstudio.internal
 
+import org.gradle.api.Action
+import org.gradle.api.XmlProvider
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.ide.visualstudio.ConfigFile
 import org.gradle.ide.visualstudio.VisualStudioProject
+import org.gradle.ide.visualstudio.XmlConfigFile
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.language.HeaderExportingSourceSet
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.internal.AbstractBuildableModelElement
@@ -39,12 +42,12 @@ class DefaultVisualStudioProject extends AbstractBuildableModelElement implement
     final DefaultConfigFile projectFile
     final DefaultConfigFile filtersFile
 
-    DefaultVisualStudioProject(String name, NativeComponent component, FileResolver fileResolver, VisualStudioProjectResolver projectResolver) {
+    DefaultVisualStudioProject(String name, NativeComponent component, FileResolver fileResolver, VisualStudioProjectResolver projectResolver, Instantiator instantiator) {
         this.name = name
         this.component = component
         this.projectResolver = projectResolver
-        projectFile = new DefaultConfigFile(fileResolver, "visualStudio/${name}.vcxproj")
-        filtersFile = new DefaultConfigFile(fileResolver, "visualStudio/${name}.vcxproj.filters")
+        projectFile = instantiator.newInstance(DefaultConfigFile, fileResolver, "visualStudio/${name}.vcxproj" as String)
+        filtersFile = instantiator.newInstance(DefaultConfigFile, fileResolver, "visualStudio/${name}.vcxproj.filters" as String)
     }
 
     String getUuid() {
@@ -116,7 +119,8 @@ class DefaultVisualStudioProject extends AbstractBuildableModelElement implement
                "Application"
     }
 
-    private static class DefaultConfigFile implements ConfigFile {
+    public static class DefaultConfigFile implements XmlConfigFile {
+        private final List<Action<? super XmlProvider>> actions = new ArrayList<Action<? super XmlProvider>>();
         private final FileResolver fileResolver
         private Object location
 
@@ -131,6 +135,14 @@ class DefaultVisualStudioProject extends AbstractBuildableModelElement implement
 
         void setLocation(Object location) {
             this.location = location
+        }
+
+        void withXml(Action<? super XmlProvider> action) {
+            actions.add(action)
+        }
+
+        List<Action<? super XmlProvider>> getXmlActions() {
+            return actions
         }
     }
 }

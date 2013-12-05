@@ -42,7 +42,7 @@ class ProjectFile {
         return globals.ProjectGUID[0].text()
     }
 
-    private Node getGlobals() {
+    public Node getGlobals() {
         return projectXml.PropertyGroup.find({it.'@Label' == 'Globals'}) as Node
     }
 

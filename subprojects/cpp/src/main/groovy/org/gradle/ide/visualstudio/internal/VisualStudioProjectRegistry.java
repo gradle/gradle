@@ -51,7 +51,7 @@ public class VisualStudioProjectRegistry extends DefaultNamedDomainObjectSet<Def
         String projectName = projectName(nativeBinary);
         DefaultVisualStudioProject vsProject = findByName(projectName);
         if (vsProject == null) {
-            vsProject = new DefaultVisualStudioProject(projectName, nativeBinary.getComponent(), fileResolver, projectResolver);
+            vsProject = new DefaultVisualStudioProject(projectName, nativeBinary.getComponent(), fileResolver, projectResolver, getInstantiator());
             add(vsProject);
         }
         return vsProject;

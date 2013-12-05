@@ -20,7 +20,12 @@ package org.gradle.ide.visualstudio.fixtures
 import org.gradle.test.fixtures.file.TestFile
 
 class FiltersFile {
+    TestFile file
+    Node xml
+
     FiltersFile(TestFile filtersFile) {
         assert filtersFile.exists()
+        this.file = filtersFile
+        this.xml = new XmlParser().parse(filtersFile)
     }
 }

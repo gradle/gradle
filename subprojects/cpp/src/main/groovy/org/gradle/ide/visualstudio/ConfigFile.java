@@ -16,8 +16,11 @@
 
 package org.gradle.ide.visualstudio;
 
+import org.gradle.api.Incubating;
+
 import java.io.File;
 
+@Incubating
 public interface ConfigFile {
     File getLocation();
     void setLocation(Object location);

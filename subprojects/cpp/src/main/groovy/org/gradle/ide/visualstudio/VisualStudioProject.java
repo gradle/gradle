@@ -16,10 +16,12 @@
 
 package org.gradle.ide.visualstudio;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.language.base.BuildableModelElement;
 
+@Incubating
 public interface VisualStudioProject extends Named, BuildableModelElement {
-    ConfigFile getProjectFile();
-    ConfigFile getFiltersFile();
+    XmlConfigFile getProjectFile();
+    XmlConfigFile getFiltersFile();
 }

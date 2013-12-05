@@ -52,6 +52,10 @@ class GenerateFiltersFileTask extends XmlGeneratorTask<VisualStudioFiltersFile> 
         vsProject.headerFiles.each {
             filtersFile.addHeader(it)
         }
+
+        vsProject.filtersFile.xmlActions.each {
+            xmlTransformer.addAction(it)
+        }
     }
 
     @Override

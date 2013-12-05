@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 package org.gradle.ide.visualstudio
 
 import org.gradle.ide.visualstudio.fixtures.FiltersFile
@@ -50,17 +49,17 @@ class VisualStudioFileCustomizationIntegrationTest extends AbstractInstalledTool
 """
     }
 
-    def "can specific location of generated project files"() {
+    def "can specific location of generated files"() {
         when:
         buildFile << """
     model {
         visualStudio {
-            projects.all {
-                projectFile.location = "other/project.vcxproj"
+            projects.all { project ->
+                projectFile.location = "other/\${project.name}.vcxproj"
                 filtersFile.location = "other/filters.vcxproj.filters"
             }
             solutions.all {
-                solutionFile.location = "vs/main.solution"
+                solutionFile.location = "vs/\${it.name}.solution"
             }
         }
     }
@@ -72,12 +71,58 @@ class VisualStudioFileCustomizationIntegrationTest extends AbstractInstalledTool
         executedAndNotSkipped ":mainExeVisualStudio"
 
         and:
-        final projectFile = projectFile("other/project.vcxproj")
+        final projectFile = projectFile("other/mainExe.vcxproj")
         filtersFile("other/filters.vcxproj.filters")
 
-        final mainSolution = solutionFile("vs/main.solution")
+        final mainSolution = solutionFile("vs/mainExe.solution")
         mainSolution.assertHasProjects("mainExe")
         mainSolution.assertReferencesProject("mainExe", projectFile)
+    }
+
+    def "can add xml configuration to generated project files"() {
+        when:
+        buildFile << """
+    model {
+        visualStudio {
+            projects.all { project ->
+                projectFile.withXml { xml ->
+                    Node globals = xml.asNode().PropertyGroup.find({it.'@Label' == 'Globals'}) as Node
+                    globals.appendNode("ExtraInfo", "Some extra info")
+                    globals.appendNode("ProjectName", project.name)
+                }
+            }
+        }
+    }
+"""
+        and:
+        run "mainVisualStudio"
+
+        then:
+        final projectFile = projectFile("visualStudio/mainExe.vcxproj")
+        projectFile.globals.ExtraInfo[0].text() == "Some extra info"
+        projectFile.globals.ProjectName[0].text() == "mainExe"
+    }
+
+
+    def "can add xml configuration to generated filter files"() {
+        when:
+        buildFile << """
+    model {
+        visualStudio {
+            projects.all { project ->
+                filtersFile.withXml { xml ->
+                    xml.asNode().appendNode("ExtraContent", "Filter - \${project.name}")
+                }
+            }
+        }
+    }
+"""
+        and:
+        run "mainVisualStudio"
+
+        then:
+        final filtersFile = filtersFile("visualStudio/mainExe.vcxproj.filters")
+        filtersFile.xml.ExtraContent[0].text() == "Filter - mainExe"
     }
 
     private SolutionFile solutionFile(String path) {

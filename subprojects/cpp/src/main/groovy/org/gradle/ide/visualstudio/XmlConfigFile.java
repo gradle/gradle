@@ -16,12 +16,11 @@
 
 package org.gradle.ide.visualstudio;
 
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.api.NamedDomainObjectSet;
+import org.gradle.api.XmlProvider;
 
-// TODO:DAZ API docs for visualStudio
 @Incubating
-public interface VisualStudioExtension {
-    NamedDomainObjectSet<? extends VisualStudioProject> getProjects();
-    NamedDomainObjectSet<? extends VisualStudioSolution> getSolutions();
+public interface XmlConfigFile extends ConfigFile {
+    void withXml(Action<? super XmlProvider> action);
 }
