@@ -20,8 +20,18 @@ import org.gradle.api.Incubating;
 
 import java.io.File;
 
+/**
+ * A configuration file generated for Visual Studio.
+ */
 @Incubating
 public interface ConfigFile {
+    /**
+     * The location where this file will be generated.
+     */
     File getLocation();
+
+    /**
+     * Specify the location where this file will be generated.
+     */
     void setLocation(Object location);
 }

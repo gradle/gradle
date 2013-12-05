@@ -14,20 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.ide.visualstudio;
-
-import org.gradle.api.Action;
-import org.gradle.api.Incubating;
-import org.gradle.api.XmlProvider;
-
 /**
- * An XML config file generated for Visual Studio.
+ * Model classes for visual studio.
  */
-@Incubating
-public interface XmlConfigFile extends ConfigFile {
-
-    /**
-     * Add an action that can manipulate the generated file content.
-     */
-    void withXml(Action<? super XmlProvider> action);
-}
+package org.gradle.ide.visualstudio;

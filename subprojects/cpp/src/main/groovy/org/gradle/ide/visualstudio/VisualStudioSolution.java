@@ -23,10 +23,24 @@ import org.gradle.nativebinaries.NativeComponent;
 
 import java.util.Set;
 
+/**
+ * A visual studio solution, representing one or more {@link org.gradle.nativebinaries.NativeBinary} instances
+ * from the same {@link NativeComponent}.
+ */
 @Incubating
 public interface VisualStudioSolution extends Named, BuildableModelElement {
+    /**
+     * The set of projects included in this solution.
+     */
     Set<VisualStudioProject> getProjects();
 
+    /**
+     * The component that this solution represents.
+     */
     NativeComponent getComponent();
+
+    /**
+     * Configuration for the generated solution file.
+     */
     TextConfigFile getSolutionFile();
 }

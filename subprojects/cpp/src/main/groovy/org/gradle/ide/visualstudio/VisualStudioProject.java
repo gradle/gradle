@@ -20,8 +20,18 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.language.base.BuildableModelElement;
 
+/**
+ * A visual studio project, created from one or more {@link org.gradle.nativebinaries.NativeBinary} instances.
+ */
 @Incubating
 public interface VisualStudioProject extends Named, BuildableModelElement {
+    /**
+     * Configuration for the generated project file.
+     */
     XmlConfigFile getProjectFile();
+
+    /**
+     * Configuration for the generated filters file.
+     */
     XmlConfigFile getFiltersFile();
 }

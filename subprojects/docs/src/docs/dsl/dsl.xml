@@ -499,10 +499,16 @@
                 <td>org.gradle.nativebinaries.StaticLibraryBinary</td>
             </tr>
             <tr>
-                <td>org.gradle.nativebinaries.ToolChain</td>
+                <td>org.gradle.nativebinaries.BuildType</td>
             </tr>
             <tr>
-                <td>org.gradle.nativebinaries.ToolChainRegistry</td>
+                <td>org.gradle.nativebinaries.Flavor</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativebinaries.Platform</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativebinaries.ToolChain</td>
             </tr>
             <tr>
                 <td>org.gradle.language.assembler.AssemblerSourceSet</td>
@@ -515,6 +521,12 @@
             </tr>
             <tr>
                 <td>org.gradle.language.rc.WindowsResourceSet</td>
+            </tr>
+            <tr>
+                <td>org.gradle.ide.visualstudio.VisualStudioProject</td>
+            </tr>
+            <tr>
+                <td>org.gradle.ide.visualstudio.VisualStudioSolution</td>
             </tr>
         </table>
     </section>

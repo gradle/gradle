@@ -19,9 +19,18 @@ package org.gradle.ide.visualstudio;
 import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectSet;
 
-// TODO:DAZ API docs for visualStudio
+/**
+ * The configuration for mapping a set of {@link org.gradle.nativebinaries.NativeComponent}s to a Visual Studio project.
+ */
 @Incubating
 public interface VisualStudioExtension {
+    /**
+     * The {@link VisualStudioProject}s generated.
+     */
     NamedDomainObjectSet<? extends VisualStudioProject> getProjects();
+
+    /**
+     * The {@link VisualStudioSolution}s generated.
+     */
     NamedDomainObjectSet<? extends VisualStudioSolution> getSolutions();
 }

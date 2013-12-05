@@ -20,7 +20,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectContainer;
 
 /**
- * A container of native executables.
+ * A container of {@link Platform}s.
  */
 @Incubating
 public interface PlatformContainer extends NamedDomainObjectContainer<Platform> {

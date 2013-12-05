@@ -320,6 +320,7 @@ task javadocAll(type: Javadoc) {
     include 'org/gradle/*'
     include 'org/gradle/external/javadoc/**'
     include 'org/gradle/language/**'
+    include 'org/gradle/ide/**'
     include 'org/gradle/nativebinaries/**'
     include 'org/gradle/process/**'
     include 'org/gradle/plugins/**'

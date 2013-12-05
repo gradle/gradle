@@ -19,7 +19,14 @@ package org.gradle.ide.visualstudio;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 
+/**
+ * A plain text config file generated for Visual Studio.
+ */
 @Incubating
 public interface TextConfigFile extends ConfigFile {
+
+    /**
+     * Add an action that can manipulate the generated file content.
+     */
     void withText(Action<? super StringBuilder> action);
 }
