@@ -1,0 +1,70 @@
+apply plugin: 'cpp'
+// START SNIPPET apply-plugin
+apply plugin: 'visual-studio'
+// END SNIPPET apply-plugin
+
+// START SNIPPET configure-locations
+model {
+    visualStudio {
+        projects.all {
+            projectFile.location = "vs/${name}.vcxproj"
+            filtersFile.location = "vs/${name}.vcxproj.filters"
+        }
+        solutions.all {
+            solutionFile.location = "vs/${name}.sln"
+        }
+    }
+}
+// END SNIPPET configure-locations
+
+// START SNIPPET customize-project-files
+model {
+    visualStudio {
+        projects.all { project ->
+            projectFile.withXml {
+                asNode().appendNode('PropertyGroup', [Label: 'Custom'])
+                        .appendNode('ProjectDetails', "Project is named ${project.name}")
+            }
+        }
+    }
+}
+// END SNIPPET customize-project-files
+// START SNIPPET customize-solution-files
+model {
+    visualStudio {
+        solutions.all { solution ->
+            solutionFile.withText { text ->
+                def sourceControlSection = """
+    GlobalSection(SolutionNotes) = postSolution
+        NumNotes = 2
+        Name1 = FirstNote
+        Issue1 = N
+        Text1 = This is a shared note.
+        Name2 = SecondNote
+        Issue2 = N
+        Text2 = The projects in this solution are ${solution.projects*.name}.
+    EndGlobalSection
+"""
+                text.insert(text.lastIndexOf("EndGlobal"), sourceControlSection)
+            }
+        }
+    }
+}
+// END SNIPPET customize-solution-files
+
+executables {
+    main {}
+}
+libraries {
+    hello {}
+}
+sources.main.cpp.lib libraries.hello
+
+// For any shared library binaries built with Visual C++, define the DLL_EXPORT macro
+binaries.withType(SharedLibraryBinary) {
+    if (toolChain in VisualCpp) {
+        cppCompiler.define "DLL_EXPORT"
+    }
+}
+
+

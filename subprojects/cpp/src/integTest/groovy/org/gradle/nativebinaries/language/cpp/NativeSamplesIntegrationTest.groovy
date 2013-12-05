@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 package org.gradle.nativebinaries.language.cpp
+
+import org.gradle.ide.visualstudio.fixtures.ProjectFile
+import org.gradle.ide.visualstudio.fixtures.SolutionFile
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativebinaries.language.cpp.fixtures.RequiresInstalledToolChain
@@ -34,6 +37,7 @@ class NativeSamplesIntegrationTest extends AbstractInstalledToolChainIntegration
     @Rule public final Sample variants = new Sample(temporaryFolder, 'native-binaries/variants')
     @Rule public final Sample toolChains = new Sample(temporaryFolder, 'native-binaries/tool-chains')
     @Rule public final Sample windowsResources = new Sample(temporaryFolder, 'native-binaries/windows-resources')
+    @Rule public final Sample visualStudio = new Sample(temporaryFolder, 'native-binaries/visual-studio')
 
     def "assembler"() {
         given:
@@ -262,5 +266,22 @@ class NativeSamplesIntegrationTest extends AbstractInstalledToolChainIntegration
         sharedLibrary("native-binaries/multi-project/lib/build/binaries/mainSharedLibrary/lib").assertExists()
         executable("native-binaries/multi-project/exe/build/binaries/mainExecutable/exe").assertExists()
         installation("native-binaries/multi-project/exe/build/install/mainExecutable").exec().out == "Hello, World!\n"
+    }
+
+    def "visual studio"() {
+        given:
+        sample visualStudio
+
+        when:
+        run "mainVisualStudio"
+
+        then:
+        final solutionFile = new SolutionFile(visualStudio.dir.file("vs/mainExe.sln"))
+        solutionFile.assertHasProjects("mainExe", "helloDll")
+        solutionFile.content.contains "GlobalSection(SolutionNotes) = postSolution"
+        solutionFile.content.contains "Text2 = The projects in this solution are [mainExe, helloDll]."
+
+        final projectFile = new ProjectFile(visualStudio.dir.file("vs/helloDll.vcxproj"))
+        projectFile.projectXml.PropertyGroup.find({it.'@Label' == 'Custom'}).ProjectDetails[0].text() == "Project is named helloDll"
     }
 }
