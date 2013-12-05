@@ -2,22 +2,67 @@
 
 Here are the new features introduced in this Gradle release.
 
-### Better support for building native binaries (i)
+### Generate Visual Studio configuration for a native binary project (i)
 
-#### Project-wide definition of build types, platforms and flavors
+One of the great things about using Gradle for building Java projects is the ability to generate IDE configuration files: this
+release of Gradle brings a similar feature when you use Microsoft Visual Studio as your IDE. With this integration, you can
+use the best tool for the job: Gradle to build your binaries and Visual Studio to edit your code.
 
-#### Visual Studio plugin
+Visual Studio integration is supplied by the `visual-studio` plugin. When this plugin is applied, for each component
+Gradle will create a task to produce a Visual Studio solution for a selected binary variant of that component.
+The generated solution will include a project file for the selected binary, as well as project files for each depended-on library.
 
-#### Select the platforms, build types and flavors that a component should target
+Similar to the Java IDE plugins, you can customize the generated Visual Studio configuration files with programmatic hooks.
+These hooks are applied to the `visualStudio` element in the model registry.
+For example, you can change the default locations of the generated files:
+
+    model {
+        visualStudio {
+            solutions.all { VisualStudioSolution solution ->
+                solutionFile.location = "vs/${solution.name}.sln"
+            }
+            projects.all { VisualStudioProject project ->
+                projectFile.location = "vs/${project.name}.vcxproj"
+                filtersFile.location = "vs/${project.name}.vcxproj.filters"
+            }
+        }
+    }
+
+Additionally, you can change the content of the generated files:
+
+    model {
+        visualStudio {
+            solutions.all { VisualStudioSolution solution ->
+                solutionFile.withText { StringBuilder text ->
+                    ... customise the solution content
+                }
+            }
+            projects.all { VisualStudioProject project ->
+                projectFile.withXml { XmlProvider xml ->
+                    xml.asNode()...
+                }
+            }
+        }
+    }
+
+
+While Visual Studio support is functional, there remain some limitations:
+
+- Macros defined by passing '/D' to compiler args are not included in your project configuration. Use 'cppCompiler.define' instead.
+- Includes defined by passing '/I' to compiler args are not included in your project configuration. Use library dependencies instead.
+- External dependencies supplied via `sourceSet.dependency` are not yet handled.
+
+Please try it out an let us know how it works for you.
+
+### Choose applicable platforms, build types and flavors for a native component (i)
 
 It is now possible to specify a global set of build types, platforms and flavors and then specifically choose which of
 these should apply for a particular component. This makes it easier to have a single plugin that adds support for a
-platform or build type, and have the build script use this if required.
+bunch of platforms, build types, and/or flavors, and have the build script choose which of these are appropriate.
 
 - `buildTypes` is now `model.buildTypes`
 - `targetPlatforms` is now `model.platforms`
 - `executable.flavors` or `library.flavors` is now `model.flavors`
-- Elements in these containers must be added with the `create(name)` method
 
 
     model {
@@ -32,10 +77,25 @@ platform or build type, and have the build script use this if required.
         flavors {
             create('my-flavor')
         }
+        ... Many others, perhaps added by capability plugins
     }
 
+    executables {
+        main {
+            targetPlatforms "x86" // Only build for this platform
+            targetFlavors "foo", "bar" // Build these 2 flavors
+            // targetBuildTypes - without this, all build types are targeted.
+        }
+    }
 
-#### Improved support for project dependencies
+#### Current Limitations
+
+The model registry and it's DSL are very new, and impose some DSL limitations. We plan to improve these in the future.
+
+- Elements in containers under `model` must be added with the `create(name)` method.
+- The `component.target*` methods match on element _name_. It is not possible to supply an element instance at this time.
+
+### Better support for project dependencies when building native binaries (i)
 
 ## Promoted features
 
