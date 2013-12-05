@@ -81,15 +81,22 @@ public class ExeWithLibraryUsingLibraryHelloWorldApp extends HelloWorldApp {
             #include "greetings.h"
 
             void DLL_FUNC sayHello() {
-                const char* greeting = getHello();
-                std::cout << greeting;
+                std::cout << getHello();
             }
         """)
     ]
 
     SourceFile getGreetingsHeader() {
         sourceFile("headers", "greetings.h", """
-            const char* getHello();
+            #include <string>
+
+            #ifdef _WIN32
+            #define DLL_FUNC __declspec(dllexport)
+            #else
+            #define DLL_FUNC
+            #endif
+
+            std::string DLL_FUNC getHello();
         """);
     }
 
@@ -97,7 +104,7 @@ public class ExeWithLibraryUsingLibraryHelloWorldApp extends HelloWorldApp {
         sourceFile("cpp", "greetings.cpp", """
             #include "greetings.h"
 
-            const char* getHello() {
+            std::string DLL_FUNC getHello() {
                 #ifdef FRENCH
                 return "${HELLO_WORLD_FRENCH}";
                 #else
