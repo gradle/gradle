@@ -6,6 +6,7 @@ import spock.lang.Specification
 
 @Requires(TestPrecondition.WINDOWS)
 class WindowsRegistryTest extends Specification {
+    final String SOFTWARE_SUBKEY = "SOFTWARE";
     final String VERSION_SUBKEY = "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion";
     final String VERSION_NAME = "CurrentVersion";
     final String ENVIRONMENT_SUBKEY = "Volatile Environment";
@@ -35,6 +36,11 @@ class WindowsRegistryTest extends Specification {
 
         then:
         thrown(WindowsRegistryException)
+    }
+
+    def "subkeys can be enumerated"() {
+        expect:
+        !WindowsRegistry.get(WindowsRegistry.HKEY_LOCAL_MACHINE).getSubkeys(SOFTWARE_SUBKEY).isEmpty()
     }
 
 }

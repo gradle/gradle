@@ -17,6 +17,8 @@ package org.gradle.internal.nativeplatform.registry;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.prefs.Preferences;
 
 /**
@@ -26,6 +28,8 @@ public class WindowsRegistryAccess {
     private static final String REG_OPEN_KEY = "WindowsRegOpenKey";
     private static final String REG_CLOSE_KEY = "WindowsRegCloseKey";
     private static final String REG_QUERY_VALUE_EX = "WindowsRegQueryValueEx";
+    private static final String REG_QUERY_INFO_KEY = "WindowsRegQueryInfoKey1";
+    private static final String REG_ENUM_KEY_EX = "WindowsRegEnumKeyEx";
     private static final int KEY_READ = 0x20019;
     private static final int REG_SUCCESS = 0;
 
@@ -33,6 +37,8 @@ public class WindowsRegistryAccess {
     private Method regOpenKey;
     private Method regCloseKey;
     private Method regQueryValueEx;
+    private Method regQueryInfoKey;
+    private Method regEnumKeyEx;
     private int key = -1;
 
     WindowsRegistryAccess(int key, Preferences preferences) {
@@ -45,6 +51,10 @@ public class WindowsRegistryAccess {
             regCloseKey.setAccessible(true);
             regQueryValueEx = preferencesClass.getDeclaredMethod(REG_QUERY_VALUE_EX, new Class[] { int.class, byte[].class });
             regQueryValueEx.setAccessible(true);
+            regQueryInfoKey = preferencesClass.getDeclaredMethod(REG_QUERY_INFO_KEY, new Class[]{ int.class });
+            regQueryInfoKey.setAccessible(true);
+            regEnumKeyEx = preferencesClass.getDeclaredMethod(REG_ENUM_KEY_EX, new Class[] { int.class, int.class, int.class });
+            regEnumKeyEx.setAccessible(true);
 
             this.key = key;
         } catch (NoSuchMethodException e) {
@@ -60,12 +70,36 @@ public class WindowsRegistryAccess {
 
     public String readString(String subkey, String name) throws WindowsRegistryException {
         int handle = openKey(subkey);
-        byte[] value = queryValueEx(handle, name);
-        closeKey(handle);
-        if (value == null) {
-            throw new WindowsRegistryException("registry string " + subkey + "." + name + " not found");
+
+        try {
+            byte[] value = queryValueEx(handle, name);
+            if (value == null) {
+                throw new WindowsRegistryException("registry string " + subkey + "." + name + " not found");
+            }
+
+            return fromCString(value);
+        } finally {
+            closeKey(handle);
         }
-        return new String(value).trim();
+    }
+
+    public List<String> getSubkeys(String subkey) throws WindowsRegistryException {
+        int handle = openKey(subkey);
+
+        try {
+            int[] info = queryInfoKey(handle);
+            int count = info[0];
+            int maxLength = info[3];
+            List<String> subkeys = new ArrayList<String>(count);
+
+            for (int i = 0; i != count; ++i) {
+                subkeys.add(fromCString(enumKeyEx(handle, i, maxLength + 1)));
+            }
+
+            return subkeys;
+        } finally {
+            closeKey(handle);
+        }
     }
 
     public int openKey(String subkey) throws WindowsRegistryException {
@@ -117,6 +151,40 @@ public class WindowsRegistryAccess {
         } catch (InvocationTargetException e) {
             throw new WindowsRegistryException("registry value cannot be queried", e);
         }
+    }
+
+    public int[] queryInfoKey(int handle) throws WindowsRegistryException {
+        try {
+            return (int[]) regQueryInfoKey.invoke(preferences, new Object[] {
+                new Integer(handle)
+            });
+        } catch (IllegalAccessException e) {
+            throw new WindowsRegistryException("registry key information cannot be queried", e);
+        } catch (IllegalArgumentException e) {
+            throw new WindowsRegistryException("registry key information cannot be queried", e);
+        } catch (InvocationTargetException e) {
+            throw new WindowsRegistryException("registry key information cannot be queried", e);
+        }
+    }
+
+    public byte[] enumKeyEx(int handle, int index, int maxLength) throws WindowsRegistryException {
+        try {
+            return (byte[]) regEnumKeyEx.invoke(preferences, new Object[] {
+                new Integer(handle),
+                new Integer(index),
+                new Integer(maxLength + 1)
+            });
+        } catch (IllegalAccessException e) {
+            throw new WindowsRegistryException("registry keys cannot be enumerated", e);
+        } catch (IllegalArgumentException e) {
+            throw new WindowsRegistryException("registry keys cannot be enumerated", e);
+        } catch (InvocationTargetException e) {
+            throw new WindowsRegistryException("registry keys cannot be enumerated", e);
+        }
+    }
+
+    private static String fromCString(byte[] string) {
+        return new String(string).trim();
     }
 
     private static byte[] toCString(String string) {
