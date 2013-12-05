@@ -31,7 +31,7 @@ public class VisualStudioProjectResolver {
     public VisualStudioProjectConfiguration lookupProjectConfiguration(NativeBinary nativeBinary) {
         // Looks in the correct project registry for this binary
         ProjectInternal componentProject = getComponentProject(nativeBinary);
-        VisualStudioExtension visualStudioExtension = componentProject.getModelRegistry().get("visualStudio", VisualStudioExtension.class);
+        DefaultVisualStudioExtension visualStudioExtension = componentProject.getModelRegistry().get("visualStudio", DefaultVisualStudioExtension.class);
         VisualStudioProjectRegistry projectRegistry = visualStudioExtension.getProjectRegistry();
         return projectRegistry.getProjectConfiguration(nativeBinary);
     }

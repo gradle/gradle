@@ -22,8 +22,8 @@ import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObje
 class VisualStudioFiltersFile extends XmlPersistableConfigurationObject {
     private final Transformer<String, File> fileLocationResolver
 
-    VisualStudioFiltersFile(Transformer<String, File> fileLocationResolver) {
-        super(new XmlTransformer())
+    VisualStudioFiltersFile(XmlTransformer xmlTransformer, Transformer<String, File> fileLocationResolver) {
+        super(xmlTransformer)
         this.fileLocationResolver = fileLocationResolver
     }
 

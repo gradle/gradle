@@ -15,27 +15,31 @@
  */
 package org.gradle.ide.visualstudio.tasks
 import org.gradle.api.Incubating
-import org.gradle.ide.visualstudio.internal.VisualStudioSolution
+import org.gradle.ide.visualstudio.VisualStudioSolution
+import org.gradle.ide.visualstudio.internal.DefaultVisualStudioSolution
 import org.gradle.ide.visualstudio.tasks.internal.VisualStudioSolutionFile
 import org.gradle.plugins.ide.api.GeneratorTask
-import org.gradle.plugins.ide.internal.generator.generator.PersistableConfigurationObject
 import org.gradle.plugins.ide.internal.generator.generator.PersistableConfigurationObjectGenerator
 
 @Incubating
-class GenerateSolutionFileTask extends GeneratorTask<PersistableConfigurationObject> {
-    VisualStudioSolution solution
+class GenerateSolutionFileTask extends GeneratorTask<VisualStudioSolutionFile> {
+    private DefaultVisualStudioSolution solution
 
     GenerateSolutionFileTask() {
         generator = new ConfigurationObjectGenerator();
     }
 
     void setVisualStudioSolution(VisualStudioSolution solution) {
-        this.solution = solution
-        setOutputFile(solution.getSolutionFile())
+        this.solution = solution as DefaultVisualStudioSolution
+        setOutputFile(this.solution.getSolutionFile())
 
         dependsOn {
-            solution.projectConfigurations*.project
+            this.solution.projectConfigurations*.project
         }
+    }
+
+    VisualStudioSolution getSolution() {
+        return solution
     }
 
     @Override
@@ -43,14 +47,13 @@ class GenerateSolutionFileTask extends GeneratorTask<PersistableConfigurationObj
         return null
     }
 
-    private class ConfigurationObjectGenerator extends PersistableConfigurationObjectGenerator<PersistableConfigurationObject> {
-        public PersistableConfigurationObject create() {
+    private class ConfigurationObjectGenerator extends PersistableConfigurationObjectGenerator<VisualStudioSolutionFile> {
+        public VisualStudioSolutionFile create() {
             return new VisualStudioSolutionFile()
         }
 
-        public void configure(PersistableConfigurationObject object) {
-            VisualStudioSolutionFile solutionFile = object as VisualStudioSolutionFile;
-            VisualStudioSolution solution = GenerateSolutionFileTask.this.solution
+        public void configure(VisualStudioSolutionFile solutionFile) {
+            DefaultVisualStudioSolution solution = getSolution() as DefaultVisualStudioSolution
             solutionFile.solutionConfiguration = solution.configurationName
             solution.projectConfigurations.each {
                 solutionFile.addProjectConfiguration(it)

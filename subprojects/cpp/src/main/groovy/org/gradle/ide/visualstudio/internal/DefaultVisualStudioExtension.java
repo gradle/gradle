@@ -18,25 +18,31 @@ package org.gradle.ide.visualstudio.internal;
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.ide.visualstudio.*;
+import org.gradle.ide.visualstudio.VisualStudioSolution;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.nativebinaries.FlavorContainer;
 
-public class VisualStudioExtension {
+public class DefaultVisualStudioExtension implements VisualStudioExtension {
     private final VisualStudioProjectRegistry projectRegistry;
     private final VisualStudioSolutionRegistry solutionRegistry;
 
-    public VisualStudioExtension(Instantiator instantiator, ProjectFinder projectFinder, FileResolver fileResolver, FlavorContainer flavors) {
+    public DefaultVisualStudioExtension(Instantiator instantiator, ProjectFinder projectFinder, FileResolver fileResolver, FlavorContainer flavors) {
         VisualStudioProjectResolver projectResolver = new VisualStudioProjectResolver(projectFinder);
         projectRegistry = new VisualStudioProjectRegistry(fileResolver, projectResolver, flavors, instantiator);
         solutionRegistry = new VisualStudioSolutionRegistry(fileResolver, projectResolver, projectRegistry, instantiator);
     }
 
-    public NamedDomainObjectSet<VisualStudioProject> getProjects() {
+    public NamedDomainObjectSet<? extends VisualStudioProject> getProjects() {
         return projectRegistry;
     }
 
     public VisualStudioProjectRegistry getProjectRegistry() {
         return projectRegistry;
+    }
+
+    public NamedDomainObjectSet<? extends VisualStudioSolution> getSolutions() {
+        return solutionRegistry;
     }
 
     public VisualStudioSolutionRegistry getSolutionRegistry() {

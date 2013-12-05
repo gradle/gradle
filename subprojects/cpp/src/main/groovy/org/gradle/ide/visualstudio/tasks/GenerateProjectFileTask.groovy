@@ -15,24 +15,23 @@
  */
 package org.gradle.ide.visualstudio.tasks
 import org.gradle.api.Incubating
-import org.gradle.ide.visualstudio.internal.VisualStudioProject
+import org.gradle.ide.visualstudio.VisualStudioProject
+import org.gradle.ide.visualstudio.internal.DefaultVisualStudioProject
 import org.gradle.ide.visualstudio.tasks.internal.AbsoluteFileNameTransformer
 import org.gradle.ide.visualstudio.tasks.internal.VisualStudioProjectFile
-import org.gradle.plugins.ide.api.GeneratorTask
-import org.gradle.plugins.ide.internal.generator.generator.PersistableConfigurationObject
-import org.gradle.plugins.ide.internal.generator.generator.PersistableConfigurationObjectGenerator
+import org.gradle.plugins.ide.api.XmlGeneratorTask
 
 @Incubating
-class GenerateProjectFileTask extends GeneratorTask<PersistableConfigurationObject> {
-    VisualStudioProject vsProject
-
-    GenerateProjectFileTask() {
-        generator = new ConfigurationObjectGenerator()
-    }
+class GenerateProjectFileTask extends XmlGeneratorTask<VisualStudioProjectFile> {
+    private DefaultVisualStudioProject visualStudioProject
 
     void setVisualStudioProject(VisualStudioProject vsProject) {
-        this.vsProject = vsProject
-        setOutputFile(vsProject.getProjectFile())
+        this.visualStudioProject = vsProject as DefaultVisualStudioProject
+        setOutputFile(this.visualStudioProject.getProjectFile())
+    }
+
+    VisualStudioProject getVisualStudioProject() {
+        return visualStudioProject
     }
 
     @Override
@@ -40,33 +39,32 @@ class GenerateProjectFileTask extends GeneratorTask<PersistableConfigurationObje
         return null
     }
 
-    private class ConfigurationObjectGenerator extends PersistableConfigurationObjectGenerator<PersistableConfigurationObject> {
-        public PersistableConfigurationObject create() {
-            return new VisualStudioProjectFile(new AbsoluteFileNameTransformer())
+    @Override
+    protected VisualStudioProjectFile create() {
+        return new VisualStudioProjectFile(xmlTransformer, new AbsoluteFileNameTransformer())
+    }
+
+    @Override
+    protected void configure(VisualStudioProjectFile projectFile) {
+        DefaultVisualStudioProject vsProject = visualStudioProject
+
+        projectFile.setProjectUuid(vsProject.uuid)
+        vsProject.sourceFiles.each {
+            projectFile.addSourceFile(it)
+        }
+        vsProject.resourceFiles.each {
+            projectFile.addResource(it)
+        }
+        vsProject.headerFiles.each {
+            projectFile.addHeaderFile(it)
         }
 
-        public void configure(PersistableConfigurationObject object) {
-            VisualStudioProjectFile projectFile = object as VisualStudioProjectFile;
-            VisualStudioProject vsProject = GenerateProjectFileTask.this.vsProject
+        vsProject.configurations.each {
+            projectFile.addConfiguration(it)
+        }
 
-            projectFile.setProjectUuid(vsProject.uuid)
-            vsProject.sourceFiles.each {
-                projectFile.addSourceFile(it)
-            }
-            vsProject.resourceFiles.each {
-                projectFile.addResource(it)
-            }
-            vsProject.headerFiles.each {
-                projectFile.addHeaderFile(it)
-            }
-
-            vsProject.configurations.each {
-                projectFile.addConfiguration(it)
-            }
-
-            vsProject.projectReferences.each { VisualStudioProject projectReference ->
-                projectFile.addProjectReference(projectReference)
-            }
+        vsProject.projectReferences.each { DefaultVisualStudioProject projectReference ->
+            projectFile.addProjectReference(projectReference)
         }
     }
 }

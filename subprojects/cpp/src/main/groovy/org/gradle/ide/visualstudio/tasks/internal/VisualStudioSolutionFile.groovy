@@ -16,7 +16,7 @@
 
 package org.gradle.ide.visualstudio.tasks.internal
 
-import org.gradle.ide.visualstudio.internal.VisualStudioProject
+import org.gradle.ide.visualstudio.internal.DefaultVisualStudioProject
 import org.gradle.ide.visualstudio.internal.VisualStudioProjectConfiguration
 import org.gradle.plugins.ide.internal.generator.AbstractPersistableConfigurationObject
 
@@ -43,7 +43,7 @@ class VisualStudioSolutionFile extends AbstractPersistableConfigurationObject {
     @Override
     void store(OutputStream outputStream) {
         outputStream << baseText
-        projects.each { VisualStudioProject vsProject ->
+        projects.each { DefaultVisualStudioProject vsProject ->
             outputStream << """
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "${vsProject.getName()}", "${vsProject.projectFile.absolutePath}", "${vsProject.getUuid()}"
 EndProject

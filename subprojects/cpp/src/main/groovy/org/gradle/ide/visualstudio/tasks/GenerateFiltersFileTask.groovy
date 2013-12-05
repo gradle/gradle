@@ -15,24 +15,23 @@
  */
 package org.gradle.ide.visualstudio.tasks
 import org.gradle.api.Incubating
+import org.gradle.ide.visualstudio.VisualStudioProject
+import org.gradle.ide.visualstudio.internal.DefaultVisualStudioProject
 import org.gradle.ide.visualstudio.tasks.internal.AbsoluteFileNameTransformer
 import org.gradle.ide.visualstudio.tasks.internal.VisualStudioFiltersFile
-import org.gradle.ide.visualstudio.internal.VisualStudioProject
-import org.gradle.plugins.ide.api.GeneratorTask
-import org.gradle.plugins.ide.internal.generator.generator.PersistableConfigurationObject
-import org.gradle.plugins.ide.internal.generator.generator.PersistableConfigurationObjectGenerator
+import org.gradle.plugins.ide.api.XmlGeneratorTask
 
 @Incubating
-class GenerateFiltersFileTask extends GeneratorTask<PersistableConfigurationObject> {
-    VisualStudioProject vsProject
-
-    GenerateFiltersFileTask() {
-        generator = new VisualStudioConfigurationObjectGenerator();
-    }
+class GenerateFiltersFileTask extends XmlGeneratorTask<VisualStudioFiltersFile> {
+    private DefaultVisualStudioProject visualStudioProject
 
     void setVisualStudioProject(VisualStudioProject vsProject) {
-        this.vsProject = vsProject
-        setOutputFile(vsProject.getFiltersFile())
+        this.visualStudioProject = vsProject as DefaultVisualStudioProject
+        setOutputFile(this.visualStudioProject.getFiltersFile())
+    }
+
+    VisualStudioProject getVisualStudioProject() {
+        return visualStudioProject
     }
 
     @Override
@@ -40,20 +39,19 @@ class GenerateFiltersFileTask extends GeneratorTask<PersistableConfigurationObje
         return null
     }
 
-    private class VisualStudioConfigurationObjectGenerator extends PersistableConfigurationObjectGenerator<PersistableConfigurationObject> {
-        public PersistableConfigurationObject create() {
-            return new VisualStudioFiltersFile(new AbsoluteFileNameTransformer())
+    @Override
+    protected void configure(VisualStudioFiltersFile filtersFile) {
+        DefaultVisualStudioProject vsProject = visualStudioProject
+        vsProject.sourceFiles.each {
+            filtersFile.addSource(it)
         }
+        vsProject.headerFiles.each {
+            filtersFile.addHeader(it)
+        }
+    }
 
-        public void configure(PersistableConfigurationObject object) {
-            VisualStudioFiltersFile filtersFile = object as VisualStudioFiltersFile;
-            VisualStudioProject vsProject = GenerateFiltersFileTask.this.vsProject
-            vsProject.sourceFiles.each {
-                filtersFile.addSource(it)
-            }
-            vsProject.headerFiles.each {
-                filtersFile.addHeader(it)
-            }
-        }
+    @Override
+    protected VisualStudioFiltersFile create() {
+        return new VisualStudioFiltersFile(xmlTransformer, new AbsoluteFileNameTransformer())
     }
 }

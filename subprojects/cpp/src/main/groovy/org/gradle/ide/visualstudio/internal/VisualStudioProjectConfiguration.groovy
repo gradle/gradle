@@ -24,11 +24,11 @@ import org.gradle.nativebinaries.language.PreprocessingTool
 import org.gradle.nativebinaries.toolchain.internal.MacroArgsConverter
 
 class VisualStudioProjectConfiguration {
-    private final VisualStudioProject vsProject
+    private final DefaultVisualStudioProject vsProject
     final NativeBinary binary
     final String type
 
-    VisualStudioProjectConfiguration(VisualStudioProject vsProject, NativeBinary binary, String type) {
+    VisualStudioProjectConfiguration(DefaultVisualStudioProject vsProject, NativeBinary binary, String type) {
         this.vsProject = vsProject
         this.binary = binary
         this.type = type
@@ -94,7 +94,7 @@ class VisualStudioProjectConfiguration {
         return includes as List
     }
 
-    VisualStudioProject getProject() {
+    DefaultVisualStudioProject getProject() {
         return vsProject
     }
 }

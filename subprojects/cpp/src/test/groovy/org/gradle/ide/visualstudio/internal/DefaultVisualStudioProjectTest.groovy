@@ -25,11 +25,11 @@ import org.gradle.language.cpp.CppSourceSet
 import org.gradle.nativebinaries.internal.NativeComponentInternal
 import spock.lang.Specification
 
-class VisualStudioProjectTest extends Specification {
+class DefaultVisualStudioProjectTest extends Specification {
     def component = Mock(NativeComponentInternal)
     def fileResolver = Mock(FileResolver)
     def projectResolver = Mock(VisualStudioProjectResolver)
-    def vsProject = new VisualStudioProject("projectName", component, fileResolver, projectResolver)
+    def vsProject = new DefaultVisualStudioProject("projectName", component, fileResolver, projectResolver)
 
     def "names"() {
         final projectFile = new File("project")
@@ -75,10 +75,10 @@ class VisualStudioProjectTest extends Specification {
         def sameComponent = Mock(NativeComponentInternal)
         def otherComponent = Mock(NativeComponentInternal)
 
-        def sameProject = new VisualStudioProject("projectName", component, fileResolver, projectResolver)
-        def samePath = new VisualStudioProject("projectName", sameComponent, fileResolver, projectResolver)
-        def differentPath = new VisualStudioProject("projectName", otherComponent, fileResolver, projectResolver)
-        def differentName = new VisualStudioProject("otherProject", component, fileResolver, projectResolver)
+        def sameProject = new DefaultVisualStudioProject("projectName", component, fileResolver, projectResolver)
+        def samePath = new DefaultVisualStudioProject("projectName", sameComponent, fileResolver, projectResolver)
+        def differentPath = new DefaultVisualStudioProject("projectName", otherComponent, fileResolver, projectResolver)
+        def differentName = new DefaultVisualStudioProject("otherProject", component, fileResolver, projectResolver)
 
         and:
         component.projectPath >> ":projectPath"

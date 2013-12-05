@@ -17,9 +17,9 @@ package org.gradle.ide.visualstudio.internal.rules;
 
 import org.gradle.api.Task;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.ide.visualstudio.internal.VisualStudioExtension;
-import org.gradle.ide.visualstudio.internal.VisualStudioProject;
-import org.gradle.ide.visualstudio.internal.VisualStudioSolution;
+import org.gradle.ide.visualstudio.VisualStudioExtension;
+import org.gradle.ide.visualstudio.VisualStudioProject;
+import org.gradle.ide.visualstudio.VisualStudioSolution;
 import org.gradle.ide.visualstudio.tasks.GenerateFiltersFileTask;
 import org.gradle.ide.visualstudio.tasks.GenerateProjectFileTask;
 import org.gradle.ide.visualstudio.tasks.GenerateSolutionFileTask;
@@ -29,17 +29,17 @@ import org.gradle.model.ModelRule;
 public class CreateVisualStudioTasks extends ModelRule {
 
     public void createTasksForVisualStudio(VisualStudioExtension visualStudioExtension, TaskContainer tasks) {
-        for (VisualStudioProject vsProject : visualStudioExtension.getProjectRegistry()) {
+        for (VisualStudioProject vsProject : visualStudioExtension.getProjects()) {
             vsProject.builtBy(createProjectsFileTask(tasks, vsProject));
             vsProject.builtBy(createFiltersFileTask(tasks, vsProject));
         }
 
-        for (VisualStudioSolution vsSolution : visualStudioExtension.getSolutionRegistry()) {
+        for (VisualStudioSolution vsSolution : visualStudioExtension.getSolutions()) {
             vsSolution.setLifecycleTask(tasks.create(vsSolution.getName() + "VisualStudio"));
             vsSolution.builtBy(createSolutionTask(tasks, vsSolution));
 
             // Lifecycle task for component
-            tasks.create(vsSolution.getComponentName() + "VisualStudio").dependsOn(vsSolution);
+            tasks.create(vsSolution.getComponent().getName() + "VisualStudio").dependsOn(vsSolution);
         }
     }
 

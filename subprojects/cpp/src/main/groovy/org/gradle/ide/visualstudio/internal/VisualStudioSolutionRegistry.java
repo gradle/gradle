@@ -21,26 +21,26 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.nativebinaries.NativeBinary;
 import org.gradle.nativebinaries.internal.NativeBinaryInternal;
 
-public class VisualStudioSolutionRegistry extends DefaultNamedDomainObjectSet<VisualStudioSolution> {
+public class VisualStudioSolutionRegistry extends DefaultNamedDomainObjectSet<DefaultVisualStudioSolution> {
     private final FileResolver fileResolver;
     private final VisualStudioProjectRegistry localProjects;
     private final VisualStudioProjectResolver projectResolver;
 
     public VisualStudioSolutionRegistry(FileResolver fileResolver, VisualStudioProjectResolver projectResolver, VisualStudioProjectRegistry localProjects, Instantiator instantiator) {
-        super(VisualStudioSolution.class, instantiator);
+        super(DefaultVisualStudioSolution.class, instantiator);
         this.fileResolver = fileResolver;
         this.localProjects = localProjects;
         this.projectResolver = projectResolver;
     }
 
-    public VisualStudioSolution addSolution(NativeBinary nativeBinary) {
-        VisualStudioSolution solution = createSolution(nativeBinary);
+    public DefaultVisualStudioSolution addSolution(NativeBinary nativeBinary) {
+        DefaultVisualStudioSolution solution = createSolution(nativeBinary);
         add(solution);
         return solution;
     }
 
-    private VisualStudioSolution createSolution(NativeBinary nativeBinary) {
-        return new VisualStudioSolution(rootConfiguration(nativeBinary), (NativeBinaryInternal) nativeBinary, fileResolver, projectResolver);
+    private DefaultVisualStudioSolution createSolution(NativeBinary nativeBinary) {
+        return new DefaultVisualStudioSolution(rootConfiguration(nativeBinary), (NativeBinaryInternal) nativeBinary, fileResolver, projectResolver);
     }
 
     private VisualStudioProjectConfiguration rootConfiguration(NativeBinary nativeBinary) {

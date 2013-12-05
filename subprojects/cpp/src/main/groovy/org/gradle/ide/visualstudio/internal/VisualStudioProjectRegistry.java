@@ -25,20 +25,20 @@ import org.gradle.nativebinaries.internal.NativeComponentInternal;
 
 import java.util.Set;
 
-public class VisualStudioProjectRegistry extends DefaultNamedDomainObjectSet<VisualStudioProject> {
+public class VisualStudioProjectRegistry extends DefaultNamedDomainObjectSet<DefaultVisualStudioProject> {
     private final FileResolver fileResolver;
     private final FlavorContainer allFlavors;
     private final VisualStudioProjectResolver projectResolver;
 
     public VisualStudioProjectRegistry(FileResolver fileResolver, VisualStudioProjectResolver projectResolver, FlavorContainer allFlavors, Instantiator instantiator) {
-        super(VisualStudioProject.class, instantiator);
+        super(DefaultVisualStudioProject.class, instantiator);
         this.fileResolver = fileResolver;
         this.allFlavors = allFlavors;
         this.projectResolver = projectResolver;
     }
 
     public void addProjectConfiguration(NativeBinary nativeBinary) {
-        VisualStudioProject project = getOrCreateProject(nativeBinary);
+        DefaultVisualStudioProject project = getOrCreateProject(nativeBinary);
         project.addConfiguration(nativeBinary);
     }
 
@@ -47,11 +47,11 @@ public class VisualStudioProjectRegistry extends DefaultNamedDomainObjectSet<Vis
         return getByName(projectName).getConfiguration(nativeBinary);
     }
 
-    private VisualStudioProject getOrCreateProject(NativeBinary nativeBinary) {
+    private DefaultVisualStudioProject getOrCreateProject(NativeBinary nativeBinary) {
         String projectName = projectName(nativeBinary);
-        VisualStudioProject vsProject = findByName(projectName);
+        DefaultVisualStudioProject vsProject = findByName(projectName);
         if (vsProject == null) {
-            vsProject = new VisualStudioProject(projectName, nativeBinary.getComponent(), fileResolver, projectResolver);
+            vsProject = new DefaultVisualStudioProject(projectName, nativeBinary.getComponent(), fileResolver, projectResolver);
             add(vsProject);
         }
         return vsProject;

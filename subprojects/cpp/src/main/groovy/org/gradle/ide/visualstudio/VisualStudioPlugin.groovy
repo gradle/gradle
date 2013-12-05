@@ -22,7 +22,7 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.ide.visualstudio.internal.DefaultProjectFinder
-import org.gradle.ide.visualstudio.internal.VisualStudioExtension
+import org.gradle.ide.visualstudio.internal.DefaultVisualStudioExtension
 import org.gradle.ide.visualstudio.internal.rules.CreateVisualStudioModel
 import org.gradle.ide.visualstudio.internal.rules.CreateVisualStudioTasks
 import org.gradle.internal.reflect.Instantiator
@@ -72,7 +72,7 @@ class VisualStudioPlugin implements Plugin<ProjectInternal> {
 
         VisualStudioExtension create(Inputs inputs) {
             FlavorContainer flavors = inputs.get(0, FlavorContainer)
-            return instantiator.newInstance(VisualStudioExtension.class, instantiator, projectFinder, fileResolver, flavors);
+            return instantiator.newInstance(DefaultVisualStudioExtension.class, instantiator, projectFinder, fileResolver, flavors);
         }
 
         Class<VisualStudioExtension> getType() {

@@ -16,23 +16,24 @@
 
 package org.gradle.ide.visualstudio.internal
 
-import org.gradle.api.Named
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.ide.visualstudio.VisualStudioSolution
 import org.gradle.language.base.internal.AbstractBuildableModelElement
 import org.gradle.nativebinaries.LibraryBinary
 import org.gradle.nativebinaries.NativeBinary
+import org.gradle.nativebinaries.NativeComponent
 import org.gradle.nativebinaries.NativeDependencySet
 import org.gradle.nativebinaries.internal.NativeBinaryInternal
 import org.gradle.nativebinaries.internal.resolve.LibraryNativeDependencySet
 
-class VisualStudioSolution extends AbstractBuildableModelElement implements Named {
+class DefaultVisualStudioSolution extends AbstractBuildableModelElement implements VisualStudioSolution {
     final String name
     final String configurationName
     private final NativeBinaryInternal rootBinary
     private final FileResolver fileResolver
     private final VisualStudioProjectResolver vsProjectResolver
 
-    VisualStudioSolution(VisualStudioProjectConfiguration rootProjectConfiguration, NativeBinaryInternal rootBinary, FileResolver fileResolver, VisualStudioProjectResolver vsProjectResolver) {
+    DefaultVisualStudioSolution(VisualStudioProjectConfiguration rootProjectConfiguration, NativeBinaryInternal rootBinary, FileResolver fileResolver, VisualStudioProjectResolver vsProjectResolver) {
         this.name = rootProjectConfiguration.project.name
         this.configurationName = rootProjectConfiguration.name
         this.rootBinary = rootBinary
@@ -40,8 +41,8 @@ class VisualStudioSolution extends AbstractBuildableModelElement implements Name
         this.vsProjectResolver = vsProjectResolver
     }
 
-    String getComponentName() {
-        return rootBinary.component.baseName
+    NativeComponent getComponent() {
+        return rootBinary.component
     }
 
     Set<VisualStudioProjectConfiguration> getProjectConfigurations() {

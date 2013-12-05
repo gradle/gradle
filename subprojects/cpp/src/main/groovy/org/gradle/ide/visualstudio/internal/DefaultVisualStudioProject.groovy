@@ -15,8 +15,9 @@
  */
 
 package org.gradle.ide.visualstudio.internal
-import org.gradle.api.Named
+
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.ide.visualstudio.VisualStudioProject
 import org.gradle.language.HeaderExportingSourceSet
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.internal.AbstractBuildableModelElement
@@ -25,17 +26,18 @@ import org.gradle.nativebinaries.*
 import org.gradle.nativebinaries.internal.NativeComponentInternal
 import org.gradle.nativebinaries.internal.resolve.LibraryNativeDependencySet
 import org.gradle.util.CollectionUtils
+
 /**
  * A VisualStudio project represents a set of binaries for a component that may vary in build type and target platform.
  */
-class VisualStudioProject extends AbstractBuildableModelElement implements Named {
+class DefaultVisualStudioProject extends AbstractBuildableModelElement implements VisualStudioProject {
     final VisualStudioProjectResolver projectResolver
     final FileResolver fileResolver
     final String name
     final NativeComponent component
     final Map<NativeBinary, VisualStudioProjectConfiguration> configurations = [:]
 
-    VisualStudioProject(String name, NativeComponent component, FileResolver fileResolver, VisualStudioProjectResolver projectResolver) {
+    DefaultVisualStudioProject(String name, NativeComponent component, FileResolver fileResolver, VisualStudioProjectResolver projectResolver) {
         this.fileResolver = fileResolver
         this.name = name
         this.component = component
@@ -82,7 +84,7 @@ class VisualStudioProject extends AbstractBuildableModelElement implements Named
         return allHeaders as List
     }
 
-    Set<VisualStudioProject> getProjectReferences() {
+    Set<DefaultVisualStudioProject> getProjectReferences() {
         def projects = [] as Set
         component.binaries.each { NativeBinary binary ->
             binary.libs.each { NativeDependencySet dependencySet ->

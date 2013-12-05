@@ -17,7 +17,7 @@
 package org.gradle.ide.visualstudio.tasks.internal
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.ide.visualstudio.fixtures.SolutionFile
-import org.gradle.ide.visualstudio.internal.VisualStudioProject
+import org.gradle.ide.visualstudio.internal.DefaultVisualStudioProject
 import org.gradle.ide.visualstudio.internal.VisualStudioProjectConfiguration
 import org.gradle.ide.visualstudio.internal.VisualStudioProjectResolver
 import org.gradle.nativebinaries.NativeBinary
@@ -64,14 +64,14 @@ EndGlobal
         final project1File = new File("project1")
         fileResolver.resolve("visualStudio/project1.vcxproj") >> project1File
         def binary1 = binary("one")
-        def project1 = new VisualStudioProject("project1", binary1.component, fileResolver, projectResolver)
+        def project1 = new DefaultVisualStudioProject("project1", binary1.component, fileResolver, projectResolver)
         def configuration1 = new VisualStudioProjectConfiguration(project1, binary1, "type")
         solutionFile.addProjectConfiguration(configuration1)
 
         final project2File = new File("project2")
         fileResolver.resolve("visualStudio/project2.vcxproj") >> project2File
         def binary2 = binary("two")
-        def project2 = new VisualStudioProject("project2", binary2.component, fileResolver, projectResolver)
+        def project2 = new DefaultVisualStudioProject("project2", binary2.component, fileResolver, projectResolver)
         def configuration2 = new VisualStudioProjectConfiguration(project2, binary2, "type")
         solutionFile.addProjectConfiguration(configuration2)
 
