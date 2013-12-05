@@ -900,10 +900,6 @@ Here's an example:
 - Mixed multi-project with multiple components per project
 - Multi-project where :a:exe -> :b:lib1 -> :a:lib2 (Gradle project cycle)
 
-### Open Issues
-
-- Handle dependency cycles
-
 ## Story: Customise generated Visual Studio files
 
 ### Use case
@@ -915,9 +911,36 @@ project-specific configuration. Solution file needs to contain additional per-pr
 
 - Expose `visualStudio` extension with `solutions` container of `VisualStudioSolution` and `projects` container of `VisualStudioProject`
 - `VisualStudioSolution.projects` provides the set of projects referenced by the solution.
-- Add `VisualStudioSolution.solutionFile.withText(Action<? super StringBuilder>)` to modify the solution files.
+- Add `VisualStudioSolution.solutionFile.withText(Action<? super String>)` to modify the solution file content.
 - Add `VisualStudioProject.projectFile.withXml(Action<? super XmlProvider>)` and
   `VisualStudioProject.filtersFile.withXml(Action<? super XmlProvider>)` to modify these files
+- Add visual studio sample that applies source control configuration to Visual Studio project
+
+### DSL
+
+    visualStudio {
+        solutions.all { solution ->
+            solutionFile.withText {
+                solution.projects.each {
+
+                }
+            }
+        }
+        projects.all { project ->
+            projectFile.withXml {
+                ...
+            }
+            filtersFile.withXml {
+                ...
+            }
+        }
+
+### Test cases
+
+- Sample integration test
+- Add project-specific configuration to multiple project files
+- Add solution-specific configuration to solution file
+- Add configuration per project to solution file
 
 ## Story: Allow a library to depend on the headers of a component
 
