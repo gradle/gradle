@@ -27,7 +27,6 @@ class GenerateFiltersFileTask extends XmlGeneratorTask<VisualStudioFiltersFile> 
 
     void setVisualStudioProject(VisualStudioProject vsProject) {
         this.visualStudioProject = vsProject as DefaultVisualStudioProject
-        setOutputFile(this.visualStudioProject.getFiltersFile())
     }
 
     VisualStudioProject getVisualStudioProject() {
@@ -37,6 +36,11 @@ class GenerateFiltersFileTask extends XmlGeneratorTask<VisualStudioFiltersFile> 
     @Override
     File getInputFile() {
         return null
+    }
+
+    @Override
+    File getOutputFile() {
+        return visualStudioProject.filtersFile.location
     }
 
     @Override

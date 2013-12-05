@@ -31,7 +31,6 @@ class GenerateSolutionFileTask extends GeneratorTask<VisualStudioSolutionFile> {
 
     void setVisualStudioSolution(VisualStudioSolution solution) {
         this.solution = solution as DefaultVisualStudioSolution
-        setOutputFile(this.solution.getSolutionFile())
 
         dependsOn {
             this.solution.projectConfigurations*.project
@@ -45,6 +44,11 @@ class GenerateSolutionFileTask extends GeneratorTask<VisualStudioSolutionFile> {
     @Override
     File getInputFile() {
         return null
+    }
+
+    @Override
+    File getOutputFile() {
+        return this.solution.solutionFile.location
     }
 
     private class ConfigurationObjectGenerator extends PersistableConfigurationObjectGenerator<VisualStudioSolutionFile> {

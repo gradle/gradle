@@ -16,11 +16,9 @@
 
 package org.gradle.ide.visualstudio;
 
-import org.gradle.api.Named;
-import org.gradle.language.base.BuildableModelElement;
-import org.gradle.nativebinaries.NativeComponent;
+import java.io.File;
 
-public interface VisualStudioSolution extends Named, BuildableModelElement {
-    NativeComponent getComponent();
-    ConfigFile getSolutionFile();
+public interface ConfigFile {
+    File getLocation();
+    void setLocation(Object location);
 }

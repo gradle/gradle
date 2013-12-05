@@ -17,6 +17,7 @@
 package org.gradle.ide.visualstudio.internal
 
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.ide.visualstudio.ConfigFile
 import org.gradle.ide.visualstudio.VisualStudioProject
 import org.gradle.language.HeaderExportingSourceSet
 import org.gradle.language.base.LanguageSourceSet
@@ -32,30 +33,24 @@ import org.gradle.util.CollectionUtils
  */
 class DefaultVisualStudioProject extends AbstractBuildableModelElement implements VisualStudioProject {
     final VisualStudioProjectResolver projectResolver
-    final FileResolver fileResolver
     final String name
     final NativeComponent component
     final Map<NativeBinary, VisualStudioProjectConfiguration> configurations = [:]
+    final DefaultConfigFile projectFile
+    final DefaultConfigFile filtersFile
 
     DefaultVisualStudioProject(String name, NativeComponent component, FileResolver fileResolver, VisualStudioProjectResolver projectResolver) {
-        this.fileResolver = fileResolver
         this.name = name
         this.component = component
         this.projectResolver = projectResolver
-    }
-
-    File getProjectFile() {
-        return fileResolver.resolve("visualStudio/${name}.vcxproj")
+        projectFile = new DefaultConfigFile(fileResolver, "visualStudio/${name}.vcxproj")
+        filtersFile = new DefaultConfigFile(fileResolver, "visualStudio/${name}.vcxproj.filters")
     }
 
     String getUuid() {
         String projectPath = (component as NativeComponentInternal).projectPath
         String vsComponentPath = "${projectPath}:${name}"
         return '{' + UUID.nameUUIDFromBytes(vsComponentPath.bytes).toString().toUpperCase() + '}'
-    }
-
-    File getFiltersFile() {
-        return fileResolver.resolve("visualStudio/${name}.vcxproj.filters")
     }
 
     List<File> getSourceFiles() {
@@ -119,5 +114,23 @@ class DefaultVisualStudioProject extends AbstractBuildableModelElement implement
         return nativeBinary instanceof StaticLibraryBinary ? "StaticLibrary" :
                nativeBinary instanceof SharedLibraryBinary ? "DynamicLibrary" :
                "Application"
+    }
+
+    private static class DefaultConfigFile implements ConfigFile {
+        private final FileResolver fileResolver
+        private Object location
+
+        DefaultConfigFile(FileResolver fileResolver, String defaultLocation) {
+            this.fileResolver = fileResolver
+            this.location = defaultLocation
+        }
+
+        File getLocation() {
+            return fileResolver.resolve(location)
+        }
+
+        void setLocation(Object location) {
+            this.location = location
+        }
     }
 }

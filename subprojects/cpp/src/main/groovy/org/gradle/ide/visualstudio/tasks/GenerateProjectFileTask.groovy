@@ -27,7 +27,6 @@ class GenerateProjectFileTask extends XmlGeneratorTask<VisualStudioProjectFile> 
 
     void setVisualStudioProject(VisualStudioProject vsProject) {
         this.visualStudioProject = vsProject as DefaultVisualStudioProject
-        setOutputFile(this.visualStudioProject.getProjectFile())
     }
 
     VisualStudioProject getVisualStudioProject() {
@@ -37,6 +36,11 @@ class GenerateProjectFileTask extends XmlGeneratorTask<VisualStudioProjectFile> 
     @Override
     File getInputFile() {
         return null
+    }
+
+    @Override
+    File getOutputFile() {
+        return visualStudioProject.projectFile.location
     }
 
     @Override

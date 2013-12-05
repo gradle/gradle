@@ -25,7 +25,7 @@ import org.gradle.language.cpp.CppSourceSet
 import org.gradle.nativebinaries.internal.NativeComponentInternal
 import spock.lang.Specification
 
-class DefaultVisualStudioProjectTest extends Specification {
+class DefaultVisualSgtudioProjectTest extends Specification {
     def component = Mock(NativeComponentInternal)
     def fileResolver = Mock(FileResolver)
     def projectResolver = Mock(VisualStudioProjectResolver)
@@ -40,8 +40,8 @@ class DefaultVisualStudioProjectTest extends Specification {
 
         then:
         vsProject.name == "projectName"
-        vsProject.projectFile == projectFile
-        vsProject.filtersFile == filtersFile
+        vsProject.projectFile.location == projectFile
+        vsProject.filtersFile.location == filtersFile
     }
 
     def "includes source files from all source sets"() {

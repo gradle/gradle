@@ -42,7 +42,15 @@ class SolutionFile {
     }
 
     def assertReferencesProject(ProjectFile expectedProject, Map<String, String> configurations) {
-        ProjectReference reference = projects.get(expectedProject.name)
+        assertReferencesProject(expectedProject.name, expectedProject, configurations)
+    }
+
+    def assertReferencesProject(String projectName, ProjectFile expectedProject) {
+        assertReferencesProject(projectName, expectedProject, ["debug|Win32":"debug|Win32"])
+    }
+
+    def assertReferencesProject(String projectName, ProjectFile expectedProject, Map<String, String> configurations) {
+        ProjectReference reference = projects.get(projectName)
         assert reference.uuid == expectedProject.projectGuid
         assert reference.file == expectedProject.projectFile.absolutePath
         assert reference.configurations == configurations

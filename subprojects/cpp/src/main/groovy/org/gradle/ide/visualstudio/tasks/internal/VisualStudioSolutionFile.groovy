@@ -45,7 +45,7 @@ class VisualStudioSolutionFile extends AbstractPersistableConfigurationObject {
         outputStream << baseText
         projects.each { DefaultVisualStudioProject vsProject ->
             outputStream << """
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "${vsProject.getName()}", "${vsProject.projectFile.absolutePath}", "${vsProject.getUuid()}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "${vsProject.getName()}", "${vsProject.projectFile.location.absolutePath}", "${vsProject.getUuid()}"
 EndProject
 """
         }

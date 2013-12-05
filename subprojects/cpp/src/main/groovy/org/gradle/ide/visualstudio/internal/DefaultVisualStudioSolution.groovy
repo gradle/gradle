@@ -17,6 +17,7 @@
 package org.gradle.ide.visualstudio.internal
 
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.ide.visualstudio.ConfigFile
 import org.gradle.ide.visualstudio.VisualStudioSolution
 import org.gradle.language.base.internal.AbstractBuildableModelElement
 import org.gradle.nativebinaries.LibraryBinary
@@ -29,16 +30,16 @@ import org.gradle.nativebinaries.internal.resolve.LibraryNativeDependencySet
 class DefaultVisualStudioSolution extends AbstractBuildableModelElement implements VisualStudioSolution {
     final String name
     final String configurationName
+    final SolutionFile solutionFile
     private final NativeBinaryInternal rootBinary
-    private final FileResolver fileResolver
     private final VisualStudioProjectResolver vsProjectResolver
 
     DefaultVisualStudioSolution(VisualStudioProjectConfiguration rootProjectConfiguration, NativeBinaryInternal rootBinary, FileResolver fileResolver, VisualStudioProjectResolver vsProjectResolver) {
         this.name = rootProjectConfiguration.project.name
         this.configurationName = rootProjectConfiguration.name
         this.rootBinary = rootBinary
-        this.fileResolver = fileResolver
         this.vsProjectResolver = vsProjectResolver
+        this.solutionFile = new SolutionFile(fileResolver, "visualStudio/${name}.sln")
     }
 
     NativeComponent getComponent() {
@@ -63,7 +64,21 @@ class DefaultVisualStudioSolution extends AbstractBuildableModelElement implemen
         }
     }
 
-    File getSolutionFile() {
-        return fileResolver.resolve("visualStudio/${name}.sln")
+    private static class SolutionFile implements ConfigFile {
+        private final FileResolver fileResolver
+        private Object location
+
+        SolutionFile(FileResolver fileResolver, String defaultLocation) {
+            this.fileResolver = fileResolver
+            this.location = defaultLocation
+        }
+
+        File getLocation() {
+            return fileResolver.resolve(location)
+        }
+
+        void setLocation(Object location) {
+            this.location = location
+        }
     }
 }

@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.ide.visualstudio;
 
-import org.gradle.api.Named;
-import org.gradle.language.base.BuildableModelElement;
-import org.gradle.nativebinaries.NativeComponent;
 
-public interface VisualStudioSolution extends Named, BuildableModelElement {
-    NativeComponent getComponent();
-    ConfigFile getSolutionFile();
+package org.gradle.ide.visualstudio.fixtures
+import org.gradle.test.fixtures.file.TestFile
+
+class FiltersFile {
+    FiltersFile(TestFile filtersFile) {
+        assert filtersFile.exists()
+    }
 }

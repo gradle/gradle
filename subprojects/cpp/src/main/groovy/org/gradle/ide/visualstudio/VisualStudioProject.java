@@ -20,4 +20,6 @@ import org.gradle.api.Named;
 import org.gradle.language.base.BuildableModelElement;
 
 public interface VisualStudioProject extends Named, BuildableModelElement {
+    ConfigFile getProjectFile();
+    ConfigFile getFiltersFile();
 }
