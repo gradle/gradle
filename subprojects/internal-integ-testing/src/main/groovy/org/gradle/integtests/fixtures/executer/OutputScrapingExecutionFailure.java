@@ -28,7 +28,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResult implements ExecutionFailure {
-    private static final Pattern CAUSE_PATTERN = Pattern.compile("(?m)^\\s*> ");
+    private static final Pattern CAUSE_PATTERN = Pattern.compile("(?m)(^\\s*> )");
     private static final Pattern DESCRIPTION_PATTERN = Pattern.compile("(?ms)^\\* What went wrong:$(.+)^\\* Try:$");
     private static final Pattern LOCATION_PATTERN = Pattern.compile("(?ms)^\\* Where:((.+)'.+') line: (\\d+)$");
     private static final Pattern RESOLUTION_PATTERN = Pattern.compile("(?ms)^\\* Try:$(.+)^\\* Exception is:$");
@@ -65,11 +65,13 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
             description = problem.substring(0, matcher.start()).trim();
             while (true) {
                 int pos = matcher.end();
+                int prefix = matcher.group(1).length();
+                String prefixPattern = toPrefixPattern(prefix);
                 if (matcher.find(pos)) {
-                    String cause = problem.substring(pos, matcher.start());
+                    String cause = problem.substring(pos, matcher.start()).trim().replaceAll(prefixPattern, "");
                     causes.add(cause);
                 } else {
-                    String cause = problem.substring(pos);
+                    String cause = problem.substring(pos).trim().replaceAll(prefixPattern, "");
                     causes.add(cause);
                     break;
                 }
@@ -82,6 +84,14 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
         } else {
             resolution = matcher.group(1).trim();
         }
+    }
+
+    private String toPrefixPattern(int prefix) {
+        StringBuilder builder = new StringBuilder("(?m)^");
+        for (int i = 0; i < prefix; i++) {
+            builder.append(' ');
+        }
+        return builder.toString();
     }
 
     public ExecutionFailure assertHasLineNumber(int lineNumber) {
