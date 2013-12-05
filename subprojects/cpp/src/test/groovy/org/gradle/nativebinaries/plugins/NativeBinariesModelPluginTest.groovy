@@ -16,7 +16,6 @@
 
 package org.gradle.nativebinaries.plugins
 
-import org.gradle.api.GradleException
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Task
 import org.gradle.api.plugins.BasePlugin
@@ -39,18 +38,14 @@ class NativeBinariesModelPluginTest extends Specification {
         expect:
         project.executables instanceof NamedDomainObjectContainer
         project.libraries instanceof NamedDomainObjectContainer
-        project.modelRegistry.get("toolChains", ToolChainRegistry)
-        project.modelRegistry.get("platforms", PlatformContainer)
-        project.modelRegistry.get("buildTypes", BuildTypeContainer)
-        project.modelRegistry.get("flavors", FlavorContainer)
+        project.modelRegistry.get("toolChains", ToolChainRegistry) != null
+        project.modelRegistry.get("platforms", PlatformContainer) != null
+        project.modelRegistry.get("buildTypes", BuildTypeContainer) != null
+        project.modelRegistry.get("flavors", FlavorContainer) != null
     }
 
-    def "adds default tool chain, target platform, build type and flavor"() {
-        when:
-        project.evaluate()
-
-        then:
-        one(project.modelRegistry.get("toolChains", ToolChainRegistry)).name == 'unavailable'
+    def "adds default target platform, build type and flavor"() {
+        expect:
         with (one(project.modelRegistry.get("platforms", PlatformContainer))) {
             name == 'current'
             architecture == ArchitectureInternal.TOOL_CHAIN_DEFAULT
@@ -59,16 +54,9 @@ class NativeBinariesModelPluginTest extends Specification {
         one(project.modelRegistry.get("flavors", FlavorContainer)).name == 'default'
     }
 
-    def "default tool chain is unavailable"() {
-        given:
-        project.evaluate()
-
-        when:
-        one(project.modelRegistry.get("toolChains", ToolChainRegistry)).target(null)
-
-        then:
-        def t = thrown(GradleException)
-        t.message == "No tool chain is available: [No tool chain plugin applied]"
+    def "does not provide a default tool chain"() {
+        expect:
+        project.modelRegistry.get("toolChains", ToolChainRegistry).isEmpty()
     }
 
     def "adds default flavor to every binary"() {
