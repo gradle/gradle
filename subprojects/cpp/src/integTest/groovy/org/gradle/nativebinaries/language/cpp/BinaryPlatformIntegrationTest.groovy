@@ -186,7 +186,8 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
 
         then:
         failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainCpp'.")
-        failure.assertHasCause("No tool chain is available: [Tool chain '${toolChain.id}' cannot build for platform 'sparc']")
+        failure.assertHasCause("""No tool chain is available to build for platform 'sparc':
+  - Tool chain '${toolChain.id}' cannot build for platform 'sparc'.""")
     }
 
     def "fails with reasonable error message when trying to build for a different operating system"() {
@@ -206,7 +207,8 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
 
         then:
         failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainCpp'.")
-        failure.assertHasCause("No tool chain is available: [Tool chain '${toolChain.id}' cannot build for platform 'solaris']")
+        failure.assertHasCause("""No tool chain is available to build for platform 'solaris':
+  - Tool chain '${toolChain.id}' cannot build for platform 'solaris'.""")
     }
 
     def "fails with reasonable error message when trying to target an unknown platform"() {

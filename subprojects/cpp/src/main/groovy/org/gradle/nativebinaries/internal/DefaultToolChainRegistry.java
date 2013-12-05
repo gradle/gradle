@@ -21,6 +21,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.text.TreeFormatter;
 import org.gradle.nativebinaries.Platform;
 import org.gradle.nativebinaries.ToolChain;
 
@@ -57,34 +58,42 @@ public class DefaultToolChainRegistry extends DefaultPolymorphicDomainObjectCont
         for (String name : registeredDefaults.keySet()) {
             create(name, registeredDefaults.get(name));
         }
-        if (registeredDefaults.isEmpty()) {
-            add(new UnavailableToolChain(Collections.singletonList("No tool chain plugin applied")));
-        }
     }
 
     public ToolChain getForPlatform(Platform targetPlatform) {
         List<String> messages = new ArrayList<String>();
         for (ToolChainInternal toolChain : searchOrder) {
             if (!toolChain.getAvailability().isAvailable()) {
-                messages.add(String.format("Could not load '%s': %s", toolChain.getName(), toolChain.getAvailability().getUnavailableMessage()));
+                messages.add(String.format("Tool chain '%s': %s", toolChain.getName(), toolChain.getAvailability().getUnavailableMessage()));
                 continue;
             }
             if (toolChain.canTargetPlatform(targetPlatform)) {
                 return toolChain;
             } else {
-                messages.add(String.format("Tool chain '%s' cannot build for platform '%s'", toolChain.getName(), targetPlatform.getName()));
+                messages.add(String.format("Tool chain '%s' cannot build for platform '%s'.", toolChain.getName(), targetPlatform.getName()));
             }
         }
+        if (messages.isEmpty()) {
+            messages.add("No tool chain plugin applied.");
+        }
 
-        return new UnavailableToolChain(messages);
+        TreeFormatter failureMessage = new TreeFormatter();
+        failureMessage.node(String.format("No tool chain is available to build for platform '%s':", targetPlatform.getName()));
+        failureMessage.startChildren();
+        for (String message : messages) {
+            failureMessage.node(message);
+        }
+        failureMessage.endChildren();
+
+        return new UnavailableToolChain(failureMessage.toString());
     }
 
     private static class UnavailableToolChain implements ToolChainInternal {
-        private final List<String> messages;
+        private final String failureMessage;
         private final OperatingSystem operatingSystem = OperatingSystem.current();
 
-        public UnavailableToolChain(List<String> messages) {
-            this.messages = messages;
+        UnavailableToolChain(String failureMessage) {
+            this.failureMessage = failureMessage;
         }
 
         public String getName() {
@@ -100,7 +109,7 @@ public class DefaultToolChainRegistry extends DefaultPolymorphicDomainObjectCont
         }
 
         private RuntimeException failure() {
-            return new GradleException(String.format("No tool chain is available: %s", messages));
+            return new GradleException(failureMessage);
         }
 
         public ToolChainAvailability getAvailability() {

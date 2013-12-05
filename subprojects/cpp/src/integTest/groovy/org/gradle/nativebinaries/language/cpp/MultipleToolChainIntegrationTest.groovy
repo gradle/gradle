@@ -100,7 +100,8 @@ class MultipleToolChainIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainCpp'.")
-        failure.assertHasCause("No tool chain is available: [Could not load 'bad'")
+        failure.assertHasCause("""No tool chain is available to build for platform 'current':
+  - Tool chain 'bad': Linker cannot be found""")
     }
 
     def checkInstall(String path, AvailableToolChains.InstalledToolChain toolChain) {

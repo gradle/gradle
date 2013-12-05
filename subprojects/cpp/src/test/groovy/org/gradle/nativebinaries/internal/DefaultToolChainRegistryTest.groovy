@@ -22,6 +22,8 @@ import org.gradle.internal.reflect.Instantiator
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
+import static org.gradle.util.TextUtil.toPlatformLineSeparators
+
 class DefaultToolChainRegistryTest extends Specification {
     def project = TestUtil.createRootProject()
     def instantiator = project.services.get(Instantiator)
@@ -86,7 +88,10 @@ class DefaultToolChainRegistryTest extends Specification {
 
         then:
         GradleException e = thrown()
-        e.message == "No tool chain is available: [Could not load 'test': nope, Could not load 'test2': not me, Could not load 'test3': not me either]"
+        e.message == toPlatformLineSeparators("""No tool chain is available to build for platform 'platform':
+  - Tool chain 'test': nope
+  - Tool chain 'test2': not me
+  - Tool chain 'test3': not me either""")
     }
 
     def "can use DSL to configure toolchains"() {

@@ -89,7 +89,7 @@ class MicrosoftVisualCppPluginTest extends ToolChainPluginTest {
         then:
         def visualCpp = toolchain
         !visualCpp.availability.available
-        visualCpp.availability.unavailableMessage == 'Not available on this operating system.'
+        visualCpp.availability.unavailableMessage == 'Visual Studio is not available on this operating system.'
         visualCpp.toString() == "ToolChain '$toolchainName' (Visual C++)"
     }
 
