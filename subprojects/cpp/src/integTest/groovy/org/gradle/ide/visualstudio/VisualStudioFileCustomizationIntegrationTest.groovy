@@ -51,19 +51,19 @@ class VisualStudioFileCustomizationIntegrationTest extends AbstractInstalledTool
 
     def "can specific location of generated files"() {
         when:
-        buildFile << """
+        buildFile << '''
     model {
         visualStudio {
             projects.all { project ->
-                projectFile.location = "other/\${project.name}.vcxproj"
+                projectFile.location = "other/${project.name}.vcxproj"
                 filtersFile.location = "other/filters.vcxproj.filters"
             }
             solutions.all {
-                solutionFile.location = "vs/\${it.name}.solution"
+                solutionFile.location = "vs/${it.name}.solution"
             }
         }
     }
-"""
+'''
         and:
         run "mainVisualStudio"
 
@@ -105,17 +105,17 @@ class VisualStudioFileCustomizationIntegrationTest extends AbstractInstalledTool
 
     def "can add xml configuration to generated filter files"() {
         when:
-        buildFile << """
+        buildFile << '''
     model {
         visualStudio {
             projects.all { project ->
                 filtersFile.withXml { xml ->
-                    xml.asNode().appendNode("ExtraContent", "Filter - \${project.name}")
+                    xml.asNode().appendNode("ExtraContent", "Filter - ${project.name}")
                 }
             }
         }
     }
-"""
+'''
         and:
         run "mainVisualStudio"
 
@@ -126,22 +126,23 @@ class VisualStudioFileCustomizationIntegrationTest extends AbstractInstalledTool
 
     def "can add text content to generated solution files"() {
         when:
-        buildFile << """
+        buildFile << '''
     model {
         visualStudio {
             solutions.all { solution ->
                 solution.solutionFile.withText { text ->
+                    String projectList = solution.projects.collect({it.name}).join(',')
                     int insertPos = text.lastIndexOf("EndGlobal")
-                    text.insert(insertPos, '''
+                    text.insert(insertPos, """
                     GlobalSection(MyGlobalSection)
-                       Here is my custom config
+                       Project-list: ${projectList}
                     EndGlobalSection
-                    ''')
+                    """)
                 }
             }
         }
     }
-"""
+'''
 
         and:
         run "mainVisualStudio"
@@ -149,7 +150,7 @@ class VisualStudioFileCustomizationIntegrationTest extends AbstractInstalledTool
         then:
         final solutionFile = solutionFile("visualStudio/mainExe.sln")
         solutionFile.content.contains "GlobalSection(MyGlobalSection)"
-        solutionFile.content.contains "Here is my custom config"
+        solutionFile.content.contains "Project-list: mainExe"
     }
 
     private SolutionFile solutionFile(String path) {

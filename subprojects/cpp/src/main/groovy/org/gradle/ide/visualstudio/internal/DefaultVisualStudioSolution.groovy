@@ -49,6 +49,10 @@ class DefaultVisualStudioSolution extends AbstractBuildableModelElement implemen
         return rootBinary.component
     }
 
+    Set<VisualStudioProject> getProjects() {
+        return getProjectConfigurations().collect {it.project} as Set
+    }
+
     Set<VisualStudioProjectConfiguration> getProjectConfigurations() {
         def configurations = [] as Set
         addNativeBinary(configurations, rootBinary)

@@ -21,8 +21,12 @@ import org.gradle.api.Named;
 import org.gradle.language.base.BuildableModelElement;
 import org.gradle.nativebinaries.NativeComponent;
 
+import java.util.Set;
+
 @Incubating
 public interface VisualStudioSolution extends Named, BuildableModelElement {
+    Set<VisualStudioProject> getProjects();
+
     NativeComponent getComponent();
     TextConfigFile getSolutionFile();
 }
