@@ -17,10 +17,12 @@ package org.gradle.nativebinaries;
 
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Incubating;
+import org.gradle.internal.HasInternalProtocol;
 
 /**
  * A container for {@link ToolChain}s.
  */
 @Incubating
+@HasInternalProtocol
 public interface ToolChainRegistry extends ExtensiblePolymorphicDomainObjectContainer<ToolChain> {
 }
