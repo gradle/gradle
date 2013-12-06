@@ -13,16 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
-
 package org.gradle.nativebinaries.internal
 
 import org.gradle.util.TreeVisitor
 import spock.lang.Specification
 
 class ToolChainAvailabilityTest extends Specification {
-    def "visits messages"() {
+    def "visits message"() {
         def visitor = Mock(TreeVisitor)
 
         given:
@@ -30,9 +27,41 @@ class ToolChainAvailabilityTest extends Specification {
         availability.unavailable("some reason")
 
         when:
-        availability.visitUnavailableMessages(visitor)
+        availability.explain(visitor)
 
         then:
         visitor.node("some reason")
+    }
+
+    def "ignores available tool"() {
+        def searchResult = Mock(ToolSearchResult)
+
+        given:
+        searchResult.available >> true
+
+        when:
+        def availability = new ToolChainAvailability()
+        availability.mustBeAvailable(searchResult)
+
+        then:
+        availability.available
+    }
+
+    def "visits missing tool"() {
+        def visitor = Mock(TreeVisitor)
+        def searchResult = Mock(ToolSearchResult)
+
+        given:
+        searchResult.available >> false
+
+        and:
+        def availability = new ToolChainAvailability()
+        availability.mustBeAvailable(searchResult)
+
+        when:
+        availability.explain(visitor)
+
+        then:
+        1 * searchResult.explain(visitor)
     }
 }

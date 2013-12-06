@@ -16,45 +16,65 @@
 
 package org.gradle.nativebinaries.internal;
 
+import org.gradle.internal.text.TreeFormatter;
 import org.gradle.util.TreeVisitor;
 
 import java.io.File;
 
-public class ToolChainAvailability {
-    private String unavailableMessage;
-
-    public ToolChainAvailability() {
-        unavailableMessage = null;
-    }
+public class ToolChainAvailability implements ToolSearchResult {
+    private ToolSearchResult reason;
 
     public boolean isAvailable() {
-        return unavailableMessage == null;
+        return reason == null;
     }
 
     public String getUnavailableMessage() {
-        return unavailableMessage;
+        TreeFormatter formatter = new TreeFormatter();
+        this.explain(formatter);
+        return formatter.toString();
     }
 
-    public void visitUnavailableMessages(TreeVisitor<? super String> visitor) {
-        if (unavailableMessage != null) {
-            visitor.node(unavailableMessage);
-        }
+    public void explain(TreeVisitor<? super String> visitor) {
+        reason.explain(visitor);
     }
 
     public void mustExist(String toolName, File tool) {
-        if (this.unavailableMessage == null) {
+        if (reason == null) {
             if (tool == null) {
-                this.unavailableMessage = String.format("%s cannot be found", toolName);
+                reason = new FixedMessageToolSearchResult(String.format("%s cannot be found", toolName));
             } else if (!tool.exists()) {
-                this.unavailableMessage = String.format("%s does not exist (%s)", toolName, tool);
+                reason = new FixedMessageToolSearchResult(String.format("%s does not exist (%s)", toolName, tool));
             }
         }
     }
 
     public ToolChainAvailability unavailable(String unavailableMessage) {
-        if (this.unavailableMessage == null) {
-            this.unavailableMessage = unavailableMessage;
+        if (reason == null) {
+            reason = new FixedMessageToolSearchResult(unavailableMessage);
         }
         return this;
+    }
+
+    public ToolChainAvailability mustBeAvailable(ToolSearchResult tool) {
+        if (!tool.isAvailable() && reason == null) {
+            reason = tool;
+        }
+        return this;
+    }
+
+    private static class FixedMessageToolSearchResult implements ToolSearchResult {
+        private final String message;
+
+        private FixedMessageToolSearchResult(String message) {
+            this.message = message;
+        }
+
+        public boolean isAvailable() {
+            return false;
+        }
+
+        public void explain(TreeVisitor<? super String> visitor) {
+            visitor.node(message);
+        }
     }
 }

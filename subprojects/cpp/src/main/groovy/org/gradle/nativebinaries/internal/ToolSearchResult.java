@@ -13,24 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.nativebinaries.toolchain.internal.msvcpp;
 
-import org.gradle.nativebinaries.internal.ToolSearchResult;
+package org.gradle.nativebinaries.internal;
 
-import java.io.File;
+import org.gradle.util.TreeVisitor;
 
-public interface VisualStudioLocator {
-    SearchResult locateVisualStudio(File candidate);
+public interface ToolSearchResult {
+    boolean isAvailable();
 
-    SearchResult locateDefaultVisualStudio();
-
-    SearchResult locateWindowsSdk(File candidate);
-
-    SearchResult locateDefaultWindowsSdk();
-
-    interface SearchResult extends ToolSearchResult {
-        String getVersion();
-
-        File getResult();
-    }
+    /**
+     * Writes some diagnostics about why the tool is not available to the given visitor.
+     */
+    void explain(TreeVisitor<? super String> visitor);
 }

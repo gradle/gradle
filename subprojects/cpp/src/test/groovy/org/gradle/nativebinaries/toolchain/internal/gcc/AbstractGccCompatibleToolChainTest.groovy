@@ -67,7 +67,6 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         platform.getOperatingSystem() >> DefaultOperatingSystem.TOOL_CHAIN_DEFAULT
         platform.getArchitecture() >> ArchitectureInternal.TOOL_CHAIN_DEFAULT
 
-
         then:
         toolChain.canTargetPlatform(platform)
 

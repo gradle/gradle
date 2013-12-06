@@ -79,7 +79,7 @@ public class DefaultToolChainRegistry extends DefaultPolymorphicDomainObjectCont
             if (!toolChain.getAvailability().isAvailable()) {
                 failureMessage.node(toolChain.getDisplayName());
                 failureMessage.startChildren();
-                toolChain.getAvailability().visitUnavailableMessages(failureMessage);
+                toolChain.getAvailability().explain(failureMessage);
                 failureMessage.endChildren();
             } else {
                 failureMessage.node(String.format("%s cannot build for platform '%s'.", toolChain.getDisplayName(), targetPlatform.getName()));

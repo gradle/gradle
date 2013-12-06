@@ -37,11 +37,11 @@ class DefaultVisualStudioLocatorTest extends Specification {
         def windowsSdkLocation = visualStudioLocator.locateDefaultWindowsSdk()
 
         then:
-        !visualStudioLocation.found
+        !visualStudioLocation.available
         visualStudioLocation.result == null
 
         and:
-        !windowsSdkLocation.found
+        !windowsSdkLocation.available
         windowsSdkLocation.result == null
     }
 
@@ -53,7 +53,7 @@ class DefaultVisualStudioLocatorTest extends Specification {
         def visualStudioLocation = visualStudioLocator.locateDefaultVisualStudio()
 
         then:
-        visualStudioLocation.found
+        visualStudioLocation.available
         visualStudioLocation.result == file('VisualStudio')
     }
 
@@ -66,7 +66,7 @@ class DefaultVisualStudioLocatorTest extends Specification {
         def windowsSdkLocation = visualStudioLocator.locateDefaultWindowsSdk()
 
         then:
-        windowsSdkLocation.found
+        windowsSdkLocation.available
         windowsSdkLocation.result == file('SDK')
     }
 

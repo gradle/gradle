@@ -62,14 +62,8 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
             availability.unavailable("Visual Studio is not available on this operating system.");
             return;
         }
-        checkFound("Visual Studio installation", locateVisualStudio(), availability);
-        checkFound("Windows SDK", locateWindowsSdk(), availability);
-    }
-
-    private void checkFound(String name, VisualStudioLocator.SearchResult visualStudio, ToolChainAvailability availability) {
-        if (!visualStudio.isFound()) {
-            availability.unavailable(String.format("%s cannot be located. Searched in %s.", name, visualStudio.getSearchLocations()));
-        }
+        availability.mustBeAvailable(locateVisualStudio());
+        availability.mustBeAvailable(locateWindowsSdk());
     }
 
     private VisualStudioInstall locateVisualStudioInstall() {
@@ -108,7 +102,7 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
     }
 
     public PlatformToolChain target(Platform targetPlatform) {
-        checkAvailable();
+        assertAvailable();
         checkPlatform(targetPlatform);
         VisualStudioInstall visualStudioInstall = locateVisualStudioInstall();
         WindowsSdk windowsSdk = new WindowsSdk(locateWindowsSdk().getResult());

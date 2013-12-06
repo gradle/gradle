@@ -15,12 +15,14 @@
  */
 
 package org.gradle.nativebinaries.toolchain.internal.msvcpp
+
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.internal.ToolChainAvailability
 import org.gradle.process.internal.ExecActionFactory
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.TreeVisitor
 import spock.lang.Specification
 
 class VisualCppToolChainTest extends Specification {
@@ -29,16 +31,14 @@ class VisualCppToolChainTest extends Specification {
     final ExecActionFactory execActionFactory = Mock(ExecActionFactory)
     final VisualStudioLocator.SearchResult visualStudio = Mock(VisualStudioLocator.SearchResult)
     final VisualStudioLocator.SearchResult windowsSdk = Mock(VisualStudioLocator.SearchResult)
-    final candidate = file('test')
     final VisualStudioLocator visualStudioLocator = Stub(VisualStudioLocator) {
         locateDefaultVisualStudio() >> visualStudio
         locateDefaultWindowsSdk() >> windowsSdk
     }
-    final OperatingSystem operatingSystem = Mock(OperatingSystem) {
+    final OperatingSystem operatingSystem = Stub(OperatingSystem) {
         isWindows() >> true
     }
     final toolChain = new VisualCppToolChain("visualCpp", operatingSystem, fileResolver, execActionFactory, visualStudioLocator)
-
 
     def "uses .lib file for shared library at link time"() {
         given:
@@ -56,11 +56,26 @@ class VisualCppToolChainTest extends Specification {
         toolChain.getSharedLibraryName("test") == "test.dll"
     }
 
+    def "installs an unavailable tool chain when not windows"() {
+        given:
+        def operatingSystem = Stub(OperatingSystem)
+        operatingSystem.isWindows() >> false
+        def toolChain = new VisualCppToolChain("visualCpp", operatingSystem, fileResolver, execActionFactory, visualStudioLocator)
+
+        when:
+        def availability = new ToolChainAvailability()
+        toolChain.checkAvailable(availability)
+
+        then:
+        !availability.available
+        availability.unavailableMessage == 'Visual Studio is not available on this operating system.'
+    }
+
     def "is unavailable when visual studio installation cannot be located"() {
         when:
-        visualStudio.found >> false
-        visualStudio.searchLocations >> [candidate]
-        windowsSdk.found >> false
+        visualStudio.available >> false
+        visualStudio.explain(_) >> { TreeVisitor<String> visitor -> visitor.node("vs install not found anywhere") }
+        windowsSdk.available >> false
 
         and:
         def availability = new ToolChainAvailability()
@@ -68,14 +83,14 @@ class VisualCppToolChainTest extends Specification {
 
         then:
         !availability.available
-        availability.unavailableMessage == "Visual Studio installation cannot be located. Searched in [${candidate}]."
+        availability.unavailableMessage == "vs install not found anywhere"
     }
 
     def "is unavailable when windows SDK cannot be located"() {
         when:
-        visualStudio.found >> true
-        windowsSdk.found >> false
-        windowsSdk.searchLocations >> [candidate]
+        visualStudio.available >> true
+        windowsSdk.available >> false
+        windowsSdk.explain(_) >> { TreeVisitor<String> visitor -> visitor.node("sdk not found anywhere") }
 
         and:
         def availability = new ToolChainAvailability()
@@ -83,13 +98,13 @@ class VisualCppToolChainTest extends Specification {
 
         then:
         !availability.available
-        availability.unavailableMessage == "Windows SDK cannot be located. Searched in [${candidate}]."
+        availability.unavailableMessage == "sdk not found anywhere"
     }
 
     def "is available when visual studio installation and windows SDK can be located"() {
         when:
-        visualStudio.found >> true
-        windowsSdk.found >> true
+        visualStudio.available >> true
+        windowsSdk.available >> true
 
         and:
         def availability = new ToolChainAvailability()
@@ -107,12 +122,12 @@ class VisualCppToolChainTest extends Specification {
         and:
         fileResolver.resolve("install-dir") >> file("vs")
         visualStudioLocator.locateVisualStudio(file("vs")) >> visualStudio
-        visualStudio.found >> true
+        visualStudio.available >> true
 
         and:
         fileResolver.resolve("windows-sdk-dir") >> file("win-sdk")
         visualStudioLocator.locateWindowsSdk(file("win-sdk")) >> windowsSdk
-        windowsSdk.found >> true
+        windowsSdk.available >> true
 
         and:
         0 * _._

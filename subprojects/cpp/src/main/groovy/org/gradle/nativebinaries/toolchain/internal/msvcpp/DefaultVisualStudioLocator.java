@@ -18,6 +18,7 @@ package org.gradle.nativebinaries.toolchain.internal.msvcpp;
 
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.util.TreeVisitor;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -32,6 +33,8 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
     private static final String KERNEL32_PATH = "lib/";
     private static final String KERNEL32_PATH_WINSDK8 = "lib/winv6.3/um/x86/";
     private static final String KERNEL32_FILENAME = "kernel32.lib";
+    private static final String VISUAL_STUDIO_DISPLAY_NAME = "Visual Studio installation";
+    private static final String SDK_DISPLAY_NAME = "Windows SDK";
 
     private static final VersionLookupPath[] VISUALSTUDIO_PATHS = {
         new VersionLookupPath("/Microsoft Visual Studio 12.0", VisualStudioVersion.VS_2013),
@@ -57,7 +60,7 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
     }
 
     public Search locateVisualStudio(File candidate) {
-        return locateInHierarchy(candidate, isVisualStudio());
+        return locateInHierarchy(VISUAL_STUDIO_DISPLAY_NAME, candidate, isVisualStudio());
     }
 
     public Search locateDefaultVisualStudio() {
@@ -65,10 +68,10 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
         // If cl.exe is on the path, assume it is contained within a visual studio install
         File compilerInPath = os.findInPath(COMPILER_FILENAME);
         if (compilerInPath != null) {
-            return locateInHierarchy(compilerInPath, isVisualStudio);
+            return locateInHierarchy(VISUAL_STUDIO_DISPLAY_NAME, compilerInPath, isVisualStudio);
         }
 
-        return locateInProgramFiles(isVisualStudio, VISUALSTUDIO_PATHS);
+        return locateInProgramFiles(VISUAL_STUDIO_DISPLAY_NAME, isVisualStudio, VISUALSTUDIO_PATHS);
     }
 
     private Spec<File> isVisualStudio() {
@@ -80,17 +83,17 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
     }
 
     public Search locateWindowsSdk(File candidate) {
-        return locateInHierarchy(candidate, isWindowsSdk());
+        return locateInHierarchy(SDK_DISPLAY_NAME, candidate, isWindowsSdk());
     }
 
     public Search locateDefaultWindowsSdk() {
         // If rc.exe is on the path, assume it is contained within a Windows SDK
         File resourceCompilerInPath = os.findInPath(RESOURCE_FILENAME);
         if (resourceCompilerInPath != null) {
-            return locateInHierarchy(resourceCompilerInPath, isWindowsSdk());
+            return locateInHierarchy(SDK_DISPLAY_NAME, resourceCompilerInPath, isWindowsSdk());
         }
 
-        return locateInProgramFiles(isWindowsSdk(), WINDOWSSDK_PATHS);
+        return locateInProgramFiles(SDK_DISPLAY_NAME, isWindowsSdk(), WINDOWSSDK_PATHS);
     }
 
     private Spec<File> isWindowsSdk() {
@@ -106,8 +109,8 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
             && (new File(candidate, KERNEL32_PATH + KERNEL32_FILENAME).isFile() || new File(candidate, KERNEL32_PATH_WINSDK8 + KERNEL32_FILENAME).isFile());
     }
 
-    private Search locateInProgramFiles(Spec<File> condition, String... candidateLocations) {
-        Search search = new Search();
+    private Search locateInProgramFiles(String name, Spec<File> condition, String... candidateLocations) {
+        Search search = new Search(name);
         for (File candidate : programFileCandidates(candidateLocations)) {
             if (condition.isSatisfiedBy(candidate)) {
                 search.found(candidate);
@@ -118,8 +121,8 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
         return search;
     }
 
-    private Search locateInProgramFiles(Spec<File> condition, VersionLookupPath... candidateLocations) {
-        Search search = new Search();
+    private Search locateInProgramFiles(String name, Spec<File> condition, VersionLookupPath... candidateLocations) {
+        Search search = new Search(name);
         for (VersionLookupCandidate candidate : programFileCandidates(candidateLocations)) {
             if (condition.isSatisfiedBy(candidate.file)) {
                 search.found(candidate);
@@ -162,8 +165,8 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
         return candidates;
     }
 
-    private Search locateInHierarchy(File candidate, Spec<File> condition) {
-        Search search = new Search();
+    private Search locateInHierarchy(String name, File candidate, Spec<File> condition) {
+        Search search = new Search(name);
         while (candidate != null) {
             if (condition.isSatisfiedBy(candidate)) {
                 search.found(candidate);
@@ -198,11 +201,16 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
     }
 
     public class Search implements SearchResult {
+        private final String name;
         private String version;
         private File file;
         private List<File> searchLocations = new ArrayList<File>();
 
-        public boolean isFound() {
+        public Search(String name) {
+            this.name = name;
+        }
+
+        public boolean isAvailable() {
             return file != null;
         }
 
@@ -214,8 +222,13 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
             return file;
         }
 
-        public List<File> getSearchLocations() {
-            return searchLocations;
+        public void explain(TreeVisitor<? super String> visitor) {
+            visitor.node(String.format("%s cannot be located. Searched in", name));
+            visitor.startChildren();
+            for (File searchLocation : searchLocations) {
+                visitor.node(searchLocation.toString());
+            }
+            visitor.endChildren();
         }
 
         void notFound(File candidate) {

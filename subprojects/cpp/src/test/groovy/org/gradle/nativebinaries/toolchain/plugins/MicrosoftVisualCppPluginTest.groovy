@@ -17,23 +17,13 @@
 package org.gradle.nativebinaries.toolchain.plugins
 
 import org.gradle.api.Plugin
-import org.gradle.api.plugins.ExtensionAware
-import org.gradle.api.plugins.ExtraPropertiesExtension
-import org.gradle.internal.nativeplatform.ProcessEnvironment
-import org.gradle.internal.nativeplatform.services.NativeServices
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.ToolChain
-import org.gradle.nativebinaries.internal.ToolChainAvailability
 import org.gradle.nativebinaries.toolchain.VisualCpp
 import org.gradle.nativebinaries.toolchain.internal.msvcpp.VisualCppToolChain
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.junit.Rule
 
 class MicrosoftVisualCppPluginTest extends ToolChainPluginTest {
-    def ProcessEnvironment processEnvironment = NativeServices.getInstance().get(ProcessEnvironment.class);
-    def pathVar = OperatingSystem.current().getPathVar()
     @Rule
     TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
 
@@ -66,51 +56,6 @@ class MicrosoftVisualCppPluginTest extends ToolChainPluginTest {
 
         then:
         toolchain instanceof VisualCppToolChain
-    }
-
-    def "VisualCpp tool chain is extended"() {
-        when:
-        register()
-
-        then:
-        with (toolchain) {
-            it instanceof ExtensionAware
-            it.ext instanceof ExtraPropertiesExtension
-        }
-    }
-
-    @Requires(TestPrecondition.NOT_WINDOWS)
-    def "installs an unavailable tool chain when not windows"() {
-        when:
-        register()
-
-        then:
-        def visualCpp = toolchain
-        !visualCpp.availability.available
-        visualCpp.availability.unavailableMessage == 'Visual Studio is not available on this operating system.'
-        visualCpp.displayName == "Tool chain '$toolchainName' (Visual Studio)"
-        visualCpp.displayName == visualCpp.toString()
-    }
-
-    @Requires(TestPrecondition.WINDOWS)
-    def "installs an unavailable tool chain when on windows but Visual Studio install not located"() {
-        given:
-        def originalPath = System.getenv(pathVar)
-
-        and:
-        def dummyCompiler = file("dummy/cl.exe").createFile()
-        processEnvironment.setEnvironmentVariable(pathVar, dummyCompiler.parentFile.absolutePath);
-
-        when:
-        register()
-
-        then:
-        ToolChainAvailability availability = toolchain.availability
-        !availability.available
-        availability.unavailableMessage.startsWith 'Visual Studio installation cannot be located. Searched in ['
-
-        cleanup:
-        processEnvironment.setEnvironmentVariable(pathVar, originalPath)
     }
 
     def file(String name) {

@@ -69,7 +69,7 @@ public abstract class AbstractGccCompatibleToolChain extends AbstractToolChain i
     }
 
     public PlatformToolChain target(Platform targetPlatform) {
-        checkAvailable();
+        assertAvailable();
         TargetPlatformConfiguration platformConfiguration = getPlatformConfiguration(targetPlatform);
         return new GccPlatformToolChain(tools, execActionFactory, platformConfiguration, canUseCommandFile());
     }
