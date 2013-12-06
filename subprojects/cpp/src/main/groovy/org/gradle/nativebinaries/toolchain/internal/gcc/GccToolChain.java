@@ -26,6 +26,7 @@ import org.gradle.nativebinaries.toolchain.Gcc;
 import org.gradle.nativebinaries.toolchain.GccTool;
 import org.gradle.nativebinaries.toolchain.internal.ToolType;
 import org.gradle.nativebinaries.toolchain.internal.gcc.version.GccVersionDeterminer;
+import org.gradle.nativebinaries.toolchain.internal.gcc.version.GccVersionResult;
 import org.gradle.process.internal.ExecActionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,7 +43,7 @@ public class GccToolChain extends AbstractGccCompatibleToolChain implements Gcc 
 
     public static final String DEFAULT_NAME = "gcc";
 
-    private final Transformer<String, File> versionDeterminer;
+    private final Transformer<GccVersionResult, File> versionDeterminer;
 
     private String version;
 
@@ -75,23 +76,19 @@ public class GccToolChain extends AbstractGccCompatibleToolChain implements Gcc 
     @Override
     protected void checkAvailable(ToolChainAvailability availability) {
         super.checkAvailable(availability);
-        determineVersion();
-        if (version == null) {
-            availability.unavailable("Could not determine G++ version");
-        }
+        determineVersion(availability);
     }
 
-    private void determineVersion() {
-        version = determineVersion(tools.locate(ToolType.CPP_COMPILER));
-        if (version == null) {
-            LOGGER.info("Did not find {} on system", ToolType.CPP_COMPILER.getToolName());
-        } else {
-            LOGGER.info("Found {} with version {}", ToolType.CPP_COMPILER.getToolName(), version);
+    private void determineVersion(ToolChainAvailability availability) {
+        CommandLineToolSearchResult cppCompiler = tools.locate(ToolType.CPP_COMPILER);
+        if (cppCompiler.isAvailable()) {
+            GccVersionResult result = versionDeterminer.transform(cppCompiler.getTool());
+            availability.mustBeAvailable(result);
+            if (result.isAvailable()) {
+                version = result.getVersion();
+                LOGGER.info("Found {} with version {}", ToolType.CPP_COMPILER.getToolName(), version);
+            }
         }
-    }
-
-    private String determineVersion(File executable) {
-        return executable == null ? null : versionDeterminer.transform(executable);
     }
 
     public GccTool getCppCompiler() {

@@ -82,7 +82,7 @@ class GccPlatformToolChain implements PlatformToolChain {
     }
 
     private <T extends BinaryToolSpec> CommandLineTool<T> commandLineTool(ToolType key) {
-        CommandLineTool<T> commandLineTool = new CommandLineTool<T>(key.getToolName(), tools.locate(key), execActionFactory);
+        CommandLineTool<T> commandLineTool = new CommandLineTool<T>(key.getToolName(), tools.locate(key).getTool(), execActionFactory);
         // MinGW requires the path to be set
         commandLineTool.withPath(tools.getPath());
         return commandLineTool;

@@ -28,6 +28,7 @@ import org.gradle.nativebinaries.toolchain.Clang;
 import org.gradle.nativebinaries.toolchain.Gcc;
 import org.gradle.nativebinaries.toolchain.VisualCpp;
 import org.gradle.nativebinaries.toolchain.internal.gcc.version.GccVersionDeterminer;
+import org.gradle.nativebinaries.toolchain.internal.gcc.version.GccVersionResult;
 import org.gradle.nativebinaries.toolchain.internal.msvcpp.DefaultVisualStudioLocator;
 import org.gradle.nativebinaries.toolchain.internal.msvcpp.VisualStudioInstall;
 import org.gradle.nativebinaries.toolchain.internal.msvcpp.VisualStudioLocator;
@@ -148,8 +149,8 @@ public class AvailableToolChains {
         List<File> gppCandidates = OperatingSystem.current().findAllInPath("g++");
         for (int i = 0; i < gppCandidates.size(); i++) {
             File candidate = gppCandidates.get(i);
-            String version = versionDeterminer.transform(candidate);
-            if (version != null && version.startsWith(versionPrefix)) {
+            GccVersionResult version = versionDeterminer.transform(candidate);
+            if (version.isAvailable() && version.getVersion().startsWith(versionPrefix)) {
                 InstalledGcc gcc = new InstalledGcc(name);
                 if (i > 0) {
                     // Not the first g++ in the path, needs the path variable updated

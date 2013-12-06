@@ -25,6 +25,7 @@ import org.gradle.nativebinaries.toolchain.internal.ToolType
 import org.gradle.process.internal.ExecActionFactory
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.gradle.util.TreeVisitor
 import spock.lang.Specification
 
 import static org.gradle.nativebinaries.internal.ArchitectureInternal.InstructionSet.X86
@@ -33,21 +34,29 @@ class AbstractGccCompatibleToolChainTest extends Specification {
     def fileResolver = Mock(FileResolver)
     def execActionFactory = Mock(ExecActionFactory)
     def toolRegistry = Mock(ToolRegistry)
-    def tool = Mock(File)
+    def tool = Stub(CommandLineToolSearchResult) {
+        isAvailable() >> true
+    }
     def os = Mock(OperatingSystem)
     def toolChain = new TestToolChain("test", fileResolver, execActionFactory, toolRegistry)
     def platform = Mock(Platform)
 
     def "is unavailable if not all tools can be found"() {
+        def missing = Stub(CommandLineToolSearchResult) {
+            isAvailable() >> false
+            explain(_) >> { TreeVisitor<String> visitor -> visitor.node("c++ compiler not found") }
+        }
+
         when:
         def availability = toolChain.getAvailability()
 
         then:
-        toolRegistry.locate(ToolType.CPP_COMPILER) >> null
+        toolRegistry.locate(ToolType.CPP_COMPILER) >> missing
+        toolRegistry.locate(_) >> tool
 
         and:
         !availability.available
-        availability.unavailableMessage == "C++ compiler cannot be found"
+        availability.unavailableMessage == "c++ compiler not found"
     }
 
     def "is available if all tools can be found"() {
@@ -56,7 +65,6 @@ class AbstractGccCompatibleToolChainTest extends Specification {
 
         then:
         toolRegistry.locate(_) >> tool
-        tool.exists() >> true
 
         and:
         availability.available
@@ -128,7 +136,6 @@ class AbstractGccCompatibleToolChainTest extends Specification {
     def "cannot target x86_64 architecture on windows"() {
         when:
         toolRegistry.locate(_) >> tool
-        tool.exists() >> true
 
         and:
         platform.getName() >> "x64"

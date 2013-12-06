@@ -59,7 +59,7 @@ public abstract class AbstractGccCompatibleToolChain extends AbstractToolChain i
     @Override
     protected void checkAvailable(ToolChainAvailability availability) {
         for (ToolType key : ToolType.values()) {
-            availability.mustExist(key.getToolName(), tools.locate(key));
+            availability.mustBeAvailable(tools.locate(key));
         }
     }
 

@@ -19,8 +19,6 @@ package org.gradle.nativebinaries.internal;
 import org.gradle.internal.text.TreeFormatter;
 import org.gradle.util.TreeVisitor;
 
-import java.io.File;
-
 public class ToolChainAvailability implements ToolSearchResult {
     private ToolSearchResult reason;
 
@@ -36,16 +34,6 @@ public class ToolChainAvailability implements ToolSearchResult {
 
     public void explain(TreeVisitor<? super String> visitor) {
         reason.explain(visitor);
-    }
-
-    public void mustExist(String toolName, File tool) {
-        if (reason == null) {
-            if (tool == null) {
-                reason = new FixedMessageToolSearchResult(String.format("%s cannot be found", toolName));
-            } else if (!tool.exists()) {
-                reason = new FixedMessageToolSearchResult(String.format("%s does not exist (%s)", toolName, tool));
-            }
-        }
     }
 
     public ToolChainAvailability unavailable(String unavailableMessage) {

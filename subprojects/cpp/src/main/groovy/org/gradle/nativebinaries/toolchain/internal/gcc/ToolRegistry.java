@@ -19,6 +19,7 @@ package org.gradle.nativebinaries.toolchain.internal.gcc;
 import org.gradle.api.Action;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativebinaries.toolchain.internal.ToolType;
+import org.gradle.util.TreeVisitor;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -29,7 +30,7 @@ import java.util.Map;
 public class ToolRegistry {
     private final Map<ToolType, String> executableNames = new HashMap<ToolType, String>();
     private final Map<ToolType, CompositeArgAction> argTransformers = new HashMap<ToolType, CompositeArgAction>();
-    private final Map<String, File> executables = new HashMap<String, File>();
+    private final Map<String, CommandLineToolSearchResult> executables = new HashMap<String, CommandLineToolSearchResult>();
     private final List<File> pathEntries = new ArrayList<File>();
 
     private final OperatingSystem operatingSystem;
@@ -61,14 +62,15 @@ public class ToolRegistry {
         executableNames.put(key, name);
     }
 
-    public File locate(ToolType key) {
+    public CommandLineToolSearchResult locate(ToolType key) {
         String exeName = executableNames.get(key);
-        if (executables.containsKey(exeName)) {
-            return executables.get(exeName);
+        CommandLineToolSearchResult result = executables.get(exeName);
+        if (result == null) {
+            File exe = findExecutable(operatingSystem, exeName);
+            result = exe == null || !exe.isFile() ? new MissingTool(key, exeName, pathEntries) : new FoundTool(exe);
+            executables.put(exeName, result);
         }
-        File exe = findExecutable(operatingSystem, exeName);
-        executables.put(exeName, exe);
-        return exe;
+        return result;
     }
 
     protected File findExecutable(OperatingSystem operatingSystem, String name) {
@@ -91,6 +93,59 @@ public class ToolRegistry {
 
     public void addArgsAction(ToolType toolType, Action<List<String>> arguments) {
         getArgTransformer(toolType).add(arguments);
+    }
+
+    private static class FoundTool implements CommandLineToolSearchResult {
+        private final File tool;
+
+        private FoundTool(File tool) {
+            this.tool = tool;
+        }
+
+        public boolean isAvailable() {
+            return true;
+        }
+
+        public File getTool() {
+            return tool;
+        }
+
+        public void explain(TreeVisitor<? super String> visitor) {
+        }
+    }
+
+    private static class MissingTool implements CommandLineToolSearchResult {
+        private final ToolType type;
+        private final String exeName;
+        private final List<File> path;
+
+        private MissingTool(ToolType type, String exeName, List<File> path) {
+            this.type = type;
+            this.exeName = exeName;
+            this.path = path;
+        }
+
+        public void explain(TreeVisitor<? super String> visitor) {
+            if (path.isEmpty()) {
+                visitor.node(String.format("Could not find %s '%s' in system path.", type.getToolName(), exeName));
+            } else {
+                visitor.node(String.format("Could not find %s '%s'. Searched in", type.getToolName(), exeName));
+                visitor.startChildren();
+                for (File location : path) {
+                    visitor.node(location.toString());
+                }
+                visitor.node("system path");
+                visitor.endChildren();
+            }
+        }
+
+        public File getTool() {
+            throw new UnsupportedOperationException();
+        }
+
+        public boolean isAvailable() {
+            return false;
+        }
     }
 
     private static class CompositeArgAction implements Action<List<String>> {

@@ -14,15 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries.internal;
+package org.gradle.nativebinaries.toolchain.internal.gcc.version;
 
-import org.gradle.util.TreeVisitor;
+import org.gradle.nativebinaries.internal.ToolSearchResult;
 
-public interface ToolSearchResult {
-    boolean isAvailable();
-
-    /**
-     * Writes some diagnostics about why the tool is not available.
-     */
-    void explain(TreeVisitor<? super String> visitor);
+public interface GccVersionResult extends ToolSearchResult {
+    String getVersion();
 }
