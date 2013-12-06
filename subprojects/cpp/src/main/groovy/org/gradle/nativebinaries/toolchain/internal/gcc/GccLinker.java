@@ -51,10 +51,6 @@ class GccLinker implements Compiler<LinkerSpec> {
             List<String> args = new ArrayList<String>();
             
             args.addAll(spec.getSystemArgs());
-            for (String userArg : spec.getArgs()) {
-                args.add("-Xlinker");
-                args.add(userArg);
-            }
 
             if (spec instanceof SharedLibraryLinkerSpec) {
                 args.add("-shared");
@@ -82,6 +78,12 @@ class GccLinker implements Compiler<LinkerSpec> {
 //                args.add("-Wl,-rpath," + pathEntry.getAbsolutePath());
                 throw new UnsupportedOperationException("Library Path not yet supported on GCC");
             }
+
+            for (String userArg : spec.getArgs()) {
+                args.add("-Xlinker");
+                args.add(userArg);
+            }
+
             return args;
         }
     }

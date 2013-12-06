@@ -44,11 +44,12 @@ class GccLinkerTest extends Specification {
         def execAction = Mock(ExecAction)
         final expectedArgs = [
                 "-sys1", "-sys2",
-                "-Xlinker", "-arg1", "-Xlinker", "-arg2",
-                "-shared"]
-        expectedArgs.addAll(getSoNameProp("installName"))
-        expectedArgs.addAll(["-o", outputFile.absolutePath,
-                testDir.file("one.o").absolutePath, testDir.file("two.o").absolutePath])
+                "-shared",
+                getSoNameProp("installName"),
+                "-o", outputFile.absolutePath,
+                testDir.file("one.o").absolutePath,
+                testDir.file("two.o").absolutePath,
+                "-Xlinker", "-arg1", "-Xlinker", "-arg2"].flatten()
 
         when:
         LinkerSpec spec = Mock(SharedLibraryLinkerSpec)
