@@ -116,6 +116,10 @@ For location #3, this is an incubating element, so we can simply defer all confi
 
 Similarly, this work should consider how the existing task DSL can be used to access these tasks: Is it an error? Does it trigger model rules?
 
+## Build author is warned when model rule targets unknown model object
+
+TBD
+
 ## Plugin author uses model rules to define tasks after plugin model has been configured
 
 A common problem when authoring a plugin is how to handle configuration that happens after the plugin is applied.
