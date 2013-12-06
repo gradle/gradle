@@ -804,6 +804,8 @@ Here's an example:
 
 ## Story: Allow a component to choose from a set of defined Platform, BuildType and Flavor instances
 
+- Move `executables` and `libraries` collections into model DSL.
+
 ### User visible changes
 
     model {
@@ -1006,6 +1008,8 @@ Consumer project compiles an executable against this library.
 - Add a library implementation that doesn't have output-related properties
 - Don't create tasks for generating library binary outputs
 - Allow output file to be specified in a binaries.all {} block
+- Install task does not copy pre-built libraries into the install image, and sets the appropriate path variables in the generated script.
+- Allow these to be set as toolchain specific linker args (ie -l and -L) as well.
 
 ### Open issues
 
@@ -1242,11 +1246,21 @@ This story moves definition and configuration of the source sets for a component
 
 ## Story: Include all macro definitions in Visual Studio project configuration
 
-Include both cppCompiler.define and `cppCompiler.args '/D...'`.
+Include both `cppCompiler.define` and `cppCompiler.args '/D...'`.
+
+- Allow macro definition to be set as tool specific args (e.g. -D or /D) and queried via the `macros` property.
+- Support this for all tools with a preprocessor:
+    - c++ compiler
+    - c compiler
+    - resource compiler
+    - assembler (if we've changed the implementation to use the preprocessor)
 
 ## Story: Include all include paths in Visual Studio project configuration
 
 Include libraries define as source set dependencies, binary dependencies and values supplied via `cppCompiler.args '/I...'`.
+
+- Add a 'includePath' property for all tools with a preprocessor (as for the previous story)
+- Allow these to be set as tool specific args (e.g. -I or /I) and queried via the `includePath` property.
 
 ## Story: Allow library binaries to be used as input to other libraries
 
@@ -1313,11 +1327,11 @@ Depends on a number of stories in [dependency-resolution.md](dependency-resoluti
 
 - Add an `assemble` lifecycle task for each component.
 - Running `gradle assemble` should build all binaries for the main executable or library
-- Running `gradle uploadArchives` should build and publish all binaries for the main executable or library
 - Add a task for creating a single 'developer image' for each component.
     - Build `debug` variant where possible
     - Build shared library variants
     - Build for the current Operating System and architecture
+- Review samples and remove convenience tasks that are no longer required
 
 ## Story: Allow a binary to be defined that is not part of a component
 
@@ -1328,14 +1342,6 @@ Depends on a number of stories in [dependency-resolution.md](dependency-resoluti
 
 - Can define a standalone executable, shared library or static library binary, and the appropriate tasks are created and configured appropriately.
 - Can define and configure standalone compile and link tasks.
-
-## Story: Convenient configuration of compiler and linker settings
-
-### Open issues
-
-- Add properties to set macros and include directories for a binary, allow these to be set as toolchain specific compiler args (ie -D and -I) as well.
-- Add properties to set system libs and lib directories for a binary, allow these to be set as toolchain specific linker args (ie -l and -L) as well.
-- Add set methods for each of these properties.
 
 ## Story: Automatically include debug symbols in 'debug' build types
 
@@ -1348,6 +1354,29 @@ Depends on a number of stories in [dependency-resolution.md](dependency-resoluti
 - When resolving the dependencies of a binary `b`, for a dependency on library `l`:
     - Prefer a binary for library `l` that has a build type with a matching name.
     - Otherwise, select a library `l` that has a build type with a matching `debug` flag.
+
+### Open issues
+
+- Need some way to probe for debug information in binaries
+- Tool chain plugins add extension to `BuildType` to add in specific configuration.
+- GCC debug
+    - Convenience to switch on or off with defaults
+    - Debug information format, GDB extensions on or off
+        - Has impacts on dependency resolution, as some formats are stored externally
+    - Debug level (0 - 3)
+- GCC profile
+    - Convenience to switch on or off with defaults
+    - gprof extensions on or off
+- GCC optimise
+    - Needs to compile all source files in one invocation to do the best job
+    - Optimise level (0 - 3)
+    - Size vs speed
+- Visual C++ optimise
+    - size vs speed
+    - prefer size vs speed
+    - Max optimise
+- Visual C++ debug
+    - On or off
 
 ## Story: Generate source from Microsoft IDL files
 
@@ -1748,7 +1777,9 @@ TBD
 
 # Open issues
 
+* Add ABI as an aspect of target platform.
 * Output of any custom post link task should be treated as input to anything that depends on the binary.
+* Route stdout to info level when linking a shared library using visual studio, to get rid of the pointless notice.
 * Handling for system libraries.
 * Building for multiple chipsets.
 * Selecting a compatible architecture at resolve time. For example, if I'm building for the amd64 cpu, I can use an x86 cpu + 64 bit data model.
