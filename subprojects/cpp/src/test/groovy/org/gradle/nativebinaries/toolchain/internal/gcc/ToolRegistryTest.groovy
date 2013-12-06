@@ -63,11 +63,12 @@ class ToolRegistryTest extends Specification {
 
     def "executable is unavailable when not found in path"() {
         def visitor = Mock(TreeVisitor)
-        def dir = tmpDir.createDir("some-dir")
+        def dir1 = tmpDir.createDir("some-dir")
+        def dir2 = tmpDir.createDir("some-dir-2")
 
         given:
         os.getExecutableName("cc") >> "cc.bin"
-        registry.setPath([dir])
+        registry.setPath([dir1, dir2])
 
         when:
         def result = registry.locate(ToolType.C_COMPILER)
@@ -81,9 +82,10 @@ class ToolRegistryTest extends Specification {
         then:
         1 * visitor.node("Could not find C compiler 'cc'. Searched in")
         1 * visitor.startChildren()
-        1 * visitor.node(dir.toString())
-        1 * visitor.node('system path')
+        1 * visitor.node(dir1.toString())
+        1 * visitor.node(dir2.toString())
         1 * visitor.endChildren()
+        0 * visitor._
     }
 
     def "executable is unavailable when not found in system path"() {
@@ -103,5 +105,6 @@ class ToolRegistryTest extends Specification {
 
         then:
         1 * visitor.node("Could not find C compiler 'cc' in system path.")
+        0 * visitor._
     }
 }

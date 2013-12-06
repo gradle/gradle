@@ -74,14 +74,18 @@ public class ToolRegistry {
     }
 
     protected File findExecutable(OperatingSystem operatingSystem, String name) {
-        String exeName = operatingSystem.getExecutableName(name);
-        for (File pathEntry : pathEntries) {
-            File candidate = new File(pathEntry, exeName);
-            if (candidate.isFile()) {
-                return candidate;
+        if (!pathEntries.isEmpty()) {
+            String exeName = operatingSystem.getExecutableName(name);
+            for (File pathEntry : pathEntries) {
+                File candidate = new File(pathEntry, exeName);
+                if (candidate.isFile()) {
+                    return candidate;
+                }
             }
+            return null;
+        } else {
+            return operatingSystem.findInPath(name);
         }
-        return operatingSystem.findInPath(name);
     }
 
     public CompositeArgAction getArgTransformer(ToolType toolType) {
@@ -134,7 +138,6 @@ public class ToolRegistry {
                 for (File location : path) {
                     visitor.node(location.toString());
                 }
-                visitor.node("system path");
                 visitor.endChildren();
             }
         }
