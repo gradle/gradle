@@ -1,6 +1,6 @@
 apply plugin: 'cpp'
 
-// START SNIPPET target-platforms
+// START SNIPPET platforms
 model {
     platforms {
         create("x86") {
@@ -14,7 +14,7 @@ model {
         }
     }
 }
-// END SNIPPET target-platforms
+// END SNIPPET platforms
 
 // START SNIPPET build-types
 model {
@@ -25,9 +25,13 @@ model {
 }
 // END SNIPPET build-types
 
+// START SNIPPET target-platforms
 executables {
-    main {}
+    main {
+        targetPlatforms "x86", "x64"
+    }
 }
+// END SNIPPET target-platforms
 libraries {
     hello {}
 }
