@@ -126,11 +126,11 @@ public class DefaultWindowsSdkLocator extends DefaultWindowsLocator implements W
                         addSdk(folder, version, name);
                     }
                 } catch (WindowsRegistryException e) {
-
+                    // Ignore the subkey if it doesn't have a folder and version
                 }
             }
         } catch (WindowsRegistryException e) {
-
+            // No SDK information available in the registry
         }
     }
 
@@ -154,11 +154,11 @@ public class DefaultWindowsSdkLocator extends DefaultWindowsLocator implements W
                         addSdk(path, versions[i], NAME_KIT + " " + versions[i]);
                     }
                 } catch (WindowsRegistryException e) {
-
+                    // Ignore the version if the string cannot be read
                 }
             }
         } catch (WindowsRegistryException e) {
-
+            // No kit information available in the registry
         }
     }
 
@@ -207,7 +207,7 @@ public class DefaultWindowsSdkLocator extends DefaultWindowsLocator implements W
                 defaultSdk = foundSdks.get(currentVersion);
             }
         } catch (WindowsRegistryException e) {
-
+            // Default SDK information is not available in the registry
         } finally {
             if (defaultSdk == null && !foundSdks.isEmpty()) {
                 defaultSdk = foundSdks.entrySet().iterator().next().getValue();
