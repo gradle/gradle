@@ -111,7 +111,12 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
         checkAvailable();
         checkPlatform(targetPlatform);
         VisualStudioInstall visualStudioInstall = locateVisualStudioInstall();
-        WindowsSdk windowsSdk = (windowsSdkVersion != null) ? windowsSdkLocator.getSdk(windowsSdkVersion) : windowsSdkLocator.getDefaultSdk();
+        WindowsSdk windowsSdk = null;
+
+        if (windowsSdkLocator.locateWindowsSdks(windowsSdkDir)) {
+            windowsSdk = (windowsSdkVersion != null) ? windowsSdkLocator.getSdk(windowsSdkVersion) : windowsSdkLocator.getDefaultSdk();
+        }
+
         return new VisualCppPlatformToolChain(visualStudioInstall, windowsSdk, targetPlatform);
     }
 
@@ -185,7 +190,10 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
             CommandLineTool<T> tool = new CommandLineTool<T>(toolName, exe, execActionFactory);
 
             // The visual C++ tools use the path to find other executables
-            tool.withPath(install.getVisualCppBin(targetPlatform), sdk.getBinDir(targetPlatform), install.getCommonIdeBin());
+            tool.withPath(install.getVisualCppBin(targetPlatform), install.getCommonIdeBin());
+            if (sdk != null) {
+                tool.withPath(sdk.getBinDir(targetPlatform));
+            }
 
             return tool;
         }
@@ -198,7 +206,9 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
             return new Transformer<T, T>() {
                 public T transform(T original) {
                     original.include(install.getVisualCppInclude());
-                    original.include(sdk.getIncludeDirs());
+                    if (sdk != null) {
+                        original.include(sdk.getIncludeDirs());
+                    }
                     return original;
                 }
             };
@@ -207,7 +217,10 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
         private Transformer<LinkerSpec, LinkerSpec> addLibraryPath() {
             return new Transformer<LinkerSpec, LinkerSpec>() {
                 public LinkerSpec transform(LinkerSpec original) {
-                    original.libraryPath(install.getVisualCppLib(targetPlatform), sdk.getLibDir(targetPlatform));
+                    original.libraryPath(install.getVisualCppLib(targetPlatform));
+                    if (sdk != null) {
+                        original.libraryPath(sdk.getLibDir(targetPlatform));
+                    }
                     return original;
                 }
             };
