@@ -27,17 +27,19 @@ class VisualCppToolChainTest extends Specification {
     TestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
     final FileResolver fileResolver = Mock(FileResolver)
     final ExecActionFactory execActionFactory = Mock(ExecActionFactory)
-    final VisualStudioLocator.SearchResult visualStudio = Mock(VisualStudioLocator.SearchResult)
-    final VisualStudioLocator.SearchResult windowsSdk = Mock(VisualStudioLocator.SearchResult)
+    final WindowsLocator.SearchResult visualStudio = Mock(WindowsLocator.SearchResult)
+    final WindowsSdk windowsSdk = Mock(WindowsSdk)
     final candidate = file('test')
     final VisualStudioLocator visualStudioLocator = Stub(VisualStudioLocator) {
         locateDefaultVisualStudio() >> visualStudio
-        locateDefaultWindowsSdk() >> windowsSdk
+    }
+    final WindowsSdkLocator windowsSdkLocator = Stub(WindowsSdkLocator) {
+        getDefaultSdk() >> windowsSdk
     }
     final OperatingSystem operatingSystem = Mock(OperatingSystem) {
         isWindows() >> true
     }
-    final toolChain = new VisualCppToolChain("visualCpp", operatingSystem, fileResolver, execActionFactory, visualStudioLocator)
+    final toolChain = new VisualCppToolChain("visualCpp", operatingSystem, fileResolver, execActionFactory, visualStudioLocator, windowsSdkLocator)
 
 
     def "uses .lib file for shared library at link time"() {
@@ -71,25 +73,9 @@ class VisualCppToolChainTest extends Specification {
         availability.unavailableMessage == "Visual Studio installation cannot be located. Searched in [${candidate}]."
     }
 
-    def "is unavailable when windows SDK cannot be located"() {
+    def "is available when visual studio installation can be located"() {
         when:
         visualStudio.found >> true
-        windowsSdk.found >> false
-        windowsSdk.searchLocations >> [candidate]
-
-        and:
-        def availability = new ToolChainAvailability()
-        toolChain.checkAvailable(availability);
-
-        then:
-        !availability.available
-        availability.unavailableMessage == "Windows SDK cannot be located. Searched in [${candidate}]."
-    }
-
-    def "is available when visual studio installation and windows SDK can be located"() {
-        when:
-        visualStudio.found >> true
-        windowsSdk.found >> true
 
         and:
         def availability = new ToolChainAvailability()
@@ -111,8 +97,7 @@ class VisualCppToolChainTest extends Specification {
 
         and:
         fileResolver.resolve("windows-sdk-dir") >> file("win-sdk")
-        visualStudioLocator.locateWindowsSdk(file("win-sdk")) >> windowsSdk
-        windowsSdk.found >> true
+        windowsSdkLocator.locateWindowsSdks(file("win-sdk")) >> true
 
         and:
         0 * _._

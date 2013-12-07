@@ -21,34 +21,27 @@ import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import spock.lang.Specification
 
-class DefaultVisualStudioLocatorTest extends Specification {
+class DefaultWindowsSdkLocatorTest extends Specification {
     TestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
     final OperatingSystem operatingSystem = Stub(OperatingSystem) {
         isWindows() >> true
         getExecutableName(_ as String) >> { String exeName -> exeName }
-        findInPath("cl.exe") >> file('VisualStudio/VC/bin/cl.exe')
+        findInPath("rc.exe") >> file("SDK/bin/rc.exe")
     }
-    final VisualStudioLocator visualStudioLocator = new DefaultVisualStudioLocator(operatingSystem)
+    final WindowsSdkLocator windowsSdkLocator = new DefaultWindowsSdkLocator(operatingSystem)
 
-    def "visual studio not found when executables do not exist"() {
+    def "locates windows SDK based on executables in path"() {
         when:
-        def visualStudioLocation = visualStudioLocator.locateDefaultVisualStudio()
-
-        then:
-        !visualStudioLocation.found
-        visualStudioLocation.result == null
-    }
-
-    def "locates visual studio installation based on executables in path"() {
-        when:
-        createFile('VisualStudio/VC/bin/cl.exe')
+        createFile('SDK/bin/rc.exe')
+        createFile('SDK/lib/kernel32.lib')
 
         and:
-        def visualStudioLocation = visualStudioLocator.locateDefaultVisualStudio()
+        def located = windowsSdkLocator.locateWindowsSdks(null)
+        def defaultSdk = windowsSdkLocator.getDefaultSdk()
 
         then:
-        visualStudioLocation.found
-        visualStudioLocation.result == file('VisualStudio')
+        located
+        defaultSdk.baseDir == file('SDK')
     }
 
     def file(String name) {

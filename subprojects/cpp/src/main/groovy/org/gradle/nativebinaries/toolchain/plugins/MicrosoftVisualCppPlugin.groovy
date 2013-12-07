@@ -29,6 +29,7 @@ import org.gradle.nativebinaries.internal.ToolChainRegistryInternal
 import org.gradle.nativebinaries.plugins.NativeBinariesPlugin
 import org.gradle.nativebinaries.toolchain.VisualCpp
 import org.gradle.nativebinaries.toolchain.internal.msvcpp.DefaultVisualStudioLocator
+import org.gradle.nativebinaries.toolchain.internal.msvcpp.DefaultWindowsSdkLocator
 import org.gradle.nativebinaries.toolchain.internal.msvcpp.VisualCppToolChain
 import org.gradle.process.internal.ExecActionFactory
 
@@ -57,7 +58,7 @@ class MicrosoftVisualCppPlugin implements Plugin<Project> {
         modelRules.rule(new ModelRule() {
             void addToolChain(ToolChainRegistryInternal toolChainRegistry) {
                 toolChainRegistry.registerFactory(VisualCpp, { String name ->
-                    return instantiator.newInstance(VisualCppToolChain, name, OperatingSystem.current(), fileResolver, execActionFactory, new DefaultVisualStudioLocator())
+                    return instantiator.newInstance(VisualCppToolChain, name, OperatingSystem.current(), fileResolver, execActionFactory, new DefaultVisualStudioLocator(), new DefaultWindowsSdkLocator())
                 })
                 toolChainRegistry.registerDefaultToolChain(VisualCppToolChain.DEFAULT_NAME, VisualCpp)
             }
