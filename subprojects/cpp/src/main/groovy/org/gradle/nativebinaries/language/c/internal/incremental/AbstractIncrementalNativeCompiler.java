@@ -52,18 +52,20 @@ abstract class AbstractIncrementalNativeCompiler implements Compiler<NativeCompi
     }
 
     public WorkResult execute(final NativeCompileSpec spec) {
-        final PersistentCache cache = openCache(task);
-
         final AtomicReference<WorkResult> result = new AtomicReference<WorkResult>();
-        cache.useCache("incremental compile", new Runnable() {
-            public void run() {
-                final IncrementalCompileProcessor processor = createProcessor(includes, cache);
-                result.set(doIncrementalCompile(processor, spec));
-            }
-        });
 
-        if (cache instanceof ReferencablePersistentCache) {
-            ((ReferencablePersistentCache) cache).close();
+        final PersistentCache cache = openCache(task);
+        try {
+            cache.useCache("incremental compile", new Runnable() {
+                public void run() {
+                    final IncrementalCompileProcessor processor = createProcessor(includes, cache);
+                    result.set(doIncrementalCompile(processor, spec));
+                }
+            });
+        } finally {
+            if (cache instanceof ReferencablePersistentCache) {
+                ((ReferencablePersistentCache) cache).close();
+            }
         }
         return result.get();
     }

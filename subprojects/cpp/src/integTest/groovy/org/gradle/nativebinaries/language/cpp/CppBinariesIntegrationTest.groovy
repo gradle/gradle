@@ -15,10 +15,14 @@
  */
 package org.gradle.nativebinaries.language.cpp
 
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativebinaries.language.cpp.fixtures.app.CppHelloWorldApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.hamcrest.Matchers
+import spock.lang.IgnoreIf
+import spock.lang.Issue
 
 class CppBinariesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def "can configure the binaries of a C++ application"() {
@@ -252,5 +256,33 @@ class CppBinariesIntegrationTest extends AbstractInstalledToolChainIntegrationSp
 
         then:
         executedTasks.tail() == [":compileMainExecutableMainCpp", ":mainExecutablePreLink", ":linkMainExecutable", ":mainExecutablePostLink", ":mainExecutable"]
+    }
+
+    @Issue("GRADLE-2973")
+    @IgnoreIf({ !GradleContextualExecuter.isParallel() })
+    def "releases cache lock when compilation fails with --parallel"() {
+        def helloWorldApp = new CppHelloWorldApp()
+        given:
+        settingsFile << "include ':a', ':b'"
+        buildFile << """
+            subprojects {
+                apply plugin: 'cpp'
+                executables {
+                    main {}
+                }
+            }
+        """
+
+        and:
+        helloWorldApp.writeSources(file("a/src/main"))
+        helloWorldApp.writeSources(file("b/src/main"))
+
+        file("b/src/main/cpp/broken.cpp") << """
+    A broken C++ file
+"""
+
+        expect:
+        fails "mainExecutable"
+        failure.assertThatCause(Matchers.not(Matchers.containsString("Could not stop")))
     }
 }
