@@ -22,6 +22,26 @@ import org.gradle.language.base.BuildableModelElement;
 
 /**
  * A visual studio project, created from one or more {@link org.gradle.nativebinaries.NativeBinary} instances.
+ *
+ * <p/>
+ *
+ * The content and location of the generate project file can be modified by the supplied methods:
+ *
+ * <pre autoTested="true">
+ *  apply plugin: "visual-studio"
+ *  model {
+ *      visualStudio {
+ *          projects.all {
+ *              projectFile.location = "vs/${name}.vcxproj"
+ *              projectFile.withXml {
+ *                  asNode().appendNode('PropertyGroup', [Label: 'Custom'])
+ *                          .appendNode('ProjectDetails', "Project is named ${project.name}")
+ *              }
+ *          }
+ *      }
+ *  }
+ * }
+ * </pre>
  */
 @Incubating
 public interface VisualStudioProject extends Named, BuildableModelElement {

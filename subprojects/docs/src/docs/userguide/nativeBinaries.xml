@@ -535,4 +535,22 @@
             </para>
         </section>
     </section>
+    <section id="native_binaries:visual_studio">
+        <title>Visual Studio IDE integration</title>
+        <para>
+            Gradle has the ability to generate Visual Studio project and solution files for the native components defined in your build.
+            This ability is added by the <literal>visual-studio</literal> plugin. For a multi-project build, all projects with native components
+            should have this plugin applied.
+        </para>
+        <para>
+            When the <literal>visual-studio</literal> plugin is applied, a task name <literal>${component.name}VisualStudio</literal> is created
+            for each defined component. This task will generate a Visual Studio Solution file for the named component. This solution will include
+            a Visual Studio Project for that component, as well as linking to project files for each depended-on binary.
+        </para>
+        <para>
+            The content of the generated visual studio files can be modified via programmatic hooks, provided by the <literal>visualStudio</literal>
+            extension. Take a look at the 'visual-studio' sample, or see <apilink class="org.gradle.ide.visualstudio.VisualStudioExtension" method="getProjects"/>
+            and <apilink class="org.gradle.ide.visualstudio.VisualStudioExtension" method="getSolutions"/> for more details.
+        </para>
+    </section>
 </chapter>

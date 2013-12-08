@@ -26,6 +26,20 @@ import java.util.Set;
 /**
  * A visual studio solution, representing one or more {@link org.gradle.nativebinaries.NativeBinary} instances
  * from the same {@link NativeComponent}.
+ * <p/>
+ *
+ * The content and location of the generate solution file can be modified by the supplied methods:
+ *
+ * <pre autoTested="true">
+ *  apply plugin: "visual-studio"
+ *  model {
+ *      visualStudio {
+ *          solutions.all {
+ *              solutionFile.location = "vs/${name}.sln"
+ *          }
+ *      }
+ *  }
+ * </pre>
  */
 @Incubating
 public interface VisualStudioSolution extends Named, BuildableModelElement {
