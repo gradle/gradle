@@ -46,7 +46,7 @@ class VisualStudioProjectConfigurationTest extends Specification {
         getComponent() >> exe
         getTargetPlatform() >> platform
     }
-    def configuration = new VisualStudioProjectConfiguration(null, exeBinary, "Application")
+    def configuration = new VisualStudioProjectConfiguration(null, "configName", "platformName" , exeBinary, "Application")
     def cppCompiler = Mock(PreprocessingTool)
     def cCompiler = Mock(PreprocessingTool)
 
@@ -54,14 +54,11 @@ class VisualStudioProjectConfigurationTest extends Specification {
         flavors.add(flavor)
     }
 
-    def "configuration is named for build type"() {
-        when:
-        exeBinary.name >> "exeBinary"
-        exeBinary.buildType >> new DefaultBuildType("buildType")
-        exeBinary.targetPlatform >> new DefaultPlatform("arch")
-
-        then:
-        configuration.configurationName == "buildType"
+    def "configuration has supplied names"() {
+        expect:
+        configuration.configurationName == "configName"
+        configuration.platformName == "platformName"
+        configuration.name == "configName|platformName"
     }
 
     def "configuration tasks are binary tasks"() {
@@ -71,21 +68,6 @@ class VisualStudioProjectConfigurationTest extends Specification {
         then:
         configuration.buildTask == "exeBinary"
         configuration.cleanTask == "cleanExeBinary"
-    }
-
-    def "platform is named for architecture"() {
-        when:
-        platform.getArchitecture() >> arch
-
-        then:
-        configuration.platformName == platformName
-
-        where:
-        arch                                                                            | platformName
-        DefaultArchitecture.TOOL_CHAIN_DEFAULT                                          | "Win32"
-        new DefaultArchitecture("x86", ArchitectureInternal.InstructionSet.X86, 32)     | "Win32"
-        new DefaultArchitecture("x86", ArchitectureInternal.InstructionSet.X86, 64)     | "x64"
-        new DefaultArchitecture("x86", ArchitectureInternal.InstructionSet.ITANIUM, 64) | "Itanium"
     }
 
     def "compiler defines are taken from cpp compiler configuration"() {
@@ -107,7 +89,6 @@ class VisualStudioProjectConfigurationTest extends Specification {
         then:
         configuration.compilerDefines == ["foo=bar", "another"]
     }
-
 
     def "compiler defines are taken from cpp and c compiler configurations combined"() {
         when:

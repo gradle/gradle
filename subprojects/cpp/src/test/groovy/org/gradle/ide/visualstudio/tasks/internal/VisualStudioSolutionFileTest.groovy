@@ -15,7 +15,6 @@
  */
 
 package org.gradle.ide.visualstudio.tasks.internal
-
 import org.gradle.api.Action
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.ide.visualstudio.fixtures.SolutionFile
@@ -24,8 +23,6 @@ import org.gradle.ide.visualstudio.internal.VisualStudioProjectConfiguration
 import org.gradle.ide.visualstudio.internal.VisualStudioProjectResolver
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.nativebinaries.NativeBinary
-import org.gradle.nativebinaries.internal.DefaultBuildType
-import org.gradle.nativebinaries.internal.DefaultPlatform
 import org.gradle.nativebinaries.internal.NativeComponentInternal
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
@@ -83,14 +80,14 @@ EndGlobal
         fileResolver.resolve("visualStudio/project1.vcxproj") >> project1File
         def binary1 = binary("one")
         def project1 = new DefaultVisualStudioProject("project1", binary1.component, fileResolver, projectResolver, instantiator)
-        def configuration1 = new VisualStudioProjectConfiguration(project1, binary1, "type")
+        def configuration1 = new VisualStudioProjectConfiguration(project1, "debug", "Win32", binary1, "type")
         solutionFile.addProjectConfiguration(configuration1)
 
         final project2File = new File("project2")
         fileResolver.resolve("visualStudio/project2.vcxproj") >> project2File
         def binary2 = binary("two")
         def project2 = new DefaultVisualStudioProject("project2", binary2.component, fileResolver, projectResolver, instantiator)
-        def configuration2 = new VisualStudioProjectConfiguration(project2, binary2, "type")
+        def configuration2 = new VisualStudioProjectConfiguration(project2, "debug", "Win32", binary2, "type")
         solutionFile.addProjectConfiguration(configuration2)
 
         then:
@@ -113,8 +110,6 @@ EndGlobal
         component.projectPath >> "project-path"
         binary.name >> name
         binary.component >> component
-        binary.buildType >> new DefaultBuildType("debug")
-        binary.targetPlatform >> new DefaultPlatform("win32")
         return binary
     }
 

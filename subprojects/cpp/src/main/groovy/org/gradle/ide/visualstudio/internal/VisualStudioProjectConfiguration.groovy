@@ -15,21 +15,23 @@
  */
 
 package org.gradle.ide.visualstudio.internal
-
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.language.HeaderExportingSourceSet
 import org.gradle.nativebinaries.NativeBinary
-import org.gradle.nativebinaries.internal.ArchitectureInternal
 import org.gradle.nativebinaries.language.PreprocessingTool
 import org.gradle.nativebinaries.toolchain.internal.MacroArgsConverter
 
 class VisualStudioProjectConfiguration {
     private final DefaultVisualStudioProject vsProject
+    private final String configurationName
+    private final String platformName
     final NativeBinary binary
     final String type
 
-    VisualStudioProjectConfiguration(DefaultVisualStudioProject vsProject, NativeBinary binary, String type) {
+    VisualStudioProjectConfiguration(DefaultVisualStudioProject vsProject, String configurationName, String platformName, NativeBinary binary, String type) {
         this.vsProject = vsProject
+        this.configurationName = configurationName
+        this.platformName = platformName
         this.binary = binary
         this.type = type
     }
@@ -39,12 +41,11 @@ class VisualStudioProjectConfiguration {
     }
 
     String getConfigurationName() {
-        return binary.buildType.name
+        return configurationName
     }
 
     String getPlatformName() {
-        ArchitectureInternal arch = binary.targetPlatform.architecture as ArchitectureInternal
-        return arch.ia64 ? "Itanium" : arch.amd64 ? "x64" : "Win32"
+        return platformName
     }
 
     String getBuildTask() {

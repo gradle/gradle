@@ -95,28 +95,16 @@ class DefaultVisualStudioProject extends AbstractBuildableModelElement implement
         return projects
     }
 
-    VisualStudioProjectConfiguration addConfiguration(NativeBinary nativeBinary) {
-        // Assumes that all binaries added in this way will have the same sources and dependencies
-        def configuration = configurations[nativeBinary]
-        if (configuration == null) {
-            configuration = new VisualStudioProjectConfiguration(this, nativeBinary, configurationType(nativeBinary))
-            configurations[nativeBinary] = configuration
-        }
-        return configuration
-    }
-
     List<VisualStudioProjectConfiguration> getConfigurations() {
         return CollectionUtils.toList(configurations.values())
     }
 
-    VisualStudioProjectConfiguration getConfiguration(NativeBinary nativeBinary) {
-        return configurations[nativeBinary]
+    void addConfiguration(NativeBinary nativeBinary, VisualStudioProjectConfiguration configuration) {
+        configurations[nativeBinary] = configuration
     }
 
-    private static String configurationType(NativeBinary nativeBinary) {
-        return nativeBinary instanceof StaticLibraryBinary ? "StaticLibrary" :
-               nativeBinary instanceof SharedLibraryBinary ? "DynamicLibrary" :
-               "Application"
+    VisualStudioProjectConfiguration getConfiguration(NativeBinary nativeBinary) {
+        return configurations[nativeBinary]
     }
 
     public static class DefaultConfigFile implements XmlConfigFile {

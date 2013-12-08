@@ -16,30 +16,24 @@
 
 package org.gradle.ide.visualstudio.internal;
 
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.nativebinaries.*;
-import org.gradle.nativebinaries.internal.NativeComponentInternal;
-
-import java.util.Set;
+import org.gradle.nativebinaries.NativeBinary;
+import org.gradle.nativebinaries.SharedLibraryBinary;
+import org.gradle.nativebinaries.StaticLibraryBinary;
 
 public class VisualStudioProjectRegistry extends DefaultNamedDomainObjectSet<DefaultVisualStudioProject> {
     private final FileResolver fileResolver;
-    private final FlavorContainer allFlavors;
     private final VisualStudioProjectResolver projectResolver;
+    private final VisualStudioProjectMapper projectMapper;
 
-    public VisualStudioProjectRegistry(FileResolver fileResolver, VisualStudioProjectResolver projectResolver, FlavorContainer allFlavors, Instantiator instantiator) {
+    public VisualStudioProjectRegistry(FileResolver fileResolver, VisualStudioProjectResolver projectResolver,
+                                       VisualStudioProjectMapper projectMapper, Instantiator instantiator) {
         super(DefaultVisualStudioProject.class, instantiator);
         this.fileResolver = fileResolver;
-        this.allFlavors = allFlavors;
         this.projectResolver = projectResolver;
-    }
-
-    public void addProjectConfiguration(NativeBinary nativeBinary) {
-        DefaultVisualStudioProject project = getOrCreateProject(nativeBinary);
-        project.addConfiguration(nativeBinary);
+        this.projectMapper = projectMapper;
     }
 
     public VisualStudioProjectConfiguration getProjectConfiguration(NativeBinary nativeBinary) {
@@ -47,8 +41,14 @@ public class VisualStudioProjectRegistry extends DefaultNamedDomainObjectSet<Def
         return getByName(projectName).getConfiguration(nativeBinary);
     }
 
-    private DefaultVisualStudioProject getOrCreateProject(NativeBinary nativeBinary) {
-        String projectName = projectName(nativeBinary);
+    public void addProjectConfiguration(NativeBinary nativeBinary) {
+        VisualStudioProjectMapper.ProjectConfigurationNames names = projectMapper.mapToConfiguration(nativeBinary);
+        DefaultVisualStudioProject project = getOrCreateProject(nativeBinary, names.project);
+        VisualStudioProjectConfiguration configuration = new VisualStudioProjectConfiguration(project, names.configuration, names.platform, nativeBinary, configurationType(nativeBinary));
+        project.addConfiguration(nativeBinary, configuration);
+    }
+
+    private DefaultVisualStudioProject getOrCreateProject(NativeBinary nativeBinary, String projectName) {
         DefaultVisualStudioProject vsProject = findByName(projectName);
         if (vsProject == null) {
             vsProject = new DefaultVisualStudioProject(projectName, nativeBinary.getComponent(), fileResolver, projectResolver, getInstantiator());
@@ -58,25 +58,13 @@ public class VisualStudioProjectRegistry extends DefaultNamedDomainObjectSet<Def
     }
 
     private String projectName(NativeBinary nativeBinary) {
-        return projectBaseName(nativeBinary) + projectSuffix(nativeBinary);
+        return projectMapper.mapToConfiguration(nativeBinary).project;
     }
 
-    private String projectBaseName(NativeBinary nativeBinary) {
-        NativeComponent component = nativeBinary.getComponent();
-        if (getFlavors(component).size() <=1) {
-            return component.getBaseName();
-        }
-        return nativeBinary.getFlavor().getName() + StringUtils.capitalize(component.getBaseName());
-    }
-
-    private String projectSuffix(NativeBinary nativeBinary) {
-        return nativeBinary instanceof StaticLibraryBinary ? "Lib"
-                : nativeBinary instanceof SharedLibraryBinary ? "Dll"
-                : "Exe";
-    }
-
-    private Set<Flavor> getFlavors(final NativeComponent component) {
-        return ((NativeComponentInternal) component).chooseFlavors(allFlavors);
+    private static String configurationType(NativeBinary nativeBinary) {
+        return nativeBinary instanceof StaticLibraryBinary ? "StaticLibrary"
+                : nativeBinary instanceof SharedLibraryBinary ? "DynamicLibrary"
+                : "Application";
     }
 }
 

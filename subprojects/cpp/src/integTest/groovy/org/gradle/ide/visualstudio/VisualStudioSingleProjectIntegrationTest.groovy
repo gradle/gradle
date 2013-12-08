@@ -25,7 +25,7 @@ import org.gradle.nativebinaries.language.cpp.fixtures.app.MixedLanguageHelloWor
 import org.gradle.nativebinaries.language.cpp.fixtures.app.WindowsResourceHelloWorldApp
 
 class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
-    private final Set<String> projectConfigurations = ['debug|Win32', 'release|Win32'] as Set
+    private final Set<String> projectConfigurations = ['debug|Win32', 'release|Win32', 'debug|x64', 'release|x64'] as Set
 
     def app = new CppHelloWorldApp()
 
@@ -38,6 +38,9 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         platforms {
             create("win32") {
                 architecture "i386"
+            }
+            create("x86") {
+                architecture "amd64"
             }
         }
         buildTypes {
@@ -334,13 +337,39 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         final mainProjectFile = projectFile("visualStudio/mainExe.vcxproj")
         mainProjectFile.projectConfigurations.keySet() == projectConfigurations
         final mainReleaseProjectFile = projectFile("visualStudio/mainReleaseExe.vcxproj")
-        mainReleaseProjectFile.projectConfigurations.keySet() == ['release|Win32'] as Set
+        mainReleaseProjectFile.projectConfigurations.keySet() == ['release|Win32', 'release|x64'] as Set
 
         and:
         final mainSolution = solutionFile("visualStudio/mainExe.sln")
         mainSolution.assertReferencesProject(helloProjectFile, ["debug|Win32"])
         final mainReleaseSolution = solutionFile("visualStudio/mainReleaseExe.sln")
         mainReleaseSolution.assertReferencesProject(helloProjectFile, ["release|Win32"])
+    }
+
+    def "create visual studio project for executable that targets multiple platforms with the same architecture"() {
+        when:
+        app.writeSources(file("src/main"))
+        buildFile << """
+    model {
+        platforms {
+            create("otherWin32") {
+                architecture "i386"
+            }
+        }
+    }
+    executables {
+        main {
+            targetBuildTypes "debug"
+            targetPlatforms "win32", "otherWin32"
+        }
+    }
+"""
+        and:
+        run "mainVisualStudio"
+
+        then:
+        final mainProjectFile = projectFile("visualStudio/mainExe.vcxproj")
+        mainProjectFile.projectConfigurations.keySet() == ['win32Debug|Win32', 'otherWin32Debug|Win32'] as Set
     }
 
     def "create visual studio solution for executable that has diamond dependency"() {

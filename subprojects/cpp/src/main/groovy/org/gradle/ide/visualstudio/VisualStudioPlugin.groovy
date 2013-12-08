@@ -31,6 +31,7 @@ import org.gradle.model.ModelRules
 import org.gradle.model.internal.Inputs
 import org.gradle.model.internal.ModelCreator
 import org.gradle.nativebinaries.FlavorContainer
+import org.gradle.nativebinaries.PlatformContainer
 import org.gradle.nativebinaries.plugins.NativeBinariesModelPlugin
 
 import javax.inject.Inject
@@ -49,7 +50,7 @@ class VisualStudioPlugin implements Plugin<ProjectInternal> {
     void apply(ProjectInternal project) {
         project.plugins.apply(NativeBinariesModelPlugin)
 
-        project.modelRegistry.create("visualStudio", ["flavors"], new VisualStudioExtensionFactory(instantiator, new DefaultProjectFinder(project), project.getFileResolver()))
+        project.modelRegistry.create("visualStudio", ["flavors", "platforms"], new VisualStudioExtensionFactory(instantiator, new DefaultProjectFinder(project), project.getFileResolver()))
         modelRules.rule(new CreateVisualStudioModel())
         modelRules.rule(new CreateVisualStudioTasks())
         modelRules.rule(new CloseVisualStudioForTasks());
@@ -72,7 +73,8 @@ class VisualStudioPlugin implements Plugin<ProjectInternal> {
 
         VisualStudioExtension create(Inputs inputs) {
             FlavorContainer flavors = inputs.get(0, FlavorContainer)
-            return instantiator.newInstance(DefaultVisualStudioExtension.class, instantiator, projectFinder, fileResolver, flavors);
+            PlatformContainer platforms = inputs.get(1, PlatformContainer)
+            return instantiator.newInstance(DefaultVisualStudioExtension.class, instantiator, projectFinder, fileResolver, flavors, platforms);
         }
 
         Class<VisualStudioExtension> getType() {
