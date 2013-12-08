@@ -31,10 +31,6 @@ public class InMemoryTaskArtifactCache implements InMemoryPersistentCacheDecorat
     private final static Logger LOG = Logging.getLogger(InMemoryTaskArtifactCache.class);
     private final static Object NULL = new Object();
 
-    private final Object lock = new Object();
-    private final Map<File, Cache<Object, Object>> cache = new HashMap<File, Cache<Object, Object>>();
-    private final Map<File, FileLock.State> states = new HashMap<File, FileLock.State>();
-
     private static final Map<String, Integer> CACHE_CAPS = new HashMap<String, Integer>();
 
     static {
@@ -50,19 +46,15 @@ public class InMemoryTaskArtifactCache implements InMemoryPersistentCacheDecorat
         //In general, the in-memory cache must be capped at some level, otherwise it is reduces performance in truly gigantic builds
     }
 
+    private final Object lock = new Object();
+    private final Cache<File, Cache<Object, Object>> cache = CacheBuilder.newBuilder()
+            .maximumSize(CACHE_CAPS.size() * 2) //X2 to factor in a child build (for example buildSrc)
+            .build();
+
+    private final Map<File, FileLock.State> states = new HashMap<File, FileLock.State>();
+
     public <K, V> MultiProcessSafePersistentIndexedCache<K, V> withMemoryCaching(final File cacheFile, final MultiProcessSafePersistentIndexedCache<K, V> original) {
-        final Cache<Object, Object> data;
-        synchronized (lock) {
-            if (this.cache.containsKey(cacheFile)) {
-                data = this.cache.get(cacheFile);
-                LOG.info("In-memory cache of {}: Size{{}}, {}", cacheFile.getName(), data.size(), data.stats());
-            } else {
-                Integer maxSize = CACHE_CAPS.get(cacheFile.getName());
-                assert maxSize != null : "Unknown cache.";
-                data = CacheBuilder.newBuilder().maximumSize(maxSize).build();
-                this.cache.put(cacheFile, data);
-            }
-        }
+        final Cache<Object, Object> data = loadData(cacheFile);
 
         return new MultiProcessSafePersistentIndexedCache<K, V>() {
             public void close() {
@@ -112,5 +104,21 @@ public class InMemoryTaskArtifactCache implements InMemoryPersistentCacheDecorat
                 }
             }
         };
+    }
+
+    private Cache<Object, Object> loadData(File cacheFile) {
+        Cache<Object, Object> theData;
+        synchronized (lock) {
+            theData = this.cache.getIfPresent(cacheFile);
+            if (theData != null) {
+                LOG.info("In-memory cache of {}: Size{{}}, {}", cacheFile.getName(), theData.size() , theData.stats());
+            } else {
+                Integer maxSize = CACHE_CAPS.get(cacheFile.getName());
+                assert maxSize != null : "Unknown cache.";
+                theData = CacheBuilder.newBuilder().maximumSize(maxSize).build();
+                this.cache.put(cacheFile, theData);
+            }
+        }
+        return theData;
     }
 }
