@@ -27,7 +27,6 @@ import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.initialization.LayoutCommandLineConverter;
-import org.gradle.internal.DefaultStartParameter;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.nativeplatform.services.NativeServices;
 import org.gradle.internal.service.ServiceRegistry;
@@ -110,14 +109,13 @@ class BuildActionsFactory implements CommandLineAction {
         layoutToPropertiesConverter.convert(layout, properties);
         propertiesConverter.convert(commandLine, properties);
 
-        DefaultStartParameter startParameter = new DefaultStartParameter();
+        StartParameter startParameter = new StartParameter();
         propertiesToStartParameterConverter.convert(properties, startParameter);
         commandLineConverter.convert(commandLine, startParameter);
 
         DaemonParameters daemonParameters = new DaemonParameters(layout);
         propertiesToDaemonParametersConverter.convert(properties, daemonParameters);
         daemonConverter.convert(commandLine, daemonParameters);
-        new DaemonParametersToStartParameterConverter().convert(daemonParameters, startParameter);
 
         if (commandLine.hasOption(STOP)) {
             return stopAllDaemons(daemonParameters, loggingServices);
@@ -159,7 +157,7 @@ class BuildActionsFactory implements CommandLineAction {
                 .displayName("Global services")
                 .parent(loggingServices)
                 .parent(NativeServices.getInstance())
-                .provider(new GlobalScopeServices())
+                .provider(new GlobalScopeServices(false))
                 .build();
         InProcessBuildActionExecuter executer = new InProcessBuildActionExecuter(globalServices.get(GradleLauncherFactory.class));
         return daemonBuildAction(startParameter, daemonParameters, executer);

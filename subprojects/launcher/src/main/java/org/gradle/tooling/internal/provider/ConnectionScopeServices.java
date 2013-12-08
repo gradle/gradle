@@ -34,7 +34,7 @@ public class ConnectionScopeServices {
 
     void configure(ServiceRegistration serviceRegistration) {
         serviceRegistration.add(LoggingServiceRegistry.class, loggingServices);
-        serviceRegistration.addProvider(new GlobalScopeServices());
+        serviceRegistration.addProvider(new GlobalScopeServices(false));
     }
 
     ProviderConnection createProviderConnection(GradleLauncherFactory gradleLauncherFactory) {

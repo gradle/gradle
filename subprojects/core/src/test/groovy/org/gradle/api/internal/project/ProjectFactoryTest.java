@@ -57,7 +57,7 @@ public class ProjectFactoryTest {
     private Factory<RepositoryHandler> repositoryHandlerFactory = context.mock(Factory.class);
     private RepositoryHandler repositoryHandler = context.mock(RepositoryHandler.class);
     private StartParameter startParameterStub = new StartParameter();
-    private DefaultServiceRegistry globalServices = new DefaultServiceRegistry(new TestGlobalScopeServices.TestLoggingServices(), NativeServices.getInstance()).addProvider(new GlobalScopeServices());
+    private DefaultServiceRegistry globalServices = new DefaultServiceRegistry(new TestGlobalScopeServices.TestLoggingServices(), NativeServices.getInstance()).addProvider(new GlobalScopeServices(false));
     private ServiceRegistryFactory serviceRegistryFactory = new TestBuildScopeServices(globalServices, startParameterStub, rootDir);
     private Instantiator instantiatorMock = serviceRegistryFactory.get(Instantiator.class);
     private GradleInternal gradle = context.mock(GradleInternal.class);

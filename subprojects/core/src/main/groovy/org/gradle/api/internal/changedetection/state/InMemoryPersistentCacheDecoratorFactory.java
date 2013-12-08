@@ -16,24 +16,23 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.StartParameter;
 import org.gradle.cache.internal.MultiProcessSafePersistentIndexedCache;
 import org.gradle.internal.Factory;
-import org.gradle.internal.GradleBuildEnvironment;
+import org.gradle.internal.environment.GradleBuildEnvironment;
 
 import java.io.File;
 
 public class InMemoryPersistentCacheDecoratorFactory implements Factory<InMemoryPersistentCacheDecorator> {
     private InMemoryPersistentCacheDecorator cache;
-    private StartParameter startParameter;
+    private GradleBuildEnvironment environment;
 
-    public InMemoryPersistentCacheDecoratorFactory(InMemoryPersistentCacheDecorator cache, StartParameter startParameter) {
+    public InMemoryPersistentCacheDecoratorFactory(InMemoryPersistentCacheDecorator cache, GradleBuildEnvironment environment) {
         this.cache = cache;
-        this.startParameter = startParameter;
+        this.environment = environment;
     }
 
     public InMemoryPersistentCacheDecorator create() {
-        if (startParameter instanceof GradleBuildEnvironment && ((GradleBuildEnvironment) startParameter).isLongLivingProcess()) {
+        if(environment.isLongLivingProcess()) {
             return cache;
         } else {
             return new NoOpDecorator();

@@ -55,7 +55,7 @@ import static org.junit.Assert.assertThat;
 
 public class GlobalScopeServicesTest {
     @Shared
-    private final ServiceRegistry registry = new DefaultServiceRegistry(LoggingServiceRegistry.newEmbeddableLogging(), NativeServices.getInstance()).addProvider(new GlobalScopeServices());
+    private final ServiceRegistry registry = new DefaultServiceRegistry(LoggingServiceRegistry.newEmbeddableLogging(), NativeServices.getInstance()).addProvider(new GlobalScopeServices(false));
 
     @Test
     public void providesAGradleLauncherFactory() {

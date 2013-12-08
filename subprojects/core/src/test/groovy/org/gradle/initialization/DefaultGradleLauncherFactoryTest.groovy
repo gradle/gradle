@@ -27,7 +27,7 @@ import spock.lang.Specification
 
 class DefaultGradleLauncherFactoryTest extends Specification {
     final CommandLineConverter<StartParameter> parameterConverter = Mock()
-    final ServiceRegistry sharedServices = new DefaultServiceRegistry(LoggingServiceRegistry.newEmbeddableLogging(), NativeServices.getInstance()).addProvider(new GlobalScopeServices())
+    final ServiceRegistry sharedServices = new DefaultServiceRegistry(LoggingServiceRegistry.newEmbeddableLogging(), NativeServices.getInstance()).addProvider(new GlobalScopeServices(false))
     final DefaultGradleLauncherFactory factory = new DefaultGradleLauncherFactory(sharedServices)
 
     def setup() {

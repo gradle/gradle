@@ -76,7 +76,7 @@ class ToolingApiDistributionResolver {
         ServiceRegistry globalRegistry = ServiceRegistryBuilder.builder()
                 .parent(LoggingServiceRegistry.newEmbeddableLogging())
                 .parent(NativeServices.getInstance())
-                .provider(new GlobalScopeServices())
+                .provider(new GlobalScopeServices(false))
                 .build()
         StartParameter startParameter = new StartParameter()
         startParameter.gradleUserHomeDir = new IntegrationTestBuildContext().gradleUserHomeDir

@@ -41,7 +41,7 @@ import org.gradle.util.GFileUtils;
 import java.io.File;
 
 public class ProjectBuilderImpl {
-    private static final ServiceRegistry GLOBAL_SERVICES = new DefaultServiceRegistry(new TestGlobalScopeServices.TestLoggingServices(), NativeServices.getInstance()).addProvider(new GlobalScopeServices());
+    private static final ServiceRegistry GLOBAL_SERVICES = new DefaultServiceRegistry(new TestGlobalScopeServices.TestLoggingServices(), NativeServices.getInstance()).addProvider(new GlobalScopeServices(false));
     private static final AsmBackedClassGenerator CLASS_GENERATOR = new AsmBackedClassGenerator();
 
     public Project createChildProject(String name, Project parent, File projectDir) {

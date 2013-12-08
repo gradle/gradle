@@ -33,6 +33,7 @@ import org.gradle.execution.TaskGraphExecuter
 import org.gradle.execution.TaskSelector
 import org.gradle.execution.taskgraph.DefaultTaskGraphExecuter
 import org.gradle.internal.concurrent.ExecutorFactory
+import org.gradle.internal.environment.GradleBuildEnvironment
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.invocation.BuildClassLoaderRegistry
 import org.gradle.listener.ListenerManager
@@ -52,6 +53,7 @@ public class GradleScopeServicesTest extends Specification {
 
     public void setup() {
         parent.get(StartParameter) >> Stub(StartParameter)
+        parent.get(GradleBuildEnvironment) >> Stub(GradleBuildEnvironment)
         parent.get(InMemoryTaskArtifactCache) >> Stub(InMemoryTaskArtifactCache)
         parent.get(ListenerManager) >> listenerManager
         parent.get(CacheRepository) >> cacheRepository

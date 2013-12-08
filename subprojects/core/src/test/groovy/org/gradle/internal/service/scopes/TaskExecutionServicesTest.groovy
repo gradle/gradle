@@ -23,6 +23,7 @@ import org.gradle.api.invocation.Gradle
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.DirectoryCacheBuilder
 import org.gradle.cache.PersistentCache
+import org.gradle.internal.environment.GradleBuildEnvironment
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceRegistry
@@ -41,6 +42,7 @@ class TaskExecutionServicesTest extends Specification {
         _ * parent.get(Gradle) >> gradle
         _ * parent.get(ListenerManager) >> Mock(ListenerManager)
         _ * parent.get(StartParameter) >> Mock(StartParameter)
+        _ * parent.get(GradleBuildEnvironment) >> Stub(GradleBuildEnvironment)
         _ * parent.get(CacheRepository) >> cacheRepository
         _ * parent.get(Instantiator) >> Mock(Instantiator)
         _ * parent.get(InMemoryTaskArtifactCache) >> Mock(InMemoryTaskArtifactCache)

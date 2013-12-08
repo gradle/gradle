@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.internal;
+package org.gradle.internal.environment;
 
 public interface GradleBuildEnvironment {
+
     boolean isLongLivingProcess();
 }
