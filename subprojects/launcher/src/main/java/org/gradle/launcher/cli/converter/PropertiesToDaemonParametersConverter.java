@@ -57,7 +57,7 @@ public class PropertiesToDaemonParametersConverter {
             target.setJavaHome(javaHome);
         }
 
-        prop = properties.get(BASE_DIR_PROPERTY);
+        prop = properties.get(DAEMON_BASE_DIR_PROPERTY);
         if (prop != null) {
             target.setBaseDir(new File(prop));
         }

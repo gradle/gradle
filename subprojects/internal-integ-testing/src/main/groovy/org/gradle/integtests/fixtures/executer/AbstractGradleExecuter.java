@@ -508,7 +508,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         }
 
         properties.put(GradleProperties.IDLE_TIMEOUT_PROPERTY, "" + (daemonIdleTimeoutSecs * 1000));
-        properties.put(GradleProperties.BASE_DIR_PROPERTY, daemonBaseDir.getAbsolutePath());
+        properties.put(GradleProperties.DAEMON_BASE_DIR_PROPERTY, daemonBaseDir.getAbsolutePath());
         properties.put(DeprecationLogger.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME, "true");
 
         String tmpDirPath = getTmpDir().createDir().getAbsolutePath();
