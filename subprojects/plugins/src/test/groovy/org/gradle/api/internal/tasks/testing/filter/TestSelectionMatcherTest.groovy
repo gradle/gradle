@@ -120,8 +120,8 @@ class TestSelectionMatcherTest extends Specification {
         input                               | className                 | methodName            | match
         ["FooTest"]                         | "FooTest"                 | null                  | true
         ["FooTest*"]                        | "FooTest"                 | null                  | true
-        ["FooTest.*"]                       | "FooTest"                 | null                  | true
 
+        ["FooTest.*"]                       | "FooTest"                 | null                  | false
         ["FooTest"]                         | "OtherTest"               | null                  | false
         ["FooTest.test"]                    | "FooTest"                 | null                  | false
         ["FooTest.null"]                    | "FooTest"                 | null                  | false
