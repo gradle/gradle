@@ -25,8 +25,23 @@ import org.gradle.api.Named;
 public interface OperatingSystem extends Named {
     boolean isCurrent();
 
+    /**
+     * Is it Windows?
+     */
     boolean isWindows();
+
+    /**
+     * Is it Mac OS X?
+     */
     boolean isMacOsX();
+
+    /**
+     * Is it Linux?
+     */
     boolean isLinux();
+
+    /**
+     * Is it Solaris?
+     */
     boolean isSolaris();
 }

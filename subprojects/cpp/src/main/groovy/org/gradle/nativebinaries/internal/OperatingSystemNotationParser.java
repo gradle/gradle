@@ -28,7 +28,7 @@ import java.util.List;
 public class OperatingSystemNotationParser {
 
     private static final List<String> WINDOWS_ALIASES = Arrays.asList("windows");
-    private static final List<String> OSX_ALIASES = Arrays.asList("osx", "mac os x", "darwin");
+    private static final List<String> OSX_ALIASES = Arrays.asList("osx", "mac os x");
     private static final List<String> LINUX_ALIASES = Arrays.asList("linux");
     private static final List<String> SOLARIS_ALIASES = Arrays.asList("solaris", "sunos");
 
