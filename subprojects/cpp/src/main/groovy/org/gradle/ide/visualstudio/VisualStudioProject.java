@@ -40,7 +40,6 @@ import org.gradle.language.base.BuildableModelElement;
  *          }
  *      }
  *  }
- * }
  * </pre>
  */
 @Incubating
