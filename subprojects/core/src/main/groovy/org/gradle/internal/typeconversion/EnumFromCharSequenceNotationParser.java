@@ -16,7 +16,6 @@
 
 package org.gradle.internal.typeconversion;
 
-import org.gradle.api.internal.tasks.options.ValueAwareNotationParser;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.CollectionUtils;
 

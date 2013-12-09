@@ -67,7 +67,7 @@ public class OptionNotationParserFactory {
     }
 
     private class ValueAwareCompositeNotationParser<T> extends CompositeNotationParser<CharSequence, T> implements ValueAwareNotationParser<T> {
-        public ValueAwareCompositeNotationParser(Collection<ValueAwareCompositeNotationParser<T>> delegates) {
+        public ValueAwareCompositeNotationParser(Collection<ValueAwareNotationParser<T>> delegates) {
             super(delegates);
         }
 

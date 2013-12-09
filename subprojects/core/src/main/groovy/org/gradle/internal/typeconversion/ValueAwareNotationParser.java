@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.options;
-
-import org.gradle.internal.typeconversion.NotationParser;
+package org.gradle.internal.typeconversion;
 
 import java.util.Collection;
 

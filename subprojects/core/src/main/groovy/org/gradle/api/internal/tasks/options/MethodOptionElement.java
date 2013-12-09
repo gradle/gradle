@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks.options;
 
+import org.gradle.internal.typeconversion.ValueAwareNotationParser;
+
 import java.lang.reflect.Method;
 import java.util.List;
 

@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.options;
 import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.typeconversion.NotationParser;
+import org.gradle.internal.typeconversion.ValueAwareNotationParser;
 
 import java.lang.annotation.IncompleteAnnotationException;
 import java.lang.reflect.Method;
