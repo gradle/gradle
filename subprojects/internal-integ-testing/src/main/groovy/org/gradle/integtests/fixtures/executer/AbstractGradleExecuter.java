@@ -54,7 +54,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private boolean searchUpwards;
     private Map<String, String> environmentVars = new HashMap<String, String>();
     private List<File> initScripts = new ArrayList<File>();
-    private File stickyInitScript;
     private String executable;
     private TestFile gradleUserHomeDir = buildContext.getGradleUserHomeDir();
     private File userHomeDir;
@@ -93,9 +92,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         args.clear();
         tasks.clear();
         initScripts.clear();
-        if (stickyInitScript != null) {
-            initScripts.add(stickyInitScript);
-        }
         workingDir = null;
         projectDir = null;
         buildScript = null;
@@ -231,12 +227,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     public GradleExecuter usingInitScript(File initScript) {
         initScripts.add(initScript);
-        return this;
-    }
-
-    public GradleExecuter alwaysUsingInitScript(File initScript) {
-        stickyInitScript = initScript;
-        initScripts.add(0, initScript);
         return this;
     }
 

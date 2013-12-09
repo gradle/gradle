@@ -24,7 +24,7 @@ import org.junit.runner.RunWith
 @RunWith(SingleToolChainTestRunner.class)
 abstract class AbstractInstalledToolChainIntegrationSpec extends AbstractIntegrationSpec {
     static AvailableToolChains.InstalledToolChain toolChain
-    def initScript
+    File initScript
 
     def setup() {
         initScript = file("init.gradle") << """
@@ -37,7 +37,9 @@ allprojects {
     }
 }
 """
-        executer.alwaysUsingInitScript(initScript)
+        executer.beforeExecute({
+            usingInitScript(initScript)
+        })
     }
 
     def NativeInstallationFixture installation(Object installDir) {
