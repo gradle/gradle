@@ -16,10 +16,13 @@
 
 package org.gradle.configuration;
 
+import org.gradle.api.Project;
+import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.internal.initialization.ScriptCompileScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
+import org.gradle.api.internal.project.ProjectScript;
 import org.gradle.groovy.scripts.*;
 import org.gradle.groovy.scripts.internal.BuildScriptTransformer;
 import org.gradle.groovy.scripts.internal.IsScriptBlockWithNameSpec;
@@ -114,6 +117,9 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
                 ScriptHandlerInternal defaultScriptHandler = scriptHandlerFactory.create(withImports, parentScope);
                 services.add(ScriptHandlerInternal.class, defaultScriptHandler);
                 classLoaderProvider = defaultScriptHandler;
+            } else if (ProjectScript.class.isAssignableFrom(scriptType)) {
+                // This is necessary
+                services.add(ScriptHandler.class, ((Project) target).getBuildscript());
             }
 
             services.add(PluginHandler.class, pluginHandlerFactory.createPluginHandler(target, classLoaderProvider));
