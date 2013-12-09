@@ -29,8 +29,8 @@ import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheRepository;
 import org.gradle.execution.taskgraph.TaskPlanExecutor;
 import org.gradle.execution.taskgraph.TaskPlanExecutorFactory;
-import org.gradle.internal.environment.GradleBuildEnvironment;
 import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.environment.GradleBuildEnvironment;
 import org.gradle.internal.id.RandomLongIdGenerator;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.listener.ListenerManager;
@@ -50,8 +50,13 @@ public class TaskExecutionServices {
     }
 
     TaskArtifactStateCacheAccess createCacheAccess(Gradle gradle, CacheRepository cacheRepository, InMemoryTaskArtifactCache inMemoryTaskArtifactCache, GradleBuildEnvironment environment) {
-        InMemoryPersistentCacheDecoratorFactory decoratorFactory = new InMemoryPersistentCacheDecoratorFactory(inMemoryTaskArtifactCache, environment);
-        return new DefaultTaskArtifactStateCacheAccess(gradle, cacheRepository, decoratorFactory);
+        InMemoryPersistentCacheDecorator decorator;
+        if(environment.isLongLivingProcess()) {
+            decorator = inMemoryTaskArtifactCache;
+        } else {
+            decorator = new NoOpDecorator();
+        }
+        return new DefaultTaskArtifactStateCacheAccess(gradle, cacheRepository, decorator);
     }
 
     TaskArtifactStateRepository createTaskArtifactStateRepository(Instantiator instantiator, TaskArtifactStateCacheAccess cacheAccess, StartParameter startParameter) {

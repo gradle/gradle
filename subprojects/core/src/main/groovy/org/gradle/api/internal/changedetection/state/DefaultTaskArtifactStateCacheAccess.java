@@ -39,10 +39,10 @@ public class DefaultTaskArtifactStateCacheAccess implements TaskArtifactStateCac
     private PersistentCache cache;
     private final Object lock = new Object();
 
-    public DefaultTaskArtifactStateCacheAccess(Gradle gradle, CacheRepository cacheRepository, Factory<InMemoryPersistentCacheDecorator> decoratorFactory) {
+    public DefaultTaskArtifactStateCacheAccess(Gradle gradle, CacheRepository cacheRepository, InMemoryPersistentCacheDecorator decorator) {
         this.gradle = gradle;
         this.cacheRepository = cacheRepository;
-        this.inMemoryDecorator = decoratorFactory.create();
+        this.inMemoryDecorator = decorator;
     }
 
     private PersistentCache getCache() {
