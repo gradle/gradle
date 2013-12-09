@@ -20,6 +20,7 @@ import org.gradle.api.internal.DefaultNamedDomainObjectSet;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.nativebinaries.NativeBinary;
+import org.gradle.nativebinaries.NativeComponentBinary;
 import org.gradle.nativebinaries.SharedLibraryBinary;
 import org.gradle.nativebinaries.StaticLibraryBinary;
 
@@ -36,19 +37,19 @@ public class VisualStudioProjectRegistry extends DefaultNamedDomainObjectSet<Def
         this.projectMapper = projectMapper;
     }
 
-    public VisualStudioProjectConfiguration getProjectConfiguration(NativeBinary nativeBinary) {
+    public VisualStudioProjectConfiguration getProjectConfiguration(NativeComponentBinary nativeBinary) {
         String projectName = projectName(nativeBinary);
         return getByName(projectName).getConfiguration(nativeBinary);
     }
 
-    public void addProjectConfiguration(NativeBinary nativeBinary) {
+    public void addProjectConfiguration(NativeComponentBinary nativeBinary) {
         VisualStudioProjectMapper.ProjectConfigurationNames names = projectMapper.mapToConfiguration(nativeBinary);
         DefaultVisualStudioProject project = getOrCreateProject(nativeBinary, names.project);
         VisualStudioProjectConfiguration configuration = new VisualStudioProjectConfiguration(project, names.configuration, names.platform, nativeBinary, configurationType(nativeBinary));
         project.addConfiguration(nativeBinary, configuration);
     }
 
-    private DefaultVisualStudioProject getOrCreateProject(NativeBinary nativeBinary, String projectName) {
+    private DefaultVisualStudioProject getOrCreateProject(NativeComponentBinary nativeBinary, String projectName) {
         DefaultVisualStudioProject vsProject = findByName(projectName);
         if (vsProject == null) {
             vsProject = new DefaultVisualStudioProject(projectName, nativeBinary.getComponent(), fileResolver, projectResolver, getInstantiator());
@@ -57,7 +58,7 @@ public class VisualStudioProjectRegistry extends DefaultNamedDomainObjectSet<Def
         return vsProject;
     }
 
-    private String projectName(NativeBinary nativeBinary) {
+    private String projectName(NativeComponentBinary nativeBinary) {
         return projectMapper.mapToConfiguration(nativeBinary).project;
     }
 

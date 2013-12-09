@@ -13,14 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.nativebinaries;
 
 import org.gradle.api.Incubating;
 
 /**
- * A binary artifact that is built from of a {@link Executable}, targeted at a particular platform with specific configuration.
+ * Represents a particular binary artifact that is the result of building a native component.
  */
 @Incubating
-public interface ExecutableBinary extends NativeComponentBinary {
-    Executable getComponent();
+public interface NativeComponentBinary extends NativeBinary {
+    /**
+     * The component that this binary was built from.
+     */
+    NativeComponent getComponent();
 }

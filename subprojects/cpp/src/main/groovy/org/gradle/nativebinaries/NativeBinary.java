@@ -28,15 +28,10 @@ import java.util.Collection;
 
 // TODO:DAZ These don't apply to all binary subtypes: look at splitting this up in to a number of smaller facets / functional interfaces
 /**
- * Represents a particular binary artifact that is the result of building a native component.
+ * Represents a particular binary artifact.
  */
 @Incubating @HasInternalProtocol
 public interface NativeBinary extends Binary {
-    /**
-     * The component that this binary was built from.
-     */
-    NativeComponent getComponent();
-
     /**
      * The flavor that this binary was built with.
      */

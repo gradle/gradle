@@ -23,21 +23,17 @@ import org.gradle.ide.visualstudio.VisualStudioProject
 import org.gradle.ide.visualstudio.VisualStudioSolution
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.language.base.internal.AbstractBuildableModelElement
-import org.gradle.nativebinaries.LibraryBinary
-import org.gradle.nativebinaries.NativeBinary
-import org.gradle.nativebinaries.NativeComponent
-import org.gradle.nativebinaries.NativeDependencySet
-import org.gradle.nativebinaries.internal.NativeBinaryInternal
+import org.gradle.nativebinaries.*
 import org.gradle.nativebinaries.internal.resolve.LibraryNativeDependencySet
 
 class DefaultVisualStudioSolution extends AbstractBuildableModelElement implements VisualStudioSolution {
     final String name
     final String configurationName
     final SolutionFile solutionFile
-    private final NativeBinaryInternal rootBinary
+    private final NativeComponentBinary rootBinary
     private final VisualStudioProjectResolver vsProjectResolver
 
-    DefaultVisualStudioSolution(VisualStudioProjectConfiguration rootProjectConfiguration, NativeBinaryInternal rootBinary, FileResolver fileResolver,
+    DefaultVisualStudioSolution(VisualStudioProjectConfiguration rootProjectConfiguration, NativeComponentBinary rootBinary, FileResolver fileResolver,
                                 VisualStudioProjectResolver vsProjectResolver, Instantiator instantiator) {
         this.name = rootProjectConfiguration.project.name
         this.configurationName = rootProjectConfiguration.name
@@ -60,7 +56,7 @@ class DefaultVisualStudioSolution extends AbstractBuildableModelElement implemen
         return configurations
     }
 
-    private void addNativeBinary(Set configurations, NativeBinary nativeBinary) {
+    private void addNativeBinary(Set configurations, NativeComponentBinary nativeBinary) {
         VisualStudioProjectConfiguration projectConfiguration = vsProjectResolver.lookupProjectConfiguration(nativeBinary);
         configurations.add(projectConfiguration)
 

@@ -23,7 +23,7 @@ import org.gradle.nativebinaries.internal.resolve.LibraryNativeDependencySet;
  * A physical representation of a {@link Library} component.
  */
 @Incubating
-public interface LibraryBinary extends NativeBinary {
+public interface LibraryBinary extends NativeComponentBinary {
     /**
      * The Library that this binary represents.
      */

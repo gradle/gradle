@@ -33,14 +33,14 @@ public class VisualStudioProjectMapper {
         this.platforms = platforms;
     }
 
-    public ProjectConfigurationNames mapToConfiguration(NativeBinary nativeBinary) {
+    public ProjectConfigurationNames mapToConfiguration(NativeComponentBinary nativeBinary) {
         String projectName = name(getFlavorComponent(nativeBinary), nativeBinary.getComponent().getBaseName(), projectSuffix(nativeBinary));
         String configurationName = name(getPlatformComponent(nativeBinary), nativeBinary.getBuildType().getName());
         String platformName = getArchitectureName(nativeBinary.getTargetPlatform());
         return new ProjectConfigurationNames(projectName, configurationName, platformName);
     }
 
-    private String projectSuffix(NativeBinary nativeBinary) {
+    private String projectSuffix(NativeComponentBinary nativeBinary) {
         return nativeBinary instanceof StaticLibraryBinary ? "Lib"
                 : nativeBinary instanceof SharedLibraryBinary ? "Dll"
                 : "Exe";
@@ -60,7 +60,7 @@ public class VisualStudioProjectMapper {
         return builder.toString();
     }
 
-    private String getFlavorComponent(NativeBinary nativeBinary) {
+    private String getFlavorComponent(NativeComponentBinary nativeBinary) {
         NativeComponentInternal component = (NativeComponentInternal) nativeBinary.getComponent();
         if (component.chooseFlavors(flavors).size() > 1) {
             return nativeBinary.getFlavor().getName();
@@ -68,7 +68,7 @@ public class VisualStudioProjectMapper {
         return null;
     }
 
-    private String getPlatformComponent(NativeBinary nativeBinary) {
+    private String getPlatformComponent(NativeComponentBinary nativeBinary) {
         NativeComponentInternal component = (NativeComponentInternal) nativeBinary.getComponent();
         Set<String> architectures = new HashSet<String>();
         for (Platform platform : component.choosePlatforms(platforms)) {

@@ -18,8 +18,7 @@ package org.gradle.ide.visualstudio.internal;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.nativebinaries.NativeBinary;
-import org.gradle.nativebinaries.internal.NativeBinaryInternal;
+import org.gradle.nativebinaries.NativeComponentBinary;
 
 public class VisualStudioSolutionRegistry extends DefaultNamedDomainObjectSet<DefaultVisualStudioSolution> {
     private final FileResolver fileResolver;
@@ -33,17 +32,17 @@ public class VisualStudioSolutionRegistry extends DefaultNamedDomainObjectSet<De
         this.projectResolver = projectResolver;
     }
 
-    public DefaultVisualStudioSolution addSolution(NativeBinary nativeBinary) {
+    public DefaultVisualStudioSolution addSolution(NativeComponentBinary nativeBinary) {
         DefaultVisualStudioSolution solution = createSolution(nativeBinary);
         add(solution);
         return solution;
     }
 
-    private DefaultVisualStudioSolution createSolution(NativeBinary nativeBinary) {
-        return new DefaultVisualStudioSolution(rootConfiguration(nativeBinary), (NativeBinaryInternal) nativeBinary, fileResolver, projectResolver, getInstantiator());
+    private DefaultVisualStudioSolution createSolution(NativeComponentBinary nativeBinary) {
+        return new DefaultVisualStudioSolution(rootConfiguration(nativeBinary), nativeBinary, fileResolver, projectResolver, getInstantiator());
     }
 
-    private VisualStudioProjectConfiguration rootConfiguration(NativeBinary nativeBinary) {
+    private VisualStudioProjectConfiguration rootConfiguration(NativeComponentBinary nativeBinary) {
         return localProjects.getProjectConfiguration(nativeBinary);
     }
 }
