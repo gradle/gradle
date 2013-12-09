@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries;
+package org.gradle.nativebinaries.platform;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;

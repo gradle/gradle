@@ -23,7 +23,7 @@ import org.gradle.ide.visualstudio.VisualStudioProject;
 import org.gradle.ide.visualstudio.VisualStudioSolution;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.nativebinaries.FlavorContainer;
-import org.gradle.nativebinaries.PlatformContainer;
+import org.gradle.nativebinaries.platform.PlatformContainer;
 
 public class DefaultVisualStudioExtension implements VisualStudioExtension {
     private final VisualStudioProjectRegistry projectRegistry;

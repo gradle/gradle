@@ -13,10 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.nativebinaries.internal;
 
-import org.gradle.nativebinaries.Platform;
+package org.gradle.nativebinaries.platform;
 
-public interface PlatformInternal extends Platform {
-    String getCompatibilityString();
+import org.gradle.api.Incubating;
+import org.gradle.api.NamedDomainObjectContainer;
+
+/**
+ * A container of {@link Platform}s.
+ */
+@Incubating
+public interface PlatformContainer extends NamedDomainObjectContainer<Platform> {
 }

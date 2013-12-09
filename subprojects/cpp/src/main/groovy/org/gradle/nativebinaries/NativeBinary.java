@@ -21,6 +21,7 @@ import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.language.base.Binary;
 import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.nativebinaries.platform.Platform;
 import org.gradle.nativebinaries.toolchain.ToolChain;
 
 import java.io.File;
@@ -71,7 +72,7 @@ public interface NativeBinary extends Binary {
     ToolChain getToolChain();
 
     /**
-     * Returns the {@link Platform} that this binary is targeted to run on.
+     * Returns the {@link org.gradle.nativebinaries.platform.Platform} that this binary is targeted to run on.
      */
     Platform getTargetPlatform();
 

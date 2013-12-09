@@ -16,7 +16,7 @@
 
 package org.gradle.nativebinaries.internal.configure
 
-import org.gradle.nativebinaries.PlatformContainer
+import org.gradle.nativebinaries.platform.PlatformContainer
 import spock.lang.Specification
 
 class CreateDefaultPlatformTest extends Specification {

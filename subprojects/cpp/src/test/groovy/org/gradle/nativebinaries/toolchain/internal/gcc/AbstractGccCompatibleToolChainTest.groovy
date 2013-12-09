@@ -16,10 +16,10 @@
 package org.gradle.nativebinaries.toolchain.internal.gcc
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.nativebinaries.Platform
-import org.gradle.nativebinaries.internal.ArchitectureInternal
-import org.gradle.nativebinaries.internal.DefaultArchitecture
-import org.gradle.nativebinaries.internal.DefaultOperatingSystem
+import org.gradle.nativebinaries.platform.Platform
+import org.gradle.nativebinaries.platform.internal.ArchitectureInternal
+import org.gradle.nativebinaries.platform.internal.DefaultArchitecture
+import org.gradle.nativebinaries.platform.internal.DefaultOperatingSystem
 import org.gradle.nativebinaries.toolchain.TargetPlatformConfiguration
 import org.gradle.nativebinaries.toolchain.internal.ToolType
 import org.gradle.process.internal.ExecActionFactory
@@ -28,7 +28,7 @@ import org.gradle.util.TestPrecondition
 import org.gradle.util.TreeVisitor
 import spock.lang.Specification
 
-import static org.gradle.nativebinaries.internal.ArchitectureInternal.InstructionSet.X86
+import static ArchitectureInternal.InstructionSet.X86
 
 class AbstractGccCompatibleToolChainTest extends Specification {
     def fileResolver = Mock(FileResolver)

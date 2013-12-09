@@ -18,8 +18,10 @@ package org.gradle.ide.visualstudio.internal;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.nativebinaries.*;
-import org.gradle.nativebinaries.internal.ArchitectureInternal;
+import org.gradle.nativebinaries.platform.internal.ArchitectureInternal;
 import org.gradle.nativebinaries.internal.NativeComponentInternal;
+import org.gradle.nativebinaries.platform.Platform;
+import org.gradle.nativebinaries.platform.PlatformContainer;
 
 import java.util.HashSet;
 import java.util.Set;

@@ -23,6 +23,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.nativebinaries.*;
+import org.gradle.nativebinaries.platform.Platform;
 import org.gradle.util.GUtil;
 
 import java.util.HashSet;

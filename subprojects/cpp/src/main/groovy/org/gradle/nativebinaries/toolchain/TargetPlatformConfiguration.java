@@ -16,7 +16,7 @@
 package org.gradle.nativebinaries.toolchain;
 
 import org.gradle.api.Incubating;
-import org.gradle.nativebinaries.Platform;
+import org.gradle.nativebinaries.platform.Platform;
 
 import java.util.List;
 

@@ -16,7 +16,7 @@
 
 package org.gradle.nativebinaries.language.cpp.fixtures.binaryinfo;
 
-import org.gradle.nativebinaries.internal.ArchitectureInternal;
+import org.gradle.nativebinaries.platform.internal.ArchitectureInternal;
 
 import java.util.List;
 

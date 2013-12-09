@@ -20,7 +20,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.nativebinaries.Platform;
+import org.gradle.nativebinaries.platform.Platform;
 import org.gradle.nativebinaries.internal.*;
 import org.gradle.nativebinaries.language.assembler.internal.AssembleSpec;
 import org.gradle.nativebinaries.language.c.internal.CCompileSpec;

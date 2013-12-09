@@ -17,6 +17,7 @@ package org.gradle.nativebinaries.internal.resolve;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.nativebinaries.*;
+import org.gradle.nativebinaries.platform.Platform;
 import org.gradle.util.GUtil;
 
 import java.util.Set;

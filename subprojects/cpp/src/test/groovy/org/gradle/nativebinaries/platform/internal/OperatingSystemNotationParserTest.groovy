@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.nativebinaries.internal
+package org.gradle.nativebinaries.platform.internal
 
 import spock.lang.Specification
 
@@ -41,7 +41,7 @@ class OperatingSystemNotationParserTest extends Specification {
         !os.solaris
 
         where:
-        osString << ["osx", "mac os x", "darwin"]
+        osString << ["osx", "mac os x"]
     }
 
     def "parses linux"() {

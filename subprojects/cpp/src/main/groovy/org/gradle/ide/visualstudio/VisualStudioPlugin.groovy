@@ -31,7 +31,7 @@ import org.gradle.model.ModelRules
 import org.gradle.model.internal.Inputs
 import org.gradle.model.internal.ModelCreator
 import org.gradle.nativebinaries.FlavorContainer
-import org.gradle.nativebinaries.PlatformContainer
+import org.gradle.nativebinaries.platform.PlatformContainer
 import org.gradle.nativebinaries.plugins.NativeBinariesModelPlugin
 
 import javax.inject.Inject

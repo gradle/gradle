@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries.internal;
+package org.gradle.nativebinaries.platform.internal;
 
 import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.nativebinaries.OperatingSystem;
-import org.gradle.nativebinaries.Platform;
-import org.gradle.nativebinaries.PlatformContainer;
+import org.gradle.nativebinaries.platform.OperatingSystem;
+import org.gradle.nativebinaries.platform.Platform;
+import org.gradle.nativebinaries.platform.PlatformContainer;
 
 public class DefaultPlatformContainer extends AbstractNamedDomainObjectContainer<Platform> implements PlatformContainer {
     private final NotationParser<Object, ArchitectureInternal> archParser = ArchitectureNotationParser.parser();

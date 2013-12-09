@@ -19,7 +19,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.Incubating
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.*
-import org.gradle.nativebinaries.Platform
+import org.gradle.nativebinaries.platform.Platform
 import org.gradle.nativebinaries.toolchain.ToolChain
 import org.gradle.nativebinaries.internal.DefaultStaticLibraryArchiverSpec
 

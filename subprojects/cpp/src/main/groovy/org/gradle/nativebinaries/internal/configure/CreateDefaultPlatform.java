@@ -17,7 +17,7 @@
 package org.gradle.nativebinaries.internal.configure;
 
 import org.gradle.model.ModelFinalizer;
-import org.gradle.nativebinaries.PlatformContainer;
+import org.gradle.nativebinaries.platform.PlatformContainer;
 
 public class CreateDefaultPlatform extends ModelFinalizer {
     @SuppressWarnings("UnusedDeclaration")

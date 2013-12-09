@@ -16,8 +16,8 @@
 
 package org.gradle.nativebinaries.toolchain.internal.msvcpp;
 
-import org.gradle.nativebinaries.Platform;
-import org.gradle.nativebinaries.internal.ArchitectureInternal;
+import org.gradle.nativebinaries.platform.Platform;
+import org.gradle.nativebinaries.platform.internal.ArchitectureInternal;
 
 import java.io.File;
 import java.util.HashMap;

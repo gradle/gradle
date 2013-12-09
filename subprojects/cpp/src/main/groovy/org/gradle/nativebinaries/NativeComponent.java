@@ -71,7 +71,7 @@ public interface NativeComponent extends Named {
     void targetFlavors(Object... flavorSelectors);
 
     /**
-     * Specifies one or more {@link Platform}s that this component should be built for.
+     * Specifies one or more {@link org.gradle.nativebinaries.platform.Platform}s that this component should be built for.
      * <p/>
      * This method accepts the following types:
      *

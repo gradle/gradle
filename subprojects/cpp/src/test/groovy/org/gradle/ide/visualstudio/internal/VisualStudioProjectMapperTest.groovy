@@ -16,9 +16,12 @@
 
 package org.gradle.ide.visualstudio.internal
 import org.gradle.nativebinaries.*
-import org.gradle.nativebinaries.internal.ArchitectureNotationParser
+import org.gradle.nativebinaries.platform.internal.ArchitectureNotationParser
 import org.gradle.nativebinaries.internal.DefaultFlavor
 import org.gradle.nativebinaries.internal.NativeComponentInternal
+import org.gradle.nativebinaries.platform.Architecture
+import org.gradle.nativebinaries.platform.Platform
+import org.gradle.nativebinaries.platform.PlatformContainer
 import spock.lang.Specification
 
 class VisualStudioProjectMapperTest extends Specification {

@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.nativebinaries.internal;
+package org.gradle.nativebinaries.platform.internal;
 
-import org.gradle.nativebinaries.OperatingSystem;
+import org.gradle.nativebinaries.platform.OperatingSystem;
 
 public class DefaultOperatingSystem implements OperatingSystem {
     private static final org.gradle.internal.os.OperatingSystem CURRENT_OS = org.gradle.internal.os.OperatingSystem.current();

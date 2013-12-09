@@ -13,26 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.nativebinaries.internal;
 
-import org.gradle.nativebinaries.Architecture;
-
-public interface ArchitectureInternal extends Architecture {
-    static final ArchitectureInternal TOOL_CHAIN_DEFAULT = new DefaultArchitecture("default", null, 0);
-
-    enum InstructionSet { X86, ITANIUM, PPC, SPARC, ARM }
-
-    InstructionSet getInstructionSet();
-
-    int getRegisterSize();
-
-    boolean isI386();
-
-    boolean isAmd64();
-
-    boolean isIa64();
-
-    boolean isArm();
-
-    boolean isArmv8();
-}
+/**
+ * Classes that allow defining a native binary platform.
+ */
+package org.gradle.nativebinaries.platform;

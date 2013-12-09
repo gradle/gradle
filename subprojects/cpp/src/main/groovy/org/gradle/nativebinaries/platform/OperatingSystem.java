@@ -13,15 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.gradle.nativebinaries;
+package org.gradle.nativebinaries.platform;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.NamedDomainObjectContainer;
+import org.gradle.api.Named;
 
 /**
- * A container of {@link Platform}s.
+ * A machine operating system.
  */
 @Incubating
-public interface PlatformContainer extends NamedDomainObjectContainer<Platform> {
+public interface OperatingSystem extends Named {
+    boolean isCurrent();
+
+    /**
+     * Is it Windows?
+     */
+    boolean isWindows();
+
+    /**
+     * Is it Mac OS X?
+     */
+    boolean isMacOsX();
+
+    /**
+     * Is it Linux?
+     */
+    boolean isLinux();
+
+    /**
+     * Is it Solaris?
+     */
+    boolean isSolaris();
 }

@@ -83,7 +83,7 @@
         <extends targetClass="org.gradle.api.Project" id="binaries" extensionClass="org.gradle.language.base.BinaryContainer"/>
         <extends targetClass="org.gradle.api.Project" id="toolChains" extensionClass="org.gradle.nativebinaries.toolchain.ToolChainRegistry"/>
         <extends targetClass="org.gradle.api.Project" id="buildTypes" extensionClass="org.gradle.nativebinaries.BuildTypeContainer"/>
-        <extends targetClass="org.gradle.api.Project" id="platforms" extensionClass="org.gradle.nativebinaries.PlatformContainer"/>
+        <extends targetClass="org.gradle.api.Project" id="platforms" extensionClass="org.gradle.nativebinaries.platform.PlatformContainer"/>
         <extends targetClass="org.gradle.api.Project" id="flavors" extensionClass="org.gradle.nativebinaries.FlavorContainer"/>
     </plugin>
     <plugin id="cpp" description="C++ Plugin">

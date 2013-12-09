@@ -370,7 +370,7 @@
             <title>Platform</title>
             <para>
                 An executable or library can be built to run on different operating systems and cpu architectures, with a variant being
-                produced for each platform. Gradle defines each OS/architecture combination as a <apilink class="org.gradle.nativebinaries.Platform"/>,
+                produced for each platform. Gradle defines each OS/architecture combination as a <apilink class="org.gradle.nativebinaries.platform.Platform"/>,
                 and a project may define any number of platforms.
                 If no platforms are defined in a project, then a single, default platform 'current' is added.
             </para>

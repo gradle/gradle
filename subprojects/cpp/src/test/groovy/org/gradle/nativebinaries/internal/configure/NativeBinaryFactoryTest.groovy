@@ -19,7 +19,7 @@ package org.gradle.nativebinaries.internal.configure
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.nativebinaries.BuildType
-import org.gradle.nativebinaries.Platform
+import org.gradle.nativebinaries.platform.Platform
 import org.gradle.nativebinaries.internal.DefaultExecutable
 import org.gradle.nativebinaries.internal.DefaultExecutableBinary
 import org.gradle.nativebinaries.internal.DefaultFlavor

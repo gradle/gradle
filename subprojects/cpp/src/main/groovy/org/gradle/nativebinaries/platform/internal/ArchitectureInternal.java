@@ -13,21 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.nativebinaries.internal;
+package org.gradle.nativebinaries.platform.internal;
 
-import org.gradle.nativebinaries.BuildType;
-import org.gradle.nativebinaries.Flavor;
-import org.gradle.nativebinaries.NativeComponent;
-import org.gradle.nativebinaries.platform.Platform;
+import org.gradle.nativebinaries.platform.Architecture;
 
-import java.util.Set;
+public interface ArchitectureInternal extends Architecture {
+    static final ArchitectureInternal TOOL_CHAIN_DEFAULT = new DefaultArchitecture("default", null, 0);
 
-public interface NativeComponentInternal extends NativeComponent {
+    enum InstructionSet { X86, ITANIUM, PPC, SPARC, ARM }
 
-    // TODO:DAZ Use BuildComponentIdentifier
-    String getProjectPath();
+    InstructionSet getInstructionSet();
 
-    Set<Flavor> chooseFlavors(Set<? extends Flavor> candidates);
-    Set<Platform> choosePlatforms(Set<? extends Platform> candidates);
-    Set<BuildType> chooseBuildTypes(Set<? extends BuildType> candidates);
+    int getRegisterSize();
+
+    boolean isI386();
+
+    boolean isAmd64();
+
+    boolean isIa64();
+
+    boolean isArm();
+
+    boolean isArmv8();
 }

@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries.internal;
+package org.gradle.nativebinaries.platform.internal;
 
 import org.gradle.internal.typeconversion.NotationParser;
-import org.gradle.nativebinaries.Architecture;
-import org.gradle.nativebinaries.OperatingSystem;
+import org.gradle.nativebinaries.platform.Architecture;
+import org.gradle.nativebinaries.platform.OperatingSystem;
 
 public class DefaultPlatform implements PlatformInternal {
     private final NotationParser<Object, ArchitectureInternal> archParser;

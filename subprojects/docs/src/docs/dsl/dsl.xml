@@ -505,7 +505,7 @@
                 <td>org.gradle.nativebinaries.Flavor</td>
             </tr>
             <tr>
-                <td>org.gradle.nativebinaries.Platform</td>
+                <td>org.gradle.nativebinaries.platform.Platform</td>
             </tr>
             <tr>
                 <td>org.gradle.nativebinaries.toolchain.ToolChain</td>

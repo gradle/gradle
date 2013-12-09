@@ -22,7 +22,7 @@ import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.text.TreeFormatter;
-import org.gradle.nativebinaries.Platform;
+import org.gradle.nativebinaries.platform.Platform;
 import org.gradle.nativebinaries.toolchain.ToolChain;
 
 import java.util.ArrayList;

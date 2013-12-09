@@ -15,7 +15,7 @@
  */
 package org.gradle.nativebinaries.toolchain.internal;
 
-import org.gradle.nativebinaries.Platform;
+import org.gradle.nativebinaries.platform.Platform;
 import org.gradle.nativebinaries.toolchain.ToolChain;
 import org.gradle.nativebinaries.toolchain.ToolChainRegistry;
 

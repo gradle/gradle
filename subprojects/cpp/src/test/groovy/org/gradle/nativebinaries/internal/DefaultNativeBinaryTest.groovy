@@ -22,6 +22,9 @@ import org.gradle.language.base.internal.DefaultBinaryNamingScheme
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet
 import org.gradle.nativebinaries.*
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver
+import org.gradle.nativebinaries.platform.Platform
+import org.gradle.nativebinaries.platform.internal.ArchitectureInternal
+import org.gradle.nativebinaries.platform.internal.DefaultArchitecture
 import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal
 import spock.lang.Specification
 

@@ -16,8 +16,8 @@
 
 package org.gradle.nativebinaries.language.cpp.fixtures.binaryinfo
 
-import org.gradle.nativebinaries.internal.ArchitectureInternal
-import org.gradle.nativebinaries.internal.DefaultArchitecture
+import org.gradle.nativebinaries.platform.internal.ArchitectureInternal
+import org.gradle.nativebinaries.platform.internal.DefaultArchitecture
 
 class OtoolBinaryInfo implements BinaryInfo {
     def binaryFile

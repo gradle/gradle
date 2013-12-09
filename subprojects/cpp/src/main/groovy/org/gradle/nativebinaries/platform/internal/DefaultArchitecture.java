@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.nativebinaries.internal;
+package org.gradle.nativebinaries.platform.internal;
 
 public class DefaultArchitecture implements ArchitectureInternal {
     private final String name;

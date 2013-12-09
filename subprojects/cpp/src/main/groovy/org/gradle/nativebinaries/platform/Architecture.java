@@ -13,35 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.nativebinaries;
+package org.gradle.nativebinaries.platform;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
+import org.gradle.internal.HasInternalProtocol;
 
 /**
- * A machine operating system.
+ * A cpu architecture.
  */
 @Incubating
-public interface OperatingSystem extends Named {
-    boolean isCurrent();
-
-    /**
-     * Is it Windows?
-     */
-    boolean isWindows();
-
-    /**
-     * Is it Mac OS X?
-     */
-    boolean isMacOsX();
-
-    /**
-     * Is it Linux?
-     */
-    boolean isLinux();
-
-    /**
-     * Is it Solaris?
-     */
-    boolean isSolaris();
+@HasInternalProtocol
+public interface Architecture extends Named {
 }

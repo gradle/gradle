@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.nativebinaries.internal
-
+package org.gradle.nativebinaries.platform.internal
 import org.gradle.internal.typeconversion.NotationParser
-import org.gradle.nativebinaries.OperatingSystem
+import org.gradle.nativebinaries.platform.OperatingSystem
 import spock.lang.Specification
 
 class DefaultPlatformTest extends Specification {

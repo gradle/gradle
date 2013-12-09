@@ -15,11 +15,11 @@
  */
 
 package org.gradle.nativebinaries.language.cpp.fixtures.binaryinfo
-import org.gradle.nativebinaries.internal.ArchitectureInternal
-import org.gradle.nativebinaries.internal.ArchitectureNotationParser;
-import org.gradle.nativebinaries.internal.DefaultArchitecture
-import org.gradle.nativebinaries.internal.DefaultPlatform;
-import org.gradle.nativebinaries.internal.OperatingSystemNotationParser;
+import org.gradle.nativebinaries.platform.internal.ArchitectureInternal
+import org.gradle.nativebinaries.platform.internal.ArchitectureNotationParser;
+import org.gradle.nativebinaries.platform.internal.DefaultArchitecture
+import org.gradle.nativebinaries.platform.internal.DefaultPlatform;
+import org.gradle.nativebinaries.platform.internal.OperatingSystemNotationParser;
 import org.gradle.nativebinaries.language.cpp.fixtures.AvailableToolChains.InstalledToolChain
 import org.gradle.nativebinaries.toolchain.internal.msvcpp.DefaultVisualStudioLocator
 import org.gradle.nativebinaries.toolchain.internal.msvcpp.VisualStudioInstall

@@ -13,16 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.nativebinaries;
+package org.gradle.nativebinaries.platform.internal;
 
-import org.gradle.api.Incubating;
-import org.gradle.api.Named;
-import org.gradle.internal.HasInternalProtocol;
+import org.gradle.nativebinaries.platform.Platform;
 
-/**
- * A cpu architecture.
- */
-@Incubating
-@HasInternalProtocol
-public interface Architecture extends Named {
+public interface PlatformInternal extends Platform {
+    String getCompatibilityString();
 }

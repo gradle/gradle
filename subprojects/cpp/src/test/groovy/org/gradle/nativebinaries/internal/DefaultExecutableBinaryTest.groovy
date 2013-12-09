@@ -19,7 +19,7 @@ package org.gradle.nativebinaries.internal
 import org.gradle.language.base.internal.DefaultBinaryNamingScheme
 import org.gradle.nativebinaries.BuildType
 import org.gradle.nativebinaries.Executable
-import org.gradle.nativebinaries.Platform
+import org.gradle.nativebinaries.platform.Platform
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver
 import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal
 import spock.lang.Specification
