@@ -13,22 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.nativebinaries.internal;
 
-import org.gradle.nativebinaries.Platform;
-import org.gradle.nativebinaries.ToolChain;
-import org.gradle.nativebinaries.ToolChainRegistry;
+package org.gradle.nativebinaries.toolchain.internal;
 
-public interface ToolChainRegistryInternal extends ToolChainRegistry {
-    /**
-     * Registers a default ToolChain, which may later be added to the registry via {@link #addDefaultToolChains()}.
-     */
-    void registerDefaultToolChain(String name, Class<? extends ToolChain> type);
+import org.gradle.util.TreeVisitor;
+
+public interface ToolSearchResult {
+    boolean isAvailable();
 
     /**
-     * Adds default tool chains to the registry.
+     * Writes some diagnostics about why the tool is not available.
      */
-    void addDefaultToolChains();
-
-    ToolChain getForPlatform(Platform targetPlatform);
+    void explain(TreeVisitor<? super String> visitor);
 }

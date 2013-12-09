@@ -22,6 +22,7 @@ import org.gradle.language.base.internal.DefaultBinaryNamingScheme
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet
 import org.gradle.nativebinaries.*
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver
+import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal
 import spock.lang.Specification
 
 class DefaultNativeBinaryTest extends Specification {

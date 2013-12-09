@@ -19,9 +19,9 @@ package org.gradle.nativebinaries.toolchain.plugins
 import org.gradle.api.Plugin
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.ExtraPropertiesExtension
-import org.gradle.nativebinaries.ToolChain
-import org.gradle.nativebinaries.ToolChainRegistry
-import org.gradle.nativebinaries.internal.ToolChainInternal
+import org.gradle.nativebinaries.toolchain.ToolChain
+import org.gradle.nativebinaries.toolchain.ToolChainRegistry
+import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 

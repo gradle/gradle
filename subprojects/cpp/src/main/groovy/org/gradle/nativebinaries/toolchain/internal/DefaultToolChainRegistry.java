@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.nativebinaries.internal;
+package org.gradle.nativebinaries.toolchain.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
@@ -23,7 +23,7 @@ import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.text.TreeFormatter;
 import org.gradle.nativebinaries.Platform;
-import org.gradle.nativebinaries.ToolChain;
+import org.gradle.nativebinaries.toolchain.ToolChain;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;

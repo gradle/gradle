@@ -18,8 +18,8 @@ package org.gradle.nativebinaries.language.cpp.tasks
 import org.gradle.api.internal.tasks.compile.Compiler
 import org.gradle.api.tasks.WorkResult
 import org.gradle.nativebinaries.internal.PlatformInternal
-import org.gradle.nativebinaries.internal.PlatformToolChain
-import org.gradle.nativebinaries.internal.ToolChainInternal
+import org.gradle.nativebinaries.toolchain.internal.PlatformToolChain
+import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal
 import org.gradle.nativebinaries.language.cpp.internal.CppCompileSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil

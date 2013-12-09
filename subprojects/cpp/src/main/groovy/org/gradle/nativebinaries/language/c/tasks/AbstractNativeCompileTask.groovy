@@ -26,8 +26,8 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs
 import org.gradle.cache.CacheRepository
 import org.gradle.nativebinaries.Platform
-import org.gradle.nativebinaries.ToolChain
-import org.gradle.nativebinaries.internal.PlatformToolChain
+import org.gradle.nativebinaries.toolchain.ToolChain
+import org.gradle.nativebinaries.toolchain.internal.PlatformToolChain
 import org.gradle.nativebinaries.language.c.internal.incremental.IncrementalCompilerBuilder
 import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec
 

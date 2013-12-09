@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries.internal;
+package org.gradle.nativebinaries.toolchain.internal;
 
 import org.gradle.nativebinaries.Platform;
-import org.gradle.nativebinaries.ToolChain;
+import org.gradle.nativebinaries.toolchain.ToolChain;
 
 public interface ToolChainInternal extends ToolChain {
     ToolChainAvailability getAvailability();

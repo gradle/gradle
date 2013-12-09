@@ -508,7 +508,7 @@
                 <td>org.gradle.nativebinaries.Platform</td>
             </tr>
             <tr>
-                <td>org.gradle.nativebinaries.ToolChain</td>
+                <td>org.gradle.nativebinaries.toolchain.ToolChain</td>
             </tr>
             <tr>
                 <td>org.gradle.language.assembler.AssemblerSourceSet</td>

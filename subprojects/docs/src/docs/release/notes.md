@@ -126,6 +126,9 @@ The following are the newly deprecated items in this Gradle release. If you have
 ### Changes to native binary support
 
 - Moved definitions of `buildTypes`, `targetPlatforms` and `flavors` into model block (see above)
+- Classes moved:
+    - org.gradle.nativebinaries.ToolChain -> org.gradle.nativebinaries.toolchain.ToolChain
+    - org.gradle.nativebinaries.ToolChainRegistry -> org.gradle.nativebinaries.toolchain.ToolChainRegistry
 
 ### A requested dependency returns different types of selectors
 

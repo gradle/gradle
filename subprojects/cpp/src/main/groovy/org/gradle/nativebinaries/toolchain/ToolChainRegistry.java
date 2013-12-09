@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.nativebinaries.toolchain;
 
-package org.gradle.nativebinaries.internal;
+import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
+import org.gradle.api.Incubating;
+import org.gradle.internal.HasInternalProtocol;
 
-import org.gradle.util.TreeVisitor;
-
-public interface ToolSearchResult {
-    boolean isAvailable();
-
-    /**
-     * Writes some diagnostics about why the tool is not available.
-     */
-    void explain(TreeVisitor<? super String> visitor);
+/**
+ * A container for {@link ToolChain}s.
+ */
+@Incubating
+@HasInternalProtocol
+public interface ToolChainRegistry extends ExtensiblePolymorphicDomainObjectContainer<ToolChain> {
 }

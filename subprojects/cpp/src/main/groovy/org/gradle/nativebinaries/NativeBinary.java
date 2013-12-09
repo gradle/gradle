@@ -21,6 +21,7 @@ import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.language.base.Binary;
 import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.nativebinaries.toolchain.ToolChain;
 
 import java.io.File;
 import java.util.Collection;
@@ -70,7 +71,7 @@ public interface NativeBinary extends Binary {
     void source(Object source);
 
     /**
-     * Returns the {@link ToolChain} that will be used to build this binary.
+     * Returns the {@link org.gradle.nativebinaries.toolchain.ToolChain} that will be used to build this binary.
      */
     ToolChain getToolChain();
 

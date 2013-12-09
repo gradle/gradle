@@ -23,7 +23,8 @@ import org.gradle.api.tasks.TaskDependency
 import org.gradle.nativebinaries.*
 import org.gradle.nativebinaries.internal.ArchitectureInternal
 import org.gradle.nativebinaries.internal.DefaultFlavor
-import org.gradle.nativebinaries.internal.ToolChainInternal
+import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal
+import org.gradle.nativebinaries.toolchain.ToolChainRegistry
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 

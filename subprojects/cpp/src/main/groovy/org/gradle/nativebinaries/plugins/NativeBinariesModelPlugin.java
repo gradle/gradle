@@ -36,6 +36,8 @@ import org.gradle.nativebinaries.FlavorContainer;
 import org.gradle.nativebinaries.PlatformContainer;
 import org.gradle.nativebinaries.internal.*;
 import org.gradle.nativebinaries.internal.configure.*;
+import org.gradle.nativebinaries.toolchain.internal.DefaultToolChainRegistry;
+import org.gradle.nativebinaries.toolchain.internal.ToolChainRegistryInternal;
 
 import javax.inject.Inject;
 

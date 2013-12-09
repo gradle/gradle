@@ -15,7 +15,7 @@
  */
 package org.gradle.nativebinaries.toolchain.internal.msvcpp;
 
-import org.gradle.nativebinaries.internal.ToolSearchResult;
+import org.gradle.nativebinaries.toolchain.internal.ToolSearchResult;
 
 import java.io.File;
 

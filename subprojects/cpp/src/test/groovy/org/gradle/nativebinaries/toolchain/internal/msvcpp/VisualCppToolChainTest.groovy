@@ -18,7 +18,7 @@ package org.gradle.nativebinaries.toolchain.internal.msvcpp
 
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.nativebinaries.internal.ToolChainAvailability
+import org.gradle.nativebinaries.toolchain.internal.ToolChainAvailability
 import org.gradle.process.internal.ExecActionFactory
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider

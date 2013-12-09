@@ -19,6 +19,7 @@ package org.gradle.nativebinaries.internal;
 import org.gradle.language.base.internal.DefaultBinaryNamingScheme;
 import org.gradle.nativebinaries.*;
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
+import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal;
 
 public class DefaultExecutableBinary extends DefaultNativeBinary implements ExecutableBinary {
     private final Executable executable;

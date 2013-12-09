@@ -14,9 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries.internal;
+package org.gradle.nativebinaries.toolchain.internal;
 
 import org.gradle.api.internal.tasks.compile.Compiler;
+import org.gradle.nativebinaries.internal.BinaryToolSpec;
+import org.gradle.nativebinaries.internal.LinkerSpec;
+import org.gradle.nativebinaries.internal.StaticLibraryArchiverSpec;
 
 public interface PlatformToolChain {
     <T extends BinaryToolSpec> Compiler<T> createCppCompiler();

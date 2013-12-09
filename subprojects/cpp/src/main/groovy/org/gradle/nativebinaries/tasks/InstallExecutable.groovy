@@ -28,7 +28,7 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.nativeplatform.filesystem.FileSystem
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.nativebinaries.ToolChain
+import org.gradle.nativebinaries.toolchain.ToolChain
 import org.gradle.nativebinaries.toolchain.Gcc
 
 import javax.inject.Inject

@@ -1755,7 +1755,13 @@ TBD
 ## Structure
 
 - Some common plugin that determines which tool-chains to apply
-- Fix package hierarchy
+- Determine naming scheme for the 'native' domain
+    - Fix package hierarchy
+    - Consistent pattern with 'jvm' domain
+    - Rename `subprojects/cpp`
+    - Probably make language superior to runtime, and have tasks and plugins live under language root
+- Enable package cycle checks
+
 
 ### Language plugins
 

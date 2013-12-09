@@ -16,7 +16,7 @@
 
 package org.gradle.nativebinaries.toolchain.internal.gcc;
 
-import org.gradle.nativebinaries.internal.ToolSearchResult;
+import org.gradle.nativebinaries.toolchain.internal.ToolSearchResult;
 
 import java.io.File;
 

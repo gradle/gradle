@@ -13,35 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.nativebinaries.toolchain.internal;
 
-package org.gradle.nativebinaries.toolchain;
+import org.gradle.nativebinaries.Platform;
+import org.gradle.nativebinaries.toolchain.ToolChain;
+import org.gradle.nativebinaries.toolchain.ToolChainRegistry;
 
-import org.gradle.api.Incubating;
-
-import java.io.File;
-
-/**
- * The Visual C++ tool chain.
- */
-@Incubating
-public interface VisualCpp extends ToolChain {
+public interface ToolChainRegistryInternal extends ToolChainRegistry {
     /**
-     * The directory where Visual Studio or Visual C++ is installed.
+     * Registers a default ToolChain, which may later be added to the registry via {@link #addDefaultToolChains()}.
      */
-    File getInstallDir();
+    void registerDefaultToolChain(String name, Class<? extends ToolChain> type);
 
     /**
-     * The directory where Visual Studio or Visual C++ is installed.
+     * Adds default tool chains to the registry.
      */
-    void setInstallDir(Object installDir);
+    void addDefaultToolChains();
 
-    /**
-     * The directory where Windows SDK is installed.
-     */
-    File getWindowsSdkDir();
-
-    /**
-     * The directory where Windows SDK is installed.
-     */
-    void setWindowsSdkDir(Object installDir);
+    ToolChain getForPlatform(Platform targetPlatform);
 }

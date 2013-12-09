@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.nativebinaries;
 
-import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
+package org.gradle.nativebinaries.toolchain;
+
 import org.gradle.api.Incubating;
+import org.gradle.api.Named;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
- * A container for {@link ToolChain}s.
+ * A set of compilers and linkers that are used together to construct a native binary.
  */
 @Incubating
 @HasInternalProtocol
-public interface ToolChainRegistry extends ExtensiblePolymorphicDomainObjectContainer<ToolChain> {
+public interface ToolChain extends Named {
+    /**
+     * Returns a human consumable name for this tool chain.
+     *
+     * @since 1.11
+     */
+    String getDisplayName();
 }

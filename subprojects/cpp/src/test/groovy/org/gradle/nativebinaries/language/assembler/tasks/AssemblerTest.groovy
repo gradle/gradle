@@ -18,8 +18,8 @@ package org.gradle.nativebinaries.language.assembler.tasks
 import org.gradle.api.internal.tasks.compile.Compiler
 import org.gradle.api.tasks.WorkResult
 import org.gradle.nativebinaries.internal.PlatformInternal
-import org.gradle.nativebinaries.internal.PlatformToolChain
-import org.gradle.nativebinaries.internal.ToolChainInternal
+import org.gradle.nativebinaries.toolchain.internal.PlatformToolChain
+import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal
 import org.gradle.nativebinaries.language.assembler.internal.AssembleSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil

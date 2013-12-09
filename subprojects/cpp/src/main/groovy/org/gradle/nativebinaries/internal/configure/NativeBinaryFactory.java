@@ -24,6 +24,7 @@ import org.gradle.nativebinaries.*;
 import org.gradle.nativebinaries.internal.*;
 import org.gradle.nativebinaries.internal.resolve.DefaultNativeDependencyResolver;
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
+import org.gradle.nativebinaries.toolchain.ToolChain;
 
 import java.io.File;
 import java.util.Collection;

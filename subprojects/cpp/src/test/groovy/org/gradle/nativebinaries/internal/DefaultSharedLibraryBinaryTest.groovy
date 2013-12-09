@@ -24,6 +24,7 @@ import org.gradle.nativebinaries.BuildType
 import org.gradle.nativebinaries.Library
 import org.gradle.nativebinaries.Platform
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver
+import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification

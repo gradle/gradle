@@ -22,7 +22,8 @@ import org.gradle.language.base.BinaryContainer;
 import org.gradle.model.ModelRule;
 import org.gradle.nativebinaries.*;
 import org.gradle.nativebinaries.internal.NativeComponentInternal;
-import org.gradle.nativebinaries.internal.ToolChainRegistryInternal;
+import org.gradle.nativebinaries.toolchain.internal.ToolChainRegistryInternal;
+import org.gradle.nativebinaries.toolchain.ToolChain;
 
 import java.util.ArrayList;
 import java.util.Collection;

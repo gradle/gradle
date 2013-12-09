@@ -27,6 +27,7 @@ import org.gradle.language.base.internal.BinaryNamingScheme;
 import org.gradle.language.base.internal.DefaultBinaryNamingScheme;
 import org.gradle.nativebinaries.*;
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
+import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal;
 
 import java.io.File;
 import java.util.Collection;

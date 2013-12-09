@@ -18,8 +18,6 @@ package org.gradle.nativebinaries.toolchain.internal;
 
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.nativebinaries.internal.ToolChainAvailability;
-import org.gradle.nativebinaries.internal.ToolChainInternal;
 
 import java.io.File;
 

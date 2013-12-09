@@ -25,7 +25,7 @@ import org.gradle.nativebinaries.internal.DefaultExecutableBinary
 import org.gradle.nativebinaries.internal.DefaultFlavor
 import org.gradle.nativebinaries.internal.DefaultFlavorContainer
 import org.gradle.nativebinaries.internal.NativeBuildComponentIdentifier
-import org.gradle.nativebinaries.internal.ToolChainInternal
+import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal
 import spock.lang.Specification
 
 class NativeBinaryFactoryTest extends Specification {

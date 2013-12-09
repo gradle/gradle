@@ -16,7 +16,6 @@
 package org.gradle.nativebinaries.toolchain;
 
 import org.gradle.api.Incubating;
-import org.gradle.nativebinaries.ToolChain;
 
 /**
  * A ToolChain that can handle additional platforms simply by configuring the NativeBinary.
