@@ -225,7 +225,7 @@
             <sourcefile file="build.gradle" snippet="all-binaries"/>
         </sample>
         <para>
-            Each binary is associated with a particular <apilink class="org.gradle.nativebinaries.ToolChain"/>, allowing settings to be targeted based on
+            Each binary is associated with a particular <apilink class="org.gradle.nativebinaries.toolchain.ToolChain"/>, allowing settings to be targeted based on
             this value.
         </para>
         <para>
@@ -384,7 +384,7 @@
                 <sourcefile file="build.gradle" snippet="platforms"/>
             </sample>
             <para>
-                For a given variant, Gradle will attempt to find a <apilink class="org.gradle.nativebinaries.ToolChain"/> that is able to build
+                For a given variant, Gradle will attempt to find a <apilink class="org.gradle.nativebinaries.toolchain.ToolChain"/> that is able to build
                 for the target platform. Available tool chains are searched in the order defined.
                 See the <link linkend="native_binaries:tool_chain">tool chain</link> section below for more details.
             </para>
@@ -486,7 +486,7 @@
             <title>Using tool chains</title>
             <para>
                 It is not necessary or possible to specify the tool chain that should be used to build.
-                For a given variant, Gradle will attempt to locate a <apilink class="org.gradle.nativebinaries.ToolChain"/> that is able to build
+                For a given variant, Gradle will attempt to locate a <apilink class="org.gradle.nativebinaries.toolchain.ToolChain"/> that is able to build
                 for the target platform. Available tool chains are searched in the order defined.
             </para>
             <note>
