@@ -44,7 +44,6 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
     private final WindowsSdkLocator windowsSdkLocator;
     private File installDir;
     private File windowsSdkDir;
-    private String windowsSdkVersion;
 
     public VisualCppToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory,
                               VisualStudioLocator visualStudioLocator, WindowsSdkLocator windowsSdkLocator) {
@@ -69,6 +68,9 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
         if (!visualStudio.isFound()) {
             availability.unavailable(String.format("Visual Studio installation cannot be located. Searched in %s.", visualStudio.getSearchLocations()));
         }
+        if (!locateWindowsSdk()) {
+            availability.unavailable("Windows SDK cannot be located.");
+        }
     }
 
     private VisualStudioInstall locateVisualStudioInstall() {
@@ -81,6 +83,10 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
             return visualStudioLocator.locateVisualStudio(installDir);
         }
         return visualStudioLocator.locateDefaultVisualStudio();
+    }
+
+    private boolean locateWindowsSdk() {
+        return windowsSdkLocator.locateWindowsSdks(windowsSdkDir);
     }
 
     public File getInstallDir() {
@@ -99,14 +105,6 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
         this.windowsSdkDir = resolve(windowsSdkDirPath);
     }
 
-    public String getWindowsSdk() {
-        return windowsSdkVersion;
-    }
-
-    public void setWindowsSdk(String windowsSdkVersion) {
-        this.windowsSdkVersion = windowsSdkVersion;
-    }
-
     public PlatformToolChain target(Platform targetPlatform) {
         checkAvailable();
         checkPlatform(targetPlatform);
@@ -114,7 +112,7 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
         WindowsSdk windowsSdk = null;
 
         if (windowsSdkLocator.locateWindowsSdks(windowsSdkDir)) {
-            windowsSdk = (windowsSdkVersion != null) ? windowsSdkLocator.getSdk(windowsSdkVersion) : windowsSdkLocator.getDefaultSdk();
+            windowsSdk = windowsSdkLocator.getDefaultSdk();
         }
 
         return new VisualCppPlatformToolChain(visualStudioInstall, windowsSdk, targetPlatform);

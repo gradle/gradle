@@ -45,15 +45,4 @@ public interface VisualCpp extends ToolChain {
      * The directory where Windows SDK is installed.
      */
     void setWindowsSdkDir(Object installDir);
-
-    /**
-     * The Windows SDK version to use.
-     */
-    String getWindowsSdk();
-
-    /**
-     * The Windows SDK version to use.
-     */
-    void setWindowsSdk(String version);
-
 }

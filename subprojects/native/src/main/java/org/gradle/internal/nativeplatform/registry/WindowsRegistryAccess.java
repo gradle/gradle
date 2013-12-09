@@ -15,11 +15,14 @@
  */
 package org.gradle.internal.nativeplatform.registry;
 
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.prefs.Preferences;
+
+import org.gradle.internal.UncheckedException;
 
 /**
  * Provides access to a Windows registry
@@ -30,6 +33,7 @@ public class WindowsRegistryAccess {
     private static final String REG_QUERY_VALUE_EX = "WindowsRegQueryValueEx";
     private static final String REG_QUERY_INFO_KEY = "WindowsRegQueryInfoKey1";
     private static final String REG_ENUM_KEY_EX = "WindowsRegEnumKeyEx";
+    private static final String REGISTRY_ENCODING = "UTF-16";
     private static final int KEY_READ = 0x20019;
     private static final int REG_SUCCESS = 0;
 
@@ -60,7 +64,7 @@ public class WindowsRegistryAccess {
         } catch (NoSuchMethodException e) {
             this.key = -1;
         } catch (Exception e) {
-            e.printStackTrace();
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -183,20 +187,20 @@ public class WindowsRegistryAccess {
         }
     }
 
-    private static String fromCString(byte[] string) {
-        return new String(string).trim();
+    private static String fromCString(byte[] string) throws WindowsRegistryException {
+        try {
+            return new String(string, REGISTRY_ENCODING).trim();
+        } catch (UnsupportedEncodingException e) {
+            throw new WindowsRegistryException("unable to convert registry string to Java string", e);
+        }
     }
 
-    private static byte[] toCString(String string) {
-        byte[] result = new byte[string.length() + 1];
-
-        for (int i = 0; i != string.length(); ++i) {
-            result[i] = (byte) string.charAt(i);
+    private static byte[] toCString(String string) throws WindowsRegistryException {
+        try {
+            return string.getBytes(REGISTRY_ENCODING);
+        } catch (UnsupportedEncodingException e) {
+            throw new WindowsRegistryException("unable to convert Java string to registry string", e);
         }
-
-        result[string.length()] = 0;
-
-        return result;
     }
 
 
