@@ -15,16 +15,18 @@
  */
 
 package org.gradle.nativebinaries.language.cpp
+
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
-import org.gradle.nativebinaries.language.cpp.fixtures.app.CppHelloWorldApp
+import org.gradle.nativebinaries.language.cpp.fixtures.app.PlatformDetectingTestApp
 import org.gradle.nativebinaries.language.cpp.fixtures.binaryinfo.DumpbinBinaryInfo
 import org.gradle.nativebinaries.language.cpp.fixtures.binaryinfo.OtoolBinaryInfo
 import org.gradle.nativebinaries.language.cpp.fixtures.binaryinfo.ReadelfBinaryInfo
 import org.gradle.test.fixtures.file.TestFile
 
 class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
-    def helloWorldApp = new CppHelloWorldApp()
+    def testApp = new PlatformDetectingTestApp()
+    def os = OperatingSystem.current()
 
     def setup() {
         buildFile << """
@@ -35,7 +37,7 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
             }
         """
 
-        helloWorldApp.writeSources(file("src/main"))
+        testApp.writeSources(file("src/main"))
     }
 
     def "configure component for a single target platform"() {
@@ -66,6 +68,7 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
         // Platform dimension is flattened since there is only one possible value
         executedAndNotSkipped(":mainExecutable")
         executable("build/binaries/mainExecutable/main").binaryInfo.arch.name == "x86"
+        executable("build/binaries/mainExecutable/main").exec().out == "i386 ${os.familyName}"
     }
 
     def "build binary for multiple target architectures"() {
@@ -99,6 +102,7 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
 
         then:
         executable("build/binaries/mainExecutable/x86/main").binaryInfo.arch.name == "x86"
+        executable("build/binaries/mainExecutable/x86/main").exec().out == "i386 ${os.familyName}"
         binaryInfo(objectFile("build/objectFiles/mainExecutable/x86/mainCpp/main")).arch.name == "x86"
 
         // x86_64 binaries not supported on MinGW or cygwin
@@ -106,6 +110,7 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
             executable("build/binaries/mainExecutable/x86_64/main").assertDoesNotExist()
         } else {
             executable("build/binaries/mainExecutable/x86_64/main").binaryInfo.arch.name == "x86_64"
+            executable("build/binaries/mainExecutable/x86_64/main").exec().out == "amd64 ${os.familyName}"
             binaryInfo(objectFile("build/objectFiles/mainExecutable/x86_64/mainCpp/main")).arch.name == "x86_64"
         }
 
@@ -157,15 +162,14 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
         succeeds "buildExecutables"
 
         then:
-        final os = OperatingSystem.current()
         if (os.windows) {
-            executable("build/binaries/mainExecutable/windows/main").exec().out ==  helloWorldApp.frenchOutput
-        }
-        if (os.linux) {
-            executable("build/binaries/mainExecutable/linux/main").exec().out ==  helloWorldApp.englishOutput
-        }
-        if (os.macOsX) {
-            executable("build/binaries/mainExecutable/osx/main").exec().out ==  helloWorldApp.englishOutput
+            executable("build/binaries/mainExecutable/windows/main").exec().out == "amd64 windows"
+        } else if (os.linux) {
+            executable("build/binaries/mainExecutable/linux/main").exec().out == "amd64 linux"
+        } else if (os.macOsX) {
+            executable("build/binaries/mainExecutable/osx/main").exec().out == "amd64 os x"
+        } else {
+            throw new AssertionError("Unexpected operating system")
         }
     }
 
@@ -231,10 +235,10 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
 
     def binaryInfo(TestFile file) {
         file.assertIsFile()
-        if (OperatingSystem.current().isMacOsX()) {
+        if (os.macOsX) {
             return new OtoolBinaryInfo(file)
         }
-        if (OperatingSystem.current().isWindows()) {
+        if (os.windows) {
             return new DumpbinBinaryInfo(file, toolChain)
         }
         return new ReadelfBinaryInfo(file)

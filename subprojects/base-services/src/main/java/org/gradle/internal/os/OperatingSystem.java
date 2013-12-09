@@ -90,6 +90,8 @@ public abstract class OperatingSystem {
 
     public abstract String getStaticLibraryName(String libraryName);
 
+    public abstract String getFamilyName();
+
     /**
      * Locates the given executable in the system path. Returns null if not found.
      */
@@ -149,6 +151,11 @@ public abstract class OperatingSystem {
         }
 
         @Override
+        public String getFamilyName() {
+            return "windows";
+        }
+
+        @Override
         public String getScriptName(String scriptPath) {
             return withSuffix(scriptPath, ".bat");
         }
@@ -205,6 +212,11 @@ public abstract class OperatingSystem {
         @Override
         public String getScriptName(String scriptPath) {
             return scriptPath;
+        }
+
+        @Override
+        public String getFamilyName() {
+            return "unknown";
         }
 
         @Override
@@ -282,6 +294,11 @@ public abstract class OperatingSystem {
         }
 
         @Override
+        public String getFamilyName() {
+            return "os x";
+        }
+
+        @Override
         protected String getSharedLibSuffix() {
             return ".dylib";
         }
@@ -297,12 +314,22 @@ public abstract class OperatingSystem {
         public boolean isLinux() {
             return true;
         }
+
+        @Override
+        public String getFamilyName() {
+            return "linux";
+        }
     }
 
     static class Solaris extends Unix {
         @Override
         public boolean isSolaris() {
             return true;
+        }
+
+        @Override
+        public String getFamilyName() {
+            return "solaris";
         }
 
         @Override
