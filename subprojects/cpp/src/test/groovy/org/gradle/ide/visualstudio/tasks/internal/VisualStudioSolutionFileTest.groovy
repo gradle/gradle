@@ -17,6 +17,7 @@
 package org.gradle.ide.visualstudio.tasks.internal
 import org.gradle.api.Action
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.ide.visualstudio.TextProvider
 import org.gradle.ide.visualstudio.fixtures.SolutionFile
 import org.gradle.ide.visualstudio.internal.DefaultVisualStudioProject
 import org.gradle.ide.visualstudio.internal.VisualStudioProjectConfiguration
@@ -61,17 +62,30 @@ EndGlobal
 """
     }
 
-    def "applies each text action"() {
+    def "applies multiple text actions"() {
         when:
-        solutionFile.actions << ({ StringBuilder text ->
-            text.length = 0
+        solutionFile.actions << ({ TextProvider text ->
+            text.setText("foo")
         } as Action)
-        solutionFile.actions << ({ StringBuilder text ->
-            text.append("foo")
+        solutionFile.actions << ({ TextProvider text ->
+            text.asBuilder().append("bar")
         } as Action)
 
         then:
-        generatedSolutionFile.text == "foo"
+        generatedSolutionFile.text == "foobar"
+    }
+
+    def "can get and set text with actions"() {
+        when:
+        solutionFile.actions << ({ TextProvider text ->
+            text.text = "test"
+        } as Action)
+        solutionFile.actions << ({ TextProvider text ->
+            text.text = text.text.reverse()
+        } as Action)
+
+        then:
+        generatedSolutionFile.text == "tset"
     }
 
     def "includes project references"() {

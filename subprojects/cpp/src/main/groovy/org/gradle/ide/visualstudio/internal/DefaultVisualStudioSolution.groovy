@@ -18,6 +18,7 @@ package org.gradle.ide.visualstudio.internal
 import org.gradle.api.Action
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.ide.visualstudio.TextConfigFile
+import org.gradle.ide.visualstudio.TextProvider
 import org.gradle.ide.visualstudio.VisualStudioProject
 import org.gradle.ide.visualstudio.VisualStudioSolution
 import org.gradle.internal.reflect.Instantiator
@@ -72,7 +73,7 @@ class DefaultVisualStudioSolution extends AbstractBuildableModelElement implemen
     }
 
     static class SolutionFile implements TextConfigFile {
-        private final List<Action<? super StringBuilder>> actions = new ArrayList<Action<? super StringBuilder>>();
+        private final List<Action<? super TextProvider>> actions = new ArrayList<Action<? super TextProvider>>();
         private final FileResolver fileResolver
         private Object location
 
@@ -89,11 +90,11 @@ class DefaultVisualStudioSolution extends AbstractBuildableModelElement implemen
             this.location = location
         }
 
-        void withText(Action<? super StringBuilder> action) {
+        void withContent(Action<? super TextProvider> action) {
             actions.add(action)
         }
 
-        List<Action<? super StringBuilder>> getTextActions() {
+        List<Action<? super TextProvider>> getTextActions() {
             return actions
         }
     }

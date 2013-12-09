@@ -130,14 +130,15 @@ class VisualStudioFileCustomizationIntegrationTest extends AbstractInstalledTool
     model {
         visualStudio {
             solutions.all { solution ->
-                solution.solutionFile.withText { text ->
+                solution.solutionFile.withContent { content ->
                     String projectList = solution.projects.collect({it.name}).join(',')
                     int insertPos = text.lastIndexOf("EndGlobal")
-                    text.insert(insertPos, """
-                    GlobalSection(MyGlobalSection)
-                       Project-list: ${projectList}
-                    EndGlobalSection
-                    """)
+                    content.text = content.text.replace("EndGlobal", """
+    GlobalSection(MyGlobalSection)
+       Project-list: ${projectList}
+    EndGlobalSection
+EndGlobal
+""")
                 }
             }
         }

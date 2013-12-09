@@ -33,7 +33,7 @@ model {
 model {
     visualStudio {
         solutions.all { solution ->
-            solutionFile.withText { text ->
+            solutionFile.withContent { content ->
                 def sourceControlSection = """
     GlobalSection(SolutionNotes) = postSolution
         NumNotes = 2
@@ -45,7 +45,8 @@ model {
         Text2 = The projects in this solution are ${solution.projects*.name}.
     EndGlobalSection
 """
-                text.insert(text.lastIndexOf("EndGlobal"), sourceControlSection)
+                def insertPos = content.text.lastIndexOf("EndGlobal")
+                content.asBuilder().insert(insertPos, sourceControlSection)
             }
         }
     }

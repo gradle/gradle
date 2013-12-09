@@ -17,12 +17,13 @@
 package org.gradle.ide.visualstudio.tasks.internal
 
 import org.gradle.api.Action
+import org.gradle.ide.visualstudio.TextProvider
 import org.gradle.ide.visualstudio.internal.DefaultVisualStudioProject
 import org.gradle.ide.visualstudio.internal.VisualStudioProjectConfiguration
 import org.gradle.plugins.ide.internal.generator.AbstractPersistableConfigurationObject
 
 class VisualStudioSolutionFile extends AbstractPersistableConfigurationObject {
-    List<Action<? super StringBuilder>> actions = new ArrayList<Action<? super StringBuilder>>();
+    List<Action<? super TextProvider>> actions = new ArrayList<Action<? super TextProvider>>();
     String solutionConfiguration = "debug|Win32"
     private baseText
     private projects = [] as Set
@@ -44,12 +45,12 @@ class VisualStudioSolutionFile extends AbstractPersistableConfigurationObject {
 
     @Override
     void store(OutputStream outputStream) {
-        def builder = new StringBuilder()
-        generateContent(builder)
+        def provider = new SimpleTextProvider()
+        generateContent(provider.asBuilder())
         actions.each {
-            it.execute(builder)
+            it.execute(provider)
         }
-        outputStream << builder
+        outputStream << provider.getText()
     }
 
     private void generateContent(StringBuilder builder) {
@@ -80,5 +81,20 @@ Global
     EndGlobalSection
 EndGlobal
 """
+    }
+
+    static class SimpleTextProvider implements TextProvider {
+        private final StringBuilder builder = new StringBuilder();
+        StringBuilder asBuilder() {
+            return builder
+        }
+
+        String getText() {
+            return builder.toString()
+        }
+
+        void setText(String value) {
+            builder.replace(0, builder.length(), value)
+        }
     }
 }
