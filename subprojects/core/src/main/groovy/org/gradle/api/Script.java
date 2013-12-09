@@ -367,12 +367,4 @@ public interface Script {
      */
     ResourceHandler getResources();
 
-    /**
-     * Configures plugin handler that manages plugins (including plugin application) for the script target.
-     * <p>
-     * Delegates to {@link org.gradle.plugin.PluginHandler}.
-     */
-    @Incubating
-    void plugins(Closure closure);
-
 }

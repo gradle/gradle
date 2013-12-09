@@ -120,4 +120,27 @@ class PluginHandlerScriptIntegTest extends AbstractIntegrationSpec {
         then:
         output.contains "customRun"
     }
+
+    void "plugins block does not leak into build script proper"() {
+        given:
+        buildFile << """
+            configurations {
+                plugins {
+                    transitive = false // just use some configuration specific API here
+                }
+            }
+
+            task showConfigurationsSize << {
+                println "configurations: " + configurations.size()
+                println "plugins transitive: " + configurations.plugins.transitive
+            }
+        """
+
+        when:
+        succeeds "sCS"
+
+        then:
+        output.contains("configurations: 1")
+        output.contains("plugins transitive: false")
+    }
 }

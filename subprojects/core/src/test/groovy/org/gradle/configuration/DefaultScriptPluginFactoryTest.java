@@ -93,7 +93,7 @@ public class DefaultScriptPluginFactoryTest {
             one(scriptCompilerMock).setTransformer(with(any(StatementExtractingScriptTransformer.class)));
             inSequence(sequence);
 
-            one(scriptCompilerMock).compile(DefaultScript.class);
+            one(scriptCompilerMock).compile(ClasspathDefiningScript.class);
             will(returnValue(classPathScriptRunnerMock));
 
             allowing(classPathScriptRunnerMock).getScript();
@@ -170,7 +170,7 @@ public class DefaultScriptPluginFactoryTest {
             one(scriptCompilerMock).setTransformer(with(any(StatementExtractingScriptTransformer.class)));
             inSequence(sequence);
 
-            one(scriptCompilerMock).compile(DefaultScript.class);
+            one(scriptCompilerMock).compile(ClasspathDefiningScript.class);
             will(returnValue(classPathScriptRunnerMock));
 
             allowing(classPathScriptRunnerMock).getScript();
