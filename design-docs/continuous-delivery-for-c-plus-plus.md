@@ -1064,9 +1064,9 @@ To implement this:
 * Change C++ and C compiler implementations (GCC and VisualCpp) so that only a single sources file is compiled per execution 
     * Create a single compiler options file to reuse for compiling all source files
     * For each source file specify the source file name and the output file name on the command line
-* Make the generated object file include the project-relative path to the source file
-    * For a source file that is located within the project directory, use the project relative path
-    * For a source file that is located outside of the project directory, use the absolute path to the source file, appropriately escaped
+* Ensure that the generated object files differentiate source files with the same name (and different path)
+    * Given a source file, calculate the hash of the path of the directory containing the sourcefile
+    * Generate the object file into: <task-output-dir>/<hash-of-directory-that-contains-the-source-file>/<source-file-name>.o
 * Update `OutputCleaningCompiler` with knowledge of the new source->object file mapping
 
 If we are inspired by CMake, the output file rules would be:
