@@ -32,7 +32,7 @@ public abstract class ClasspathDefiningScript extends DefaultScript {
         super.init(target, services);
     }
 
-    void plugins(Closure<?> closure) {
+    public void plugins(Closure<?> closure) {
         new ClosureBackedAction<PluginHandler>(closure).execute(pluginHandler);
     }
 
