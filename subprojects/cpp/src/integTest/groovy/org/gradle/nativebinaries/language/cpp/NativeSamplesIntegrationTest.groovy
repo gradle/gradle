@@ -231,14 +231,9 @@ class NativeSamplesIntegrationTest extends AbstractInstalledToolChainIntegration
             releaseX64.binaryInfo.arch.name == "x86_64"
         }
 
-        // Itanium only supported on visualCpp
-        if (toolChain.visualCpp) {
-            debugIA64.binaryInfo.arch.name == "ia-64"
-            releaseIA64.binaryInfo.arch.name == "ia-64"
-        } else {
-            debugIA64.assertDoesNotExist()
-            releaseIA64.assertDoesNotExist()
-        }
+        // Itanium not built
+        debugIA64.assertDoesNotExist()
+        releaseIA64.assertDoesNotExist()
     }
 
     def "tool chains"() {
