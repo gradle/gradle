@@ -24,17 +24,14 @@ public class WindowsRegistry {
     public static final int HKEY_CURRENT_USER = 0x80000001;
     public static final int HKEY_LOCAL_MACHINE = 0x80000002;
 
-    private static final WindowsRegistryAccess CURRENT_USER = new WindowsRegistryAccess(HKEY_CURRENT_USER, Preferences.userRoot());
-    private static final WindowsRegistryAccess LOCAL_MACHINE = new WindowsRegistryAccess(HKEY_LOCAL_MACHINE, Preferences.systemRoot());
-
-    public static WindowsRegistryAccess get(int classId) {
+    public WindowsRegistryAccess get(int classId) {
         switch (classId) {
-        case HKEY_CURRENT_USER:
-            return CURRENT_USER;
-        case HKEY_LOCAL_MACHINE:
-            return LOCAL_MACHINE;
-        default:
-            return null;
+            case HKEY_CURRENT_USER:
+                return new WindowsRegistryAccess(HKEY_CURRENT_USER, Preferences.userRoot());
+            case HKEY_LOCAL_MACHINE:
+                return new WindowsRegistryAccess(HKEY_LOCAL_MACHINE, Preferences.systemRoot());
+            default:
+                throw new IllegalArgumentException("Unknown registry class.");
         }
     }
 

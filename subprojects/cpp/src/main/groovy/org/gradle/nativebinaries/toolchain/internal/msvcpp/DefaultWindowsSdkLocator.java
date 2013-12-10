@@ -66,15 +66,13 @@ public class DefaultWindowsSdkLocator extends DefaultWindowsLocator implements W
 
     private final Map<String, WindowsSdk> foundSdks = new HashMap<String, WindowsSdk>();
     private final OperatingSystem os;
+    private final WindowsRegistry windowsRegistry;
     private WindowsSdk defaultSdk;
     private ToolSearchResult result;
 
-    public DefaultWindowsSdkLocator() {
-        this(OperatingSystem.current());
-    }
-
-    public DefaultWindowsSdkLocator(OperatingSystem os) {
+    public DefaultWindowsSdkLocator(OperatingSystem os, WindowsRegistry windowsRegistry) {
         this.os = os;
+        this.windowsRegistry = windowsRegistry;
     }
 
     public ToolSearchResult locateWindowsSdks(File candidate) {
@@ -119,7 +117,7 @@ public class DefaultWindowsSdkLocator extends DefaultWindowsLocator implements W
 
     private void locateSdksInRegistry(Map<File, String> foundPaths) {
         try {
-            WindowsRegistryAccess localMachine = WindowsRegistry.get(WindowsRegistry.HKEY_LOCAL_MACHINE);
+            WindowsRegistryAccess localMachine = windowsRegistry.get(WindowsRegistry.HKEY_LOCAL_MACHINE);
             List<String> subkeys = localMachine.getSubkeys(REGISTRY_ROOTPATH_SDK);
 
             for (String subkey : subkeys) {
@@ -150,7 +148,7 @@ public class DefaultWindowsSdkLocator extends DefaultWindowsLocator implements W
 
     private void locateKitsInRegistry(Map<File, String> foundPaths) {
         try {
-            WindowsRegistryAccess localMachine = WindowsRegistry.get(WindowsRegistry.HKEY_LOCAL_MACHINE);
+            WindowsRegistryAccess localMachine = windowsRegistry.get(WindowsRegistry.HKEY_LOCAL_MACHINE);
             String[] versions = {
                 VERSION_KIT_8,
                 VERSION_KIT_81
@@ -210,7 +208,7 @@ public class DefaultWindowsSdkLocator extends DefaultWindowsLocator implements W
 
     private void determineDefaultSdk(Map<File, String> foundPaths) {
         try {
-            WindowsRegistryAccess localMachine = WindowsRegistry.get(WindowsRegistry.HKEY_LOCAL_MACHINE);
+            WindowsRegistryAccess localMachine = windowsRegistry.get(WindowsRegistry.HKEY_LOCAL_MACHINE);
             String currentPath = localMachine.readString(REGISTRY_ROOTPATH_SDK, REGISTRY_CURRENTFOLDER);
             String currentVersion = formatVersion(localMachine.readString(REGISTRY_ROOTPATH_SDK, REGISTRY_CURRENTVERSION));
             String foundVersion = foundPaths.get(currentPath);
