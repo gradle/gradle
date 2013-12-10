@@ -22,7 +22,6 @@ import org.gradle.internal.os.OperatingSystem
 import org.hamcrest.Matchers
 import spock.lang.IgnoreIf
 import spock.lang.Issue
-import spock.lang.Timeout
 import spock.lang.Unroll
 
 /**
@@ -30,7 +29,6 @@ import spock.lang.Unroll
  */
 class TestingIntegrationTest extends AbstractIntegrationSpec {
 
-    @Timeout(30)
     @Issue("http://issues.gradle.org/browse/GRADLE-1948")
     def "test interrupting its own thread does not kill test execution"() {
         given:
@@ -203,7 +201,6 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
         "useTestNG" | "org.testng:testng:6.3.1" | "org.testng.Converter"
     }
 
-    @Timeout(30)
     @Issue("http://issues.gradle.org/browse/GRADLE-2527")
     def "test class detection works for custom test tasks"() {
         given:
