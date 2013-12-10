@@ -15,16 +15,17 @@
  */
 package org.gradle.nativebinaries.toolchain.internal.msvcpp;
 
+import org.gradle.api.specs.Spec;
+import org.gradle.util.TreeVisitor;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.gradle.api.specs.Spec;
-
 public class DefaultWindowsLocator implements WindowsLocator {
 
-    protected Search locateInProgramFiles(Spec<File> condition, VersionLookupPath... candidateLocations) {
-        Search search = new Search();
+    protected Search locateInProgramFiles(String name, Spec<File> condition, VersionLookupPath... candidateLocations) {
+        Search search = new Search(name);
         for (VersionLookupCandidate candidate : programFileCandidates(candidateLocations)) {
             if (condition.isSatisfiedBy(candidate.file)) {
                 search.found(candidate);
@@ -67,8 +68,8 @@ public class DefaultWindowsLocator implements WindowsLocator {
         return candidates;
     }
 
-    protected Search locateInHierarchy(File candidate, Spec<File> condition) {
-        Search search = new Search();
+    protected Search locateInHierarchy(String name, File candidate, Spec<File> condition) {
+        Search search = new Search(name);
         while (candidate != null) {
             if (condition.isSatisfiedBy(candidate)) {
                 search.found(candidate);
@@ -103,11 +104,16 @@ public class DefaultWindowsLocator implements WindowsLocator {
     }
 
     public class Search implements SearchResult {
+        private final String name;
         private String version;
         private File file;
         private List<File> searchLocations = new ArrayList<File>();
 
-        public boolean isFound() {
+        public Search(String name) {
+            this.name = name;
+        }
+
+        public boolean isAvailable() {
             return file != null;
         }
 
@@ -119,8 +125,13 @@ public class DefaultWindowsLocator implements WindowsLocator {
             return file;
         }
 
-        public List<File> getSearchLocations() {
-            return searchLocations;
+        public void explain(TreeVisitor<? super String> visitor) {
+            visitor.node(String.format("%s cannot be located. Searched in", name));
+            visitor.startChildren();
+            for (File searchLocation : searchLocations) {
+                visitor.node(searchLocation.toString());
+            }
+            visitor.endChildren();
         }
 
         void notFound(File candidate) {

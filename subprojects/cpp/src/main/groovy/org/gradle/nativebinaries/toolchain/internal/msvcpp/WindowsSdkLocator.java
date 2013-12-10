@@ -15,14 +15,13 @@
  */
 package org.gradle.nativebinaries.toolchain.internal.msvcpp;
 
+import org.gradle.nativebinaries.toolchain.internal.ToolSearchResult;
+
 import java.io.File;
 
 public interface WindowsSdkLocator extends WindowsLocator {
 
-    boolean locateWindowsSdks(File candidate);
+    ToolSearchResult locateWindowsSdks(File candidate);
 
     WindowsSdk getDefaultSdk();
-
-    WindowsSdk getSdk(String version);
-
 }

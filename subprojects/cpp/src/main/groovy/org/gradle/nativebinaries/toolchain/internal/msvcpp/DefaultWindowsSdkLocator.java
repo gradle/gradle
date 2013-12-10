@@ -15,17 +15,19 @@
  */
 package org.gradle.nativebinaries.toolchain.internal.msvcpp;
 
-import java.io.File;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.nativeplatform.registry.WindowsRegistry;
 import org.gradle.internal.nativeplatform.registry.WindowsRegistryAccess;
 import org.gradle.internal.nativeplatform.registry.WindowsRegistryException;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.nativebinaries.toolchain.internal.ToolSearchResult;
+import org.gradle.util.TreeVisitor;
+
+import java.io.File;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class DefaultWindowsSdkLocator extends DefaultWindowsLocator implements WindowsSdkLocator {
     private static final String REGISTRY_ROOTPATH_SDK = "SOFTWARE\\Microsoft\\Microsoft SDKs\\Windows";
@@ -42,6 +44,7 @@ public class DefaultWindowsSdkLocator extends DefaultWindowsLocator implements W
     private static final String VERSION_PATH = "path";
     private static final String VERSION_USER = "user";
 
+    private static final String SDK_DISPLAY_NAME = "Windows SDK";
     private static final String NAME_PATH = "Path-resolved Windows SDK";
     private static final String NAME_USER = "User-provided Windows SDK";
     private static final String NAME_SDK = "Windows SDK";
@@ -64,6 +67,7 @@ public class DefaultWindowsSdkLocator extends DefaultWindowsLocator implements W
     private final Map<String, WindowsSdk> foundSdks = new HashMap<String, WindowsSdk>();
     private final OperatingSystem os;
     private WindowsSdk defaultSdk;
+    private ToolSearchResult result;
 
     public DefaultWindowsSdkLocator() {
         this(OperatingSystem.current());
@@ -73,9 +77,9 @@ public class DefaultWindowsSdkLocator extends DefaultWindowsLocator implements W
         this.os = os;
     }
 
-    public boolean locateWindowsSdks(File candidate) {
-        if (!foundSdks.isEmpty()) {
-            return true;
+    public ToolSearchResult locateWindowsSdks(File candidate) {
+        if (result != null) {
+            return result;
         }
 
         Map<File, String> foundPaths = new HashMap<File, String>();
@@ -92,7 +96,17 @@ public class DefaultWindowsSdkLocator extends DefaultWindowsLocator implements W
             determineDefaultSdk(foundPaths);
         }
 
-        return !foundSdks.isEmpty();
+        result = new ToolSearchResult() {
+            public boolean isAvailable() {
+                return defaultSdk != null;
+            }
+
+            public void explain(TreeVisitor<? super String> visitor) {
+                visitor.node(String.format("%s could not be found.", SDK_DISPLAY_NAME));
+            }
+        };
+
+        return result;
     }
 
     public WindowsSdk getDefaultSdk() {
@@ -165,8 +179,8 @@ public class DefaultWindowsSdkLocator extends DefaultWindowsLocator implements W
     private void locateSdkInPath(Map<File, String> foundPaths) {
         File resourceCompiler = os.findInPath(RESOURCE_FILENAME);
         if (resourceCompiler != null) {
-            Search search = locateInHierarchy(resourceCompiler, isWindowsSdk());
-            if (search.isFound()) {
+            Search search = locateInHierarchy(SDK_DISPLAY_NAME, resourceCompiler, isWindowsSdk());
+            if (search.isAvailable()) {
                 File path = search.getResult();
 
                 if (!foundPaths.containsKey(path)) {
@@ -182,8 +196,8 @@ public class DefaultWindowsSdkLocator extends DefaultWindowsLocator implements W
     }
 
     private void locateUserSpecifiedSdk(Map<File, String> foundPaths, File candidate) {
-        Search search = locateInHierarchy(candidate, isWindowsSdk());
-        if (search.isFound()) {
+        Search search = locateInHierarchy(SDK_DISPLAY_NAME, candidate, isWindowsSdk());
+        if (search.isAvailable()) {
             candidate = search.getResult();
             if (!foundPaths.containsKey(candidate)) {
                 foundPaths.put(candidate, VERSION_USER);
