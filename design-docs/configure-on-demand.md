@@ -206,9 +206,9 @@ When running with `--no-rebuild`, the target project of any project dependency s
 
 ## Make gradle CoD 'load' projects on demand
 
-    * Currently, CoD makes projects configured on demand. However, all project instances are created beforehand.
-    In gigantic projects this means that a lot of memory is used for projects that may not be used at all.
-    * Profiling large builds is inconvenient due the extra instances hanging around
+* Currently, CoD makes projects configured on demand. However, all project instances are created beforehand.
+  In gigantic projects this means that a lot of memory is used for projects that may not be used at all.
+* Profiling large builds is inconvenient due the extra instances hanging around
 
 ### User visible changes
 
@@ -220,7 +220,6 @@ performance tests, we probably need dedicated performance tests for CoD
 
 ### Implementation options
 
-    * Project instances are slim and lazily initiated
-    * If we start loading projects on demand, the 'allprojects' and 'subprojects' script blocks will stop working.
-    So the prerequisite to this story might be starting with our Gradle 2.0 idea of pushing allprojects / subprojects / common settings to settings.gradle.
-    * Perhaps it's time to make projects a domain object container and allprojects can be replaced with 'projects.all'
+* Project instances are slim and lazily initiated.
+* If we start loading projects on demand, the 'allprojects' and 'subprojects' script blocks will stop working.
+  So a prerequisite to this story is a new DSL to inject configuration into projects, potentially via the `settings.gradle`
