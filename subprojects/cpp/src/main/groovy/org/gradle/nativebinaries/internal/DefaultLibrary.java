@@ -55,6 +55,10 @@ public class DefaultLibrary extends DefaultNativeComponent implements Library {
         return new ProjectNativeLibraryRequirement(getProjectPath(), this.getName(), "static");
     }
 
+    public NativeLibraryRequirement getApi() {
+        return new ProjectNativeLibraryRequirement(getProjectPath(), this.getName(), "api");
+    }
+
     private void initExportedHeaderTracking() {
         // TODO - headers.srcDirs() should allow a Callable<SourceDirectorySet> for lazy calculation
         final DomainObjectSet<HeaderExportingSourceSet> headerExportingSourceSets = getSource().withType(HeaderExportingSourceSet.class);

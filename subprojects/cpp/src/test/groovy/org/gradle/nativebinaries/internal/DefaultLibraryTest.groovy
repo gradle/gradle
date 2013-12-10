@@ -48,4 +48,13 @@ class DefaultLibraryTest extends Specification {
         requirement.linkage == 'static'
     }
 
+    def "can use api linkage as requirement"() {
+        when:
+        def requirement = library.api
+
+        then:
+        requirement.projectPath == 'project-path'
+        requirement.libraryName == 'someLib'
+        requirement.linkage == 'api'
     }
+}

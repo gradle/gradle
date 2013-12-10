@@ -37,4 +37,9 @@ public interface Library extends NativeComponent {
      * Converts this library to a native library requirement that uses the static library variant.
      */
     NativeLibraryRequirement getStatic();
+
+    /**
+     * Converts this library to a native library requirement that uses the api library linkage.
+     */
+    NativeLibraryRequirement getApi();
 }

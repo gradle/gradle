@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.nativebinaries.language.cpp
+
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativebinaries.language.cpp.fixtures.app.CppHelloWorldApp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.ExeWithDiamondDependencyHelloWorldApp
@@ -148,7 +149,7 @@ class LibraryDependenciesIntegrationTest extends AbstractInstalledToolChainInteg
         ""                          | false             | ""
         " with configure-on-demand" | true              | ""
         " with evaluationDependsOn" | false             | "evaluationDependsOn(':lib')"
-        " with afterEvaluate" | false             | """
+        " with afterEvaluate"       | false             | """
 project.afterEvaluate {
     binaries*.libs*.linkFiles.files.each { println it }
 }
@@ -318,7 +319,8 @@ project.afterEvaluate {
         println sharedLibrary("build/binaries/helloSharedLibrary/hello").binaryInfo.listLinkedLibraries()
     }
 
-    def "library implements api provided by another library"() {
+    @Unroll
+    def "library requires api of another library via #notationName notation"() {
         given:
         def app = new CppHelloWorldApp()
         app.executable.writeSources(file("src/main"))
@@ -336,9 +338,9 @@ project.afterEvaluate {
                 helloApi {}
                 hello {}
             }
-            sources.main.cpp.lib library: 'helloApi', linkage: 'api'
+            sources.main.cpp.lib ${notation}
             sources.main.cpp.lib library: 'hello'
-            sources.hello.cpp.lib library: 'helloApi', linkage: 'api'
+            sources.hello.cpp.lib ${notation}
         """
 
         when:
@@ -346,6 +348,11 @@ project.afterEvaluate {
 
         then:
         installation("build/install/mainExecutable").exec().out == app.englishOutput
+
+        where:
+        notationName | notation
+        "direct"     | "libraries.helloApi.api"
+        "map"        | "library: 'helloApi', linkage: 'api'"
     }
 
     def "can compile but not link when executable depends on api of library required for linking"() {
