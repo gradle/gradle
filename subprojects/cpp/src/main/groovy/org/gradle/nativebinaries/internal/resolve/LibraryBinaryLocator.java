@@ -52,6 +52,9 @@ class LibraryBinaryLocator {
         if ("static".equals(linkage)) {
             return StaticLibraryBinary.class;
         }
+        if ("api".equals(linkage)) {
+            return ApiLibraryBinary.class;
+        }
         if ("shared".equals(linkage) || linkage == null) {
             return SharedLibraryBinary.class;
         }

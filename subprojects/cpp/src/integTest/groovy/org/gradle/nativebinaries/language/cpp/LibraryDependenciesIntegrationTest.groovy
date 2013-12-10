@@ -317,4 +317,59 @@ project.afterEvaluate {
         println executable("build/binaries/mainExecutable/main").binaryInfo.listLinkedLibraries()
         println sharedLibrary("build/binaries/helloSharedLibrary/hello").binaryInfo.listLinkedLibraries()
     }
+
+    def "library implements api provided by another library"() {
+        given:
+        def app = new CppHelloWorldApp()
+        app.executable.writeSources(file("src/main"))
+
+        app.library.headerFiles*.writeToDir(file("src/helloApi"))
+        app.library.sourceFiles*.writeToDir(file("src/hello"))
+
+        and:
+        buildFile << """
+            apply plugin: "cpp"
+            executables {
+                main {}
+            }
+            libraries {
+                helloApi {}
+                hello {}
+            }
+            sources.main.cpp.lib library: 'helloApi', linkage: 'api'
+            sources.main.cpp.lib library: 'hello'
+            sources.hello.cpp.lib library: 'helloApi', linkage: 'api'
+        """
+
+        when:
+        succeeds "installMainExecutable"
+
+        then:
+        installation("build/install/mainExecutable").exec().out == app.englishOutput
+    }
+
+    def "can compile but not link when executable depends on api of library required for linking"() {
+        given:
+        def app = new CppHelloWorldApp()
+        app.executable.writeSources(file("src/main"))
+        app.library.writeSources(file("src/hello"))
+
+        and:
+        buildFile << """
+            apply plugin: "cpp"
+            executables {
+                main {}
+            }
+            libraries {
+                hello {}
+            }
+            sources.main.cpp.lib library: 'hello', linkage: 'api'
+        """
+
+        when:
+        fails "mainExecutable"
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':linkMainExecutable'.")
+    }
 }

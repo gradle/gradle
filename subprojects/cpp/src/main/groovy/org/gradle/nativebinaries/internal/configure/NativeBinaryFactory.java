@@ -52,6 +52,7 @@ class NativeBinaryFactory {
     public Collection<NativeBinary> createNativeBinaries(NativeComponent component, ToolChain toolChain, Platform platform, BuildType buildType, Flavor flavor) {
         Collection<NativeBinary> binaries = new LinkedList<NativeBinary>();
         if (component instanceof Library) {
+            binaries.add(createNativeBinary(DefaultApiLibraryBinary.class, component, toolChain, platform, buildType, flavor));
             binaries.add(createNativeBinary(DefaultSharedLibraryBinary.class, component, toolChain, platform, buildType, flavor));
             binaries.add(createNativeBinary(DefaultStaticLibraryBinary.class, component, toolChain, platform, buildType, flavor));
         } else {
