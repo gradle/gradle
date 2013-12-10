@@ -56,7 +56,7 @@ See [continuous-delivery-for-c-plus-plus.md](done/continuous-delivery-for-c-plus
 
 # Milestone 1
 
-## Story: Allow customization of binaries before and after linking
+## Story: Allow customization of binaries before and after linking (DONE)
 
 This story introduces a lifecycle task for each binary, to allow tasks to be wired into the task graph for a given binary. These tasks will be able to modify the object files or binary files before they are consumed.
 
@@ -87,7 +87,7 @@ This story introduces a lifecycle task for each binary, to allow tasks to be wir
         binary.builtBy stripTask
     }
 
-## Story: Allow customization of binary compilation and linking
+## Story: Allow customization of binary compilation and linking (DONE)
 
 This story allows some configuration of the settings used to compile and link a given binary.
 
@@ -136,7 +136,7 @@ Later stories will add more flexible and convenient support for customization of
         objectFileDirectory = file("$buildDir/${name}/obj")
     }
 
-## Story: Ensure CI builds exercise test coverage for supported tool chains
+## Story: Ensure CI builds exercise test coverage for supported tool chains (DONE)
 
 The CI builds include coverage for each supported tool chain. However, the coverage silently ignores tool chains which are not
 available on the current machine. Instead, the CI builds should asert that every expected tool chain is avilable on the current
@@ -1188,6 +1188,7 @@ This story moves definition and configuration of the source sets for a component
     - Add a `NativeComponent.source(Action<? super CompositeSourceSet>)` method.
     - Change language plugins to add source sets via the component's source container rather than the project's source container.
     - This step allows configuration via `component.source { ... }`.
+1. Review samples to make use of this.
 
 #### Example DSL
 

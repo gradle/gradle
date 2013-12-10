@@ -82,7 +82,7 @@ In this story, the dependency resolution result is changed so that it produces a
 
 - Nothing beyond some unit tests for the new methods and types.
 
-## Story: Dependency resolution result exposes local component instances
+## Story: Dependency resolution result exposes local component instances (DONE)
 
 This story changes the dependency resolution model to distinguish between component instances that are produced by the build and those that are
 produced outside the build. This will allow IDE integrations to map dependencies by exposing this information about the source of a component
@@ -129,17 +129,6 @@ This will allow a consumer to extract the external and project components as fol
     - for an external module component:
         - `id` is a `ModuleComponentIdentifier` with correct `group`, `module`, `version` values.
         - `moduleVersion` has the same attributes as `id`.
-
-### Open issues
-
-- The results are actually component _instances_ rather than components (as per the definition above). Perhaps come up with a new name for 'component'.
-- Packages for the new types.
-- Convenience for casting selector and id?
-- Convenience for selecting things with a given id type or selector type?
-- Rename `DependencyResult` to use 'requirement' instead of 'dependency'.
-- Rename `ResolvedComponentResult.getId()` to something that is more explicit about the lack of guarantees. Maybe `getLocalId()` or ...
-- Rename internal class `ModuleVersionSelection` and its methods
-- Extract a `ModuleComponentMetadataDetails` out of `ComponentMetadataDetails` and use `ComponentIdentifier` instead of `ModuleVersionIdentifier` as id.
 
 ## Story: Dependency reports indicate the source of a component
 
@@ -200,6 +189,14 @@ This story exposes different kinds of consumers for a dependency graph.
 
 - Is it a bit of a stretch to call some of these consumers a 'component'?
 - Sync this up with the variant resolution stories below. When resolving a native component's dependencies, the `root` should represent the consuming native component.
+- The results are actually component _instances_ rather than components (as per the definition above). Perhaps come up with a new name for 'component'.
+- Packages for the new types.
+- Convenience for casting selector and id?
+- Convenience for selecting things with a given id type or selector type?
+- Rename `DependencyResult` to use 'requirement' instead of 'dependency'.
+- Rename `ResolvedComponentResult.getId()` to something that is more explicit about the lack of guarantees. Maybe `getLocalId()` or ...
+- Rename internal class `ModuleVersionSelection` and its methods
+- Extract a `ModuleComponentMetadataDetails` out of `ComponentMetadataDetails` and use `ComponentIdentifier` instead of `ModuleVersionIdentifier` as id.
 
 ## Story: Dependency resolution result exposes local component instances that are not module versions
 
