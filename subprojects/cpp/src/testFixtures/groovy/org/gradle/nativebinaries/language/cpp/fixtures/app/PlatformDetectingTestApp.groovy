@@ -46,7 +46,7 @@ int main () {
     cout << "linux";
 #elif defined(__APPLE__) && defined(__MACH__)
     cout << "os x";
-#elif defined(_WIN32) || defined (_WIN64)
+#elif defined(_WIN32) || defined (_WIN64) || defined (__CYGWIN__)
     cout << "windows";
 #else
     cout << "unknown";
