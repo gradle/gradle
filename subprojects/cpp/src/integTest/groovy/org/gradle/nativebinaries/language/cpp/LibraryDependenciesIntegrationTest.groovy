@@ -28,6 +28,17 @@ import spock.lang.Unroll
 class LibraryDependenciesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def "setup"() {
         settingsFile << "rootProject.name = 'test'"
+        buildFile << """
+            allprojects {
+                apply plugin: "cpp"
+                // Allow static libraries to be linked into shared
+                binaries.withType(StaticLibraryBinary) {
+                    if (toolChain in Gcc || toolChain in Clang) {
+                        cppCompiler.args '-fPIC'
+                    }
+                }
+            }
+"""
     }
 
     def "can use map notation to reference library in same project"() {
@@ -38,7 +49,6 @@ class LibraryDependenciesIntegrationTest extends AbstractInstalledToolChainInteg
 
         and:
         buildFile << """
-            apply plugin: "cpp"
             executables {
                 main {}
             }
@@ -63,7 +73,6 @@ class LibraryDependenciesIntegrationTest extends AbstractInstalledToolChainInteg
 
         and:
         buildFile << """
-            apply plugin: "cpp"
             executables {
                 main {
                     binaries.all { binary ->
@@ -91,7 +100,6 @@ class LibraryDependenciesIntegrationTest extends AbstractInstalledToolChainInteg
 
         and:
         buildFile << """
-            apply plugin: "cpp"
             executables {
                 main {}
             }
@@ -121,14 +129,12 @@ class LibraryDependenciesIntegrationTest extends AbstractInstalledToolChainInteg
         buildFile << """
         project(":exe") {
             ${explicitEvaluation}
-            apply plugin: "cpp"
             executables {
                 main {}
             }
             sources.main.cpp.lib project: ':lib', library: 'hello'
         }
         project(":lib") {
-            apply plugin: "cpp"
             libraries {
                 hello {}
             }
@@ -165,29 +171,20 @@ project.afterEvaluate {
         settingsFile.text = "include ':exe', ':lib', ':greet'"
         buildFile << """
         project(":exe") {
-            apply plugin: "cpp"
             executables {
                 main {}
             }
             sources.main.cpp.lib project: ':lib', library: 'hello'
         }
         project(":lib") {
-            apply plugin: "cpp"
             libraries {
                 hello {}
             }
             sources.hello.cpp.lib project: ':greet', library: 'greetings', linkage: 'static'
         }
         project(":greet") {
-            apply plugin: "cpp"
             libraries {
-                greetings {
-                    binaries.withType(StaticLibraryBinary) {
-                        if (toolChain in Gcc || toolChain in Clang) {
-                            cppCompiler.args '-fPIC'
-                        }
-                    }
-                }
+                greetings {}
             }
         }
         """
@@ -213,13 +210,7 @@ project.afterEvaluate {
                 main {}
             }
             libraries {
-                greetings {
-                    binaries.withType(StaticLibraryBinary) {
-                        if (toolChain in Gcc || toolChain in Clang) {
-                            cppCompiler.args '-fPIC'
-                        }
-                    }
-                }
+                greetings {}
             }
             sources.main.cpp.lib project: ':lib', library: 'hello'
         }
@@ -252,13 +243,7 @@ project.afterEvaluate {
             }
             libraries {
                 hello {}
-                greetings {
-                    binaries.withType(StaticLibraryBinary) {
-                        if (toolChain in Gcc || toolChain in Clang) {
-                            cppCompiler.args '-fPIC'
-                        }
-                    }
-                }
+                greetings {}
             }
             sources.main.cpp.lib libraries.hello.shared
             sources.main.cpp.lib libraries.greetings.static
@@ -289,13 +274,7 @@ project.afterEvaluate {
             }
             libraries {
                 hello {}
-                greetings {
-                    binaries.withType(StaticLibraryBinary) {
-                        if (toolChain in Gcc || toolChain in Clang) {
-                            cppCompiler.args '-fPIC'
-                        }
-                    }
-                }
+                greetings {}
             }
             sources.main.cpp.lib libraries.hello.shared
             sources.main.cpp.lib libraries.greetings.shared
@@ -353,6 +332,35 @@ project.afterEvaluate {
         notationName | notation
         "direct"     | "libraries.helloApi.api"
         "map"        | "library: 'helloApi', linkage: 'api'"
+    }
+
+    def "can use api linkage for component graph with library dependency cycle"() {
+        given:
+        def app = new ExeWithLibraryUsingLibraryHelloWorldApp()
+        app.executable.writeSources(file("src/main"))
+        app.library.writeSources(file("src/hello"))
+        app.greetingsHeader.writeToDir(file("src/hello"))
+        app.greetingsSources*.writeToDir(file("src/greetings"))
+
+        and:
+        buildFile << """
+            executables {
+                main {}
+            }
+            libraries {
+                hello {}
+                greetings {}
+            }
+            sources.main.cpp.lib library: 'hello'
+            sources.hello.cpp.lib library: 'greetings', linkage: 'static'
+            sources.greetings.cpp.lib library: 'hello', linkage: 'api'
+        """
+
+        when:
+        succeeds "installMainExecutable"
+
+        then:
+        installation("build/install/mainExecutable").exec().out == app.englishOutput
     }
 
     def "can compile but not link when executable depends on api of library required for linking"() {
