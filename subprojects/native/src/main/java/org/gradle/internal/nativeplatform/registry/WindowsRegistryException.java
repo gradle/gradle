@@ -13,13 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.nativebinaries.toolchain.internal.msvcpp;
+package org.gradle.internal.nativeplatform.registry;
 
-import java.io.File;
+import org.gradle.api.GradleException;
 
-public interface VisualStudioLocator extends WindowsLocator {
+public class WindowsRegistryException extends GradleException {
 
-    SearchResult locateVisualStudio(File candidate);
+    public WindowsRegistryException() {
+        super();
+    }
 
-    SearchResult locateDefaultVisualStudio();
+    public WindowsRegistryException(String message) {
+        super(message);
+    }
+
+    public WindowsRegistryException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
 }

@@ -17,9 +17,12 @@ package org.gradle.nativebinaries.toolchain.internal.msvcpp;
 
 import java.io.File;
 
-public interface VisualStudioLocator extends WindowsLocator {
+public interface WindowsSdkLocator extends WindowsLocator {
 
-    SearchResult locateVisualStudio(File candidate);
+    boolean locateWindowsSdks(File candidate);
 
-    SearchResult locateDefaultVisualStudio();
+    WindowsSdk getDefaultSdk();
+
+    WindowsSdk getSdk(String version);
+
 }

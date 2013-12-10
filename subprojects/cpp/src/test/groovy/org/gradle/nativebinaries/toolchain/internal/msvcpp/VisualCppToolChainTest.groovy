@@ -19,6 +19,7 @@ package org.gradle.nativebinaries.toolchain.internal.msvcpp
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.toolchain.internal.ToolChainAvailability
+import org.gradle.nativebinaries.toolchain.internal.ToolSearchResult
 import org.gradle.process.internal.ExecActionFactory
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -29,16 +30,20 @@ class VisualCppToolChainTest extends Specification {
     TestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
     final FileResolver fileResolver = Mock(FileResolver)
     final ExecActionFactory execActionFactory = Mock(ExecActionFactory)
-    final VisualStudioLocator.SearchResult visualStudio = Mock(VisualStudioLocator.SearchResult)
-    final VisualStudioLocator.SearchResult windowsSdk = Mock(VisualStudioLocator.SearchResult)
+    final WindowsLocator.SearchResult visualStudio = Mock(WindowsLocator.SearchResult)
+    final ToolSearchResult windowsSdkLookup = Mock(ToolSearchResult)
+    final WindowsSdk windowsSdk = Mock(WindowsSdk)
     final VisualStudioLocator visualStudioLocator = Stub(VisualStudioLocator) {
         locateDefaultVisualStudio() >> visualStudio
-        locateDefaultWindowsSdk() >> windowsSdk
+    }
+    final WindowsSdkLocator windowsSdkLocator = Stub(WindowsSdkLocator) {
+        locateWindowsSdks(_) >> windowsSdkLookup
+        getDefaultSdk() >> windowsSdk
     }
     final OperatingSystem operatingSystem = Stub(OperatingSystem) {
         isWindows() >> true
     }
-    final toolChain = new VisualCppToolChain("visualCpp", operatingSystem, fileResolver, execActionFactory, visualStudioLocator)
+    final toolChain = new VisualCppToolChain("visualCpp", operatingSystem, fileResolver, execActionFactory, visualStudioLocator, windowsSdkLocator)
 
     def "uses .lib file for shared library at link time"() {
         given:
@@ -60,7 +65,7 @@ class VisualCppToolChainTest extends Specification {
         given:
         def operatingSystem = Stub(OperatingSystem)
         operatingSystem.isWindows() >> false
-        def toolChain = new VisualCppToolChain("visualCpp", operatingSystem, fileResolver, execActionFactory, visualStudioLocator)
+        def toolChain = new VisualCppToolChain("visualCpp", operatingSystem, fileResolver, execActionFactory, visualStudioLocator, windowsSdkLocator)
 
         when:
         def availability = new ToolChainAvailability()
@@ -75,7 +80,7 @@ class VisualCppToolChainTest extends Specification {
         when:
         visualStudio.available >> false
         visualStudio.explain(_) >> { TreeVisitor<String> visitor -> visitor.node("vs install not found anywhere") }
-        windowsSdk.available >> false
+        windowsSdkLookup.available >> false
 
         and:
         def availability = new ToolChainAvailability()
@@ -89,8 +94,8 @@ class VisualCppToolChainTest extends Specification {
     def "is unavailable when windows SDK cannot be located"() {
         when:
         visualStudio.available >> true
-        windowsSdk.available >> false
-        windowsSdk.explain(_) >> { TreeVisitor<String> visitor -> visitor.node("sdk not found anywhere") }
+        windowsSdkLookup.available >> false
+        windowsSdkLookup.explain(_) >> { TreeVisitor<String> visitor -> visitor.node("sdk not found anywhere") }
 
         and:
         def availability = new ToolChainAvailability()
@@ -104,7 +109,7 @@ class VisualCppToolChainTest extends Specification {
     def "is available when visual studio installation and windows SDK can be located"() {
         when:
         visualStudio.available >> true
-        windowsSdk.available >> true
+        windowsSdkLookup.available >> true
 
         and:
         def availability = new ToolChainAvailability()
@@ -126,8 +131,8 @@ class VisualCppToolChainTest extends Specification {
 
         and:
         fileResolver.resolve("windows-sdk-dir") >> file("win-sdk")
-        visualStudioLocator.locateWindowsSdk(file("win-sdk")) >> windowsSdk
-        windowsSdk.available >> true
+        windowsSdkLocator.locateWindowsSdks(file("win-sdk")) >> windowsSdkLookup
+        windowsSdkLookup.available >> true
 
         and:
         0 * _._
