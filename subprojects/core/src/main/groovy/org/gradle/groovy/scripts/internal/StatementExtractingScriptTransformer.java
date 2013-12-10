@@ -126,7 +126,7 @@ public class StatementExtractingScriptTransformer extends AbstractScriptTransfor
 
         private Inverse(String id, Spec<? super Statement> originalSpec) {
             this.id = id;
-            this.transformer = new FilteringPassthroughTransformer(Specs.not(originalSpec));
+            this.transformer = new FilteringPassthroughTransformer(Specs.<Statement>not(originalSpec));
         }
 
         protected int getPhase() {
