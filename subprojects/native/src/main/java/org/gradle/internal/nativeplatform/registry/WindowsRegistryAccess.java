@@ -49,15 +49,15 @@ public class WindowsRegistryAccess {
         try {
             Class<? extends Preferences> preferencesClass = preferences.getClass();
 
-            regOpenKey = preferencesClass.getDeclaredMethod(REG_OPEN_KEY, new Class[] { int.class, byte[].class, int.class });
+            regOpenKey = preferencesClass.getDeclaredMethod(REG_OPEN_KEY, new Class[]{int.class, byte[].class, int.class});
             regOpenKey.setAccessible(true);
-            regCloseKey = preferencesClass.getDeclaredMethod(REG_CLOSE_KEY, new Class[] { int.class });
+            regCloseKey = preferencesClass.getDeclaredMethod(REG_CLOSE_KEY, new Class[]{int.class});
             regCloseKey.setAccessible(true);
-            regQueryValueEx = preferencesClass.getDeclaredMethod(REG_QUERY_VALUE_EX, new Class[] { int.class, byte[].class });
+            regQueryValueEx = preferencesClass.getDeclaredMethod(REG_QUERY_VALUE_EX, new Class[]{int.class, byte[].class});
             regQueryValueEx.setAccessible(true);
-            regQueryInfoKey = preferencesClass.getDeclaredMethod(REG_QUERY_INFO_KEY, new Class[]{ int.class });
+            regQueryInfoKey = preferencesClass.getDeclaredMethod(REG_QUERY_INFO_KEY, new Class[]{int.class});
             regQueryInfoKey.setAccessible(true);
-            regEnumKeyEx = preferencesClass.getDeclaredMethod(REG_ENUM_KEY_EX, new Class[] { int.class, int.class, int.class });
+            regEnumKeyEx = preferencesClass.getDeclaredMethod(REG_ENUM_KEY_EX, new Class[]{int.class, int.class, int.class});
             regEnumKeyEx.setAccessible(true);
 
             this.key = key;
