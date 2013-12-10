@@ -57,21 +57,25 @@ public class WindowsSdk implements Named {
     };
 
     private final File baseDir;
+    private final String version;
+    private final String name;
 
-    public WindowsSdk(File baseDir) {
+    public WindowsSdk(File baseDir, String version, String name) {
         this.baseDir = baseDir;
+        this.version = version;
+        this.name = name;
     }
 
     public String getName() {
-        return "Windows SDK " + getVersion();
+        return name;
+    }
+
+    public String getVersion() {
+        return version;
     }
 
     public File getResourceCompiler(Platform platform) {
         return new File(getBinDir(platform), "rc.exe");
-    }
-
-    public String getVersion() {
-        return baseDir.getName();
     }
 
     public File getBinDir(Platform platform) {

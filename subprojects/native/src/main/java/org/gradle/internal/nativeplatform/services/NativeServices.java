@@ -30,6 +30,7 @@ import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.nativeplatform.filesystem.FileSystems;
 import org.gradle.internal.nativeplatform.jna.*;
 import org.gradle.internal.nativeplatform.processenvironment.NativePlatformBackedProcessEnvironment;
+import org.gradle.internal.nativeplatform.registry.WindowsRegistry;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.slf4j.Logger;
@@ -140,6 +141,10 @@ public class NativeServices extends DefaultServiceRegistry {
             LOGGER.debug("Unable to load native library. Continuing with fallback. Failure: {}", format(e));
             return new NoOpConsoleDetector();
         }
+    }
+
+    protected WindowsRegistry createWindowsRegistry() {
+        return new WindowsRegistry();
     }
 
     protected LibC createLibC() {

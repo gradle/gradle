@@ -38,14 +38,16 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
 
     private final ExecActionFactory execActionFactory;
     private final VisualStudioLocator visualStudioLocator;
+    private final WindowsSdkLocator windowsSdkLocator;
     private File installDir;
     private File windowsSdkDir;
 
     public VisualCppToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory,
-                              VisualStudioLocator visualStudioLocator) {
+                              VisualStudioLocator visualStudioLocator, WindowsSdkLocator windowsSdkLocator) {
         super(name, operatingSystem, fileResolver);
         this.execActionFactory = execActionFactory;
         this.visualStudioLocator = visualStudioLocator;
+        this.windowsSdkLocator = windowsSdkLocator;
     }
 
     @Override
@@ -75,11 +77,8 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
         return visualStudioLocator.locateDefaultVisualStudio();
     }
 
-    private VisualStudioLocator.SearchResult locateWindowsSdk() {
-        if (windowsSdkDir != null) {
-            visualStudioLocator.locateWindowsSdk(windowsSdkDir);
-        }
-        return visualStudioLocator.locateDefaultWindowsSdk();
+    private ToolSearchResult locateWindowsSdk() {
+        return windowsSdkLocator.locateWindowsSdks(windowsSdkDir);
     }
 
     public File getInstallDir() {
@@ -102,7 +101,9 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
         assertAvailable();
         checkPlatform(targetPlatform);
         VisualStudioInstall visualStudioInstall = locateVisualStudioInstall();
-        WindowsSdk windowsSdk = new WindowsSdk(locateWindowsSdk().getResult());
+
+        WindowsSdk windowsSdk = windowsSdkLocator.getDefaultSdk();
+
         return new VisualCppPlatformToolChain(visualStudioInstall, windowsSdk, targetPlatform);
     }
 

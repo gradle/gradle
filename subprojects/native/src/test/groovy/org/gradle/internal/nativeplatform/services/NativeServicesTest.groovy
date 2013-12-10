@@ -18,6 +18,7 @@ package org.gradle.internal.nativeplatform.services
 import org.gradle.internal.nativeplatform.console.ConsoleDetector
 import org.gradle.internal.nativeplatform.ProcessEnvironment
 import org.gradle.internal.nativeplatform.filesystem.FileSystem
+import org.gradle.internal.nativeplatform.registry.WindowsRegistry
 import org.gradle.internal.os.OperatingSystem
 import spock.lang.Specification
 
@@ -42,5 +43,10 @@ class NativeServicesTest extends Specification {
     def "makes a ConsoleDetector available"() {
         expect:
         services.get(ConsoleDetector) != null
+    }
+
+    def "makes a WindowsRegistry available"() {
+        expect:
+        services.get(WindowsRegistry) != null
     }
 }
