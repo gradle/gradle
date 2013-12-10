@@ -48,15 +48,17 @@ import java.util.Map;
 
 public abstract class DefaultScript extends BasicScript {
     private static final Logger LOGGER = Logging.getLogger(Script.class);
-    private ServiceRegistry services;
+
     private FileOperations fileOperations;
     private ProcessOperations processOperations;
     private LoggingManager loggingManager;
 
+    public static final String SCRIPT_SERVICES_PROPERTY = "__scriptServices";
+    public ServiceRegistry __scriptServices;
 
     public void init(final Object target, ServiceRegistry services) {
         super.init(target, services);
-        this.services = services;
+        this.__scriptServices = services;
         loggingManager = services.get(LoggingManager.class);
         Instantiator instantiator = services.get(Instantiator.class);
         if (target instanceof FileOperations) {
@@ -77,7 +79,7 @@ public abstract class DefaultScript extends BasicScript {
     }
 
     private DefaultObjectConfigurationAction createObjectConfigurationAction() {
-        return new DefaultObjectConfigurationAction(getFileResolver(), services.get(ScriptPluginFactory.class), getScriptTarget());
+        return new DefaultObjectConfigurationAction(getFileResolver(), __scriptServices.get(ScriptPluginFactory.class), getScriptTarget());
     }
 
     public void apply(Closure closure) {
@@ -93,7 +95,7 @@ public abstract class DefaultScript extends BasicScript {
     }
 
     public ScriptHandler getBuildscript() {
-        return services.get(ScriptHandler.class);
+        return __scriptServices.get(ScriptHandler.class);
     }
 
     public void buildscript(Closure configureClosure) {
