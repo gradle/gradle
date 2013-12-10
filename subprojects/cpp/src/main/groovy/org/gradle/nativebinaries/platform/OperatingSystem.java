@@ -23,6 +23,9 @@ import org.gradle.api.Named;
  */
 @Incubating
 public interface OperatingSystem extends Named {
+    /**
+     * Is this the current OS?
+     */
     boolean isCurrent();
 
     /**
