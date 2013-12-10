@@ -21,9 +21,7 @@ import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.internal.nativeplatform.ProcessEnvironment;
 import org.gradle.internal.nativeplatform.services.NativeServices;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.nativebinaries.platform.internal.ArchitectureNotationParser;
 import org.gradle.nativebinaries.platform.internal.DefaultPlatform;
-import org.gradle.nativebinaries.platform.internal.OperatingSystemNotationParser;
 import org.gradle.nativebinaries.toolchain.Clang;
 import org.gradle.nativebinaries.toolchain.Gcc;
 import org.gradle.nativebinaries.toolchain.VisualCpp;
@@ -41,7 +39,9 @@ import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.test.fixtures.file.TestFile;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class AvailableToolChains {
     /**
@@ -324,7 +324,7 @@ public class AvailableToolChains {
         }
 
         public InstalledVisualCpp withInstall(VisualStudioInstall install) {
-            DefaultPlatform targetPlatform = new DefaultPlatform("default", ArchitectureNotationParser.parser(), OperatingSystemNotationParser.parser());
+            DefaultPlatform targetPlatform = new DefaultPlatform("default");
             installDir = install.getVisualStudioDir();
             version = install.getVisualStudioVersion();
             pathEntries.add(install.getVisualCppBin(targetPlatform));

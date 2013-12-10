@@ -15,10 +15,20 @@
  */
 package org.gradle.nativebinaries.platform.internal
 
+import org.gradle.api.InvalidUserDataException
 import spock.lang.Specification
 
 class OperatingSystemNotationParserTest extends Specification {
     def parser = OperatingSystemNotationParser.parser()
+
+    def "fails when parsing unknown operating system"() {
+        when:
+        parser.parseNotation("bad")
+
+        then:
+        def e = thrown(InvalidUserDataException)
+        e.message.contains("One of the following values: 'windows', 'osx', 'mac os x', 'linux', 'solaris', 'sunos'")
+    }
 
     def "parses windows"() {
         when:

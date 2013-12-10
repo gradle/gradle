@@ -15,14 +15,24 @@
  */
 package org.gradle.nativebinaries.platform.internal
 
+import org.gradle.api.InvalidUserDataException
 import spock.lang.Specification
 
 class ArchitectureNotationParserTest extends Specification {
     def parser = ArchitectureNotationParser.parser()
 
+    def "fails when parsing unknown architecture"() {
+        when:
+        parseNotation("bad")
+
+        then:
+        def e = thrown(InvalidUserDataException)
+        e.message.contains("One of the following values: 'x86', 'i386', 'ia-32', 'x86_64', 'amd64', 'x64', 'x86-64',")
+    }
+
     def "parses intel architectures"() {
         when:
-        def arch = parser.parseNotation(archString)
+        def arch = parseNotation(archString)
 
         then:
         arch.instructionSet == ArchitectureInternal.InstructionSet.X86
@@ -45,7 +55,7 @@ class ArchitectureNotationParserTest extends Specification {
 
     def "parses itanium architecture"() {
         when:
-        def arch = parser.parseNotation("ia-64")
+        def arch = parseNotation("ia-64")
         then:
         arch.instructionSet == ArchitectureInternal.InstructionSet.ITANIUM
         arch.registerSize == 64
@@ -54,7 +64,7 @@ class ArchitectureNotationParserTest extends Specification {
 
     def "parses ppc architecture"() {
         when:
-        def arch = parser.parseNotation(archString)
+        def arch = parseNotation(archString)
 
         then:
         arch.instructionSet == ArchitectureInternal.InstructionSet.PPC
@@ -71,7 +81,7 @@ class ArchitectureNotationParserTest extends Specification {
 
     def "parses sparc architectures"() {
         when:
-        def arch = parser.parseNotation(archString)
+        def arch = parseNotation(archString)
 
         then:
         arch.instructionSet == ArchitectureInternal.InstructionSet.SPARC
@@ -92,10 +102,14 @@ class ArchitectureNotationParserTest extends Specification {
 
     def "parses arm architecture"() {
         when:
-        def arch = parser.parseNotation("arm")
+        def arch = parseNotation("arm")
         then:
         arch.instructionSet == ArchitectureInternal.InstructionSet.ARM
         arch.registerSize == 32
         arch.name == "arm"
+    }
+
+    private ArchitectureInternal parseNotation(String archString) {
+        parser.parseNotation(archString) as ArchitectureInternal
     }
 }

@@ -15,12 +15,14 @@
  */
 package org.gradle.nativebinaries.platform.internal;
 
-import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.internal.typeconversion.NotationParser;
-import org.gradle.internal.typeconversion.UnsupportedNotationException;
+import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.internal.typeconversion.TypedNotationParser;
+import org.gradle.internal.typeconversion.UnsupportedNotationException;
 import org.gradle.nativebinaries.platform.OperatingSystem;
+import org.gradle.util.GUtil;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -63,11 +65,12 @@ public class OperatingSystemNotationParser {
 
         @Override
         public void describe(Collection<String> candidateFormats) {
-            candidateFormats.addAll(WINDOWS_ALIASES);
-            candidateFormats.addAll(OSX_ALIASES);
-            candidateFormats.addAll(LINUX_ALIASES);
-            candidateFormats.addAll(SOLARIS_ALIASES);
+            List<String> allValues = new ArrayList<String>();
+            allValues.addAll(WINDOWS_ALIASES);
+            allValues.addAll(OSX_ALIASES);
+            allValues.addAll(LINUX_ALIASES);
+            allValues.addAll(SOLARIS_ALIASES);
+            candidateFormats.add("One of the following values: " + GUtil.toString(allValues));
         }
     }
-
 }
