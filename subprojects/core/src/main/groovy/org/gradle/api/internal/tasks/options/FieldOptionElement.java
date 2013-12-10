@@ -28,13 +28,13 @@ public class FieldOptionElement extends AbstractOptionElement {
     public static FieldOptionElement create(Option option, Field field, OptionNotationParserFactory optionNotationParserFactory){
         String optionName = calOptionName(option, field);
         Class<?> optionType = calculateOptionType(field.getType());
-        ValueAwareNotationParser notationParser = createNotationParserOrFail(optionNotationParserFactory, optionName, optionType, field.getDeclaringClass());
+        ValueAwareNotationParser<?> notationParser = createNotationParserOrFail(optionNotationParserFactory, optionName, optionType, field.getDeclaringClass());
         return new FieldOptionElement(field, optionName, option, optionType, notationParser);
     }
 
     private final Field field;
 
-    public FieldOptionElement(Field field, String optionName, Option option, Class<?> optionType, ValueAwareNotationParser notationParser) {
+    public FieldOptionElement(Field field, String optionName, Option option, Class<?> optionType, ValueAwareNotationParser<?> notationParser) {
         super(optionName, option, optionType, field.getDeclaringClass(), notationParser);
         this.field = field;
         getSetter();

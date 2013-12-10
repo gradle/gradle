@@ -23,24 +23,24 @@ import java.util.Collection;
 import java.util.List;
 
 public class OptionNotationParserFactory {
-    public ValueAwareNotationParser toComposite(Class<?> targetType) {
+    public ValueAwareNotationParser<Object> toComposite(Class<?> targetType) throws OptionValidationException {
         assert targetType != null : "resultingType cannot be null";
-        List<NotationParser<CharSequence, ?>> parsers = new ArrayList<NotationParser<CharSequence, ?>>();
+        List<ValueAwareNotationParser<?>> parsers = new ArrayList<ValueAwareNotationParser<?>>();
 
         if (targetType == Void.TYPE) {
             parsers.add(new UnsupportedNotationParser());
         }
         if (targetType.isAssignableFrom(String.class)) {
-            parsers.add(new NoDescriptionValuesJustReturningParser(targetType));
+            parsers.add(new NoDescriptionValuesJustReturningParser<Object>(targetType));
         }
         if (targetType.isEnum()) {
-            parsers.add(new NoDescriptionValuesJustReturningParser(targetType));
+            parsers.add(new NoDescriptionValuesJustReturningParser<Object>(targetType));
             parsers.add(new EnumFromCharSequenceNotationParser<Enum>(targetType.asSubclass(Enum.class)));
         }
         if (parsers.isEmpty()) {
-            throw new OptionValidationException(String.format("resultingType '%s' not supported", targetType.getName()));
+            throw new OptionValidationException(String.format("Don't know how to convert strings to type '%s'.", targetType.getName()));
         }
-        return new ValueAwareCompositeNotationParser(parsers);
+        return new ValueAwareCompositeNotationParser<Object>(parsers);
     }
 
     private class UnsupportedNotationParser implements ValueAwareNotationParser<Object> {
@@ -57,7 +57,7 @@ public class OptionNotationParserFactory {
     }
 
     private class NoDescriptionValuesJustReturningParser<T> extends JustReturningParser<CharSequence, T> implements ValueAwareNotationParser<T> {
-        public NoDescriptionValuesJustReturningParser(Class<T> targetType) {
+        public NoDescriptionValuesJustReturningParser(Class<? extends T> targetType) {
             super(targetType);
         }
 
@@ -67,13 +67,16 @@ public class OptionNotationParserFactory {
     }
 
     private class ValueAwareCompositeNotationParser<T> extends CompositeNotationParser<CharSequence, T> implements ValueAwareNotationParser<T> {
-        public ValueAwareCompositeNotationParser(Collection<ValueAwareNotationParser<T>> delegates) {
+        private final Collection<ValueAwareNotationParser<? extends T>> delegates;
+
+        public ValueAwareCompositeNotationParser(Collection<ValueAwareNotationParser<? extends T>> delegates) {
             super(delegates);
+            this.delegates = delegates;
         }
 
         public void describeValues(Collection<String> collector) {
-            for (NotationParser<? super String, ? extends T> delegate : delegates) {
-                ((ValueAwareNotationParser)delegate).describeValues(collector);
+            for (ValueAwareNotationParser<? extends T> delegate : delegates) {
+                delegate.describeValues(collector);
             }
         }
     }

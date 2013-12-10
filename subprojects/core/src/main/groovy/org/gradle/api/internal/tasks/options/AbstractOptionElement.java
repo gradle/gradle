@@ -30,9 +30,9 @@ abstract class AbstractOptionElement implements OptionElement {
     private final String optionName;
     private final String description;
     private final Class<?> optionType;
-    private final ValueAwareNotationParser notationParser;
+    private final ValueAwareNotationParser<?> notationParser;
 
-    public AbstractOptionElement(String optionName, Option option, Class<?> optionType, Class<?> declaringClass, ValueAwareNotationParser notationParser) {
+    public AbstractOptionElement(String optionName, Option option, Class<?> optionType, Class<?> declaringClass, ValueAwareNotationParser<?> notationParser) {
         this.description = readDescription(option, optionName, declaringClass);
         this.optionName = optionName;
         this.optionType = optionType;
@@ -70,20 +70,17 @@ abstract class AbstractOptionElement implements OptionElement {
         return description;
     }
 
-    protected NotationParser<String, Object> getNotationParser() {
+    protected NotationParser<CharSequence, ?> getNotationParser() {
         return notationParser;
     }
 
     protected static ValueAwareNotationParser<Object> createNotationParserOrFail(OptionNotationParserFactory optionNotationParserFactory, String optionName, Class<?> optionType, Class<?> declaringClass) {
-        ValueAwareNotationParser<Object> notationParser;
         try {
-            notationParser = optionNotationParserFactory.toComposite(optionType);
-        } catch (Exception ex) {
+            return optionNotationParserFactory.toComposite(optionType);
+        } catch (OptionValidationException ex) {
             throw new OptionValidationException(String.format("Option '%s' cannot be casted to type '%s' in class '%s'.",
                     optionName, optionType.getName(), declaringClass.getName()));
         }
-        optionNotationParserFactory.toComposite(optionType);
-        return notationParser;
     }
 
     protected static Class<?> calculateOptionType(Class<?> type) {
