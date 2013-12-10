@@ -69,7 +69,7 @@ class OptionReaderTest extends Specification {
         reader.getOptions(new TestClass2())
         then:
         def e = thrown(OptionValidationException)
-        e.message == "Option 'stringValue' linked to multiple elements in class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$TestClass2'."
+        e.message == "@Option 'stringValue' linked to multiple elements in class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$TestClass2'."
     }
 
     def "fails on static methods"() {
@@ -77,7 +77,7 @@ class OptionReaderTest extends Specification {
         reader.getOptions(new TestClass31())
         then:
         def e = thrown(OptionValidationException)
-        e.message == "Option on static method 'setStaticString' not supported in class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$TestClass31'."
+        e.message == "@Option on static method 'setStaticString' not supported in class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$TestClass31'."
     }
 
     def "fails on static fields"() {
@@ -85,7 +85,7 @@ class OptionReaderTest extends Specification {
         reader.getOptions(new TestClass32())
         then:
         def e = thrown(OptionValidationException)
-        e.message == "Option on static field 'staticField' not supported in class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$TestClass32'."
+        e.message == "@Option on static field 'staticField' not supported in class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$TestClass32'."
     }
 
     def "fail when parameter cannot be converted from the command-line"() {
@@ -164,7 +164,7 @@ class OptionReaderTest extends Specification {
         reader.getOptions(new WithInvalidSomeOptionMethod());
         then:
         def e = thrown(OptionValidationException)
-        e.message == "OptionValues annotation not supported on method 'getValues' in class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$WithInvalidSomeOptionMethod'. Supported method must be non static, return Collection and take no parameters.";
+        e.message == "@OptionValues annotation not supported on method 'getValues' in class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$WithInvalidSomeOptionMethod'. Supported method must be non-static, return a Collection<String> and take no parameters.";
 
         when:
         reader.getOptions(new TestClass8());

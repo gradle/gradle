@@ -19,8 +19,7 @@ package org.gradle.internal.typeconversion;
 import java.util.Collection;
 
 public class CompositeNotationParser<N, T> implements NotationParser<N, T> {
-
-    protected final Collection<? extends NotationParser<? super N, ? extends T>> delegates;
+    private final Collection<? extends NotationParser<? super N, ? extends T>> delegates;
 
     public CompositeNotationParser(Collection<? extends NotationParser<? super N, ? extends T>> delegates) {
         assert delegates != null : "delegates cannot be null!";

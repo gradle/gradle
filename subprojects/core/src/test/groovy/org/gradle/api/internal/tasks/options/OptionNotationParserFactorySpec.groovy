@@ -47,7 +47,7 @@ class OptionNotationParserFactorySpec extends Specification {
         factory.toComposite(File.class);
         then:
         def e = thrown(GradleException);
-        e.message == "resultingType 'java.io.File' not supported"
+        e.message == "Don't know how to convert strings to type 'java.io.File'."
     }
 
     enum TestEnum {

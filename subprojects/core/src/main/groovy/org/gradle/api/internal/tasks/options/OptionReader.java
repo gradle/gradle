@@ -28,10 +28,9 @@ import java.lang.reflect.Modifier;
 import java.util.*;
 
 public class OptionReader {
-
-    private ListMultimap<Class, OptionElement> cachedOptionElements = ArrayListMultimap.create();
-    private Map<OptionElement, JavaMethod<Object, Collection>> cachedOptionValueMethods = new HashMap<OptionElement, JavaMethod<Object, Collection>>();
-    OptionNotationParserFactory optionNotationParserFactory = new OptionNotationParserFactory();
+    private final ListMultimap<Class<?>, OptionElement> cachedOptionElements = ArrayListMultimap.create();
+    private final Map<OptionElement, JavaMethod<Object, Collection>> cachedOptionValueMethods = new HashMap<OptionElement, JavaMethod<Object, Collection>>();
+    private final OptionNotationParserFactory optionNotationParserFactory = new OptionNotationParserFactory();
 
     public List<OptionDescriptor> getOptions(Object target) {
         final Class<?> targetClass = target.getClass();
@@ -52,7 +51,7 @@ public class OptionReader {
         Set<String> processedOptionElements = new HashSet<String>();
         for (OptionElement optionElement : optionElements) {
             if (processedOptionElements.contains(optionElement.getOptionName())) {
-                throw new OptionValidationException(String.format("Option '%s' linked to multiple elements in class '%s'.",
+                throw new OptionValidationException(String.format("@Option '%s' linked to multiple elements in class '%s'.",
                         optionElement.getOptionName(), target.getClass().getName()));
             }
             processedOptionElements.add(optionElement.getOptionName());
@@ -72,7 +71,7 @@ public class OptionReader {
                                 valueMethod = optionValueMethod;
                             } else {
                                 throw new OptionValidationException(
-                                        String.format("OptionValues for '%s' cannot be attached to multiple methods in class '%s'.",
+                                        String.format("@OptionValues for '%s' cannot be attached to multiple methods in class '%s'.",
                                                 optionElement.getOptionName(),
                                                 optionValueMethod.getMethod().getDeclaringClass().getName()));
                             }
@@ -97,7 +96,7 @@ public class OptionReader {
             Option option = field.getAnnotation(Option.class);
             if (option != null) {
                 if (Modifier.isStatic(field.getModifiers())) {
-                    throw new OptionValidationException(String.format("Option on static field '%s' not supported in class '%s'.",
+                    throw new OptionValidationException(String.format("@Option on static field '%s' not supported in class '%s'.",
                             field.getName(), field.getDeclaringClass().getName()));
                 }
 
@@ -113,7 +112,7 @@ public class OptionReader {
             Option option = method.getAnnotation(Option.class);
             if (option != null) {
                 if (Modifier.isStatic(method.getModifiers())) {
-                    throw new OptionValidationException(String.format("Option on static method '%s' not supported in class '%s'.",
+                    throw new OptionValidationException(String.format("@Option on static method '%s' not supported in class '%s'.",
                             method.getName(), method.getDeclaringClass().getName()));
                 }
                 final OptionElement methodOptionDescriptor = MethodOptionElement.create(option, method, optionNotationParserFactory);
@@ -136,7 +135,7 @@ public class OptionReader {
                         methods.add(JavaReflectionUtil.method(Object.class, Collection.class, method));
                     } else {
                         throw new OptionValidationException(
-                                String.format("OptionValues annotation not supported on method '%s' in class '%s'. Supported method must be non static, return Collection and take no parameters.",
+                                String.format("@OptionValues annotation not supported on method '%s' in class '%s'. Supported method must be non-static, return a Collection<String> and take no parameters.",
                                         method.getName(),
                                         type.getName()));
                     }
