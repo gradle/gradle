@@ -18,11 +18,7 @@ import org.gradle.ide.visualstudio.fixtures.ProjectFile
 import org.gradle.ide.visualstudio.fixtures.SolutionFile
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativebinaries.language.cpp.fixtures.RequiresInstalledToolChain
-import org.gradle.nativebinaries.language.cpp.fixtures.app.CppHelloWorldApp
-import org.gradle.nativebinaries.language.cpp.fixtures.app.ExeWithDiamondDependencyHelloWorldApp
-import org.gradle.nativebinaries.language.cpp.fixtures.app.ExeWithLibraryUsingLibraryHelloWorldApp
-import org.gradle.nativebinaries.language.cpp.fixtures.app.MixedLanguageHelloWorldApp
-import org.gradle.nativebinaries.language.cpp.fixtures.app.WindowsResourceHelloWorldApp
+import org.gradle.nativebinaries.language.cpp.fixtures.app.*
 
 class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     private final Set<String> projectConfigurations = ['debug|Win32', 'release|Win32', 'debug|x64', 'release|x64'] as Set
@@ -548,6 +544,96 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
 
         and:
         solutionFile("visualStudio/mainExe.sln").assertHasProjects("mainExe")
+    }
+
+    def "visual studio solution with header-only library"() {
+        given:
+        def app = new CppHelloWorldApp()
+        app.executable.writeSources(file("src/main"))
+
+        app.library.headerFiles*.writeToDir(file("src/helloApi"))
+        app.library.sourceFiles*.writeToDir(file("src/hello"))
+
+        and:
+        buildFile << """
+            executables {
+                main {}
+            }
+            libraries {
+                helloApi {}
+                hello {}
+            }
+            sources.main.cpp.lib library: 'helloApi', linkage: 'api' // TODO:DAZ This should not be needed
+            sources.main.cpp.lib library: 'hello'
+            sources.hello.cpp.lib library: 'helloApi', linkage: 'api'
+        """
+
+        when:
+        succeeds "mainVisualStudio"
+
+        then:
+        final mainSolution = solutionFile("visualStudio/mainExe.sln")
+        mainSolution.assertHasProjects("mainExe", "helloDll")
+
+        and:
+        final mainExeProject = projectFile("visualStudio/mainExe.vcxproj")
+        with (mainExeProject.projectConfigurations['debug|Win32']) {
+            includePath == filePath("src/main/headers", "src/helloApi/headers", "src/hello/headers")
+        }
+
+        and:
+        final helloDllProject = projectFile("visualStudio/helloDll.vcxproj")
+        with (helloDllProject.projectConfigurations['debug|Win32']) {
+            includePath == filePath("src/hello/headers", "src/helloApi/headers")
+        }
+    }
+
+    def "visual studio solution for component graph with library dependency cycle"() {
+        given:
+        def app = new ExeWithLibraryUsingLibraryHelloWorldApp()
+        app.executable.writeSources(file("src/main"))
+        app.library.writeSources(file("src/hello"))
+        app.greetingsHeader.writeToDir(file("src/hello"))
+        app.greetingsSources*.writeToDir(file("src/greetings"))
+
+        and:
+        buildFile << """
+            executables {
+                main {}
+            }
+            libraries {
+                hello {}
+                greetings {}
+            }
+            sources.main.cpp.lib library: 'hello'
+            sources.hello.cpp.lib library: 'greetings', linkage: 'static'
+            sources.greetings.cpp.lib library: 'hello', linkage: 'api'
+        """
+
+        when:
+        succeeds "mainVisualStudio"
+
+        then:
+        final mainSolution = solutionFile("visualStudio/mainExe.sln")
+        mainSolution.assertHasProjects("mainExe", "helloDll", "greetingsLib")
+
+        and:
+        final mainExeProject = projectFile("visualStudio/mainExe.vcxproj")
+        with (mainExeProject.projectConfigurations['debug|Win32']) {
+            includePath == filePath("src/main/headers", "src/hello/headers")
+        }
+
+        and:
+        final helloDllProject = projectFile("visualStudio/helloDll.vcxproj")
+        with (helloDllProject.projectConfigurations['debug|Win32']) {
+            includePath == filePath( "src/hello/headers", "src/greetings/headers")
+        }
+
+        and:
+        final greetingsLibProject = projectFile("visualStudio/greetingsLib.vcxproj")
+        with (greetingsLibProject.projectConfigurations['debug|Win32']) {
+            includePath == filePath("src/greetings/headers", "src/hello/headers")
+        }
     }
 
     private SolutionFile solutionFile(String path) {

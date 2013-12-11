@@ -63,7 +63,9 @@ class DefaultVisualStudioSolution extends AbstractBuildableModelElement implemen
         for (NativeDependencySet dep : nativeBinary.getLibs()) {
             if (dep instanceof LibraryNativeDependencySet) {
                 LibraryBinary dependencyBinary = ((LibraryNativeDependencySet) dep).getLibraryBinary();
-                addNativeBinary(configurations, dependencyBinary)
+                if (!(dependencyBinary instanceof ApiLibraryBinary)) {
+                    addNativeBinary(configurations, dependencyBinary)
+                }
             }
         }
     }
