@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 package org.gradle.nativebinaries.language.cpp
-
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativebinaries.language.cpp.fixtures.app.CppHelloWorldApp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.ExeWithDiamondDependencyHelloWorldApp
@@ -43,6 +42,34 @@ class LibraryDependenciesIntegrationTest extends AbstractInstalledToolChainInteg
                 main {}
             }
             sources.main.cpp.lib library: 'hello'
+            libraries {
+                hello {}
+            }
+        """
+
+        when:
+        succeeds "installMainExecutable"
+
+        then:
+        installation("build/install/mainExecutable").exec().out == app.englishOutput
+    }
+
+    def "can use map notation to reference library dependency of binary"() {
+        given:
+        def app = new CppHelloWorldApp()
+        app.executable.writeSources(file("src/main"))
+        app.library.writeSources(file("src/hello"))
+
+        and:
+        buildFile << """
+            apply plugin: "cpp"
+            executables {
+                main {
+                    binaries.all { binary ->
+                        binary.lib library: 'hello'
+                    }
+                }
+            }
             libraries {
                 hello {}
             }
@@ -91,19 +118,19 @@ class LibraryDependenciesIntegrationTest extends AbstractInstalledToolChainInteg
         and:
         settingsFile.text = "include ':lib', ':exe'"
         buildFile << """
-        project(":lib") {
-            apply plugin: "cpp"
-            libraries {
-                hello {}
-            }
-        }
         project(":exe") {
-            ${explicitEvaluation ? "evaluationDependsOn(':lib')" : ""}
+            ${explicitEvaluation}
             apply plugin: "cpp"
             executables {
                 main {}
             }
             sources.main.cpp.lib project: ':lib', library: 'hello'
+        }
+        project(":lib") {
+            apply plugin: "cpp"
+            libraries {
+                hello {}
+            }
         }
         """
 
@@ -118,9 +145,14 @@ class LibraryDependenciesIntegrationTest extends AbstractInstalledToolChainInteg
 
         where:
         label                       | configureOnDemand | explicitEvaluation
-        ""                          | false             | false
-        " with configure-on-demand" | true              | false
-        " with evaluationDependsOn" | false             | true
+        ""                          | false             | ""
+        " with configure-on-demand" | true              | ""
+        " with evaluationDependsOn" | false             | "evaluationDependsOn(':lib')"
+        " with afterEvaluate" | false             | """
+project.afterEvaluate {
+    binaries*.libs*.linkFiles.files.each { println it }
+}
+"""
     }
 
     def "can use map notation to transitively reference libraries in different projects"() {

@@ -17,14 +17,15 @@
 package org.gradle.nativebinaries.platform.internal;
 
 import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
-import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.typeconversion.NotationParser;
+import org.gradle.nativebinaries.platform.Architecture;
 import org.gradle.nativebinaries.platform.OperatingSystem;
 import org.gradle.nativebinaries.platform.Platform;
 import org.gradle.nativebinaries.platform.PlatformContainer;
 
 public class DefaultPlatformContainer extends AbstractNamedDomainObjectContainer<Platform> implements PlatformContainer {
-    private final NotationParser<Object, ArchitectureInternal> archParser = ArchitectureNotationParser.parser();
+    private final NotationParser<Object, Architecture> archParser = ArchitectureNotationParser.parser();
     private final NotationParser<Object, OperatingSystem> osParser = OperatingSystemNotationParser.parser();
 
     public DefaultPlatformContainer(Instantiator instantiator) {

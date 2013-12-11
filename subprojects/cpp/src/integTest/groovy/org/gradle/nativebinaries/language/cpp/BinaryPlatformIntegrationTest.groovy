@@ -25,6 +25,7 @@ import org.gradle.nativebinaries.language.cpp.fixtures.binaryinfo.ReadelfBinaryI
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Unroll
 
 @Requires(TestPrecondition.NOT_UNKNOWN_OS)
 class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
@@ -176,13 +177,14 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
         }
     }
 
-    def "fails with reasonable error message when trying to build for an unavailable architecture"() {
+    @Unroll
+    def "fails with reasonable error message when trying to build for an unavailable #type"() {
         when:
         buildFile << """
             model {
                 platforms {
-                    create("sparc") {
-                        architecture "sparc"
+                    create("unavailable") {
+                        ${config}
                     }
                 }
             }
@@ -193,16 +195,23 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
 
         then:
         failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainCpp'.")
-        failure.assertHasCause("No tool chain is available to build for platform 'sparc': ${toolChain.instanceDisplayName} cannot build for platform 'sparc'.")
+        failure.assertHasCause("No tool chain is available to build for platform 'unavailable': ${toolChain.instanceDisplayName} cannot build for platform 'unavailable'.")
+
+        where:
+        type               | config
+        "architecture"     | "architecture 'sparc'"
+        "operating system" | "operatingSystem 'solaris'"
     }
 
-    def "fails with reasonable error message when trying to build for a different operating system"() {
+    @Unroll
+    def "fails with reasonable error message when trying to build for an unknown #type"() {
         when:
+        settingsFile << """rootProject.name = 'bad'"""
         buildFile << """
             model {
                 platforms {
-                    create("solaris") {
-                        operatingSystem "solaris"
+                    create("bad") {
+                        ${badConfig}
                     }
                 }
             }
@@ -212,8 +221,13 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
         fails "mainExecutable"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainCpp'.")
-        failure.assertHasCause("No tool chain is available to build for platform 'solaris': ${toolChain.instanceDisplayName} cannot build for platform 'solaris'.")
+        failure.assertHasDescription("A problem occurred configuring root project 'bad'.")
+        failure.assertHasCause("Cannot convert the provided notation to an object of type ${type}: bad.")
+
+        where:
+        type               | badConfig
+        "Architecture"     | "architecture 'bad'"
+        "OperatingSystem" | "operatingSystem 'bad'"
     }
 
     def "fails with reasonable error message when trying to target an unknown platform"() {

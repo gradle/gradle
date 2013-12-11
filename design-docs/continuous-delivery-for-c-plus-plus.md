@@ -1245,6 +1245,66 @@ This story moves definition and configuration of the source sets for a component
 
 # Later Milestones
 
+## Story: Improve definition of Platform, Architecture and Operating System
+
+In order to make it easier for users to publish and resolve native binary dependencies, this story introduces a set of conventional
+Platforms, as well as improving the way that Platform components (Architecture, OperatingSystem) are defined. While it will still be possible
+to define a custom Platform and build and publish binaries for that platform, the conventions introduced here should cover most common
+platform variants that would be published and shared publicly.
+
+This story also aggregates a bunch of review items that relate to Architecture and Operating System.
+
+### User visible changes
+
+model {
+    operatingSystems.add customOs
+    architectures.add customArch
+    platforms {
+        // Custom platforms
+        create("custom") {
+            operatingSystem operatingSystems.customOs
+            architecture architectures.customArch
+        }
+        create("customCurrent") {
+            operatingSystem operatingSystems.current()
+            architecture architectures.current()
+        }
+    }
+}
+
+### Implementation
+
+- Wrap `OperatingSystemNotationParser` in an `OperatingSystemRegistry` as a factory for `OperatingSystem` instances.
+    - Instances are retrieved by name or alias. A future story will allow architectures to be obtained by selection criteria.
+- Wrap `ArchitectureNotationParser` in an `ArchitectureRegistry`.
+- Add `OperatingSystemRegistry.getCurrent()` and `ArchitectureRegistry.getCurrent()`, that locates the instance the represents the current
+  architecture / os.
+    - Should use native-platform's SystemInfo to probe the kernel architecture and fall back to 'os.arch' system property if
+      native-platform is not available.
+    - Should use 'os.name' system property to determine current os.
+    - The returned values should use a canonical name, and treat the os-specific names as an alias.
+- Register conventional elements in `PlatformContainer` : come up with some good canonical names
+    - windows + x86 / x86_64 / ARM
+    - linux + x86 / x86_64 / ???
+    - OSX + x86_64
+    - Solaris + Sparc V8 / Sparc V9 / x86 / x86_64
+- Change PlatformContainer so that instances are immutable once created
+- Add PlatformContainer.current() to get the platform with the current os and architecture.
+- Use `ArchitectureRegistry` to obtain instances used in `DumpbinBinaryInfo`
+- Only build component for the current platform unless it is targeted for multiple platforms.
+
+### Test cases
+
+- Verify arch/os of binary built for current (default) platform in BinaryPlatformIntegrationTest
+
+### Open issues
+
+- Way to construct and register new OperatingSystems / Architectures
+- Canonical names for conventional architectures
+- Canonical names for conventional platforms
+- How to make Platform instance immutable
+- Consistent API for Architecture and OperatingSystem: either public method on both [os.isWindows(),arch.isAmd64()] or only on internal api.
+
 ## Story: Include all macro definitions in Visual Studio project configuration
 
 Include both `cppCompiler.define` and `cppCompiler.args '/D...'`.
