@@ -20,6 +20,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.language.base.LanguageSourceSet;
 
+// TODO:DAZ These don't apply to all component subtypes: look at splitting this up in to a number of smaller facets / functional interfaces
 /**
  * Represents a logical software component, which may be built in a number of variant binaries.
  */

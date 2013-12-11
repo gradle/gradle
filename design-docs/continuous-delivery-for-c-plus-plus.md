@@ -946,23 +946,27 @@ project-specific configuration. Solution file needs to contain additional per-pr
 
 ## Story: Allow a library to depend on the headers of a component
 
-### Use case
+### Use cases
 
-Producer project publishes a library consisting of header files only (e.g. a library of C++ template classes).
-
+1. Producer project publishes a library consisting of header files only (e.g. a library of C++ template classes, utility library).
 Consumer project compiles an executable against this library.
 
-Alternatively, a producer project may produce a separate `api` library for a library, to avoid dependency cycles where
-library A needs the headers of library B to compile, and library B requires library A to link.
+1. Producer project defines api library together with implementation libraries. Consumer project creates multiple executables
+from the same sources that link against different implementation libraries.
 
 ### User visible changes
 
-    libraries {
-        library1 {}
-        library2 {}
+    executables {
+        main {}
     }
-    sources.library1.cpp.lib library: 'library2'
-    sources.library2.cpp.lib library: 'library1', linkage: 'api'
+    libraries {
+        templateLibrary {}
+        apiLibrary {}
+        implLibrary {}
+    }
+    sources.main.cpp.lib library: 'templateLibrary', linkage: 'api'
+    sources.main.cpp.lib library: 'apiLibrary', linkage: 'api'
+    sources.main.cpp.lib library: 'implLibrary'
 
 ### Implementation
 
@@ -975,45 +979,64 @@ library A needs the headers of library B to compile, and library B requires libr
 
 ### Test cases
 
-- Executable provides an api with no implementation. Library implements that api, and is linked into executable.
-- LibraryA provides an api and a default implementation. LibraryB implements the api. Executable links to api of LibraryA and implementation of LibraryB.
+- Utility library defines functions in header files. Executable is built using those functions.
+- Single api library and 2 implementations of that api. Two executables built using the same sources,
+  linking against different library implementations
+- LibraryA provides an api and an implementation. LibraryB provides an alternate implementation.
+  Executable links to api of LibraryA and implementation of LibraryB.
 - Compilation succeeds and linking fails when executable requires library, but only declares dependency on api.
+- Visual studio solution for executable with separate api library and implementation library.
 
 ### Open issues
 
 - Better mapping to Visual Studio
 
-## Story: Header-only libraries
+## Story: Component depends on a pre-built library
 
-### Use case
+### User visible changes
 
-Producer project publishes a library consisting of header files only (e.g. a library of C++ template classes).
-
-Consumer project compiles an executable against this library.
+    prebuiltLibraries {
+        boost_regex {
+            headers {
+                srcDir '../../libs/boost_1_55_0/boost'
+            }
+            binaries.all { binary ->
+                // Locate the exact boost binary required
+                if (binary.toolChain.visualCpp) {
+                    outputFile = file("../../libs/boost_1_55_0/lib/libboost_regex-vc71-mt-d-1_34.lib")
+                } else {
+                    outputFile = file("../../libs/boost_1_55_0/lib/libboost_regex-gcc71-mt-d-1_34.a")
+                }
+            }
+        }
+    }
 
 ### Implementation
 
-- Fix the NativeBinary implementation so that when the selected binary has no source files, the default 'linkage' for that binary is 'api'.
-- The 'static' and 'shared' linkage of a header-only library are not available.
-- Don’t create tasks for empty source sets
+- Pull methods of `NativeComponent` and `NativeBinary` that only apply to components/binaries that are _built_ by Gradle
+  into a separate interface.
+- Add a new `NativeComponent` subtype that represents a `PrebuiltLibrary`, and respective binary subtype.
+- Add a new `prebuiltLibraries` container for `PrebuiltLibrary` instances (need a better name for this)
+- Do not create tasks for binaries that are not built by Gradle
+- Output file should be specified in `binaries.all {}` block
+- Headers of prebuilt libraries are available when compiling for all linkages
+- Link-time and run-time files are determined as per 'regular' libraries
+- Prebuilt binaries are not included in Visual Studio (except as included headers in dependent components)
+- Install task does not copy pre-built libraries into the install image, and sets the appropriate path variables in the generated script.
 
 ### Test cases
 
-- Library provides a set of header files and no source files. Library is used by Executable for compilation.
-- Library provides a different set of header files for debug and release variants.
-
-## Story: Component depends on a pre-built library
-
-- Add a new container for prebuilt libraries
-- Add a library implementation that doesn't have output-related properties
-- Don't create tasks for generating library binary outputs
-- Allow output file to be specified in a binaries.all {} block
-- Install task does not copy pre-built libraries into the install image, and sets the appropriate path variables in the generated script.
-- Allow these to be set as toolchain specific linker args (ie -l and -L) as well.
+- Use Gradle to build the library-portion of the HelloWorldApp, and treat it as a pre-built library linked into an executable.
+    - Executable uses static variant of pre-built library
+    - Executable uses shared variant of pre-built library. Ensure that when installed, the pre-built library is referenced from it source location.
+    - Ensure no tasks are executed for pre-built library.
+- Define multiple variants (buildType/platform) of a prebuilt library. Build multiple variants (buildType/platform) of executable using this library
+- Define a header-only prebuilt library. Executable depends on 'api' linkage and references header files.
+- Generate visual studio solution for executable that depends on prebuilt library.
 
 ### Open issues
 
-- Mapping to Visual Studio
+- Allow these to be set as toolchain specific linker args (ie -l and -L) as well.
 
 ## Story: Allow source sets to be generated
 
@@ -1054,6 +1077,26 @@ To implement this:
 * Need to exclude the `main` method.
 
 ## Story: Generate HTML reports for CUnit test output
+
+## Story: Header-only libraries
+
+### Use case
+
+Producer project publishes a library consisting of header files only (e.g. a library of C++ template classes).
+
+Consumer project compiles an executable against this library.
+
+### Implementation
+
+- Fix the NativeBinary implementation so that when the selected binary has no source files, the default 'linkage' for that binary is 'api'.
+- The 'static' and 'shared' linkage of a header-only library are not available.
+- Don’t create tasks for empty source sets
+
+### Test cases
+
+- Library provides a set of header files and no source files. Library is used by Executable for compilation.
+- Library provides a different set of header files for debug and release variants.
+
 
 # Bugfixes
 
