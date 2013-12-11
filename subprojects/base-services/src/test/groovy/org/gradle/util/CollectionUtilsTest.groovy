@@ -310,14 +310,6 @@ class CollectionUtilsTest extends Specification {
         sort([] as Set) == []
     }
 
-    def "without duplicates"(){
-        given:
-        def l = [1, 2, 2, 3, 3]
-        expect:
-        withoutDuplicates(l) == [1, 2, 3]
-    }
-
-
     Spec<?> spec(Closure c) {
         Specs.convertClosureToSpec(c)
     }
