@@ -95,7 +95,41 @@ The model registry and it's DSL are very new, and impose some DSL limitations. W
 - Elements in containers under `model` must be added with the `create(name)` method.
 - The `component.target*` methods match on element _name_. It is not possible to supply an element instance at this time.
 
-### Better support for project dependencies when building native binaries (i)
+### Better support for declaring library dependencies when building native binaries (i)
+
+#### New dependency notation
+
+When building native binaries, it is now possible to declare a dependency on a library by a dependency notation.
+
+    executables {
+        main {}
+    }
+    sources.main.cpp.lib library: 'hello', linkage: 'static'
+    sources.main.c.lib project: ':another', library: 'hi'
+
+    libraries {
+        hello {}
+    }
+
+The 'project', 'library' and 'linkage' can be specified. Only 'library' is required and must be the name of a library
+in the specified project, or in the current project if the 'project' attribute is omitted.
+
+This notation based syntax provides a number of benefits over directly accessing the library when declaring the dependency requirement:
+
+- The library referenced does not have to be declared before the dependency declaration in the build script
+- For libraries in another project, the depended-on project does not need to have been evaluated when the dependency declaration is added
+- The linkage is clearly specified
+
+#### Support for api dependencies
+
+There are times when your source may require the headers of a library at compile time, but not require the library binary when linking.
+To support this use case, it is now possible to add a dependency on the 'api' linkage of a library. In this case, the headers
+of the library will be available when compiling, but no binary will be provided when linking.
+
+A dependency on the 'api' linkage can be specified by both the direct and the map-based syntax.
+
+    sources.main.cpp.lib project: ':A', library: 'my-lib', linkage: 'api'
+    sources.main.cpp.lib libraries.hello.api
 
 ## Promoted features
 
