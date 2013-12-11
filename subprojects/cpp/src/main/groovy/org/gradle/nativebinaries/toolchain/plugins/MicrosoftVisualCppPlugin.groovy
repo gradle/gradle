@@ -18,11 +18,11 @@
 
 package org.gradle.nativebinaries.toolchain.plugins
 
+import net.rubygrapefruit.platform.WindowsRegistry
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.internal.nativeplatform.registry.WindowsRegistry
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.model.ModelRule

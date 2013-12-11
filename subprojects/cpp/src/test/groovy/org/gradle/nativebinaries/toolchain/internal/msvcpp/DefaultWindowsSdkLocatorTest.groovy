@@ -16,7 +16,7 @@
 
 package org.gradle.nativebinaries.toolchain.internal.msvcpp
 
-import org.gradle.internal.nativeplatform.registry.WindowsRegistry
+import net.rubygrapefruit.platform.WindowsRegistry
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider

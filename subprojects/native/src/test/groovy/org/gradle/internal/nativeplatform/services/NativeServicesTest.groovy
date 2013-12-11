@@ -15,10 +15,10 @@
  */
 package org.gradle.internal.nativeplatform.services
 
+import net.rubygrapefruit.platform.WindowsRegistry
 import org.gradle.internal.nativeplatform.console.ConsoleDetector
 import org.gradle.internal.nativeplatform.ProcessEnvironment
 import org.gradle.internal.nativeplatform.filesystem.FileSystem
-import org.gradle.internal.nativeplatform.registry.WindowsRegistry
 import org.gradle.internal.os.OperatingSystem
 import spock.lang.Specification
 

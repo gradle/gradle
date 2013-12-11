@@ -15,11 +15,10 @@
  */
 package org.gradle.nativebinaries.toolchain.internal.msvcpp;
 
+import net.rubygrapefruit.platform.MissingRegistryEntryException;
+import net.rubygrapefruit.platform.WindowsRegistry;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.specs.Spec;
-import org.gradle.internal.nativeplatform.registry.WindowsRegistry;
-import org.gradle.internal.nativeplatform.registry.WindowsRegistryAccess;
-import org.gradle.internal.nativeplatform.registry.WindowsRegistryException;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativebinaries.toolchain.internal.ToolSearchResult;
 import org.gradle.util.TreeVisitor;
@@ -117,60 +116,48 @@ public class DefaultWindowsSdkLocator extends DefaultWindowsLocator implements W
 
     private void locateSdksInRegistry(Map<File, String> foundPaths) {
         try {
-            WindowsRegistryAccess localMachine = windowsRegistry.get(WindowsRegistry.HKEY_LOCAL_MACHINE);
-            List<String> subkeys = localMachine.getSubkeys(REGISTRY_ROOTPATH_SDK);
+            List<String> subkeys = windowsRegistry.getSubkeys(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, REGISTRY_ROOTPATH_SDK);
 
             for (String subkey : subkeys) {
                 try {
                     String basePath = REGISTRY_ROOTPATH_SDK + "\\" + subkey;
-                    File folder = new File(localMachine.readString(basePath, REGISTRY_FOLDER));
-                    String version = formatVersion(localMachine.readString(basePath, REGISTRY_VERSION));
-                    String name;
-
-                    try {
-                        name = localMachine.readString(basePath, REGISTRY_NAME);
-                    } catch (WindowsRegistryException e) {
-                        name = NAME_SDK + " " + version;
-                    }
+                    File folder = new File(windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, basePath, REGISTRY_FOLDER));
+                    String version = formatVersion(windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, basePath, REGISTRY_VERSION));
+                    String name = windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, basePath, REGISTRY_NAME);
 
                     if (isWindowsSdk(folder)) {
                         foundPaths.put(folder, version);
                         addSdk(folder, version, name);
                     }
-                } catch (WindowsRegistryException e) {
+                } catch (MissingRegistryEntryException e) {
                     // Ignore the subkey if it doesn't have a folder and version
                 }
             }
-        } catch (WindowsRegistryException e) {
+        } catch (MissingRegistryEntryException e) {
             // No SDK information available in the registry
         }
     }
 
     private void locateKitsInRegistry(Map<File, String> foundPaths) {
-        try {
-            WindowsRegistryAccess localMachine = windowsRegistry.get(WindowsRegistry.HKEY_LOCAL_MACHINE);
-            String[] versions = {
+        String[] versions = {
                 VERSION_KIT_8,
                 VERSION_KIT_81
-            };
-            String[] keys = {
+        };
+        String[] keys = {
                 REGISTRY_KIT_8,
                 REGISTRY_KIT_81
-            };
+        };
 
-            for (int i = 0; i != keys.length; ++i) {
-                try {
-                    File path = new File(localMachine.readString(REGISTRY_ROOTPATH_KIT, keys[i]));
-                    if (isWindowsSdk(path)) {
-                        foundPaths.put(path, versions[i]);
-                        addSdk(path, versions[i], NAME_KIT + " " + versions[i]);
-                    }
-                } catch (WindowsRegistryException e) {
-                    // Ignore the version if the string cannot be read
+        for (int i = 0; i != keys.length; ++i) {
+            try {
+                File path = new File(windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, REGISTRY_ROOTPATH_KIT, keys[i]));
+                if (isWindowsSdk(path)) {
+                    foundPaths.put(path, versions[i]);
+                    addSdk(path, versions[i], NAME_KIT + " " + versions[i]);
                 }
+            } catch (MissingRegistryEntryException e) {
+                // Ignore the version if the string cannot be read
             }
-        } catch (WindowsRegistryException e) {
-            // No kit information available in the registry
         }
     }
 
@@ -208,9 +195,8 @@ public class DefaultWindowsSdkLocator extends DefaultWindowsLocator implements W
 
     private void determineDefaultSdk(Map<File, String> foundPaths) {
         try {
-            WindowsRegistryAccess localMachine = windowsRegistry.get(WindowsRegistry.HKEY_LOCAL_MACHINE);
-            String currentPath = localMachine.readString(REGISTRY_ROOTPATH_SDK, REGISTRY_CURRENTFOLDER);
-            String currentVersion = formatVersion(localMachine.readString(REGISTRY_ROOTPATH_SDK, REGISTRY_CURRENTVERSION));
+            String currentPath = windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, REGISTRY_ROOTPATH_SDK, REGISTRY_CURRENTFOLDER);
+            String currentVersion = formatVersion(windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, REGISTRY_ROOTPATH_SDK, REGISTRY_CURRENTVERSION));
             String foundVersion = foundPaths.get(currentPath);
 
             if (foundVersion != null) {
@@ -218,14 +204,14 @@ public class DefaultWindowsSdkLocator extends DefaultWindowsLocator implements W
             } else {
                 defaultSdk = foundSdks.get(currentVersion);
             }
-        } catch (WindowsRegistryException e) {
+        } catch (MissingRegistryEntryException e) {
             // Default SDK information is not available in the registry
         } finally {
             if (defaultSdk == null && !foundSdks.isEmpty()) {
                 defaultSdk = foundSdks.entrySet().iterator().next().getValue();
             }
-        }
 
+        }
     }
 
     private void addSdk(File path, String version, String name) {

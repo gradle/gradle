@@ -17,11 +17,10 @@ package org.gradle.internal.nativeplatform.services;
 
 import com.sun.jna.Native;
 import net.rubygrapefruit.platform.*;
-import net.rubygrapefruit.platform.NativeIntegrationUnavailableException;
 import net.rubygrapefruit.platform.Process;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.jvm.Jvm;
-import org.gradle.internal.nativeplatform.*;
+import org.gradle.internal.nativeplatform.ProcessEnvironment;
 import org.gradle.internal.nativeplatform.console.ConsoleDetector;
 import org.gradle.internal.nativeplatform.console.NativePlatformConsoleDetector;
 import org.gradle.internal.nativeplatform.console.NoOpConsoleDetector;
@@ -30,13 +29,13 @@ import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.nativeplatform.filesystem.FileSystems;
 import org.gradle.internal.nativeplatform.jna.*;
 import org.gradle.internal.nativeplatform.processenvironment.NativePlatformBackedProcessEnvironment;
-import org.gradle.internal.nativeplatform.registry.WindowsRegistry;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.List;
 
 /**
  * Provides various native platform integration services.
@@ -90,8 +89,7 @@ public class NativeServices extends DefaultServiceRegistry {
         return Jvm.current();
     }
 
-    protected ProcessEnvironment createProcessEnvironment() {
-        OperatingSystem operatingSystem = get(OperatingSystem.class);
+    protected ProcessEnvironment createProcessEnvironment(OperatingSystem operatingSystem) {
         if (useNativePlatform) {
             try {
                 net.rubygrapefruit.platform.Process process = net.rubygrapefruit.platform.Native.get(Process.class);
@@ -118,7 +116,7 @@ public class NativeServices extends DefaultServiceRegistry {
         }
     }
 
-    protected ConsoleDetector createConsoleDetector() {
+    protected ConsoleDetector createConsoleDetector(OperatingSystem operatingSystem) {
         if (useNativePlatform) {
             try {
                 Terminals terminals = net.rubygrapefruit.platform.Native.get(Terminals.class);
@@ -130,7 +128,6 @@ public class NativeServices extends DefaultServiceRegistry {
             }
         }
 
-        OperatingSystem operatingSystem = get(OperatingSystem.class);
         try {
             if (operatingSystem.isWindows()) {
                 return new WindowsConsoleDetector();
@@ -143,8 +140,11 @@ public class NativeServices extends DefaultServiceRegistry {
         }
     }
 
-    protected WindowsRegistry createWindowsRegistry() {
-        return new WindowsRegistry();
+    protected WindowsRegistry createWindowsRegistry(OperatingSystem operatingSystem) {
+        if (operatingSystem.isWindows()) {
+            return net.rubygrapefruit.platform.Native.get(WindowsRegistry.class);
+        }
+        return new BrokenWindowsRegistry();
     }
 
     protected LibC createLibC() {
@@ -162,4 +162,17 @@ public class NativeServices extends DefaultServiceRegistry {
         return builder.toString();
     }
 
+    private static class BrokenWindowsRegistry implements WindowsRegistry {
+        public String getStringValue(Key key, String subkey, String value) throws NativeException {
+            throw failure();
+        }
+
+        public List<String> getSubkeys(Key key, String subkey) throws NativeException {
+            throw failure();
+        }
+
+        private NativeIntegrationUnavailableException failure() {
+            return new NativeIntegrationUnavailableException("Windows registry is not supported on this operating system.");
+        }
+    }
 }
