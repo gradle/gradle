@@ -148,9 +148,7 @@ This is a very internal change and should not affect users. It is mentioned for 
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
-<!--
-* [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
--->
+* [Michael Putters](https://github.com/mputters) - improved the native binaries support to use the Windows registry to locate available Windows SDKs
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
