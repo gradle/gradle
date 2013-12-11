@@ -45,6 +45,14 @@ class HtmlTestResultsFixture {
         assert counter.text() == tests as String
     }
 
+    void assertHasIgnored(int tests) {
+        def testDiv = content.select("div#ignored")
+        assert testDiv != null
+        def counter = testDiv.select("div.counter")
+        assert counter != null
+        assert counter.text() == tests as String
+    }
+
     void assertHasDuration(String duration) {
         def testDiv = content.select("div#duration")
         assert testDiv != null
@@ -151,7 +159,7 @@ class HtmlTestResultsFixture {
         }
 
         void assertSuccessRate(int expected) {
-            assert packageElement.select("tr > td:eq(4)").text() == "${expected}%"
+            assert packageElement.select("tr > td:eq(5)").text() == "${expected}%"
         }
     }
 }
