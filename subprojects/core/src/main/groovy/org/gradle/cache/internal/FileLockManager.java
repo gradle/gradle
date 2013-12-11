@@ -46,7 +46,8 @@ public interface FileLockManager {
      * (it means that the lock is contended).
      *
      * @param fileLock the lock
-     * @param whenContended will be called asynchronously by the thread that listens for cache access requests, when such request is received
+     * @param whenContended will be called asynchronously by the thread that listens for cache access requests, when such request is received.
+     * Note: currently, implementations are permitted to invoke the action <em>after</em> the lock as been closed.
      */
     void allowContention(FileLock fileLock, Runnable whenContended);
 
