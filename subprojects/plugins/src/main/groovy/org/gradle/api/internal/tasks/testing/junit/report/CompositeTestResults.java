@@ -26,6 +26,7 @@ public abstract class CompositeTestResults extends TestResultModel {
     private int tests;
     private final Set<TestResult> failures = new TreeSet<TestResult>();
     private long duration;
+    private int ignored;
 
     protected CompositeTestResults(CompositeTestResults parent) {
         this.parent = parent;
@@ -78,6 +79,10 @@ public abstract class CompositeTestResults extends TestResultModel {
         return failures.size();
     }
 
+    public int getIgnoredCount() {
+        return ignored;
+    }
+
     public long getDuration() {
         return duration;
     }
@@ -118,6 +123,13 @@ public abstract class CompositeTestResults extends TestResultModel {
         failures.add(failedTest);
         if (parent != null) {
             parent.failed(failedTest);
+        }
+    }
+
+    protected void addIgnored() {
+        ignored++;
+        if (parent != null) {
+            parent.addIgnored();
         }
     }
 

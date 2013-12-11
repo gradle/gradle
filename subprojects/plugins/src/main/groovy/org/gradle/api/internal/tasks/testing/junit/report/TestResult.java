@@ -78,6 +78,7 @@ public class TestResult extends TestResultModel implements Comparable<TestResult
     }
 
     public void ignored() {
+        classResults.addIgnored();
         ignored = true;
     }
 
