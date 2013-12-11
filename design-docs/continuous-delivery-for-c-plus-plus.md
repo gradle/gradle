@@ -965,7 +965,7 @@ from the same sources that link against different implementation libraries.
         apiLibrary {}
         implLibrary {}
     }
-    sources.main.cpp.lib library: 'templateLibrary', linkage: 'api'
+    sources.main.cpp.lib library: 'templateLibrary'
     sources.main.cpp.lib library: 'apiLibrary', linkage: 'api'
     sources.main.cpp.lib library: 'implLibrary'
 
@@ -977,14 +977,18 @@ from the same sources that link against different implementation libraries.
 - When mapping to visual studio:
     - Ensure that the include path of the referencing project includes the header path from the api binary
     - Do not generate a visual studio project for the api binary
+- Close source sets and a) don't create tasks if empty, b) all linkages have no link-time/runtime files.
+- Don’t create tasks for empty source sets
+- For empty library, all linkages have no files for linking or installing
 
 ### Test cases
 
+- Separate api and implementation libraries: executable compiles against api and links with impl.
 - Utility library defines functions in header files. Executable is built using those functions.
-- Single api library and 2 implementations of that api. Two executables built using the same sources,
-  linking against different library implementations
+- Utility library provides a different set of header files for debug and release variants.
 - LibraryA provides an api and an implementation. LibraryB provides an alternate implementation.
-  Executable links to api of LibraryA and implementation of LibraryB.
+  Build executable linking against LibraryA api and LibraryB implementation.
+- Use api linkage to work-around library dependency cycle
 - Compilation succeeds and linking fails when executable requires library, but only declares dependency on api.
 - Visual studio solution for executable with separate api library and implementation library.
 
@@ -1001,6 +1005,7 @@ from the same sources that link against different implementation libraries.
             headers {
                 srcDir '../../libs/boost_1_55_0/boost'
             }
+            targetPlatforms "x86", "x64"
             binaries.all { binary ->
                 // Locate the exact boost binary required
                 if (binary.toolChain.visualCpp) {
@@ -1016,10 +1021,11 @@ from the same sources that link against different implementation libraries.
 
 - Pull methods of `NativeComponent` and `NativeBinary` that only apply to components/binaries that are _built_ by Gradle
   into a separate interface.
+- No 'outputFile' on a binary: static[archiveFile, debugFile], shared[libraryStub, sharedLibrary, debugFile]
 - Add a new `NativeComponent` subtype that represents a `PrebuiltLibrary`, and respective binary subtype.
 - Add a new `prebuiltLibraries` container for `PrebuiltLibrary` instances (need a better name for this)
 - Do not create tasks for binaries that are not built by Gradle
-- Output file should be specified in `binaries.all {}` block
+- Output files should be specified in `binaries.all {}` block
 - Headers of prebuilt libraries are available when compiling for all linkages
 - Link-time and run-time files are determined as per 'regular' libraries
 - Prebuilt binaries are not included in Visual Studio (except as included headers in dependent components)
@@ -1038,6 +1044,11 @@ from the same sources that link against different implementation libraries.
 ### Open issues
 
 - Allow these to be set as toolchain specific linker args (ie -l and -L) as well.
+- Sources of prebuilt libs
+- Dependencies of prebuilt libs
+- Libraries that are buildable but not built by us
+- System libraries
+- Convert 'dependency' syntax to add to this container?
 
 ## Story: Allow source sets to be generated
 
@@ -1079,24 +1090,6 @@ To implement this:
 
 ## Story: Generate HTML reports for CUnit test output
 
-## Story: Header-only libraries
-
-### Use case
-
-Producer project publishes a library consisting of header files only (e.g. a library of C++ template classes).
-
-Consumer project compiles an executable against this library.
-
-### Implementation
-
-- Fix the NativeBinary implementation so that when the selected binary has no source files, the default 'linkage' for that binary is 'api'.
-- The 'static' and 'shared' linkage of a header-only library are not available.
-- Don’t create tasks for empty source sets
-
-### Test cases
-
-- Library provides a set of header files and no source files. Library is used by Executable for compilation.
-- Library provides a different set of header files for debug and release variants.
 
 
 # Bugfixes
@@ -1300,21 +1293,21 @@ This story also aggregates a bunch of review items that relate to Architecture a
 
 ### User visible changes
 
-model {
-    operatingSystems.add customOs
-    architectures.add customArch
-    platforms {
-        // Custom platforms
-        create("custom") {
-            operatingSystem operatingSystems.customOs
-            architecture architectures.customArch
-        }
-        create("customCurrent") {
-            operatingSystem operatingSystems.current()
-            architecture architectures.current()
+    model {
+        operatingSystems.add customOs
+        architectures.add customArch
+        platforms {
+            // Custom platforms
+            create("custom") {
+                operatingSystem operatingSystems.customOs
+                architecture architectures.customArch
+            }
+            create("customCurrent") {
+                operatingSystem operatingSystems.current()
+                architecture architectures.current()
+            }
         }
     }
-}
 
 ### Implementation
 
