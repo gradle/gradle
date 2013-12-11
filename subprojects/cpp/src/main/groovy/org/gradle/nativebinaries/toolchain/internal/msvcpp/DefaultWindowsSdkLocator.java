@@ -22,6 +22,9 @@ import org.gradle.api.specs.Spec;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativebinaries.toolchain.internal.ToolSearchResult;
 import org.gradle.util.TreeVisitor;
+import org.gradle.util.VersionNumber;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.HashMap;
@@ -29,10 +32,9 @@ import java.util.List;
 import java.util.Map;
 
 public class DefaultWindowsSdkLocator extends DefaultWindowsLocator implements WindowsSdkLocator {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultWindowsSdkLocator.class);
     private static final String REGISTRY_ROOTPATH_SDK = "SOFTWARE\\Microsoft\\Microsoft SDKs\\Windows";
     private static final String REGISTRY_ROOTPATH_KIT = "SOFTWARE\\Microsoft\\Windows Kits\\Installed Roots";
-    private static final String REGISTRY_CURRENTFOLDER = "CurrentInstallFolder";
-    private static final String REGISTRY_CURRENTVERSION = "CurrentVersion";
     private static final String REGISTRY_FOLDER = "InstallationFolder";
     private static final String REGISTRY_VERSION = "ProductVersion";
     private static final String REGISTRY_NAME = "ProductName";
@@ -46,7 +48,6 @@ public class DefaultWindowsSdkLocator extends DefaultWindowsLocator implements W
     private static final String SDK_DISPLAY_NAME = "Windows SDK";
     private static final String NAME_PATH = "Path-resolved Windows SDK";
     private static final String NAME_USER = "User-provided Windows SDK";
-    private static final String NAME_SDK = "Windows SDK";
     private static final String NAME_KIT = "Windows Kit";
 
     private static final String RESOURCE_PATHS[] = {
@@ -63,9 +64,11 @@ public class DefaultWindowsSdkLocator extends DefaultWindowsLocator implements W
     private static final String RESOURCE_FILENAME = "rc.exe";
     private static final String KERNEL32_FILENAME = "kernel32.lib";
 
-    private final Map<String, WindowsSdk> foundSdks = new HashMap<String, WindowsSdk>();
+    private final Map<File, WindowsSdk> foundSdks = new HashMap<File, WindowsSdk>();
     private final OperatingSystem os;
     private final WindowsRegistry windowsRegistry;
+    private WindowsSdk pathSdk;
+    private WindowsSdk userSdk;
     private WindowsSdk defaultSdk;
     private ToolSearchResult result;
 
@@ -79,19 +82,15 @@ public class DefaultWindowsSdkLocator extends DefaultWindowsLocator implements W
             return result;
         }
 
-        Map<File, String> foundPaths = new HashMap<File, String>();
-
-        locateSdksInRegistry(foundPaths);
-        locateKitsInRegistry(foundPaths);
-        locateSdkInPath(foundPaths);
+        locateSdksInRegistry();
+        locateKitsInRegistry();
+        locateSdkInPath();
 
         if (candidate != null) {
-            locateUserSpecifiedSdk(foundPaths, candidate);
+            locateUserSpecifiedSdk(candidate);
         }
 
-        if (defaultSdk == null) {
-            determineDefaultSdk(foundPaths);
-        }
+        defaultSdk = determineDefaultSdk();
 
         result = new ToolSearchResult() {
             public boolean isAvailable() {
@@ -110,24 +109,22 @@ public class DefaultWindowsSdkLocator extends DefaultWindowsLocator implements W
         return defaultSdk;
     }
 
-    public WindowsSdk getSdk(String version) {
-        return foundSdks.get(version);
-    }
-
-    private void locateSdksInRegistry(Map<File, String> foundPaths) {
+    private void locateSdksInRegistry() {
         try {
             List<String> subkeys = windowsRegistry.getSubkeys(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, REGISTRY_ROOTPATH_SDK);
 
             for (String subkey : subkeys) {
                 try {
                     String basePath = REGISTRY_ROOTPATH_SDK + "\\" + subkey;
-                    File folder = new File(windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, basePath, REGISTRY_FOLDER));
+                    File sdkDir = new File(windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, basePath, REGISTRY_FOLDER));
                     String version = formatVersion(windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, basePath, REGISTRY_VERSION));
                     String name = windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, basePath, REGISTRY_NAME);
 
-                    if (isWindowsSdk(folder)) {
-                        foundPaths.put(folder, version);
-                        addSdk(folder, version, name);
+                    if (isWindowsSdk(sdkDir)) {
+                        LOGGER.debug("Found Windows SDK {} at {}", version, sdkDir);
+                        addSdk(sdkDir, version, name);
+                    } else {
+                        LOGGER.debug("Ignoring candidate Windows SDK directory {} as it does not look like a Windows SDK installation.", sdkDir);
                     }
                 } catch (MissingRegistryEntryException e) {
                     // Ignore the subkey if it doesn't have a folder and version
@@ -138,7 +135,7 @@ public class DefaultWindowsSdkLocator extends DefaultWindowsLocator implements W
         }
     }
 
-    private void locateKitsInRegistry(Map<File, String> foundPaths) {
+    private void locateKitsInRegistry() {
         String[] versions = {
                 VERSION_KIT_8,
                 VERSION_KIT_81
@@ -150,10 +147,12 @@ public class DefaultWindowsSdkLocator extends DefaultWindowsLocator implements W
 
         for (int i = 0; i != keys.length; ++i) {
             try {
-                File path = new File(windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, REGISTRY_ROOTPATH_KIT, keys[i]));
-                if (isWindowsSdk(path)) {
-                    foundPaths.put(path, versions[i]);
-                    addSdk(path, versions[i], NAME_KIT + " " + versions[i]);
+                File kitDir = new File(windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, REGISTRY_ROOTPATH_KIT, keys[i]));
+                if (isWindowsSdk(kitDir)) {
+                    LOGGER.debug("Found Windows Kit {} at {}", versions[i], kitDir);
+                    addSdk(kitDir, versions[i], NAME_KIT + " " + versions[i]);
+                } else {
+                    LOGGER.debug("Ignoring candidate Windows Kit directory {} as it does not look like a Windows Kit installation.", kitDir);
                 }
             } catch (MissingRegistryEntryException e) {
                 // Ignore the version if the string cannot be read
@@ -161,61 +160,54 @@ public class DefaultWindowsSdkLocator extends DefaultWindowsLocator implements W
         }
     }
 
-    private void locateSdkInPath(Map<File, String> foundPaths) {
+    private void locateSdkInPath() {
         File resourceCompiler = os.findInPath(RESOURCE_FILENAME);
         if (resourceCompiler != null) {
             Search search = locateInHierarchy(SDK_DISPLAY_NAME, resourceCompiler, isWindowsSdk());
             if (search.isAvailable()) {
-                File path = search.getResult();
-
-                if (!foundPaths.containsKey(path)) {
-                    foundPaths.put(path, VERSION_PATH);
-                    addSdk(path, VERSION_PATH, NAME_PATH);
+                File sdkDir = search.getResult();
+                LOGGER.debug("Found Windows SDK {} using system path", sdkDir);
+                if (!foundSdks.containsKey(sdkDir)) {
+                    addSdk(sdkDir, VERSION_PATH, NAME_PATH);
                 }
-
-                if (defaultSdk == null) {
-                    defaultSdk = foundSdks.get(VERSION_PATH);
-                }
+                pathSdk = foundSdks.get(sdkDir);
+            } else {
+                LOGGER.debug("Ignoring candidate Windows SDK for {} as it does not look like a Windows SDK installation.", resourceCompiler);
             }
         }
     }
 
-    private void locateUserSpecifiedSdk(Map<File, String> foundPaths, File candidate) {
+    private void locateUserSpecifiedSdk(File candidate) {
         Search search = locateInHierarchy(SDK_DISPLAY_NAME, candidate, isWindowsSdk());
         if (search.isAvailable()) {
             candidate = search.getResult();
-            if (!foundPaths.containsKey(candidate)) {
-                foundPaths.put(candidate, VERSION_USER);
+            LOGGER.debug("Found Windows SDK {} using configured path", candidate);
+            if (!foundSdks.containsKey(candidate)) {
                 addSdk(candidate, VERSION_USER, NAME_USER);
             }
-
-            defaultSdk = foundSdks.get(foundPaths.get(candidate));
+            userSdk = foundSdks.get(candidate);
         }
     }
 
-    private void determineDefaultSdk(Map<File, String> foundPaths) {
-        try {
-            String currentPath = windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, REGISTRY_ROOTPATH_SDK, REGISTRY_CURRENTFOLDER);
-            String currentVersion = formatVersion(windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, REGISTRY_ROOTPATH_SDK, REGISTRY_CURRENTVERSION));
-            String foundVersion = foundPaths.get(currentPath);
-
-            if (foundVersion != null) {
-                defaultSdk = foundSdks.get(foundVersion);
-            } else {
-                defaultSdk = foundSdks.get(currentVersion);
-            }
-        } catch (MissingRegistryEntryException e) {
-            // Default SDK information is not available in the registry
-        } finally {
-            if (defaultSdk == null && !foundSdks.isEmpty()) {
-                defaultSdk = foundSdks.entrySet().iterator().next().getValue();
-            }
-
+    private WindowsSdk determineDefaultSdk() {
+        if (userSdk != null) {
+            return userSdk;
         }
+        if (pathSdk != null) {
+            return pathSdk;
+        }
+
+        WindowsSdk candidate = null;
+        for (WindowsSdk windowsSdk : foundSdks.values()) {
+            if (candidate == null || windowsSdk.getVersion().compareTo(candidate.getVersion()) > 0) {
+                candidate = windowsSdk;
+            }
+        }
+        return candidate;
     }
 
     private void addSdk(File path, String version, String name) {
-        foundSdks.put(version, new WindowsSdk(path, version, name));
+        foundSdks.put(path, new WindowsSdk(path, VersionNumber.parse(version), name));
     }
 
     private static Spec<File> isWindowsSdk() {

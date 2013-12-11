@@ -19,6 +19,7 @@ package org.gradle.nativebinaries.toolchain.internal.msvcpp;
 import org.gradle.api.Named;
 import org.gradle.nativebinaries.platform.Platform;
 import org.gradle.nativebinaries.platform.internal.ArchitectureInternal;
+import org.gradle.util.VersionNumber;
 
 import java.io.File;
 
@@ -57,10 +58,10 @@ public class WindowsSdk implements Named {
     };
 
     private final File baseDir;
-    private final String version;
+    private final VersionNumber version;
     private final String name;
 
-    public WindowsSdk(File baseDir, String version, String name) {
+    public WindowsSdk(File baseDir, VersionNumber version, String name) {
         this.baseDir = baseDir;
         this.version = version;
         this.name = name;
@@ -70,7 +71,7 @@ public class WindowsSdk implements Named {
         return name;
     }
 
-    public String getVersion() {
+    public VersionNumber getVersion() {
         return version;
     }
 
