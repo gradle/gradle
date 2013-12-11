@@ -17,6 +17,7 @@ package org.gradle.nativebinaries.internal.resolve;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.nativebinaries.*;
+import org.gradle.nativebinaries.internal.LibraryBinaryInternal;
 import org.gradle.nativebinaries.platform.Platform;
 import org.gradle.util.GUtil;
 
@@ -74,7 +75,7 @@ class DefaultLibraryResolver implements LibraryResolver {
                     continue;
                 }
 
-                return candidate.resolve();
+                return ((LibraryBinaryInternal) candidate).resolve();
             }
 
             String typeName = GUtil.elvis(requirement.getLinkage(), "shared");

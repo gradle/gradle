@@ -29,7 +29,7 @@ import java.io.File;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public abstract class DefaultLibraryBinary extends DefaultNativeBinary implements LibraryBinary {
+public abstract class DefaultLibraryBinary extends DefaultNativeBinary implements LibraryBinaryInternal {
     private final Library library;
 
     protected DefaultLibraryBinary(Library library, Flavor flavor, ToolChainInternal toolChain, Platform targetPlatform, BuildType buildType,
