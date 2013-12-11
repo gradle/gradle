@@ -121,7 +121,7 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
         }
     }
 
-    public void     stop() {
+    public void stop() {
         //Down the road this method should be used to clean up,
         //when the Gradle process is about to complete (not gradle build).
         //Ideally in future, this is happens during the clean-up/stopping of the global services
