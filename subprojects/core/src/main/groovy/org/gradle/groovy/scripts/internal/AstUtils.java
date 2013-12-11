@@ -25,9 +25,8 @@ import org.codehaus.groovy.ast.expr.MethodCallExpression;
 import org.codehaus.groovy.ast.expr.VariableExpression;
 import org.codehaus.groovy.ast.stmt.Statement;
 import org.codehaus.groovy.control.SourceUnit;
-import org.gradle.api.specs.Spec;
 
-import java.util.Iterator;
+import java.util.ListIterator;
 
 /**
  * Self contained utility functions for dealing with AST.
@@ -68,11 +67,14 @@ public abstract class AstUtils {
         declaringClass.getDeclaredMethods(methodNode.getName()).clear();
     }
 
-    public static void filterStatements(SourceUnit source, Spec<? super Statement> spec) {
-        Iterator statementIterator = source.getAST().getStatementBlock().getStatements().iterator();
+    public static void filterAndTransformStatements(SourceUnit source, FilteredTransformer<? extends Statement, ? super Statement> transformer) {
+        ListIterator<Statement> statementIterator = source.getAST().getStatementBlock().getStatements().listIterator();
         while (statementIterator.hasNext()) {
-            Statement statement = (Statement) statementIterator.next();
-            if (!spec.isSatisfiedBy(statement)) {
+            Statement statement = statementIterator.next();
+            if (transformer.getSpec().isSatisfiedBy(statement)) {
+                Statement transformed = transformer.getTransformer().transform(statement);
+                statementIterator.set(transformed);
+            } else {
                 statementIterator.remove();
             }
         }

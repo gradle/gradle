@@ -16,20 +16,25 @@
 
 package org.gradle.configuration;
 
+import com.google.common.collect.ImmutableMap;
+import org.codehaus.groovy.ast.stmt.Statement;
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.internal.initialization.ScriptCompileScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.groovy.scripts.*;
 import org.gradle.groovy.scripts.internal.BuildScriptTransformer;
-import org.gradle.groovy.scripts.internal.IsScriptBlockWithNameSpec;
+import org.gradle.groovy.scripts.internal.FilteredScriptBlockTransformer;
 import org.gradle.groovy.scripts.internal.StatementExtractingScriptTransformer;
 import org.gradle.internal.Factory;
+import org.gradle.internal.Transformers;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.plugin.PluginHandler;
 import org.gradle.plugin.internal.PluginHandlerFactory;
+
+import java.util.Map;
 
 public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private final ScriptCompilerFactory scriptCompilerFactory;
@@ -122,10 +127,14 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
 
             compiler.setClassloader(classLoaderProvider.getBaseCompilationClassLoader());
 
-            StatementExtractingScriptTransformer classpathScriptTransformer = new StatementExtractingScriptTransformer(
-                    classpathClosureName,
-                    new IsScriptBlockWithNameSpec(classpathClosureName, "plugins")
+            Map<String, org.gradle.api.Transformer<Statement, Statement>> blockTransforms = ImmutableMap.of(
+                    classpathClosureName, Transformers.<Statement>noOpTransformer(),
+                    "plugins", new ScriptBlockToServiceConfigurationTransformer(DefaultScript.SCRIPT_SERVICES_PROPERTY, PluginHandler.class)
             );
+
+            FilteredScriptBlockTransformer scriptBlockTransformer = new FilteredScriptBlockTransformer(blockTransforms);
+
+            StatementExtractingScriptTransformer classpathScriptTransformer = new StatementExtractingScriptTransformer(classpathClosureName, scriptBlockTransformer);
 
             compiler.setTransformer(classpathScriptTransformer);
 

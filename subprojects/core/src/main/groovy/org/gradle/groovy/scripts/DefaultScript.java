@@ -25,7 +25,6 @@ import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.initialization.dsl.ScriptHandler;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.ProcessOperations;
 import org.gradle.api.internal.file.*;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
@@ -39,7 +38,6 @@ import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.internal.nativeplatform.filesystem.FileSystems;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.plugin.PluginHandler;
 import org.gradle.process.ExecResult;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.DeprecationLogger;
@@ -50,15 +48,17 @@ import java.util.Map;
 
 public abstract class DefaultScript extends BasicScript {
     private static final Logger LOGGER = Logging.getLogger(Script.class);
-    private ServiceRegistry services;
+
     private FileOperations fileOperations;
     private ProcessOperations processOperations;
     private LoggingManager loggingManager;
 
+    public static final String SCRIPT_SERVICES_PROPERTY = "__scriptServices";
+    public ServiceRegistry __scriptServices;
 
     public void init(final Object target, ServiceRegistry services) {
         super.init(target, services);
-        this.services = services;
+        this.__scriptServices = services;
         loggingManager = services.get(LoggingManager.class);
         Instantiator instantiator = services.get(Instantiator.class);
         if (target instanceof FileOperations) {
@@ -79,7 +79,7 @@ public abstract class DefaultScript extends BasicScript {
     }
 
     private DefaultObjectConfigurationAction createObjectConfigurationAction() {
-        return new DefaultObjectConfigurationAction(getFileResolver(), services.get(ScriptPluginFactory.class), getScriptTarget());
+        return new DefaultObjectConfigurationAction(getFileResolver(), __scriptServices.get(ScriptPluginFactory.class), getScriptTarget());
     }
 
     public void apply(Closure closure) {
@@ -95,7 +95,7 @@ public abstract class DefaultScript extends BasicScript {
     }
 
     public ScriptHandler getBuildscript() {
-        return services.get(ScriptHandler.class);
+        return __scriptServices.get(ScriptHandler.class);
     }
 
     public void buildscript(Closure configureClosure) {
@@ -194,10 +194,6 @@ public abstract class DefaultScript extends BasicScript {
 
     public Logger getLogger() {
         return LOGGER;
-    }
-
-    public void plugins(Closure closure) {
-        new ClosureBackedAction<PluginHandler>(closure, Closure.DELEGATE_ONLY).execute(services.get(PluginHandler.class));
     }
 
     public String toString() {
