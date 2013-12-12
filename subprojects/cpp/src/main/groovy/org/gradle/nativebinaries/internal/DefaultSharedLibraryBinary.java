@@ -80,7 +80,7 @@ public class DefaultSharedLibraryBinary extends DefaultLibraryBinary implements 
 
         private boolean hasResources() {
             for (WindowsResourceSet windowsResourceSet : getSource().withType(WindowsResourceSet.class)) {
-                if (windowsResourceSet.getSource().getFiles().size() > 0) {
+                if (!windowsResourceSet.getSource().isEmpty()) {
                     return true;
                 }
             }
@@ -91,7 +91,7 @@ public class DefaultSharedLibraryBinary extends DefaultLibraryBinary implements 
             // TODO:DAZ This is a very rough approximation: actually inspect the binary to determine if there are exported symbols
             for (LanguageSourceSet languageSourceSet : getSource()) {
                 if (!(languageSourceSet instanceof WindowsResourceSet)) {
-                    if (languageSourceSet.getSource().getFiles().size() > 0) {
+                    if (!languageSourceSet.getSource().isEmpty()) {
                         return true;
                     }
                 }

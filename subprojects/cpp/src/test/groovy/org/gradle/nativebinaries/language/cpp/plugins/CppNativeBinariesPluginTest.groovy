@@ -24,6 +24,7 @@ import org.gradle.nativebinaries.NativeBinary
 import org.gradle.nativebinaries.SharedLibraryBinary
 import org.gradle.nativebinaries.StaticLibraryBinary
 import org.gradle.nativebinaries.language.cpp.tasks.CppCompile
+import org.gradle.util.GFileUtils
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -103,13 +104,16 @@ class CppNativeBinariesPluginTest extends Specification {
         }
     }
 
-    def "creates compile tasks for each executable source set"() {
+    def "creates compile tasks for each non-empty executable source set"() {
         when:
+        touch("src/test/cpp/file.cpp")
+        touch("src/test/anotherCpp/file.cpp")
         dsl {
             apply plugin: CppNativeBinariesPlugin
             sources {
                 test {
                     anotherCpp(CppSourceSet) {}
+                    emptyOne(CppSourceSet) {}
                 }
             }
             executables {
@@ -141,6 +145,8 @@ class CppNativeBinariesPluginTest extends Specification {
 
     def "creates compile task for each library source set"() {
         when:
+        touch("src/test/cpp/file.cpp")
+        touch("src/test/anotherCpp/file.cpp")
         dsl {
             apply plugin: CppNativeBinariesPlugin
             sources {
@@ -186,6 +192,10 @@ class CppNativeBinariesPluginTest extends Specification {
         }
         def staticLibTask = staticLib.tasks.createStaticLib
         staticLibTask TaskDependencyMatchers.dependsOn("compileTestStaticLibraryTestAnotherCpp", "compileTestStaticLibraryTestCpp")
+    }
+
+    def touch(String filePath) {
+        GFileUtils.touch(project.file(filePath))
     }
 
     def dsl(Closure closure) {

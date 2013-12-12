@@ -15,7 +15,6 @@
  */
 
 package org.gradle.nativebinaries.language.assembler.plugins
-
 import org.gradle.api.tasks.TaskDependencyMatchers
 import org.gradle.language.assembler.AssemblerSourceSet
 import org.gradle.language.base.FunctionalSourceSet
@@ -24,6 +23,7 @@ import org.gradle.nativebinaries.NativeBinary
 import org.gradle.nativebinaries.SharedLibraryBinary
 import org.gradle.nativebinaries.StaticLibraryBinary
 import org.gradle.nativebinaries.language.assembler.tasks.Assemble
+import org.gradle.util.GFileUtils
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -86,13 +86,16 @@ class AssemblerNativeBinariesPluginTest extends Specification {
         project.sources.lib.asm.source.srcDirs*.name == ["d3"]
     }
 
-    def "creates assemble tasks for each executable source set"() {
+    def "creates assemble tasks for each non-empty executable source set "() {
         when:
+        touch("src/test/asm/dummy.s")
+        touch("src/test/anotherOne/dummy.s")
         dsl {
             apply plugin: AssemblerNativeBinariesPlugin
             sources {
                 test {
                     anotherOne(AssemblerSourceSet) {}
+                    emptyOne(AssemblerSourceSet) {}
                 }
             }
             executables {
@@ -122,11 +125,14 @@ class AssemblerNativeBinariesPluginTest extends Specification {
 
     def "creates assemble tasks for each library source set"() {
         when:
+        touch("src/test/asm/dummy.s")
+        touch("src/test/anotherOne/dummy.s")
         dsl {
             apply plugin: AssemblerNativeBinariesPlugin
             sources {
                 test {
                     anotherOne(AssemblerSourceSet) {}
+                    emptyOne(AssemblerSourceSet) {}
                 }
             }
             libraries {
@@ -163,6 +169,10 @@ class AssemblerNativeBinariesPluginTest extends Specification {
         }
         def staticLibTask = staticLib.tasks.createStaticLib
         staticLibTask TaskDependencyMatchers.dependsOn("assembleTestStaticLibraryTestAnotherOne", "assembleTestStaticLibraryTestAsm")
+    }
+
+    def touch(String filePath) {
+        GFileUtils.touch(project.file(filePath))
     }
 
     def dsl(Closure closure) {
