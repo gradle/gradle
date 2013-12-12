@@ -18,6 +18,7 @@ package org.gradle.nativebinaries.language.c.internal.incremental;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.cache.CacheRepository;
 import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec;
+import org.gradle.api.internal.tasks.compile.Compiler;
 
 import java.io.File;
 
@@ -42,18 +43,18 @@ public class IncrementalCompilerBuilder {
         return this;
     }
 
-    public org.gradle.api.internal.tasks.compile.Compiler<NativeCompileSpec> createIncrementalCompiler(org.gradle.api.internal.tasks.compile.Compiler<NativeCompileSpec> compiler) {
+    public Compiler<NativeCompileSpec> createIncrementalCompiler(Compiler<NativeCompileSpec> compiler) {
         if (cleanCompile) {
             return createCleaningCompiler(compiler, task, includes);
         }
         return createIncrementalCompiler(compiler, task, includes);
     }
 
-    private org.gradle.api.internal.tasks.compile.Compiler<NativeCompileSpec> createIncrementalCompiler(org.gradle.api.internal.tasks.compile.Compiler<NativeCompileSpec> compiler, TaskInternal task, Iterable<File> includes) {
+    private Compiler<NativeCompileSpec> createIncrementalCompiler(Compiler<NativeCompileSpec> compiler, TaskInternal task, Iterable<File> includes) {
         return new IncrementalNativeCompiler(task, includes, cacheRepository, compiler);
     }
 
-    private org.gradle.api.internal.tasks.compile.Compiler<NativeCompileSpec> createCleaningCompiler(org.gradle.api.internal.tasks.compile.Compiler<NativeCompileSpec> compiler, TaskInternal task, Iterable<File> includes) {
+    private Compiler<NativeCompileSpec> createCleaningCompiler(Compiler<NativeCompileSpec> compiler, TaskInternal task, Iterable<File> includes) {
         return new CleanCompilingNativeCompiler(task, includes, cacheRepository, compiler);
     }
 }
