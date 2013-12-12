@@ -160,6 +160,20 @@ class IncrementalCompileProcessorTest extends Specification {
         }
     }
 
+    def "detects dependency file removed"() {
+        given:
+        initialFiles()
+
+        when:
+        dep4.delete()
+
+        then:
+        with (state) {
+            recompile == [source2]
+            removed == []
+        }
+    }
+
     def "detects shared dependency file changed"() {
         given:
         initialFiles()
