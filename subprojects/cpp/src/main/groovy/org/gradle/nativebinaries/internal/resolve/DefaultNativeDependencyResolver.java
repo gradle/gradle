@@ -16,7 +16,6 @@
 
 package org.gradle.nativebinaries.internal.resolve;
 
-import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.nativebinaries.NativeBinary;
@@ -54,18 +53,4 @@ public class DefaultNativeDependencyResolver implements NativeDependencyResolver
         return new DeferredResolutionLibraryNativeDependencySet(libraryResolver);
     }
 
-    private static class RelativeProjectFinder implements ProjectFinder {
-        private final ProjectInternal project;
-
-        public RelativeProjectFinder(ProjectInternal project) {
-            this.project = project;
-        }
-
-        public ProjectInternal getProject(String path) {
-            if (path == null || path.length() == 0) {
-                return project;
-            }
-            return project.findProject(path);
-        }
-    }
 }

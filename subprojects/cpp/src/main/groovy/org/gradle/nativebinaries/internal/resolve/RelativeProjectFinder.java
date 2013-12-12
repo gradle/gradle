@@ -13,19 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.ide.visualstudio.internal;
+
+package org.gradle.nativebinaries.internal.resolve;
 
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.project.ProjectInternal;
 
-public class DefaultProjectFinder implements ProjectFinder {
+class RelativeProjectFinder implements ProjectFinder {
     private final ProjectInternal project;
 
-    public DefaultProjectFinder(ProjectInternal project) {
+    public RelativeProjectFinder(ProjectInternal project) {
         this.project = project;
     }
 
     public ProjectInternal getProject(String path) {
-        return project.project(path);
+        if (path == null || path.length() == 0) {
+            return project;
+        }
+
+        ProjectInternal referencedProject = project.findProject(path);
+        // TODO:DAZ This is a brain-dead way to ensure that the reference project's model is ready to access
+        referencedProject.evaluate();
+        return referencedProject;
     }
 }

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.ide.visualstudio
+
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
@@ -21,7 +22,6 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.TaskContainer
-import org.gradle.ide.visualstudio.internal.DefaultProjectFinder
 import org.gradle.ide.visualstudio.internal.DefaultVisualStudioExtension
 import org.gradle.ide.visualstudio.internal.rules.CreateVisualStudioModel
 import org.gradle.ide.visualstudio.internal.rules.CreateVisualStudioTasks
@@ -31,6 +31,7 @@ import org.gradle.model.ModelRules
 import org.gradle.model.internal.Inputs
 import org.gradle.model.internal.ModelCreator
 import org.gradle.nativebinaries.FlavorContainer
+import org.gradle.nativebinaries.internal.resolve.RelativeProjectFinder
 import org.gradle.nativebinaries.platform.PlatformContainer
 import org.gradle.nativebinaries.plugins.NativeBinariesModelPlugin
 
@@ -50,7 +51,7 @@ class VisualStudioPlugin implements Plugin<ProjectInternal> {
     void apply(ProjectInternal project) {
         project.plugins.apply(NativeBinariesModelPlugin)
 
-        project.modelRegistry.create("visualStudio", ["flavors", "platforms"], new VisualStudioExtensionFactory(instantiator, new DefaultProjectFinder(project), project.getFileResolver()))
+        project.modelRegistry.create("visualStudio", ["flavors", "platforms"], new VisualStudioExtensionFactory(instantiator, new RelativeProjectFinder(project), project.getFileResolver()))
         modelRules.rule(new CreateVisualStudioModel())
         modelRules.rule(new CreateVisualStudioTasks())
         modelRules.rule(new CloseVisualStudioForTasks());
