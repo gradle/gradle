@@ -30,6 +30,7 @@ import org.gradle.cache.internal.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.ReferencablePersistentCache;
 import org.gradle.cache.internal.filelock.LockOptions;
 import org.gradle.cache.internal.filelock.LockOptionsBuilder;
+import org.gradle.internal.Factory;
 import org.gradle.messaging.serialize.DefaultSerializer;
 import org.gradle.messaging.serialize.Serializer;
 import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec;
@@ -37,7 +38,6 @@ import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
 
 abstract class AbstractIncrementalNativeCompiler implements Compiler<NativeCompileSpec> {
     private final RegexBackedIncludesParser includesParser = new RegexBackedIncludesParser();
@@ -52,14 +52,12 @@ abstract class AbstractIncrementalNativeCompiler implements Compiler<NativeCompi
     }
 
     public WorkResult execute(final NativeCompileSpec spec) {
-        final AtomicReference<WorkResult> result = new AtomicReference<WorkResult>();
-
         final PersistentCache cache = openCache(task);
         try {
-            cache.useCache("incremental compile", new Runnable() {
-                public void run() {
-                    final IncrementalCompileProcessor processor = createProcessor(includes, cache);
-                    result.set(doIncrementalCompile(processor, spec));
+            return cache.useCache("incremental compile", new Factory<WorkResult>() {
+                public WorkResult create() {
+                    IncrementalCompileProcessor processor = createProcessor(includes, cache);
+                    return doIncrementalCompile(processor, spec);
                 }
             });
         } finally {
@@ -67,7 +65,6 @@ abstract class AbstractIncrementalNativeCompiler implements Compiler<NativeCompi
                 ((ReferencablePersistentCache) cache).close();
             }
         }
-        return result.get();
     }
 
     protected abstract WorkResult doIncrementalCompile(IncrementalCompileProcessor processor, NativeCompileSpec spec);
