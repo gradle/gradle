@@ -16,22 +16,15 @@
 
 package org.gradle.nativebinaries.internal;
 
-import org.gradle.api.Buildable;
-import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.file.collections.FileCollectionAdapter;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
-import org.gradle.api.internal.tasks.DefaultTaskDependency;
-import org.gradle.api.tasks.TaskDependency;
 import org.gradle.language.base.internal.DefaultBinaryNamingScheme;
-import org.gradle.nativebinaries.*;
-import org.gradle.nativebinaries.internal.resolve.LibraryNativeDependencySet;
+import org.gradle.nativebinaries.ApiLibraryBinary;
+import org.gradle.nativebinaries.BuildType;
+import org.gradle.nativebinaries.Flavor;
+import org.gradle.nativebinaries.Library;
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativebinaries.platform.Platform;
 import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal;
-
-import java.io.File;
-import java.util.Collections;
-import java.util.Set;
 
 public class DefaultApiLibraryBinary extends DefaultLibraryBinary implements ApiLibraryBinary {
 
@@ -50,38 +43,13 @@ public class DefaultApiLibraryBinary extends DefaultLibraryBinary implements Api
         return false;
     }
 
-    public LibraryNativeDependencySet resolve() {
-        return new LibraryNativeDependencySet() {
-            public FileCollection getIncludeRoots() {
-                return getHeaderDirs();
-            }
-
-            public FileCollection getLinkFiles() {
-                return new FileCollectionAdapter(new EmptyLibraryOutputs());
-            }
-
-            public FileCollection getRuntimeFiles() {
-                return new FileCollectionAdapter(new EmptyLibraryOutputs());
-            }
-
-            public LibraryBinary getLibraryBinary() {
-                return DefaultApiLibraryBinary.this;
-            }
-        };
+    @Override
+    protected MinimalFileSet getLinkFiles() {
+        return emptyLibraryOutputs();
     }
 
-
-    private class EmptyLibraryOutputs implements MinimalFileSet, Buildable {
-        public Set<File> getFiles() {
-            return Collections.emptySet();
-        }
-
-        public String getDisplayName() {
-            return DefaultApiLibraryBinary.this.toString();
-        }
-
-        public TaskDependency getBuildDependencies() {
-            return new DefaultTaskDependency();
-        }
+    @Override
+    protected MinimalFileSet getRuntimeFiles() {
+        return emptyLibraryOutputs();
     }
 }

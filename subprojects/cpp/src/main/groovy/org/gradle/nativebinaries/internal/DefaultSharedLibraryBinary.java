@@ -16,16 +16,14 @@
 
 package org.gradle.nativebinaries.internal;
 
-import org.gradle.api.Buildable;
-import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.file.collections.FileCollectionAdapter;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
-import org.gradle.api.tasks.TaskDependency;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.DefaultBinaryNamingScheme;
 import org.gradle.language.rc.WindowsResourceSet;
-import org.gradle.nativebinaries.*;
-import org.gradle.nativebinaries.internal.resolve.LibraryNativeDependencySet;
+import org.gradle.nativebinaries.BuildType;
+import org.gradle.nativebinaries.Flavor;
+import org.gradle.nativebinaries.Library;
+import org.gradle.nativebinaries.SharedLibraryBinary;
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativebinaries.platform.Platform;
 import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal;
@@ -45,33 +43,20 @@ public class DefaultSharedLibraryBinary extends DefaultLibraryBinary implements 
         return getToolChain().getSharedLibraryName(getComponent().getBaseName());
     }
 
-    public LibraryNativeDependencySet resolve() {
-        return new LibraryNativeDependencySet() {
-            public FileCollection getIncludeRoots() {
-                return getHeaderDirs();
-            }
-
-            public FileCollection getLinkFiles() {
-                return new FileCollectionAdapter(new SharedLibraryLinkOutputs());
-            }
-
-            public FileCollection getRuntimeFiles() {
-                return new FileCollectionAdapter(new SharedLibraryRuntimeOutputs());
-            }
-
-            public LibraryBinary getLibraryBinary() {
-                return DefaultSharedLibraryBinary.this;
-            }
-        };
+    @Override
+    protected MinimalFileSet getLinkFiles() {
+        return new SharedLibraryLinkOutputs();
     }
 
-    private class SharedLibraryLinkOutputs implements MinimalFileSet, Buildable {
-        public Set<File> getFiles() {
-            if (isResourceOnly()) {
-                return Collections.emptySet();
-            }
-            String sharedLibraryLinkFileName = getToolChain().getSharedLibraryLinkFileName(getOutputFile().getPath());
-            return Collections.singleton(new File(sharedLibraryLinkFileName));
+    @Override
+    protected MinimalFileSet getRuntimeFiles() {
+        return new SharedLibraryRuntimeOutputs();
+    }
+
+    private class SharedLibraryLinkOutputs extends LibraryOutputs {
+        @Override
+        protected boolean hasOutputs() {
+            return hasSources() && !isResourceOnly();
         }
 
         private boolean isResourceOnly() {
@@ -99,27 +84,22 @@ public class DefaultSharedLibraryBinary extends DefaultLibraryBinary implements 
             return false;
         }
 
-        public String getDisplayName() {
-            return DefaultSharedLibraryBinary.this.toString();
-        }
-
-        public TaskDependency getBuildDependencies() {
-            return DefaultSharedLibraryBinary.this.getBuildDependencies();
+        @Override
+        protected Set<File> getOutputs() {
+            String sharedLibraryLinkFileName = getToolChain().getSharedLibraryLinkFileName(getOutputFile().getPath());
+            return Collections.singleton(new File(sharedLibraryLinkFileName));
         }
     }
 
-    private class SharedLibraryRuntimeOutputs implements MinimalFileSet, Buildable {
-        public Set<File> getFiles() {
+    private class SharedLibraryRuntimeOutputs extends LibraryOutputs {
+        @Override
+        protected boolean hasOutputs() {
+            return hasSources();
+        }
+
+        @Override
+        protected Set<File> getOutputs() {
             return Collections.singleton(getOutputFile());
         }
-
-        public String getDisplayName() {
-            return DefaultSharedLibraryBinary.this.toString();
-        }
-
-        public TaskDependency getBuildDependencies() {
-            return DefaultSharedLibraryBinary.this.getBuildDependencies();
-        }
     }
-
 }

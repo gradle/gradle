@@ -25,6 +25,7 @@ import org.gradle.nativebinaries.Library
 import org.gradle.nativebinaries.platform.Platform
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver
 import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -56,19 +57,9 @@ class DefaultStaticLibraryBinaryTest extends Specification {
         binary.lifecycleTask = lifecycleTask
         binary.builtBy(Stub(Task))
 
-        and: "has at least one header exporting source set"
+        and:
         final headerDir = tmpDir.createDir("headerDir")
-        def headerDirSet = Stub(SourceDirectorySet) {
-            getSrcDirs() >> [headerDir]
-        }
-        def sourceDirSet = Stub(SourceDirectorySet) {
-            getFiles() >> [tmpDir.createFile("input.src")]
-        }
-        def sourceSet = Stub(HeaderExportingSourceSet) {
-            getSource() >> sourceDirSet
-            getExportedHeaders() >> headerDirSet
-        }
-        binary.source sourceSet
+        addSources(binary, headerDir)
 
         expect:
         def nativeDependency = binary.resolve()
@@ -81,7 +72,7 @@ class DefaultStaticLibraryBinaryTest extends Specification {
 
         and:
         nativeDependency.runtimeFiles.files.isEmpty()
-        nativeDependency.runtimeFiles.buildDependencies.getDependencies(Stub(Task)) == [lifecycleTask] as Set
+        nativeDependency.runtimeFiles.buildDependencies.getDependencies(Stub(Task)) == [] as Set
         nativeDependency.runtimeFiles.toString() == "static library 'main:staticLibrary'"
     }
 
@@ -95,8 +86,26 @@ class DefaultStaticLibraryBinaryTest extends Specification {
         }
         binary.additionalLinkFiles(additionalLinkFiles)
 
+        and:
+        addSources(binary, tmpDir.createDir("headerDir"))
+
         expect:
         def nativeDependency = binary.resolve()
         nativeDependency.linkFiles.files == [binary.outputFile, linkFile1, linkFile2] as Set
+    }
+
+    private TestFile addSources(DefaultStaticLibraryBinary binary, def headerDir) {
+        def headerDirSet = Stub(SourceDirectorySet) {
+            getSrcDirs() >> [headerDir]
+        }
+        def sourceDirSet = Stub(SourceDirectorySet) {
+            getFiles() >> [tmpDir.createFile("input.src")]
+        }
+        def sourceSet = Stub(HeaderExportingSourceSet) {
+            getSource() >> sourceDirSet
+            getExportedHeaders() >> headerDirSet
+        }
+        binary.source sourceSet
+        headerDir
     }
 }

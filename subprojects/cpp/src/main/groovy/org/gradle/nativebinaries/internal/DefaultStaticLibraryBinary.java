@@ -16,20 +16,22 @@
 
 package org.gradle.nativebinaries.internal;
 
-import org.gradle.api.Buildable;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.file.collections.FileCollectionAdapter;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
-import org.gradle.api.tasks.TaskDependency;
 import org.gradle.language.base.internal.DefaultBinaryNamingScheme;
-import org.gradle.nativebinaries.*;
-import org.gradle.nativebinaries.internal.resolve.LibraryNativeDependencySet;
+import org.gradle.nativebinaries.BuildType;
+import org.gradle.nativebinaries.Flavor;
+import org.gradle.nativebinaries.Library;
+import org.gradle.nativebinaries.Tool;
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativebinaries.platform.Platform;
 import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
 public class DefaultStaticLibraryBinary extends DefaultLibraryBinary implements StaticLibraryBinaryInternal {
     private final DefaultTool staticLibArchiver = new DefaultTool();
@@ -52,56 +54,32 @@ public class DefaultStaticLibraryBinary extends DefaultLibraryBinary implements 
         this.additionalLinkFiles.add(files);
     }
 
-    public LibraryNativeDependencySet resolve() {
-        return new LibraryNativeDependencySet() {
-            public FileCollection getIncludeRoots() {
-                return getHeaderDirs();
-            }
-
-            public FileCollection getLinkFiles() {
-                return new FileCollectionAdapter(new StaticLibraryLinkOutputs());
-            }
-
-            public FileCollection getRuntimeFiles() {
-                return new FileCollectionAdapter(new StaticLibraryRuntimeOutputs());
-            }
-
-            public LibraryBinary getLibraryBinary() {
-                return DefaultStaticLibraryBinary.this;
-            }
-        };
+    @Override
+    protected MinimalFileSet getLinkFiles() {
+        return new StaticLibraryLinkOutputs();
     }
 
-    private class StaticLibraryLinkOutputs implements MinimalFileSet, Buildable {
-        public Set<File> getFiles() {
+    @Override
+    protected MinimalFileSet getRuntimeFiles() {
+        return emptyLibraryOutputs();
+    }
+
+    private class StaticLibraryLinkOutputs extends LibraryOutputs {
+        @Override
+        protected boolean hasOutputs() {
+            return hasSources() || !additionalLinkFiles.isEmpty();
+        }
+
+        @Override
+        protected Set<File> getOutputs() {
             Set<File> allFiles = new LinkedHashSet<File>();
-            allFiles.add(getOutputFile());
+            if (hasSources()) {
+                allFiles.add(getOutputFile());
+            }
             for (FileCollection resourceSet : additionalLinkFiles) {
                 allFiles.addAll(resourceSet.getFiles());
             }
             return allFiles;
-        }
-
-        public String getDisplayName() {
-            return DefaultStaticLibraryBinary.this.toString();
-        }
-
-        public TaskDependency getBuildDependencies() {
-            return DefaultStaticLibraryBinary.this.getBuildDependencies();
-        }
-    }
-
-    private class StaticLibraryRuntimeOutputs implements MinimalFileSet, Buildable {
-        public Set<File> getFiles() {
-            return Collections.emptySet();
-        }
-
-        public String getDisplayName() {
-            return DefaultStaticLibraryBinary.this.toString();
-        }
-
-        public TaskDependency getBuildDependencies() {
-            return DefaultStaticLibraryBinary.this.getBuildDependencies();
         }
     }
 }
