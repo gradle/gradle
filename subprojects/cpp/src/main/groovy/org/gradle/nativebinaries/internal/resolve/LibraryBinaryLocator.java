@@ -18,6 +18,7 @@ package org.gradle.nativebinaries.internal.resolve;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.nativebinaries.*;
 
 import java.util.Set;
@@ -36,7 +37,9 @@ class LibraryBinaryLocator {
     }
 
     private Project findProject(NativeLibraryRequirement requirement) {
-        return projectFinder.getProject(requirement.getProjectPath());
+        ProjectInternal project = projectFinder.getProject(requirement.getProjectPath());
+        project.evaluate();
+        return project;
     }
 
     private Library findLibrary(NativeLibraryRequirement requirement) {

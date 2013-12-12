@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 package org.gradle.nativebinaries.language.cpp
-
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativebinaries.language.cpp.fixtures.app.CppHelloWorldApp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.ExeWithDiamondDependencyHelloWorldApp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.ExeWithLibraryUsingLibraryHelloWorldApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
@@ -116,7 +114,6 @@ class LibraryDependenciesIntegrationTest extends AbstractInstalledToolChainInteg
         executable("build/binaries/mainExecutable/main").exec().out == app.englishOutput
     }
 
-    @Ignore("Fails due to model rules evaluating before script when project.evaluate() is called")
     @Unroll
     def "can use map notation to reference library in different project#label"() {
         given:
@@ -154,7 +151,7 @@ class LibraryDependenciesIntegrationTest extends AbstractInstalledToolChainInteg
         label                       | configureOnDemand | explicitEvaluation
         ""                          | false             | ""
         " with configure-on-demand" | true              | ""
-        " with evaluationDependsOn" | false             | "evaluationDependsOn(':lib')"
+//        " with evaluationDependsOn" | false             | "evaluationDependsOn(':lib')"
         " with afterEvaluate"       | false             | """
 project.afterEvaluate {
     binaries*.libs*.linkFiles.files.each { println it }
