@@ -650,6 +650,7 @@ The implementation will also remove stale object files.
 - Change a header file that is included by one source file, only that source file is recompiled.
 - Change a header file that is not included by any source files, no compilation or linking should happen.
 - Change a header file that is included by another header file, only the source files that include this header are recompiled.
+- Cyclic dependencies between headers.
 - Change a compiler setting, all source files are recompiled.
 - Remove a source file, the corresponding object file is removed.
 - Rename a source file, the corresponding object file is removed.
@@ -1825,6 +1826,10 @@ TBD
     - ARM
     - 64 bit assembler
     - Cross compilation
+- Not every Windows SDK that can build all the target architectures of a component. For example, the SDK distributed with Visual studio express can only build x86 binaries,
+  so either don't use it if another, newer, version is available, or mark the other variants as unavailable.
+- Not every GCC installation can build all the target architectures of a component. For example, can only build i386 binaries on an amd64 machine if the i386 multi-arch
+  support is installed, so mark variants as unavailable when the target c runtime is not available.
 
 ## Variants
 

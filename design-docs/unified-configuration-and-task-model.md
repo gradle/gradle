@@ -210,6 +210,24 @@ The implementation should be able to detect and report on typos and predicates t
     - Gcc or Visual Studio install path, Gcc tool configuration, etc.
 - Tool chain is added once tool chains have been selected for a binary.
 
+### Open issues
+
+Another example ordering problem:
+
+    project(":exe") {
+        evaluationDependsOn(":lib") // Closes the tasks for lib
+        executables {
+            main {}
+        }
+        sources.main.cpp.lib project: ':lib', library: 'hello'
+    }
+    project(":lib") {
+        // This stuff is effectively ignored
+        libraries {
+            hello {}
+        }
+    }
+
 ## Native language plugins do not create tasks for binaries that cannot be built
 
 ## Plugins use model rules to define implicit tasks
