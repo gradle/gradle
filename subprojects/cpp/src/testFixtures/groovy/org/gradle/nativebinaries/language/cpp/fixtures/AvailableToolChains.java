@@ -122,7 +122,7 @@ public class AvailableToolChains {
         // Search in the standard installation locations
         File compilerExe = new File("C:/MinGW/bin/g++.exe");
         if (compilerExe.isFile()) {
-            return new InstalledGcc("mingw").inPath(compilerExe.getParentFile());
+            return new InstalledWindowsGcc("mingw").inPath(compilerExe.getParentFile());
         }
 
         return new UnavailableToolChain("mingw");
@@ -132,7 +132,7 @@ public class AvailableToolChains {
         // Search in the standard installation locations
         File compilerExe = new File("C:/cygwin/bin/g++.exe");
         if (compilerExe.isFile()) {
-            return new InstalledGcc("gcc cygwin").inPath(compilerExe.getParentFile());
+            return new InstalledWindowsGcc("gcc cygwin").inPath(compilerExe.getParentFile());
         }
 
         return new UnavailableToolChain("gcc cygwin");
@@ -190,7 +190,7 @@ public class AvailableToolChains {
         private static final ProcessEnvironment PROCESS_ENVIRONMENT = NativeServices.getInstance().get(ProcessEnvironment.class);
         protected final List<File> pathEntries = new ArrayList<File>();
         private final String displayName;
-        private final String pathVarName;
+        protected final String pathVarName;
         private String originalPath;
 
         public InstalledToolChain(String displayName) {
@@ -239,6 +239,10 @@ public class AvailableToolChains {
             return new NativeBinaryFixture(new TestFile(OperatingSystem.current().getSharedLibraryName(path.toString())), this);
         }
 
+        /**
+         * Initialise the process environment so that this tool chain is visible to the default discovery mechanism that the
+         * plugin uses (eg add the compiler to the PATH).
+         */
         public void initialiseEnvironment() {
             String compilerPath = Joiner.on(File.pathSeparator).join(pathEntries);
 
@@ -274,12 +278,8 @@ public class AvailableToolChains {
          * The environment required to execute a binary created by this toolchain.
          */
         public List<String> getRuntimeEnv() {
-            if (pathEntries.isEmpty()) {
-                return Collections.emptyList();
-            }
-
-            String path = Joiner.on(File.pathSeparator).join(pathEntries) + File.pathSeparator + System.getenv(pathVarName);
-            return Collections.singletonList(pathVarName + "=" + path);
+            // Toolchains should be linking against stuff in the standard locations
+            return Collections.emptyList();
         }
 
         public String getId() {
@@ -315,6 +315,24 @@ public class AvailableToolChains {
         }
     }
 
+    public static class InstalledWindowsGcc extends InstalledGcc {
+        public InstalledWindowsGcc(String name) {
+            super(name);
+        }
+
+        /**
+         * The environment required to execute a binary created by this toolchain.
+         */
+        public List<String> getRuntimeEnv() {
+            if (pathEntries.isEmpty()) {
+                return Collections.emptyList();
+            }
+
+            String path = Joiner.on(File.pathSeparator).join(pathEntries) + File.pathSeparator + System.getenv(pathVarName);
+            return Collections.singletonList(pathVarName + "=" + path);
+        }
+    }
+
     public static class InstalledVisualCpp extends InstalledToolChain {
         private String version;
         private File installDir;
@@ -325,6 +343,7 @@ public class AvailableToolChains {
 
         public InstalledVisualCpp withInstall(VisualStudioInstall install) {
             DefaultPlatform targetPlatform = new DefaultPlatform("default");
+            targetPlatform.architecture("i386");
             installDir = install.getVisualStudioDir();
             version = install.getVisualStudioVersion();
             pathEntries.addAll(install.getVisualCppPathForPlatform(targetPlatform));
