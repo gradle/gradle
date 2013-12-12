@@ -154,10 +154,12 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
         newFile << sharedHeaderFile.text
         sharedHeaderFile.delete()
 
-        expect:
+        when:
         fails "mainExecutable"
-        failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainCpp'.");
-        failure.assertHasCause("C++ compiler failed; see the error output for details.")
+
+        then:
+        executedAndNotSkipped compileTask
+        failure.assertHasDescription("Execution failed for task '${compileTask}'.");
     }
 
     def "does not recompile any sources when unused header file is changed"() {
