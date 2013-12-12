@@ -66,6 +66,10 @@ div.success, #successRate.success {
     color: #b60808;
 }
 
+.skipped, .skipped a {
+    color: #c09853;
+}
+
 div.failures, #successRate.failures {
     background-color: #ecdada;
     border-color: #b60808;
