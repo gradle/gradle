@@ -145,6 +145,21 @@ abstract class AbstractLanguageIncrementalCompileIntegrationTest extends Abstrac
         recompiled sourceFile
     }
 
+    def "recompiles source file when an included header file is renamed"() {
+        given:
+        initialCompile()
+
+        and:
+        final newFile = file("src/main/${app.sourceType}/changed.h")
+        newFile << sharedHeaderFile.text
+        sharedHeaderFile.delete()
+
+        expect:
+        fails "mainExecutable"
+        failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainCpp'.");
+        failure.assertHasCause("C++ compiler failed; see the error output for details.")
+    }
+
     def "does not recompile any sources when unused header file is changed"() {
         given:
         initialCompile()
