@@ -171,6 +171,10 @@ public class NativeServices extends DefaultServiceRegistry {
             throw failure();
         }
 
+        public List<String> getValueNames(Key key, String subkey) throws NativeException {
+            throw failure();
+        }
+
         private NativeIntegrationUnavailableException failure() {
             return new NativeIntegrationUnavailableException("Windows registry is not supported on this operating system.");
         }
