@@ -23,6 +23,19 @@ import spock.lang.Unroll
 
 @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
 class LibraryApiDependenciesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+    def "setup"() {
+        settingsFile << "rootProject.name = 'test'"
+        buildFile << """
+            apply plugin: "cpp"
+            // Allow static libraries to be linked into shared
+            binaries.withType(StaticLibraryBinary) {
+                if (toolChain in Gcc || toolChain in Clang) {
+                    cppCompiler.args '-fPIC'
+                }
+            }
+"""
+    }
+
     @Unroll
     def "can use api linkage via #notationName notation"() {
         given:
@@ -34,7 +47,6 @@ class LibraryApiDependenciesIntegrationTest extends AbstractInstalledToolChainIn
 
         and:
         buildFile << """
-            apply plugin: "cpp"
             executables {
                 main {}
             }
@@ -74,7 +86,6 @@ class LibraryApiDependenciesIntegrationTest extends AbstractInstalledToolChainIn
             }
 """
         buildFile << """
-            apply plugin: "cpp"
             executables {
                 main {}
             }
@@ -108,7 +119,6 @@ class LibraryApiDependenciesIntegrationTest extends AbstractInstalledToolChainIn
             }
 """
         buildFile << """
-            apply plugin: "cpp"
             model {
                 buildTypes {
                     create("debug")
@@ -153,7 +163,6 @@ class LibraryApiDependenciesIntegrationTest extends AbstractInstalledToolChainIn
 
         and:
         buildFile << """
-            apply plugin: "cpp"
             executables {
                 main {}
             }
@@ -183,7 +192,6 @@ class LibraryApiDependenciesIntegrationTest extends AbstractInstalledToolChainIn
 
         and:
         buildFile << """
-            apply plugin: "cpp"
             executables {
                 main {}
             }
@@ -211,7 +219,6 @@ class LibraryApiDependenciesIntegrationTest extends AbstractInstalledToolChainIn
 
         and:
         buildFile << """
-            apply plugin: "cpp"
             executables {
                 main {}
             }
