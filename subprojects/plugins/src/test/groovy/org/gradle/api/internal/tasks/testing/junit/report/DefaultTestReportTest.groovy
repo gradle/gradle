@@ -171,12 +171,21 @@ class DefaultTestReportTest extends Specification {
         testClassFile.assertHasFailure('test2', 'SomeType: this is the failure.\nat someClass')
     }
 
-    def generatesReportWhenThereAreIgnoredTests() {
+    def generatesReportWhenThereAreIgnoredTestsAndFailures() {
         given:
         def testTestResults = buildResults {
             testClassResult("org.gradle.Test") {
                 testcase("test1") {
                     resultType = TestResult.ResultType.SKIPPED
+                }
+
+                testcase("test2") {
+                    duration = 0
+                    failure("something failed", "this is the failure\nat someClass")
+                }
+
+                testcase("test3") {
+                    duration = 0
                 }
             }
         }
@@ -185,22 +194,22 @@ class DefaultTestReportTest extends Specification {
 
         then:
         def index = results(indexFile)
-        index.assertHasTests(1)
-        index.assertHasFailures(0)
+        index.assertHasTests(3)
+        index.assertHasFailures(1)
         index.assertHasIgnored(1)
-        index.assertHasSuccessRate(100)
+        index.assertHasSuccessRate(50)
 
         def packageFile = results(reportDir.file('packages/org.gradle.html'))
-        packageFile.assertHasTests(1)
-        packageFile.assertHasFailures(0)
+        packageFile.assertHasTests(3)
+        packageFile.assertHasFailures(1)
         packageFile.assertHasIgnored(1)
-        packageFile.assertHasSuccessRate(100)
+        packageFile.assertHasSuccessRate(50)
 
         def testClassFile = results(reportDir.file('classes/org.gradle.Test.html'))
-        testClassFile.assertHasTests(1)
-        testClassFile.assertHasFailures(0)
+        testClassFile.assertHasTests(3)
+        testClassFile.assertHasFailures(1)
         testClassFile.assertHasIgnored(1)
-        testClassFile.assertHasSuccessRate(100)
+        testClassFile.assertHasSuccessRate(50)
         testClassFile.assertHasTest('test1')
         testClassFile.assertTestIgnored('test1')
     }

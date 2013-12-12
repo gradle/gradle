@@ -83,6 +83,10 @@ public abstract class CompositeTestResults extends TestResultModel {
         return ignored;
     }
 
+    public int getRunTestCount() {
+        return tests - ignored;
+    }
+
     public long getDuration() {
         return duration;
     }
@@ -109,14 +113,14 @@ public abstract class CompositeTestResults extends TestResultModel {
     }
 
     public Number getSuccessRate() {
-        if (getTestCount() == 0) {
+        if (getRunTestCount() == 0) {
             return null;
         }
 
-        BigDecimal tests = BigDecimal.valueOf(getTestCount());
-        BigDecimal successful = BigDecimal.valueOf(getTestCount() - getFailureCount());
+        BigDecimal runTests = BigDecimal.valueOf(getRunTestCount());
+        BigDecimal successful = BigDecimal.valueOf(getRunTestCount() - getFailureCount());
 
-        return successful.divide(tests, 2, BigDecimal.ROUND_DOWN).multiply(BigDecimal.valueOf(100)).intValue();
+        return successful.divide(runTests, 2, BigDecimal.ROUND_DOWN).multiply(BigDecimal.valueOf(100)).intValue();
     }
 
     protected void failed(TestResult failedTest) {
