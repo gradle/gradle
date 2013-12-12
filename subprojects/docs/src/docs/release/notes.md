@@ -120,6 +120,8 @@ This notation based syntax provides a number of benefits over directly accessing
 - For libraries in another project, the depended-on project does not need to have been evaluated when the dependency declaration is added
 - The linkage is clearly specified
 
+#### Support for header-only libraries
+
 #### Support for api dependencies
 
 There are times when your source may require the headers of a library at compile time, but not require the library binary when linking.
@@ -163,6 +165,7 @@ The following are the newly deprecated items in this Gradle release. If you have
 - Classes moved from org.gradle.nativebinaries:
     - ToolChain, ToolChainRegistry -> org.gradle.nativebinaries.toolchain
     - Architecture, OperatingSystem, Platform, PlatformContainer -> org.gradle.nativebinaries.platform
+- Tasks are not created for empty source sets
 
 ### A requested dependency returns different types of selectors
 
