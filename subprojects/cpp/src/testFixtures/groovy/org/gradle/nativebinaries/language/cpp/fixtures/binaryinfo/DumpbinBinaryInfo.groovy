@@ -25,7 +25,7 @@ import org.gradle.nativebinaries.toolchain.internal.msvcpp.VisualStudioInstall
 class DumpbinBinaryInfo implements BinaryInfo {
     final File binaryFile
     final File vcBin
-    final File commonBin
+    final String vcPath
 
     DumpbinBinaryInfo(File binaryFile, InstalledToolChain tc) {
         this.binaryFile = binaryFile
@@ -33,7 +33,7 @@ class DumpbinBinaryInfo implements BinaryInfo {
         VisualStudioInstall vsInstall = findVisualStudio()
         DefaultPlatform targetPlatform = new DefaultPlatform("default");
         vcBin = vsInstall.getVisualCppBin(targetPlatform)
-        commonBin = vsInstall.getCommonIdeBin()
+        vcPath = vsInstall.getVisualCppPathForPlatform(targetPlatform).join(';')
     }
 
     static VisualStudioInstall findVisualStudio() {
@@ -51,7 +51,7 @@ class DumpbinBinaryInfo implements BinaryInfo {
 
     private String getDumpbinHeaders() {
         def dumpbin = findExe("dumpbin.exe")
-        def process = [dumpbin.absolutePath, '/HEADERS', binaryFile.absolutePath].execute(["PATH=$vcBin;$commonBin"], null)
+        def process = [dumpbin.absolutePath, '/HEADERS', binaryFile.absolutePath].execute(["PATH=$vcPath"], null)
         return process.inputStream.text
     }
 
@@ -78,13 +78,13 @@ class DumpbinBinaryInfo implements BinaryInfo {
 
     List<String> listObjectFiles() {
         def dumpbin = findExe("lib.exe")
-        def process = [dumpbin.absolutePath, '/LIST', binaryFile.absolutePath].execute(["PATH=$vcBin;$commonBin"], null)
+        def process = [dumpbin.absolutePath, '/LIST', binaryFile.absolutePath].execute(["PATH=$vcPath"], null)
         return process.inputStream.readLines().drop(3).collect { new File(it).name }
     }
 
     List<String> listLinkedLibraries() {
         def dumpbin = findExe("dumpbin.exe")
-        def process = [dumpbin.absolutePath, '/IMPORTS', binaryFile.absolutePath].execute(["PATH=$vcBin;$commonBin"], null)
+        def process = [dumpbin.absolutePath, '/IMPORTS', binaryFile.absolutePath].execute(["PATH=$vcPath"], null)
         return process.inputStream.readLines()
     }
 }

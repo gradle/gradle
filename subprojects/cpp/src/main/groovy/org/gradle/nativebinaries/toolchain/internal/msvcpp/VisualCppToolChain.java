@@ -177,7 +177,9 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
             CommandLineTool<T> tool = new CommandLineTool<T>(toolName, exe, execActionFactory);
 
             // The visual C++ tools use the path to find other executables
-            tool.withPath(install.getVisualCppBin(targetPlatform), sdk.getBinDir(targetPlatform), install.getCommonIdeBin());
+            // TODO:ADAM - restrict this to the specific path for the target tool
+            tool.withPath(install.getVisualCppPathForPlatform(targetPlatform));
+            tool.withPath(sdk.getBinDir(targetPlatform));
 
             return tool;
         }
