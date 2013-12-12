@@ -27,6 +27,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class RegexBackedIncludesParser implements IncludesParser {
+    private final Pattern includePattern = Pattern.compile("#include\\s+((<[^>]+>)|(\"[^\"]+\"))", Pattern.CASE_INSENSITIVE);
+
     public Includes parseIncludes(File sourceFile) {
         DefaultIncludes includes = new DefaultIncludes();
         parseFile(sourceFile, includes);
@@ -34,7 +36,6 @@ public class RegexBackedIncludesParser implements IncludesParser {
     }
 
     private void parseFile(File file, DefaultIncludes includes) {
-        Pattern includePattern = Pattern.compile("#include\\s+((<[^>]+>)|(\"[^\"]+\"))", Pattern.CASE_INSENSITIVE);
         try {
             BufferedReader bf = new BufferedReader(new FileReader(file));
 
