@@ -17,6 +17,7 @@
 package org.gradle.model;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.internal.Factory;
 
 /**
@@ -24,15 +25,33 @@ import org.gradle.internal.Factory;
  *
  * Plugins can inject an instance of this.
  */
+@Incubating
 public interface ModelRules {
-
+    /**
+     * Registers a model object under the given path.
+     */
     <T> void register(String path, T model);
 
+    /**
+     * Registers a model object under the given path. The provided factory will be used to create the model object when it is required.
+     */
     <T> void register(String path, Class<T> type, Factory<? extends T> model);
 
+    /**
+     * Registers an action that configures the model object at the given path. The provided action will be executed against the model object when
+     * the model object is required.
+     */
     <T> void config(String path, Action<T> action);
 
+    /**
+     * Registers a rule. The rule is inspected to determine its inputs and outputs.
+     *
+     * @see ModelRule For details.
+     */
     void rule(ModelRule rule);
 
+    /**
+     * Removes the model object from the given path.
+     */
     void remove(String path);
 }

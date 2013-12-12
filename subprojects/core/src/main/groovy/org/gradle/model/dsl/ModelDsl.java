@@ -17,10 +17,12 @@
 package org.gradle.model.dsl;
 
 import groovy.lang.Closure;
+import org.gradle.api.Incubating;
 
 /**
  * Exposes the Groovy level DSL for configuring model elements in a build script.
  */
+@Incubating
 public interface ModelDsl {
 
     ModelDsl get(String name);

@@ -16,13 +16,25 @@
 
 package org.gradle.model;
 
+import org.gradle.api.Incubating;
+
 /**
- * Rule implementations, given to {@link ModelRules#rule(ModelRule)}.
- * <p>
- * Subclasses should provide one and only one public method, with any name and any signature.
+ * An model object mutation rule, provided to {@link ModelRules#rule(ModelRule)}.
+ *
+ * <p>Subclasses should provide one and only one public method, with any name and any signature.
  * This method will be inspected for bindings.
- * <p>
+ *
+ * <p>The first parameter of this method is considered the target or 'output' of the rule. The rule is free to modify the
+ * object as appropriate.
+ *
+ * <p>The subsequent parameters of this method are considered the parameters or 'inputs' of the rule. The rule should not
+ * modify these objects. Rules are ordered so that the input to a rule is completely configured before the rule is invoked.
+ *
+ * <p>The ordering of rules with the same target object is currently undefined and rules are executed in some arbitrary but
+ * fixed order. There is some basic support for controlling the ordering, where all rules that extend {@link ModelFinalizer}
+ * are executed after all rules that extend {@link ModelRule}.
  */
+@Incubating
 public abstract class ModelRule {
 
 }
