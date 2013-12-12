@@ -111,7 +111,7 @@ public class IncrementalCompileProcessor {
             }
 
             for (File dep : state.getDependencies()) {
-                Boolean depChanged = checkChangedAndUpdateState(dep);
+                boolean depChanged = checkChangedAndUpdateState(dep);
                 changed = changed || depChanged;
             }
 
