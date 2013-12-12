@@ -101,7 +101,13 @@ public abstract class CompositeTestResults extends TestResultModel {
     }
 
     public ResultType getResultType() {
-        return failures.isEmpty() ? ResultType.SUCCESS : ResultType.FAILURE;
+        if (!failures.isEmpty()) {
+            return ResultType.FAILURE;
+        }
+        if (getIgnoredCount() > 0) {
+            return ResultType.SKIPPED;
+        }
+        return ResultType.SUCCESS;
     }
 
     public String getFormattedSuccessRate() {
