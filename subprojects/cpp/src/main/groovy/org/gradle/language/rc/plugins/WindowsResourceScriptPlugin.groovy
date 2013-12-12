@@ -30,8 +30,8 @@ import javax.inject.Inject
  * Adds core language support for Windows resource script files.
  *
  * <ul>
- *     <li>For any {@link FunctionalSourceSet}, adds a conventional {@link org.gradle.language.rc.WindowsResourceSet} called 'rc'.</li>
- *     <li>Establishes a convention for all {@link org.gradle.language.rc.WindowsResourceSet}s so that sources are
+ *     <li>For any {@link FunctionalSourceSet}, adds a conventional {@link WindowsResourceSet} called 'rc'.</li>
+ *     <li>Establishes a convention for all {@link WindowsResourceSet}s so that sources are
  *         located in 'src/<name>/rc' and headers are located in 'src/<name>/headers'.</li>
  *     <li>
  * </ul>

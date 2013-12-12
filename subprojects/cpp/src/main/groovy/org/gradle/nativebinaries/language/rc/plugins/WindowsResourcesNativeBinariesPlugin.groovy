@@ -53,9 +53,9 @@ class WindowsResourcesNativeBinariesPlugin implements Plugin<ProjectInternal> {
 
         project.binaries.withType(NativeBinary) { NativeBinaryInternal binary ->
             if (shouldProcessResources(binary)) {
-                binary.source.withType(WindowsResourceSet).all { WindowsResourceSet inputs ->
-                    if (inputs.source.empty) {
-                        def resourceCompileTask = createResourceCompileTask(project, binary, inputs)
+                binary.source.withType(WindowsResourceSet).all { WindowsResourceSet resources ->
+                    if (!resources.source.empty) {
+                        def resourceCompileTask = createResourceCompileTask(project, binary, resources)
                         binary.tasks.add resourceCompileTask
                         final resourceOutputs = resourceCompileTask.outputs.files.asFileTree.matching { include '**/*.res' }
                         binary.tasks.builder.source resourceOutputs
