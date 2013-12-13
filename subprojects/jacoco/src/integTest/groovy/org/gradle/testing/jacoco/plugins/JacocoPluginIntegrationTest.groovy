@@ -222,6 +222,12 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         succeeds "dependencies", "test", "jacocoTestReport"
     }
 
+    void "contains source references"() {
+        expect:
+        succeeds('test', 'jacocoTestReport')
+        file("${REPORTING_BASE}/jacoco/test/html/org.gradle/Class1.java.html").exists()
+    }
+
     private void createTestFiles() {
         file("src/main/java/org/gradle/Class1.java") <<
                 "package org.gradle; public class Class1 { public boolean isFoo(Object arg) { return true; } }"
