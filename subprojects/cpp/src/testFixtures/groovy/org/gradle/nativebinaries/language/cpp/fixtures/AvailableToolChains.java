@@ -99,12 +99,7 @@ public class AvailableToolChains {
     }
 
     static private ToolChainCandidate findVisualCpp() {
-        // Search first in path, then in the standard installation locations
-        File compilerExe = OperatingSystem.current().findInPath("cl.exe");
-        if (compilerExe != null) {
-            return new InstalledVisualCpp("visual c++");
-        }
-
+        // Search in the standard installation locations
         VisualStudioLocator vsLocator = new DefaultVisualStudioLocator();
         InstallationSearchResult searchResult = vsLocator.locateDefaultVisualStudio();
         File visualStudioDir = searchResult.getResult();
@@ -341,7 +336,6 @@ public class AvailableToolChains {
 
         public InstalledVisualCpp withInstall(VisualStudioInstall install) {
             DefaultPlatform targetPlatform = new DefaultPlatform("default");
-            targetPlatform.architecture("i386");
             installDir = install.getVisualStudioDir();
             version = install.getVisualStudioVersion();
             pathEntries.addAll(install.getVisualCppPathForPlatform(targetPlatform));

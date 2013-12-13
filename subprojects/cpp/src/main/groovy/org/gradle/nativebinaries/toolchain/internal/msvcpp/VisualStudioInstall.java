@@ -129,7 +129,7 @@ public class VisualStudioInstall {
             return getCompatibleVisualCppBin(isNativeAMD64, PLATFORM_AMD64_AMD64, PLATFORM_X86_AMD64);
         }
 
-        if (targetArch.isI386()) {
+        if (targetArch.isI386() || targetArch == ArchitectureInternal.TOOL_CHAIN_DEFAULT) {
             return getCompatibleVisualCppBin(isNativeAMD64, PLATFORM_AMD64_X86, PLATFORM_X86_X86);
         }
 
