@@ -30,11 +30,11 @@ class VisualCppToolChainTest extends Specification {
     TestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
     final FileResolver fileResolver = Mock(FileResolver)
     final ExecActionFactory execActionFactory = Mock(ExecActionFactory)
-    final InstallationSearchResult visualStudio = Mock(InstallationSearchResult)
+    final ToolSearchResult visualStudio = Mock(ToolSearchResult)
     final ToolSearchResult windowsSdkLookup = Mock(ToolSearchResult)
     final WindowsSdk windowsSdk = Mock(WindowsSdk)
     final VisualStudioLocator visualStudioLocator = Stub(VisualStudioLocator) {
-        locateDefaultVisualStudio() >> visualStudio
+        locateVisualStudioInstalls(_) >> visualStudio
     }
     final WindowsSdkLocator windowsSdkLocator = Stub(WindowsSdkLocator) {
         locateWindowsSdks(_) >> windowsSdkLookup
@@ -126,7 +126,7 @@ class VisualCppToolChainTest extends Specification {
 
         and:
         fileResolver.resolve("install-dir") >> file("vs")
-        visualStudioLocator.locateVisualStudio(file("vs")) >> visualStudio
+        visualStudioLocator.locateVisualStudioInstalls(file("vs")) >> visualStudio
         visualStudio.available >> true
 
         and:
