@@ -28,11 +28,7 @@ public interface CacheBuilder<T> {
          * A single cache instance shared by all Gradle versions. It is the caller's responsibility to make sure that this is shared only with
          * those versions of Gradle that are compatible with the cache implementation and contents.
          */
-        SharedCache,
-        /**
-         * A single cache instance, which is invalidated when the Gradle version changes.
-         */
-        SharedCacheInvalidateOnVersionChange,
+        SharedCache
     }
 
     /**

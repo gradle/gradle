@@ -27,10 +27,13 @@ import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
+import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.net.URLClassLoader;
+import java.util.Collections;
 
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
@@ -72,14 +75,15 @@ public class BuildSourceBuilder {
 
     PersistentCache createCache(StartParameter startParameter) {
         CacheLayout layout = new CacheLayoutBuilder()
-                .withScope(startParameter.getCurrentDir())
-                .withSharedCacheThatInvalidatesOnVersionChange()
+                .withScope(new File(startParameter.getCurrentDir(), ".gradle/noVersion/buildSrc"))
+                .withSharedCache()
                 .build();
-        return cacheRepository.
-                cache("buildSrc").
-                withLockOptions(mode(FileLockManager.LockMode.None).useCrossVersionImplementation()).
-                withLayout(layout).
-                open();
+        return cacheRepository
+                .cache("buildSrc")
+                .withLockOptions(mode(FileLockManager.LockMode.None).useCrossVersionImplementation())
+                .withLayout(layout)
+                .withProperties(Collections.singletonMap("gradle.version", GradleVersion.current().getVersion()))
+                .open();
     }
 
     private GradleLauncher buildGradleLauncher(StartParameter startParameter) {

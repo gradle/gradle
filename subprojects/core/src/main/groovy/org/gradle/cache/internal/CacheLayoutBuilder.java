@@ -21,7 +21,6 @@ import org.gradle.cache.CacheLayout;
 import org.gradle.util.GradleVersion;
 
 import java.io.File;
-import java.util.*;
 
 public class CacheLayoutBuilder implements CacheLayout {
     private final GradleVersion version = GradleVersion.current();
@@ -55,16 +54,15 @@ public class CacheLayoutBuilder implements CacheLayout {
         return this;
     }
 
-    public CacheLayoutBuilder withSharedCacheThatInvalidatesOnVersionChange() {
-        this.versionStrategy = CacheBuilder.VersionStrategy.SharedCacheInvalidateOnVersionChange;
-        return this;
-    }
-
     public CacheLayout build() {
         return this;
     }
 
     public File getCacheDir(File globalCacheDir, File projectCacheDir, String cacheKey) {
+        if (baseDir != null) {
+            return baseDir;
+        }
+
         File cacheBaseDir = determineBaseDir(globalCacheDir, projectCacheDir);
         cacheBaseDir = applyVersionStrategy(cacheBaseDir);
         for (String pathEntry : pathEntries) {
@@ -74,9 +72,6 @@ public class CacheLayoutBuilder implements CacheLayout {
     }
 
     private File determineBaseDir(File globalCacheDir, File projectCacheDir) {
-        if (baseDir != null) {
-            return new File(baseDir, ".gradle");
-        }
         if (project != null) {
             return getProjectCacheDir(projectCacheDir);
         }
@@ -87,12 +82,10 @@ public class CacheLayoutBuilder implements CacheLayout {
         switch (versionStrategy) {
             case CachePerVersion:
                 return new File(cacheBaseDir, version.getVersion());
-            case SharedCacheInvalidateOnVersionChange:
-                // Include the 'noVersion' suffix for backwards compatibility
-                return  new File(cacheBaseDir, "noVersion");
             case SharedCache:
-            default:
                 return cacheBaseDir;
+            default:
+                throw new IllegalArgumentException();
         }
     }
 
@@ -101,13 +94,5 @@ public class CacheLayoutBuilder implements CacheLayout {
             return projectCacheDir;
         }
         return new File(project.getProjectDir(), ".gradle");
-    }
-
-    public Map<String, ?> applyLayoutProperties(Map<String, ?> properties) {
-        Map<String, Object> layoutProperties = new HashMap<String, Object>(properties);
-        if (versionStrategy == CacheBuilder.VersionStrategy.SharedCacheInvalidateOnVersionChange) {
-            layoutProperties.put("gradle.version", version.getVersion());
-        }
-        return layoutProperties;
     }
 }

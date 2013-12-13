@@ -111,8 +111,7 @@ class DefaultCacheRepositoryTest extends Specification {
 
         then:
         1 * layout.getCacheDir(sharedCacheDir, null, "a/b/c") >> cacheDir
-        1 * layout.applyLayoutProperties(properties) >> [version: "foo"]
-        1 * cacheFactory.open(cacheDir, null, CacheUsage.ON, null, [version: "foo"], mode(Shared), null) >> cache
+        1 * cacheFactory.open(cacheDir, null, CacheUsage.ON, null, properties, mode(Shared), null) >> cache
     }
 
     public void canSpecifyInitializerActionForDirectoryCache() {

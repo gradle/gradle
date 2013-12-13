@@ -86,8 +86,7 @@ public class DefaultCacheRepository implements CacheRepository {
 
         public T open() {
             File cacheBaseDir = layout.getCacheDir(globalCacheDir, projectCacheDir, key);
-            Map<String, ?> props = layout.applyLayoutProperties(properties);
-            return doOpen(cacheBaseDir, props, validator);
+            return doOpen(cacheBaseDir, properties, validator);
         }
 
         protected abstract T doOpen(File cacheDir, Map<String, ?> properties, CacheValidator validator);

@@ -16,7 +16,6 @@
 package org.gradle.cache;
 
 import java.io.File;
-import java.util.Map;
 
 /**
  * The layout strategy for a Cache. This defines a rule to determine the cache directory within a context, as well as any layout-specific cache parameters.
@@ -31,9 +30,4 @@ public interface CacheLayout {
      * @param cacheKey The cache key
      */
     File getCacheDir(File globalCacheDir, File projectCacheDir, String cacheKey);
-
-    /**
-     * Adds layout-specific properties to the supplied map.
-     */
-    Map<String, ?> applyLayoutProperties(Map<String, ?> properties);
 }

@@ -39,17 +39,12 @@ class CacheLayoutBuilderTest extends Specification {
         return builder.build().getCacheDir(globalCacheDir, projectCacheDir, KEY)
     }
 
-    public def getLayoutProperties() {
-        return builder.build().applyLayoutProperties([:])
-    }
-
     public void "builds shared global cache layout"() {
         when:
         builder.withSharedCache().withGlobalScope()
 
         then:
         cacheDir == globalCacheDir.file(KEY)
-        layoutProperties == [:]
     }
 
     public void "builds versioned global cache layout"() {
@@ -58,16 +53,6 @@ class CacheLayoutBuilderTest extends Specification {
 
         then:
         cacheDir == globalCacheDir.file(version, KEY)
-        layoutProperties == [:]
-    }
-
-    public void "builds version invalidating shared global cache layout"() {
-        when:
-        builder.withGlobalScope().withSharedCacheThatInvalidatesOnVersionChange()
-
-        then:
-        cacheDir == globalCacheDir.file("noVersion", KEY)
-        layoutProperties == ["gradle.version" : version]
     }
 
     public void "uses supplied project directory for build scope"() {
@@ -81,7 +66,6 @@ class CacheLayoutBuilderTest extends Specification {
 
         then:
         cacheDir == projectCacheDir.file(KEY)
-        layoutProperties == [:]
 
         and:
         0 * rootProject._
@@ -102,15 +86,15 @@ class CacheLayoutBuilderTest extends Specification {
 
         then:
         cacheDir == projectDir.file(".gradle", KEY)
-        layoutProperties == [:]
     }
 
     public void "uses scope file for cache dir"() {
         final scopeDir = tmpDir.createDir("scope-dir")
+
         when:
         builder.withScope(scopeDir).withSharedCache()
 
         then:
-        cacheDir == scopeDir.file(".gradle", KEY)
+        cacheDir == scopeDir
     }
 }
