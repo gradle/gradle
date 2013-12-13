@@ -44,7 +44,16 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         createTestFiles()
     }
 
-    void "allows configuring jacoco dependencies explicitly"() {
+    def "dependencies report shows default jacoco dependencies"() {
+        when: succeeds("dependencies", "--configuration", "jacocoAgent")
+        then: output.contains "org.jacoco:org.jacoco.agent:"
+
+        when: succeeds("dependencies", "--configuration", "jacocoAnt")
+        then: output.contains "org.jacoco:org.jacoco.ant:"
+    }
+
+    void "allows configuring tool dependencies explicitly"() {
+        when:
         buildFile << """
             dependencies {
                 //downgrade version:
@@ -53,7 +62,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        when: succeeds("dependencies", "--configuration", "jacocoAgent")
+        succeeds("dependencies", "--configuration", "jacocoAgent")
         then: output.contains "org.jacoco:org.jacoco.agent:0.6.0.201210061924"
 
         when: succeeds("dependencies", "--configuration", "jacocoAnt")
