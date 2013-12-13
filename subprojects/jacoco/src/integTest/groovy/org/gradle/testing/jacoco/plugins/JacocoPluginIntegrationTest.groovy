@@ -44,6 +44,22 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         createTestFiles()
     }
 
+    void "allows configuring jacoco dependencies explicitly"() {
+        buildFile << """
+            dependencies {
+                //downgrade version:
+                jacocoAgent "org.jacoco:org.jacoco.agent:0.6.0.201210061924"
+                jacocoAnt "org.jacoco:org.jacoco.ant:0.6.0.201210061924"
+            }
+        """
+
+        when: succeeds("dependencies", "--configuration", "jacocoAgent")
+        then: output.contains "org.jacoco:org.jacoco.agent:0.6.0.201210061924"
+
+        when: succeeds("dependencies", "--configuration", "jacocoAnt")
+        then: output.contains "org.jacoco:org.jacoco.ant:0.6.0.201210061924"
+    }
+
     void generatesHtmlReportOnlyAsDefault() {
         when:
         succeeds('test', 'jacocoTestReport')
