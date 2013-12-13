@@ -17,6 +17,7 @@
 package org.gradle.testing.testng
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.HtmlTestExecutionResult
 import spock.lang.Issue
 
@@ -46,7 +47,7 @@ public class FooTest {
         expect:
         fails("test")
 
-        def result = new HtmlTestExecutionResult(testDirectory)
+        def result = new DefaultTestExecutionResult(testDirectory)
         result.testClass("Gradle Worker 1").assertTestFailed(
                 "Could not complete execution for test process 'Gradle Worker 1'.", startsWith("org.gradle.api.internal.tasks.testing.TestSuiteExecutionException") )
     }
