@@ -34,7 +34,11 @@ import org.slf4j.LoggerFactory;
 
 public class DefaultVisualStudioLocator extends DefaultWindowsLocator implements VisualStudioLocator {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultVisualStudioLocator.class);
-    private static final String REGISTRY_ROOTPATH = "SOFTWARE\\Microsoft\\VisualStudio\\SxS\\VS7";
+    private static final String[] REGISTRY_BASEPATHS = {
+        "SOFTWARE\\",
+        "SOFTWARE\\Wow6432Node\\"
+    };
+    private static final String REGISTRY_ROOTPATH = "Microsoft\\VisualStudio\\SxS\\VS7";
     private static final String COMPILER_PATH = "VC/bin/";
     private static final String COMPILER_FILENAME = "cl.exe";
     private static final String VERSION_PATH = "path";
@@ -92,11 +96,17 @@ public class DefaultVisualStudioLocator extends DefaultWindowsLocator implements
     }
 
     private void locateInstallsInRegistry() {
+        for (String baseKey : REGISTRY_BASEPATHS) {
+            locateInstallsInRegistry(baseKey);
+        }
+    }
+
+    private void locateInstallsInRegistry(String baseKey) {
         try {
-            List<String> valueNames = windowsRegistry.getValueNames(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, REGISTRY_ROOTPATH);
+            List<String> valueNames = windowsRegistry.getValueNames(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, baseKey + REGISTRY_ROOTPATH);
 
             for (String valueName : valueNames) {
-                File installDir = new File(windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, REGISTRY_ROOTPATH, valueName));
+                File installDir = new File(windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, baseKey + REGISTRY_ROOTPATH, valueName));
 
                 if (isVisualStudio(installDir)) {
                     LOGGER.debug("Found Visual Studio {} at {}", valueName, installDir);
