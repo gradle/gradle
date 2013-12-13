@@ -19,7 +19,7 @@ import org.gradle.nativebinaries.toolchain.internal.ToolSearchResult;
 
 import java.io.File;
 
-public interface WindowsSdkLocator extends WindowsLocator {
+public interface WindowsSdkLocator {
 
     ToolSearchResult locateWindowsSdks(File candidate);
 

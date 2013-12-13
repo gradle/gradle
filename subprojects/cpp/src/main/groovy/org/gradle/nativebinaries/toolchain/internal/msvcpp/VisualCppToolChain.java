@@ -66,11 +66,11 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
     }
 
     private VisualStudioInstall locateVisualStudioInstall() {
-        VisualStudioLocator.SearchResult searchResult = locateVisualStudio();
+        InstallationSearchResult searchResult = locateVisualStudio();
         return new VisualStudioInstall(searchResult.getResult(), searchResult.getVersion());
     }
 
-    private VisualStudioLocator.SearchResult locateVisualStudio() {
+    private InstallationSearchResult locateVisualStudio() {
         if (installDir != null) {
             return visualStudioLocator.locateVisualStudio(installDir);
         }

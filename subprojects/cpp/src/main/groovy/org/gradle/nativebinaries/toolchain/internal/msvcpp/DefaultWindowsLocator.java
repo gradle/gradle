@@ -22,7 +22,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DefaultWindowsLocator implements WindowsLocator {
+public class DefaultWindowsLocator {
 
     protected Search locateInProgramFiles(String name, Spec<File> condition, VersionLookupPath... candidateLocations) {
         Search search = new Search(name);
@@ -103,7 +103,7 @@ public class DefaultWindowsLocator implements WindowsLocator {
 
     }
 
-    public class Search implements SearchResult {
+    public class Search implements InstallationSearchResult {
         private final String name;
         private String version;
         private File file;

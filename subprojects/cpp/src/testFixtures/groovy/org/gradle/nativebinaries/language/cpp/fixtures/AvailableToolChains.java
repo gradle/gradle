@@ -27,9 +27,7 @@ import org.gradle.nativebinaries.toolchain.Gcc;
 import org.gradle.nativebinaries.toolchain.VisualCpp;
 import org.gradle.nativebinaries.toolchain.internal.gcc.version.GccVersionDeterminer;
 import org.gradle.nativebinaries.toolchain.internal.gcc.version.GccVersionResult;
-import org.gradle.nativebinaries.toolchain.internal.msvcpp.DefaultVisualStudioLocator;
-import org.gradle.nativebinaries.toolchain.internal.msvcpp.VisualStudioInstall;
-import org.gradle.nativebinaries.toolchain.internal.msvcpp.VisualStudioLocator;
+import org.gradle.nativebinaries.toolchain.internal.msvcpp.*;
 import org.gradle.nativebinaries.toolchain.plugins.ClangCompilerPlugin;
 import org.gradle.nativebinaries.toolchain.plugins.GccCompilerPlugin;
 import org.gradle.nativebinaries.toolchain.plugins.MicrosoftVisualCppPlugin;
@@ -108,7 +106,7 @@ public class AvailableToolChains {
         }
 
         VisualStudioLocator vsLocator = new DefaultVisualStudioLocator();
-        VisualStudioLocator.SearchResult searchResult = vsLocator.locateDefaultVisualStudio();
+        InstallationSearchResult searchResult = vsLocator.locateDefaultVisualStudio();
         File visualStudioDir = searchResult.getResult();
         if (visualStudioDir != null) {
             VisualStudioInstall install = new VisualStudioInstall(visualStudioDir, searchResult.getVersion());

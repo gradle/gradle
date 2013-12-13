@@ -30,7 +30,7 @@ class VisualCppToolChainTest extends Specification {
     TestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
     final FileResolver fileResolver = Mock(FileResolver)
     final ExecActionFactory execActionFactory = Mock(ExecActionFactory)
-    final WindowsLocator.SearchResult visualStudio = Mock(WindowsLocator.SearchResult)
+    final InstallationSearchResult visualStudio = Mock(InstallationSearchResult)
     final ToolSearchResult windowsSdkLookup = Mock(ToolSearchResult)
     final WindowsSdk windowsSdk = Mock(WindowsSdk)
     final VisualStudioLocator visualStudioLocator = Stub(VisualStudioLocator) {

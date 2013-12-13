@@ -13,18 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.nativebinaries.toolchain.internal.msvcpp;
 
 import org.gradle.nativebinaries.toolchain.internal.ToolSearchResult;
 
 import java.io.File;
 
-public interface WindowsLocator {
+public interface InstallationSearchResult extends ToolSearchResult {
+    String getVersion();
 
-    interface SearchResult extends ToolSearchResult {
-        String getVersion();
-
-        File getResult();
-    }
-
+    File getResult();
 }
