@@ -32,6 +32,24 @@ class FindBugsPluginIntegrationTest extends WellBehavedPluginTest {
         writeBuildFile()
     }
 
+    def "allows configuring tool dependencies explicitly"() {
+        expect: //defaults exist and can be inspected
+        succeeds("dependencies", "--configuration", "findbugs")
+        output.contains "com.google.code.findbugs:findbugs:"
+
+        when:
+        buildFile << """
+            dependencies {
+                //downgrade version:
+                findbugs "com.google.code.findbugs:findbugs:2.0.0"
+            }
+        """
+
+        then:
+        succeeds("dependencies", "--configuration", "findbugs")
+        output.contains "com.google.code.findbugs:findbugs:2.0.0"
+    }
+
     def "analyze good code"() {
         goodCode()
         expect:
