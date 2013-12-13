@@ -16,52 +16,162 @@
 
 package org.gradle.nativebinaries.toolchain.internal.msvcpp;
 
+import java.io.File;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import net.rubygrapefruit.platform.MissingRegistryEntryException;
+import net.rubygrapefruit.platform.WindowsRegistry;
+
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.os.OperatingSystem;
-
-import java.io.File;
+import org.gradle.nativebinaries.toolchain.internal.ToolSearchResult;
+import org.gradle.util.TreeVisitor;
+import org.gradle.util.VersionNumber;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DefaultVisualStudioLocator extends DefaultWindowsLocator implements VisualStudioLocator {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultVisualStudioLocator.class);
+    private static final String REGISTRY_ROOTPATH = "SOFTWARE\\Microsoft\\VisualStudio\\SxS\\VS7";
     private static final String COMPILER_PATH = "VC/bin/";
     private static final String COMPILER_FILENAME = "cl.exe";
+    private static final String VERSION_PATH = "path";
+    private static final String VERSION_USER = "user";
+
     private static final String VISUAL_STUDIO_DISPLAY_NAME = "Visual Studio installation";
+    private static final String NAME_VISUALSTUDIO = "Visual Studio";
+    private static final String NAME_PATH = "Path-resolved Visual Studio";
+    private static final String NAME_USER = "User-provided Visual Studio";
 
-    private static final VersionLookupPath[] VISUALSTUDIO_PATHS = {
-        new VersionLookupPath("/Microsoft Visual Studio 12.0", VisualStudioVersion.VS_2013),
-        new VersionLookupPath("/Microsoft Visual Studio 11.0", VisualStudioVersion.VS_2012),
-        new VersionLookupPath("/Microsoft Visual Studio 10.0", VisualStudioVersion.VS_2010)
-    };
-
+    private final Map<File, VisualStudioInstall> foundInstalls = new HashMap<File, VisualStudioInstall>();
     private final OperatingSystem os;
+    private final WindowsRegistry windowsRegistry;
+    private VisualStudioInstall pathInstall;
+    private VisualStudioInstall userInstall;
+    private VisualStudioInstall defaultInstall;
+    private ToolSearchResult result;
 
-    public DefaultVisualStudioLocator() {
-        this(OperatingSystem.current());
-    }
-
-    public DefaultVisualStudioLocator(OperatingSystem os) {
+    public DefaultVisualStudioLocator(OperatingSystem os, WindowsRegistry windowsRegistry) {
         this.os = os;
+        this.windowsRegistry = windowsRegistry;
     }
 
-    public Search locateVisualStudio(File candidate) {
-        return locateInHierarchy(VISUAL_STUDIO_DISPLAY_NAME, candidate, isVisualStudio());
-    }
-
-    public Search locateDefaultVisualStudio() {
-        Spec<File> isVisualStudio = isVisualStudio();
-        // If cl.exe is on the path, assume it is contained within a visual studio install
-        File compilerInPath = os.findInPath(COMPILER_FILENAME);
-        if (compilerInPath != null) {
-            return locateInHierarchy(VISUAL_STUDIO_DISPLAY_NAME, compilerInPath, isVisualStudio);
+    public ToolSearchResult locateVisualStudioInstalls(File candidate) {
+        if (result != null) {
+            return result;
         }
 
-        return locateInProgramFiles(VISUAL_STUDIO_DISPLAY_NAME, isVisualStudio, VISUALSTUDIO_PATHS);
+        locateInstallsInRegistry();
+        locateInstallInPath();
+
+        if (candidate != null) {
+            locateUserSpecifiedInstall(candidate);
+        }
+
+        defaultInstall = determineDefaultInstall();
+
+        result = new ToolSearchResult() {
+
+            public boolean isAvailable() {
+                return defaultInstall != null;
+            }
+
+            public void explain(TreeVisitor<? super String> visitor) {
+                visitor.node(String.format("%s could not be found.", VISUAL_STUDIO_DISPLAY_NAME));
+            }
+
+        };
+
+        return result;
     }
 
-    private Spec<File> isVisualStudio() {
+    public VisualStudioInstall getDefaultInstall() {
+        return defaultInstall;
+    }
+
+    private void locateInstallsInRegistry() {
+        try {
+            List<String> valueNames = windowsRegistry.getValueNames(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, REGISTRY_ROOTPATH);
+
+            for (String valueName : valueNames) {
+                File installDir = new File(windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, REGISTRY_ROOTPATH, valueName));
+
+                if (isVisualStudio(installDir)) {
+                    LOGGER.debug("Found Visual Studio {} at {}", valueName, installDir);
+                    addInstall(installDir, valueName, NAME_VISUALSTUDIO + " " + valueName);
+                } else {
+                    LOGGER.debug("Ignoring candidate Visual Studio directory {} as it does not look like a Visual Studio installation.", installDir);
+                }
+            }
+        } catch (MissingRegistryEntryException e) {
+            // No Visual Studio information available in the registry
+        }
+    }
+
+    private void locateInstallInPath() {
+        File compilerInPath = os.findInPath(COMPILER_FILENAME);
+        if (compilerInPath != null) {
+            Search search = locateInHierarchy(VISUAL_STUDIO_DISPLAY_NAME, compilerInPath, isVisualStudio());
+            if (search.isAvailable()) {
+                File installDir = search.getResult();
+                LOGGER.debug("Found Visual Studio install {} using system path", installDir);
+                if (!foundInstalls.containsKey(installDir)) {
+                    addInstall(installDir, VERSION_PATH, NAME_PATH);
+                }
+                pathInstall = foundInstalls.get(installDir);
+            } else {
+                LOGGER.debug("Ignoring candidate Visual Studio install for {} as it does not look like a Visual Studio installation.", compilerInPath);
+            }
+        }
+    }
+
+    private void locateUserSpecifiedInstall(File candidate) {
+        Search search = locateInHierarchy(VISUAL_STUDIO_DISPLAY_NAME, candidate, isVisualStudio());
+        if (search.isAvailable()) {
+            candidate = search.getResult();
+            LOGGER.debug("Found Visual Studio install {} using configured path", candidate);
+            if (!foundInstalls.containsKey(candidate)) {
+                addInstall(candidate, VERSION_USER, NAME_USER);
+            }
+            userInstall = foundInstalls.get(candidate);
+        }
+    }
+
+    private void addInstall(File path, String version, String name) {
+        // TODO: MPU - analyze install to detect available (cross-)compilers and pass the complete information to VisualStudioInstall
+        foundInstalls.put(path, new VisualStudioInstall(path, VersionNumber.parse(version), name));
+    }
+
+    private VisualStudioInstall determineDefaultInstall() {
+        if (userInstall != null) {
+            return userInstall;
+        }
+        if (pathInstall != null) {
+            return pathInstall;
+        }
+
+        VisualStudioInstall candidate = null;
+
+        for (VisualStudioInstall visualStudio : foundInstalls.values()) {
+            if (candidate == null || visualStudio.getVersion().compareTo(candidate.getVersion()) > 0) {
+                candidate = visualStudio;
+            }
+        }
+
+        return candidate;
+    }
+
+    private static Spec<File> isVisualStudio() {
         return new Spec<File>() {
             public boolean isSatisfiedBy(File element) {
-                return new File(element, COMPILER_PATH + COMPILER_FILENAME).isFile();
+                return isVisualStudio(element);
             }
         };
+    }
+
+    private static boolean isVisualStudio(File candidate) {
+        return new File(candidate, COMPILER_PATH + COMPILER_FILENAME).isFile();
     }
 }
