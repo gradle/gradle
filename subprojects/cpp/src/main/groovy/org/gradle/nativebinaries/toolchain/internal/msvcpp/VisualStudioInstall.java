@@ -86,8 +86,10 @@ public class VisualStudioInstall {
         if (targetArch.isAmd64()) {
             return (isNativeAmd64 && availableBinPaths.containsKey(PLATFORM_AMD64_AMD64)) || availableBinPaths.containsKey(PLATFORM_X86_AMD64);
         } else if (targetArch.isArm()) {
+            // TODO:ADAM - only if the target OS is Windows 8 or later
             return (isNativeAmd64 && availableBinPaths.containsKey(PLATFORM_AMD64_ARM)) || availableBinPaths.containsKey(PLATFORM_X86_ARM);
         } else if (targetArch.isIa64()) {
+            // TODO:ADAM - only if the target OS is Windows 2008 or earlier
             return availableBinPaths.containsKey(PLATFORM_X86_IA64);
         } else if (targetArch.isI386()) {
             return (isNativeAmd64 && availableBinPaths.containsKey(PLATFORM_AMD64_X86)) || availableBinPaths.containsKey(PLATFORM_X86_X86);
@@ -134,7 +136,7 @@ public class VisualStudioInstall {
         }
 
         if (targetArch.isIa64()) {
-            return Collections.singletonList(new File(visualCppDir, BINPATH_X86_IA64));
+            return Arrays.asList(new File(visualCppDir, BINPATH_X86_IA64), getCommonIdeBin());
         }
 
         if (targetArch.isArm()) {
