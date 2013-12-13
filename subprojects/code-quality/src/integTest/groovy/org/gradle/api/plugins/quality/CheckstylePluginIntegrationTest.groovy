@@ -33,6 +33,24 @@ class CheckstylePluginIntegrationTest extends WellBehavedPluginTest {
         writeConfigFile()
     }
 
+    def "allows configuring tool dependencies explicitly"() {
+        expect: //defaults exist and can be inspected
+        succeeds("dependencies", "--configuration", "checkstyle")
+        output.contains "com.puppycrawl.tools:checkstyle:"
+
+        when:
+        buildFile << """
+            dependencies {
+                //downgrade version:
+                checkstyle "com.puppycrawl.tools:checkstyle:5.5"
+            }
+        """
+
+        then:
+        succeeds("dependencies", "--configuration", "checkstyle")
+        output.contains "com.puppycrawl.tools:checkstyle:5.5"
+    }
+
     def "analyze good code"() {
         goodCode()
 
