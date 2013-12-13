@@ -17,6 +17,10 @@
 package org.gradle.nativebinaries.language.cpp.fixtures;
 
 import com.google.common.base.Joiner;
+
+import net.rubygrapefruit.platform.Native;
+import net.rubygrapefruit.platform.WindowsRegistry;
+
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.internal.nativeplatform.ProcessEnvironment;
 import org.gradle.internal.nativeplatform.services.NativeServices;
@@ -35,6 +39,7 @@ import org.gradle.process.internal.DefaultExecAction;
 import org.gradle.process.internal.ExecAction;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.test.fixtures.file.TestFile;
+import org.gradle.util.VersionNumber;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -100,11 +105,10 @@ public class AvailableToolChains {
 
     static private ToolChainCandidate findVisualCpp() {
         // Search in the standard installation locations
-        VisualStudioLocator vsLocator = new DefaultVisualStudioLocator();
-        InstallationSearchResult searchResult = vsLocator.locateDefaultVisualStudio();
-        File visualStudioDir = searchResult.getResult();
-        if (visualStudioDir != null) {
-            VisualStudioInstall install = new VisualStudioInstall(visualStudioDir, searchResult.getVersion());
+        VisualStudioLocator vsLocator = new DefaultVisualStudioLocator(OperatingSystem.current(), Native.get(WindowsRegistry.class));
+        vsLocator.locateVisualStudioInstalls(null);
+        VisualStudioInstall install = vsLocator.getDefaultInstall();
+        if (install != null) {
             return new InstalledVisualCpp("visual c++").withInstall(install);
         }
 
@@ -327,7 +331,7 @@ public class AvailableToolChains {
     }
 
     public static class InstalledVisualCpp extends InstalledToolChain {
-        private String version;
+        private VersionNumber version;
         private File installDir;
 
         public InstalledVisualCpp(String name) {
@@ -337,7 +341,7 @@ public class AvailableToolChains {
         public InstalledVisualCpp withInstall(VisualStudioInstall install) {
             DefaultPlatform targetPlatform = new DefaultPlatform("default");
             installDir = install.getVisualStudioDir();
-            version = install.getVisualStudioVersion();
+            version = install.getVersion();
             pathEntries.addAll(install.getVisualCppPathForPlatform(targetPlatform));
             return this;
         }
@@ -368,7 +372,7 @@ public class AvailableToolChains {
             return true;
         }
 
-        public String getVersion() {
+        public VersionNumber getVersion() {
             return version;
         }
 

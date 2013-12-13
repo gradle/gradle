@@ -16,21 +16,29 @@
 
 package org.gradle.nativebinaries.toolchain.internal.msvcpp;
 
+import java.io.File;
+
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.nativebinaries.platform.Platform;
-import org.gradle.nativebinaries.internal.*;
+import org.gradle.nativebinaries.internal.BinaryToolSpec;
+import org.gradle.nativebinaries.internal.LinkerSpec;
+import org.gradle.nativebinaries.internal.StaticLibraryArchiverSpec;
 import org.gradle.nativebinaries.language.assembler.internal.AssembleSpec;
 import org.gradle.nativebinaries.language.c.internal.CCompileSpec;
 import org.gradle.nativebinaries.language.cpp.internal.CppCompileSpec;
 import org.gradle.nativebinaries.language.rc.internal.WindowsResourceCompileSpec;
+import org.gradle.nativebinaries.platform.Platform;
 import org.gradle.nativebinaries.toolchain.VisualCpp;
-import org.gradle.nativebinaries.toolchain.internal.*;
+import org.gradle.nativebinaries.toolchain.internal.AbstractToolChain;
+import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
+import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec;
+import org.gradle.nativebinaries.toolchain.internal.OutputCleaningCompiler;
+import org.gradle.nativebinaries.toolchain.internal.PlatformToolChain;
+import org.gradle.nativebinaries.toolchain.internal.ToolChainAvailability;
+import org.gradle.nativebinaries.toolchain.internal.ToolSearchResult;
 import org.gradle.process.internal.ExecActionFactory;
-
-import java.io.File;
 
 public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
 
@@ -66,15 +74,12 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
     }
 
     private VisualStudioInstall locateVisualStudioInstall() {
-        InstallationSearchResult searchResult = locateVisualStudio();
-        return new VisualStudioInstall(searchResult.getResult(), searchResult.getVersion());
+        locateVisualStudio();
+        return visualStudioLocator.getDefaultInstall();
     }
 
-    private InstallationSearchResult locateVisualStudio() {
-        if (installDir != null) {
-            return visualStudioLocator.locateVisualStudio(installDir);
-        }
-        return visualStudioLocator.locateDefaultVisualStudio();
+    private ToolSearchResult locateVisualStudio() {
+        return visualStudioLocator.locateVisualStudioInstalls(installDir);
     }
 
     private ToolSearchResult locateWindowsSdk() {

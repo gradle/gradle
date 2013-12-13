@@ -16,46 +16,55 @@
 
 package org.gradle.nativebinaries.toolchain.internal.msvcpp
 
+import net.rubygrapefruit.platform.WindowsRegistry
+
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.VersionNumber
+import org.junit.Rule
+
 import spock.lang.Specification
 
 class DefaultVisualStudioLocatorTest extends Specification {
-    TestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
+    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    final WindowsRegistry windowsRegistry =  Stub(WindowsRegistry)
     final OperatingSystem operatingSystem = Stub(OperatingSystem) {
         isWindows() >> true
         getExecutableName(_ as String) >> { String exeName -> exeName }
-        findInPath("cl.exe") >> file('VisualStudio/VC/bin/cl.exe')
     }
-    final VisualStudioLocator visualStudioLocator = new DefaultVisualStudioLocator(operatingSystem)
+    final VisualStudioLocator visualStudioLocator = new DefaultVisualStudioLocator(operatingSystem, windowsRegistry)
 
     def "visual studio not found when executables do not exist"() {
+        given:
+        operatingSystem.findInPath("cl.exe") >> null
+
         when:
-        def visualStudioLocation = visualStudioLocator.locateDefaultVisualStudio()
+        def located = visualStudioLocator.locateVisualStudioInstalls(null)
 
         then:
-        !visualStudioLocation.available
-        visualStudioLocation.result == null
+        !located.available
+        visualStudioLocator.defaultInstall == null
     }
 
     def "locates visual studio installation based on executables in path"() {
-        when:
-        createFile('VisualStudio/VC/bin/cl.exe')
+        def vsDir = vsDir("vs")
 
-        and:
-        def visualStudioLocation = visualStudioLocator.locateDefaultVisualStudio()
+        given:
+        operatingSystem.findInPath("cl.exe") >> vsDir.file("VC/bin/cl.exe")
+
+        when:
+        def located = visualStudioLocator.locateVisualStudioInstalls(null)
 
         then:
-        visualStudioLocation.available
-        visualStudioLocation.result == file('VisualStudio')
+        located.available
+        visualStudioLocator.defaultInstall.name == "Path-resolved Visual Studio"
+        visualStudioLocator.defaultInstall.version == VersionNumber.UNKNOWN
+        visualStudioLocator.defaultInstall.baseDir == vsDir
     }
 
-    def file(String name) {
-        testDirectoryProvider.testDirectory.file(name)
-    }
-
-    def createFile(String name) {
-        file(name).createFile()
+    def vsDir(String name) {
+        def dir = tmpDir.createDir(name)
+        dir.createFile("VC/bin/cl.exe")
+        return dir
     }
 }

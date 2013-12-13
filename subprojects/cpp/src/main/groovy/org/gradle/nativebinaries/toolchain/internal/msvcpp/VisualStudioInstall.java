@@ -16,14 +16,16 @@
 
 package org.gradle.nativebinaries.toolchain.internal.msvcpp;
 
-import org.gradle.nativebinaries.platform.Platform;
-import org.gradle.nativebinaries.platform.internal.ArchitectureInternal;
-
 import java.io.File;
 import java.util.*;
 
+import org.gradle.api.Named;
+import org.gradle.nativebinaries.platform.Platform;
+import org.gradle.nativebinaries.platform.internal.ArchitectureInternal;
+import org.gradle.util.VersionNumber;
+
 // TODO:DAZ Move any detection of available tools to the VisualStudioLocator: this class should be constructed with knowledge of the complete install
-public class VisualStudioInstall {
+public class VisualStudioInstall implements Named {
     private static final String NATIVEPREFIX_AMD64 = "win32-amd64";
 
     private static final String PLATFORM_AMD64_AMD64 = "amd64";
@@ -56,19 +58,25 @@ public class VisualStudioInstall {
     private static final String LIBPATH_X86 = "lib";
 
     private final Map<String, String> availableBinPaths;
-    private final String visualStudioVersion;
-    private final File visualStudioDir;
+    private final VersionNumber version;
+    private final File baseDir;
     private final File visualCppDir;
+    private final String name;
 
-    public VisualStudioInstall(File visualStudioDir, String visualStudioVersion) {
-        this.visualStudioDir = visualStudioDir;
-        this.visualStudioVersion = (visualStudioVersion != null) ? visualStudioVersion : VisualStudioVersion.VS_2010;
-        visualCppDir = new File(visualStudioDir, "VC");
+    public VisualStudioInstall(File baseDir, VersionNumber version, String name) {
+        this.baseDir = baseDir;
+        this.version = version;
+        this.name = name;
+        visualCppDir = new File(baseDir, "VC");
         availableBinPaths = getAvailableBinPaths(visualCppDir);
     }
 
-    public String getVisualStudioVersion() {
-        return visualStudioVersion;
+    public String getName() {
+        return name;
+    }
+
+    public VersionNumber getVersion() {
+        return version;
     }
 
     public boolean isSupportedPlatform(Platform targetPlatform) {
@@ -98,7 +106,7 @@ public class VisualStudioInstall {
     }
 
     public File getVisualStudioDir() {
-        return visualStudioDir;
+        return baseDir;
     }
 
     public File getCompiler(Platform targetPlatform) {
@@ -159,7 +167,7 @@ public class VisualStudioInstall {
     }
 
     public File getCommonIdeBin() {
-        return new File(visualStudioDir, "Common7/IDE");
+        return new File(baseDir, "Common7/IDE");
     }
 
     public File getVisualCppInclude() {
