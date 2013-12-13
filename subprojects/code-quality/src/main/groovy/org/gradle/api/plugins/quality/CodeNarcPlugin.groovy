@@ -53,16 +53,14 @@ class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc> {
 
     @Override
     protected void configureTaskDefaults(CodeNarc task, String baseName) {
-        task.conventionMapping.with {
-            codenarcClasspath = {
-                def config = project.configurations['codenarc']
-                if (config.dependencies.empty) {
-                    project.dependencies {
-                        codenarc "org.codenarc:CodeNarc:$extension.toolVersion"
-                    }
-                }
-                config
+        def config = project.configurations['codenarc']
+        config.incoming.beforeResolve {
+            if (config.dependencies.empty) {
+                config.dependencies.add(project.dependencies.create("org.codenarc:CodeNarc:$extension.toolVersion"))
             }
+        }
+        task.conventionMapping.with {
+            codenarcClasspath = { config }
             configFile = { extension.configFile }
             maxPriority1Violations = { extension.maxPriority1Violations }
             maxPriority2Violations = { extension.maxPriority2Violations }
