@@ -1823,6 +1823,7 @@ TBD
   so either don't use it if another, newer, version is available, or mark the other variants as unavailable.
 - Not every GCC installation can build all the target architectures of a component. For example, can only build i386 binaries on an amd64 machine if the i386 multi-arch
   support is installed, so mark variants as unavailable when the target c runtime is not available.
+- Support for itanium was dropped after Visual studio 2010, so if this architecture is requested, need to use a version of Visual Studio that can build this.
 
 ## Variants
 
@@ -1877,6 +1878,8 @@ TBD
 - Improve incremental build where the task needs to do some work to figure out the inputs.
 - Add some performance tests
 - Parallel compilation, some kind of consistency between parallel test execution, parallel task execution, etc.
+- When compilation succeeds for some files and not for other files, then mark the files that were successfully compiled as successful and
+  don't recompile them next time.
 
 ## Later
 

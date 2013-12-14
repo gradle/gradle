@@ -69,6 +69,12 @@ There are a number of other places where the plugins use `container.all { }` to 
 
 These should be refactored to use model rules instead. These will probably require some DSL and rules support.
 
+### Open issues
+
+- Don't close the task container of a project until after all projects that need to be configured have been configured. Need to expose model closing time
+  in the profile report.
+- Add `ModelRules.register()` overload that is given an implementation class and takes care of instantiation.
+
 ## Native language plugins use model rules to define and configure tasks
 
 There are a number of places where the native language plugins use `container.all { }` to configure:
@@ -211,6 +217,11 @@ The implementation should be able to detect and report on typos and predicates t
 - Tool chain is added once tool chains have been selected for a binary.
 
 ### Open issues
+
+When locating a library in another project at dependency resolve time, should use the model registry locate the target library:
+
+1. Register the libraries in the model registry.
+2. Add an implicit rule that the project build script must be executed before creating any domain objects.
 
 Another example ordering problem:
 
