@@ -14,19 +14,22 @@
  * limitations under the License.
  */
 package org.gradle.cache.internal
+
 import org.gradle.CacheUsage
 import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.invocation.Gradle
-import org.gradle.cache.*
-import org.gradle.messaging.serialize.DefaultSerializer
+import org.gradle.cache.CacheLayout
+import org.gradle.cache.CacheValidator
+import org.gradle.cache.PersistentCache
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GradleVersion
 import org.junit.Rule
 import spock.lang.Specification
 
-import static org.gradle.cache.internal.FileLockManager.LockMode.*
+import static org.gradle.cache.internal.FileLockManager.LockMode.None
+import static org.gradle.cache.internal.FileLockManager.LockMode.Shared
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode
 
 class DefaultCacheRepositoryTest extends Specification {
@@ -66,32 +69,6 @@ class DefaultCacheRepositoryTest extends Specification {
         then:
         result == cache
         1 * cacheFactory.open(sharedCacheDir.file(version, "a/b/c"), null, CacheUsage.ON, null, [:], mode(Shared), null) >> cache
-        0 * cacheFactory._
-    }
-
-    public void createsGlobalIndexedCache() {
-        given:
-        PersistentIndexedCache<String, Integer> indexedCache = Mock()
-
-        when:
-        def result = repository.indexedCache(String.class, Integer.class, "key").open()
-
-        then:
-        result == indexedCache
-        1 * cacheFactory.openIndexedCache(sharedCacheDir.file(version, "key"), CacheUsage.ON, null, [:], mode(Exclusive), {it instanceof DefaultSerializer}) >> indexedCache
-        0 * cacheFactory._
-    }
-
-    public void createsGlobalStateCache() {
-        given:
-        PersistentStateCache<String> stateCache = Mock()
-
-        when:
-        def result = repository.stateCache(String.class, "key").open()
-
-        then:
-        result == stateCache
-        1 * cacheFactory.openStateCache(sharedCacheDir.file(version, "key"), CacheUsage.ON, null, [:], mode(Exclusive), {it instanceof DefaultSerializer}) >> stateCache
         0 * cacheFactory._
     }
 

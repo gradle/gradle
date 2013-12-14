@@ -19,8 +19,6 @@ import org.gradle.CacheUsage;
 import org.gradle.api.Action;
 import org.gradle.cache.*;
 import org.gradle.cache.internal.filelock.LockOptions;
-import org.gradle.messaging.serialize.DefaultSerializer;
-import org.gradle.messaging.serialize.Serializer;
 
 import java.io.File;
 import java.util.Collections;
@@ -48,14 +46,6 @@ public class DefaultCacheRepository implements CacheRepository {
 
     public DirectoryCacheBuilder cache(String key) {
         return new PersistentCacheBuilder(key);
-    }
-
-    public <E> ObjectCacheBuilder<E, PersistentStateCache<E>> stateCache(Class<E> elementType, String key) {
-        return new StateCacheBuilder<E>(key);
-    }
-
-    public <K, V> ObjectCacheBuilder<V, PersistentIndexedCache<K, V>> indexedCache(Class<K> keyType, Class<V> elementType, String key) {
-        return new IndexedCacheBuilder<K, V>(key);
     }
 
     private abstract class AbstractCacheBuilder<T> implements CacheBuilder<T> {
@@ -152,53 +142,6 @@ public class DefaultCacheRepository implements CacheRepository {
                 throw new UnsupportedOperationException("Properties are not supported for stores.");
             }
             return factory.openStore(cacheDir, displayName, lockOptions, initializer);
-        }
-    }
-
-    private abstract class AbstractObjectCacheBuilder<E, T> extends AbstractCacheBuilder<T> implements ObjectCacheBuilder<E, T> {
-        protected Serializer<E> serializer = new DefaultSerializer<E>();
-
-        protected AbstractObjectCacheBuilder(String key) {
-            super(key);
-        }
-
-        @Override
-        public ObjectCacheBuilder<E, T> withProperties(Map<String, ?> properties) {
-            super.withProperties(properties);
-            return this;
-        }
-
-        @Override
-        public ObjectCacheBuilder<E, T> withLayout(CacheLayout layout) {
-            super.withLayout(layout);
-            return this;
-        }
-
-        public ObjectCacheBuilder<E, T> withSerializer(Serializer<E> serializer) {
-            this.serializer = serializer;
-            return this;
-        }
-    }
-
-    private class StateCacheBuilder<E> extends AbstractObjectCacheBuilder<E, PersistentStateCache<E>>  {
-        protected StateCacheBuilder(String key) {
-            super(key);
-        }
-
-        @Override
-        protected PersistentStateCache<E> doOpen(File cacheDir, Map<String, ?> properties, CacheValidator validator) {
-            return factory.openStateCache(cacheDir, cacheUsage, validator, properties, mode(LockMode.Exclusive), serializer);
-        }
-    }
-
-    private class IndexedCacheBuilder<K, V> extends AbstractObjectCacheBuilder<V, PersistentIndexedCache<K, V>> {
-        private IndexedCacheBuilder(String key) {
-            super(key);
-        }
-
-        @Override
-        protected PersistentIndexedCache<K, V> doOpen(File cacheDir, Map<String, ?> properties, CacheValidator validator) {
-            return factory.openIndexedCache(cacheDir, cacheUsage, validator, properties, mode(LockMode.Exclusive), serializer);
         }
     }
 }

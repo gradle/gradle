@@ -56,7 +56,8 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler {
                 .withProperties(properties)
                 .withValidator(validator)
                 .withDisplayName(String.format("%s class cache for %s", transformer.getId(), source.getDisplayName()))
-                .withInitializer(new ProgressReportingInitializer(progressLoggerFactory, new CacheInitializer(source, classLoader, transformer, scriptBaseClass))).open();
+                .withInitializer(new ProgressReportingInitializer(progressLoggerFactory, new CacheInitializer(source, classLoader, transformer, scriptBaseClass)))
+                .open();
 
         File classesDir = classesDir(cache);
         return scriptCompilationHandler.loadFromDir(source, classLoader, classesDir, scriptBaseClass);
