@@ -18,7 +18,6 @@ package org.gradle.testing.testng
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.HtmlTestExecutionResult
 import spock.lang.Issue
 
 import static org.hamcrest.Matchers.startsWith
@@ -48,7 +47,7 @@ public class FooTest {
         fails("test")
 
         def result = new DefaultTestExecutionResult(testDirectory)
-        result.testClass("Gradle Worker 1").assertTestFailed(
-                "Could not complete execution for test process 'Gradle Worker 1'.", startsWith("org.gradle.api.internal.tasks.testing.TestSuiteExecutionException") )
+        result.testClass("Gradle Worker 1").assertTestFailed("execution failure",
+                startsWith("org.gradle.api.internal.tasks.testing.TestSuiteExecutionException"))
     }
 }
