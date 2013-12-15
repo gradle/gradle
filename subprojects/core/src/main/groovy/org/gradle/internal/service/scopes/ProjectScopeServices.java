@@ -60,7 +60,7 @@ import java.io.File;
 /**
  * Contains the services for a given project.
  */
-public class ProjectScopeServices extends DefaultServiceRegistry implements ServiceRegistryFactory {
+public class ProjectScopeServices extends DefaultServiceRegistry {
     private final ProjectInternal project;
 
     public ProjectScopeServices(final ServiceRegistry parent, final ProjectInternal project) {
@@ -168,11 +168,14 @@ public class ProjectScopeServices extends DefaultServiceRegistry implements Serv
         };
     }
 
-    public ServiceRegistryFactory createFor(Object domainObject) {
-        if (domainObject instanceof TaskInternal) {
-            return new TaskScopeServices(this, project, (TaskInternal) domainObject);
-        }
-        throw new UnsupportedOperationException();
+    protected ServiceRegistryFactory createServiceRegistryFactory(final ServiceRegistry services) {
+        return new ServiceRegistryFactory() {
+            public ServiceRegistry createFor(Object domainObject) {
+                if (domainObject instanceof TaskInternal) {
+                    return new TaskScopeServices(services, project, (TaskInternal) domainObject);
+                }
+                throw new UnsupportedOperationException();
+            }
+        };
     }
-
 }

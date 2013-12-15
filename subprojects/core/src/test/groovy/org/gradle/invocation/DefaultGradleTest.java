@@ -29,6 +29,7 @@ import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.plugins.PluginContainer;
@@ -62,7 +63,7 @@ public class DefaultGradleTest {
     private final StartParameter parameter = new StartParameter();
     private final ScriptHandler scriptHandlerMock = context.mock(ScriptHandler.class);
     private final ServiceRegistryFactory serviceRegistryFactoryMock = context.mock(ServiceRegistryFactory.class, "parent");
-    private final ServiceRegistryFactory gradleServiceRegistryMock = context.mock(ServiceRegistryFactory.class, "gradle");
+    private final ServiceRegistry gradleServiceRegistryMock = context.mock(ServiceRegistry.class, "gradle");
     private final ProjectRegistry projectRegistry = context.mock(ProjectRegistry.class);
     private final PluginRegistry pluginRegistry = context.mock(PluginRegistry.class);
     private final TaskGraphExecuter taskExecuter = context.mock(TaskGraphExecuter.class);

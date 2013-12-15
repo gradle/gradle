@@ -29,6 +29,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.AbstractPluginAware;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.plugins.PluginContainer;
@@ -50,7 +51,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
     private final StartParameter startParameter;
     private final ProjectRegistry<ProjectInternal> projectRegistry;
     private final ListenerManager listenerManager;
-    private final ServiceRegistryFactory services;
+    private final ServiceRegistry services;
     private final GradleDistributionLocator distributionLocator;
     private final ListenerBroadcast<BuildListener> buildListenerBroadcast;
     private final ListenerBroadcast<ProjectEvaluationListener> projectEvaluationListenerBroadcast;
@@ -216,8 +217,12 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
         return this;
     }
 
-    public ServiceRegistryFactory getServices() {
+    public ServiceRegistry getServices() {
         return services;
+    }
+
+    public ServiceRegistryFactory getServiceRegistryFactory() {
+        return services.get(ServiceRegistryFactory.class);
     }
 
     public PluginContainer getPlugins() {

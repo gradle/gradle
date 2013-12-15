@@ -56,6 +56,7 @@ import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.logging.LoggingManagerInternal;
@@ -81,7 +82,7 @@ import static org.gradle.util.GUtil.isTrue;
 
 public abstract class AbstractProject extends AbstractPluginAware implements ProjectInternal, DynamicObjectAware {
     private static Logger buildLogger = Logging.getLogger(Project.class);
-    private ServiceRegistryFactory services;
+    private ServiceRegistry services;
 
     private final ProjectInternal rootProject;
 
@@ -875,12 +876,16 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         return processOperations.exec(closure);
     }
 
-    public ServiceRegistryFactory getServices() {
+    public ServiceRegistry getServices() {
         return services;
     }
 
+    public ServiceRegistryFactory getServiceRegistryFactory() {
+        return services.get(ServiceRegistryFactory.class);
+    }
+
     public ModuleInternal getModule() {
-        return getServices().get(DependencyMetaDataProvider.class).getModule();
+        return services.get(DependencyMetaDataProvider.class).getModule();
     }
 
     public AntBuilder ant(Closure configureClosure) {

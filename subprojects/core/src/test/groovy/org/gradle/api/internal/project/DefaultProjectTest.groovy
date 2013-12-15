@@ -124,7 +124,7 @@ class DefaultProjectTest {
         projectRegistry = new DefaultProjectRegistry()
 
         projectServiceRegistryFactoryMock = context.mock(ServiceRegistryFactory.class, 'parent')
-        serviceRegistryMock = context.mock(ServiceRegistryFactory.class, 'project')
+        serviceRegistryMock = context.mock(ServiceRegistry.class, 'project')
 
         context.checking {
             allowing(projectServiceRegistryFactoryMock).createFor(withParam(notNullValue())); will(returnValue(serviceRegistryMock))
@@ -739,6 +739,7 @@ def scriptMethod(Closure closure) {
             allowing(dependencyMetaDataProviderMock).getModule(); will(returnValue({} as ModuleInternal))
             ignoring(fileOperationsMock)
             ignoring(taskContainerMock)
+            allowing(serviceRegistryMock).get(ServiceRegistryFactory); will (returnValue({} as ServiceRegistryFactory))
         }
         project.additional = 'additional'
 

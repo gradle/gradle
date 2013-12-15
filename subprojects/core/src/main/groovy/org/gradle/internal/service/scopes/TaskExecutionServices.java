@@ -51,7 +51,7 @@ public class TaskExecutionServices {
 
     TaskArtifactStateCacheAccess createCacheAccess(Gradle gradle, CacheRepository cacheRepository, InMemoryTaskArtifactCache inMemoryTaskArtifactCache, GradleBuildEnvironment environment) {
         InMemoryPersistentCacheDecorator decorator;
-        if(environment.isLongLivingProcess()) {
+        if (environment.isLongLivingProcess()) {
             decorator = inMemoryTaskArtifactCache;
         } else {
             decorator = new NoOpDecorator();

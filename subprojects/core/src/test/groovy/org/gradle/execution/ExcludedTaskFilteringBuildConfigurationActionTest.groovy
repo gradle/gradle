@@ -17,7 +17,7 @@ package org.gradle.execution
 
 import org.gradle.StartParameter
 import org.gradle.api.internal.GradleInternal
-import org.gradle.internal.service.scopes.ServiceRegistryFactory
+import org.gradle.internal.service.ServiceRegistry
 import spock.lang.Specification
 
 import static java.util.Collections.emptySet
@@ -28,7 +28,7 @@ class ExcludedTaskFilteringBuildConfigurationActionTest extends Specification {
     final TaskGraphExecuter taskGraph = Mock()
     final TaskSelector selector = Mock()
     final GradleInternal gradle = Mock()
-    final ServiceRegistryFactory services = Mock()
+    final ServiceRegistry services = Mock()
     final action = new ExcludedTaskFilteringBuildConfigurationAction()
 
     def setup() {

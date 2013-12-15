@@ -19,6 +19,7 @@ import org.gradle.BuildListener;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.execution.TaskGraphExecuter;
@@ -69,5 +70,7 @@ public interface GradleInternal extends Gradle {
      */
     BuildListener getBuildListenerBroadcaster();
 
-    ServiceRegistryFactory getServices();
+    ServiceRegistry getServices();
+
+    ServiceRegistryFactory getServiceRegistryFactory();
 }

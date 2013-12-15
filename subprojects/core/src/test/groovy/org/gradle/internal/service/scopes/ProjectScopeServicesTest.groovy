@@ -81,7 +81,7 @@ class ProjectScopeServicesTest extends Specification {
 
     def "creates a registry for a task"() {
         expect:
-        registry.createFor(Stub(TaskInternal)) instanceof TaskScopeServices
+        registry.get(ServiceRegistryFactory).createFor(Stub(TaskInternal)) instanceof TaskScopeServices
     }
 
     def "adds all project scoped plugin services"() {

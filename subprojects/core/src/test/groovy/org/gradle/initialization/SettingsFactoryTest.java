@@ -24,6 +24,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.WrapUtil;
@@ -51,7 +52,7 @@ public class SettingsFactoryTest {
         Map<String, String> expectedGradleProperties = WrapUtil.toMap("key", "myvalue");
         StartParameter expectedStartParameter = new StartParameter();
         final ServiceRegistryFactory serviceRegistryFactory = context.mock(ServiceRegistryFactory.class);
-        final ServiceRegistryFactory settingsInternallServiceRegistry = context.mock(ServiceRegistryFactory.class);
+        final ServiceRegistry settingsServices = context.mock(ServiceRegistry.class);
         final PluginContainer pluginContainer = context.mock(PluginContainer.class);
         final FileResolver fileResolver = context.mock(FileResolver.class);
         final ScriptPluginFactory scriptPluginFactory = context.mock(ScriptPluginFactory.class);
@@ -60,14 +61,14 @@ public class SettingsFactoryTest {
 
         context.checking(new Expectations() {{
             one(serviceRegistryFactory).createFor(with(any(Settings.class)));
-            will(returnValue(settingsInternallServiceRegistry));
-            one(settingsInternallServiceRegistry).get(PluginContainer.class);
+            will(returnValue(settingsServices));
+            one(settingsServices).get(PluginContainer.class);
             will(returnValue(pluginContainer));
-            one(settingsInternallServiceRegistry).get(FileResolver.class);
+            one(settingsServices).get(FileResolver.class);
             will(returnValue(fileResolver));
-            one(settingsInternallServiceRegistry).get(ScriptPluginFactory.class);
+            one(settingsServices).get(ScriptPluginFactory.class);
             will(returnValue(scriptPluginFactory));
-            one(settingsInternallServiceRegistry).get(ProjectDescriptorRegistry.class);
+            one(settingsServices).get(ProjectDescriptorRegistry.class);
             will(returnValue(expectedProjectDescriptorRegistry));
             one(expectedProjectDescriptorRegistry).addProject(with(any(DefaultProjectDescriptor.class)));
         }});

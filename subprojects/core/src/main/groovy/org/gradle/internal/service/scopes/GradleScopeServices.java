@@ -44,7 +44,7 @@ import static java.util.Arrays.asList;
 /**
  * Contains the services for a given {@link GradleInternal} instance.
  */
-public class GradleScopeServices extends DefaultServiceRegistry implements ServiceRegistryFactory {
+public class GradleScopeServices extends DefaultServiceRegistry {
     public GradleScopeServices(ServiceRegistry parent, GradleInternal gradle) {
         super(parent);
         add(GradleInternal.class, gradle);
@@ -94,11 +94,15 @@ public class GradleScopeServices extends DefaultServiceRegistry implements Servi
         return new DefaultTaskGraphExecuter(listenerManager, taskPlanExecutor);
     }
 
-    public ServiceRegistryFactory createFor(Object domainObject) {
-        if (domainObject instanceof ProjectInternal) {
-            return new ProjectScopeServices(this, (ProjectInternal) domainObject);
-        }
-        throw new UnsupportedOperationException();
+    ServiceRegistryFactory createServiceRegistryFactory(final ServiceRegistry services) {
+        return new ServiceRegistryFactory() {
+            public ServiceRegistry createFor(Object domainObject) {
+                if (domainObject instanceof ProjectInternal) {
+                    return new ProjectScopeServices(services, (ProjectInternal) domainObject);
+                }
+                throw new UnsupportedOperationException();
+            }
+        };
     }
 
     PluginRegistry createPluginRegistry(PluginRegistry parentRegistry) {

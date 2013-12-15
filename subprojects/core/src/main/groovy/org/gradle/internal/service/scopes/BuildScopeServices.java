@@ -76,7 +76,7 @@ import org.gradle.profile.ProfileListener;
 /**
  * Contains the singleton services for a single build invocation.
  */
-public class BuildScopeServices extends DefaultServiceRegistry implements ServiceRegistryFactory {
+public class BuildScopeServices extends DefaultServiceRegistry {
     public BuildScopeServices(final ServiceRegistry parent, final StartParameter startParameter) {
         super(parent);
         register(new Action<ServiceRegistration>() {
@@ -206,9 +206,8 @@ public class BuildScopeServices extends DefaultServiceRegistry implements Servic
                 new ScriptEvaluatingSettingsProcessor(
                         get(ScriptPluginFactory.class),
                         new SettingsFactory(
-
                                 get(Instantiator.class),
-                                this
+                                get(ServiceRegistryFactory.class)
                         ),
                         get(IGradlePropertiesLoader.class)),
                 get(IGradlePropertiesLoader.class));
@@ -262,15 +261,19 @@ public class BuildScopeServices extends DefaultServiceRegistry implements Servic
         return new DefaultPluginRegistry(get(ClassLoaderRegistry.class).getPluginsClassLoader(), new DependencyInjectingInstantiator(this));
     }
 
-    public ServiceRegistryFactory createFor(Object domainObject) {
-        if (domainObject instanceof GradleInternal) {
-            return new GradleScopeServices(this, (GradleInternal) domainObject);
-        }
-        if (domainObject instanceof SettingsInternal) {
-            return new SettingsScopeServices(this, (SettingsInternal) domainObject);
-        }
-        throw new IllegalArgumentException(String.format("Cannot create services for unknown domain object of type %s.",
-                domainObject.getClass().getSimpleName()));
+    protected ServiceRegistryFactory createServiceRegistryFactory(final ServiceRegistry services) {
+        return new ServiceRegistryFactory() {
+            public ServiceRegistry createFor(Object domainObject) {
+                if (domainObject instanceof GradleInternal) {
+                    return new GradleScopeServices(services, (GradleInternal) domainObject);
+                }
+                if (domainObject instanceof SettingsInternal) {
+                    return new SettingsScopeServices(services, (SettingsInternal) domainObject);
+                }
+                throw new IllegalArgumentException(String.format("Cannot create services for unknown domain object of type %s.",
+                        domainObject.getClass().getSimpleName()));
+            }
+        };
     }
 
     private class DependencyMetaDataProviderImpl implements DependencyMetaDataProvider {

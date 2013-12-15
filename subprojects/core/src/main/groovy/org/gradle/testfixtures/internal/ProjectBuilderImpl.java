@@ -53,7 +53,7 @@ public class ProjectBuilderImpl {
                 (projectDir != null) ? projectDir.getAbsoluteFile() : new File(parentProject.getProjectDir(), name),
                 new StringScriptSource("test build file", null),
                 parentProject.getGradle(),
-                parentProject.getGradle().getServices()
+                parentProject.getGradle().getServiceRegistryFactory()
         );
         parentProject.addChildProject(project);
         parentProject.getProjectRegistry().addProject(project);
@@ -68,8 +68,8 @@ public class ProjectBuilderImpl {
         StartParameter startParameter = new StartParameter();
         startParameter.setGradleUserHomeDir(new File(projectDir, "userHome"));
 
-        ServiceRegistryFactory topLevelRegistry = new TestBuildScopeServices(GLOBAL_SERVICES, startParameter, homeDir);
-        GradleInternal gradle = new DefaultGradle(null, startParameter, topLevelRegistry);
+        ServiceRegistry topLevelRegistry = new TestBuildScopeServices(GLOBAL_SERVICES, startParameter, homeDir);
+        GradleInternal gradle = new DefaultGradle(null, startParameter, topLevelRegistry.get(ServiceRegistryFactory.class));
 
         DefaultProjectDescriptor projectDescriptor = new DefaultProjectDescriptor(null, name, projectDir, new DefaultProjectDescriptorRegistry(),
                 topLevelRegistry.get(FileResolver.class));

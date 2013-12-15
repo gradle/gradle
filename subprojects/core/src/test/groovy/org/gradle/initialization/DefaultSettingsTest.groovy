@@ -27,6 +27,7 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.integration.junit4.JMock
@@ -69,7 +70,7 @@ class DefaultSettingsTest {
         fileResolver = context.mock(FileResolver.class)
         projectDescriptorRegistry = new DefaultProjectDescriptorRegistry()
 
-        ServiceRegistryFactory settingsServices = context.mock(ServiceRegistryFactory.class)
+        def settingsServices = context.mock(ServiceRegistry.class)
         context.checking{
                 one(serviceRegistryFactory).createFor(with(any(Settings.class)));
                 will(returnValue(settingsServices));

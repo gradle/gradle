@@ -19,8 +19,8 @@ import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
-import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.initialization.buildsrc.BuildSourceBuilder;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.invocation.BuildClassLoaderRegistry;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.WrapUtil;
@@ -69,7 +69,7 @@ public class SettingsHandlerTest {
     private void prepareForExistingSettings() {
         final ProjectRegistry projectRegistry = context.mock(ProjectRegistry.class);
         final DefaultProjectDescriptor projectDescriptor = context.mock(DefaultProjectDescriptor.class);
-        final ServiceRegistryFactory services = context.mock(ServiceRegistryFactory.class);
+        final ServiceRegistry services = context.mock(ServiceRegistry.class);
         final BuildClassLoaderRegistry classLoaderRegistry = context.mock(BuildClassLoaderRegistry.class);
         startParameter.setCurrentDir(settingsLocation.getSettingsDir());
 

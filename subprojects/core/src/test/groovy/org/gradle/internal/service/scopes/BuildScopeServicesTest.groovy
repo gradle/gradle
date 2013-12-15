@@ -111,7 +111,7 @@ public class BuildScopeServicesTest extends Specification {
 
     def throwsExceptionForUnknownDomainObject() {
         when:
-        registry.createFor("string")
+        registry.get(ServiceRegistryFactory).createFor("string")
         then:
         def e = thrown(IllegalArgumentException)
         e.message == "Cannot create services for unknown domain object of type String."
@@ -120,9 +120,17 @@ public class BuildScopeServicesTest extends Specification {
     def canCreateServicesForAGradleInstance() {
         setup:
         GradleInternal gradle = Mock()
-        ServiceRegistryFactory registry = this.registry.createFor(gradle)
+        def registry = registry.get(ServiceRegistryFactory).createFor(gradle)
         expect:
         registry instanceof GradleScopeServices
+    }
+
+    def canCreateServicesForASettingsInstance() {
+        setup:
+        SettingsInternal settings = Mock()
+        def registry = registry.get(ServiceRegistryFactory).createFor(settings)
+        expect:
+        registry instanceof SettingsScopeServices
     }
 
     def providesAListenerManager() {

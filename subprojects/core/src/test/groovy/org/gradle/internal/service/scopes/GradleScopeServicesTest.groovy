@@ -69,7 +69,7 @@ public class GradleScopeServicesTest extends Specification {
         ProjectInternal project = Mock()
 
         when:
-        ServiceRegistryFactory serviceRegistry = registry.createFor(project)
+        def serviceRegistry = registry.get(ServiceRegistryFactory).createFor(project)
 
         then:
         serviceRegistry instanceof ProjectScopeServices

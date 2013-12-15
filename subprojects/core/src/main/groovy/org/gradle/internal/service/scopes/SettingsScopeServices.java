@@ -30,16 +30,12 @@ import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 
-public class SettingsScopeServices extends DefaultServiceRegistry implements ServiceRegistryFactory {
+public class SettingsScopeServices extends DefaultServiceRegistry {
     private final SettingsInternal settings;
 
     public SettingsScopeServices(ServiceRegistry parent, final SettingsInternal settings) {
         super(parent);
         this.settings = settings;
-    }
-
-    public ServiceRegistryFactory createFor(Object domainObject) {
-        throw new UnsupportedOperationException();
     }
 
     protected FileResolver createFileResolver() {
