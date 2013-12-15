@@ -37,7 +37,7 @@ class TestReportDataCollectorSpec extends Specification {
         def root = new DefaultTestSuiteDescriptor("1", "Suite")
         def clazz = new DecoratingTestDescriptor(new DefaultTestClassDescriptor("1.1", "FooTest"), root)
         def test1 = new DecoratingTestDescriptor(new DefaultTestDescriptor("1.1.1", "FooTest", "testMethod"), clazz)
-        def result1 = new DefaultTestResult(SUCCESS, 100, 200, 1, 1, 0, asList())
+        def result1 = new DefaultTestResult(SUCCESS, 100, 200, 1, 1, 0, [])
 
         def test2 = new DecoratingTestDescriptor(new DefaultTestDescriptor("1.1.2", "FooTest", "testMethod2"), clazz)
         def result2 = new DefaultTestResult(FAILURE, 250, 300, 1, 0, 1, asList(new RuntimeException("Boo!")))
@@ -52,7 +52,7 @@ class TestReportDataCollectorSpec extends Specification {
         collector.afterTest(test1, result1)
         collector.afterTest(test2, result2)
 
-        collector.afterSuite(root, new DefaultTestResult(FAILURE, 0, 500, 2, 1, 1, asList(new RuntimeException("Boo!"))))
+        collector.afterSuite(root, new DefaultTestResult(FAILURE, 0, 500, 2, 1, 1, []))
 
         then:
         results.size() == 1
@@ -184,15 +184,15 @@ class TestReportDataCollectorSpec extends Specification {
         failures[0].stackTrace.startsWith(failure2.toString())
     }
 
-    def "synthesises result when suite fails without running any tests"() {
+    def "reports suite failures"() {
         def root = new DefaultTestSuiteDescriptor("1", "Suite")
         def testWorker = new DefaultTestSuiteDescriptor("2", "Test Worker 1")
 
         when:
-        //simulating a scenario with TestNG suite failing fatally to initialise
+        //simulating a scenario with suite failing badly enough so that no tests are executed
         collector.beforeSuite(root)
         collector.beforeSuite(testWorker)
-        collector.afterSuite(testWorker, new DefaultTestResult(FAILURE, 50, 450, 2, 1, 1, [new TestSuiteExecutionException("Boo!", new RuntimeException())]))
+        collector.afterSuite(testWorker, new DefaultTestResult(FAILURE, 50, 450, 2, 1, 1, [new RuntimeException("Boo!")]))
         collector.afterSuite(root, new DefaultTestResult(FAILURE, 0, 500, 2, 1, 1, []))
 
         then:
