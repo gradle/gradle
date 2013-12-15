@@ -16,35 +16,19 @@
 
 package org.gradle.nativebinaries.internal;
 
-import org.gradle.api.Action;
-import org.gradle.api.DomainObjectSet;
-import org.gradle.api.file.SourceDirectorySet;
-import org.gradle.api.internal.file.DefaultSourceDirectorySet;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.language.HeaderExportingSourceSet;
 import org.gradle.nativebinaries.Library;
 import org.gradle.nativebinaries.NativeLibraryRequirement;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class DefaultLibrary extends DefaultNativeComponent implements Library {
-    private final DefaultSourceDirectorySet headers;
 
-    public DefaultLibrary(NativeBuildComponentIdentifier id, Instantiator instantiator, FileResolver fileResolver) {
+    public DefaultLibrary(NativeBuildComponentIdentifier id, Instantiator instantiator) {
         super(id, instantiator);
-        this.headers = new DefaultSourceDirectorySet("headers", String.format("Exported headers for native library '%s'", id.getName()), fileResolver);
-        initExportedHeaderTracking();
     }
 
     @Override
     public String toString() {
         return String.format("library '%s'", getName());
-    }
-
-    public SourceDirectorySet getHeaders() {
-        return headers;
     }
 
     public NativeLibraryRequirement getShared() {
@@ -57,28 +41,5 @@ public class DefaultLibrary extends DefaultNativeComponent implements Library {
 
     public NativeLibraryRequirement getApi() {
         return new ProjectNativeLibraryRequirement(getProjectPath(), this.getName(), "api");
-    }
-
-    private void initExportedHeaderTracking() {
-        // TODO - headers.srcDirs() should allow a Callable<SourceDirectorySet> for lazy calculation
-        final DomainObjectSet<HeaderExportingSourceSet> headerExportingSourceSets = getSource().withType(HeaderExportingSourceSet.class);
-        headerExportingSourceSets.all(new Action<HeaderExportingSourceSet>() {
-            public void execute(HeaderExportingSourceSet headerExportingSourceSet) {
-                updateHeaderDirs(headerExportingSourceSets, headers);
-            }
-        });
-        headerExportingSourceSets.whenObjectRemoved(new Action<HeaderExportingSourceSet>() {
-            public void execute(HeaderExportingSourceSet headerExportingSourceSet) {
-                updateHeaderDirs(headerExportingSourceSets, headers);
-            }
-        });
-    }
-
-    private void updateHeaderDirs(DomainObjectSet<HeaderExportingSourceSet> sourceSets, DefaultSourceDirectorySet headers) {
-        List<SourceDirectorySet> headerDirs = new ArrayList<SourceDirectorySet>();
-        for (HeaderExportingSourceSet sourceSet : sourceSets) {
-            headerDirs.add(sourceSet.getExportedHeaders());
-        }
-        headers.setSrcDirs(headerDirs);
     }
 }

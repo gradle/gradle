@@ -187,6 +187,8 @@ The following are the newly deprecated items in this Gradle release. If you have
     - ToolChain, ToolChainRegistry -> org.gradle.nativebinaries.toolchain
     - Architecture, OperatingSystem, Platform, PlatformContainer -> org.gradle.nativebinaries.platform
 - Tasks are not created for empty source sets
+- Removed `Library.getHeaders()`: to manipulate headers modify the header exporting source set; to access headers use
+`NativeDependencySet.getIncludeRoots()`.
 
 ### A requested dependency returns different types of selectors
 

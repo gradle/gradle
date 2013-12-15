@@ -51,8 +51,6 @@ class DefaultStaticLibraryBinaryTest extends Specification {
     def "can convert binary to a native dependency"() {
         final binary = staticLibrary
         given:
-        def headers = Stub(SourceDirectorySet)
-        library.headers >> headers
         def lifecycleTask = Stub(Task)
         binary.lifecycleTask = lifecycleTask
         binary.builtBy(Stub(Task))
