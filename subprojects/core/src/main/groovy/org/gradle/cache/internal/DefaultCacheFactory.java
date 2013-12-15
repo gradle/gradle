@@ -20,8 +20,10 @@ import org.gradle.api.Action;
 import org.gradle.cache.CacheOpenException;
 import org.gradle.cache.CacheValidator;
 import org.gradle.cache.PersistentCache;
+import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.internal.filelock.LockOptions;
 import org.gradle.internal.Factory;
+import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
@@ -57,6 +59,7 @@ public class DefaultCacheFactory implements Factory<CacheFactory> {
                 dirCacheReference.close();
             }
         } finally {
+            dirCaches.clear();
             lock.unlock();
         }
     }
@@ -97,9 +100,9 @@ public class DefaultCacheFactory implements Factory<CacheFactory> {
     }
 
     private class CacheFactoryImpl implements CacheFactory {
-        private final Set<BasicCacheReference<?>> caches = new LinkedHashSet<BasicCacheReference<?>>();
+        private final Set<ReferenceTrackingCache> caches = new LinkedHashSet<ReferenceTrackingCache>();
 
-        private DirCacheReference doOpenDir(File cacheDir, String displayName, CacheUsage usage, CacheValidator validator, Map<String, ?> properties, LockOptions lockOptions, Action<? super PersistentCache> action) {
+        public PersistentCache open(File cacheDir, String displayName, CacheUsage usage, CacheValidator validator, Map<String, ?> properties, LockOptions lockOptions, Action<? super PersistentCache> action) {
             File canonicalDir = GFileUtils.canonicalise(cacheDir);
             DirCacheReference dirCacheReference = dirCaches.get(canonicalDir);
             if (dirCacheReference == null) {
@@ -130,8 +133,9 @@ public class DefaultCacheFactory implements Factory<CacheFactory> {
             if (usage == CacheUsage.REBUILD) {
                 dirCacheReference.rebuiltBy = this;
             }
-            dirCacheReference.addReference(this);
-            return dirCacheReference;
+            ReferenceTrackingCache wrapper = new ReferenceTrackingCache(dirCacheReference);
+            caches.add(wrapper);
+            return wrapper;
         }
 
         public PersistentCache openStore(File storeDir, String displayName, LockOptions lockOptions, Action<? super PersistentCache> initializer) throws CacheOpenException {
@@ -146,73 +150,96 @@ public class DefaultCacheFactory implements Factory<CacheFactory> {
                 dirCacheReference = new DirCacheReference(cache, Collections.<String, Object>emptyMap(), lockOptions);
                 dirCaches.put(canonicalDir, dirCacheReference);
             }
-            dirCacheReference.addReference(this);
-            return dirCacheReference.getCache();
-        }
-
-        public PersistentCache open(File cacheDir, String displayName, CacheUsage usage, CacheValidator cacheValidator, Map<String, ?> properties, LockOptions lockOptions, Action<? super PersistentCache> initializer) {
-            DirCacheReference dirCacheReference = doOpenDir(cacheDir, displayName, usage, cacheValidator, properties, lockOptions, initializer);
-            return dirCacheReference.getCache();
+            ReferenceTrackingCache wrapper = new ReferenceTrackingCache(dirCacheReference);
+            caches.add(wrapper);
+            return wrapper;
         }
 
         public void close() {
             try {
-                List<BasicCacheReference<?>> caches = new ArrayList<BasicCacheReference<?>>(this.caches);
-                Collections.reverse(caches);
-                for (BasicCacheReference cache : caches) {
-                    cache.release(this);
-                }
+                CompositeStoppable.stoppable(caches).stop();
             } finally {
                 caches.clear();
             }
         }
     }
 
-    private abstract class BasicCacheReference<T> {
-        private Set<CacheFactoryImpl> references = new HashSet<CacheFactoryImpl>();
-        private final T cache;
-
-        protected BasicCacheReference(T cache) {
-            this.cache = cache;
-            onOpen(cache);
-        }
-
-        public T getCache() {
-            return cache;
-        }
-
-        public void release(CacheFactoryImpl owner) {
-            boolean removed = references.remove(owner);
-            assert removed;
-            if (references.isEmpty()) {
-                onClose(cache);
-                close();
-            }
-        }
-
-        public void addReference(CacheFactoryImpl owner) {
-            references.add(owner);
-            owner.caches.add(this);
-        }
-
-        public void close() {
-        }
-    }
-
-    private class DirCacheReference extends BasicCacheReference<ReferencablePersistentCache> {
+    private class DirCacheReference {
         private final Map<String, ?> properties;
         private final LockOptions lockOptions;
+        private final ReferencablePersistentCache cache;
+        private final Set<ReferenceTrackingCache> references = new HashSet<ReferenceTrackingCache>();
         CacheFactoryImpl rebuiltBy;
 
         public DirCacheReference(ReferencablePersistentCache cache, Map<String, ?> properties, LockOptions lockOptions) {
-            super(cache);
+            this.cache = cache;
             this.properties = properties;
             this.lockOptions = lockOptions;
+            onOpen(cache);
+        }
+
+        public void addReference(ReferenceTrackingCache cache) {
+            references.add(cache);
+        }
+
+        public void release(ReferenceTrackingCache cache) {
+            lock.lock();
+            try {
+                if (references.remove(cache) && references.isEmpty()) {
+                    close();
+                }
+            } finally {
+                lock.unlock();
+            }
         }
 
         public void close() {
+            onClose(cache);
             dirCaches.values().remove(this);
-            getCache().close();
+            references.clear();
+            cache.close();
+        }
+    }
+
+    private static class ReferenceTrackingCache implements PersistentCache {
+        private final DirCacheReference reference;
+
+        private ReferenceTrackingCache(DirCacheReference reference) {
+            this.reference = reference;
+            reference.addReference(this);
+        }
+
+        @Override
+        public String toString() {
+            return reference.cache.toString();
+        }
+
+        public void close() {
+            reference.release(this);
+        }
+
+        public File getBaseDir() {
+            return reference.cache.getBaseDir();
+        }
+
+        public <K, V> PersistentIndexedCache<K, V> createCache(PersistentIndexedCacheParameters<K, V> parameters) {
+            return reference.cache.createCache(parameters);
+        }
+
+        public <T> T longRunningOperation(String operationDisplayName, Factory<? extends T> action) {
+            return reference.cache.longRunningOperation(operationDisplayName, action);
+        }
+
+        public void longRunningOperation(String operationDisplayName, Runnable action) {
+            reference.cache.longRunningOperation(operationDisplayName, action);
+        }
+
+        public <T> T useCache(String operationDisplayName, Factory<? extends T> action) {
+            return reference.cache.useCache(operationDisplayName, action);
+        }
+
+        public void useCache(String operationDisplayName, Runnable action) {
+            reference.cache.useCache(operationDisplayName, action);
         }
     }
 }

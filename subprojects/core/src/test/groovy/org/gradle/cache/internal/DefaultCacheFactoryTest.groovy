@@ -59,15 +59,9 @@ class DefaultCacheFactoryTest extends Specification {
         def cache = factory.openStore(tmpDir.testDirectory, "<display>", mode(Shared), null)
 
         then:
-        cache instanceof DefaultPersistentDirectoryStore
+        cache.reference.cache instanceof DefaultPersistentDirectoryStore
         cache.baseDir == tmpDir.testDirectory
         cache.toString().startsWith "<display>"
-
-        when:
-        factory.close()
-
-        then:
-        1 * closed.execute(cache)
     }
 
     public void "creates directory backed cache instance"() {
@@ -76,15 +70,9 @@ class DefaultCacheFactoryTest extends Specification {
         def cache = factory.open(tmpDir.testDirectory, "<display>", CacheUsage.ON, null, [prop: 'value'], mode(Shared), null)
 
         then:
-        cache instanceof DefaultPersistentDirectoryCache
+        cache.reference.cache instanceof DefaultPersistentDirectoryCache
         cache.baseDir == tmpDir.testDirectory
         cache.toString().startsWith "<display>"
-
-        when:
-        factory.close()
-
-        then:
-        1 * closed.execute(cache)
     }
 
     public void "creates DelegateOnDemandPersistentDirectoryCache cache instance for LockMode.NONE"() {
@@ -93,15 +81,9 @@ class DefaultCacheFactoryTest extends Specification {
         def cache = factory.open(tmpDir.testDirectory, "<display>", CacheUsage.ON, null, [prop: 'value'], mode(None), null)
 
         then:
-        cache instanceof DelegateOnDemandPersistentDirectoryCache
+        cache.reference.cache instanceof DelegateOnDemandPersistentDirectoryCache
         cache.baseDir == tmpDir.testDirectory
         cache.toString().startsWith "On Demand Cache for <display>"
-
-        when:
-        factory.close()
-
-        then:
-        1 * closed.execute(cache)
     }
 
     public void "reuses directory backed cache instances"() {
@@ -111,8 +93,11 @@ class DefaultCacheFactoryTest extends Specification {
         def ref2 = factory.open(tmpDir.testDirectory, null, CacheUsage.ON, null, [prop: 'value'], mode(Exclusive), null)
 
         then:
-        ref1.is(ref2)
-        0 * closed._
+        ref1.reference.cache.is(ref2.reference.cache)
+
+        and:
+        1 * opened.execute(_)
+        0 * opened._
     }
 
     public void "reuses directory backed cache instances across multiple sessions"() {
@@ -123,8 +108,11 @@ class DefaultCacheFactoryTest extends Specification {
         def ref2 = factory2.open(tmpDir.testDirectory, null, CacheUsage.ON, null, [prop: 'value'], mode(Exclusive), null)
 
         then:
-        ref1.is(ref2)
-        0 * closed._
+        ref1.reference.cache.is(ref2.reference.cache)
+
+        and:
+        1 * opened.execute(_)
+        0 * opened._
     }
 
     public void "reuses directory backed store instances"() {
@@ -134,8 +122,11 @@ class DefaultCacheFactoryTest extends Specification {
         def ref2 = factory.openStore(tmpDir.testDirectory, null, mode(Exclusive), null)
 
         then:
-        ref1.is(ref2)
-        0 * closed._
+        ref1.reference.cache.is(ref2.reference.cache)
+
+        and:
+        1 * opened.execute(_)
+        0 * opened._
     }
 
     public void "reuses directory backed store instances across multiple sessions"() {
@@ -146,32 +137,134 @@ class DefaultCacheFactoryTest extends Specification {
         def ref2 = factory2.openStore(tmpDir.testDirectory, null, mode(Exclusive), null)
 
         then:
-        ref1.is(ref2)
-        0 * closed._
+        ref1.reference.cache.is(ref2.reference.cache)
+
+        and:
+        1 * opened.execute(_)
+        0 * opened._
     }
 
-    public void "releases directory cache instance when last reference released"() {
-        given:
+    public void "closes cache instance when factory is closed"() {
+        def implementation
+
+        when:
         def factory1 = factoryFactory.create()
         def factory2 = factoryFactory.create()
         factory1.open(tmpDir.testDirectory, null, CacheUsage.ON, null, [prop: 'value'], mode(Exclusive), null)
-        def oldCache = factory2.open(tmpDir.testDirectory, null, CacheUsage.ON, null, [prop: 'value'], mode(Exclusive), null)
+        factory2.open(tmpDir.testDirectory, null, CacheUsage.ON, null, [prop: 'value'], mode(Exclusive), null)
+
+        then:
+        1 * opened.execute(_) >> { DefaultPersistentDirectoryStore s -> implementation = s }
+        0 * opened._
+
+        when:
+        factoryFactory.close()
+
+        then:
+        1 * closed.execute(implementation)
+        0 * _
+    }
+
+    public void "closes cache instance when last session is closed"() {
+        def implementation
+
+        when:
+        def factory1 = factoryFactory.create()
+        def factory2 = factoryFactory.create()
+        factory1.open(tmpDir.testDirectory, null, CacheUsage.ON, null, [prop: 'value'], mode(Exclusive), null)
+        factory2.open(tmpDir.testDirectory, null, CacheUsage.ON, null, [prop: 'value'], mode(Exclusive), null)
+
+        then:
+        1 * opened.execute(_) >> { DefaultPersistentDirectoryStore s -> implementation = s }
+        0 * opened._
 
         when:
         factory1.close()
+
+        then:
+        0 * _
+
+        when:
         factory2.close()
 
         then:
-        1 * closed.execute(!null)
+        1 * closed.execute(implementation)
+        0 * _
+
+        when:
+        def factory = factoryFactory.create()
+        factory.open(tmpDir.testDirectory, null, CacheUsage.ON, null, [prop: 'value'], mode(Exclusive), null)
+
+        then:
+        1 * opened.execute({it != implementation})
+        0 * closed._
+    }
+
+    public void "releases cache instance when reference is closed"() {
+        def implementation
+
+        when:
+        def factory = factoryFactory.create()
+        def cache1 = factory.open(tmpDir.testDirectory, null, CacheUsage.ON, null, [prop: 'value'], mode(Exclusive), null)
+        def cache2 = factory.open(tmpDir.testDirectory, null, CacheUsage.ON, null, [prop: 'value'], mode(Exclusive), null)
+
+        then:
+        1 * opened.execute(_) >> { DefaultPersistentDirectoryStore s -> implementation = s }
+        0 * opened._
+
+        when:
+        cache1.close()
+
+        then:
+        0 * _
+
+        when:
+        cache2.close()
+
+        then:
+        1 * closed.execute(implementation)
+        0 * _
+    }
+
+    public void "can close cache multiple times"() {
+        def implementation
 
         when:
         def factory = factoryFactory.create()
         def cache = factory.open(tmpDir.testDirectory, null, CacheUsage.ON, null, [prop: 'value'], mode(Exclusive), null)
 
         then:
-        !cache.is(oldCache)
-        1 * opened.execute(!null)
-        0 * closed._
+        1 * opened.execute(_) >> { DefaultPersistentDirectoryStore s -> implementation = s }
+        0 * opened._
+
+        when:
+        cache.close()
+        cache.close()
+
+        then:
+        1 * closed.execute(implementation)
+        0 * _
+    }
+
+    public void "can close session after closing cache"() {
+        def implementation
+
+        when:
+        def factory = factoryFactory.create()
+        def cache = factory.open(tmpDir.testDirectory, null, CacheUsage.ON, null, [prop: 'value'], mode(Exclusive), null)
+
+        then:
+        1 * opened.execute(_) >> { DefaultPersistentDirectoryStore s -> implementation = s }
+        0 * opened._
+
+        when:
+        cache.close()
+        factory.close()
+        factoryFactory.close()
+
+        then:
+        1 * closed.execute(implementation)
+        0 * _
     }
 
     public void "fails when directory cache is already open with different properties"() {

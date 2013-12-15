@@ -76,6 +76,9 @@ public class InMemoryCacheFactory implements CacheFactory {
             this.cacheDir = cacheDir;
         }
 
+        public void close() {
+        }
+
         public File getBaseDir() {
             return cacheDir;
         }

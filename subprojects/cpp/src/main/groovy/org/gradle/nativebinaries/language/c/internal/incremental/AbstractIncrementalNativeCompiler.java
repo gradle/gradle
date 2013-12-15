@@ -27,7 +27,6 @@ import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.internal.CacheLayoutBuilder;
 import org.gradle.cache.internal.FileLockManager;
 import org.gradle.cache.internal.PersistentIndexedCacheParameters;
-import org.gradle.cache.internal.ReferencablePersistentCache;
 import org.gradle.cache.internal.filelock.LockOptions;
 import org.gradle.cache.internal.filelock.LockOptionsBuilder;
 import org.gradle.internal.Factory;
@@ -61,9 +60,7 @@ abstract class AbstractIncrementalNativeCompiler implements Compiler<NativeCompi
                 }
             });
         } finally {
-            if (cache instanceof ReferencablePersistentCache) {
-                ((ReferencablePersistentCache) cache).close();
-            }
+            cache.close();
         }
     }
 

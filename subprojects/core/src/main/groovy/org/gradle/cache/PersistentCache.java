@@ -17,6 +17,7 @@ package org.gradle.cache;
 
 import org.gradle.cache.internal.PersistentIndexedCacheParameters;
 
+import java.io.Closeable;
 import java.io.File;
 
 /**
@@ -32,7 +33,7 @@ import java.io.File;
  * lock on the cache.
  * </p>
  */
-public interface PersistentCache extends CacheAccess {
+public interface PersistentCache extends CacheAccess, Closeable {
     /**
      * Returns the base directory for this cache.
      */
@@ -47,4 +48,9 @@ public interface PersistentCache extends CacheAccess {
      * <p>The returned cache may not be used by an action being run from {@link #longRunningOperation(String, org.gradle.internal.Factory)}.
      */
     <K, V> PersistentIndexedCache<K, V> createCache(PersistentIndexedCacheParameters<K, V> parameters);
+
+    /**
+     * Closes this cache, blocking until all operations are complete.
+     */
+    void close();
 }
