@@ -43,6 +43,8 @@ class DefaultVisualStudioLocatorTest extends Specification {
         windowsRegistry.getValueNames(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VS7/) >> ["11.0", "12.0"]
         windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VS7/, "11.0") >> dir1.absolutePath
         windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VS7/, "12.0") >> dir2.absolutePath
+        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VC7/, "11.0") >> dir1.absolutePath + "/VC"
+        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VC7/, "12.0") >> dir2.absolutePath + "/VC"
 
         when:
         def located = visualStudioLocator.locateVisualStudioInstalls(null)
@@ -107,7 +109,8 @@ class DefaultVisualStudioLocatorTest extends Specification {
         and:
         windowsRegistry.getValueNames(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VS7/) >> ["12.0"]
         windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VS7/, "12.0") >> vsDir.absolutePath
-
+        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VC7/, "12.0") >> vsDir.absolutePath + "/VC"
+        
         when:
         def located = visualStudioLocator.locateVisualStudioInstalls(null)
 
@@ -120,7 +123,9 @@ class DefaultVisualStudioLocatorTest extends Specification {
 
     def vsDir(String name) {
         def dir = tmpDir.createDir(name)
+        dir.createDir("Common7")
         dir.createFile("VC/bin/cl.exe")
+        dir.createDir("VC/lib")
         return dir
     }
 }

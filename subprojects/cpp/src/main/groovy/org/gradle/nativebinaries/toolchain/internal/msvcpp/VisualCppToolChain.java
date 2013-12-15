@@ -196,7 +196,7 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
         private <T extends NativeCompileSpec> Transformer<T, T> addIncludePath() {
             return new Transformer<T, T>() {
                 public T transform(T original) {
-                    original.include(install.getVisualCppInclude());
+                    original.include(install.getVisualCppInclude(targetPlatform));
                     original.include(sdk.getIncludeDirs());
                     return original;
                 }
