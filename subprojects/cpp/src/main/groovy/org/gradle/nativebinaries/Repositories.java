@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.nativebinaries.internal.resolve;
 
-import org.gradle.nativebinaries.LibraryBinary;
-import org.gradle.nativebinaries.NativeLibraryRequirement;
+package org.gradle.nativebinaries;
 
-import java.util.Set;
+import org.gradle.api.PolymorphicDomainObjectContainer;
+import org.gradle.api.artifacts.repositories.ArtifactRepository;
 
-public interface LibraryBinaryLocator {
-    Set<? extends LibraryBinary> getCandidateBinaries(NativeLibraryRequirement requirement);
+/**
+ * The repositories that Gradle will search for prebuilt libraries.
+ */
+public interface Repositories extends PolymorphicDomainObjectContainer<ArtifactRepository> {
 }

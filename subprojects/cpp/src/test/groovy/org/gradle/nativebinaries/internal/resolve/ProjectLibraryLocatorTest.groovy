@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 package org.gradle.nativebinaries.internal.resolve
-
 import org.gradle.api.DomainObjectSet
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.UnknownDomainObjectException
 import org.gradle.api.UnknownProjectException
-import org.gradle.api.internal.DefaultDomainObjectSet
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
 import org.gradle.api.internal.plugins.ExtensionContainerInternal
 import org.gradle.api.internal.project.ProjectInternal
@@ -27,14 +25,13 @@ import org.gradle.nativebinaries.*
 import org.gradle.nativebinaries.internal.ProjectNativeLibraryRequirement
 import spock.lang.Specification
 
-class ProjectLibraryBinaryLocatorTest extends Specification {
+class ProjectLibraryLocatorTest extends Specification {
     def project = Mock(ProjectInternal)
     def projectFinder = Mock(ProjectFinder)
     def requirement = Mock(NativeLibraryRequirement)
     def library = Mock(Library)
     def binaries = Mock(DomainObjectSet)
-    def candidates = new DefaultDomainObjectSet<NativeBinary>(NativeBinary, [Mock(NativeBinary), Mock(NativeBinary)])
-    def locator = new ProjectLibraryBinaryLocator(projectFinder)
+    def locator = new ProjectLibraryLocator(projectFinder)
 
     def setup() {
         library.binaries >> binaries
@@ -47,10 +44,9 @@ class ProjectLibraryBinaryLocatorTest extends Specification {
         and:
         projectFinder.getProject(null) >> project
         findLibraryInProject()
-        binaries.withType(SharedLibraryBinary) >> candidates
 
         then:
-        locator.getCandidateBinaries(requirement) == candidates
+        locator.getLibrary(requirement) == library
     }
 
     def "locates binaries for library in other project"() {
@@ -60,10 +56,9 @@ class ProjectLibraryBinaryLocatorTest extends Specification {
         and:
         projectFinder.getProject("other") >> project
         findLibraryInProject()
-        binaries.withType(SharedLibraryBinary) >> candidates
 
         then:
-        locator.getCandidateBinaries(requirement) == candidates
+        locator.getLibrary(requirement) == library
     }
 
     def "parses map notation for library with static linkage"() {
@@ -73,10 +68,9 @@ class ProjectLibraryBinaryLocatorTest extends Specification {
         and:
         projectFinder.getProject("other") >> project
         findLibraryInProject()
-        binaries.withType(StaticLibraryBinary) >> candidates
 
         then:
-        locator.getCandidateBinaries(requirement) == candidates
+        locator.getLibrary(requirement) == library
     }
 
     def "fails for unknown project"() {
@@ -87,7 +81,7 @@ class ProjectLibraryBinaryLocatorTest extends Specification {
         projectFinder.getProject("unknown") >> { throw new UnknownProjectException("unknown")}
 
         and:
-        locator.getCandidateBinaries(requirement)
+        locator.getLibrary(requirement)
 
         then:
         thrown(UnknownProjectException)
@@ -103,7 +97,7 @@ class ProjectLibraryBinaryLocatorTest extends Specification {
         libraries.getByName("unknown") >> { throw new UnknownDomainObjectException("unknown") }
 
         and:
-        locator.getCandidateBinaries(requirement)
+        locator.getLibrary(requirement)
 
         then:
         thrown(UnknownDomainObjectException)
@@ -121,7 +115,7 @@ class ProjectLibraryBinaryLocatorTest extends Specification {
         project.path >> "project-path"
 
         and:
-        locator.getCandidateBinaries(requirement)
+        locator.getLibrary(requirement)
 
         then:
         def e = thrown(InvalidUserDataException)

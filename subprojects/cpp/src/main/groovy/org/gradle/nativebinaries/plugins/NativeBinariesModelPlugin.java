@@ -16,7 +16,11 @@
 package org.gradle.nativebinaries.plugins;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.NamedDomainObjectFactory;
+import org.gradle.api.Namer;
 import org.gradle.api.Plugin;
+import org.gradle.api.artifacts.repositories.ArtifactRepository;
+import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.tasks.TaskContainer;
@@ -31,12 +35,11 @@ import org.gradle.model.ModelRule;
 import org.gradle.model.ModelRules;
 import org.gradle.nativebinaries.BuildTypeContainer;
 import org.gradle.nativebinaries.FlavorContainer;
-import org.gradle.nativebinaries.internal.DefaultBuildTypeContainer;
-import org.gradle.nativebinaries.internal.DefaultExecutableContainer;
-import org.gradle.nativebinaries.internal.DefaultFlavorContainer;
-import org.gradle.nativebinaries.internal.DefaultLibraryContainer;
+import org.gradle.nativebinaries.PrebuiltLibraries;
+import org.gradle.nativebinaries.Repositories;
+import org.gradle.nativebinaries.internal.*;
 import org.gradle.nativebinaries.internal.configure.*;
-import org.gradle.nativebinaries.internal.resolve.*;
+import org.gradle.nativebinaries.internal.prebuilt.DefaultPrebuiltLibraries;
 import org.gradle.nativebinaries.platform.PlatformContainer;
 import org.gradle.nativebinaries.platform.internal.DefaultPlatformContainer;
 import org.gradle.nativebinaries.toolchain.internal.DefaultToolChainRegistry;
@@ -61,11 +64,6 @@ public class NativeBinariesModelPlugin implements Plugin<ProjectInternal> {
         this.modelRules = modelRules;
     }
 
-    private static NativeDependencyResolver createResolver(ProjectInternal project) {
-        LibraryBinaryLocator libraryBinaryLocator = new ProjectLibraryBinaryLocator(new RelativeProjectFinder(project));
-        return new DefaultNativeDependencyResolver(libraryBinaryLocator);
-    }
-
     public void apply(final ProjectInternal project) {
         project.getPlugins().apply(BasePlugin.class);
         project.getPlugins().apply(LanguageBasePlugin.class);
@@ -74,12 +72,13 @@ public class NativeBinariesModelPlugin implements Plugin<ProjectInternal> {
         modelRules.register("platforms", PlatformContainer.class, factory(DefaultPlatformContainer.class));
         modelRules.register("buildTypes", BuildTypeContainer.class, factory(DefaultBuildTypeContainer.class));
         modelRules.register("flavors", FlavorContainer.class, factory(DefaultFlavorContainer.class));
+        modelRules.register("repositories", Repositories.class, new RepositoriesFactory(instantiator, project));
 
         modelRules.rule(new CreateDefaultPlatform());
         modelRules.rule(new CreateDefaultBuildTypes());
         modelRules.rule(new CreateDefaultFlavors());
         modelRules.rule(new AddDefaultToolChainsIfRequired());
-        modelRules.rule(new CreateNativeBinaries(instantiator, project, createResolver(project)));
+        modelRules.rule(new CreateNativeBinaries(instantiator, project));
         modelRules.rule(new CloseBinariesForTasks());
 
         project.getExtensions().create(
@@ -132,6 +131,38 @@ public class NativeBinariesModelPlugin implements Plugin<ProjectInternal> {
 
         public T create() {
             return instantiator.newInstance(type, instantiator);
+        }
+    }
+
+    private static class RepositoriesFactory implements Factory<Repositories> {
+        private final Instantiator instantiator;
+        private final ProjectInternal project;
+
+        public RepositoriesFactory(Instantiator instantiator, ProjectInternal project) {
+            this.instantiator = instantiator;
+            this.project = project;
+        }
+
+
+        public Repositories create() {
+            return new DefaultRepositories(instantiator, project);
+        }
+    }
+
+    private static class DefaultRepositories extends DefaultPolymorphicDomainObjectContainer<ArtifactRepository> implements Repositories {
+        private DefaultRepositories(final Instantiator instantiator, final ProjectInternal project) {
+            super(ArtifactRepository.class, instantiator, new ArtifactRepositoryNamer());
+            registerFactory(PrebuiltLibraries.class, new NamedDomainObjectFactory<PrebuiltLibraries>() {
+                public PrebuiltLibraries create(String name) {
+                    return instantiator.newInstance(DefaultPrebuiltLibraries.class, name, instantiator, project);
+                }
+            });
+        }
+    }
+
+    private static class ArtifactRepositoryNamer implements Namer<ArtifactRepository> {
+        public String determineName(ArtifactRepository object) {
+            return object.getName();
         }
     }
 }

@@ -22,7 +22,8 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.BinaryContainer;
 import org.gradle.model.ModelRule;
 import org.gradle.nativebinaries.*;
-import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
+import org.gradle.nativebinaries.internal.prebuilt.CreatePrebuiltBinaries;
+import org.gradle.nativebinaries.internal.resolve.*;
 import org.gradle.nativebinaries.platform.PlatformContainer;
 import org.gradle.nativebinaries.toolchain.internal.ToolChainRegistryInternal;
 
@@ -33,27 +34,41 @@ import java.util.List;
 public class CreateNativeBinaries extends ModelRule {
     private final Instantiator instantiator;
     private final ProjectInternal project;
-    private final NativeDependencyResolver resolver;
+    private final CreatePrebuiltBinaries prebuiltBinariesRule;
 
-    public CreateNativeBinaries(Instantiator instantiator, ProjectInternal project, NativeDependencyResolver resolver) {
+    public CreateNativeBinaries(Instantiator instantiator, ProjectInternal project) {
         this.instantiator = instantiator;
         this.project = project;
-        this.resolver = resolver;
+        prebuiltBinariesRule = new CreatePrebuiltBinaries(instantiator);
     }
 
-    public void create(BinaryContainer binaries, ToolChainRegistryInternal toolChains,
+    public void create(BinaryContainer binaries, ToolChainRegistryInternal toolChains, Repositories repositories,
                        PlatformContainer platforms, BuildTypeContainer buildTypes, FlavorContainer flavors) {
+        // TODO:DAZ This should be executed as a separate rule.
+        prebuiltBinariesRule.create(repositories, platforms, buildTypes, flavors);
+
         // TODO:DAZ Work out the right way to make these containers available to binaries.all
         project.getExtensions().add("platforms", platforms);
         project.getExtensions().add("buildTypes", buildTypes);
         project.getExtensions().add("flavors", flavors);
 
+        NativeDependencyResolver resolver = createResolver(project, repositories);
         Transformer<Collection<NativeBinary>, NativeComponent> factory =
                 new NativeBinaryFactory(instantiator, resolver, project, toolChains, platforms, buildTypes, flavors);
 
         for (NativeComponent component : allComponents()) {
             binaries.addAll(factory.transform(component));
         }
+    }
+
+    private static NativeDependencyResolver createResolver(ProjectInternal project, Repositories repositories) {
+        List<LibraryLocator> locators = new ArrayList<LibraryLocator>();
+        locators.add(new ProjectLibraryLocator(new RelativeProjectFinder(project)));
+        for (PrebuiltLibraries prebuiltLibraries : repositories.withType(PrebuiltLibraries.class)) {
+            locators.add(new PrebuiltLibraryLocator(prebuiltLibraries));
+        }
+        LibraryLocator locator = new ChainedLibraryLocator(locators);
+        return new DefaultNativeDependencyResolver(locator);
     }
 
     private Collection<NativeComponent> allComponents() {

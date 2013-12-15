@@ -1000,22 +1000,27 @@ from the same sources that link against different implementation libraries.
 
 ### User visible changes
 
-    prebuiltLibraries {
-        boost_regex {
-            headers {
-                srcDir '../../libs/boost_1_55_0/boost'
-            }
-            targetPlatforms "x86", "x64"
-            binaries.all { binary ->
-                // Locate the exact boost binary required
-                if (binary.toolChain.visualCpp) {
-                    outputFile = file("../../libs/boost_1_55_0/lib/libboost_regex-vc71-mt-d-1_34.lib")
-                } else {
-                    outputFile = file("../../libs/boost_1_55_0/lib/libboost_regex-gcc71-mt-d-1_34.a")
+    model {
+        repositories {
+            prebuilt {
+                boost_regex {
+                    headers {
+                        srcDir '../../libs/boost_1_55_0/boost'
+                    }
+                    targetPlatforms "x86", "x64"
+                    binaries.all { binary ->
+                        // Locate the exact boost binary required
+                        if (binary.toolChain.visualCpp) {
+                            outputFile = file("../../libs/boost_1_55_0/lib/libboost_regex-vc71-mt-d-1_34.lib")
+                        } else {
+                            outputFile = file("../../libs/boost_1_55_0/lib/libboost_regex-gcc71-mt-d-1_34.a")
+                        }
+                    }
                 }
             }
         }
     }
+    sources.main.cpp.lib library: 'boost_regex'
 
 ### Implementation
 
@@ -1049,6 +1054,7 @@ from the same sources that link against different implementation libraries.
 - Libraries that are buildable but not built by us
 - System libraries
 - Convert 'dependency' syntax to add to this container?
+- Fix paths in linker: don't link with absolute path
 
 ## Story: Allow source sets to be generated
 

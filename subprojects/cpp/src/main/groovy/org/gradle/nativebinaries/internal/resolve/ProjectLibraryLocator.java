@@ -20,26 +20,14 @@ import org.gradle.api.Project;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.nativebinaries.*;
 
-import java.util.Set;
-
-public class ProjectLibraryBinaryLocator implements LibraryBinaryLocator {
+public class ProjectLibraryLocator implements LibraryLocator {
     private final ProjectFinder projectFinder;
 
-    public ProjectLibraryBinaryLocator(ProjectFinder projectFinder) {
+    public ProjectLibraryLocator(ProjectFinder projectFinder) {
         this.projectFinder = projectFinder;
     }
 
-    public Set<? extends LibraryBinary> getCandidateBinaries(NativeLibraryRequirement requirement) {
-        Library library = findLibrary(requirement);
-        Class<? extends LibraryBinary> type = getTypeForLinkage(requirement.getLinkage());
-        return library.getBinaries().withType(type);
-    }
-
-    private Project findProject(NativeLibraryRequirement requirement) {
-        return projectFinder.getProject(requirement.getProjectPath());
-    }
-
-    private Library findLibrary(NativeLibraryRequirement requirement) {
+    public Library getLibrary(NativeLibraryRequirement requirement) {
         Project project = findProject(requirement);
         LibraryContainer libraryContainer = (LibraryContainer) project.getExtensions().findByName("libraries");
         if (libraryContainer == null) {
@@ -48,16 +36,8 @@ public class ProjectLibraryBinaryLocator implements LibraryBinaryLocator {
         return libraryContainer.getByName(requirement.getLibraryName());
     }
 
-    private Class<? extends LibraryBinary> getTypeForLinkage(String linkage) {
-        if ("static".equals(linkage)) {
-            return StaticLibraryBinary.class;
-        }
-        if ("api".equals(linkage)) {
-            return ApiLibraryBinary.class;
-        }
-        if ("shared".equals(linkage) || linkage == null) {
-            return SharedLibraryBinary.class;
-        }
-        throw new InvalidUserDataException("Not a valid linkage: " + linkage);
+    private Project findProject(NativeLibraryRequirement requirement) {
+        return projectFinder.getProject(requirement.getProjectPath());
     }
+
 }

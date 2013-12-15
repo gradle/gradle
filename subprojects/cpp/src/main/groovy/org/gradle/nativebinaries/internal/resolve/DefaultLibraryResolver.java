@@ -15,6 +15,7 @@
  */
 package org.gradle.nativebinaries.internal.resolve;
 
+import org.gradle.api.DomainObjectSet;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.nativebinaries.*;
 import org.gradle.nativebinaries.internal.LibraryBinaryInternal;
@@ -26,12 +27,12 @@ import java.util.Set;
 class DefaultLibraryResolver implements LibraryResolver {
     private final NativeLibraryRequirement requirement;
     private final NativeBinary context;
-    private final LibraryBinaryLocator libraryBinaryLocator;
+    private final LibraryLocator libraryLocator;
 
-    public DefaultLibraryResolver(LibraryBinaryLocator libraryBinaryLocator, NativeLibraryRequirement requirement, NativeBinary context) {
+    public DefaultLibraryResolver(LibraryLocator libraryLocator, NativeLibraryRequirement requirement, NativeBinary context) {
         this.requirement = requirement;
         this.context = context;
-        this.libraryBinaryLocator = libraryBinaryLocator;
+        this.libraryLocator = libraryLocator;
     }
 
     public LibraryNativeDependencySet resolve() {
@@ -39,7 +40,7 @@ class DefaultLibraryResolver implements LibraryResolver {
                 .withFlavor(context.getFlavor())
                 .withPlatform(context.getTargetPlatform())
                 .withBuildType(context.getBuildType())
-                .resolve(libraryBinaryLocator.getCandidateBinaries(requirement));
+                .resolve(libraryLocator.getLibrary(requirement));
     }
 
     private class LibraryResolution {
@@ -62,9 +63,27 @@ class DefaultLibraryResolver implements LibraryResolver {
             return this;
         }
 
-        public LibraryNativeDependencySet resolve(Set<? extends LibraryBinary> candidates) {
+        public LibraryNativeDependencySet resolve(Library library) {
+            Class<? extends LibraryBinary> type = getTypeForLinkage(requirement.getLinkage());
+            DomainObjectSet<? extends LibraryBinary> candidateBinaries = library.getBinaries().withType(type);
+            return resolve(candidateBinaries);
+        }
+
+        private Class<? extends LibraryBinary> getTypeForLinkage(String linkage) {
+            if ("static".equals(linkage)) {
+                return StaticLibraryBinary.class;
+            }
+            if ("api".equals(linkage)) {
+                return ApiLibraryBinary.class;
+            }
+            if ("shared".equals(linkage) || linkage == null) {
+                return SharedLibraryBinary.class;
+            }
+            throw new InvalidUserDataException("Not a valid linkage: " + linkage);
+        }
+
+        private LibraryNativeDependencySet resolve(Set<? extends LibraryBinary> candidates) {
             for (LibraryBinary candidate : candidates) {
-                // TODO:DAZ This is a regression: if we have just one flavor then we don't care about matching flavors
                 if (flavor != null && !flavor.getName().equals(candidate.getFlavor().getName())) {
                     continue;
                 }
