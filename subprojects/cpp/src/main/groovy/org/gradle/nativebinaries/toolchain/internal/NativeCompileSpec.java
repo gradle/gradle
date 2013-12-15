@@ -53,6 +53,10 @@ public interface NativeCompileSpec extends BinaryToolSpec {
 
     void setMacros(Map<String, String> macros);
 
+    void define(String name);
+
+    void define(String name, String value);
+
     boolean isPositionIndependentCode();
 
     void setPositionIndependentCode(boolean flag);
