@@ -33,9 +33,12 @@ import org.gradle.model.ModelRule;
 import org.gradle.model.ModelRules;
 import org.gradle.nativebinaries.BuildTypeContainer;
 import org.gradle.nativebinaries.FlavorContainer;
-import org.gradle.nativebinaries.platform.PlatformContainer;
-import org.gradle.nativebinaries.internal.*;
+import org.gradle.nativebinaries.internal.DefaultBuildTypeContainer;
+import org.gradle.nativebinaries.internal.DefaultExecutableContainer;
+import org.gradle.nativebinaries.internal.DefaultFlavorContainer;
+import org.gradle.nativebinaries.internal.DefaultLibraryContainer;
 import org.gradle.nativebinaries.internal.configure.*;
+import org.gradle.nativebinaries.platform.PlatformContainer;
 import org.gradle.nativebinaries.platform.internal.DefaultPlatformContainer;
 import org.gradle.nativebinaries.toolchain.internal.DefaultToolChainRegistry;
 import org.gradle.nativebinaries.toolchain.internal.ToolChainRegistryInternal;
@@ -65,10 +68,10 @@ public class NativeBinariesModelPlugin implements Plugin<Project> {
         project.getPlugins().apply(BasePlugin.class);
         project.getPlugins().apply(LanguageBasePlugin.class);
 
-        modelRules.register("toolChains", ToolChainRegistryInternal.class, new ToolChainFactory(instantiator));
-        modelRules.register("platforms", PlatformContainer.class, new PlatformFactory(instantiator));
-        modelRules.register("buildTypes", BuildTypeContainer.class, new BuildTypeFactory(instantiator));
-        modelRules.register("flavors", FlavorContainer.class, new FlavorFactory(instantiator));
+        modelRules.register("toolChains", ToolChainRegistryInternal.class, factory(DefaultToolChainRegistry.class));
+        modelRules.register("platforms", PlatformContainer.class, factory(DefaultPlatformContainer.class));
+        modelRules.register("buildTypes", BuildTypeContainer.class, factory(DefaultBuildTypeContainer.class));
+        modelRules.register("flavors", FlavorContainer.class, factory(DefaultFlavorContainer.class));
 
         modelRules.rule(new CreateDefaultPlatform());
         modelRules.rule(new CreateDefaultBuildTypes());
@@ -87,7 +90,6 @@ public class NativeBinariesModelPlugin implements Plugin<Project> {
                 "libraries",
                 DefaultLibraryContainer.class,
                 instantiator,
-                fileResolver,
                 project
         );
 
@@ -113,51 +115,21 @@ public class NativeBinariesModelPlugin implements Plugin<Project> {
         }
     }
 
-    private static class ToolChainFactory implements Factory<ToolChainRegistryInternal> {
-        private final Instantiator instantiator;
-
-        public ToolChainFactory(Instantiator instantiator) {
-            this.instantiator = instantiator;
-        }
-
-        public ToolChainRegistryInternal create() {
-            return instantiator.newInstance(DefaultToolChainRegistry.class, instantiator);
-        }
+    private <T> Factory<T> factory(Class<T> type) {
+        return new InstantiatingFactory<T>(type, instantiator);
     }
 
-    private static class PlatformFactory implements Factory<PlatformContainer> {
+    private static class InstantiatingFactory<T> implements Factory<T> {
+        private final Class<T> type;
         private final Instantiator instantiator;
 
-        private PlatformFactory(Instantiator instantiator) {
+        public InstantiatingFactory(Class<T> type, Instantiator instantiator) {
+            this.type = type;
             this.instantiator = instantiator;
         }
 
-        public PlatformContainer create() {
-            return instantiator.newInstance(DefaultPlatformContainer.class, instantiator);
-        }
-    }
-
-    private static class BuildTypeFactory implements Factory<BuildTypeContainer> {
-        private final Instantiator instantiator;
-
-        private BuildTypeFactory(Instantiator instantiator) {
-            this.instantiator = instantiator;
-        }
-
-        public BuildTypeContainer create() {
-            return instantiator.newInstance(DefaultBuildTypeContainer.class, instantiator);
-        }
-    }
-
-    private static class FlavorFactory implements Factory<FlavorContainer> {
-        private final Instantiator instantiator;
-
-        private FlavorFactory(Instantiator instantiator) {
-            this.instantiator = instantiator;
-        }
-
-        public FlavorContainer create() {
-            return instantiator.newInstance(DefaultFlavorContainer.class, instantiator);
+        public T create() {
+            return instantiator.newInstance(type, instantiator);
         }
     }
 }
