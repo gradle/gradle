@@ -17,6 +17,7 @@
 package org.gradle.nativebinaries.toolchain.internal.msvcpp;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,6 +27,9 @@ import net.rubygrapefruit.platform.WindowsRegistry;
 
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.internal.typeconversion.NotationParser;
+import org.gradle.nativebinaries.platform.Architecture;
+import org.gradle.nativebinaries.platform.internal.ArchitectureNotationParser;
 import org.gradle.nativebinaries.toolchain.internal.ToolSearchResult;
 import org.gradle.util.TreeVisitor;
 import org.gradle.util.VersionNumber;
@@ -38,14 +42,42 @@ public class DefaultVisualStudioLocator extends DefaultWindowsLocator implements
         "SOFTWARE\\",
         "SOFTWARE\\Wow6432Node\\"
     };
-    private static final String REGISTRY_ROOTPATH = "Microsoft\\VisualStudio\\SxS\\VS7";
-    private static final String COMPILER_PATH = "VC/bin/";
+    private static final String REGISTRY_ROOTPATH_VS = "Microsoft\\VisualStudio\\SxS\\VS7";
+    private static final String REGISTRY_ROOTPATH_VC = "Microsoft\\VisualStudio\\SxS\\VC7";
+    private static final String PATH_COMMON = "Common7/";
+    private static final String PATH_COMMONTOOLS = PATH_COMMON + "Tools/";
+    private static final String PATH_COMMONIDE = PATH_COMMON + "IDE/";
+    private static final String PATH_BIN = "bin/";
+    private static final String PATH_INCLUDE = "include/";
     private static final String COMPILER_FILENAME = "cl.exe";
     private static final String VERSION_PATH = "path";
     private static final String VERSION_USER = "user";
 
+    private static final String NATIVEPREFIX_AMD64 = "win32-amd64";
+    private static final String ARCHITECTURE_AMD64 = "amd64";
+    private static final String ARCHITECTURE_X86 = "x86";
+    private static final String ARCHITECTURE_ARM = "arm";
+    private static final String ARCHITECTURE_IA64 = "ia-64";
+    private static final String BINPATH_AMD64_AMD64 = "bin/amd64";
+    private static final String BINPATH_AMD64_ARM = "bin/amd64_arm";
+    private static final String BINPATH_AMD64_X86 = "bin/amd64_x86";
+    private static final String BINPATH_X86_AMD64 = "bin/x86_amd64";
+    private static final String BINPATH_X86_ARM = "bin/x86_arm";
+    private static final String BINPATH_X86_IA64 = "bin/x86_ia64";
+    private static final String BINPATH_X86_X86 = "bin";
+    private static final String LIBPATH_AMD64 = "lib/amd64";
+    private static final String LIBPATH_ARM = "lib/arm";
+    private static final String LIBPATH_IA64 = "lib/ia64";
+    private static final String LIBPATH_X86 = "lib";
+    private static final String ASSEMBLER_FILENAME_AMD64 = "ml64.exe";
+    private static final String ASSEMBLER_FILENAME_ARM = "armasm.exe";
+    private static final String ASSEMBLER_FILENAME_IA64 = "ias.exe";
+    private static final String ASSEMBLER_FILENAME_X86 = "ml.exe";
+
     private static final String VISUAL_STUDIO_DISPLAY_NAME = "Visual Studio installation";
+    private static final String VISUAL_CPP_DISPLAY_NAME = "Visual C++ installation";
     private static final String NAME_VISUALSTUDIO = "Visual Studio";
+    private static final String NAME_VISUALCPP = "Visual C++";
     private static final String NAME_PATH = "Path-resolved Visual Studio";
     private static final String NAME_USER = "User-provided Visual Studio";
 
@@ -103,14 +135,14 @@ public class DefaultVisualStudioLocator extends DefaultWindowsLocator implements
 
     private void locateInstallsInRegistry(String baseKey) {
         try {
-            List<String> valueNames = windowsRegistry.getValueNames(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, baseKey + REGISTRY_ROOTPATH);
+            List<String> valueNames = windowsRegistry.getValueNames(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, baseKey + REGISTRY_ROOTPATH_VS);
 
             for (String valueName : valueNames) {
-                File installDir = new File(windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, baseKey + REGISTRY_ROOTPATH, valueName));
+                File installDir = new File(windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, baseKey + REGISTRY_ROOTPATH_VS, valueName));
 
                 if (isVisualStudio(installDir)) {
                     LOGGER.debug("Found Visual Studio {} at {}", valueName, installDir);
-                    addInstall(installDir, valueName, NAME_VISUALSTUDIO + " " + valueName);
+                    addVisualStudioInstall(installDir, valueName, NAME_VISUALSTUDIO + " " + valueName);
                 } else {
                     LOGGER.debug("Ignoring candidate Visual Studio directory {} as it does not look like a Visual Studio installation.", installDir);
                 }
@@ -128,7 +160,7 @@ public class DefaultVisualStudioLocator extends DefaultWindowsLocator implements
                 File installDir = search.getResult();
                 LOGGER.debug("Found Visual Studio install {} using system path", installDir);
                 if (!foundInstalls.containsKey(installDir)) {
-                    addInstall(installDir, VERSION_PATH, NAME_PATH);
+                    addVisualStudioInstall(installDir, VERSION_PATH, NAME_PATH);
                 }
                 pathInstall = foundInstalls.get(installDir);
             } else {
@@ -143,15 +175,178 @@ public class DefaultVisualStudioLocator extends DefaultWindowsLocator implements
             candidate = search.getResult();
             LOGGER.debug("Found Visual Studio install {} using configured path", candidate);
             if (!foundInstalls.containsKey(candidate)) {
-                addInstall(candidate, VERSION_USER, NAME_USER);
+                addVisualStudioInstall(candidate, VERSION_USER, NAME_USER);
             }
             userInstall = foundInstalls.get(candidate);
         }
     }
 
-    private void addInstall(File path, String version, String name) {
-        // TODO: MPU - analyze install to detect available (cross-)compilers and pass the complete information to VisualStudioInstall
-        foundInstalls.put(path, new VisualStudioInstall(path, VersionNumber.parse(version), name));
+    private void addVisualStudioInstall(File path, String version, String name) {
+        File visualCppDir = locateVisualCpp(path, version);
+        VersionNumber versionNumber = VersionNumber.parse(version);
+        VisualCppInstall visualCpp = buildVisualCppInstall(path, visualCppDir, versionNumber);
+        VisualStudioInstall install = new VisualStudioInstall(path, versionNumber, name, visualCpp);
+        foundInstalls.put(path, install);
+    }
+
+    private File locateVisualCpp(File path, String version) {
+        File visualCppDir = null;
+
+        for (String baseKey : REGISTRY_BASEPATHS) {
+            visualCppDir = locateVisualCpp(path, version, baseKey);
+            if (visualCppDir != null) {
+                return visualCppDir;
+            }
+        }
+
+        Search search = locateInHierarchy(VISUAL_CPP_DISPLAY_NAME, path, isVisualCpp());
+        if (search.isAvailable()) {
+            visualCppDir = search.getResult();
+            LOGGER.debug("Found Visual C++ install {} within Visual Studio install {}", visualCppDir, path);
+        }
+
+        return visualCppDir;
+    }
+
+    private File locateVisualCpp(File path, String version, String baseKey) {
+        try {
+            File visualCppDir = new File(windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, baseKey + REGISTRY_ROOTPATH_VC, version));
+
+            if (isVisualCpp(visualCppDir)) {
+                LOGGER.debug("Found Visual C++ {} at {}", version, visualCppDir);
+                return visualCppDir;
+            } else {
+                LOGGER.debug("Ignoring candidate Visual C++ directory {} as it does not look like a Visual C++ installation.", visualCppDir);
+            }
+        } catch (MissingRegistryEntryException e) {
+            // No Visual C++ information available in the registry
+        }
+
+        return null;
+    }
+
+    private VisualCppInstall buildVisualCppInstall(File vsPath, File basePath, VersionNumber version) {
+        boolean isNativeAmd64 = NATIVEPREFIX_AMD64.equals(org.gradle.internal.os.OperatingSystem.current().getNativePrefix());
+        Map<Architecture, List<File>> paths = new HashMap<Architecture, List<File>>();
+        Map<Architecture, File> binaryPaths = new HashMap<Architecture, File>();
+        Map<Architecture, File> libraryPaths = new HashMap<Architecture, File>();
+        Map<Architecture, File> includePaths = new HashMap<Architecture, File>();
+        Map<Architecture, String> assemblerFilenames = new HashMap<Architecture, String>();
+        NotationParser<Object, Architecture> architectureParser = ArchitectureNotationParser.parser();
+        Architecture amd64 = architectureParser.parseNotation(ARCHITECTURE_AMD64);
+        Architecture x86 = architectureParser.parseNotation(ARCHITECTURE_X86);
+        Architecture arm = architectureParser.parseNotation(ARCHITECTURE_ARM);
+        Architecture ia64 = architectureParser.parseNotation(ARCHITECTURE_IA64);
+        File includePath = new File(basePath, PATH_INCLUDE);
+        File commonTools = new File(vsPath, PATH_COMMONTOOLS);
+        File commonIde = new File(vsPath, PATH_COMMONIDE);
+
+        if (isNativeAmd64) {
+            Architecture[] architectures = {
+                amd64,
+                x86,
+                arm
+            };
+            String[] binPaths = {
+                BINPATH_AMD64_AMD64,
+                BINPATH_AMD64_X86,
+                BINPATH_AMD64_ARM
+            };
+            String[] libPaths = {
+                LIBPATH_AMD64,
+                LIBPATH_X86,
+                LIBPATH_ARM
+            };
+            String[] asmFilenames = {
+                ASSEMBLER_FILENAME_AMD64,
+                ASSEMBLER_FILENAME_X86,
+                ASSEMBLER_FILENAME_ARM
+            };
+
+            for (int i = 0; i != architectures.length; ++i) {
+                Architecture architecture = architectures[i];
+                File binPath = new File(basePath, binPaths[i]);
+                File libPath = new File(basePath, libPaths[i]);
+
+                if (binPath.isDirectory() && libPath.isDirectory()) {
+                    List<File> pathsList = new ArrayList<File>();
+
+                    pathsList.add(commonTools);
+                    pathsList.add(commonIde);
+
+                    // For cross-compilers, add the native compiler to the path as well
+                    if (i != 0) {
+                        pathsList.add(new File(basePath, binPaths[0]));
+                    }
+
+                    binaryPaths.put(architecture, binPath);
+                    libraryPaths.put(architecture, libPath);
+                    includePaths.put(architecture, includePath);
+                    assemblerFilenames.put(architecture, asmFilenames[i]);
+                    paths.put(architecture, pathsList);
+                }
+            }
+        }
+
+        Architecture[] architectures = {
+            x86,
+            amd64,
+            ia64,
+            arm
+        };
+        String[] binPaths = {
+            BINPATH_X86_X86,
+            BINPATH_X86_AMD64,
+            BINPATH_X86_IA64,
+            BINPATH_X86_ARM
+        };
+        String[] libPaths = {
+            LIBPATH_X86,
+            LIBPATH_AMD64,
+            LIBPATH_IA64,
+            LIBPATH_ARM
+        };
+        String[] asmFilenames = {
+            ASSEMBLER_FILENAME_X86,
+            ASSEMBLER_FILENAME_AMD64,
+            ASSEMBLER_FILENAME_IA64,
+            ASSEMBLER_FILENAME_ARM
+        };
+
+        for (int i = 0; i != architectures.length; ++i) {
+            Architecture architecture = architectures[i];
+
+            if (!binaryPaths.containsKey(architecture)) {
+                File binPath = new File(basePath, binPaths[i]);
+                File libPath = new File(basePath, libPaths[i]);
+    
+                if (binPath.isDirectory() && libPath.isDirectory()) {
+                    List<File> pathsList = new ArrayList<File>();
+
+                    pathsList.add(commonTools);
+                    pathsList.add(commonIde);
+
+                    // For cross-compilers, add the native compiler to the path as well
+                    if (i != 0) {
+                        pathsList.add(new File(basePath, binPaths[0]));
+                    }
+
+                    binaryPaths.put(architecture, binPath);
+                    libraryPaths.put(architecture, libPath);
+                    includePaths.put(architecture, includePath);
+                    assemblerFilenames.put(architecture, asmFilenames[i]);
+                    paths.put(architecture, pathsList);
+                }
+            }
+        }
+
+        if (binaryPaths.isEmpty()) {
+            return null;
+        }
+
+        // TODO:MPUT - use x64 as the default architecture on x64 systems? (isNativeAmd64 && binaryPaths.containsKey(amd64)) ? amd64 : x86
+        return new VisualCppInstall(NAME_VISUALCPP + " " + version, version, x86,
+                paths, binaryPaths, libraryPaths, includePaths, assemblerFilenames);
     }
 
     private VisualStudioInstall determineDefaultInstall() {
@@ -182,6 +377,19 @@ public class DefaultVisualStudioLocator extends DefaultWindowsLocator implements
     }
 
     private static boolean isVisualStudio(File candidate) {
-        return new File(candidate, COMPILER_PATH + COMPILER_FILENAME).isFile();
+        return new File(candidate, PATH_COMMON).isDirectory();
     }
+
+    private static Spec<File> isVisualCpp() {
+        return new Spec<File>() {
+            public boolean isSatisfiedBy(File element) {
+                return isVisualCpp(element);
+            }
+        };
+    }
+
+    private static boolean isVisualCpp(File candidate) {
+        return new File(candidate, PATH_BIN + COMPILER_FILENAME).isFile();
+    }
+
 }
