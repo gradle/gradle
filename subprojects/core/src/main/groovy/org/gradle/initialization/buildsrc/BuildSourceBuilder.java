@@ -68,9 +68,13 @@ public class BuildSourceBuilder {
         // If we were not the most recent version of Gradle to build the buildSrc dir, then do a clean build
         // Otherwise, just to a regular build
         final PersistentCache buildSrcCache = createCache(startParameter);
-
-        GradleLauncher gradleLauncher = buildGradleLauncher(startParameter);
-        return buildSrcCache.useCache("rebuild buildSrc", new BuildSrcUpdateFactory(buildSrcCache, gradleLauncher, new BuildSrcBuildListenerFactory()));
+        try {
+            GradleLauncher gradleLauncher = buildGradleLauncher(startParameter);
+            return buildSrcCache.useCache("rebuild buildSrc", new BuildSrcUpdateFactory(buildSrcCache, gradleLauncher, new BuildSrcBuildListenerFactory()));
+        } finally {
+            // This isn't quite right. We should not unlock the classes until we're finished with them, and the classes may be used across multiple builds
+            buildSrcCache.close();
+        }
     }
 
     PersistentCache createCache(StartParameter startParameter) {

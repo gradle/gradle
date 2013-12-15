@@ -99,7 +99,6 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
                 cacheAccess = null;
             }
         }
-
     }
 
     public FileLock getLock() {

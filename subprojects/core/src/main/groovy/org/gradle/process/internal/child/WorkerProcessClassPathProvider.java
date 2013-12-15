@@ -46,6 +46,7 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider {
     private final ModuleRegistry moduleRegistry;
     private final Object lock = new Object();
     private ClassPath workerClassPath;
+    private PersistentCache workerClassPathCache;
 
     public WorkerProcessClassPathProvider(CacheRepository cacheRepository, ModuleRegistry moduleRegistry) {
         this.cacheRepository = cacheRepository;
@@ -71,8 +72,8 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider {
         if (name.equals("WORKER_MAIN")) {
             synchronized (lock) {
                 if (workerClassPath == null) {
-                    PersistentCache cache = cacheRepository.cache("workerMain").withInitializer(new CacheInitializer()).open();
-                    workerClassPath = new DefaultClassPath(jarFile(cache));
+                    workerClassPathCache = cacheRepository.cache("workerMain").withInitializer(new CacheInitializer()).open();
+                    workerClassPath = new DefaultClassPath(jarFile(workerClassPathCache));
                 }
                 LOGGER.debug("Using worker process classpath: {}", workerClassPath);
                 return workerClassPath;
@@ -80,6 +81,12 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider {
         }
 
         return null;
+    }
+
+    public void close() {
+        // This isn't quite right. Should close the worker classpath cache once we're finished with the worker processes. This may be before the end of this build
+        // or they may be used across multiple builds
+        workerClassPathCache.close();
     }
 
     private static File jarFile(PersistentCache cache) {

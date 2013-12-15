@@ -61,6 +61,12 @@ public class DefaultTaskArtifactStateCacheAccess implements TaskArtifactStateCac
         }
     }
 
+    public void close() {
+        if (cache != null) {
+            cache.close();
+        }
+    }
+
     public <K, V> PersistentIndexedCache<K, V> createCache(final String cacheName, final Class<K> keyType, final Serializer<V> valueSerializer) {
         Factory<PersistentIndexedCache> factory = new Factory<PersistentIndexedCache>() {
             public PersistentIndexedCache create() {

@@ -26,6 +26,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.util.GFileUtils;
 
+import java.io.Closeable;
 import java.io.File;
 import java.util.*;
 import java.util.concurrent.locks.Lock;
@@ -55,9 +56,7 @@ public class DefaultCacheFactory implements Factory<CacheFactory> {
     public void close() {
         lock.lock();
         try {
-            for (DirCacheReference dirCacheReference : dirCaches.values()) {
-                dirCacheReference.close();
-            }
+            CompositeStoppable.stoppable(dirCaches.values()).stop();
         } finally {
             dirCaches.clear();
             lock.unlock();
@@ -164,7 +163,7 @@ public class DefaultCacheFactory implements Factory<CacheFactory> {
         }
     }
 
-    private class DirCacheReference {
+    private class DirCacheReference implements Closeable {
         private final Map<String, ?> properties;
         private final LockOptions lockOptions;
         private final ReferencablePersistentCache cache;

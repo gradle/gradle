@@ -51,6 +51,10 @@ public class DefaultCacheLockingManager implements CacheLockingManager {
         initMetaDataStoreDir();
     }
 
+    public void close() {
+        cache.close();
+    }
+
     private void initMetaDataStoreDir() {
         File metaDataStoreDir = getMetaDataStoreDir();
 
