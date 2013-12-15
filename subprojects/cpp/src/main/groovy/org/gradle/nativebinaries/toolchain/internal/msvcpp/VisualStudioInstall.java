@@ -18,6 +18,7 @@ package org.gradle.nativebinaries.toolchain.internal.msvcpp;
 
 import java.io.File;
 import java.util.List;
+import java.util.Map;
 
 import org.gradle.api.Named;
 import org.gradle.nativebinaries.platform.Platform;
@@ -77,12 +78,16 @@ public class VisualStudioInstall implements Named {
         return visualCppInstall.getBinaryPath(targetPlatform);
     }
 
-    public File getVisualCppInclude(Platform platform) {
-        return visualCppInstall.getIncludePath(platform);
+    public Map<String, String> getVisualCppDefines(Platform targetPlatform) {
+        return visualCppInstall.getDefinitions(targetPlatform);
     }
 
-    public File getVisualCppLib(Platform platform) {
-        return visualCppInstall.getLibraryPath(platform);
+    public File getVisualCppInclude(Platform targetPlatform) {
+        return visualCppInstall.getIncludePath(targetPlatform);
+    }
+
+    public File getVisualCppLib(Platform targetPlatform) {
+        return visualCppInstall.getLibraryPath(targetPlatform);
     }
  
 }

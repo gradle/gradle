@@ -17,6 +17,7 @@
 package org.gradle.nativebinaries.toolchain.internal.msvcpp;
 
 import java.io.File;
+import java.util.Map.Entry;
 
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.file.FileResolver;
@@ -140,7 +141,7 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
 
         public <T extends BinaryToolSpec> Compiler<T> createCppCompiler() {
             CommandLineTool<CppCompileSpec> commandLineTool = commandLineTool("C++ compiler", install.getCompiler(targetPlatform));
-            Transformer<CppCompileSpec, CppCompileSpec> specTransformer = addIncludePath();
+            Transformer<CppCompileSpec, CppCompileSpec> specTransformer = addIncludePathAndDefinitions();
             commandLineTool.withSpecTransformer(specTransformer);
             CppCompiler cppCompiler = new CppCompiler(commandLineTool);
             return (Compiler<T>) new OutputCleaningCompiler<CppCompileSpec>(cppCompiler, ".obj");
@@ -148,7 +149,7 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
 
         public <T extends BinaryToolSpec> Compiler<T> createCCompiler() {
             CommandLineTool<CCompileSpec> commandLineTool = commandLineTool("C compiler", install.getCompiler(targetPlatform));
-            Transformer<CCompileSpec, CCompileSpec> specTransformer = addIncludePath();
+            Transformer<CCompileSpec, CCompileSpec> specTransformer = addIncludePathAndDefinitions();
             commandLineTool.withSpecTransformer(specTransformer);
             CCompiler cCompiler = new CCompiler(commandLineTool);
             return (Compiler<T>) new OutputCleaningCompiler<CCompileSpec>(cCompiler, ".obj");
@@ -161,7 +162,7 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
 
         public <T extends BinaryToolSpec> Compiler<T> createWindowsResourceCompiler() {
             CommandLineTool<WindowsResourceCompileSpec> commandLineTool = commandLineTool("Windows resource compiler", sdk.getResourceCompiler(targetPlatform));
-            Transformer<WindowsResourceCompileSpec, WindowsResourceCompileSpec> specTransformer = addIncludePath();
+            Transformer<WindowsResourceCompileSpec, WindowsResourceCompileSpec> specTransformer = addIncludePathAndDefinitions();
             commandLineTool.withSpecTransformer(specTransformer);
             WindowsResourceCompiler windowsResourceCompiler = new WindowsResourceCompiler(commandLineTool);
             return (Compiler<T>) new OutputCleaningCompiler<WindowsResourceCompileSpec>(windowsResourceCompiler, ".res");
@@ -193,11 +194,14 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
             return String.format("%s-%s", getName(), operatingSystem.getName());
         }
 
-        private <T extends NativeCompileSpec> Transformer<T, T> addIncludePath() {
+        private <T extends NativeCompileSpec> Transformer<T, T> addIncludePathAndDefinitions() {
             return new Transformer<T, T>() {
                 public T transform(T original) {
                     original.include(install.getVisualCppInclude(targetPlatform));
                     original.include(sdk.getIncludeDirs());
+                    for (Entry<String, String> definition : install.getVisualCppDefines(targetPlatform).entrySet()) {
+                        original.define(definition.getKey(), definition.getValue());
+                    }
                     return original;
                 }
             };

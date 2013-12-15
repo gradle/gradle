@@ -36,13 +36,15 @@ public class VisualCppInstall implements Named {
     private final Map<Architecture, File> libraryPaths;
     private final Map<Architecture, File> includePaths;
     private final Map<Architecture, String> assemblerFilenames;
+    private final Map<Architecture, Map<String, String>> definitions;
     private final Architecture defaultArchitecture;
     private final String name;
     private final VersionNumber version;
 
     public VisualCppInstall(String name, VersionNumber version, Architecture defaultArchitecture,
             Map<Architecture, List<File>> paths, Map<Architecture, File> binaryPaths, Map<Architecture, File> libraryPaths,
-            Map<Architecture, File> includePaths, Map<Architecture, String> assemblerFilenames) {
+            Map<Architecture, File> includePaths, Map<Architecture, String> assemblerFilenames,
+            Map<Architecture, Map<String, String>> definitions) {
         this.paths = paths;
         this.name = name;
         this.version = version;
@@ -51,6 +53,7 @@ public class VisualCppInstall implements Named {
         this.libraryPaths = libraryPaths;
         this.includePaths = includePaths;
         this.assemblerFilenames = assemblerFilenames;
+        this.definitions = definitions;
     }
 
     public String getName() {
@@ -96,6 +99,10 @@ public class VisualCppInstall implements Named {
 
     public File getLibraryPath(Platform targetPlatform) {
         return libraryPaths.get(getPlatformArchitecture(targetPlatform));
+    }
+
+    public Map<String, String> getDefinitions(Platform targetPlatform) {
+        return definitions.get(getPlatformArchitecture(targetPlatform));
     }
 
     public File getIncludePath(Platform targetPlatform) {

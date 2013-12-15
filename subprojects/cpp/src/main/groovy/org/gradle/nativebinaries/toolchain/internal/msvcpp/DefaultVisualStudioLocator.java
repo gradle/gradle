@@ -19,6 +19,7 @@ package org.gradle.nativebinaries.toolchain.internal.msvcpp;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -73,6 +74,7 @@ public class DefaultVisualStudioLocator extends DefaultWindowsLocator implements
     private static final String ASSEMBLER_FILENAME_ARM = "armasm.exe";
     private static final String ASSEMBLER_FILENAME_IA64 = "ias.exe";
     private static final String ASSEMBLER_FILENAME_X86 = "ml.exe";
+    private static final String DEFINE_ARMPARTITIONAVAILABLE = "_ARM_WINAPI_PARTITION_DESKTOP_SDK_AVAILABLE";
 
     private static final String VISUAL_STUDIO_DISPLAY_NAME = "Visual Studio installation";
     private static final String VISUAL_CPP_DISPLAY_NAME = "Visual C++ installation";
@@ -232,6 +234,7 @@ public class DefaultVisualStudioLocator extends DefaultWindowsLocator implements
         Map<Architecture, File> libraryPaths = new HashMap<Architecture, File>();
         Map<Architecture, File> includePaths = new HashMap<Architecture, File>();
         Map<Architecture, String> assemblerFilenames = new HashMap<Architecture, String>();
+        Map<Architecture, Map<String, String>> definitions = new HashMap<Architecture, Map<String, String>>();
         NotationParser<Object, Architecture> architectureParser = ArchitectureNotationParser.parser();
         Architecture amd64 = architectureParser.parseNotation(ARCHITECTURE_AMD64);
         Architecture x86 = architectureParser.parseNotation(ARCHITECTURE_X86);
@@ -269,14 +272,19 @@ public class DefaultVisualStudioLocator extends DefaultWindowsLocator implements
                 File libPath = new File(basePath, libPaths[i]);
 
                 if (binPath.isDirectory() && libPath.isDirectory()) {
+                    Map<String, String> definitionsList = new LinkedHashMap<String, String>();
                     List<File> pathsList = new ArrayList<File>();
 
                     pathsList.add(commonTools);
                     pathsList.add(commonIde);
 
                     // For cross-compilers, add the native compiler to the path as well
-                    if (i != 0) {
+                    if (architecture != amd64) {
                         pathsList.add(new File(basePath, binPaths[0]));
+                    }
+
+                    if (architecture == arm) {
+                        definitionsList.put(DEFINE_ARMPARTITIONAVAILABLE, "1");
                     }
 
                     binaryPaths.put(architecture, binPath);
@@ -284,6 +292,7 @@ public class DefaultVisualStudioLocator extends DefaultWindowsLocator implements
                     includePaths.put(architecture, includePath);
                     assemblerFilenames.put(architecture, asmFilenames[i]);
                     paths.put(architecture, pathsList);
+                    definitions.put(architecture, definitionsList);
                 }
             }
         }
@@ -321,14 +330,19 @@ public class DefaultVisualStudioLocator extends DefaultWindowsLocator implements
                 File libPath = new File(basePath, libPaths[i]);
     
                 if (binPath.isDirectory() && libPath.isDirectory()) {
+                    Map<String, String> definitionsList = new LinkedHashMap<String, String>();
                     List<File> pathsList = new ArrayList<File>();
 
                     pathsList.add(commonTools);
                     pathsList.add(commonIde);
 
                     // For cross-compilers, add the native compiler to the path as well
-                    if (i != 0) {
+                    if (architecture != x86) {
                         pathsList.add(new File(basePath, binPaths[0]));
+                    }
+
+                    if (architecture == arm) {
+                        definitionsList.put(DEFINE_ARMPARTITIONAVAILABLE, "1");
                     }
 
                     binaryPaths.put(architecture, binPath);
@@ -336,6 +350,7 @@ public class DefaultVisualStudioLocator extends DefaultWindowsLocator implements
                     includePaths.put(architecture, includePath);
                     assemblerFilenames.put(architecture, asmFilenames[i]);
                     paths.put(architecture, pathsList);
+                    definitions.put(architecture, definitionsList);
                 }
             }
         }
@@ -344,9 +359,9 @@ public class DefaultVisualStudioLocator extends DefaultWindowsLocator implements
             return null;
         }
 
-        // TODO:MPUT - use x64 as the default architecture on x64 systems? (isNativeAmd64 && binaryPaths.containsKey(amd64)) ? amd64 : x86
+        // TODO:MPUT - use x64 as the default architecture on x64 systems (same for winsdk)? (isNativeAmd64 && binaryPaths.containsKey(amd64)) ? amd64 : x86
         return new VisualCppInstall(NAME_VISUALCPP + " " + version, version, x86,
-                paths, binaryPaths, libraryPaths, includePaths, assemblerFilenames);
+                paths, binaryPaths, libraryPaths, includePaths, assemblerFilenames, definitions);
     }
 
     private VisualStudioInstall determineDefaultInstall() {
