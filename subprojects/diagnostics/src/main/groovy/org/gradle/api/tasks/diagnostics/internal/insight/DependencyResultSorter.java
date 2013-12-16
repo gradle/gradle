@@ -48,13 +48,24 @@ public class DependencyResultSorter {
         public int compare(DependencyEdge left, DependencyEdge right) {
             checkRequestedComponentSelectorType(left);
             checkRequestedComponentSelectorType(right);
-            checkSameComponentSelectorTypeForBothDependencyEdges(left, right);
 
-            if(left.getRequested() instanceof ProjectComponentSelector && right.getRequested() instanceof ProjectComponentSelector) {
+            if(isLeftProjectButRightIsModuleComponentSelector(left, right)) {
+                return -1;
+            }
+
+            if(isLeftModuleButRightIsProjectComponentSelector(left, right)) {
+                return 1;
+            }
+
+            if(isLeftAndRightProjectComponentSelector(left, right)) {
                 return compareProjectComponentSelectors(left, right);
             }
 
-            return compareModuleComponentSelectors(left, right);
+            if(isLeftAndRightModuleComponentSelector(left, right)) {
+                return compareModuleComponentSelectors(left, right);
+            }
+
+            throw new IllegalArgumentException("Unexpected component selector type comparison (left: " + left.getRequested().getClass().getName() + ", right: " + right.getRequested().getClass().getName() + ")");
         }
 
         private void checkRequestedComponentSelectorType(DependencyEdge dependencyEdge) {
@@ -69,13 +80,20 @@ public class DependencyResultSorter {
             return componentSelector instanceof ProjectComponentSelector || componentSelector instanceof ModuleComponentSelector;
         }
 
-        private void checkSameComponentSelectorTypeForBothDependencyEdges(DependencyEdge left, DependencyEdge right) {
-            Class leftRequestedClass = left.getRequested().getClass();
-            Class rightRequestedClass = right.getRequested().getClass();
+        private boolean isLeftProjectButRightIsModuleComponentSelector(DependencyEdge left, DependencyEdge right) {
+            return left.getRequested() instanceof ProjectComponentSelector && right.getRequested() instanceof ModuleComponentSelector;
+        }
 
-            if(leftRequestedClass != rightRequestedClass) {
-                throw new IllegalArgumentException("Component selector type is different (left: " + leftRequestedClass.getName() + ", right: " + rightRequestedClass.getName() + ")");
-            }
+        private boolean isLeftModuleButRightIsProjectComponentSelector(DependencyEdge left, DependencyEdge right) {
+            return left.getRequested() instanceof ModuleComponentSelector && right.getRequested() instanceof ProjectComponentSelector;
+        }
+
+        private boolean isLeftAndRightProjectComponentSelector(DependencyEdge left, DependencyEdge right) {
+            return left.getRequested() instanceof ProjectComponentSelector && right.getRequested() instanceof ProjectComponentSelector;
+        }
+
+        private boolean isLeftAndRightModuleComponentSelector(DependencyEdge left, DependencyEdge right) {
+            return left.getRequested() instanceof ModuleComponentSelector && right.getRequested() instanceof ModuleComponentSelector;
         }
 
         private int compareModuleComponentSelectors(DependencyEdge left, DependencyEdge right) {

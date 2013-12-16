@@ -29,15 +29,26 @@ import static org.gradle.api.internal.artifacts.component.DefaultModuleComponent
 class DependencyResultSorterSpec extends Specification {
     def matcher = new ResolverStrategy().versionMatcher
 
-    def "throws exception if component selector has different type for two dependencies"() {
+    def "sorts by comparing ProjectComponentSelector on left and ModuleComponentSelector on right"() {
         def d1 = newDependency(new DefaultProjectComponentSelector(":hisProject"), newId("org.gradle", "zzzz", "3.0"))
         def d2 = newDependency(newSelector("org.aha", "aha", "1.0"), newId("org.gradle", "zzzz", "3.0"))
 
         when:
-        DependencyResultSorter.sort([d1, d2], matcher)
+        def sorted = DependencyResultSorter.sort([d1, d2], matcher)
 
         then:
-        thrown(IllegalArgumentException)
+        sorted == [d1, d2]
+    }
+
+    def "sorts by comparing ModuleComponentSelector on left and ProjectComponentSelector on right"() {
+        def d1 = newDependency(newSelector("org.aha", "aha", "1.0"), newId("org.gradle", "zzzz", "3.0"))
+        def d2 = newDependency(new DefaultProjectComponentSelector(":hisProject"), newId("org.gradle", "zzzz", "3.0"))
+
+        when:
+        def sorted = DependencyResultSorter.sort([d1, d2], matcher)
+
+        then:
+        sorted == [d2, d1]
     }
 
     def "sorts by requested ModuleComponentSelector by version"() {
