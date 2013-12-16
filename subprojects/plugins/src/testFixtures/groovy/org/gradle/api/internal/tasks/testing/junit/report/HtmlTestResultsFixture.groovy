@@ -24,6 +24,7 @@ import org.jsoup.nodes.Element
 class HtmlTestResultsFixture {
     Document content
 
+
     HtmlTestResultsFixture(TestFile file) {
         file.assertIsFile()
         content = Jsoup.parse(file, null)
@@ -78,12 +79,21 @@ class HtmlTestResultsFixture {
         assert counter.text() == "${rate}%"
     }
 
+    void assertHasOverallResult(String result) {
+        assert content.select("div#successRate").hasClass(result)
+    }
+
     void assertHasNoSuccessRate() {
         def testDiv = content.select("div#successRate")
         assert testDiv != null
         def counter = testDiv.select("div.percent")
         assert counter != null
         assert counter.text() == "-"
+    }
+
+    void assertHasNoFailedTests() {
+        def tab = findTab('Failed tests')
+        assert tab.isEmpty()
     }
 
     void assertHasNoNavLinks() {
@@ -104,15 +114,24 @@ class HtmlTestResultsFixture {
         assert findTestDetails(testName)
     }
 
-    HtmlTestResultsFixture.PackageDetails packageDetails(String packageName) {
+    HtmlTestResultsFixture.AggregateDetails packageDetails(String packageName) {
         def packageElement = findPackageDetails(packageName)
-        new HtmlTestResultsFixture.PackageDetails(packageElement)
+        assert packageElement != null
+        new HtmlTestResultsFixture.AggregateDetails(packageElement)
     }
 
-    void assertTestIgnored(String testName) {
-        def row = findTestDetails(testName)
-        assert row.select("tr > td:eq(2)").text() == 'ignored'
+    HtmlTestResultsFixture.AggregateDetails classDetails(String className) {
+        def classElement = findClassDetails(className)
+        assert classElement != null
+        new HtmlTestResultsFixture.AggregateDetails(classElement)
     }
+
+    HtmlTestResultsFixture.TestDetails testDetails(String testName) {
+        def testElement = findTestDetails(testName)
+        assert testElement != null
+        new HtmlTestResultsFixture.TestDetails(testElement)
+    }
+
 
     void assertHasFailure(String testName, String stackTrace) {
         def detailsRow = findTestDetails(testName)
@@ -134,6 +153,12 @@ class HtmlTestResultsFixture {
         return anchor?.parent()
     }
 
+    private def findClassDetails(String className) {
+        def tab = findTab('Classes')
+        def anchor = tab.select("TD").find { it.text() == className }
+        return anchor?.parent()
+    }
+
     void assertHasStandardOutput(String stdout) {
         def tab = findTab('Standard output')
         assert tab != null
@@ -151,15 +176,64 @@ class HtmlTestResultsFixture {
         return tab
     }
 
-    class PackageDetails {
-        private final Element packageElement
 
-        PackageDetails(Element packageElement) {
-            this.packageElement = packageElement
+
+    class AggregateDetails {
+        private final Element tableElement
+
+        AggregateDetails(Element tabElement) {
+            this.tableElement = tabElement
+        }
+
+        void assertNumberOfTests(int expected) {
+            assert tableElement.select("tr > td:eq(1)").text() == "${expected}"
+        }
+
+        void assertNumberOfFailures(int expected) {
+            assert tableElement.select("tr > td:eq(2)").text() == "${expected}"
+        }
+
+        void assertNumberOfIgnored(int expected) {
+            assert tableElement.select("tr > td:eq(3)").text() == "${expected}"
+        }
+
+        void assertDuration(String expected) {
+            assert tableElement.select("tr > td:eq(4)").text() == expected
+        }
+
+        void assertSuccessRate(String expected) {
+            assert tableElement.select("tr > td:eq(5)").text() == expected
         }
 
         void assertSuccessRate(int expected) {
-            assert packageElement.select("tr > td:eq(5)").text() == "${expected}%"
+            assert tableElement.select("tr > td:eq(5)").text() == "${expected}%"
+        }
+
+        void assertOverallResult(String expected) {
+            assert tableElement.select("tr > td:eq(0)").hasClass(expected)
+            assert tableElement.select("tr > td:eq(5)").hasClass(expected)
+        }
+
+        void assertLinksTo(String target) {
+            assert tableElement.select("a[href=${target}.html]") != null
+        }
+    }
+
+
+    class TestDetails {
+        private final Element tableElement
+
+        TestDetails(Element tabElement) {
+            this.tableElement = tabElement
+        }
+
+        void assertDuration(String expected) {
+            assert tableElement.select("tr > td:eq(1)").text() == expected
+        }
+
+        void assertResult(String expectedValue, String expectedClass) {
+            assert tableElement.select("tr > td:eq(2)").text() == expectedValue
+            assert tableElement.select("tr > td:eq(2)").hasClass(expectedClass)
         }
     }
 }
