@@ -15,27 +15,14 @@
  */
 package org.gradle.language.rc.internal;
 
-import org.gradle.api.Action;
-import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.language.base.FunctionalSourceSet;
-import org.gradle.language.base.internal.AbstractLanguageSourceSet;
+import org.gradle.language.internal.AbstractHeaderExportingSourceSet;
 import org.gradle.language.rc.WindowsResourceSet;
 
-public class DefaultWindowsResourceSet extends AbstractLanguageSourceSet implements WindowsResourceSet {
-    private final DefaultSourceDirectorySet exportedHeaders;
-
+public class DefaultWindowsResourceSet extends AbstractHeaderExportingSourceSet implements WindowsResourceSet {
     public DefaultWindowsResourceSet(String name, FunctionalSourceSet parent, ProjectInternal project) {
-        super(name, parent, "windows resources", new DefaultSourceDirectorySet("source", project.getFileResolver()));
-        this.exportedHeaders = new DefaultSourceDirectorySet("exported headers", project.getFileResolver());
+        super(name, parent, project, "windows resources", new DefaultSourceDirectorySet("source", project.getFileResolver()));
      }
-
-    public SourceDirectorySet getExportedHeaders() {
-        return exportedHeaders;
-    }
-
-    public void exportedHeaders(Action<? super SourceDirectorySet> config) {
-        config.execute(getExportedHeaders());
-    }
 }

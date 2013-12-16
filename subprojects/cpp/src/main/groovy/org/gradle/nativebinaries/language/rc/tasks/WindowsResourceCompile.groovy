@@ -32,6 +32,7 @@ import org.gradle.nativebinaries.language.c.internal.incremental.IncrementalComp
 import org.gradle.nativebinaries.language.rc.internal.DefaultWindowsResourceCompileSpec
 
 import javax.inject.Inject
+
 /**
  * Compiles Windows Resource scripts into .res files.
  */
