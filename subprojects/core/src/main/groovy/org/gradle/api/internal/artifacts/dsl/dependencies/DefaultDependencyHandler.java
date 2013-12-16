@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.dsl.dependencies;
 import groovy.lang.Closure;
 import groovy.lang.GroovyObjectSupport;
 import groovy.lang.MissingMethodException;
+import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
@@ -116,8 +117,8 @@ public class DefaultDependencyHandler extends GroovyObjectSupport implements Dep
         }
     }
 
-    public void components(Closure configureClosure) {
-        ConfigureUtil.configure(configureClosure, getComponents());
+    public void components(Action<? super ComponentMetadataHandler> configureAction) {
+        configureAction.execute(getComponents());
     }
 
     public ComponentMetadataHandler getComponents() {

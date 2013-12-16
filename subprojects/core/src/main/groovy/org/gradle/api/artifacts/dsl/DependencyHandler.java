@@ -16,6 +16,7 @@
 package org.gradle.api.artifacts.dsl;
 
 import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Dependency;
 
@@ -333,12 +334,11 @@ public interface DependencyHandler {
     /**
      * Configures module metadata for this project.
      *
-     * <p>This method executes the given closure against the {@link org.gradle.api.artifacts.dsl.ComponentMetadataHandler} for this project. The {@link
-     * org.gradle.api.artifacts.dsl.ComponentMetadataHandler} is passed to the closure as the closure's delegate.
+     * <p>This method executes the given action against the {@link org.gradle.api.artifacts.dsl.ComponentMetadataHandler} for this project.
      *
-     * @param configureClosure the closure to use to configure module metadata
+     * @param configureAction the action to use to configure module metadata
      * @since 1.8
      */
     @Incubating
-    void components(Closure configureClosure);
+    void components(Action<? super ComponentMetadataHandler> configureAction);
 }

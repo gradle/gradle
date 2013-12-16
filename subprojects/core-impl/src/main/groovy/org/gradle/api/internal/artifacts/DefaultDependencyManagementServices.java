@@ -105,8 +105,10 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                     metaDataProvider);
         }
 
-        DependencyHandler createDependencyHandler(ConfigurationContainerInternal configurationContainer, DependencyFactory dependencyFactory, ProjectFinder projectFinder, ComponentMetadataHandler componentMetadataHandler) {
-            return new DefaultDependencyHandler(configurationContainer,
+        DependencyHandler createDependencyHandler(Instantiator instantiator, ConfigurationContainerInternal configurationContainer, DependencyFactory dependencyFactory,
+                                                  ProjectFinder projectFinder, ComponentMetadataHandler componentMetadataHandler) {
+            return instantiator.newInstance(DefaultDependencyHandler.class,
+                    configurationContainer,
                     dependencyFactory,
                     projectFinder,
                     componentMetadataHandler);
