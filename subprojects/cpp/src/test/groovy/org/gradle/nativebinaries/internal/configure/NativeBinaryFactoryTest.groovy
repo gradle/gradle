@@ -27,11 +27,13 @@ import org.gradle.nativebinaries.internal.DefaultFlavor
 import org.gradle.nativebinaries.internal.DefaultFlavorContainer
 import org.gradle.nativebinaries.internal.NativeBuildComponentIdentifier
 import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal
+import org.gradle.nativebinaries.toolchain.internal.ToolChainRegistryInternal
 import spock.lang.Specification
 
 class NativeBinaryFactoryTest extends Specification {
     def project = Mock(ProjectInternal)
     def resolver = Mock(NativeDependencyResolver)
+    def toolChains = Mock(ToolChainRegistryInternal)
     def toolChain = Mock(ToolChainInternal)
     def platform = Mock(Platform)
     def buildType = Mock(BuildType)
@@ -53,7 +55,7 @@ class NativeBinaryFactoryTest extends Specification {
         component.targetFlavors "flavor1"
 
         and:
-        def factory = new NativeBinaryFactory(new DirectInstantiator(), resolver, project, [], [], flavors)
+        def factory = new NativeBinaryFactory(new DirectInstantiator(), resolver, project, toolChains, [], [], flavors)
         def binary = factory.createNativeBinary(DefaultExecutableBinary, component, toolChain, platform, buildType, flavor1)
 
         then:
@@ -65,7 +67,7 @@ class NativeBinaryFactoryTest extends Specification {
 
     def "includes flavor in names when component has multiple flavors"() {
         when:
-        def factory = new NativeBinaryFactory(new DirectInstantiator(), resolver, project, [], [], flavors)
+        def factory = new NativeBinaryFactory(new DirectInstantiator(), resolver, project, toolChains, [], [], flavors)
         def binary = factory.createNativeBinary(DefaultExecutableBinary, component, toolChain, platform, buildType, flavor1)
 
         then:
@@ -81,7 +83,7 @@ class NativeBinaryFactoryTest extends Specification {
             getName() >> "platform2"
         }
         and:
-        def factory = new NativeBinaryFactory(new DirectInstantiator(), resolver, project, [platform, platform2], [], flavors)
+        def factory = new NativeBinaryFactory(new DirectInstantiator(), resolver, project, toolChains, [platform, platform2], [], flavors)
 
         when:
         component.targetPlatforms("platform2")
@@ -111,7 +113,7 @@ class NativeBinaryFactoryTest extends Specification {
         }
 
         and:
-        def factory = new NativeBinaryFactory(new DirectInstantiator(), resolver, project, [platform], [buildType, buildType2], flavors)
+        def factory = new NativeBinaryFactory(new DirectInstantiator(), resolver, project, toolChains, [platform], [buildType, buildType2], flavors)
 
         when:
         def binary = factory.createNativeBinary(DefaultExecutableBinary, component, toolChain, platform, buildType2, flavor1)

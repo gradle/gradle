@@ -17,6 +17,7 @@
 package org.gradle.nativebinaries.internal.configure;
 
 import org.gradle.api.Project;
+import org.gradle.api.Transformer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.internal.DefaultBinaryNamingScheme;
 import org.gradle.nativebinaries.*;
@@ -24,6 +25,7 @@ import org.gradle.nativebinaries.internal.*;
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativebinaries.platform.Platform;
 import org.gradle.nativebinaries.toolchain.ToolChain;
+import org.gradle.nativebinaries.toolchain.internal.ToolChainRegistryInternal;
 
 import java.io.File;
 import java.util.Collection;
@@ -31,22 +33,41 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.Set;
 
-class NativeBinaryFactory {
+class NativeBinaryFactory implements Transformer<Collection<NativeBinary>, NativeComponent> {
     private final Instantiator instantiator;
     private final Project project;
     private final NativeDependencyResolver resolver;
+    private final ToolChainRegistryInternal toolChainRegistry;
     private final Set<Platform> allPlatforms = new LinkedHashSet<Platform>();
     private final Set<BuildType> allBuildTypes = new LinkedHashSet<BuildType>();
     private final Set<Flavor> allFlavors = new LinkedHashSet<Flavor>();
 
-    public NativeBinaryFactory(Instantiator instantiator, NativeDependencyResolver resolver, Project project, Collection<? extends Platform> allPlatforms,
-                               Collection<? extends BuildType> allBuildTypes, Collection<? extends Flavor> allFlavors) {
+    public NativeBinaryFactory(Instantiator instantiator, NativeDependencyResolver resolver, Project project, ToolChainRegistryInternal toolChainRegistry,
+                               Collection<? extends Platform> allPlatforms, Collection<? extends BuildType> allBuildTypes, Collection<? extends Flavor> allFlavors) {
         this.instantiator = instantiator;
         this.resolver = resolver;
+        this.toolChainRegistry = toolChainRegistry;
         this.project = project;
         this.allPlatforms.addAll(allPlatforms);
         this.allBuildTypes.addAll(allBuildTypes);
         this.allFlavors.addAll(allFlavors);
+    }
+
+    public Collection<NativeBinary> transform(NativeComponent original) {
+        return createNativeBinaries((NativeComponentInternal) original);
+    }
+
+    public Collection<NativeBinary> createNativeBinaries(NativeComponentInternal component) {
+        Set<NativeBinary> componentBinaries = new LinkedHashSet<NativeBinary>();
+         for (Platform platform : component.choosePlatforms(allPlatforms)) {
+             ToolChain toolChain = toolChainRegistry.getForPlatform(platform);
+             for (BuildType buildType : component.chooseBuildTypes(allBuildTypes)) {
+                 for (Flavor flavor : component.chooseFlavors(allFlavors)) {
+                     componentBinaries.addAll(createNativeBinaries(component, toolChain, platform, buildType, flavor));
+                 }
+             }
+         }
+        return componentBinaries;
     }
 
     public Collection<NativeBinary> createNativeBinaries(NativeComponent component, ToolChain toolChain, Platform platform, BuildType buildType, Flavor flavor) {
