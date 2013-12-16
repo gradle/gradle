@@ -15,49 +15,11 @@
  */
 package org.gradle.nativebinaries.internal.resolve;
 
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Project;
-import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
-import org.gradle.nativebinaries.*;
+import org.gradle.nativebinaries.LibraryBinary;
+import org.gradle.nativebinaries.NativeLibraryRequirement;
 
 import java.util.Set;
 
-class LibraryBinaryLocator {
-    private final ProjectFinder projectFinder;
-
-    LibraryBinaryLocator(ProjectFinder projectFinder) {
-        this.projectFinder = projectFinder;
-    }
-
-    public Set<? extends LibraryBinary> getCandidateBinaries(NativeLibraryRequirement requirement) {
-        Library library = findLibrary(requirement);
-        Class<? extends LibraryBinary> type = getTypeForLinkage(requirement.getLinkage());
-        return library.getBinaries().withType(type);
-    }
-
-    private Project findProject(NativeLibraryRequirement requirement) {
-        return projectFinder.getProject(requirement.getProjectPath());
-    }
-
-    private Library findLibrary(NativeLibraryRequirement requirement) {
-        Project project = findProject(requirement);
-        LibraryContainer libraryContainer = (LibraryContainer) project.getExtensions().findByName("libraries");
-        if (libraryContainer == null) {
-            throw new InvalidUserDataException(String.format("Project does not have a libraries container: '%s'", project.getPath()));
-        }
-        return libraryContainer.getByName(requirement.getLibraryName());
-    }
-
-    private Class<? extends LibraryBinary> getTypeForLinkage(String linkage) {
-        if ("static".equals(linkage)) {
-            return StaticLibraryBinary.class;
-        }
-        if ("api".equals(linkage)) {
-            return ApiLibraryBinary.class;
-        }
-        if ("shared".equals(linkage) || linkage == null) {
-            return SharedLibraryBinary.class;
-        }
-        throw new InvalidUserDataException("Not a valid linkage: " + linkage);
-    }
+public interface LibraryBinaryLocator {
+    Set<? extends LibraryBinary> getCandidateBinaries(NativeLibraryRequirement requirement);
 }

@@ -19,7 +19,7 @@ package org.gradle.nativebinaries.internal.resolve;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.project.ProjectInternal;
 
-class RelativeProjectFinder implements ProjectFinder {
+public class RelativeProjectFinder implements ProjectFinder {
     private final ProjectInternal project;
 
     public RelativeProjectFinder(ProjectInternal project) {

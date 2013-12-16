@@ -27,14 +27,14 @@ import org.gradle.nativebinaries.*
 import org.gradle.nativebinaries.internal.ProjectNativeLibraryRequirement
 import spock.lang.Specification
 
-class LibraryBinaryLocatorTest extends Specification {
+class ProjectLibraryBinaryLocatorTest extends Specification {
     def project = Mock(ProjectInternal)
     def projectFinder = Mock(ProjectFinder)
     def requirement = Mock(NativeLibraryRequirement)
     def library = Mock(Library)
     def binaries = Mock(DomainObjectSet)
     def candidates = new DefaultDomainObjectSet<NativeBinary>(NativeBinary, [Mock(NativeBinary), Mock(NativeBinary)])
-    def locator = new LibraryBinaryLocator(projectFinder)
+    def locator = new ProjectLibraryBinaryLocator(projectFinder)
 
     def setup() {
         library.binaries >> binaries

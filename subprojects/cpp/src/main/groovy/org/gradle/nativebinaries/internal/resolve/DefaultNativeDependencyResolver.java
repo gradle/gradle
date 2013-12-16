@@ -16,7 +16,6 @@
 
 package org.gradle.nativebinaries.internal.resolve;
 
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.nativebinaries.NativeBinary;
 import org.gradle.nativebinaries.NativeDependencySet;
@@ -27,12 +26,12 @@ import java.util.Collection;
 import java.util.List;
 
 public class DefaultNativeDependencyResolver implements NativeDependencyResolver {
-    private final RelativeProjectFinder projectFinder;
     private final NotationParser<Object, NativeLibraryRequirement> parser;
+    private final LibraryBinaryLocator libraryBinaryLocator;
 
-    public DefaultNativeDependencyResolver(final ProjectInternal project) {
-        projectFinder = new RelativeProjectFinder(project);
+    public DefaultNativeDependencyResolver(final LibraryBinaryLocator locator) {
         parser = NativeDependencyNotationParser.parser();
+        libraryBinaryLocator = locator;
     }
 
     public Collection<NativeDependencySet> resolve(NativeBinary target, Collection<?> libs) {
@@ -48,8 +47,7 @@ public class DefaultNativeDependencyResolver implements NativeDependencyResolver
             return (NativeDependencySet) lib;
         }
         NativeLibraryRequirement libraryDependency = parser.parseNotation(lib);
-        LibraryBinaryLocator registry = new LibraryBinaryLocator(projectFinder);
-        LibraryResolver libraryResolver = new DefaultLibraryResolver(registry, libraryDependency, target);
+        LibraryResolver libraryResolver = new DefaultLibraryResolver(libraryBinaryLocator, libraryDependency, target);
         return new DeferredResolutionLibraryNativeDependencySet(libraryResolver);
     }
 

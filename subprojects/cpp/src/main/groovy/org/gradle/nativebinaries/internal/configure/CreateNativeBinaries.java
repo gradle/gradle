@@ -22,10 +22,11 @@ import org.gradle.language.base.BinaryContainer;
 import org.gradle.model.ModelRule;
 import org.gradle.nativebinaries.*;
 import org.gradle.nativebinaries.internal.NativeComponentInternal;
+import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativebinaries.platform.Platform;
 import org.gradle.nativebinaries.platform.PlatformContainer;
-import org.gradle.nativebinaries.toolchain.internal.ToolChainRegistryInternal;
 import org.gradle.nativebinaries.toolchain.ToolChain;
+import org.gradle.nativebinaries.toolchain.internal.ToolChainRegistryInternal;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -35,10 +36,12 @@ import java.util.Set;
 public class CreateNativeBinaries extends ModelRule {
     private final Instantiator instantiator;
     private final ProjectInternal project;
+    private final NativeDependencyResolver resolver;
 
-    public CreateNativeBinaries(Instantiator instantiator, ProjectInternal project) {
+    public CreateNativeBinaries(Instantiator instantiator, ProjectInternal project, NativeDependencyResolver resolver) {
         this.instantiator = instantiator;
         this.project = project;
+        this.resolver = resolver;
     }
 
     public void create(BinaryContainer binaries, ToolChainRegistryInternal toolChains, PlatformContainer platforms,
@@ -48,7 +51,7 @@ public class CreateNativeBinaries extends ModelRule {
         project.getExtensions().add("buildTypes", buildTypes);
         project.getExtensions().add("flavors", flavors);
 
-        NativeBinaryFactory factory = new NativeBinaryFactory(instantiator, project, platforms, buildTypes, flavors);
+        NativeBinaryFactory factory = new NativeBinaryFactory(instantiator, resolver, project, platforms, buildTypes, flavors);
         for (NativeComponentInternal component : allComponents()) {
             for (Platform platform : getPlatforms(component, platforms)) {
                 ToolChain toolChain = toolChains.getForPlatform(platform);

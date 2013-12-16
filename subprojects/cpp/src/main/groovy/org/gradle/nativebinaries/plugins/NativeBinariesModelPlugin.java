@@ -17,8 +17,6 @@ package org.gradle.nativebinaries.plugins;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
-import org.gradle.api.Project;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.tasks.TaskContainer;
@@ -38,6 +36,7 @@ import org.gradle.nativebinaries.internal.DefaultExecutableContainer;
 import org.gradle.nativebinaries.internal.DefaultFlavorContainer;
 import org.gradle.nativebinaries.internal.DefaultLibraryContainer;
 import org.gradle.nativebinaries.internal.configure.*;
+import org.gradle.nativebinaries.internal.resolve.*;
 import org.gradle.nativebinaries.platform.PlatformContainer;
 import org.gradle.nativebinaries.platform.internal.DefaultPlatformContainer;
 import org.gradle.nativebinaries.toolchain.internal.DefaultToolChainRegistry;
@@ -49,22 +48,25 @@ import javax.inject.Inject;
  * A plugin that sets up the infrastructure for defining native binaries.
  */
 @Incubating
-public class NativeBinariesModelPlugin implements Plugin<Project> {
+public class NativeBinariesModelPlugin implements Plugin<ProjectInternal> {
 
     private final Instantiator instantiator;
     private final ProjectConfigurationActionContainer configurationActions;
-    private final FileResolver fileResolver;
     private final ModelRules modelRules;
 
     @Inject
-    public NativeBinariesModelPlugin(Instantiator instantiator, ProjectConfigurationActionContainer configurationActions, FileResolver fileResolver, ModelRules modelRules) {
+    public NativeBinariesModelPlugin(Instantiator instantiator, ProjectConfigurationActionContainer configurationActions, ModelRules modelRules) {
         this.instantiator = instantiator;
         this.configurationActions = configurationActions;
-        this.fileResolver = fileResolver;
         this.modelRules = modelRules;
     }
 
-    public void apply(final Project project) {
+    private static NativeDependencyResolver createResolver(ProjectInternal project) {
+        LibraryBinaryLocator libraryBinaryLocator = new ProjectLibraryBinaryLocator(new RelativeProjectFinder(project));
+        return new DefaultNativeDependencyResolver(libraryBinaryLocator);
+    }
+
+    public void apply(final ProjectInternal project) {
         project.getPlugins().apply(BasePlugin.class);
         project.getPlugins().apply(LanguageBasePlugin.class);
 
@@ -77,7 +79,7 @@ public class NativeBinariesModelPlugin implements Plugin<Project> {
         modelRules.rule(new CreateDefaultBuildTypes());
         modelRules.rule(new CreateDefaultFlavors());
         modelRules.rule(new AddDefaultToolChainsIfRequired());
-        modelRules.rule(new CreateNativeBinaries(instantiator, (ProjectInternal) project));
+        modelRules.rule(new CreateNativeBinaries(instantiator, project, createResolver(project)));
         modelRules.rule(new CloseBinariesForTasks());
 
         project.getExtensions().create(
