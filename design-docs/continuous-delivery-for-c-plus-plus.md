@@ -1106,20 +1106,14 @@ To implement this:
     * Generate the object file into: <task-output-dir>/<hash-of-directory-that-contains-the-source-file>/<source-file-name>.o
 * Update `OutputCleaningCompiler` with knowledge of the new source->object file mapping
 
-If we are inspired by CMake, the output file rules would be:
-
-* For a source file found at `src/main/cpp/main.cpp`, create the object file `build/objectFiles/<component>/<sourceSet>/src/main/cpp/main.cpp.obj`
-* For a source file found at `../../src/main/cpp/main.cpp`, create the object file `build/objectFiles/<component>/<sourceSet>/C_/dev/gradle/samples/native-binaries/cpp-exe/src/main/cpp/main.cpp.obj`
-
 ### Test cases
 
-* Source set includes files with the same name located within project directory
-* Source set includes files with the  files with the same name where 1 is located outside the project directory
+* C source set includes files with the same name in different directories.
+* C++ source set includes files with the same name in different directories.
+* Assemble source set includes files with the same name in different directories.
+* Windows resource source set includes files with the same name in different directories.
+* A C and C++ source set include files with the same base name (eg there's a 'foo.c' and a 'foo.cpp' in the same directory)
 * Removes stale outputs when source file is moved to a different directory
-
-### Open issues
-
-* Nice way between a project directory and an absolute directory with the same path
 
 # Milestone 4
 
