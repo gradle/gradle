@@ -146,6 +146,7 @@ The following are the features that have been promoted in this Gradle release.
 
 ## Fixed issues
 
+
 ## Deprecations
 
 Features that have become superseded or irrelevant due to the natural evolution of Gradle become *deprecated*, and scheduled to be removed
@@ -181,12 +182,18 @@ when writing a `Spec` for the `DependencyInsightReportTask`. Here's an example f
 JUnit tests that JUnit API internally represents by 'null' test methods are filtered only by class name.
 This is a very internal change and should not affect users. It is mentioned for completeness.
 
+### Changes HTML test reports
+
+Ignored tests are no longer considered in the calculation of the reported percentage success rate.
+A test run with 1 failed test, 1 successful test and 8 ignored tests will now report a success rate of 50%
+(previously it would have been 90%)
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
 * [Michael Putters](https://github.com/mputters) - improved the native binaries support to use the Windows registry to locate available Windows SDKs
-
+* [Jean-Baptiste Nizet](https://github.com/jnizet) - improved HTML test reports to better report on ignored tests
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
 ## Known issues

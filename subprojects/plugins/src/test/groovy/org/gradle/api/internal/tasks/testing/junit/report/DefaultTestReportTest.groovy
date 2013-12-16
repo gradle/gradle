@@ -53,6 +53,8 @@ class DefaultTestReportTest extends Specification {
         ConfigureUtil.configure(closure, new BuildableTestResultsProvider())
     }
 
+
+
     def generatesReportWhichIncludesContentsOfEachTestResultFile() {
         given:
         def testTestResults = buildResults {
