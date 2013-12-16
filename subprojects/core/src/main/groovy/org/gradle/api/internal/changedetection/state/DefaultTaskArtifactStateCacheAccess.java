@@ -82,7 +82,6 @@ public class DefaultTaskArtifactStateCacheAccess implements TaskArtifactStateCac
             }
         };
         return new LazyCreationProxy<PersistentIndexedCache>(PersistentIndexedCache.class, factory).getSource();
-
     }
 
     private File cacheFile(String cacheName) {
@@ -95,6 +94,10 @@ public class DefaultTaskArtifactStateCacheAccess implements TaskArtifactStateCac
 
     public void useCache(String operationDisplayName, Runnable action) {
         getCache().useCache(operationDisplayName, action);
+    }
+
+    public <T> T longRunningOperation(String operationDisplayName, Factory<? extends T> action) {
+        return getCache().longRunningOperation(operationDisplayName, action);
     }
 
     public void longRunningOperation(String operationDisplayName, Runnable action) {

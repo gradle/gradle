@@ -20,6 +20,7 @@ import org.gradle.cache.CacheOpenException;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.internal.filelock.LockOptions;
 import org.gradle.internal.Factory;
+import org.gradle.messaging.serialize.Serializer;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
@@ -116,6 +117,10 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
 
     public <K, V> PersistentIndexedCache<K, V> createCache(PersistentIndexedCacheParameters<K, V> parameters) {
         return cacheAccess.newCache(parameters);
+    }
+
+    public <K, V> PersistentIndexedCache<K, V> createCache(String name, Class<K> keyType, Serializer<V> valueSerializer) {
+        return cacheAccess.newCache(new PersistentIndexedCacheParameters<K, V>(new File(dir, name + ".bin"), keyType, valueSerializer));
     }
 
     public <T> T useCache(String operationDisplayName, Factory<? extends T> action) {

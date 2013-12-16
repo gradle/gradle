@@ -33,7 +33,7 @@ import java.io.File;
  * lock on the cache.
  * </p>
  */
-public interface PersistentCache extends CacheAccess, Closeable {
+public interface PersistentCache extends PersistentStore, CacheAccess, Closeable {
     /**
      * Returns the base directory for this cache.
      */

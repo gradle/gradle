@@ -29,12 +29,9 @@ import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskState;
-import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.execution.TaskFailureHandler;
-import org.gradle.internal.Factory;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.listener.ListenerManager;
-import org.gradle.messaging.serialize.Serializer;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.TestClosure;
 import org.hamcrest.Description;
@@ -572,25 +569,4 @@ public class DefaultTaskGraphExecuterTest {
         }
     }
 
-    private static class DirectCacheAccess implements TaskArtifactStateCacheAccess {
-        public void useCache(String operationDisplayName, Runnable action) {
-            action.run();
-        }
-
-        public void longRunningOperation(String operationDisplayName, Runnable action) {
-            action.run();
-        }
-
-        public <K, V> PersistentIndexedCache createCache(String cacheName, Class<K> keyType, Class<V> valueType) {
-            throw new UnsupportedOperationException();
-        }
-
-        public <T> T useCache(String operationDisplayName, Factory<? extends T> action) {
-            throw new UnsupportedOperationException();
-        }
-
-        public <K, V> PersistentIndexedCache<K, V> createCache(String cacheName, Class<K> keyType, Serializer<V> valueSerializer) {
-            throw new UnsupportedOperationException();
-        }
-    }
 }

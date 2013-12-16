@@ -83,6 +83,10 @@ public class InMemoryCacheFactory implements CacheFactory {
             return cacheDir;
         }
 
+        public <K, V> PersistentIndexedCache<K, V> createCache(String name, Class<K> keyType, Serializer<V> valueSerializer) {
+            return new InMemoryIndexedCache<K, V>(valueSerializer);
+        }
+
         public <K, V> PersistentIndexedCache<K, V> createCache(PersistentIndexedCacheParameters<K, V> parameters) {
             return new InMemoryIndexedCache<K, V>(parameters.getValueSerializer());
         }

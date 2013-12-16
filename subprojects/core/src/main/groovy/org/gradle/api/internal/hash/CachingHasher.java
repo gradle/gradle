@@ -15,10 +15,8 @@
  */
 package org.gradle.api.internal.hash;
 
-import org.gradle.api.internal.changedetection.state.TaskArtifactStateCacheAccess;
-import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.cache.internal.PersistentIndexedCacheParameters;
+import org.gradle.cache.PersistentStore;
 import org.gradle.messaging.serialize.Decoder;
 import org.gradle.messaging.serialize.Encoder;
 import org.gradle.messaging.serialize.Serializer;
@@ -29,26 +27,17 @@ import java.io.Serializable;
 public class CachingHasher implements Hasher {
     private final PersistentIndexedCache<File, FileInfo> cache;
     private final Hasher hasher;
-    private long timestamp;
 
-    public CachingHasher(Hasher hasher, TaskArtifactStateCacheAccess cacheAccess) {
+    public CachingHasher(Hasher hasher, PersistentStore store) {
         this.hasher = hasher;
-        this.cache = cacheAccess.createCache("fileHashes", File.class, new FileInfoSerializer());
-    }
-
-    public CachingHasher(Hasher hasher, PersistentCache persistentCache) {
-        this.hasher = hasher;
-        File cacheFile = new File(persistentCache.getBaseDir(), "fileHashes.bin");
-        this.cache = persistentCache.createCache(
-                new PersistentIndexedCacheParameters<File, FileInfo>(
-                        cacheFile, File.class, new FileInfoSerializer()));
+        this.cache = store.createCache("fileHashes", File.class, new FileInfoSerializer());
     }
 
     public byte[] hash(File file) {
         FileInfo info = cache.get(file);
 
         long length = file.length();
-        timestamp = file.lastModified();
+        long timestamp = file.lastModified();
         if (info != null && length == info.length && timestamp == info.timestamp) {
             return info.hash;
         }

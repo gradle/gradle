@@ -24,6 +24,7 @@ import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.internal.filelock.LockOptions;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.messaging.serialize.Serializer;
 import org.gradle.util.GFileUtils;
 
 import java.io.Closeable;
@@ -223,6 +224,10 @@ public class DefaultCacheFactory implements Factory<CacheFactory> {
 
         public <K, V> PersistentIndexedCache<K, V> createCache(PersistentIndexedCacheParameters<K, V> parameters) {
             return reference.cache.createCache(parameters);
+        }
+
+        public <K, V> PersistentIndexedCache<K, V> createCache(String name, Class<K> keyType, Serializer<V> valueSerializer) {
+            return reference.cache.createCache(name, keyType, valueSerializer);
         }
 
         public <T> T longRunningOperation(String operationDisplayName, Factory<? extends T> action) {
