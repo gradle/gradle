@@ -133,6 +133,26 @@ A dependency on the 'api' linkage can be specified by both the direct and the ma
     sources.main.cpp.lib project: ':A', library: 'my-lib', linkage: 'api'
     sources.main.cpp.lib libraries.hello.api
 
+### Independent control of TestNG output directory
+
+It is now possible to specify the location that TestNG should write its output files to.
+In previous versions of Gradle, this location was inseperable from the location that Gradle writes its output files to.
+
+It can be set via the `TestNGOptions.outputDirectory` property, which can be set during the `useTestNG()` configuration closure…
+
+    test {
+      useTestNG {
+        outputDirectory = file("$buildDir/testngoutput")
+        useDefaultListeners()
+      }
+    }
+
+By default, the value for this new property will be the same as the initial value for the `destination` property of the test task's HTML report.
+
+If you are using the file outputs from TestNG listeners (i.e. you are calling `useDefaultListeners()` or registering a custom listener), 
+it is recommended that you explicitly set this new property to a value other than the default.
+The default value for this property will change in Gradle 2.0.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.

@@ -24,9 +24,11 @@ class TestNGExecutionResult implements TestExecutionResult {
     private final TestFile projectDir
     private GPathResult resultsXml
     public static final String DEFAULT_TESTNG_REPORT = "build/reports/tests"
+    private final String outputDirectory
 
-    def TestNGExecutionResult(projectDir) {
-        this.projectDir = projectDir;
+    TestNGExecutionResult(projectDir, String outputDirectory = DEFAULT_TESTNG_REPORT) {
+        this.projectDir = projectDir
+        this.outputDirectory = outputDirectory
     }
 
     boolean hasTestNGXmlResults() {
@@ -34,7 +36,7 @@ class TestNGExecutionResult implements TestExecutionResult {
     }
 
     boolean hasJUnitResultsGeneratedByTestNG() {
-        def dir = projectDir.file("$DEFAULT_TESTNG_REPORT/junitreports")
+        def dir = projectDir.file("$outputDirectory/junitreports")
         dir.isDirectory() && dir.list().length > 0
     }
 
@@ -51,7 +53,7 @@ class TestNGExecutionResult implements TestExecutionResult {
     }
 
     private TestFile htmlReportFile() {
-        projectDir.file('build/reports/tests/index.html')
+        projectDir.file("$outputDirectory/index.html")
     }
 
     TestClassExecutionResult testClass(String testClass) {
@@ -64,7 +66,7 @@ class TestNGExecutionResult implements TestExecutionResult {
     }
 
     private TestFile xmlReportFile() {
-        projectDir.file("$DEFAULT_TESTNG_REPORT/testng-results.xml")
+        projectDir.file("$outputDirectory/testng-results.xml")
     }
 
     private def findTestClass(String testClass) {
