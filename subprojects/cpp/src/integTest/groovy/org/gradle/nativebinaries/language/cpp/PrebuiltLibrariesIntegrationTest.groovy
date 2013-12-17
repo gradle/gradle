@@ -97,11 +97,15 @@ class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegra
                     libs(PrebuiltLibraries) {
                         create("hello") {
                             headers.srcDir "libs/src/hello/headers"
-                            binaries.withType(StaticLibraryBinary) {
-                                outputFile = file("libs/build/binaries/helloStaticLibrary/english/libhello.a")
+                            binaries.withType(StaticLibraryBinary) { binary ->
+                                def os = binary.targetPlatform.operatingSystem
+                                def libName = os.windows ? 'hello.lib' : 'libhello.a'
+                                outputFile = file("libs/build/binaries/helloStaticLibrary/english/\${libName}")
                             }
-                            binaries.withType(SharedLibraryBinary) {
-                                outputFile = file("libs/build/binaries/helloSharedLibrary/french/libhello.dylib")
+                            binaries.withType(SharedLibraryBinary) { binary ->
+                                def os = binary.targetPlatform.operatingSystem
+                                def libName = os.windows ? 'hello.dll' : (os.macOsX ? 'libhello.dylib' : 'libhello.so')
+                                outputFile = file("libs/build/binaries/helloSharedLibrary/french/\${libName}")
                             }
                         }
                     }
