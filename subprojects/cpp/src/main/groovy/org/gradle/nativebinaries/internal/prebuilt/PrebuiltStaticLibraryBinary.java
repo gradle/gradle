@@ -18,13 +18,15 @@ package org.gradle.nativebinaries.internal.prebuilt;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
-import org.gradle.language.base.internal.DefaultBinaryNamingScheme;
-import org.gradle.nativebinaries.*;
+import org.gradle.nativebinaries.BuildType;
+import org.gradle.nativebinaries.Flavor;
+import org.gradle.nativebinaries.PrebuiltLibrary;
+import org.gradle.nativebinaries.StaticLibraryBinary;
 import org.gradle.nativebinaries.platform.Platform;
 
-public class PrebuiltStaticLibraryBinary extends PrebuiltLibraryBinary implements StaticLibraryBinary {
-    public PrebuiltStaticLibraryBinary(DefaultBinaryNamingScheme namingScheme, PrebuiltLibrary library, BuildType buildType, Platform targetPlatform, Flavor flavor) {
-        super(namingScheme.withTypeString("StaticLibrary"), library, buildType, targetPlatform, flavor);
+public class PrebuiltStaticLibraryBinary extends AbstractPrebuiltLibraryBinary implements StaticLibraryBinary {
+    public PrebuiltStaticLibraryBinary(String name, PrebuiltLibrary library, BuildType buildType, Platform targetPlatform, Flavor flavor) {
+        super(name, library, buildType, targetPlatform, flavor);
     }
 
     public FileCollection getLinkFiles() {
@@ -33,9 +35,5 @@ public class PrebuiltStaticLibraryBinary extends PrebuiltLibraryBinary implement
 
     public FileCollection getRuntimeFiles() {
         return new SimpleFileCollection();
-    }
-
-    public Tool getStaticLibArchiver() {
-        throw new UnsupportedOperationException();
     }
 }

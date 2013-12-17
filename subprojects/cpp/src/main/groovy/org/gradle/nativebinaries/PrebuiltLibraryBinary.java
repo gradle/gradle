@@ -16,14 +16,17 @@
 
 package org.gradle.nativebinaries;
 
-import org.gradle.api.Incubating;
-import org.gradle.internal.HasInternalProtocol;
+import java.io.File;
 
 /**
- * A {@link Library} that has been compiled and archived into a static library.
+ * The library binary for a {@link PrebuiltLibrary}.
  */
-@Incubating
-@HasInternalProtocol
-public interface StaticLibraryBinary extends LibraryBinary {
-
+public interface PrebuiltLibraryBinary extends LibraryBinary {
+    /**
+     * Sets the output file.
+     */
+    // TODO:DAZ Rename this and make it specific to different library subtypes
+    // TODO:DAZ Allow the base name to be specified, and determine .so/.dylib/etc from platform
+    // TODO:DAZ Determine conventional mapping of variant dimensions to file names.
+    void setOutputFile(File outputFile);
 }

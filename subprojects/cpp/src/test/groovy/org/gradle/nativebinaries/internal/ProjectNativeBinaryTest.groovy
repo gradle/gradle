@@ -28,7 +28,7 @@ import org.gradle.nativebinaries.platform.internal.DefaultArchitecture
 import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal
 import spock.lang.Specification
 
-class DefaultNativeBinaryTest extends Specification {
+class ProjectNativeBinaryTest extends Specification {
     def flavor1 = new DefaultFlavor("flavor1")
     def id = new NativeBuildComponentIdentifier("project", "name")
     def component = new DefaultNativeComponent(id, new DirectInstantiator())
@@ -153,12 +153,13 @@ class DefaultNativeBinaryTest extends Specification {
     }
 
     def testBinary(NativeComponent owner, Flavor flavor = new DefaultFlavor(DefaultFlavor.DEFAULT)) {
-        return new TestBinary(owner, flavor, toolChain1, platform1, buildType1, new DefaultBinaryNamingScheme("baseName"), resolver)
+        return new TestProjectNativeBinary(owner, flavor, toolChain1, platform1, buildType1, new DefaultBinaryNamingScheme("baseName"), resolver)
     }
 
-    class TestBinary extends DefaultNativeBinary {
+    class TestProjectNativeBinary extends AbstractProjectNativeBinary {
         def owner
-        TestBinary(NativeComponent owner, Flavor flavor, ToolChainInternal toolChain, Platform targetPlatform, BuildType buildType,
+
+        TestProjectNativeBinary(NativeComponent owner, Flavor flavor, ToolChainInternal toolChain, Platform targetPlatform, BuildType buildType,
                    DefaultBinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
             super(owner, flavor, toolChain, targetPlatform, buildType, namingScheme, resolver)
             this.owner = owner

@@ -16,60 +16,21 @@
 
 package org.gradle.nativebinaries;
 
-import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
-import org.gradle.internal.HasInternalProtocol;
 import org.gradle.language.base.Binary;
-import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.nativebinaries.platform.Platform;
-import org.gradle.nativebinaries.toolchain.ToolChain;
 
 import java.io.File;
-import java.util.Collection;
 
-// TODO:DAZ These don't apply to all binary subtypes: look at splitting this up in to a number of smaller facets / functional interfaces
 /**
  * Represents a particular binary artifact.
  */
-@Incubating @HasInternalProtocol
+@Incubating
 public interface NativeBinary extends Binary {
     /**
      * The flavor that this binary was built with.
      */
     Flavor getFlavor();
-
-    /**
-     * The file where this binary will be created.
-     */
-    File getOutputFile();
-
-    /**
-     * Sets the file where this binary will be created.
-     */
-    void setOutputFile(File outputFile);
-
-    /**
-     * The source sets used to compile this binary.
-     */
-    DomainObjectSet<LanguageSourceSet> getSource();
-
-    /**
-     * Adds one or more {@link LanguageSourceSet}s that are used to compile this binary.
-     * <p/>
-     * This method accepts the following types:
-     *
-     * <ul>
-     *     <li>A {@link org.gradle.language.base.FunctionalSourceSet}</li>
-     *     <li>A {@link LanguageSourceSet}</li>
-     *     <li>A Collection of {@link LanguageSourceSet}s</li>
-     * </ul>
-     */
-    void source(Object source);
-
-    /**
-     * Returns the {@link org.gradle.nativebinaries.toolchain.ToolChain} that will be used to build this binary.
-     */
-    ToolChain getToolChain();
 
     /**
      * Returns the {@link org.gradle.nativebinaries.platform.Platform} that this binary is targeted to run on.
@@ -82,40 +43,9 @@ public interface NativeBinary extends Binary {
     BuildType getBuildType();
 
     /**
-     * The libraries that should be linked into this binary.
+     * The file where this binary will be created.
      */
-    Collection<NativeDependencySet> getLibs();
-
-    /**
-     * Adds a library as input to this binary.
-     * <p/>
-     * This method accepts the following types:
-     *
-     * <ul>
-     *     <li>A {@link Library}</li>
-     *     <li>A {@link NativeDependencySet}</li>
-     *     <li>A {@link java.util.Map} containing the library selector.</li>
-     * </ul>
-     *
-     * The Map notation supports the following String attributes:
-     *
-     * <ul>
-     *     <li>project: the path to the project containing the library (optional, defaults to current project)</li>
-     *     <li>library: the name of the library (required)</li>
-     *     <li>linkage: the library linkage required ['shared'/'static'] (optional, defaults to 'shared')</li>
-     * </ul>
-     */
-    void lib(Object library);
-
-    /**
-     * The settings used for linking this binary.
-     */
-    Tool getLinker();
-
-    /**
-     * The set of tasks associated with this binary.
-     */
-    NativeBinaryTasks getTasks();
+    File getOutputFile();
 
     /**
      * Can this binary be built in the current environment?

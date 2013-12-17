@@ -24,19 +24,7 @@
                 </tr>
             </thead>
             <tr>
-                <td>toolChain</td>
-            </tr>
-            <tr>
                 <td>outputFile</td>
-            </tr>
-            <tr>
-                <td>source</td>
-            </tr>
-            <tr>
-                <td>libs</td>
-            </tr>
-            <tr>
-                <td>linker</td>
             </tr>
             <tr>
                 <td>flavor</td>
@@ -46,9 +34,6 @@
             </tr>
             <tr>
                 <td>buildType</td>
-            </tr>
-            <tr>
-                <td>tasks</td>
             </tr>
             <tr>
                 <td>buildable</td>
@@ -63,12 +48,6 @@
                     <td>Name</td>
                 </tr>
             </thead>
-            <tr>
-                <td>source</td>
-            </tr>
-            <tr>
-                <td>lib</td>
-            </tr>
         </table>
     </section>
 </section>

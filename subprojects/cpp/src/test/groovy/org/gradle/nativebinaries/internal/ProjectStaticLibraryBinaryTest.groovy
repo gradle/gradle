@@ -30,7 +30,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
-class DefaultStaticLibraryBinaryTest extends Specification {
+class ProjectStaticLibraryBinaryTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir
     def namingScheme = new DefaultBinaryNamingScheme("main")
     def library = Stub(Library)
@@ -45,7 +45,7 @@ class DefaultStaticLibraryBinaryTest extends Specification {
     }
 
     def getStaticLibrary() {
-        new DefaultStaticLibraryBinary(library, new DefaultFlavor("flavorOne"), toolChain, platform, buildType, namingScheme, resolver)
+        new ProjectStaticLibraryBinary(library, new DefaultFlavor("flavorOne"), toolChain, platform, buildType, namingScheme, resolver)
     }
 
     def "can convert binary to a native dependency"() {
@@ -90,7 +90,7 @@ class DefaultStaticLibraryBinaryTest extends Specification {
         binary.linkFiles.files == [binary.outputFile, linkFile1, linkFile2] as Set
     }
 
-    private TestFile addSources(DefaultStaticLibraryBinary binary, def headerDir) {
+    private TestFile addSources(ProjectStaticLibraryBinary binary, def headerDir) {
         def headerDirSet = Stub(SourceDirectorySet) {
             getSrcDirs() >> [headerDir]
         }

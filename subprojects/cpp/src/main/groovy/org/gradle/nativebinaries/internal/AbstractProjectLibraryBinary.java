@@ -34,17 +34,30 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public abstract class DefaultLibraryBinary extends DefaultNativeBinary implements LibraryBinaryInternal {
+public abstract class AbstractProjectLibraryBinary extends AbstractProjectNativeBinary implements LibraryBinaryInternal {
     private final Library library;
 
-    protected DefaultLibraryBinary(Library library, Flavor flavor, ToolChainInternal toolChain, Platform targetPlatform, BuildType buildType,
-                                   DefaultBinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
+    protected AbstractProjectLibraryBinary(Library library, Flavor flavor, ToolChainInternal toolChain, Platform targetPlatform, BuildType buildType,
+                                           DefaultBinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
         super(library, flavor, toolChain, targetPlatform, buildType, namingScheme, resolver);
         this.library = library;
     }
 
     public Library getComponent() {
         return library;
+    }
+
+    protected boolean hasSources() {
+        for (LanguageSourceSet sourceSet : getSource()) {
+            if (!sourceSet.getSource().isEmpty()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    protected FileCollection emptyLibraryOutputs() {
+        return new EmptyLibraryOutputs();
     }
 
     public FileCollection getHeaderDirs() {
@@ -63,19 +76,6 @@ public abstract class DefaultLibraryBinary extends DefaultNativeBinary implement
         };
     }
 
-    protected boolean hasSources() {
-        for (LanguageSourceSet sourceSet : getSource()) {
-            if (!sourceSet.getSource().isEmpty()) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    protected FileCollection emptyLibraryOutputs() {
-        return new EmptyLibraryOutputs();
-    }
-
     protected abstract class LibraryOutputs extends AbstractFileCollection {
         public final Set<File> getFiles() {
             if (hasOutputs()) {
@@ -85,12 +85,12 @@ public abstract class DefaultLibraryBinary extends DefaultNativeBinary implement
         }
 
         public final String getDisplayName() {
-            return DefaultLibraryBinary.this.toString();
+            return AbstractProjectLibraryBinary.this.toString();
         }
 
         public final TaskDependency getBuildDependencies() {
             if (hasOutputs()) {
-                return DefaultLibraryBinary.this.getBuildDependencies();
+                return AbstractProjectLibraryBinary.this.getBuildDependencies();
             }
             return new DefaultTaskDependency();
         }

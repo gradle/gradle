@@ -29,7 +29,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
-class DefaultSharedLibraryBinaryTest extends Specification {
+class ProjectSharedLibraryBinaryTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir
     def namingScheme = new DefaultBinaryNamingScheme("main")
     final toolChain = Stub(ToolChainInternal)
@@ -103,7 +103,7 @@ class DefaultSharedLibraryBinaryTest extends Specification {
         binary.linkFiles.files == [] as Set
     }
 
-    private DefaultSharedLibraryBinary getSharedLibrary() {
-        new DefaultSharedLibraryBinary(library, new DefaultFlavor("flavorOne"), toolChain, platform, buildType, namingScheme, resolver)
+    private ProjectSharedLibraryBinary getSharedLibrary() {
+        new ProjectSharedLibraryBinary(library, new DefaultFlavor("flavorOne"), toolChain, platform, buildType, namingScheme, resolver)
     }
 }

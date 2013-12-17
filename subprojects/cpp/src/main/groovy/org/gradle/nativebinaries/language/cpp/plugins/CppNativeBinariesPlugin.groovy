@@ -20,7 +20,7 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.language.cpp.CppSourceSet
 import org.gradle.language.cpp.plugins.CppLangPlugin
 import org.gradle.nativebinaries.*
-import org.gradle.nativebinaries.internal.NativeBinaryInternal
+import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
 import org.gradle.nativebinaries.language.cpp.tasks.CppCompile
 import org.gradle.nativebinaries.language.internal.DefaultPreprocessingTool
 import org.gradle.nativebinaries.plugins.NativeBinariesPlugin
@@ -51,7 +51,7 @@ class CppNativeBinariesPlugin implements Plugin<ProjectInternal> {
             }
         }
 
-        project.binaries.withType(NativeBinary) { NativeBinaryInternal binary ->
+        project.binaries.withType(ProjectNativeBinary) { ProjectNativeBinaryInternal binary ->
             binary.source.withType(CppSourceSet).all { CppSourceSet sourceSet ->
                 if (!sourceSet.source.empty) {
                     def compileTask = createCompileTask(project, binary, sourceSet)
@@ -62,7 +62,7 @@ class CppNativeBinariesPlugin implements Plugin<ProjectInternal> {
         }
     }
 
-    private def createCompileTask(ProjectInternal project, NativeBinaryInternal binary, CppSourceSet sourceSet) {
+    private def createCompileTask(ProjectInternal project, ProjectNativeBinaryInternal binary, CppSourceSet sourceSet) {
         def compileTask = project.task(binary.namingScheme.getTaskName("compile", sourceSet.fullName), type: CppCompile) {
             description = "Compiles the $sourceSet of $binary"
         }

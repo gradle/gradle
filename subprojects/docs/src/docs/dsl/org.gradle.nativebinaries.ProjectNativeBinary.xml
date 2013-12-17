@@ -23,6 +23,24 @@
                     <td>Name</td>
                 </tr>
             </thead>
+            <tr>
+                <td>toolChain</td>
+            </tr>
+            <tr>
+                <td>source</td>
+            </tr>
+            <tr>
+                <td>libs</td>
+            </tr>
+            <tr>
+                <td>linker</td>
+            </tr>
+            <tr>
+                <td>staticLibArchiver</td>
+            </tr>
+            <tr>
+                <td>tasks</td>
+            </tr>
         </table>
     </section>
     <section>
@@ -33,6 +51,12 @@
                     <td>Name</td>
                 </tr>
             </thead>
+            <tr>
+                <td>source</td>
+            </tr>
+            <tr>
+                <td>lib</td>
+            </tr>
         </table>
     </section>
 </section>

@@ -18,21 +18,18 @@ package org.gradle.nativebinaries.internal.prebuilt;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
-import org.gradle.language.base.internal.DefaultBinaryNamingScheme;
 import org.gradle.nativebinaries.*;
 import org.gradle.nativebinaries.platform.Platform;
 
-public class PrebuiltApiLibraryBinary extends PrebuiltLibraryBinary implements ApiLibraryBinary {
-    public PrebuiltApiLibraryBinary(DefaultBinaryNamingScheme namingScheme, PrebuiltLibrary library, BuildType buildType, Platform targetPlatform, Flavor flavor) {
-        super(namingScheme.withTypeString("LibraryApi"), library, buildType, targetPlatform, flavor);
+public class PrebuiltApiLibraryBinary extends AbstractPrebuiltLibraryBinary implements ApiLibraryBinary {
+    public PrebuiltApiLibraryBinary(String name, PrebuiltLibrary library, BuildType buildType, Platform targetPlatform, Flavor flavor) {
+        super(name, library, buildType, targetPlatform, flavor);
     }
 
-    @Override
     public FileCollection getLinkFiles() {
         return new SimpleFileCollection();
     }
 
-    @Override
     public FileCollection getRuntimeFiles() {
         return new SimpleFileCollection();
     }

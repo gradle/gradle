@@ -22,7 +22,7 @@ import org.gradle.api.plugins.BasePlugin
 import org.gradle.language.base.BinaryContainer
 import org.gradle.language.base.ProjectSourceSet
 import org.gradle.nativebinaries.*
-import org.gradle.nativebinaries.internal.NativeBinaryInternal
+import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
 import org.gradle.nativebinaries.tasks.*
 /**
  * A plugin that creates tasks used for constructing native binaries.
@@ -43,7 +43,7 @@ public class NativeBinariesPlugin implements Plugin<Project> {
         }
 
         final BinaryContainer binaries = project.getExtensions().getByType(BinaryContainer.class);
-        binaries.withType(NativeBinary) { NativeBinaryInternal binary ->
+        binaries.withType(ProjectNativeBinary) { ProjectNativeBinaryInternal binary ->
             binary.setBuildable(
                             binary.toolChain.availability.available &&
                             binary.toolChain.canTargetPlatform(binary.getTargetPlatform())
@@ -52,7 +52,7 @@ public class NativeBinariesPlugin implements Plugin<Project> {
         }
     }
 
-    def createTasks(ProjectInternal project, NativeBinaryInternal binary) {
+    def createTasks(ProjectInternal project, ProjectNativeBinaryInternal binary) {
         def builderTask
         if (binary instanceof StaticLibraryBinary) {
             builderTask = createStaticLibraryTask(project, binary)
@@ -63,11 +63,11 @@ public class NativeBinariesPlugin implements Plugin<Project> {
         binary.builtBy builderTask
 
         if (binary instanceof ExecutableBinary) {
-            createInstallTask(project, (NativeBinaryInternal) binary);
+            createInstallTask(project, binary);
         }
     }
 
-    private AbstractLinkTask createLinkTask(ProjectInternal project, NativeBinaryInternal binary) {
+    private AbstractLinkTask createLinkTask(ProjectInternal project, ProjectNativeBinaryInternal binary) {
         AbstractLinkTask linkTask = project.task(binary.namingScheme.getTaskName("link"), type: linkTaskType(binary)) {
              description = "Links ${binary}"
          }
@@ -91,8 +91,8 @@ public class NativeBinariesPlugin implements Plugin<Project> {
         return LinkExecutable
     }
 
-    private CreateStaticLibrary createStaticLibraryTask(ProjectInternal project, StaticLibraryBinary binary) {
-        def namingScheme = ((NativeBinaryInternal) binary).namingScheme
+    private CreateStaticLibrary createStaticLibraryTask(ProjectInternal project, ProjectNativeBinaryInternal binary) {
+        def namingScheme = binary.namingScheme
         CreateStaticLibrary task = project.task(namingScheme.getTaskName("create"), type: CreateStaticLibrary) {
              description = "Creates ${binary}"
          }
@@ -104,7 +104,7 @@ public class NativeBinariesPlugin implements Plugin<Project> {
         return task
     }
 
-    def createInstallTask(ProjectInternal project, NativeBinaryInternal executable) {
+    def createInstallTask(ProjectInternal project, ProjectNativeBinaryInternal executable) {
         InstallExecutable installTask = project.task(executable.namingScheme.getTaskName("install"), type: InstallExecutable) {
             description = "Installs a development image of $executable"
             group = BasePlugin.BUILD_GROUP

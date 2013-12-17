@@ -22,11 +22,11 @@ import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativebinaries.platform.Platform;
 import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal;
 
-public class DefaultExecutableBinary extends DefaultNativeBinary implements ExecutableBinary {
+public class AbstractProjectExecutableBinary extends AbstractProjectNativeBinary implements ExecutableBinary {
     private final Executable executable;
 
-    public DefaultExecutableBinary(Executable executable, Flavor flavor, ToolChainInternal toolChain, Platform platform, BuildType buildType,
-                                   DefaultBinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
+    public AbstractProjectExecutableBinary(Executable executable, Flavor flavor, ToolChainInternal toolChain, Platform platform, BuildType buildType,
+                                           DefaultBinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
         super(executable, flavor, toolChain, platform, buildType, namingScheme.withTypeString("Executable"), resolver);
         this.executable = executable;
     }

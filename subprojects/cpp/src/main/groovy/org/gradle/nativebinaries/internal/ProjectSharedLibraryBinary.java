@@ -32,9 +32,9 @@ import java.io.File;
 import java.util.Collections;
 import java.util.Set;
 
-public class DefaultSharedLibraryBinary extends DefaultLibraryBinary implements SharedLibraryBinary {
+public class ProjectSharedLibraryBinary extends AbstractProjectLibraryBinary implements SharedLibraryBinary {
 
-    public DefaultSharedLibraryBinary(Library library, Flavor flavor, ToolChainInternal toolChain, Platform platform, BuildType buildType,
+    public ProjectSharedLibraryBinary(Library library, Flavor flavor, ToolChainInternal toolChain, Platform platform, BuildType buildType,
                                       DefaultBinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
         super(library, flavor, toolChain, platform, buildType, namingScheme.withTypeString("SharedLibrary"), resolver);
     }

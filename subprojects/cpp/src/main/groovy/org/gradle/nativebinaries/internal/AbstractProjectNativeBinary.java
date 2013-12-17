@@ -36,11 +36,12 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public abstract class DefaultNativeBinary extends AbstractBuildableModelElement implements NativeBinaryInternal {
+public abstract class AbstractProjectNativeBinary extends AbstractBuildableModelElement implements ProjectNativeBinaryInternal {
     private final NotationParser<Object, Set<LanguageSourceSet>> sourcesNotationParser = SourceSetNotationParser.parser();
     private final Set<? super Object> libs = new LinkedHashSet<Object>();
     private final DomainObjectSet<LanguageSourceSet> source = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class);
     private final DefaultTool linker = new DefaultTool();
+    private final DefaultTool staticLibArchiver = new DefaultTool();
     private final NativeBinaryTasks tasks = new DefaultNativeBinaryTasks();
     private final BinaryNamingScheme namingScheme;
     private final Flavor flavor;
@@ -48,11 +49,11 @@ public abstract class DefaultNativeBinary extends AbstractBuildableModelElement 
     private final Platform targetPlatform;
     private final BuildType buildType;
     private final NativeDependencyResolver resolver;
-    private File outputFile;
+    private File outputDir;
     private boolean buildable;
 
-    protected DefaultNativeBinary(NativeComponent owner, Flavor flavor, ToolChainInternal toolChain, Platform targetPlatform, BuildType buildType,
-                                  DefaultBinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
+    protected AbstractProjectNativeBinary(NativeComponent owner, Flavor flavor, ToolChainInternal toolChain, Platform targetPlatform, BuildType buildType,
+                                          DefaultBinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
         this.namingScheme = namingScheme;
         this.flavor = flavor;
         this.toolChain = toolChain;
@@ -93,11 +94,12 @@ public abstract class DefaultNativeBinary extends AbstractBuildableModelElement 
     }
 
     public File getOutputFile() {
-        return outputFile;
+        File binaryOutputDir = new File(outputDir, namingScheme.getOutputDirectoryBase());
+        return new File(binaryOutputDir, getOutputFileName());
     }
 
-    public void setOutputFile(File outputFile) {
-        this.outputFile = outputFile;
+    public void setOutputDir(File outputDir) {
+        this.outputDir = outputDir;
     }
 
     public DomainObjectSet<LanguageSourceSet> getSource() {
@@ -110,6 +112,10 @@ public abstract class DefaultNativeBinary extends AbstractBuildableModelElement 
 
     public Tool getLinker() {
         return linker;
+    }
+
+    public Tool getStaticLibArchiver() {
+        return staticLibArchiver;
     }
 
     public NativeBinaryTasks getTasks() {

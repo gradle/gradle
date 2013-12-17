@@ -73,16 +73,16 @@ class NativeBinaryFactory implements Transformer<Collection<NativeBinary>, Nativ
     public Collection<NativeBinary> createNativeBinaries(NativeComponent component, ToolChain toolChain, Platform platform, BuildType buildType, Flavor flavor) {
         Collection<NativeBinary> binaries = new LinkedList<NativeBinary>();
         if (component instanceof Library) {
-            binaries.add(createNativeBinary(DefaultApiLibraryBinary.class, component, toolChain, platform, buildType, flavor));
-            binaries.add(createNativeBinary(DefaultSharedLibraryBinary.class, component, toolChain, platform, buildType, flavor));
-            binaries.add(createNativeBinary(DefaultStaticLibraryBinary.class, component, toolChain, platform, buildType, flavor));
+            binaries.add(createNativeBinary(ProjectApiLibraryBinary.class, component, toolChain, platform, buildType, flavor));
+            binaries.add(createNativeBinary(ProjectSharedLibraryBinary.class, component, toolChain, platform, buildType, flavor));
+            binaries.add(createNativeBinary(ProjectStaticLibraryBinary.class, component, toolChain, platform, buildType, flavor));
         } else {
-            binaries.add(createNativeBinary(DefaultExecutableBinary.class, component, toolChain, platform, buildType, flavor));
+            binaries.add(createNativeBinary(AbstractProjectExecutableBinary.class, component, toolChain, platform, buildType, flavor));
         }
         return binaries;
     }
 
-    public <T extends DefaultNativeBinary> T createNativeBinary(Class<T> type, NativeComponent component, ToolChain toolChain, Platform platform, BuildType buildType, Flavor flavor) {
+    public <T extends AbstractProjectNativeBinary> T createNativeBinary(Class<T> type, NativeComponent component, ToolChain toolChain, Platform platform, BuildType buildType, Flavor flavor) {
         DefaultBinaryNamingScheme namingScheme = createNamingScheme(component, platform, buildType, flavor);
         T nativeBinary = instantiator.newInstance(type, component, flavor, toolChain, platform, buildType, namingScheme, resolver);
         setupDefaults(project, nativeBinary);
@@ -116,7 +116,7 @@ class NativeBinaryFactory implements Transformer<Collection<NativeBinary>, Nativ
         return ((NativeComponentInternal) component).chooseFlavors(allFlavors).size() > 1;
     }
 
-    private void setupDefaults(Project project, DefaultNativeBinary nativeBinary) {
-        nativeBinary.setOutputFile(new File(project.getBuildDir(), "binaries/" + nativeBinary.getNamingScheme().getOutputDirectoryBase() + "/" + nativeBinary.getOutputFileName()));
+    private void setupDefaults(Project project, AbstractProjectNativeBinary nativeBinary) {
+        nativeBinary.setOutputDir(new File(project.getBuildDir(), "binaries"));
     }
 }

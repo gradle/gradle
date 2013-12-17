@@ -21,7 +21,6 @@ import org.gradle.language.base.internal.DefaultBinaryNamingScheme;
 import org.gradle.nativebinaries.BuildType;
 import org.gradle.nativebinaries.Flavor;
 import org.gradle.nativebinaries.Library;
-import org.gradle.nativebinaries.Tool;
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativebinaries.platform.Platform;
 import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal;
@@ -32,21 +31,16 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-public class DefaultStaticLibraryBinary extends DefaultLibraryBinary implements StaticLibraryBinaryInternal {
-    private final DefaultTool staticLibArchiver = new DefaultTool();
+public class ProjectStaticLibraryBinary extends AbstractProjectLibraryBinary implements StaticLibraryBinaryInternal {
     private final List<FileCollection> additionalLinkFiles = new ArrayList<FileCollection>();
 
-    public DefaultStaticLibraryBinary(Library library, Flavor flavor, ToolChainInternal toolChain, Platform platform, BuildType buildType,
+    public ProjectStaticLibraryBinary(Library library, Flavor flavor, ToolChainInternal toolChain, Platform platform, BuildType buildType,
                                       DefaultBinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
         super(library, flavor, toolChain, platform, buildType, namingScheme.withTypeString("StaticLibrary"), resolver);
     }
 
     public String getOutputFileName() {
         return getToolChain().getStaticLibraryName(getComponent().getBaseName());
-    }
-
-    public Tool getStaticLibArchiver() {
-        return staticLibArchiver;
     }
 
     public void additionalLinkFiles(FileCollection files) {

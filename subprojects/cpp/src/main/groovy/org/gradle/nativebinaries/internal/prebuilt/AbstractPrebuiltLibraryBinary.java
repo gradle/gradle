@@ -16,23 +16,20 @@
 
 package org.gradle.nativebinaries.internal.prebuilt;
 
-import org.gradle.api.DomainObjectSet;
-import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
-import org.gradle.api.tasks.TaskDependency;
-import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.language.base.internal.BinaryNamingScheme;
-import org.gradle.nativebinaries.*;
+import org.gradle.language.base.internal.AbstractBuildableModelElement;
+import org.gradle.nativebinaries.BuildType;
+import org.gradle.nativebinaries.Flavor;
+import org.gradle.nativebinaries.PrebuiltLibrary;
+import org.gradle.nativebinaries.PrebuiltLibraryBinary;
 import org.gradle.nativebinaries.internal.LibraryBinaryInternal;
 import org.gradle.nativebinaries.platform.Platform;
-import org.gradle.nativebinaries.toolchain.ToolChain;
 
 import java.io.File;
-import java.util.Collection;
 
-public abstract class PrebuiltLibraryBinary implements LibraryBinaryInternal {
-    private final BinaryNamingScheme namingScheme;
+public abstract class AbstractPrebuiltLibraryBinary extends AbstractBuildableModelElement implements LibraryBinaryInternal, PrebuiltLibraryBinary {
+    private final String name;
     private final PrebuiltLibrary library;
     private final BuildType buildType;
     private final Platform targetPlatform;
@@ -40,8 +37,8 @@ public abstract class PrebuiltLibraryBinary implements LibraryBinaryInternal {
 
     private File outputFile;
 
-    public PrebuiltLibraryBinary(BinaryNamingScheme namingScheme, PrebuiltLibrary library, BuildType buildType, Platform targetPlatform, Flavor flavor) {
-        this.namingScheme = namingScheme;
+    public AbstractPrebuiltLibraryBinary(String name, PrebuiltLibrary library, BuildType buildType, Platform targetPlatform, Flavor flavor) {
+        this.name = name;
         this.library = library;
         this.buildType = buildType;
         this.targetPlatform = targetPlatform;
@@ -50,11 +47,11 @@ public abstract class PrebuiltLibraryBinary implements LibraryBinaryInternal {
 
     @Override
     public String toString() {
-        return namingScheme.getDescription();
+        return String.format("%s : %s", name, getClass().getSimpleName());
     }
 
     public String getName() {
-        return namingScheme.getLifecycleTaskName();
+        return name;
     }
 
     public PrebuiltLibrary getComponent() {
@@ -85,48 +82,7 @@ public abstract class PrebuiltLibraryBinary implements LibraryBinaryInternal {
         return new SimpleFileCollection(library.getHeaders().getSrcDirs());
     }
 
-    // TODO:DAZ Implement and test these
-    public Collection<NativeDependencySet> getLibs() {
-        return null;
-    }
-
-    public void lib(Object library) {
-    }
-
-    // TODO:DAZ The rest of this isn't requires for prebuilt binaries
-    public Tool getLinker() {
-        throw new UnsupportedOperationException();
-    }
-
-    public NativeBinaryTasks getTasks() {
-        throw new UnsupportedOperationException();
-    }
-
-    public DomainObjectSet<LanguageSourceSet> getSource() {
-        throw new UnsupportedOperationException();
-    }
-
-    public void source(Object source) {
-        throw new UnsupportedOperationException();
-    }
-
-    public ToolChain getToolChain() {
-        throw new UnsupportedOperationException();
-    }
-
     public boolean isBuildable() {
-        throw new UnsupportedOperationException();
-    }
-
-    public void setLifecycleTask(Task lifecycleTask) {
-        throw new UnsupportedOperationException();
-    }
-
-    public void builtBy(Object... tasks) {
-        throw new UnsupportedOperationException();
-    }
-
-    public TaskDependency getBuildDependencies() {
-        throw new UnsupportedOperationException();
+        return false;
     }
 }

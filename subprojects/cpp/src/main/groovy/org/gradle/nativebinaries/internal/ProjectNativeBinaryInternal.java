@@ -18,12 +18,15 @@ package org.gradle.nativebinaries.internal;
 
 import org.gradle.language.DependentSourceSet;
 import org.gradle.language.base.internal.BinaryInternal;
-import org.gradle.nativebinaries.NativeBinary;
 import org.gradle.nativebinaries.NativeDependencySet;
+import org.gradle.nativebinaries.ProjectNativeBinary;
 
+import java.io.File;
 import java.util.Collection;
 
-public interface NativeBinaryInternal extends NativeBinary, BinaryInternal {
+public interface ProjectNativeBinaryInternal extends ProjectNativeBinary, BinaryInternal {
+    void setOutputDir(File binariesDir);
+
     Collection<NativeDependencySet> getLibs(DependentSourceSet sourceSet);
 
     void setBuildable(boolean buildable);

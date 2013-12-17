@@ -26,9 +26,9 @@ import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativebinaries.platform.Platform;
 import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal;
 
-public class DefaultApiLibraryBinary extends DefaultLibraryBinary implements ApiLibraryBinary {
+public class ProjectApiLibraryBinary extends AbstractProjectLibraryBinary implements ApiLibraryBinary {
 
-    public DefaultApiLibraryBinary(Library library, Flavor flavor, ToolChainInternal toolChain, Platform platform, BuildType buildType,
+    public ProjectApiLibraryBinary(Library library, Flavor flavor, ToolChainInternal toolChain, Platform platform, BuildType buildType,
                                    DefaultBinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
         super(library, flavor, toolChain, platform, buildType, namingScheme.withTypeString("LibraryApi"), resolver);
     }

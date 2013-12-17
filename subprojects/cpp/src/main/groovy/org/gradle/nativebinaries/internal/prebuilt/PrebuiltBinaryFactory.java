@@ -63,36 +63,18 @@ public class PrebuiltBinaryFactory {
         createNativeBinary(PrebuiltStaticLibraryBinary.class, component, platform, buildType, flavor);
     }
 
-    public <T extends PrebuiltLibraryBinary> void createNativeBinary(Class<T> type, NativeComponent component, Platform platform, BuildType buildType, Flavor flavor) {
-        DefaultBinaryNamingScheme namingScheme = createNamingScheme(component, platform, buildType, flavor);
-        T nativeBinary = instantiator.newInstance(type, namingScheme, component, buildType, platform, flavor);
+    public <T extends AbstractPrebuiltLibraryBinary> void createNativeBinary(Class<T> type, NativeComponent component, Platform platform, BuildType buildType, Flavor flavor) {
+        String name = getName(type, component, platform, buildType, flavor);
+        T nativeBinary = instantiator.newInstance(type, name, component, buildType, platform, flavor);
         component.getBinaries().add(nativeBinary);
     }
 
-    // TODO:DAZ Duplication
-    private DefaultBinaryNamingScheme createNamingScheme(NativeComponent component, Platform platform, BuildType buildType, Flavor flavor) {
-        DefaultBinaryNamingScheme namingScheme = new DefaultBinaryNamingScheme(component.getName());
-        if (usePlatformDimension(component)) {
-            namingScheme = namingScheme.withVariantDimension(platform.getName());
-        }
-        if (useBuildTypeDimension(component)) {
-            namingScheme = namingScheme.withVariantDimension(buildType.getName());
-        }
-        if (useFlavorDimension(component)) {
-            namingScheme = namingScheme.withVariantDimension(flavor.getName());
-        }
-        return namingScheme;
-    }
-
-    private boolean usePlatformDimension(NativeComponent component) {
-        return ((NativeComponentInternal) component).choosePlatforms(allPlatforms).size() > 1;
-    }
-
-    private boolean useBuildTypeDimension(NativeComponent component) {
-        return ((NativeComponentInternal) component).chooseBuildTypes(allBuildTypes).size() > 1;
-    }
-
-    private boolean useFlavorDimension(NativeComponent component) {
-        return ((NativeComponentInternal) component).chooseFlavors(allFlavors).size() > 1;
+    private <T extends AbstractPrebuiltLibraryBinary> String getName(Class<T> type, NativeComponent component, Platform platform, BuildType buildType, Flavor flavor) {
+        DefaultBinaryNamingScheme namingScheme = new DefaultBinaryNamingScheme(component.getName())
+                .withTypeString(type.getSimpleName())
+                .withVariantDimension(platform.getName())
+                .withVariantDimension(buildType.getName())
+                .withVariantDimension(flavor.getName());
+        return namingScheme.getLifecycleTaskName();
     }
 }

@@ -20,7 +20,7 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.language.c.CSourceSet
 import org.gradle.language.c.plugins.CLangPlugin
 import org.gradle.nativebinaries.*
-import org.gradle.nativebinaries.internal.NativeBinaryInternal
+import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
 import org.gradle.nativebinaries.language.c.tasks.CCompile
 import org.gradle.nativebinaries.language.internal.DefaultPreprocessingTool
 import org.gradle.nativebinaries.plugins.NativeBinariesPlugin
@@ -46,7 +46,7 @@ class CNativeBinariesPlugin implements Plugin<ProjectInternal> {
             addLanguageExtensionsToComponent(library)
         }
 
-        project.binaries.withType(NativeBinary) { NativeBinaryInternal binary ->
+        project.binaries.withType(ProjectNativeBinary) { ProjectNativeBinaryInternal binary ->
             binary.source.withType(CSourceSet).all { CSourceSet sourceSet ->
                 if (!sourceSet.source.empty) {
                     def compileTask = createCompileTask(project, binary, sourceSet)
@@ -63,7 +63,7 @@ class CNativeBinariesPlugin implements Plugin<ProjectInternal> {
         }
     }
 
-    private def createCompileTask(ProjectInternal project, NativeBinaryInternal binary, CSourceSet sourceSet) {
+    private def createCompileTask(ProjectInternal project, ProjectNativeBinaryInternal binary, CSourceSet sourceSet) {
         def compileTask = project.task(binary.namingScheme.getTaskName("compile", sourceSet.fullName), type: CCompile) {
             description = "Compiles the $sourceSet of $binary"
         }
