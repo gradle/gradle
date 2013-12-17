@@ -304,6 +304,10 @@
             </sample>
             <para>Now, Gradle knows which files to check to determine whether the task is up-to-date or not.</para>
 
+            <para>If you don't define any outputs, the task will <emphasis>never</emphasis> be considered up-to-date.
+                In case there are no files you can treat as task outputs, you can still take advantage of skipping
+                up-to-date tasks: declare <literal>outputs.upToDateWhen { true }</literal>.
+            </para>
             <para>The task's <literal>inputs</literal> property is of type <apilink class="org.gradle.api.tasks.TaskInputs"/>.
                 The task's <literal>outputs</literal> property is of type <apilink class="org.gradle.api.tasks.TaskOutputs"/>.
             </para>
