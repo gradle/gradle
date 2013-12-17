@@ -15,10 +15,8 @@
  */
 package org.gradle.nativebinaries.internal;
 
-import org.gradle.api.Buildable;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.file.collections.FileCollectionAdapter;
-import org.gradle.api.internal.file.collections.MinimalFileSet;
+import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.language.HeaderExportingSourceSet;
@@ -27,8 +25,6 @@ import org.gradle.language.base.internal.DefaultBinaryNamingScheme;
 import org.gradle.nativebinaries.BuildType;
 import org.gradle.nativebinaries.Flavor;
 import org.gradle.nativebinaries.Library;
-import org.gradle.nativebinaries.LibraryBinary;
-import org.gradle.nativebinaries.internal.resolve.LibraryNativeDependencySet;
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativebinaries.platform.Platform;
 import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal;
@@ -51,8 +47,8 @@ public abstract class DefaultLibraryBinary extends DefaultNativeBinary implement
         return library;
     }
 
-    protected MinimalFileSet getHeaderDirs() {
-        return new MinimalFileSet() {
+    public FileCollection getHeaderDirs() {
+        return new AbstractFileCollection() {
             public String getDisplayName() {
                 return String.format("Headers for %s", getName());
             }
@@ -67,30 +63,6 @@ public abstract class DefaultLibraryBinary extends DefaultNativeBinary implement
         };
     }
 
-    protected abstract MinimalFileSet getLinkFiles();
-
-    protected abstract MinimalFileSet getRuntimeFiles();
-
-    public LibraryNativeDependencySet resolve() {
-        return new LibraryNativeDependencySet() {
-            public FileCollection getIncludeRoots() {
-                return new FileCollectionAdapter(getHeaderDirs());
-            }
-
-            public FileCollection getLinkFiles() {
-                return new FileCollectionAdapter(DefaultLibraryBinary.this.getLinkFiles());
-            }
-
-            public FileCollection getRuntimeFiles() {
-                return new FileCollectionAdapter(DefaultLibraryBinary.this.getRuntimeFiles());
-            }
-
-            public LibraryBinary getLibraryBinary() {
-                return DefaultLibraryBinary.this;
-            }
-        };
-    }
-
     protected boolean hasSources() {
         for (LanguageSourceSet sourceSet : getSource()) {
             if (!sourceSet.getSource().isEmpty()) {
@@ -100,11 +72,11 @@ public abstract class DefaultLibraryBinary extends DefaultNativeBinary implement
         return false;
     }
 
-    protected MinimalFileSet emptyLibraryOutputs() {
+    protected FileCollection emptyLibraryOutputs() {
         return new EmptyLibraryOutputs();
     }
 
-    protected abstract class LibraryOutputs implements MinimalFileSet, Buildable {
+    protected abstract class LibraryOutputs extends AbstractFileCollection {
         public final Set<File> getFiles() {
             if (hasOutputs()) {
                 return getOutputs();
@@ -139,4 +111,5 @@ public abstract class DefaultLibraryBinary extends DefaultNativeBinary implement
             return Collections.emptySet();
         }
     }
+
 }

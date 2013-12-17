@@ -16,7 +16,7 @@
 
 package org.gradle.nativebinaries.internal;
 
-import org.gradle.api.internal.file.collections.MinimalFileSet;
+import org.gradle.api.file.FileCollection;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.DefaultBinaryNamingScheme;
 import org.gradle.language.rc.WindowsResourceSet;
@@ -43,13 +43,11 @@ public class DefaultSharedLibraryBinary extends DefaultLibraryBinary implements 
         return getToolChain().getSharedLibraryName(getComponent().getBaseName());
     }
 
-    @Override
-    protected MinimalFileSet getLinkFiles() {
+    public FileCollection getLinkFiles() {
         return new SharedLibraryLinkOutputs();
     }
 
-    @Override
-    protected MinimalFileSet getRuntimeFiles() {
+    public FileCollection getRuntimeFiles() {
         return new SharedLibraryRuntimeOutputs();
     }
 

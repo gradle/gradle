@@ -16,13 +16,11 @@
 
 package org.gradle.nativebinaries.internal.prebuilt;
 
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.language.base.internal.DefaultBinaryNamingScheme;
 import org.gradle.nativebinaries.*;
 import org.gradle.nativebinaries.platform.Platform;
-
-import java.io.File;
-import java.util.Collection;
-import java.util.Collections;
 
 public class PrebuiltApiLibraryBinary extends PrebuiltLibraryBinary implements ApiLibraryBinary {
     public PrebuiltApiLibraryBinary(DefaultBinaryNamingScheme namingScheme, PrebuiltLibrary library, BuildType buildType, Platform targetPlatform, Flavor flavor) {
@@ -30,13 +28,13 @@ public class PrebuiltApiLibraryBinary extends PrebuiltLibraryBinary implements A
     }
 
     @Override
-    protected Collection<File> getLinkFiles() {
-        return Collections.emptySet();
+    public FileCollection getLinkFiles() {
+        return new SimpleFileCollection();
     }
 
     @Override
-    protected Collection<File> getRuntimeFiles() {
-        return Collections.emptySet();
+    public FileCollection getRuntimeFiles() {
+        return new SimpleFileCollection();
     }
 
     public Tool getStaticLibArchiver() {

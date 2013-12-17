@@ -16,7 +16,7 @@
 
 package org.gradle.nativebinaries.internal;
 
-import org.gradle.api.internal.file.collections.MinimalFileSet;
+import org.gradle.api.file.FileCollection;
 import org.gradle.language.base.internal.DefaultBinaryNamingScheme;
 import org.gradle.nativebinaries.ApiLibraryBinary;
 import org.gradle.nativebinaries.BuildType;
@@ -43,13 +43,11 @@ public class DefaultApiLibraryBinary extends DefaultLibraryBinary implements Api
         return false;
     }
 
-    @Override
-    protected MinimalFileSet getLinkFiles() {
+    public FileCollection getLinkFiles() {
         return emptyLibraryOutputs();
     }
 
-    @Override
-    protected MinimalFileSet getRuntimeFiles() {
+    public FileCollection getRuntimeFiles() {
         return emptyLibraryOutputs();
     }
 }

@@ -16,27 +16,23 @@
 
 package org.gradle.nativebinaries.internal.prebuilt;
 
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.language.base.internal.DefaultBinaryNamingScheme;
 import org.gradle.nativebinaries.*;
 import org.gradle.nativebinaries.platform.Platform;
-
-import java.io.File;
-import java.util.Collection;
-import java.util.Collections;
 
 public class PrebuiltSharedLibraryBinary extends PrebuiltLibraryBinary implements SharedLibraryBinary {
     public PrebuiltSharedLibraryBinary(DefaultBinaryNamingScheme namingScheme, PrebuiltLibrary library, BuildType buildType, Platform targetPlatform, Flavor flavor) {
         super(namingScheme.withTypeString("SharedLibrary"), library, buildType, targetPlatform, flavor);
     }
 
-    @Override
-    protected Collection<File> getLinkFiles() {
-        return Collections.singleton(getOutputFile());
+    public FileCollection getLinkFiles() {
+        return new SimpleFileCollection(getOutputFile());
     }
 
-    @Override
-    protected Collection<File> getRuntimeFiles() {
-        return Collections.singleton(getOutputFile());
+    public FileCollection getRuntimeFiles() {
+        return new SimpleFileCollection(getOutputFile());
     }
 
     public Tool getStaticLibArchiver() {

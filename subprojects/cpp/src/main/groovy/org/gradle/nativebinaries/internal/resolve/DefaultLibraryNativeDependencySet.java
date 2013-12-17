@@ -14,16 +14,32 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries.internal;
+package org.gradle.nativebinaries.internal.resolve;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.nativebinaries.LibraryBinary;
+import org.gradle.nativebinaries.internal.LibraryBinaryInternal;
 
-public interface LibraryBinaryInternal extends LibraryBinary {
+public class DefaultLibraryNativeDependencySet implements LibraryNativeDependencySet {
+    private final LibraryBinaryInternal binary;
 
-    FileCollection getHeaderDirs();
+    public DefaultLibraryNativeDependencySet(LibraryBinaryInternal binary) {
+        this.binary = binary;
+    }
 
-    FileCollection getLinkFiles();
+    public FileCollection getIncludeRoots() {
+        return binary.getHeaderDirs();
+    }
 
-    FileCollection getRuntimeFiles();
+    public FileCollection getLinkFiles() {
+        return binary.getLinkFiles();
+    }
+
+    public FileCollection getRuntimeFiles() {
+        return binary.getRuntimeFiles();
+    }
+
+    public LibraryBinary getLibraryBinary() {
+        return binary;
+    }
 }

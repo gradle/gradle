@@ -71,18 +71,17 @@ class DefaultSharedLibraryBinaryTest extends Specification {
         binary.source sourceSet
 
         expect:
-        def nativeDependency = binary.resolve()
-        nativeDependency.includeRoots.files == [headerDir] as Set
+        binary.headerDirs.files == [headerDir] as Set
 
         and:
-        nativeDependency.linkFiles.files == [linkFile] as Set
-        nativeDependency.linkFiles.buildDependencies.getDependencies(Stub(Task)) == [lifecycleTask] as Set
-        nativeDependency.linkFiles.toString() == "shared library 'main:sharedLibrary'"
+        binary.linkFiles.files == [linkFile] as Set
+        binary.linkFiles.buildDependencies.getDependencies(Stub(Task)) == [lifecycleTask] as Set
+        binary.linkFiles.toString() == "shared library 'main:sharedLibrary'"
 
         and:
-        nativeDependency.runtimeFiles.files == [binaryFile] as Set
-        nativeDependency.runtimeFiles.buildDependencies.getDependencies(Stub(Task)) == [lifecycleTask] as Set
-        nativeDependency.runtimeFiles.toString() == "shared library 'main:sharedLibrary'"
+        binary.runtimeFiles.files == [binaryFile] as Set
+        binary.runtimeFiles.buildDependencies.getDependencies(Stub(Task)) == [lifecycleTask] as Set
+        binary.runtimeFiles.toString() == "shared library 'main:sharedLibrary'"
     }
 
     def "has empty link files when has resources and no symbols are exported from library"() {
@@ -101,8 +100,7 @@ class DefaultSharedLibraryBinaryTest extends Specification {
         toolChain.getSharedLibraryLinkFileName(binaryFile.path) >> linkFile.path
 
         then:
-        def nativeDependency = binary.resolve()
-        nativeDependency.linkFiles.files == [] as Set
+        binary.linkFiles.files == [] as Set
     }
 
     private DefaultSharedLibraryBinary getSharedLibrary() {

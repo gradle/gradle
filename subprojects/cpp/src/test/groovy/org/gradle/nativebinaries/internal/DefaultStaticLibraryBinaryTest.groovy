@@ -60,18 +60,17 @@ class DefaultStaticLibraryBinaryTest extends Specification {
         addSources(binary, headerDir)
 
         expect:
-        def nativeDependency = binary.resolve()
-        nativeDependency.includeRoots.files == [headerDir] as Set
+        binary.headerDirs.files == [headerDir] as Set
 
         and:
-        nativeDependency.linkFiles.files == [binary.outputFile] as Set
-        nativeDependency.linkFiles.buildDependencies.getDependencies(Stub(Task)) == [lifecycleTask] as Set
-        nativeDependency.linkFiles.toString() == "static library 'main:staticLibrary'"
+        binary.linkFiles.files == [binary.outputFile] as Set
+        binary.linkFiles.buildDependencies.getDependencies(Stub(Task)) == [lifecycleTask] as Set
+        binary.linkFiles.toString() == "static library 'main:staticLibrary'"
 
         and:
-        nativeDependency.runtimeFiles.files.isEmpty()
-        nativeDependency.runtimeFiles.buildDependencies.getDependencies(Stub(Task)) == [] as Set
-        nativeDependency.runtimeFiles.toString() == "static library 'main:staticLibrary'"
+        binary.runtimeFiles.files.isEmpty()
+        binary.runtimeFiles.buildDependencies.getDependencies(Stub(Task)) == [] as Set
+        binary.runtimeFiles.toString() == "static library 'main:staticLibrary'"
     }
 
     def "includes additional link files in native dependency"() {
@@ -88,8 +87,7 @@ class DefaultStaticLibraryBinaryTest extends Specification {
         addSources(binary, tmpDir.createDir("headerDir"))
 
         expect:
-        def nativeDependency = binary.resolve()
-        nativeDependency.linkFiles.files == [binary.outputFile, linkFile1, linkFile2] as Set
+        binary.linkFiles.files == [binary.outputFile, linkFile1, linkFile2] as Set
     }
 
     private TestFile addSources(DefaultStaticLibraryBinary binary, def headerDir) {

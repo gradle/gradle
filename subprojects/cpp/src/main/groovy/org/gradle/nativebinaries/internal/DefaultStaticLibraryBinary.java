@@ -17,7 +17,6 @@
 package org.gradle.nativebinaries.internal;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.language.base.internal.DefaultBinaryNamingScheme;
 import org.gradle.nativebinaries.BuildType;
 import org.gradle.nativebinaries.Flavor;
@@ -54,13 +53,11 @@ public class DefaultStaticLibraryBinary extends DefaultLibraryBinary implements 
         this.additionalLinkFiles.add(files);
     }
 
-    @Override
-    protected MinimalFileSet getLinkFiles() {
+    public FileCollection getLinkFiles() {
         return new StaticLibraryLinkOutputs();
     }
 
-    @Override
-    protected MinimalFileSet getRuntimeFiles() {
+    public FileCollection getRuntimeFiles() {
         return emptyLibraryOutputs();
     }
 

@@ -25,7 +25,6 @@ import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.BinaryNamingScheme;
 import org.gradle.nativebinaries.*;
 import org.gradle.nativebinaries.internal.LibraryBinaryInternal;
-import org.gradle.nativebinaries.internal.resolve.LibraryNativeDependencySet;
 import org.gradle.nativebinaries.platform.Platform;
 import org.gradle.nativebinaries.toolchain.ToolChain;
 
@@ -82,28 +81,9 @@ public abstract class PrebuiltLibraryBinary implements LibraryBinaryInternal {
         return targetPlatform;
     }
 
-    public LibraryNativeDependencySet resolve() {
-        return new LibraryNativeDependencySet() {
-            public FileCollection getIncludeRoots() {
-                return new SimpleFileCollection(library.getHeaders().getSrcDirs());
-            }
-
-            public FileCollection getLinkFiles() {
-                return new SimpleFileCollection(PrebuiltLibraryBinary.this.getLinkFiles());
-            }
-
-            public FileCollection getRuntimeFiles() {
-                return new SimpleFileCollection(PrebuiltLibraryBinary.this.getRuntimeFiles());
-            }
-
-            public LibraryBinary getLibraryBinary() {
-                return PrebuiltLibraryBinary.this;
-            }
-        };
+    public FileCollection getHeaderDirs() {
+        return new SimpleFileCollection(library.getHeaders().getSrcDirs());
     }
-
-    protected abstract Collection<File> getLinkFiles();
-    protected abstract Collection<File> getRuntimeFiles();
 
     // TODO:DAZ Implement and test these
     public Collection<NativeDependencySet> getLibs() {

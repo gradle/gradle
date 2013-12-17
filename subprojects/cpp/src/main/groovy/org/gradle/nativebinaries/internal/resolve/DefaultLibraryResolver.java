@@ -94,7 +94,7 @@ class DefaultLibraryResolver implements LibraryResolver {
                     continue;
                 }
 
-                return ((LibraryBinaryInternal) candidate).resolve();
+                return new DefaultLibraryNativeDependencySet((LibraryBinaryInternal) candidate);
             }
 
             String typeName = GUtil.elvis(requirement.getLinkage(), "shared");
