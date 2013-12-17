@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries.internal.prebuilt;
+package org.gradle.nativebinaries.internal.configure;
 
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.ModelRule;
 import org.gradle.nativebinaries.*;
+import org.gradle.nativebinaries.internal.prebuilt.PrebuiltBinaryFactory;
 import org.gradle.nativebinaries.platform.PlatformContainer;
 
 public class CreatePrebuiltBinaries extends ModelRule {

@@ -69,6 +69,7 @@ public class PrebuiltBinaryFactory {
         component.getBinaries().add(nativeBinary);
     }
 
+    // TODO:DAZ Duplication
     private DefaultBinaryNamingScheme createNamingScheme(NativeComponent component, Platform platform, BuildType buildType, Flavor flavor) {
         DefaultBinaryNamingScheme namingScheme = new DefaultBinaryNamingScheme(component.getName());
         if (usePlatformDimension(component)) {
