@@ -165,41 +165,6 @@ class DefaultCacheFactoryTest extends Specification {
         0 * _
     }
 
-    public void "closes cache instance when last session is closed"() {
-        def implementation
-
-        when:
-        def factory1 = factoryFactory.create()
-        def factory2 = factoryFactory.create()
-        factory1.open(tmpDir.testDirectory, null, CacheUsage.ON, null, [prop: 'value'], mode(Exclusive), null)
-        factory2.open(tmpDir.testDirectory, null, CacheUsage.ON, null, [prop: 'value'], mode(Exclusive), null)
-
-        then:
-        1 * opened.execute(_) >> { DefaultPersistentDirectoryStore s -> implementation = s }
-        0 * opened._
-
-        when:
-        factory1.close()
-
-        then:
-        0 * _
-
-        when:
-        factory2.close()
-
-        then:
-        1 * closed.execute(implementation)
-        0 * _
-
-        when:
-        def factory = factoryFactory.create()
-        factory.open(tmpDir.testDirectory, null, CacheUsage.ON, null, [prop: 'value'], mode(Exclusive), null)
-
-        then:
-        1 * opened.execute({it != implementation})
-        0 * closed._
-    }
-
     public void "releases cache instance when reference is closed"() {
         def implementation
 
@@ -246,7 +211,7 @@ class DefaultCacheFactoryTest extends Specification {
         0 * _
     }
 
-    public void "can close session after closing cache"() {
+    public void "can close factory after closing cache"() {
         def implementation
 
         when:
@@ -259,7 +224,6 @@ class DefaultCacheFactoryTest extends Specification {
 
         when:
         cache.close()
-        factory.close()
         factoryFactory.close()
 
         then:
@@ -336,8 +300,8 @@ class DefaultCacheFactoryTest extends Specification {
     public void "can open directory cache when rebuild is requested and has been closed"() {
         given:
         def factory1 = factoryFactory.create()
-        factory1.open(tmpDir.testDirectory, null, CacheUsage.REBUILD, null, [prop: 'value'], mode(Exclusive), null)
-        factory1.close()
+        def cache = factory1.open(tmpDir.testDirectory, null, CacheUsage.REBUILD, null, [prop: 'value'], mode(Exclusive), null)
+        cache.close()
 
         when:
         def factory2 = factoryFactory.create()

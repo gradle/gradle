@@ -88,20 +88,9 @@ public class DefaultCacheFactory implements Factory<CacheFactory> {
                 lock.unlock();
             }
         }
-
-        public void close() {
-            lock.lock();
-            try {
-                delegate.close();
-            } finally {
-                lock.unlock();
-            }
-        }
     }
 
     private class CacheFactoryImpl implements CacheFactory {
-        private final Set<ReferenceTrackingCache> caches = new LinkedHashSet<ReferenceTrackingCache>();
-
         public PersistentCache open(File cacheDir, String displayName, CacheUsage usage, CacheValidator validator, Map<String, ?> properties, LockOptions lockOptions, Action<? super PersistentCache> action) {
             File canonicalDir = GFileUtils.canonicalise(cacheDir);
             DirCacheReference dirCacheReference = dirCaches.get(canonicalDir);
@@ -133,9 +122,7 @@ public class DefaultCacheFactory implements Factory<CacheFactory> {
             if (usage == CacheUsage.REBUILD) {
                 dirCacheReference.rebuiltBy = this;
             }
-            ReferenceTrackingCache wrapper = new ReferenceTrackingCache(dirCacheReference);
-            caches.add(wrapper);
-            return wrapper;
+            return new ReferenceTrackingCache(dirCacheReference);
         }
 
         public PersistentCache openStore(File storeDir, String displayName, LockOptions lockOptions, Action<? super PersistentCache> initializer) throws CacheOpenException {
@@ -150,17 +137,7 @@ public class DefaultCacheFactory implements Factory<CacheFactory> {
                 dirCacheReference = new DirCacheReference(cache, Collections.<String, Object>emptyMap(), lockOptions);
                 dirCaches.put(canonicalDir, dirCacheReference);
             }
-            ReferenceTrackingCache wrapper = new ReferenceTrackingCache(dirCacheReference);
-            caches.add(wrapper);
-            return wrapper;
-        }
-
-        public void close() {
-            try {
-                CompositeStoppable.stoppable(caches).stop();
-            } finally {
-                caches.clear();
-            }
+            return new ReferenceTrackingCache(dirCacheReference);
         }
     }
 
