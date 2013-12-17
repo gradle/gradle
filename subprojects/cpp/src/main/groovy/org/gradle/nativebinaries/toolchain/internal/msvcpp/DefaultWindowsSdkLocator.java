@@ -146,6 +146,12 @@ public class DefaultWindowsSdkLocator extends DefaultWindowsLocator implements W
     }
 
     private void locateKitsInRegistry() {
+        for (String baseKey : REGISTRY_BASEPATHS) {
+            locateKitsInRegistry(baseKey);
+        }
+    }
+
+    private void locateKitsInRegistry(String baseKey) {
         String[] versions = {
                 VERSION_KIT_8,
                 VERSION_KIT_81
@@ -157,7 +163,7 @@ public class DefaultWindowsSdkLocator extends DefaultWindowsLocator implements W
 
         for (int i = 0; i != keys.length; ++i) {
             try {
-                File kitDir = new File(windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, REGISTRY_ROOTPATH_KIT, keys[i]));
+                File kitDir = new File(windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, baseKey + REGISTRY_ROOTPATH_KIT, keys[i]));
                 if (isWindowsSdk(kitDir)) {
                     LOGGER.debug("Found Windows Kit {} at {}", versions[i], kitDir);
                     addSdk(kitDir, versions[i], NAME_KIT + " " + versions[i]);
