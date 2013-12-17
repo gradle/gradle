@@ -168,24 +168,33 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new DefaultBuildClassLoaderRegistry(get(ClassLoaderRegistry.class));
     }
 
-    protected ScriptCompilerFactory createScriptCompileFactory() {
-        ScriptExecutionListener scriptExecutionListener = get(ListenerManager.class).getBroadcaster(ScriptExecutionListener.class);
-        EmptyScriptGenerator emptyScriptGenerator = new AsmBackedEmptyScriptGenerator();
-        CacheValidator scriptCacheInvalidator = new CacheValidator() {
-            public boolean isValid() {
-                return !get(StartParameter.class).isRecompileScripts();
-            }
-        };
+    protected ScriptCompilerFactory createScriptCompileFactory(ListenerManager listenerManager, EmptyScriptGenerator emptyScriptGenerator, FileCacheBackedScriptClassCompiler scriptCompiler) {
+        ScriptExecutionListener scriptExecutionListener = listenerManager.getBroadcaster(ScriptExecutionListener.class);
         return new DefaultScriptCompilerFactory(
                 new CachingScriptClassCompiler(
                         new ShortCircuitEmptyScriptCompiler(
-                                new FileCacheBackedScriptClassCompiler(
-                                        get(CacheRepository.class),
-                                        scriptCacheInvalidator,
-                                        new DefaultScriptCompilationHandler(
-                                                emptyScriptGenerator), get(ProgressLoggerFactory.class)),
+                                scriptCompiler,
                                 emptyScriptGenerator)),
-                new DefaultScriptRunnerFactory(scriptExecutionListener));
+                new DefaultScriptRunnerFactory(
+                        scriptExecutionListener));
+    }
+
+    protected EmptyScriptGenerator createEmptyScriptGenerator() {
+        return new AsmBackedEmptyScriptGenerator();
+    }
+
+    protected FileCacheBackedScriptClassCompiler createFileCacheBackedScriptClassCompiler(CacheRepository cacheRepository, EmptyScriptGenerator emptyScriptGenerator, final StartParameter startParameter, ProgressLoggerFactory progressLoggerFactory) {
+        CacheValidator scriptCacheInvalidator = new CacheValidator() {
+            public boolean isValid() {
+                return !startParameter.isRecompileScripts();
+            }
+        };
+        return new FileCacheBackedScriptClassCompiler(
+                cacheRepository,
+                scriptCacheInvalidator,
+                new DefaultScriptCompilationHandler(
+                        emptyScriptGenerator),
+                progressLoggerFactory);
     }
 
     protected ScriptPluginFactory createScriptObjectConfigurerFactory() {
@@ -267,18 +276,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     }
 
     protected ServiceRegistryFactory createServiceRegistryFactory(final ServiceRegistry services) {
-        return new ServiceRegistryFactory() {
-            public ServiceRegistry createFor(Object domainObject) {
-                if (domainObject instanceof GradleInternal) {
-                    return new GradleScopeServices(services, (GradleInternal) domainObject);
-                }
-                if (domainObject instanceof SettingsInternal) {
-                    return new SettingsScopeServices(services, (SettingsInternal) domainObject);
-                }
-                throw new IllegalArgumentException(String.format("Cannot create services for unknown domain object of type %s.",
-                        domainObject.getClass().getSimpleName()));
-            }
-        };
+        return new BuildScopeServiceRegistryFactory(services);
     }
 
     private class DependencyMetaDataProviderImpl implements DependencyMetaDataProvider {
