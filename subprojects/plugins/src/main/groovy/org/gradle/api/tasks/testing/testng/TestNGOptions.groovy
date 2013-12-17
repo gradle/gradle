@@ -16,6 +16,7 @@
 package org.gradle.api.tasks.testing.testng
 
 import groovy.xml.MarkupBuilder
+import org.gradle.api.Incubating
 import org.gradle.api.JavaVersion
 import org.gradle.api.tasks.testing.TestFrameworkOptions
 
@@ -27,10 +28,11 @@ class TestNGOptions extends TestFrameworkOptions {
     /**
      * The location to write TestNG's output.
      * <p>
-     * Defaults to the owning test task's location for writing the HTML report, at the time the {@code useTestNG()} method is called.
+     * Defaults to the owning test task's location for writing the HTML report.
      *
      * @since 1.11
      */
+    @Incubating
     File outputDirectory
 
     /**

@@ -136,7 +136,7 @@ A dependency on the 'api' linkage can be specified by both the direct and the ma
 ### Independent control of TestNG output directory
 
 It is now possible to specify the location that TestNG should write its output files to.
-In previous versions of Gradle, this location was inseperable from the location that Gradle writes its output files to.
+In previous versions of Gradle, this location was inseparable from the location that Gradle writes its output files to.
 
 It can be set via the `TestNGOptions.outputDirectory` property, which can be set during the `useTestNG()` configuration closure…
 
@@ -147,7 +147,7 @@ It can be set via the `TestNGOptions.outputDirectory` property, which can be set
       }
     }
 
-By default, the value for this new property will be the same as the initial value for the `destination` property of the test task's HTML report.
+By default, the value for this new property will be the same as the value for the `destination` property of the test task's HTML report.
 
 If you are using the file outputs from TestNG listeners (i.e. you are calling `useDefaultListeners()` or registering a custom listener), 
 it is recommended that you explicitly set this new property to a value other than the default.

@@ -30,13 +30,13 @@ import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.detection.DefaultTestExecuter;
 import org.gradle.api.internal.tasks.testing.detection.TestExecuter;
+import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework;
 import org.gradle.api.internal.tasks.testing.junit.report.DefaultTestReport;
 import org.gradle.api.internal.tasks.testing.junit.report.TestReporter;
 import org.gradle.api.internal.tasks.testing.junit.result.*;
 import org.gradle.api.internal.tasks.testing.logging.*;
 import org.gradle.api.internal.tasks.testing.results.TestListenerAdapter;
-import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.reporting.DirectoryReport;
@@ -116,6 +116,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     private final ListenerBroadcast<TestListener> testListenerBroadcaster;
     private final ListenerBroadcast<TestOutputListener> testOutputListenerBroadcaster;
     private final StyledTextOutputFactory textOutputFactory;
+    private final Instantiator instantiator;
     private final ProgressLoggerFactory progressLoggerFactory;
     private final TestLoggingContainer testLogging;
     private final DefaultJavaForkOptions forkOptions;
@@ -142,6 +143,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
                 Factory<WorkerProcessBuilder> processBuilderFactory, ActorFactory actorFactory, Instantiator instantiator,
                 ProgressLoggerFactory progressLoggerFactory) {
         this.progressLoggerFactory = progressLoggerFactory;
+        this.instantiator = instantiator;
         testListenerBroadcaster = listenerManager.createAnonymousBroadcaster(TestListener.class);
         testOutputListenerBroadcaster = listenerManager.createAnonymousBroadcaster(TestOutputListener.class);
         this.textOutputFactory = textOutputFactory;
@@ -918,7 +920,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * @param testFrameworkConfigure A closure used to configure the TestNG options.
      */
     public void useTestNG(Closure testFrameworkConfigure) {
-        useTestFramework(new TestNGTestFramework(this, this.filter), testFrameworkConfigure);
+        useTestFramework(new TestNGTestFramework(this, this.filter, instantiator), testFrameworkConfigure);
     }
 
     /**
