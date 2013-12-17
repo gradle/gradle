@@ -22,10 +22,10 @@ import org.gradle.cache.CacheAccess;
 import org.gradle.cache.internal.btree.BTreePersistentIndexedCache;
 import org.gradle.cache.internal.cacheops.CacheAccessOperationsStack;
 import org.gradle.cache.internal.filelock.LockOptions;
-import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.messaging.serialize.Serializer;
 
 import java.io.File;
@@ -115,6 +115,13 @@ public class DefaultCacheAccess implements CacheAccess {
     public void close() {
         lock.lock();
         try {
+            // Take ownership
+            if (owner == null) {
+                owner = Thread.currentThread();
+            } else if (lockOptions.getMode() != Shared && owner != Thread.currentThread()) {
+                // TODO:ADAM - The check for shared mode is a work around. Owner should release the lock
+                throw new IllegalStateException(String.format("Cannot close %s as it is currently being used by another thread.", cacheDisplayName));
+            }
             if (fileLock != null) {
                 closeFileLock();
             }
@@ -319,7 +326,7 @@ public class DefaultCacheAccess implements CacheAccess {
     private FileLock getLock() {
         lock.lock();
         try {
-            if ((Thread.currentThread() != owner && owner != null) || fileLock == null) {
+            if (Thread.currentThread() != owner) {
                 throw new IllegalStateException(String.format("The %s has not been locked for this thread. File lock: %s, owner: %s", cacheDisplayName, fileLock != null, owner));
             }
         } finally {

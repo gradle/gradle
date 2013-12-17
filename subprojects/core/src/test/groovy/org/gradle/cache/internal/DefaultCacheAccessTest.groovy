@@ -339,16 +339,55 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         1 * lock.updateFile(runnable)
     }
 
-    def "file access can be accessed when there is no owner"() {
+    def "file access is available when there is an owner"() {
         def runnable = Mock(Runnable)
 
         when:
         access.open(mode(None))
-        access.useCache("use cache", {} as Runnable) //acquires file lock but releases the thread lock
+        access.useCache("use cache", { access.fileAccess.updateFile(runnable)})
+
+        then:
+        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>", "use cache") >> lock
+        1 * lock.updateFile(runnable)
+    }
+
+    def "file access can not be accessed when there is no owner"() {
+        def runnable = Mock(Runnable)
+
+        given:
+        lockManager.lock(lockFile, mode(Exclusive), "<display-name>", "use cache") >> lock
+        access.open(mode(None))
+        access.useCache("use cache", runnable)
+
+        when:
         access.fileAccess.updateFile(runnable)
 
         then:
-        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>", _) >> lock
-        1 * lock.updateFile(runnable)
+        thrown(IllegalStateException)
     }
+
+    def "can close cache when the cache has not been used"() {
+        when:
+        access.open(mode(None))
+        access.close()
+
+        then:
+        0 * _
+    }
+
+    def "can close cache when there is no owner"() {
+        given:
+        lockManager.lock(lockFile, mode(Exclusive), "<display-name>", "use cache") >> lock
+        lock.writeFile(_) >> { Runnable r -> r.run() }
+        access.open(mode(None))
+        def cache = access.newCache(new PersistentIndexedCacheParameters(tmpDir.file('cache.bin'), String.class, Integer.class))
+        access.useCache("use cache", { cache.get("key") })
+
+        when:
+        access.close()
+
+        then:
+        1 * lock.close()
+    }
+
 }
