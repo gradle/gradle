@@ -95,6 +95,9 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
                 executor = executorFactory.create("File lock request listener");
                 executor.execute(listener());
             }
+            if (contendedActions.containsKey(lockId)) {
+                throw new UnsupportedOperationException("Multiple contention actions for a given lock are currently not supported.");
+            }
             contendedActions.put(lockId, whenContended);
         } finally {
             lock.unlock();
