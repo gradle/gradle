@@ -216,6 +216,8 @@ We would like to thank the following community members for making contributions 
 
 * [Michael Putters](https://github.com/mputters) - improved the native binaries support to use the Windows registry to locate available Windows SDKs
 * [Jean-Baptiste Nizet](https://github.com/jnizet) - improved HTML test reports to better report on ignored tests
+* [Piotr Kubowicz](https://github.com/Derbeth) - Documentation regarding incrementalness of tasks with no declared output
+
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
 ## Known issues
