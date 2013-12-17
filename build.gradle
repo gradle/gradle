@@ -164,7 +164,7 @@ task verifyIsProductionBuildEnvironment << {
 
 task waitForDaemonsToDie {
     if (!project.hasProperty("noWaitForDaemonsToDie")) {
-        if (isWindows && isCiServer) {
+        if (isWindows && isCiServer && project.hasProperty("testAllVersions")) {
             gradle.startParameter.taskNames.add(0, it.path)
         }
         doLast {
