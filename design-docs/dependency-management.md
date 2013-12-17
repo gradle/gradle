@@ -170,13 +170,17 @@ This story changes the `idea` and `eclipse` plugins to use the resolution result
 - Change `IdeDependenciesExtractor` and `JavadocAndSourcesDownloader` to use the resolution result to determine the project and
   external dependencies.
 
-## Story: Dependency resolution result exposes consumer that is not a module version
+## Story: Dependency resolution result exposes a consumer that is not a module version
 
 This story exposes different kinds of consumers for a dependency graph.
 
 - Result `root.id` should return a `ProjectComponentIdentifier` when a project configuration is resolved.
 - Result `root.id` should return an opaque `ComponentIdentifier` implementation when any other kind of configuration is resolved.
+    - Add an internal implementation that implements only `ComponentIdentifier`. Two such implementations are equal when their display
+      names are the same.
     - This implementation should use the configuration's display name for the component display name.
+- When there is a project dependency in the graph that refers to the root, the selected component for the dependency should be the same instance
+  as `root`.
 
 ### Test coverage
 
@@ -188,8 +192,9 @@ This story exposes different kinds of consumers for a dependency graph.
 ### Open issues
 
 - Is it a bit of a stretch to call some of these consumers a 'component'?
-- Sync this up with the variant resolution stories below. When resolving a native component's dependencies, the `root` should represent the consuming native component.
 - The results are actually component _instances_ rather than components (as per the definition above). Perhaps come up with a new name for 'component'.
+- Sync this up with the variant resolution stories below. When resolving a native component's dependencies, the `root` should represent the consuming native component.
+- Clean up the display names for configurations.
 - Packages for the new types.
 - Convenience for casting selector and id?
 - Convenience for selecting things with a given id type or selector type?
