@@ -16,15 +16,22 @@
 
 package org.gradle.api.internal.tasks.testing.testng
 
+import org.gradle.api.internal.AsmBackedClassGenerator
+import org.gradle.api.internal.ClassGeneratorBackedInstantiator
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter
 import org.gradle.api.tasks.testing.Test
 import org.gradle.api.tasks.testing.testng.TestNGOptions
+import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.util.TestUtil
+import spock.lang.Shared
 import spock.lang.Specification
 
 public class TestNGTestFrameworkTest extends Specification {
+
+    @Shared Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), new DirectInstantiator())
 
     private project = new ProjectBuilder().build()
     Test testTask = TestUtil.createTask(Test, project)
@@ -38,27 +45,30 @@ public class TestNGTestFrameworkTest extends Specification {
         project.ext.sourceCompatibility = "1.4"
 
         when:
-        def framework = new TestNGTestFramework(testTask, new DefaultTestFilter());
+        def framework = createFramework()
 
         then:
         framework.options.annotations == TestNGOptions.JAVADOC_ANNOTATIONS
         framework.testTask == testTask
-        framework.options.projectDir == project.projectDir
         framework.detector
     }
 
     void "initializes for newer java"() {
         expect:
-        new TestNGTestFramework(testTask, new DefaultTestFilter()).options.annotations == TestNGOptions.JDK_ANNOTATIONS
+        createFramework().options.annotations == TestNGOptions.JDK_ANNOTATIONS
     }
 
     void "creates test class processor"() {
         when:
-        def framework = new TestNGTestFramework(testTask, new DefaultTestFilter());
+        def framework = createFramework()
         def processor = framework.getProcessorFactory().create(Mock(ServiceRegistry))
 
         then:
         framework.options.testResources.is(testTask.testSrcDirs)
         processor instanceof TestNGTestClassProcessor
+    }
+
+    TestNGTestFramework createFramework() {
+        new TestNGTestFramework(testTask, new DefaultTestFilter(), instantiator)
     }
 }
