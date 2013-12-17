@@ -40,89 +40,69 @@ public class DefaultCacheRepository implements CacheRepository {
         this.cacheUsage = cacheUsage;
     }
 
-    public DirectoryCacheBuilder store(String key) {
+    public CacheBuilder store(String key) {
         return new PersistentStoreBuilder(key);
     }
 
-    public DirectoryCacheBuilder cache(String key) {
+    public CacheBuilder cache(String key) {
         return new PersistentCacheBuilder(key);
     }
 
-    private abstract class AbstractCacheBuilder<T> implements CacheBuilder<T> {
-        private final String key;
-        private Map<String, ?> properties = Collections.emptyMap();
-        private CacheLayout layout;
-        private CacheValidator validator;
+    private abstract class AbstractCacheBuilder implements CacheBuilder {
+        final String key;
+        Map<String, ?> properties = Collections.emptyMap();
+        CacheLayout layout;
+        CacheValidator validator;
+        Action<? super PersistentCache> initializer;
+        LockOptions lockOptions = mode(LockMode.Shared);
+        String displayName;
 
         protected AbstractCacheBuilder(String key) {
             this.key = key;
             this.layout = new CacheLayoutBuilder().build();
         }
 
-        public CacheBuilder<T> withProperties(Map<String, ?> properties) {
+        public CacheBuilder withProperties(Map<String, ?> properties) {
             this.properties = properties;
             return this;
         }
 
-        public CacheBuilder<T> withLayout(CacheLayout layout) {
+        public CacheBuilder withLayout(CacheLayout layout) {
             this.layout = layout;
             return this;
         }
 
-        public CacheBuilder<T> withValidator(CacheValidator validator) {
+        public CacheBuilder withValidator(CacheValidator validator) {
             this.validator = validator;
             return this;
         }
 
-        public T open() {
-            File cacheBaseDir = layout.getCacheDir(globalCacheDir, projectCacheDir, key);
-            return doOpen(cacheBaseDir, properties, validator);
-        }
-
-        protected abstract T doOpen(File cacheDir, Map<String, ?> properties, CacheValidator validator);
-
-    }
-
-    private class PersistentCacheBuilder extends AbstractCacheBuilder<PersistentCache> implements DirectoryCacheBuilder {
-        Action<? super PersistentCache> initializer;
-        LockOptions lockOptions = mode(LockMode.Shared);
-        String displayName;
-
-        protected PersistentCacheBuilder(String key) {
-            super(key);
-        }
-
-        @Override
-        public DirectoryCacheBuilder withLayout(CacheLayout layout) {
-            super.withLayout(layout);
-            return this;
-        }
-
-        @Override
-        public DirectoryCacheBuilder withProperties(Map<String, ?> properties) {
-            super.withProperties(properties);
-            return this;
-        }
-
-        @Override
-        public DirectoryCacheBuilder withValidator(CacheValidator validator) {
-            super.withValidator(validator);
-            return this;
-        }
-
-        public DirectoryCacheBuilder withInitializer(Action<? super PersistentCache> initializer) {
-            this.initializer = initializer;
-            return this;
-        }
-
-        public DirectoryCacheBuilder withDisplayName(String displayName) {
+        public CacheBuilder withDisplayName(String displayName) {
             this.displayName = displayName;
             return this;
         }
 
-        public DirectoryCacheBuilder withLockOptions(LockOptions lockOptions) {
+        public CacheBuilder withLockOptions(LockOptions lockOptions) {
             this.lockOptions = lockOptions;
             return this;
+        }
+
+        public CacheBuilder withInitializer(Action<? super PersistentCache> initializer) {
+            this.initializer = initializer;
+            return this;
+        }
+
+        public PersistentCache open() {
+            File cacheBaseDir = layout.getCacheDir(globalCacheDir, projectCacheDir, key);
+            return doOpen(cacheBaseDir, properties, validator);
+        }
+
+        protected abstract PersistentCache doOpen(File cacheDir, Map<String, ?> properties, CacheValidator validator);
+    }
+
+    private class PersistentCacheBuilder extends AbstractCacheBuilder {
+        protected PersistentCacheBuilder(String key) {
+            super(key);
         }
 
         @Override
@@ -131,7 +111,7 @@ public class DefaultCacheRepository implements CacheRepository {
         }
     }
 
-    private class PersistentStoreBuilder extends PersistentCacheBuilder {
+    private class PersistentStoreBuilder extends AbstractCacheBuilder {
         private PersistentStoreBuilder(String key) {
             super(key);
         }

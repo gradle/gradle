@@ -16,9 +16,12 @@
 
 package org.gradle.cache;
 
+import org.gradle.api.Action;
+import org.gradle.cache.internal.filelock.LockOptions;
+
 import java.util.Map;
 
-public interface CacheBuilder<T> {
+public interface CacheBuilder {
     enum VersionStrategy {
         /**
          * A separate cache instance for each Gradle version. This is the default.
@@ -38,7 +41,7 @@ public interface CacheBuilder<T> {
      * @param properties additional properties for the cache.
      * @return this
      */
-    CacheBuilder<T> withProperties(Map<String, ?> properties);
+    CacheBuilder withProperties(Map<String, ?> properties);
 
     /**
      * Specifies the layout strategy for the Cache.
@@ -46,8 +49,7 @@ public interface CacheBuilder<T> {
      * @param layout The layout for this cache.
      * @return this
      */
-    CacheBuilder<T> withLayout(CacheLayout layout);
-
+    CacheBuilder withLayout(CacheLayout layout);
 
     /**
      * Specifies a cache validator for this cache. If {@link CacheValidator#isValid()} results in false, the Cache is considered as invalid.
@@ -55,12 +57,30 @@ public interface CacheBuilder<T> {
      * @param validator The validator
      * @return this
      */
-    CacheBuilder<T> withValidator(CacheValidator validator);
+    CacheBuilder withValidator(CacheValidator validator);
 
     /**
-     * Opens the cache.
+     * Specifies the display name for this cache. This display name is used in logging and error messages.
+     */
+    CacheBuilder withDisplayName(String displayName);
+
+    /**
+     * Specifies the <em>initial</em> lock options to use. See {@link PersistentCache} for details.
+     *
+     * <p>Note that not every combination of cache type and lock options is supported.
+     */
+    CacheBuilder withLockOptions(LockOptions lockOptions);
+
+    /**
+     * Specifies an action to execute to initialize the cache contents, if the cache does not exist or is invalid. An exclusive lock is held while the initializer is executing, to prevent
+     * cross-process access.
+     */
+    CacheBuilder withInitializer(Action<? super PersistentCache> initializer);
+
+    /**
+     * Opens the cache. It is the caller's responsibility to close the cache when finished with it.
      *
      * @return The cache.
      */
-    T open() throws CacheOpenException;
+    PersistentCache open() throws CacheOpenException;
 }

@@ -17,8 +17,8 @@
 package org.gradle.process.internal.child
 
 import org.gradle.api.internal.classpath.ModuleRegistry
+import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheRepository
-import org.gradle.cache.DirectoryCacheBuilder
 import org.gradle.cache.PersistentCache
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -38,7 +38,7 @@ class WorkerProcessClassPathProviderTest extends Specification {
     def createsTheWorkerClasspathOnDemand() {
         def cacheDir = tmpDir.testDirectory
         def jarFile = cacheDir.file('gradle-worker.jar')
-        DirectoryCacheBuilder cacheBuilder = Mock()
+        CacheBuilder cacheBuilder = Mock()
         PersistentCache cache = Mock()
         def initializer = null
 
@@ -58,7 +58,7 @@ class WorkerProcessClassPathProviderTest extends Specification {
     def reusesTheCachedClasspath() {
         def cacheDir = tmpDir.testDirectory
         def jarFile = cacheDir.file('gradle-worker.jar')
-        DirectoryCacheBuilder cacheBuilder = Mock()
+        CacheBuilder cacheBuilder = Mock()
         PersistentCache cache = Mock()
 
         when:

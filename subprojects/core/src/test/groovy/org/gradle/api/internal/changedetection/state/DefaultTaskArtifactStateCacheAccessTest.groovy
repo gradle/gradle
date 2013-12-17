@@ -17,8 +17,8 @@ package org.gradle.api.internal.changedetection.state
 
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheRepository
-import org.gradle.cache.DirectoryCacheBuilder
 import org.gradle.cache.PersistentCache
 import org.gradle.cache.PersistentIndexedCache
 import org.gradle.messaging.serialize.DefaultSerializer
@@ -30,7 +30,7 @@ class DefaultTaskArtifactStateCacheAccessTest extends Specification {
     final DefaultTaskArtifactStateCacheAccess cacheAccess = new DefaultTaskArtifactStateCacheAccess(gradle, cacheRepository, new NoOpDecorator())
     
     def "opens backing cache on first use"() {
-        DirectoryCacheBuilder cacheBuilder = Mock()
+        CacheBuilder cacheBuilder = Mock()
         PersistentCache backingCache = Mock()
         PersistentIndexedCache<String, Integer> backingIndexedCache = Mock()
         ProjectInternal project = Mock()

@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 package org.gradle.api.internal.artifacts.ivyservice
+
 import org.gradle.api.internal.filestore.PathKeyFileStore
+import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheRepository
-import org.gradle.cache.DirectoryCacheBuilder
 import org.gradle.cache.PersistentCache
 import org.gradle.cache.internal.FileLockManager
 import org.gradle.test.fixtures.file.TestFile
@@ -28,7 +29,7 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode
 
 class DefaultCacheLockingManagerTest extends Specification {
     CacheRepository cacheRepository = Mock()
-    DirectoryCacheBuilder directoryCacheBuilder = Mock()
+    CacheBuilder directoryCacheBuilder = Mock()
     PersistentCache persistentCache = Mock()
     @Rule TestNameTestDirectoryProvider temporaryFolder
 
