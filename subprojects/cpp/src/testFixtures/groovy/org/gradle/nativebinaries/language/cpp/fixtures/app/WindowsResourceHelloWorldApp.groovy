@@ -55,6 +55,11 @@ class WindowsResourceHelloWorldApp extends HelloWorldApp {
     }
 
     @Override
+    String compilerDefine(String define, String value) {
+        "rcCompiler.define '${define}', '${value}'"
+    }
+
+    @Override
     SourceFile getMainSource() {
         return sourceFile("cpp", "main.cpp", """
 #include "hello.h"

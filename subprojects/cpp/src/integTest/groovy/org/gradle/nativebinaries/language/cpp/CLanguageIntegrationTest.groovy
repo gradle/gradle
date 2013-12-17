@@ -18,31 +18,12 @@ package org.gradle.nativebinaries.language.cpp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.CCompilerDetectingTestApp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.CHelloWorldApp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.HelloWorldApp
+import spock.lang.Issue
+import spock.lang.Unroll
 
 class CLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
 
     HelloWorldApp helloWorldApp = new CHelloWorldApp()
-
-    def "build fails when compilation fails"() {
-        given:
-        buildFile << """
-             executables {
-                 main {}
-             }
-         """
-
-        and:
-        file("src/main/c/broken.c") << """
-        #include <stdio.h>
-
-        'broken
-"""
-
-        expect:
-        fails "mainExecutable"
-        failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainC'.");
-        failure.assertHasCause("C compiler failed; see the error output for details.")
-    }
 
     def "sources are compiled with C compiler"() {
         def app = new CCompilerDetectingTestApp()
@@ -107,6 +88,61 @@ class CLanguageIntegrationTest extends AbstractLanguageIntegrationTest {
         def mainExecutable = executable("build/binaries/mainExecutable/main")
         mainExecutable.assertExists()
         mainExecutable.exec().out == helloWorldApp.englishOutput
+    }
+
+    @Issue("GRADLE-2943")
+    @Unroll
+    def "can define macro #output"() {
+        given:
+        buildFile << """
+            executables {
+                main {
+                    binaries.all {
+                        ${helloWorldApp.compilerDefine('CUSTOM', inString)}
+                    }
+                }
+            }
+        """
+
+        and:
+        helloWorldApp.writeSources(file("src/main"))
+
+        when:
+        executer.withArgument("--info")
+        run "mainExecutable"
+
+        then:
+        def mainExecutable = executable("build/binaries/mainExecutable/main")
+        mainExecutable.assertExists()
+        mainExecutable.exec().out == helloWorldApp.getCustomOutput(output)
+
+        where:
+        inString                           | output
+        '"quoted"'                         | 'quoted'
+        '"with space"'                     | 'with space'
+        '"with\\\\"quote\\\\"internal"'    | 'with"quote"internal'
+        '"with \\\\"quote\\\\" and space"' | 'with "quote" and space'
+    }
+
+    def "build fails when compilation fails"() {
+        given:
+        buildFile << """
+             executables {
+                 main {}
+             }
+         """
+
+        and:
+        file("src/main/c/broken.c") << """
+        #include <stdio.h>
+
+        'broken
+"""
+
+        expect:
+        fails "mainExecutable"
+        failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainC'.");
+        failure.assertHasCause("C compiler failed; see the error output for details.")
     }
 }
 

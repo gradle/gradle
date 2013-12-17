@@ -57,8 +57,13 @@ class CHelloWorldApp extends IncrementalHelloWorldApp {
                 return "${HELLO_WORLD_FRENCH}";
             }
             #endif
+            #ifdef CUSTOM
+            char* greeting() {
+                return CUSTOM;
+            }
+            #endif
             void DLL_FUNC sayHello() {
-                #ifdef FRENCH
+                #if defined(FRENCH) || defined(CUSTOM)
                 printf("%s\\n", greeting());
                 #else
                 printf("${HELLO_WORLD}\\n");
