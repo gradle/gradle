@@ -36,7 +36,6 @@ public interface DependentSourceSet extends LanguageSourceSet {
      *
      * <ul>
      *     <li>A {@link org.gradle.nativebinaries.Library}</li>
-     *     <li>A {@link org.gradle.nativebinaries.LibraryBinary}</li>
      *     <li>A {@link org.gradle.nativebinaries.NativeDependencySet}</li>
      *     <li>A {@link java.util.Map} containing the library selector.</li>
      * </ul>

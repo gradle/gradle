@@ -93,7 +93,6 @@ public interface NativeBinary extends Binary {
      *
      * <ul>
      *     <li>A {@link Library}</li>
-     *     <li>A {@link LibraryBinary}</li>
      *     <li>A {@link NativeDependencySet}</li>
      *     <li>A {@link java.util.Map} containing the library selector.</li>
      * </ul>
