@@ -77,6 +77,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         file(REPORTING_BASE).listFiles().collect { it.name } as Set == ["jacoco", "tests"] as Set
         file(REPORT_HTML_DEFAULT_PATH).exists()
         file("${REPORTING_BASE}/jacoco/test").listFiles().collect { it.name } == ["html"]
+        file("${REPORTING_BASE}/jacoco/test/html/org.gradle/Class1.java.html").exists()
     }
 
     void canConfigureReportsInJacocoTestReport() {
@@ -220,12 +221,6 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         expect:
         //dependencies task forces resolution of the configurations
         succeeds "dependencies", "test", "jacocoTestReport"
-    }
-
-    void "contains source references"() {
-        expect:
-        succeeds('test', 'jacocoTestReport')
-        file("${REPORTING_BASE}/jacoco/test/html/org.gradle/Class1.java.html").exists()
     }
 
     private void createTestFiles() {
