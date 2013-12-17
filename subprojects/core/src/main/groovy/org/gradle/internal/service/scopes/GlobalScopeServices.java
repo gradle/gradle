@@ -32,12 +32,11 @@ import org.gradle.cache.internal.locklistener.DefaultFileLockContentionHandler;
 import org.gradle.cache.internal.locklistener.FileLockContentionHandler;
 import org.gradle.cli.CommandLineConverter;
 import org.gradle.initialization.*;
-import org.gradle.internal.Factory;
-import org.gradle.internal.environment.GradleBuildEnvironment;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classloader.DefaultClassLoaderFactory;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.environment.GradleBuildEnvironment;
 import org.gradle.internal.nativeplatform.ProcessEnvironment;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.reflect.DirectInstantiator;
@@ -111,7 +110,7 @@ public class GlobalScopeServices {
         return new DefaultPluginModuleRegistry(moduleRegistry);
     }
 
-    Factory<CacheFactory> createCacheFactory(FileLockManager fileLockManager) {
+    protected CacheFactory createCacheFactory(FileLockManager fileLockManager) {
         return new DefaultCacheFactory(fileLockManager);
     }
 

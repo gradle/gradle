@@ -38,6 +38,8 @@ import org.gradle.groovy.scripts.DefaultScriptCompilerFactory
 import org.gradle.groovy.scripts.ScriptCompilerFactory
 import org.gradle.initialization.*
 import org.gradle.internal.Factory
+import org.gradle.internal.classloader.ClassLoaderFactory
+import org.gradle.internal.classloader.MultiParentClassLoader
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.invocation.BuildClassLoaderRegistry
@@ -51,11 +53,8 @@ import org.gradle.process.internal.DefaultWorkerProcessFactory
 import org.gradle.process.internal.WorkerProcessBuilder
 import org.gradle.profile.ProfileEventAdapter
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.internal.classloader.ClassLoaderFactory
-import org.gradle.internal.classloader.MultiParentClassLoader
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Timeout
 
 import static org.hamcrest.Matchers.instanceOf
 import static org.hamcrest.Matchers.sameInstance
@@ -84,6 +83,7 @@ public class BuildScopeServicesTest extends Specification {
         parent.get(Instantiator) >> ThreadGlobalInstantiator.getOrCreate()
         parent.get(FileResolver) >> Stub(FileResolver)
         parent.get(ProgressLoggerFactory) >> Stub(ProgressLoggerFactory)
+        parent.get(CacheFactory) >> Stub(CacheFactory)
     }
 
     def delegatesToParentForUnknownService() {
@@ -140,7 +140,6 @@ public class BuildScopeServicesTest extends Specification {
         assertThat(registry.get(ListenerManager), sameInstance(listenerManager))
     }
 
-    @Timeout(5)
     def providesAScriptCompilerFactory() {
         setup:
         expectListenerManagerCreated()
@@ -151,13 +150,9 @@ public class BuildScopeServicesTest extends Specification {
     }
 
     def providesACacheRepositoryAndCleansUpOnClose() {
-        setup:
-        1 * cacheFactory.close()
-
         expect:
         registry.get(CacheRepository) instanceof DefaultCacheRepository
         registry.get(CacheRepository) == registry.get(CacheRepository)
-        registry.close()
     }
 
     def providesAnInitScriptHandler() {

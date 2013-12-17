@@ -135,10 +135,6 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                 new InstantiatingBuildLoader(get(IProjectFactory.class)));
     }
 
-    protected CacheFactory createCacheFactory() {
-        return getFactory(CacheFactory.class).create();
-    }
-
     protected CacheRepository createCacheRepository() {
         CacheFactory factory = get(CacheFactory.class);
         StartParameter startParameter = get(StartParameter.class);
