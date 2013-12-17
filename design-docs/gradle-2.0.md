@@ -105,6 +105,7 @@ The current defaults for the outputs of tasks of type `Test` conflict with each 
 
 * Change the default result and report directory for the `Test` type to include the task's name, so that the default
   does not conflict with the default for another `Test` task.
+* Change the default TestNG output directory.
 
 ## Remove old dependency result graph
 
