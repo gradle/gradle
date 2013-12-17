@@ -86,7 +86,16 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider {
     public void close() {
         // This isn't quite right. Should close the worker classpath cache once we're finished with the worker processes. This may be before the end of this build
         // or they may be used across multiple builds
-        workerClassPathCache.close();
+        synchronized (lock) {
+            try {
+                if (workerClassPathCache != null) {
+                    workerClassPathCache.close();
+                }
+            } finally {
+                workerClassPathCache = null;
+                workerClassPath = null;
+            }
+        }
     }
 
     private static File jarFile(PersistentCache cache) {
