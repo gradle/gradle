@@ -207,7 +207,11 @@ class TestNGTestClassProcessorTest extends Specification {
         process(ATestNGClass, ATestNGClassWithBeforeAndAfter) //the latter is not matched
 
         then:
-        0 * processor.failure(_, _)
+        then: 1 * processor.started({ it.id == 1 && it.name == 'Gradle test' && it.className == null }, _)
+        then: 1 * processor.started({ it.id == 2 && it.name == 'ok' && it.className == ATestNGClass.name }, _)
+        then: 1 * processor.completed(2, _)
+        then: 1 * processor.completed(1, _)
+        0 * processor._
     }
 }
 
