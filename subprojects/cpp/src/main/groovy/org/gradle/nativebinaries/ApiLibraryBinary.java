@@ -22,5 +22,6 @@ import org.gradle.api.Incubating;
  * A {@link org.gradle.nativebinaries.LibraryBinary} that is just a set of headers.
  */
 @Incubating
+// TODO:DAZ DSL doc
 public interface ApiLibraryBinary extends LibraryBinary {
 }

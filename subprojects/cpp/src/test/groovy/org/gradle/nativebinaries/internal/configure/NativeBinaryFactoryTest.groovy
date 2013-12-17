@@ -22,7 +22,7 @@ import org.gradle.nativebinaries.BuildType
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver
 import org.gradle.nativebinaries.platform.Platform
 import org.gradle.nativebinaries.internal.DefaultExecutable
-import org.gradle.nativebinaries.internal.AbstractProjectExecutableBinary
+import org.gradle.nativebinaries.internal.ProjectExecutableBinary
 import org.gradle.nativebinaries.internal.DefaultFlavor
 import org.gradle.nativebinaries.internal.DefaultFlavorContainer
 import org.gradle.nativebinaries.internal.NativeBuildComponentIdentifier
@@ -56,7 +56,7 @@ class NativeBinaryFactoryTest extends Specification {
 
         and:
         def factory = new NativeBinaryFactory(new DirectInstantiator(), resolver, project, toolChains, [], [], flavors)
-        def binary = factory.createNativeBinary(AbstractProjectExecutableBinary, component, toolChain, platform, buildType, flavor1)
+        def binary = factory.createNativeBinary(ProjectExecutableBinary, component, toolChain, platform, buildType, flavor1)
 
         then:
         binary.namingScheme.lifecycleTaskName == 'nameExecutable'
@@ -68,7 +68,7 @@ class NativeBinaryFactoryTest extends Specification {
     def "includes flavor in names when component has multiple flavors"() {
         when:
         def factory = new NativeBinaryFactory(new DirectInstantiator(), resolver, project, toolChains, [], [], flavors)
-        def binary = factory.createNativeBinary(AbstractProjectExecutableBinary, component, toolChain, platform, buildType, flavor1)
+        def binary = factory.createNativeBinary(ProjectExecutableBinary, component, toolChain, platform, buildType, flavor1)
 
         then:
         binary.namingScheme.lifecycleTaskName == 'flavor1NameExecutable'
@@ -87,7 +87,7 @@ class NativeBinaryFactoryTest extends Specification {
 
         when:
         component.targetPlatforms("platform2")
-        def binary = factory.createNativeBinary(AbstractProjectExecutableBinary, component, toolChain, platform2, buildType, flavor1)
+        def binary = factory.createNativeBinary(ProjectExecutableBinary, component, toolChain, platform2, buildType, flavor1)
 
         then:
         binary.namingScheme.lifecycleTaskName == 'flavor1NameExecutable'
@@ -97,7 +97,7 @@ class NativeBinaryFactoryTest extends Specification {
 
         when:
         component.targetPlatforms("platform1")
-        binary = factory.createNativeBinary(AbstractProjectExecutableBinary, component, toolChain, platform2, buildType, flavor1)
+        binary = factory.createNativeBinary(ProjectExecutableBinary, component, toolChain, platform2, buildType, flavor1)
 
         then:
         binary.namingScheme.lifecycleTaskName == 'platform2Flavor1NameExecutable'
@@ -116,7 +116,7 @@ class NativeBinaryFactoryTest extends Specification {
         def factory = new NativeBinaryFactory(new DirectInstantiator(), resolver, project, toolChains, [platform], [buildType, buildType2], flavors)
 
         when:
-        def binary = factory.createNativeBinary(AbstractProjectExecutableBinary, component, toolChain, platform, buildType2, flavor1)
+        def binary = factory.createNativeBinary(ProjectExecutableBinary, component, toolChain, platform, buildType2, flavor1)
 
         then:
         binary.namingScheme.lifecycleTaskName == 'buildType2Flavor1NameExecutable'
@@ -126,7 +126,7 @@ class NativeBinaryFactoryTest extends Specification {
 
         when:
         component.targetBuildTypes("buildType2")
-        binary = factory.createNativeBinary(AbstractProjectExecutableBinary, component, toolChain, platform, buildType2, flavor1)
+        binary = factory.createNativeBinary(ProjectExecutableBinary, component, toolChain, platform, buildType2, flavor1)
 
         then:
         binary.namingScheme.lifecycleTaskName == 'flavor1NameExecutable'

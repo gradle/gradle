@@ -22,11 +22,13 @@ import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativebinaries.platform.Platform;
 import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal;
 
-public class AbstractProjectExecutableBinary extends AbstractProjectNativeBinary implements ExecutableBinary {
+import java.io.File;
+
+public class ProjectExecutableBinary extends AbstractProjectNativeBinary implements ExecutableBinary {
     private final Executable executable;
 
-    public AbstractProjectExecutableBinary(Executable executable, Flavor flavor, ToolChainInternal toolChain, Platform platform, BuildType buildType,
-                                           DefaultBinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
+    public ProjectExecutableBinary(Executable executable, Flavor flavor, ToolChainInternal toolChain, Platform platform, BuildType buildType,
+                                   DefaultBinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
         super(executable, flavor, toolChain, platform, buildType, namingScheme.withTypeString("Executable"), resolver);
         this.executable = executable;
     }
@@ -35,7 +37,12 @@ public class AbstractProjectExecutableBinary extends AbstractProjectNativeBinary
         return executable;
     }
 
-    public String getOutputFileName() {
-        return getToolChain().getExecutableName(getComponent().getBaseName());
+    public File getExecutableFile() {
+        String outputFileName = getToolChain().getExecutableName(getComponent().getBaseName());
+        return new File(getBinaryOutputDir(), outputFileName);
+    }
+
+    public File getPrimaryOutput() {
+        return getExecutableFile();
     }
 }

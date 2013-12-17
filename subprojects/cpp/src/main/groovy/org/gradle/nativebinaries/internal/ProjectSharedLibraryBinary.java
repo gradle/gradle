@@ -39,8 +39,18 @@ public class ProjectSharedLibraryBinary extends AbstractProjectLibraryBinary imp
         super(library, flavor, toolChain, platform, buildType, namingScheme.withTypeString("SharedLibrary"), resolver);
     }
 
-    public String getOutputFileName() {
-        return getToolChain().getSharedLibraryName(getComponent().getBaseName());
+    public File getSharedLibraryFile() {
+        String sharedLibraryName = getToolChain().getSharedLibraryName(getComponent().getBaseName());
+        return new File(getBinaryOutputDir(), sharedLibraryName);
+    }
+
+    public File getPrimaryOutput() {
+        return getSharedLibraryFile();
+    }
+
+    public File getSharedLibraryLinkFile() {
+        String sharedLibraryLinkFileName = getToolChain().getSharedLibraryLinkFileName(getComponent().getBaseName());
+        return new File(getBinaryOutputDir(), sharedLibraryLinkFileName);
     }
 
     public FileCollection getLinkFiles() {
@@ -55,6 +65,11 @@ public class ProjectSharedLibraryBinary extends AbstractProjectLibraryBinary imp
         @Override
         protected boolean hasOutputs() {
             return hasSources() && !isResourceOnly();
+        }
+
+        @Override
+        protected Set<File> getOutputs() {
+            return Collections.singleton(getSharedLibraryLinkFile());
         }
 
         private boolean isResourceOnly() {
@@ -81,12 +96,6 @@ public class ProjectSharedLibraryBinary extends AbstractProjectLibraryBinary imp
             }
             return false;
         }
-
-        @Override
-        protected Set<File> getOutputs() {
-            String sharedLibraryLinkFileName = getToolChain().getSharedLibraryLinkFileName(getOutputFile().getPath());
-            return Collections.singleton(new File(sharedLibraryLinkFileName));
-        }
     }
 
     private class SharedLibraryRuntimeOutputs extends LibraryOutputs {
@@ -97,7 +106,7 @@ public class ProjectSharedLibraryBinary extends AbstractProjectLibraryBinary imp
 
         @Override
         protected Set<File> getOutputs() {
-            return Collections.singleton(getOutputFile());
+            return Collections.singleton(getSharedLibraryFile());
         }
     }
 }

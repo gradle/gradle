@@ -46,15 +46,15 @@ class ProjectSharedLibraryBinaryTest extends Specification {
     def "can convert binary to a native dependency"() {
         given:
         def binary = sharedLibrary
-        def binaryFile = tmpDir.createFile("binary.run")
-        def linkFile = tmpDir.createFile("binary.link")
+        def outputDir = tmpDir.createDir("binaryOut")
         def lifecycleTask = Stub(Task)
         binary.setLifecycleTask(lifecycleTask)
         binary.builtBy(Stub(Task))
-        binary.outputFile = binaryFile
+        binary.outputDir = outputDir
 
         and:
-        toolChain.getSharedLibraryLinkFileName(binaryFile.path) >> linkFile.path
+        toolChain.getSharedLibraryName(_) >> "mainShared"
+        toolChain.getSharedLibraryLinkFileName(_) >> "mainSharedLink"
 
         and: "has at least one header exporting source set"
         final headerDir = tmpDir.createDir("headerDir")
@@ -71,15 +71,18 @@ class ProjectSharedLibraryBinaryTest extends Specification {
         binary.source sourceSet
 
         expect:
+        binary.sharedLibraryFile == outputDir.file("mainSharedLibrary/mainShared")
+        binary.sharedLibraryLinkFile == outputDir.file("mainSharedLibrary/mainSharedLink")
+
         binary.headerDirs.files == [headerDir] as Set
 
         and:
-        binary.linkFiles.files == [linkFile] as Set
+        binary.linkFiles.files == [binary.sharedLibraryLinkFile] as Set
         binary.linkFiles.buildDependencies.getDependencies(Stub(Task)) == [lifecycleTask] as Set
         binary.linkFiles.toString() == "shared library 'main:sharedLibrary'"
 
         and:
-        binary.runtimeFiles.files == [binaryFile] as Set
+        binary.runtimeFiles.files == [binary.sharedLibraryFile] as Set
         binary.runtimeFiles.buildDependencies.getDependencies(Stub(Task)) == [lifecycleTask] as Set
         binary.runtimeFiles.toString() == "shared library 'main:sharedLibrary'"
     }

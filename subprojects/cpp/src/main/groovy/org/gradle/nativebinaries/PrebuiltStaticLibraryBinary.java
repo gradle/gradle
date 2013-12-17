@@ -19,14 +19,11 @@ package org.gradle.nativebinaries;
 import java.io.File;
 
 /**
- * The library binary for a {@link PrebuiltLibrary}.
+ * The static linkage of a {@link PrebuiltLibrary}.
  */
-public interface PrebuiltLibraryBinary extends LibraryBinary {
+public interface PrebuiltStaticLibraryBinary extends LibraryBinary, StaticLibraryBinary {
     /**
-     * Sets the output file.
+     * The static library binary file.
      */
-    // TODO:DAZ Rename this and make it specific to different library subtypes
-    // TODO:DAZ Allow the base name to be specified, and determine .so/.dylib/etc from platform
-    // TODO:DAZ Determine conventional mapping of variant dimensions to file names.
-    void setOutputFile(File outputFile);
+    void setStaticLibraryFile(File staticLibraryFile);
 }

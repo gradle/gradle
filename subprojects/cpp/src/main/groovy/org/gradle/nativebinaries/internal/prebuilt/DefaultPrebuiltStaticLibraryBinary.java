@@ -21,19 +21,31 @@ import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.nativebinaries.BuildType;
 import org.gradle.nativebinaries.Flavor;
 import org.gradle.nativebinaries.PrebuiltLibrary;
-import org.gradle.nativebinaries.SharedLibraryBinary;
+import org.gradle.nativebinaries.PrebuiltStaticLibraryBinary;
 import org.gradle.nativebinaries.platform.Platform;
 
-public class PrebuiltSharedLibraryBinary extends AbstractPrebuiltLibraryBinary implements SharedLibraryBinary {
-    public PrebuiltSharedLibraryBinary(String name, PrebuiltLibrary library, BuildType buildType, Platform targetPlatform, Flavor flavor) {
+import java.io.File;
+
+public class DefaultPrebuiltStaticLibraryBinary extends AbstractPrebuiltLibraryBinary implements PrebuiltStaticLibraryBinary {
+    private File staticLibraryFile;
+
+    public DefaultPrebuiltStaticLibraryBinary(String name, PrebuiltLibrary library, BuildType buildType, Platform targetPlatform, Flavor flavor) {
         super(name, library, buildType, targetPlatform, flavor);
     }
 
+    public void setStaticLibraryFile(File staticLibraryFile) {
+        this.staticLibraryFile = staticLibraryFile;
+    }
+
+    public File getStaticLibraryFile() {
+        return staticLibraryFile;
+    }
+
     public FileCollection getLinkFiles() {
-        return new SimpleFileCollection(getOutputFile());
+        return new SimpleFileCollection(getStaticLibraryFile());
     }
 
     public FileCollection getRuntimeFiles() {
-        return new SimpleFileCollection(getOutputFile());
+        return new SimpleFileCollection();
     }
 }

@@ -13,19 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.nativebinaries;
 
-import org.gradle.api.Incubating;
+package org.gradle.nativebinaries;
 
 import java.io.File;
 
 /**
- * A {@link Library} that has been compiled and linked as a shared library.
+ * The shared library linkage of a {@link PrebuiltLibrary}.
  */
-@Incubating
-public interface SharedLibraryBinary extends LibraryBinary {
-    // TODO:DAZ DSL doc
-    File getSharedLibraryFile();
-
-    File getSharedLibraryLinkFile();
+public interface PrebuiltSharedLibraryBinary extends LibraryBinary, SharedLibraryBinary {
+    /**
+     * The shared library file.
+     */
+    void setSharedLibraryFile(File sharedLibraryFile);
 }

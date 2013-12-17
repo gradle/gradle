@@ -21,21 +21,17 @@ import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.language.base.internal.AbstractBuildableModelElement;
 import org.gradle.nativebinaries.BuildType;
 import org.gradle.nativebinaries.Flavor;
+import org.gradle.nativebinaries.LibraryBinary;
 import org.gradle.nativebinaries.PrebuiltLibrary;
-import org.gradle.nativebinaries.PrebuiltLibraryBinary;
 import org.gradle.nativebinaries.internal.LibraryBinaryInternal;
 import org.gradle.nativebinaries.platform.Platform;
 
-import java.io.File;
-
-public abstract class AbstractPrebuiltLibraryBinary extends AbstractBuildableModelElement implements LibraryBinaryInternal, PrebuiltLibraryBinary {
+public abstract class AbstractPrebuiltLibraryBinary extends AbstractBuildableModelElement implements LibraryBinaryInternal, LibraryBinary {
     private final String name;
     private final PrebuiltLibrary library;
     private final BuildType buildType;
     private final Platform targetPlatform;
     private final Flavor flavor;
-
-    private File outputFile;
 
     public AbstractPrebuiltLibraryBinary(String name, PrebuiltLibrary library, BuildType buildType, Platform targetPlatform, Flavor flavor) {
         this.name = name;
@@ -56,14 +52,6 @@ public abstract class AbstractPrebuiltLibraryBinary extends AbstractBuildableMod
 
     public PrebuiltLibrary getComponent() {
         return library;
-    }
-
-    public File getOutputFile() {
-        return outputFile;
-    }
-
-    public void setOutputFile(File outputFile) {
-        this.outputFile = outputFile;
     }
 
     public BuildType getBuildType() {

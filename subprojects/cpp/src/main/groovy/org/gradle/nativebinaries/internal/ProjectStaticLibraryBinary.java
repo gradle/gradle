@@ -17,6 +17,7 @@
 package org.gradle.nativebinaries.internal;
 
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.language.base.internal.DefaultBinaryNamingScheme;
 import org.gradle.nativebinaries.BuildType;
 import org.gradle.nativebinaries.Flavor;
@@ -39,8 +40,13 @@ public class ProjectStaticLibraryBinary extends AbstractProjectLibraryBinary imp
         super(library, flavor, toolChain, platform, buildType, namingScheme.withTypeString("StaticLibrary"), resolver);
     }
 
-    public String getOutputFileName() {
-        return getToolChain().getStaticLibraryName(getComponent().getBaseName());
+    public File getStaticLibraryFile() {
+        String outputFileName = getToolChain().getStaticLibraryName(getComponent().getBaseName());
+        return new File(getBinaryOutputDir(), outputFileName);
+    }
+
+    public File getPrimaryOutput() {
+        return getStaticLibraryFile();
     }
 
     public void additionalLinkFiles(FileCollection files) {
@@ -52,7 +58,7 @@ public class ProjectStaticLibraryBinary extends AbstractProjectLibraryBinary imp
     }
 
     public FileCollection getRuntimeFiles() {
-        return emptyLibraryOutputs();
+        return new SimpleFileCollection();
     }
 
     private class StaticLibraryLinkOutputs extends LibraryOutputs {
@@ -65,7 +71,7 @@ public class ProjectStaticLibraryBinary extends AbstractProjectLibraryBinary imp
         protected Set<File> getOutputs() {
             Set<File> allFiles = new LinkedHashSet<File>();
             if (hasSources()) {
-                allFiles.add(getOutputFile());
+                allFiles.add(getStaticLibraryFile());
             }
             for (FileCollection resourceSet : additionalLinkFiles) {
                 allFiles.addAll(resourceSet.getFiles());

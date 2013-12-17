@@ -21,19 +21,40 @@ import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.nativebinaries.BuildType;
 import org.gradle.nativebinaries.Flavor;
 import org.gradle.nativebinaries.PrebuiltLibrary;
-import org.gradle.nativebinaries.StaticLibraryBinary;
+import org.gradle.nativebinaries.PrebuiltSharedLibraryBinary;
 import org.gradle.nativebinaries.platform.Platform;
 
-public class PrebuiltStaticLibraryBinary extends AbstractPrebuiltLibraryBinary implements StaticLibraryBinary {
-    public PrebuiltStaticLibraryBinary(String name, PrebuiltLibrary library, BuildType buildType, Platform targetPlatform, Flavor flavor) {
+import java.io.File;
+
+public class DefaultPrebuiltSharedLibraryBinary extends AbstractPrebuiltLibraryBinary implements PrebuiltSharedLibraryBinary {
+    private File sharedLibraryFile;
+
+    public DefaultPrebuiltSharedLibraryBinary(String name, PrebuiltLibrary library, BuildType buildType, Platform targetPlatform, Flavor flavor) {
         super(name, library, buildType, targetPlatform, flavor);
     }
 
+    public void setSharedLibraryFile(File sharedLibraryFile) {
+        this.sharedLibraryFile = sharedLibraryFile;
+    }
+
+    public File getSharedLibraryFile() {
+        return sharedLibraryFile;
+    }
+
+    public File getSharedLibraryLinkFile() {
+        // TODO:DAZ Push this functionality into Platform
+        if (getTargetPlatform().getOperatingSystem().isWindows()) {
+            String fileName = sharedLibraryFile.getName().replaceFirst("\\.dll$", ".lib");
+            return new File(sharedLibraryFile.getParent(), fileName);
+        }
+        return sharedLibraryFile;
+    }
+
     public FileCollection getLinkFiles() {
-        return new SimpleFileCollection(getOutputFile());
+        return new SimpleFileCollection(getSharedLibraryLinkFile());
     }
 
     public FileCollection getRuntimeFiles() {
-        return new SimpleFileCollection();
+        return new SimpleFileCollection(getSharedLibraryFile());
     }
 }

@@ -33,8 +33,4 @@ public class PrebuiltApiLibraryBinary extends AbstractPrebuiltLibraryBinary impl
     public FileCollection getRuntimeFiles() {
         return new SimpleFileCollection();
     }
-
-    public Tool getStaticLibArchiver() {
-        throw new UnsupportedOperationException();
-    }
 }

@@ -189,6 +189,8 @@ The following are the newly deprecated items in this Gradle release. If you have
 - Tasks are not created for empty source sets
 - Removed `Library.getHeaders()`: to manipulate headers modify the header exporting source set; to access headers use
 `NativeDependencySet.getIncludeRoots()`.
+- Extracted methods relating to building a native binary out of `NativeBinary` into `ProjectNativeBinary`.
+- `NativeBinary.outputFile` has been replaced by `ExecutableBinary.executableFile`, `SharedLibraryBinary.sharedLibraryFile` and `StaticLibraryBinary.staticLibraryFile`.
 
 ### A requested dependency returns different types of selectors
 

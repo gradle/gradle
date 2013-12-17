@@ -93,9 +93,8 @@ public abstract class AbstractProjectNativeBinary extends AbstractBuildableModel
         return buildType;
     }
 
-    public File getOutputFile() {
-        File binaryOutputDir = new File(outputDir, namingScheme.getOutputDirectoryBase());
-        return new File(binaryOutputDir, getOutputFileName());
+    protected File getBinaryOutputDir() {
+        return new File(outputDir, namingScheme.getOutputDirectoryBase());
     }
 
     public void setOutputDir(File outputDir) {
@@ -154,7 +153,4 @@ public abstract class AbstractProjectNativeBinary extends AbstractBuildableModel
     public void setBuildable(boolean buildable) {
         this.buildable = buildable;
     }
-
-    public abstract String getOutputFileName();
-
 }

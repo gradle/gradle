@@ -20,6 +20,7 @@ import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.nativebinaries.ExecutableBinary
 import org.gradle.nativebinaries.SharedLibraryBinary
 import org.gradle.nativebinaries.StaticLibraryBinary
+import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
 import spock.lang.Specification
 
 class VisualStudioProjectRegistryTest extends Specification {
@@ -28,9 +29,9 @@ class VisualStudioProjectRegistryTest extends Specification {
     def visualStudioProjectMapper = Mock(VisualStudioProjectMapper)
     def registry = new VisualStudioProjectRegistry(fileResolver, visualStudioProjectResolver, visualStudioProjectMapper, new DirectInstantiator())
 
-    def executableBinary = Mock(ExecutableBinary)
-    def sharedLibraryBinary = Mock(SharedLibraryBinary)
-    def staticLibraryBinary = Mock(StaticLibraryBinary)
+    def executableBinary = Mock(ExecutableInternal)
+    def sharedLibraryBinary = Mock(SharedLibraryInternal)
+    def staticLibraryBinary = Mock(StaticLibraryInternal)
 
     def "creates a matching visual studio project configuration for NativeBinary"() {
         when:
@@ -86,4 +87,8 @@ class VisualStudioProjectRegistryTest extends Specification {
         then:
         registry.getProjectConfiguration(sharedLibraryBinary).project == registry.getProjectConfiguration(staticLibraryBinary).project
     }
+
+    interface ExecutableInternal extends ExecutableBinary, ProjectNativeBinaryInternal {}
+    interface SharedLibraryInternal extends SharedLibraryBinary, ProjectNativeBinaryInternal {}
+    interface StaticLibraryInternal extends StaticLibraryBinary, ProjectNativeBinaryInternal {}
 }

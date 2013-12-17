@@ -19,11 +19,14 @@ package org.gradle.nativebinaries;
 import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 
+import java.io.File;
+
 /**
  * A {@link Library} that has been compiled and archived into a static library.
  */
 @Incubating
 @HasInternalProtocol
 public interface StaticLibraryBinary extends LibraryBinary {
-
+    // TODO:DAZ DSL doc
+    File getStaticLibraryFile();
 }

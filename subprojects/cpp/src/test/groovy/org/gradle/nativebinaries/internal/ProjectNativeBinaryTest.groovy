@@ -172,5 +172,10 @@ class ProjectNativeBinaryTest extends Specification {
         String getOutputFileName() {
             return null
         }
+
+        File getPrimaryOutput() {
+            File binaryOutputDir = getBinaryOutputDir();
+            return new File(binaryOutputDir, getOutputFileName());
+        }
     }
 }

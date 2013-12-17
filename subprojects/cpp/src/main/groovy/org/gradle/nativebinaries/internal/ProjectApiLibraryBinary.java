@@ -16,7 +16,13 @@
 
 package org.gradle.nativebinaries.internal;
 
+import org.gradle.api.DomainObjectSet;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.DefaultDomainObjectSet;
+import org.gradle.api.internal.file.AbstractFileCollection;
+import org.gradle.api.internal.file.collections.SimpleFileCollection;
+import org.gradle.language.HeaderExportingSourceSet;
+import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.DefaultBinaryNamingScheme;
 import org.gradle.nativebinaries.ApiLibraryBinary;
 import org.gradle.nativebinaries.BuildType;
@@ -26,6 +32,10 @@ import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativebinaries.platform.Platform;
 import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal;
 
+import java.io.File;
+import java.util.LinkedHashSet;
+import java.util.Set;
+
 public class ProjectApiLibraryBinary extends AbstractProjectLibraryBinary implements ApiLibraryBinary {
 
     public ProjectApiLibraryBinary(Library library, Flavor flavor, ToolChainInternal toolChain, Platform platform, BuildType buildType,
@@ -33,9 +43,32 @@ public class ProjectApiLibraryBinary extends AbstractProjectLibraryBinary implem
         super(library, flavor, toolChain, platform, buildType, namingScheme.withTypeString("LibraryApi"), resolver);
     }
 
-    public String getOutputFileName() {
-        // TODO:DAZ Should not need this
-        return "api";
+    // TODO:DAZ This is a bit of a hack to ensure that an ApiLibraryBinary has no sources, but does have headers.
+    // ApiLibraryBinary really should have a different API to ProjectNativeBinary, since it's not _built_.
+    // TODO:DAZ Improve this
+    @Override
+    public DomainObjectSet<LanguageSourceSet> getSource() {
+        return new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class);
+    }
+
+    public File getPrimaryOutput() {
+        throw new UnsupportedOperationException();
+    }
+
+    public FileCollection getHeaderDirs() {
+        return new AbstractFileCollection() {
+            public String getDisplayName() {
+                return String.format("Headers for %s", getName());
+            }
+
+            public Set<File> getFiles() {
+                Set<File> headerDirs = new LinkedHashSet<File>();
+                for (HeaderExportingSourceSet sourceSet : ProjectApiLibraryBinary.super.getSource().withType(HeaderExportingSourceSet.class)) {
+                    headerDirs.addAll(sourceSet.getExportedHeaders().getSrcDirs());
+                }
+                return headerDirs;
+            }
+        };
     }
 
     @Override
@@ -44,10 +77,10 @@ public class ProjectApiLibraryBinary extends AbstractProjectLibraryBinary implem
     }
 
     public FileCollection getLinkFiles() {
-        return emptyLibraryOutputs();
+        return new SimpleFileCollection();
     }
 
     public FileCollection getRuntimeFiles() {
-        return emptyLibraryOutputs();
+        return new SimpleFileCollection();
     }
 }

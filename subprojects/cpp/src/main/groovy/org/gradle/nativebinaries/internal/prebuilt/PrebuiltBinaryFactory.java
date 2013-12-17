@@ -59,8 +59,8 @@ public class PrebuiltBinaryFactory {
 
     public void createNativeBinaries(NativeComponent component, Platform platform, BuildType buildType, Flavor flavor) {
         createNativeBinary(PrebuiltApiLibraryBinary.class, component, platform, buildType, flavor);
-        createNativeBinary(PrebuiltSharedLibraryBinary.class, component, platform, buildType, flavor);
-        createNativeBinary(PrebuiltStaticLibraryBinary.class, component, platform, buildType, flavor);
+        createNativeBinary(DefaultPrebuiltSharedLibraryBinary.class, component, platform, buildType, flavor);
+        createNativeBinary(DefaultPrebuiltStaticLibraryBinary.class, component, platform, buildType, flavor);
     }
 
     public <T extends AbstractPrebuiltLibraryBinary> void createNativeBinary(Class<T> type, NativeComponent component, Platform platform, BuildType buildType, Flavor flavor) {

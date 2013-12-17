@@ -20,8 +20,6 @@ import org.gradle.api.Incubating;
 import org.gradle.language.base.Binary;
 import org.gradle.nativebinaries.platform.Platform;
 
-import java.io.File;
-
 /**
  * Represents a particular binary artifact.
  */
@@ -41,11 +39,6 @@ public interface NativeBinary extends Binary {
      * Returns the {@link BuildType} used to construct this binary.
      */
     BuildType getBuildType();
-
-    /**
-     * The file where this binary will be created.
-     */
-    File getOutputFile();
 
     /**
      * Can this binary be built in the current environment?

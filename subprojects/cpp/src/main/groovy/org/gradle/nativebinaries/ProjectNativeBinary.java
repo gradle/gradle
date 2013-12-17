@@ -22,7 +22,6 @@ import org.gradle.internal.HasInternalProtocol;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.nativebinaries.toolchain.ToolChain;
 
-import java.io.File;
 import java.util.Collection;
 
 /**

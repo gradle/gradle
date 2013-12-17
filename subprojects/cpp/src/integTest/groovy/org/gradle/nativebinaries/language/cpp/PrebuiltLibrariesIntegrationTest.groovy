@@ -100,12 +100,12 @@ class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegra
                             binaries.withType(StaticLibraryBinary) { binary ->
                                 def os = binary.targetPlatform.operatingSystem
                                 def libName = os.windows ? 'hello.lib' : 'libhello.a'
-                                outputFile = file("libs/build/binaries/helloStaticLibrary/english/\${libName}")
+                                staticLibraryFile = file("libs/build/binaries/helloStaticLibrary/english/\${libName}")
                             }
                             binaries.withType(SharedLibraryBinary) { binary ->
                                 def os = binary.targetPlatform.operatingSystem
                                 def libName = os.windows ? 'hello.dll' : (os.macOsX ? 'libhello.dylib' : 'libhello.so')
-                                outputFile = file("libs/build/binaries/helloSharedLibrary/french/\${libName}")
+                                sharedLibraryFile = file("libs/build/binaries/helloSharedLibrary/french/\${libName}")
                             }
                         }
                     }

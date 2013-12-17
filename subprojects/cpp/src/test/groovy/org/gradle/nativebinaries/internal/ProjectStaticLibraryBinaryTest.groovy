@@ -49,6 +49,7 @@ class ProjectStaticLibraryBinaryTest extends Specification {
     }
 
     def "can convert binary to a native dependency"() {
+        final outputDir = tmpDir.createDir("bin")
         final binary = staticLibrary
         given:
         def lifecycleTask = Stub(Task)
@@ -56,38 +57,48 @@ class ProjectStaticLibraryBinaryTest extends Specification {
         binary.builtBy(Stub(Task))
 
         and:
+        binary.outputDir = outputDir
+        toolChain.getStaticLibraryName(_) >> "mainStatic"
+
+        and:
         final headerDir = tmpDir.createDir("headerDir")
         addSources(binary, headerDir)
 
         expect:
         binary.headerDirs.files == [headerDir] as Set
+        binary.staticLibraryFile == outputDir.file("mainStaticLibrary/mainStatic")
 
         and:
-        binary.linkFiles.files == [binary.outputFile] as Set
+        binary.linkFiles.files == [binary.staticLibraryFile] as Set
         binary.linkFiles.buildDependencies.getDependencies(Stub(Task)) == [lifecycleTask] as Set
         binary.linkFiles.toString() == "static library 'main:staticLibrary'"
 
         and:
         binary.runtimeFiles.files.isEmpty()
         binary.runtimeFiles.buildDependencies.getDependencies(Stub(Task)) == [] as Set
-        binary.runtimeFiles.toString() == "static library 'main:staticLibrary'"
     }
 
     def "includes additional link files in native dependency"() {
+        final outputDir = tmpDir.createDir("bin")
         final binary = staticLibrary
         given:
-        def linkFile1 = Mock(File)
-        def linkFile2 = Mock(File)
+        def linkFile1 = outputDir.file("one")
+        def linkFile2 = outputDir.file("two")
         def additionalLinkFiles = Stub(FileCollection) {
             getFiles() >> [linkFile1, linkFile2]
         }
         binary.additionalLinkFiles(additionalLinkFiles)
 
         and:
+        binary.outputDir = outputDir
+        toolChain.getStaticLibraryName(_) >> "mainStatic"
+
+        and:
         addSources(binary, tmpDir.createDir("headerDir"))
 
         expect:
-        binary.linkFiles.files == [binary.outputFile, linkFile1, linkFile2] as Set
+        binary.staticLibraryFile == outputDir.file("mainStaticLibrary/mainStatic")
+        binary.linkFiles.files == [binary.staticLibraryFile, linkFile1, linkFile2] as Set
     }
 
     private TestFile addSources(ProjectStaticLibraryBinary binary, def headerDir) {

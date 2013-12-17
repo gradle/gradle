@@ -33,7 +33,6 @@ class CppBinariesIntegrationTest extends AbstractInstalledToolChainIntegrationSp
             executables {
                 main {
                     binaries.all {
-                        outputFile file('${executable("build/test").toURI()}')
                         cppCompiler.define 'ENABLE_GREETING'
                     }
                 }
@@ -57,7 +56,7 @@ class CppBinariesIntegrationTest extends AbstractInstalledToolChainIntegrationSp
         run "mainExecutable"
 
         then:
-        def executable = executable("build/test")
+        def executable = executable("build/binaries/mainExecutable/main")
         executable.exec().out == "Hello!"
     }
 
@@ -110,7 +109,6 @@ class CppBinariesIntegrationTest extends AbstractInstalledToolChainIntegrationSp
             libraries {
                 hello {
                     binaries.all {
-                        outputFile file('${staticLibrary("build/hello").toURI()}')
                         cppCompiler.define 'ENABLE_GREETING'
                     }
                 }

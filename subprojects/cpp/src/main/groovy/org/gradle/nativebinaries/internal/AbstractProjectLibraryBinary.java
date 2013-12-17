@@ -56,10 +56,6 @@ public abstract class AbstractProjectLibraryBinary extends AbstractProjectNative
         return false;
     }
 
-    protected FileCollection emptyLibraryOutputs() {
-        return new EmptyLibraryOutputs();
-    }
-
     public FileCollection getHeaderDirs() {
         return new AbstractFileCollection() {
             public String getDisplayName() {
@@ -99,17 +95,4 @@ public abstract class AbstractProjectLibraryBinary extends AbstractProjectNative
 
         protected abstract Set<File> getOutputs();
     }
-
-    private class EmptyLibraryOutputs extends LibraryOutputs {
-        @Override
-        protected boolean hasOutputs() {
-            return false;
-        }
-
-        @Override
-        protected Set<File> getOutputs() {
-            return Collections.emptySet();
-        }
-    }
-
 }
