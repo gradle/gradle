@@ -16,12 +16,19 @@
 
 package org.gradle.nativebinaries;
 
+import org.gradle.api.DomainObjectSet;
+import org.gradle.api.Named;
 import org.gradle.api.file.SourceDirectorySet;
 
 /**
  * A library component that is not built by gradle.
  */
-public interface PrebuiltLibrary extends Library {
+public interface PrebuiltLibrary extends Named {
+    /**
+     * The binaries that are built for this component. You can use this to configure the binaries for this component.
+     */
+    DomainObjectSet<NativeBinary> getBinaries();
+
     /**
      * The headers exported by this library. These headers will be added to all binaries for this library.
      */

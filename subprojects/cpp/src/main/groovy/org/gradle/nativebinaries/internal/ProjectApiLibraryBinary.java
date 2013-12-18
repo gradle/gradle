@@ -35,6 +35,9 @@ import java.io.File;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+// TODO:DAZ This is all a bit of a hack to ensure that an ApiLibraryBinary has no sources, but does have headers.
+// ApiLibraryBinary really should have a different API to ProjectNativeBinary, since it's not _built_.
+// TODO:DAZ Improve this
 public class ProjectApiLibraryBinary extends AbstractProjectLibraryBinary implements ApiLibraryBinary {
 
     public ProjectApiLibraryBinary(ProjectLibrary library, Flavor flavor, ToolChainInternal toolChain, Platform platform, BuildType buildType,
@@ -42,16 +45,9 @@ public class ProjectApiLibraryBinary extends AbstractProjectLibraryBinary implem
         super(library, flavor, toolChain, platform, buildType, namingScheme.withTypeString("LibraryApi"), resolver);
     }
 
-    // TODO:DAZ This is a bit of a hack to ensure that an ApiLibraryBinary has no sources, but does have headers.
-    // ApiLibraryBinary really should have a different API to ProjectNativeBinary, since it's not _built_.
-    // TODO:DAZ Improve this
     @Override
     public DomainObjectSet<LanguageSourceSet> getSource() {
         return new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class);
-    }
-
-    public File getPrimaryOutput() {
-        throw new UnsupportedOperationException();
     }
 
     public FileCollection getHeaderDirs() {
@@ -68,6 +64,10 @@ public class ProjectApiLibraryBinary extends AbstractProjectLibraryBinary implem
                 return headerDirs;
             }
         };
+    }
+
+    public File getPrimaryOutput() {
+        throw new UnsupportedOperationException();
     }
 
     @Override

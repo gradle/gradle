@@ -24,9 +24,6 @@
                 </tr>
             </thead>
             <tr>
-                <td>baseName</td>
-            </tr>
-            <tr>
                 <td>binaries</td>
             </tr>
         </table>
