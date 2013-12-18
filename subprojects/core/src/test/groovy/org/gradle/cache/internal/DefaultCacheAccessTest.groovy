@@ -21,6 +21,8 @@ import org.gradle.messaging.serialize.Serializer
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
+import spock.lang.Ignore
+import spock.lang.Unroll
 
 import static org.gradle.cache.internal.FileLockManager.LockMode.*
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode
@@ -28,13 +30,14 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode
 class DefaultCacheAccessTest extends ConcurrentSpec {
     @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     final FileLockManager lockManager = Mock()
+    final CacheInitializationAction initializationAction = Mock()
     final File lockFile = tmpDir.file('lock.bin')
     final FileLock lock = Mock()
     final BTreePersistentIndexedCache<String, Integer> backingCache = Mock()
     DefaultCacheAccess access = newAccess()
 
     private DefaultCacheAccess newAccess() {
-        new DefaultCacheAccess("<display-name>", lockFile, lockManager) {
+        new DefaultCacheAccess("<display-name>", lockFile, lockManager, initializationAction) {
             @Override
             def <K, V> BTreePersistentIndexedCache<K, V> doCreateCache(File cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
                 return backingCache
@@ -42,13 +45,14 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         }
     }
 
-    def "acquires lock on open and releases on close when initial lock mode is not none"() {
+    def "acquires lock on open and releases on close when lock mode is shared"() {
         when:
         access.open(mode(Shared))
 
         then:
         1 * lockManager.lock(lockFile, mode(Shared), "<display-name>") >> lock
         1 * lockManager.allowContention(lock, _ as Runnable)
+        1 * initializationAction.requiresInitialization(lock) >> false
         _ * lock.state
         0 * _._
 
@@ -67,15 +71,150 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         !access.owner
     }
 
-    def "lock cannot be acquired more than once when initial lock mode is not none"() {
-        lockManager.lock(lockFile, mode(Shared), "<display-name>") >> lock
+    def "acquires lock on open and releases on close when lock mode is exclusive"() {
+        when:
+        access.open(mode(Exclusive))
+
+        then:
+        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
+        1 * lockManager.allowContention(lock, _ as Runnable)
+        1 * initializationAction.requiresInitialization(lock) >> false
+        _ * lock.state
+        0 * _._
+
+        and:
+        access.owner == Thread.currentThread()
+
+        when:
+        access.close()
+
+        then:
+        _ * lock.state
+        1 * lock.close()
+        0 * _._
+
+        and:
+        !access.owner
+    }
+
+    def "initializes cache on open when lock mode is shared by upgrading lock"() {
+        def exclusiveLock = Mock(FileLock)
+        def sharedLock = Mock(FileLock)
 
         when:
         access.open(mode(Shared))
+
+        then:
+        1 * lockManager.lock(lockFile, mode(Shared), "<display-name>") >> lock
+        1 * initializationAction.requiresInitialization(lock) >> true
+        1 * lock.close()
+
+        then:
+        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>", _) >> exclusiveLock
+        1 * initializationAction.requiresInitialization(exclusiveLock) >> true
+        1 * exclusiveLock.writeFile(_) >> { Runnable r -> r.run() }
+        1 * initializationAction.initialize(exclusiveLock)
+        1 * exclusiveLock.close()
+
+        then:
+        1 * lockManager.lock(lockFile, mode(Shared), "<display-name>") >> sharedLock
+        1 * initializationAction.requiresInitialization(sharedLock) >> false
+        1 * lockManager.allowContention(sharedLock, _ as Runnable)
+        _ * sharedLock.state
+        0 * _._
+
+        and:
+        access.owner == Thread.currentThread()
+    }
+
+    def "initializes cache on open when lock mode is exclusive"() {
+        when:
+        access.open(mode(Exclusive))
+
+        then:
+        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
+        1 * lockManager.allowContention(lock, _ as Runnable)
+        1 * initializationAction.requiresInitialization(lock) >> true
+        1 * lock.writeFile(_) >> { Runnable r -> r.run() }
+        1 * initializationAction.initialize(lock)
+        _ * lock.state
+        0 * _._
+
+        and:
+        access.owner == Thread.currentThread()
+    }
+
+    def "cleans up when cache validation fails"() {
+        def failure = new RuntimeException()
+
+        when:
+        access.open(mode(Exclusive))
+
+        then:
+        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
+        1 * initializationAction.requiresInitialization(lock) >> { throw failure }
+        1 * lock.close()
+        0 * _._
+
+        and:
+        RuntimeException e = thrown()
+        e == failure
+    }
+
+    def "cleans up when initialization fails"() {
+        def failure = new RuntimeException()
+        def exclusiveLock = Mock(FileLock)
+
+        when:
         access.open(mode(Shared))
 
         then:
-        thrown(IllegalStateException)
+        1 * lockManager.lock(lockFile, mode(Shared), "<display-name>") >> lock
+        1 * initializationAction.requiresInitialization(lock) >> true
+        1 * lock.close()
+
+        then:
+        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>", _) >> exclusiveLock
+        1 * initializationAction.requiresInitialization(exclusiveLock) >> true
+        1 * exclusiveLock.writeFile(_) >> { Runnable r -> r.run() }
+        1 * initializationAction.initialize(exclusiveLock) >> { throw failure }
+        1 * exclusiveLock.close()
+        0 * _._
+
+        and:
+        RuntimeException e = thrown()
+        e == failure
+    }
+
+    @Ignore("Not implemented yet")
+    def "initializes cache on first use when lock mode is none"() {
+        def action = Mock(Runnable)
+
+        when:
+        access.open(mode(None))
+
+        then:
+        0 * _._
+
+        when:
+        access.useCache("some action", action)
+
+        then:
+        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>", "some action") >> lock
+        1 * lockManager.allowContention(lock, _ as Runnable)
+        1 * initializationAction.requiresInitialization(lock) >> true
+        1 * initializationAction.initialize(lock)
+        1 * initializationAction.requiresInitialization(lock) >> false
+        1 * action.run()
+        _ * lock.mode >> Exclusive
+        _ * lock.state
+        0 * _._
+
+        when:
+        access.useCache("some action", action)
+
+        then:
+        false // Should check validity on every open
     }
 
     def "does not acquire lock on open when initial lock mode is none"() {
@@ -95,6 +234,21 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         !access.owner
     }
 
+    @Unroll
+    def "cannot be opened more than once for mode #lockMode"() {
+        lockManager.lock(lockFile, lockMode, "<display-name>") >> lock
+
+        when:
+        access.open(lockMode)
+        access.open(lockMode)
+
+        then:
+        thrown(IllegalStateException)
+
+        where:
+        lockMode << [mode(Shared), mode(Exclusive), mode(None)]
+    }
+
     def "using cache pushes an operation and acquires lock but does not release it at the end of the operation"() {
         Factory<String> action = Mock()
 
@@ -104,6 +258,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
 
         then:
         1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>", "some operation") >> lock
+        1 * initializationAction.requiresInitialization(lock) >> false
         _ * lock.state
         1 * lockManager.allowContention(lock, _ as Runnable)
 

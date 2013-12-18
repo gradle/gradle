@@ -18,7 +18,7 @@ package org.gradle.cache.internal;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.cache.CacheAccess;
+import org.gradle.cache.CacheOpenException;
 import org.gradle.cache.internal.btree.BTreePersistentIndexedCache;
 import org.gradle.cache.internal.cacheops.CacheAccessOperationsStack;
 import org.gradle.cache.internal.filelock.LockOptions;
@@ -39,13 +39,14 @@ import static org.gradle.cache.internal.FileLockManager.LockMode.Exclusive;
 import static org.gradle.cache.internal.FileLockManager.LockMode.Shared;
 
 @ThreadSafe
-public class DefaultCacheAccess implements CacheAccess {
+public class DefaultCacheAccess implements CacheCoordinator {
 
     private final static Logger LOG = Logging.getLogger(DefaultCacheAccess.class);
 
     private final String cacheDisplayName;
     private final File lockFile;
     private final FileLockManager lockManager;
+    private final CacheInitializationAction initializationAction;
     private final FileAccess fileAccess = new UnitOfWorkFileAccess();
     private final Set<MultiProcessSafePersistentIndexedCache> caches = new HashSet<MultiProcessSafePersistentIndexedCache>();
     private final Lock lock = new ReentrantLock();
@@ -58,23 +59,19 @@ public class DefaultCacheAccess implements CacheAccess {
     private final CacheAccessOperationsStack operations;
     private int cacheClosedCount;
 
-    public DefaultCacheAccess(String cacheDisplayName, File lockFile, FileLockManager lockManager) {
+    public DefaultCacheAccess(String cacheDisplayName, File lockFile, FileLockManager lockManager, CacheInitializationAction initializationAction) {
         this.cacheDisplayName = cacheDisplayName;
         this.lockFile = lockFile;
         this.lockManager = lockManager;
+        this.initializationAction = initializationAction;
         this.operations = new CacheAccessOperationsStack();
     }
 
-    /**
-     * Opens this cache access with the given lock mode. Calling this with {@link org.gradle.cache.internal.FileLockManager.LockMode#Exclusive} will lock the cache for exclusive access from all other
-     * threads (including those in this process and all other processes), until {@link #close()} is called.
-     * @param lockOptions
-     */
     public void open(LockOptions lockOptions) {
         lock.lock();
         try {
-            if (owner != null) {
-                throw new IllegalStateException(String.format("Cannot open the %s, as it is already in use.", cacheDisplayName));
+            if (this.lockOptions != null) {
+                throw new IllegalStateException(String.format("Cannot open the %s, as it has already been opened.", cacheDisplayName));
             }
             this.lockOptions = lockOptions;
             if (lockOptions.getMode() == FileLockManager.LockMode.None) {
@@ -84,9 +81,46 @@ public class DefaultCacheAccess implements CacheAccess {
                 throw new IllegalStateException("File lock " + lockFile + " is already open.");
             }
             fileLock = lockManager.lock(lockFile, lockOptions, cacheDisplayName);
+
+            boolean rebuild = initializationAction.requiresInitialization(fileLock);
+            if (rebuild) {
+                if (lockOptions.getMode() == Exclusive) {
+                    fileLock.writeFile(new Runnable() {
+                        public void run() {
+                            initializationAction.initialize(fileLock);
+                        }
+                    });
+                } else {
+                    for (int tries = 0; rebuild && tries < 3; tries++) {
+                        fileLock.close();
+                        fileLock = lockManager.lock(lockFile, lockOptions.withMode(Exclusive), cacheDisplayName, "Initialize cache");
+                        rebuild = initializationAction.requiresInitialization(fileLock);
+                        if (rebuild) {
+                            fileLock.writeFile(new Runnable() {
+                                public void run() {
+                                    initializationAction.initialize(fileLock);
+                                }
+                            });
+                        }
+                        fileLock.close();
+                        fileLock = lockManager.lock(lockFile, lockOptions, cacheDisplayName);
+                        rebuild = initializationAction.requiresInitialization(fileLock);
+                    }
+                    if (rebuild) {
+                        throw new CacheOpenException(String.format("Failed to initialize %s", cacheDisplayName));
+                    }
+                }
+            }
+
             stateAtOpen = fileLock.getState();
             takeOwnership(String.format("Access %s", cacheDisplayName));
             lockManager.allowContention(fileLock, whenContended());
+        } catch(Throwable throwable) {
+            if (fileLock != null) {
+                fileLock.close();
+                fileLock = null;
+            }
+            throw UncheckedException.throwAsUncheckedException(throwable);
         } finally {
             lock.unlock();
         }
@@ -303,6 +337,9 @@ public class DefaultCacheAccess implements CacheAccess {
             return false;
         }
         fileLock = lockManager.lock(lockFile, lockOptions.withMode(Exclusive), cacheDisplayName, operations.getDescription());
+        if (initializationAction.requiresInitialization(fileLock)) {
+            throw new UnsupportedOperationException("Not implemented yet.");
+        }
         stateAtOpen = fileLock.getState();
         for (UnitOfWorkParticipant cache : caches) {
             cache.onStartWork(operations.getDescription(), stateAtOpen);

@@ -17,8 +17,6 @@ package org.gradle.cache.internal;
 
 import org.gradle.CacheUsage;
 import org.gradle.api.Action;
-import org.gradle.api.UncheckedIOException;
-import org.gradle.cache.CacheOpenException;
 import org.gradle.cache.CacheValidator;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.filelock.LockOptions;
@@ -28,7 +26,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Map;
 import java.util.Properties;
 
@@ -61,77 +58,55 @@ public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryS
         return propertiesFile;
     }
 
-    protected void init() throws IOException {
-        boolean valid = determineIfCacheIsValid(getLock());
-        int tries = 3;
-        while (!valid) {
-            if (--tries < 0) {
-                throw new CacheOpenException(String.format("Failed to init valid cache for %s", this));
-            }
-            withExclusiveLock(new Action<FileLock>() {
-                public void execute(final FileLock fileLock) {
-                    boolean exclusiveLockValid;
-                    try {
-                        exclusiveLockValid = determineIfCacheIsValid(fileLock);
-                    } catch (IOException e) {
-                        throw new UncheckedIOException(e);
-                    }
-
-                    if (!exclusiveLockValid) {
-                        fileLock.writeFile(new Runnable() {
-                            public void run() {
-                                buildCacheDir(initAction, fileLock);
-                            }
-                        });
-                    }
-                }
-            });
-            valid = determineIfCacheIsValid(getLock());
-        }
-    }
-
-    private void buildCacheDir(Action<? super PersistentCache> initAction, FileLock fileLock) {
-        for (File file : getBaseDir().listFiles()) {
-            if (fileLock.isLockFile(file) || file.equals(propertiesFile)) {
-                continue;
-            }
-            GFileUtils.forceDelete(file);
-        }
-        if (initAction != null) {
-            initAction.execute(this);
-        }
-        GUtil.saveProperties(properties, propertiesFile);
-        didRebuild = true;
-    }
-
-    // made protected for DefaultPersistentDirectoryCacheTest.exceptionThrownIfValidCacheCannotBeInitd
-    protected boolean determineIfCacheIsValid(FileLock lock) throws IOException {
-        if (!didRebuild) {
-            if (cacheUsage != CacheUsage.ON) {
-                LOGGER.debug("Invalidating {} as cache usage is set to rebuild.", this);
-                return false;
-            }
-            if (validator!=null && !validator.isValid()) {
-                LOGGER.debug("Invalidating {} as cache validator return false.", this);
-                return false;
-            }
-        }
-
-        if (!lock.getUnlockedCleanly()) {
-            LOGGER.debug("Invalidating {} as it was not closed cleanly.", this);
-            return false;
-        }
-        Properties currentProperties = GUtil.loadProperties(propertiesFile);
-        for (Map.Entry<?, ?> entry : properties.entrySet()) {
-            if (!entry.getValue().toString().equals(currentProperties.getProperty(entry.getKey().toString()))) {
-                LOGGER.debug("Invalidating {} as cache property {} has changed value.", this, entry.getKey());
-                return false;
-            }
-        }
-        return true;
+    @Override
+    protected CacheInitializationAction getInitAction() {
+        return new Initializer();
     }
 
     public Properties getProperties() {
         return properties;
+    }
+
+    private class Initializer implements CacheInitializationAction {
+        public boolean requiresInitialization(FileLock lock) {
+            if (!didRebuild) {
+                if (cacheUsage == CacheUsage.REBUILD) {
+                    LOGGER.debug("Invalidating {} as cache usage is set to rebuild.", this);
+                    return true;
+                }
+                if (validator!=null && !validator.isValid()) {
+                    LOGGER.debug("Invalidating {} as cache validator return false.", this);
+                    return true;
+                }
+            }
+
+            if (!lock.getUnlockedCleanly()) {
+                LOGGER.debug("Invalidating {} as it was not closed cleanly.", this);
+                return true;
+            }
+
+            Properties currentProperties = GUtil.loadProperties(propertiesFile);
+            for (Map.Entry<?, ?> entry : properties.entrySet()) {
+                if (!entry.getValue().toString().equals(currentProperties.getProperty(entry.getKey().toString()))) {
+                    LOGGER.debug("Invalidating {} as cache property {} has changed value.", this, entry.getKey());
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public void initialize(FileLock fileLock) {
+            for (File file : getBaseDir().listFiles()) {
+                if (fileLock.isLockFile(file) || file.equals(propertiesFile)) {
+                    continue;
+                }
+                GFileUtils.forceDelete(file);
+            }
+            if (initAction != null) {
+                initAction.execute(DefaultPersistentDirectoryCache.this);
+            }
+            GUtil.saveProperties(properties, propertiesFile);
+            didRebuild = true;
+        }
     }
 }
