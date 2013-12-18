@@ -56,7 +56,7 @@ class CppBinariesIntegrationTest extends AbstractInstalledToolChainIntegrationSp
         run "mainExecutable"
 
         then:
-        def executable = executable("build/binaries/mainExecutable/main")
+        def executable = executable("build/binaries/mainExecutable/test")
         executable.exec().out == "Hello!"
     }
 
@@ -153,7 +153,7 @@ class CppBinariesIntegrationTest extends AbstractInstalledToolChainIntegrationSp
         run "installMainExecutable"
 
         then:
-        staticLibrary("build/hello").assertExists()
+        staticLibrary("build/binaries/helloStaticLibrary/hello").assertExists()
         installation("build/install/mainExecutable").exec().out == "Hello!"
     }
 

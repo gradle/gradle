@@ -23,7 +23,7 @@ import org.gradle.ide.visualstudio.internal.DefaultVisualStudioProject
 import org.gradle.ide.visualstudio.internal.VisualStudioProjectConfiguration
 import org.gradle.ide.visualstudio.internal.VisualStudioProjectResolver
 import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.nativebinaries.NativeComponentBinary
+import org.gradle.nativebinaries.ProjectNativeBinary
 import org.gradle.nativebinaries.internal.NativeComponentInternal
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
@@ -117,9 +117,9 @@ EndGlobal
         }
     }
 
-    private NativeComponentBinary binary(def name) {
+    private ProjectNativeBinary binary(def name) {
         def component = Mock(NativeComponentInternal)
-        def binary = Mock(NativeComponentBinary)
+        def binary = Mock(ProjectNativeBinary)
         component.name >> "${name}Component"
         component.projectPath >> "project-path"
         binary.name >> name
