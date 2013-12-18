@@ -16,12 +16,13 @@
 package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
 import org.gradle.api.Nullable;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 
 public abstract class AbstractRenderableDependencyResult implements RenderableDependency {
-    public ModuleComponentIdentifier getId() {
+    public ComponentIdentifier getId() {
         return getActual();
     }
 
@@ -49,15 +50,20 @@ public abstract class AbstractRenderableDependencyResult implements RenderableDe
 
     private String getVerboseName() {
         ComponentSelector requested = getRequested();
-        ModuleComponentIdentifier selected = getActual();
+        ComponentIdentifier selected = getActual();
 
         if(requested instanceof ModuleComponentSelector) {
             ModuleComponentSelector requestedModuleComponentSelector = (ModuleComponentSelector)requested;
-            if(!selected.getGroup().equals(requestedModuleComponentSelector.getGroup()) || !selected.getModule().equals(requestedModuleComponentSelector.getModule())) {
-                return getSimpleName() + " -> " + selected.getGroup() + ":" + selected.getModule() + ":" + selected.getVersion();
-            }
-            if (!selected.getVersion().equals(requestedModuleComponentSelector.getVersion())) {
-                return getSimpleName() + " -> " + selected.getVersion();
+
+            if(selected instanceof ModuleComponentIdentifier) {
+                ModuleComponentIdentifier selectedModuleComponentedIdentifier = (ModuleComponentIdentifier)selected;
+                if(!selectedModuleComponentedIdentifier.getGroup().equals(requestedModuleComponentSelector.getGroup())
+                   || !selectedModuleComponentedIdentifier.getModule().equals(requestedModuleComponentSelector.getModule())) {
+                    return getSimpleName() + " -> " + selectedModuleComponentedIdentifier.getGroup() + ":" + selectedModuleComponentedIdentifier.getModule() + ":" + selectedModuleComponentedIdentifier.getVersion();
+                }
+                if (!selectedModuleComponentedIdentifier.getVersion().equals(requestedModuleComponentSelector.getVersion())) {
+                    return getSimpleName() + " -> " + selectedModuleComponentedIdentifier.getVersion();
+                }
             }
         }
 
@@ -66,5 +72,5 @@ public abstract class AbstractRenderableDependencyResult implements RenderableDe
 
     protected abstract ComponentSelector getRequested();
 
-    protected abstract ModuleComponentIdentifier getActual();
+    protected abstract ComponentIdentifier getActual();
 }

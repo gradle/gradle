@@ -16,23 +16,21 @@
 
 package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
-import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 
 import java.util.Collections;
 import java.util.Set;
 
 public class RenderableUnresolvedDependencyResult extends AbstractRenderableDependencyResult {
-    private final ModuleComponentIdentifier actual;
+    private final ComponentIdentifier actual;
     private final UnresolvedDependencyResult dependency;
 
     public RenderableUnresolvedDependencyResult(UnresolvedDependencyResult dependency) {
         this.dependency = dependency;
-        ModuleComponentSelector attempted = (ModuleComponentSelector)dependency.getAttempted();
-        this.actual = DefaultModuleComponentIdentifier.newId(attempted.getGroup(), attempted.getModule(), attempted.getVersion());
+        this.actual = ComponentIdentifierFactory.getInstance().createIdentifier(dependency.getAttempted());
     }
 
     @Override
@@ -46,7 +44,7 @@ public class RenderableUnresolvedDependencyResult extends AbstractRenderableDepe
     }
 
     @Override
-    protected ModuleComponentIdentifier getActual() {
+    protected ComponentIdentifier getActual() {
         return actual;
     }
 

@@ -15,9 +15,9 @@
  */
 package org.gradle.api.internal.artifacts.component;
 
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
 
 public class DefaultProjectComponentSelector implements ProjectComponentSelector {
     private final String projectPath;
@@ -74,5 +74,9 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
     @Override
     public String toString() {
         return displayName;
+    }
+
+    public static ProjectComponentSelector newSelector(String projectPath) {
+        return new DefaultProjectComponentSelector(projectPath);
     }
 }

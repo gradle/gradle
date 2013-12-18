@@ -16,9 +16,8 @@
 
 package org.gradle.api.tasks.diagnostics.internal.graph.nodes
 
+import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ComponentSelector
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier
-import org.gradle.api.artifacts.component.ModuleComponentSelector
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier.newId
@@ -37,13 +36,13 @@ class AbstractRenderableDependencyResultSpec extends Specification {
         dep(requested, newId('com.mockito', 'mockito', '2.0')).name == 'org.mockito:mockito-core:1.0 -> com.mockito:mockito:2.0'
     }
 
-    private AbstractRenderableDependencyResult dep(ModuleComponentSelector requested, ModuleComponentIdentifier selected) {
+    private AbstractRenderableDependencyResult dep(ComponentSelector requested, ComponentIdentifier selected) {
         return new AbstractRenderableDependencyResult() {
             ComponentSelector getRequested() {
                 return requested
             }
 
-            ModuleComponentIdentifier getActual() {
+            ComponentIdentifier getActual() {
                 return selected
             }
 
