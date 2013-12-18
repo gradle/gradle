@@ -33,8 +33,6 @@ import java.util.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import static org.gradle.cache.internal.FileLockManager.LockMode;
-
 public class DefaultCacheFactory implements CacheFactory {
     private final Map<File, DirCacheReference> dirCaches = new HashMap<File, DirCacheReference>();
     private final FileLockManager lockManager;
@@ -82,19 +80,10 @@ public class DefaultCacheFactory implements CacheFactory {
         File canonicalDir = GFileUtils.canonicalise(cacheDir);
         DirCacheReference dirCacheReference = dirCaches.get(canonicalDir);
         if (dirCacheReference == null) {
-            if (lockOptions.getMode().equals(LockMode.None)) {
-                // Create nested cache with LockMode#Exclusive (tb discussed) that is opened and closed on Demand in the DelegateOnDemandPersistentDirectoryCache.
-                DefaultPersistentDirectoryCache nestedCache = new DefaultPersistentDirectoryCache(canonicalDir, displayName, usage, validator, properties, lockOptions.withMode(LockMode.Exclusive), action, lockManager);
-                DelegateOnDemandPersistentDirectoryCache onDemandDache = new DelegateOnDemandPersistentDirectoryCache(nestedCache);
-                onDemandDache.open();
-                dirCacheReference = new DirCacheReference(onDemandDache, properties, lockOptions, usage == CacheUsage.REBUILD);
-                dirCaches.put(canonicalDir, dirCacheReference);
-            } else {
-                ReferencablePersistentCache cache = new DefaultPersistentDirectoryCache(canonicalDir, displayName, usage, validator, properties, lockOptions, action, lockManager);
-                cache.open();
-                dirCacheReference = new DirCacheReference(cache, properties, lockOptions, usage == CacheUsage.REBUILD);
-                dirCaches.put(canonicalDir, dirCacheReference);
-            }
+            ReferencablePersistentCache cache = new DefaultPersistentDirectoryCache(canonicalDir, displayName, usage, validator, properties, lockOptions, action, lockManager);
+            cache.open();
+            dirCacheReference = new DirCacheReference(cache, properties, lockOptions, usage == CacheUsage.REBUILD);
+            dirCaches.put(canonicalDir, dirCacheReference);
         } else {
             if (usage == CacheUsage.REBUILD && !dirCacheReference.rebuild) {
                 throw new IllegalStateException(String.format("Cannot rebuild cache '%s' as it is already open.", cacheDir));

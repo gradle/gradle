@@ -23,7 +23,8 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
-import static org.gradle.cache.internal.FileLockManager.LockMode.*
+import static org.gradle.cache.internal.FileLockManager.LockMode.Exclusive
+import static org.gradle.cache.internal.FileLockManager.LockMode.Shared
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode
 
 class DefaultCacheFactoryTest extends Specification {
@@ -71,16 +72,6 @@ class DefaultCacheFactoryTest extends Specification {
         cache.reference.cache instanceof DefaultPersistentDirectoryCache
         cache.baseDir == tmpDir.testDirectory
         cache.toString().startsWith "<display>"
-    }
-
-    public void "creates DelegateOnDemandPersistentDirectoryCache cache instance for LockMode.NONE"() {
-        when:
-        def cache = factory.open(tmpDir.testDirectory, "<display>", CacheUsage.ON, null, [prop: 'value'], mode(None), null)
-
-        then:
-        cache.reference.cache instanceof DelegateOnDemandPersistentDirectoryCache
-        cache.baseDir == tmpDir.testDirectory
-        cache.toString().startsWith "On Demand Cache for <display>"
     }
 
     public void "reuses directory backed cache instances"() {

@@ -169,10 +169,6 @@ public class DefaultCacheAccess implements CacheCoordinator {
         }
     }
 
-    public FileLock getFileLock() {
-        return fileLock;
-    }
-
     public void useCache(String operationDisplayName, Runnable action) {
         useCache(operationDisplayName, Factories.toFactory(action));
     }
@@ -328,7 +324,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
         return indexedCache;
     }
 
-    <K, V> BTreePersistentIndexedCache<K, V> doCreateCache(final File cacheFile, final Serializer<K> keySerializer, final Serializer<V> valueSerializer) {
+    <K, V> BTreePersistentIndexedCache<K, V> doCreateCache(File cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
         return new BTreePersistentIndexedCache<K, V>(cacheFile, keySerializer, valueSerializer);
     }
 
@@ -338,7 +334,11 @@ public class DefaultCacheAccess implements CacheCoordinator {
         }
         fileLock = lockManager.lock(lockFile, lockOptions.withMode(Exclusive), cacheDisplayName, operations.getDescription());
         if (initializationAction.requiresInitialization(fileLock)) {
-            throw new UnsupportedOperationException("Not implemented yet.");
+            fileLock.writeFile(new Runnable() {
+                public void run() {
+                    initializationAction.initialize(fileLock);
+                }
+            });
         }
         stateAtOpen = fileLock.getState();
         for (UnitOfWorkParticipant cache : caches) {

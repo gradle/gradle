@@ -80,10 +80,6 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
         }
     }
 
-    public FileLock getLock() {
-        return cacheAccess.getFileLock();
-    }
-
     public File getBaseDir() {
         return dir;
     }

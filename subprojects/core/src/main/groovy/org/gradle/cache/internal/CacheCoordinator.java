@@ -30,7 +30,5 @@ public interface CacheCoordinator extends CacheAccess, Closeable {
      */
     void close();
 
-    FileLock getFileLock();
-
     <K, V> PersistentIndexedCache<K, V> newCache(PersistentIndexedCacheParameters<K, V> parameters);
 }

@@ -21,7 +21,6 @@ import org.gradle.messaging.serialize.Serializer
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 import static org.gradle.cache.internal.FileLockManager.LockMode.*
@@ -186,9 +185,9 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         e == failure
     }
 
-    @Ignore("Not implemented yet")
-    def "initializes cache on first use when lock mode is none"() {
+    def "initializes cache on open when lock mode is none"() {
         def action = Mock(Runnable)
+        def contentionAction
 
         when:
         access.open(mode(None))
@@ -201,20 +200,34 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
 
         then:
         1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>", "some action") >> lock
-        1 * lockManager.allowContention(lock, _ as Runnable)
+        1 * lockManager.allowContention(lock, _ as Runnable) >> { FileLock l, Runnable r -> contentionAction = r }
         1 * initializationAction.requiresInitialization(lock) >> true
+        1 * lock.writeFile(_) >> { Runnable r -> r.run() }
         1 * initializationAction.initialize(lock)
-        1 * initializationAction.requiresInitialization(lock) >> false
         1 * action.run()
         _ * lock.mode >> Exclusive
         _ * lock.state
         0 * _._
 
         when:
+        contentionAction.run()
+
+        then:
+        1 * lock.close()
+
+        when:
         access.useCache("some action", action)
 
         then:
-        false // Should check validity on every open
+        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>", "some action") >> lock
+        1 * lockManager.allowContention(lock, _ as Runnable) >> { FileLock l, Runnable r -> contentionAction = r }
+        1 * initializationAction.requiresInitialization(lock) >> true
+        1 * lock.writeFile(_) >> { Runnable r -> r.run() }
+        1 * initializationAction.initialize(lock)
+        1 * action.run()
+        _ * lock.mode >> Exclusive
+        _ * lock.state
+        0 * _._
     }
 
     def "does not acquire lock on open when initial lock mode is none"() {

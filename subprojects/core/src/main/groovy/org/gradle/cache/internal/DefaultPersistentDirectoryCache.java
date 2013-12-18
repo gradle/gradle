@@ -29,8 +29,6 @@ import java.io.File;
 import java.util.Map;
 import java.util.Properties;
 
-import static org.gradle.cache.internal.FileLockManager.LockMode;
-
 public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryStore implements ReferencablePersistentCache {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPersistentDirectoryCache.class);
     private final File propertiesFile;
@@ -42,9 +40,6 @@ public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryS
 
     public DefaultPersistentDirectoryCache(File dir, String displayName, CacheUsage cacheUsage, CacheValidator validator, Map<String, ?> properties, LockOptions lockOptions, Action<? super PersistentCache> initAction, FileLockManager lockManager) {
         super(dir, displayName, lockOptions, lockManager);
-        if (lockOptions.getMode() == LockMode.None) {
-            throw new UnsupportedOperationException("Locking mode None is not supported.");
-        }
         this.validator = validator;
         this.cacheUsage = cacheUsage;
         this.initAction = initAction;
