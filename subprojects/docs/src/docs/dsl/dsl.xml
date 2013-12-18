@@ -478,7 +478,7 @@
         <table>
             <title>Native component core types</title>
             <tr>
-                <td>org.gradle.nativebinaries.NativeComponent</td>
+                <td>org.gradle.nativebinaries.ProjectNativeComponent</td>
             </tr>
             <tr>
                 <td>org.gradle.nativebinaries.Executable</td>

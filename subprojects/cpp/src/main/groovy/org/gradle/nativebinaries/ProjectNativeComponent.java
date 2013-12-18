@@ -17,13 +17,18 @@ package org.gradle.nativebinaries;
 
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
+import org.gradle.api.Named;
 import org.gradle.language.base.LanguageSourceSet;
 
 /**
  * Represents a logical software component, which may be built in a number of variant binaries.
  */
 @Incubating
-public interface ProjectNativeComponent extends NativeComponent {
+public interface ProjectNativeComponent extends Named {
+    /**
+     * The binaries that are built for this component. You can use this to configure the binaries for this component.
+     */
+    DomainObjectSet<NativeBinary> getBinaries();
 
     /**
      * The source sets that are used to build this component.

@@ -37,12 +37,12 @@ import org.gradle.util.CollectionUtils
 class DefaultVisualStudioProject extends AbstractBuildableModelElement implements VisualStudioProject {
     final VisualStudioProjectResolver projectResolver
     final String name
-    final NativeComponent component
+    final ProjectNativeComponent component
     final Map<NativeBinary, VisualStudioProjectConfiguration> configurations = [:]
     final DefaultConfigFile projectFile
     final DefaultConfigFile filtersFile
 
-    DefaultVisualStudioProject(String name, NativeComponent component, FileResolver fileResolver, VisualStudioProjectResolver projectResolver, Instantiator instantiator) {
+    DefaultVisualStudioProject(String name, ProjectNativeComponent component, FileResolver fileResolver, VisualStudioProjectResolver projectResolver, Instantiator instantiator) {
         this.name = name
         this.component = component
         this.projectResolver = projectResolver

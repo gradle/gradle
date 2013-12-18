@@ -52,10 +52,10 @@ public class CreateNativeBinaries extends ModelRule {
         project.getExtensions().add("flavors", flavors);
 
         NativeDependencyResolver resolver = createResolver(project, repositories);
-        Transformer<Collection<NativeBinary>, NativeComponent> factory =
+        Transformer<Collection<NativeBinary>, ProjectNativeComponent> factory =
                 new NativeBinaryFactory(instantiator, resolver, project, toolChains, platforms, buildTypes, flavors);
 
-        for (NativeComponent component : allComponents()) {
+        for (ProjectNativeComponent component : allComponents()) {
             binaries.addAll(factory.transform(component));
         }
     }
@@ -70,11 +70,11 @@ public class CreateNativeBinaries extends ModelRule {
         return new DefaultNativeDependencyResolver(locator);
     }
 
-    private Collection<NativeComponent> allComponents() {
+    private Collection<ProjectNativeComponent> allComponents() {
         ExecutableContainer executables = project.getExtensions().getByType(ExecutableContainer.class);
         LibraryContainer libraries = project.getExtensions().getByType(LibraryContainer.class);
 
-        List<NativeComponent> components = new ArrayList<NativeComponent>();
+        List<ProjectNativeComponent> components = new ArrayList<ProjectNativeComponent>();
         for (Library library : libraries) {
             components.add(library);
         }

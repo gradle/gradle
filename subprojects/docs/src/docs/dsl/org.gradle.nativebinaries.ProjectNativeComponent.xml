@@ -24,6 +24,9 @@
                 </tr>
             </thead>
             <tr>
+                <td>binaries</td>
+            </tr>
+            <tr>
                 <td>baseName</td>
             </tr>
             <tr>

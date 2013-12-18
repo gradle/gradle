@@ -15,7 +15,9 @@
  */
 package org.gradle.nativebinaries.internal;
 
-public class DefaultExecutable extends AbstractProjectNativeComponent implements ProjectExecutable {
+import org.gradle.nativebinaries.Executable;
+
+public class DefaultExecutable extends AbstractProjectNativeComponent implements Executable {
     public DefaultExecutable(NativeProjectComponentIdentifier id) {
         super(id);
     }

@@ -18,12 +18,9 @@ package org.gradle.ide.cdt.model
 import org.gradle.api.Incubating
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.nativebinaries.Executable
 import org.gradle.language.HeaderExportingSourceSet
-import org.gradle.nativebinaries.Library
-import org.gradle.nativebinaries.NativeComponent
-import org.gradle.nativebinaries.NativeDependencySet
 import org.gradle.language.cpp.CppSourceSet
+import org.gradle.nativebinaries.*
 
 /**
  * Exposes a more logical view of the actual .cproject descriptor file
@@ -32,11 +29,11 @@ import org.gradle.language.cpp.CppSourceSet
 // TODO:DAZ I'm sure this is now broken
 class CprojectSettings {
 
-    NativeComponent binary
+    ProjectNativeComponent binary
     private final ConfigurableFileCollection includeRoots
     private final ConfigurableFileCollection libs
 
-    CprojectSettings(NativeComponent binary, ProjectInternal project) {
+    CprojectSettings(ProjectNativeComponent binary, ProjectInternal project) {
         this.binary = binary
         includeRoots = project.files()
         libs = project.files()

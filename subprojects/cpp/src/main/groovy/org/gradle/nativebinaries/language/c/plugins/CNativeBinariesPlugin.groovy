@@ -57,7 +57,7 @@ class CNativeBinariesPlugin implements Plugin<ProjectInternal> {
         }
     }
 
-    private def addLanguageExtensionsToComponent(NativeComponent component) {
+    private def addLanguageExtensionsToComponent(ProjectNativeComponent component) {
         component.binaries.all { binary ->
             binary.extensions.create("cCompiler", DefaultPreprocessingTool)
         }

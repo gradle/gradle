@@ -33,7 +33,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.Set;
 
-class NativeBinaryFactory implements Transformer<Collection<NativeBinary>, NativeComponent> {
+class NativeBinaryFactory implements Transformer<Collection<NativeBinary>, ProjectNativeComponent> {
     private final Instantiator instantiator;
     private final Project project;
     private final NativeDependencyResolver resolver;
@@ -53,7 +53,7 @@ class NativeBinaryFactory implements Transformer<Collection<NativeBinary>, Nativ
         this.allFlavors.addAll(allFlavors);
     }
 
-    public Collection<NativeBinary> transform(NativeComponent original) {
+    public Collection<NativeBinary> transform(ProjectNativeComponent original) {
         return createNativeBinaries((ProjectNativeComponentInternal) original);
     }
 
@@ -70,7 +70,7 @@ class NativeBinaryFactory implements Transformer<Collection<NativeBinary>, Nativ
         return componentBinaries;
     }
 
-    public Collection<NativeBinary> createNativeBinaries(NativeComponent component, ToolChain toolChain, Platform platform, BuildType buildType, Flavor flavor) {
+    public Collection<NativeBinary> createNativeBinaries(ProjectNativeComponentInternal component, ToolChain toolChain, Platform platform, BuildType buildType, Flavor flavor) {
         Collection<NativeBinary> binaries = new LinkedList<NativeBinary>();
         if (component instanceof Library) {
             binaries.add(createNativeBinary(ProjectApiLibraryBinary.class, component, toolChain, platform, buildType, flavor));
@@ -82,7 +82,7 @@ class NativeBinaryFactory implements Transformer<Collection<NativeBinary>, Nativ
         return binaries;
     }
 
-    public <T extends AbstractProjectNativeBinary> T createNativeBinary(Class<T> type, NativeComponent component, ToolChain toolChain, Platform platform, BuildType buildType, Flavor flavor) {
+    public <T extends AbstractProjectNativeBinary> T createNativeBinary(Class<T> type, ProjectNativeComponentInternal component, ToolChain toolChain, Platform platform, BuildType buildType, Flavor flavor) {
         DefaultBinaryNamingScheme namingScheme = createNamingScheme(component, platform, buildType, flavor);
         T nativeBinary = instantiator.newInstance(type, component, flavor, toolChain, platform, buildType, namingScheme, resolver);
         setupDefaults(project, nativeBinary);
@@ -90,7 +90,7 @@ class NativeBinaryFactory implements Transformer<Collection<NativeBinary>, Nativ
         return nativeBinary;
     }
 
-    private DefaultBinaryNamingScheme createNamingScheme(NativeComponent component, Platform platform, BuildType buildType, Flavor flavor) {
+    private DefaultBinaryNamingScheme createNamingScheme(ProjectNativeComponentInternal component, Platform platform, BuildType buildType, Flavor flavor) {
         DefaultBinaryNamingScheme namingScheme = new DefaultBinaryNamingScheme(component.getName());
         if (usePlatformDimension(component)) {
             namingScheme = namingScheme.withVariantDimension(platform.getName());
@@ -104,16 +104,16 @@ class NativeBinaryFactory implements Transformer<Collection<NativeBinary>, Nativ
         return namingScheme;
     }
 
-    private boolean usePlatformDimension(NativeComponent component) {
-        return ((ProjectNativeComponentInternal) component).choosePlatforms(allPlatforms).size() > 1;
+    private boolean usePlatformDimension(ProjectNativeComponentInternal component) {
+        return component.choosePlatforms(allPlatforms).size() > 1;
     }
 
-    private boolean useBuildTypeDimension(NativeComponent component) {
-        return ((ProjectNativeComponentInternal) component).chooseBuildTypes(allBuildTypes).size() > 1;
+    private boolean useBuildTypeDimension(ProjectNativeComponentInternal component) {
+        return component.chooseBuildTypes(allBuildTypes).size() > 1;
     }
 
-    private boolean useFlavorDimension(NativeComponent component) {
-        return ((ProjectNativeComponentInternal) component).chooseFlavors(allFlavors).size() > 1;
+    private boolean useFlavorDimension(ProjectNativeComponentInternal component) {
+        return component.chooseFlavors(allFlavors).size() > 1;
     }
 
     private void setupDefaults(Project project, AbstractProjectNativeBinary nativeBinary) {

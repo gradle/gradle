@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.nativebinaries.language.assembler.plugins
+
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
@@ -21,12 +22,13 @@ import org.gradle.language.assembler.AssemblerSourceSet
 import org.gradle.language.assembler.plugins.AssemblerLangPlugin
 import org.gradle.nativebinaries.Executable
 import org.gradle.nativebinaries.Library
-import org.gradle.nativebinaries.NativeComponent
 import org.gradle.nativebinaries.ProjectNativeBinary
+import org.gradle.nativebinaries.ProjectNativeComponent
 import org.gradle.nativebinaries.internal.DefaultTool
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
 import org.gradle.nativebinaries.language.assembler.tasks.Assemble
 import org.gradle.nativebinaries.plugins.NativeBinariesPlugin
+
 /**
  * A plugin for projects wishing to build native binary components from Assembly language sources.
  *
@@ -60,7 +62,7 @@ class AssemblerNativeBinariesPlugin implements Plugin<ProjectInternal> {
         }
     }
 
-    private def addLanguageExtensionsToComponent(NativeComponent component) {
+    private def addLanguageExtensionsToComponent(ProjectNativeComponent component) {
         component.binaries.all { binary ->
             binary.extensions.create("assembler", DefaultTool)
         }

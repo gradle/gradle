@@ -18,10 +18,10 @@ package org.gradle.nativebinaries;
 import org.gradle.api.Incubating;
 
 /**
- * The logical representation of an library native component.
+ * A library component that is built by a gradle project.
  */
 @Incubating
-public interface Library extends NativeComponent {
+public interface Library extends ProjectNativeComponent {
     /**
      * Converts this library to a native library requirement that uses the shared library variant. This is the default.
      */

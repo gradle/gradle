@@ -27,6 +27,7 @@ import org.gradle.language.base.internal.DefaultBinaryNamingScheme;
 import org.gradle.nativebinaries.ApiLibraryBinary;
 import org.gradle.nativebinaries.BuildType;
 import org.gradle.nativebinaries.Flavor;
+import org.gradle.nativebinaries.Library;
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativebinaries.platform.Platform;
 import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal;
@@ -40,7 +41,7 @@ import java.util.Set;
 // TODO:DAZ Improve this
 public class ProjectApiLibraryBinary extends AbstractProjectLibraryBinary implements ApiLibraryBinary {
 
-    public ProjectApiLibraryBinary(ProjectLibrary library, Flavor flavor, ToolChainInternal toolChain, Platform platform, BuildType buildType,
+    public ProjectApiLibraryBinary(Library library, Flavor flavor, ToolChainInternal toolChain, Platform platform, BuildType buildType,
                                    DefaultBinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
         super(library, flavor, toolChain, platform, buildType, namingScheme.withTypeString("LibraryApi"), resolver);
     }

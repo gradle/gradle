@@ -423,12 +423,12 @@
                 <sourcefile file="build.gradle" snippet="target-platforms"/>
             </sample>
             <para>
-                Here you can see that the <apilink class="org.gradle.nativebinaries.NativeComponent" method="targetPlatforms"/> method is used to
+                Here you can see that the <apilink class="org.gradle.nativebinaries.ProjectNativeComponent" method="targetPlatforms"/> method is used to
                 select the set of platforms to target for <literal>executables.main</literal>.
             </para>
             <para>
-                A similar mechanism exists for selecting <apilink class="org.gradle.nativebinaries.NativeComponent" method="targetBuildTypes"/>
-                and <apilink class="org.gradle.nativebinaries.NativeComponent" method="targetFlavors"/>.
+                A similar mechanism exists for selecting <apilink class="org.gradle.nativebinaries.ProjectNativeComponent" method="targetBuildTypes"/>
+                and <apilink class="org.gradle.nativebinaries.ProjectNativeComponent" method="targetFlavors"/>.
             </para>
         </section>
         <section>

@@ -67,7 +67,7 @@ class WindowsResourcesNativeBinariesPlugin implements Plugin<ProjectInternal> {
         }
     }
 
-    private def addLanguageExtensionsToComponent(NativeComponent component) {
+    private def addLanguageExtensionsToComponent(ProjectNativeComponent component) {
         component.binaries.all { NativeBinary binary ->
             if (shouldProcessResources(binary)) {
                 binary.extensions.create("rcCompiler", DefaultPreprocessingTool)

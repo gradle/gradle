@@ -20,7 +20,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 
 /**
- * Defines a custom variant that can be built for a {@link NativeComponent}.
+ * Defines a custom variant that differentiate a {@link NativeBinary}.
  */
 @Incubating
 public interface Flavor extends Named {
