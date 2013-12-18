@@ -281,16 +281,16 @@ rootProject.name = 'root'
         output.contains "compile - Compile classpath for source set 'main'."
 
         output.contains(toPlatformLineSeparators("""
-+--- project :a
++--- project :a (root:a:1.0)
 |    \\--- foo:bar:1.0 -> 3.0
 |         \\--- foo:baz:5.0
-+--- project :b
++--- project :b (root:b:1.0)
 |    \\--- foo:bar:0.5.dont.exist -> 3.0 (*)
-+--- project :c
++--- project :c (root:c:1.0)
 |    \\--- foo:bar:3.0 (*)
-+--- project :d
++--- project :d (root:d:1.0)
 |    \\--- foo:bar:2.0 -> 3.0 (*)
-\\--- project :e
+\\--- project :e (root:e:1.0)
      \\--- foo:bar:3.0 (*)
 """))
     }
@@ -650,14 +650,14 @@ rootProject.name = 'root'
         output.contains "compile - Compile classpath for source set 'main'."
 
         output.contains(toPlatformLineSeparators("""
-+--- project :a
++--- project :a (root:a:1.0)
 |    \\--- foo:bar:1.0 -> 2.0
-+--- project :b
++--- project :b (root:b:1.0)
 |    \\--- foo:bar:0.5.dont.exist -> 2.0
-+--- project :a:c
++--- project :a:c (root.a:c:1.0)
 |    \\--- foo:bar:2.0
-\\--- project :d
-     \\--- project :e
+\\--- project :d (root:d:1.0)
+     \\--- project :e (root:e:1.0)
           \\--- foo:bar:2.0
 """))
     }

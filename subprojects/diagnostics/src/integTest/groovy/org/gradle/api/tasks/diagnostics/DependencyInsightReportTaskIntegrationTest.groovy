@@ -907,8 +907,8 @@ org:leaf2:1.0
 
         then:
         output.contains(toPlatformLineSeparators("""
-project :
-\\--- project :impl
+project : (org.foo:root:1.0)
+\\--- project :impl (org.foo:impl:1.0)
      \\--- org.foo:root:1.0 (*)"""))
     }
 
@@ -950,7 +950,7 @@ project :
         output.contains(toPlatformLineSeparators("""
 org:leaf2:1.0
 \\--- org:leaf1:1.0
-     \\--- project :impl
+     \\--- project :impl (org.foo:impl:1.0-SNAPSHOT)
           \\--- compile
 """))
     }
@@ -991,7 +991,7 @@ org:leaf2:1.0
 
         then:
         output.contains(toPlatformLineSeparators("""
-project :impl
+project :impl (org.foo:impl:1.0-SNAPSHOT)
 \\--- compile
 """))
     }
@@ -1036,7 +1036,7 @@ project :impl
         then:
         output.contains(toPlatformLineSeparators("""
 org:leaf4:1.0
-\\--- project :impl
+\\--- project :impl (org.foo:impl:1.0-SNAPSHOT)
      \\--- compile
 """))
     }
@@ -1080,8 +1080,8 @@ org:leaf4:1.0
 
         then:
         output.contains(toPlatformLineSeparators("""
-project :api
-\\--- project :impl
+project :api (org.foo:api:1.0-SNAPSHOT)
+\\--- project :impl (org.foo:impl:1.0-SNAPSHOT)
      \\--- compile
 """))
     }

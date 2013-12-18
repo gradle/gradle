@@ -16,10 +16,7 @@
 package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
 import org.gradle.api.Nullable;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.component.ComponentSelector;
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.artifacts.component.ModuleComponentSelector;
+import org.gradle.api.artifacts.component.*;
 
 public abstract class AbstractRenderableDependencyResult implements RenderableDependency {
     public ComponentIdentifier getId() {
@@ -65,9 +62,24 @@ public abstract class AbstractRenderableDependencyResult implements RenderableDe
                     return getSimpleName() + " -> " + selectedModuleComponentedIdentifier.getVersion();
                 }
             }
+        } else if(requested instanceof ProjectComponentSelector) {
+            return buildProjectComponentName();
         }
 
         return getSimpleName();
+    }
+
+    private String buildProjectComponentName() {
+        StringBuilder verboseName = new StringBuilder();
+        verboseName.append(getSimpleName());
+
+        ComponentIdentifier id = getId();
+
+        if(id != null) {
+            verboseName.append(" (").append(id).append(")");
+        }
+
+        return verboseName.toString();
     }
 
     protected abstract ComponentSelector getRequested();
