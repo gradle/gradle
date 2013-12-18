@@ -54,7 +54,7 @@ public class DefaultTaskArtifactStateCacheAccess implements TaskArtifactStateCac
                         .cache("taskArtifacts")
                         .withLayout(layout)
                         .withDisplayName("task artifact state cache")
-                        .withLockOptions(mode(FileLockManager.LockMode.Exclusive))
+                        .withLockOptions(mode(FileLockManager.LockMode.None))
                         .open();
             }
             return cache;

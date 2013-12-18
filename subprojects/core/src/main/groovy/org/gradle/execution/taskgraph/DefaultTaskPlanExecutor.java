@@ -17,22 +17,10 @@
 package org.gradle.execution.taskgraph;
 
 import org.gradle.api.execution.TaskExecutionListener;
-import org.gradle.api.internal.changedetection.state.TaskArtifactStateCacheAccess;
 
 class DefaultTaskPlanExecutor extends AbstractTaskPlanExecutor {
-    private final TaskArtifactStateCacheAccess stateCacheAccess;
-
-    DefaultTaskPlanExecutor(TaskArtifactStateCacheAccess stateCacheAccess) {
-        this.stateCacheAccess = stateCacheAccess;
-    }
-
     public void process(final TaskExecutionPlan taskExecutionPlan, final TaskExecutionListener taskListener) {
-        //At the very beginning, we unlock the cache access. The synchronisation via 'useCache' is pushed down and ine grained.
-        stateCacheAccess.longRunningOperation("Execute tasks", new Runnable() {
-            public void run() {
-                taskWorker(taskExecutionPlan, taskListener).run();
-                taskExecutionPlan.awaitCompletion();
-            }
-        });
+        taskWorker(taskExecutionPlan, taskListener).run();
+        taskExecutionPlan.awaitCompletion();
     }
 }

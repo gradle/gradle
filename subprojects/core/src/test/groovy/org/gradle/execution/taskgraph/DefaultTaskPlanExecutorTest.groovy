@@ -18,16 +18,12 @@ package org.gradle.execution.taskgraph
 
 import org.gradle.api.execution.TaskExecutionListener
 import org.gradle.api.internal.TaskInternal
-import org.gradle.api.internal.changedetection.state.TaskArtifactStateCacheAccess
 import spock.lang.Specification
 
 class DefaultTaskPlanExecutorTest extends Specification {
     def taskPlan = Mock(TaskExecutionPlan)
     def executionListener = Mock(TaskExecutionListener)
-    def cacheAccess = Stub(TaskArtifactStateCacheAccess) {
-        longRunningOperation(_, _) >> { name, action -> action.run() }
-    }
-    def executor = new DefaultTaskPlanExecutor(cacheAccess)
+    def executor = new DefaultTaskPlanExecutor()
 
     def "executes tasks until no further tasks remain"() {
         def task = Mock(TaskInternal)

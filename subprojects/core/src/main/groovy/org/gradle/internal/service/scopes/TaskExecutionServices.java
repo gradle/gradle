@@ -83,7 +83,7 @@ public class TaskExecutionServices {
         );
     }
 
-    TaskPlanExecutor createTaskExecutorFactory(StartParameter startParameter, TaskArtifactStateCacheAccess cacheAccess, ExecutorFactory executorFactory) {
-        return new TaskPlanExecutorFactory(cacheAccess, startParameter.getParallelThreadCount(), executorFactory).create();
+    TaskPlanExecutor createTaskExecutorFactory(StartParameter startParameter, ExecutorFactory executorFactory) {
+        return new TaskPlanExecutorFactory(startParameter.getParallelThreadCount(), executorFactory).create();
     }
 }
