@@ -41,7 +41,7 @@ class NativeBinaryFactoryTest extends Specification {
     def flavor1 = new DefaultFlavor("flavor1")
     def flavors = new DefaultFlavorContainer(new DirectInstantiator())
     def id = new NativeBuildComponentIdentifier("project", "name")
-    def component = new DefaultExecutable(id, new DirectInstantiator())
+    def component = new DefaultExecutable(id)
 
     def setup() {
         platform.name >> "platform1"

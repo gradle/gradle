@@ -26,7 +26,7 @@ import spock.lang.Specification
 class DefaultNativeComponentTest extends Specification {
     def instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), new DirectInstantiator())
     def id = new NativeBuildComponentIdentifier("project", "name")
-    def component = new DefaultNativeComponent(id, instantiator)
+    def component = new DefaultNativeComponent(id)
 
     def "uses all source sets from a functional source set"() {
         given:

@@ -42,6 +42,6 @@ public class DefaultPrebuiltLibraries extends AbstractNamedDomainObjectContainer
 
     @Override
     protected PrebuiltLibrary doCreate(String name) {
-        return getInstantiator().newInstance(DefaultPrebuiltLibrary.class, name, project, getInstantiator());
+        return getInstantiator().newInstance(DefaultPrebuiltLibrary.class, name, project);
     }
 }

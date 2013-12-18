@@ -16,14 +16,13 @@
 
 package org.gradle.nativebinaries.internal;
 
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.nativebinaries.Library;
 import org.gradle.nativebinaries.NativeLibraryRequirement;
 
 public class DefaultLibrary extends DefaultNativeComponent implements Library {
 
-    public DefaultLibrary(NativeBuildComponentIdentifier id, Instantiator instantiator) {
-        super(id, instantiator);
+    public DefaultLibrary(NativeBuildComponentIdentifier id) {
+        super(id);
     }
 
     @Override

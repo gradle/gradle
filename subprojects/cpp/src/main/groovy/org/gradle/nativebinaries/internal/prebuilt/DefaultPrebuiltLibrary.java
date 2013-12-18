@@ -19,7 +19,6 @@ package org.gradle.nativebinaries.internal.prebuilt;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.nativebinaries.PrebuiltLibrary;
 import org.gradle.nativebinaries.internal.DefaultLibrary;
 import org.gradle.nativebinaries.internal.NativeBuildComponentIdentifier;
@@ -31,9 +30,9 @@ public class DefaultPrebuiltLibrary extends DefaultLibrary implements PrebuiltLi
     private final DefaultSourceDirectorySet headers;
 
     // TODO:DAZ Should not require project here, just FileResolver
-    public DefaultPrebuiltLibrary(String name, ProjectInternal project, Instantiator instantiator) {
+    public DefaultPrebuiltLibrary(String name, ProjectInternal project) {
         // TODO:DAZ It's not really a project component
-        super(new NativeBuildComponentIdentifier(project.getPath(), name), instantiator);
+        super(new NativeBuildComponentIdentifier(project.getPath(), name));
         headers = new DefaultSourceDirectorySet("headers", project.getFileResolver());
     }
 

@@ -16,11 +16,10 @@
 
 package org.gradle.nativebinaries.internal
 
-import org.gradle.internal.reflect.DirectInstantiator
 import spock.lang.Specification
 
 class DefaultLibraryTest extends Specification {
-    final library = new DefaultLibrary(new NativeBuildComponentIdentifier("project-path", "someLib"), new DirectInstantiator())
+    final library = new DefaultLibrary(new NativeBuildComponentIdentifier("project-path", "someLib"))
 
     def "has useful string representation"() {
 

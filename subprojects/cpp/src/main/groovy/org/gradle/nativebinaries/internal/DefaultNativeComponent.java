@@ -19,10 +19,11 @@ import org.gradle.api.DomainObjectSet;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Named;
 import org.gradle.api.internal.DefaultDomainObjectSet;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.nativebinaries.*;
+import org.gradle.nativebinaries.BuildType;
+import org.gradle.nativebinaries.Flavor;
+import org.gradle.nativebinaries.NativeBinary;
 import org.gradle.nativebinaries.platform.Platform;
 import org.gradle.util.GUtil;
 
@@ -40,7 +41,7 @@ public class DefaultNativeComponent implements NativeComponentInternal {
     private final Set<String> flavors = new HashSet<String>();
     private String baseName;
 
-    public DefaultNativeComponent(NativeBuildComponentIdentifier id, Instantiator instantiator) {
+    public DefaultNativeComponent(NativeBuildComponentIdentifier id) {
         this.id = id;
         this.sourceSets = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class);
         binaries = new DefaultDomainObjectSet<NativeBinary>(NativeBinary.class);
