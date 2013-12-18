@@ -54,10 +54,10 @@ class NativeBinaryFactory implements Transformer<Collection<NativeBinary>, Nativ
     }
 
     public Collection<NativeBinary> transform(NativeComponent original) {
-        return createNativeBinaries((NativeComponentInternal) original);
+        return createNativeBinaries((ProjectNativeComponentInternal) original);
     }
 
-    public Collection<NativeBinary> createNativeBinaries(NativeComponentInternal component) {
+    public Collection<NativeBinary> createNativeBinaries(ProjectNativeComponentInternal component) {
         Set<NativeBinary> componentBinaries = new LinkedHashSet<NativeBinary>();
          for (Platform platform : component.choosePlatforms(allPlatforms)) {
              ToolChain toolChain = toolChainRegistry.getForPlatform(platform);
@@ -105,15 +105,15 @@ class NativeBinaryFactory implements Transformer<Collection<NativeBinary>, Nativ
     }
 
     private boolean usePlatformDimension(NativeComponent component) {
-        return ((NativeComponentInternal) component).choosePlatforms(allPlatforms).size() > 1;
+        return ((ProjectNativeComponentInternal) component).choosePlatforms(allPlatforms).size() > 1;
     }
 
     private boolean useBuildTypeDimension(NativeComponent component) {
-        return ((NativeComponentInternal) component).chooseBuildTypes(allBuildTypes).size() > 1;
+        return ((ProjectNativeComponentInternal) component).chooseBuildTypes(allBuildTypes).size() > 1;
     }
 
     private boolean useFlavorDimension(NativeComponent component) {
-        return ((NativeComponentInternal) component).chooseFlavors(allFlavors).size() > 1;
+        return ((ProjectNativeComponentInternal) component).chooseFlavors(allFlavors).size() > 1;
     }
 
     private void setupDefaults(Project project, AbstractProjectNativeBinary nativeBinary) {

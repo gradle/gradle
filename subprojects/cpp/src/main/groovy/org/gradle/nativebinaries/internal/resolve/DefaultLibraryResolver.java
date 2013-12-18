@@ -27,12 +27,12 @@ import java.util.Set;
 class DefaultLibraryResolver implements LibraryResolver {
     private final NativeLibraryRequirement requirement;
     private final NativeBinary context;
-    private final LibraryLocator libraryLocator;
+    private final LibraryBinaryLocator libraryBinaryLocator;
 
-    public DefaultLibraryResolver(LibraryLocator libraryLocator, NativeLibraryRequirement requirement, NativeBinary context) {
+    public DefaultLibraryResolver(LibraryBinaryLocator libraryBinaryLocator, NativeLibraryRequirement requirement, NativeBinary context) {
         this.requirement = requirement;
         this.context = context;
-        this.libraryLocator = libraryLocator;
+        this.libraryBinaryLocator = libraryBinaryLocator;
     }
 
     public LibraryNativeDependencySet resolve() {
@@ -40,7 +40,7 @@ class DefaultLibraryResolver implements LibraryResolver {
                 .withFlavor(context.getFlavor())
                 .withPlatform(context.getTargetPlatform())
                 .withBuildType(context.getBuildType())
-                .resolve(libraryLocator.getLibrary(requirement));
+                .resolve(libraryBinaryLocator.getBinaries(requirement));
     }
 
     private class LibraryResolution {
@@ -63,9 +63,9 @@ class DefaultLibraryResolver implements LibraryResolver {
             return this;
         }
 
-        public LibraryNativeDependencySet resolve(Library library) {
+        public LibraryNativeDependencySet resolve(DomainObjectSet<NativeBinary> allBinaries) {
             Class<? extends LibraryBinary> type = getTypeForLinkage(requirement.getLinkage());
-            DomainObjectSet<? extends LibraryBinary> candidateBinaries = library.getBinaries().withType(type);
+            DomainObjectSet<? extends LibraryBinary> candidateBinaries = allBinaries.withType(type);
             return resolve(candidateBinaries);
         }
 

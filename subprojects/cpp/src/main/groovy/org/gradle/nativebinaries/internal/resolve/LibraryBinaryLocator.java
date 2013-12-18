@@ -14,17 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries;
+package org.gradle.nativebinaries.internal.resolve;
 
-import org.gradle.api.Incubating;
+import org.gradle.api.DomainObjectSet;
+import org.gradle.nativebinaries.NativeBinary;
+import org.gradle.nativebinaries.NativeLibraryRequirement;
 
-/**
- * Represents a particular binary artifact that is the result of building a native component.
- */
-@Incubating
-public interface NativeComponentBinary extends NativeBinary {
-    /**
-     * The component that this binary was built from.
-     */
-    NativeComponent getComponent();
+public interface LibraryBinaryLocator {
+    DomainObjectSet<NativeBinary> getBinaries(NativeLibraryRequirement requirement);
 }

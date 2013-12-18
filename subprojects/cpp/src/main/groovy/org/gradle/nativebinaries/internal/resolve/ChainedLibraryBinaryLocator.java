@@ -16,25 +16,26 @@
 
 package org.gradle.nativebinaries.internal.resolve;
 
+import org.gradle.api.DomainObjectSet;
 import org.gradle.internal.exceptions.AbstractMultiCauseException;
-import org.gradle.nativebinaries.Library;
+import org.gradle.nativebinaries.NativeBinary;
 import org.gradle.nativebinaries.NativeLibraryRequirement;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class ChainedLibraryLocator implements LibraryLocator {
-    private final List<LibraryLocator> locators = new ArrayList<LibraryLocator>();
+public class ChainedLibraryBinaryLocator implements LibraryBinaryLocator {
+    private final List<LibraryBinaryLocator> locators = new ArrayList<LibraryBinaryLocator>();
 
-    public ChainedLibraryLocator(List<? extends LibraryLocator> locators) {
+    public ChainedLibraryBinaryLocator(List<? extends LibraryBinaryLocator> locators) {
         this.locators.addAll(locators);
     }
 
-    public Library getLibrary(NativeLibraryRequirement requirement) {
+    public DomainObjectSet<NativeBinary> getBinaries(NativeLibraryRequirement requirement) {
         List<Exception> failures = new ArrayList<Exception>();
-        for (LibraryLocator locator : locators) {
+        for (LibraryBinaryLocator locator : locators) {
             try {
-                return locator.getLibrary(requirement);
+                return locator.getBinaries(requirement);
             } catch (Exception e) {
                 failures.add(e);
             }

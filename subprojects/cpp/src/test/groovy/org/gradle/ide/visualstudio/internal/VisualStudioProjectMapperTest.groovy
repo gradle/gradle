@@ -16,9 +16,10 @@
 
 package org.gradle.ide.visualstudio.internal
 import org.gradle.nativebinaries.*
+import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
 import org.gradle.nativebinaries.platform.internal.ArchitectureNotationParser
 import org.gradle.nativebinaries.internal.DefaultFlavor
-import org.gradle.nativebinaries.internal.NativeComponentInternal
+import org.gradle.nativebinaries.internal.ProjectNativeComponentInternal
 import org.gradle.nativebinaries.platform.Architecture
 import org.gradle.nativebinaries.platform.Platform
 import org.gradle.nativebinaries.platform.PlatformContainer
@@ -30,7 +31,7 @@ class VisualStudioProjectMapperTest extends Specification {
     def mapper = new VisualStudioProjectMapper(flavors, platforms)
 
     def executable = Mock(ExecutableInternal)
-    def executableBinary = Mock(ExecutableBinary)
+    def executableBinary = Mock(ExecutableBinaryInternal)
     def library = Mock(LibraryInternal)
 
     def flavorOne = Mock(Flavor)
@@ -56,8 +57,8 @@ class VisualStudioProjectMapperTest extends Specification {
 
     def "maps library binary types to visual studio projects"() {
         when:
-        def sharedLibraryBinary = libraryBinary(SharedLibraryBinary)
-        def staticLibraryBinary = libraryBinary(StaticLibraryBinary)
+        def sharedLibraryBinary = libraryBinary(SharedLibraryBinaryInternal)
+        def staticLibraryBinary = libraryBinary(StaticLibraryBinaryInternal)
 
         library.chooseFlavors(flavors) >> [flavorOne]
         library.choosePlatforms(platforms) >> [platformOne]
@@ -94,7 +95,7 @@ class VisualStudioProjectMapperTest extends Specification {
         executable.choosePlatforms(platforms) >> [platformOne, platformTwo]
 
         and:
-        def executableBinary2 = Mock(ExecutableBinary)
+        def executableBinary2 = Mock(ExecutableBinaryInternal)
         executableBinary2.component >> executable
         executableBinary2.buildType >> buildTypeOne
         executableBinary2.flavor >> flavorOne
@@ -118,7 +119,7 @@ class VisualStudioProjectMapperTest extends Specification {
         executable.choosePlatforms(platforms) >> [platformOne, platformTwo]
 
         and:
-        def executableBinary2 = Mock(ExecutableBinary)
+        def executableBinary2 = Mock(ExecutableBinaryInternal)
         executableBinary2.component >> executable
         executableBinary2.buildType >> buildTypeOne
         executableBinary2.flavor >> flavorOne
@@ -150,6 +151,9 @@ class VisualStudioProjectMapperTest extends Specification {
         return binary
     }
 
-    interface ExecutableInternal extends Executable, NativeComponentInternal {}
-    interface LibraryInternal extends Library, NativeComponentInternal {}
+    interface ExecutableInternal extends Executable, ProjectNativeComponentInternal {}
+    interface LibraryInternal extends Library, ProjectNativeComponentInternal {}
+    interface ExecutableBinaryInternal extends ExecutableBinary, ProjectNativeBinaryInternal {}
+    interface SharedLibraryBinaryInternal extends SharedLibraryBinary, ProjectNativeBinaryInternal {}
+    interface StaticLibraryBinaryInternal extends StaticLibraryBinary, ProjectNativeBinaryInternal {}
 }

@@ -20,6 +20,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.internal.DefaultBinaryNamingScheme;
 import org.gradle.nativebinaries.BuildType;
 import org.gradle.nativebinaries.Flavor;
+import org.gradle.nativebinaries.LibraryBinary;
 import org.gradle.nativebinaries.PrebuiltLibrary;
 import org.gradle.nativebinaries.platform.Platform;
 
@@ -57,13 +58,13 @@ public class PrebuiltBinaryFactory {
         createNativeBinary(DefaultPrebuiltStaticLibraryBinary.class, library, platform, buildType, flavor);
     }
 
-    public <T extends AbstractPrebuiltLibraryBinary> void createNativeBinary(Class<T> type, PrebuiltLibrary library, Platform platform, BuildType buildType, Flavor flavor) {
+    public <T extends LibraryBinary> void createNativeBinary(Class<T> type, PrebuiltLibrary library, Platform platform, BuildType buildType, Flavor flavor) {
         String name = getName(type, library, platform, buildType, flavor);
         T nativeBinary = instantiator.newInstance(type, name, library, buildType, platform, flavor);
         library.getBinaries().add(nativeBinary);
     }
 
-    private <T extends AbstractPrebuiltLibraryBinary> String getName(Class<T> type, PrebuiltLibrary library, Platform platform, BuildType buildType, Flavor flavor) {
+    private <T extends LibraryBinary> String getName(Class<T> type, PrebuiltLibrary library, Platform platform, BuildType buildType, Flavor flavor) {
         DefaultBinaryNamingScheme namingScheme = new DefaultBinaryNamingScheme(library.getName())
                 .withTypeString(type.getSimpleName())
                 .withVariantDimension(platform.getName())

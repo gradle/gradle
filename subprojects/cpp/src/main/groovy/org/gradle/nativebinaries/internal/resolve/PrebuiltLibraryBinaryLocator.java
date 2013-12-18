@@ -16,9 +16,20 @@
 
 package org.gradle.nativebinaries.internal.resolve;
 
-import org.gradle.nativebinaries.Library;
+import org.gradle.api.DomainObjectSet;
+import org.gradle.nativebinaries.NativeBinary;
 import org.gradle.nativebinaries.NativeLibraryRequirement;
+import org.gradle.nativebinaries.PrebuiltLibraries;
 
-public interface LibraryLocator {
-    Library getLibrary(NativeLibraryRequirement requirement);
+public class PrebuiltLibraryBinaryLocator implements LibraryBinaryLocator {
+    private final PrebuiltLibraries prebuiltLibraries;
+
+    public PrebuiltLibraryBinaryLocator(PrebuiltLibraries prebuiltLibraries) {
+        this.prebuiltLibraries = prebuiltLibraries;
+    }
+
+    public DomainObjectSet<NativeBinary> getBinaries(NativeLibraryRequirement requirement) {
+        // TODO:DAZ Ignore requirements for other projects
+        return prebuiltLibraries.getByName(requirement.getLibraryName()).getBinaries();
+    }
 }

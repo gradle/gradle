@@ -32,9 +32,6 @@
             <tr>
                 <td>buildType</td>
             </tr>
-            <tr>
-                <td>buildable</td>
-            </tr>
         </table>
     </section>
     <section>

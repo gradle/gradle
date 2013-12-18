@@ -19,5 +19,8 @@ package org.gradle.nativebinaries.internal;
 import org.gradle.nativebinaries.Executable;
 import org.gradle.nativebinaries.ProjectNativeComponent;
 
+/**
+ * An executable component that is built by a gradle project.
+ */
 public interface ProjectExecutable extends Executable, ProjectNativeComponent {
 }

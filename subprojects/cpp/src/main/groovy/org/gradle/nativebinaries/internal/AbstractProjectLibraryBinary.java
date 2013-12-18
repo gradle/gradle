@@ -24,7 +24,6 @@ import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.DefaultBinaryNamingScheme;
 import org.gradle.nativebinaries.BuildType;
 import org.gradle.nativebinaries.Flavor;
-import org.gradle.nativebinaries.Library;
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativebinaries.platform.Platform;
 import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal;
@@ -35,16 +34,10 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 public abstract class AbstractProjectLibraryBinary extends AbstractProjectNativeBinary implements LibraryBinaryInternal {
-    private final Library library;
 
     protected AbstractProjectLibraryBinary(ProjectLibrary library, Flavor flavor, ToolChainInternal toolChain, Platform targetPlatform, BuildType buildType,
                                            DefaultBinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
         super(library, flavor, toolChain, targetPlatform, buildType, namingScheme, resolver);
-        this.library = library;
-    }
-
-    public Library getComponent() {
-        return library;
     }
 
     protected boolean hasSources() {

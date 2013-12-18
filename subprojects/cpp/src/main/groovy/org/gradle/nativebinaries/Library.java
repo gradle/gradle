@@ -23,6 +23,7 @@ import org.gradle.api.Incubating;
 @Incubating
 public interface Library extends NativeComponent {
 
+// TODO:DAZ Move into ProjectLibrary
     /**
      * Converts this library to a native library requirement that uses the shared library variant. This is the default.
      */

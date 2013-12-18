@@ -20,7 +20,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectSet;
 
 /**
- * The configuration for mapping a set of {@link org.gradle.nativebinaries.NativeComponent}s to a Visual Studio project.
+ * The configuration for mapping a set of {@link org.gradle.nativebinaries.ProjectNativeComponent}s to a Visual Studio project.
  */
 @Incubating
 public interface VisualStudioExtension {

@@ -61,12 +61,12 @@ public class CreateNativeBinaries extends ModelRule {
     }
 
     private static NativeDependencyResolver createResolver(ProjectInternal project, Repositories repositories) {
-        List<LibraryLocator> locators = new ArrayList<LibraryLocator>();
-        locators.add(new ProjectLibraryLocator(new RelativeProjectFinder(project)));
+        List<LibraryBinaryLocator> locators = new ArrayList<LibraryBinaryLocator>();
+        locators.add(new ProjectLibraryBinaryLocator(new RelativeProjectFinder(project)));
         for (PrebuiltLibraries prebuiltLibraries : repositories.withType(PrebuiltLibraries.class)) {
-            locators.add(new PrebuiltLibraryLocator(prebuiltLibraries));
+            locators.add(new PrebuiltLibraryBinaryLocator(prebuiltLibraries));
         }
-        LibraryLocator locator = new ChainedLibraryLocator(locators);
+        LibraryBinaryLocator locator = new ChainedLibraryBinaryLocator(locators);
         return new DefaultNativeDependencyResolver(locator);
     }
 

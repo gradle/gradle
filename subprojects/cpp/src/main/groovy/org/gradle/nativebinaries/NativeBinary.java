@@ -39,9 +39,4 @@ public interface NativeBinary extends Binary {
      * Returns the {@link BuildType} used to construct this binary.
      */
     BuildType getBuildType();
-
-    /**
-     * Can this binary be built in the current environment?
-     */
-    boolean isBuildable();
 }

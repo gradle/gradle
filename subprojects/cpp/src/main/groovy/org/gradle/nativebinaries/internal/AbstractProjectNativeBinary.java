@@ -37,6 +37,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 public abstract class AbstractProjectNativeBinary extends AbstractBuildableModelElement implements ProjectNativeBinaryInternal {
+    private final ProjectNativeComponent component;
     private final NotationParser<Object, Set<LanguageSourceSet>> sourcesNotationParser = SourceSetNotationParser.parser();
     private final Set<? super Object> libs = new LinkedHashSet<Object>();
     private final DomainObjectSet<LanguageSourceSet> source = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class);
@@ -54,6 +55,7 @@ public abstract class AbstractProjectNativeBinary extends AbstractBuildableModel
 
     protected AbstractProjectNativeBinary(ProjectNativeComponent owner, Flavor flavor, ToolChainInternal toolChain, Platform targetPlatform, BuildType buildType,
                                           DefaultBinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
+        this.component = owner;
         this.namingScheme = namingScheme;
         this.flavor = flavor;
         this.toolChain = toolChain;
@@ -75,6 +77,10 @@ public abstract class AbstractProjectNativeBinary extends AbstractBuildableModel
 
     public String getName() {
         return namingScheme.getLifecycleTaskName();
+    }
+
+    public ProjectNativeComponent getComponent() {
+        return component;
     }
 
     public Flavor getFlavor() {

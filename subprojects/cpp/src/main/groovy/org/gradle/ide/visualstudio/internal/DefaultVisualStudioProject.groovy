@@ -27,7 +27,7 @@ import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.internal.AbstractBuildableModelElement
 import org.gradle.language.rc.WindowsResourceSet
 import org.gradle.nativebinaries.*
-import org.gradle.nativebinaries.internal.NativeComponentInternal
+import org.gradle.nativebinaries.internal.ProjectNativeComponentInternal
 import org.gradle.nativebinaries.internal.resolve.LibraryNativeDependencySet
 import org.gradle.util.CollectionUtils
 
@@ -51,7 +51,7 @@ class DefaultVisualStudioProject extends AbstractBuildableModelElement implement
     }
 
     String getUuid() {
-        String projectPath = (component as NativeComponentInternal).projectPath
+        String projectPath = (component as ProjectNativeComponentInternal).projectPath
         String vsComponentPath = "${projectPath}:${name}"
         return '{' + UUID.nameUUIDFromBytes(vsComponentPath.bytes).toString().toUpperCase() + '}'
     }
@@ -103,7 +103,7 @@ class DefaultVisualStudioProject extends AbstractBuildableModelElement implement
         configurations[nativeBinary] = configuration
     }
 
-    VisualStudioProjectConfiguration getConfiguration(NativeComponentBinary nativeBinary) {
+    VisualStudioProjectConfiguration getConfiguration(ProjectNativeBinary nativeBinary) {
         return configurations[nativeBinary]
     }
 

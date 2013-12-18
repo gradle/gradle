@@ -25,10 +25,19 @@ import org.gradle.nativebinaries.toolchain.ToolChain;
 import java.util.Collection;
 
 /**
- * Represents a particular binary artifact.
+ * Represents a particular binary artifact that is the result of building a native component.
  */
 @Incubating @HasInternalProtocol
-public interface ProjectNativeBinary extends NativeComponentBinary {
+public interface ProjectNativeBinary extends NativeBinary {
+    /**
+     * The component that this binary was built from.
+     */
+    ProjectNativeComponent getComponent();
+
+    /**
+     * Can this binary be built in the current environment?
+     */
+    boolean isBuildable();
 
     /**
      * The source sets used to compile this binary.

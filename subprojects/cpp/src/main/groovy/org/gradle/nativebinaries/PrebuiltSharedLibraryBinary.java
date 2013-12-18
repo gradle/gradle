@@ -21,7 +21,7 @@ import java.io.File;
 /**
  * The shared library linkage of a {@link PrebuiltLibrary}.
  */
-public interface PrebuiltSharedLibraryBinary extends LibraryBinary, SharedLibraryBinary {
+public interface PrebuiltSharedLibraryBinary extends SharedLibraryBinary {
     /**
      * The shared library file.
      */

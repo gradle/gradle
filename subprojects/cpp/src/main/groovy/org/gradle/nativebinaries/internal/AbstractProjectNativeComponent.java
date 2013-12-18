@@ -24,7 +24,6 @@ import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.nativebinaries.BuildType;
 import org.gradle.nativebinaries.Flavor;
 import org.gradle.nativebinaries.NativeBinary;
-import org.gradle.nativebinaries.ProjectNativeComponent;
 import org.gradle.nativebinaries.platform.Platform;
 import org.gradle.util.GUtil;
 
@@ -32,7 +31,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public abstract class AbstractProjectNativeComponent implements ProjectNativeComponent, NativeComponentInternal {
+public abstract class AbstractProjectNativeComponent implements ProjectNativeComponentInternal {
     private final NotationParser<Object, Set<LanguageSourceSet>> sourcesNotationParser = SourceSetNotationParser.parser();
     private final NativeProjectComponentIdentifier id;
     private final DomainObjectSet<LanguageSourceSet> sourceSets;

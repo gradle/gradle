@@ -21,12 +21,11 @@ import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.language.base.internal.AbstractBuildableModelElement;
 import org.gradle.nativebinaries.BuildType;
 import org.gradle.nativebinaries.Flavor;
-import org.gradle.nativebinaries.LibraryBinary;
 import org.gradle.nativebinaries.PrebuiltLibrary;
 import org.gradle.nativebinaries.internal.LibraryBinaryInternal;
 import org.gradle.nativebinaries.platform.Platform;
 
-public abstract class AbstractPrebuiltLibraryBinary extends AbstractBuildableModelElement implements LibraryBinaryInternal, LibraryBinary {
+public abstract class AbstractPrebuiltLibraryBinary extends AbstractBuildableModelElement implements LibraryBinaryInternal {
     private final String name;
     private final PrebuiltLibrary library;
     private final BuildType buildType;
@@ -68,9 +67,5 @@ public abstract class AbstractPrebuiltLibraryBinary extends AbstractBuildableMod
 
     public FileCollection getHeaderDirs() {
         return new SimpleFileCollection(library.getHeaders().getSrcDirs());
-    }
-
-    public boolean isBuildable() {
-        return false;
     }
 }

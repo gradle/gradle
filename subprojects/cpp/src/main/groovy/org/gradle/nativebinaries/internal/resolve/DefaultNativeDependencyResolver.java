@@ -27,11 +27,11 @@ import java.util.List;
 
 public class DefaultNativeDependencyResolver implements NativeDependencyResolver {
     private final NotationParser<Object, NativeLibraryRequirement> parser;
-    private final LibraryLocator libraryLocator;
+    private final LibraryBinaryLocator libraryBinaryLocator;
 
-    public DefaultNativeDependencyResolver(final LibraryLocator locator) {
+    public DefaultNativeDependencyResolver(final LibraryBinaryLocator locator) {
         parser = NativeDependencyNotationParser.parser();
-        libraryLocator = locator;
+        libraryBinaryLocator = locator;
     }
 
     public Collection<NativeDependencySet> resolve(NativeBinary target, Collection<?> libs) {
@@ -47,7 +47,7 @@ public class DefaultNativeDependencyResolver implements NativeDependencyResolver
             return (NativeDependencySet) lib;
         }
         NativeLibraryRequirement libraryDependency = parser.parseNotation(lib);
-        LibraryResolver libraryResolver = new DefaultLibraryResolver(libraryLocator, libraryDependency, target);
+        LibraryResolver libraryResolver = new DefaultLibraryResolver(libraryBinaryLocator, libraryDependency, target);
         return new DeferredResolutionLibraryNativeDependencySet(libraryResolver);
     }
 

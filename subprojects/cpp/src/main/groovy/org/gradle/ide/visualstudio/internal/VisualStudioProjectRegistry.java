@@ -19,10 +19,7 @@ package org.gradle.ide.visualstudio.internal;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.nativebinaries.NativeBinary;
-import org.gradle.nativebinaries.NativeComponentBinary;
-import org.gradle.nativebinaries.SharedLibraryBinary;
-import org.gradle.nativebinaries.StaticLibraryBinary;
+import org.gradle.nativebinaries.*;
 
 public class VisualStudioProjectRegistry extends DefaultNamedDomainObjectSet<DefaultVisualStudioProject> {
     private final FileResolver fileResolver;
@@ -37,19 +34,19 @@ public class VisualStudioProjectRegistry extends DefaultNamedDomainObjectSet<Def
         this.projectMapper = projectMapper;
     }
 
-    public VisualStudioProjectConfiguration getProjectConfiguration(NativeComponentBinary nativeBinary) {
+    public VisualStudioProjectConfiguration getProjectConfiguration(ProjectNativeBinary nativeBinary) {
         String projectName = projectName(nativeBinary);
         return getByName(projectName).getConfiguration(nativeBinary);
     }
 
-    public void addProjectConfiguration(NativeComponentBinary nativeBinary) {
+    public void addProjectConfiguration(ProjectNativeBinary nativeBinary) {
         VisualStudioProjectMapper.ProjectConfigurationNames names = projectMapper.mapToConfiguration(nativeBinary);
         DefaultVisualStudioProject project = getOrCreateProject(nativeBinary, names.project);
         VisualStudioProjectConfiguration configuration = new VisualStudioProjectConfiguration(project, names.configuration, names.platform, nativeBinary, configurationType(nativeBinary));
         project.addConfiguration(nativeBinary, configuration);
     }
 
-    private DefaultVisualStudioProject getOrCreateProject(NativeComponentBinary nativeBinary, String projectName) {
+    private DefaultVisualStudioProject getOrCreateProject(ProjectNativeBinary nativeBinary, String projectName) {
         DefaultVisualStudioProject vsProject = findByName(projectName);
         if (vsProject == null) {
             vsProject = new DefaultVisualStudioProject(projectName, nativeBinary.getComponent(), fileResolver, projectResolver, getInstantiator());
@@ -58,7 +55,7 @@ public class VisualStudioProjectRegistry extends DefaultNamedDomainObjectSet<Def
         return vsProject;
     }
 
-    private String projectName(NativeComponentBinary nativeBinary) {
+    private String projectName(ProjectNativeBinary nativeBinary) {
         return projectMapper.mapToConfiguration(nativeBinary).project;
     }
 

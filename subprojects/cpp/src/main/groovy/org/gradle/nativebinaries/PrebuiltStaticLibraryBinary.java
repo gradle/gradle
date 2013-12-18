@@ -21,7 +21,7 @@ import java.io.File;
 /**
  * The static linkage of a {@link PrebuiltLibrary}.
  */
-public interface PrebuiltStaticLibraryBinary extends LibraryBinary, StaticLibraryBinary {
+public interface PrebuiltStaticLibraryBinary extends StaticLibraryBinary {
     /**
      * The static library binary file.
      */

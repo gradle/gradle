@@ -30,10 +30,10 @@ class DefaultVisualStudioSolution extends AbstractBuildableModelElement implemen
     final String name
     final String configurationName
     final SolutionFile solutionFile
-    private final NativeComponentBinary rootBinary
+    private final ProjectNativeBinary rootBinary
     private final VisualStudioProjectResolver vsProjectResolver
 
-    DefaultVisualStudioSolution(VisualStudioProjectConfiguration rootProjectConfiguration, NativeComponentBinary rootBinary, FileResolver fileResolver,
+    DefaultVisualStudioSolution(VisualStudioProjectConfiguration rootProjectConfiguration, ProjectNativeBinary rootBinary, FileResolver fileResolver,
                                 VisualStudioProjectResolver vsProjectResolver, Instantiator instantiator) {
         this.name = rootProjectConfiguration.project.name
         this.configurationName = rootProjectConfiguration.name
@@ -42,7 +42,7 @@ class DefaultVisualStudioSolution extends AbstractBuildableModelElement implemen
         this.solutionFile = instantiator.newInstance(SolutionFile, fileResolver, "visualStudio/${name}.sln" as String)
     }
 
-    NativeComponent getComponent() {
+    ProjectNativeComponent getComponent() {
         return rootBinary.component
     }
 
@@ -56,14 +56,14 @@ class DefaultVisualStudioSolution extends AbstractBuildableModelElement implemen
         return configurations
     }
 
-    private void addNativeBinary(Set configurations, NativeComponentBinary nativeBinary) {
+    private void addNativeBinary(Set configurations, ProjectNativeBinary nativeBinary) {
         VisualStudioProjectConfiguration projectConfiguration = vsProjectResolver.lookupProjectConfiguration(nativeBinary);
         configurations.add(projectConfiguration)
 
         for (NativeDependencySet dep : nativeBinary.getLibs()) {
             if (dep instanceof LibraryNativeDependencySet) {
                 LibraryBinary dependencyBinary = ((LibraryNativeDependencySet) dep).getLibraryBinary();
-                if (!(dependencyBinary instanceof ApiLibraryBinary)) {
+                if (dependencyBinary instanceof ProjectNativeBinary && !(dependencyBinary instanceof ApiLibraryBinary)) {
                     addNativeBinary(configurations, dependencyBinary)
                 }
             }

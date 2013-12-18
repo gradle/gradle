@@ -25,16 +25,9 @@ import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal;
 import java.io.File;
 
 public class ProjectExecutableBinary extends AbstractProjectNativeBinary implements ExecutableBinary {
-    private final Executable executable;
-
     public ProjectExecutableBinary(ProjectExecutable executable, Flavor flavor, ToolChainInternal toolChain, Platform platform, BuildType buildType,
                                    DefaultBinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
         super(executable, flavor, toolChain, platform, buildType, namingScheme.withTypeString("Executable"), resolver);
-        this.executable = executable;
-    }
-
-    public Executable getComponent() {
-        return executable;
     }
 
     public File getExecutableFile() {

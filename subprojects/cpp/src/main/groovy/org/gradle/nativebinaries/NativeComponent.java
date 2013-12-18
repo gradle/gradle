@@ -24,10 +24,10 @@ import org.gradle.api.Named;
  */
 @Incubating
 public interface NativeComponent extends Named {
-
     /**
      * The name that is used to construct the output file names when building this component.
      */
+    // TODO:DAZ Move onto ProjectNativeComponent
     String getBaseName();
 
     /**

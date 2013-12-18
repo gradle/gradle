@@ -19,12 +19,10 @@ import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.DefaultDomainObjectSet
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.language.DependentSourceSet
 import org.gradle.language.HeaderExportingSourceSet
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.cpp.CppSourceSet
-import org.gradle.nativebinaries.ProjectNativeComponent
-import org.gradle.nativebinaries.internal.NativeComponentInternal
+import org.gradle.nativebinaries.internal.ProjectNativeComponentInternal
 import spock.lang.Specification
 
 class DefaultVisualStudioProjectTest extends Specification {
@@ -75,8 +73,8 @@ class DefaultVisualStudioProjectTest extends Specification {
 
     def "has consistent uuid for same mapped component"() {
         when:
-        def sameComponent = Mock(NativeComponentInternal)
-        def otherComponent = Mock(NativeComponentInternal)
+        def sameComponent = Mock(ProjectNativeComponentInternal)
+        def otherComponent = Mock(ProjectNativeComponentInternal)
 
         def sameProject = new DefaultVisualStudioProject("projectName", component, fileResolver, projectResolver, instantiator)
         def samePath = new DefaultVisualStudioProject("projectName", sameComponent, fileResolver, projectResolver, instantiator)
@@ -112,12 +110,4 @@ class DefaultVisualStudioProjectTest extends Specification {
         1 * sourceDirs.files >> allFiles
         return sourceSet
     }
-
-    private DependentSourceSet dependentSourceSet(Object... libs) {
-        def sourceSet = Mock(DependentSourceSet)
-        1 * sourceSet.libs >> libs
-        return sourceSet
-    }
-
-    interface ProjectNativeComponentInternal extends ProjectNativeComponent, NativeComponentInternal {}
 }

@@ -152,7 +152,7 @@ class ProjectNativeBinaryTest extends Specification {
         binary.libs as List == [dep1, dep2, sourceDep]
     }
 
-    def testBinary(NativeComponent owner, Flavor flavor = new DefaultFlavor(DefaultFlavor.DEFAULT)) {
+    def testBinary(ProjectNativeComponent owner, Flavor flavor = new DefaultFlavor(DefaultFlavor.DEFAULT)) {
         return new TestProjectNativeBinary(owner, flavor, toolChain1, platform1, buildType1, new DefaultBinaryNamingScheme("baseName"), resolver)
     }
 
@@ -165,14 +165,10 @@ class ProjectNativeBinaryTest extends Specification {
     class TestProjectNativeBinary extends AbstractProjectNativeBinary {
         def owner
 
-        TestProjectNativeBinary(NativeComponent owner, Flavor flavor, ToolChainInternal toolChain, Platform targetPlatform, BuildType buildType,
+        TestProjectNativeBinary(ProjectNativeComponent owner, Flavor flavor, ToolChainInternal toolChain, Platform targetPlatform, BuildType buildType,
                    DefaultBinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
             super(owner, flavor, toolChain, targetPlatform, buildType, namingScheme, resolver)
             this.owner = owner
-        }
-
-        public NativeComponent getComponent() {
-            return owner
         }
 
         String getOutputFileName() {

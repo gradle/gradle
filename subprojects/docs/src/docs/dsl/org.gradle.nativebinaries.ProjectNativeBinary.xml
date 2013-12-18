@@ -24,6 +24,12 @@
                 </tr>
             </thead>
             <tr>
+                <td>component</td>
+            </tr>
+            <tr>
+                <td>buildable</td>
+            </tr>
+            <tr>
                 <td>toolChain</td>
             </tr>
             <tr>

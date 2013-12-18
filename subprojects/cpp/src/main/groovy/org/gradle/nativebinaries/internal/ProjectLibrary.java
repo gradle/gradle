@@ -19,5 +19,8 @@ package org.gradle.nativebinaries.internal;
 import org.gradle.nativebinaries.Library;
 import org.gradle.nativebinaries.ProjectNativeComponent;
 
+/**
+ * A library component that is built by a gradle project.
+ */
 public interface ProjectLibrary extends Library, ProjectNativeComponent {
 }

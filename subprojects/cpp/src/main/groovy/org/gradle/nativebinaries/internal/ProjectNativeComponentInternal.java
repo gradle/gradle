@@ -17,12 +17,12 @@ package org.gradle.nativebinaries.internal;
 
 import org.gradle.nativebinaries.BuildType;
 import org.gradle.nativebinaries.Flavor;
-import org.gradle.nativebinaries.NativeComponent;
+import org.gradle.nativebinaries.ProjectNativeComponent;
 import org.gradle.nativebinaries.platform.Platform;
 
 import java.util.Set;
 
-public interface NativeComponentInternal extends NativeComponent {
+public interface ProjectNativeComponentInternal extends ProjectNativeComponent {
 
     // TODO:DAZ Use BuildComponentIdentifier
     String getProjectPath();
