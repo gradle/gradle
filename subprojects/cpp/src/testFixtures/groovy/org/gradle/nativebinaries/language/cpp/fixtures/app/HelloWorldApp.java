@@ -22,7 +22,6 @@ import java.util.List;
 public abstract class HelloWorldApp extends TestApp {
     public static final String HELLO_WORLD = "Hello, World!";
     public static final String HELLO_WORLD_FRENCH = "Bonjour, Monde!";
-    public static final String HELLO_WORLD_CUSTOM = "Hello, ";
 
     public String getEnglishOutput() {
         return HELLO_WORLD + "\n12";
