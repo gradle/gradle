@@ -16,27 +16,54 @@
 
 package org.gradle.nativebinaries.internal.prebuilt;
 
+import org.gradle.api.DomainObjectSet;
 import org.gradle.api.file.SourceDirectorySet;
+import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
-import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.nativebinaries.NativeBinary;
+import org.gradle.nativebinaries.NativeLibraryRequirement;
 import org.gradle.nativebinaries.PrebuiltLibrary;
-import org.gradle.nativebinaries.internal.DefaultLibrary;
-import org.gradle.nativebinaries.internal.NativeBuildComponentIdentifier;
+import org.gradle.nativebinaries.internal.ProjectNativeLibraryRequirement;
 
-// TODO:DAZ Should not allow project specifier in requirement definition?
-// TODO:DAZ Should not allow sources?
-public class DefaultPrebuiltLibrary extends DefaultLibrary implements PrebuiltLibrary {
+public class DefaultPrebuiltLibrary implements PrebuiltLibrary {
 
-    private final DefaultSourceDirectorySet headers;
+    private final String name;
+    private final SourceDirectorySet headers;
+    private final DomainObjectSet<NativeBinary> binaries;
 
-    // TODO:DAZ Should not require project here, just FileResolver
-    public DefaultPrebuiltLibrary(String name, ProjectInternal project) {
-        // TODO:DAZ It's not really a project component
-        super(new NativeBuildComponentIdentifier(project.getPath(), name));
-        headers = new DefaultSourceDirectorySet("headers", project.getFileResolver());
+    public DefaultPrebuiltLibrary(String name, FileResolver fileResolver) {
+        this.name = name;
+        headers = new DefaultSourceDirectorySet("headers", fileResolver);
+        binaries = new DefaultDomainObjectSet<NativeBinary>(NativeBinary.class);
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getBaseName() {
+        return name;
     }
 
     public SourceDirectorySet getHeaders() {
         return headers;
+    }
+
+    public DomainObjectSet<NativeBinary> getBinaries() {
+        return binaries;
+    }
+
+    // TODO:DAZ These are probably not required
+    public NativeLibraryRequirement getApi() {
+        return new ProjectNativeLibraryRequirement(name, "api");
+    }
+
+    public NativeLibraryRequirement getShared() {
+        return new ProjectNativeLibraryRequirement(name, "shared");
+    }
+
+    public NativeLibraryRequirement getStatic() {
+        return new ProjectNativeLibraryRequirement(name, "static");
     }
 }

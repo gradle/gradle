@@ -31,7 +31,7 @@ import spock.lang.Specification
 class ProjectNativeBinaryTest extends Specification {
     def flavor1 = new DefaultFlavor("flavor1")
     def id = new NativeBuildComponentIdentifier("project", "name")
-    def component = new DefaultNativeComponent(id)
+    def component = new TestProjectNativeComponent(id)
     def toolChain1 = Stub(ToolChainInternal) {
         getName() >> "ToolChain1"
     }
@@ -154,6 +154,12 @@ class ProjectNativeBinaryTest extends Specification {
 
     def testBinary(NativeComponent owner, Flavor flavor = new DefaultFlavor(DefaultFlavor.DEFAULT)) {
         return new TestProjectNativeBinary(owner, flavor, toolChain1, platform1, buildType1, new DefaultBinaryNamingScheme("baseName"), resolver)
+    }
+
+    class TestProjectNativeComponent extends AbstractProjectNativeComponent {
+        TestProjectNativeComponent(NativeBuildComponentIdentifier id) {
+            super(id)
+        }
     }
 
     class TestProjectNativeBinary extends AbstractProjectNativeBinary {

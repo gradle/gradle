@@ -26,7 +26,7 @@ import spock.lang.Specification
 class DefaultNativeComponentTest extends Specification {
     def instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), new DirectInstantiator())
     def id = new NativeBuildComponentIdentifier("project", "name")
-    def component = new DefaultNativeComponent(id)
+    def component = new TestProjectNativeComponent(id)
 
     def "uses all source sets from a functional source set"() {
         given:
@@ -59,6 +59,12 @@ class DefaultNativeComponentTest extends Specification {
 
         then:
         component.chooseFlavors([flavor("flavor1"), flavor("flavor2"), flavor("flavor3"), flavor("flavor4")] as Set)*.name == ["flavor1", "flavor2", "flavor3"]
+    }
+
+    class TestProjectNativeComponent extends AbstractProjectNativeComponent {
+        TestProjectNativeComponent(NativeBuildComponentIdentifier id) {
+            super(id)
+        }
     }
 
     def flavor(String name) {

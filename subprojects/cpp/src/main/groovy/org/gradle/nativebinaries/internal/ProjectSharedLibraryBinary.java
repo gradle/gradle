@@ -22,7 +22,6 @@ import org.gradle.language.base.internal.DefaultBinaryNamingScheme;
 import org.gradle.language.rc.WindowsResourceSet;
 import org.gradle.nativebinaries.BuildType;
 import org.gradle.nativebinaries.Flavor;
-import org.gradle.nativebinaries.Library;
 import org.gradle.nativebinaries.SharedLibraryBinary;
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativebinaries.platform.Platform;
@@ -34,7 +33,7 @@ import java.util.Set;
 
 public class ProjectSharedLibraryBinary extends AbstractProjectLibraryBinary implements SharedLibraryBinary {
 
-    public ProjectSharedLibraryBinary(Library library, Flavor flavor, ToolChainInternal toolChain, Platform platform, BuildType buildType,
+    public ProjectSharedLibraryBinary(ProjectLibrary library, Flavor flavor, ToolChainInternal toolChain, Platform platform, BuildType buildType,
                                       DefaultBinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
         super(library, flavor, toolChain, platform, buildType, namingScheme.withTypeString("SharedLibrary"), resolver);
     }

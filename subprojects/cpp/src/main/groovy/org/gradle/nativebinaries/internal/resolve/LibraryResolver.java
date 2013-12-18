@@ -16,13 +16,9 @@
 
 package org.gradle.nativebinaries.internal.resolve;
 
-import org.gradle.api.Incubating;
-
-// TODO:DAZ Needs a better name
 /**
  * Resolves a library requirement to a native binary dependency.
  */
-@Incubating
 interface LibraryResolver {
 
     /**

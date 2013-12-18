@@ -28,7 +28,7 @@ public class PrebuiltLibraryLocator implements LibraryLocator {
     }
 
     public Library getLibrary(NativeLibraryRequirement requirement) {
-        // TODO:DAZ Not sure about project dependencies
+        // TODO:DAZ Ignore requirements for other projects
         return prebuiltLibraries.getByName(requirement.getLibraryName());
     }
 }

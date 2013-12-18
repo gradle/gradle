@@ -37,7 +37,7 @@ import java.util.Set;
 public abstract class AbstractProjectLibraryBinary extends AbstractProjectNativeBinary implements LibraryBinaryInternal {
     private final Library library;
 
-    protected AbstractProjectLibraryBinary(Library library, Flavor flavor, ToolChainInternal toolChain, Platform targetPlatform, BuildType buildType,
+    protected AbstractProjectLibraryBinary(ProjectLibrary library, Flavor flavor, ToolChainInternal toolChain, Platform targetPlatform, BuildType buildType,
                                            DefaultBinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
         super(library, flavor, toolChain, targetPlatform, buildType, namingScheme, resolver);
         this.library = library;

@@ -23,12 +23,13 @@ import org.gradle.language.DependentSourceSet
 import org.gradle.language.HeaderExportingSourceSet
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.cpp.CppSourceSet
+import org.gradle.nativebinaries.ProjectNativeComponent
 import org.gradle.nativebinaries.internal.NativeComponentInternal
 import spock.lang.Specification
 
 class DefaultVisualStudioProjectTest extends Specification {
     private DirectInstantiator instantiator = new DirectInstantiator()
-    def component = Mock(NativeComponentInternal)
+    def component = Mock(ProjectNativeComponentInternal)
     def fileResolver = Mock(FileResolver)
     def projectResolver = Mock(VisualStudioProjectResolver)
     def vsProject = new DefaultVisualStudioProject("projectName", component, fileResolver, projectResolver, instantiator)
@@ -117,4 +118,6 @@ class DefaultVisualStudioProjectTest extends Specification {
         1 * sourceSet.libs >> libs
         return sourceSet
     }
+
+    interface ProjectNativeComponentInternal extends ProjectNativeComponent, NativeComponentInternal {}
 }

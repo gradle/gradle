@@ -17,19 +17,19 @@
 package org.gradle.nativebinaries.internal.prebuilt;
 
 import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
-import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.nativebinaries.PrebuiltLibraries;
 import org.gradle.nativebinaries.PrebuiltLibrary;
 
 public class DefaultPrebuiltLibraries extends AbstractNamedDomainObjectContainer<PrebuiltLibrary> implements PrebuiltLibraries {
-    private final ProjectInternal project;
+    private final FileResolver fileResolver;
     private String name;
 
-    public DefaultPrebuiltLibraries(String name, Instantiator instantiator, ProjectInternal project) {
+    public DefaultPrebuiltLibraries(String name, Instantiator instantiator, FileResolver fileResolver) {
         super(PrebuiltLibrary.class, instantiator);
         this.name = name;
-        this.project = project;
+        this.fileResolver = fileResolver;
     }
 
     public String getName() {
@@ -42,6 +42,6 @@ public class DefaultPrebuiltLibraries extends AbstractNamedDomainObjectContainer
 
     @Override
     protected PrebuiltLibrary doCreate(String name) {
-        return getInstantiator().newInstance(DefaultPrebuiltLibrary.class, name, project);
+        return getInstantiator().newInstance(DefaultPrebuiltLibrary.class, name, fileResolver);
     }
 }

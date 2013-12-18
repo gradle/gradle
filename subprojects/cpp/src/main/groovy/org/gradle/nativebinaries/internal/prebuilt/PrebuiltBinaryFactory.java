@@ -20,9 +20,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.internal.DefaultBinaryNamingScheme;
 import org.gradle.nativebinaries.BuildType;
 import org.gradle.nativebinaries.Flavor;
-import org.gradle.nativebinaries.NativeComponent;
 import org.gradle.nativebinaries.PrebuiltLibrary;
-import org.gradle.nativebinaries.internal.NativeComponentInternal;
 import org.gradle.nativebinaries.platform.Platform;
 
 import java.util.Collection;
@@ -44,33 +42,29 @@ public class PrebuiltBinaryFactory {
     }
 
     public void initialise(PrebuiltLibrary library) {
-        createNativeBinaries((NativeComponentInternal) library);
+        for (Platform platform : allPlatforms) {
+            for (BuildType buildType : allBuildTypes) {
+                for (Flavor flavor : allFlavors) {
+                    createNativeBinaries(library, platform, buildType, flavor);
+                }
+            }
+        }
     }
 
-    public void createNativeBinaries(NativeComponentInternal component) {
-         for (Platform platform : component.choosePlatforms(allPlatforms)) {
-             for (BuildType buildType : component.chooseBuildTypes(allBuildTypes)) {
-                 for (Flavor flavor : component.chooseFlavors(allFlavors)) {
-                     createNativeBinaries(component, platform, buildType, flavor);
-                 }
-             }
-         }
+    public void createNativeBinaries(PrebuiltLibrary library, Platform platform, BuildType buildType, Flavor flavor) {
+        createNativeBinary(PrebuiltApiLibraryBinary.class, library, platform, buildType, flavor);
+        createNativeBinary(DefaultPrebuiltSharedLibraryBinary.class, library, platform, buildType, flavor);
+        createNativeBinary(DefaultPrebuiltStaticLibraryBinary.class, library, platform, buildType, flavor);
     }
 
-    public void createNativeBinaries(NativeComponent component, Platform platform, BuildType buildType, Flavor flavor) {
-        createNativeBinary(PrebuiltApiLibraryBinary.class, component, platform, buildType, flavor);
-        createNativeBinary(DefaultPrebuiltSharedLibraryBinary.class, component, platform, buildType, flavor);
-        createNativeBinary(DefaultPrebuiltStaticLibraryBinary.class, component, platform, buildType, flavor);
+    public <T extends AbstractPrebuiltLibraryBinary> void createNativeBinary(Class<T> type, PrebuiltLibrary library, Platform platform, BuildType buildType, Flavor flavor) {
+        String name = getName(type, library, platform, buildType, flavor);
+        T nativeBinary = instantiator.newInstance(type, name, library, buildType, platform, flavor);
+        library.getBinaries().add(nativeBinary);
     }
 
-    public <T extends AbstractPrebuiltLibraryBinary> void createNativeBinary(Class<T> type, NativeComponent component, Platform platform, BuildType buildType, Flavor flavor) {
-        String name = getName(type, component, platform, buildType, flavor);
-        T nativeBinary = instantiator.newInstance(type, name, component, buildType, platform, flavor);
-        component.getBinaries().add(nativeBinary);
-    }
-
-    private <T extends AbstractPrebuiltLibraryBinary> String getName(Class<T> type, NativeComponent component, Platform platform, BuildType buildType, Flavor flavor) {
-        DefaultBinaryNamingScheme namingScheme = new DefaultBinaryNamingScheme(component.getName())
+    private <T extends AbstractPrebuiltLibraryBinary> String getName(Class<T> type, PrebuiltLibrary library, Platform platform, BuildType buildType, Flavor flavor) {
+        DefaultBinaryNamingScheme namingScheme = new DefaultBinaryNamingScheme(library.getName())
                 .withTypeString(type.getSimpleName())
                 .withVariantDimension(platform.getName())
                 .withVariantDimension(buildType.getName())

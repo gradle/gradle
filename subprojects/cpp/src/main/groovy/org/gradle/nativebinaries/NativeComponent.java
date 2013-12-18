@@ -18,9 +18,7 @@ package org.gradle.nativebinaries;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
-import org.gradle.language.base.LanguageSourceSet;
 
-// TODO:DAZ These don't apply to all component subtypes: look at splitting this up in to a number of smaller facets / functional interfaces
 /**
  * Represents a logical software component, which may be built in a number of variant binaries.
  */
@@ -28,69 +26,13 @@ import org.gradle.language.base.LanguageSourceSet;
 public interface NativeComponent extends Named {
 
     /**
-     * The source sets that are used to build this component.
-     */
-    DomainObjectSet<LanguageSourceSet> getSource();
-
-    /**
-     * Adds one or more {@link LanguageSourceSet}s that are used to compile this binary.
-     * <p/>
-     * This method accepts the following types:
-     *
-     * <ul>
-     *     <li>A {@link org.gradle.language.base.FunctionalSourceSet}</li>
-     *     <li>A {@link LanguageSourceSet}</li>
-     *     <li>A Collection of {@link LanguageSourceSet}s</li>
-     * </ul>
-     */
-    void source(Object source);
-
-    /**
-     * The binaries that are built for this component. You can use this to configure the binaries for this component.
-     */
-    DomainObjectSet<NativeBinary> getBinaries();
-
-    /**
      * The name that is used to construct the output file names when building this component.
      */
     String getBaseName();
 
     /**
-     * Sets the name that is used to construct the output file names when building this component.
+     * The binaries that are built for this component. You can use this to configure the binaries for this component.
      */
-    void setBaseName(String baseName);
-
-    /**
-     * Specifies one or more {@link Flavor}s that this component should be built for.
-     * <p/>
-     * This method accepts the following types:
-     *
-     * <ul>
-     *     <li>The String name of the flavor to build.</li>
-     * </ul>
-     */
-    void targetFlavors(Object... flavorSelectors);
-
-    /**
-     * Specifies one or more {@link org.gradle.nativebinaries.platform.Platform}s that this component should be built for.
-     * <p/>
-     * This method accepts the following types:
-     *
-     * <ul>
-     *     <li>The String name of the platform to target.</li>
-     * </ul>
-     */
-    void targetPlatforms(Object... platformSelectors);
-
-    /**
-     * Specifies one or more {@link BuildType}s that this component should be built for.
-     * <p/>
-     * This method accepts the following types:
-     *
-     * <ul>
-     *     <li>The String name of a build type.</li>
-     * </ul>
-     */
-    void targetBuildTypes(Object... platformSelectors);
+    DomainObjectSet<NativeBinary> getBinaries();
 
 }

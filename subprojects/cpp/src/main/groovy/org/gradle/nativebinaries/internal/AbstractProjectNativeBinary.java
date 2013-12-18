@@ -52,7 +52,7 @@ public abstract class AbstractProjectNativeBinary extends AbstractBuildableModel
     private File outputDir;
     private boolean buildable;
 
-    protected AbstractProjectNativeBinary(NativeComponent owner, Flavor flavor, ToolChainInternal toolChain, Platform targetPlatform, BuildType buildType,
+    protected AbstractProjectNativeBinary(ProjectNativeComponent owner, Flavor flavor, ToolChainInternal toolChain, Platform targetPlatform, BuildType buildType,
                                           DefaultBinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
         this.namingScheme = namingScheme;
         this.flavor = flavor;

@@ -21,6 +21,7 @@ import org.gradle.api.Namer;
 import org.gradle.api.Plugin;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.tasks.TaskContainer;
@@ -37,7 +38,10 @@ import org.gradle.nativebinaries.BuildTypeContainer;
 import org.gradle.nativebinaries.FlavorContainer;
 import org.gradle.nativebinaries.PrebuiltLibraries;
 import org.gradle.nativebinaries.Repositories;
-import org.gradle.nativebinaries.internal.*;
+import org.gradle.nativebinaries.internal.DefaultBuildTypeContainer;
+import org.gradle.nativebinaries.internal.DefaultExecutableContainer;
+import org.gradle.nativebinaries.internal.DefaultFlavorContainer;
+import org.gradle.nativebinaries.internal.DefaultLibraryContainer;
 import org.gradle.nativebinaries.internal.configure.*;
 import org.gradle.nativebinaries.internal.prebuilt.DefaultPrebuiltLibraries;
 import org.gradle.nativebinaries.platform.PlatformContainer;
@@ -72,7 +76,7 @@ public class NativeBinariesModelPlugin implements Plugin<ProjectInternal> {
         modelRules.register("platforms", PlatformContainer.class, factory(DefaultPlatformContainer.class));
         modelRules.register("buildTypes", BuildTypeContainer.class, factory(DefaultBuildTypeContainer.class));
         modelRules.register("flavors", FlavorContainer.class, factory(DefaultFlavorContainer.class));
-        modelRules.register("repositories", Repositories.class, new RepositoriesFactory(instantiator, project));
+        modelRules.register("repositories", Repositories.class, new RepositoriesFactory(instantiator, project.getFileResolver()));
 
         modelRules.rule(new CreateDefaultPlatform());
         modelRules.rule(new CreateDefaultBuildTypes());
@@ -136,25 +140,25 @@ public class NativeBinariesModelPlugin implements Plugin<ProjectInternal> {
 
     private static class RepositoriesFactory implements Factory<Repositories> {
         private final Instantiator instantiator;
-        private final ProjectInternal project;
+        private final FileResolver fileResolver;
 
-        public RepositoriesFactory(Instantiator instantiator, ProjectInternal project) {
+        public RepositoriesFactory(Instantiator instantiator, FileResolver fileResolver) {
             this.instantiator = instantiator;
-            this.project = project;
+            this.fileResolver = fileResolver;
         }
 
 
         public Repositories create() {
-            return new DefaultRepositories(instantiator, project);
+            return new DefaultRepositories(instantiator, fileResolver);
         }
     }
 
     private static class DefaultRepositories extends DefaultPolymorphicDomainObjectContainer<ArtifactRepository> implements Repositories {
-        private DefaultRepositories(final Instantiator instantiator, final ProjectInternal project) {
+        private DefaultRepositories(final Instantiator instantiator, final FileResolver fileResolver) {
             super(ArtifactRepository.class, instantiator, new ArtifactRepositoryNamer());
             registerFactory(PrebuiltLibraries.class, new NamedDomainObjectFactory<PrebuiltLibraries>() {
                 public PrebuiltLibraries create(String name) {
-                    return instantiator.newInstance(DefaultPrebuiltLibraries.class, name, instantiator, project);
+                    return instantiator.newInstance(DefaultPrebuiltLibraries.class, name, instantiator, fileResolver);
                 }
             });
         }
