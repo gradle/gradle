@@ -19,8 +19,8 @@ import org.gradle.nativebinaries.language.cpp.fixtures.app.CppHelloWorldApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
-@Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
 // TODO:DAZ Get this working on MinGW and cygwin
+//@Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
 @Requires(TestPrecondition.NOT_WINDOWS)
 class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     final app = new CppHelloWorldApp()
