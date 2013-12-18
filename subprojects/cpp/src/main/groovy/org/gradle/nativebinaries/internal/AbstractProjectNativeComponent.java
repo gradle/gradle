@@ -34,7 +34,7 @@ import java.util.Set;
 
 public abstract class AbstractProjectNativeComponent implements ProjectNativeComponent, NativeComponentInternal {
     private final NotationParser<Object, Set<LanguageSourceSet>> sourcesNotationParser = SourceSetNotationParser.parser();
-    private final NativeBuildComponentIdentifier id;
+    private final NativeProjectComponentIdentifier id;
     private final DomainObjectSet<LanguageSourceSet> sourceSets;
     private final DefaultDomainObjectSet<NativeBinary> binaries;
     private final Set<String> targetPlatforms = new HashSet<String>();
@@ -42,7 +42,7 @@ public abstract class AbstractProjectNativeComponent implements ProjectNativeCom
     private final Set<String> flavors = new HashSet<String>();
     private String baseName;
 
-    public AbstractProjectNativeComponent(NativeBuildComponentIdentifier id) {
+    public AbstractProjectNativeComponent(NativeProjectComponentIdentifier id) {
         this.id = id;
         this.sourceSets = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class);
         binaries = new DefaultDomainObjectSet<NativeBinary>(NativeBinary.class);

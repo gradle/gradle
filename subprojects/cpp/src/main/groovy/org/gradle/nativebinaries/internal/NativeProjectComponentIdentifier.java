@@ -20,12 +20,11 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 /**
  * An identifier for a native component that is built as part of the current build.
  */
-// TODO:DAZ Rename to NativeProjectComponentIdentifier
-public class NativeBuildComponentIdentifier implements ProjectComponentIdentifier {
+public class NativeProjectComponentIdentifier implements ProjectComponentIdentifier {
     private final String projectPath;
     private final String name;
 
-    public NativeBuildComponentIdentifier(String projectPath, String name) {
+    public NativeProjectComponentIdentifier(String projectPath, String name) {
         this.projectPath = projectPath;
         this.name = name;
     }
@@ -47,11 +46,11 @@ public class NativeBuildComponentIdentifier implements ProjectComponentIdentifie
         if (this == o) {
             return true;
         }
-        if (!(o instanceof NativeBuildComponentIdentifier)) {
+        if (!(o instanceof NativeProjectComponentIdentifier)) {
             return false;
         }
 
-        NativeBuildComponentIdentifier that = (NativeBuildComponentIdentifier) o;
+        NativeProjectComponentIdentifier that = (NativeProjectComponentIdentifier) o;
         return name.equals(that.name) && projectPath.equals(that.projectPath);
 
     }

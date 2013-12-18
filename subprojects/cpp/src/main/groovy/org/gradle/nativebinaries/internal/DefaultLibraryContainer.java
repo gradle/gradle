@@ -32,7 +32,7 @@ public class DefaultLibraryContainer extends AbstractNamedDomainObjectContainer<
 
     @Override
     protected Library doCreate(String name) {
-        NativeBuildComponentIdentifier id = new NativeBuildComponentIdentifier(project.getPath(), name);
+        NativeProjectComponentIdentifier id = new NativeProjectComponentIdentifier(project.getPath(), name);
         return getInstantiator().newInstance(DefaultLibrary.class, id);
     }
 }
