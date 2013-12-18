@@ -24,8 +24,14 @@ import java.io.File;
  */
 @Incubating
 public interface SharedLibraryBinary extends LibraryBinary {
-    // TODO:DAZ DSL doc
+
+    /**
+     * The shared library file.
+     */
     File getSharedLibraryFile();
 
+    /**
+     * The shared library link file.
+     */
     File getSharedLibraryLinkFile();
 }

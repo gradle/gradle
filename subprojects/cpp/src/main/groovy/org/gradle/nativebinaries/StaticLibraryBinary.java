@@ -27,6 +27,9 @@ import java.io.File;
 @Incubating
 @HasInternalProtocol
 public interface StaticLibraryBinary extends LibraryBinary {
-    // TODO:DAZ DSL doc
+
+    /**
+     * The static library file.
+     */
     File getStaticLibraryFile();
 }
