@@ -21,7 +21,7 @@ import com.esotericsoftware.kryo.io.Output;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.tasks.testing.TestOutputEvent;
-import org.gradle.cache.internal.stream.RandomAccessFileInputStream;
+import org.gradle.internal.io.RandomAccessFileInputStream;
 import org.gradle.internal.UncheckedException;
 import org.gradle.messaging.serialize.kryo.KryoBackedDecoder;
 import org.gradle.messaging.serialize.kryo.KryoBackedEncoder;

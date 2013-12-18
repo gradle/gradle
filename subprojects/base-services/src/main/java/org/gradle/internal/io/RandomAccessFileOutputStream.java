@@ -13,37 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.cache.internal.stream;
+package org.gradle.internal.io;
 
 import java.io.IOException;
-import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.RandomAccessFile;
 
-public class RandomAccessFileInputStream extends InputStream {
+public class RandomAccessFileOutputStream extends OutputStream {
     private final RandomAccessFile file;
 
-    public RandomAccessFileInputStream(RandomAccessFile file) {
+    public RandomAccessFileOutputStream(RandomAccessFile file) {
         this.file = file;
     }
 
     @Override
-    public long skip(long n) throws IOException {
-        file.seek(file.getFilePointer() + n);
-        return n;
+    public void write(int i) throws IOException {
+        file.write(i);
     }
 
     @Override
-    public int read(byte[] bytes) throws IOException {
-        return file.read(bytes);
+    public void write(byte[] bytes) throws IOException {
+        file.write(bytes);
     }
 
     @Override
-    public int read() throws IOException {
-        return file.read();
-    }
-
-    @Override
-    public int read(byte[] bytes, int offset, int length) throws IOException {
-        return file.read(bytes, offset, length);
+    public void write(byte[] bytes, int offset, int length) throws IOException {
+        file.write(bytes, offset, length);
     }
 }
