@@ -87,4 +87,8 @@ class DumpbinBinaryInfo implements BinaryInfo {
         def process = [dumpbin.absolutePath, '/IMPORTS', binaryFile.absolutePath].execute(["PATH=$vcPath"], null)
         return process.inputStream.readLines()
     }
+
+    String getSoName() {
+        throw new UnsupportedOperationException("soname is not relevant on windows")
+    }
 }

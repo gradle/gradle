@@ -24,4 +24,5 @@ public interface BinaryInfo {
     ArchitectureInternal getArch();
     List<String> listObjectFiles();
     List<String> listLinkedLibraries();
+    String getSoName();
 }

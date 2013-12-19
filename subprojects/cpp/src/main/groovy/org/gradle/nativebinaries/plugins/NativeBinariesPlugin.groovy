@@ -97,6 +97,7 @@ public class NativeBinariesPlugin implements Plugin<ProjectInternal> {
         linkTask.lib { binary.libs*.linkFiles }
 
         linkTask.conventionMapping.outputFile = { sharedLibrary.sharedLibraryFile }
+        linkTask.conventionMapping.installName = { sharedLibrary.sharedLibraryFile.name }
         linkTask.linkerArgs = binary.linker.args
         return linkTask
     }

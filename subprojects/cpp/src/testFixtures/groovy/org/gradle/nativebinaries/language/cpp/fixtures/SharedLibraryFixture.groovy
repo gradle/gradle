@@ -40,4 +40,8 @@ class SharedLibraryFixture extends NativeBinaryFixture {
             file.withExtension("exp").assertDoesNotExist()
         }
     }
+
+    String getSoName() {
+        return binaryInfo.soName
+    }
 }

@@ -16,6 +16,8 @@
 
 package org.gradle.nativebinaries.tasks
 import org.gradle.api.Incubating
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Optional
 import org.gradle.nativebinaries.internal.DefaultLinkerSpec
 import org.gradle.nativebinaries.internal.LinkerSpec
 import org.gradle.nativebinaries.internal.SharedLibraryLinkerSpec
@@ -25,16 +27,17 @@ import org.gradle.nativebinaries.internal.SharedLibraryLinkerSpec
  */
 @Incubating
 class LinkSharedLibrary extends AbstractLinkTask {
+    @Input @Optional
+    String installName;
+
     @Override
     protected LinkerSpec createLinkerSpec() {
-        return new Spec()
+        final spec = new Spec()
+        spec.installName = getInstallName()
+        return spec
     }
 
     private static class Spec extends DefaultLinkerSpec implements SharedLibraryLinkerSpec {
         String installName;
-
-        public String getInstallName() {
-            return installName == null ? getOutputFile().getName() : installName;
-        }
     }
 }

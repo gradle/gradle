@@ -54,14 +54,7 @@ class GccLinker implements Compiler<LinkerSpec> {
 
             if (spec instanceof SharedLibraryLinkerSpec) {
                 args.add("-shared");
-                if (!OperatingSystem.current().isWindows()) {
-                    String installName = ((SharedLibraryLinkerSpec) spec).getInstallName();
-                    if (OperatingSystem.current().isMacOsX()) {
-                        args.add("-Wl,-install_name," + installName);
-                    } else {
-                        args.add("-Wl,-soname," + installName);
-                    }
-                }
+                maybeSetInstallName((SharedLibraryLinkerSpec) spec, args);
             }
             args.add("-o");
             args.add(spec.getOutputFile().getAbsolutePath());
@@ -85,6 +78,18 @@ class GccLinker implements Compiler<LinkerSpec> {
             }
 
             return args;
+        }
+
+        private void maybeSetInstallName(SharedLibraryLinkerSpec spec, List<String> args) {
+            String installName = spec.getInstallName();
+            if (installName == null || OperatingSystem.current().isWindows()) {
+                return;
+            }
+            if (OperatingSystem.current().isMacOsX()) {
+                args.add("-Wl,-install_name," + installName);
+            } else {
+                args.add("-Wl,-soname," + installName);
+            }
         }
     }
 }
