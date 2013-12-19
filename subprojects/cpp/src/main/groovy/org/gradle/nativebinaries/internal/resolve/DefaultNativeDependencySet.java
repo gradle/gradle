@@ -17,13 +17,13 @@
 package org.gradle.nativebinaries.internal.resolve;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.nativebinaries.LibraryBinary;
+import org.gradle.nativebinaries.NativeDependencySet;
 import org.gradle.nativebinaries.internal.LibraryBinaryInternal;
 
-public class DefaultLibraryNativeDependencySet implements LibraryNativeDependencySet {
+public class DefaultNativeDependencySet implements NativeDependencySet {
     private final LibraryBinaryInternal binary;
 
-    public DefaultLibraryNativeDependencySet(LibraryBinaryInternal binary) {
+    public DefaultNativeDependencySet(LibraryBinaryInternal binary) {
         this.binary = binary;
     }
 
@@ -37,9 +37,5 @@ public class DefaultLibraryNativeDependencySet implements LibraryNativeDependenc
 
     public FileCollection getRuntimeFiles() {
         return binary.getRuntimeFiles();
-    }
-
-    public LibraryBinary getLibraryBinary() {
-        return binary;
     }
 }

@@ -18,21 +18,19 @@ package org.gradle.nativebinaries.language.rc.tasks
 import org.gradle.api.DefaultTask
 import org.gradle.api.Incubating
 import org.gradle.api.file.FileCollection
-import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs
 import org.gradle.cache.CacheRepository
+import org.gradle.nativebinaries.language.c.internal.incremental.IncrementalCompilerBuilder
+import org.gradle.nativebinaries.language.rc.internal.DefaultWindowsResourceCompileSpec
 import org.gradle.nativebinaries.platform.Platform
 import org.gradle.nativebinaries.toolchain.ToolChain
 import org.gradle.nativebinaries.toolchain.internal.PlatformToolChain
-import org.gradle.nativebinaries.language.c.internal.incremental.IncrementalCompilerBuilder
-import org.gradle.nativebinaries.language.rc.internal.DefaultWindowsResourceCompileSpec
 
 import javax.inject.Inject
-
 /**
  * Compiles Windows Resource scripts into .res files.
  */
@@ -114,19 +112,12 @@ class WindowsResourceCompile extends DefaultTask {
          didWork = result.didWork
      }
 
-     /**
-      * Add locations where the compiler should search for header files.
-      */
-     void includes(SourceDirectorySet dirs) {
-         includes.from({dirs.srcDirs})
-     }
-
-     /**
-      * Add directories where the compiler should search for header files.
-      */
-     void includes(FileCollection includeRoots) {
-         includes.from(includeRoots)
-     }
+    /**
+     * Add directories where the compiler should search for header files.
+     */
+    void includes(Object includeRoots) {
+        includes.from(includeRoots)
+    }
 
      /**
       * Adds a set of source files to be compiled.

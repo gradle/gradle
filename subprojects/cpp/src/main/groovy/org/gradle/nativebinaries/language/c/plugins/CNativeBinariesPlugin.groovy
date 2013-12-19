@@ -72,11 +72,13 @@ class CNativeBinariesPlugin implements Plugin<ProjectInternal> {
         compileTask.targetPlatform = binary.targetPlatform
         compileTask.positionIndependentCode = binary instanceof SharedLibraryBinary
 
-        compileTask.includes sourceSet.exportedHeaders
-        compileTask.source sourceSet.source
-        binary.getLibs(sourceSet).each { deps ->
-            compileTask.includes deps.includeRoots
+        compileTask.includes {
+            sourceSet.exportedHeaders.srcDirs
         }
+        compileTask.includes {
+            binary.getLibs(sourceSet)*.includeRoots
+        }
+        compileTask.source sourceSet.source
 
         compileTask.objectFileDir = project.file("${project.buildDir}/objectFiles/${binary.namingScheme.outputDirectoryBase}/${sourceSet.fullName}")
         compileTask.macros = binary.cCompiler.macros

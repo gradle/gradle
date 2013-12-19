@@ -80,9 +80,7 @@ public class NativeBinariesPlugin implements Plugin<ProjectInternal> {
         linkTask.toolChain = binary.toolChain
         linkTask.targetPlatform = executable.targetPlatform
 
-        binary.libs.each { NativeDependencySet lib ->
-            linkTask.lib lib.linkFiles
-        }
+        linkTask.lib { binary.libs*.linkFiles }
 
         linkTask.conventionMapping.outputFile = { executable.executableFile }
         linkTask.linkerArgs = binary.linker.args
@@ -98,9 +96,7 @@ public class NativeBinariesPlugin implements Plugin<ProjectInternal> {
         linkTask.toolChain = binary.toolChain
         linkTask.targetPlatform = binary.targetPlatform
 
-        binary.libs.each { NativeDependencySet lib ->
-            linkTask.lib lib.linkFiles
-        }
+        linkTask.lib { binary.libs*.linkFiles }
 
         linkTask.conventionMapping.outputFile = { sharedLibrary.sharedLibraryFile }
         linkTask.linkerArgs = binary.linker.args

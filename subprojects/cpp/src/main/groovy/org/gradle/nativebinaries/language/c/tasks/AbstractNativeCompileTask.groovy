@@ -18,18 +18,17 @@ package org.gradle.nativebinaries.language.c.tasks
 import org.gradle.api.DefaultTask
 import org.gradle.api.Incubating
 import org.gradle.api.file.FileCollection
-import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs
 import org.gradle.cache.CacheRepository
+import org.gradle.nativebinaries.language.c.internal.incremental.IncrementalCompilerBuilder
 import org.gradle.nativebinaries.platform.Platform
 import org.gradle.nativebinaries.toolchain.ToolChain
-import org.gradle.nativebinaries.toolchain.internal.PlatformToolChain
-import org.gradle.nativebinaries.language.c.internal.incremental.IncrementalCompilerBuilder
 import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec
+import org.gradle.nativebinaries.toolchain.internal.PlatformToolChain
 
 import javax.inject.Inject
 /**
@@ -127,16 +126,9 @@ abstract class AbstractNativeCompileTask extends DefaultTask {
     protected abstract org.gradle.api.internal.tasks.compile.Compiler<NativeCompileSpec> createCompiler(PlatformToolChain toolChain)
 
     /**
-     * Add locations where the compiler should search for header files.
-     */
-    void includes(SourceDirectorySet dirs) {
-        includes.from({dirs.srcDirs})
-    }
-
-    /**
      * Add directories where the compiler should search for header files.
      */
-    void includes(FileCollection includeRoots) {
+    void includes(Object includeRoots) {
         includes.from(includeRoots)
     }
 

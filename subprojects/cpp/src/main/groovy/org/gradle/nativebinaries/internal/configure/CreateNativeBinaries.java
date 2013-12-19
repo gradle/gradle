@@ -67,7 +67,9 @@ public class CreateNativeBinaries extends ModelRule {
             locators.add(new PrebuiltLibraryBinaryLocator(prebuiltLibraries));
         }
         LibraryBinaryLocator locator = new ChainedLibraryBinaryLocator(locators);
-        return new DefaultNativeDependencyResolver(locator);
+        NativeDependencyResolver resolver = new LibraryNativeDependencyResolver(locator);
+        resolver = new RequirementParsingNativeDependencyResolver(resolver);
+        return new InputHandlingNativeDependencyResolver(resolver);
     }
 
     private Collection<ProjectNativeComponent> allComponents() {

@@ -21,6 +21,7 @@ import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.internal.DefaultBinaryNamingScheme
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet
 import org.gradle.nativebinaries.*
+import org.gradle.nativebinaries.internal.resolve.NativeBinaryResolveResult
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver
 import org.gradle.nativebinaries.platform.Platform
 import org.gradle.nativebinaries.platform.internal.ArchitectureInternal
@@ -80,15 +81,21 @@ class ProjectNativeBinaryTest extends Specification {
 
     def "uses resolver to resolve lib to dependency"() {
         def binary = testBinary(component, flavor1)
-        def lib = Mock(Object)
+        def lib = new Object()
         def dependency = Stub(NativeDependencySet)
 
         when:
         binary.lib(lib)
-        1 * resolver.resolve(binary, {it as List == [lib]} as Set) >> [dependency]
+
+        and:
+        1 * resolver.resolve({NativeBinaryResolveResult result ->
+            result.allResolutions*.input == [lib]
+        }) >> { NativeBinaryResolveResult result ->
+            result.allResolutions[0].nativeDependencySet = dependency
+        }
 
         then:
-        binary.libs == [dependency]
+        binary.libs// == [dependency]
     }
 
     def "binary libs include source set dependencies"() {
@@ -102,10 +109,13 @@ class ProjectNativeBinaryTest extends Specification {
         }
         binary.source sourceSet
 
-        2 * resolver.resolve(binary, {it as List == [lib]} as Set) >> [dependency]
+        1 * resolver.resolve({NativeBinaryResolveResult result ->
+            result.allResolutions*.input == [lib]
+        }) >> { NativeBinaryResolveResult result ->
+            result.allResolutions[0].nativeDependencySet = dependency
+        }
 
         then:
-        binary.libs == [dependency]
         binary.getLibs(sourceSet) == [dependency]
     }
 
@@ -122,7 +132,13 @@ class ProjectNativeBinaryTest extends Specification {
         binary.lib(dependency3)
 
         and:
-        resolver.resolve(binary, {it as List == [dependency1, libraryBinary, dependency3]} as Set) >> [dependency1, dependency2, dependency3]
+        1 * resolver.resolve({NativeBinaryResolveResult result ->
+            result.allResolutions*.input == [dependency1, libraryBinary, dependency3]
+        }) >> { NativeBinaryResolveResult result ->
+            result.allResolutions[0].nativeDependencySet = dependency1
+            result.allResolutions[1].nativeDependencySet = dependency2
+            result.allResolutions[2].nativeDependencySet = dependency3
+        }
 
         then:
         binary.libs as List == [dependency1, dependency2, dependency3]
@@ -146,7 +162,13 @@ class ProjectNativeBinaryTest extends Specification {
         binary.lib(lib2)
 
         and:
-        resolver.resolve(binary, {it as List == [lib1, lib2, sourceLib]} as Set) >> [dep1, dep2, sourceDep]
+        1 * resolver.resolve({NativeBinaryResolveResult result ->
+            result.allResolutions*.input == [lib1, lib2, sourceLib]
+        }) >> { NativeBinaryResolveResult result ->
+            result.allResolutions[0].nativeDependencySet = dep1
+            result.allResolutions[1].nativeDependencySet = dep2
+            result.allResolutions[2].nativeDependencySet = sourceDep
+        }
 
         then:
         binary.libs as List == [dep1, dep2, sourceDep]

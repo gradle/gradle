@@ -15,7 +15,6 @@
  */
 
 package org.gradle.ide.visualstudio.internal
-
 import org.gradle.api.Action
 import org.gradle.api.XmlProvider
 import org.gradle.api.internal.file.FileResolver
@@ -27,10 +26,9 @@ import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.internal.AbstractBuildableModelElement
 import org.gradle.language.rc.WindowsResourceSet
 import org.gradle.nativebinaries.*
+import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
 import org.gradle.nativebinaries.internal.ProjectNativeComponentInternal
-import org.gradle.nativebinaries.internal.resolve.LibraryNativeDependencySet
 import org.gradle.util.CollectionUtils
-
 /**
  * A VisualStudio project represents a set of binaries for a component that may vary in build type and target platform.
  */
@@ -84,12 +82,11 @@ class DefaultVisualStudioProject extends AbstractBuildableModelElement implement
 
     Set<DefaultVisualStudioProject> getProjectReferences() {
         def projects = [] as Set
-        component.binaries.each { NativeBinary binary ->
-            binary.libs.each { NativeDependencySet dependencySet ->
-                if (dependencySet instanceof LibraryNativeDependencySet) {
-                    LibraryBinary dependencyBinary = ((LibraryNativeDependencySet) dependencySet).getLibraryBinary()
-                    projects << projectResolver.lookupProjectConfiguration(dependencyBinary).getProject()
-               }
+        component.binaries.each { ProjectNativeBinaryInternal binary ->
+            for (LibraryBinary library : binary.dependentBinaries) {
+                if (library instanceof ProjectNativeBinary && !(library instanceof ApiLibraryBinary)) {
+                    projects << projectResolver.lookupProjectConfiguration(library).getProject()
+                }
             }
         }
         return projects

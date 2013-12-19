@@ -18,6 +18,7 @@ package org.gradle.nativebinaries.internal;
 
 import org.gradle.language.DependentSourceSet;
 import org.gradle.language.base.internal.BinaryInternal;
+import org.gradle.nativebinaries.LibraryBinary;
 import org.gradle.nativebinaries.NativeDependencySet;
 import org.gradle.nativebinaries.ProjectNativeBinary;
 
@@ -32,4 +33,7 @@ public interface ProjectNativeBinaryInternal extends ProjectNativeBinary, Binary
     Collection<NativeDependencySet> getLibs(DependentSourceSet sourceSet);
 
     void setBuildable(boolean buildable);
+
+    // TODO:DAZ Resolution should not happen inside the model
+    Collection<LibraryBinary> getDependentBinaries();
 }

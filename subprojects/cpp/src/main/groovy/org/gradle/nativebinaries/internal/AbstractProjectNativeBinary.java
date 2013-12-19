@@ -26,6 +26,7 @@ import org.gradle.language.base.internal.AbstractBuildableModelElement;
 import org.gradle.language.base.internal.BinaryNamingScheme;
 import org.gradle.language.base.internal.DefaultBinaryNamingScheme;
 import org.gradle.nativebinaries.*;
+import org.gradle.nativebinaries.internal.resolve.NativeBinaryResolveResult;
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativebinaries.platform.Platform;
 import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal;
@@ -133,23 +134,29 @@ public abstract class AbstractProjectNativeBinary extends AbstractBuildableModel
 
     // TODO:DAZ Dependency resolution shouldn't be done in the model
     public Collection<NativeDependencySet> getLibs() {
-        return getLibs(source.withType(DependentSourceSet.class));
+        return resolve(source.withType(DependentSourceSet.class)).getAllResults();
     }
 
     public Collection<NativeDependencySet> getLibs(DependentSourceSet sourceSet) {
-        return getLibs(Collections.singleton(sourceSet));
-    }
-
-    private Collection<NativeDependencySet> getLibs(Collection<? extends DependentSourceSet> sourceSets) {
-        Set<? super Object> allLibs = new LinkedHashSet<Object>(libs);
-        for (DependentSourceSet dependentSourceSet : sourceSets) {
-            allLibs.addAll(dependentSourceSet.getLibs());
-        }
-        return resolver.resolve(this, allLibs);
+        return resolve(Collections.singleton(sourceSet)).getAllResults();
     }
 
     public void lib(Object notation) {
         libs.add(notation);
+    }
+
+    public Collection<LibraryBinary> getDependentBinaries() {
+        return resolve(source.withType(DependentSourceSet.class)).getAllLibraryBinaries();
+    }
+
+    private NativeBinaryResolveResult resolve(Collection<? extends DependentSourceSet> sourceSets) {
+        Set<? super Object> allLibs = new LinkedHashSet<Object>(libs);
+        for (DependentSourceSet dependentSourceSet : sourceSets) {
+            allLibs.addAll(dependentSourceSet.getLibs());
+        }
+        NativeBinaryResolveResult resolution = new NativeBinaryResolveResult(this, allLibs);
+        resolver.resolve(resolution);
+        return resolution;
     }
 
     public boolean isBuildable() {

@@ -15,11 +15,6 @@
  */
 package org.gradle.nativebinaries.internal.resolve;
 
-import org.gradle.nativebinaries.NativeBinary;
-import org.gradle.nativebinaries.NativeDependencySet;
-
-import java.util.Collection;
-
 public interface NativeDependencyResolver {
-    Collection<NativeDependencySet> resolve(NativeBinary target, Collection<?> libs);
+    void resolve(NativeBinaryResolveResult resolution);
 }

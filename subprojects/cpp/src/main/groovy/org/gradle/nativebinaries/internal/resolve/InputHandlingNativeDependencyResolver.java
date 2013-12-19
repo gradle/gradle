@@ -16,9 +16,21 @@
 
 package org.gradle.nativebinaries.internal.resolve;
 
-import org.gradle.nativebinaries.LibraryBinary;
 import org.gradle.nativebinaries.NativeDependencySet;
 
-public interface LibraryNativeDependencySet extends NativeDependencySet {
-    LibraryBinary getLibraryBinary();
+public class InputHandlingNativeDependencyResolver implements NativeDependencyResolver {
+    private final NativeDependencyResolver delegate;
+
+    public InputHandlingNativeDependencyResolver(NativeDependencyResolver delegate) {
+        this.delegate = delegate;
+    }
+
+    public void resolve(NativeBinaryResolveResult nativeBinaryResolveResult) {
+        for (NativeBinaryRequirementResolveResult resolution : nativeBinaryResolveResult.getPendingResolutions()) {
+            if (resolution.getInput() instanceof NativeDependencySet) {
+                resolution.setNativeDependencySet((NativeDependencySet) resolution.getInput());
+            }
+        }
+        delegate.resolve(nativeBinaryResolveResult);
+    }
 }

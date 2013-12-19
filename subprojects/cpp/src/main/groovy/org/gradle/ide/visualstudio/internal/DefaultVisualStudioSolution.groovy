@@ -23,21 +23,24 @@ import org.gradle.ide.visualstudio.VisualStudioProject
 import org.gradle.ide.visualstudio.VisualStudioSolution
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.language.base.internal.AbstractBuildableModelElement
-import org.gradle.nativebinaries.*
-import org.gradle.nativebinaries.internal.resolve.LibraryNativeDependencySet
+import org.gradle.nativebinaries.ApiLibraryBinary
+import org.gradle.nativebinaries.LibraryBinary
+import org.gradle.nativebinaries.ProjectNativeBinary
+import org.gradle.nativebinaries.ProjectNativeComponent
+import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
 
 class DefaultVisualStudioSolution extends AbstractBuildableModelElement implements VisualStudioSolution {
     final String name
     final String configurationName
     final SolutionFile solutionFile
-    private final ProjectNativeBinary rootBinary
+    private final ProjectNativeBinaryInternal rootBinary
     private final VisualStudioProjectResolver vsProjectResolver
 
     DefaultVisualStudioSolution(VisualStudioProjectConfiguration rootProjectConfiguration, ProjectNativeBinary rootBinary, FileResolver fileResolver,
                                 VisualStudioProjectResolver vsProjectResolver, Instantiator instantiator) {
         this.name = rootProjectConfiguration.project.name
         this.configurationName = rootProjectConfiguration.name
-        this.rootBinary = rootBinary
+        this.rootBinary = rootBinary as ProjectNativeBinaryInternal
         this.vsProjectResolver = vsProjectResolver
         this.solutionFile = instantiator.newInstance(SolutionFile, fileResolver, "visualStudio/${name}.sln" as String)
     }
@@ -56,16 +59,13 @@ class DefaultVisualStudioSolution extends AbstractBuildableModelElement implemen
         return configurations
     }
 
-    private void addNativeBinary(Set configurations, ProjectNativeBinary nativeBinary) {
+    private void addNativeBinary(Set configurations, ProjectNativeBinaryInternal nativeBinary) {
         VisualStudioProjectConfiguration projectConfiguration = vsProjectResolver.lookupProjectConfiguration(nativeBinary);
         configurations.add(projectConfiguration)
 
-        for (NativeDependencySet dep : nativeBinary.getLibs()) {
-            if (dep instanceof LibraryNativeDependencySet) {
-                LibraryBinary dependencyBinary = ((LibraryNativeDependencySet) dep).getLibraryBinary();
-                if (dependencyBinary instanceof ProjectNativeBinary && !(dependencyBinary instanceof ApiLibraryBinary)) {
-                    addNativeBinary(configurations, dependencyBinary)
-                }
+        for (LibraryBinary library : nativeBinary.dependentBinaries) {
+            if (library instanceof ProjectNativeBinaryInternal && !(library instanceof ApiLibraryBinary)) {
+                addNativeBinary(configurations, library)
             }
         }
     }

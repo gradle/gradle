@@ -87,7 +87,9 @@ class WindowsResourcesNativeBinariesPlugin implements Plugin<ProjectInternal> {
         compileTask.toolChain = binary.toolChain
         compileTask.targetPlatform = binary.targetPlatform
 
-        compileTask.includes sourceSet.exportedHeaders
+        compileTask.includes {
+            sourceSet.exportedHeaders.srcDirs
+        }
         compileTask.source sourceSet.source
 
         compileTask.outputDir = project.file("${project.buildDir}/objectFiles/${binary.namingScheme.outputDirectoryBase}/${sourceSet.fullName}")
