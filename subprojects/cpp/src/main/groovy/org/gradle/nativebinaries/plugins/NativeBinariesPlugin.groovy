@@ -62,8 +62,6 @@ public class NativeBinariesPlugin implements Plugin<ProjectInternal> {
             builderTask = createLinkSharedLibraryTask(project, binary)
         } else if (binary instanceof StaticLibraryBinary) {
             builderTask = createStaticLibraryTask(project, binary)
-        } else if (binary instanceof ApiLibraryBinary) {
-            return
         } else {
             throw new RuntimeException("Not a valid binary type for building: " + binary)
         }

@@ -78,10 +78,8 @@ class DefaultLibraryResolver {
             if ("static".equals(linkage)) {
                 return StaticLibraryBinary.class;
             }
-            if ("api".equals(linkage)) {
-                return ApiLibraryBinary.class;
-            }
-            if ("shared".equals(linkage) || linkage == null) {
+            // TODO:DAZ Should convert 'api' to null for resolution
+            if ("api".equals(linkage) || "shared".equals(linkage) || linkage == null) {
                 return SharedLibraryBinary.class;
             }
             throw new InvalidUserDataException("Not a valid linkage: " + linkage);

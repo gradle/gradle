@@ -68,6 +68,7 @@ public class CreateNativeBinaries extends ModelRule {
         }
         LibraryBinaryLocator locator = new ChainedLibraryBinaryLocator(locators);
         NativeDependencyResolver resolver = new LibraryNativeDependencyResolver(locator);
+        resolver = new ApiRequirementNativeDependencyResolver(resolver);
         resolver = new RequirementParsingNativeDependencyResolver(resolver);
         return new InputHandlingNativeDependencyResolver(resolver);
     }

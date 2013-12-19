@@ -53,7 +53,6 @@ public class PrebuiltBinaryFactory {
     }
 
     public void createNativeBinaries(PrebuiltLibrary library, Platform platform, BuildType buildType, Flavor flavor) {
-        createNativeBinary(PrebuiltApiLibraryBinary.class, library, platform, buildType, flavor);
         createNativeBinary(DefaultPrebuiltSharedLibraryBinary.class, library, platform, buildType, flavor);
         createNativeBinary(DefaultPrebuiltStaticLibraryBinary.class, library, platform, buildType, flavor);
     }

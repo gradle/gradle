@@ -73,7 +73,6 @@ class NativeBinaryFactory implements Transformer<Collection<NativeBinary>, Proje
     public Collection<NativeBinary> createNativeBinaries(ProjectNativeComponentInternal component, ToolChain toolChain, Platform platform, BuildType buildType, Flavor flavor) {
         Collection<NativeBinary> binaries = new LinkedList<NativeBinary>();
         if (component instanceof Library) {
-            binaries.add(createNativeBinary(ProjectApiLibraryBinary.class, component, toolChain, platform, buildType, flavor));
             binaries.add(createNativeBinary(ProjectSharedLibraryBinary.class, component, toolChain, platform, buildType, flavor));
             binaries.add(createNativeBinary(ProjectStaticLibraryBinary.class, component, toolChain, platform, buildType, flavor));
         } else {

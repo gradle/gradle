@@ -493,9 +493,6 @@
                 <td>org.gradle.nativebinaries.ExecutableBinary</td>
             </tr>
             <tr>
-                <td>org.gradle.nativebinaries.ApiLibraryBinary</td>
-            </tr>
-            <tr>
                 <td>org.gradle.nativebinaries.SharedLibraryBinary</td>
             </tr>
             <tr>

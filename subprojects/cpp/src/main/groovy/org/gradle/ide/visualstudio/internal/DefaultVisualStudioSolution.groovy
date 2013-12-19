@@ -23,7 +23,6 @@ import org.gradle.ide.visualstudio.VisualStudioProject
 import org.gradle.ide.visualstudio.VisualStudioSolution
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.language.base.internal.AbstractBuildableModelElement
-import org.gradle.nativebinaries.ApiLibraryBinary
 import org.gradle.nativebinaries.LibraryBinary
 import org.gradle.nativebinaries.ProjectNativeBinary
 import org.gradle.nativebinaries.ProjectNativeComponent
@@ -64,7 +63,7 @@ class DefaultVisualStudioSolution extends AbstractBuildableModelElement implemen
         configurations.add(projectConfiguration)
 
         for (LibraryBinary library : nativeBinary.dependentBinaries) {
-            if (library instanceof ProjectNativeBinaryInternal && !(library instanceof ApiLibraryBinary)) {
+            if (library instanceof ProjectNativeBinaryInternal) {
                 addNativeBinary(configurations, library)
             }
         }

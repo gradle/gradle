@@ -84,7 +84,7 @@ class DefaultVisualStudioProject extends AbstractBuildableModelElement implement
         def projects = [] as Set
         component.binaries.each { ProjectNativeBinaryInternal binary ->
             for (LibraryBinary library : binary.dependentBinaries) {
-                if (library instanceof ProjectNativeBinary && !(library instanceof ApiLibraryBinary)) {
+                if (library instanceof ProjectNativeBinary) {
                     projects << projectResolver.lookupProjectConfiguration(library).getProject()
                 }
             }
