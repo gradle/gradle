@@ -21,7 +21,7 @@ import org.gradle.util.TestPrecondition
 
 // TODO:DAZ Get this working on MinGW and cygwin
 //@Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
-@Requires(TestPrecondition.NOT_WINDOWS)
+@Requires([TestPrecondition.NOT_WINDOWS, TestPrecondition.CAN_INSTALL_EXECUTABLE])
 class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     final app = new CppHelloWorldApp()
 
