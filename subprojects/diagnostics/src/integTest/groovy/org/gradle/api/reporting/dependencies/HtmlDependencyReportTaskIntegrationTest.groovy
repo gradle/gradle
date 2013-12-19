@@ -18,6 +18,7 @@ package org.gradle.api.reporting.dependencies
 import groovy.json.JsonSlurper
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.Issue
 
 /**
  * Integration tests for the HTML dependency report generation task
@@ -392,6 +393,7 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         barInsight[0].name == 'foo:bar:1.0'
     }
 
+    @Issue("GRADLE-2979")
     def "renders a mix of project and external dependencies"() {
         given:
         mavenRepo.module("foo", "bar", 1.0).publish()
