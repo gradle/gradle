@@ -166,7 +166,6 @@ The following are the features that have been promoted in this Gradle release.
 
 ## Fixed issues
 
-[GRADLE-2979](http://issues.gradle.org/browse/GRADLE-2979) - Task for generating HTML dependency report fails.
 
 ## Deprecations
 
