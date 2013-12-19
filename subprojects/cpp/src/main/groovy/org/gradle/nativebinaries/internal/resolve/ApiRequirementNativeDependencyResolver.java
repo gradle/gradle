@@ -19,7 +19,11 @@ package org.gradle.nativebinaries.internal.resolve;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.nativebinaries.NativeDependencySet;
+import org.gradle.nativebinaries.NativeLibraryRequirement;
 
+/**
+ * Adapts an 'api' library requirement to a default linkage, and then wraps the result so that only headers are provided.
+ */
 public class ApiRequirementNativeDependencyResolver implements NativeDependencyResolver {
     private final NativeDependencyResolver delegate;
 
@@ -28,11 +32,19 @@ public class ApiRequirementNativeDependencyResolver implements NativeDependencyR
     }
 
     public void resolve(NativeBinaryResolveResult nativeBinaryResolveResult) {
-        delegate.resolve(nativeBinaryResolveResult);
-
         for (NativeBinaryRequirementResolveResult resolution : nativeBinaryResolveResult.getAllResolutions()) {
             String linkage = getLinkage(resolution);
             if ("api".equals(linkage)) {
+                resolution.setRequirement(new ApiAdaptedNativeLibraryRequirement(resolution.getRequirement()));
+            }
+        }
+
+        delegate.resolve(nativeBinaryResolveResult);
+
+        for (NativeBinaryRequirementResolveResult resolution : nativeBinaryResolveResult.getAllResolutions()) {
+            if (resolution.getRequirement() instanceof ApiAdaptedNativeLibraryRequirement) {
+                ApiAdaptedNativeLibraryRequirement adaptedRequirement = (ApiAdaptedNativeLibraryRequirement) resolution.getRequirement();
+                resolution.setRequirement(adaptedRequirement.getOriginal());
                 resolution.setLibraryBinary(null);
                 resolution.setNativeDependencySet(new ApiNativeDependencySet(resolution.getNativeDependencySet()));
             }
@@ -46,7 +58,31 @@ public class ApiRequirementNativeDependencyResolver implements NativeDependencyR
         return resolution.getRequirement().getLinkage();
     }
 
-    private class ApiNativeDependencySet implements NativeDependencySet {
+    private static class ApiAdaptedNativeLibraryRequirement implements NativeLibraryRequirement {
+        private final NativeLibraryRequirement original;
+        public ApiAdaptedNativeLibraryRequirement(NativeLibraryRequirement original) {
+            this.original = original;
+        }
+
+        public NativeLibraryRequirement getOriginal() {
+            return original;
+        }
+
+        public String getProjectPath() {
+            return original.getProjectPath();
+        }
+
+        public String getLibraryName() {
+            return original.getLibraryName();
+        }
+
+        public String getLinkage() {
+            // Rely on the default linkage for providing the headers
+            return null;
+        }
+    }
+
+    private static class ApiNativeDependencySet implements NativeDependencySet {
         private final NativeDependencySet delegate;
 
         public ApiNativeDependencySet(NativeDependencySet delegate) {
