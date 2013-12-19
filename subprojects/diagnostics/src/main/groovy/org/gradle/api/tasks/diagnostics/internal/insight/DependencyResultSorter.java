@@ -65,14 +65,18 @@ public class DependencyResultSorter {
                 return compareModuleComponentSelectors(left, right);
             }
 
-            throw new IllegalArgumentException("Unexpected component selector type comparison (left: " + left.getRequested().getClass().getName() + ", right: " + right.getRequested().getClass().getName() + ")");
+            return 0;
         }
 
         private void checkRequestedComponentSelectorType(DependencyEdge dependencyEdge) {
+            if(dependencyEdge == null || dependencyEdge.getRequested() == null) {
+                throw new IllegalArgumentException("Dependency edge or the requested component selector may not be null");
+            }
+
             ComponentSelector requested = dependencyEdge.getRequested();
 
             if(!isExpectedComponentSelector(requested)) {
-                throw new IllegalArgumentException("Unexpected component selector type for dependency edge: " + requested);
+                throw new IllegalArgumentException("Unexpected component selector type for dependency edge: " + requested.getClass());
             }
         }
 

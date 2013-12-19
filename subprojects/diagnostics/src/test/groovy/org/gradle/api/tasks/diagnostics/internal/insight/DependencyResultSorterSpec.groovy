@@ -22,12 +22,31 @@ import org.gradle.api.internal.artifacts.component.DefaultProjectComponentSelect
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.DependencyEdge
 import spock.lang.Specification
+import spock.lang.Unroll
 
 import static org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier.newId
 import static org.gradle.api.internal.artifacts.component.DefaultModuleComponentSelector.newSelector
 
 class DependencyResultSorterSpec extends Specification {
     def matcher = new ResolverStrategy().versionMatcher
+
+    @Unroll
+    def "throws exception if dependencyt or requested component selector is null (#d1, #d2)"() {
+        when:
+        DependencyResultSorter.sort([d1, d2], matcher)
+
+        then:
+        Throwable t = thrown(IllegalArgumentException)
+        t.message == "Dependency edge or the requested component selector may not be null"
+
+        where:
+        d1           | d2
+        null         | null
+        null         | newDependency(newSelector("org.aha", "aha", "1.0"), newId("org.gradle", "zzzz", "3.0"))
+        newDependency(newSelector("org.aha", "aha", "1.0"), newId("org.gradle", "zzzz", "3.0")) | null
+        newDependency(null, newId("org.gradle", "zzzz", "3.0")) | newDependency(newSelector("org.aha", "aha", "1.0"), newId("org.gradle", "zzzz", "3.0"))
+        newDependency(newSelector("org.aha", "aha", "1.0"), newId("org.gradle", "zzzz", "3.0")) | newDependency(null, newId("org.gradle", "zzzz", "3.0"))
+    }
 
     def "sorts by comparing ProjectComponentSelector on left and ModuleComponentSelector on right"() {
         def d1 = newDependency(new DefaultProjectComponentSelector(":hisProject"), newId("org.gradle", "zzzz", "3.0"))
