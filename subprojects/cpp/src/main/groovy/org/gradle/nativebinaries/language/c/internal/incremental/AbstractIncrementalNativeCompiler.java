@@ -20,14 +20,11 @@ import org.gradle.api.internal.hash.CachingHasher;
 import org.gradle.api.internal.hash.DefaultHasher;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.cache.CacheLayout;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.cache.internal.CacheLayoutBuilder;
 import org.gradle.cache.internal.FileLockManager;
 import org.gradle.cache.internal.PersistentIndexedCacheParameters;
-import org.gradle.cache.internal.filelock.LockOptions;
 import org.gradle.cache.internal.filelock.LockOptionsBuilder;
 import org.gradle.internal.Factory;
 import org.gradle.messaging.serialize.DefaultSerializer;
@@ -84,13 +81,10 @@ abstract class AbstractIncrementalNativeCompiler implements Compiler<NativeCompi
     }
 
     private PersistentCache openCache(TaskInternal task) {
-        LockOptions lockOptions = LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive);
-        CacheLayout layout = new CacheLayoutBuilder()
-                .withBuildScope(task.getProject())
-                // TODO:DAZ Review
-                .withPath("taskState", task.getPath().replace(':', '_'))
-                .build();
-        return cacheRepository.cache("incrementalCompile").withLayout(layout).withLockOptions(lockOptions).open();
+        return cacheRepository
+                .cache(task, "incrementalCompile")
+                .withLockOptions(LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive))
+                .open();
     }
 
     private <U, V> PersistentIndexedCache<U, V> createCache(PersistentCache cache, String name, Class<U> keyType, Serializer<V> fileStateDefaultSerializer) {

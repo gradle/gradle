@@ -16,11 +16,12 @@
 package org.gradle.api.internal.changedetection.state
 
 import org.gradle.api.internal.GradleInternal
-import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.PersistentCache
 import org.gradle.cache.PersistentIndexedCache
+import org.gradle.cache.internal.FileLockManager
+import org.gradle.cache.internal.filelock.LockOptionsBuilder
 import org.gradle.messaging.serialize.DefaultSerializer
 import spock.lang.Specification
 
@@ -33,7 +34,6 @@ class DefaultTaskArtifactStateCacheAccessTest extends Specification {
         CacheBuilder cacheBuilder = Mock()
         PersistentCache backingCache = Mock()
         PersistentIndexedCache<String, Integer> backingIndexedCache = Mock()
-        ProjectInternal project = Mock()
 
         def serializer = new DefaultSerializer<Integer>()
         when:
@@ -46,14 +46,13 @@ class DefaultTaskArtifactStateCacheAccessTest extends Specification {
         indexedCache.get("key")
 
         then:
-        1 * cacheRepository.cache("taskArtifacts") >> cacheBuilder
+        1 * cacheRepository.cache(gradle, "taskArtifacts") >> cacheBuilder
+        1 * cacheBuilder.withDisplayName(_) >> cacheBuilder
+        1 * cacheBuilder.withLockOptions(LockOptionsBuilder.mode(FileLockManager.LockMode.None)) >> cacheBuilder
         1 * cacheBuilder.open() >> backingCache
-        _ * cacheBuilder._ >> cacheBuilder
         _ * backingCache.baseDir >> new File("baseDir")
         1 * backingCache.createCache({it.cacheFile == new File("baseDir/some-cache.bin")}) >> backingIndexedCache
         1 * backingIndexedCache.get("key")
-        1 * gradle.getRootProject() >> project
-        1 * project.getRootProject() >> project
         0 * _._
     }
 }

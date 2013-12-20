@@ -21,7 +21,6 @@ import org.gradle.api.internal.filestore.UniquePathKeyFileStore;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.cache.internal.CacheLayoutBuilder;
 import org.gradle.cache.internal.FileLockManager;
 import org.gradle.cache.internal.PersistentIndexedCacheParameters;
 import org.gradle.internal.Factory;
@@ -43,8 +42,8 @@ public class DefaultCacheLockingManager implements CacheLockingManager {
     public DefaultCacheLockingManager(CacheRepository cacheRepository) {
         cache = cacheRepository
                 .store(CacheLayout.ROOT.getKey())
+                .withCrossVersionCache()
                 .withDisplayName("artifact cache")
-                .withLayout(new CacheLayoutBuilder().withSharedCache().build())
                 .withLockOptions(mode(FileLockManager.LockMode.None)) // Don't need to lock anything until we use the caches
                 .open();
 

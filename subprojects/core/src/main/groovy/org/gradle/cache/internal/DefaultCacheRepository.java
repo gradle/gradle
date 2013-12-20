@@ -17,7 +17,10 @@ package org.gradle.cache.internal;
 
 import org.gradle.CacheUsage;
 import org.gradle.api.Action;
-import org.gradle.cache.*;
+import org.gradle.cache.CacheBuilder;
+import org.gradle.cache.CacheRepository;
+import org.gradle.cache.CacheValidator;
+import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.filelock.LockOptions;
 
 import java.io.File;
@@ -28,38 +31,57 @@ import static org.gradle.cache.internal.FileLockManager.LockMode;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class DefaultCacheRepository implements CacheRepository {
-    private final File globalCacheDir;
     private final CacheUsage cacheUsage;
-    private final File projectCacheDir;
+    private final CacheScopeMapping cacheScopeMapping;
     private final CacheFactory factory;
 
-    public DefaultCacheRepository(File userHomeDir, File projectCacheDir, CacheUsage cacheUsage, CacheFactory factory) {
-        this.projectCacheDir = projectCacheDir;
+    public DefaultCacheRepository(CacheScopeMapping cacheScopeMapping, CacheUsage cacheUsage, CacheFactory factory) {
+        this.cacheScopeMapping = cacheScopeMapping;
         this.factory = factory;
-        this.globalCacheDir = new File(userHomeDir, "caches");
         this.cacheUsage = cacheUsage;
     }
 
     public CacheBuilder store(String key) {
-        return new PersistentStoreBuilder(key);
+        return new PersistentStoreBuilder(null, key);
+    }
+
+    public CacheBuilder store(Object scope, String key) {
+        return new PersistentStoreBuilder(scope, key);
     }
 
     public CacheBuilder cache(String key) {
-        return new PersistentCacheBuilder(key);
+        return new PersistentCacheBuilder(null, key);
+    }
+
+    public CacheBuilder cache(File baseDir) {
+        return new PersistentCacheBuilder(baseDir);
+    }
+
+    public CacheBuilder cache(Object scope, String key) {
+        return new PersistentCacheBuilder(scope, key);
     }
 
     private abstract class AbstractCacheBuilder implements CacheBuilder {
+        final Object scope;
         final String key;
+        final File baseDir;
         Map<String, ?> properties = Collections.emptyMap();
-        CacheLayout layout;
         CacheValidator validator;
         Action<? super PersistentCache> initializer;
         LockOptions lockOptions = mode(LockMode.Shared);
         String displayName;
+        VersionStrategy versionStrategy = VersionStrategy.CachePerVersion;
 
-        protected AbstractCacheBuilder(String key) {
+        protected AbstractCacheBuilder(Object scope, String key) {
+            this.scope = scope;
             this.key = key;
-            this.layout = new CacheLayoutBuilder().build();
+            this.baseDir = null;
+        }
+
+        protected AbstractCacheBuilder(File baseDir) {
+            this.scope = null;
+            this.key = null;
+            this.baseDir = baseDir;
         }
 
         public CacheBuilder withProperties(Map<String, ?> properties) {
@@ -67,8 +89,8 @@ public class DefaultCacheRepository implements CacheRepository {
             return this;
         }
 
-        public CacheBuilder withLayout(CacheLayout layout) {
-            this.layout = layout;
+        public CacheBuilder withCrossVersionCache() {
+            this.versionStrategy = VersionStrategy.SharedCache;
             return this;
         }
 
@@ -93,7 +115,12 @@ public class DefaultCacheRepository implements CacheRepository {
         }
 
         public PersistentCache open() {
-            File cacheBaseDir = layout.getCacheDir(globalCacheDir, projectCacheDir, key);
+            File cacheBaseDir;
+            if (baseDir != null) {
+                cacheBaseDir = baseDir;
+            } else {
+                cacheBaseDir = cacheScopeMapping.getBaseDirectory(scope, key, versionStrategy);
+            }
             return doOpen(cacheBaseDir, properties, validator);
         }
 
@@ -101,8 +128,12 @@ public class DefaultCacheRepository implements CacheRepository {
     }
 
     private class PersistentCacheBuilder extends AbstractCacheBuilder {
-        protected PersistentCacheBuilder(String key) {
-            super(key);
+        private PersistentCacheBuilder(Object scope, String key) {
+            super(scope, key);
+        }
+
+        private PersistentCacheBuilder(File baseDir) {
+            super(baseDir);
         }
 
         @Override
@@ -112,8 +143,8 @@ public class DefaultCacheRepository implements CacheRepository {
     }
 
     private class PersistentStoreBuilder extends AbstractCacheBuilder {
-        private PersistentStoreBuilder(String key) {
-            super(key);
+        private PersistentStoreBuilder(Object scope, String key) {
+            super(scope, key);
         }
 
         @Override

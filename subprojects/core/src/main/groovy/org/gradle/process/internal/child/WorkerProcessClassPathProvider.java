@@ -72,7 +72,10 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider {
         if (name.equals("WORKER_MAIN")) {
             synchronized (lock) {
                 if (workerClassPath == null) {
-                    workerClassPathCache = cacheRepository.cache("workerMain").withInitializer(new CacheInitializer()).open();
+                    workerClassPathCache = cacheRepository
+                            .cache("workerMain")
+                            .withInitializer(new CacheInitializer())
+                            .open();
                     workerClassPath = new DefaultClassPath(jarFile(workerClassPathCache));
                 }
                 LOGGER.debug("Using worker process classpath: {}", workerClassPath);

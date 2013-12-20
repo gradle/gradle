@@ -41,6 +41,7 @@ import org.gradle.messaging.remote.ObjectConnection;
 import org.gradle.messaging.remote.internal.MessagingServices;
 import org.gradle.process.internal.child.WorkerProcessClassPathProvider;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
+import org.gradle.util.GradleVersion;
 import org.jmock.Expectations;
 import org.jmock.Sequence;
 import org.jmock.integration.junit4.JMock;
@@ -73,7 +74,8 @@ public class WorkerProcessIntegrationTest {
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
     private final ProcessMetaDataProvider metaDataProvider = new DefaultProcessMetaDataProvider(NativeServices.getInstance().get(ProcessEnvironment.class));
     private final CacheFactory factory = new DefaultCacheFactory(new DefaultFileLockManager(metaDataProvider, new NoOpFileLockContentionHandler()));
-    private final CacheRepository cacheRepository = new DefaultCacheRepository(tmpDir.getTestDirectory(), null, CacheUsage.ON, factory);
+    private final CacheScopeMapping scopeMapping = new DefaultCacheScopeMapping(tmpDir.getTestDirectory(), null, GradleVersion.current());
+    private final CacheRepository cacheRepository = new DefaultCacheRepository(scopeMapping, CacheUsage.ON, factory);
     private final ModuleRegistry moduleRegistry = new DefaultModuleRegistry();
     private final ClassPathRegistry classPathRegistry = new DefaultClassPathRegistry(new DefaultClassPathProvider(moduleRegistry), new WorkerProcessClassPathProvider(cacheRepository, moduleRegistry));
     private final DefaultWorkerProcessFactory workerFactory = new DefaultWorkerProcessFactory(LogLevel.INFO, server, classPathRegistry, TestFiles.resolver(tmpDir.getTestDirectory()), new LongIdGenerator());

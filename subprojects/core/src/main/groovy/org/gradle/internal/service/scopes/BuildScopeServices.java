@@ -40,6 +40,7 @@ import org.gradle.cache.CacheRepository;
 import org.gradle.cache.CacheValidator;
 import org.gradle.cache.internal.CacheFactory;
 import org.gradle.cache.internal.DefaultCacheRepository;
+import org.gradle.cache.internal.DefaultCacheScopeMapping;
 import org.gradle.configuration.*;
 import org.gradle.configuration.project.*;
 import org.gradle.groovy.scripts.DefaultScriptCompilerFactory;
@@ -72,6 +73,7 @@ import org.gradle.process.internal.WorkerProcessBuilder;
 import org.gradle.process.internal.child.WorkerProcessClassPathProvider;
 import org.gradle.profile.ProfileEventAdapter;
 import org.gradle.profile.ProfileListener;
+import org.gradle.util.GradleVersion;
 
 /**
  * Contains the singleton services for a single build invocation.
@@ -138,8 +140,11 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     protected CacheRepository createCacheRepository() {
         CacheFactory factory = get(CacheFactory.class);
         StartParameter startParameter = get(StartParameter.class);
-        return new DefaultCacheRepository(startParameter.getGradleUserHomeDir(), startParameter.getProjectCacheDir(),
-                startParameter.getCacheUsage(), factory);
+        DefaultCacheScopeMapping scopeMapping = new DefaultCacheScopeMapping(startParameter.getGradleUserHomeDir(), startParameter.getProjectCacheDir(), GradleVersion.current());
+        return new DefaultCacheRepository(
+                scopeMapping,
+                startParameter.getCacheUsage(),
+                factory);
     }
 
     protected ProjectEvaluator createProjectEvaluator() {

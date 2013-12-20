@@ -16,14 +16,11 @@
 
 package org.gradle.api.internal.externalresource.cached
 
-import org.gradle.CacheUsage
-import org.gradle.api.internal.artifacts.ivyservice.DefaultCacheLockingManager
+import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager
 import org.gradle.api.internal.externalresource.metadata.DefaultExternalResourceMetaData
-import org.gradle.cache.internal.CacheFactory
-import org.gradle.cache.internal.DefaultCacheRepository
-import org.gradle.internal.TimeProvider
+import org.gradle.messaging.serialize.Serializer
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.testfixtures.internal.InMemoryCacheFactory
+import org.gradle.testfixtures.internal.InMemoryIndexedCache
 import org.gradle.util.BuildCommencedTimeProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -37,15 +34,23 @@ class DefaultArtifactResolutionCacheTest extends Specification {
         getCurrentTime() >> 0
     }
 
-    CacheFactory cacheFactory = new InMemoryCacheFactory()
-    DefaultCacheRepository cacheRepository
-    DefaultCacheLockingManager cacheLockingManager
+    def cacheLockingManager = Stub(CacheLockingManager) {
+        useCache(_, _) >> { displayName, action ->
+            if (action instanceof org.gradle.internal.Factory) {
+                return action.create()
+            } else {
+                action.run()
+            }
+        }
+
+        createCache(_, _, _) >> { String file, Serializer keySerializer, Serializer valueSerializer ->
+            return new InMemoryIndexedCache<>(valueSerializer)
+        }
+    }
     
     DefaultCachedExternalResourceIndex<String> index
 
     def setup() {
-        cacheRepository = new DefaultCacheRepository(tmp.createDir('user-home'), tmp.createDir('project-cache'), CacheUsage.ON, cacheFactory)
-        cacheLockingManager = new DefaultCacheLockingManager(cacheRepository)
         index = new DefaultCachedExternalResourceIndex("index", String, timeProvider, cacheLockingManager)
     }
 

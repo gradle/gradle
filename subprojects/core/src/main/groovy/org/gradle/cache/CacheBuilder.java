@@ -44,12 +44,10 @@ public interface CacheBuilder {
     CacheBuilder withProperties(Map<String, ?> properties);
 
     /**
-     * Specifies the layout strategy for the Cache.
-     *
-     * @param layout The layout for this cache.
+     * Specifies that the cache should be shared by all versions of Gradle. The default is to use a Gradle version specific cache.
      * @return this
      */
-    CacheBuilder withLayout(CacheLayout layout);
+    CacheBuilder withCrossVersionCache();
 
     /**
      * Specifies a cache validator for this cache. If {@link CacheValidator#isValid()} results in false, the Cache is considered as invalid.

@@ -44,7 +44,7 @@ class DefaultCacheLockingManagerTest extends Specification {
         then:
         1 * cacheRepository.store(CacheLayout.ROOT.getKey()) >> directoryCacheBuilder
         1 * directoryCacheBuilder.withDisplayName("artifact cache") >> directoryCacheBuilder
-        1 * directoryCacheBuilder.withLayout(_) >> directoryCacheBuilder
+        1 * directoryCacheBuilder.withCrossVersionCache() >> directoryCacheBuilder
         1 * directoryCacheBuilder.withLockOptions(mode(FileLockManager.LockMode.None)) >> directoryCacheBuilder
         1 * directoryCacheBuilder.open() >> persistentCache
         2 * persistentCache.baseDir >> testCacheDir
@@ -63,7 +63,7 @@ class DefaultCacheLockingManagerTest extends Specification {
         then:
         1 * cacheRepository.store(CacheLayout.ROOT.getKey()) >> directoryCacheBuilder
         1 * directoryCacheBuilder.withDisplayName("artifact cache") >> directoryCacheBuilder
-        1 * directoryCacheBuilder.withLayout(_) >> directoryCacheBuilder
+        1 * directoryCacheBuilder.withCrossVersionCache() >> directoryCacheBuilder
         1 * directoryCacheBuilder.withLockOptions(mode(FileLockManager.LockMode.None)) >> directoryCacheBuilder
         1 * directoryCacheBuilder.open() >> persistentCache
         2 * persistentCache.baseDir >> testCacheDir
