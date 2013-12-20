@@ -51,7 +51,7 @@ class DefaultTaskArtifactStateCacheAccessTest extends Specification {
         1 * cacheBuilder.withLockOptions(LockOptionsBuilder.mode(FileLockManager.LockMode.None)) >> cacheBuilder
         1 * cacheBuilder.open() >> backingCache
         _ * backingCache.baseDir >> new File("baseDir")
-        1 * backingCache.createCache({it.cacheFile == new File("baseDir/some-cache.bin")}) >> backingIndexedCache
+        1 * backingCache.createCache({it.cacheName == "some-cache"}) >> backingIndexedCache
         1 * backingIndexedCache.get("key")
         0 * _._
     }

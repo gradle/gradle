@@ -27,8 +27,6 @@ import org.gradle.internal.Factory;
 import org.gradle.listener.LazyCreationProxy;
 import org.gradle.messaging.serialize.Serializer;
 
-import java.io.File;
-
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class DefaultTaskArtifactStateCacheAccess implements TaskArtifactStateCacheAccess {
@@ -67,22 +65,17 @@ public class DefaultTaskArtifactStateCacheAccess implements TaskArtifactStateCac
     public <K, V> PersistentIndexedCache<K, V> createCache(final String cacheName, final Class<K> keyType, final Serializer<V> valueSerializer) {
         Factory<PersistentIndexedCache> factory = new Factory<PersistentIndexedCache>() {
             public PersistentIndexedCache create() {
-                final File cacheFile = cacheFile(cacheName);
                 PersistentIndexedCacheParameters parameters =
-                        new PersistentIndexedCacheParameters(cacheFile, keyType, valueSerializer)
+                        new PersistentIndexedCacheParameters(cacheName, keyType, valueSerializer)
                             .cacheDecorator(new Transformer<MultiProcessSafePersistentIndexedCache<Object, Object>, MultiProcessSafePersistentIndexedCache<Object, Object>>() {
                                 public MultiProcessSafePersistentIndexedCache<Object, Object> transform(MultiProcessSafePersistentIndexedCache<Object, Object> original) {
-                                    return inMemoryDecorator.withMemoryCaching(cacheFile, original);
+                                    return inMemoryDecorator.withMemoryCaching(cacheName, original);
                                 }
                             });
                 return getCache().createCache(parameters);
             }
         };
         return new LazyCreationProxy<PersistentIndexedCache>(PersistentIndexedCache.class, factory).getSource();
-    }
-
-    private File cacheFile(String cacheName) {
-        return new File(getCache().getBaseDir(), cacheName + ".bin");
     }
 
     public <T> T useCache(String operationDisplayName, Factory<? extends T> action) {

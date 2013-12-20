@@ -31,12 +31,13 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
     final FileLockManager lockManager = Mock()
     final CacheInitializationAction initializationAction = Mock()
     final File lockFile = tmpDir.file('lock.bin')
+    final File cacheDir = tmpDir.file('caches')
     final FileLock lock = Mock()
     final BTreePersistentIndexedCache<String, Integer> backingCache = Mock()
     DefaultCacheAccess access = newAccess()
 
     private DefaultCacheAccess newAccess() {
-        new DefaultCacheAccess("<display-name>", lockFile, lockManager, initializationAction) {
+        new DefaultCacheAccess("<display-name>", lockFile, cacheDir, lockManager, initializationAction) {
             @Override
             def <K, V> BTreePersistentIndexedCache<K, V> doCreateCache(File cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
                 return backingCache
@@ -50,7 +51,6 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
 
         then:
         1 * lockManager.lock(lockFile, mode(Shared), "<display-name>") >> lock
-        1 * lockManager.allowContention(lock, _ as Runnable)
         1 * initializationAction.requiresInitialization(lock) >> false
         _ * lock.state
         0 * _._
@@ -76,7 +76,6 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
 
         then:
         1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
-        1 * lockManager.allowContention(lock, _ as Runnable)
         1 * initializationAction.requiresInitialization(lock) >> false
         _ * lock.state
         0 * _._
@@ -118,7 +117,6 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         then:
         1 * lockManager.lock(lockFile, mode(Shared), "<display-name>") >> sharedLock
         1 * initializationAction.requiresInitialization(sharedLock) >> false
-        1 * lockManager.allowContention(sharedLock, _ as Runnable)
         _ * sharedLock.state
         0 * _._
 
@@ -132,7 +130,6 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
 
         then:
         1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
-        1 * lockManager.allowContention(lock, _ as Runnable)
         1 * initializationAction.requiresInitialization(lock) >> true
         1 * lock.writeFile(_) >> { Runnable r -> r.run() }
         1 * initializationAction.initialize(lock)
@@ -371,7 +368,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         access.owner == Thread.currentThread()
     }
 
-    def "long running operation closes the lock if contended"() {
+    def "long running operation closes the lock if contended during action"() {
         Factory<String> action = Mock()
 
         when:
@@ -391,26 +388,22 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>", _) >> lock
     }
 
-    def "long running operation closes the lock if the lock is shared"() {
+    def "long running operation closes the lock if contended before action"() {
         Factory<String> action = Mock()
 
         when:
-        access.open(mode(Shared))
+        access.open(mode(Exclusive))
 
         then:
-        1 * lockManager.lock(lockFile, mode(Shared), "<display-name>") >> lock
+        1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
 
         when:
+        access.whenContended().run()
         access.longRunningOperation("some operation", action)
 
         then:
-        1 * lock.mode >> Shared
-        1 * lock.close()
-
-        then:
         1 * action.create()
-
-        then:
+        1 * lock.close()
         1 * lockManager.lock(lockFile, mode(Exclusive), "<display-name>", _) >> lock
     }
 
@@ -452,7 +445,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
 
     def "can create new cache"() {
         when:
-        def cache = access.newCache(new PersistentIndexedCacheParameters(tmpDir.file('cache.bin'), String.class, Integer.class))
+        def cache = access.newCache(new PersistentIndexedCacheParameters('cache', String.class, Integer.class))
 
         then:
         cache instanceof MultiProcessSafePersistentIndexedCache
@@ -548,7 +541,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         lockManager.lock(lockFile, mode(Exclusive), "<display-name>", "use cache") >> lock
         lock.writeFile(_) >> { Runnable r -> r.run() }
         access.open(mode(None))
-        def cache = access.newCache(new PersistentIndexedCacheParameters(tmpDir.file('cache.bin'), String.class, Integer.class))
+        def cache = access.newCache(new PersistentIndexedCacheParameters('cache', String.class, Integer.class))
         access.useCache("use cache", { cache.get("key") })
 
         when:

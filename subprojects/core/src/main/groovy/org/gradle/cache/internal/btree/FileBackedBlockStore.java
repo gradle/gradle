@@ -40,6 +40,7 @@ public class FileBackedBlockStore implements BlockStore {
     public void open(Runnable runnable, Factory factory) {
         this.factory = factory;
         try {
+            cacheFile.getParentFile().mkdirs();
             file = new RandomAccessFile(cacheFile, "rw");
             nextBlock = file.length();
             if (file.length() == 0) {

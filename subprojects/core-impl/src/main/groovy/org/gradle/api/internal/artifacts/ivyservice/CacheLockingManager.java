@@ -34,7 +34,7 @@ public interface CacheLockingManager extends ArtifactCacheMetaData, CacheAccess 
      *
      * <p>The returned cache may not be used by an action being run from {@link #longRunningOperation(String, org.gradle.internal.Factory)}.
      */
-    <K, V> PersistentIndexedCache<K, V> createCache(String cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer);
+    <K, V> PersistentIndexedCache<K, V> createCache(String cacheName, Serializer<K> keySerializer, Serializer<V> valueSerializer);
 
     /**
      * Creates the file store location relative to the base cache directory.

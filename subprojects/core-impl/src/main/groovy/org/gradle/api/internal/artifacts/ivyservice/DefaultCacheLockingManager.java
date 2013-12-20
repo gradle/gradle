@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.filestore.PathKeyFileStore;
 import org.gradle.api.internal.filestore.UniquePathKeyFileStore;
 import org.gradle.cache.CacheRepository;
@@ -46,26 +45,10 @@ public class DefaultCacheLockingManager implements CacheLockingManager {
                 .withDisplayName("artifact cache")
                 .withLockOptions(mode(FileLockManager.LockMode.None)) // Don't need to lock anything until we use the caches
                 .open();
-
-        initMetaDataStoreDir();
     }
 
     public void close() {
         cache.close();
-    }
-
-    private void initMetaDataStoreDir() {
-        File metaDataStoreDir = getMetaDataStoreDir();
-
-        if(!metaDataStoreDir.exists()) {
-            if(!metaDataStoreDir.mkdirs()) {
-                throw new UncheckedIOException(String.format("Unable to create directory '%s'", metaDataStoreDir.getName()));
-            }
-        }
-    }
-
-    private File getMetaDataStoreDir() {
-        return CacheLayout.META_DATA.getPath(cache.getBaseDir());
     }
 
     public File getCacheDir() {
@@ -88,8 +71,8 @@ public class DefaultCacheLockingManager implements CacheLockingManager {
         return cache.longRunningOperation(operationDisplayName, action);
     }
 
-    public <K, V> PersistentIndexedCache<K, V> createCache(String cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
-        File cacheFileInMetaDataStore = new File(getMetaDataStoreDir(), cacheFile);
+    public <K, V> PersistentIndexedCache<K, V> createCache(String cacheName, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
+        String cacheFileInMetaDataStore = CacheLayout.META_DATA.getKey() + "/" + cacheName;
         return cache.createCache(new PersistentIndexedCacheParameters<K, V>(cacheFileInMetaDataStore, keySerializer, valueSerializer));
     }
 

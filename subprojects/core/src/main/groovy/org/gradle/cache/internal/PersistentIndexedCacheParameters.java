@@ -20,31 +20,29 @@ import org.gradle.internal.Transformers;
 import org.gradle.messaging.serialize.DefaultSerializer;
 import org.gradle.messaging.serialize.Serializer;
 
-import java.io.File;
-
 public class PersistentIndexedCacheParameters<K, V> {
-    private final File cacheFile;
+    private final String cacheName;
     private final Serializer<K> keySerializer;
     private final Serializer<V> valueSerializer;
     private Transformer<MultiProcessSafePersistentIndexedCache<K, V>, MultiProcessSafePersistentIndexedCache<K, V>> cacheDecorator =
             Transformers.noOpTransformer();
 
-    public PersistentIndexedCacheParameters(File cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
-        this.cacheFile = cacheFile;
+    public PersistentIndexedCacheParameters(String cacheName, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
+        this.cacheName = cacheName;
         this.keySerializer = keySerializer;
         this.valueSerializer = valueSerializer;
     }
 
-    public PersistentIndexedCacheParameters(File cacheFile, Class<K> keyType, Serializer<V> valueSerializer) {
-        this(cacheFile, new DefaultSerializer<K>(keyType.getClassLoader()), valueSerializer);
+    public PersistentIndexedCacheParameters(String cacheName, Class<K> keyType, Serializer<V> valueSerializer) {
+        this(cacheName, new DefaultSerializer<K>(keyType.getClassLoader()), valueSerializer);
     }
 
-    public PersistentIndexedCacheParameters(File cacheFile, Class<K> keyType, Class<V> valueType) {
-        this(cacheFile, keyType, new DefaultSerializer<V>(valueType.getClassLoader()));
+    public PersistentIndexedCacheParameters(String cacheName, Class<K> keyType, Class<V> valueType) {
+        this(cacheName, keyType, new DefaultSerializer<V>(valueType.getClassLoader()));
     }
 
-    public File getCacheFile() {
-        return cacheFile;
+    public String getCacheName() {
+        return cacheName;
     }
 
     public Serializer<K> getKeySerializer() {

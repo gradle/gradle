@@ -88,8 +88,7 @@ abstract class AbstractIncrementalNativeCompiler implements Compiler<NativeCompi
     }
 
     private <U, V> PersistentIndexedCache<U, V> createCache(PersistentCache cache, String name, Class<U> keyType, Serializer<V> fileStateDefaultSerializer) {
-        File cacheFile = new File(cache.getBaseDir(), name + ".bin");
-        return cache.createCache(new PersistentIndexedCacheParameters<U, V>(cacheFile, keyType, fileStateDefaultSerializer));
+        return cache.createCache(new PersistentIndexedCacheParameters<U, V>(name, keyType, fileStateDefaultSerializer));
     }
 
 }

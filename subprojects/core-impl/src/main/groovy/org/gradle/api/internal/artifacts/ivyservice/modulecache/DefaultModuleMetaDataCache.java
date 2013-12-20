@@ -62,7 +62,7 @@ public class DefaultModuleMetaDataCache implements ModuleMetaDataCache {
     }
 
     private PersistentIndexedCache<RevisionKey, ModuleDescriptorCacheEntry> initCache() {
-        return cacheLockingManager.createCache("module-metadata.bin", new RevisionKeySerializer(), new ModuleDescriptorCacheEntrySerializer());
+        return cacheLockingManager.createCache("module-metadata", new RevisionKeySerializer(), new ModuleDescriptorCacheEntrySerializer());
     }
 
     public CachedMetaData getCachedModuleDescriptor(ModuleVersionRepository repository, ModuleVersionIdentifier moduleVersionIdentifier, DependencyToModuleVersionResolver resolver) {

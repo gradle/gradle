@@ -35,8 +35,7 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import static org.gradle.cache.internal.FileLockManager.LockMode.Exclusive;
-import static org.gradle.cache.internal.FileLockManager.LockMode.Shared;
+import static org.gradle.cache.internal.FileLockManager.LockMode.*;
 
 @ThreadSafe
 public class DefaultCacheAccess implements CacheCoordinator {
@@ -44,7 +43,8 @@ public class DefaultCacheAccess implements CacheCoordinator {
     private final static Logger LOG = Logging.getLogger(DefaultCacheAccess.class);
 
     private final String cacheDisplayName;
-    private final File lockFile;
+    private final File lockTarget;
+    private final File baseDir;
     private final FileLockManager lockManager;
     private final CacheInitializationAction initializationAction;
     private final FileAccess fileAccess = new UnitOfWorkFileAccess();
@@ -59,9 +59,10 @@ public class DefaultCacheAccess implements CacheCoordinator {
     private final CacheAccessOperationsStack operations;
     private int cacheClosedCount;
 
-    public DefaultCacheAccess(String cacheDisplayName, File lockFile, FileLockManager lockManager, CacheInitializationAction initializationAction) {
+    public DefaultCacheAccess(String cacheDisplayName, File lockTarget, File baseDir, FileLockManager lockManager, CacheInitializationAction initializationAction) {
         this.cacheDisplayName = cacheDisplayName;
-        this.lockFile = lockFile;
+        this.lockTarget = lockTarget;
+        this.baseDir = baseDir;
         this.lockManager = lockManager;
         this.initializationAction = initializationAction;
         this.operations = new CacheAccessOperationsStack();
@@ -78,9 +79,9 @@ public class DefaultCacheAccess implements CacheCoordinator {
                 return;
             }
             if (fileLock != null) {
-                throw new IllegalStateException("File lock " + lockFile + " is already open.");
+                throw new IllegalStateException("File lock " + lockTarget + " is already open.");
             }
-            fileLock = lockManager.lock(lockFile, lockOptions, cacheDisplayName);
+            fileLock = lockManager.lock(lockTarget, lockOptions, cacheDisplayName);
 
             boolean rebuild = initializationAction.requiresInitialization(fileLock);
             if (rebuild) {
@@ -93,7 +94,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
                 } else {
                     for (int tries = 0; rebuild && tries < 3; tries++) {
                         fileLock.close();
-                        fileLock = lockManager.lock(lockFile, lockOptions.withMode(Exclusive), cacheDisplayName, "Initialize cache");
+                        fileLock = lockManager.lock(lockTarget, lockOptions.withMode(Exclusive), cacheDisplayName, "Initialize cache");
                         rebuild = initializationAction.requiresInitialization(fileLock);
                         if (rebuild) {
                             fileLock.writeFile(new Runnable() {
@@ -103,7 +104,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
                             });
                         }
                         fileLock.close();
-                        fileLock = lockManager.lock(lockFile, lockOptions, cacheDisplayName);
+                        fileLock = lockManager.lock(lockTarget, lockOptions, cacheDisplayName);
                         rebuild = initializationAction.requiresInitialization(fileLock);
                     }
                     if (rebuild) {
@@ -114,7 +115,6 @@ public class DefaultCacheAccess implements CacheCoordinator {
 
             stateAtOpen = fileLock.getState();
             takeOwnership(String.format("Access %s", cacheDisplayName));
-            lockManager.allowContention(fileLock, whenContended());
         } catch(Throwable throwable) {
             if (fileLock != null) {
                 fileLock.close();
@@ -242,6 +242,9 @@ public class DefaultCacheAccess implements CacheCoordinator {
         boolean wasEnded;
         lock.lock();
         try {
+            if (lockOptions == null || lockOptions.getMode() == Shared) {
+                throw new UnsupportedOperationException("Not supported for this lock mode.");
+            }
             if (operations.isInCacheAction()) {
                 checkThreadIsOwner();
                 wasEnded = onEndWork();
@@ -306,7 +309,8 @@ public class DefaultCacheAccess implements CacheCoordinator {
     public <K, V> MultiProcessSafePersistentIndexedCache<K, V> newCache(final PersistentIndexedCacheParameters<K, V> parameters) {
         Factory<BTreePersistentIndexedCache<K, V>> indexedCacheFactory = new Factory<BTreePersistentIndexedCache<K, V>>() {
             public BTreePersistentIndexedCache<K, V> create() {
-                return doCreateCache(parameters.getCacheFile(), parameters.getKeySerializer(), parameters.getValueSerializer());
+                File cacheFile = new File(baseDir, parameters.getCacheName() + ".bin");
+                return doCreateCache(cacheFile, parameters.getKeySerializer(), parameters.getValueSerializer());
             }
         };
         MultiProcessSafePersistentIndexedCache<K, V> indexedCache = parameters.decorate(
@@ -332,7 +336,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
         if (fileLock != null) {
             return false;
         }
-        fileLock = lockManager.lock(lockFile, lockOptions.withMode(Exclusive), cacheDisplayName, operations.getDescription());
+        fileLock = lockManager.lock(lockTarget, lockOptions.withMode(Exclusive), cacheDisplayName, operations.getDescription());
         if (initializationAction.requiresInitialization(fileLock)) {
             fileLock.writeFile(new Runnable() {
                 public void run() {

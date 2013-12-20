@@ -51,7 +51,7 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
     }
 
     private CacheCoordinator createCacheAccess() {
-        return new DefaultCacheAccess(displayName, getLockTarget(), lockManager, getInitAction());
+        return new DefaultCacheAccess(displayName, getLockTarget(), dir, lockManager, getInitAction());
     }
 
     protected File getLockTarget() {
@@ -94,7 +94,7 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
     }
 
     public <K, V> PersistentIndexedCache<K, V> createCache(String name, Class<K> keyType, Serializer<V> valueSerializer) {
-        return cacheAccess.newCache(new PersistentIndexedCacheParameters<K, V>(new File(dir, name + ".bin"), keyType, valueSerializer));
+        return cacheAccess.newCache(new PersistentIndexedCacheParameters<K, V>(name, keyType, valueSerializer));
     }
 
     public <T> T useCache(String operationDisplayName, Factory<? extends T> action) {
