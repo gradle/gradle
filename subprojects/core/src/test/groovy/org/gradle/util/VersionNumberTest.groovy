@@ -86,6 +86,7 @@ class VersionNumberTest extends Specification {
         new VersionNumber(1, 1, 1, "rc") < new VersionNumber(1, 1, 1, null)
         new VersionNumber(1, 1, 1, "beta") > new VersionNumber(1, 1, 1, "alpha")
         new VersionNumber(1, 1, 1, "RELEASE") > new VersionNumber(1, 1, 1, "beta")
+        new VersionNumber(1, 1, 1, "SNAPSHOT") < new VersionNumber(1, 1, 1, null)
 
         new VersionNumber(1, 1, 1, null) < new VersionNumber(2, 1, 1, null)
         new VersionNumber(1, 1, 1, null) < new VersionNumber(1, 2, 1, null)
