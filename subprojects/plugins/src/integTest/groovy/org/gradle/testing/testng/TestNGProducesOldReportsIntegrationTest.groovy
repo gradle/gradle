@@ -99,10 +99,11 @@ test {
         testNG.hasHtmlResults()
 
         where:
-        preConfig                                | postConfig                                                           | path
-        ""                                       | ""                                                                   | TestNGExecutionResult.DEFAULT_TESTNG_REPORT
-        "testReportDir = file('xyz')"            | "reports.html.destination = file('abc')"                             | "abc"
-        ""                                       | "testReportDir = file('xyz');reports.html.destination = file('abc')" | "xyz"
-        "reports.html.destination = file('abc')" | "options.outputDirectory = file('xyz')"                              | "xyz"
+        preConfig                                | postConfig                                                                           | path
+        ""                                       | ""                                                                                   | TestNGExecutionResult.DEFAULT_TESTNG_REPORT
+        "testReportDir = file('xyz')"            | "reports.html.destination = file('abc')"                                             | "abc"
+        ""                                       | "testReportDir = file('xyz');reports.html.destination = file('abc')"                 | "abc"
+        "reports.html.destination = file('abc')" | "options.outputDirectory = file('xyz')"                                              | "xyz"
+        ""                                       | "options.outputDirectory = file('xyz');reports.html.destination = file('ignore me')" | "xyz"
     }
 }

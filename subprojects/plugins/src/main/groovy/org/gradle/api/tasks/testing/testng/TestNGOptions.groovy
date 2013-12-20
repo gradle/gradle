@@ -18,6 +18,7 @@ package org.gradle.api.tasks.testing.testng
 import groovy.xml.MarkupBuilder
 import org.gradle.api.Incubating
 import org.gradle.api.JavaVersion
+import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.testing.TestFrameworkOptions
 
 class TestNGOptions extends TestFrameworkOptions {
@@ -33,6 +34,7 @@ class TestNGOptions extends TestFrameworkOptions {
      * @since 1.11
      */
     @Incubating
+    @OutputDirectory
     File outputDirectory
 
     /**

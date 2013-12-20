@@ -45,7 +45,6 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.*;
 import org.gradle.api.tasks.testing.logging.TestLogging;
 import org.gradle.api.tasks.testing.logging.TestLoggingContainer;
-import org.gradle.api.tasks.testing.testng.TestNGOptions;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
@@ -766,9 +765,6 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
 
     /**
      * Sets the root folder for the test reports.
-     * <p>
-     * If {@code useTestNG()} has been called prior to calling this method, this will also delegate to the {@link org.gradle.api.tasks.testing.testng.TestNGOptions#setOutputDirectory(java.io.File)}
-     * method of the current options.
      *
      * @param testReportDir The root folder
      * @deprecated Replaced by {@code getReports().getHtml().setDestination()}
@@ -777,10 +773,6 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     public void setTestReportDir(File testReportDir) {
         DeprecationLogger.nagUserOfReplacedProperty("Test.testReportDir", "Test.getReports().getHtml().getDestination()");
         reports.getHtml().setDestination(testReportDir);
-        TestFrameworkOptions options = getOptions();
-        if (options instanceof TestNGOptions) {
-            ((TestNGOptions) options).setOutputDirectory(testReportDir);
-        }
     }
 
     /**
