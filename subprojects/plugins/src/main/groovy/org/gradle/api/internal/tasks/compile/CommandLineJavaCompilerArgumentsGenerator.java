@@ -17,26 +17,29 @@
 package org.gradle.api.internal.tasks.compile;
 
 import com.google.common.collect.Iterables;
-
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.file.TemporaryFileProvider;
-import org.gradle.util.GFileUtils;
 
-import java.io.File;
+import java.io.*;
 import java.util.Collections;
 import java.util.List;
-import java.util.ListIterator;
 
-public class CommandLineJavaCompilerArgumentsGenerator {
+public class CommandLineJavaCompilerArgumentsGenerator implements CompileSpecToArguments<JavaCompileSpec>, Serializable {
     private final TemporaryFileProvider tempFileProvider;
 
     public CommandLineJavaCompilerArgumentsGenerator(TemporaryFileProvider tempFileProvider) {
         this.tempFileProvider = tempFileProvider;
     }
 
+    public void collectArguments(JavaCompileSpec spec, ArgCollector collector) {
+        for (String arg : generate(spec)) {
+            collector.args(arg);
+        }
+    }
+
     public Iterable<String> generate(JavaCompileSpec spec) {
-        JavaCompilerArgumentsBuilder builder = new JavaCompilerArgumentsBuilder(spec);
-        List<String> launcherOptions = builder.includeLauncherOptions(true).includeMainOptions(false).includeSourceFiles(false).build();
-        List<String> remainingArgs = builder.includeLauncherOptions(false).includeMainOptions(true).includeSourceFiles(true).build();
+        List<String> launcherOptions = new JavaCompilerArgumentsBuilder(spec).includeLauncherOptions(true).includeMainOptions(false).includeClasspath(false).build();
+        List<String> remainingArgs = new JavaCompilerArgumentsBuilder(spec).includeSourceFiles(true).build();
         Iterable<String> allArgs = Iterables.concat(launcherOptions, remainingArgs);
         if (exceedsWindowsCommandLineLengthLimit(allArgs)) {
             return Iterables.concat(launcherOptions, shortenArgs(remainingArgs));
@@ -58,19 +61,21 @@ public class CommandLineJavaCompilerArgumentsGenerator {
 
     private Iterable<String> shortenArgs(List<String> args) {
         File file = tempFileProvider.createTemporaryFile("compile-args", null, "java-compiler");
+        // for command file format, see http://docs.oracle.com/javase/6/docs/technotes/tools/windows/javac.html#commandlineargfile
         // use platform character and line encoding
-        GFileUtils.writeLines(file, quoteArgs(args));
-        return Collections.singleton("@" + file.getPath());
-    }
-
-    private List<String> quoteArgs(List<String> args) {
-        ListIterator<String> iterator = args.listIterator();
-        while (iterator.hasNext()) {
-            String arg = iterator.next();
-            // assumption: blindly quoting all args is fine
-            // as for how to quote, see http://docs.oracle.com/javase/6/docs/technotes/tools/windows/javac.html#commandlineargfile
-            iterator.set("\"" + arg.replace("\\", "\\\\") + "\"");
+        try {
+            PrintWriter writer = new PrintWriter(new FileWriter(file));
+            try {
+                ArgWriter argWriter = ArgWriter.unixStyle(writer);
+                for (String arg : args) {
+                    argWriter.args(arg);
+                }
+            } finally {
+                writer.close();
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
-        return args;
+        return Collections.singleton("@" + file.getPath());
     }
 }

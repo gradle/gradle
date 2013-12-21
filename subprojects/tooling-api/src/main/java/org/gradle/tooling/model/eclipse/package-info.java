@@ -15,6 +15,6 @@
  */
 
 /**
- * An Eclipse-centric model of a Gradle build, provided by the Gradle tooling API.
+ * Eclipse-centric tooling models.
  */
 package org.gradle.tooling.model.eclipse;

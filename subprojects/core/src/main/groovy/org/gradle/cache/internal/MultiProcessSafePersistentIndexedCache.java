@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,78 +15,14 @@
  */
 package org.gradle.cache.internal;
 
-import org.gradle.internal.Factory;
 import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.cache.internal.btree.BTreePersistentIndexedCache;
 
 import java.io.Closeable;
 
-public class MultiProcessSafePersistentIndexedCache<K, V> implements PersistentIndexedCache<K, V>, UnitOfWorkParticipant, Closeable {
-    private final FileAccess fileAccess;
-    private final Factory<BTreePersistentIndexedCache<K, V>> factory;
-    private BTreePersistentIndexedCache<K, V> cache;
-
-    public MultiProcessSafePersistentIndexedCache(Factory<BTreePersistentIndexedCache<K, V>> factory, FileAccess fileAccess) {
-        this.factory = factory;
-        this.fileAccess = fileAccess;
-    }
-
-    public V get(final K key) {
-        final PersistentIndexedCache<K, V> cache = getCache();
-        return fileAccess.readFromFile(new Factory<V>() {
-            public V create() {
-                return cache.get(key);
-            }
-        });
-    }
-
-    public void put(final K key, final V value) {
-        final PersistentIndexedCache<K, V> cache = getCache();
-        fileAccess.writeToFile(new Runnable() {
-            public void run() {
-                cache.put(key, value);
-            }
-        });
-    }
-
-    public void remove(final K key) {
-        final PersistentIndexedCache<K, V> cache = getCache();
-        fileAccess.writeToFile(new Runnable() {
-            public void run() {
-                cache.remove(key);
-            }
-        });
-    }
-
-    public void onStartWork(String operationDisplayName) {
-    }
-
-    public void onEndWork() {
-        close();
-    }
-
-    public void close() {
-        if (cache != null) {
-            try {
-                fileAccess.writeToFile(new Runnable() {
-                    public void run() {
-                        cache.close();
-                    }
-                });
-            } finally {
-                cache = null;
-            }
-        }
-    }
-
-    private PersistentIndexedCache<K, V> getCache() {
-        if (cache == null) {
-            fileAccess.writeToFile(new Runnable() {
-                public void run() {
-                    cache = factory.create();
-                }
-            });
-        }
-        return cache;
-    }
+public interface MultiProcessSafePersistentIndexedCache<K, V> extends
+        PersistentIndexedCache<K, V>, UnitOfWorkParticipant, Closeable {
+    /**
+     * Note: this method is called before {@link UnitOfWorkParticipant#onEndWork(org.gradle.cache.internal.FileLock.State)}.
+     */
+    void close(); //so that we don't have to handle IOException (do we need this?)
 }

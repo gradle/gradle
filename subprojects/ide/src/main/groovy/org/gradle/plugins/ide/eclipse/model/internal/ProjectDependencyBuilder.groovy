@@ -19,9 +19,6 @@ import org.gradle.api.Project
 import org.gradle.plugins.ide.eclipse.EclipsePlugin
 import org.gradle.plugins.ide.eclipse.model.ProjectDependency
 
-/**
- * @author Szczepan Faber, @date: 11.03.11
- */
 class ProjectDependencyBuilder {
     ProjectDependency build(Project project, String declaredConfigurationName) {
         def name

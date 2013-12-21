@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.execution;
 
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
+import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 
 /**
@@ -30,8 +31,8 @@ public class PostExecutionAnalysisTaskExecuter implements TaskExecuter {
         this.executer = executer;
     }
 
-    public void execute(TaskInternal task, TaskStateInternal state) {
-        executer.execute(task, state);
+    public void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
+        executer.execute(task, state, context);
         if (!state.getDidWork()) {
             state.upToDate();
         }

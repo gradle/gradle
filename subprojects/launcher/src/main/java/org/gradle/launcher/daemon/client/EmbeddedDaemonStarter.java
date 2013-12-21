@@ -15,23 +15,53 @@
  */
 package org.gradle.launcher.daemon.client;
 
+import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.Factory;
-import org.gradle.launcher.daemon.registry.EmbeddedDaemonRegistry;
+import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo;
 import org.gradle.launcher.daemon.server.Daemon;
 
-class EmbeddedDaemonStarter implements DaemonStarter {
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
-    private final EmbeddedDaemonRegistry daemonRegistry;
+class EmbeddedDaemonStarter implements DaemonStarter, Stoppable {
     private final Factory<Daemon> daemonFactory;
+    private final List<Daemon> daemons = new ArrayList<Daemon>();
+    private final Lock daemonsLock = new ReentrantLock();
 
-    public EmbeddedDaemonStarter(EmbeddedDaemonRegistry daemonRegistry, Factory<Daemon> daemonFactory) {
-        this.daemonRegistry = daemonRegistry;
+    public EmbeddedDaemonStarter(Factory<Daemon> daemonFactory) {
         this.daemonFactory = daemonFactory;
     }
 
-    public String startDaemon() {
+    public DaemonStartupInfo startDaemon() {
         Daemon daemon = daemonFactory.create();
-        daemonRegistry.startDaemon(daemon);
-        return daemon.getUid();
+        startDaemon(daemon);
+        return new DaemonStartupInfo(daemon.getUid(), null);
     }
-}
+
+    public void startDaemon(Daemon daemon) {
+        daemonsLock.lock();
+        try {
+            daemons.add(daemon);
+        } finally {
+            daemonsLock.unlock();
+        }
+
+        daemon.start();
+    }
+
+    public void stop() {
+        List<Daemon> daemonsToStop;
+
+        daemonsLock.lock();
+        try {
+            daemonsToStop = new ArrayList<Daemon>(daemons);
+            daemons.clear();
+        } finally {
+            daemonsLock.unlock();
+        }
+
+        CompositeStoppable.stoppable(daemonsToStop).stop();
+    }}

@@ -15,113 +15,78 @@
  */
 package org.gradle.api.internal.artifacts
 
-import org.gradle.StartParameter
-import org.gradle.api.internal.ClassPathRegistry
-import org.gradle.api.internal.DomainObjectContext
-import org.gradle.api.internal.Instantiator
-import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal
+import org.gradle.api.Action
+import org.gradle.api.artifacts.dsl.ArtifactHandler
+import org.gradle.api.artifacts.dsl.ComponentMetadataHandler
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer
-import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
+import org.gradle.api.internal.artifacts.dsl.DefaultArtifactHandler
+import org.gradle.api.internal.artifacts.dsl.DefaultComponentMetadataHandler
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler
-import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
-import org.gradle.api.internal.file.FileResolver
-import org.gradle.cache.CacheRepository
-import org.gradle.cache.DirectoryCacheBuilder
-import org.gradle.cache.PersistentCache
-import org.gradle.cache.internal.FileLockManager
-import org.gradle.internal.Factory
+import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler
+import org.gradle.api.internal.artifacts.ivyservice.IvyBackedArtifactPublisher
+import org.gradle.api.internal.artifacts.repositories.DefaultBaseRepositoryFactory
+import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.internal.reflect.Instantiator
+import org.gradle.internal.service.DefaultServiceRegistry
+import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.listener.ListenerManager
-import org.gradle.logging.LoggingManagerInternal
-import org.gradle.logging.ProgressLoggerFactory
-import org.gradle.util.TimeProvider
 import spock.lang.Specification
+
+import java.lang.reflect.ParameterizedType
 
 class DefaultDependencyManagementServicesTest extends Specification {
     final ServiceRegistry parent = Mock()
-    final FileResolver fileResolver = Mock()
-    final DependencyMetaDataProvider dependencyMetaDataProvider = Mock()
-    final ProjectFinder projectFinder = Mock()
-    final Instantiator instantiator = Mock()
-    final DomainObjectContext domainObjectContext = Mock()
-    final DefaultRepositoryHandler repositoryHandler = Mock()
-    final ConfigurationContainerInternal configurationContainer = Mock()
-    final StartParameter startParameter = Mock()
-    final ListenerManager listenerManager = Mock()
+    final Instantiator instantiator = new DirectInstantiator()
     final DefaultDependencyManagementServices services = new DefaultDependencyManagementServices(parent)
 
     def setup() {
-        Factory<LoggingManagerInternal> loggingFactory = Mock()
-        _ * parent.getFactory(LoggingManagerInternal) >> loggingFactory
-        ProgressLoggerFactory progressLoggerFactory = Mock()
-        _ * parent.get(ProgressLoggerFactory) >> progressLoggerFactory
-        CacheRepository cacheRepository = initCacheRepository()
-        _ * parent.get(CacheRepository) >> cacheRepository
-        ClassPathRegistry classPathRegistry = Mock()
-        _ * parent.get(ClassPathRegistry) >> classPathRegistry
-        _ * parent.get(ListenerManager) >> listenerManager
-        _ * parent.get(FileLockManager) >> Mock(FileLockManager)
-        _ * parent.get(TimeProvider) >> Mock(TimeProvider)
+        _ * parent.get(Instantiator) >> instantiator
+        _ * parent.get({it instanceof Class}) >> { Class t -> Stub(t) }
+        _ * parent.get({it instanceof ParameterizedType}) >> { ParameterizedType t -> Stub(t.rawType) }
     }
 
-    private CacheRepository initCacheRepository() {
-        CacheRepository cacheRepository = Mock()
-        DirectoryCacheBuilder cacheBuilder = Mock()
-        _ * cacheRepository.store(_) >> cacheBuilder
-        _ * cacheBuilder.withVersionStrategy(_) >> cacheBuilder
-        _ * cacheBuilder.withLockMode(_) >> cacheBuilder
-        _ * cacheBuilder.withDisplayName(_) >> cacheBuilder
-        PersistentCache cache = Mock()
-        _ * cacheBuilder.open() >> cache
-        cache.baseDir >> new File("cache")
-        return cacheRepository
-    }
-
-    def "can create dependency resolution services"() {
+    def "can create dependency resolution DSL services"() {
         given:
-        _ * parent.get(Instantiator.class) >> instantiator
-        _ * parent.get(StartParameter.class) >> startParameter
-        1 * instantiator.newInstance(DefaultRepositoryHandler.class, _, _) >> repositoryHandler
-        1 * instantiator.newInstance(DefaultConfigurationContainer.class, !null, instantiator,
-                domainObjectContext, listenerManager, dependencyMetaDataProvider) >> configurationContainer
+        def registry = new DefaultServiceRegistry(parent)
 
         when:
-        def resolutionServices = services.create(fileResolver, dependencyMetaDataProvider, projectFinder, domainObjectContext)
+        registry.register({ ServiceRegistration registration -> services.addDslServices(registration) } as Action)
+        def resolutionServices = registry.get(DependencyResolutionServices)
 
         then:
-        resolutionServices.resolveRepositoryHandler != null
-        resolutionServices.configurationContainer != null
-        resolutionServices.dependencyHandler != null
-        resolutionServices.artifactHandler != null
-        resolutionServices.publishServicesFactory != null
+        resolutionServices.resolveRepositoryHandler instanceof DefaultRepositoryHandler
+        resolutionServices.configurationContainer instanceof DefaultConfigurationContainer
+        resolutionServices.dependencyHandler instanceof DefaultDependencyHandler
+        registry.get(ComponentMetadataHandler) instanceof DefaultComponentMetadataHandler
+        registry.get(ArtifactHandler) instanceof DefaultArtifactHandler
+        registry.get(BaseRepositoryFactory) instanceof DefaultBaseRepositoryFactory
     }
 
     def "publish services provide a repository handler"() {
-        DefaultRepositoryHandler publishRepositoryHandler = Mock()
-
         given:
-        _ * parent.get(StartParameter.class) >> startParameter
-        _ * parent.get(Instantiator.class) >> instantiator
-        _ * instantiator.newInstance(DefaultRepositoryHandler.class, _, _) >> publishRepositoryHandler
+        def registry = new DefaultServiceRegistry(parent)
 
         when:
-        def resolutionServices = services.create(fileResolver, dependencyMetaDataProvider, projectFinder, domainObjectContext)
-        def publishResolverHandler = resolutionServices.publishServicesFactory.create().repositoryHandler
+        registry.register({ ServiceRegistration registration -> services.addDslServices(registration) } as Action)
+        def publishServices = registry.get(ArtifactPublicationServices)
 
         then:
-        publishResolverHandler == publishRepositoryHandler
+        def publishResolverHandler = publishServices.createRepositoryHandler()
+        publishResolverHandler instanceof DefaultRepositoryHandler
+        !publishResolverHandler.is(publishServices.createRepositoryHandler())
     }
 
     def "publish services provide an ArtifactPublisher"() {
         given:
-        _ * parent.get(StartParameter.class) >> startParameter
-        _ * parent.get(Instantiator.class) >> instantiator
+        def registry = new DefaultServiceRegistry(parent)
 
         when:
-        def resolutionServices = services.create(fileResolver, dependencyMetaDataProvider, projectFinder, domainObjectContext)
-        def ivyService = resolutionServices.publishServicesFactory.create().artifactPublisher
+        registry.register({ ServiceRegistration registration -> services.addDslServices(registration) } as Action)
+        def publishServices = registry.get(ArtifactPublicationServices)
 
         then:
-        ivyService != null
+        def ivyService = publishServices.createArtifactPublisher()
+        ivyService instanceof IvyBackedArtifactPublisher
+        !ivyService.is(publishServices.createArtifactPublisher())
     }
 }

@@ -14,19 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.notations;
-
+package org.gradle.api.internal.notations
 
 import org.gradle.api.artifacts.DependencyArtifact
-import org.gradle.api.internal.DirectInstantiator
 import org.gradle.api.internal.artifacts.dependencies.DefaultClientModule
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
-import org.gradle.util.HelperUtil
+import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
-/**
- * by Szczepan Faber, created at: 11/10/11
- */
 public class DependencyStringNotationParserTest extends Specification {
 
     def parser = new DependencyStringNotationParser(new DirectInstantiator(), DefaultExternalModuleDependency.class);
@@ -85,7 +81,7 @@ public class DependencyStringNotationParserTest extends Specification {
 
     def "with 3-element GString"() {
         when:
-        def gstring = HelperUtil.createScript("descriptor = 'org.gradle:gradle-core:1.0'; \"\$descriptor\"").run()
+        def gstring = TestUtil.createScript("descriptor = 'org.gradle:gradle-core:1.0'; \"\$descriptor\"").run()
         def d = parser.parseNotation(gstring);
 
         then:

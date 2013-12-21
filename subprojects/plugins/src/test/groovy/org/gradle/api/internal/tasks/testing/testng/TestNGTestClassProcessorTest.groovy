@@ -17,357 +17,240 @@
 package org.gradle.api.internal.tasks.testing.testng
 
 import org.gradle.api.GradleException
-import org.gradle.api.internal.tasks.testing.TestDescriptorInternal
+import org.gradle.api.internal.tasks.testing.DefaultTestClassRunInfo
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
-
+import org.gradle.api.internal.tasks.testing.TestStartEvent
+import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter
 import org.gradle.api.tasks.testing.TestResult.ResultType
 import org.gradle.api.tasks.testing.testng.TestNGOptions
-import org.gradle.api.internal.tasks.testing.TestClassRunInfo
-import org.gradle.util.JUnit4GroovyMockery
-import org.gradle.util.TemporaryFolder
-import org.jmock.Sequence
-import org.jmock.integration.junit4.JMock
-import org.junit.Rule
-import org.junit.Test
-import org.junit.runner.RunWith
-import org.testng.annotations.AfterClass
-import org.testng.annotations.BeforeClass
-import org.testng.annotations.BeforeMethod
-import org.testng.annotations.Factory
-import static org.hamcrest.Matchers.*
-import static org.junit.Assert.*
-import org.gradle.util.LongIdGenerator
-import org.junit.Ignore
-import org.gradle.api.internal.tasks.testing.TestCompleteEvent
-import org.gradle.api.internal.tasks.testing.TestStartEvent
+import org.gradle.internal.id.LongIdGenerator
 import org.gradle.logging.StandardOutputRedirector
-import org.testng.annotations.AfterMethod
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.junit.Rule
+import org.testng.annotations.*
+import spock.lang.Ignore
+import spock.lang.Specification
+import spock.lang.Subject
 
-@RunWith(JMock.class)
-class TestNGTestClassProcessorTest {
-    private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
-    @Rule public final TemporaryFolder tmpDir = new TemporaryFolder();
-    private final TestResultProcessor resultProcessor = context.mock(TestResultProcessor.class);
-    private final TestNGOptions options = new TestNGOptions(tmpDir.dir)
-    private final TestNGTestClassProcessor processor = new TestNGTestClassProcessor(tmpDir.dir, options, [], new LongIdGenerator(), {} as StandardOutputRedirector);
+class TestNGTestClassProcessorTest extends Specification {
 
-    @Test
-    public void executesATestClass() {
-        context.checking {
-            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
-            will { TestDescriptorInternal suite, TestStartEvent event ->
-                assertThat(suite.id, equalTo(1L))
-                assertThat(suite.name, equalTo('Gradle test'))
-                assertThat(suite.className, nullValue())
-                assertThat(event.parentId, nullValue())
-            }
-            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
-            will { TestDescriptorInternal test, TestStartEvent event ->
-                assertThat(test.id, equalTo(2L))
-                assertThat(test.name, equalTo('ok'))
-                assertThat(test.className, equalTo(ATestNGClass.class.name))
-                assertThat(event.parentId, equalTo(1L))
-            }
-            one(resultProcessor).completed(withParam(equalTo(2L)), withParam(notNullValue()))
-            will { id, TestCompleteEvent event ->
-                assertThat(event.resultType, equalTo(ResultType.SUCCESS))
-            }
-            one(resultProcessor).completed(withParam(equalTo(1L)), withParam(notNullValue()))
-            will { id, TestCompleteEvent event ->
-                assertThat(event.resultType, nullValue())
-            }
+    @Rule TestNameTestDirectoryProvider reportDir = new TestNameTestDirectoryProvider()
+
+    def processor = Mock(TestResultProcessor)
+
+    def options = Spy(TestNGSpec, constructorArgs:[new TestNGOptions(reportDir.testDirectory), new DefaultTestFilter()])
+
+    @Subject classProcessor = new TestNGTestClassProcessor(reportDir.testDirectory, options, [], new LongIdGenerator(), {} as StandardOutputRedirector)
+
+    void process(Class ... clazz) {
+        classProcessor.startProcessing(processor)
+        for (String c : clazz*.name) {
+            classProcessor.processTestClass(new DefaultTestClassRunInfo(c))
         }
-
-        processor.startProcessing(resultProcessor);
-        processor.processTestClass(testClass(ATestNGClass.class));
-        processor.stop();
+        classProcessor.stop()
     }
 
-    @Test
-    public void executesAFactoryTestClass() {
-        context.checking {
-            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
-            will { TestDescriptorInternal suite ->
-                assertThat(suite.name, equalTo('Gradle test'))
-                assertThat(suite.className, nullValue())
-            }
-            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
-            will { TestDescriptorInternal test ->
-                assertThat(test.name, equalTo('ok'))
-                assertThat(test.className, equalTo(ATestNGClass.class.name))
-            }
-            one(resultProcessor).completed(withParam(equalTo(2L)), withParam(notNullValue()))
-            will { id, TestCompleteEvent event ->
-                assertThat(event.resultType, equalTo(ResultType.SUCCESS))
-            }
-            one(resultProcessor).completed(withParam(equalTo(1L)), withParam(notNullValue()))
-            will { id, TestCompleteEvent event ->
-                assertThat(event.resultType, nullValue())
-            }
-        }
+    void "executes the test class"() {
+        when: process(ATestNGClass)
 
-        processor.startProcessing(resultProcessor);
-        processor.processTestClass(testClass(ATestNGFactoryClass.class));
-        processor.stop();
+        then: 1 * processor.started({ it.id == 1 && it.name == 'Gradle test' && it.className == null }, { it.parentId == null })
+        then: 1 * processor.started({ it.id == 2 && it.name == 'ok' && it.className == ATestNGClass.name }, { it.parentId == 1 })
+        then: 1 * processor.completed(2, { it.resultType == ResultType.SUCCESS })
+        then: 1 * processor.completed(1, { it.resultType == null })
+        0 * processor._
     }
 
-    @Test
-    public void executesATestWithExpectedException() {
-        context.checking {
-            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
-            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
-            will { TestDescriptorInternal test ->
-                assertThat(test.id, equalTo(2L))
-                assertThat(test.name, equalTo('ok'))
-                assertThat(test.className, equalTo(ATestNGClassWithExpectedException.class.name))
-            }
-            one(resultProcessor).completed(withParam(equalTo(2L)), withParam(notNullValue()))
-            will { id, TestCompleteEvent event ->
-                assertThat(event.resultType, equalTo(ResultType.SUCCESS))
-            }
-            one(resultProcessor).completed(withParam(equalTo(1L)), withParam(notNullValue()))
-            will { id, TestCompleteEvent event ->
-                assertThat(event.resultType, nullValue())
-            }
-        }
+    void "executes factory test class"() {
+        when:
+        process(ATestNGFactoryClass)
 
-        processor.startProcessing(resultProcessor);
-        processor.processTestClass(testClass(ATestNGClassWithExpectedException.class));
-        processor.stop();
+        then: 1 * processor.started({ it.name == 'Gradle test' && it.className == null }, { it.parentId == null })
+        then: 1 * processor.started({ it.name == 'ok' && it.className == ATestNGClass.name }, _ as TestStartEvent)
+        then: 1 * processor.completed(2, { it.resultType == ResultType.SUCCESS })
+        then: 1 * processor.completed(1, { it.resultType == null })
+
+        0 * processor._
     }
 
-    @Test
-    public void executesATestClassWithBrokenSetup() {
-        context.checking {
-            Sequence sequence = context.sequence('seq')
+    void "executes selected included method"() {
+        options.getIncludedTests() >> [ATestNGClassWithManyMethods.name + ".another"]
 
-            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
-            will { TestDescriptorInternal suite ->
-                assertThat(suite.name, equalTo('Gradle test'))
-                assertThat(suite.className, nullValue())
-            }
-            inSequence(sequence)
+        when: process(ATestNGClassWithManyMethods)
 
-            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
-            will { TestDescriptorInternal test ->
-                assertThat(test.name, equalTo('beforeMethod'))
-                assertThat(test.className, equalTo(ATestNGClassWithBrokenSetupMethod.class.name))
-            }
-            inSequence(sequence)
+        then: 1 * processor.started({ it.id == 1 && it.name == 'Gradle test' && it.className == null }, { it.parentId == null })
+        then: 1 * processor.started({ it.id == 2 && it.name == 'another' && it.className == ATestNGClassWithManyMethods.name }, { it.parentId == 1 })
+        then: 1 * processor.completed(2, { it.resultType == ResultType.SUCCESS })
+        then: 1 * processor.completed(1, { it.resultType == null })
 
-            one(resultProcessor).failure(2L, ATestNGClassWithBrokenSetupMethod.failure)
-
-            one(resultProcessor).completed(withParam(equalTo(2L)), withParam(notNullValue()))
-            will { id, TestCompleteEvent event ->
-                assertThat(event.resultType, equalTo(ResultType.FAILURE))
-            }
-            inSequence(sequence)
-
-            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
-            will { TestDescriptorInternal test ->
-                assertThat(test.name, equalTo('test'))
-                assertThat(test.className, equalTo(ATestNGClassWithBrokenSetupMethod.class.name))
-            }
-            inSequence(sequence)
-
-            one(resultProcessor).completed(withParam(equalTo(3L)), withParam(notNullValue()))
-            will { id, TestCompleteEvent event ->
-                assertThat(event.resultType, equalTo(ResultType.SKIPPED))
-            }
-            inSequence(sequence)
-
-            one(resultProcessor).completed(withParam(equalTo(1L)), withParam(notNullValue()))
-            will { id, TestCompleteEvent event ->
-                assertThat(event.resultType, nullValue())
-            }
-            inSequence(sequence)
-        }
-
-        processor.startProcessing(resultProcessor);
-        processor.processTestClass(testClass(ATestNGClassWithBrokenSetupMethod.class));
-        processor.stop();
+        0 * processor._
     }
 
-    @Test
-    public void executesATestClassWithDependencyMethod() {
-        context.checking {
-            Sequence sequence = context.sequence('seq')
+    void "executes multiple included methods"() {
+        options.getIncludedTests() >> [ATestNGClassWithManyMethods.name + ".another", ATestNGClassWithManyMethods.name + ".yetAnother"]
 
-            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
-            will { TestDescriptorInternal suite ->
-                assertThat(suite.name, equalTo('Gradle test'))
-                assertThat(suite.className, nullValue())
-            }
-            inSequence(sequence)
+        when: process(ATestNGClassWithManyMethods)
 
-            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
-            will { TestDescriptorInternal test ->
-                assertThat(test.name, equalTo('beforeMethod'))
-                assertThat(test.className, equalTo(ATestNGClassWithBrokenDependencyMethod.class.name))
-            }
-            inSequence(sequence)
-
-            one(resultProcessor).failure(2L, ATestNGClassWithBrokenDependencyMethod.failure)
-
-            one(resultProcessor).completed(withParam(equalTo(2L)), withParam(notNullValue()))
-            will { id, TestCompleteEvent event ->
-                assertThat(event.resultType, equalTo(ResultType.FAILURE))
-            }
-            inSequence(sequence)
-
-            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
-            will { TestDescriptorInternal test ->
-                assertThat(test.name, equalTo('test'))
-                assertThat(test.className, equalTo(ATestNGClassWithBrokenDependencyMethod.class.name))
-            }
-            inSequence(sequence)
-
-            one(resultProcessor).completed(withParam(equalTo(3L)), withParam(notNullValue()))
-            will { id, TestCompleteEvent event ->
-                assertThat(event.resultType, equalTo(ResultType.SKIPPED))
-            }
-            inSequence(sequence)
-
-            one(resultProcessor).completed(withParam(equalTo(1L)), withParam(notNullValue()))
-            will { id, TestCompleteEvent event ->
-                assertThat(event.resultType, nullValue())
-            }
-            inSequence(sequence)
-        }
-
-        processor.startProcessing(resultProcessor);
-        processor.processTestClass(testClass(ATestNGClassWithBrokenDependencyMethod.class));
-        processor.stop();
+        then:
+        1 * processor.started({ it.id == 1 && it.name == 'Gradle test' && it.className == null }, { it.parentId == null })
+        1 * processor.started({ it.id == 2 && it.name == 'another' && it.className == ATestNGClassWithManyMethods.name }, { it.parentId == 1 })
+        1 * processor.started({ it.id == 3 && it.name == 'yetAnother' && it.className == ATestNGClassWithManyMethods.name }, { it.parentId == 1 })
+        0 * processor.started(_, _)
     }
 
-    @Test
-    public void canIncludeAndExcludeGroups() {
-        context.checking {
-            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
-            will { TestDescriptorInternal suite ->
-                assertThat(suite.name, equalTo('Gradle test'))
-                assertThat(suite.className, nullValue())
-            }
-            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
-            will { TestDescriptorInternal test ->
-                assertThat(test.name, equalTo('group1'))
-                assertThat(test.className, equalTo(ATestNGClassWithGroups.class.name))
-            }
-            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
-            will { TestDescriptorInternal test ->
-                assertThat(test.name, equalTo('group2'))
-                assertThat(test.className, equalTo(ATestNGClassWithGroups.class.name))
-            }
-            ignoring(resultProcessor).completed(withParam(anything()), withParam(anything()))
-        }
+    void "executes methods from multiple classes by pattern"() {
+        options.getIncludedTests() >> ["*Methods.ok*"]
 
-        options.includeGroups('group1', 'group2')
-        options.excludeGroups('group3')
-        processor.startProcessing(resultProcessor);
-        processor.processTestClass(testClass(ATestNGClassWithGroups.class));
-        processor.stop();
+        when: process(ATestNGClassWithManyMethods)
+
+        then:
+        1 * processor.started({ it.id == 1 && it.name == 'Gradle test' }, _)
+        1 * processor.started({ it.name == 'ok' && it.className == ATestNGClassWithManyMethods.name }, { it.parentId == 1 })
+        1 * processor.started({ it.name == 'ok2' && it.className == ATestNGClassWithManyMethods.name }, { it.parentId == 1 })
+        0 * processor.started(_, _)
     }
 
-    @Test @Ignore
-    public void executesATestClassWithBrokenConstructor() {
-        context.checking {
-            Sequence sequence = context.sequence('seq')
+    void "executes not tests if none of the included test methods match"() {
+        options.getIncludedTests() >> [ATestNGClassWithManyMethods.name + "does not exist"]
 
-            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
-            will { TestDescriptorInternal test ->
-                assertThat(test.name, equalTo('initializationError'))
-                assertThat(test.className, equalTo(ATestNGClassWithBrokenConstructor.class.name))
-            }
-            inSequence(sequence)
+        when: process(ATestNGClassWithManyMethods)
 
-            one(resultProcessor).failure(1L, ATestNGClassWithBrokenConstructor.failure)
-
-            one(resultProcessor).completed(withParam(equalTo(1L)), withParam(notNullValue()))
-            will { id, TestCompleteEvent event ->
-                assertThat(event.resultType, equalTo(ResultType.FAILURE))
-            }
-            inSequence(sequence)
-        }
-
-        processor.startProcessing(resultProcessor);
-        processor.processTestClass(testClass(ATestNGClassWithBrokenConstructor.class));
-        processor.stop();
+        then: 1 * processor.started({ it.id == 1 && it.className == null }, { it.parentId == null })
+        then: 1 * processor.completed(1, { it.resultType == null })
+        0 * processor._
     }
 
-    @Test
-    public void failsEarlyForUnknownTestClass() {
-        processor.startProcessing(resultProcessor)
-        try {
-            processor.processTestClass(testClass('unknown'))
-            fail()
-        } catch (GradleException e) {
-            assertThat(e.message, equalTo('Could not load test class \'unknown\'.'))
-        }
+    void "executes test with expected exception"() {
+        when: process(ATestNGClassWithExpectedException)
+
+        then: 1 * processor.started({ it.id == 1} , _)
+        then: 1 * processor.started({ it.name == 'ok' && it.className == ATestNGClassWithExpectedException.name }, _)
+        then: 1 * processor.completed(2, { it.resultType == ResultType.SUCCESS })
+        then: 1 * processor.completed(1, { it.resultType == null })
+        0 * processor._
     }
 
-    private TestClassRunInfo testClass(Class<?> type) {
-        return testClass(type.name)
+    void "executes test with broken setup"() {
+        when: process(ATestNGClassWithBrokenSetupMethod)
+
+        then: 1 * processor.started({ it.id == 1} , _)
+        then: 1 * processor.started({ it.name == 'beforeMethod' && it.className == ATestNGClassWithBrokenSetupMethod.name }, _)
+        then: 1 * processor.failure(2, ATestNGClassWithBrokenSetupMethod.failure)
+        then: 1 * processor.completed(2, { it.resultType == ResultType.FAILURE })
+
+        then: 1 * processor.started({ it.name == 'test' && it.className == ATestNGClassWithBrokenSetupMethod.name }, _)
+        then: 1 * processor.completed(3, { it.resultType == ResultType.SKIPPED})
+
+        then: 1 * processor.completed(1, { it.resultType == null})
+        0 * processor._
     }
 
-    private TestClassRunInfo testClass(String testClassName) {
-        TestClassRunInfo runInfo = context.mock(TestClassRunInfo.class)
-        context.checking {
-            allowing(runInfo).getTestClassName()
-            will(returnValue(testClassName))
-        }
-        return runInfo;
+    void "executes test class with dependency method"() {
+        when: process(ATestNGClassWithBrokenDependencyMethod)
+
+        then: 1 * processor.started({ it.id == 1} , _)
+        then: 1 * processor.started({ it.name == 'beforeMethod' && it.className == ATestNGClassWithBrokenDependencyMethod.name }, _)
+
+        then: 1 * processor.failure(2, ATestNGClassWithBrokenDependencyMethod.failure)
+        then: 1 * processor.completed(2, { it.resultType == ResultType.FAILURE })
+
+        then: 1 * processor.started({ it.name == 'test' && it.className == ATestNGClassWithBrokenDependencyMethod.name }, _)
+        then: 1 * processor.completed(3, { it.resultType == ResultType.SKIPPED})
+
+        then: 1 * processor.completed(1, { it.resultType == null})
+        0 * processor._
+    }
+
+    void "includes and excludes groups"() {
+        given:
+        _ * options.getIncludeGroups() >> ['group1', 'group2']
+        _ * options.getExcludeGroups() >> ['group3']
+
+        when: process(ATestNGClassWithGroups)
+
+        then:
+        1 * processor.started({ it.id == 1} , _)
+        1 * processor.started({ it.name == 'group1' && it.className == ATestNGClassWithGroups.name }, _)
+        1 * processor.started({ it.name == 'group2' && it.className == ATestNGClassWithGroups.name }, _)
+        3 * processor.completed(_, _)
+        0 * processor._
+    }
+
+    @Ignore //not implemented yet
+    void "executes class with broken constructor"() {
+        when: process(ATestNGClassWithBrokenConstructor)
+
+        then:
+        //below needs to revisited when we attempt to fix the problem
+        //e.g. decide what's the behavior we want in this scenario
+        1 * processor.started({ it.id == 1} , _)
+        1 * processor.started({ it.name == 'initializationError' && it.className == ATestNGClassWithBrokenConstructor.name }, _)
+        1 * processor.failure(1, ATestNGClassWithBrokenConstructor.failure)
+        1 * processor.completed(1, { it.resultType == ResultType.FAILURE})
+        0 * processor._
+    }
+
+    void "fails early for unknown test class"() {
+        classProcessor.startProcessing(processor)
+
+        when:
+        classProcessor.processTestClass(new DefaultTestClassRunInfo('unknown'))
+
+        then:
+        def ex = thrown(GradleException)
+        ex.message == "Could not load test class \'unknown\'."
+    }
+
+    void "before and after methods are not triggered when all tests from a class are filtered"() {
+        options.getIncludedTests() >> [ATestNGClass.name]
+
+        when:
+        process(ATestNGClass, ATestNGClassWithBeforeAndAfter) //the latter is not matched
+
+        then:
+        then: 1 * processor.started({ it.id == 1 && it.name == 'Gradle test' && it.className == null }, _)
+        then: 1 * processor.started({ it.id == 2 && it.name == 'ok' && it.className == ATestNGClass.name }, _)
+        then: 1 * processor.completed(2, _)
+        then: 1 * processor.completed(1, _)
+        0 * processor._
     }
 }
 
 public class ATestNGClass {
-    @BeforeClass
-    public void beforeClass() {
-    }
+    @BeforeClass public void beforeClass() {}
+    @AfterClass public void afterClass() {}
+    @BeforeMethod public void beforeMethod() {}
+    @AfterMethod public void afterMethod() {}
+    @org.testng.annotations.Test public void ok() {}
+    @org.testng.annotations.Test(enabled = false) public void skipped() {}
+}
 
-    @AfterClass
-    public void afterClass() {
-    }
-
-    @BeforeMethod
-    public void beforeMethod() {
-    }
-
-    @AfterMethod
-    public void afterMethod() {
-    }
-
-    @org.testng.annotations.Test
-    public void ok() {
-    }
-
-    @org.testng.annotations.Test(enabled = false)
-    public void skipped() {
-    }
+public class ATestNGClassWithBeforeAndAfter {
+    @BeforeClass public void beforeClass() { assert false }
+    @AfterClass public void afterClass() { assert false }
+    @BeforeMethod public void beforeMethod() { assert false }
+    @AfterMethod public void afterMethod() { assert false }
+    @org.testng.annotations.Test public void ok() {}
 }
 
 public class ATestNGClassWithExpectedException {
-    @org.testng.annotations.Test(expectedExceptions = RuntimeException.class)
+    @org.testng.annotations.Test(expectedExceptions = RuntimeException)
     public void ok() {
         throw new RuntimeException()
     }
 }
 
+public class ATestNGClassWithManyMethods {
+    @org.testng.annotations.Test public void ok() {}
+    @org.testng.annotations.Test public void ok2() {}
+    @org.testng.annotations.Test public void another() {}
+    @org.testng.annotations.Test public void yetAnother() {}
+}
+
 public class ATestNGClassWithGroups {
-    @org.testng.annotations.Test(groups="group1")
-    public void group1() {
-    }
-
-    @org.testng.annotations.Test(groups="group2")
-    public void group2() {
-    }
-
-    @org.testng.annotations.Test(groups="group2,group3")
-    public void excluded() {
-    }
-
-    @org.testng.annotations.Test(groups="group4")
-    public void ignored() {
-    }
+    @org.testng.annotations.Test(groups="group1") public void group1() {}
+    @org.testng.annotations.Test(groups="group2") public void group2() {}
+    @org.testng.annotations.Test(groups="group2,group3") public void excluded() {}
+    @org.testng.annotations.Test(groups="group4") public void ignored() {}
 }
 
 public class ATestNGFactoryClass {
@@ -379,38 +262,18 @@ public class ATestNGFactoryClass {
 
 public class ATestNGClassWithBrokenConstructor {
     static RuntimeException failure = new RuntimeException()
-
-    def ATestNGClassWithBrokenConstructor() {
-        throw failure
-    }
-
-    @org.testng.annotations.Test
-    public void test() {
-    }
+    def ATestNGClassWithBrokenConstructor() { throw failure }
+    @org.testng.annotations.Test public void test() {}
 }
 
 public class ATestNGClassWithBrokenSetupMethod {
     static RuntimeException failure = new RuntimeException()
-
-    @BeforeMethod
-    public void beforeMethod() {
-        throw failure
-    }
-
-    @org.testng.annotations.Test
-    public void test() {
-    }
+    @BeforeMethod public void beforeMethod() { throw failure }
+    @org.testng.annotations.Test public void test() {}
 }
 
 public class ATestNGClassWithBrokenDependencyMethod {
     static RuntimeException failure = new RuntimeException()
-
-    @org.testng.annotations.Test
-    public void beforeMethod() {
-        throw failure
-    }
-
-    @org.testng.annotations.Test(dependsOnMethods = 'beforeMethod')
-    public void test() {
-    }
+    @org.testng.annotations.Test public void beforeMethod() { throw failure }
+    @org.testng.annotations.Test(dependsOnMethods = 'beforeMethod') public void test() {}
 }

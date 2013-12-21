@@ -21,16 +21,14 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.tasks.Delete
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.plugins.ide.eclipse.model.BuildCommand
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
-/**
- * @author Hans Dockter
- */
 class EclipsePluginTest extends Specification {
-    private final DefaultProject project = HelperUtil.createRootProject()
-    private final EclipsePlugin eclipsePlugin = new EclipsePlugin()
+    private final DefaultProject project = TestUtil.createRootProject()
+    private final EclipsePlugin eclipsePlugin = new EclipsePlugin(project.services.get(Instantiator))
 
     def applyToBaseProject_shouldOnlyHaveEclipseProjectTask() {
         when:
@@ -44,8 +42,8 @@ class EclipsePluginTest extends Specification {
 
     def applyToJavaProject_shouldOnlyHaveProjectAndClasspathTaskForJava() {
         when:
-        project.apply(plugin: 'java-base')
         eclipsePlugin.apply(project)
+        project.apply(plugin: 'java-base')
 
         then:
         assertThatCleanEclipseDependsOn(project, project.cleanEclipseProject)
@@ -62,28 +60,31 @@ class EclipsePluginTest extends Specification {
     }
 
     def applyToScalaProject_shouldHaveProjectAndClasspathTaskForScala() {
+        def scalaIdeContainer = ['org.scala-ide.sdt.launching.SCALA_CONTAINER']
+
         when:
-        project.apply(plugin: 'scala-base')
         eclipsePlugin.apply(project)
+        project.apply(plugin: 'scala-base')
+        project.gradle.buildListenerBroadcaster.projectsEvaluated(project.gradle)
 
         then:
         assertThatCleanEclipseDependsOn(project, project.cleanEclipseProject)
         assertThatCleanEclipseDependsOn(project, project.cleanEclipseClasspath)
         checkEclipseProjectTask([new BuildCommand('org.scala-ide.sdt.core.scalabuilder')],
                 ['org.scala-ide.sdt.core.scalanature', 'org.eclipse.jdt.core.javanature'])
-        checkEclipseClasspath([])
+        checkEclipseClasspath([], scalaIdeContainer)
 
         when:
         project.apply(plugin: 'scala')
 
         then:
-        checkEclipseClasspath([project.configurations.testRuntime])
+        checkEclipseClasspath([project.configurations.testRuntime], scalaIdeContainer)
     }
 
     def applyToGroovyProject_shouldHaveProjectAndClasspathTaskForGroovy() {
         when:
-        project.apply(plugin: 'groovy-base')
         eclipsePlugin.apply(project)
+        project.apply(plugin: 'groovy-base')
 
         then:
         assertThatCleanEclipseDependsOn(project, project.cleanEclipseProject)
@@ -133,14 +134,14 @@ class EclipsePluginTest extends Specification {
         assert eclipseProjectTask.outputFile == project.file('.project')
     }
 
-    private void checkEclipseClasspath(def configurations) {
+    private void checkEclipseClasspath(def configurations, def additionalContainers = []) {
         GenerateEclipseClasspath eclipseClasspath = project.tasks.eclipseClasspath
         assert eclipseClasspath instanceof GenerateEclipseClasspath
         assert project.tasks.eclipse.taskDependencies.getDependencies(project.tasks.eclipse).contains(eclipseClasspath)
         assert eclipseClasspath.sourceSets == project.sourceSets
         assert eclipseClasspath.plusConfigurations == configurations
         assert eclipseClasspath.minusConfigurations == []
-        assert eclipseClasspath.containers == ['org.eclipse.jdt.launching.JRE_CONTAINER'] as Set
+        assert eclipseClasspath.containers == ['org.eclipse.jdt.launching.JRE_CONTAINER'] + additionalContainers as Set
         assert eclipseClasspath.outputFile == project.file('.classpath')
         assert eclipseClasspath.defaultOutputDir == new File(project.projectDir, 'bin')
     }

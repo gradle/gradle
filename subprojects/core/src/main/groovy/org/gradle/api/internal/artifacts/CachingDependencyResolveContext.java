@@ -17,8 +17,8 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.CachingDirectedGraphWalker;
-import org.gradle.api.internal.DirectedGraph;
+import org.gradle.internal.graph.CachingDirectedGraphWalker;
+import org.gradle.internal.graph.DirectedGraph;
 import org.gradle.api.internal.file.UnionFileCollection;
 
 import java.util.ArrayList;
@@ -52,7 +52,7 @@ public class CachingDependencyResolveContext implements DependencyResolveContext
     }
 
     private class DependencyGraph implements DirectedGraph<Object, FileCollection> {
-        public void getNodeValues(Object node, Collection<FileCollection> values, Collection<Object> connectedNodes) {
+        public void getNodeValues(Object node, Collection<? super FileCollection> values, Collection<? super Object> connectedNodes) {
             if (node instanceof FileCollection) {
                 FileCollection fileCollection = (FileCollection) node;
                 values.add(fileCollection);

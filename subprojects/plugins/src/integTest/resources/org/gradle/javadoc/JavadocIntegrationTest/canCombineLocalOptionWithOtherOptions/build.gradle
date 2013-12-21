@@ -1,0 +1,21 @@
+import org.gradle.internal.jvm.Jvm
+
+apply plugin: "java"
+
+sourceSets {
+    taglet
+}
+
+dependencies {
+    tagletCompile files(Jvm.current().toolsJar)
+}
+
+javadoc {
+    dependsOn tagletClasses
+    options {
+        locale = 'de_DE'
+        breakIterator = true
+        taglets 'LocaleAwareTaglet'
+        tagletPath sourceSets.taglet.output.classesDir
+    }
+}

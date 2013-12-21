@@ -15,16 +15,15 @@
  */
 package org.gradle.api.tasks
 
-import org.gradle.integtests.fixtures.ExecutionFailure
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
-import org.gradle.util.TestFile
+import org.gradle.integtests.fixtures.executer.ExecutionFailure
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.PreconditionVerifier
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.gradle.util.PreconditionVerifier
 import org.junit.Assert
-import org.junit.Test
 import org.junit.Rule
-import org.gradle.internal.nativeplatform.filesystem.FileSystems
+import org.junit.Test
 
 class CopyErrorIntegrationTest extends AbstractIntegrationTest {
     @Rule public PreconditionVerifier verifier = new PreconditionVerifier()
@@ -33,7 +32,7 @@ class CopyErrorIntegrationTest extends AbstractIntegrationTest {
     @Requires(TestPrecondition.SYMLINKS)
     public void reportsSymLinkWhichPointsToNothing() {
         TestFile link = testFile('src/file')
-        FileSystems.default.createSymbolicLink(link, testFile('missing'))
+        link.createLink(testFile('missing'))
 
         Assert.assertFalse(link.isDirectory())
         Assert.assertFalse(link.isFile())

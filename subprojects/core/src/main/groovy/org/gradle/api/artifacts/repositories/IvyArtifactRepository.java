@@ -16,11 +16,21 @@
 package org.gradle.api.artifacts.repositories;
 
 import groovy.lang.Closure;
+import org.gradle.api.Incubating;
 
 import java.net.URI;
 
 /**
- * An artifact repository which uses an Ivy format to store artifacts and meta-data.
+ * <p>An artifact repository which uses an Ivy format to store artifacts and meta-data.</p>
+ *
+ * <p>When used to resolve metadata and artifact files, all available patterns will be searched.</p>
+ *
+ * <p>When used to upload metadata and artifact files, only a single, primary pattern will be used:
+ * <ol>
+ *     <li>If a URL is specified via {@link #setUrl} then that URL will be used for upload, combined with the applied {@link #layout(String)}.</li>
+ *     <li>If no URL has been specified but additional patterns have been added via {@link #artifactPattern} or {@link #ivyPattern}, then the first defined pattern will be used.</li>
+ * </ol>
+ * </p>
  */
 public interface IvyArtifactRepository extends ArtifactRepository, AuthenticationSupported {
 
@@ -38,7 +48,7 @@ public interface IvyArtifactRepository extends ArtifactRepository, Authenticatio
     URI getUrl();
 
     /**
-     * Sets the base URL of this repository. The provided value is evaluated as for {@link org.gradle.api.Project#uri(Object)}. This means,
+     * Sets the base URL of this repository. The provided value is evaluated as per {@link org.gradle.api.Project#uri(Object)}. This means,
      * for example, you can pass in a File object or a relative path which is evaluated relative to the project directory.
      *
      * File are resolved based on the supplied URL and the configured {@link #layout(String, Closure)} for this repository.
@@ -48,14 +58,25 @@ public interface IvyArtifactRepository extends ArtifactRepository, Authenticatio
     void setUrl(Object url);
 
     /**
-     * Adds an Ivy artifact pattern to use to locate artifacts in this repository. This pattern will be in addition to any layout-based patterns added via {@link #setUrl}.
+     * Adds an independent pattern that will be used to locate artifact files in this repository. This pattern will be used to locate ivy files as well, unless a specific
+     * ivy pattern is supplied via {@link #ivyPattern(String)}.
+     *
+     * If this pattern is not a fully-qualified URL, it will be interpreted as a file relative to the project directory.
+     * It is not interpreted relative the the URL specified in {@link #setUrl(Object)}.
+     *
+     * Patterns added in this way will be in addition to any layout-based patterns added via {@link #setUrl}.
      *
      * @param pattern The artifact pattern.
      */
     void artifactPattern(String pattern);
 
     /**
-     * Adds an Ivy pattern to use to locate ivy files in this repository. This pattern will be in addition to any layout-based patterns added via {@link #setUrl}.
+     * Adds an independent pattern that will be used to locate ivy files in this repository.
+     *
+     * If this pattern is not a fully-qualified URL, it will be interpreted as a file relative to the project directory.
+     * It is not interpreted relative the the URL specified in {@link #setUrl(Object)}.
+     *
+     * Patterns added in this way will be in addition to any layout-based patterns added via {@link #setUrl}.
      *
      * @param pattern The ivy pattern.
      */
@@ -85,7 +106,7 @@ public interface IvyArtifactRepository extends ArtifactRepository, Authenticatio
      *     <li>Artifacts: <code>$baseUri/{@value #MAVEN_ARTIFACT_PATTERN}</code></li>
      *     <li>Ivy: <code>$baseUri/{@value #MAVEN_IVY_PATTERN}</code></li>
      * </ul>
-     * Following the maven convention, the 'organisation' value is further processed by replacing '.' with '/'.
+     * Following the Maven convention, the 'organisation' value is further processed by replacing '.' with '/'.
      *
      * <h4>'pattern'</h4>
      * A repository layout that allows custom patterns to be defined. eg:
@@ -105,4 +126,12 @@ public interface IvyArtifactRepository extends ArtifactRepository, Authenticatio
      */
     void layout(String layoutName, Closure config);
 
+    /**
+     * Returns the meta-data provider used when resolving artifacts from this repository. The provider is responsible for locating and interpreting the meta-data
+     * for the modules and artifacts contained in this repository. Using this provider, you can fine tune how this resolution happens.
+     *
+     * @return The meta-data provider for this repository.
+     */
+    @Incubating
+    IvyArtifactRepositoryMetaDataProvider getResolve();
 }

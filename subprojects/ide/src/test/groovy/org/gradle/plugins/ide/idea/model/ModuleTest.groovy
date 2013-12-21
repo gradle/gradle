@@ -16,12 +16,9 @@
 package org.gradle.plugins.ide.idea.model
 
 import org.gradle.api.JavaVersion
-import org.gradle.api.internal.XmlTransformer
+import org.gradle.api.internal.xml.XmlTransformer
 import spock.lang.Specification
 
-/**
- * @author Hans Dockter
- */
 class ModuleTest extends Specification {
     final PathFactory pathFactory = new PathFactory()
     final XmlTransformer xmlTransformer = new XmlTransformer()

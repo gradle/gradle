@@ -97,7 +97,7 @@ class ApplicationIntegrationSpec extends AbstractIntegrationSpec {
         and:
         def distBase = file("build/install/app")
         distBase.file("docs").directory
-        distBase.file("docs/readme.txt").exists() == false
+        !distBase.file("docs/readme.txt").exists()
         distBase.file("docs/READ-ME.txt").text == "Read me!!!"
     }
 

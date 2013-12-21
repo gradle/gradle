@@ -15,8 +15,8 @@
  */
 package org.gradle.execution;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.util.GUtil;
 
 import java.util.List;
 
@@ -26,8 +26,8 @@ public class DefaultBuildExecuter implements BuildExecuter {
     private GradleInternal gradle;
 
     public DefaultBuildExecuter(Iterable<? extends BuildConfigurationAction> configurationActions, Iterable<? extends BuildExecutionAction> executionActions) {
-        this.configurationActions = GUtil.toList(configurationActions);
-        this.executionActions = GUtil.toList(executionActions);
+        this.configurationActions = Lists.newArrayList(configurationActions);
+        this.executionActions = Lists.newArrayList(executionActions);
     }
 
     public void select(GradleInternal gradle) {

@@ -25,7 +25,7 @@ import java.util.regex.Pattern;
  */
 public interface CopyProcessingSpec extends ContentFilterable {
     /**
-     * Specifies the destination directory for a copy. The destination is evaluated as for {@link
+     * Specifies the destination directory for a copy. The destination is evaluated as per {@link
      * org.gradle.api.Project#file(Object)}.
      *
      * @param destPath Path to the destination directory for a Copy

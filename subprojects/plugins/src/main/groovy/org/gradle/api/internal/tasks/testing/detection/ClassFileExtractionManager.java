@@ -17,6 +17,9 @@ package org.gradle.api.internal.tasks.testing.detection;
 
 import org.apache.commons.lang.text.StrBuilder;
 import org.gradle.api.GradleException;
+import org.gradle.api.internal.file.DefaultTemporaryFileProvider;
+import org.gradle.api.internal.file.TemporaryFileProvider;
+import org.gradle.internal.Factory;
 import org.gradle.util.JarUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,18 +30,17 @@ import java.util.*;
 
 /**
  * This class manages class file extraction from library jar files.
- *
- * @author Tom Eyckmans
  */
 public class ClassFileExtractionManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(ClassFileExtractionManager.class);
     private final Map<String, Set<File>> packageJarFilesMappings;
     private final Map<String, File> extractedJarClasses;
     private final Set<String> unextractableClasses;
-    private final File tempDir;
+    private final TemporaryFileProvider tempDirProvider;
 
-    public ClassFileExtractionManager(File tempDir) {
-        this.tempDir = tempDir;
+    public ClassFileExtractionManager(final Factory<File> tempDirFactory) {
+        assert tempDirFactory != null;
+        tempDirProvider = new DefaultTemporaryFileProvider(tempDirFactory);
         packageJarFilesMappings = new HashMap<String, Set<File>>();
         extractedJarClasses = new HashMap<String, File>();
         unextractableClasses = new TreeSet<String>();
@@ -85,7 +87,7 @@ public class ClassFileExtractionManager {
         }
     }
 
-    boolean extractClassFile(final String className) {
+    private boolean extractClassFile(final String className) {
         boolean classFileExtracted = false;
 
         final File extractedClassFile = tempFile();
@@ -122,7 +124,7 @@ public class ClassFileExtractionManager {
         return classFileExtracted;
     }
 
-    String classNamePackage(final String className) {
+    private String classNamePackage(final String className) {
         final int lastSlashIndex = className.lastIndexOf('/');
 
         if (lastSlashIndex == -1) {
@@ -132,13 +134,7 @@ public class ClassFileExtractionManager {
         }
     }
 
-    File tempFile() {
-        try {
-            final File tempFile = File.createTempFile("jar_extract_", "_tmp", tempDir);
-            tempFile.deleteOnExit();
-            return tempFile;
-        } catch (IOException e) {
-            throw new GradleException("failed to create temp file to extract class from jar into", e);
-        }
+    private File tempFile() {
+        return tempDirProvider.createTemporaryFile("jar_extract_", "_tmp"); // Could throw UncheckedIOException
     }
 }

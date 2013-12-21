@@ -29,8 +29,6 @@ import java.io.File;
  *
  * This class should not be moved or renamed, nor should its functions be renamed or have arguments added to/removed from them. This is to ensure forward/backward compatibility with multiple versions
  * of IDE plugins. Instead, consider changing the interaction that is passed to the functions as a means of having the caller provide different functionality.
- *
- * @author mhunsicker
  */
 public class RunnerWrapperFactory {
 
@@ -54,7 +52,6 @@ public class RunnerWrapperFactory {
                                    may be helpful diagnosing problems is this
                                    fails
       @return a gradle runner
-      @author mhunsicker
    */
     public static GradleRunnerVersion1 createGradleRunner(File gradleHomeDirectory, GradleRunnerInteractionVersion1 interaction, boolean showDebugInfo) throws Exception {
         return new GradleRunnerWrapper(gradleHomeDirectory, interaction);

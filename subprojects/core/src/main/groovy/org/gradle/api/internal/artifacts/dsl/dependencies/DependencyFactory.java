@@ -22,9 +22,6 @@ import org.gradle.api.artifacts.ProjectDependency;
 
 import java.util.Map;
 
-/**
- * @author Hans Dockter
- */
 public interface DependencyFactory {
     //for gradle distribution specific dependencies
     enum ClassPathNotation {

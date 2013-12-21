@@ -28,7 +28,7 @@ import org.gradle.api.initialization.Settings;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.initialization.BuildRequestMetaData;
-import org.gradle.util.TimeProvider;
+import org.gradle.internal.TimeProvider;
 
 /**
  * Adapts various events to build a {@link BuildProfile} model, and then notifies a {@link ReportGeneratingProfileListener} when the model is ready.
@@ -47,8 +47,9 @@ public class ProfileEventAdapter implements BuildListener, ProjectEvaluationList
 
     // BuildListener
     public void buildStarted(Gradle gradle) {
-        buildProfile = new BuildProfile(gradle);
-        buildProfile.setBuildStarted(timeProvider.getCurrentTime());
+        long now = timeProvider.getCurrentTime();
+        buildProfile = new BuildProfile(gradle.getStartParameter());
+        buildProfile.setBuildStarted(now);
         buildProfile.setProfilingStarted(buildMetaData.getBuildTimeClock().getStartTime());
     }
 
@@ -60,9 +61,7 @@ public class ProfileEventAdapter implements BuildListener, ProjectEvaluationList
         buildProfile.setProjectsLoaded(timeProvider.getCurrentTime());
     }
 
-    public void projectsEvaluated(Gradle gradle) {
-        buildProfile.setProjectsEvaluated(timeProvider.getCurrentTime());
-    }
+    public void projectsEvaluated(Gradle gradle) {}
 
     public void buildFinished(BuildResult result) {
         buildProfile.setBuildFinished(timeProvider.getCurrentTime());
@@ -76,39 +75,42 @@ public class ProfileEventAdapter implements BuildListener, ProjectEvaluationList
 
     // ProjectEvaluationListener
     public void beforeEvaluate(Project project) {
-        buildProfile.getProjectProfile(project).getEvaluation().setStart(System.currentTimeMillis());
+        long now = timeProvider.getCurrentTime();
+        buildProfile.getProjectProfile(project.getPath()).getConfigurationOperation().setStart(now);
     }
 
     public void afterEvaluate(Project project, ProjectState state) {
-        ProjectProfile projectProfile = buildProfile.getProjectProfile(project);
-        projectProfile.getEvaluation().setFinish(timeProvider.getCurrentTime());
-        projectProfile.setState(state);
+        long now = timeProvider.getCurrentTime();
+        ProjectProfile projectProfile = buildProfile.getProjectProfile(project.getPath());
+        projectProfile.getConfigurationOperation().setFinish(now);
     }
 
     // TaskExecutionListener
     public void beforeExecute(Task task) {
+        long now = timeProvider.getCurrentTime();
         Project project = task.getProject();
-        ProjectProfile projectProfile = buildProfile.getProjectProfile(project);
-        projectProfile.getTaskProfile(task).setStart(timeProvider.getCurrentTime());
+        ProjectProfile projectProfile = buildProfile.getProjectProfile(project.getPath());
+        projectProfile.getTaskProfile(task.getPath()).setStart(now);
     }
 
     public void afterExecute(Task task, TaskState state) {
+        long now = timeProvider.getCurrentTime();
         Project project = task.getProject();
-        ProjectProfile projectProfile = buildProfile.getProjectProfile(project);
-        TaskExecution taskExecution = projectProfile.getTaskProfile(task);
-        taskExecution.setFinish(timeProvider.getCurrentTime());
-        taskExecution.setState(state);
+        ProjectProfile projectProfile = buildProfile.getProjectProfile(project.getPath());
+        TaskExecution taskExecution = projectProfile.getTaskProfile(task.getPath());
+        taskExecution.setFinish(now);
+        taskExecution.completed(state);
     }
 
     // DependencyResolutionListener
     public void beforeResolve(ResolvableDependencies dependencies) {
-        DependencyResolveProfile profile = buildProfile.getDependencySetProfile(dependencies);
-        profile.setStart(timeProvider.getCurrentTime());
+        long now = timeProvider.getCurrentTime();
+        buildProfile.getDependencySetProfile(dependencies.getPath()).setStart(now);
     }
 
     public void afterResolve(ResolvableDependencies dependencies) {
-        DependencyResolveProfile profile = buildProfile.getDependencySetProfile(dependencies);
-        profile.setFinish(timeProvider.getCurrentTime());
+        long now = timeProvider.getCurrentTime();
+        buildProfile.getDependencySetProfile(dependencies.getPath()).setFinish(now);
     }
 }
 

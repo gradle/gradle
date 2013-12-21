@@ -16,26 +16,20 @@
 
 package org.gradle.api.internal.artifacts.dsl
 
-import org.gradle.api.artifacts.PublishArtifactSet
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.PublishArtifact
+import org.gradle.api.artifacts.PublishArtifactSet
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
-import org.gradle.util.JUnit4GroovyMockery
+import org.gradle.internal.typeconversion.NotationParser
 import spock.lang.Specification
-import org.gradle.api.internal.notations.api.NotationParser
 
-/**
- * @author Hans Dockter
- */
 class DefaultArtifactHandlerTest extends Specification {
 
     private static final String TEST_CONF_NAME = "someConf"
 
-    private JUnit4GroovyMockery context = new JUnit4GroovyMockery()
-
     private ConfigurationContainer configurationContainerStub = Mock()
-    private NotationParser<PublishArtifact> artifactFactoryStub = Mock()
+    private NotationParser<Object, PublishArtifact> artifactFactoryStub = Mock()
     private Configuration configurationMock = Mock()
     private PublishArtifactSet artifactsMock = Mock()
 

@@ -15,36 +15,18 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
-import org.apache.ivy.plugins.latest.ArtifactInfo;
-import org.apache.ivy.plugins.latest.LatestRevisionStrategy;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 class LatestModuleConflictResolver implements ModuleConflictResolver {
-    public ModuleRevisionResolveState select(Collection<? extends ModuleRevisionResolveState> candidates, ModuleRevisionResolveState root) {
-        List<ModuleResolveStateBackedArtifactInfo> artifactInfos = new ArrayList<ModuleResolveStateBackedArtifactInfo>();
-        for (ModuleRevisionResolveState moduleRevision : candidates) {
-            artifactInfos.add(new ModuleResolveStateBackedArtifactInfo(moduleRevision));
-        }
-        List<ModuleResolveStateBackedArtifactInfo> sorted = new LatestRevisionStrategy().sort(artifactInfos.toArray(new ArtifactInfo[artifactInfos.size()]));
-        return sorted.get(sorted.size() - 1).moduleRevision;
+    private final LatestStrategy latestStrategy;
+
+    LatestModuleConflictResolver(LatestStrategy latestStrategy) {
+        this.latestStrategy = latestStrategy;
     }
 
-    private static class ModuleResolveStateBackedArtifactInfo implements ArtifactInfo {
-        final ModuleRevisionResolveState moduleRevision;
-
-        public ModuleResolveStateBackedArtifactInfo(ModuleRevisionResolveState moduleRevision) {
-            this.moduleRevision = moduleRevision;
-        }
-
-        public String getRevision() {
-            return moduleRevision.getRevision();
-        }
-
-        public long getLastModified() {
-            throw new UnsupportedOperationException();
-        }
+    public <T extends ModuleRevisionResolveState> T select(Collection<? extends T> candidates) {
+        return latestStrategy.findLatest(candidates);
     }
 }

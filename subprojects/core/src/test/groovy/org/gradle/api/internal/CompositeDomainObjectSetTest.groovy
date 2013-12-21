@@ -345,13 +345,12 @@ class CompositeDomainObjectSetTest extends Specification {
 
         and:
         component1 << "a" << "c"
-        component2 << "a" << "d"
+        component2 << "a" << "d" << "a"
 
         then:
-        calledFor == ["c", "d"]
+        calledFor == ["a", "c", "d"]
     }
 
-    @IgnoreRest
     def "all notifications are only fired once for each in composite"() {
         given:
         def component1 = collection("a")
@@ -400,4 +399,28 @@ class CompositeDomainObjectSetTest extends Specification {
         thrown UnsupportedOperationException
     }
 
+    def "behaves when the same collection added"() {
+        def same = collection("a", "b")
+        def composite = composite(same, same, same)
+
+        expect:
+        composite.toList() == ['a', 'b']
+
+        when:
+        same << 'c'
+
+        then:
+        composite.toList() == ['a', 'b', 'c']
+    }
+
+    def "removing collection removes all instances"() {
+        def instance = collection("a", "b")
+        def composite = composite(instance, instance)
+
+        when:
+        composite.removeCollection(instance)
+
+        then:
+        composite.toList() == []
+    }
 }

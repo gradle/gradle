@@ -15,16 +15,11 @@
  */
 package org.gradle.launcher.daemon.registry;
 
-import org.gradle.internal.Factory;
 import org.gradle.api.internal.cache.Cache;
 import org.gradle.api.internal.cache.CacheAccessSerializer;
 import org.gradle.api.internal.cache.MapBackedCache;
-import org.gradle.cache.internal.DefaultFileLockManager;
-import org.gradle.cache.internal.DefaultProcessMetaDataProvider;
 import org.gradle.cache.internal.FileLockManager;
-import org.gradle.internal.nativeplatform.ProcessEnvironment;
-import org.gradle.internal.nativeplatform.services.NativeServices;
-import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.Factory;
 
 import java.io.File;
 import java.util.HashMap;
@@ -34,7 +29,7 @@ import java.util.Properties;
 /**
  * Takes care of instantiating and wiring together the services required for a daemon registry.
  */
-public class DaemonRegistryServices extends DefaultServiceRegistry {
+public class DaemonRegistryServices {
     private final File daemonBaseDir;
     private final Cache<File, DaemonRegistry> daemonRegistryCache;
 
@@ -45,32 +40,27 @@ public class DaemonRegistryServices extends DefaultServiceRegistry {
 
     public DaemonRegistryServices(File daemonBaseDir) {
         this(daemonBaseDir, REGISTRY_CACHE);
-        add(new NativeServices());
     }
 
-    protected DaemonRegistryServices(File daemonBaseDir, Cache<File, DaemonRegistry> daemonRegistryCache) {
+    DaemonRegistryServices(File daemonBaseDir, Cache<File, DaemonRegistry> daemonRegistryCache) {
         this.daemonBaseDir = daemonBaseDir;
         this.daemonRegistryCache = daemonRegistryCache;
     }
 
-    protected DaemonDir createDaemonDir() {
+    DaemonDir createDaemonDir() {
         return new DaemonDir(daemonBaseDir);
     }
 
-    protected FileLockManager createFileLockManager() {
-        return new DefaultFileLockManager(new DefaultProcessMetaDataProvider(get(ProcessEnvironment.class)));
-    }
-
-    protected DaemonRegistry createDaemonRegistry() {
-        final File daemonRegistryFile = get(DaemonDir.class).getRegistry();
+    DaemonRegistry createDaemonRegistry(DaemonDir daemonDir, final FileLockManager fileLockManager) {
+        final File daemonRegistryFile = daemonDir.getRegistry();
         return daemonRegistryCache.get(daemonRegistryFile, new Factory<DaemonRegistry>() {
             public DaemonRegistry create() {
-                return new PersistentDaemonRegistry(daemonRegistryFile, get(FileLockManager.class));
+                return new PersistentDaemonRegistry(daemonRegistryFile, fileLockManager);
             }
         });
     }
     
-    protected Properties createProperties() {
+    Properties createProperties() {
         return System.getProperties();
     }
 }

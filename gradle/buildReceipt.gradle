@@ -1,0 +1,137 @@
+/*
+ * Copyright 2012 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import org.gradle.internal.os.OperatingSystem
+
+ext {
+    buildReceiptFileName = "build-receipt.properties"
+
+    readBuildReceipt = { buildReceiptFile ->
+        buildReceiptFile = file(buildReceiptFile)
+        if (!buildReceiptFile.exists()) {
+            throw new GradleException("Can't read build receipt file '$buildReceiptFile' as it doesn't exist")
+        }
+        buildReceiptFile.withInputStream {
+            def p = new Properties()
+            p.load(it)
+            p
+        }
+    }
+}
+
+task determineCommitId {
+    ext.commitId = null
+
+    doLast {
+        def strategies = []
+
+        def env = System.getenv()
+
+        // Builds of Gradle happening on the CI server
+        strategies << {
+            env["BUILD_VCS_NUMBER"]
+        }
+
+        // For the discovery builds, this points to the Gradle revision
+        strategies << {
+            env.find { it.key.startsWith("BUILD_VCS_NUMBER_Gradle_Master") }?.value
+        }
+
+        // For the discovery release builds, this points to the Gradle revision
+        strategies << {
+            env.find { it.key.startsWith("BUILD_VCS_NUMBER_Gradle_release_branch") }?.value
+        }
+
+        // If it's a checkout, ask Git for it
+        strategies << {
+            if (file(".git/HEAD").exists()) {
+                def baos = new ByteArrayOutputStream()
+                def execResult = exec {
+                    ignoreExitValue = true
+                    commandLine = ["git", "log", "-1", "--format=%H"]
+                    if (OperatingSystem.current().windows) {
+                        commandLine = ["cmd", "/c"] + commandLine
+                    }
+
+                    standardOutput = baos
+                }
+                if (execResult.exitValue == 0) {
+                    new String(baos.toByteArray(), "utf8").trim()
+                } else {
+                    // Read commit id directly from filesystem
+                    def headRef = file(".git/HEAD").text
+                    headRef = headRef.replaceAll('ref: ', '').trim()
+                    file(".git/$headRef").text.trim()
+                }
+            } else {
+                null
+            }
+        }
+
+        // It's a source distribution, we don't know.
+        strategies << {
+            if (!file("design-docs").directory) {
+                "<unknown>"
+            }
+        }
+
+        for (strategy in strategies) {
+            commitId = strategy()
+            if (commitId) {
+                break
+            }
+        }
+        if (!commitId) {
+            throw new InvalidUserDataException("Could not determine commit id")
+        }
+    }
+}
+
+task createBuildReceipt(dependsOn: determineCommitId) {
+    ext.receiptFile = file("$buildDir/$buildReceiptFileName")
+    outputs.file receiptFile
+    outputs.upToDateWhen { false }
+    doLast {
+        def hostName
+        try {
+            hostName = InetAddress.localHost.hostName
+        } catch (UnknownHostException e) {
+            hostName = "unknown"
+        }
+        def data = [
+                commitId: determineCommitId.commitId,
+                versionNumber: version,
+                versionBase: versionBase,
+                isSnapshot: isSnapshot,
+                rcNumber: rcNumber == null ? "" : rcNumber,
+                buildTimestamp: buildTimestamp,
+                buildNumber: System.properties["build.number"] ?: 'none',
+                username: System.properties["user.name"],
+                hostname: hostName,
+                javaVersion: System.properties["java.version"],
+                osName: System.properties["os.name"],
+                osVersion: System.properties["os.version"],
+                project: 'gradle'
+        ]
+
+        receiptFile.parentFile.mkdirs()
+
+        // We write this out ourself instead of using the properties class to avoid the
+        // annoying timestamp that insists on placing in there, that throws out incremental.
+        def content = data.entrySet().collect { "$it.key=$it.value" }.sort().join("\n")
+        receiptFile.setText(content, "ISO-8859-1")
+    }
+}

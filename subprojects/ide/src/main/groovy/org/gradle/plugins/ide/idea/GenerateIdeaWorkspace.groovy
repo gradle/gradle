@@ -22,8 +22,6 @@ import org.gradle.plugins.ide.idea.model.Workspace
 /**
  * Generates an IDEA workspace file *only* for root project.
  * There's little you can configure about workspace generation at the moment.
- *
- * @author Hans Dockter
  */
 public class GenerateIdeaWorkspace extends XmlGeneratorTask<Workspace> {
 

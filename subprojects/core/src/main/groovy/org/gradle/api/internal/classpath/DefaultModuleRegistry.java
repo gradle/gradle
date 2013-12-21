@@ -17,23 +17,31 @@ package org.gradle.api.internal.classpath;
 
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.GradleDistributionLocator;
-import org.gradle.util.ClassPath;
-import org.gradle.util.ClasspathUtil;
-import org.gradle.util.DefaultClassPath;
+import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.classpath.DefaultClassPath;
+import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.util.GUtil;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 /**
- * Determines the classpath for a module by looking for a 'project-classpath.properties' resource with 'name' set to the name of the module.
+ * Determines the classpath for a module by looking for a '${module}-classpath.properties' resource with 'name' set to the name of the module.
  */
 public class DefaultModuleRegistry implements ModuleRegistry, GradleDistributionLocator {
     private final ClassLoader classLoader;
@@ -50,37 +58,16 @@ public class DefaultModuleRegistry implements ModuleRegistry, GradleDistribution
     DefaultModuleRegistry(ClassLoader classLoader, File distDir) {
         this.classLoader = classLoader;
         this.distDir = distDir;
-        for (URL url : ClasspathUtil.getClasspath(classLoader)) {
-            if (url.getProtocol().equals("file")) {
-                try {
-                    addClasspathEntry(new File(url.toURI()));
-                } catch (URISyntaxException e) {
-                    throw new UncheckedIOException(e);
-                }
-            }
-        }
-
-        // The file names passed to -cp are canonicalised by the JVM when it creates the system classloader, and so the file names are
-        // lost if they happen to refer to links, for example, into the Gradle artifact cache. Try to reconstitute the file names
-        // from the system classpath
-        if (classLoader == ClassLoader.getSystemClassLoader()) {
-            for (String value : System.getProperty("java.class.path").split(File.pathSeparator)) {
-                addClasspathEntry(new File(value));
+        for (File classpathFile : new EffectiveClassPath(classLoader).getAsFiles()) {
+            classpath.add(classpathFile);
+            if (classpathFile.isFile() && !classpathJars.containsKey(classpathFile.getName())) {
+                classpathJars.put(classpathFile.getName(), classpathFile);
             }
         }
 
         if (distDir != null) {
             libDirs.add(new File(distDir, "lib"));
             libDirs.add(new File(distDir, "lib/plugins"));
-        }
-    }
-
-    private void addClasspathEntry(File entry) {
-        if (entry.exists()) {
-            classpath.add(entry);
-            if (entry.isFile() && !classpathJars.containsKey(entry.getName())) {
-                classpathJars.put(entry.getName(), entry);
-            }
         }
     }
 
@@ -281,7 +268,10 @@ public class DefaultModuleRegistry implements ModuleRegistry, GradleDistribution
             this.implementationClasspath = new DefaultClassPath(implementationClasspath);
             this.runtimeClasspath = new DefaultClassPath(runtimeClasspath);
             this.modules = modules;
-            this.classpath = new DefaultClassPath(GUtil.addSets(implementationClasspath, runtimeClasspath));
+            Set<File> classpath = new LinkedHashSet<File>();
+            classpath.addAll(implementationClasspath);
+            classpath.addAll(runtimeClasspath);
+            this.classpath = new DefaultClassPath(classpath);
         }
 
         @Override

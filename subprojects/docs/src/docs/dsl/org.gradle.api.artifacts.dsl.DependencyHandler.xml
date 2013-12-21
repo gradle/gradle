@@ -7,6 +7,9 @@
                     <td>Name</td>
                 </tr>
             </thead>
+            <tr>
+                <td>components</td>
+            </tr>
         </table>
     </section>
     <section>
@@ -34,6 +37,9 @@
             </tr>
             <tr>
                 <td>localGroovy</td>
+            </tr>
+            <tr>
+                <td>components</td>
             </tr>
         </table>
     </section>

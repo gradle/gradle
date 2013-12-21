@@ -18,6 +18,7 @@ package org.gradle.api.internal.file;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
+import org.gradle.util.CollectionUtils;
 import org.gradle.util.GUtil;
 
 import java.io.File;
@@ -25,9 +26,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * @author Hans Dockter
- */
 public class BaseDirFileResolver extends AbstractFileResolver {
     private final File baseDir;
 
@@ -58,7 +56,7 @@ public class BaseDirFileResolver extends AbstractFileResolver {
         if (targetPath.isEmpty()) {
             return ".";
         }
-        return GUtil.join(targetPath, File.separator);
+        return CollectionUtils.join(File.separator, targetPath);
     }
 
     @Override

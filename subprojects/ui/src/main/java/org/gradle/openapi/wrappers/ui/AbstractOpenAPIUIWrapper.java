@@ -33,8 +33,6 @@ import java.util.Map;
 
 /**
  * Implementation of BasicGradleUI meant to help shield external users from internal changes. This also provides the basics for the UI regardless of whether the output is in a separate pane or not.
- *
- * @author mhunsicker
  */
 public abstract class AbstractOpenAPIUIWrapper<U extends BasicGradleUI> {
     private U basicGradleUI;
@@ -59,7 +57,6 @@ public abstract class AbstractOpenAPIUIWrapper<U extends BasicGradleUI> {
              for IDE's that may need to save their files.
 
              @param request the request that's about to be executed
-             @author mhunsicker
              */
             public void aboutToExecuteRequest(Request request) {
                 alternateUIInteractionVersionWrapper.aboutToExecuteCommand(request.getFullCommandLine());

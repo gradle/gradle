@@ -17,22 +17,22 @@
 package org.gradle.plugins.ide.idea.model.internal
 
 import org.gradle.api.Project
+import org.gradle.api.artifacts.Configuration
+import org.gradle.plugins.ide.idea.model.Dependency
 import org.gradle.plugins.ide.idea.model.IdeaModule
+import org.gradle.plugins.ide.idea.model.ModuleDependency
 import org.gradle.plugins.ide.idea.model.SingleEntryModuleLibrary
 import org.gradle.plugins.ide.internal.IdeDependenciesExtractor
 
-/**
- * @author Szczepan Faber, created at: 4/1/11
- */
 class IdeaDependenciesProvider {
 
     private final IdeDependenciesExtractor dependenciesExtractor = new IdeDependenciesExtractor()
     Closure getPath;
 
-    Set<org.gradle.plugins.ide.idea.model.Dependency> provide(IdeaModule ideaModule) {
+    Set<Dependency> provide(IdeaModule ideaModule) {
         getPath = { File file -> file? ideaModule.pathFactory.path(file) : null }
 
-        Set result = new LinkedHashSet()
+        Set<Dependency> result = new LinkedHashSet<Dependency>()
         ideaModule.singleEntryLibraries.each { scope, files ->
             files.each {
                 if (it && it.isDirectory()) {
@@ -50,7 +50,7 @@ class IdeaDependenciesProvider {
         return result
     }
 
-    protected Set getModules(Project project, String scopeName, Map scopeMap) {
+    protected Set<ModuleDependency> getModules(Project project, String scopeName, Map<String, Collection<Configuration>> scopeMap) {
         if (!scopeMap) {
             return []
         }
@@ -59,12 +59,12 @@ class IdeaDependenciesProvider {
         }
     }
 
-    protected Set getModuleLibraries(IdeaModule ideaModule, String scopeName, Map scopeMap) {
+    protected Set<SingleEntryModuleLibrary> getModuleLibraries(IdeaModule ideaModule, String scopeName, Map<String, Collection<Configuration>> scopeMap) {
         if (!scopeMap) {
             return []
         }
 
-        LinkedHashSet moduleLibraries = []
+        Set<SingleEntryModuleLibrary> moduleLibraries = new LinkedHashSet<SingleEntryModuleLibrary>()
 
         if (!ideaModule.offline) {
             def repoFileDependencies = dependenciesExtractor.extractRepoFileDependencies(
@@ -72,8 +72,10 @@ class IdeaDependenciesProvider {
                     ideaModule.downloadSources, ideaModule.downloadJavadoc)
 
             repoFileDependencies.each {
-                moduleLibraries << new SingleEntryModuleLibrary(
-                    getPath(it.file), getPath(it.javadocFile), getPath(it.sourceFile), scopeName)
+                def library = new SingleEntryModuleLibrary(
+                        getPath(it.file), getPath(it.javadocFile), getPath(it.sourceFile), scopeName)
+                library.moduleVersion = it.id
+                moduleLibraries << library
             }
         }
 

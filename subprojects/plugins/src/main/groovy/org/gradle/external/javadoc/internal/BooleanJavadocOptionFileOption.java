@@ -20,8 +20,6 @@ import java.io.IOException;
 
 /**
  * A {@link org.gradle.external.javadoc.JavadocOptionFileOption} whose value is a boolean.
- *
- * @author Tom Eyckmans
  */
 public class BooleanJavadocOptionFileOption extends AbstractJavadocOptionFileOption<Boolean> {
     protected BooleanJavadocOptionFileOption(String option) {

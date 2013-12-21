@@ -21,8 +21,6 @@ import org.gradle.gradleplugin.foundation.search.TextBlockSearchEditor;
 
 /**
  * Tests for TextBlockSearchEditor
- *
- * @author mhunsicker
  */
 public class TextBlockSearchEditorTests extends TestCase {
     private final static String TEXT_1 = "blah blah\n" +                       //ends on index 9

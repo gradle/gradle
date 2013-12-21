@@ -17,14 +17,11 @@
 package org.gradle.external.javadoc.internal;
 
 import java.io.BufferedWriter;
-import java.io.IOException;
 import java.io.File;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Iterator;
 
-/**
- * @author Tom Eyckmans
- */
 public class JavadocOptionFileWriterContext {
     private final BufferedWriter writer;
 

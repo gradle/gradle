@@ -15,23 +15,31 @@
  */
 package org.gradle.api.plugins.announce.internal.jdk6
 
-import javax.script.ScriptEngine
-import javax.script.ScriptEngineManager
+import org.gradle.api.plugins.announce.internal.AnnouncerUnavailableException
 import org.gradle.api.plugins.announce.internal.Growl
 import org.gradle.api.plugins.announce.internal.IconProvider
-import org.gradle.api.plugins.announce.internal.AnnouncerUnavailableException
+
+import javax.script.ScriptEngine
+import javax.script.ScriptEngineManager
 
 class AppleScriptBackedGrowlAnnouncer extends Growl {
     private final IconProvider iconProvider
+    private final ScriptEngine engine;
 
     AppleScriptBackedGrowlAnnouncer(IconProvider iconProvider) {
-        this.iconProvider = iconProvider
+        this.iconProvider = iconProvider;
+        ScriptEngineManager mgr = new ScriptEngineManager();
+
+        engine = mgr.getEngineByName("AppleScript");
+        if (engine == null) {
+            engine = mgr.getEngineByName("AppleScriptEngine");
+        }
+        if (engine == null) {
+            throw new AnnouncerUnavailableException("AppleScript engine not available on used JVM")
+        }
     }
 
     void send(String title, String message) {
-        ScriptEngineManager mgr = new ScriptEngineManager();
-        ScriptEngine engine = mgr.getEngineByName("AppleScript");
-
         String isRunning = """
 tell application "System Events"
 set isRunning to count of (every process whose bundle identifier is "com.Growl.GrowlHelperApp") > 0
@@ -44,8 +52,7 @@ return isRunning
         }
 
         def icon = iconProvider.getIcon(48, 48)
-        def iconDef = icon ? "image from location \"${icon.absolutePath}\"" : ""
-
+        def iconDef = icon ? "image from location ((POSIX file \"${icon.absolutePath}\") as string) as alias" : ""
         def script = """
 tell application id "com.Growl.GrowlHelperApp"
 register as application "Gradle" all notifications {"Build Notification"} default notifications {"Build Notification"}

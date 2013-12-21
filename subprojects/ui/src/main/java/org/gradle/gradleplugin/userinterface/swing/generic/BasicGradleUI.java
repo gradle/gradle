@@ -23,22 +23,18 @@ import java.awt.*;
 
 /**
  * .
- *
- * @author mhunsicker
  */
 public interface BasicGradleUI {
     public GradlePluginLord getGradlePluginLord();
 
     /*
        @return the panel for this pane. This can be inserted directly into your UI.
-       @author mhunsicker
     */
     public JComponent getComponent();
 
     /*
        Call this whenever you're about to show this panel. We'll do whatever
        initialization is necessary.
-       @author mhunsicker
     */
     public void aboutToShow();
 
@@ -48,7 +44,6 @@ public interface BasicGradleUI {
            This is called if gradle tasks are being executed and you want to know if
            we can close. Ask the user.
            @return true if the user confirms cancelling the current tasks. False if not.
-           @author mhunsicker
         */
         public boolean promptUserToConfirmClosingWhileBusy();
     }
@@ -59,7 +54,6 @@ public interface BasicGradleUI {
 
        @param  closeInteraction allows us to interact with the user
        @return true if we can close, false if not.
-       @author mhunsicker
     */
     public boolean canClose(CloseInteraction closeInteraction);
 
@@ -67,20 +61,17 @@ public interface BasicGradleUI {
        Call this before you close the pane. This gives it an opportunity to do
        cleanup. You probably should call canClose before this. It gives the
        app a chance to cancel if its busy.
-       @author mhunsicker
     */
     public void close();
 
     /*
        @return the total number of tabs.
-       @author mhunsicker
     */
     public int getGradleTabCount();
 
     /*
        @param  index      the index of the tab
        @return the name of the tab at the specified index.
-       @author mhunsicker
     */
     public String getGradleTabName(int index);
 
@@ -109,7 +100,6 @@ public interface BasicGradleUI {
 
        @param  commandLineArguments the command line arguments to pass to gradle.
        @param displayName           the name displayed in the UI for this command
-       @author mhunsicker
     */
     public void executeCommand(String commandLineArguments, String displayName);
 

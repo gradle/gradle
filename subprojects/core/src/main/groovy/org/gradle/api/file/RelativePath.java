@@ -16,9 +16,10 @@
 package org.gradle.api.file;
 
 import org.apache.commons.lang.StringUtils;
-import org.gradle.util.GUtil;
+import org.gradle.util.CollectionUtils;
 
 import java.io.File;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.ListIterator;
@@ -28,10 +29,8 @@ import java.util.ListIterator;
  * and target file path when copying files.</p>
  *
  * <p>{@code RelativePath} instances are immutable.</p>
- *
- * @author Steve Appling
  */
-public class RelativePath {
+public class RelativePath implements Serializable {
     private final boolean endsWithFile;
     private final String[] segments;
 
@@ -72,7 +71,7 @@ public class RelativePath {
     }
 
     public String getPathString() {
-        return GUtil.join(segments, "/");
+        return CollectionUtils.join("/", segments);
     }
 
     public File getFile(File baseDir) {

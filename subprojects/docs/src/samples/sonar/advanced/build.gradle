@@ -13,14 +13,30 @@ sonar.project {
 }
 // END SNIPPET source-sets
 
+// START SNIPPET languages
+sonar.project {
+    language = "grvy" // set language to Groovy
+}
+// END SNIPPET languages
+
 // START SNIPPET global-properties
 sonar.withGlobalProperties { props ->
     props["some.global.property"] = "some value"
+    // non-String values are automatically converted to Strings
+    props["other.global.property"] = ["foo", "bar", "baz"]
 }
 // END SNIPPET global-properties
 
 // START SNIPPET project-properties
 sonar.project.withProjectProperties { props ->
     props["some.project.property"] = "some value"
+    // non-String values are automatically converted to Strings
+    props["other.project.property"] = ["foo", "bar", "baz"]
 }
 // END SNIPPET project-properties
+
+// START SNIPPET custom-command-line-properties
+sonar.project {
+    language = System.getProperty("sonar.language", "java")
+}
+// END SNIPPET custom-command-line-properties

@@ -23,9 +23,6 @@ import org.gradle.api.internal.file.archive.compression.GzipArchiver;
 import org.gradle.api.resources.ReadableResource;
 import org.gradle.api.resources.ResourceHandler;
 
-/**
- * by Szczepan Faber, created at: 11/24/11
- */
 public class DefaultResourceHandler implements ResourceHandler {
     private final FileResolver resolver;
 

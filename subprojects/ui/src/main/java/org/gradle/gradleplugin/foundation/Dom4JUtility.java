@@ -25,7 +25,6 @@ import java.util.List;
 /*
  Just some utility functions that really should be in Dom4J already.
 
- @author mhunsicker
   */
 
 public class Dom4JUtility {

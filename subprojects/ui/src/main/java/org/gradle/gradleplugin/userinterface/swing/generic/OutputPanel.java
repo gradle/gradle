@@ -28,36 +28,20 @@ import org.gradle.gradleplugin.userinterface.swing.common.SearchPanel;
 import org.gradle.gradleplugin.userinterface.swing.common.TextPaneSearchInteraction;
 import org.gradle.logging.ShowStacktrace;
 
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JProgressBar;
-import javax.swing.JTextPane;
-import javax.swing.JToggleButton;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
-import javax.swing.JButton;
-import javax.swing.AbstractAction;
+import javax.swing.*;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyleContext;
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Font;
+import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.ActionEvent;
+import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.io.File;
 
 /**
  * This is a panel that displays the results of executing a gradle command. It shows gradle's output as well as progress.
- *
- * @author mhunsicker
  */
 public class OutputPanel extends JPanel implements ExecuteGradleCommandServerProtocol.ExecutionInteraction {
 
@@ -582,7 +566,6 @@ public class OutputPanel extends JPanel implements ExecuteGradleCommandServerPro
      * Report real-time output from gradle and its subsystems (such as ant).
      *
      * @param output a single line of text to show.
-     * @author mhunsicker
      */
     public void reportLiveOutput(String output) {
         appendGradleOutput(output);
@@ -591,7 +574,6 @@ public class OutputPanel extends JPanel implements ExecuteGradleCommandServerPro
     /**
      * Determines if this panel is ready to be reused. Currently, if its not busy or pinned, it can be reused.
      *
-     * @author mhunsicker
      */
     public boolean canBeReusedNow() {
         return !isPending && !isBusy && !isPinned;

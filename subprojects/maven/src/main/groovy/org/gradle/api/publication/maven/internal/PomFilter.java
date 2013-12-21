@@ -18,9 +18,6 @@ package org.gradle.api.publication.maven.internal;
 import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.artifacts.maven.PublishFilter;
 
-/**
- * @author Hans Dockter
- */
 public interface PomFilter {
     String getName();
 

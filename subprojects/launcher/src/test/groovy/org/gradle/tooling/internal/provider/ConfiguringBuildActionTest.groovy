@@ -18,27 +18,22 @@
 
 package org.gradle.tooling.internal.provider
 
-import org.gradle.StartParameter
-import org.gradle.util.TemporaryFolder
+import org.gradle.launcher.cli.converter.PropertiesToStartParameterConverter
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters
 import org.junit.Rule
 import spock.lang.Specification
 
-/**
- * by Szczepan Faber, created at: 3/6/12
- */
-class ConfiguringBuildActionTest extends Specification {
+import static org.gradle.util.Matchers.isSerializable
+import static org.hamcrest.MatcherAssert.assertThat
 
-    @Rule TemporaryFolder temp
-    def start = new StartParameter()
+class ConfiguringBuildActionTest extends Specification {
+    @Rule TestNameTestDirectoryProvider temp
 
     def "allows configuring the start parameter with build arguments"() {
-        given:
-        start.projectProperties == [:]
-        !start.dryRun
-
         when:
         def action = new ConfiguringBuildAction(arguments: ['-PextraProperty=foo', '-m'])
-        action.configureStartParameter(start)
+        def start = action.configureStartParameter()
 
         then:
         start.projectProperties['extraProperty'] == 'foo'
@@ -51,7 +46,7 @@ class ConfiguringBuildActionTest extends Specification {
 
         when:
         def action = new ConfiguringBuildAction(projectDirectory: projectDir, arguments: ['-p', 'otherDir'])
-        action.configureStartParameter(start)
+        def start = action.configureStartParameter()
 
         then:
         start.projectDir == new File(projectDir, "otherDir")
@@ -65,7 +60,7 @@ class ConfiguringBuildActionTest extends Specification {
         when:
         def action = new ConfiguringBuildAction(gradleUserHomeDir: dotGradle, projectDirectory: projectDir, 
                 arguments: ['-g', 'otherDir'])
-        action.configureStartParameter(start)
+        def start = action.configureStartParameter()
 
         then:
         start.gradleUserHomeDir == new File(projectDir, "otherDir")
@@ -74,9 +69,35 @@ class ConfiguringBuildActionTest extends Specification {
     def "can overwrite searchUpwards via build arguments"() {
         when:
         def action = new ConfiguringBuildAction(arguments: ['-u'])
-        action.configureStartParameter(start)
+        def start = action.configureStartParameter()
 
         then:
-        !start.isSearchUpwards()
+        !start.searchUpwards
+    }
+
+    def "searchUpwards configured directly on the action wins over the command line setting"() {
+        when:
+        def action = new ConfiguringBuildAction(arguments: ['-u'], searchUpwards: true)
+        def start = action.configureStartParameter()
+
+        then:
+        start.searchUpwards
+    }
+
+    def "the start parameter is configured from properties"() {
+        given:
+        def converter = Mock(PropertiesToStartParameterConverter)
+        def action = new ConfiguringBuildAction(properties: [foo: 'bar'])
+
+        when:
+        action.configureStartParameter(converter)
+
+        then:
+        1 * converter.convert([foo: 'bar'], _)
+    }
+
+    def "is serializable"() {
+        expect:
+        assertThat(new ConfiguringBuildAction({} as ProviderOperationParameters, null, [foo: 'bar']), isSerializable())
     }
 }

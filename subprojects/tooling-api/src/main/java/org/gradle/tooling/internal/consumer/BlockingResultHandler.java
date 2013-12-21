@@ -19,6 +19,9 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.ResultHandler;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
@@ -40,12 +43,23 @@ class BlockingResultHandler<T> implements ResultHandler<T> {
         }
 
         if (result instanceof Throwable) {
-            throw UncheckedException.throwAsUncheckedException((Throwable) result);
+            throw UncheckedException.throwAsUncheckedException(attachCallerThreadStackTrace((Throwable) result));
         }
         if (result == NULL) {
             return null;
         }
         return resultType.cast(result);
+    }
+
+    private Throwable attachCallerThreadStackTrace(Throwable failure) {
+        List<StackTraceElement> adjusted = new ArrayList<StackTraceElement>();
+        adjusted.addAll(Arrays.asList(failure.getStackTrace()));
+        List<StackTraceElement> currentThreadStack = Arrays.asList(Thread.currentThread().getStackTrace());
+        if (!currentThreadStack.isEmpty()) {
+            adjusted.addAll(currentThreadStack.subList(2, currentThreadStack.size()));
+        }
+        failure.setStackTrace(adjusted.toArray(new StackTraceElement[adjusted.size()]));
+        return failure;
     }
 
     public void onComplete(T result) {

@@ -20,8 +20,8 @@ import org.junit.Rule
 import org.gradle.util.RedirectStdOutAndErr
 import org.gradle.api.Action
 import org.gradle.launcher.cli.CommandLineActionFactory
-import org.gradle.launcher.exec.ExecutionListener
-import org.gradle.launcher.exec.ExecutionCompleter
+import org.gradle.launcher.bootstrap.ExecutionListener
+import org.gradle.launcher.bootstrap.ExecutionCompleter
 
 class MainTest extends Specification {
     
@@ -79,8 +79,8 @@ class MainTest extends Specification {
         main.run()
 
         then:
-        outputs.stdErr.contains('internal error')
-        outputs.stdErr.contains('java.lang.RuntimeException: broken')
+        outputs.stdErr.contains('FAILURE: Build failed with an exception')
+        outputs.stdErr.contains('broken')
         completedWithFailure
         failure == thrownFailure
     }
@@ -94,8 +94,8 @@ class MainTest extends Specification {
         main.run()
 
         then:
-        outputs.stdErr.contains('internal error')
-        outputs.stdErr.contains('java.lang.RuntimeException: broken')
+        outputs.stdErr.contains('FAILURE: Build failed with an exception')
+        outputs.stdErr.contains('broken')
         completedWithFailure
         failure == thrownFailure
     }

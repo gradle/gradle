@@ -18,12 +18,12 @@ package org.gradle.api.plugins.osgi;
 
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPlugin
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 import org.gradle.api.tasks.SourceSet
 
 public class OsgiPluginTest extends Specification {
-    private final Project project = HelperUtil.createRootProject();
+    private final Project project = TestUtil.createRootProject();
     private final OsgiPlugin osgiPlugin = new OsgiPlugin();
     
     public void appliesTheJavaPlugin() {

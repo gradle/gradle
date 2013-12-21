@@ -19,6 +19,7 @@ package org.gradle.api.initialization;
 import org.gradle.StartParameter;
 import org.gradle.api.UnknownProjectException;
 import org.gradle.api.invocation.Gradle;
+import org.gradle.api.plugins.PluginAware;
 
 import java.io.File;
 
@@ -39,7 +40,7 @@ import java.io.File;
  * directory defaults to the directory containing the settings file.</p>
  *
  * <p>When a project is included in the build, a {@link ProjectDescriptor} is created. You can use this descriptor to
- * change the default vaules for several properties of the project.</p>
+ * change the default values for several properties of the project.</p>
  *
  * <h3>Using Settings in a Settings File</h3>
  *
@@ -59,10 +60,8 @@ import java.io.File;
  * <li>Provided on the command-line using the -P option.</li>
  *
  * </ul>
- *
- * @author Hans Dockter
  */
-public interface Settings {
+public interface Settings extends PluginAware {
     /**
      * <p>The default name for the settings file.</p>
      */

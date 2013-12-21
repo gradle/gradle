@@ -15,31 +15,22 @@
  */
 package org.gradle.launcher.cli
 
-import org.gradle.BuildResult
-import org.gradle.GradleLauncher
-import org.gradle.StartParameter
+import org.gradle.api.Action
 import org.gradle.cli.CommandLineArgumentException
 import org.gradle.cli.CommandLineConverter
-import org.gradle.initialization.GradleLauncherFactory
+import org.gradle.cli.CommandLineParser
 import org.gradle.internal.Factory
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.launcher.daemon.bootstrap.DaemonMain
-import org.gradle.launcher.exec.ExceptionReportingAction
-import org.gradle.launcher.exec.ExecutionListener
-import org.gradle.logging.LoggingConfiguration
-import org.gradle.logging.LoggingManagerInternal
-import org.gradle.logging.ProgressLoggerFactory
+import org.gradle.launcher.bootstrap.ExecutionListener
+import org.gradle.logging.*
 import org.gradle.logging.internal.OutputEventListener
+import org.gradle.logging.internal.StreamingStyledTextOutput
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GradleVersion
 import org.gradle.util.RedirectStdOutAndErr
 import org.gradle.util.SetSystemProperties
-import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
-
-import static org.gradle.launcher.cli.CommandLineActionFactory.*
-import org.gradle.internal.os.OperatingSystem
-import org.gradle.launcher.daemon.configuration.DaemonParameters
 
 class CommandLineActionFactoryTest extends Specification {
     @Rule
@@ -47,15 +38,13 @@ class CommandLineActionFactoryTest extends Specification {
     @Rule
     public final SetSystemProperties sysProperties = new SetSystemProperties();
     @Rule
-    TemporaryFolder tmpDir = new TemporaryFolder();
-    final ExecutionListener buildCompleter = Mock()
-    final CommandLineConverter<StartParameter> startParameterConverter = Mock()
-    final GradleLauncherFactory gradleLauncherFactory = Mock()
-    final GradleLauncher gradleLauncher = Mock()
-    final BuildResult buildResult = Mock()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
+    final ExecutionListener executionListener = Mock()
     final ServiceRegistry loggingServices = Mock()
     final CommandLineConverter<LoggingConfiguration> loggingConfigurationConverter = Mock()
     final LoggingManagerInternal loggingManager = Mock()
+    final CommandLineAction actionFactory1 = Mock()
+    final CommandLineAction actionFactory2 = Mock()
     final CommandLineActionFactory factory = new CommandLineActionFactory() {
         @Override
         ServiceRegistry createLoggingServices() {
@@ -63,251 +52,179 @@ class CommandLineActionFactoryTest extends Specification {
         }
 
         @Override
-        CommandLineConverter<StartParameter> createStartParameterConverter() {
-            return startParameterConverter
+        protected void createActionFactories(ServiceRegistry loggingServices, Collection<CommandLineAction> actions) {
+            actions.add(actionFactory1)
+            actions.add(actionFactory2)
         }
     }
 
-    def setup() {        
+    def setup() {
         ProgressLoggerFactory progressLoggerFactory = Mock()
         _ * loggingServices.get(ProgressLoggerFactory) >> progressLoggerFactory
         _ * loggingServices.get(CommandLineConverter) >> loggingConfigurationConverter
         _ * loggingServices.get(OutputEventListener) >> Mock(OutputEventListener)
-        _ * loggingConfigurationConverter.convert(!null) >> new LoggingConfiguration()
         Factory<LoggingManagerInternal> loggingManagerFactory = Mock()
         _ * loggingServices.getFactory(LoggingManagerInternal) >> loggingManagerFactory
         _ * loggingManagerFactory.create() >> loggingManager
+        StyledTextOutputFactory textOutputFactory = Mock()
+        _ * loggingServices.get(StyledTextOutputFactory) >> textOutputFactory
+        StyledTextOutput textOutput = new StreamingStyledTextOutput(outputs.stdErrPrintStream)
+        _ * textOutputFactory.create(_, _) >> textOutput
     }
 
-    def reportsCommandLineParseFailure() {
-        def failure = new CommandLineArgumentException('<broken>')
+    def "delegates to each action factory to configure the command-line parser and create the action"() {
+        Action<ExecutionListener> rawAction = Mock()
+
+        when:
+        def action = factory.convert(["--some-option"])
+
+        then:
+        action
+
+        when:
+        action.execute(executionListener)
+
+        then:
+        1 * actionFactory1.configureCommandLineParser(!null) >> { CommandLineParser parser -> parser.option("some-option") }
+        1 * actionFactory2.configureCommandLineParser(!null)
+        1 * actionFactory1.createAction(!null, !null) >> rawAction
+        1 * rawAction.execute(executionListener)
+    }
+
+    def "configures logging before parsing command-line"() {
+        Action<ExecutionListener> rawAction = Mock()
 
         when:
         def action = factory.convert([])
 
         then:
-        1 * startParameterConverter.configure(!null) >> { args -> args[0].option('some-build-option') }
-        1 * startParameterConverter.convert(!null, !null) >> { throw failure }
+        action
 
         when:
-        action.execute(buildCompleter)
+        action.execute(executionListener)
 
         then:
         1 * loggingManager.start()
+
+        and:
+        1 * actionFactory1.configureCommandLineParser(!null)
+        1 * actionFactory2.configureCommandLineParser(!null)
+        1 * actionFactory1.createAction(!null, !null) >> rawAction
+    }
+
+    def "reports command-line parse failure"() {
+        when:
+        def action = factory.convert(['--broken'])
+        action.execute(executionListener)
+
+        then:
+        outputs.stdErr.contains('--broken')
+        outputs.stdErr.contains('USAGE: gradle [option...] [task...]')
+        outputs.stdErr.contains('--help')
+        outputs.stdErr.contains('--some-option')
+
+        and:
+        1 * actionFactory1.configureCommandLineParser(!null) >> {CommandLineParser parser -> parser.option('some-option')}
+        1 * executionListener.onFailure({it instanceof CommandLineArgumentException})
+        0 * executionListener._
+    }
+
+    def "reports failure to build action due to command-line parse failure"() {
+        def failure = new CommandLineArgumentException("<broken>")
+
+        when:
+        def action = factory.convert(['--some-option'])
+        action.execute(executionListener)
+
+        then:
         outputs.stdErr.contains('<broken>')
         outputs.stdErr.contains('USAGE: gradle [option...] [task...]')
         outputs.stdErr.contains('--help')
-        outputs.stdErr.contains('--some-build-option')
-        1 * buildCompleter.onFailure(failure)
+        outputs.stdErr.contains('--some-option')
+
+        and:
+        1 * actionFactory1.configureCommandLineParser(!null) >> {CommandLineParser parser -> parser.option('some-option')}
+        1 * actionFactory1.createAction(!null, !null) >> { throw failure }
+        1 * executionListener.onFailure(failure)
+        0 * executionListener._
     }
 
-    def displaysUsageMessage() {
+    def "ignores failure to parse logging configuration"() {
         when:
-        def action = factory.convert([option])
-        action.execute(buildCompleter)
+        def action = factory.convert(["--logging=broken"])
+        action.execute(executionListener)
 
         then:
-        _ * startParameterConverter.configure(!null) >> { args -> args[0].option('some-build-option') }
-        1 * loggingManager.start()
+        outputs.stdErr.contains('--logging')
+        outputs.stdErr.contains('USAGE: gradle [option...] [task...]')
+        outputs.stdErr.contains('--help')
+        outputs.stdErr.contains('--some-option')
+
+        and:
+        1 * loggingConfigurationConverter.configure(!null) >> {CommandLineParser parser -> parser.option("logging").hasArgument(String)}
+        1 * actionFactory1.configureCommandLineParser(!null) >> {CommandLineParser parser -> parser.option('some-option')}
+        1 * executionListener.onFailure({it instanceof CommandLineArgumentException})
+        0 * executionListener._
+    }
+
+    def "reports other failure to build action"() {
+        def failure = new RuntimeException("<broken>")
+
+        when:
+        def action = factory.convert([])
+        action.execute(executionListener)
+
+        then:
+        outputs.stdErr.contains('<broken>')
+
+        and:
+        1 * actionFactory1.createAction(!null, !null) >> { throw failure }
+        1 * executionListener.onFailure(failure)
+        0 * executionListener._
+    }
+
+    def "displays usage message"() {
+        when:
+        def action = factory.convert([option])
+        action.execute(executionListener)
+
+        then:
         outputs.stdOut.contains('USAGE: gradle [option...] [task...]')
         outputs.stdOut.contains('--help')
-        outputs.stdOut.contains('--some-build-option')
+        outputs.stdOut.contains('--some-option')
+
+        and:
+        1 * actionFactory1.configureCommandLineParser(!null) >> {CommandLineParser parser -> parser.option('some-option')}
+        0 * executionListener._
 
         where:
         option << ['-h', '-?', '--help']
     }
 
-    def usesSystemPropertyForGradleAppName() {
+    def "uses system property for application name"() {
         System.setProperty("org.gradle.appname", "gradle-app");
 
         when:
         def action = factory.convert(['-?'])
-        action.execute(buildCompleter)
+        action.execute(executionListener)
 
         then:
         outputs.stdOut.contains('USAGE: gradle-app [option...] [task...]')
     }
 
-    def displaysVersionMessage() {
+    def "displays version message"() {
         when:
         def action = factory.convert([option])
-        action.execute(buildCompleter)
+        action.execute(executionListener)
 
         then:
-        1 * loggingManager.start()
         outputs.stdOut.contains(GradleVersion.current().prettyPrint())
+
+        and:
+        1 * loggingManager.start()
+        0 * executionListener._
 
         where:
         option << ['-v', '--version']
-    }
-
-    def launchesGUI() {
-        when:
-        def action = factory.convert(['--gui'])
-
-        then:
-        action instanceof WithLoggingAction
-        action.action instanceof ExceptionReportingAction
-        action.action.action instanceof ActionAdapter
-        action.action.action.action instanceof ShowGuiAction
-    }
-
-    def executesBuild() {
-        when:
-        def action = factory.convert(['args'])
-
-        then:
-        isInProcess(action)
-    }
-
-    def executesBuildUsingDaemon() {
-        when:
-        def action = factory.convert(['--daemon', 'args'])
-
-        then:
-        isDaemon action
-    }
-
-    def executesBuildUsingDaemonWhenSystemPropertyIsSetToTrue() {
-        when:
-        System.properties['org.gradle.daemon'] = 'false'
-        def action = factory.convert(['args'])
-
-        then:
-        isInProcess action
-
-        when:
-        System.properties['org.gradle.daemon'] = 'true'
-        action = factory.convert(['args'])
-
-        then:
-        isDaemon action
-    }
-
-    def doesNotUseDaemonWhenNoDaemonOptionPresent() {
-        when:
-        def action = factory.convert(['--no-daemon', 'args'])
-
-        then:
-        isInProcess action
-    }
-
-    def daemonOptionTakesPrecedenceOverSystemProperty() {
-        when:
-        System.properties['org.gradle.daemon'] = 'false'
-        def action = factory.convert(['--daemon', 'args'])
-
-        then:
-        isDaemon action
-
-        when:
-        System.properties['org.gradle.daemon'] = 'true'
-        action = factory.convert(['--no-daemon', 'args'])
-
-        then:
-        isInProcess action
-    }
-
-    def stopsDaemon() {
-        when:
-        def action = factory.convert(['--stop'])
-
-        then:
-        action instanceof WithLoggingAction
-        action.action instanceof ExceptionReportingAction
-        action.action.action instanceof ActionAdapter
-        action.action.action.action instanceof StopDaemonAction
-    }
-
-    def runsDaemonInForeground() {
-        when:
-        def action = factory.convert(['--foreground'])
-
-        then:
-        action instanceof WithLoggingAction
-        action.action instanceof ExceptionReportingAction
-        action.action.action instanceof ActionAdapter
-        action.action.action.action instanceof DaemonMain
-    }
-
-    def executesBuildWithSingleUseDaemonIfJavaHomeIsNotCurrent() {
-        when:
-        def javaHome = tmpDir.createDir("javahome")
-        javaHome.createFile(OperatingSystem.current().getExecutableName("bin/java"))
-
-        System.properties['org.gradle.java.home'] = javaHome.canonicalPath
-        def action = factory.convert([])
-
-        then:
-        isSingleUseDaemon action
-    }
-
-    def "daemon setting in precedence is system prop, user home then project directory"() {
-        given:
-        def userHome = tmpDir.createDir("user_home")
-        userHome.file("gradle.properties").withOutputStream { outstr ->
-            new Properties((DaemonParameters.DAEMON_SYS_PROPERTY): 'false').store(outstr, "HEADER")
-        }
-        def projectDir = tmpDir.createDir("project_dir")
-        projectDir.createFile("settings.gradle")
-        projectDir.file("gradle.properties").withOutputStream { outstr ->
-            new Properties((DaemonParameters.DAEMON_SYS_PROPERTY): 'true').store(outstr, "HEADER")
-        }
-
-        when:
-        def action = factory.convert([])
-
-        then:
-        startParameterConverter.convert(!null, !null) >> { args, startParam ->
-            startParam.currentDir = projectDir
-        }
-
-        and:
-        isDaemon action
-
-        when:
-        action = factory.convert([])
-
-        then:
-        startParameterConverter.convert(!null, !null) >> { args, startParam ->
-            startParam.gradleUserHomeDir = userHome
-            startParam.currentDir = projectDir
-        }
-
-        and:
-        isInProcess action
-
-        when:
-        System.properties['org.gradle.daemon'] = 'true'
-        action = factory.convert([])
-
-        then:
-        startParameterConverter.convert(!null, !null) >> { args, startParam ->
-            startParam.gradleUserHomeDir = userHome
-            startParam.currentDir = projectDir
-        }
-
-        and:
-        isDaemon action
-    }
-
-    def isDaemon(def action) {
-        assert action instanceof WithLoggingAction
-        assert action.action instanceof ExceptionReportingAction
-        assert action.action.action instanceof ActionAdapter
-        action.action.action.action instanceof DaemonBuildAction
-    }
-
-    def isInProcess(def action) {
-        assert action instanceof WithLoggingAction
-        assert action.action instanceof ExceptionReportingAction
-        action.action.action instanceof RunBuildAction
-    }
-
-    def isSingleUseDaemon(def action) {
-        assert action instanceof WithLoggingAction
-        assert action.action instanceof ExceptionReportingAction
-        assert action.action.action instanceof ActionAdapter
-        action.action.action.action instanceof DaemonBuildAction
     }
 }

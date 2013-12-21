@@ -15,16 +15,14 @@
  */
 package org.gradle.launcher;
 
+import org.gradle.launcher.bootstrap.EntryPoint;
+import org.gradle.launcher.bootstrap.ExecutionListener;
 import org.gradle.launcher.cli.CommandLineActionFactory;
-import org.gradle.launcher.exec.EntryPoint;
-import org.gradle.launcher.exec.ExecutionListener;
 
 import java.util.Arrays;
 
 /**
  * The main command-line entry-point for Gradle.
- *
- * @author Hans Dockter
  */
 public class Main extends EntryPoint {
 

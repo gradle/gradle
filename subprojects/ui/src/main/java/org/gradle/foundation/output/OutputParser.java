@@ -27,8 +27,6 @@ import java.util.regex.Pattern;
  * easily. To accomplish this, this works with FileLinkDefinitions. They require a basic RegEx pattern to match some initial part of the a file link, however, they can be implemented to do more
  * advanced parsing of the text. The definitions are built-up and held by FileLinkDefinitionLord. This just handles the tedium of matching the all-inclusive pattern with text, managing indices, and
  * calling the matching FileLinkDefinition to refine the match.
- *
- * @author mhunsicker
  */
 public class OutputParser {
     private FileLinkDefinitionLord fileLinkDefinitionLord;

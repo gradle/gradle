@@ -16,9 +16,6 @@
 
 package org.gradle.util;
 
-/**
- * @author Hans Dockter
- */
 
 import groovy.lang.Closure;
 import org.codehaus.groovy.runtime.InvokerInvocationException;

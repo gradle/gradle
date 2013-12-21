@@ -15,30 +15,29 @@
  */
 package org.gradle.tooling.internal.consumer.loader;
 
+import org.gradle.internal.classpath.ClassPath;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.tooling.internal.consumer.Distribution;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
+import org.gradle.tooling.internal.consumer.parameters.ConsumerConnectionParameters;
 
-import java.io.File;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.Map;
-import java.util.Set;
 
 public class CachingToolingImplementationLoader implements ToolingImplementationLoader {
     private final ToolingImplementationLoader loader;
-    private final Map<Set<File>, ConsumerConnection> connections = new HashMap<Set<File>, ConsumerConnection>();
+    private final Map<ClassPath, ConsumerConnection> connections = new HashMap<ClassPath, ConsumerConnection>();
 
     public CachingToolingImplementationLoader(ToolingImplementationLoader loader) {
         this.loader = loader;
     }
 
-    public ConsumerConnection create(Distribution distribution, ProgressLoggerFactory progressLoggerFactory, boolean verboseLogging) {
-        Set<File> classpath = new LinkedHashSet<File>(distribution.getToolingImplementationClasspath(progressLoggerFactory));
+    public ConsumerConnection create(Distribution distribution, ProgressLoggerFactory progressLoggerFactory, ConsumerConnectionParameters connectionParameters) {
+        ClassPath classpath = distribution.getToolingImplementationClasspath(progressLoggerFactory);
 
         ConsumerConnection connection = connections.get(classpath);
         if (connection == null) {
-            connection = loader.create(distribution, progressLoggerFactory, verboseLogging);
+            connection = loader.create(distribution, progressLoggerFactory, connectionParameters);
             connections.put(classpath, connection);
         }
 

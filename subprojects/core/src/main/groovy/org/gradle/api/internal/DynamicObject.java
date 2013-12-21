@@ -39,4 +39,12 @@ public interface DynamicObject {
     boolean hasMethod(String name, Object... arguments);
 
     Object invokeMethod(String name, Object... arguments) throws MissingMethodException;
+
+    /**
+     * Used to indicate that the dynamic object may still be able to invoke the method, regardless of {@link #hasMethod(String, Object...)}
+     */
+    boolean isMayImplementMissingMethods();
+
+    boolean isMayImplementMissingProperties();
+
 }

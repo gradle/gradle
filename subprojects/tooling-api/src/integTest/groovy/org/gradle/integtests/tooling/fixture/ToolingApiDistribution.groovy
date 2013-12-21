@@ -16,11 +16,11 @@
 
 package org.gradle.integtests.tooling.fixture
 
-import org.gradle.api.file.FileCollection
 import org.gradle.api.Nullable
+import org.gradle.util.GradleVersion
 
 interface ToolingApiDistribution {
-    String getVersion()
-    @Nullable FileCollection getClasspath()
+    GradleVersion getVersion()
+    @Nullable Collection<File> getClasspath()
     ClassLoader getClassLoader()
 }

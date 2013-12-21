@@ -19,7 +19,12 @@ package org.gradle.util;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.gradle.internal.SystemProperties;
 
+import java.io.File;
+import java.util.regex.Pattern;
+
 public class TextUtil {
+    private static final Pattern WHITESPACE = Pattern.compile("\\s*");
+
     /**
      * Returns the line separator for Windows.
      */
@@ -56,9 +61,22 @@ public class TextUtil {
     }
 
     /**
-     * <p>Escapes the toString() representation of {@code obj} for use in a literal string.</p>
-     *
-     * <p>This is useful for interpolating variables into script strings, as well as in other situations.</p>
+     * Converts all line separators in the specified string to a single new line character.
+     */
+    public static String normaliseLineSeparators(String str) {
+        return str == null ? null : convertLineSeparators(str, "\n");
+    }
+
+    /**
+     * Converts all native file separators in the specified string to '/'.
+     */
+    public static String normaliseFileSeparators(String path) {
+        return path.replaceAll(Pattern.quote(File.separator), "/");
+    }
+
+    /**
+     * Escapes the toString() representation of {@code obj} for use in a literal string.
+     * This is useful for interpolating variables into script strings, as well as in other situations.
      */
     public static String escapeString(Object obj) {
         return obj == null ? null : StringEscapeUtils.escapeJava(obj.toString());
@@ -74,5 +92,27 @@ public class TextUtil {
             }
         }
         return false;
+    }
+
+    /**
+     * Indents every line of {@code text} by {@code indent}. Empty lines
+     * and lines that only contain whitespace are not indented.
+     */
+    public static String indent(String text, String indent) {
+        StringBuilder builder = new StringBuilder();
+        String[] lines = text.split("\n");
+
+        for (int i = 0; i < lines.length; i++) {
+            String line = lines[i];
+            if (!WHITESPACE.matcher(line).matches()) {
+                builder.append(indent);
+            }
+            builder.append(line);
+            if (i < lines.length - 1) {
+                builder.append('\n');
+            }
+        }
+
+        return builder.toString();
     }
 }

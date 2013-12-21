@@ -17,7 +17,7 @@ package org.gradle.logging.internal
 
 import spock.lang.Specification
 import org.gradle.logging.ProgressLoggerFactory
-import org.gradle.util.TimeProvider
+import org.gradle.internal.TimeProvider
 
 class DefaultProgressLoggerFactoryTest extends Specification {
     private final ProgressListener progressListener = Mock()
@@ -236,6 +236,16 @@ class DefaultProgressLoggerFactoryTest extends Specification {
         then:
         IllegalStateException e = thrown()
         e.message == 'This operation has completed.'
+    }
+
+    def "can log start conveniently"() {
+        when:
+        def logger = factory.newOperation('logger').start("foo", "f")
+
+        then:
+        logger.description == "foo"
+        logger.shortDescription == "f"
+        1 * progressListener.started(!null)
     }
 }
 

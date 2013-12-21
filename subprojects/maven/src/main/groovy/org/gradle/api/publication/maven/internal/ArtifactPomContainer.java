@@ -21,9 +21,6 @@ import org.gradle.api.artifacts.maven.MavenDeployment;
 import java.io.File;
 import java.util.Set;
 
-/**
- * @author Hans Dockter
- */
 public interface ArtifactPomContainer {
     void addArtifact(Artifact artifact, File src);
 

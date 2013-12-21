@@ -7,7 +7,7 @@ version = '1.0'
 group = 'org.gradle.test'
 
 dependencies {
-   compile 'junit:junit:4.8.2', project(':subproject')
+   compile 'junit:junit:4.11', project(':subproject')
 }
 
 ant {
@@ -41,7 +41,7 @@ uploadArchives {
     }
     doLast {
         File repoDir = new File("$buildDir/repo/ivypublish/1.0/")
-        assert ["ivypublish.jar", "ivy.xml", "ivypublishSource.jar"] as Set == repoDir.listFiles().collect { it.name } as Set
+        assert ["ivy.xml", "ivy.xml.sha1", "ivypublish.jar", "ivypublish.jar.sha1", "ivypublishSource.jar", "ivypublishSource.jar.sha1"] as Set == repoDir.listFiles().collect { it.name } as Set
         assert jar.archivePath.size() == new File(repoDir, 'ivypublish.jar').size()
         sourceJar.archivePath.size() == new File(repoDir, 'ivypublishSource.jar').size()
 
@@ -49,7 +49,7 @@ uploadArchives {
         def root = new XmlParser().parse(new File(repoDir, 'ivy.xml'))
         assert root.publications.artifact.find { it.@name == 'ivypublishSource' }.attribute(ns.classifier) == 'src'
         assert (root.configurations.conf.collect { it.@name } as Set) == ['archives', 'compile', 'default', 'runtime', 'testCompile', 'testRuntime'] as Set
-        assert root.dependencies.dependency.find { it.@org == 'junit' }.attributes() == [org: 'junit', name: 'junit', rev: '4.8.2', conf: 'compile->default']
+        assert root.dependencies.dependency.find { it.@org == 'junit' }.attributes() == [org: 'junit', name: 'junit', rev: '4.11', conf: 'compile->default']
         assert root.dependencies.dependency.find { it.@org == 'ivypublish' }.attributes() == [org: 'ivypublish', name: 'subproject', rev: 'unspecified',
                 conf: 'compile->default']
     }

@@ -28,7 +28,7 @@ import org.gradle.api.file.FileVisitor;
  */
 public interface MinimalFileTree extends MinimalFileCollection {
     /**
-     * Visits the elements of this tree, in breadth-wise order.
+     * Visits the elements of this tree, in depth-first prefix order.
      */
     void visit(FileVisitor visitor);
 }

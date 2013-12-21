@@ -16,22 +16,19 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
+import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
-import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
-import org.gradle.tooling.internal.protocol.BuildParametersVersion1;
 
 /**
- * by Szczepan Faber, created at: 12/22/11
+ * Implementations must be thread-safe.
  */
 public interface ConsumerConnection {
 
     void stop();
     
     String getDisplayName();
-    
-    VersionDetails getVersionDetails();
 
-    <T> T getModel(Class<T> type, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException;
+    <T> T run(Class<T> type, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException;
 
-    void executeBuild(BuildParametersVersion1 buildParameters, ConsumerOperationParameters operationParameters) throws IllegalStateException;
+    <T> T run(BuildAction<T> action, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException;
 }

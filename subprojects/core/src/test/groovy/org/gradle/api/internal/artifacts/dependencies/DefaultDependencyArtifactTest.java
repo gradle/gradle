@@ -16,12 +16,10 @@
 package org.gradle.api.internal.artifacts.dependencies;
 
 import org.gradle.api.artifacts.DependencyArtifact;
-import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 
-/**
- * @author Hans Dockter
- */
+import static org.junit.Assert.assertEquals;
+
 public class DefaultDependencyArtifactTest {
     @Test
     public void testInit() {

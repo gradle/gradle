@@ -156,11 +156,26 @@ public class CommandLineParser {
     }
 
     /**
+     * Specifies that the given set of options are mutually-exclusive. Only one of the given options will be selected.
+     * The parser ignores all but the last of these options.
+     */
+    public CommandLineParser allowOneOf(String... options) {
+        Set<CommandLineOption> commandLineOptions = new HashSet<CommandLineOption>();
+        for (String option : options) {
+            commandLineOptions.add(optionsByString.get(option));
+        }
+        for (CommandLineOption commandLineOption : commandLineOptions) {
+            commandLineOption.groupWith(commandLineOptions);
+        }
+        return this;
+    }
+
+    /**
      * Prints a usage message to the given stream.
      *
      * @param out The output stream to write to.
      */
-    public void printUsage(OutputStream out) {
+    public void printUsage(Appendable out) {
         Formatter formatter = new Formatter(out);
         Set<CommandLineOption> orderedOptions = new TreeSet<CommandLineOption>(new OptionComparator());
         orderedOptions.addAll(optionsByString.values());
@@ -234,7 +249,7 @@ public class CommandLineParser {
         }
         CommandLineOption option = new CommandLineOption(Arrays.asList(options));
         for (String optionStr : option.getOptions()) {
-            this.optionsByString.put(optionStr, option);
+            optionsByString.put(optionStr, option);
         }
         return option;
     }
@@ -444,8 +459,9 @@ public class CommandLineParser {
             if (option.getDeprecationWarning() != null) {
                 deprecationPrinter.println("The " + optionString + " option is deprecated - " + option.getDeprecationWarning());
             }
-            if (option.getSubcommand() != null) {
-                return state.onNonOption(option.getSubcommand());
+
+            for (CommandLineOption otherOption : option.getGroupWith()) {
+                commandLine.removeOption(otherOption);
             }
 
             return state;

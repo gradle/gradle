@@ -1,0 +1,2 @@
+org.gradle.buildinit.plugins.internal.BuildInitAutoApplyAction
+org.gradle.buildinit.plugins.internal.WrapperPluginAutoApplyAction

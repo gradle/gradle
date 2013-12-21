@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,12 @@
 package org.gradle.api.tasks.testing;
 
 /**
- * Configures logging of the test execution, e.g. whether the std err / out should be eagerly shown
+ * Configures logging of the test execution, e.g. whether the std err / out should be eagerly shown.
+ *
+ * @deprecated use {@link org.gradle.api.tasks.testing.logging.TestLogging} instead
  */
+@Deprecated
 public interface TestLogging {
-
     /**
      * Whether to show eagerly the standard stream events. Standard output is printed at INFO level, standard error at ERROR level.
      *
@@ -33,5 +35,4 @@ public interface TestLogging {
      * Whether to show eagerly the standard stream events. Standard output is printed at INFO level, standard error at ERROR level.
      */
     boolean getShowStandardStreams();
-
 }

@@ -16,7 +16,7 @@
 
 package org.gradle.external.javadoc.internal;
 
-import org.gradle.util.GUtil;
+import org.gradle.util.CollectionUtils;
 
 import java.io.IOException;
 import java.util.LinkedHashMap;
@@ -26,8 +26,6 @@ import java.util.Map;
 /**
  * A {@link org.gradle.external.javadoc.JavadocOptionFileOption} which represents the -groups command line
  * option.
- *
- * @author Tom Eyckmans
  */
 public class GroupsJavadocOptionFileOption extends AbstractJavadocOptionFileOption<Map<String, List<String>>> {
     public GroupsJavadocOptionFileOption(String option) {
@@ -51,7 +49,7 @@ public class GroupsJavadocOptionFileOption extends AbstractJavadocOptionFileOpti
                     .write(
                         new StringBuffer()
                             .append("\"")
-                            .append(GUtil.join(groupPackages, ":"))
+                            .append(CollectionUtils.join(":", groupPackages))
                             .append("\"")
                             .toString())
                     .newLine();

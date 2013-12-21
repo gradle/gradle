@@ -19,9 +19,9 @@ package org.gradle.tooling.exceptions;
 import org.gradle.tooling.UnsupportedVersionException;
 
 /**
- * Thrown when the {@link org.gradle.tooling.LongRunningOperation} has been configured
+ * Thrown when a {@link org.gradle.tooling.LongRunningOperation} has been configured
  * with unsupported settings. For example {@link org.gradle.tooling.LongRunningOperation#setJavaHome(java.io.File)}
- * might not be supported by the target gradle version.
+ * might not be supported by the target Gradle version.
  *
  * @since 1.0-rc-1
  */

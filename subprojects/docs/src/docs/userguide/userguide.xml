@@ -16,9 +16,8 @@
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
     <bookinfo>
         <title>Gradle User Guide</title>
-        <subtitle>A better way to build</subtitle>
         <copyright>
-            <year>2007-2010</year>
+            <year>2007-2012</year>
             <holder>Hans Dockter, Adam Murdoch</holder>
         </copyright>
         <legalnotice>
@@ -27,14 +26,6 @@
                 Notice, whether distributed in print or electronically.
             </para>
         </legalnotice>
-        <author>
-            <firstname>Hans</firstname>
-            <surname>Dockter</surname>
-        </author>
-        <author>
-            <firstname>Adam</firstname>
-            <surname>Murdoch</surname>
-        </author>
     </bookinfo>
     <xi:include href='introduction.xml'/>
     <xi:include href='overview.xml'/>
@@ -48,14 +39,14 @@
     <xi:include href='webTutorial.xml'/>
     <xi:include href='commandLineTutorial.xml'/>
     <xi:include href='guiTutorial.xml'/>
-    <xi:include href='gradleDaemon.xml'/>
-    <xi:include href='thisAndThat.xml'/>
-    <xi:include href='buildEnvironment.xml'/>
     <xi:include href='writingBuildScripts.xml'/>
+    <xi:include href='thisAndThat.xml'/>
     <xi:include href='tasks.xml'/>
     <xi:include href='workingWithFiles.xml'/>
-    <xi:include href='logging.xml'/>
     <xi:include href='ant.xml'/>
+    <xi:include href='logging.xml'/>
+    <xi:include href='gradleDaemon.xml'/>
+    <xi:include href='buildEnvironment.xml'/>
     <xi:include href='plugins.xml'/>
     <xi:include href='standardPlugins.xml'/>
     <xi:include href='javaPlugin.xml'/>
@@ -69,7 +60,9 @@
     <xi:include href='findBugsPlugin.xml'/>
     <xi:include href='jdependPlugin.xml'/>
     <xi:include href='pmdPlugin.xml'/>
+    <xi:include href='jacocoPlugin.xml'/>
     <xi:include href='sonarPlugin.xml'/>
+    <xi:include href='sonarRunnerPlugin.xml'/>
     <xi:include href='osgi.xml'/>
     <xi:include href='eclipsePlugin.xml'/>
     <xi:include href='ideaPlugin.xml'/>
@@ -77,12 +70,17 @@
     <xi:include href='projectReports.xml'/>
     <xi:include href='announcePlugin.xml'/>
     <xi:include href='buildAnnouncementsPlugin.xml'/>
+    <xi:include href='distributionPlugin.xml'/>
     <xi:include href='applicationPlugin.xml'/>
-	<xi:include href='depMngmt.xml'/>
+    <xi:include href='javaLibraryDistributionPlugin.xml'/>
+    <xi:include href='buildInitPlugin.xml'/>
+    <xi:include href='wrapperPlugin.xml'/>
+    <xi:include href='buildDashboardPlugin.xml'/>
+    <xi:include href='depMngmt.xml'/>
     <xi:include href='artifactMngmt.xml'/>
     <xi:include href='mavenPlugin.xml'/>
     <xi:include href='signingPlugin.xml'/>
-    <xi:include href='cpp.xml'/>
+    <xi:include href='nativeBinaries.xml'/>
     <xi:include href='buildLifecycle.xml'/>
     <xi:include href='multiproject.xml'/>
     <xi:include href='customTasks.xml'/>
@@ -91,9 +89,13 @@
     <xi:include href='initscripts.xml'/>
     <xi:include href='gradleWrapper.xml'/>
     <xi:include href='embedding.xml'/>
+    <xi:include href='comparingBuilds.xml'/>
+    <xi:include href='publishingIvy.xml'/>
+    <xi:include href='publishingMaven.xml'/>
     <!-- this is generated -->
     <xi:include href='../../../build/src/samplesList.xml'/>
     <xi:include href='potentialTraps.xml'/>
+    <xi:include href='featureLifecycle.xml'/>
     <xi:include href='commandLine.xml'/>
     <xi:include href='ideSupport.xml'/>
     <xi:include href='glossary.xml'/>

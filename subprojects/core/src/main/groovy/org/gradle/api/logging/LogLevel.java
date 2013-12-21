@@ -15,14 +15,10 @@
  */
 package org.gradle.api.logging;
 
-import java.io.Serializable;
-
 /**
  * The log levels supported by Gradle.
- *
- * @author Hans Dockter
  */
-public enum LogLevel implements Serializable {
+public enum LogLevel {
     DEBUG {
         boolean isEnabled(Logger logger) {
             return logger.isDebugEnabled();

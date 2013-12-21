@@ -16,14 +16,13 @@
 
 package org.gradle.plugins.ide.api
 
+import org.gradle.api.internal.ClosureBackedAction
 import org.gradle.listener.ActionBroadcast
 
 /**
  * Models the generation/parsing/merging capabilities.
  * <p>
  * For examples see docs for {@link org.gradle.plugins.ide.eclipse.model.EclipseProject} or {@link org.gradle.plugins.ide.idea.model.IdeaProject} and others.
- *
- * @author: Szczepan Faber, created at: 4/21/11
  */
 class FileContentMerger {
 
@@ -42,7 +41,7 @@ class FileContentMerger {
      * @param closure The closure to execute.
      */
     public void beforeMerged(Closure closure) {
-        beforeMerged.add(closure)
+        beforeMerged.add(new ClosureBackedAction(closure))
     }
 
     /**
@@ -57,6 +56,6 @@ class FileContentMerger {
      * @param closure The closure to execute.
      */
     public void whenMerged(Closure closure) {
-        whenMerged.add(closure)
+        whenMerged.add(new ClosureBackedAction(closure))
     }
 }

@@ -17,12 +17,9 @@
 package org.gradle.api.internal.artifacts.dependencies;
 
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.internal.artifacts.ResolvableDependency;
 import org.gradle.api.internal.artifacts.DependencyResolveContext;
+import org.gradle.api.internal.artifacts.ResolvableDependency;
 
-/**
-* @author Hans Dockter
-*/
 public abstract class AbstractDependency implements ResolvableDependency, Dependency {
     protected void copyTo(AbstractDependency target) {
     }

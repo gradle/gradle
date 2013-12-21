@@ -16,28 +16,58 @@
 
 package org.gradle.api.internal.externalresource.transport.http;
 
-import org.apache.ivy.util.url.ApacheURLLister;
+import org.gradle.api.Transformer;
 import org.gradle.api.internal.externalresource.transfer.ExternalResourceLister;
+import org.gradle.api.internal.resource.ResourceException;
 
 import java.io.IOException;
-import java.net.URL;
+import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class HttpResourceLister implements ExternalResourceLister {
+    private HttpResourceAccessor accessor;
 
-    public List<String> list(String parent) throws IOException {
-        // Parse standard directory listing pages served up by Apache
-        ApacheURLLister urlLister = new ApacheURLLister();
-        List<URL> urls = urlLister.listAll(new URL(parent));
-        if (urls != null) {
-            List<String> ret = new ArrayList<String>(urls.size());
-            for (URL url : urls) {
-                ret.add(url.toExternalForm());
-            }
-            return ret;
-        }
-        return null;
+    public HttpResourceLister(HttpResourceAccessor accessor) {
+        this.accessor = accessor;
     }
 
+    public List<String> list(String parent) throws IOException {
+        final URI baseURI;
+        try {
+            baseURI = new URI(parent);
+        } catch (URISyntaxException ex) {
+            throw new ResourceException(String.format("Unable to create URI from string '%s' ", parent), ex);
+        }
+        final HttpResponseResource resource = accessor.getResource(baseURI.toString());
+        if (resource == null) {
+            return null;
+        }
+        try {
+            return resource.withContent(new Transformer<List<String>, InputStream>() {
+                public List<String> transform(InputStream inputStream) {
+                    String contentType = resource.getContentType();
+                    ApacheDirectoryListingParser directoryListingParser = new ApacheDirectoryListingParser();
+                    try {
+                        List<URI> uris = directoryListingParser.parse(baseURI, inputStream, contentType);
+                        return convertToStringList(uris);
+                    } catch (Exception e) {
+                        throw new ResourceException("Unable to parse Http directory listing", e);
+                    }
+                }
+            });
+        } finally {
+            resource.close();
+        }
+    }
+
+    private List<String> convertToStringList(List<URI> uris) {
+        List<String> ret = new ArrayList<String>(uris.size());
+        for (URI url : uris) {
+            ret.add(url.toString());
+        }
+        return ret;
+    }
 }

@@ -24,6 +24,7 @@ import org.gradle.api.internal.collections.CollectionFilter;
 import org.gradle.api.internal.collections.FilteredSet;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
+import org.gradle.internal.reflect.Instantiator;
 
 import java.util.LinkedHashSet;
 import java.util.Set;

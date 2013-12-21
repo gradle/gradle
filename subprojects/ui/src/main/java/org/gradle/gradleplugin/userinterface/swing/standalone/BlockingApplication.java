@@ -22,8 +22,6 @@ import java.lang.reflect.InvocationTargetException;
 
 /**
  * This is the same as Application, but this version blocks the calling thread until the Application shuts down.
- *
- * @author mhunsicker
  */
 public class BlockingApplication {
 
@@ -64,7 +62,7 @@ public class BlockingApplication {
         } catch (InterruptedException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         } catch (InvocationTargetException e) {
-            throw UncheckedException.throwAsUncheckedException(e.getCause());
+            throw UncheckedException.unwrapAndRethrow(e);
         }
 
         //the calling thread will now block until the caller is complete.

@@ -19,9 +19,6 @@ package org.gradle.api.internal.artifacts.dsl.dependencies
 import org.gradle.api.artifacts.ClientModule
 import org.gradle.util.ConfigureUtil
 
-/**
- * @author Hans Dockter
- */
 class ModuleFactoryDelegate {
   ClientModule clientModule
   DependencyFactory dependencyFactory
@@ -31,7 +28,6 @@ class ModuleFactoryDelegate {
     this.dependencyFactory = dependencyFactory
   }
 
-  //TODO SF - this method does not make sense to me. Why not ConfigureUtil.configure?
   void prepareDelegation(Closure configureClosure) {
     if (!configureClosure) {
         return

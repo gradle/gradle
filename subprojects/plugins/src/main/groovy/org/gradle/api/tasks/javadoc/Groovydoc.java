@@ -34,8 +34,6 @@ import java.util.*;
  * some severe limitations at the moment (for example no doc for properties comments). The version of the Groovydoc that
  * is used, is the one from the Groovy defined in the build script. Please note also, that the Groovydoc tool prints to
  * System.out for many of its statements and does circumvents our logging currently.
- *
- * @author Hans Dockter
  */
 public class Groovydoc extends SourceTask {
     private FileCollection groovyClasspath;
@@ -184,14 +182,14 @@ public class Groovydoc extends SourceTask {
     /**
      * Sets title for the package index(first) page (optional).
      *
-     * @param docTitle the docTitle as html-code
+     * @param docTitle the docTitle as HTML
      */
     public void setDocTitle(String docTitle) {
         this.docTitle = docTitle;
     }
 
     /**
-     * Returns the html header for each page. Set to {@code null} when there is no header.
+     * Returns the HTML header for each page. Set to {@code null} when there is no header.
      */
     @Input @Optional
     public String getHeader() {
@@ -201,14 +199,14 @@ public class Groovydoc extends SourceTask {
     /**
      * Sets header text for each page (optional).
      *
-     * @param header the header as html-code
+     * @param header the header as HTML
      */
     public void setHeader(String header) {
         this.header = header;
     }
 
     /**
-     * Returns the html footer for each page. Set to {@code null} when there is no footer.
+     * Returns the HTML footer for each page. Set to {@code null} when there is no footer.
      */
     @Input @Optional
     public String getFooter() {
@@ -218,21 +216,21 @@ public class Groovydoc extends SourceTask {
     /**
      * Sets footer text for each page (optional).
      *
-     * @param footer the footer as html-code
+     * @param footer the footer as HTML
      */
     public void setFooter(String footer) {
         this.footer = footer;
     }
 
     /**
-     * Returns a html file to be used for overview documentation. Set to {@code null} when there is no overview file.
+     * Returns a HTML file to be used for overview documentation. Set to {@code null} when there is no overview file.
      */
     public String getOverview() {
         return overview;
     }
 
     /**
-     * Sets a html file to be used for overview documentation (optional).
+     * Sets a HTML file to be used for overview documentation (optional).
      */
     public void setOverview(String overview) {
         this.overview = overview;

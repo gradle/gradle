@@ -19,7 +19,9 @@ package org.gradle.cache.internal;
 import org.gradle.api.GradleException;
 import org.gradle.internal.Factory;
 import org.gradle.cache.PersistentStateCache;
-import org.gradle.cache.Serializer;
+import org.gradle.messaging.serialize.InputStreamBackedDecoder;
+import org.gradle.messaging.serialize.OutputStreamBackedEncoder;
+import org.gradle.messaging.serialize.Serializer;
 
 import java.io.*;
 
@@ -35,7 +37,7 @@ public class SimpleStateCache<T> implements PersistentStateCache<T> {
     }
 
     public T get() {
-        return fileAccess.readFromFile(new Factory<T>() {
+        return fileAccess.readFile(new Factory<T>() {
             public T create() {
                 return deserialize();
             }
@@ -43,7 +45,7 @@ public class SimpleStateCache<T> implements PersistentStateCache<T> {
     }
 
     public void set(final T newValue) {
-        fileAccess.writeToFile(new Runnable() {
+        fileAccess.writeFile(new Runnable() {
             public void run() {
                 serialize(newValue);
             }
@@ -51,7 +53,7 @@ public class SimpleStateCache<T> implements PersistentStateCache<T> {
     }
 
     public void update(final UpdateAction<T> updateAction) {
-        fileAccess.writeToFile(new Runnable() {
+        fileAccess.updateFile(new Runnable() {
             public void run() {
                 T oldValue = deserialize();
                 T newValue = updateAction.update(oldValue);
@@ -62,11 +64,11 @@ public class SimpleStateCache<T> implements PersistentStateCache<T> {
 
     private void serialize(T newValue) {
         try {
-            OutputStream outStr = new BufferedOutputStream(new FileOutputStream(cacheFile));
+            OutputStreamBackedEncoder encoder = new OutputStreamBackedEncoder(new BufferedOutputStream(new FileOutputStream(cacheFile)));
             try {
-                serializer.write(outStr, newValue);
+                serializer.write(encoder, newValue);
             } finally {
-                outStr.close();
+                encoder.close();
             }
         } catch (Exception e) {
             throw new GradleException(String.format("Could not write cache value to '%s'.", cacheFile), e);
@@ -78,11 +80,11 @@ public class SimpleStateCache<T> implements PersistentStateCache<T> {
             return null;
         }
         try {
-            InputStream inStr = new BufferedInputStream(new FileInputStream(cacheFile));
+            InputStreamBackedDecoder decoder = new InputStreamBackedDecoder(new BufferedInputStream(new FileInputStream(cacheFile)));
             try {
-                return serializer.read(inStr);
+                return serializer.read(decoder);
             } finally {
-                inStr.close();
+                decoder.close();
             }
         } catch (Exception e) {
             throw new GradleException(String.format("Could not read cache value from '%s'.", cacheFile), e);

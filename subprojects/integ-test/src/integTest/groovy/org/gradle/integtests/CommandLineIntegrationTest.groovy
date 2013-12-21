@@ -15,23 +15,28 @@
  */
 package org.gradle.integtests
 
-import org.apache.tools.ant.taskdefs.Chmod
-import org.gradle.integtests.fixtures.ExecutionFailure
-import org.gradle.integtests.fixtures.GradleDistribution
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.internal.nativeplatform.filesystem.FileSystems
+import org.gradle.integtests.fixtures.executer.ExecutionFailure
+import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.PreconditionVerifier
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.gradle.util.*
-import org.gradle.internal.jvm.Jvm
 
-public class CommandLineIntegrationTest {
-    @Rule public final GradleDistribution dist = new GradleDistribution()
-    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter(GradleDistributionExecuter.Executer.forking)
-    @Rule public final TestResources resources = new TestResources()
+public class CommandLineIntegrationTest extends AbstractIntegrationTest {
+
+    @Rule public final TestResources resources = new TestResources(testDirectoryProvider)
     @Rule public final PreconditionVerifier verifier = new PreconditionVerifier()
+
+    @Before
+    void setup() {
+        executer.requireGradleHome()
+    }
 
     @Test
     public void hasNonZeroExitCodeOnBuildFailure() {
@@ -72,7 +77,7 @@ public class CommandLineIntegrationTest {
 
     @Test
     public void failsWhenJavaHomeDoesNotPointToAJavaInstallation() {
-        def failure = executer.withEnvironmentVars('JAVA_HOME': dist.testDir).withTasks('checkJavaHome').runWithFailure()
+        def failure = executer.withEnvironmentVars('JAVA_HOME': testDirectory).withTasks('checkJavaHome').runWithFailure()
         assert failure.output.contains('ERROR: JAVA_HOME is set to an invalid directory')
     }
 
@@ -84,8 +89,8 @@ public class CommandLineIntegrationTest {
             path = ''
         } else {
             // Set up a fake bin directory, containing the things that the script needs, minus any java that might be in /usr/bin
-            def binDir = dist.testFile('fake-bin')
-            ['basename', 'dirname', 'uname', 'which'].each { linkToBinary(it, binDir) }
+            def binDir = file('fake-bin')
+            ['basename', 'dirname', 'uname', 'which', 'bash'].each { linkToBinary(it, binDir) }
             path = binDir.absolutePath
         }
 
@@ -100,20 +105,20 @@ public class CommandLineIntegrationTest {
             binary = new File("/bin/$command")
         }
         assert binary.exists()
-        FileSystems.default.createSymbolicLink(binDir.file(command), binary.absoluteFile)
+        binDir.file(command).createLink(binary)
     }
 
     @Test
     public void canDefineGradleUserHomeViaEnvironmentVariable() {
         // the actual testing is done in the build script.
-        File gradleUserHomeDir = dist.testDir.file('customUserHome')
-        executer.withUserHomeDir(null).withEnvironmentVars('GRADLE_USER_HOME': gradleUserHomeDir.absolutePath).withTasks("checkGradleUserHomeViaSystemEnv").run();
+        File gradleUserHomeDir = file('customUserHome')
+        executer.withGradleUserHomeDir(null).withEnvironmentVars('GRADLE_USER_HOME': gradleUserHomeDir.absolutePath).withTasks("checkGradleUserHomeViaSystemEnv").run();
     }
 
     @Test
     public void checkDefaultGradleUserHome() {
         // the actual testing is done in the build script.
-        executer.withUserHomeDir(null).withTasks("checkDefaultGradleUserHome").run();
+        executer.withGradleUserHomeDir(null).withTasks("checkDefaultGradleUserHome").run();
     }
 
     @Test
@@ -137,20 +142,20 @@ public class CommandLineIntegrationTest {
     @Test
     public void allowsReconfiguringProjectCacheDirWithRelativeDir() {
         //given
-        dist.testFile("build.gradle").write "task foo { outputs.file file('out'); doLast { } }"
+        file("build.gradle").write "task foo { outputs.file file('out'); doLast { } }"
 
         //when
         executer.withTasks("foo").withArguments("--project-cache-dir", ".foo").run()
 
         //then
-        assert dist.testFile(".foo").exists()
+        assert file(".foo").exists()
     }
 
     @Test
     public void allowsReconfiguringProjectCacheDirWithAbsoluteDir() {
         //given
-        dist.testFile("build.gradle").write "task foo { outputs.file file('out'); doLast { } }"
-        File someAbsoluteDir = dist.testFile("foo/bar/baz").absoluteFile
+        file("build.gradle").write "task foo { outputs.file file('out'); doLast { } }"
+        File someAbsoluteDir = file("foo/bar/baz").absoluteFile
         assert someAbsoluteDir.absolute
 
         //when
@@ -163,31 +168,31 @@ public class CommandLineIntegrationTest {
     @Test
     public void systemPropGradleUserHomeHasPrecedenceOverEnvVariable() {
         // the actual testing is done in the build script.
-        File gradleUserHomeDir = dist.testFile("customUserHome")
-        File systemPropGradleUserHomeDir = dist.testFile("systemPropCustomUserHome")
-        executer.withUserHomeDir(null).withArguments("-Dgradle.user.home=" + systemPropGradleUserHomeDir.absolutePath).withEnvironmentVars('GRADLE_USER_HOME': gradleUserHomeDir.absolutePath).withTasks("checkSystemPropertyGradleUserHomeHasPrecedence").run()
+        File gradleUserHomeDir = file("customUserHome")
+        File systemPropGradleUserHomeDir = file("systemPropCustomUserHome")
+        executer.withGradleUserHomeDir(null).withArguments("-Dgradle.user.home=" + systemPropGradleUserHomeDir.absolutePath).withEnvironmentVars('GRADLE_USER_HOME': gradleUserHomeDir.absolutePath).withTasks("checkSystemPropertyGradleUserHomeHasPrecedence").run()
     }
 
     @Test
     @Requires(TestPrecondition.SYMLINKS)
     public void resolvesLinksWhenDeterminingHomeDirectory() {
-        def script = dist.testFile('bin/my app')
+        def script = file('bin/my app')
         script.parentFile.createDir()
-        FileSystems.default.createSymbolicLink(script, dist.gradleHomeDir.file('bin/gradle'))
+        script.createLink(distribution.gradleHomeDir.file('bin/gradle'))
 
         def result = executer.usingExecutable(script.absolutePath).withTasks("help").run()
         assert result.output.contains("my app")
+
+        // Don't follow links when cleaning up test files
+        testDirectory.usingNativeTools().deleteDir()
     }
 
     @Test
     public void usesScriptBaseNameAsApplicationNameForUseInLogMessages() {
-        def binDir = dist.gradleHomeDir.file('bin')
+        def binDir = distribution.gradleHomeDir.file('bin')
         def newScript = binDir.file(OperatingSystem.current().getScriptName('my app'))
         binDir.file(OperatingSystem.current().getScriptName('gradle')).copyTo(newScript)
-        def chmod = new Chmod()
-        chmod.file = newScript
-        chmod.perm = "700"
-        AntUtil.execute(chmod)
+        newScript.permissions = 'rwx------'
 
         def result = executer.usingExecutable(newScript.absolutePath).withTasks("help").run()
         assert result.output.contains("my app")

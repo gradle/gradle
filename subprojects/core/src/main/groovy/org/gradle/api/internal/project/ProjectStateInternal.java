@@ -46,6 +46,10 @@ public class ProjectStateInternal implements ProjectState {
         this.executing = executing;
     }
 
+    public boolean hasFailure() {
+        return failure != null;
+    }
+
     public Throwable getFailure() {
         return failure;
     }

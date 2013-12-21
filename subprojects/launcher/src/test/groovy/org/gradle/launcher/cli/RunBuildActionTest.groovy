@@ -15,53 +15,37 @@
  */
 package org.gradle.launcher.cli
 
-import spock.lang.Specification
 import org.gradle.StartParameter
-import org.gradle.internal.service.ServiceRegistry
-import org.gradle.initialization.GradleLauncherFactory
-import org.gradle.GradleLauncher
-import org.gradle.BuildResult
-import org.gradle.initialization.BuildRequestMetaData
-import org.gradle.launcher.exec.ExecutionListener
+import org.gradle.initialization.BuildClientMetaData
+import org.gradle.launcher.exec.BuildActionParameters
+import org.gradle.launcher.exec.BuildActionExecuter
+import spock.lang.Specification
+import org.gradle.api.logging.LogLevel
 
 class RunBuildActionTest extends Specification {
-    final StartParameter startParameter = new StartParameter()
-    final ServiceRegistry loggingServices = Mock()
-    final GradleLauncherFactory gradleLauncherFactory = Mock()
-    final ExecutionListener completer = Mock()
-    final GradleLauncher launcher = Mock()
-    final BuildResult result = Mock()
-    final BuildRequestMetaData requestMetaData = Mock()
-    final RunBuildAction action = new RunBuildAction(startParameter, loggingServices, requestMetaData) {
-        @Override
-        GradleLauncherFactory createGradleLauncherFactory(ServiceRegistry loggingServices) {
-            return gradleLauncherFactory
+    final BuildActionExecuter<BuildActionParameters> client = Mock()
+    final StartParameter startParameter = Mock()
+    final BuildClientMetaData clientMetaData = Mock()
+    final File currentDir = new File('current-dir')
+    final long startTime = 90
+    final Map<String, String> systemProperties = [key: 'value']
+    final Map<String, String> envVariables = [key2: 'value2']
+    final RunBuildAction action = new RunBuildAction(client, startParameter, currentDir, clientMetaData, startTime, systemProperties, envVariables)
+
+    def runsBuildUsingDaemon() {
+        when:
+        action.run()
+
+        then:
+        startParameter.logLevel >> LogLevel.ERROR
+        1 * client.execute({!null}, {!null}) >> { args ->
+            ExecuteBuildAction action = args[0]
+            assert action.startParameter == startParameter
+            BuildActionParameters build = args[1]
+            assert build.clientMetaData == clientMetaData
+            assert build.startTime == startTime
+            assert build.systemProperties == systemProperties
         }
-    }
-
-    def executesBuild() {
-        when:
-        action.execute(completer)
-
-        then:
-        1 * gradleLauncherFactory.newInstance(startParameter, requestMetaData) >> launcher
-        1 * launcher.run() >> result
-        _ * result.failure >> null
         0 * _._
     }
-
-    def executesFailedBuild() {
-        def failure = new RuntimeException()
-
-        when:
-        action.execute(completer)
-
-        then:
-        1 * gradleLauncherFactory.newInstance(startParameter, requestMetaData) >> launcher
-        1 * launcher.run() >> result
-        _ * result.failure >> failure
-        1 * completer.onFailure(failure)
-        0 * _._
-    }
-
 }

@@ -18,9 +18,6 @@ package org.gradle.plugins.ide.internal.configurer
 
 import org.gradle.api.Project
 
-/**
- * @author Szczepan Faber, @date: 14.03.11
- */
 class ProjectDeduper {
 
     def moduleNameDeduper = new ModuleNameDeduper()

@@ -16,7 +16,9 @@
 package org.gradle.tooling;
 
 /**
- * Thrown when a Gradle build fails, or when a model cannot be built.
+ * Thrown when a Gradle build fails or when a model cannot be built.
+ *
+ * @since 1.0-milestone-3
  */
 public class BuildException extends GradleConnectionException {
     public BuildException(String message, Throwable throwable) {

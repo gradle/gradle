@@ -18,18 +18,14 @@ package org.gradle.gradleplugin.userinterface.swing.generic;
 import org.gradle.gradleplugin.foundation.favorites.FavoritesEditor;
 
 import javax.swing.*;
-import javax.swing.text.BadLocationException;
-import javax.swing.event.DocumentListener;
 import javax.swing.event.DocumentEvent;
-import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.Window;
+import javax.swing.event.DocumentListener;
+import javax.swing.text.BadLocationException;
+import java.awt.*;
 import java.awt.event.*;
 
 /**
  * This edits the properties of a single favorite task.
- *
- * @author mhunsicker
  */
 public class SwingEditFavoriteInteraction implements FavoritesEditor.EditFavoriteInteraction {
 

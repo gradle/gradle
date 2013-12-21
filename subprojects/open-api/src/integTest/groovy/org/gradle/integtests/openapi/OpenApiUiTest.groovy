@@ -15,15 +15,9 @@
  */
 package org.gradle.integtests.openapi
 
-import java.awt.Component
-import java.awt.event.HierarchyEvent
-import java.awt.event.HierarchyListener
-import java.util.concurrent.TimeUnit
-import javax.swing.JFrame
-import javax.swing.JLabel
-
-import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.openapi.external.ExternalUtility
 import org.gradle.openapi.external.foundation.GradleInterfaceVersion2
 import org.gradle.openapi.external.foundation.ProjectVersion1
@@ -31,16 +25,21 @@ import org.gradle.openapi.external.foundation.RequestVersion1
 import org.gradle.openapi.external.foundation.TaskVersion1
 import org.gradle.openapi.external.foundation.favorites.FavoriteTaskVersion1
 import org.gradle.openapi.external.foundation.favorites.FavoritesEditorVersion1
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.openapi.external.ui.*
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.PreconditionVerifier
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.gradle.util.PreconditionVerifier
-
 import org.junit.Assert
+import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
-import org.junit.ClassRule
+
+import javax.swing.*
+import java.awt.*
+import java.awt.event.HierarchyEvent
+import java.awt.event.HierarchyListener
+import java.util.concurrent.TimeUnit
 
 import static org.hamcrest.Matchers.*
 
@@ -50,9 +49,11 @@ import static org.hamcrest.Matchers.*
  */
 @Requires(TestPrecondition.SWING)
 class OpenApiUiTest {
-    @Rule public GradleDistribution dist = new GradleDistribution()
-    @Rule public TestResources resources = new TestResources('testproject')
-    @Rule public OpenApiFixture openApi = new OpenApiFixture()
+
+    @Rule public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    private IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext();
+    @Rule public TestResources resources = new TestResources(temporaryFolder, 'testproject')
+    @Rule public OpenApiFixture openApi = new OpenApiFixture(temporaryFolder)
     @ClassRule public static PreconditionVerifier verifier = new PreconditionVerifier()
 
     /**
@@ -218,7 +219,7 @@ class OpenApiUiTest {
         Assert.assertEquals(4, editor.getFavoriteTasks().size())
 
         //now remove one of them
-        List removed1 = [favorite2]
+        java.util.List removed1 = [favorite2]
         editor.removeFavorites(removed1)
 
         //make sure it was removed
@@ -226,7 +227,7 @@ class OpenApiUiTest {
         Assert.assertEquals(3, editor.getFavoriteTasks().size())
 
         //now remove multiples
-        List removed2 = [favorite1, favorite4]
+        java.util.List removed2 = [favorite1, favorite4]
         editor.removeFavorites(removed2)
 
         //make sure they were both removed
@@ -273,7 +274,7 @@ class OpenApiUiTest {
         ((GradleInterfaceVersion2) singlePane.getGradleInterfaceVersion1()).addRequestObserver(testRequestObserver)
 
         //now execute both favorites
-        List<FavoriteTaskVersion1> favorites = [favorite1, favorite2]
+        java.util.List<FavoriteTaskVersion1> favorites = [favorite1, favorite2]
         RequestVersion1 request = ((GradleInterfaceVersion2) singlePane.getGradleInterfaceVersion1()).executeFavorites(favorites)
 
         Assert.assertNotNull(request)
@@ -309,7 +310,7 @@ class OpenApiUiTest {
 
         Assert.assertEquals("Execution Failed: " + testRequestObserver.output, 0, testRequestObserver.result)
 
-        List<ProjectVersion1> rootProjects = gradleInterface.getRootProjects();
+        java.util.List<ProjectVersion1> rootProjects = gradleInterface.getRootProjects();
         Assert.assertFalse(rootProjects.isEmpty());   //do we have any root projects?
 
         ProjectVersion1 rootProject = rootProjects.get(0);
@@ -576,12 +577,12 @@ class OpenApiUiTest {
         TestSingleDualPaneUIInteractionVersion1 testSingleDualPaneUIInteractionVersion1 = new TestSingleDualPaneUIInteractionVersion1(new TestAlternateUIInteractionVersion1(), settingsNode);
         SinglePaneUIVersion1 singlePane = null;
         try {
-            singlePane = UIFactory.createSinglePaneUI(getClass().getClassLoader(), dist.getGradleHomeDir(), testSingleDualPaneUIInteractionVersion1, false);
+            singlePane = UIFactory.createSinglePaneUI(getClass().getClassLoader(), buildContext.getGradleHomeDir(), testSingleDualPaneUIInteractionVersion1, false);
         } catch (Exception e) {
             throw new AssertionError("Failed to extract single pane: Caused by " + e.getMessage())
         }
 
-        File illegalDirectory = dist.testFile("non-existant").createDir();
+        File illegalDirectory = temporaryFolder.testDirectory.file("non-existant").createDir();
         if (illegalDirectory.equals(singlePane.getCurrentDirectory())) {
             throw new AssertionError("Directory already set to 'test' directory. The test is not setup correctly.");
         }
@@ -598,7 +599,7 @@ class OpenApiUiTest {
         //now instantiate it again
         testSingleDualPaneUIInteractionVersion1 = new TestSingleDualPaneUIInteractionVersion1(new TestAlternateUIInteractionVersion1(), settingsNode);
         try {
-            singlePane = UIFactory.createSinglePaneUI(getClass().getClassLoader(), dist.getGradleHomeDir(), testSingleDualPaneUIInteractionVersion1, false);
+            singlePane = UIFactory.createSinglePaneUI(getClass().getClassLoader(), buildContext.getGradleHomeDir(), testSingleDualPaneUIInteractionVersion1, false);
         } catch (Exception e) {
             throw new AssertionError("Failed to extract single pane (second time): Caused by " + e.getMessage())
         }
@@ -678,7 +679,7 @@ class OpenApiUiTest {
 
         Assert.assertFalse("Empty version number", version.trim().equals(""))       //shouldn't be empty
 
-        File gradleJar = ExternalUtility.getGradleJar(dist.gradleHomeDir)
+        File gradleJar = ExternalUtility.getGradleJar(buildContext.gradleHomeDir)
 
         Assert.assertNotNull("Missing gradle jar", gradleJar)                         //we should have a gradle jar
 
@@ -699,7 +700,7 @@ class OpenApiUiTest {
     void testGradleHomeDirectory() {
         SinglePaneUIVersion1 singlePane = openApi.createSinglePaneUI()
 
-        Assert.assertEquals(dist.gradleHomeDir, singlePane.getGradleHomeDirectory())
+        Assert.assertEquals(buildContext.gradleHomeDir, singlePane.getGradleHomeDirectory())
     }
 
     /**
@@ -853,7 +854,7 @@ class OpenApiUiTest {
         //gradle file (but it'll be the custom one.
         String name = OperatingSystem.current().getScriptName("bin/gradle");
 
-        File gradleExecutor = new File(dist.getGradleHomeDir(), name)
+        File gradleExecutor = new File(buildContext.getGradleHomeDir(), name)
 
         //make sure the executable exists
         Assert.assertTrue("Missing gradle executable at: " + gradleExecutor, gradleExecutor.exists())

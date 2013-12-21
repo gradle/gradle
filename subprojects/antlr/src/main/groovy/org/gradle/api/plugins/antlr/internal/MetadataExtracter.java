@@ -15,20 +15,14 @@
  */
 package org.gradle.api.plugins.antlr.internal;
 
-import java.io.File;
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.FileNotFoundException;
-
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileTree;
+
+import java.io.*;
 
 /**
  * Preprocess an Antlr grammar file so that dependencies between grammars can be properly determined such that they can
  * be processed for generation in proper order later.
- *
- * @author Steve Ebersole
  */
 public class MetadataExtracter {
 

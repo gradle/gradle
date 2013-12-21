@@ -30,7 +30,6 @@ class SourceTaskTest extends AbstractTaskTest {
 
     @Before
     public void setUp() {
-        super.setUp()
         task = createTask(SourceTask.class)
     }
     

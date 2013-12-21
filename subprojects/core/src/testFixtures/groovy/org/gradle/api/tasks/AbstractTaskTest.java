@@ -22,50 +22,48 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.AbstractTask;
-import org.gradle.api.internal.AsmBackedClassGenerator;
+import org.gradle.internal.Actions;
+import org.gradle.api.internal.DependencyInjectingInstantiator;
 import org.gradle.api.internal.project.AbstractProject;
 import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.taskfactory.AnnotationProcessingTaskFactory;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
-import org.gradle.api.internal.project.taskfactory.TaskFactory;
 import org.gradle.api.internal.tasks.TaskExecuter;
+import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.specs.Spec;
-import org.gradle.util.*;
+import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
+import org.gradle.util.GUtil;
+import org.gradle.util.TestUtil;
+import org.gradle.util.JUnit4GroovyMockery;
 import org.jmock.Expectations;
 import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import spock.lang.Issue;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static org.gradle.util.Matchers.dependsOn;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.Assert.*;
 
-/**
- * @author Hans Dockter
- */
 public abstract class AbstractTaskTest {
-    public static final String TEST_TASK_NAME = "taskname";
+    public static final String TEST_TASK_NAME = "testTask";
     @Rule
-    public TemporaryFolder tmpDir = new TemporaryFolder();
-
-    private AbstractProject project;
+    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
 
     protected JUnit4GroovyMockery context = new JUnit4GroovyMockery() {{
         setImposteriser(ClassImposteriser.INSTANCE);
     }};
-    private static final ITaskFactory TASK_FACTORY = new AnnotationProcessingTaskFactory(new TaskFactory(new AsmBackedClassGenerator()));
 
-    @Before
-    public void setUp() {
-        project = HelperUtil.createRootProject();
-    }
+    protected DefaultServiceRegistry serviceRegistry = new DefaultServiceRegistry();
+
+    protected Instantiator instantiator = new DependencyInjectingInstantiator(serviceRegistry);
+
+    private AbstractProject project = TestUtil.createRootProject();
 
     public abstract AbstractTask getTask();
 
@@ -73,16 +71,19 @@ public abstract class AbstractTaskTest {
         return createTask(type, project, TEST_TASK_NAME);
     }
 
-    public Task createTask(Project project, String name) {
+    public Task createTask(ProjectInternal project, String name) {
         return createTask(getTask().getClass(), project, name);
     }
 
-    public <T extends AbstractTask> T createTask(Class<T> type, Project project, String name) {
-        Task task = TASK_FACTORY.createTask((ProjectInternal) project,
-                GUtil.map(Task.TASK_TYPE, type,
-                        Task.TASK_NAME, name));
+    public <T extends AbstractTask> T createTask(Class<T> type, ProjectInternal project, String name) {
+        Task task = project.getServices().get(ITaskFactory.class).createTask(GUtil.map(Task.TASK_TYPE, type, Task.TASK_NAME, name));
         assertTrue(type.isAssignableFrom(task.getClass()));
         return type.cast(task);
+    }
+
+    @Before
+    public final void setupRegistry() {
+        serviceRegistry.add(Instantiator.class, instantiator);
     }
 
     @Test
@@ -100,10 +101,10 @@ public abstract class AbstractTaskTest {
 
     @Test
     public void testPath() {
-        DefaultProject rootProject = HelperUtil.createRootProject();
-        DefaultProject childProject = HelperUtil.createChildProject(rootProject, "child");
+        DefaultProject rootProject = TestUtil.createRootProject();
+        DefaultProject childProject = TestUtil.createChildProject(rootProject, "child");
         childProject.getProjectDir().mkdirs();
-        DefaultProject childchildProject = HelperUtil.createChildProject(childProject, "childchild");
+        DefaultProject childchildProject = TestUtil.createChildProject(childProject, "childchild");
         childchildProject.getProjectDir().mkdirs();
 
         Task task = createTask(rootProject, TEST_TASK_NAME);
@@ -115,27 +116,14 @@ public abstract class AbstractTaskTest {
     }
 
     @Test
-    public void testDependsOn() {
-        Task dependsOnTask = createTask(project, "somename");
-        Task task = createTask(project, TEST_TASK_NAME);
-        project.getTasks().add("path1");
-        project.getTasks().add("path2");
-
-        task.dependsOn(Project.PATH_SEPARATOR + "path1");
-        assertThat(task, dependsOn("path1"));
-        task.dependsOn("path2", dependsOnTask);
-        assertThat(task, dependsOn("path1", "path2", "somename"));
-    }
-
-    @Test
     public void testToString() {
         assertEquals("task '" + getTask().getPath() + "'", getTask().toString());
     }
 
     @Test
     public void testDeleteAllActions() {
-        Action<Task> action1 = createTaskAction();
-        Action<Task> action2 = createTaskAction();
+        Action<? super Task> action1 = Actions.<Task>doNothing();
+        Action<? super Task> action2 = Actions.<Task>doNothing();
         getTask().doLast(action1);
         getTask().doLast(action2);
         assertSame(getTask(), getTask().deleteAllActions());
@@ -154,8 +142,8 @@ public abstract class AbstractTaskTest {
         final TaskExecuter executer = context.mock(TaskExecuter.class);
         task.setExecuter(executer);
 
-        context.checking(new Expectations(){{
-            one(executer).execute(with(sameInstance(task)), with(notNullValue(TaskStateInternal.class)));
+        context.checking(new Expectations() {{
+            one(executer).execute(with(sameInstance(task)), with(notNullValue(TaskStateInternal.class)), with(notNullValue(TaskExecutionContext.class)));
         }});
 
         task.execute();
@@ -181,7 +169,7 @@ public abstract class AbstractTaskTest {
         AbstractTask task = getTask();
         assertTrue(task.getOnlyIf().isSatisfiedBy(task));
 
-        task.onlyIf(HelperUtil.toClosure("{ task -> false }"));
+        task.onlyIf(TestUtil.toClosure("{ task -> false }"));
         assertFalse(task.getOnlyIf().isSatisfiedBy(task));
     }
 
@@ -257,46 +245,5 @@ public abstract class AbstractTaskTest {
 
         condition1.set(true);
         assertTrue(task.getOnlyIf().isSatisfiedBy(task));
-    }
-
-    @Test
-    public void testDependentTaskDidWork() {
-        final Task task1 = context.mock(Task.class, "task1");
-        final Task task2 = context.mock(Task.class, "task2");
-        final TaskDependency dependencyMock = context.mock(TaskDependency.class);
-        getTask().dependsOn(dependencyMock);
-        context.checking(new Expectations() {{
-            allowing(dependencyMock).getDependencies(getTask()); will(returnValue(WrapUtil.toSet(task1, task2)));
-
-            exactly(2).of(task1).getDidWork();
-            will(returnValue(false));
-
-            exactly(2).of(task2).getDidWork();
-            will(onConsecutiveCalls(returnValue(false), returnValue(true)));
-        }});
-
-        assertFalse(getTask().dependsOnTaskDidWork());
-
-        assertTrue(getTask().dependsOnTaskDidWork());
-    }
-
-    public static Action<Task> createTaskAction() {
-        return new Action<Task>() {
-            public void execute(Task task) {
-            }
-        };
-    }
-    
-    @Test
-    @Issue("http://issues.gradle.org/browse/GRADLE-2022")
-    public void testGoodErrorMessageWhenTaskInstantiatedDirectly() {
-        try {
-            Class<? extends AbstractTask> clazz = getTask().getClass();
-            clazz.newInstance();
-            throw new RuntimeException("Direct instantiation of " + clazz + " should have produced an exception");
-        } catch (Exception e) {
-            assertEquals(TaskInstantiationException.class, e.getClass());
-            assert e.getMessage().contains("has been instantiated directly which is not supported");
-        }
     }
 }

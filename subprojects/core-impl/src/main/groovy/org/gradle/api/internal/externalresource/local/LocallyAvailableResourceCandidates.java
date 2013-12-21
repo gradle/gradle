@@ -16,7 +16,8 @@
 
 package org.gradle.api.internal.externalresource.local;
 
-import org.gradle.util.hash.HashValue;
+import org.gradle.internal.resource.local.LocallyAvailableResource;
+import org.gradle.internal.hash.HashValue;
 
 /**
  * A set of locally available resources that were “selected” through some means.

@@ -1,0 +1,133 @@
+/*
+ * Copyright 2012 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// This is a groovy project because we have int tests.
+// Remove any pre-configured archives
+configurations.all {
+    artifacts.clear()
+}
+tasks.remove(jar)
+
+tasks.withType(AbstractArchiveTask) {
+    baseName "gradle"
+
+    // The CI server looks for the distributions at this location
+    destinationDir = rootProject.distsDir
+    clean.delete archivePath
+}
+
+dependencies {
+    testCompile libraries.groovy
+}
+
+configurations {
+    dists
+}
+
+daemonIntegTest.enabled = false
+
+evaluationDependsOn ":docs"
+
+ext {
+    zipRootFolder = "gradle-$version"
+
+    binDistImage = copySpec {
+        from('src/toplevel') {
+            exclude 'media/**'
+            expand(version: version)
+        }
+        from('src/toplevel') {
+            include 'media/**'
+        }
+        from project(':docs').outputs.distDocs
+        into('bin') {
+            from { project(':launcher').startScripts.outputs.files }
+            fileMode = 0755
+        }
+        into('lib') {
+            from rootProject.configurations.runtime
+            into('plugins') {
+                from rootProject.configurations.gradlePlugins - rootProject.configurations.runtime
+            }
+        }
+    }
+
+    allDistImage = copySpec {
+        with binDistImage
+        groovyProjects.each { project ->
+            into("src/$project.projectDir.name") {
+                from project.sourceSets.main.allSource
+            }
+        }
+        into('docs') {
+            from project(':docs').outputs.docs
+        }
+        into('samples') {
+            from project(':docs').outputs.samples
+        }
+    }
+}
+
+task allZip(type: Zip) {
+    classifier = 'all'
+    into(zipRootFolder) {
+        with allDistImage
+    }
+}
+
+task binZip(type: Zip) {
+    classifier = 'bin'
+    into(zipRootFolder) {
+        with binDistImage
+    }
+}
+
+task srcZip(type: Zip) {
+    classifier = 'src'
+    into(zipRootFolder) {
+        from(rootProject.file('gradlew')) {
+            fileMode = 0755
+        }
+        from(rootProject.projectDir) {
+            def spec = delegate
+            ['buildSrc', 'subprojects/*'].each {
+                spec.include "$it/*.gradle"
+                spec.include "$it/src/"
+            }
+            include 'config/'
+            include 'gradle/'
+            include 'src/'
+            include '*.gradle'
+            include 'wrapper/'
+            include 'gradlew.bat'
+            include 'version.txt'
+        }
+    }
+}
+
+task outputsZip(type: Zip) {
+    archiveName "outputs.zip"
+    from rootProject.createBuildReceipt
+    ["all", "bin", "src"].each { from(tasks["${it}Zip"]) }
+}
+
+artifacts {
+    dists allZip, binZip, srcZip
+}
+
+integTest {
+    inputs.files allZip, binZip, srcZip
+}

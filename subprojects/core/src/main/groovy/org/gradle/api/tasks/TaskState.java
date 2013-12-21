@@ -16,6 +16,8 @@
 
 package org.gradle.api.tasks;
 
+import org.gradle.api.Nullable;
+
 /**
  * {@code TaskState} provides information about the execution state of a {@link org.gradle.api.Task}. You can obtain a
  * {@code TaskState} instance by calling {@link org.gradle.api.Task#getState()}.
@@ -33,6 +35,7 @@ public interface TaskState {
      *
      * @return The exception, or null if the task did not fail.
      */
+    @Nullable
     Throwable getFailure();
 
     /**
@@ -61,5 +64,6 @@ public interface TaskState {
      *
      * @return the message. returns null if the task was not skipped.
      */
+    @Nullable
     String getSkipMessage();
 }

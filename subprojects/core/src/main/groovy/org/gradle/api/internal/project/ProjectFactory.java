@@ -18,16 +18,13 @@ package org.gradle.api.internal.project;
 
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.Instantiator;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.StringScriptSource;
 import org.gradle.groovy.scripts.UriScriptSource;
+import org.gradle.internal.reflect.Instantiator;
 
 import java.io.File;
 
-/**
- * @author Hans Dockter
- */
 public class ProjectFactory implements IProjectFactory {
     private final Instantiator instantiator;
 
@@ -50,7 +47,7 @@ public class ProjectFactory implements IProjectFactory {
                 projectDescriptor.getProjectDir(),
                 source,
                 gradle,
-                gradle.getServices());
+                gradle.getServiceRegistryFactory());
 
         if (parent != null) {
             parent.addChildProject(project);

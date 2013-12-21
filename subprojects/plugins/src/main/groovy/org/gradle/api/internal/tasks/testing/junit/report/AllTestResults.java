@@ -34,17 +34,22 @@ public class AllTestResults extends CompositeTestResults {
         return "Test Summary";
     }
 
+    @Override
+    public String getBaseUrl() {
+        return "index.html";
+    }
+
     public Collection<PackageTestResults> getPackages() {
         return packages.values();
     }
 
-    public TestResult addTest(String className, String testName, long duration) {
+    public TestResult addTest(long classId, String className, String testName, long duration) {
         PackageTestResults packageResults = addPackageForClass(className);
-        return addTest(packageResults.addTest(className, testName, duration));
+        return addTest(packageResults.addTest(classId, className, testName, duration));
     }
 
-    public ClassTestResults addTestClass(String className) {
-        return addPackageForClass(className).addClass(className);
+    public ClassTestResults addTestClass(long classId, String className) {
+        return addPackageForClass(className).addClass(classId, className);
     }
 
     private PackageTestResults addPackageForClass(String className) {

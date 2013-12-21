@@ -17,8 +17,9 @@ package org.gradle.api.internal.externalresource.transport.http
 
 import org.apache.http.auth.AuthScope
 import org.apache.http.impl.client.DefaultHttpClient
-import org.apache.http.impl.conn.ProxySelectorRoutePlanner
+import org.apache.http.params.HttpProtocolParams
 import org.gradle.api.artifacts.repositories.PasswordCredentials
+import org.gradle.api.internal.resource.UriResource
 import spock.lang.Specification
 
 public class HttpClientConfigurerTest extends Specification {
@@ -26,29 +27,25 @@ public class HttpClientConfigurerTest extends Specification {
     PasswordCredentials credentials = Mock()
     HttpSettings httpSettings = Mock()
     HttpProxySettings proxySettings = Mock()
-    
+    HttpClientConfigurer configurer = new HttpClientConfigurer(httpSettings)
+
     def "configures http client with no credentials or proxy"() {
-        when:
         httpSettings.credentials >> credentials
         httpSettings.proxySettings >> proxySettings
 
-        and:
-        def configurer = new HttpClientConfigurer(httpSettings)
-        configurer.configure(httpClient)
-        
-        then:
-        httpClient.getRoutePlanner() instanceof ProxySelectorRoutePlanner
-        httpClient.getHttpRequestRetryHandler().retryRequest(new IOException(), 1, null) == false
-    }
-    
-    def "configures http client with proxy credentials"() {
         when:
+        configurer.configure(httpClient)
+
+        then:
+        !httpClient.getHttpRequestRetryHandler().retryRequest(new IOException(), 1, null)
+    }
+
+    def "configures http client with proxy credentials"() {
         httpSettings.credentials >> credentials
         httpSettings.proxySettings >> proxySettings
         proxySettings.proxy >> new HttpProxySettings.HttpProxy("host", 1111, "domain/proxyUser", "proxyPass")
 
-        and:
-        def configurer = new HttpClientConfigurer(httpSettings)
+        when:
         configurer.configure(httpClient)
 
         then:
@@ -66,14 +63,12 @@ public class HttpClientConfigurerTest extends Specification {
     }
 
     def "configures http client with credentials"() {
-        when:
         httpSettings.credentials >> credentials
         credentials.username >> "domain/user"
         credentials.password >> "pass"
         httpSettings.proxySettings >> proxySettings
 
-        and:
-        def configurer = new HttpClientConfigurer(httpSettings)
+        when:
         configurer.configure(httpClient)
 
         then:
@@ -88,5 +83,19 @@ public class HttpClientConfigurerTest extends Specification {
         ntlmCredentials.userName == 'user'
         ntlmCredentials.password == 'pass'
         ntlmCredentials.workstation != ''
+
+        and:
+        httpClient.getRequestInterceptor(0) instanceof HttpClientConfigurer.PreemptiveAuth
+    }
+
+    def "configures http client with user agent"() {
+        httpSettings.credentials >> credentials
+        httpSettings.proxySettings >> proxySettings
+
+        when:
+        configurer.configure(httpClient)
+
+        then:
+        HttpProtocolParams.getUserAgent(httpClient.params) == UriResource.userAgentString
     }
 }

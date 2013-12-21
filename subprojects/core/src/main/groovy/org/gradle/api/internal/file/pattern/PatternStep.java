@@ -15,9 +15,6 @@
  */
 package org.gradle.api.internal.file.pattern;
 
-/**
- * @author Steve Appling
- */
 public interface PatternStep {
     public boolean matches(String candidate, boolean isFile);
     public boolean isGreedy();

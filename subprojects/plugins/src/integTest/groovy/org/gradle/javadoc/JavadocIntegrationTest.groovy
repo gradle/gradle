@@ -15,13 +15,13 @@
  */
 package org.gradle.javadoc
 
-import org.junit.Rule
-import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.TestResources
+import org.junit.Rule
 import spock.lang.Issue
 
 class JavadocIntegrationTest extends AbstractIntegrationSpec {
-    @Rule TestResources testResources = new TestResources()
+    @Rule TestResources testResources = new TestResources(temporaryFolder)
 
     @Issue("GRADLE-1563")
     def handlesTagsAndTaglets() {
@@ -33,5 +33,16 @@ class JavadocIntegrationTest extends AbstractIntegrationSpec {
         javadoc.text =~ /(?ms)This is the Person class.*Author.*author value.*Deprecated.*deprecated value.*Custom Tag.*custom tag value/
         // we can't currently control the order between tags and taglets (limitation on our side)
         javadoc.text =~ /(?ms)Custom Taglet.*custom taglet value/
+    }
+
+    @Issue("GRADLE-2520")
+    def canCombineLocalOptionWithOtherOptions() {
+        when:
+        run("javadoc")
+
+        then:
+        def javadoc = testResources.dir.file("build/docs/javadoc/Person.html")
+        javadoc.text =~ /(?ms)USED LOCALE=de_DE/
+        javadoc.text =~ /(?ms)Serial no. is valid javadoc!/
     }
 }

@@ -16,9 +16,6 @@
 
 package org.gradle.integtests.fixtures;
 
-/**
- * @author Szczepan Faber, @date: 25.03.11
- */
 public class IntegrationTestHint extends RuntimeException {
 
     public IntegrationTestHint(Throwable cause) {

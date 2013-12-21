@@ -16,21 +16,21 @@
 package org.gradle.api.internal.file.collections;
 
 import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.ConfigurableFileTree;
+import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.file.CompositeFileTree;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.IdentityFileResolver;
-import org.gradle.api.internal.file.copy.CopyActionImpl;
-import org.gradle.api.internal.file.copy.FileCopyActionImpl;
-import org.gradle.api.internal.file.copy.FileCopySpecVisitor;
+import org.gradle.api.internal.file.copy.FileCopier;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
@@ -38,23 +38,22 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * @author Hans Dockter
- */
 public class DefaultConfigurableFileTree extends CompositeFileTree implements ConfigurableFileTree {
     private PatternSet patternSet = new PatternSet();
     private Object dir;
     private final FileResolver resolver;
     private final DefaultTaskDependency buildDependency;
+    private final Instantiator instantiator;
 
-    public DefaultConfigurableFileTree(Object dir, FileResolver resolver, TaskResolver taskResolver) {
-        this(Collections.singletonMap("dir", dir), resolver, taskResolver);
+    public DefaultConfigurableFileTree(Object dir, FileResolver resolver, TaskResolver taskResolver, Instantiator instantiator) {
+        this(Collections.singletonMap("dir", dir), resolver, taskResolver, instantiator);
     }
 
-    public DefaultConfigurableFileTree(Map<String, ?> args, FileResolver resolver, TaskResolver taskResolver) {
-        this.resolver = resolver != null ? resolver : new IdentityFileResolver();
+    public DefaultConfigurableFileTree(Map<String, ?> args, FileResolver resolver, TaskResolver taskResolver, Instantiator instantiator) {
+        this.resolver = resolver;
         ConfigureUtil.configureByMap(args, this);
         buildDependency = new DefaultTaskDependency(taskResolver);
+        this.instantiator = instantiator;
     }
 
     public PatternSet getPatterns() {
@@ -82,12 +81,14 @@ public class DefaultConfigurableFileTree extends CompositeFileTree implements Co
         return String.format("directory '%s'", dir);
     }
 
-    public WorkResult copy(Closure closure) {
-        CopyActionImpl action = new FileCopyActionImpl(resolver, new FileCopySpecVisitor());
-        action.from(this);
-        ConfigureUtil.configure(closure, action);
-        action.execute();
-        return action;
+    public WorkResult copy(final Closure closure) {
+        FileCopier copyAction = new FileCopier(instantiator, resolver);
+        return copyAction.copy(new Action<CopySpec>() {
+            public void execute(CopySpec copySpec) {
+                copySpec.from(DefaultConfigurableFileTree.this);
+                ConfigureUtil.configure(closure, copySpec);
+            }
+        });
     }
 
     public Set<String> getIncludes() {
@@ -108,7 +109,7 @@ public class DefaultConfigurableFileTree extends CompositeFileTree implements Co
         return this;
     }
 
-    public DefaultConfigurableFileTree include(String ... includes) {
+    public DefaultConfigurableFileTree include(String... includes) {
         patternSet.include(includes);
         return this;
     }
@@ -128,7 +129,7 @@ public class DefaultConfigurableFileTree extends CompositeFileTree implements Co
         return this;
     }
 
-    public DefaultConfigurableFileTree exclude(String ... excludes) {
+    public DefaultConfigurableFileTree exclude(String... excludes) {
         patternSet.exclude(excludes);
         return this;
     }

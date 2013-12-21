@@ -24,8 +24,6 @@ import java.io.File;
 /**
  * This manages the communication between the UI and an externally-launched copy of Gradle when using socket-based inter-process communication. This is the server side for executing a gradle command.
  * This listens for messages from the gradle client.
- *
- * @author mhunsicker
  */
 public class ExecuteGradleCommandServerProtocol extends AbstractGradleServerProtocol {
     private static final String INIT_SCRIPT_NAME = "execute-command-init-script";

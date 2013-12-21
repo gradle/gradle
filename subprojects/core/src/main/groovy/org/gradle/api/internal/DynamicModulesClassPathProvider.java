@@ -18,8 +18,8 @@ package org.gradle.api.internal;
 import org.gradle.api.internal.classpath.Module;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.classpath.PluginModuleRegistry;
-import org.gradle.util.ClassPath;
-import org.gradle.util.DefaultClassPath;
+import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.classpath.DefaultClassPath;
 
 public class DynamicModulesClassPathProvider implements ClassPathProvider {
     private final ModuleRegistry moduleRegistry;

@@ -16,72 +16,63 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
-import org.apache.ivy.core.module.descriptor.Artifact
-import org.apache.ivy.core.module.id.ArtifactRevisionId
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy
-
+import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult
+import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleResolutionCache
-import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleDescriptorCache
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetaDataCache
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactIdentifier
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData
+import org.gradle.api.internal.externalresource.cached.CachedArtifactIndex
+import org.gradle.api.internal.externalresource.ivy.ArtifactAtRepositoryKey
+import org.gradle.api.internal.externalresource.metadata.DefaultExternalResourceMetaData
+import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData
+import org.gradle.util.BuildCommencedTimeProvider
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import org.gradle.api.internal.externalresource.ivy.ArtifactAtRepositoryKey
-import org.apache.ivy.core.module.id.ModuleId
-import org.apache.ivy.core.module.id.ArtifactId
-import org.apache.ivy.core.module.id.ModuleRevisionId
-import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex
-import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData
-import org.gradle.api.internal.externalresource.metadata.DefaultExternalResourceMetaData
-import org.gradle.util.TrueTimeProvider
-
 class CachingModuleVersionRepositoryTest extends Specification {
 
-    ModuleVersionRepository realRepo = Mock()
-    ModuleResolutionCache moduleResolutionCache = Mock()
-    ModuleDescriptorCache moduleDescriptorCache = Mock()
-    CachedExternalResourceIndex artifactAtRepositoryCache = Mock()
-    CachePolicy cachePolicy = Mock()
+    final realRepo = Mock(ModuleVersionRepository)
+    final moduleResolutionCache = Mock(ModuleResolutionCache)
+    final moduleDescriptorCache = Mock(ModuleMetaDataCache)
+    final artifactAtRepositoryCache = Mock(CachedArtifactIndex)
+    final resolver = Mock(DependencyToModuleVersionResolver)
+    final cachePolicy = Mock(CachePolicy)
+    CachingModuleVersionRepository repo = new CachingModuleVersionRepository(realRepo, moduleResolutionCache, moduleDescriptorCache, artifactAtRepositoryCache,
+            resolver, cachePolicy, new BuildCommencedTimeProvider())
+    int descriptorHash = 1234
+    CachingModuleVersionRepository.CachingModuleSource moduleSource = Mock()
 
-    CachingModuleVersionRepository repo = new CachingModuleVersionRepository(realRepo, moduleResolutionCache, moduleDescriptorCache, artifactAtRepositoryCache, cachePolicy, new TrueTimeProvider())
-    
-    @Unroll "last modified date is cached - lastModified = #lastModified"(Date lastModified) {
+    @Unroll
+    "last modified date is cached - lastModified = #lastModified"(Date lastModified) {
         given:
-        ExternalResourceMetaData externalResourceMetaData = new DefaultExternalResourceMetaData("remote url", lastModified, -1, null)
-        DownloadedArtifact downloadedArtifact = new DownloadedArtifact(new File("artifact"), externalResourceMetaData)
-        Artifact artifact = Mock()
-        ArtifactRevisionId id = arid()
-        ArtifactAtRepositoryKey atRepositoryKey = new ArtifactAtRepositoryKey(realRepo, id)
-        
+        ExternalResourceMetaData externalResourceMetaData = new DefaultExternalResourceMetaData("remote url", lastModified, -1, null, null)
+        File file = new File("local")
+        BuildableArtifactResolveResult result = Mock()
+        def artifactId = Stub(ModuleVersionArtifactIdentifier)
+        def artifact = Stub(ModuleVersionArtifactMetaData) {
+            getId() >> artifactId
+        }
+        ArtifactAtRepositoryKey atRepositoryKey = new ArtifactAtRepositoryKey("repo-id", artifactId)
 
         and:
+        _ * realRepo.id >> "repo-id"
         _ * realRepo.isLocal() >> false
+        _ * moduleSource.descriptorHash >> descriptorHash
+        _ * moduleSource.isChangingModule >> true
         _ * artifactAtRepositoryCache.lookup(atRepositoryKey) >> null
-        _ * realRepo.download(artifact) >> downloadedArtifact
-        _ * artifact.getId() >> id
+        _ * realRepo.resolve(artifact, result, null)
+        _ * result.file >> file
+        _ * result.externalResourceMetaData >> externalResourceMetaData
 
         when:
-        repo.download(artifact)
-        
+        repo.resolve(artifact, result, moduleSource)
+
         then:
-        1 * artifactAtRepositoryCache.store(atRepositoryKey, downloadedArtifact.localFile, externalResourceMetaData)
-        
+        1 * artifactAtRepositoryCache.store(atRepositoryKey, file, descriptorHash)
+        0 * moduleDescriptorCache._
         where:
         lastModified << [new Date(), null]
     }
-
-    ArtifactRevisionId arid(Map attrs = [:]) {
-        Map defaults = [
-                org: "org", name: "name", revision: "1.0",
-                type: "type", ext: "ext"
-        ]
-
-        attrs = defaults + attrs
-
-        ModuleId mid = new ModuleId(attrs.org, attrs.name)
-        new ArtifactRevisionId(
-                new ArtifactId(mid, mid.name, attrs.type, attrs.ext),
-                new ModuleRevisionId(mid, attrs.revision)
-        )
-    }
-
 }

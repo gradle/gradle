@@ -26,8 +26,6 @@ import java.net.Socket;
 /**
  * The client of what the ProcessLauncherServer launches. The client makes a connection to the server and sends messages to it. The server responds to those messages, but does not initiate
  * communications otherwise. You implement the Protocol interface to handle the specifics of the communications.
- *
- * @author mhunsicker
  */
 public class ClientProcess {
     private final Logger logger = Logging.getLogger(ClientProcess.class);

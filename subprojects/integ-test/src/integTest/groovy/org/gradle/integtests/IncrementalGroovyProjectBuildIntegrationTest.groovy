@@ -15,22 +15,18 @@
  */
 package org.gradle.integtests
 
-import org.gradle.integtests.fixtures.GradleDistribution
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
-import org.gradle.util.TestFile
-import org.junit.Rule
+import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.gradle.test.fixtures.file.TestFile
 import org.junit.Test
 
-class IncrementalGroovyProjectBuildIntegrationTest {
-    @Rule public final GradleDistribution distribution = new GradleDistribution()
-    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
+class IncrementalGroovyProjectBuildIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void doesNotRebuildGroovydocIfSourceHasNotChanged() {
-        distribution.testFile("src/main/groovy/BuildClass.java") << 'public class BuildClass { }'
-        distribution.testFile("build.gradle") << '''
+        file("src/main/groovy/BuildClass.java") << 'public class BuildClass { }'
+        file("build.gradle") << '''
             apply plugin: 'groovy'
-            dependencies { groovy localGroovy() }
+            dependencies { compile localGroovy() }
             groovydoc {
                 link('http://download.oracle.com/javase/1.5.0/docs/api', 'java.,org.xml.,javax.,org.xml.')
             }
@@ -38,7 +34,7 @@ class IncrementalGroovyProjectBuildIntegrationTest {
 
         executer.withTasks("groovydoc").run();
 
-        TestFile indexFile = distribution.testFile("build/docs/groovydoc/index.html");
+        TestFile indexFile = file("build/docs/groovydoc/index.html");
         indexFile.assertIsFile();
         TestFile.Snapshot snapshot = indexFile.snapshot();
 
@@ -46,7 +42,7 @@ class IncrementalGroovyProjectBuildIntegrationTest {
 
         indexFile.assertHasNotChangedSince(snapshot);
 
-        distribution.testFile("build.gradle").append("groovydoc.link('http://download.oracle.com/javase/1.5.0/docs/api', 'java.')")
+        file("build.gradle").append("groovydoc.link('http://download.oracle.com/javase/1.5.0/docs/api', 'java.')")
 
         executer.withTasks("groovydoc").run().assertTaskNotSkipped(':groovydoc');
 

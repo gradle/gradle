@@ -15,44 +15,20 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.core.module.descriptor.DependencyArtifactDescriptor;
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.gradle.api.artifacts.Module;
-import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyDependencyPublisher;
-import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
+import org.gradle.api.internal.artifacts.ivyservice.LocalComponentFactory;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ProjectDependencyDescriptor;
+import org.gradle.api.internal.artifacts.metadata.LocalComponentMetaData;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.util.ReflectionUtil;
 
 public class DefaultProjectModuleRegistry implements ProjectModuleRegistry {
-    private final ModuleDescriptorConverter moduleDescriptorConverter;
+    private final LocalComponentFactory localComponentFactory;
 
-    public DefaultProjectModuleRegistry(ModuleDescriptorConverter moduleDescriptorConverter) {
-        this.moduleDescriptorConverter = moduleDescriptorConverter;
+    public DefaultProjectModuleRegistry(LocalComponentFactory localComponentFactory) {
+        this.localComponentFactory = localComponentFactory;
     }
 
-    public ModuleDescriptor findProject(DependencyDescriptor descriptor) {
-        if (!(descriptor instanceof ProjectDependencyDescriptor)) {
-            return null;
-        }
-        ProjectDependencyDescriptor projectDependencyDescriptor = (ProjectDependencyDescriptor) descriptor;
-        ProjectInternal project = projectDependencyDescriptor.getTargetProject();
-        Module projectModule = project.getModule();
-        ModuleDescriptor projectDescriptor = moduleDescriptorConverter.convert(project.getConfigurations(), projectModule);
-
-        for (DependencyArtifactDescriptor artifactDescriptor : descriptor.getAllDependencyArtifacts()) {
-            for (Artifact artifact : projectDescriptor.getAllArtifacts()) {
-                if (artifact.getName().equals(artifactDescriptor.getName()) && artifact.getExt().equals(
-                        artifactDescriptor.getExt())) {
-                    String path = artifact.getExtraAttribute(DefaultIvyDependencyPublisher.FILE_PATH_EXTRA_ATTRIBUTE);
-                    ReflectionUtil.invoke(artifactDescriptor, "setExtraAttribute",
-                            new Object[]{DefaultIvyDependencyPublisher.FILE_PATH_EXTRA_ATTRIBUTE, path});
-                }
-            }
-        }
-
-        return projectDescriptor;
+    public LocalComponentMetaData findProject(ProjectDependencyDescriptor descriptor) {
+        ProjectInternal project = descriptor.getTargetProject();
+        return localComponentFactory.convert(project.getConfigurations(), project.getModule());
     }
 }

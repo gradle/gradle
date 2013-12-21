@@ -18,9 +18,6 @@ package org.gradle.launcher.daemon.configuration;
 
 import java.io.File;
 
-/**
- * by Szczepan Faber, created at: 2/21/12
- */
 public class ForegroundDaemonConfiguration extends DefaultDaemonServerConfiguration {
     public ForegroundDaemonConfiguration(String daemonUid, File daemonBaseDir, int idleTimeoutMs) {
         // Foreground daemon cannot be 'told' what's his startup options as the client sits in the same process so we will infer the jvm opts from the inputArguments()

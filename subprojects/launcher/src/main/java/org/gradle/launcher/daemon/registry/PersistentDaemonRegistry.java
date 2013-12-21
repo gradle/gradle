@@ -16,13 +16,16 @@
 
 package org.gradle.launcher.daemon.registry;
 
-import org.gradle.cache.DefaultSerializer;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.cache.PersistentStateCache;
+import org.gradle.cache.internal.FileIntegrityViolationSuppressingPersistentStateCacheDecorator;
 import org.gradle.cache.internal.FileLockManager;
 import org.gradle.cache.internal.OnDemandFileAccess;
 import org.gradle.cache.internal.SimpleStateCache;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.messaging.remote.Address;
+import org.gradle.messaging.serialize.DefaultSerializer;
 
 import java.io.File;
 import java.util.LinkedList;
@@ -32,23 +35,25 @@ import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Access to daemon registry files. Useful also for testing.
- *
- * @author: Szczepan Faber, created at: 8/18/11
  */
 public class PersistentDaemonRegistry implements DaemonRegistry {
-    private final SimpleStateCache<DaemonRegistryContent> cache;
+    private final PersistentStateCache<DaemonRegistryContent> cache;
     private final Lock lock = new ReentrantLock();
     private final File registryFile;
 
+    private static final Logger LOGGER = Logging.getLogger(PersistentDaemonRegistry.class);
+
     public PersistentDaemonRegistry(File registryFile, FileLockManager fileLockManager) {
         this.registryFile = registryFile;
-        cache = new SimpleStateCache<DaemonRegistryContent>(
-                registryFile,
-                new OnDemandFileAccess(
+        cache = new FileIntegrityViolationSuppressingPersistentStateCacheDecorator<DaemonRegistryContent>(
+                new SimpleStateCache<DaemonRegistryContent>(
                         registryFile,
-                        "daemon addresses registry",
-                        fileLockManager),
-                new DefaultSerializer<DaemonRegistryContent>());
+                        new OnDemandFileAccess(
+                                registryFile,
+                                "daemon addresses registry",
+                                fileLockManager),
+                        new DefaultSerializer<DaemonRegistryContent>()
+                ));
     }
 
     public List<DaemonInfo> getAll() {
@@ -99,10 +104,13 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
 
     public void remove(final Address address) {
         lock.lock();
+        LOGGER.debug("Removing daemon address: {}", address);
         try {
             cache.update(new PersistentStateCache.UpdateAction<DaemonRegistryContent>() {
                 public DaemonRegistryContent update(DaemonRegistryContent oldValue) {
-                    assertCacheNotEmpty(oldValue);
+                    if (oldValue == null) {
+                        return oldValue;
+                    }
                     oldValue.removeInfo(address);
                     return oldValue;
                 }
@@ -114,15 +122,17 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
 
     public void markBusy(final Address address) {
         lock.lock();
+        LOGGER.debug("Marking busy by address: {}", address);
         try {
             cache.update(new PersistentStateCache.UpdateAction<DaemonRegistryContent>() {
                 public DaemonRegistryContent update(DaemonRegistryContent oldValue) {
-                    assertCacheNotEmpty(oldValue);
-                    DaemonInfo daemonInfo = oldValue.getInfo(address);
-                    daemonInfo.setIdle(false);
+                    DaemonInfo daemonInfo = oldValue != null ? oldValue.getInfo(address) : null;
+                    if (daemonInfo != null) {
+                        daemonInfo.setIdle(false);
+                    }
+                    // Else, has been removed by something else - ignore
                     return oldValue;
-                }
-            });
+                }});
         } finally {
             lock.unlock();
         }
@@ -130,11 +140,15 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
 
     public void markIdle(final Address address) {
         lock.lock();
+        LOGGER.debug("Marking idle by address: {}", address);
         try {
             cache.update(new PersistentStateCache.UpdateAction<DaemonRegistryContent>() {
                 public DaemonRegistryContent update(DaemonRegistryContent oldValue) {
-                    assertCacheNotEmpty(oldValue);
-                    oldValue.getInfo(address).setIdle(true);
+                    DaemonInfo daemonInfo = oldValue != null ? oldValue.getInfo(address) : null;
+                    if (daemonInfo != null) {
+                        daemonInfo.setIdle(true);
+                    }
+                    // Else, has been removed by something else - ignore
                     return oldValue;
                 }
             });
@@ -143,8 +157,9 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
         }
     }
 
-    public synchronized void store(final Address address, final DaemonContext daemonContext, final String password) {
+    public void store(final Address address, final DaemonContext daemonContext, final String password, final boolean idle) {
         lock.lock();
+        LOGGER.debug("Storing daemon address: {}, context: {}", address, daemonContext);
         try {
             cache.update(new PersistentStateCache.UpdateAction<DaemonRegistryContent>() {
                 public DaemonRegistryContent update(DaemonRegistryContent oldValue) {
@@ -152,7 +167,7 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
                         //it means the registry didn't exist yet
                         oldValue = new DaemonRegistryContent();
                     }
-                    DaemonInfo daemonInfo = new DaemonInfo(address, daemonContext, password).setIdle(true);
+                    DaemonInfo daemonInfo = new DaemonInfo(address, daemonContext, password, idle);
                     oldValue.setStatus(address, daemonInfo);
                     return oldValue;
                 }
@@ -164,11 +179,5 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
 
     public String toString() {
         return String.format("PersistentDaemonRegistry[file=%s]", registryFile);
-    }
-
-    private void assertCacheNotEmpty(Object value) {
-        if (value == null) {
-            throw new EmptyRegistryException("Registry is empty!");
-        }
     }
 }

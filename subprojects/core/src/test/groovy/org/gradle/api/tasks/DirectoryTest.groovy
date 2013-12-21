@@ -16,17 +16,16 @@
 
 package org.gradle.api.tasks
 
+import org.gradle.api.GradleException
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.UncheckedIOException
 import org.gradle.api.internal.AbstractTask
 import org.junit.Before
 import org.junit.Test
-import static org.junit.Assert.*
-import static org.hamcrest.Matchers.*
-import org.gradle.api.GradleException
 
-/**
- * @author Hans Dockter
- */
+import static org.hamcrest.Matchers.instanceOf
+import static org.junit.Assert.*
+
 class DirectoryTest extends AbstractTaskTest {
     static final String TASK_DIR_NAME = 'parent/child'
     Directory directoryForAbstractTest
@@ -37,7 +36,6 @@ class DirectoryTest extends AbstractTaskTest {
     }
 
     @Before public void setUp() {
-        super.setUp()
         directoryForAbstractTest = createTask(Directory.class)
         directory = createTask(Directory.class, project, TASK_DIR_NAME)
     }
@@ -71,7 +69,7 @@ class DirectoryTest extends AbstractTaskTest {
         assert file.isFile()
     }
 
-    @Test (expected = InvalidUserDataException) public void testWithExistingFile() {
+    @Test (expected = UncheckedIOException) public void testWithExistingFile() {
         File file = new File(project.projectDir, 'testname')
         file.createNewFile()
         directory = createTask(Directory.class, project, 'testname')

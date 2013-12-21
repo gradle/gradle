@@ -15,17 +15,18 @@
  */
 package org.gradle.internal.nativeplatform.filesystem
 
+import org.gradle.internal.nativeplatform.services.NativeServices
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
-import org.gradle.util.TemporaryFolder
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Specification
 
 class CommonFileSystemTest extends Specification {
-    @Rule TemporaryFolder tmpDir
+    @Rule TestNameTestDirectoryProvider tmpDir
 
-    def fs = FileSystems.default
-    
+    def fs = NativeServices.instance.get(FileSystem)
+
     def "unix permissions cannot be read on non existing file"() {
         when:
         fs.getUnixMode(tmpDir.file("someFile"))
@@ -44,7 +45,7 @@ class CommonFileSystemTest extends Specification {
 
     @Requires(TestPrecondition.FILE_PERMISSIONS)
     def "unix permissions on files can be changed and read"() {
-        def f = tmpDir.createFile("someFile")
+        def f = tmpDir.createFile("someFile\u03B1.txt")
 
         when:
         fs.chmod(f, mode)
@@ -59,7 +60,7 @@ class CommonFileSystemTest extends Specification {
 
     @Requires(TestPrecondition.FILE_PERMISSIONS)
     def "unix permissions on directories can be changed and read"() {
-        def d = tmpDir.createDir("someDir")
+        def d = tmpDir.createDir("someDir\u03B1")
 
         when:
         fs.chmod(d, mode)

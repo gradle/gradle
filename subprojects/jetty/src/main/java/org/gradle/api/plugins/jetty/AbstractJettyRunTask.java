@@ -26,9 +26,9 @@ import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
-import org.gradle.util.GFileUtils;
 import org.mortbay.jetty.Connector;
 import org.mortbay.jetty.RequestLog;
 import org.mortbay.jetty.Server;
@@ -74,19 +74,12 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
      */
     private File overrideWebXml;
 
-    /**
-     * The interval in seconds to scan the webapp for changes and restart the context if necessary. Ignored if reload is enabled. Disabled by default.
-     */
     private int scanIntervalSeconds;
 
-    /**
-     * reload can be set to either 'automatic' or 'manual' <p/> if 'manual' then the context can be reloaded by a linefeed in the console if 'automatic' then traditional reloading on changed files is
-     * enabled.
-     */
     protected String reload;
 
     /**
-     * Location of a jetty xml configuration file whose contents will be applied before any plugin configuration. Optional.
+     * Location of a jetty XML configuration file whose contents will be applied before any plugin configuration. Optional.
      */
     private File jettyConfig;
 
@@ -163,7 +156,7 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
         for (File additionalRuntimeJar : getAdditionalRuntimeJars()) {
             additionalClasspath.add(additionalRuntimeJar);
         }
-        URLClassLoader jettyClassloader = new URLClassLoader(GFileUtils.toURLArray(additionalClasspath), originalClassloader);
+        URLClassLoader jettyClassloader = new URLClassLoader(new DefaultClassPath(additionalClasspath).getAsURLArray(), originalClassloader);
         try {
             Thread.currentThread().setContextClassLoader(jettyClassloader);
             startJetty();
@@ -200,10 +193,8 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
 
     public void startJettyInternal() {
         ProgressLoggerFactory progressLoggerFactory = getServices().get(ProgressLoggerFactory.class);
-        ProgressLogger progressLogger = progressLoggerFactory.newOperation(AbstractJettyRunTask.class);
-        progressLogger.setDescription("Start Jetty server");
-        progressLogger.setShortDescription("Starting Jetty");
-        progressLogger.started();
+        ProgressLogger progressLogger = progressLoggerFactory.newOperation(AbstractJettyRunTask.class)
+                .start("Start Jetty server", "Starting Jetty");
         try {
             setServer(createServer());
 
@@ -268,10 +259,9 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
             progressLogger.completed();
         }
 
-        progressLogger = progressLoggerFactory.newOperation(AbstractJettyRunTask.class);
-        progressLogger.setDescription(String.format("Run Jetty at http://localhost:%d/%s", getHttpPort(), getContextPath()));
-        progressLogger.setShortDescription(String.format("Running at http://localhost:%d/%s", getHttpPort(), getContextPath()));
-        progressLogger.started();
+        progressLogger = progressLoggerFactory.newOperation(AbstractJettyRunTask.class)
+                .start(String.format("Run Jetty at http://localhost:%d/%s", getHttpPort(), getContextPath()),
+                        String.format("Running at http://localhost:%d/%s", getHttpPort(), getContextPath()));
         try {
             // keep the thread going if not in daemon mode
             server.join();
@@ -413,10 +403,22 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
         this.overrideWebXml = overrideWebXml;
     }
 
+    /**
+     * Returns the interval in seconds between scanning the web app for file changes.
+     * If file changes are detected, the web app is reloaded. Only relevant
+     * if {@code reload} is set to {@code "automatic"}. Defaults to {@code 0},
+     * which <em>disables</em> automatic reloading.
+     */
     public int getScanIntervalSeconds() {
         return scanIntervalSeconds;
     }
 
+    /**
+     * Sets the interval in seconds between scanning the web app for file changes.
+     * If file changes are detected, the web app is reloaded. Only relevant
+     * if {@code reload} is set to {@code "automatic"}. Defaults to {@code 0},
+     * which <em>disables</em> automatic reloading.
+     */
     public void setScanIntervalSeconds(int scanIntervalSeconds) {
         this.scanIntervalSeconds = scanIntervalSeconds;
     }
@@ -440,10 +442,30 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
         this.webAppConfig = webAppConfig;
     }
 
+    /**
+     * Returns the reload mode, which is either {@code "automatic"} or {@code "manual"}.
+     *
+     * <p>In automatic mode, the web app is scanned for file changes every n seconds, where n is
+     * determined by the {@code scanIntervalSeconds} property. (Note that {@code scanIntervalSeconds}
+     * defaults to {@code 0}, which <em>disables</em> automatic reloading.) If files changes are
+     * detected, the web app is reloaded.
+     *
+     * <p>In manual mode, the web app is reloaded whenever the Enter key is pressed.
+     */
     public String getReload() {
         return reload;
     }
 
+    /**
+     * Sets the reload mode, which is either {@code "automatic"} or {@code "manual"}.
+     *
+     * <p>In automatic mode, the web app is scanned for file changes every n seconds, where n is
+     * determined by the {@code scanIntervalSeconds} property. (Note that {@code scanIntervalSeconds}
+     * defaults to {@code 0}, which <em>disables</em> automatic reloading.) If files changes are
+     * detected, the web app is reloaded.
+     *
+     * <p>In manual mode, the web app is reloaded whenever the Enter key is pressed.
+     */
     public void setReload(String reload) {
         this.reload = reload;
     }

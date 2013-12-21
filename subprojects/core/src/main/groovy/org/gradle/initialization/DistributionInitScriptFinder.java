@@ -15,10 +15,6 @@
  */
 package org.gradle.initialization;
 
-import org.gradle.api.internal.GradleDistributionLocator;
-import org.gradle.api.internal.GradleInternal;
-import org.gradle.groovy.scripts.ScriptSource;
-
 import java.io.File;
 import java.util.Collection;
 
@@ -26,18 +22,17 @@ import java.util.Collection;
  * An {@link InitScriptFinder} that includes every *.gradle file in $gradleHome/init.d.
  */
 public class DistributionInitScriptFinder extends DirectoryInitScriptFinder {
-    final GradleDistributionLocator locator;
+    final File gradleHome;
 
-    public DistributionInitScriptFinder(GradleDistributionLocator locator) {
-        this.locator = locator;
+    public DistributionInitScriptFinder(File gradleHome) {
+        this.gradleHome = gradleHome;
     }
 
-    public void findScripts(GradleInternal gradle, Collection<ScriptSource> scripts) {
-        File distDir = locator.getGradleHome();
-        if (distDir == null) {
+    public void findScripts(Collection<File> scripts) {
+        if (gradleHome == null) {
             return;
         }
-        findScriptsInDir(new File(distDir, "init.d"), scripts);
+        findScriptsInDir(new File(gradleHome, "init.d"), scripts);
     }
 
 }

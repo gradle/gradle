@@ -8,8 +8,12 @@ public class Junit4Test {
     public void ok() {
     }
 
-    @Test @Ignore
+    @Test
+    @Ignore
     public void broken() {
         throw new RuntimeException();
+    }
+
+    public void helpermethod() {
     }
 }

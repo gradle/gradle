@@ -19,6 +19,7 @@ package org.gradle.api.internal.project;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.NoConventionMapping;
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 
 import java.io.File;
 

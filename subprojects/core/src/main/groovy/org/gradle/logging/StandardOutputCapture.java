@@ -15,9 +15,6 @@
  */
 package org.gradle.logging;
 
-/**
- * @author Hans Dockter
- */
 public interface StandardOutputCapture {
     /**
      * Starts redirection of System.out and System.err to the Gradle logging system.

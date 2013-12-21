@@ -15,20 +15,12 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.apache.ivy.core.publish.PublishEngine;
-import org.apache.ivy.plugins.resolver.DependencyResolver;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionPublishMetaData;
+import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 
-import java.io.File;
 import java.util.List;
-import java.util.Set;
 
-/**
- * @author Hans Dockter
- */
 public interface IvyDependencyPublisher {
-    void publish(Set<String> configurations,
-                 List<DependencyResolver> publishResolvers,
-                 ModuleDescriptor moduleDescriptor,
-                 File descriptorDestination, PublishEngine publishEngine);
+    void publish(List<ModuleVersionPublisher> publishResolvers,
+                 ModuleVersionPublishMetaData publishMetaData);
 }

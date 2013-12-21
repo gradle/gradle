@@ -15,12 +15,15 @@
  */
 package org.gradle.api.internal.artifacts.configurations;
 
+import org.gradle.api.Action;
 import org.gradle.api.artifacts.ConflictResolution;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.cache.ResolutionRules;
+import org.gradle.api.internal.artifacts.DependencyResolveDetailsInternal;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 
 public interface ResolutionStrategyInternal extends ResolutionStrategy {
+
     /**
      * Gets the current expiry policy for dynamic revisions.
      *
@@ -40,4 +43,14 @@ public interface ResolutionStrategyInternal extends ResolutionStrategy {
      * @return the resolution rules
      */
     ResolutionRules getResolutionRules();
+
+    /**
+     * @return the dependency resolve rule (may aggregate multiple rules)
+     */
+    Action<DependencyResolveDetailsInternal> getDependencyResolveRule();
+
+    /**
+     * @return copy of this resolution strategy. See the contract of {@link org.gradle.api.artifacts.Configuration#copy()}.
+     */
+    ResolutionStrategyInternal copy();
 }

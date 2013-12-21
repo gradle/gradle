@@ -17,6 +17,9 @@
                 <td>state</td>
             </tr>
             <tr>
+                <td>incoming</td>
+            </tr>
+            <tr>
                 <td>visible</td>
             </tr>
             <tr>
@@ -79,6 +82,9 @@
             </tr>
             <tr>
                 <td>copyRecursive</td>
+            </tr>
+            <tr>
+                <td>getTaskDependencyFromProjectDependency</td>
             </tr>
         </table>
     </section>

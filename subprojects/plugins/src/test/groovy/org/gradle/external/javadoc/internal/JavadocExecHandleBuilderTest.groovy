@@ -14,21 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.external.javadoc.internal;
+package org.gradle.external.javadoc.internal
 
-
+import org.gradle.external.javadoc.MinimalJavadocOptions
 import org.gradle.internal.jvm.Jvm
+import org.gradle.process.internal.ExecAction
+import org.gradle.process.internal.ExecActionFactory
 import org.junit.Test
 import spock.lang.Specification
-import static org.junit.Assert.assertTrue
-import org.gradle.external.javadoc.MinimalJavadocOptions
 
-/**
- * @author Tom Eyckmans
- */
+import static org.junit.Assert.assertTrue
+
 public class JavadocExecHandleBuilderTest extends Specification {
 
-    private JavadocExecHandleBuilder javadocExecHandleBuilder = new JavadocExecHandleBuilder()
+    private ExecActionFactory execActionFactory = Mock(ExecActionFactory)
+    private JavadocExecHandleBuilder javadocExecHandleBuilder = new JavadocExecHandleBuilder(execActionFactory)
 
     def setup() {
         MinimalJavadocOptions minimalJavadocOptions = Mock()
@@ -37,16 +37,27 @@ public class JavadocExecHandleBuilderTest extends Specification {
     }
 
     def testCheckExecutableAfterInit() {
-        expect:
-        javadocExecHandleBuilder.execHandle.executable == Jvm.current().javadocExecutable.absolutePath
+        def action = Mock(ExecAction)
+
+        when:
+        javadocExecHandleBuilder.execHandle
+
+        then:
+        1 * execActionFactory.newExecAction() >> action
+        1 * action.executable(Jvm.current().javadocExecutable)
     }
 
     def testCheckCustomExecutable() {
         String executable = "somepath"
+        def action = Mock(ExecAction)
+
+        when:
         javadocExecHandleBuilder.executable = executable
-        
-        expect:
-        javadocExecHandleBuilder.execHandle.executable == executable
+        javadocExecHandleBuilder.execHandle
+
+        then:
+        1 * execActionFactory.newExecAction() >> action
+        1 * action.executable(executable)
     }
 
     def testSetNullExecDirectory() {

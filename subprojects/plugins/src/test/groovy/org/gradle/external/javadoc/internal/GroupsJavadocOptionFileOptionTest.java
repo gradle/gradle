@@ -16,19 +16,16 @@
 
 package org.gradle.external.javadoc.internal;
 
+import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
-import org.jmock.Expectations;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Arrays;
+import java.util.List;
 
-/**
- * @author Tom Eyckmans
- */
 public class GroupsJavadocOptionFileOptionTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private JavadocOptionFileWriterContext writerContextMock;

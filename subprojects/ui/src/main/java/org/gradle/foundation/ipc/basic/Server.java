@@ -27,8 +27,6 @@ import java.net.Socket;
 /**
  * This is a server that talks to a client via sockets (Rudimentary form of Inter-Process Communication (IPC)). This does the work of locating a free socket and starting the connection. To use this,
  * you really only have to define a Protocol that handles the actual messages. You'll want to make your client startup a ClientProcess object that implements a corresponding Protocol.
- *
- * @author mhunsicker
  */
 public class Server<P extends Server.Protocol, O extends Server.ServerObserver> {
     private final Logger logger = Logging.getLogger(Server.class);

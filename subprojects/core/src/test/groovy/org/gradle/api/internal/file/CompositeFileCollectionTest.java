@@ -21,7 +21,7 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.collections.*;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.util.HelperUtil;
+import org.gradle.util.TestUtil;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
@@ -266,12 +266,12 @@ public class CompositeFileCollectionTest {
     @Test
     public void fileTreeDependsOnUnionOfAllDependencies() {
         assertDependsOnUnionOfSourceCollections(collection.getAsFileTree());
-        assertDependsOnUnionOfSourceCollections(collection.getAsFileTree().matching(HelperUtil.TEST_CLOSURE));
+        assertDependsOnUnionOfSourceCollections(collection.getAsFileTree().matching(TestUtil.TEST_CLOSURE));
     }
 
     @Test
     public void filteredCollectionDependsOnUnionOfAllDependencies() {
-        assertDependsOnUnionOfSourceCollections(collection.filter(HelperUtil.TEST_CLOSURE));
+        assertDependsOnUnionOfSourceCollections(collection.filter(TestUtil.TEST_CLOSURE));
     }
 
     private void assertDependsOnUnionOfSourceCollections(FileCollection collection) {

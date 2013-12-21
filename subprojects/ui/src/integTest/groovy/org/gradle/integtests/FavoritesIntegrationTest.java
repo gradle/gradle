@@ -15,7 +15,6 @@
  */
 package org.gradle.integtests;
 
-import junit.framework.AssertionFailedError;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.foundation.BuildInformation;
@@ -24,7 +23,7 @@ import org.gradle.foundation.TaskView;
 import org.gradle.foundation.TestUtility;
 import org.gradle.gradleplugin.foundation.favorites.FavoriteTask;
 import org.gradle.gradleplugin.foundation.favorites.FavoritesEditor;
-import org.gradle.util.TemporaryFolder;
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Assert;
 import org.junit.Before;
@@ -39,12 +38,10 @@ import java.util.List;
 
 /**
  * Performs integration tests on favorite tasks.
- *
- * @author mhunsicker
  */
 public class FavoritesIntegrationTest {
     @Rule
-    public final TemporaryFolder tempDir = new TemporaryFolder();
+    public final TestNameTestDirectoryProvider tempDir = new TestNameTestDirectoryProvider();
     private BuildInformation buildInformation;
 
     private ProjectView myRootProject;
@@ -139,7 +136,7 @@ public class FavoritesIntegrationTest {
             }
 
             public void reportError(String error) {
-                throw new AssertionFailedError("Unexpected error");
+                throw new AssertionError("Unexpected error");
             }
         });
 
@@ -184,7 +181,7 @@ public class FavoritesIntegrationTest {
         //Make sure the correct file doesn't already exist before we've even done our test. This is highly unlikely, but it might happen.
         //Technically, I should place these in a new temporary directory, but I didn't want the hassle of cleanup.
         if (correctFile.exists()) {
-            throw new AssertionFailedError("'correct' file already exists. This means this test WILL succeed but perhaps not for the correct reasons.");
+            throw new AssertionError("'correct' file already exists. This means this test WILL succeed but perhaps not for the correct reasons.");
         }
 
         //do the export
@@ -192,7 +189,7 @@ public class FavoritesIntegrationTest {
 
         //it should have been saved to the correct file
         if (!correctFile.exists()) {
-            throw new AssertionFailedError("failed to correct the file name. Expected it to be saved to '" + correctFile.getAbsolutePath() + "'");
+            throw new AssertionError("failed to correct the file name. Expected it to be saved to '" + correctFile.getAbsolutePath() + "'");
         }
 
         //now read in the file to verify it actually worked.
@@ -427,7 +424,7 @@ public class FavoritesIntegrationTest {
         }
 
         public void reportError(String error) {
-            throw new AssertionFailedError("Unexpected error; " + error);
+            throw new AssertionError("Unexpected error; " + error);
         }
     }
 
@@ -456,7 +453,7 @@ public class FavoritesIntegrationTest {
             }
 
             public void reportError(String error) {
-                throw new AssertionFailedError("Unexpected error");
+                throw new AssertionError("Unexpected error");
             }
         });
 

@@ -26,8 +26,6 @@ import java.util.Map;
 
 /**
  * Wrapper to shield version changes in OutputUILord from an external user of gradle open API.
- *
- * @author mhunsicker
  */
 public class OutputUILordWrapper implements OutputUILordVersion1 {
 

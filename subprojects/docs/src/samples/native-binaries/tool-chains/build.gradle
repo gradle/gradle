@@ -1,0 +1,29 @@
+apply plugin: 'cpp'
+
+// START SNIPPET toolChains
+model {
+    toolChains {
+        visualCpp(VisualCpp) {
+            // Specify the installDir if Visual Studio cannot be located by default
+            // installDir "C:/Apps/Microsoft Visual Studio 10.0"
+        }
+        gcc(Gcc) {
+            // Uncomment to use a GCC install that is not in the PATH
+            // path "/usr/bin/gcc"
+        }
+        clang(Clang)
+    }
+}
+// END SNIPPET toolChains
+
+executables {
+    main {}
+}
+
+// START SNIPPET buildable
+task buildAllExecutables {
+    dependsOn binaries.withType(ExecutableBinary).matching {
+        it.buildable
+    }
+}
+// END SNIPPET buildable

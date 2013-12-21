@@ -26,8 +26,6 @@ import java.util.List;
 /**
  * This manages the communication between the UI and an externally-launched copy of Gradle when using socket-based inter-process communication. This is the server side for building a task list. This
  * listens for messages from the gradle client.
- *
- * @author mhunsicker
  */
 public class TaskListServerProtocol extends AbstractGradleServerProtocol {
     private static final String INIT_SCRIPT_NAME = "refresh-tasks-init-script";

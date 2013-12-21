@@ -15,16 +15,11 @@
  */
 package org.gradle.api.internal.plugins;
 
-import org.gradle.api.internal.tasks.compile.SimpleStaleClassCleaner;
-import org.gradle.api.internal.tasks.compile.StaleClassCleaner;
-import org.gradle.api.tasks.Copy;
-
-public class ProcessResources extends Copy {
-    @Override
-    protected void copy() {
-        StaleClassCleaner cleaner = new SimpleStaleClassCleaner(getOutputs());
-        cleaner.setDestinationDir(getDestinationDir());
-        cleaner.execute();
-        super.copy();
-    }
-}
+/**
+ * Copies resources from their source to their target directory, potentially processing them.
+ * Makes sure no stale resources remain in the target directory.
+ *
+ * @deprecated use {@link org.gradle.language.jvm.tasks.ProcessResources} instead
+ */
+@Deprecated
+public class ProcessResources extends org.gradle.language.jvm.tasks.ProcessResources {}

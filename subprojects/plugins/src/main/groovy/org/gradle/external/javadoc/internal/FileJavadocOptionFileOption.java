@@ -21,8 +21,6 @@ import java.io.IOException;
 
 /**
  * A {@link org.gradle.external.javadoc.JavadocOptionFileOption} whose value is a file.
- *
- * @author Tom Eyckmans
  */
 public class FileJavadocOptionFileOption extends AbstractJavadocOptionFileOption<File> {
     protected FileJavadocOptionFileOption(String option) {

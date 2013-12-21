@@ -15,39 +15,29 @@
  */
 package org.gradle.util;
 
-import org.gradle.api.Action;
 import org.gradle.internal.SystemProperties;
+import org.gradle.internal.io.TextStream;
 
 import java.io.IOException;
 import java.io.OutputStream;
 
 /**
- * An OutputStream which separates bytes written into lines. Uses the platform default encoding. Is not thread safe.
- *
- * @author Hans Dockter
+ * An OutputStream which separates bytes written into lines of text. Uses the platform default encoding. Is not thread safe.
  */
 public class LineBufferingOutputStream extends OutputStream {
     private boolean hasBeenClosed;
     private final byte[] lineSeparator;
     private final int bufferIncrement;
+    private final TextStream handler;
     private byte[] buf;
     private int count;
-    private final Output output;
 
-    public LineBufferingOutputStream(Action<String> action) {
-        this(action, false, 2048);
+    public LineBufferingOutputStream(TextStream handler) {
+        this(handler, 2048);
     }
 
-    public LineBufferingOutputStream(Action<String> action, boolean includeEOL) {
-        this(action, includeEOL, 2048);
-    }
-
-    public LineBufferingOutputStream(Action<String> action, boolean includeEOL, int bufferLength) {
-        this(new StringOutput(includeEOL, action), bufferLength);
-    }
-
-    private LineBufferingOutputStream(Output output, int bufferLength) {
-        this.output = output;
+    public LineBufferingOutputStream(TextStream handler, int bufferLength) {
+        this.handler = handler;
         bufferIncrement = bufferLength;
         buf = new byte[bufferLength];
         count = 0;
@@ -60,8 +50,9 @@ public class LineBufferingOutputStream extends OutputStream {
      * cannot be reopened.
      */
     public void close() throws IOException {
-        flush();
         hasBeenClosed = true;
+        flush();
+        handler.endOfStream(null);
     }
 
     /**
@@ -106,19 +97,9 @@ public class LineBufferingOutputStream extends OutputStream {
         return true;
     }
 
-    /**
-     * Flushes this output stream and forces any buffered output bytes to be written out. The general contract of
-     * <code>flush</code> is that calling it is an indication that, if any bytes previously written have been buffered
-     * by the implementation of the output stream, such bytes should immediately be written to their intended
-     * destination.
-     */
     public void flush() {
         if (count != 0) {
-            int length = count;
-            if (endsWithLineSeparator()) {
-                length -= lineSeparator.length;
-            }
-            output.write(buf, length, count);
+            handler.text(new String(buf, 0, count));
         }
         reset();
     }
@@ -128,27 +109,5 @@ public class LineBufferingOutputStream extends OutputStream {
             buf = new byte[bufferIncrement];
         }
         count = 0;
-    }
-
-    private interface Output {
-        void write(byte[] buffer, int textLength, int lineLength);
-    }
-
-    private static class StringOutput implements Output {
-        private final boolean includeEOL;
-        private final Action<String> action;
-
-        public StringOutput(boolean includeEOL, Action<String> action) {
-            this.includeEOL = includeEOL;
-            this.action = action;
-        }
-
-        public void write(byte[] buffer, int textLength, int lineLength) {
-            if (includeEOL) {
-                action.execute(new String(buffer, 0, lineLength));
-            } else {
-                action.execute(new String(buffer, 0, textLength));
-            }
-        }
     }
 }

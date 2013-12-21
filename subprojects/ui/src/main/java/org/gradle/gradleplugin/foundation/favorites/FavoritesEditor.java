@@ -30,8 +30,6 @@ import java.util.List;
 
 /**
  * This holds onto and edits favorite tasks. 'Favorite tasks' provides a quick way to run frequently used tasks.
- *
- * @author mhunsicker
  */
 public class FavoritesEditor implements SettingsSerializable {
     private ReorderableList<FavoriteTask> favoriteTasks = new ReorderableList<FavoriteTask>();

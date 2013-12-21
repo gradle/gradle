@@ -15,13 +15,8 @@
  */
 package org.gradle.plugins.ide.eclipse.model
 
-import org.gradle.plugins.ide.eclipse.model.Facet.FacetType;
-
+import org.gradle.plugins.ide.eclipse.model.Facet.FacetType
 import spock.lang.Specification
-
-/**
- * @author Hans Dockter
- */
 
 class FacetTest extends Specification {
     final static String XML_TEXT = '<installed facet="jst.web" version="2.4"/>'

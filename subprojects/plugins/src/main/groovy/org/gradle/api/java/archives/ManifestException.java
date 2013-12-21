@@ -20,8 +20,6 @@ import org.gradle.api.GradleException;
 /**
  * Is thrown in the case an operation is applied against a {@link org.gradle.api.java.archives.Manifest} that violates
  * the Manifest specification.
- * 
- * @author Hans Dockter
  */
 public class ManifestException extends GradleException {
     public ManifestException(String message) {

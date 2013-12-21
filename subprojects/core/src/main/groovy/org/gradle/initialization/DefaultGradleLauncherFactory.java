@@ -19,17 +19,22 @@ package org.gradle.initialization;
 import org.gradle.*;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.Instantiator;
-import org.gradle.api.internal.project.GlobalServicesRegistry;
-import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.api.internal.project.TopLevelBuildServiceRegistry;
+import org.gradle.internal.progress.BuildProgressFilter;
+import org.gradle.internal.progress.BuildProgressLogger;
+import org.gradle.internal.progress.LoggerProvider;
+import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cli.CommandLineConverter;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildExecuter;
+import org.gradle.initialization.buildsrc.BuildSourceBuilder;
 import org.gradle.initialization.layout.BuildLayoutFactory;
+import org.gradle.internal.featurelifecycle.ScriptUsageLocationReporter;
+import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.invocation.DefaultGradle;
 import org.gradle.listener.ListenerManager;
 import org.gradle.logging.LoggingManagerInternal;
@@ -37,32 +42,24 @@ import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.logging.StyledTextOutputFactory;
 import org.gradle.profile.ProfileEventAdapter;
 import org.gradle.profile.ReportGeneratingProfileListener;
+import org.gradle.util.DeprecationLogger;
 
 import java.util.Arrays;
 
-/**
- * @author Hans Dockter
- */
 public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
     private final ServiceRegistry sharedServices;
     private final NestedBuildTracker tracker;
+    private final BuildProgressLogger buildProgressLogger;
     private CommandLineConverter<StartParameter> commandLineConverter;
 
-    public DefaultGradleLauncherFactory(ServiceRegistry loggingServices) {
-        this(new GlobalServicesRegistry(loggingServices));
-    }
-    
-    public DefaultGradleLauncherFactory() {
-        this(new GlobalServicesRegistry());
-    }
-
-    private DefaultGradleLauncherFactory(GlobalServicesRegistry globalServices) {
+    public DefaultGradleLauncherFactory(ServiceRegistry globalServices) {
         sharedServices = globalServices;
         tracker = new NestedBuildTracker();
 
         // Register default loggers 
         ListenerManager listenerManager = sharedServices.get(ListenerManager.class);
-        listenerManager.addListener(new BuildProgressLogger(sharedServices.get(ProgressLoggerFactory.class)));
+        buildProgressLogger = new BuildProgressLogger(sharedServices.get(ProgressLoggerFactory.class));
+        listenerManager.addListener(new BuildProgressFilter(buildProgressLogger));
         listenerManager.useLogger(new DependencyResolutionLogger(sharedServices.get(ProgressLoggerFactory.class)));
 
         GradleLauncher.injectCustomFactory(this);
@@ -100,19 +97,19 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
     }
 
     private DefaultGradleLauncher doNewInstance(StartParameter startParameter, BuildRequestMetaData requestMetaData) {
-        TopLevelBuildServiceRegistry serviceRegistry = new TopLevelBuildServiceRegistry(sharedServices, startParameter);
+        final BuildScopeServices serviceRegistry = new BuildScopeServices(sharedServices, startParameter);
         serviceRegistry.add(BuildRequestMetaData.class, requestMetaData);
         serviceRegistry.add(BuildClientMetaData.class, requestMetaData.getClient());
         ListenerManager listenerManager = serviceRegistry.get(ListenerManager.class);
         LoggingManagerInternal loggingManager = serviceRegistry.newInstance(LoggingManagerInternal.class);
         loggingManager.setLevel(startParameter.getLogLevel());
-        loggingManager.colorStdOutAndStdErr(startParameter.isColorOutput());
 
         //this hooks up the ListenerManager and LoggingConfigurer so you can call Gradle.addListener() with a StandardOutputListener.
         loggingManager.addStandardOutputListener(listenerManager.getBroadcaster(StandardOutputListener.class));
         loggingManager.addStandardErrorListener(listenerManager.getBroadcaster(StandardOutputListener.class));
 
-        listenerManager.useLogger(new TaskExecutionLogger(serviceRegistry.get(ProgressLoggerFactory.class)));
+        LoggerProvider loggerProvider = (tracker.getCurrentBuild() == null)? buildProgressLogger: LoggerProvider.NO_OP;
+        listenerManager.useLogger(new TaskExecutionLogger(serviceRegistry.get(ProgressLoggerFactory.class), loggerProvider));
         if (tracker.getCurrentBuild() == null) {
             listenerManager.useLogger(new BuildLogger(Logging.getLogger(BuildLogger.class), serviceRegistry.get(StyledTextOutputFactory.class), startParameter, requestMetaData));
         }
@@ -123,8 +120,11 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         if (startParameter.isProfile()) {
             listenerManager.addListener(new ReportGeneratingProfileListener());
         }
+        ScriptUsageLocationReporter usageLocationReporter = new ScriptUsageLocationReporter();
+        listenerManager.addListener(usageLocationReporter);
+        DeprecationLogger.useLocationReporter(usageLocationReporter);
 
-        GradleInternal gradle = serviceRegistry.get(Instantiator.class).newInstance(DefaultGradle.class, tracker.getCurrentBuild(), startParameter, serviceRegistry);
+        GradleInternal gradle = serviceRegistry.get(Instantiator.class).newInstance(DefaultGradle.class, tracker.getCurrentBuild(), startParameter, serviceRegistry.get(ServiceRegistryFactory.class));
         return new DefaultGradleLauncher(
                 gradle,
                 serviceRegistry.get(InitScriptHandler.class),
@@ -142,6 +142,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
                 serviceRegistry.get(ExceptionAnalyser.class),
                 loggingManager,
                 listenerManager.getBroadcaster(ModelConfigurationListener.class),
+                listenerManager.getBroadcaster(TasksCompletionListener.class),
                 gradle.getServices().get(BuildExecuter.class));
     }
 
@@ -151,9 +152,9 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
     }
 
     private static class BuildCleanupListener extends BuildAdapter {
-        private final TopLevelBuildServiceRegistry services;
+        private final BuildScopeServices services;
 
-        private BuildCleanupListener(TopLevelBuildServiceRegistry services) {
+        private BuildCleanupListener(BuildScopeServices services) {
             this.services = services;
         }
 
@@ -162,4 +163,5 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
             services.close();
         }
     }
+
 }

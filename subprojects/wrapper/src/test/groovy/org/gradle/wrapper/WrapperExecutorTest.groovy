@@ -15,14 +15,14 @@
  */
 package org.gradle.wrapper
 
-import org.gradle.util.TemporaryFolder
-import org.gradle.util.TestFile
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
 class WrapperExecutorTest extends Specification {
     @Rule
-    public final TemporaryFolder tmpDir = new TemporaryFolder();
+    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
     final Install install = Mock()
     final BootstrapMainStarter start = Mock()
     TestFile projectDir;
@@ -30,7 +30,7 @@ class WrapperExecutorTest extends Specification {
     Properties properties = new Properties()
 
     def setup() {
-        projectDir = tmpDir.dir
+        projectDir = tmpDir.testDirectory
         propertiesFile = tmpDir.file('gradle/wrapper/gradle-wrapper.properties')
 
         properties.distributionUrl = 'http://server/test/gradle.zip'

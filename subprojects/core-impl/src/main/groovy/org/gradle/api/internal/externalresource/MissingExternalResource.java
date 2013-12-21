@@ -30,7 +30,7 @@ public class MissingExternalResource extends AbstractExternalResource {
 
     public MissingExternalResource(String source) {
         this.source = source;
-        this.metaData = new DefaultExternalResourceMetaData(source, -1, -1, null);
+        this.metaData = new DefaultExternalResourceMetaData(source);
     }
 
     @Override

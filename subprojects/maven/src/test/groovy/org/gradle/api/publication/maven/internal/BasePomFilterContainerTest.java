@@ -15,6 +15,7 @@
  */
 package org.gradle.api.publication.maven.internal;
 
+import com.google.common.collect.Sets;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.artifacts.maven.PublishFilter;
@@ -29,12 +30,8 @@ import org.junit.runner.RunWith;
 import java.util.Iterator;
 import java.util.Set;
 
-import static org.gradle.util.GUtil.toSet;
 import static org.junit.Assert.*;
 
-/**
- * @author Hans Dockter
- */
 @RunWith(JMock.class)
 public class BasePomFilterContainerTest {
     private static final String TEST_NAME = "testName";
@@ -151,7 +148,7 @@ public class BasePomFilterContainerTest {
         String testName2 = "name2";
         pomFilterContainer.addFilter(testName1, filter1);
         pomFilterContainer.addFilter(testName2, filter2);
-        Set<PomFilter> actualActiveFilters = toSet(pomFilterContainer.getActivePomFilters());
+        Set<PomFilter> actualActiveFilters = Sets.newLinkedHashSet(pomFilterContainer.getActivePomFilters());
         assertEquals(2, actualActiveFilters.size());
         checkIfInSet(testName1, filter1, actualActiveFilters);
         checkIfInSet(testName2, filter2, actualActiveFilters);

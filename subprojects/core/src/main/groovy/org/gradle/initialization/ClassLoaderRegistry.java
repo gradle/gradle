@@ -15,13 +15,16 @@
  */
 package org.gradle.initialization;
 
-import org.gradle.util.MultiParentClassLoader;
-
 public interface ClassLoaderRegistry {
     /**
-     * Returns the root class loader shared by all builds.
+     * Returns the root class loader shared by all builds. This class loader exposes the Gradle API and built-in plugins.
      */
-    ClassLoader getRootClassLoader();
+    ClassLoader getGradleApiClassLoader();
+
+    /**
+     * Returns the class loader for the Gradle runtime.
+     */
+    ClassLoader getRuntimeClassLoader();
 
     /**
      * Returns the class loader for the coreImpl project.
@@ -32,9 +35,4 @@ public interface ClassLoaderRegistry {
      * Returns the class loader for the plugins.
      */
     ClassLoader getPluginsClassLoader();
-
-    /**
-     * Creates the script class loader for a build.
-     */
-    MultiParentClassLoader createScriptClassLoader();
 }

@@ -23,6 +23,8 @@ import java.io.File;
 
 /**
  * Represents the basic information about an Eclipse project.
+ *
+ * @since 1.0-milestone-3
  */
 public interface HierarchicalEclipseProject extends HierarchicalElement {
     /**
@@ -39,6 +41,7 @@ public interface HierarchicalEclipseProject extends HierarchicalElement {
      * Returns the project dependencies for this project.
      *
      * @return The project dependencies. Returns an empty set if the project has no project dependencies.
+     * @since 1.0-milestone-3
      */
     DomainObjectSet<? extends EclipseProjectDependency> getProjectDependencies();
 
@@ -46,6 +49,7 @@ public interface HierarchicalEclipseProject extends HierarchicalElement {
      * Returns the source directories for this project.
      *
      * @return The source directories. Returns an empty set if the project has no source directories.
+     * @since 1.0-milestone-3
      */
     DomainObjectSet<? extends EclipseSourceDirectory> getSourceDirectories();
 
@@ -64,6 +68,7 @@ public interface HierarchicalEclipseProject extends HierarchicalElement {
      * Returns the project directory for this project.
      *
      * @return The project directory.
+     * @since 1.0-milestone-9
      */
     File getProjectDirectory();
 

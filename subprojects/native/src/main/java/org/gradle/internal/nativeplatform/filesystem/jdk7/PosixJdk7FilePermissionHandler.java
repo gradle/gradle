@@ -22,14 +22,14 @@ import java.nio.file.Files;
 import java.nio.file.attribute.PosixFileAttributeView;
 import java.nio.file.attribute.PosixFileAttributes;
 
-
 import org.gradle.internal.nativeplatform.NativeIntegrationException;
-import org.gradle.internal.nativeplatform.filesystem.FilePermissionHandler;
+import org.gradle.internal.nativeplatform.filesystem.Chmod;
+import org.gradle.internal.nativeplatform.filesystem.Stat;
 
 import static org.gradle.internal.nativeplatform.filesystem.jdk7.PosixFilePermissionConverter.convertToInt;
 import static org.gradle.internal.nativeplatform.filesystem.jdk7.PosixFilePermissionConverter.convertToPermissionsSet;
 
-public class PosixJdk7FilePermissionHandler implements FilePermissionHandler {
+public class PosixJdk7FilePermissionHandler implements Stat, Chmod {
 
     public int getUnixMode(File file) {
         try {

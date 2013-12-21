@@ -16,36 +16,28 @@
 
 package org.gradle.api.internal.externalresource.ivy;
 
-import org.apache.ivy.core.IvyPatternHelper;
-import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.core.module.descriptor.DefaultArtifact;
-import org.apache.ivy.core.module.id.ArtifactRevisionId;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionRepository;
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactIdentifier;
 
-import java.io.Serializable;
+public class ArtifactAtRepositoryKey {
+    private final String repositoryId;
+    private final ModuleVersionArtifactIdentifier artifactId;
 
-public class ArtifactAtRepositoryKey implements Serializable {
-    private final String resolverId;
-    private final String artifactId;
-
-    public ArtifactAtRepositoryKey(ModuleVersionRepository repository, ArtifactRevisionId artifactId) {
-        this(repository, getArtifactKey(artifactId));
+    public ArtifactAtRepositoryKey(String repositoryId, ModuleVersionArtifactIdentifier artifactId) {
+        this.repositoryId = repositoryId;
+        this.artifactId = artifactId;
     }
 
-    private ArtifactAtRepositoryKey(ModuleVersionRepository repository, String artifactPath) {
-        this.resolverId = repository.getId();
-        this.artifactId = artifactPath;
+    public ModuleVersionArtifactIdentifier getArtifactId() {
+        return artifactId;
     }
 
-    private static String getArtifactKey(ArtifactRevisionId artifactId) {
-        String format = "[organisation]/[module](/[branch])/[revision]/[type]/[artifact](-[classifier])(.[ext])";
-        Artifact dummyArtifact = new DefaultArtifact(artifactId, null, null, false);
-        return IvyPatternHelper.substitute(format, dummyArtifact);
+    public String getRepositoryId() {
+        return repositoryId;
     }
 
     @Override
     public String toString() {
-        return resolverId + ":" + artifactId;
+        return repositoryId + ":" + artifactId;
     }
 
     @Override
@@ -54,11 +46,11 @@ public class ArtifactAtRepositoryKey implements Serializable {
             return false;
         }
         ArtifactAtRepositoryKey other = (ArtifactAtRepositoryKey) o;
-        return toString().equals(other.toString());
+        return repositoryId.equals(other.repositoryId) && artifactId.equals(other.artifactId);
     }
 
     @Override
     public int hashCode() {
-        return toString().hashCode();
+        return repositoryId.hashCode() ^ artifactId.hashCode();
     }
 }

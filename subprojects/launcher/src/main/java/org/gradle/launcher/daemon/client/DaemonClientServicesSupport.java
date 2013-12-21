@@ -15,11 +15,11 @@
  */
 package org.gradle.launcher.daemon.client;
 
-import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.internal.GradleDistributionLocator;
-import org.gradle.api.internal.classpath.DefaultModuleRegistry;
-import org.gradle.configuration.GradleLauncherMetaData;
-import org.gradle.initialization.BuildClientMetaData;
+import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.id.CompositeIdGenerator;
+import org.gradle.internal.id.IdGenerator;
+import org.gradle.internal.id.LongIdGenerator;
+import org.gradle.internal.id.UUIDGenerator;
 import org.gradle.internal.nativeplatform.ProcessEnvironment;
 import org.gradle.internal.nativeplatform.services.NativeServices;
 import org.gradle.internal.service.DefaultServiceRegistry;
@@ -29,7 +29,6 @@ import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.context.DaemonContextBuilder;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.logging.internal.OutputEventListener;
-import org.gradle.messaging.remote.internal.DefaultMessageSerializer;
 import org.gradle.messaging.remote.internal.OutgoingConnector;
 import org.gradle.messaging.remote.internal.inet.TcpOutgoingConnector;
 
@@ -42,18 +41,11 @@ import java.io.InputStream;
  * @see EmbeddedDaemonClientServices
  */
 abstract public class DaemonClientServicesSupport extends DefaultServiceRegistry {
-
-    private final ServiceRegistry loggingServices;
     private final InputStream buildStandardInput;
 
     public DaemonClientServicesSupport(ServiceRegistry loggingServices, InputStream buildStandardInput) {
-        this.loggingServices = loggingServices;
+        super(NativeServices.getInstance(), loggingServices);
         this.buildStandardInput = buildStandardInput;
-        add(new NativeServices());
-    }
-
-    public ServiceRegistry getLoggingServices() {
-        return loggingServices;
     }
 
     protected InputStream getBuildStandardInput() {
@@ -62,7 +54,13 @@ abstract public class DaemonClientServicesSupport extends DefaultServiceRegistry
 
     protected DaemonClient createDaemonClient() {
         DaemonCompatibilitySpec matchingContextSpec = new DaemonCompatibilitySpec(get(DaemonContext.class));
-        return new DaemonClient(get(DaemonConnector.class), get(BuildClientMetaData.class), get(OutputEventListener.class), matchingContextSpec, buildStandardInput);
+        return new DaemonClient(
+                get(DaemonConnector.class),
+                get(OutputEventListener.class),
+                matchingContextSpec,
+                buildStandardInput,
+                get(ExecutorFactory.class),
+                get(IdGenerator.class));
     }
 
     protected DaemonContext createDaemonContext() {
@@ -76,27 +74,15 @@ abstract public class DaemonClientServicesSupport extends DefaultServiceRegistry
         
     }
 
-    protected OutputEventListener createOutputEventListener() {
-        return getLoggingServices().get(OutputEventListener.class);
+    protected IdGenerator<?> createIdGenerator() {
+        return new CompositeIdGenerator(new UUIDGenerator().generateId(), new LongIdGenerator());
     }
 
-    protected BuildClientMetaData createBuildClientMetaData() {
-        return new GradleLauncherMetaData();
-    }
-
-    protected OutgoingConnector<Object> createOutgoingConnector() {
-        return new TcpOutgoingConnector<Object>(new DefaultMessageSerializer<Object>(getClass().getClassLoader()));
+    protected OutgoingConnector createOutgoingConnector() {
+        return new TcpOutgoingConnector();
     }
 
     protected DaemonConnector createDaemonConnector() {
         return new DefaultDaemonConnector(get(DaemonRegistry.class), get(OutgoingConnector.class), get(DaemonStarter.class));
-    }
-
-    protected DocumentationRegistry createDocumentationRegistry() {
-        return new DocumentationRegistry(get(GradleDistributionLocator.class));
-    }
-
-    protected DefaultModuleRegistry createModuleRegistry() {
-        return new DefaultModuleRegistry();
     }
 }

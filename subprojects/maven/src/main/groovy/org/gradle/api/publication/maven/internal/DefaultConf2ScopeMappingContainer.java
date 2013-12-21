@@ -16,16 +16,13 @@
 package org.gradle.api.publication.maven.internal;
 
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.maven.Conf2ScopeMapping;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.util.WrapUtil;
 
 import java.util.*;
 
-/**
- * @author Hans Dockter
- */
 public class DefaultConf2ScopeMappingContainer implements Conf2ScopeMappingContainer {
     private Map<Configuration, Conf2ScopeMapping> mappings = new HashMap<Configuration, Conf2ScopeMapping>();
 

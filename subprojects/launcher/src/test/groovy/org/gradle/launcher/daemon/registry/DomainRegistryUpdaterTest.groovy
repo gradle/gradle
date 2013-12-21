@@ -22,17 +22,17 @@ import org.gradle.launcher.daemon.server.DomainRegistryUpdater
 import org.gradle.messaging.remote.Address
 import spock.lang.Specification
 
-/**
- * @author: Szczepan Faber, created at: 9/12/11
- */
 public class DomainRegistryUpdaterTest extends Specification {
 
     final DaemonRegistry registry = Mock()
     final Address address = Mock()
     final DaemonContext context = Mock()
-    final updater = new DomainRegistryUpdater(registry, context, "password", address)
+    final updater = new DomainRegistryUpdater(registry, context, "password")
 
     def "marks idle"() {
+        given:
+        updater.onStart(address)
+
         when:
         updater.onCompleteActivity()
 
@@ -42,7 +42,8 @@ public class DomainRegistryUpdaterTest extends Specification {
 
     def "ignores empty cache on marking idle"() {
         given:
-        1 * registry.markIdle(address) >> { throw new EmptyRegistryException("") }
+        updater.onStart(address)
+        registry.markIdle(address) >> { throw new EmptyRegistryException("") }
 
         when:
         updater.onCompleteActivity()
@@ -52,6 +53,9 @@ public class DomainRegistryUpdaterTest extends Specification {
     }
 
     def "marks busy"() {
+        given:
+        updater.onStart(address)
+
         when:
         updater.onStartActivity()
 
@@ -61,7 +65,8 @@ public class DomainRegistryUpdaterTest extends Specification {
 
     def "ignores empty cache on marking busy"() {
         given:
-        1 * registry.markBusy(address) >> { throw new EmptyRegistryException("") }
+        updater.onStart(address)
+        registry.markBusy(address) >> { throw new EmptyRegistryException("") }
 
         when:
         updater.onStartActivity()
@@ -70,12 +75,13 @@ public class DomainRegistryUpdaterTest extends Specification {
         noExceptionThrown()
     }
 
-     def "ignores empty cache on stopping"() {
+    def "ignores empty cache on stopping"() {
         given:
-        1 * registry.remove(address) >> { throw new EmptyRegistryException("") }
+        updater.onStart(address)
+        registry.remove(address) >> { throw new EmptyRegistryException("") }
 
         when:
-        updater.onStop()
+        updater.stop()
 
         then:
         noExceptionThrown()

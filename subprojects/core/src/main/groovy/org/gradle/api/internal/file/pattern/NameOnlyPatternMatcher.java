@@ -24,7 +24,6 @@ import org.gradle.api.specs.Spec;
  *
  * This will only match against the last part of a relative path and this only if
  * the RelativePath is a File.
- * @author Steve Appling
  */
 public class NameOnlyPatternMatcher implements Spec<RelativePath> {
     private boolean partialMatchDirs;

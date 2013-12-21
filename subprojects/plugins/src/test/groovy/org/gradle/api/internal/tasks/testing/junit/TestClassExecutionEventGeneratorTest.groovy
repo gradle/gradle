@@ -17,10 +17,10 @@
 package org.gradle.api.internal.tasks.testing.junit
 
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
-import org.gradle.util.IdGenerator
-import org.gradle.util.TimeProvider
+import org.gradle.internal.id.IdGenerator
+import org.gradle.internal.TimeProvider
 import spock.lang.Specification
-import org.gradle.api.tasks.testing.TestDescriptor
+
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal
 
 class TestClassExecutionEventGeneratorTest extends Specification {

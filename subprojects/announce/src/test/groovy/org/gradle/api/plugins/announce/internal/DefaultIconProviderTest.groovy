@@ -16,18 +16,18 @@
 package org.gradle.api.plugins.announce.internal
 
 import org.gradle.api.internal.GradleDistributionLocator
-import org.gradle.util.TemporaryFolder
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
 class DefaultIconProviderTest extends Specification {
-    @Rule final TemporaryFolder tmpDir = new TemporaryFolder()
+    @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     final GradleDistributionLocator locator = Mock()
     final DefaultIconProvider provider = new DefaultIconProvider(locator)
     
     def "returns png file that matches specified dimensions exactly"() {
         given:
-        def homeDir = tmpDir.dir
+        def homeDir = tmpDir.testDirectory
         def pngFile = tmpDir.createFile("media/gradle-icon-48x18.png")
         _ * locator.gradleHome >> homeDir
 
@@ -45,7 +45,7 @@ class DefaultIconProviderTest extends Specification {
 
     def "returns null when no icon with exact dimension"() {
         given:
-        def homeDir = tmpDir.dir
+        def homeDir = tmpDir.testDirectory
         _ * locator.gradleHome >> homeDir
 
         expect:

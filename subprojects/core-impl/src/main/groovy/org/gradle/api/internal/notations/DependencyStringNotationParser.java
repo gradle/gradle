@@ -19,18 +19,15 @@ package org.gradle.api.internal.notations;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ClientModule;
 import org.gradle.api.artifacts.ExternalDependency;
-import org.gradle.api.internal.Instantiator;
+import org.gradle.api.internal.artifacts.dsl.ParsedModuleStringNotation;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ModuleFactoryHelper;
-import org.gradle.api.internal.artifacts.dsl.dependencies.ParsedModuleStringNotation;
-import org.gradle.api.internal.notations.parsers.TypedNotationParser;
+import org.gradle.internal.typeconversion.TypedNotationParser;
+import org.gradle.internal.reflect.Instantiator;
 
 import java.util.Collection;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * by Szczepan Faber, created at: 11/10/11
- */
 public class DependencyStringNotationParser<T extends ExternalDependency> extends TypedNotationParser<CharSequence, T> {
 
     private final Instantiator instantiator;

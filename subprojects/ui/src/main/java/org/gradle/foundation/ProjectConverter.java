@@ -24,8 +24,6 @@ import java.util.*;
 
 /**
  * This converts Gradle's projects into ProjectView objects. These can be safely reused unlike Gradle's projects.
- *
- * @author mhunsicker
  */
 public class ProjectConverter {
     private List<ProjectView> rootLevelResultingProjects = new ArrayList<ProjectView>();

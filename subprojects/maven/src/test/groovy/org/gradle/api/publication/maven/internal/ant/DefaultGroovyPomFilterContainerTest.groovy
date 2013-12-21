@@ -15,7 +15,6 @@
  */
 package org.gradle.api.publication.maven.internal.ant
 
-import java.lang.reflect.Proxy
 import org.gradle.api.artifacts.maven.MavenPom
 import org.gradle.api.artifacts.maven.PomFilterContainer
 import org.gradle.api.artifacts.maven.PublishFilter
@@ -29,11 +28,11 @@ import org.jmock.integration.junit4.JMock
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+
+import java.lang.reflect.Proxy
+
 import static org.junit.Assert.assertSame
 
-/**
- * @author Hans Dockter
- */
 @RunWith(JMock)
 class DefaultGroovyPomFilterContainerTest extends BasePomFilterContainerTest {
     static final String TEST_NAME = "somename"

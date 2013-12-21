@@ -19,17 +19,18 @@ import org.gradle.api.tasks.WorkResult
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 
 import groovy.transform.InheritConstructors
-
+import org.gradle.api.tasks.compile.CompileOptions
 import spock.lang.Specification
 
 class NormalizingJavaCompilerTest extends Specification {
     Compiler<JavaCompileSpec> target = Mock()
-    JavaCompileSpec spec = new DefaultJavaCompileSpec()
+    DefaultJavaCompileSpec spec = new DefaultJavaCompileSpec()
     NormalizingJavaCompiler compiler = new NormalizingJavaCompiler(target)
 
     def setup() {
         spec.source = files("Source1.java", "Source2.java", "Source3.java")
         spec.classpath = files("Dep1.jar", "Dep2.jar", "Dep3.jar")
+        spec.compileOptions = new CompileOptions()
     }
 
     def "delegates to target compiler after resolving source and classpath"() {

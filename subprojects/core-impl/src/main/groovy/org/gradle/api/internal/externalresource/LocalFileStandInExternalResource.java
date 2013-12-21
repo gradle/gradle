@@ -18,8 +18,8 @@ package org.gradle.api.internal.externalresource;
 
 import org.gradle.api.internal.externalresource.metadata.DefaultExternalResourceMetaData;
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
-import org.gradle.util.hash.HashUtil;
-import org.gradle.util.hash.HashValue;
+import org.gradle.internal.hash.HashUtil;
+import org.gradle.internal.hash.HashValue;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -35,10 +35,13 @@ public class LocalFileStandInExternalResource extends AbstractExternalResource {
 
     private final File localFile;
     private final String source;
+    private HashValue sha1;
+    private ExternalResourceMetaData metaData;
 
-    public LocalFileStandInExternalResource(String source, File localFile) {
+    public LocalFileStandInExternalResource(String source, File localFile, ExternalResourceMetaData metaData) {
         this.source = source;
         this.localFile = localFile;
+        this.metaData = metaData;
     }
 
     public String getName() {
@@ -66,7 +69,10 @@ public class LocalFileStandInExternalResource extends AbstractExternalResource {
     }
 
     public ExternalResourceMetaData getMetaData() {
-        return new DefaultExternalResourceMetaData(source, getLastModified(), getContentLength(), null);
+        if (metaData == null) {
+            metaData = new DefaultExternalResourceMetaData(source, getLastModified(), getContentLength(), null, getLocalFileSha1());
+        }
+        return metaData;
     }
 
     protected File getLocalFile() {
@@ -78,6 +84,9 @@ public class LocalFileStandInExternalResource extends AbstractExternalResource {
     }
 
     protected HashValue getLocalFileSha1() {
-        return getSha1(getLocalFile());
+        if (sha1 == null) {
+            sha1 = getSha1(getLocalFile());
+        }
+        return sha1;
     }
 }

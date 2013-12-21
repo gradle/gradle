@@ -17,19 +17,11 @@
 package org.gradle.process.internal;
 
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.process.ExecResult;
 
-/**
- * @author Hans Dockter
- */
 public class DefaultExecAction extends ExecHandleBuilder implements ExecAction {
     public DefaultExecAction(FileResolver fileResolver) {
         super(fileResolver);
-    }
-
-    public DefaultExecAction() {
-        super(new IdentityFileResolver());
     }
 
     public ExecResult execute() {

@@ -22,8 +22,6 @@ import java.awt.*;
 
 /**
  * Wrapper to shield version changes in GradleTab from an external user of the gradle open API.
- *
- * @author mhunsicker
  */
 public class GradleTabVersionWrapper implements GradleTab {
     private GradleTabVersion1 gradleTabVersion1;

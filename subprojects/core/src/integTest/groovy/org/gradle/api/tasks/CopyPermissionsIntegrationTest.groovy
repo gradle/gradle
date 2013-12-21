@@ -17,46 +17,112 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
-@Requires(TestPrecondition.FILE_PERMISSIONS)
+import static org.junit.Assert.assertTrue
+
 class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
 
-    def "fileMode can be modified in copy task"() {
+    @Requires(TestPrecondition.FILE_PERMISSIONS)
+    def "file permissions are preserved in copy action"() {
         given:
-        file("reference.txt") << 'test file"'
-
+        def testSourceFile = file(testFileName)
+        testSourceFile << "test file content"
+        testSourceFile.mode = mode
         and:
         buildFile << """
-        import static java.lang.Integer.toOctalString
         task copy(type: Copy) {
-            from "reference.txt"
+            from "${testSourceFile.absolutePath}"
             into ("build/tmp")
-            fileMode = $mode
         }
-
-        ${verifyPermissionsTask(mode)}
         """
 
         when:
-        run "verifyPermissions"
-
+        run "copy"
         then:
-        noExceptionThrown()
-
+        file("build/tmp/${testFileName}").mode == mode
         where:
-        mode << [0755, 0777]
-
+        mode << [0746, 0746]
+        testFileName << ["reference.txt", "\u0627\u0644\u0627\u0655\u062F\u0627\u0631\u0629.txt"]
     }
 
+    @Requires(TestPrecondition.FILE_PERMISSIONS)
+    def "file permissions can be modfied with eachFile closure"() {
+        given:
+        def testSourceFile = file("reference.txt") << 'test file"'
+        testSourceFile.mode = 0746
+        and:
+        buildFile << """
+            task copy(type: Copy) {
+                from "reference.txt"
+                eachFile {
+		            it.setMode(0755)
+	            }
+                into ("build/tmp")
+            }
+            """
+        when:
+        run "copy"
+        then:
+        file("build/tmp/reference.txt").mode == 0755
+    }
+
+    @Requires(TestPrecondition.FILE_PERMISSIONS)
+    def "directory permissions are preserved in copy action"() {
+        given:
+        TestFile parent = getTestDirectory().createDir("testparent")
+        TestFile child = parent.createDir("testchild")
+        child.file("reference.txt") << "test file"
+
+        child.mode = mode
+        and:
+        buildFile << """
+            task copy(type: Copy) {
+                from "testparent"
+                into ("build/tmp")
+            }
+            """
+        when:
+        run "copy"
+        then:
+        file("build/tmp/testchild").mode == mode
+        where:
+        mode << [0755, 0776]
+    }
+
+    @Requires(TestPrecondition.FILE_PERMISSIONS)
+    def "fileMode can be modified in copy task"() {
+        given:
+
+        file("reference.txt") << 'test file"'
+        file("reference.txt").mode = 0777
+        and:
+        buildFile << """
+             task copy(type: Copy) {
+                 from "reference.txt"
+                 into ("build/tmp")
+                 fileMode = $mode
+             }
+            """
+        when:
+        run "copy"
+
+        then:
+        file("build/tmp/reference.txt").mode == mode
+
+        where:
+        mode << [0755, 0776]
+    }
+
+    @Requires(TestPrecondition.FILE_PERMISSIONS)
     def "fileMode can be modified in copy action"() {
         given:
         file("reference.txt") << 'test file"'
 
         and:
         buildFile << """
-            import static java.lang.Integer.toOctalString
             task copy << {
                 copy {
                     from 'reference.txt'
@@ -64,28 +130,62 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
                     fileMode = $mode
                 }
             }
-
-            ${verifyPermissionsTask(mode)}
             """
 
         when:
-        run "verifyPermissions"
+        run "copy"
 
         then:
-        noExceptionThrown()
-
+        file("build/tmp/reference.txt").mode == mode
         where:
-        mode << [0755, 0777]
+        mode << [0755, 0776]
 
     }
 
-    String verifyPermissionsTask(int mode) {
-        """task verifyPermissions(dependsOn: copy) << {
-                fileTree("build/tmp").visit{
-                    assert toOctalString($mode) == toOctalString(it.mode)
-                }
-           }
+    @Requires(TestPrecondition.FILE_PERMISSIONS)
+    def "dirMode can be modified in copy task"() {
+        given:
+        TestFile parent = getTestDirectory().createDir("testparent")
+        TestFile child = parent.createDir("testchild")
+        child.file("reference.txt") << "test file"
+
+        child.mode = 0777
+        and:
+        buildFile << """
+            task copy(type: Copy) {
+                from "testparent"
+                into ("build/tmp")
+                dirMode = $mode
+            }
+            """
+        when:
+        run "copy"
+        then:
+        file("build/tmp/testchild").mode == mode
+        where:
+        mode << [0755, 0776]
+    }
+
+    @Requires(TestPrecondition.WINDOWS)
+    def "file permissions are not preserved on OS without permission support"() {
+        given:
+        def testSourceFile = file("reference.txt") << 'test file"'
+        assertTrue testSourceFile.setReadOnly()
+        and:
+        buildFile << """
+        task copy(type: Copy) {
+            from "reference.txt"
+            into ("build/tmp")
+        }
         """
+        when:
+        withDebugLogging()
+        run "copy"
+        then:
+        def testTargetFile = file("build/tmp/reference.txt")
+        testTargetFile.exists()
+        testTargetFile.canWrite()
     }
+
 
 }

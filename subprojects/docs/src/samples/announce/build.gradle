@@ -15,12 +15,12 @@ announce {
 
 //START SNIPPET announce-usage
 task helloWorld << {  
-    ant.echo(message: "hello") 
+    println "Hello, world!"
 }  
 
 helloWorld.doLast {  
-    announce("Build complete", "notify-send")
-    announce("Build complete", "twitter")
+    announce.announce("helloWorld completed!", "twitter")
+    announce.announce("helloWorld completed!", "local")
 }
 //END SNIPPET announce-usage
 

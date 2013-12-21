@@ -15,22 +15,22 @@
  */
 package org.gradle.api.internal.externalresource.transport.http.ntlm;
 
-
 import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification
 
 public class NTLMCredentialsTest extends Specification {
-    final PasswordCredentials credentials = Mock()
+    PasswordCredentials credentials = Mock()
 
     @Rule
     public SetSystemProperties systemProperties = new SetSystemProperties()
 
     def "uses domain when encoded in username"() {
-        when:
         credentials.username >> "domain\\username"
         credentials.password >> "password"
+
+        when:
         def ntlmCredentials = new NTLMCredentials(credentials)
 
         then:
@@ -40,9 +40,10 @@ public class NTLMCredentialsTest extends Specification {
     }
 
     def "uses domain when encoded in username with forward slash"() {
-        when:
         credentials.username >> "domain/username"
         credentials.password >> "password"
+
+        when:
         def ntlmCredentials = new NTLMCredentials(credentials)
 
         then:
@@ -52,9 +53,10 @@ public class NTLMCredentialsTest extends Specification {
     }
 
     def "uses default domain when not encoded in username"() {
-        when:
         credentials.username >> "username"
         credentials.password >> "password"
+
+        when:
         def ntlmCredentials = new NTLMCredentials(credentials)
 
         then:
@@ -64,10 +66,11 @@ public class NTLMCredentialsTest extends Specification {
     }
 
     def "uses system property for domain when not encoded in username"() {
-        when:
         System.setProperty("http.auth.ntlm.domain", "domain")
         credentials.username >> "username"
         credentials.password >> "password"
+
+        when:
         def ntlmCredentials = new NTLMCredentials(credentials)
 
         then:
@@ -77,9 +80,10 @@ public class NTLMCredentialsTest extends Specification {
     }
 
     def "uses truncated hostname for workstation"() {
-        when:
         credentials.username >> "username"
         credentials.password >> "password"
+
+        when:
         def ntlmCredentials = new NTLMCredentials(credentials) {
             protected String getHostName() {
                 return "hostname.domain.org"

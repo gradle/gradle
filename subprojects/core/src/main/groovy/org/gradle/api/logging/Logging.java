@@ -27,8 +27,6 @@ import java.util.Map;
 /**
  * <p>The main entry point for Gradle's logging system. Gradle routes all logging via SLF4J. You can use either an SLF4J
  * {@link org.slf4j.Logger} or a Gradle {@link Logger} to perform logging.</p>
- *
- * @author Hans Dockter
  */
 public class Logging {
     public static final Marker LIFECYCLE = MarkerFactory.getDetachedMarker("LIFECYCLE");

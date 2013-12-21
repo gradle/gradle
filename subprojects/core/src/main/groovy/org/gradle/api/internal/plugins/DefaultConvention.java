@@ -18,20 +18,18 @@ package org.gradle.api.internal.plugins;
 
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
+import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.BeanDynamicObject;
 import org.gradle.api.internal.DynamicObject;
-import org.gradle.api.internal.Instantiator;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.DeprecationLogger;
 
 import java.util.*;
 
-/**
- * @author Hans Dockter
- */
-public class DefaultConvention implements Convention {
+public class DefaultConvention implements Convention, ExtensionContainerInternal {
 
     private final Map<String, Object> plugins = new LinkedHashMap<String, Object>();
     private final DefaultConvention.ExtensionsDynamicObject extensionsDynamicObject = new ExtensionsDynamicObject();
@@ -40,12 +38,12 @@ public class DefaultConvention implements Convention {
     private final Instantiator instantiator;
 
     /**
-     * This method should be used in runtime code proper as means that the convention cannot create
+     * This method should not be used in runtime code proper as means that the convention cannot create
      * dynamic extensions.
      *
      * It's here for backwards compatibility with our tests and for convenience.
      *
-     * @see #DefaultConvention(org.gradle.api.internal.Instantiator)
+     * @see #DefaultConvention(org.gradle.internal.reflect.Instantiator)
      */
     public DefaultConvention() {
         this(null);
@@ -136,6 +134,14 @@ public class DefaultConvention implements Convention {
         return extensionsStorage.findByName(name);
     }
 
+    public <T> void configure(Class<T> type, Action<? super T> action) {
+        extensionsStorage.configureExtension(type, action);
+    }
+
+    public Map<String, Object> getAsMap() {
+        return extensionsStorage.getAsMap();
+    }
+
     public Object propertyMissing(String name) {
         return getByName(name);
     }
@@ -213,6 +219,14 @@ public class DefaultConvention implements Convention {
                 }
             }
             throw new MissingMethodException(name, Convention.class, args);
+        }
+
+        public boolean isMayImplementMissingMethods() {
+            return false;
+        }
+
+        public boolean isMayImplementMissingProperties() {
+            return false;
         }
 
         public Object methodMissing(String name, Object args) {

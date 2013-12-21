@@ -20,9 +20,6 @@ import org.gradle.api.internal.ConventionTask
 import org.gradle.api.tasks.AbstractSpockTaskTest
 import org.gradle.plugins.ide.eclipse.model.EclipseClasspath
 
-/**
- * @author Hans Dockter
- */
 public class GenerateEclipseClasspathTest extends AbstractSpockTaskTest {
 
     private GenerateEclipseClasspath eclipseClasspath;

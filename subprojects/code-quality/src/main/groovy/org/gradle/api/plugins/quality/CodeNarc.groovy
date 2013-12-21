@@ -15,19 +15,19 @@
  */
 package org.gradle.api.plugins.quality
 
-//import org.gradle.api.plugins.quality.internal.ConsoleReportWriter
-
-
 import org.gradle.api.GradleException
 import org.gradle.api.file.FileCollection
-import org.gradle.api.internal.Instantiator
 import org.gradle.api.internal.project.IsolatedAntBuilder
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.plugins.quality.internal.CodeNarcReportsImpl
 import org.gradle.api.reporting.Report
 import org.gradle.api.reporting.Reporting
-import org.gradle.util.DeprecationLogger
 import org.gradle.api.tasks.*
+import org.gradle.internal.reflect.Instantiator
+import org.gradle.logging.ConsoleRenderer
+import org.gradle.util.DeprecationLogger
+
+import javax.inject.Inject
 
 /**
  * Runs CodeNarc against some source files.
@@ -44,6 +44,24 @@ class CodeNarc extends SourceTask implements VerificationTask, Reporting<CodeNar
      */
     @InputFile
     File configFile
+
+    /**
+     * The maximum number of priority 1 violations allowed before failing the build.
+     */
+    @Input
+    int maxPriority1Violations
+
+    /**
+     * The maximum number of priority 2 violations allowed before failing the build.
+     */
+    @Input
+    int maxPriority2Violations
+
+    /**
+     * The maximum number of priority 3 violations allowed before failing the build.
+     */
+    @Input
+    int maxPriority3Violations
 
     /**
      * The format type of the CodeNarc report.
@@ -88,21 +106,28 @@ class CodeNarc extends SourceTask implements VerificationTask, Reporting<CodeNar
     }
 
     @Nested
-    private final CodeNarcReportsImpl reports = services.get(Instantiator).newInstance(CodeNarcReportsImpl, this)
+    private final CodeNarcReportsImpl reports
+
+    private final IsolatedAntBuilder antBuilder
 
     /**
      * Whether or not the build should break when the verifications performed by this task fail.
      */
     boolean ignoreFailures
 
+    @Inject
+    CodeNarc(Instantiator instantiator, IsolatedAntBuilder antBuilder) {
+        reports = instantiator.newInstance(CodeNarcReportsImpl, this)
+        this.antBuilder = antBuilder
+    }
+
     @TaskAction
     void run() {
         logging.captureStandardOutput(LogLevel.INFO)
-        def antBuilder = services.get(IsolatedAntBuilder)
         antBuilder.withClasspath(getCodenarcClasspath()).execute {
             ant.taskdef(name: 'codenarc', classname: 'org.codenarc.ant.CodeNarcTask')
             try {
-                ant.codenarc(ruleSetFiles: "file:${getConfigFile()}", maxPriority1Violations: 0, maxPriority2Violations: 0, maxPriority3Violations: 0) {
+                ant.codenarc(ruleSetFiles: "file:${getConfigFile()}", maxPriority1Violations: getMaxPriority1Violations(), maxPriority2Violations: getMaxPriority2Violations(), maxPriority3Violations: getMaxPriority3Violations()) {
                     reports.enabled.each { Report r ->
                         report(type: r.name) {
                             option(name: 'outputFile', value: r.destination)
@@ -113,14 +138,17 @@ class CodeNarc extends SourceTask implements VerificationTask, Reporting<CodeNar
                 }
             } catch (Exception e) {
                 if (e.message.matches('Exceeded maximum number of priority \\d* violations.*')) {
+                    def message = "CodeNarc rule violations were found."
+                    def report = reports.firstEnabled
+                    if (report) {
+                        def reportUrl = new ConsoleRenderer().asClickableFileUrl(report.destination)
+                        message += " See the report at: $reportUrl"
+                    }
                     if (getIgnoreFailures()) {
+                        logger.warn(message)
                         return
                     }
-                    if (reports.html.enabled) {
-                        throw new GradleException("CodeNarc rule violations were found. See the report at ${reports.html.destination}.", e)
-                    } else {
-                        throw new GradleException("CodeNarc rule violations were found.", e)
-                    }
+                    throw new GradleException(message, e)
                 }
                 throw e
             }
@@ -140,6 +168,4 @@ class CodeNarc extends SourceTask implements VerificationTask, Reporting<CodeNar
     CodeNarcReports reports(Closure closure) {
         reports.configure(closure)
     }
-
-
 }

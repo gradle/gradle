@@ -1,0 +1,56 @@
+def timestampFormat = new java.text.SimpleDateFormat('yyyyMMddHHmmssZ')
+timestampFormat.timeZone = TimeZone.getTimeZone("UTC")
+
+if (buildTypes.isActive("promotionBuild")) {
+    logger.lifecycle "Invocation tasks: $gradle.startParameter.taskNames\nInvocation properties: $gradle.startParameter.projectProperties"
+}
+
+if (incomingDistributionsBuildReceipt) {
+    ext.versionBase = incomingDistributionsBuildReceipt.versionBase
+    ext.buildTimestamp = incomingDistributionsBuildReceipt.buildTimestamp
+} else {
+    ext.versionBase = rootProject.file("version.txt").text.trim()
+
+    if (project.hasProperty("buildTimestamp")) {
+        ext.buildTime = timestampFormat.parse(buildTimestamp)
+    } else {
+        File timestampFile = file("$buildDir/timestamp.txt")
+        if (timestampFile.isFile()) {
+            boolean uptodate = true
+            def modified = timestampFile.lastModified()
+            project(':core').fileTree('src/main').visit {fte ->
+                if (fte.file.isFile() && fte.lastModified > modified) {
+                    uptodate = false
+                    fte.stopVisiting()
+                }
+            }
+            if (!uptodate) {
+                timestampFile.setLastModified(new Date().time)
+            }
+        } else {
+            timestampFile.parentFile.mkdirs()
+            timestampFile.createNewFile()
+        }
+
+        ext.buildTime = new Date(timestampFile.lastModified())
+        ext.buildTimestamp = timestampFormat.format(buildTime)
+    }
+}
+
+ext.rcNumber = project.hasProperty("rcNumber") ? project.rcNumber.toInteger() : null
+ext.finalRelease = project.hasProperty("finalRelease")
+if (rcNumber != null && finalRelease) {
+    throw new InvalidUserDataException("Cannot set rcNumber and finalRelease at the same time")
+}
+
+version = versionBase
+
+ext.isSnapshot = false
+if (finalRelease) {
+    // use version base
+} else if (rcNumber != null) {
+    version += "-rc-$rcNumber"
+} else {
+    isSnapshot = true
+    version += "-$buildTimestamp"
+}

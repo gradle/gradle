@@ -1,0 +1,556 @@
+<!--
+  ~ Copyright 2010 the original author or authors.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<chapter id='nativeBinaries'>
+    <title>Building native binaries</title>
+
+    <note>
+        <para>
+            The Gradle support for building native binaries is currently <link linkend="feature_lifecycle">incubating</link>. Please be aware that the DSL and other configuration may change in later Gradle versions.
+        </para>
+    </note>
+
+    <para>
+        The various native binary plugins add support for building native software components from C++, C and Assembler sources.
+        While many excellent build tools exist for this space of software development, Gradle offers developers it's trademark power and flexibility
+        together with the dependency management practices more traditionally found in the JVM development space.
+    </para>
+
+    <section id="native-binaries:tool-chain-support">
+        <title>Tool chain support</title>
+        <para>
+            Gradle offers the ability to execute the same build using different tool chains. You can control which tool chain will be used to build
+            by changing the operating system PATH to include the desired tool chain compiler. Alternatively, you can configure the tool chains directly,
+            as described in the `Native Binary Variants` section, below.
+        </para>
+        <para>
+            The following tool chains are supported:
+        </para>
+        <table>
+            <thread>
+                <tr><td>Operating System</td><td>Tool Chain</td><td>Notes</td></tr>
+            </thread>
+            <tr>
+                <td>Linux</td><td><ulink url="http://gcc.gnu.org/">GCC</ulink></td> <td></td>
+            </tr>
+            <tr>
+                <td>Linux</td><td><ulink url="http://clang.llvm.org">Clang</ulink></td><td></td>
+            </tr>
+            <tr>
+                <td>Mac OS X</td><td><ulink url="http://gcc.gnu.org/">GCC</ulink></td><td>Using GCC distributed with XCode.</td>
+            </tr>
+            <tr>
+                <td>Mac OS X</td><td><ulink url="http://clang.llvm.org">Clang</ulink></td><td>Using Clang distributed with XCode.</td>
+            </tr>
+            <tr>
+                <td>Windows</td><td><ulink url="http://www.microsoft.com/visualstudio/en-us">Visual C++</ulink></td><td>Windows XP and later, Visual C++ 2010 and later.</td>
+            </tr>
+            <tr>
+                <td>Windows</td><td><ulink url="http://gcc.gnu.org/">GCC</ulink></td><td>Windows XP and later, using GCC distributed with Cygwin.</td>
+            </tr>
+            <tr>
+                <td>Windows</td><td><ulink url="http://www.mingw.org/">MinGW</ulink></td><td>Windows XP and later.</td>
+            </tr>
+        </table>
+    </section>
+
+    <section>
+        <title>Component model</title>
+        <para>
+            A native binary project defines a set of <apilink class="org.gradle.nativebinaries.Executable"/> and <apilink class="org.gradle.nativebinaries.Library"/> components,
+            each of which Gradle maps to a number of <apilink class="org.gradle.nativebinaries.NativeBinary"/> outputs.
+            For each <literal>executable</literal> or <literal>library</literal> defined, Gradle adds a <apilink class="org.gradle.language.base.FunctionalSourceSet"/> with the same name.
+            Each of these functional source sets will contain a language-specific source set for each of the languages supported by the project.
+        </para>
+        <para>
+            To build either a static or shared native library binary,
+            a <apilink class="org.gradle.nativebinaries.Library"/> component is added to the <literal>libraries</literal> container.
+            Each <literal>library</literal> component can produce at least one <apilink class="org.gradle.nativebinaries.SharedLibraryBinary"/>
+            and at least one <apilink class="org.gradle.nativebinaries.StaticLibraryBinary"/>.
+        </para>
+        <sample id="cppLibraries" dir="native-binaries/c" title="Defining a library component">
+            <sourcefile file="build.gradle" snippet="libraries"/>
+        </sample>
+        <para>
+            To build an executable binary,
+            an <apilink class="org.gradle.nativebinaries.Executable"/> component is added to the <literal>executables</literal> container
+            and associated with a set of sources.
+        </para>
+        <sample id="cppExecutables" dir="native-binaries/c" title="Defining executable components">
+            <sourcefile file="build.gradle" snippet="executables"/>
+        </sample>
+        <para>
+            In many cases, more than one native binary can be produced for a component.
+            These binaries may vary based on the tool chain used to build, the compiler/linker flags supplied, the dependencies
+            provided, or additional source files provided. Each native binary produced for a component is referred to as <literal>variant</literal>.
+            Binary variants are discussed in detail below.
+        </para>
+    </section>
+
+    <section>
+        <title>Tasks</title>
+        <para>
+            For each <apilink class="org.gradle.nativebinaries.NativeBinary"/> that can be produced by a build,
+            a single <firstterm>lifecycle task</firstterm> is constructed that can be used to create that binary, together with a set of other tasks that do the actual
+            work of compiling, linking or assembling the binary.
+        </para>
+        <table>
+            <thread>
+                <tr><td>Component Type</td><td>Native Binary Type</td><td>Lifecycle task</td><td>Location of created binary</td></tr>
+            </thread>
+            <tr>
+                <td><apilink class="org.gradle.nativebinaries.Executable"/></td><td><apilink class="org.gradle.nativebinaries.ExecutableBinary"/></td><td><literal><replaceable>$component.name</replaceable>Executable</literal></td><td><filename><replaceable>$buildDir</replaceable>/binaries/<replaceable>$binary.name</replaceable>/<replaceable>$component.name</replaceable></filename></td>
+            </tr>
+            <tr>
+                <td><apilink class="org.gradle.nativebinaries.Library"/></td><td><apilink class="org.gradle.nativebinaries.SharedLibraryBinary"/></td><td><literal><replaceable>$component.name</replaceable>SharedLibrary</literal></td><td><filename><replaceable>$buildDir</replaceable>/binaries/<replaceable>$binary.name</replaceable>/lib<replaceable>$component.name</replaceable>.so</filename></td>
+            </tr>
+            <tr>
+                <td><apilink class="org.gradle.nativebinaries.Library"/></td><td><apilink class="org.gradle.nativebinaries.StaticLibraryBinary"/></td><td><literal><replaceable>$component.name</replaceable>StaticLibrary</literal></td><td><filename><replaceable>$buildDir</replaceable>/binaries/<replaceable>$binary.name</replaceable>/<replaceable>$component.name</replaceable>.a</filename></td>
+            </tr>
+        </table>
+
+        <section>
+            <title>Working with shared libraries</title>
+            <para>
+                For each executable binary produced, the <literal>cpp</literal> plugin provides an <literal>install${binary.name}</literal> task,
+                which creates a development install of the executable, along with the shared libraries it requires.
+                This allows you to run the executable without needing to install the shared libraries in their final locations.
+            </para>
+        </section>
+    </section>
+
+    <section id="native_binaries:languages">
+        <title>Core language support: C, C++ and Assembler</title>
+        <para>
+            Presently, Gradle supports building native binaries from any combination of C++, C and Assembler sources.
+            A native binary project will contain one or more named <literal>FunctionalSourceSet</literal> instances (eg 'main', 'test', etc),
+            each of which can contain <literal>LanguageSourceSet</literal>s containing C++, C or Assembler source files.
+        </para>
+
+        <section>
+            <title>C++ sources</title>
+            <para>
+                C++ language support is provided by means of the <literal>'cpp'</literal> plugin.
+            </para>
+            <sample id="cppPlugin" dir="native-binaries/cpp" title="The 'cpp' plugin">
+                <sourcefile file="build.gradle" snippet="apply-plugin"/>
+            </sample>
+            <para>
+                C++ sources to be included in a native binary are provided via a <apilink class="org.gradle.language.cpp.CppSourceSet"/>,
+                which defines a set of C++ source files and optionally a set of exported header files (for a library).
+                By default, for any named component the <apilink class="org.gradle.language.cpp.CppSourceSet"/> contains
+                <filename>.cpp</filename> source files in <filename>src/${name}/cpp</filename>,
+                and header files in <filename>src/${name}/headers</filename>.
+            </para>
+            <para>
+                While the <literal>cpp</literal> plugin defines these default locations for each <apilink class="org.gradle.language.cpp.CppSourceSet"/>,
+                it is possible to extend or override these defaults to allow for a different project layout.
+            </para>
+            <sample id="cppSourceSet" dir="native-binaries/custom-layout" title="C++ source set">
+                <sourcefile file="build.gradle" snippet="cpp-sources"/>
+            </sample>
+            <para>
+                For a library named 'main', files in <filename>src/main/headers</filename> are considered the “public” or “exported” headers.
+                Header files that should not be exported (but are used internally) should be placed inside the <filename>src/main/cpp</filename> directory (though be aware that
+                such header files should always be referenced in a manner relative to the file including them).
+            </para>
+        </section>
+
+        <section>
+            <title>C sources</title>
+            <para>
+                C language support is provided by means of the <literal>'c'</literal> plugin.
+            </para>
+            <sample id="cPlugin" dir="native-binaries/c" title="The 'c' plugin">
+                <sourcefile file="build.gradle" snippet="apply-plugin"/>
+            </sample>
+            <para>
+                C sources to be included in a native binary are provided via a <apilink class="org.gradle.language.c.CSourceSet"/>,
+                which defines a set of C source files and optionally a set of exported header files (for a library).
+                By default, for any named component the <apilink class="org.gradle.language.c.CSourceSet"/> contains
+                <filename>.c</filename> source files in <filename>src/${name}/c</filename>,
+                and header files in <filename>src/${name}/headers</filename>.
+            </para>
+            <para>
+                While the <literal>c</literal> plugin defines these default locations for each <apilink class="org.gradle.language.c.CSourceSet"/>,
+                it is possible to extend or override these defaults to allow for a different project layout.
+            </para>
+            <sample id="cSourceSet" dir="native-binaries/custom-layout" title="C source set">
+                <sourcefile file="build.gradle" snippet="c-sources"/>
+            </sample>
+            <para>
+                For a library named 'main', files in <filename>src/main/headers</filename> are considered the “public” or “exported” headers.
+                Header files that should not be exported (but are used internally) should be placed inside the <filename>src/main/c</filename> directory (though be aware that
+                such header files should always be referenced in a manner relative to the file including them).
+            </para>
+        </section>
+
+        <section>
+            <title>Assembler sources</title>
+            <para>
+                Assembly language support is provided by means of the <literal>'assembler'</literal> plugin.
+            </para>
+            <sample id="assemblerPlugin" dir="native-binaries/assembler" title="The 'assembler' plugin">
+                <sourcefile file="build.gradle" snippet="apply-plugin"/>
+            </sample>
+            <para>
+                Assembler sources to be included in a native binary are provided via a <apilink class="org.gradle.language.assembler.AssemblerSourceSet"/>,
+                which defines a set of Assembler source files.
+                By default, for any named component the <apilink class="org.gradle.language.assembler.AssemblerSourceSet"/> contains
+                <filename>.s</filename> source files under <filename>src/${name}/asm</filename>.
+            </para>
+        </section>
+    </section>
+
+    <section>
+        <title>Configuring the compiler, assembler and linker</title>
+        <para>
+            Each binary to be produced is associated with a set of compiler and linker settings, which include command-line arguments as well as macro definitions.
+            These settings can be applied to all binaries, an individual binary, or selectively to a group of binaries based on some criteria.
+        </para>
+        <sample id="allBinarySettings" dir="native-binaries/cpp" title="Settings that apply to all binaries">
+            <sourcefile file="build.gradle" snippet="all-binaries"/>
+        </sample>
+        <para>
+            Each binary is associated with a particular <apilink class="org.gradle.nativebinaries.toolchain.ToolChain"/>, allowing settings to be targeted based on
+            this value.
+        </para>
+        <para>
+            It is easy to apply settings to all binaries of a particular type:
+        </para>
+        <sample id="allSharedLibraryBinarySettings" dir="native-binaries/c" title="Settings that apply to all shared libraries">
+            <sourcefile file="build.gradle" snippet="all-shared-libraries"/>
+        </sample>
+        <para>
+            Furthermore, it is possible to specify settings that apply to all binaries produces for a particular <literal>executable</literal>
+            or <literal>library</literal> component:
+        </para>
+        <sample id="componentBinarySettings" dir="native-binaries/assembler" title="Settings that apply to all binaries produced for the 'main' executable component">
+            <sourcefile file="build.gradle" snippet="assembler-args"/>
+        </sample>
+        <para>
+            The above example will apply the supplied configuration to all <literal>executable</literal> binaries built.
+        </para>
+        <para>
+            Similarly, settings can be specified to target binaries for a component that are of a particular type:
+            eg all <literal>shared libraries</literal> for the <literal>main library</literal> component.
+        </para>
+        <sample id="sharedLibraryArgs" dir="native-binaries/cpp-lib" title="Settings that apply only to shared libraries produced for the 'main' library component">
+            <sourcefile file="build.gradle" snippet="args"/>
+        </sample>
+    </section>
+
+    <section id="native_binaries:windows-resources">
+        <title>Windows Resources</title>
+        <para>
+            When using the <apilink class="org.gradle.nativebinaries.toolchain.VisualCpp"/> tool chain, Gradle is able to compile Window Resource (<literal>rc</literal>)
+            files and link them into a native binary. This functionality is provided by the <literal>'windows-resources'</literal> plugin.
+        </para>
+        <sample id="windowsResourcesPlugin" dir="native-binaries/windows-resources" title="The 'windows-resources' plugin">
+            <sourcefile file="build.gradle" snippet="apply-plugin"/>
+        </sample>
+        <para>
+            Windows resources to be included in a native binary are provided via a <apilink class="org.gradle.language.rc.WindowsResourceSet"/>,
+            which defines a set of Windows Resource source files.
+            By default, for any named component the <apilink class="org.gradle.language.rc.WindowsResourceSet"/> contains
+            <filename>.rc</filename> source files under <filename>src/${name}/rc</filename>.
+        </para>
+        <para>
+            As with other source types, you can configure the location of the windows resources that should in included in the binary.
+        </para>
+        <sample id="windowsResourceSet" dir="native-binaries/windows-resources" title="Configuring the location of Windows resource sources">
+            <sourcefile file="build-resource-only-dll.gradle" snippet="windows-resource-set"/>
+        </sample>
+        <para>
+            You are able to construct a resource-only library by providing Windows Resource sources with no other language sources,
+            and configure the linker as appropriate:
+        </para>
+        <sample id="resourceOnlyDll" dir="native-binaries/windows-resources" title="Building a resource-only dll">
+            <sourcefile file="build-resource-only-dll.gradle" snippet="resource-only-library"/>
+        </sample>
+        <para>
+            The above example also demonstrates the mechanism of passing extra command-line arguments to the resource compiler.
+            The <literal>rcCompiler</literal> extension is of type <apilink class="org.gradle.nativebinaries.language.PreprocessingTool"/>.
+        </para>
+    </section>
+
+    <section>
+        <title>Library Dependencies</title>
+        <para>
+            Dependencies for C++ projects are binary libraries that export header files. The header files are used during compilation, with the compiled
+            binary dependency being used during the linking.
+        </para>
+        <section>
+           <title>Dependencies within the same project</title>
+           <para>
+               A set of sources may depend on header files provided by another binary component within the same project.
+               A common example is a native executable component that uses functions provided by a separate native library component.
+           </para>
+           <para>
+               Such a library dependency can be easily provided to source set associated with the <literal>executable</literal> component:
+           </para>
+           <sample id="cppSourceLibrary" dir="native-binaries/cpp" title="Providing a library dependency to the source set">
+               <sourcefile file="build.gradle" snippet="source-library"/>
+           </sample>
+           <para>
+               Alternatively, a library dependency can be provided directly to the <literal>ExecutableBinary</literal> for the <literal>executable</literal>.
+           </para>
+           <sample id="cppBinaryLibrary" dir="native-binaries/custom-layout" title="Providing a library dependency to the binary">
+               <sourcefile file="build.gradle" snippet="binary-library"/>
+           </sample>
+        </section>
+        <section>
+            <title>Project Dependencies</title>
+            <para>
+                For a component produced in a different Gradle project, the notation is similar.
+            </para>
+            <sample id="cppProjectDependencies" dir="native-binaries/multi-project" title="Declaring project dependencies">
+                <sourcefile file="build.gradle" snippet="project-dependencies"/>
+            </sample>
+        </section>
+    </section>
+
+    <section id="native_binaries:variants">
+        <title>Native Binary Variants</title>
+        <para>
+            For each executable or library defined, Gradle is able to build a number of different native binary variants.
+            Examples of different variants include debug vs release binaries, 32-bit vs 64-bit binaries, and binaries produced
+            with different custom preprocessor flags.
+        </para>
+        <para>
+            Binaries produced by Gradle can be differentiated on
+                <link linkend="native_binaries:build_type">build type</link>,
+                <link linkend="native_binaries:platform">platform</link> and
+                <link linkend="native_binaries:flavor">flavor</link>.
+            For each of these 'variant dimensions', it is possible to specify a set of available values as well as target each component at
+            one, some or all of these. For example, a plugin may define a range of support platforms, but you
+            may choose to only target Windows-x86 for a particular component.
+        </para>
+
+        <section id="native_binaries:build_type">
+            <title>Build types</title>
+            <para>
+                A <literal>build type</literal> determines various non-functional aspects of a binary, such as whether debug information is included,
+                or what optimisation level the binary is compiled with. Typical build types are 'debug' and 'release', but a project
+                is free to define any set of build types.
+            </para>
+            <sample id="buildTypes" dir="native-binaries/variants" title="Defining build types">
+                <sourcefile file="build.gradle" snippet="build-types"/>
+            </sample>
+            <para>
+                If no build types are defined in a project, then a single, default build type called 'debug' is added.
+            </para>
+            <para>
+                For a build type, a Gradle project will typically define a set of compiler/linker flags per tool chain.
+            </para>
+            <sample id="buildTypeConfig" dir="native-binaries/variants" title="Configuring debug binaries">
+                <sourcefile file="build.gradle" snippet="build-type-config"/>
+            </sample>
+            <note>
+                At this stage, it is completely up to the build script to configure the relevant compiler/linker flags for each
+                build type. Future versions of Gradle will automatically include the appropriate debug flags for any 'debug' build
+                type, and may be aware of various levels of optimisation as well.
+            </note>
+        </section>
+
+        <section id="native_binaries:platform">
+            <title>Platform</title>
+            <para>
+                An executable or library can be built to run on different operating systems and cpu architectures, with a variant being
+                produced for each platform. Gradle defines each OS/architecture combination as a <apilink class="org.gradle.nativebinaries.platform.Platform"/>,
+                and a project may define any number of platforms.
+                If no platforms are defined in a project, then a single, default platform 'current' is added.
+            </para>
+            <note>
+                Presently, a <literal>Platform</literal> consists of a defined operating system and architecture. As we continue to develop the
+                native binary support in Gradle, the concept of Platform will be extended to include things like C-runtime version, Windows SDK, ABI, etc.
+                Sophisticated builds may use the extensibility of Gradle to apply additional attributes to each platform, which can then be queried to
+                specify particular includes, preprocessor macros or compiler arguments for a native binary.
+            </note>
+            <sample id="platforms" dir="native-binaries/variants" title="Defining platforms">
+                <sourcefile file="build.gradle" snippet="platforms"/>
+            </sample>
+            <para>
+                For a given variant, Gradle will attempt to find a <apilink class="org.gradle.nativebinaries.toolchain.ToolChain"/> that is able to build
+                for the target platform. Available tool chains are searched in the order defined.
+                See the <link linkend="native_binaries:tool_chain">tool chain</link> section below for more details.
+            </para>
+        </section>
+
+        <section id="native_binaries:flavor">
+            <title>Flavor</title>
+            <para>
+                Each component can have a set of named <literal>flavors</literal>, and a separate binary variant can be produced for each flavor.
+                While the <literal>build type</literal> and <literal>target platform</literal> variant dimensions have a defined meaning in Gradle,
+                each project is free to define any number of flavors and apply meaning to them in any way.
+            </para>
+            <para>
+                An example of component flavors might differentiate between 'demo', 'paid' and 'enterprise' editions of the component,
+                where the same set of sources is used to produce binaries with different functions.
+            </para>
+            <sample id="flavors" dir="native-binaries/flavors" title="Defining flavors">
+                <sourcefile file="build.gradle" snippet="flavors"/>
+            </sample>
+            <para>
+                In the above example, a library is defined with a 'english' and 'french' flavor. When compiling the 'french'
+                variant, a separate macro is defined which leads to a different binary being produced.
+            </para>
+            <para>
+                If no flavor is defined for a component, then a single default flavor named 'default' is used.
+            </para>
+        </section>
+        <section>
+            <title>Selecting the build types, platforms and flavors for a component</title>
+            <para>
+                For a default component, Gradle will attempt to create a native binary variant for each and every combination of <literal>buildType</literal>,
+                <literal>platform</literal> and <literal>flavor</literal> defined for the project. It is possible to override this on a per-component
+                basis, by specifying the set of <literal>targetBuildTypes</literal>, <literal>targetPlatforms</literal> and/or <literal>targetFlavors</literal>.
+            </para>
+            <sample id="targets" dir="native-binaries/variants" title="Targeting a component at particular platforms">
+                <sourcefile file="build.gradle" snippet="target-platforms"/>
+            </sample>
+            <para>
+                Here you can see that the <apilink class="org.gradle.nativebinaries.ProjectNativeComponent" method="targetPlatforms"/> method is used to
+                select the set of platforms to target for <literal>executables.main</literal>.
+            </para>
+            <para>
+                A similar mechanism exists for selecting <apilink class="org.gradle.nativebinaries.ProjectNativeComponent" method="targetBuildTypes"/>
+                and <apilink class="org.gradle.nativebinaries.ProjectNativeComponent" method="targetFlavors"/>.
+            </para>
+        </section>
+        <section>
+            <title>Building all possible variants</title>
+            <para>
+                When a set of build types, target platforms, and flavors is defined for a component,
+                a <apilink class="org.gradle.nativebinaries.NativeBinary"/> model element is created for every possible
+                combination of these. However, in many cases it is not possible to build a particular variant, perhaps because
+                no tool chain is available to build for a particular platform.
+            </para>
+            <para>
+                If a binary variant cannot be built for any reason, then the <apilink class="org.gradle.nativebinaries.NativeBinary"/>
+                associated with that variant will not be <literal>buildable</literal>. It is possible to use this property to create a task
+                to generate all possible variants on a particular machine.
+            </para>
+            <sample id="buildable" dir="native-binaries/tool-chains" title="Building all possible variants">
+                <sourcefile file="build.gradle" snippet="buildable"/>
+            </sample>
+        </section>
+    </section>
+
+    <section id="native_binaries:tool_chain">
+        <title>Tool chains</title>
+        <para>
+            A single build may utilize different tool chains to build variants for different platforms. To this end,
+            the core 'native-binary' plugins will attempt to locate and make available supported tool chains. However, the set
+            of tool chains for a project may also be explicitly defined, allowing additional cross-compilers to be configured
+            as well as allowing the install directories to be specified.
+        </para>
+        <section>
+            <title>Defining tool chains</title>
+            <para>
+                The supported tool chain types are:
+            </para>
+            <itemizedlist>
+                <listitem>
+                    <para><apilink class="org.gradle.nativebinaries.toolchain.Gcc"/></para>
+                </listitem>
+                <listitem>
+                    <para><apilink class="org.gradle.nativebinaries.toolchain.Clang"/></para>
+                </listitem>
+                <listitem>
+                    <para><apilink class="org.gradle.nativebinaries.toolchain.VisualCpp"/></para>
+                </listitem>
+            </itemizedlist>
+            <sample id="toolChains" dir="native-binaries/tool-chains" title="Defining tool chains">
+                <sourcefile file="build.gradle" snippet="toolChains"/>
+            </sample>
+            <para>
+                Each tool chain implementation allows for a certain degree of configuration (see the API documentation for more details).
+            </para>
+        </section>
+
+        <section>
+            <title>Using tool chains</title>
+            <para>
+                It is not necessary or possible to specify the tool chain that should be used to build.
+                For a given variant, Gradle will attempt to locate a <apilink class="org.gradle.nativebinaries.toolchain.ToolChain"/> that is able to build
+                for the target platform. Available tool chains are searched in the order defined.
+            </para>
+            <note>
+                When a platform does not define an architecture or operating system, the default target of the tool chain
+                is assumed. So if a platform does not define a value for <literal>operatingSystem</literal>,
+                Gradle will find the first available tool chain that can build for the specified <literal>architecture</literal>.
+            </note>
+            <para>
+                The core Gradle tool chains are able to target the following architectures out of the box. In each case, the tool chain
+                will target the current operating system. See the next section for information on cross-compiling for other operating systems.
+            </para>
+            <table>
+                <thread>
+                    <tr><td>Tool Chain</td><td>Architectures</td></tr>
+                </thread>
+                <tr>
+                    <td>GCC</td><td>x86, x86_64</td>
+                </tr>
+                <tr>
+                    <td>Clang</td><td>x86, x86_64</td>
+                </tr>
+                <tr>
+                    <td>Visual C++</td><td>x86, x86_64, ia-64</td>
+                </tr>
+            </table>
+            <para>
+                So for GCC running on linux, the supported target platforms are 'linux/x86' and 'linux/x86_64'.
+                For GCC running on Windows via Cygwin, platforms 'windows/x86' and 'windows/x86_64' are supported.
+                (The Cygwin runtime is not yet modelled as part of the Platform, but will be in the future.)
+            </para>
+            <para>
+                If no target platforms are defined for a project, then all binaries are built to target a default platform named 'current'.
+                This default platform does not specify any <literal>architecture</literal> or <literal>operatingSystem</literal> value,
+                hence using the default values of the first available tool chain.
+            </para>
+        </section>
+
+        <section>
+            <title>Cross-compiling with GCC</title>
+            <para>
+                Cross-compiling is possible with the <apilink class="org.gradle.nativebinaries.toolchain.Gcc"/> and <apilink class="org.gradle.nativebinaries.toolchain.Clang"/> tool chains,
+                by programmatically adding support for additional target platforms.
+                This is done using the <apilink class="org.gradle.nativebinaries.toolchain.PlatformConfigurableToolChain"/> API.
+                Each added <apilink class="org.gradle.nativebinaries.toolchain.TargetPlatformConfiguration"/> defines support for a particular target platform,
+                and supplies additional tool arguments that are required to target this platform.
+            </para>
+        </section>
+    </section>
+    <section id="native_binaries:visual_studio">
+        <title>Visual Studio IDE integration</title>
+        <para>
+            Gradle has the ability to generate Visual Studio project and solution files for the native components defined in your build.
+            This ability is added by the <literal>visual-studio</literal> plugin. For a multi-project build, all projects with native components
+            should have this plugin applied.
+        </para>
+        <para>
+            When the <literal>visual-studio</literal> plugin is applied, a task name <literal>${component.name}VisualStudio</literal> is created
+            for each defined component. This task will generate a Visual Studio Solution file for the named component. This solution will include
+            a Visual Studio Project for that component, as well as linking to project files for each depended-on binary.
+        </para>
+        <para>
+            The content of the generated visual studio files can be modified via programmatic hooks, provided by the <literal>visualStudio</literal>
+            extension. Take a look at the 'visual-studio' sample, or see <apilink class="org.gradle.ide.visualstudio.VisualStudioExtension" method="getProjects"/>
+            and <apilink class="org.gradle.ide.visualstudio.VisualStudioExtension" method="getSolutions"/> for more details.
+        </para>
+    </section>
+</chapter>

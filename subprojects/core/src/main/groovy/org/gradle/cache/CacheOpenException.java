@@ -16,7 +16,7 @@
 package org.gradle.cache;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.internal.Contextual;
+import org.gradle.internal.exceptions.Contextual;
 
 @Contextual
 public class CacheOpenException extends GradleException {

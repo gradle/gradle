@@ -19,11 +19,11 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.tasks.Delete
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class IdePluginTest extends Specification {
-    final Project project = HelperUtil.createRootProject()
+    final Project project = TestUtil.createRootProject()
 
     def addsLifecycleTasks() {
         when:

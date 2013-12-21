@@ -15,13 +15,13 @@
  */
 package org.gradle.integtests.tooling.m5
 
-import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
-import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.GradleProject
 
-@MinToolingApiVersion('1.0-milestone-5')
-@MinTargetGradleVersion('1.0-milestone-5')
+@ToolingApiVersion('>=1.0-milestone-5')
+@TargetGradleVersion('>=1.0-milestone-5')
 class ToolingApiReceivingStandardStreamsCrossVersionSpec extends ToolingApiSpecification {
 
     def setup() {
@@ -31,7 +31,7 @@ class ToolingApiReceivingStandardStreamsCrossVersionSpec extends ToolingApiSpeci
     }
 
     def "receives standard streams while the build is executing"() {
-        dist.testFile('build.gradle') << '''
+        file('build.gradle') << '''
 System.out.println 'this is stdout'
 System.err.println 'this is stderr'
 '''
@@ -52,7 +52,7 @@ System.err.println 'this is stderr'
     }
 
     def "receives standard streams while the model is building"() {
-        dist.testFile('build.gradle') << '''
+        file('build.gradle') << '''
 System.out.println 'this is stdout'
 System.err.println 'this is stderr'
 '''

@@ -16,9 +16,7 @@
 package org.gradle.plugins.ide.idea.model
 
 /**
- * Represents an orderEntry of type module in the iml xml.
- *
- * @author Hans Dockter
+ * Represents an orderEntry of type module in the iml XML.
  */
 class ModuleDependency implements Dependency {
     /**

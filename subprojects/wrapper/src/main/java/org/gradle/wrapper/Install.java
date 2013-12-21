@@ -19,16 +19,15 @@ package org.gradle.wrapper;
 import java.io.*;
 import java.net.URI;
 import java.util.*;
+import java.util.concurrent.Callable;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-/**
- * @author Hans Dockter
- */
 public class Install {
     public static final String DEFAULT_DISTRIBUTION_PATH = "wrapper/dists";
     private final IDownload download;
     private final PathAssembler pathAssembler;
+    private final ExclusiveFileAccessManager exclusiveFileAccessManager = new ExclusiveFileAccessManager(120000, 200);
 
     public Install(IDownload download, PathAssembler pathAssembler) {
         this.download = download;
@@ -36,41 +35,53 @@ public class Install {
     }
 
     public File createDist(WrapperConfiguration configuration) throws Exception {
-        URI distributionUrl = configuration.getDistribution();
-        boolean alwaysDownload = configuration.isAlwaysDownload();
-        boolean alwaysUnpack = configuration.isAlwaysUnpack();
+        final URI distributionUrl = configuration.getDistribution();
 
-        PathAssembler.LocalDistribution localDistribution = pathAssembler.getDistribution(configuration);
+        final PathAssembler.LocalDistribution localDistribution = pathAssembler.getDistribution(configuration);
+        final File distDir = localDistribution.getDistributionDir();
+        final File localZipFile = localDistribution.getZipFile();
 
-        File localZipFile = localDistribution.getZipFile();
-        boolean downloaded = false;
-        if (alwaysDownload || !localZipFile.exists()) {
-            File tmpZipFile = new File(localZipFile.getParentFile(), localZipFile.getName() + ".part");
-            tmpZipFile.delete();
-            System.out.println("Downloading " + distributionUrl);
-            download.download(distributionUrl, tmpZipFile);
-            tmpZipFile.renameTo(localZipFile);
-            downloaded = true;
-        }
+        return exclusiveFileAccessManager.access(localZipFile, new Callable<File>() {
+            public File call() throws Exception {
+                final File markerFile = new File(localZipFile.getParentFile(), localZipFile.getName() + ".ok");
+                if (distDir.isDirectory() && markerFile.isFile()) {
+                    return getDistributionRoot(distDir, distDir.getAbsolutePath());
+                }
 
-        File distDir = localDistribution.getDistributionDir();
+                boolean needsDownload = !localZipFile.isFile();
+
+                if (needsDownload) {
+                    File tmpZipFile = new File(localZipFile.getParentFile(), localZipFile.getName() + ".part");
+                    tmpZipFile.delete();
+                    System.out.println("Downloading " + distributionUrl);
+                    download.download(distributionUrl, tmpZipFile);
+                    tmpZipFile.renameTo(localZipFile);
+                }
+
+                List<File> topLevelDirs = listDirs(distDir);
+                for (File dir : topLevelDirs) {
+                    System.out.println("Deleting directory " + dir.getAbsolutePath());
+                    deleteDir(dir);
+                }
+                System.out.println("Unzipping " + localZipFile.getAbsolutePath() + " to " + distDir.getAbsolutePath());
+                unzip(localZipFile, distDir);
+
+                File root = getDistributionRoot(distDir, distributionUrl.toString());
+                setExecutablePermissions(root);
+                markerFile.createNewFile();
+
+                return root;
+            }
+        });
+    }
+
+    private File getDistributionRoot(File distDir, String distributionDescription) {
         List<File> dirs = listDirs(distDir);
-
-        if (downloaded || alwaysUnpack || dirs.isEmpty()) {
-            for (File dir : dirs) {
-                System.out.println("Deleting directory " + dir.getAbsolutePath());
-                deleteDir(dir);
-            }
-            System.out.println("Unzipping " + localZipFile.getAbsolutePath() + " to " + distDir.getAbsolutePath());
-            unzip(localZipFile, distDir);
-            dirs = listDirs(distDir);
-            if (dirs.isEmpty()) {
-                throw new RuntimeException(String.format("Gradle distribution '%s' does not contain any directories. Expected to find exactly 1 directory.", distributionUrl));
-            }
-            setExecutablePermissions(dirs.get(0));
+        if (dirs.isEmpty()) {
+            throw new RuntimeException(String.format("Gradle distribution '%s' does not contain any directories. Expected to find exactly 1 directory.", distributionDescription));
         }
         if (dirs.size() != 1) {
-            throw new RuntimeException(String.format("Gradle distribution '%s' contains too many directories. Expected to find exactly 1 directory.", distributionUrl));
+            throw new RuntimeException(String.format("Gradle distribution '%s' contains too many directories. Expected to find exactly 1 directory.", distributionDescription));
         }
         return dirs.get(0);
     }
@@ -141,29 +152,34 @@ public class Install {
         return dir.delete();
     }
 
-    public void unzip(File zip, File dest) throws IOException {
+    private void unzip(File zip, File dest) throws IOException {
         Enumeration entries;
-        ZipFile zipFile;
+        ZipFile zipFile = new ZipFile(zip);
 
-        zipFile = new ZipFile(zip);
+        try {
+            entries = zipFile.entries();
 
-        entries = zipFile.entries();
+            while (entries.hasMoreElements()) {
+                ZipEntry entry = (ZipEntry) entries.nextElement();
 
-        while (entries.hasMoreElements()) {
-            ZipEntry entry = (ZipEntry) entries.nextElement();
+                if (entry.isDirectory()) {
+                    (new File(dest, entry.getName())).mkdirs();
+                    continue;
+                }
 
-            if (entry.isDirectory()) {
-                (new File(dest, entry.getName())).mkdirs();
-                continue;
+                OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(new File(dest, entry.getName())));
+                try {
+                    copyInputStream(zipFile.getInputStream(entry), outputStream);
+                } finally {
+                    outputStream.close();
+                }
             }
-
-            copyInputStream(zipFile.getInputStream(entry),
-                    new BufferedOutputStream(new FileOutputStream(new File(dest, entry.getName()))));
+        } finally {
+            zipFile.close();
         }
-        zipFile.close();
     }
 
-    public void copyInputStream(InputStream in, OutputStream out) throws IOException {
+    private void copyInputStream(InputStream in, OutputStream out) throws IOException {
         byte[] buffer = new byte[1024];
         int len;
 
@@ -174,5 +190,6 @@ public class Install {
         in.close();
         out.close();
     }
+
 
 }

@@ -22,8 +22,6 @@ import java.net.Socket;
 /**
  * This protocol is used by the process that launches gradle (the launching server - but in this case its the client) so that it can tell gradle to kill itself. This is used to cancel gradle
  * execution. There is no other clean way to do it but kill it. All this does is send a 'kill' message.
- *
- * @author mhunsicker
  */
 public class KillGradleClientProtocol implements ClientProcess.Protocol {
     private ClientProcess client;

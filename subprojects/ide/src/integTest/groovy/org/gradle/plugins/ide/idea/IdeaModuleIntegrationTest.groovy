@@ -24,7 +24,7 @@ import spock.lang.Issue
 
 class IdeaModuleIntegrationTest extends AbstractIdeIntegrationTest {
     @Rule
-    public final TestResources testResources = new TestResources()
+    public final TestResources testResources = new TestResources(testDirectoryProvider)
 
     @Test
     void enablesCustomizationsOnNewModel() {
@@ -252,6 +252,85 @@ idea.module {
     }
 
     @Test
+    void "respects external dependencies order"() {
+        //given
+        def repoDir = file("repo")
+        maven(repoDir).module("org.gradle", "artifact1").publish()
+        maven(repoDir).module("org.gradle", "artifact2").publish()
+
+        //when
+        runIdeaTask """
+apply plugin: 'java'
+apply plugin: 'idea'
+
+repositories {
+    maven { url "${repoDir.toURI()}" }
+}
+
+dependencies {
+    compile 'org.gradle:artifact1:1.0'
+    compile 'org.gradle:artifact2:1.0'
+}
+"""
+        def content = getFile([:], 'root.iml').text
+
+        //then
+        def a1 = content.indexOf("artifact1")
+        def a2 = content.indexOf("artifact2")
+
+        assert [a1, a2] == [a1, a2].sort()
+    }
+
+    @Test
+    void "respects local dependencies order"() {
+        //given
+        file('artifact1.jar').createNewFile()
+        file('artifact2.jar').createNewFile()
+
+        //when
+        runIdeaTask """
+apply plugin: 'java'
+apply plugin: 'idea'
+
+dependencies {
+    compile files('artifact1.jar')
+    compile files('artifact2.jar')
+}
+"""
+        def content = getFile([:], 'root.iml').text
+
+        //then
+        def a1 = content.indexOf("artifact1")
+        def a2 = content.indexOf("artifact2")
+
+        assert [a1, a2] == [a1, a2].sort()
+    }
+
+    @Test
+    void "works with artifacts without group and version"() {
+        //given
+        testFile('repo/hibernate-core.jar').createFile()
+
+        //when
+        runIdeaTask """
+apply plugin: 'java'
+apply plugin: 'idea'
+
+repositories {
+  flatDir dirs: 'repo'
+}
+
+dependencies {
+    compile ':hibernate-core:'
+}
+"""
+        def content = getFile([:], 'root.iml').text
+
+        //then
+        content.contains 'hibernate-core.jar'
+    }
+
+    @Test
     void doesNotBreakWhenSomeDependenciesCannotBeResolved() {
         //given
         def repoDir = file("repo")
@@ -286,6 +365,6 @@ project(':impl') {
         assert content.count("someDependency.jar") == 1
         assert content.count("artifactTwo-1.0.jar") == 1
         assert content.count("someApiProject") == 1
-        assert content.count("unresolved dependency - i.dont#Exist;1.0") == 1
+        assert content.count("unresolved dependency - i.dont Exist 1.0") == 1
     }
 }

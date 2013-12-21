@@ -16,9 +16,6 @@
  
 package org.gradle.api.plugins
 
-/**
- * @author Hans Dockter
- */
 class TestPluginConvention1 {
     String a = 'a1'
     String b = 'b'

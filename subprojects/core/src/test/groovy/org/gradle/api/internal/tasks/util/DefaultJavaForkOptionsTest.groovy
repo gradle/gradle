@@ -17,10 +17,11 @@
 
 package org.gradle.api.internal.tasks.util
 
+import org.gradle.api.internal.file.TestFiles
+
 import java.nio.charset.Charset
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.file.IdentityFileResolver
 import org.gradle.process.JavaForkOptions
 import org.gradle.process.internal.DefaultJavaForkOptions
 import org.gradle.util.JUnit4GroovyMockery
@@ -193,7 +194,7 @@ public class DefaultJavaForkOptionsTest {
     }
 
     @Test
-    public void debugIsUpdatedWhenSetUsingJvmArgs() {
+    public void debugIsEnabledWhenSetUsingJvmArgs() {
         options.jvmArgs('-Xdebug', '-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005')
         assertTrue(options.debug)
         assertThat(options.jvmArgs, equalTo([]))
@@ -201,6 +202,7 @@ public class DefaultJavaForkOptionsTest {
         options.allJvmArgs = []
         assertFalse(options.debug)
 
+        options.debug = false
         options.jvmArgs = ['-Xdebug']
         assertFalse(options.debug)
         assertThat(options.jvmArgs, equalTo(['-Xdebug']))
@@ -213,6 +215,7 @@ public class DefaultJavaForkOptionsTest {
         assertTrue(options.debug)
         assertThat(options.jvmArgs, equalTo([]))
 
+        options.debug = false
         options.jvmArgs = ['-Xdebug', '-Xrunjdwp:transport=other']
         assertFalse(options.debug)
         assertThat(options.jvmArgs, equalTo(['-Xdebug', '-Xrunjdwp:transport=other']))
@@ -233,7 +236,7 @@ public class DefaultJavaForkOptionsTest {
     @Test
     public void canAddToBootstrapClasspath() {
         def files = ['file1.jar', 'file2.jar'].collect { new File(it).canonicalFile }
-        options = new DefaultJavaForkOptions(new IdentityFileResolver());
+        options = new DefaultJavaForkOptions(TestFiles.resolver());
         options.bootstrapClasspath(files[0])
         options.bootstrapClasspath(files[1])
 
@@ -243,7 +246,7 @@ public class DefaultJavaForkOptionsTest {
     @Test
     public void allJvmArgsIncludeBootstrapClasspath() {
         def files = ['file1.jar', 'file2.jar'].collect { new File(it).canonicalFile }
-        options = new DefaultJavaForkOptions(new IdentityFileResolver());
+        options = new DefaultJavaForkOptions(TestFiles.resolver());
         options.bootstrapClasspath(files)
 
         context.checking {
@@ -257,7 +260,7 @@ public class DefaultJavaForkOptionsTest {
     @Test
     public void canSetBootstrapClasspathViaAllJvmArgs() {
         def files = ['file1.jar', 'file2.jar'].collect { new File(it).canonicalFile }
-        options = new DefaultJavaForkOptions(new IdentityFileResolver());
+        options = new DefaultJavaForkOptions(TestFiles.resolver());
         options.bootstrapClasspath(files[0])
 
         options.allJvmArgs = ['-Xbootclasspath:' + files[1]]

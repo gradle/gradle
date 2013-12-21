@@ -175,7 +175,7 @@
         <title>Customizing</title>
         <para>Here is an example with the most important customization options:
         </para>
-        <sample id="webproject" dir="webApplication/customised" title="Customization of war plugin">
+        <sample id="webproject" dir="webApplication/customized" title="Customization of war plugin">
             <sourcefile file="build.gradle" snippet="customization"/>
         </sample>
         <para>Of course one can configure the different file-sets with a closure to define excludes and includes.

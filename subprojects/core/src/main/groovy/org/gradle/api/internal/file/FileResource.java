@@ -21,9 +21,6 @@ import org.gradle.api.resources.MissingResourceException;
 
 import java.io.*;
 
-/**
- * by Szczepan Faber, created at: 11/22/11
- */
 public class FileResource extends AbstractFileResource {
 
     public FileResource(File file) {

@@ -12,8 +12,8 @@ configurations {
 
 dependencies {
     gradleApi gradleApi()
-    groovy localGroovy()
-    compile 'com.google.guava:guava:11.0.1'
+    compile localGroovy()
+    compile 'com.google.guava:guava:11.0.2'
 }
 
 task dist(type: Zip) {

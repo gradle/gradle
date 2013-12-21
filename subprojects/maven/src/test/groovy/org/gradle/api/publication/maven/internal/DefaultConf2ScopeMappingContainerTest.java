@@ -32,9 +32,6 @@ import static java.util.Arrays.asList;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.*;
 
-/**
- * @author Hans Dockter
- */
 @RunWith(JUnit4.class)
 public class DefaultConf2ScopeMappingContainerTest {
     private final JUnit4Mockery context = new JUnit4GroovyMockery();

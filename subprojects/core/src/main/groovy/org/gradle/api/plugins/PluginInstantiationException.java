@@ -19,8 +19,6 @@ import org.gradle.api.GradleException;
 
 /**
  * A {@code PluginInstantiationException} is thrown when a plugin cannot be instantiated.
- *
- * @author Hans Dockter
  */
 public class PluginInstantiationException extends GradleException {
     public PluginInstantiationException(String message) {

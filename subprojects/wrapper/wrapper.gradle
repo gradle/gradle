@@ -13,19 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-apply from: "$rootDir/gradle/classycle.gradle"
-
 dependencies {
-    groovy libraries.groovy
     compile project(":cli")
+
+    testCompile libraries.groovy
     testCompile libraries.ant
+
+    integTestRuntime rootProject.configurations.testRuntime.allDependencies
 }
+
+task buildReceiptResource(type: Copy, dependsOn: rootProject.createBuildReceipt) {
+    into generatedTestResourcesDir
+    from rootProject.createBuildReceipt.receiptFile
+}
+sourceSets.test.output.dir generatedTestResourcesDir, builtBy: buildReceiptResource
 
 task executableJar(type: Jar) {
     archiveName = 'gradle-wrapper.jar'
     from sourceSets.main.output
+    from rootProject.createBuildReceipt
     from configurations.runtime.allDependencies.withType(ProjectDependency).collect { it.dependencyProject.sourceSets.main.output }
 }
 
-useTestFixtures()
+integTestTasks.all {
+    inputs.files { project(":distributions").binZip }
+}
 
+useTestFixtures()
+useClassycle()

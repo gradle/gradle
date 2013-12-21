@@ -23,8 +23,6 @@ import org.gradle.plugins.ide.idea.model.Project
  * Generates an IDEA project file for root project *only*. If you want to fine tune the idea configuration
  * <p>
  * At this moment nearly all configuration is done via {@link IdeaProject}.
- *
- * @author Hans Dockter
  */
 public class GenerateIdeaProject extends XmlGeneratorTask<Project> {
 

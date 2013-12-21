@@ -71,7 +71,7 @@ public class SourceTask extends ConventionTask implements PatternFilterable {
     }
 
     /**
-     * Sets the source for this task. The given source object is evaluated as for {@link org.gradle.api.Project#files(Object...)}.
+     * Sets the source for this task. The given source object is evaluated as per {@link org.gradle.api.Project#files(Object...)}.
      *
      * @param source The source.
      */
@@ -81,7 +81,7 @@ public class SourceTask extends ConventionTask implements PatternFilterable {
     }
 
     /**
-     * Adds some source to this task. The given source objects will be evaluated as for {@link org.gradle.api.Project#files(Object...)}.
+     * Adds some source to this task. The given source objects will be evaluated as per {@link org.gradle.api.Project#files(Object...)}.
      *
      * @param sources The source to add
      * @return this

@@ -1,164 +1,208 @@
+/* reset.css */
+html {margin:0;padding:0;border:0;}
+body, div, span, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, acronym, address, code, del, dfn, em, img, q, dl, dt, dd, ol, ul, li, fieldset, form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td, article, aside, dialog, figure, footer, header, hgroup, nav, section {margin:0;padding:0;border:0;font-size:100%;font:inherit;vertical-align:baseline;}
+article, aside, details, figcaption, figure, dialog, footer, header, hgroup, menu, nav, section {display:block;}
+body {line-height:1.5;background:white;}
+table {border-collapse:separate;border-spacing:0;}
+caption, th, td {text-align:left;font-weight:normal;float:none !important;}
+table, th, td {vertical-align:middle;}
+blockquote:before, blockquote:after, q:before, q:after {content:'';}
+blockquote, q {quotes:"" "";}
+a img {border:none;}
+:focus {outline:0;}
 
-/*
- * Basic layout
- */
+/* typography.css */
+html {font-size:100.01%;}
+h1, h2, h3, h4, h5, h6 {font-weight:normal; line-height: 1;color: #007042;}
+h1 {font-size:4em;}
+h2 {font-size:2.2em;}
+h3 {font-size:1.5em;}
+h4 {font-size:1.3em;}
+h5 {font-size:1.1em;}
+h6 {font-size:1em;font-weight:bold;}
+h1 img, h2 img, h3 img, h4 img, h5 img, h6 img {margin:0;}
+.left {float:left !important;}
+p .left {margin:1.5em 1.5em 1.5em 0;padding:0;}
+.right {float:right !important;}
+p .right {margin:1.5em 0 1.5em 1.5em;padding:0;}
+a:focus, a:hover {color:#09f;}
+a {color:#06c;text-decoration:underline;}
+blockquote {margin:1.5em;color:#666;font-style:italic;}
+strong, dfn {font-weight:bold;}
+em, dfn {font-style:italic;}
+sup, sub {line-height:0;}
+abbr, acronym {border-bottom:1px dotted #666;}
+address {margin:0 0 1.5em;font-style:italic;}
+del {color:#666;}
+pre {margin:1.5em 0;white-space:pre;}
+/*pre, code, tt {font:1em 'andale mono', 'lucida console', monospace;line-height:1.5;}*/
+li ul, li ol {margin:0;}
+ul, ol {padding-left:1.5em;}
+ul {list-style-type:disc;}
+ol {list-style-type:decimal;}
+dl {margin:0 0 1.5em 0;}
+dl dt {font-weight:normal;}
+dd {margin-left:1.5em;}
+table {margin-bottom:1.4em;}
+th {font-weight:bold;}
+thead th {background:#c3d9ff;}
+th, td, caption {padding:4px 10px 4px 5px;}
+tfoot {font-style:italic;}
+caption {background:#eee;}
+.small {font-size:.8em;margin-bottom:1.875em;line-height:1.875em;}
+.large {font-size:1.2em;line-height:2.5em;margin-bottom:1.25em;}
+.hide {display:none;}
+.quiet {color:#666;}
+.loud {color:#000;}
+.highlight {background:#ff0;}
+.added {background:#060;color:#fff;}
+.removed {background:#900;color:#fff;}
+.first {margin-left:0;padding-left:0;}
+.last {margin-right:0;padding-right:0;}
+.top {margin-top:0;padding-top:0;}
+.bottom {margin-bottom:0;padding-bottom:0;}
 
-html {
-    margin: 0;
-    /*height: 100%;*/
-    /*min-height: 100%*/
+::selection {
+    background-color: #DDF0DD;
+}
+
+@font-face {
+  font-family: 'Lato';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Lato Regular'), local('Lato-Regular'), url('data:font/opentype;base64,@lato-regular@') format('truetype');
+}
+
+@font-face {
+  font-family: 'Lato';
+  font-style: italic;
+  font-weight: 400;
+  src: local('Lato Italic'), local('Lato-Italic'), url('data:font/opentype;base64,@lato-regular-italic@') format('truetype');
+}
+
+@font-face {
+  font-family: 'Lato';
+  font-style: normal;
+  font-weight: 700;
+  src: local('Lato Bold'), local('Lato-Bold'), url('data:font/opentype;base64,@lato-bold@') format('truetype');
+}
+
+@font-face {
+  font-family: 'Lato';
+  font-style: italic;
+  font-weight: 700;
+  src: local('Lato Bold Italic'), local('Lato-BoldItalic'), url('data:font/opentype;base64,@lato-bold-italic@') format('truetype');
+}
+
+@font-face {
+  font-family: 'Ubuntu Mono';
+  font-style: normal;
+  font-weight: 700;
+  src: local('Ubuntu Mono Bold'), local('UbuntuMono-Bold'), url('data:font/opentype;base64,@ubuntumono-bold@') format('truetype');
+}
+@font-face {
+  font-family: 'Ubuntu Mono';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Ubuntu Mono'), local('UbuntuMono-Regular'), url('data:font/opentype;base64,@ubuntumono-regular@') format('truetype');
+}
+@font-face {
+  font-family: 'Ubuntu Mono';
+  font-style: italic;
+  font-weight: 700;
+  src: local('Ubuntu Mono Bold Italic'), local('UbuntuMono-BoldItalic'), url('data:font/opentype;base64,@ubuntumono-bold-italic@') format('truetype');
+}
+@font-face {
+  font-family: 'Ubuntu Mono';
+  font-style: italic;
+  font-weight: 400;
+  src: local('Ubuntu Mono Italic'), local('UbuntuMono-Italic'), url('data:font/opentype;base64,@ubuntumono-regular-italic@') format('truetype');
 }
 
 body {
-    margin: 0;
-    padding: 0;
-    background-color: white;
-    line-height: 150%;
+  font-size: 14px;
+  font-family: 'Lato', Arial, serif;
+  margin: 28px 28px 14px;
+  color: #333;
+  background: url('data:image/gif;base64,@gradle-logo_25o.gif@') no-repeat right top;
 }
 
-body, td, div {
-    font-family: 'DejaVu Sans', 'Lucida Grande', 'Verdana', sans-serif;
-    font-size: 11pt;
-    color: #444444;
+p, ol, ul, .para {
+  margin: 0 0 16px;
 }
 
-div {
-    margin: 0;
-    padding: 0;
+h1, h2, h3, h4, h5, h6 {
+  margin-bottom: 14px
+}
+
+h2 {
+  margin-top: 32px;
+}
+
+h3, h4, h5, h6 {
+  margin-top: 22px;
+}
+
+.text-container,
+div.book,
+div.chapter {
+  margin-left: 10px;
+  margin-right: 10px;
+}
+
+.text-container h1, .text-container h2, .text-container h3, .text-container h4, .text-container h5,
+div.book h1, div.book h2, div.book h3, div.book h4, div.book h5,
+div.chapter h1, div.chapter h2, div.chapter h3, div.chapter h4, div.chapter h5 {
+  margin-left: -10px;
+}
+
+code, tt, pre {
+  font-family: "Ubuntu Mono", courier, monospace;
+}
+
+h1, h2, h3, h4 {
+  text-shadow: 0px 0px 3px rgba(0, 0, 0, 0.4);
+}
+
+h5, h6 {
+ color: #666;
+}
+
+h1 {
+    font-weight: bold;
+}
+
+h3.releaseinfo {
+   color: #666666;
+   padding-top: 0;
 }
 
 a {
-    color: #444444;
+    color: #007042;
+    text-decoration: none;
 }
-
 a:visited {
-    color: #444444;
+    color: #007042;
+}
+a:hover {
+    color: #007042;
+    border-bottom: 1px dotted #007042;
+}
+a:focus {
+    outline: thin dotted;
+}
+a:hover, a:active {
+    outline: 0;
 }
 
-h1, h2, h3, h4, h5 {
-    color: #444444;
-    line-height: 150%;
-    font-weight: bold;
-    font-family: 'DejaVu Sans', 'Lucida Grande', helvetica, sans-serif;
-}
-
-.heading {
-    font-family: 'DejaVu Sans', 'Lucida Grande', helvetica, sans-serif;
-}
-
-code, pre {
-    font-family: 'Lucida Console', 'DejaVu Sans Mono', Courier, monospace;
-}
-
-/*
- * Docbook content
- */
-
-/*
- * Links
- */
-a.link {
-    white-space: nowrap;
-}
-
-/*
- * Lists
- */
-
-.variablelist dt {
-    font-weight: bold;
-}
-
-.variablelist dt a {
-    font-weight: normal;
-}
-
-/*
- * Examples, Figures
- */
-
-pre {
-    background-color: #f5f5f5;
-    padding-top: 1em;
-    padding-bottom: 1em;
-    padding-left: 1.2em;
-    padding-right: 1.2em;
-    margin-top: 0.6em;
-    margin-bottom: 0.6em;
-    line-height: 120%;
-}
-
-.programlisting {
-    border-left: solid #d0d0d0 0.5em;
-    /*overflow-x: auto;*/
-}
-
-.screen {
-    border-left: solid #d0d0d0 0.5em;
-    /*overflow-x: auto;*/
-}
-
-.example, .figure, .table {
-    margin-top: 0;
-    margin-bottom: 1.8em;
-}
-
-.example .title, .figure .title, .table .title {
-    white-space: nowrap;
-    /*overflow-x: hidden;*/
-    margin-top: 0;
-    margin-bottom: 0.6em;
-}
-
-.example pre, .figure pre {
-    margin: 0;
-    margin-bottom: 0.6em;
-}
-
-.example-contents > p {
-    display: block;
-    margin: 0;
-    margin-bottom: 0.2em;
-}
-
-.example-break, .figure-break {
-    display: none
-}
-
-.exampleLocation {
-    margin-top: 0.5em;
-    padding-left: 1.7em;
-    background: #FEFEDD;
-    color: #777744;
-}
-
-.exampleLocation p {
-    padding-top: 0.4em;
-    padding-bottom: 0.4em;
-}
-
-.exampleLocation .emphasis em {
-    font-style: normal;
-    font-weight: bold;
-}
-
-.cmdsynopsis {
-    font-family: Courier, monospace;
-    margin-left: 2em;
-}
-
-/*
- * Tables
- */
-
-.table table {
+table {
     border-collapse: collapse;
     font-size: 100%;
     min-width: 50%;
     border: solid #d0d0d0 1px;
 }
 
-.table table td {
+table td {
     text-align: left;
     vertical-align: text-top;
     padding-left: 0.8em;
@@ -167,79 +211,46 @@ pre {
     padding-bottom: 0.3em;
 }
 
-.table table thead td {
+table thead td, table th {
     font-weight: bold;
     border-bottom: solid #d0d0d0 1px;
     background-color: #f2f2f2;
 }
 
-/*
- * Footnotes, notes, tips
- */
-
-.footnote sup {
-    vertical-align: baseline;
-    font-size: 100%;
+table th.border-right {
+    border-right: solid #d0d0d0 1px;
 }
 
-.note, .tip {
-    padding-top: 1em;
-    padding-bottom: 0;
-    padding-left: 1.2em;
-    padding-right: 1.2em;
-    margin-bottom: 1em;
+table th.no-border-bottom {
+    border-bottom: none;
 }
 
-.note {
-    background: #ebf4f7;
-    border: solid #c3d9e6 1px;
+pre {
+  border-radius: 5px;
+  padding: 0.8em;
+  line-height: 1.3;
 }
 
-.note .title {
-    color: #5283a1;
+pre.code, pre.programlisting {
+  background-color: #3F3F3F;
+  color: white;
 }
 
-.tip {
-    background: #FAF7F5;
-    border: solid #e2d2c9 1px;
-    float: right;
-    clear: right;
-    margin-left: 2em;
-    margin-top: 1em;
-    margin-bottom: 1em;
-    max-width: 30%;
-    width: 30%;
+pre.screen, pre.tt {
+  color: darkGreen;
+  background-color: white;
+  box-shadow: inset 0 0 7px 0px darkGray;
 }
 
-.tip .title {
-    color: #80614D;
+tbody tr:nth-child(even) td, tbody tr.even td {
+    background: #F7F7F7;
 }
 
-/* Remove top margins on headings inside notes and tips */
-.tip h1, .note h1
-.tip h2, .note h2,
-.tip h3, .note h3,
-.tip h4, .note h4,
-.tip h5, .note h5,
-.tip h6, .note h6
-{
-   margin-top: 0;
+li em, p em {
+  padding: 0 1px 0 1px;
+  text-decoration: underline;
 }
 
-/**
- * Inline content
- */
-.literal, .userinput, .filename {
-    white-space: nowrap;
+code em, tt em {
+  text-decoration: none;
 }
-
-/*
- * Code highlighting
- */
-.hl-string, .hl-number, .hl-value { color: #51913f; }
-
-.hl-keyword { font-weight: bold; }
-
-.hl-comment, .hl-doccomment { color: #929292; }
-
-.hl-annotation { color: #777744; }

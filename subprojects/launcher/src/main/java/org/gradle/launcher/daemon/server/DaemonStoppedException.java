@@ -15,22 +15,16 @@
  */
 package org.gradle.launcher.daemon.server;
 
-import org.gradle.launcher.daemon.server.exec.DaemonCommandExecution;
-
-public class DaemonStoppedException extends Exception {
-
-    private final DaemonCommandExecution executionWhenStopped;
-
-    public DaemonStoppedException(DaemonCommandExecution executionWhenStopped) {
-        super(toMessage(executionWhenStopped));
-        this.executionWhenStopped = executionWhenStopped;
+public class DaemonStoppedException extends RuntimeException {
+    public DaemonStoppedException(String operationDisplayName) {
+        super(toMessage(operationDisplayName));
     }
 
-    private static String toMessage(DaemonCommandExecution executionWhenStopped) {
-        if (executionWhenStopped == null) {
+    private static String toMessage(String operationDisplayName) {
+        if (operationDisplayName == null) {
             return "daemon explicitly stopped while idle";
         } else {
-            return String.format("daemon explicitly stopped while busy, execution when stopped = %s", executionWhenStopped);
+            return String.format("daemon explicitly stopped while busy, execution when stopped = %s", operationDisplayName);
         }
     }
 }

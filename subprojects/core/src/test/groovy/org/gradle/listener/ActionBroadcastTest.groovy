@@ -15,14 +15,14 @@
  */
 package org.gradle.listener
 
-import spock.lang.Specification
 import org.gradle.api.Action
+import spock.lang.Specification
 
 class ActionBroadcastTest extends Specification {
     final ActionBroadcast<String> broadcast = new ActionBroadcast<String>()
 
     def broadcastsEventsToAction() {
-        Action<String> action = Mock()
+        def action = Mock(Action)
         broadcast.add(action)
 
         when:
@@ -33,16 +33,55 @@ class ActionBroadcastTest extends Specification {
         0 * action._
     }
 
-    def broadcastsEventsToClosure() {
-        Closure action = Mock()
-        broadcast.add(action)
+    def broadcastsEventsToMultipleActions() {
+        def action1 = Mock(Action)
+        def action2 = Mock(Action)
+        broadcast.add(action1)
+        broadcast.add(action2)
 
         when:
         broadcast.execute('value')
 
         then:
-        _ * action.maximumNumberOfParameters >> 1
-        1 * action.call('value')
-        0 * action._
+        1 * action1.execute('value')
+        1 * action2.execute('value')
+        0 * _._
     }
+
+    def broadcastsEventsToMultipleActionsStopsOnFirstFailure() {
+        def action1 = Mock(Action)
+        def action2 = Mock(Action)
+        def action3 = Mock(Action)
+        def failure = new RuntimeException()
+
+        broadcast.add(action1)
+        broadcast.add(action2)
+        broadcast.add(action3)
+
+        when:
+        broadcast.execute('value')
+
+        then:
+        RuntimeException e = thrown()
+        e == failure
+
+        and:
+        1 * action1.execute('value')
+        1 * action2.execute('value') >> { throw failure }
+        0 * _._
+    }
+
+    def actionCanAddOtherActions() {
+        def action1 = Mock(Action)
+        def action2 = Mock(Action)
+        broadcast.add(action1)
+
+        when:
+        broadcast.execute('value')
+
+        then:
+        1 * action1.execute('value') >> { broadcast.add(action2) }
+        0 * _._
+    }
+
 }

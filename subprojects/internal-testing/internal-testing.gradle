@@ -17,17 +17,20 @@
 /*
     Provides generally useful test utilities, used for unit and integration testing.
 */
-apply from: "$rootDir/gradle/classycle.gradle"
-
 dependencies {
-    groovy libraries.groovy
+    compile libraries.groovy
 
     compile project(":baseServices")
     compile project(":native")
+    compile libraries.guava
     compile libraries.commons_lang
     compile libraries.commons_io
     compile libraries.ant
     compile libraries.junit
     compile libraries.jmock
     compile libraries.spock
+    compile libraries.jsoup
+    compile libraries.jsr305 //it is a guava dependency needed for compilation on ibm vm / windows
 }
+
+useClassycle()

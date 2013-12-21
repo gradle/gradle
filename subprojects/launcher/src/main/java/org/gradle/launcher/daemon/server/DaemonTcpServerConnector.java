@@ -16,18 +16,16 @@
 package org.gradle.launcher.daemon.server;
 
 import org.gradle.api.Action;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
-import org.gradle.launcher.daemon.logging.DaemonMessages;
-import org.gradle.messaging.concurrent.DefaultExecutorFactory;
+import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.concurrent.DefaultExecutorFactory;
+import org.gradle.internal.id.UUIDGenerator;
 import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.ConnectEvent;
 import org.gradle.messaging.remote.internal.Connection;
-import org.gradle.messaging.remote.internal.DefaultMessageSerializer;
-import org.gradle.messaging.remote.internal.SynchronizedDispatch;
+import org.gradle.messaging.remote.ConnectionAcceptor;
+import org.gradle.messaging.remote.internal.IncomingConnector;
 import org.gradle.messaging.remote.internal.inet.InetAddressFactory;
 import org.gradle.messaging.remote.internal.inet.TcpIncomingConnector;
-import org.gradle.util.UUIDGenerator;
 
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -36,19 +34,16 @@ import java.util.concurrent.locks.ReentrantLock;
  * Opens a TCP connection for clients to connect to to communicate with a daemon.
  */
 public class DaemonTcpServerConnector implements DaemonServerConnector {
-
-    private static final Logger LOGGER = Logging.getLogger(DaemonServerConnector.class);
-
-    final private TcpIncomingConnector<Object> incomingConnector;
+    final private IncomingConnector incomingConnector;
 
     private boolean started;
     private boolean stopped;
     private final Lock lifecycleLock = new ReentrantLock();
+    private ConnectionAcceptor acceptor;
 
     public DaemonTcpServerConnector() {
-        this.incomingConnector = new TcpIncomingConnector<Object>(
+        this.incomingConnector = new TcpIncomingConnector(
                 new DefaultExecutorFactory(),
-                new DefaultMessageSerializer<Object>(getClass().getClassLoader()),
                 new InetAddressFactory(),
                 new UUIDGenerator()
         );
@@ -67,17 +62,15 @@ public class DaemonTcpServerConnector implements DaemonServerConnector {
             // Hold the lock until we actually start accepting connections for the case when stop is called from another
             // thread while we are in the middle here.
 
-            LOGGER.lifecycle(DaemonMessages.PROCESS_STARTED);
-
             Action<ConnectEvent<Connection<Object>>> connectEvent = new Action<ConnectEvent<Connection<Object>>>() {
                 public void execute(ConnectEvent<Connection<Object>> connectionConnectEvent) {
-                    handler.handle(new SynchronizedDispatch<Object>(connectionConnectEvent.getConnection()));
+                    handler.handle(new SynchronizedDispatchConnection<Object>(connectionConnectEvent.getConnection()));
                 }
             };
 
-            Address address = incomingConnector.accept(connectEvent, false);
+            acceptor = incomingConnector.accept(connectEvent, getClass().getClassLoader(), false);
             started = true;
-            return address;
+            return acceptor.getAddress();
         } finally {
             lifecycleLock.unlock();
         }
@@ -85,13 +78,13 @@ public class DaemonTcpServerConnector implements DaemonServerConnector {
 
     public void stop() {
         lifecycleLock.lock();
-        try { // can't imagine what would go wrong here, but try/finally just in case
+        try {
             stopped = true;
         } finally {
             lifecycleLock.unlock();
         }
 
-        incomingConnector.stop();
+        CompositeStoppable.stoppable(acceptor, incomingConnector).stop();
     }
 
 }

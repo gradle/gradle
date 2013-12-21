@@ -17,8 +17,6 @@ package org.gradle.groovy.scripts;
 
 /**
  * A factory for script compilers.
- *
- * @author Hans Dockter
  */
 public interface ScriptCompilerFactory {
     /**

@@ -17,46 +17,53 @@
 package org.gradle.api.tasks.compile;
 
 import org.gradle.api.AntBuilder;
-import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.compile.*;
 import org.gradle.api.internal.tasks.compile.Compiler;
-import org.gradle.internal.Factory;
+import org.gradle.api.internal.tasks.compile.*;
+import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.internal.Factory;
+import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 
 /**
  * Compiles Java source files.
  *
- * @author Hans Dockter
+ * @deprecated This class has been replaced by {@link JavaCompile}.
  */
+@Deprecated
 public class Compile extends AbstractCompile {
     private Compiler<JavaCompileSpec> javaCompiler;
     private File dependencyCacheDir;
-    private final JavaCompileSpec spec = new DefaultJavaCompileSpec();
+    private final CompileOptions compileOptions = new CompileOptions();
 
     public Compile() {
+        if (!(this instanceof JavaCompile)) {
+            DeprecationLogger.nagUserOfReplacedTaskType("Compile", "JavaCompile task type");
+        }
         Factory<AntBuilder> antBuilderFactory = getServices().getFactory(AntBuilder.class);
         JavaCompilerFactory inProcessCompilerFactory = new InProcessJavaCompilerFactory();
         ProjectInternal projectInternal = (ProjectInternal) getProject();
-        TemporaryFileProvider tempFileProvider = projectInternal.getServices().get(TemporaryFileProvider.class);
-        JavaCompilerFactory defaultCompilerFactory = new DefaultJavaCompilerFactory(projectInternal, tempFileProvider, antBuilderFactory, inProcessCompilerFactory);
+        CompilerDaemonManager compilerDaemonManager = getServices().get(CompilerDaemonManager.class);
+        JavaCompilerFactory defaultCompilerFactory = new DefaultJavaCompilerFactory(projectInternal, antBuilderFactory, inProcessCompilerFactory, compilerDaemonManager);
         Compiler<JavaCompileSpec> delegatingCompiler = new DelegatingJavaCompiler(defaultCompilerFactory);
         javaCompiler = new IncrementalJavaCompiler(delegatingCompiler, antBuilderFactory, getOutputs());
     }
 
     @TaskAction
     protected void compile() {
+        DefaultJavaCompileSpec spec = new DefaultJavaCompileSpec();
         spec.setSource(getSource());
         spec.setDestinationDir(getDestinationDir());
         spec.setClasspath(getClasspath());
         spec.setDependencyCacheDir(getDependencyCacheDir());
         spec.setSourceCompatibility(getSourceCompatibility());
         spec.setTargetCompatibility(getTargetCompatibility());
+        spec.setCompileOptions(compileOptions);
         WorkResult result = javaCompiler.execute(spec);
         setDidWork(result.getDidWork());
     }
@@ -77,7 +84,7 @@ public class Compile extends AbstractCompile {
      */
     @Nested
     public CompileOptions getOptions() {
-        return spec.getCompileOptions();
+        return compileOptions;
     }
 
     public Compiler<JavaCompileSpec> getJavaCompiler() {

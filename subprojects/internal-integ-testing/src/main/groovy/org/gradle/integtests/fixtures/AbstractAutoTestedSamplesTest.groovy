@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,6 @@
 
 package org.gradle.integtests.fixtures
 
-/**
- * @author Szczepan Faber, created at: 4/2/11
- */
 class AbstractAutoTestedSamplesTest extends AbstractIntegrationTest {
 
      def util = new AutoTestedSamplesUtil()
@@ -29,7 +26,7 @@ class AbstractAutoTestedSamplesTest extends AbstractIntegrationTest {
             def buildFile = testFile('build.gradle')
             buildFile.text = sample
 
-            usingBuildFile(buildFile).withQuietLogging().withTasks('help').withArguments("-s").run()
+            usingBuildFile(buildFile).withTasks('help').withArguments("-s").run()
         }
     }
 

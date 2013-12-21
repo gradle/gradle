@@ -15,34 +15,36 @@
  */
 package org.gradle.api.internal.tasks.execution
 
-import spock.lang.Specification
-import org.gradle.api.internal.tasks.TaskStateInternal
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.tasks.TaskExecuter
-import org.gradle.api.InvalidUserDataException
+import org.gradle.api.internal.tasks.TaskExecutionContext
+import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.tasks.TaskValidationException
+import spock.lang.Specification
 
 class ValidatingTaskExecuterTest extends Specification {
     final TaskExecuter target = Mock()
     final TaskInternal task = Mock()
     final TaskStateInternal state = Mock()
+    final TaskExecutionContext executionContext = Mock()
     final TaskValidator validator = Mock()
     final ValidatingTaskExecuter executer = new ValidatingTaskExecuter(target)
 
     def executesTaskWhenThereAreNoViolations() {
         when:
-        executer.execute(task, state)
+        executer.execute(task, state, executionContext)
 
         then:
         _ * task.validators >> [validator]
         1 * validator.validate(task, !null)
-        1 * target.execute(task, state)
+        1 * target.execute(task, state, executionContext)
         0 * _._
     }
 
     def failsTaskWhenThereIsAViolation() {
         when:
-        executer.execute(task, state)
+        executer.execute(task, state, executionContext)
 
         then:
         _ * task.validators >> [validator]
@@ -59,7 +61,7 @@ class ValidatingTaskExecuterTest extends Specification {
 
     def failsTaskWhenThereAreMultipleViolations() {
         when:
-        executer.execute(task, state)
+        executer.execute(task, state, executionContext)
 
         then:
         _ * task.validators >> [validator]

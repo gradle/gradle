@@ -48,10 +48,8 @@ public class ScalaDocTest extends AbstractTaskTest {
         return scalaDoc;
     }
 
-    @Override
     @Before
     public void setUp() {
-        super.setUp();
         destDir = getProject().file("destDir");
         srcDir = getProject().file("src");
         GFileUtils.touch(new File(srcDir, "file.scala"));

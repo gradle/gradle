@@ -1,0 +1,17 @@
+// START SNIPPET project-dependencies
+project(":lib") {
+    apply plugin: "cpp-lib"
+}
+
+project(":exe") {
+    apply plugin: "cpp-exe"
+
+    sources {
+        main {
+            cpp {
+                lib project: ':lib', library: 'main'
+            }
+        }
+    }
+}
+// END SNIPPET project-dependencies

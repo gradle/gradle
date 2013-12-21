@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal;
 
+import org.gradle.util.TestUtil;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.Expectations;
@@ -22,7 +23,6 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.gradle.util.HelperUtil;
 import org.gradle.api.Transformer;
 import groovy.lang.Closure;
 
@@ -59,7 +59,7 @@ public class ChainingTransformerTest {
 
     @Test
     public void canUseAClosureAsATransformer() {
-        Closure closure = HelperUtil.toClosure("{ it + ' transformed' }");
+        Closure closure = TestUtil.toClosure("{ it + ' transformed' }");
 
         transformer.add(closure);
 
@@ -68,7 +68,7 @@ public class ChainingTransformerTest {
 
     @Test
     public void usesOriginalObjectWhenClosureReturnsNull() {
-        Closure closure = HelperUtil.toClosure("{ null }");
+        Closure closure = TestUtil.toClosure("{ null }");
 
         transformer.add(closure);
 
@@ -77,7 +77,7 @@ public class ChainingTransformerTest {
 
     @Test
     public void usesOriginalObjectWhenClosureReturnsObjectOfUnexpectedType() {
-        Closure closure = HelperUtil.toClosure("{ 9 }");
+        Closure closure = TestUtil.toClosure("{ 9 }");
 
         transformer.add(closure);
 
@@ -86,7 +86,7 @@ public class ChainingTransformerTest {
 
     @Test
     public void originalObjectIsSetAsDelegateForClosure() {
-        Closure closure = HelperUtil.toClosure("{ substring(1, 3) }");
+        Closure closure = TestUtil.toClosure("{ substring(1, 3) }");
 
         transformer.add(closure);
 
@@ -95,7 +95,7 @@ public class ChainingTransformerTest {
     
     @Test
     public void closureCanTransformAStringIntoAGString() {
-        Closure closure = HelperUtil.toClosure("{ \"[$it]\" }");
+        Closure closure = TestUtil.toClosure("{ \"[$it]\" }");
 
         transformer.add(closure);
 

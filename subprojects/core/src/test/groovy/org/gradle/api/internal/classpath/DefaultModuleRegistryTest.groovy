@@ -15,13 +15,13 @@
  */
 package org.gradle.api.internal.classpath
 
-import org.gradle.util.TemporaryFolder
-import org.gradle.util.TestFile
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
 class DefaultModuleRegistryTest extends Specification {
-    @Rule final TemporaryFolder tmpDir = new TemporaryFolder()
+    @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     TestFile runtimeDep
     TestFile resourcesDir
     TestFile jarFile

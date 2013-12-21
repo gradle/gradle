@@ -23,22 +23,18 @@ import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ModuleFactoryDelegate;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
-import org.gradle.api.internal.notations.ClientModuleNotationParser;
-import org.gradle.api.internal.notations.DependencyNotationParser;
 import org.gradle.api.internal.notations.ProjectDependencyFactory;
+import org.gradle.internal.typeconversion.NotationParser;
 
 import java.util.Map;
 
-/**
- * @author Hans Dockter
- */
 public class DefaultDependencyFactory implements DependencyFactory {
-    private final DependencyNotationParser dependencyNotationParser;
-    private final ClientModuleNotationParser clientModuleNotationParser;
-    private ProjectDependencyFactory projectDependencyFactory;
+    private final NotationParser<Object, Dependency> dependencyNotationParser;
+    private final NotationParser<Object, ClientModule> clientModuleNotationParser;
+    private final ProjectDependencyFactory projectDependencyFactory;
 
-    public DefaultDependencyFactory(DependencyNotationParser dependencyNotationParser,
-                                    ClientModuleNotationParser clientModuleNotationParser,
+    public DefaultDependencyFactory(NotationParser<Object, Dependency> dependencyNotationParser,
+                                    NotationParser<Object, ClientModule> clientModuleNotationParser,
                                     ProjectDependencyFactory projectDependencyFactory) {
         this.dependencyNotationParser = dependencyNotationParser;
         this.clientModuleNotationParser = clientModuleNotationParser;

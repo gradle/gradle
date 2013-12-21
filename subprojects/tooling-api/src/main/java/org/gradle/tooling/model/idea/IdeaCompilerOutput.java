@@ -16,10 +16,12 @@
 
 package org.gradle.tooling.model.idea;
 
+import org.gradle.api.Nullable;
+
 import java.io.File;
 
 /**
- * Idea compiler ouput settings
+ * IDEA compiler output settings.
  */
 public interface IdeaCompilerOutput {
 
@@ -38,6 +40,7 @@ public interface IdeaCompilerOutput {
      * @return directory to store production output. non-<code>null</code> if
      *            {@link #getInheritOutputDirs()} returns <code>'false'</code>
      */
+    @Nullable
     File getOutputDir();
 
     /**
@@ -46,5 +49,6 @@ public interface IdeaCompilerOutput {
      * @return directory to store test output. non-<code>null</code> if
      *            {@link #getInheritOutputDirs()} returns <code>'false'</code>
      */
+    @Nullable
     File getTestOutputDir();
 }

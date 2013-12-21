@@ -18,9 +18,11 @@ package org.gradle.initialization;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.api.internal.project.IProjectRegistry;
+import org.gradle.api.internal.project.ProjectRegistry;
+import org.gradle.initialization.buildsrc.BuildSourceBuilder;
+import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.invocation.BuildClassLoaderRegistry;
 import org.gradle.util.GFileUtils;
-import org.gradle.util.MultiParentClassLoader;
 import org.gradle.util.WrapUtil;
 import org.hamcrest.Description;
 import org.hamcrest.Factory;
@@ -38,9 +40,6 @@ import java.net.URLClassLoader;
 import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.Assert.assertThat;
 
-/**
- * @author Hans Dockter
- */
 public class SettingsHandlerTest {
     private JUnit4Mockery context = new JUnit4Mockery() {{
         setImposteriser(ClassImposteriser.INSTANCE);
@@ -53,7 +52,6 @@ public class SettingsHandlerTest {
     private ISettingsFinder settingsFinder = context.mock(ISettingsFinder.class);
     private SettingsProcessor settingsProcessor = context.mock(SettingsProcessor.class);
     private BuildSourceBuilder buildSourceBuilder = context.mock(BuildSourceBuilder.class);
-    private MultiParentClassLoader scriptClassLoader = context.mock(MultiParentClassLoader.class);
     private SettingsHandler settingsHandler = new SettingsHandler(settingsFinder, settingsProcessor,
             buildSourceBuilder);
 
@@ -69,8 +67,10 @@ public class SettingsHandlerTest {
     }
 
     private void prepareForExistingSettings() {
-        final IProjectRegistry projectRegistry = context.mock(IProjectRegistry.class);
+        final ProjectRegistry projectRegistry = context.mock(ProjectRegistry.class);
         final DefaultProjectDescriptor projectDescriptor = context.mock(DefaultProjectDescriptor.class);
+        final ServiceRegistry services = context.mock(ServiceRegistry.class);
+        final BuildClassLoaderRegistry classLoaderRegistry = context.mock(BuildClassLoaderRegistry.class);
         startParameter.setCurrentDir(settingsLocation.getSettingsDir());
 
         context.checking(new Expectations() {{
@@ -89,11 +89,14 @@ public class SettingsHandlerTest {
             allowing(settings).getClassLoader();
             will(returnValue(urlClassLoader));
 
-            allowing(gradle).getScriptClassLoader();
-            will(returnValue(scriptClassLoader));
+            allowing(services).get(BuildClassLoaderRegistry.class);
+            will(returnValue(classLoaderRegistry));
 
             allowing(gradle).getStartParameter();
             will(returnValue(startParameter));
+
+            allowing(gradle).getServices();
+            will(returnValue(services));
 
             allowing(settingsFinder).find(startParameter);
             will(returnValue(settingsLocation));
@@ -101,7 +104,7 @@ public class SettingsHandlerTest {
             one(settingsProcessor).process(gradle, settingsLocation, urlClassLoader, startParameter);
             will(returnValue(settings));
 
-            one(scriptClassLoader).addParent(urlClassLoader);
+            one(classLoaderRegistry).addRootClassLoader(urlClassLoader);
         }});
     }
 

@@ -15,25 +15,27 @@
  */
 package org.gradle.initialization;
 
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.TestFiles;
 import org.gradle.util.Path;
 import org.junit.Test;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.*;
-import static org.hamcrest.Matchers.*;
 
 import java.io.File;
 
-/**
- * @author Hans Dockter
- */
+import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.sameInstance;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
+
 public class DefaultProjectDescriptorRegistryTest {
     private static final File TEST_DIR = new File("testDir");
 
+    private static final FileResolver FILE_RESOLVER = TestFiles.resolver(TEST_DIR.getAbsoluteFile());
     private final DefaultProjectDescriptorRegistry registry = new DefaultProjectDescriptorRegistry();
 
     @Test
     public void addProjectDescriptor() {
-        DefaultProjectDescriptor rootProject = new DefaultProjectDescriptor(null, "testName", TEST_DIR, registry);
+        DefaultProjectDescriptor rootProject = new DefaultProjectDescriptor(null, "testName", TEST_DIR, registry, FILE_RESOLVER);
 
         registry.addProject(rootProject);
         assertSame(rootProject, registry.getProject(rootProject.getPath()));
@@ -42,7 +44,7 @@ public class DefaultProjectDescriptorRegistryTest {
 
     @Test
     public void changeProjectDescriptorPath() {
-        DefaultProjectDescriptor project = new DefaultProjectDescriptor(null, "name", TEST_DIR, registry);
+        DefaultProjectDescriptor project = new DefaultProjectDescriptor(null, "name", TEST_DIR, registry, FILE_RESOLVER);
         registry.addProject(project);
 
         registry.changeDescriptorPath(Path.path(":"), Path.path(":newPath"));

@@ -17,6 +17,7 @@
 package org.gradle.api.internal.externalresource.metadata;
 
 import org.gradle.api.Nullable;
+import org.gradle.internal.hash.HashValue;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -27,16 +28,22 @@ public class DefaultExternalResourceMetaData implements ExternalResourceMetaData
     private final Date lastModified;
     private final long contentLength;
     private final String etag;
+    private final String sha1;
 
-    public DefaultExternalResourceMetaData(String location, long lastModified, long contentLength, @Nullable String etag) {
-        this(location, lastModified > 0 ? new Date(lastModified) : null, contentLength, etag);
+    public DefaultExternalResourceMetaData(String location) {
+        this(location, -1, -1, null, null);
+    }
+
+    public DefaultExternalResourceMetaData(String location, long lastModified, long contentLength, @Nullable String etag, @Nullable HashValue sha1) {
+        this(location, lastModified > 0 ? new Date(lastModified) : null, contentLength, etag, sha1);
     }
     
-    public DefaultExternalResourceMetaData(String location, @Nullable Date lastModified, long contentLength, @Nullable String etag) {
+    public DefaultExternalResourceMetaData(String location, @Nullable Date lastModified, long contentLength, @Nullable String etag, @Nullable HashValue sha1) {
         this.location = location;
         this.lastModified = lastModified;
         this.contentLength = contentLength;
         this.etag = etag;
+        this.sha1 = sha1 == null ? null : sha1.asHexString();
     }
 
     public String getLocation() {
@@ -55,5 +62,9 @@ public class DefaultExternalResourceMetaData implements ExternalResourceMetaData
     @Nullable
     public String getEtag() {
         return etag;
+    }
+
+    public HashValue getSha1() {
+        return sha1 == null ? null : HashValue.parse(sha1);
     }
 }

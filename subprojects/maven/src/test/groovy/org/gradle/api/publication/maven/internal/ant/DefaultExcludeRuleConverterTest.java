@@ -23,9 +23,6 @@ import org.junit.Test;
 import static junit.framework.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
-/**
- * @author Hans Dockter
- */
 public class DefaultExcludeRuleConverterTest {
     private static final String TEST_ORG = "org";
     private static final String TEST_MODULE = "module";

@@ -23,8 +23,6 @@ import java.util.Map;
 
 /**
  * Uses reflection to update private environment state
- *
- * @author: Szczepan Faber, created at: 9/7/11
  */
 public class ReflectiveEnvironment {
 

@@ -18,15 +18,20 @@ package org.gradle.api.internal.tasks.compile;
 
 import com.google.common.collect.Iterables;
 import groovy.lang.GroovyClassLoader;
-import org.codehaus.groovy.control.*;
+import org.codehaus.groovy.control.CompilationUnit;
+import org.codehaus.groovy.control.CompilerConfiguration;
 import org.codehaus.groovy.control.messages.SimpleMessage;
-import org.codehaus.groovy.tools.javac.*;
+import org.codehaus.groovy.tools.javac.JavaAwareCompilationUnit;
+import org.codehaus.groovy.tools.javac.JavaCompiler;
+import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.util.FilteringClassLoader;
+import org.gradle.internal.classpath.DefaultClassPath;
+import org.gradle.internal.classloader.FilteringClassLoader;
 
 import java.io.File;
 import java.io.Serializable;
+import java.net.URLClassLoader;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -45,30 +50,14 @@ public class ApiGroovyCompiler implements Compiler<GroovyJavaJointCompileSpec>, 
         configuration.setSourceEncoding(spec.getGroovyCompileOptions().getEncoding());
         configuration.setTargetBytecode(spec.getTargetCompatibility());
         configuration.setTargetDirectory(spec.getDestinationDir());
+        canonicalizeValues(spec.getGroovyCompileOptions().getOptimizationOptions());
+        try {
+            configuration.setOptimizationOptions(spec.getGroovyCompileOptions().getOptimizationOptions());
+        } catch (NoSuchMethodError ignored) { /* method was only introduced in Groovy 1.8 */ }
         Map<String, Object> jointCompilationOptions = new HashMap<String, Object>();
         jointCompilationOptions.put("stubDir", spec.getGroovyCompileOptions().getStubDir());
         jointCompilationOptions.put("keepStubs", spec.getGroovyCompileOptions().isKeepStubs());
         configuration.setJointCompilationOptions(jointCompilationOptions);
-
-        // The most accurate setup would be to have one class loader that only loads the spec's compile class path, and
-        // another one for AST transforms that loads compiler classes (or maybe all classes in the Groovy Jar)
-        // from getClass().getClassLoader() and everything else from the former class loader.
-        // This would allow to use different versions for Groovy compiler and Groovy compile dependency.
-        // However, JavaAwareCompilationUnit doesn't provide a way to set a separate class loader for transforms
-        // like CompilationUnit does. Therefore, we opt for a setup with a single class loader that's used both for
-        // the compile class path and AST transforms. This class loader always prefers the Groovy version of
-        // getClass().getClassLoader() (which is the one added to the 'groovy' configuration) over that
-        // on the spec's compile class path. In all likelihood, they will be the same anyway.
-
-        // The purpose of this class loader is to share classes in the Groovy Jar (in particular compiler classes)
-        // between the compiler and AST transforms. This is required for AST transforms to work correctly.
-        FilteringClassLoader groovyCompilerClassLoader = new FilteringClassLoader(getClass().getClassLoader());
-        groovyCompilerClassLoader.allowPackage("groovy");
-        groovyCompilerClassLoader.allowPackage("org.codehaus.groovy");
-        // It would seem sensible to also get AST transform descriptors that ship with Groovy from this class loader.
-        // However, this causes problems because AST transform descriptors are found (e.g. for Spock) whose classes cannot
-        // be loaded because they are filtered, resulting in an error during compilation.
-        //groovyCompilerClassLoader.allowResources("META-INF/services");
 
         // Necessary for Groovy compilation to pick up output of regular and joint Java compilation,
         // and for joint Java compilation to pick up the output of regular Java compilation.
@@ -77,12 +66,33 @@ public class ApiGroovyCompiler implements Compiler<GroovyJavaJointCompileSpec>, 
         // would end up on the compile class path of every compile task for that source set, which may not be desirable.
         spec.setClasspath(Iterables.concat(spec.getClasspath(), Collections.singleton(spec.getDestinationDir())));
 
-        GroovyClassLoader compilationUnitClassLoader = new GroovyClassLoader(groovyCompilerClassLoader, null);
+        URLClassLoader classPathLoader = new GroovyCompileTransformingClassLoader(new DefaultClassPath(spec.getClasspath()));
+        GroovyClassLoader compileClasspathClassLoader = new GroovyClassLoader(classPathLoader, null);
+
+        FilteringClassLoader groovyCompilerClassLoader = new FilteringClassLoader(GroovyClassLoader.class.getClassLoader());
+        groovyCompilerClassLoader.allowPackage("org.codehaus.groovy");
+        groovyCompilerClassLoader.allowPackage("groovy");
+        // Disallow classes from Groovy Jar that reference external classes. Such classes must be loaded from astTransformClassLoader,
+        // or a NoClassDefFoundError will occur. Essentially this is drawing a line between the Groovy compiler and the Groovy
+        // library, albeit only for selected classes that run a high risk of being statically referenced from a transform.
+        groovyCompilerClassLoader.disallowClass("groovy.util.GroovyTestCase");
+        groovyCompilerClassLoader.disallowClass("groovy.servlet.GroovyServlet");
+
+        // AST transforms need their own class loader that shares compiler classes with the compiler itself
+        final GroovyClassLoader astTransformClassLoader = new GroovyClassLoader(groovyCompilerClassLoader, null);
+        // can't delegate to compileClasspathLoader because this would result in ASTTransformation interface
+        // (which is implemented by the transform class) being loaded by compileClasspathClassLoader (which is
+        // where the transform class is loaded from)
         for (File file : spec.getClasspath()) {
-            compilationUnitClassLoader.addClasspath(file.getPath());
+            astTransformClassLoader.addClasspath(file.getPath());
         }
 
-        JavaAwareCompilationUnit unit = new JavaAwareCompilationUnit(configuration, compilationUnitClassLoader);
+        JavaAwareCompilationUnit unit = new JavaAwareCompilationUnit(configuration, compileClasspathClassLoader) {
+            @Override
+            public GroovyClassLoader getTransformLoader() {
+                return astTransformClassLoader;
+            }
+        };
         unit.addSources(Iterables.toArray(spec.getSource(), File.class));
         unit.setCompilerFactory(new org.codehaus.groovy.tools.javac.JavaCompilerFactory() {
             public JavaCompiler createCompiler(final CompilerConfiguration config) {
@@ -108,9 +118,23 @@ public class ApiGroovyCompiler implements Compiler<GroovyJavaJointCompileSpec>, 
         try {
             unit.compile();
         } catch (org.codehaus.groovy.control.CompilationFailedException e) {
-            throw new CompilationFailedException(e.getMessage());
+            System.err.println(e.getMessage());
+            throw new CompilationFailedException();
         }
 
         return new SimpleWorkResult(true);
     }
+
+    // Make sure that map only contains Boolean.TRUE and Boolean.FALSE values and no other Boolean instances.
+    // This is necessary because:
+    // 1. serialization/deserialization of the compile spec doesn't preserve Boolean.TRUE/Boolean.FALSE but creates new instances
+    // 1. org.codehaus.groovy.classgen.asm.WriterController makes identity comparisons
+    private void canonicalizeValues(Map<String, Boolean> options) {
+        for (String key : options.keySet()) {
+            // unboxing and boxing does the trick
+            boolean value = options.get(key);
+            options.put(key, value);
+        }
+    }
+
 }

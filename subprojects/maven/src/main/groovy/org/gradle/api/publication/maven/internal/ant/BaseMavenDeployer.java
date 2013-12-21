@@ -24,7 +24,6 @@ import org.codehaus.plexus.PlexusContainerException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.maven.MavenDeployer;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
-import org.gradle.internal.Factory;
 import org.gradle.api.publication.maven.internal.ArtifactPomContainer;
 import org.gradle.logging.LoggingManagerInternal;
 
@@ -33,15 +32,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-/**
- * @author Hans Dockter
- */
 public class BaseMavenDeployer extends AbstractMavenResolver implements MavenDeployer {
     private RemoteRepository remoteRepository;
 
     private RemoteRepository remoteSnapshotRepository;
-
-    private Factory<CustomDeployTask> deployTaskFactory = new DefaultDeployTaskFactory();
 
     private Configuration configuration;
 
@@ -55,12 +49,16 @@ public class BaseMavenDeployer extends AbstractMavenResolver implements MavenDep
     }
 
     protected InstallDeployTaskSupport createPreConfiguredTask(Project project) {
-        CustomDeployTask deployTask = deployTaskFactory.create();
+        CustomDeployTask deployTask = createTask();
         deployTask.setProject(project);
         deployTask.setUniqueVersion(isUniqueVersion());
         addProtocolProvider(deployTask);
         addRemoteRepositories(deployTask);
         return deployTask;
+    }
+
+    protected CustomDeployTask createTask() {
+        return new CustomDeployTask();
     }
 
     private void addProtocolProvider(CustomDeployTask deployTask) {
@@ -97,14 +95,6 @@ public class BaseMavenDeployer extends AbstractMavenResolver implements MavenDep
 
     public void setSnapshotRepository(Object remoteSnapshotRepository) {
         this.remoteSnapshotRepository = (RemoteRepository) remoteSnapshotRepository;
-    }
-
-    public Factory<CustomDeployTask> getDeployTaskFactory() {
-        return deployTaskFactory;
-    }
-
-    public void setDeployTaskFactory(Factory<CustomDeployTask> deployTaskFactory) {
-        this.deployTaskFactory = deployTaskFactory;
     }
 
     public void addProtocolProviderJars(Collection<File> jars) {

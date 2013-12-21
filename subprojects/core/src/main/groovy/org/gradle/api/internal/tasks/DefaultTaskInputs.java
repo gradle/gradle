@@ -32,10 +32,12 @@ public class DefaultTaskInputs implements TaskInputs {
     private final DefaultConfigurableFileCollection inputFiles;
     private final DefaultConfigurableFileCollection sourceFiles;
     private final FileResolver resolver;
+    private final TaskStatusNagger taskStatusNagger;
     private final Map<String, Object> properties = new HashMap<String, Object>();
 
-    public DefaultTaskInputs(FileResolver resolver, TaskInternal task) {
+    public DefaultTaskInputs(FileResolver resolver, TaskInternal task, TaskStatusNagger taskStatusNagger) {
         this.resolver = resolver;
+        this.taskStatusNagger = taskStatusNagger;
         inputFiles = new DefaultConfigurableFileCollection(String.format("%s input files", task), resolver, null);
         sourceFiles = new DefaultConfigurableFileCollection(String.format("%s source files", task), resolver, null);
     }
@@ -49,16 +51,19 @@ public class DefaultTaskInputs implements TaskInputs {
     }
 
     public TaskInputs files(Object... paths) {
+        taskStatusNagger.nagIfTaskNotInConfigurableState("TaskInputs.files(Object...)");
         inputFiles.from(paths);
         return this;
     }
 
     public TaskInputs file(Object path) {
+        taskStatusNagger.nagIfTaskNotInConfigurableState("TaskInputs.file(Object)");
         files(path);
         return this;
     }
 
     public TaskInputs dir(Object dirPath) {
+        taskStatusNagger.nagIfTaskNotInConfigurableState("TaskInputs.dir(Object)");
         inputFiles.from(resolver.resolveFilesAsTree(dirPath));
         return this;
     }
@@ -72,16 +77,19 @@ public class DefaultTaskInputs implements TaskInputs {
     }
 
     public TaskInputs source(Object... paths) {
+        taskStatusNagger.nagIfTaskNotInConfigurableState("TaskInputs.source(Object...)");
         sourceFiles.from(paths);
         return this;
     }
 
     public TaskInputs source(Object path) {
+        taskStatusNagger.nagIfTaskNotInConfigurableState("TaskInputs.source(Object)");
         sourceFiles.from(path);
         return this;
     }
 
     public TaskInputs sourceDir(Object path) {
+        taskStatusNagger.nagIfTaskNotInConfigurableState("TaskInputs.sourceDir(Object)");
         sourceFiles.from(resolver.resolveFilesAsTree(path));
         return this;
     }
@@ -117,11 +125,13 @@ public class DefaultTaskInputs implements TaskInputs {
     }
 
     public TaskInputs property(String name, Object value) {
+        taskStatusNagger.nagIfTaskNotInConfigurableState("TaskInputs.property(String, Object)");
         properties.put(name, value);
         return this;
     }
 
     public TaskInputs properties(Map<String, ?> properties) {
+        taskStatusNagger.nagIfTaskNotInConfigurableState("TaskInputs.properties(Map)");
         this.properties.putAll(properties);
         return this;
     }

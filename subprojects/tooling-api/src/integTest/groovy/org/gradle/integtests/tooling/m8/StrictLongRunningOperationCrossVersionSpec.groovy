@@ -17,20 +17,15 @@
 package org.gradle.integtests.tooling.m8
 
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.tooling.fixture.MaxTargetGradleVersion
-import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
-import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.tooling.GradleConnectionException
+import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.exceptions.UnsupportedOperationConfigurationException
-import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.build.BuildEnvironment
-import org.gradle.tooling.model.internal.Exceptions
 import spock.lang.IgnoreIf
 
-@MinToolingApiVersion('1.0-milestone-8')
-@MinTargetGradleVersion('1.0-milestone-3')
-@MaxTargetGradleVersion('1.0-milestone-7') //the configuration was not supported for old versions
+@ToolingApiVersion('>=1.0-milestone-8')
+@TargetGradleVersion('<=1.0-milestone-7')
 class StrictLongRunningOperationCrossVersionSpec extends ToolingApiSpecification {
 
     def setup() {
@@ -43,13 +38,14 @@ class StrictLongRunningOperationCrossVersionSpec extends ToolingApiSpecification
     def "fails eagerly when java home unsupported for model"() {
         def java = AvailableJavaHomes.bestAlternative
         when:
-        Exception e = maybeFailWithConnection {
+        withConnection {
             def model = it.model(BuildEnvironment.class)
             model.setJavaHome(java)
             model.get()
         }
 
         then:
+        UnsupportedOperationConfigurationException e = thrown()
         assertExceptionInformative(e, "setJavaHome()")
     }
 
@@ -57,48 +53,44 @@ class StrictLongRunningOperationCrossVersionSpec extends ToolingApiSpecification
     def "fails eagerly when java home unsupported for build"() {
         def java = AvailableJavaHomes.bestAlternative
         when:
-        Exception e = maybeFailWithConnection {
+        withConnection {
             def build = it.newBuild()
             build.setJavaHome(java)
             build.forTasks('tasks').run()
         }
 
         then:
+        UnsupportedOperationConfigurationException e = thrown()
         assertExceptionInformative(e, "setJavaHome()")
     }
 
     def "fails eagerly when java args unsupported"() {
         when:
-        Exception e = maybeFailWithConnection {
+        withConnection {
             def model = it.model(BuildEnvironment.class)
             model.setJvmArguments("-Xmx512m")
             model.get()
         }
 
         then:
+        UnsupportedOperationConfigurationException e = thrown()
         assertExceptionInformative(e, "setJvmArguments()")
     }
 
     def "fails eagerly when standard input unsupported"() {
         when:
-        Exception e = maybeFailWithConnection {
+        withConnection {
             def model = it.model(BuildEnvironment.class)
             model.setStandardInput(new ByteArrayInputStream('yo!'.bytes))
             model.get()
         }
 
         then:
+        UnsupportedOperationConfigurationException e = thrown()
         assertExceptionInformative(e, "setStandardInput()")
     }
 
-    void assertExceptionInformative(Exception actual, String expectedMessageSubstring) {
-        assert actual instanceof GradleConnectionException
-        assert actual instanceof UnsupportedOperationConfigurationException
-        assert !actual.message.contains(Exceptions.INCOMPATIBLE_VERSION_HINT) //no need for hint, the message is already good
+    void assertExceptionInformative(UnsupportedOperationConfigurationException actual, String expectedMessageSubstring) {
         assert actual.message.contains(expectedMessageSubstring)
-
-        //we don't really need that exception as a cause
-        //but one of the versions was released with it as a cause so to keep things compatible
-        assert actual.cause instanceof UnsupportedMethodException
     }
 }

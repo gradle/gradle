@@ -23,9 +23,6 @@ import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.ExtraPropertiesExtension
 import spock.lang.Specification
 
-/**
- * @author: Szczepan Faber, created at: 6/24/11
- */
 public class ExtensionContainerTest extends Specification {
 
     def container = new DefaultConvention(ThreadGlobalInstantiator.getOrCreate())

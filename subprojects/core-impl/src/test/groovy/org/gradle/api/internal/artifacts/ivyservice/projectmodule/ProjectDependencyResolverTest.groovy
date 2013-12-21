@@ -16,41 +16,58 @@
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule
 
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor
-import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleResolver
-import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveResult
+import org.gradle.api.internal.artifacts.ivyservice.BuildableModuleVersionResolveResult
+import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver
+import org.gradle.api.internal.artifacts.ivyservice.LocalComponentFactory
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ProjectDependencyDescriptor
+import org.gradle.api.internal.artifacts.metadata.DependencyMetaData
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionMetaData
+import org.gradle.api.internal.artifacts.metadata.MutableLocalComponentMetaData
+import org.gradle.api.internal.project.ProjectInternal
 import spock.lang.Specification
 
 class ProjectDependencyResolverTest extends Specification {
     final ProjectModuleRegistry registry = Mock()
-    final DependencyDescriptor dependencyDescriptor = Mock()
-    final DependencyToModuleResolver target = Mock()
-    final ProjectDependencyResolver resolver = new ProjectDependencyResolver(registry, target)
-    
+    final DependencyToModuleVersionResolver target = Mock()
+    final LocalComponentFactory converter = Mock()
+    final ProjectDependencyResolver resolver = new ProjectDependencyResolver(registry, target, converter)
+
     def "resolves project dependency"() {
-        ModuleDescriptor moduleDescriptor = Mock()
+        setup:
+        def resolveMetaData = Stub(ModuleVersionMetaData)
+        def componentMetaData = Stub(MutableLocalComponentMetaData) {
+            toResolveMetaData() >> resolveMetaData
+        }
+        def result = Mock(BuildableModuleVersionResolveResult)
+        def dependencyProject = Stub(ProjectInternal)
+        def dependencyDescriptor = Stub(ProjectDependencyDescriptor) {
+            getTargetProject() >> dependencyProject
+        }
+        def dependencyMetaData = Stub(DependencyMetaData) {
+            getDescriptor() >> dependencyDescriptor
+        }
 
         when:
-        def moduleResolver = resolver.resolve(dependencyDescriptor)
+        resolver.resolve(dependencyMetaData, result)
 
         then:
-        moduleResolver.descriptor == moduleDescriptor
-
-        and:
-        1 * registry.findProject(dependencyDescriptor) >> moduleDescriptor
+        1 * registry.findProject(dependencyDescriptor) >> componentMetaData
+        1 * result.resolved(resolveMetaData, _)
+        0 * result._
     }
 
     def "delegates to backing resolver for non-project dependency"() {
-        ModuleVersionResolveResult resolvedModule = Mock()
+        def result = Mock(BuildableModuleVersionResolveResult)
+        def dependencyDescriptor = Stub(DependencyDescriptor)
+        def dependencyMetaData = Stub(DependencyMetaData) {
+            getDescriptor() >> dependencyDescriptor
+        }
 
         when:
-        def moduleResolver = resolver.resolve(dependencyDescriptor)
+        resolver.resolve(dependencyMetaData, result)
 
         then:
-        moduleResolver == resolvedModule
-
-        and:
-        1 * registry.findProject(dependencyDescriptor) >> null
-        1 * target.resolve(dependencyDescriptor) >> resolvedModule
+        1 * target.resolve(dependencyMetaData, result)
+        0 * _
     }
 }

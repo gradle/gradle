@@ -4,6 +4,8 @@ allprojects {
     apply plugin: 'idea'
 }
 
+idea.project.jdkName = '1.6'
+
 subprojects {
     apply plugin: 'java'
 

@@ -29,21 +29,22 @@ import org.gradle.internal.UncheckedException;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 public class DaemonGroovyCompiler implements Compiler<GroovyJavaJointCompileSpec> {
     private final ProjectInternal project;
     private final Compiler<GroovyJavaJointCompileSpec> delegate;
+    private final CompilerDaemonFactory daemonFactory;
 
-    public DaemonGroovyCompiler(ProjectInternal project, Compiler<GroovyJavaJointCompileSpec> delegate) {
+    public DaemonGroovyCompiler(ProjectInternal project, Compiler<GroovyJavaJointCompileSpec> delegate, CompilerDaemonFactory daemonFactory) {
         this.project = project;
         this.delegate = delegate;
+        this.daemonFactory = daemonFactory;
     }
 
     public WorkResult execute(GroovyJavaJointCompileSpec spec) {
         DaemonForkOptions daemonForkOptions = createDaemonForkOptions(spec);
-        CompilerDaemon daemon = CompilerDaemonManager.getInstance().getDaemon(project, daemonForkOptions);
+        CompilerDaemon daemon = daemonFactory.getDaemon(project.getRootProject().getProjectDir(), daemonForkOptions);
         CompileResult result = daemon.execute(delegate, spec);
         if (result.isSuccess()) {
             return result;
@@ -67,8 +68,8 @@ public class DaemonGroovyCompiler implements Compiler<GroovyJavaJointCompileSpec
         // is compatible with Gradle's current Ant version.
         Collection<File> antFiles = project.getServices().get(ClassPathRegistry.class).getClassPath("ANT").getAsFiles();
         Iterable<File> groovyFiles = Iterables.concat(spec.getGroovyClasspath(), antFiles);
-        List<String> groovyPackages = Arrays.asList("groovy", "org.codehaus.groovy", "groovyjarjarantlr", "groovyjarjarasm", "groovyjarjarcommonscli", "org.apache.tools.ant");
+        List<String> groovyPackages = Arrays.asList("groovy", "org.codehaus.groovy", "groovyjarjarantlr", "groovyjarjarasm", "groovyjarjarcommonscli", "org.apache.tools.ant", "com.sun.tools.javac");
         return new DaemonForkOptions(options.getMemoryInitialSize(), options.getMemoryMaximumSize(),
-                Collections.<String>emptyList(), groovyFiles, groovyPackages);
+                options.getJvmArgs(), groovyFiles, groovyPackages);
     }
 }

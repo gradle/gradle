@@ -20,10 +20,13 @@ import org.gradle.api.internal.tasks.compile.DefaultJvmLanguageCompileSpec;
 import org.gradle.api.tasks.scala.ScalaCompileOptions;
 
 import java.io.File;
+import java.util.Map;
 
 public class DefaultScalaCompileSpec extends DefaultJvmLanguageCompileSpec implements ScalaCompileSpec {
     private final ScalaCompileOptions options = new ScalaCompileOptions();
     private Iterable<File> scalaClasspath;
+    private Iterable<File> zincClasspath;
+    private Map<File, File> analysisMap;
 
     public ScalaCompileOptions getScalaCompileOptions() {
         return options;
@@ -35,5 +38,21 @@ public class DefaultScalaCompileSpec extends DefaultJvmLanguageCompileSpec imple
 
     public void setScalaClasspath(Iterable<File> scalaClasspath) {
         this.scalaClasspath = scalaClasspath;
+    }
+
+    public Iterable<File> getZincClasspath() {
+        return zincClasspath;
+    }
+
+    public void setZincClasspath(Iterable<File> zincClasspath) {
+        this.zincClasspath = zincClasspath;
+    }
+
+    public Map<File, File> getAnalysisMap() {
+        return analysisMap;
+    }
+
+    public void setAnalysisMap(Map<File, File> analysisMap) {
+        this.analysisMap = analysisMap;
     }
 }

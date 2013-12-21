@@ -15,16 +15,14 @@
  */
 package org.gradle.api.tasks;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-import java.lang.annotation.ElementType;
+import java.lang.annotation.*;
 
 /**
  * <p>Marks a property as specifying an output directory for a task.</p>
  *
  * <p>This annotation should be attached to the getter method or the field for the property.</p>
  */
+@Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.FIELD})
 public @interface OutputDirectory {

@@ -16,71 +16,71 @@
 
 package org.gradle.api.tasks;
 
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.copy.FileCopyActionImpl;
-import org.gradle.api.internal.file.copy.FileCopySpecVisitor;
+import org.gradle.api.internal.file.copy.CopyAction;
+import org.gradle.api.internal.file.copy.CopySpecInternal;
+import org.gradle.api.internal.file.copy.DestinationRootCopySpec;
+import org.gradle.api.internal.file.copy.FileCopyAction;
+import org.gradle.internal.reflect.Instantiator;
 
 import java.io.File;
 
 /**
- * Copies files into a destination directory.  This task can also rename and filter files as it copies. The task
+ * Copies files into a destination directory. This task can also rename and filter files as it copies. The task
  * implements {@link org.gradle.api.file.CopySpec CopySpec} for specifying what to copy.
  *
  * <p> Examples:
  * <pre autoTested=''>
- * task mydoc(type:Copy) {
- *    from 'src/main/doc'
- *    into 'build/target/doc'
+ * task copyDocs(type: Copy) {
+ *     from 'src/main/doc'
+ *     into 'build/target/doc'
  * }
  *
- * //for ant filter
+ * //for Ant filter
  * import org.apache.tools.ant.filters.ReplaceTokens
  *
- * task initconfig(type:Copy) {
- *    from('src/main/config') {
- *       include '**&#47;*.properties'
- *       include '**&#47;*.xml'
- *       filter(ReplaceTokens, tokens:[version:'2.3.1'])
- *    }
- *    from('src/main/config') {
- *       exclude '**&#47;*.properties', '**&#47;*.xml'
- *    }
- *    from('src/main/languages') {
- *       rename 'EN_US_(.*)', '$1'
- *    }
- *    into 'build/target/config'
- *    exclude '**&#47;*.bak'
+ * task initConfig(type: Copy) {
+ *     from('src/main/config') {
+ *         include '**&#47;*.properties'
+ *         include '**&#47;*.xml'
+ *         filter(ReplaceTokens, tokens: [version: '2.3.1'])
+ *     }
+ *     from('src/main/config') {
+ *         exclude '**&#47;*.properties', '**&#47;*.xml'
+ *     }
+ *     from('src/main/languages') {
+ *         rename 'EN_US_(.*)', '$1'
+ *     }
+ *     into 'build/target/config'
+ *     exclude '**&#47;*.bak'
  *
- *    includeEmptyDirs = false
+ *     includeEmptyDirs = false
  * }
  * </pre>
- *
- * @author Steve Appling
  */
 public class Copy extends AbstractCopyTask {
-    private FileCopyActionImpl copyAction;
 
-    public Copy() {
-        FileResolver fileResolver = getServices().get(FileResolver.class);
-        copyAction = new FileCopyActionImpl(fileResolver, new FileCopySpecVisitor());
-    }
-
-    protected void configureRootSpec() {
-        super.configureRootSpec();
-        if (getCopyAction().getDestinationDir() == null) {
-            File destDir = getDestinationDir();
-            if (destDir != null) {
-                into(destDir);
-            }
+    @Override
+    protected CopyAction createCopyAction() {
+        File destinationDir = getDestinationDir();
+        if (destinationDir == null) {
+            throw new InvalidUserDataException("No copy destination directory has been specified, use 'into' to specify a target directory.");
         }
+        return new FileCopyAction(getServices().get(FileResolver.class).withBaseDir(destinationDir));
     }
 
-    public FileCopyActionImpl getCopyAction() {
-        return copyAction;
+    @Override
+    protected CopySpecInternal createRootSpec() {
+        Instantiator instantiator = getServices().get(Instantiator.class);
+        FileResolver fileResolver = getServices().get(FileResolver.class);
+
+        return instantiator.newInstance(DestinationRootCopySpec.class, fileResolver, super.createRootSpec());
     }
 
-    public void setCopyAction(FileCopyActionImpl copyAction) {
-        this.copyAction = copyAction;
+    @Override
+    public DestinationRootCopySpec getRootSpec() {
+        return (DestinationRootCopySpec) super.getRootSpec();
     }
 
     /**
@@ -90,7 +90,7 @@ public class Copy extends AbstractCopyTask {
      */
     @OutputDirectory
     public File getDestinationDir() {
-        return getCopyAction().getDestinationDir();
+        return getRootSpec().getDestinationDir();
     }
 
     /**
@@ -101,4 +101,5 @@ public class Copy extends AbstractCopyTask {
     public void setDestinationDir(File destinationDir) {
         into(destinationDir);
     }
+
 }

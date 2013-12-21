@@ -23,8 +23,8 @@ import org.codehaus.plexus.PlexusContainerException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
-import org.gradle.internal.Factory;
 import org.gradle.api.publication.maven.internal.DefaultMavenDeployment;
+import org.gradle.internal.Factory;
 import org.gradle.util.WrapUtil;
 import org.jmock.Expectations;
 import org.junit.Test;
@@ -36,9 +36,6 @@ import java.util.Set;
 
 import static org.junit.Assert.assertTrue;
 
-/**
- * @author Hans Dockter
- */
 @RunWith(org.jmock.integration.junit4.JMock.class)
 public class BaseMavenDeployerTest extends AbstractMavenResolverTest {
 
@@ -46,7 +43,7 @@ public class BaseMavenDeployerTest extends AbstractMavenResolverTest {
 
     @SuppressWarnings("unchecked")
     private Factory<CustomDeployTask> deployTaskFactoryMock = context.mock(Factory.class);
-    private CustomDeployTask deployTaskMock = context.mock(CustomDeployTask.class);
+    CustomDeployTask deployTaskMock = context.mock(CustomDeployTask.class);
 
     private PlexusContainer plexusContainerMock = context.mock(PlexusContainer.class);
     private RemoteRepository testRepository = new RemoteRepository();
@@ -55,7 +52,12 @@ public class BaseMavenDeployerTest extends AbstractMavenResolverTest {
     private Configuration configurationStub = context.mock(Configuration.class);
 
     protected BaseMavenDeployer createMavenDeployer() {
-        return new BaseMavenDeployer(pomFilterContainerMock, artifactPomContainerMock, loggingManagerMock);
+        return new BaseMavenDeployer(pomFilterContainerMock, artifactPomContainerMock, loggingManagerMock) {
+            @Override
+            protected CustomDeployTask createTask() {
+                return deployTaskMock;
+            }
+        };
     }
 
     protected AbstractMavenResolver getMavenResolver() {
@@ -73,7 +75,6 @@ public class BaseMavenDeployerTest extends AbstractMavenResolverTest {
     public void setUp() {
         super.setUp();
         mavenDeployer = createMavenDeployer();
-        mavenDeployer.setDeployTaskFactory(deployTaskFactoryMock);
         mavenDeployer.setRepository(testRepository);
         mavenDeployer.setSnapshotRepository(testSnapshotRepository);
         mavenDeployer.setConfiguration(configurationStub);

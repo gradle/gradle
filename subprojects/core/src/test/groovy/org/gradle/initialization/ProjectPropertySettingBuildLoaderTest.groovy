@@ -14,20 +14,19 @@
  * limitations under the License.
  */
 package org.gradle.initialization
-
 import org.gradle.api.Project
 import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.plugins.ExtensionContainerInternal
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.plugins.ExtraPropertiesExtension
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GUtil
-import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
 
 class ProjectPropertySettingBuildLoaderTest extends Specification {
-    @Rule public TemporaryFolder tmpDir = new TemporaryFolder();
+    @Rule public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
     final BuildLoader target = Mock()
     final ProjectDescriptor projectDescriptor = Mock()
     final GradleInternal gradle = Mock()
@@ -37,9 +36,9 @@ class ProjectPropertySettingBuildLoaderTest extends Specification {
     final File rootProjectDir = tmpDir.createDir('root')
     final File childProjectDir = tmpDir.createDir('child')
     final ProjectPropertySettingBuildLoader loader = new ProjectPropertySettingBuildLoader(propertiesLoader, target)
-    final ExtensionContainer rootExtension = Mock()
+    final ExtensionContainerInternal rootExtension = Mock()
     final ExtraPropertiesExtension rootProperties = Mock()
-    final ExtensionContainer childExtension = Mock()
+    final ExtensionContainerInternal childExtension = Mock()
     final ExtraPropertiesExtension childProperties = Mock()
 
     def setup() {

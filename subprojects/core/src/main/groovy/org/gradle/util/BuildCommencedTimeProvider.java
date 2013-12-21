@@ -15,7 +15,7 @@
  */
 package org.gradle.util;
 
-public class BuildCommencedTimeProvider implements TimeProvider {
+public class BuildCommencedTimeProvider {
     private final long fixedTime = System.currentTimeMillis();
 
     public long getCurrentTime() {

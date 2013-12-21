@@ -16,12 +16,10 @@
 
 package org.gradle.api.internal.tasks.testing;
 
-import org.gradle.internal.Stoppable;
+import org.gradle.internal.concurrent.Stoppable;
 
 /**
  * A processor for executing tests. Implementations are not required to be thread-safe.
- *
- * @author Tom Eyckmans
  */
 public interface TestClassProcessor extends Stoppable {
     /**

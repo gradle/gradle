@@ -18,9 +18,6 @@ package org.gradle.tooling.internal.consumer.parameters
 
 import spock.lang.Specification
 
-/**
- * by Szczepan Faber, created at: 3/12/12
- */
 class ConsumerOperationParametersTest extends Specification {
     
     def params = new ConsumerOperationParameters(null)

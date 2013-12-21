@@ -1,0 +1,76 @@
+apply plugin: 'cpp'
+
+// START SNIPPET platforms
+model {
+    platforms {
+        create("x86") {
+            architecture "x86"
+        }
+        create("x64") {
+            architecture "x86_64"
+        }
+        create("itanium") {
+            architecture "ia-64"
+        }
+    }
+}
+// END SNIPPET platforms
+
+// START SNIPPET build-types
+model {
+    buildTypes {
+        create("debug")
+        create("release")
+    }
+}
+// END SNIPPET build-types
+
+// START SNIPPET target-platforms
+executables {
+    main {
+        targetPlatforms "x86", "x64"
+    }
+}
+// END SNIPPET target-platforms
+libraries {
+    hello {}
+}
+sources.main.cpp.lib libraries.hello.static
+
+// Apply arguments for debug binaries (these options are not yet set automatically)
+// START SNIPPET build-type-config
+binaries.all {
+    if (toolChain in Gcc && buildType == buildTypes.debug) {
+        cppCompiler.args "-g"
+    }
+    if (toolChain in VisualCpp && buildType == buildTypes.debug) {
+        cppCompiler.args '/Zi'
+        cppCompiler.define 'DEBUG'
+        linker.args '/DEBUG'
+    }
+}
+// END SNIPPET build-type-config
+
+// Apply custom arguments for different target platforms
+binaries.all {
+    if (toolChain in Gcc && targetPlatform == platforms.x86) {
+        cppCompiler.args '-O3'
+    }
+}
+
+// Tasks to build all binaries for a tool chain
+task gccExecutables {
+    dependsOn binaries.withType(ExecutableBinary).matching {
+        it.toolChain in Gcc
+    }
+}
+task visualCppExecutables {
+    dependsOn binaries.withType(ExecutableBinary).matching {
+        it.toolChain in VisualCpp
+    }
+}
+task buildExecutables {
+    dependsOn binaries.withType(ExecutableBinary).matching {
+        it.buildable
+    }
+}

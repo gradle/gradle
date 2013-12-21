@@ -21,7 +21,7 @@ import java.util.regex.Pattern
 abstract class WellBehavedPluginTest extends AbstractIntegrationSpec {
 
     String getPluginId() {
-        def matcher = Pattern.compile("(\\w+)Plugin(GoodBehaviour)?(Integration)?Test").matcher(getClass().simpleName)
+        def matcher = Pattern.compile("(\\w+)Plugin(GoodBehaviour)?(Integ(ration)?)?Test").matcher(getClass().simpleName)
         if (matcher.matches()) {
             return matcher.group(1).toLowerCase()
         }
@@ -34,7 +34,7 @@ abstract class WellBehavedPluginTest extends AbstractIntegrationSpec {
 
     def "plugin does not force creation of build dir during configuration"() {
         given:
-        buildFile << "apply plugin: '${getPluginId()}'"
+        applyPlugin()
 
         when:
         run "tasks"
@@ -45,9 +45,13 @@ abstract class WellBehavedPluginTest extends AbstractIntegrationSpec {
 
     def "plugin can build with empty project"() {
         given:
-        buildFile << "apply plugin: '${getPluginId()}'"
+        applyPlugin()
 
         expect:
         succeeds mainTask
+    }
+
+    protected applyPlugin(File target = buildFile) {
+        target << "apply plugin: '${getPluginId()}'\n"
     }
 }

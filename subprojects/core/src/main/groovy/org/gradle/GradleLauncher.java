@@ -16,15 +16,21 @@
 package org.gradle;
 
 import org.gradle.api.logging.StandardOutputListener;
-import org.gradle.initialization.DefaultGradleLauncherFactory;
 import org.gradle.initialization.GradleLauncherFactory;
+import org.gradle.internal.nativeplatform.services.NativeServices;
+import org.gradle.internal.service.ServiceRegistryBuilder;
+import org.gradle.internal.service.scopes.GlobalScopeServices;
+import org.gradle.logging.LoggingServiceRegistry;
+import org.gradle.util.DeprecationLogger;
 
 /**
- * <p>{@code GradleLauncher} is mildly deprecated. It is being replaced by the Tooling API.
- * If you're interested in embedding Gradle you should read the new user guide chapter on embedding Gradle.
+ * <p>Executes a Gradle build.
+ *
+ * <p>{@code GradleLauncher} is deprecated. It has been replaced by the Tooling API.
+ * If you're interested in embedding Gradle you should read the user guide chapter on embedding Gradle.
  * The main entry point to the Tooling API (and embedding Gradle) is {@code org.gradle.tooling.GradleConnector}.
  *
- * <p>You should try using the Tooling API ({@code GradleConnector}) instead of {@code GradleLauncher}.
+ * <p>You should try using the Tooling API (via {@code GradleConnector}) instead of {@code GradleLauncher}.
  * However, if you need some capability that isn't yet implemented in the Tooling API here is how you use {@code GradleLauncher}:
  *
  * <ol>
@@ -46,8 +52,9 @@ import org.gradle.initialization.GradleLauncherFactory;
  *
  * </ol>
  *
- * @author Hans Dockter
+ * @deprecated Use the tooling API instead.
  */
+@Deprecated
 public abstract class GradleLauncher {
 
     private static GradleLauncherFactory factory;
@@ -82,14 +89,29 @@ public abstract class GradleLauncher {
      *
      * @param startParameter The start parameter object the GradleLauncher instance is initialized with
      * @return The {@code GradleLauncher}. Never returns null.
+     * @deprecated Use the tooling API instead.
      */
-    public static GradleLauncher newInstance(final StartParameter startParameter) {
-        return getFactory().newInstance(startParameter);
+    @Deprecated
+    public static GradleLauncher newInstance(StartParameter startParameter) {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("GradleLauncher.newInstance()");
+        return doGetFactory().newInstance(startParameter);
     }
 
-    public static synchronized GradleLauncherFactory getFactory() {
+    @Deprecated
+    public static GradleLauncherFactory getFactory() {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("GradleLauncher.getFactory()");
+        return doGetFactory();
+    }
+
+    private static synchronized GradleLauncherFactory doGetFactory() {
         if (factory == null) {
-            factory = new DefaultGradleLauncherFactory();
+            factory = ServiceRegistryBuilder.builder()
+                    .displayName("Global services")
+                    .parent(LoggingServiceRegistry.newProcessLogging())
+                    .parent(NativeServices.getInstance())
+                    .provider(new GlobalScopeServices(false))
+                    .build()
+                    .get(GradleLauncherFactory.class);
         }
         return factory;
     }
@@ -99,9 +121,13 @@ public abstract class GradleLauncher {
      *
      * @param commandLineArgs A String array where each element denotes an entry of the Gradle command line syntax
      * @return The {@code GradleLauncher}. Never returns null.
+     * @deprecated Use the tooling API instead.
      */
+    @Deprecated
     public static GradleLauncher newInstance(String... commandLineArgs) {
-        return newInstance(createStartParameter(commandLineArgs));
+        DeprecationLogger.nagUserOfDiscontinuedMethod("GradleLauncher.newInstance()");
+        GradleLauncherFactory gradleLauncherFactory = doGetFactory();
+        return gradleLauncherFactory.newInstance(gradleLauncherFactory.createStartParameter(commandLineArgs));
     }
 
     /**
@@ -110,11 +136,15 @@ public abstract class GradleLauncher {
      *
      * @param commandLineArgs A String array where each element denotes an entry of the Gradle command line syntax
      * @return The {@code GradleLauncher}. Never returns null.
+     * @deprecated No replacement.
      */
-    public static StartParameter createStartParameter(final String... commandLineArgs) {
-        return getFactory().createStartParameter(commandLineArgs);
+    @Deprecated
+    public static StartParameter createStartParameter(String... commandLineArgs) {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("GradleLauncher.createStartParameter()");
+        return doGetFactory().createStartParameter(commandLineArgs);
     }
 
+    @Deprecated
     public static synchronized void injectCustomFactory(GradleLauncherFactory gradleLauncherFactory) {
         factory = gradleLauncherFactory;
     }

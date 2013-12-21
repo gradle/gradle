@@ -16,43 +16,22 @@
 package org.gradle.execution;
 
 import org.gradle.api.Task;
-import org.gradle.api.internal.AbstractMultiCauseException;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.internal.UncheckedException;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class SelectedTaskExecutionAction implements BuildExecutionAction {
     public void execute(BuildExecutionContext context) {
         GradleInternal gradle = context.getGradle();
         TaskGraphExecuter taskGraph = gradle.getTaskGraph();
         if (gradle.getStartParameter().isContinueOnFailure()) {
-            MultipleFailuresHandler handler = new MultipleFailuresHandler();
-            taskGraph.useFailureHandler(handler);
-            taskGraph.execute();
-            handler.rethrowFailures();
-        } else {
-            taskGraph.execute();
+            taskGraph.useFailureHandler(new ContinueOnFailureHandler());
         }
+
+        taskGraph.execute();
     }
 
-    private static class MultipleFailuresHandler implements TaskFailureHandler {
-        final List<Throwable> failures = new ArrayList<Throwable>();
-        
+    private static class ContinueOnFailureHandler implements TaskFailureHandler {
         public void onTaskFailure(Task task) {
-            failures.add(task.getState().getFailure());
-        }
-
-        public void rethrowFailures() {
-            if (failures.isEmpty()) {
-                return;
-            }
-            if (failures.size() == 1) {
-                throw UncheckedException.throwAsUncheckedException(failures.get(0));
-            } else {
-                throw new AbstractMultiCauseException("Multiple tasks failed.", failures);
-            }
+            // Do nothing
         }
     }
 }

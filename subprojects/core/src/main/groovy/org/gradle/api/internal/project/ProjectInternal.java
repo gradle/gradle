@@ -27,10 +27,15 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerIn
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.plugins.ExtensionContainerInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
+import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.groovy.scripts.ScriptAware;
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.internal.service.scopes.ServiceRegistryFactory;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.logging.StandardOutputCapture;
+import org.gradle.model.internal.ModelRegistry;
 
 public interface ProjectInternal extends Project, ProjectIdentifier, ScriptAware, FileOperations, ProcessOperations, DomainObjectContext, DependencyMetaDataProvider {
     ProjectInternal getParent();
@@ -53,7 +58,7 @@ public interface ProjectInternal extends Project, ProjectIdentifier, ScriptAware
 
     ProjectInternal findProject(String path);
 
-    IProjectRegistry<ProjectInternal> getProjectRegistry();
+    ProjectRegistry<ProjectInternal> getProjectRegistry();
 
     DynamicObject getInheritedScope();
 
@@ -63,7 +68,17 @@ public interface ProjectInternal extends Project, ProjectIdentifier, ScriptAware
 
     FileResolver getFileResolver();
 
-    ServiceRegistryFactory getServices();
+    ServiceRegistry getServices();
+
+    ServiceRegistryFactory getServiceRegistryFactory();
 
     StandardOutputCapture getStandardOutputCapture();
+
+    ProjectStateInternal getState();
+
+    ExtensionContainerInternal getExtensions();
+
+    ProjectConfigurationActionContainer getConfigurationActions();
+
+    ModelRegistry getModelRegistry();
 }

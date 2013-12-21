@@ -23,10 +23,7 @@ import org.gradle.internal.os.OperatingSystem
 
 /**
  * This class wraps the Ubuntu Notify Send functionality.
- *
- * @author Hackergarten
  */
-
 class NotifySend implements Announcer {
     private final IconProvider iconProvider
     private final ProcessOperations processOperations
@@ -47,6 +44,7 @@ class NotifySend implements Announcer {
             if (icon) {
                 args '-i', icon.absolutePath
             }
+            args '--hint=int:transient:1'
             args title, message
         }
     }

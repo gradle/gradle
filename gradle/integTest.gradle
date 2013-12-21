@@ -1,26 +1,124 @@
-/*
- * Adds an 'integTest' source set, which contains the integration tests for the project.
- */
 apply plugin: 'java'
-rootProject.apply plugin: IntegTestPlugin
+
+sourceSets {
+    integTest {
+        compileClasspath += main.output + test.output
+        runtimeClasspath += main.output + test.output
+    }
+}
 
 configurations {
-    integTestCompile {
-        extendsFrom testCompile
-    }
-    integTestRuntime {
-        extendsFrom integTestCompile, testRuntime
-    }
+    integTestCompile.extendsFrom testCompile
+    integTestRuntime.extendsFrom testRuntime
 }
 
 dependencies {
     integTestCompile project(":internalIntegTesting")
+
+    //so that implicit help tasks are available:
+    integTestRuntime project(':diagnostics')
+    //above can be removed when we implement the auto-apply plugins
 }
 
-sourceSets {
-    integTest {
-        compileClasspath = sourceSets.main.output + sourceSets.test.output + configurations.integTestCompile
-        runtimeClasspath = output + compileClasspath + configurations.integTestRuntime
+ext.integTestTasks = tasks.withType(Test).matching { it.name.toLowerCase().endsWith('integtest') }
+
+// TODO:ADAM - remove this
+task cleanUpCaches {
+    doLast {
+        File intTestHomeDir = rootProject.file("intTestHomeDir")
+
+        // Clean up files for previous versions
+        File previousVersionsDir = new File(intTestHomeDir, "previousVersion")
+        if (previousVersionsDir.directory) {
+            for (File versionDir: previousVersionsDir.listFiles()) {
+                // Clean up the old lock files
+                File lockFile = new File(versionDir, "cache.properties.lock")
+                if (lockFile.file && lockFile.length() > 0) {
+                    def version = lockFile.bytes[0]
+                    if (version != 1) {
+                        println "Cleaning lock file for ${versionDir}"
+                        lockFile.delete()
+                    }
+                }
+                // Clean up exploded distribution from old location
+                File oldDistDir = new File(versionDir, "cache-lock-5")
+                if (oldDistDir.directory) {
+                    println "Cleaning unused previous distribution from ${oldDistDir}"
+                    delete(oldDistDir)
+                }
+            }
+        }
+
+        // Clean up the downloaded distribution from old location
+        if (intTestHomeDir.directory) {
+            for (File child: intTestHomeDir.listFiles()) {
+                if (child.file && child.name.matches("gradle-.*-bin.zip")) {
+                    println "Cleaning unused previous distribution ${child}"
+                    delete(child)
+                }
+            }
+        }
+
+        // Clean up the lock files for the shared cache
+        File modulesCacheDir = rootProject.file("intTestHomeDir/worker-1/caches/modules-1")
+        if (modulesCacheDir.directory) {
+            File lockFile = new File(modulesCacheDir, "modules-1.lock")
+            if (lockFile.file && lockFile.length() > 0) {
+                def version = lockFile.bytes[0]
+                if (version != 3) {
+                    println "Cleaning lock file for ${modulesCacheDir}"
+                    lockFile.delete()
+                }
+            }
+        }
+    }
+}
+
+integTestTasks.all { Test task ->
+    dependsOn ':intTestImage', 'cleanUpCaches'
+    testClassesDir = sourceSets.integTest.output.classesDir
+    classpath = sourceSets.integTest.runtimeClasspath
+    testSrcDirs = []
+    jvmArgs '-Xmx512m', '-XX:MaxPermSize=256m', '-XX:+HeapDumpOnOutOfMemoryError'
+
+    reports.junitXml.destination = file("${project.testResultsDir}/$name")
+
+    systemProperties['org.gradle.integtest.versions'] = project.hasProperty("testAllVersions") ? 'all' : 'latest'
+    if (project.hasProperty('crossVersionTestsOnly')) {
+        include '**/*CrossVersion*'
+        forkEvery = 1
+    }
+
+    systemProperties['org.gradle.integtest.cpp.toolChains'] = project.hasProperty("testAllPlatforms") ? 'all' : 'default';
+
+    dependsOn project.task("configure${task.name.capitalize()}") << {
+        configure(task) {
+            reports.html.destination = file("${project.reporting.baseDir}/$name")
+            systemProperties['integTest.gradleHomeDir'] = rootProject.intTestImage.destinationDir.absolutePath
+            systemProperties['integTest.gradleUserHomeDir'] = rootProject.file('intTestHomeDir').absolutePath
+            systemProperties['integTest.libsRepo'] = rootProject.file('build/repo')
+            
+            // If the projects int test need the distributions, they should add:
+            // inputs.files rootProject.buildDists
+            systemProperties['integTest.distsDir'] = rootProject.distsDir.absolutePath
+
+            // The user home dir is not wiped out by clean
+            // Move the daemon working space underneath the build dir so they don't pile up on CI
+            systemProperties['org.gradle.integtest.daemon.registry'] = file("$rootProject.buildDir/daemon").absolutePath
+        }
+    }
+}
+
+task integTest(type: Test) {
+    def defaultExecuter = project.hasProperty("defaultIntegTestExecuter") ? project.defaultIntegTestExecuter : "embedded"
+    systemProperties['org.gradle.integtest.executer'] = defaultExecuter
+}
+check.dependsOn(integTest)
+
+['embedded', 'forking', 'daemon', 'embeddedDaemon', 'parallel'].each { mode ->
+    def taskName = "${mode}IntegTest"
+    tasks.create(taskName, Test).configure {
+        systemProperties['org.gradle.integtest.executer'] = mode
     }
 }
 
@@ -41,98 +139,5 @@ plugins.withType(org.gradle.plugins.ide.eclipse.EclipsePlugin) { // lazy as plug
             plusConfigurations.add(configurations.integTestCompile)
             plusConfigurations.add(configurations.integTestRuntime)
         }
-    }
-}
-
-ext.integTestTasks = tasks.withType(Test).matching { it.name.toLowerCase().endsWith('integtest') }
-
-integTestTasks.all {
-    dependsOn ':intTestImage', project(":docs").tasks.matching { it.name == "samples" } // lazy as doc not eval'd yet
-    testClassesDir = sourceSets.integTest.output.classesDir
-    classpath = sourceSets.integTest.runtimeClasspath
-    testSrcDirs = []
-    jvmArgs '-Xmx512m', '-XX:MaxPermSize=256m', '-XX:+HeapDumpOnOutOfMemoryError'
-    maxParallelForks = guessMaxForks(project)
-
-    testResultsDir = file("${project.testResultsDir}/$name")
-
-    systemProperties['org.gradle.integtest.versions'] = project.hasProperty("testAllVersions") ? 'all' : 'latest'
-    if (project.hasProperty('crossVersionTestsOnly')) {
-        include '**/*CrossVersion*'
-    }
-
-    doFirst {
-        testReportDir = file("${project.reporting.baseDir}/$name")
-        systemProperties['integTest.gradleHomeDir'] = integTestImageDir.absolutePath
-        systemProperties['integTest.gradleUserHomeDir'] = integTestUserDir.absolutePath
-        systemProperties['integTest.samplesdir'] = project(":docs").samplesDir.absolutePath
-        if (isCIBuild()) {
-            maxParallelForks = 4
-        }
-    }
-}
-
-['embedded', 'forking', 'daemon', 'embeddedDaemon'].each {
-    def mode = it
-    def taskName = "${it}IntegTest"
-    tasks.addRule(taskName) { name ->
-        if (name != taskName) { return }
-        tasks.add(taskName, Test).configure {
-            systemProperties['org.gradle.integtest.executer'] = mode
-        }
-    }
-}
-
-daemonIntegTest {
-    systemProperties['org.gradle.integtest.daemon.registry'] = file("$rootProject.buildDir/daemon").absolutePath
-}
-
-task waitForDaemonsToDie << {
-    def mins = 5
-    println "I'm waiting for $mins mins so that existing deamons can die with honor. It's a workaround until we fix it properly."
-    Thread.sleep(mins * 60 * 1000);
-}
-
-task integTest(type: Test) {
-    doFirst {
-        systemProperties['org.gradle.integtest.executer'] = integTestMode
-    }
-}
-
-tasks.findByName("check")?.dependsOn(integTest)
-
-class IntegTestPlugin implements Plugin<Project> {
-    public void apply(Project project) {
-        project.convention.plugins.integTest = new IntegTestConvention(project)
-    }
-}
-
-class IntegTestConvention {
-    private final Project project
-    final List integTests = []
-
-    IntegTestConvention(Project project) {
-        this.project = project
-    }
-
-    String getIntegTestMode() {
-        if (!project.tasks.findByName('ciBuild') || !project.gradle.taskGraph.populated) {
-            return null
-        }
-        if (project.isCIBuild() || project.isReleaseBuild() ) {
-            return 'forking'
-        }
-        return System.getProperty("org.gradle.integtest.executer") ?: 'embedded'
-    }
-
-    File getIntegTestUserDir() {
-        return project.file('intTestHomeDir')
-    }
-
-    File getIntegTestImageDir() {
-        if (!project.tasks.findByName('intTestImage')) {
-            return null
-        }
-        return project.intTestImage.destinationDir
     }
 }

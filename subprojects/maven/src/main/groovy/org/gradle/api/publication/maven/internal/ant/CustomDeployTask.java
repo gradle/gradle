@@ -20,17 +20,14 @@ import org.apache.maven.settings.Settings;
 import org.codehaus.plexus.PlexusContainer;
 
 /**
- * We could also use reflection to get hold of the container property. But this would make it harder
- * to use a Mock for this class.
- *
- * @author Hans Dockter
+ * We could also use reflection to get hold of the container property. But this would make it harder to use a Mock for this class.
  */
 public class CustomDeployTask extends DeployTask implements CustomInstallDeployTaskSupport {
     @Override
     public synchronized Settings getSettings() {
         return super.getSettings();
     }
-    
+
     @Override
     public synchronized PlexusContainer getContainer() {
         return super.getContainer();
@@ -40,5 +37,9 @@ public class CustomDeployTask extends DeployTask implements CustomInstallDeployT
     public void doExecute() {
         LoggingHelper.injectLogger(getContainer(), getProject());
         super.doExecute();
+    }
+
+    public void clearAttachedArtifactsList() {
+        attachedArtifacts.clear();
     }
 }

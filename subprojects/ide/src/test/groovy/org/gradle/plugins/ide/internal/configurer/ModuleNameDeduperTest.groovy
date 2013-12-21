@@ -18,9 +18,6 @@ package org.gradle.plugins.ide.internal.configurer
 
 import spock.lang.Specification
 
-/**
- * @author Szczepan Faber, @date: 14.03.11
- */
 class ModuleNameDeduperTest extends Specification {
 
     public static class TargetStub extends DeduplicationTarget {

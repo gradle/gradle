@@ -17,9 +17,6 @@ package org.gradle.plugins.ear.descriptor.internal
 
 import org.gradle.plugins.ear.descriptor.EarWebModule;
 
-/**
- * @author David Gileadi
- */
 class DefaultEarWebModule extends DefaultEarModule implements EarWebModule {
 
     String contextRoot

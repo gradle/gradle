@@ -16,6 +16,8 @@
 
 package org.gradle.internal.jvm;
 
+import org.gradle.api.JavaVersion;
+import org.gradle.api.Nullable;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.os.OperatingSystem;
@@ -26,6 +28,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class Jvm implements JavaInfo {
     
@@ -37,12 +40,19 @@ public class Jvm implements JavaInfo {
     //discovered java location
     private final File javaHome;
     private final boolean userSupplied;
+    private final JavaVersion javaVersion;
+    private static final AtomicReference<Jvm> CURRENT = new AtomicReference<Jvm>();
 
     public static Jvm current() {
-        return create(null);
+        Jvm jvm = CURRENT.get();
+        if (jvm == null) {
+            CURRENT.compareAndSet(null, create(null));
+            jvm = CURRENT.get();
+        }
+        return jvm;
     }
 
-    private static Jvm create(File javaBase) {
+    static Jvm create(File javaBase) {
         String vendor = System.getProperty("java.vm.vendor");
         if (vendor.toLowerCase().startsWith("apple inc.")) {
             return new AppleJvm(OperatingSystem.current(), javaBase);
@@ -71,12 +81,14 @@ public class Jvm implements JavaInfo {
                 throw new UncheckedException(e);
             }
             this.javaHome = findJavaHome(javaBase);
+            this.javaVersion = JavaVersion.current();
             this.userSupplied = false;
         } else {
             //precisely use what the user wants and validate strictly further on
             this.javaBase = suppliedJavaBase;
             this.javaHome = suppliedJavaBase;
             this.userSupplied = true;
+            this.javaVersion = null;
         }
     }
     
@@ -139,6 +151,10 @@ public class Jvm implements JavaInfo {
         return findExecutable("java");
     }
 
+    public File getJavacExecutable() throws JavaHomeException {
+        return findExecutable("javac");
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -153,24 +169,11 @@ public class Jvm implements JavaInfo {
         return findExecutable(name);
     }
 
-    public boolean isJava5() {
-        return SystemProperties.getJavaVersion().startsWith("1.5");    
-    }
-
-    public boolean isJava6() {
-        return SystemProperties.getJavaVersion().startsWith("1.6");
-    }
-
-    public boolean isJava7() {
-        return SystemProperties.getJavaVersion().startsWith("1.7");
-    }
-
-    public boolean isJava5Compatible() {
-         return isJava5() || isJava6Compatible();
-    }
-
-    public boolean isJava6Compatible() {
-        return isJava6() || isJava7();
+    /**
+     * @return the {@link JavaVersion} information
+     */
+    public JavaVersion getJavaVersion() {
+        return javaVersion;
     }
 
     /**
@@ -196,6 +199,10 @@ public class Jvm implements JavaInfo {
      */
     public File getRuntimeJar() {
         File runtimeJar = new File(javaBase, "lib/rt.jar");
+        if (runtimeJar.exists()) {
+            return runtimeJar;
+        }
+        runtimeJar = new File(javaBase, "jre/lib/rt.jar");
         return runtimeJar.exists() ? runtimeJar : null;
     }
 
@@ -204,6 +211,39 @@ public class Jvm implements JavaInfo {
      */
     public File getToolsJar() {
         return findToolsJar(javaBase);
+    }
+
+    /**
+     * Locates a stand-alone JRE installation for this JVM. Returns null if not found.
+     */
+    @Nullable
+    public Jre getStandaloneJre() {
+        if (os.isWindows()) {
+            File jreDir;
+            if (javaVersion.isJava5()) {
+                jreDir = new File(javaHome.getParentFile(), String.format("jre%s", SystemProperties.getJavaVersion()));
+            } else {
+                jreDir = new File(javaHome.getParentFile(), String.format("jre%s", javaVersion.getMajorVersion()));
+            }
+            if (jreDir.isDirectory()) {
+                return new DefaultJre(jreDir);
+            }
+        }
+        if (!new File(javaHome, "jre").isDirectory()) {
+            return new DefaultJre(javaHome);
+        }
+        return null;
+    }
+
+    /**
+     * Locates the JRE installation for this JVM.
+     */
+    public Jre getJre() {
+        File jreDir = new File(javaBase, "jre");
+        if (jreDir.isDirectory()) {
+            return new DefaultJre(jreDir);
+        }
+        return new DefaultJre(javaBase);
     }
 
     private File findToolsJar(File javaHome) {
@@ -218,11 +258,15 @@ public class Jvm implements JavaInfo {
                 return toolsJar;
             }
         }
-        if (javaHome.getName().matches("jre\\d+") && os.isWindows()) {
-            javaHome = new File(javaHome.getParentFile(), String.format("jdk%s", SystemProperties.getJavaVersion()));
-            toolsJar = new File(javaHome, "lib/tools.jar");
-            if (toolsJar.exists()) {
-                return toolsJar;
+
+        if (os.isWindows()) {
+            String version = SystemProperties.getJavaVersion();
+            if (javaHome.getName().matches("jre\\d+") || javaHome.getName().equals(String.format("jre%s", version))) {
+                javaHome = new File(javaHome.getParentFile(), String.format("jdk%s", version));
+                toolsJar = new File(javaHome, "lib/tools.jar");
+                if (toolsJar.exists()) {
+                    return toolsJar;
+                }
             }
         }
 
@@ -234,13 +278,6 @@ public class Jvm implements JavaInfo {
      */
     public Map<String, ?> getInheritableEnvironmentVariables(Map<String, ?> envVars) {
         return envVars;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public boolean getSupportsAppleScript() {
-        return false;
     }
 
     public boolean isIbmJvm() {
@@ -275,14 +312,6 @@ public class Jvm implements JavaInfo {
          * {@inheritDoc}
          */
         @Override
-        public File getJavaHome() {
-            return super.getJavaHome();
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
         public File getRuntimeJar() {
             File javaHome = super.getJavaHome();
             File runtimeJar = new File(javaHome.getParentFile(), "Classes/classes.jar");
@@ -311,13 +340,18 @@ public class Jvm implements JavaInfo {
             }
             return vars;
         }
+    }
 
-        /**
-         * {@inheritDoc}
-         */
+    private static class DefaultJre extends Jre {
+        private final File jreDir;
+
+        public DefaultJre(File jreDir) {
+            this.jreDir = jreDir;
+        }
+
         @Override
-        public boolean getSupportsAppleScript() {
-            return true;
+        public File getHomeDir() {
+            return jreDir;
         }
     }
 }

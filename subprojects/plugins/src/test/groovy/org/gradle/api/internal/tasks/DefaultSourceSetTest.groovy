@@ -37,7 +37,7 @@ class DefaultSourceSetTest {
     @Test
     public void hasUsefulDisplayName() {
         SourceSet sourceSet = sourceSet('int-test')
-        assertThat(sourceSet.toString(), equalTo('source set int test'));
+        assertThat(sourceSet.toString(), equalTo("source set 'int test'"));
     }
 
     @Test public void defaultValues() {
@@ -94,9 +94,9 @@ class DefaultSourceSetTest {
         assertThat(sourceSet.getCompileTaskName('java'), equalTo('compileSetNameJava'))
         assertThat(sourceSet.compileJavaTaskName, equalTo('compileSetNameJava'))
         assertThat(sourceSet.processResourcesTaskName, equalTo('processSetNameResources'))
+        assertThat(sourceSet.jarTaskName, equalTo('setNameJar'))
         assertThat(sourceSet.getTaskName('build', null), equalTo('buildSetName'))
         assertThat(sourceSet.getTaskName(null, 'jar'), equalTo('setNameJar'))
-        assertThat(sourceSet.getTaskName('build', 'jar'), equalTo('buildSetNameJar'))
         assertThat(sourceSet.compileConfigurationName, equalTo("setNameCompile"))
         assertThat(sourceSet.runtimeConfigurationName, equalTo("setNameRuntime"))
     }
@@ -108,6 +108,7 @@ class DefaultSourceSetTest {
         assertThat(sourceSet.getCompileTaskName('java'), equalTo('compileJava'))
         assertThat(sourceSet.compileJavaTaskName, equalTo('compileJava'))
         assertThat(sourceSet.processResourcesTaskName, equalTo('processResources'))
+        assertThat(sourceSet.jarTaskName, equalTo('jar'))
         assertThat(sourceSet.getTaskName('build', null), equalTo('buildMain'))
         assertThat(sourceSet.getTaskName(null, 'jar'), equalTo('jar'))
         assertThat(sourceSet.getTaskName('build', 'jar'), equalTo('buildJar'))

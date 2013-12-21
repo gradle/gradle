@@ -16,7 +16,7 @@
 package org.gradle.gradleplugin.foundation;
 
 import org.codehaus.groovy.runtime.StackTraceUtils;
-import org.gradle.api.internal.LocationAwareException;
+import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
@@ -33,6 +33,7 @@ import org.gradle.gradleplugin.foundation.favorites.FavoritesEditor;
 import org.gradle.gradleplugin.foundation.request.ExecutionRequest;
 import org.gradle.gradleplugin.foundation.request.RefreshTaskListRequest;
 import org.gradle.gradleplugin.foundation.request.Request;
+import org.gradle.internal.SystemProperties;
 import org.gradle.logging.ShowStacktrace;
 import org.gradle.util.GUtil;
 
@@ -44,8 +45,6 @@ import java.util.concurrent.LinkedBlockingQueue;
  * This class has nothing to do with plugins inside of gradle, but are related to making a plugin that uses gradle, such as for an IDE. It is also used by the standalone IDE (that way the standalone
  * UI and plugin UIs are kept in synch). <p/> This is the class that stores most of the information that the Gradle plugin works directly with. It is meant to simplify creating a plugin that uses
  * gradle. It maintains a queue of commands to execute and executes them in a separate process due to some complexities with gradle and its dependencies classpaths and potential memory issues.
- *
- * @author mhunsicker
  */
 public class GradlePluginLord {
     private final Logger logger = Logging.getLogger(GradlePluginLord.class);
@@ -143,7 +142,7 @@ public class GradlePluginLord {
         //create the queue that executes the commands. The contents of this interaction are where we actually launch gradle.
         executionQueue = new ExecutionQueue<Request>(new ExecutionQueueInteraction());
 
-        currentDirectory = new File(System.getProperty("user.dir"));
+        currentDirectory = SystemProperties.getCurrentDir();
 
         String gradleHomeProperty = System.getProperty("gradle.home");
         if (gradleHomeProperty != null) {
@@ -604,7 +603,7 @@ public class GradlePluginLord {
             if (failure instanceof LocationAwareException) {
                 LocationAwareException scriptException = (LocationAwareException) failure;
                 formatter.format("%s%n%n", scriptException.getLocation());
-                formatter.format("%s", scriptException.getOriginalMessage());
+                formatter.format("%s", scriptException.getCause().getMessage());
 
                 for (Throwable cause : scriptException.getReportableCauses()) {
                     formatter.format("%nCause: %s", getMessage(cause));

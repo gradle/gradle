@@ -15,26 +15,57 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.gradle.internal.Factory;
-import org.gradle.cache.CacheBuilder;
+import org.gradle.api.UncheckedIOException;
+import org.gradle.api.internal.filestore.PathKeyFileStore;
+import org.gradle.api.internal.filestore.UniquePathKeyFileStore;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.internal.FileLockManager;
+import org.gradle.cache.internal.PersistentIndexedCacheParameters;
+import org.gradle.internal.Factory;
+import org.gradle.messaging.serialize.Serializer;
+import org.gradle.util.VersionNumber;
 
 import java.io.File;
 
+import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
+
 public class DefaultCacheLockingManager implements CacheLockingManager {
-    public static final int CACHE_LAYOUT_VERSION = 12;
+
+    // If you update this, also update DefaultGradleDistribution.getArtifactCacheLayoutVersion() (which is the historical record)
+    // You should also update LocallyAvailableResourceFinderFactory
+    public static final VersionNumber CACHE_LAYOUT_VERSION = CacheLayout.META_DATA.getVersion();
+
     private final PersistentCache cache;
 
     public DefaultCacheLockingManager(CacheRepository cacheRepository) {
         cache = cacheRepository
-                .store(String.format("artifacts-%d", CACHE_LAYOUT_VERSION))
+                .store(CacheLayout.ROOT.getKey())
+                .withCrossVersionCache()
                 .withDisplayName("artifact cache")
-                .withVersionStrategy(CacheBuilder.VersionStrategy.SharedCache)
-                .withLockMode(FileLockManager.LockMode.None) // Don't need to lock anything until we use the caches
+                .withLockOptions(mode(FileLockManager.LockMode.None)) // Don't need to lock anything until we use the caches
                 .open();
+
+        initMetaDataStoreDir();
+    }
+
+    public void close() {
+        cache.close();
+    }
+
+    private void initMetaDataStoreDir() {
+        File metaDataStoreDir = getMetaDataStoreDir();
+
+        if(!metaDataStoreDir.exists()) {
+            if(!metaDataStoreDir.mkdirs()) {
+                throw new UncheckedIOException(String.format("Unable to create directory '%s'", metaDataStoreDir.getName()));
+            }
+        }
+    }
+
+    private File getMetaDataStoreDir() {
+        return CacheLayout.META_DATA.getPath(cache.getBaseDir());
     }
 
     public File getCacheDir() {
@@ -57,7 +88,28 @@ public class DefaultCacheLockingManager implements CacheLockingManager {
         return cache.longRunningOperation(operationDisplayName, action);
     }
 
-    public <K, V> PersistentIndexedCache<K, V> createCache(File cacheFile, Class<K> keyType, Class<V> valueType) {
-        return cache.createCache(cacheFile, keyType, valueType);
+    public <K, V> PersistentIndexedCache<K, V> createCache(String cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
+        File cacheFileInMetaDataStore = new File(getMetaDataStoreDir(), cacheFile);
+        return cache.createCache(new PersistentIndexedCacheParameters<K, V>(cacheFileInMetaDataStore, keySerializer, valueSerializer));
+    }
+
+    public PathKeyFileStore createFileStore() {
+        return createCacheRelativeStore(CacheLayout.FILE_STORE);
+    }
+
+    public PathKeyFileStore createMetaDataStore() {
+        return createCacheRelativeStore(CacheLayout.META_DATA, "descriptors");
+    }
+
+    private PathKeyFileStore createCacheRelativeStore(CacheLayout cacheLayout) {
+        return new UniquePathKeyFileStore(createCacheRelativeDir(cacheLayout));
+    }
+
+    private PathKeyFileStore createCacheRelativeStore(CacheLayout cacheLayout, String appendedPath) {
+        return new UniquePathKeyFileStore(new File(createCacheRelativeDir(cacheLayout), appendedPath));
+    }
+
+    private File createCacheRelativeDir(CacheLayout cacheLayout) {
+        return cacheLayout.getPath(cache.getBaseDir());
     }
 }

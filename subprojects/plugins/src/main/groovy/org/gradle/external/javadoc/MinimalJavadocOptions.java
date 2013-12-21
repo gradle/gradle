@@ -27,8 +27,6 @@ import java.util.List;
 
 /**
  * Provides the core Javadoc options.
- *
- * @author Tom Eyckmans
  */
 public interface MinimalJavadocOptions {
     @Input @Optional

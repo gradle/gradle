@@ -18,9 +18,6 @@ package org.gradle.plugins.ide.eclipse
 import org.gradle.api.tasks.AbstractSpockTaskTest
 import org.gradle.plugins.ide.eclipse.model.EclipseWtpFacet
 
-/**
- * @author Hans Dockter
- */
 public class GenerateEclipseWtpFacetTest extends AbstractSpockTaskTest {
     private eclipseFacet = createTask(GenerateEclipseWtpFacet)
 

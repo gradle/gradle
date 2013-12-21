@@ -17,9 +17,6 @@ package org.gradle.api.internal.tasks.testing;
 
 import org.apache.commons.lang.StringUtils;
 
-/**
- * @author Tom Eyckmans
- */
 public class DefaultTestClassRunInfo implements TestClassRunInfo {
     private String testClassName;
 

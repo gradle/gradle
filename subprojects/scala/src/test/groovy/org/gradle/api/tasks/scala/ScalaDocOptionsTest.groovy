@@ -16,6 +16,7 @@
 package org.gradle.api.tasks.scala
 
 import org.junit.Test
+
 import static org.hamcrest.Matchers.equalTo
 import static org.junit.Assert.*
 
@@ -73,7 +74,7 @@ public class ScalaDocOptionsTest {
         assertThat(docOptions.optionMap()[antProperty] as String, equalTo('-opt1 -opt2' as String))
     }
 
-    private def assertOnOffValue(String fieldName, String antProperty, boolean defaultValue) {
+    private assertOnOffValue(String fieldName, String antProperty, boolean defaultValue) {
         assertThat(docOptions."$fieldName" as boolean, equalTo(defaultValue))
 
         docOptions."$fieldName" = true
@@ -83,7 +84,7 @@ public class ScalaDocOptionsTest {
         assertThat(docOptions.optionMap()[antProperty] as String, equalTo('off'))
     }
 
-    private def assertSimpleStringValue(String fieldName, String antProperty, String defaultValue, String testValue) {
+    private assertSimpleStringValue(String fieldName, String antProperty, String defaultValue, String testValue) {
         assertThat(docOptions."${fieldName}" as String, equalTo(defaultValue))
         if (defaultValue == null) {
             assertFalse(docOptions.optionMap().containsKey(antProperty))

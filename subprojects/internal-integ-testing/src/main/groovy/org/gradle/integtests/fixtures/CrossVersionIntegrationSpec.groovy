@@ -15,38 +15,55 @@
  */
 package org.gradle.integtests.fixtures
 
-import org.gradle.util.TestFile
+import org.gradle.integtests.fixtures.executer.GradleDistribution
+import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
+import org.gradle.test.fixtures.file.TestDirectoryProvider
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.test.fixtures.maven.MavenFileRepository
+import org.gradle.test.fixtures.maven.MavenRepository
 import org.junit.Rule
 import org.junit.runner.RunWith
 import spock.lang.Specification
 
 @RunWith(CrossVersionTestRunner)
-abstract class CrossVersionIntegrationSpec extends Specification {
-    @Rule public final GradleDistribution current = new GradleDistribution()
-    static BasicGradleDistribution previous
+abstract class CrossVersionIntegrationSpec extends Specification implements TestDirectoryProvider {
+    @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    final GradleDistribution current = new UnderDevelopmentGradleDistribution()
+    static GradleDistribution previous
+    private MavenFileRepository mavenRepo
 
-    BasicGradleDistribution getPrevious() {
+    GradleDistribution getPrevious() {
         return previous
     }
 
     protected TestFile getBuildFile() {
-        testDir.file('build.gradle')
+        testDirectory.file('build.gradle')
     }
 
-    protected TestFile getTestDir() {
-        current.getTestDir();
+    protected TestFile getSettingsFile() {
+        testDirectory.file('settings.gradle')
+    }
+
+    TestFile getTestDirectory() {
+        temporaryFolder.getTestDirectory();
     }
 
     protected TestFile file(Object... path) {
-        testDir.file(path);
+        testDirectory.file(path);
     }
 
-    def version(BasicGradleDistribution dist) {
-        def executer = dist.executer();
-        if (executer instanceof GradleDistributionExecuter) {
-            executer.withDeprecationChecksDisabled()
+    protected MavenRepository getMavenRepo() {
+        if (mavenRepo == null) {
+            mavenRepo = new MavenFileRepository(file("maven-repo"))
         }
-        executer.inDirectory(testDir)
+        return mavenRepo
+    }
+
+    def version(GradleDistribution dist) {
+        def executer = dist.executer(temporaryFolder)
+        executer.withDeprecationChecksDisabled()
+        executer.inDirectory(testDirectory)
         return executer;
     }
 }

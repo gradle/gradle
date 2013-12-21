@@ -73,8 +73,9 @@
     <!--
       -
       - 1. Adding new types:
-      - To add more types to this guide, add them to one of the following tables. The contents of
-      - ${classname}.xml for each type listed below is then included in the guide.
+      - There are 2 ways to include a new types to this guide:
+      -     * Types referenced by a property are automatically included, if there is a corresponding ${typename}.xml in the DSL source directory.
+      -     * Types listed in one of the following tables are included. There must be a corresponding ${typename}.xml in the DSL source directory.
       -
       - 2. Adding new sections:
       - The section title should end with 'types' (see AssembleDslDocTask.mergeContent)
@@ -112,6 +113,9 @@
             <tr>
                 <td>subprojects</td>
             </tr>
+            <tr>
+                <td>publishing</td>
+            </tr>
         </table>
         <para>A build script is also a Groovy script, and so can contain those elements allowed in a Groovy script,
             such as method definitions and class definitions.
@@ -145,6 +149,9 @@
                 <td>org.gradle.api.tasks.SourceSetOutput</td>
             </tr>
             <tr>
+                <td>org.gradle.api.tasks.incremental.IncrementalTaskInputs</td>
+            </tr>
+            <tr>
                 <td>org.gradle.api.artifacts.Configuration</td>
             </tr>
             <tr>
@@ -159,6 +166,45 @@
             <tr>
                 <td>org.gradle.api.plugins.ExtraPropertiesExtension</td>
             </tr>
+            <tr>
+                <td>org.gradle.api.publish.PublishingExtension</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.reporting.Report</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.reporting.Reporting</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.reporting.ReportContainer</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.reporting.ReportingExtension</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.publish.ivy.IvyPublication</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.publish.ivy.IvyArtifact</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.publish.ivy.IvyArtifactSet</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.publish.ivy.IvyModuleDescriptor</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.publish.maven.MavenPublication</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.publish.maven.MavenArtifact</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.publish.maven.MavenArtifactSet</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.publish.maven.MavenPom</td>
+            </tr>
         </table>
     </section>
 
@@ -171,10 +217,38 @@
                 <td>org.gradle.api.artifacts.ConfigurationContainer</td>
             </tr>
             <tr>
+                <td>org.gradle.api.artifacts.dsl.RepositoryHandler</td>
+            </tr>
+            <tr>
                 <td>org.gradle.api.artifacts.dsl.DependencyHandler</td>
             </tr>
             <tr>
                 <td>org.gradle.api.artifacts.dsl.ArtifactHandler</td>
+            </tr>
+        </table>
+    </section>
+
+    <section>
+        <title>Help Task types</title>
+        <para>Below are the task types that are available for every Gradle project.
+            Those task types can also be declared and configured directly in the build script.
+        </para>
+        <table>
+            <title>Help Task types</title>
+            <tr>
+                <td>org.gradle.api.tasks.diagnostics.TaskReportTask</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.tasks.diagnostics.ProjectReportTask</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.tasks.diagnostics.DependencyReportTask</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.tasks.diagnostics.DependencyInsightReportTask</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.tasks.diagnostics.PropertyReportTask</td>
             </tr>
         </table>
     </section>
@@ -194,7 +268,7 @@
                 <td>org.gradle.api.plugins.quality.CodeNarc</td>
             </tr>
             <tr>
-                <td>org.gradle.api.tasks.compile.Compile</td>
+                <td>org.gradle.api.plugins.buildcomparison.gradle.CompareGradleBuilds</td>
             </tr>
             <tr>
                 <td>org.gradle.api.tasks.Copy</td>
@@ -209,9 +283,6 @@
                 <td>org.gradle.api.tasks.Directory</td>
             </tr>
             <tr>
-                <td>org.gradle.api.tasks.diagnostics.DependencyReportTask</td>
-            </tr>
-            <tr>
                 <td>org.gradle.plugins.ear.Ear</td>
             </tr>
             <tr>
@@ -219,6 +290,15 @@
             </tr>
             <tr>
                 <td>org.gradle.api.plugins.quality.FindBugs</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.publish.ivy.tasks.GenerateIvyDescriptor</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.publish.maven.tasks.GenerateMavenPom</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.reporting.GenerateBuildDashboard</td>
             </tr>
             <tr>
                 <td>org.gradle.api.tasks.GradleBuild</td>
@@ -230,7 +310,19 @@
                 <td>org.gradle.api.tasks.javadoc.Groovydoc</td>
             </tr>
             <tr>
+                <td>org.gradle.api.reporting.dependencies.HtmlDependencyReportTask</td>
+            </tr>
+            <tr>
+                <td>org.gradle.testing.jacoco.tasks.JacocoReport</td>
+            </tr>
+            <tr>
+                <td>org.gradle.testing.jacoco.tasks.JacocoMerge</td>
+            </tr>
+            <tr>
                 <td>org.gradle.api.tasks.bundling.Jar</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.tasks.compile.JavaCompile</td>
             </tr>
             <tr>
                 <td>org.gradle.api.tasks.javadoc.Javadoc</td>
@@ -254,16 +346,19 @@
                 <td>org.gradle.api.plugins.quality.Pmd</td>
             </tr>
             <tr>
-                <td>org.gradle.api.tasks.diagnostics.PropertyReportTask</td>
+                <td>org.gradle.api.publish.ivy.tasks.PublishToIvyRepository</td>
             </tr>
             <tr>
-                <td>org.gradle.api.tasks.diagnostics.ProjectReportTask</td>
+                <td>org.gradle.api.publish.maven.tasks.PublishToMavenRepository</td>
             </tr>
             <tr>
                 <td>org.gradle.api.tasks.scala.ScalaCompile</td>
             </tr>
             <tr>
                 <td>org.gradle.api.tasks.scala.ScalaDoc</td>
+            </tr>
+            <tr>
+                <td>org.gradle.buildinit.tasks.InitBuild</td>
             </tr>
             <tr>
                 <td>org.gradle.plugins.signing.Sign</td>
@@ -278,10 +373,10 @@
                 <td>org.gradle.api.tasks.bundling.Tar</td>
             </tr>
             <tr>
-                <td>org.gradle.api.tasks.diagnostics.TaskReportTask</td>
+                <td>org.gradle.api.tasks.testing.Test</td>
             </tr>
             <tr>
-                <td>org.gradle.api.tasks.testing.Test</td>
+                <td>org.gradle.api.tasks.testing.TestReport</td>
             </tr>
             <tr>
                 <td>org.gradle.api.tasks.Upload</td>
@@ -373,6 +468,93 @@
             </tr>
             <tr>
                 <td>org.gradle.plugins.ide.idea.GenerateIdeaWorkspace</td>
+            </tr>
+        </table>
+    </section>
+
+    <section>
+        <title>Native binary core types</title>
+        <para>Used to configure components developed with native code.</para>
+        <table>
+            <title>Native component core types</title>
+            <tr>
+                <td>org.gradle.nativebinaries.ProjectNativeComponent</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativebinaries.Executable</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativebinaries.Library</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativebinaries.NativeBinary</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativebinaries.ExecutableBinary</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativebinaries.SharedLibraryBinary</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativebinaries.StaticLibraryBinary</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativebinaries.BuildType</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativebinaries.Flavor</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativebinaries.platform.Platform</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativebinaries.toolchain.ToolChain</td>
+            </tr>
+            <tr>
+                <td>org.gradle.language.assembler.AssemblerSourceSet</td>
+            </tr>
+            <tr>
+                <td>org.gradle.language.c.CSourceSet</td>
+            </tr>
+            <tr>
+                <td>org.gradle.language.cpp.CppSourceSet</td>
+            </tr>
+            <tr>
+                <td>org.gradle.language.rc.WindowsResourceSet</td>
+            </tr>
+            <tr>
+                <td>org.gradle.ide.visualstudio.VisualStudioProject</td>
+            </tr>
+            <tr>
+                <td>org.gradle.ide.visualstudio.VisualStudioSolution</td>
+            </tr>
+        </table>
+    </section>
+    <section>
+        <title>Native binary task types</title>
+        <para>Tasks used to build native binary components.</para>
+        <table>
+            <title>Native component task types</title>
+            <tr>
+                <td>org.gradle.nativebinaries.language.cpp.tasks.CppCompile</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativebinaries.language.c.tasks.CCompile</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativebinaries.language.assembler.tasks.Assemble</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativebinaries.tasks.LinkExecutable</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativebinaries.tasks.LinkSharedLibrary</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativebinaries.tasks.CreateStaticLibrary</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativebinaries.tasks.InstallExecutable</td>
             </tr>
         </table>
     </section>

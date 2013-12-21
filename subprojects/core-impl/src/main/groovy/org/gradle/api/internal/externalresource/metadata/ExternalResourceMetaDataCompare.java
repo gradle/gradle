@@ -18,27 +18,24 @@ package org.gradle.api.internal.externalresource.metadata;
 
 import org.gradle.api.Nullable;
 import org.gradle.internal.Factory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Date;
 
 public abstract class ExternalResourceMetaDataCompare {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(ExternalResourceMetaDataCompare.class);
-
     public static boolean isDefinitelyUnchanged(@Nullable ExternalResourceMetaData local, Factory<ExternalResourceMetaData> remoteFactory) {
         if (local == null) {
             return false;
         }
 
+        String localEtag = local.getEtag();
+
         Date localLastModified = local.getLastModified();
-        if (localLastModified == null) {
+        if (localEtag == null && localLastModified == null) {
             return false;
         }
-        
+
         long localContentLength = local.getContentLength();
-        if (localContentLength < 1) {
+        if (localEtag == null && localContentLength < 1) {
             return false;
         }
 
@@ -47,7 +44,12 @@ public abstract class ExternalResourceMetaDataCompare {
         if (remote == null) {
             return false;
         }
-        
+
+        String remoteEtag = remote.getEtag();
+        if (localEtag != null && remoteEtag != null) {
+            return localEtag.equals(remoteEtag);
+        }
+
         Date remoteLastModified = remote.getLastModified();
         if (remoteLastModified == null) {
             return false;
@@ -58,7 +60,7 @@ public abstract class ExternalResourceMetaDataCompare {
         if (remoteContentLength < 1) {
             return false;
         }
-        
+
         return localContentLength == remoteContentLength && remoteLastModified.equals(localLastModified);
     }
 }

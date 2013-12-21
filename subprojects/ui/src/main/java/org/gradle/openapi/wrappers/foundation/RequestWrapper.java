@@ -22,8 +22,6 @@ import org.gradle.openapi.external.foundation.RequestVersion1;
 
 /**
  * Implementation of RequestVersion1 meant to help shield external users from internal changes.
- *
- * @author mhunsicker
  */
 public class RequestWrapper implements RequestVersion1 {
     private Request request;

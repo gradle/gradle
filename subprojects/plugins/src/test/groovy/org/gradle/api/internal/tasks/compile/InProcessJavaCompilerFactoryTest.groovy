@@ -25,7 +25,7 @@ class InProcessJavaCompilerFactoryTest extends Specification {
     def factory = new InProcessJavaCompilerFactory()
     def options = new CompileOptions()
     
-    @Requires(TestPrecondition.JDK6)
+    @Requires(TestPrecondition.JDK6_OR_LATER)
     def "creates JDK 6 compiler on JDK 6"() {
         expect:
         factory.create(options).getClass().name == "org.gradle.api.internal.tasks.compile.jdk6.Jdk6JavaCompiler"

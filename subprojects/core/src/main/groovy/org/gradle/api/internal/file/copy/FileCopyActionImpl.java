@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,27 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.file.copy;
 
-import org.gradle.api.file.CopySpec;
-import org.gradle.api.internal.file.FileResolver;
-
-import java.io.File;
-
-public class FileCopyActionImpl extends CopyActionImpl implements FileCopyAction {
-    private Object destDir;
-
-    public FileCopyActionImpl(FileResolver resolver, CopySpecVisitor visitor) {
-        super(resolver, visitor);
-    }
-
-    @Override
-    public CopySpec into(Object destDir) {
-        this.destDir = destDir;
-        return this;
-    }
-
-    public File getDestinationDir() {
-        return destDir == null ? null : getResolver().resolve(destDir);
-    }
+/**
+ * DO NOT REMOVE.
+ *
+ * Prior to 1.8, Copy leaked this as a parameter type on one of its methods.
+ * Has to exist to maintain binary compatibility.
+ */
+@SuppressWarnings("UnusedDeclaration")
+@Deprecated
+public class FileCopyActionImpl {
 }

@@ -25,8 +25,6 @@ import java.util.List;
 
 /**
  * This handles prompting the user how to handle adding multiple tasks as favorites.
- *
- * @author mhunsicker
  */
 public class SwingAddMultipleFavoritesInteraction implements FavoritesEditor.AddMultipleFavoritesInteraction {
     private Window parent;

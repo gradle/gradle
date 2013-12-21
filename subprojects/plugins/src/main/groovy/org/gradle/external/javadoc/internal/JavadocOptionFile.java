@@ -23,9 +23,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-/**
- * @author Tom Eyckmans
- */
 public class JavadocOptionFile {
     private final Map<String, JavadocOptionFileOption> options;
 

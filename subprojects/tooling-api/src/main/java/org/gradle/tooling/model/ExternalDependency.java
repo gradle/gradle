@@ -15,6 +15,9 @@
  */
 package org.gradle.tooling.model;
 
+import org.gradle.api.Incubating;
+import org.gradle.api.Nullable;
+
 import java.io.File;
 
 /**
@@ -24,21 +27,35 @@ public interface ExternalDependency extends Dependency {
     /**
      * Returns the file for this dependency.
      *
-     * @return The file. Never null.
+     * @return The file for this dependency.
      */
     File getFile();
 
     /**
-     * Returns the source directory/archive for this dependency.
+     * Returns the source directory or archive for this dependency, or {@code null} if no source is available.
      *
-     * @return The source file. Returns null when the source is not available for this dependency.
+     * @return The source directory or archive for this dependency, or {@code null} if no source is available.
      */
+    @Nullable
     File getSource();
 
     /**
-     * Returns the Javadoc directory/archive for this dependency.
+     * Returns the Javadoc directory or archive for this dependency, or {@code null} if no Javadoc is available.
      *
-     * @return The Javadoc file. Returns null when the Javadoc is not available for this dependency.
+     * @return the Javadoc directory or archive for this dependency, or {@code null} if no Javadoc is available.
      */
+    @Nullable
     File getJavadoc();
+
+    /**
+     * Returns the Gradle module information for this dependency, or {@code null} if the dependency does not
+     * originate from a remote repository.
+     *
+     * @return The Gradle module information for this dependency, or {@code null} if the dependency does not
+     * originate from a remote repository.
+     * @since 1.1
+     */
+    @Nullable
+    @Incubating
+    GradleModuleVersion getGradleModuleVersion();
 }

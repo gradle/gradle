@@ -19,9 +19,6 @@ package org.gradle.logging.internal;
 import org.gradle.internal.Factory;
 import org.gradle.logging.LoggingManagerInternal;
 
-/**
- * by Szczepan Faber, created at: 1/23/12
- */
 public interface EmbeddedLoggingServices {
 
     Factory<LoggingManagerInternal> getLoggingManagerFactory();

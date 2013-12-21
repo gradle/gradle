@@ -28,9 +28,6 @@ import static org.gradle.util.WrapUtil.toSet;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 
-/**
- * @author Hans Dockter
- */
 @RunWith(JMock.class)
 public class DefaultPublishArtifactTest extends AbstractPublishArtifactTest {
     protected PublishArtifact createPublishArtifact(String classifier) {

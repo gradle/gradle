@@ -20,11 +20,8 @@ import org.gradle.internal.nativeplatform.ProcessEnvironment;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
 import org.gradle.launcher.daemon.protocol.Command;
-import org.gradle.launcher.daemon.server.DaemonStateCoordinator;
 import org.gradle.logging.LoggingManagerInternal;
-import org.gradle.messaging.concurrent.ExecutorFactory;
-import org.gradle.messaging.remote.internal.Connection;
-import org.gradle.messaging.remote.internal.DisconnectAwareConnectionDecorator;
+import org.gradle.logging.internal.LoggingOutputInternal;
 
 import java.io.File;
 import java.util.Arrays;
@@ -35,28 +32,28 @@ import java.util.List;
  * The default implementation of how to execute commands that the daemon receives.
  */
 public class DefaultDaemonCommandExecuter implements DaemonCommandExecuter {
-
-    private final ExecutorFactory executorFactory;
-    private final LoggingManagerInternal loggingManager;
+    private final LoggingOutputInternal loggingOutput;
     private final GradleLauncherFactory launcherFactory;
+    private DaemonCommandAction hygieneAction;
     private final ProcessEnvironment processEnvironment;
     private final File daemonLog;
 
-    public DefaultDaemonCommandExecuter(GradleLauncherFactory launcherFactory, ExecutorFactory executorFactory,
-                                        ProcessEnvironment processEnvironment, LoggingManagerInternal loggingManager, File daemonLog) {
-        this.executorFactory = executorFactory;
+    public DefaultDaemonCommandExecuter(GradleLauncherFactory launcherFactory, ProcessEnvironment processEnvironment,
+                                        LoggingManagerInternal loggingOutput, File daemonLog, DaemonCommandAction hygieneAction) {
         this.processEnvironment = processEnvironment;
         this.daemonLog = daemonLog;
-        this.loggingManager = loggingManager;
+        this.loggingOutput = loggingOutput;
         this.launcherFactory = launcherFactory;
+        this.hygieneAction = hygieneAction;
     }
 
-    public void executeCommand(Connection<Object> connection, Command command, DaemonContext daemonContext, DaemonStateCoordinator daemonStateCoordinator) {
+    public void executeCommand(DaemonConnection connection, Command command, DaemonContext daemonContext, DaemonStateControl daemonStateControl, Runnable commandAbandoned) {
         new DaemonCommandExecution(
-            new DisconnectAwareConnectionDecorator<Object>(connection, executorFactory.create("DefaultDaemonCommandExecuter > DisconnectAwareConnectionDecorator")),
+            connection,
             command,
             daemonContext,
-            daemonStateCoordinator,
+            daemonStateControl,
+            commandAbandoned,
             createActions(daemonContext)
         ).proceed();
     }
@@ -64,14 +61,13 @@ public class DefaultDaemonCommandExecuter implements DaemonCommandExecuter {
     protected List<DaemonCommandAction> createActions(DaemonContext daemonContext) {
         DaemonDiagnostics daemonDiagnostics = new DaemonDiagnostics(daemonLog, daemonContext.getPid());
         return new LinkedList<DaemonCommandAction>(Arrays.asList(
-            new StopConnectionAfterExecution(),
-            new HandleClientDisconnectBeforeSendingCommand(),
             new CatchAndForwardDaemonFailure(),
+            hygieneAction,
             new HandleStop(),
             new StartBuildOrRespondWithBusy(daemonDiagnostics),
             new EstablishBuildEnvironment(processEnvironment),
-            new LogToClient(loggingManager, daemonDiagnostics), // from this point down, logging is sent back to the client
-            new ForwardClientInput(executorFactory),
+            new LogToClient(loggingOutput, daemonDiagnostics), // from this point down, logging is sent back to the client
+            new ForwardClientInput(),
             new ReturnResult(),
             new StartStopIfBuildAndStop(),
             new ResetDeprecationLogger(),

@@ -15,23 +15,21 @@
  */
 package org.gradle.groovy.compile
 
+import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.junit.Rule
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
-import org.gradle.integtests.fixtures.GradleDistribution
 import org.junit.Test
-import org.gradle.integtests.fixtures.ExecutionFailure
 
-class IncrementalGroovyCompileIntegrationTest {
-    @Rule public final GradleDistribution distribution = new GradleDistribution()
-    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
-    @Rule public final TestResources resources = new TestResources()
+class IncrementalGroovyCompileIntegrationTest extends AbstractIntegrationTest {
+
+    @Rule public final TestResources resources = new TestResources(testDirectoryProvider)
 
     @Test
     public void recompilesSourceWhenPropertiesChange() {
         executer.withTasks('compileGroovy').run().assertTasksSkipped(':compileJava')
 
-        distribution.testFile('build.gradle').text += '''
+        file('build.gradle').text += '''
             compileGroovy.options.debug = false
 '''
 
@@ -45,7 +43,7 @@ class IncrementalGroovyCompileIntegrationTest {
         executer.withTasks("classes").run();
 
         // Update interface, compile should fail
-        distribution.testFile('src/main/groovy/IPerson.groovy').assertIsFile().copyFrom(distribution.testFile('NewIPerson.groovy'))
+        file('src/main/groovy/IPerson.groovy').assertIsFile().copyFrom(file('NewIPerson.groovy'))
 
         ExecutionFailure failure = executer.withTasks("classes").runWithFailure();
         failure.assertHasDescription("Execution failed for task ':compileGroovy'.");

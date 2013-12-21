@@ -1,0 +1,7 @@
+dependencies {
+    compile libraries.groovy
+    compile project(":languageBase")
+    compile project(":core")
+}
+
+useClassycle()

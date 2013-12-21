@@ -27,9 +27,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * @author Hans Dockter
- */
 public class DefaultArtifactPomContainer implements ArtifactPomContainer {
     private Map<String, ArtifactPom> artifactPoms = new HashMap<String, ArtifactPom>();
     private final MavenPomMetaInfoProvider pomMetaInfoProvider;

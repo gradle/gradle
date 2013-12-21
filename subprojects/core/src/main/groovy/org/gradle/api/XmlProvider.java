@@ -20,8 +20,6 @@ import org.w3c.dom.Element;
 
 /**
  * Provides various ways to access the content of an XML document.
- *
- * @author Hans Dockter
  */
 public interface XmlProvider {
     /**

@@ -15,15 +15,17 @@
  */
 package org.gradle.internal.service;
 
-public class UnknownServiceException extends IllegalArgumentException {
-    private final Class<?> type;
+import java.lang.reflect.Type;
 
-    public UnknownServiceException(Class<?> type, String message) {
+public class UnknownServiceException extends IllegalArgumentException {
+    private final Type type;
+
+    public UnknownServiceException(Type type, String message) {
         super(message);
         this.type = type;
     }
 
-    public Class<?> getType() {
+    public Type getType() {
         return type;
     }
 }

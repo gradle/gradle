@@ -19,10 +19,8 @@ import org.gradle.api.initialization.Settings;
 import org.gradle.api.invocation.Gradle;
 
 /**
- * <p>A {@code BuildListener} is notified of the major lifecycle events as a {@link GradleLauncher} instance executes a
- * build.</p>
+ * <p>A {@code BuildListener} is notified of the major lifecycle events as a build is executed.</p>
  *
- * @author Hans Dockter
  * @see org.gradle.api.invocation.Gradle#addListener(Object)
  */
 public interface BuildListener {

@@ -22,13 +22,14 @@ import org.apache.http.HttpResponse
 import org.apache.http.message.BasicHeader
 import org.gradle.api.internal.externalresource.ExternalResource
 import spock.lang.Specification
+import org.apache.http.HttpEntity
 
 class HttpResponseResourceTest extends Specification {
-    
+
     def sourceUrl = "http://gradle.org"
     def method = "GET"
     def response = Mock(HttpResponse)
-    
+
     def "extracts etag"() {
         given:
         addHeader(HttpHeaders.ETAG, "abc")
@@ -42,6 +43,19 @@ class HttpResponseResourceTest extends Specification {
         resource().metaData.etag == null
     }
 
+    def "is not openable more than once"() {
+        setup:
+        1 * response.entity >> Mock(HttpEntity)
+        when:
+        def resource = resource();
+        resource.openStream();
+        and:
+        resource.openStream()
+        then:
+        def ex = thrown(IOException);
+        ex.message == "Unable to open Stream as it was opened before."
+    }
+
     ExternalResource resource() {
         new HttpResponseResource(method, sourceUrl, response)
     }
@@ -51,6 +65,7 @@ class HttpResponseResourceTest extends Specification {
             1 * response.getFirstHeader(name) >> header(name, value)
         }
     }
+
     Header header(String name, String value) {
         new BasicHeader(name, value)
     }

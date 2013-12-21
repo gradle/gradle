@@ -23,29 +23,28 @@ import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.compile.*;
 import org.gradle.api.internal.tasks.compile.Compiler;
+import org.gradle.api.internal.tasks.compile.*;
+import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
+import org.gradle.api.internal.tasks.compile.daemon.InProcessCompilerDaemonFactory;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.Factory;
+import org.gradle.util.GFileUtils;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
 /**
  * Compiles Groovy source files, and optionally, Java source files.
- *
- * @author Hans Dockter
  */
 public class GroovyCompile extends AbstractCompile {
     private Compiler<GroovyJavaJointCompileSpec> compiler;
     private FileCollection groovyClasspath;
-    private final GroovyJavaJointCompileSpec spec = new DefaultGroovyJavaJointCompileSpec();
+    private final CompileOptions compileOptions = new CompileOptions();
+    private final GroovyCompileOptions groovyCompileOptions = new GroovyCompileOptions();
     private final TemporaryFileProvider tempFileProvider;
-    
+
     public GroovyCompile() {
         ProjectInternal projectInternal = (ProjectInternal) getProject();
         IsolatedAntBuilder antBuilder = getServices().get(IsolatedAntBuilder.class);
@@ -53,34 +52,38 @@ public class GroovyCompile extends AbstractCompile {
         Factory<AntBuilder> antBuilderFactory = getServices().getFactory(AntBuilder.class);
         JavaCompilerFactory inProcessCompilerFactory = new InProcessJavaCompilerFactory();
         tempFileProvider = projectInternal.getServices().get(TemporaryFileProvider.class);
-        DefaultJavaCompilerFactory javaCompilerFactory = new DefaultJavaCompilerFactory(projectInternal, tempFileProvider, antBuilderFactory, inProcessCompilerFactory);
-        javaCompilerFactory.setGroovyJointCompilation(false);
-        GroovyCompilerFactory groovyCompilerFactory = new GroovyCompilerFactory(projectInternal, antBuilder, classPathRegistry, javaCompilerFactory);
+        CompilerDaemonManager compilerDaemonManager = getServices().get(CompilerDaemonManager.class);
+        InProcessCompilerDaemonFactory inProcessCompilerDaemonFactory = getServices().get(InProcessCompilerDaemonFactory.class);
+        DefaultJavaCompilerFactory javaCompilerFactory = new DefaultJavaCompilerFactory(projectInternal, antBuilderFactory, inProcessCompilerFactory, compilerDaemonManager);
+        GroovyCompilerFactory groovyCompilerFactory = new GroovyCompilerFactory(projectInternal, antBuilder, classPathRegistry, javaCompilerFactory, compilerDaemonManager, inProcessCompilerDaemonFactory);
         Compiler<GroovyJavaJointCompileSpec> delegatingCompiler = new DelegatingGroovyCompiler(groovyCompilerFactory);
         compiler = new IncrementalGroovyCompiler(delegatingCompiler, getOutputs());
     }
 
     protected void compile() {
-        List<File> taskClasspath = new ArrayList<File>(getGroovyClasspath().getFiles());
-        throwExceptionIfTaskClasspathIsEmpty(taskClasspath);
+        checkGroovyClasspathIsNonEmpty();
+        DefaultGroovyJavaJointCompileSpec spec = new DefaultGroovyJavaJointCompileSpec();
         spec.setSource(getSource());
         spec.setDestinationDir(getDestinationDir());
         spec.setClasspath(getClasspath());
         spec.setSourceCompatibility(getSourceCompatibility());
         spec.setTargetCompatibility(getTargetCompatibility());
-        spec.setGroovyClasspath(taskClasspath);
+        spec.setGroovyClasspath(getGroovyClasspath());
+        spec.setCompileOptions(compileOptions);
+        spec.setGroovyCompileOptions(groovyCompileOptions);
         if (spec.getGroovyCompileOptions().getStubDir() == null) {
             File dir = tempFileProvider.newTemporaryFile("groovy-java-stubs");
-            dir.mkdirs();
+            GFileUtils.mkdirs(dir);
             spec.getGroovyCompileOptions().setStubDir(dir);
         }
         WorkResult result = compiler.execute(spec);
         setDidWork(result.getDidWork());
     }
 
-    private void throwExceptionIfTaskClasspathIsEmpty(Collection<File> taskClasspath) {
-        if (taskClasspath.size() == 0) {
-            throw new InvalidUserDataException("You must assign a Groovy library to the 'groovy' configuration.");
+    private void checkGroovyClasspathIsNonEmpty() {
+        if (getGroovyClasspath().isEmpty()) {
+            throw new InvalidUserDataException("'" + getName() + ".groovyClasspath' must not be empty. If a Groovy compile dependency is provided, "
+                    + "the 'groovy-base' plugin will attempt to configure 'groovyClasspath' automatically. Alternatively, you may configure 'groovyClasspath' explicitly.");
         }
     }
 
@@ -92,7 +95,7 @@ public class GroovyCompile extends AbstractCompile {
      */
     @Nested
     public GroovyCompileOptions getGroovyOptions() {
-        return spec.getGroovyCompileOptions();
+        return groovyCompileOptions;
     }
 
     /**
@@ -102,7 +105,7 @@ public class GroovyCompile extends AbstractCompile {
      */
     @Nested
     public CompileOptions getOptions() {
-        return spec.getCompileOptions();
+        return compileOptions;
     }
 
     /**

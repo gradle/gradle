@@ -23,8 +23,6 @@ import org.gradle.api.internal.NoConventionMapping;
 
 /**
  * {@code DefaultTask} is the standard {@link Task} implementation. You can extend this to implement your own task types.
- *
- * @author Hans Dockter
  */
 @NoConventionMapping
 public class DefaultTask extends AbstractTask {

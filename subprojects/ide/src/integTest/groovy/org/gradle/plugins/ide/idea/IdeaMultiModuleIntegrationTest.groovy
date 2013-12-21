@@ -20,12 +20,9 @@ import org.gradle.plugins.ide.AbstractIdeIntegrationTest
 import org.junit.Rule
 import org.junit.Test
 
-/**
- * @author Szczepan Faber, @date 03.03.11
- */
 class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
     @Rule
-    public final TestResources testResources = new TestResources()
+    public final TestResources testResources = new TestResources(testDirectoryProvider)
 
     @Test
     void buildsCorrectModuleDependencies() {

@@ -17,19 +17,19 @@
 package org.gradle.wrapper;
 
 import org.gradle.cli.CommandLineParser;
+import org.gradle.cli.ParsedCommandLine;
 import org.gradle.cli.SystemPropertiesCommandLineConverter;
 
 import java.io.File;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Map;
 import java.util.Properties;
 
-/**
- * @author Hans Dockter
- */
 public class GradleWrapperMain {
     public static final String DEFAULT_GRADLE_USER_HOME = System.getProperty("user.home") + "/.gradle";
+    public static final String GRADLE_USER_HOME_OPTION = "g";
+    public static final String GRADLE_USER_HOME_DETAILED_OPTION = "gradle-user-home";
     public static final String GRADLE_USER_HOME_PROPERTY_KEY = "gradle.user.home";
     public static final String GRADLE_USER_HOME_ENV_KEY = "GRADLE_USER_HOME";
 
@@ -38,28 +38,31 @@ public class GradleWrapperMain {
         File propertiesFile = wrapperProperties(wrapperJar);
         File rootDir = rootDir(wrapperJar);
 
+        CommandLineParser parser = new CommandLineParser();
+        parser.allowUnknownOptions();
+        parser.option(GRADLE_USER_HOME_OPTION, GRADLE_USER_HOME_DETAILED_OPTION).hasArgument();
+
+        SystemPropertiesCommandLineConverter converter = new SystemPropertiesCommandLineConverter();
+        converter.configure(parser);
+
+        ParsedCommandLine options = parser.parse(args);
+
         Properties systemProperties = System.getProperties();
-        systemProperties.putAll(parseSystemPropertiesFromArgs(args));
-        
-        addSystemProperties(rootDir);
+        systemProperties.putAll(converter.convert(options));
+
+        File gradleUserHome = gradleUserHome(options);
+
+        addSystemProperties(gradleUserHome, rootDir);
 
         WrapperExecutor wrapperExecutor = WrapperExecutor.forWrapperPropertiesFile(propertiesFile, System.out);
         wrapperExecutor.execute(
                 args,
-                new Install(new Download(), new PathAssembler(gradleUserHome())),
+                new Install(new Download("gradlew", wrapperVersion()), new PathAssembler(gradleUserHome)),
                 new BootstrapMainStarter());
     }
 
-    private static Map<String, String> parseSystemPropertiesFromArgs(String[] args) {
-        SystemPropertiesCommandLineConverter converter = new SystemPropertiesCommandLineConverter();
-        CommandLineParser commandLineParser = new CommandLineParser();
-        converter.configure(commandLineParser);
-        commandLineParser.allowUnknownOptions();
-        return converter.convert(commandLineParser.parse(args));
-    }
-    
-    private static void addSystemProperties(File rootDir) {
-        System.getProperties().putAll(SystemPropertiesHandler.getSystemProperties(new File(gradleUserHome(), "gradle.properties")));
+    private static void addSystemProperties(File gradleHome, File rootDir) {
+        System.getProperties().putAll(SystemPropertiesHandler.getSystemProperties(new File(gradleHome, "gradle.properties")));
         System.getProperties().putAll(SystemPropertiesHandler.getSystemProperties(new File(rootDir, "gradle.properties")));
     }
 
@@ -84,14 +87,39 @@ public class GradleWrapperMain {
         return new File(location.getPath());
     }
 
-    private static File gradleUserHome() {
-        String gradleUserHome = System.getProperty(GRADLE_USER_HOME_PROPERTY_KEY);
-        if (gradleUserHome != null) {
-            return new File(gradleUserHome);
-        } else if((gradleUserHome = System.getenv(GRADLE_USER_HOME_ENV_KEY)) != null) {
-            return new File(gradleUserHome);
-        } else {
-            return new File(DEFAULT_GRADLE_USER_HOME);
+    static String wrapperVersion() {
+        try {
+            InputStream resourceAsStream = GradleWrapperMain.class.getResourceAsStream("/build-receipt.properties");
+            if (resourceAsStream == null) {
+                throw new RuntimeException("No build receipt resource found.");
+            }
+            Properties buildReceipt = new Properties();
+            try {
+                buildReceipt.load(resourceAsStream);
+                String versionNumber = buildReceipt.getProperty("versionNumber");
+                if (versionNumber == null) {
+                    throw new RuntimeException("No version number specified in build receipt resource.");
+                }
+                return versionNumber;
+            } finally {
+                resourceAsStream.close();
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Could not determine wrapper version.", e);
         }
+    }
+
+    private static File gradleUserHome(ParsedCommandLine options) {
+        if (options.hasOption(GRADLE_USER_HOME_OPTION)) {
+            return new File(options.option(GRADLE_USER_HOME_OPTION).getValue());
+        }
+        String gradleUserHome;
+        if ((gradleUserHome = System.getProperty(GRADLE_USER_HOME_PROPERTY_KEY)) != null) {
+            return new File(gradleUserHome);
+        }
+        if ((gradleUserHome = System.getenv(GRADLE_USER_HOME_ENV_KEY)) != null) {
+            return new File(gradleUserHome);
+        }
+        return new File(DEFAULT_GRADLE_USER_HOME);
     }
 }

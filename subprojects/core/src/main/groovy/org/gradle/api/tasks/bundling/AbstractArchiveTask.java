@@ -24,8 +24,6 @@ import java.io.File;
 
 /**
  * {@code AbstractArchiveTask} is the base class for all archive tasks.
- *
- * @author Hans Dockter
  */
 public abstract class AbstractArchiveTask extends AbstractCopyTask {
     private File destinationDir;
@@ -161,7 +159,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
 
     /**
      * Specifies the destination directory *inside* the archive for the files.
-     * The destination is evaluated as for {@link org.gradle.api.Project#file(Object)}.
+     * The destination is evaluated as per {@link org.gradle.api.Project#file(Object)}.
      * Don't mix it up with {@link #getDestinationDir()} which specifies the output directory for the archive.
      *
      * @param destPath destination directory *inside* the archive for the files
@@ -174,7 +172,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
 
     /**
      * Creates and configures a child {@code CopySpec} with a destination directory *inside* the archive for the files.
-     * The destination is evaluated as for {@link org.gradle.api.Project#file(Object)}.
+     * The destination is evaluated as per {@link org.gradle.api.Project#file(Object)}.
      * Don't mix it up with {@link #getDestinationDir()} which specifies the output directory for the archive.
      *
      * @param destPath destination directory *inside* the archive for the files
@@ -185,4 +183,5 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
         super.into(destPath, configureClosure);
         return this;
     }
+
 }

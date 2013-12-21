@@ -17,8 +17,6 @@ package org.gradle.foundation.ipc.gradle;
 
 /**
  * Constants related to interprocess communication between gradle and the gradle UI.
- *
- * @author mhunsicker
  */
 public class ProtocolConstants {
     //these are the message types we'll receive from the client.

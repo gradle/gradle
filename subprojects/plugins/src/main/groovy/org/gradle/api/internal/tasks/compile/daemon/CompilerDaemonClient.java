@@ -17,24 +17,30 @@ package org.gradle.api.internal.tasks.compile.daemon;
 
 import org.gradle.api.internal.tasks.compile.CompileSpec;
 import org.gradle.api.internal.tasks.compile.Compiler;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.UncheckedException;
+import org.gradle.process.internal.WorkerProcess;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.SynchronousQueue;
 
-public class CompilerDaemonClient implements CompilerDaemon, CompilerDaemonClientProtocol {
+class CompilerDaemonClient implements CompilerDaemon, CompilerDaemonClientProtocol, Stoppable {
     private final DaemonForkOptions forkOptions;
+    private final WorkerProcess workerProcess;
     private final CompilerDaemonServerProtocol server;
     private final BlockingQueue<CompileResult> compileResults = new SynchronousQueue<CompileResult>();
 
-    public CompilerDaemonClient(DaemonForkOptions forkOptions, CompilerDaemonServerProtocol server) {
+    public CompilerDaemonClient(DaemonForkOptions forkOptions, WorkerProcess workerProcess, CompilerDaemonServerProtocol server) {
         this.forkOptions = forkOptions;
+        this.workerProcess = workerProcess;
         this.server = server;
     }
 
     public <T extends CompileSpec> CompileResult execute(Compiler<T> compiler, T spec) {
-        server.execute(compiler, spec);
+        // currently we just allow a single compilation thread at a time (per compiler daemon)
+        // one problem to solve when allowing multiple threads is how to deal with memory requirements specified by compile tasks
         try {
+            server.execute(compiler, spec);
             return compileResults.take();
         } catch (InterruptedException e) {
             throw UncheckedException.throwAsUncheckedException(e);
@@ -47,6 +53,7 @@ public class CompilerDaemonClient implements CompilerDaemon, CompilerDaemonClien
 
     public void stop() {
         server.stop();
+        workerProcess.waitForStop();
     }
 
     public void executed(CompileResult result) {

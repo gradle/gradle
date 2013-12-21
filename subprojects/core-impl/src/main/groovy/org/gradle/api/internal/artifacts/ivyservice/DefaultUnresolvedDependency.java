@@ -15,19 +15,27 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
+import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.UnresolvedDependency;
+import org.gradle.util.DeprecationLogger;
 
 public class DefaultUnresolvedDependency implements UnresolvedDependency {
-    private final String id;
     private final Throwable problem;
+    private final ModuleVersionSelector selector;
 
-    public DefaultUnresolvedDependency(String id, Throwable problem) {
-        this.id = id;
+    public DefaultUnresolvedDependency(ModuleVersionSelector selector, Throwable problem) {
+        this.selector = selector;
         this.problem = problem;
     }
 
     public String getId() {
-        return id;
+        DeprecationLogger.nagUserOfReplacedMethod("UnresolvedDependency.getId()", "UnresolvedDependency.getSelector()");
+        return ModuleRevisionId.newInstance(selector.getGroup(), selector.getName(), selector.getVersion()).toString();
+    }
+
+    public ModuleVersionSelector getSelector() {
+        return selector;
     }
 
     public Throwable getProblem() {
@@ -35,6 +43,6 @@ public class DefaultUnresolvedDependency implements UnresolvedDependency {
     }
 
     public String toString() {
-        return id;
+        return selector.getGroup() + ":" + selector.getName() + ":" + selector.getVersion();
     }
 }

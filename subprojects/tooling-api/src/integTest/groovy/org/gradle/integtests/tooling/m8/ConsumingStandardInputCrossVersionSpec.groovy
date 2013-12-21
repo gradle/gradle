@@ -16,15 +16,15 @@
 
 package org.gradle.integtests.tooling.m8
 
-import org.gradle.integtests.tooling.fixture.MinTargetGradleVersion
-import org.gradle.integtests.tooling.fixture.MinToolingApiVersion
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.GradleProject
 import spock.lang.Timeout
 
-@MinToolingApiVersion('1.0-milestone-8')
-@MinTargetGradleVersion('1.0-milestone-8')
+@ToolingApiVersion('>=1.0-milestone-8')
+@TargetGradleVersion('>=1.0-milestone-8')
 class ConsumingStandardInputCrossVersionSpec extends ToolingApiSpecification {
 
     def setup() {
@@ -35,7 +35,7 @@ class ConsumingStandardInputCrossVersionSpec extends ToolingApiSpecification {
     @Timeout(90)
     def "consumes input when building model"() {
         given:
-        dist.file('build.gradle')  << """
+        file('build.gradle')  << """
 description = System.in.text
 """
         when:
@@ -52,7 +52,7 @@ description = System.in.text
     @Timeout(90)
     def "works well if the standard input configured with null"() {
         given:
-        dist.file('build.gradle')  << """
+        file('build.gradle')  << """
 description = System.in.text
 """
         when:
@@ -69,7 +69,7 @@ description = System.in.text
     @Timeout(90)
     def "does not consume input when not explicitly provided"() {
         given:
-        dist.file('build.gradle')  << """
+        file('build.gradle')  << """
 description = "empty" + System.in.text
 """
         when:
@@ -85,7 +85,7 @@ description = "empty" + System.in.text
     @Timeout(90)
     def "consumes input when running tasks"() {
         given:
-        dist.file('build.gradle') << """
+        file('build.gradle') << """
 task createFile << {
     file('input.txt') << System.in.text
 }
@@ -99,6 +99,6 @@ task createFile << {
         }
 
         then:
-        dist.file('input.txt').text == "Hello world!"
+        file('input.txt').text == "Hello world!"
     }
 }

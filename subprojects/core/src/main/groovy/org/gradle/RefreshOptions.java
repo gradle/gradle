@@ -25,7 +25,9 @@ import java.util.List;
 
 /**
  * The options supplied by a user to refresh dependencies and other external resources.
+ * @deprecated Use {@link StartParameter#setRefreshDependencies(boolean)} instead.
  */
+@Deprecated
 public class RefreshOptions implements Serializable {
     public static final RefreshOptions NONE = new RefreshOptions(Collections.<Option>emptyList());
 

@@ -15,13 +15,13 @@
  */
 
 dependencies {
-    groovy libraries.groovy
+    compile libraries.groovy
 
     compile project(':core')
     compile project(':plugins')
     compile libraries.slf4j_api
 
-    compile module('biz.aQute:bndlib:1.50.0')
+    compile module('biz.aQute.bnd:bndlib:2.1.0')
 }
 
 useTestFixtures()

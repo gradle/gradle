@@ -17,12 +17,14 @@
 
 package org.gradle.integtests
 
-import org.gradle.integtests.fixtures.ExecutionResult
-import org.gradle.util.TestFile
-import org.junit.Test
-import static org.hamcrest.Matchers.*
-import static org.junit.Assert.*
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.test.fixtures.file.TestFile
+import org.junit.Test
+
+import static org.hamcrest.Matchers.containsString
+import static org.hamcrest.Matchers.not
+import static org.junit.Assert.assertThat
 
 class BuildScriptExecutionIntegrationTest extends AbstractIntegrationTest {
 
@@ -39,7 +41,6 @@ assert "${buildScript.absolutePath.replace("\\", "\\\\")}" == buildscript.source
 assert "${buildScript.toURI()}" == buildscript.sourceURI as String
 assert buildscript.classLoader == getClass().classLoader.parent
 assert buildscript.classLoader == Thread.currentThread().contextClassLoader
-assert gradle.scriptClassLoader == buildscript.classLoader.parent
 Gradle.class.classLoader.loadClass('${implClassName}')
 try {
     buildscript.classLoader.loadClass('${implClassName}')

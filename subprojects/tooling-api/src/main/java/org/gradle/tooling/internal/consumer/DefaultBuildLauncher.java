@@ -16,33 +16,34 @@
 package org.gradle.tooling.internal.consumer;
 
 import org.gradle.tooling.BuildLauncher;
-import org.gradle.tooling.ProgressListener;
 import org.gradle.tooling.ResultHandler;
-import org.gradle.tooling.internal.consumer.async.AsyncConnection;
+import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
+import org.gradle.tooling.internal.consumer.connection.ConsumerAction;
+import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
-import org.gradle.tooling.internal.protocol.BuildParametersVersion1;
 import org.gradle.tooling.model.Task;
 
-import java.io.File;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
-class DefaultBuildLauncher implements BuildLauncher {
-    private final List<String> tasks = new ArrayList<String>();
-    private final AsyncConnection connection;
-    private ConsumerOperationParameters operationParameters;
+class DefaultBuildLauncher extends AbstractLongRunningOperation<DefaultBuildLauncher> implements BuildLauncher {
+    private final AsyncConsumerActionExecutor connection;
 
-    public DefaultBuildLauncher(AsyncConnection connection, ConnectionParameters parameters) {
-        operationParameters = new ConsumerOperationParameters(parameters);
+    public DefaultBuildLauncher(AsyncConsumerActionExecutor connection, ConnectionParameters parameters) {
+        super(new ConsumerOperationParameters(parameters));
+        operationParameters.setTasks(Collections.<String>emptyList());
         this.connection = connection;
     }
 
+    @Override
+    protected DefaultBuildLauncher getThis() {
+        return this;
+    }
+
     public BuildLauncher forTasks(String... tasks) {
-        this.tasks.clear();
-        this.tasks.addAll(Arrays.asList(tasks));
+        operationParameters.setTasks(Arrays.asList(tasks));
         return this;
     }
 
@@ -52,45 +53,11 @@ class DefaultBuildLauncher implements BuildLauncher {
     }
 
     public BuildLauncher forTasks(Iterable<? extends Task> tasks) {
-        this.tasks.clear();
+        List<String> taskPaths = new ArrayList<String>();
         for (Task task : tasks) {
-            this.tasks.add(task.getPath());
+            taskPaths.add(task.getPath());
         }
-        return this;
-    }
-
-    public BuildLauncher withArguments(String... arguments) {
-        operationParameters.setArguments(arguments);
-        return this;
-    }
-
-    public DefaultBuildLauncher setStandardError(OutputStream outputStream) {
-        operationParameters.setStandardError(outputStream);
-        return this;
-    }
-
-    public DefaultBuildLauncher setStandardOutput(OutputStream outputStream) {
-        operationParameters.setStandardOutput(outputStream);
-        return this;
-    }
-
-    public DefaultBuildLauncher setStandardInput(InputStream inputStream) {
-        operationParameters.setStandardInput(inputStream);
-        return this;
-    }
-
-    public DefaultBuildLauncher setJavaHome(File javaHome) {
-        operationParameters.setJavaHome(javaHome);
-        return this;
-    }
-
-    public DefaultBuildLauncher setJvmArguments(String... jvmArguments) {
-        operationParameters.setJvmArguments(jvmArguments);
-        return this;
-    }
-
-    public DefaultBuildLauncher addProgressListener(ProgressListener listener) {
-        operationParameters.addProgressListener(listener);
+        operationParameters.setTasks(taskPaths);
         return this;
     }
 
@@ -101,17 +68,25 @@ class DefaultBuildLauncher implements BuildLauncher {
     }
 
     public void run(final ResultHandler<? super Void> handler) {
-        connection.executeBuild(new DefaultBuildParameters(), operationParameters, new ResultHandlerAdapter<Void>(handler){
-            @Override
-            protected String connectionFailureMessage(Throwable failure) {
-                return String.format("Could not execute build using %s.", connection.getDisplayName());
+        connection.run(new ConsumerAction<Void>() {
+            public ConsumerOperationParameters getParameters() {
+                return operationParameters;
             }
-        });
+
+            public Void run(ConsumerConnection connection) {
+                return connection.run(Void.class, operationParameters);
+            }
+        }, new ResultHandlerAdapter(handler));
     }
 
-    private class DefaultBuildParameters implements BuildParametersVersion1 {
-        public List<String> getTasks() {
-            return tasks;
+    private class ResultHandlerAdapter extends org.gradle.tooling.internal.consumer.ResultHandlerAdapter<Void> {
+        public ResultHandlerAdapter(ResultHandler<? super Void> handler) {
+            super(handler);
+        }
+
+        @Override
+        protected String connectionFailureMessage(Throwable failure) {
+            return String.format("Could not execute build using %s.", connection.getDisplayName());
         }
     }
 }

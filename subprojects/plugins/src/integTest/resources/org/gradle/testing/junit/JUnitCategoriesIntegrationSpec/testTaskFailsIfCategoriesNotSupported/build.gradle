@@ -1,0 +1,16 @@
+apply plugin: "java"
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testCompile "junit:junit:4.4"
+}
+
+test {
+    useJUnit {
+        includeCategories 'org.gradle.CategoryA'
+        excludeCategories 'org.gradle.CategoryC'
+    }
+}

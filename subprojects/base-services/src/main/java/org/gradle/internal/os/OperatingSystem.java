@@ -15,18 +15,21 @@
  */
 package org.gradle.internal.os;
 
+import org.gradle.api.Nullable;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 
 public abstract class OperatingSystem {
-    private static final Windows WINDOWS = new Windows();
-    private static final MacOs MAC_OS = new MacOs();
-    private static final Solaris SOLARIS = new Solaris();
-    private static final Linux LINUX = new Linux();
-    private static final Unix UNIX = new Unix();
+    public static final Windows WINDOWS = new Windows();
+    public static final MacOs MAC_OS = new MacOs();
+    public static final Solaris SOLARIS = new Solaris();
+    public static final Linux LINUX = new Linux();
+    public static final Unix UNIX = new Unix();
 
     public static OperatingSystem current() {
         String osName = System.getProperty("os.name").toLowerCase();
@@ -73,6 +76,10 @@ public abstract class OperatingSystem {
         return false;
     }
 
+    public boolean isSolaris() {
+        return false;
+    }
+
     public abstract String getNativePrefix();
 
     public abstract String getScriptName(String scriptPath);
@@ -81,9 +88,14 @@ public abstract class OperatingSystem {
 
     public abstract String getSharedLibraryName(String libraryName);
 
+    public abstract String getStaticLibraryName(String libraryName);
+
+    public abstract String getFamilyName();
+
     /**
      * Locates the given executable in the system path. Returns null if not found.
      */
+    @Nullable
     public File findInPath(String name) {
         String exeName = getExecutableName(name);
         if (exeName.contains(File.separator)) {
@@ -103,8 +115,21 @@ public abstract class OperatingSystem {
         return null;
     }
 
+    public List<File> findAllInPath(String name) {
+        List<File> all = new LinkedList<File>();
+
+        for (File dir : getPath()) {
+            File candidate = new File(dir, name);
+            if (candidate.isFile()) {
+                all.add(candidate);
+            }
+        }
+
+        return all;
+    }
+    
     List<File> getPath() {
-        String path = System.getenv("PATH");
+        String path = System.getenv(getPathVar());
         if (path == null) {
             return Collections.emptyList();
         }
@@ -115,6 +140,10 @@ public abstract class OperatingSystem {
         return entries;
     }
 
+    public String getPathVar() {
+        return "PATH";
+    }
+
     static class Windows extends OperatingSystem {
         @Override
         public boolean isWindows() {
@@ -122,11 +151,13 @@ public abstract class OperatingSystem {
         }
 
         @Override
+        public String getFamilyName() {
+            return "windows";
+        }
+
+        @Override
         public String getScriptName(String scriptPath) {
-            if (scriptPath.toLowerCase().endsWith(".bat")) {
-                return scriptPath;
-            }
-            return scriptPath + ".bat";
+            return withSuffix(scriptPath, ".bat");
         }
 
         @Override
@@ -137,6 +168,11 @@ public abstract class OperatingSystem {
         @Override
         public String getSharedLibraryName(String libraryPath) {
             return withSuffix(libraryPath, ".dll");
+        }
+
+        @Override
+        public String getStaticLibraryName(String libraryName) {
+            return withSuffix(libraryName, ".lib");
         }
 
         @Override
@@ -152,7 +188,23 @@ public abstract class OperatingSystem {
             if (executablePath.toLowerCase().endsWith(extension)) {
                 return executablePath;
             }
-            return executablePath + extension;
+            return removeExtension(executablePath) + extension;
+        }
+
+        private String removeExtension(String executablePath) {
+            int fileNameStart = Math.max(executablePath.lastIndexOf('/'), executablePath.lastIndexOf('\\'));
+            int extensionPos = executablePath.lastIndexOf('.');
+
+            if (extensionPos > fileNameStart) {
+                return executablePath.substring(0, extensionPos);
+            }
+            return executablePath;
+        }
+
+
+        @Override
+        public String getPathVar() {
+            return "Path";
         }
     }
 
@@ -163,13 +215,21 @@ public abstract class OperatingSystem {
         }
 
         @Override
+        public String getFamilyName() {
+            return "unknown";
+        }
+
+        @Override
         public String getExecutableName(String executablePath) {
             return executablePath;
         }
 
         @Override
         public String getSharedLibraryName(String libraryName) {
-            String suffix = getSharedLibSuffix();
+            return getLibraryName(libraryName, getSharedLibSuffix());
+        }
+
+        private String getLibraryName(String libraryName, String suffix) {
             if (libraryName.endsWith(suffix)) {
                 return libraryName;
             }
@@ -183,6 +243,11 @@ public abstract class OperatingSystem {
 
         protected String getSharedLibSuffix() {
             return ".so";
+        }
+
+        @Override
+        public String getStaticLibraryName(String libraryName) {
+            return getLibraryName(libraryName, ".a");
         }
 
         @Override
@@ -229,6 +294,11 @@ public abstract class OperatingSystem {
         }
 
         @Override
+        public String getFamilyName() {
+            return "os x";
+        }
+
+        @Override
         protected String getSharedLibSuffix() {
             return ".dylib";
         }
@@ -244,9 +314,24 @@ public abstract class OperatingSystem {
         public boolean isLinux() {
             return true;
         }
+
+        @Override
+        public String getFamilyName() {
+            return "linux";
+        }
     }
 
     static class Solaris extends Unix {
+        @Override
+        public boolean isSolaris() {
+            return true;
+        }
+
+        @Override
+        public String getFamilyName() {
+            return "solaris";
+        }
+
         @Override
         protected String getOsPrefix() {
             return "sunos";

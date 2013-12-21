@@ -17,49 +17,63 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.apache.ivy.plugins.parser.ParserSettings;
-import org.apache.ivy.plugins.parser.xml.XmlModuleDescriptorParser;
-import org.apache.ivy.plugins.parser.xml.XmlModuleDescriptorWriter;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.IvyContextualiser;
+import org.gradle.api.Action;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.IvyModuleDescriptorWriter;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionRepository;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyXmlModuleDescriptorParser;
+import org.gradle.api.internal.filestore.PathKeyFileStore;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.resource.local.LocallyAvailableResource;
 
 import java.io.File;
-import java.net.URL;
 
 public class ModuleDescriptorStore {
 
-    private final ModuleDescriptorFileStore moduleDescriptorFileStore;
-    private final XmlModuleDescriptorParser parser = XmlModuleDescriptorParser.getInstance();
+    public static final String FILE_PATH_PATTERN = "%s/%s/%s/%s/ivy.xml";
+    private final IvyXmlModuleDescriptorParser descriptorParser;
+    private final PathKeyFileStore metaDataStore;
+    private final IvyModuleDescriptorWriter descriptorWriter;
 
-    public ModuleDescriptorStore(ModuleDescriptorFileStore moduleDescriptorFileStore) {
-        this.moduleDescriptorFileStore = moduleDescriptorFileStore;
+    public ModuleDescriptorStore(PathKeyFileStore metaDataStore, IvyModuleDescriptorWriter descriptorWriter, IvyXmlModuleDescriptorParser ivyXmlModuleDescriptorParser) {
+        this.metaDataStore = metaDataStore;
+        this.descriptorWriter = descriptorWriter;
+        this.descriptorParser = ivyXmlModuleDescriptorParser;
     }
 
-    public ModuleDescriptor getModuleDescriptor(ModuleVersionRepository repository, ModuleRevisionId moduleRevisionId) {
-        File moduleDescriptorFile = moduleDescriptorFileStore.getModuleDescriptorFile(repository, moduleRevisionId);
-        if (moduleDescriptorFile.exists()) {
-            return parseModuleDescriptorFile(moduleDescriptorFile);
+    public ModuleDescriptor getModuleDescriptor(ModuleVersionRepository repository, ModuleVersionIdentifier moduleVersionIdentifier) {
+        String filePath = getFilePath(repository, moduleVersionIdentifier);
+        final LocallyAvailableResource resource = metaDataStore.get(filePath);
+        if (resource != null) {
+            return parseModuleDescriptorFile(resource.getFile());
         }
         return null;
     }
 
-    private ModuleDescriptor parseModuleDescriptorFile(File moduleDescriptorFile)  {
-        ParserSettings settings = IvyContextualiser.getIvyContext().getSettings();
-        try {
-            URL result = moduleDescriptorFile.toURI().toURL();
-            return parser.parseDescriptor(settings, result, false);
-        } catch (Exception e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
+    public LocallyAvailableResource putModuleDescriptor(ModuleVersionRepository repository, final ModuleDescriptor moduleDescriptor) {
+        String filePath = getFilePath(repository, moduleDescriptor.getModuleRevisionId());
+        return metaDataStore.add(filePath, new Action<File>() {
+            public void execute(File moduleDescriptorFile) {
+                try {
+                    descriptorWriter.write(moduleDescriptor, moduleDescriptorFile);
+                } catch (Exception e) {
+                    throw UncheckedException.throwAsUncheckedException(e);
+                }
+            }
+        });
     }
 
-    public void putModuleDescriptor(ModuleVersionRepository repository, ModuleDescriptor moduleDescriptor) {
-        File moduleDescriptorFile = moduleDescriptorFileStore.getModuleDescriptorFile(repository, moduleDescriptor.getModuleRevisionId());
-        try {
-            XmlModuleDescriptorWriter.write(moduleDescriptor, moduleDescriptorFile);
-        } catch (Exception e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
+    private ModuleDescriptor parseModuleDescriptorFile(File moduleDescriptorFile) {
+        DescriptorParseContext parserSettings = new CachedModuleDescriptorParseContext();
+        return descriptorParser.parseMetaData(parserSettings, moduleDescriptorFile, false).getDescriptor();
+    }
+
+    private String getFilePath(ModuleVersionRepository repository, ModuleRevisionId moduleRevisionId) {
+        return String.format(FILE_PATH_PATTERN, moduleRevisionId.getOrganisation(), moduleRevisionId.getName(), moduleRevisionId.getRevision(), repository.getId());
+    }
+
+    private String getFilePath(ModuleVersionRepository repository, ModuleVersionIdentifier moduleVersionIdentifier) {
+        return String.format(FILE_PATH_PATTERN, moduleVersionIdentifier.getGroup(), moduleVersionIdentifier.getName(), moduleVersionIdentifier.getVersion(), repository.getId());
     }
 }

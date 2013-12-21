@@ -21,9 +21,6 @@ import org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent
 import org.gradle.plugins.ide.eclipse.model.WbProperty
 import org.gradle.plugins.ide.eclipse.model.WbResource
 
-/**
- * @author Hans Dockter
- */
 public class GenerateEclipseWtpComponentTest extends AbstractSpockTaskTest {
     private eclipseComponent = createTask(GenerateEclipseWtpComponent)
 

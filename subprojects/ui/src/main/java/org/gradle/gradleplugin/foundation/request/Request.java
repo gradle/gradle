@@ -26,8 +26,6 @@ import java.io.File;
 
 /**
  * This represents a reques to gradle that is executed in a separate process using the ProcessLauncherServer.
- *
- * @author mhunsicker
  */
 public interface Request extends ExecutionQueue.Request {
 

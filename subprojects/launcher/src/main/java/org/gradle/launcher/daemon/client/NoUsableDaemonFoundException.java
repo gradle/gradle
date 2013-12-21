@@ -18,9 +18,6 @@ package org.gradle.launcher.daemon.client;
 
 import org.gradle.api.GradleException;
 
-/**
-* by Szczepan Faber, created at: 2/24/12
-*/
 public class NoUsableDaemonFoundException extends GradleException {
     public NoUsableDaemonFoundException(String message) {
         super(message);

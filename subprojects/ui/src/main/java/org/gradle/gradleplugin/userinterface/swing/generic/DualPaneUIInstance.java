@@ -24,8 +24,6 @@ import java.awt.*;
 /**
  * A simple UI for gradle. This has two panels that can be inserted into a stand-alone application or an IDE. This is meant to hide most of the complexities of gradle. The two panes are a tabbed pane
  * for executing tasks and an output pane.
- *
- * @author mhunsicker
  */
 public class DualPaneUIInstance extends AbstractGradleUIInstance {
     private OutputPanelLord outputPanelLord;

@@ -67,8 +67,6 @@ import org.gradle.api.artifacts.PublishArtifact;
  *   schema schemaJar
  * }
  * </pre>
- *
- * @author Hans Dockter
  */
 public interface ArtifactHandler {
     /**

@@ -22,9 +22,6 @@ import org.gradle.plugins.ide.eclipse.model.ClasspathEntry
 import org.gradle.plugins.ide.eclipse.model.EclipseClasspath
 import org.gradle.plugins.ide.eclipse.model.SourceFolder
 
-/**
- * @author: Szczepan Faber, created at: 4/22/11
- */
 class SourceFoldersCreator {
     void populateForClasspath(List<ClasspathEntry> entries, EclipseClasspath classpath) {
         def provideRelativePath = { classpath.project.relativePath(it) }

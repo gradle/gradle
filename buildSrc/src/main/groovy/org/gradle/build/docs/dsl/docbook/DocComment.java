@@ -15,8 +15,10 @@
  */
 package org.gradle.build.docs.dsl.docbook;
 
-import org.w3c.dom.Node;
+import org.w3c.dom.Element;
+
+import java.util.List;
 
 public interface DocComment {
-    Iterable<? extends Node> getDocbook();
+    List<Element> getDocbook();
 }

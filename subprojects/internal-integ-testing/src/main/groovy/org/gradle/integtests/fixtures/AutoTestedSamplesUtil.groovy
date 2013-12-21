@@ -16,9 +16,8 @@
 
 package org.gradle.integtests.fixtures
 
-/**
- * @author: Szczepan Faber, created at: 3/28/11
- */
+import org.gradle.internal.SystemProperties
+
 class AutoTestedSamplesUtil {
 
     String includes = '**/*.groovy **/*.java'
@@ -35,7 +34,7 @@ class AutoTestedSamplesUtil {
     }
 
     String findDir(String dir) {
-        def workDir = System.getProperty("user.dir")
+        def workDir = SystemProperties.currentDir
         def candidates = [
             "$workDir/$dir",        //when ran from IDEA
             "$workDir/../../$dir"  //when ran from command line
@@ -54,6 +53,9 @@ I tried looking for a root folder here: $candidates
         file.text.eachMatch(/(?ms).*?<pre autoTested.*?>(.*?)<\/pre>(.*?)/) {
             def sample = it[1]
             sample = sample.replaceAll(/(?m)^\s*?\*/, '')
+            sample = sample.replace('&lt;', '<')
+            sample = sample.replace('&gt;', '>')
+            sample = sample.replace('&amp;', '&')
             try {
                 runner.call(file, sample)
             } catch (Exception e) {
@@ -63,7 +65,7 @@ Failed to execute sample:
 -File: $file
 -Sample:
 $sample
--Problem: see the full stactrace below.
+-Problem: see the full stacktrace below.
 *****
 """, e);
             }

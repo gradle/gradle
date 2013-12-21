@@ -18,8 +18,6 @@ package org.gradle.plugins.ide.eclipse.model
 
 /**
  * For now, we only need the Project. However this class will contain more domain objects soon.
- *
- * @author Szczepan Faber, @date: 17.03.11
  */
 class EclipseDomainModel {
     Project project

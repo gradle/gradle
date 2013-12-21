@@ -20,9 +20,6 @@ import org.gradle.plugins.ide.eclipse.model.AbstractLibrary
 import org.gradle.plugins.ide.eclipse.model.ClasspathEntry
 import org.gradle.plugins.ide.eclipse.model.ProjectDependency
 
-/**
- * @author: Szczepan Faber, created at: 7/4/11
- */
 class ExportedEntriesUpdater {
     void updateExported(List<ClasspathEntry> classpathEntries, List<String> noExportConfigNames) {
         classpathEntries.each {

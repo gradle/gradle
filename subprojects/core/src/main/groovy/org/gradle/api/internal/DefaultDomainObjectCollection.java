@@ -23,7 +23,6 @@ import org.gradle.api.internal.collections.CollectionFilter;
 import org.gradle.api.internal.collections.FilteredCollection;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
-import org.gradle.util.ConfigureUtil;
 
 import java.util.*;
 
@@ -152,11 +151,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     }
 
     private Action<? super T> toAction(final Closure action) {
-        return new Action<T>() {
-            public void execute(T t) {
-                ConfigureUtil.configure(action, t);
-            }
-        };
+        return new ClosureBackedAction<T>(action);
     }
 
     public boolean add(T toAdd) {

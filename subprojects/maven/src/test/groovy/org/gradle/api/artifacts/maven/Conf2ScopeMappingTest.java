@@ -25,9 +25,6 @@ import org.junit.runners.JUnit4;
 
 import static org.junit.Assert.*;
 
-/**
- * @author Hans Dockter
- */
 @RunWith(JUnit4.class)
 public class Conf2ScopeMappingTest {
     private final JUnit4Mockery context = new JUnit4GroovyMockery();

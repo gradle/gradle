@@ -20,16 +20,13 @@ import org.apache.maven.artifact.ant.InstallDeployTaskSupport;
 import org.codehaus.plexus.PlexusContainerException;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
-import org.gradle.internal.Factory;
 import org.gradle.api.publication.maven.internal.DefaultMavenDeployment;
+import org.gradle.internal.Factory;
 import org.jmock.Expectations;
 
 import java.io.IOException;
 import java.util.Set;
 
-/**
- * @author Hans Dockter
- */
 public class BaseMavenInstallerTest extends AbstractMavenResolverTest {
     private BaseMavenInstaller mavenInstaller;
 
@@ -38,7 +35,12 @@ public class BaseMavenInstallerTest extends AbstractMavenResolverTest {
     private CustomInstallTask installTaskMock;
 
     protected BaseMavenInstaller createMavenInstaller() {
-        return new BaseMavenInstaller(pomFilterContainerMock, artifactPomContainerMock, loggingManagerMock);
+        return new BaseMavenInstaller(pomFilterContainerMock, artifactPomContainerMock, loggingManagerMock) {
+            @Override
+            protected CustomInstallTask createTask() {
+                return installTaskMock;
+            }
+        };
     }
 
     protected PomFilterContainer createPomFilterContainerMock() {
@@ -57,7 +59,6 @@ public class BaseMavenInstallerTest extends AbstractMavenResolverTest {
         super.setUp();
         installTaskMock = context.mock(CustomInstallTask.class);
         mavenInstaller = createMavenInstaller();
-        mavenInstaller.setInstallTaskFactory(installTaskFactoryMock);
     }
 
     protected void checkTransaction(final Set<DefaultMavenDeployment> deployableUnits, AttachedArtifact attachedArtifact, PublishArtifact classifierArtifact) throws IOException, PlexusContainerException {

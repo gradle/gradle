@@ -15,35 +15,54 @@
  */
 package org.gradle.api.internal.externalresource;
 
-import org.apache.ivy.plugins.repository.Resource;
-import org.apache.ivy.util.CopyProgressListener;
-import org.apache.ivy.util.FileUtil;
+import org.apache.commons.io.IOUtils;
+import org.gradle.api.Action;
+import org.gradle.api.Transformer;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 
 public abstract class AbstractExternalResource implements ExternalResource {
-    public void writeTo(File destination, CopyProgressListener progress) throws IOException {
+    /**
+     * Opens an unbuffered input stream to read the contents of this resource.
+     */
+    protected abstract InputStream openStream() throws IOException;
+
+    public void writeTo(File destination) throws IOException {
         FileOutputStream output = new FileOutputStream(destination);
         try {
-            InputStream input = openStream();
-            try {
-                FileUtil.copy(input, output, progress);
-            } finally {
-                input.close();
-            }
+            writeTo(output);
         } finally {
             output.close();
         }
     }
 
-    public Resource clone(String cloneName) {
-        throw new UnsupportedOperationException();
+    public void writeTo(OutputStream output) throws IOException {
+        InputStream input = openStream();
+        try {
+            IOUtils.copy(input, output);
+        } finally {
+            input.close();
+        }
+    }
+
+    public void withContent(Action<? super InputStream> readAction) throws IOException {
+        InputStream input = openStream();
+        try {
+            readAction.execute(input);
+        } finally {
+            input.close();
+        }
+    }
+
+    public <T> T withContent(Transformer<? extends T, ? super InputStream> readAction) throws IOException {
+        InputStream input = openStream();
+        try {
+            return readAction.transform(input);
+        } finally {
+            input.close();
+        }
     }
 
     public void close() throws IOException {
     }
-
 }

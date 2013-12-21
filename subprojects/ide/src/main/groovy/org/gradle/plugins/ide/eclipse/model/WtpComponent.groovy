@@ -15,13 +15,11 @@
  */
 package org.gradle.plugins.ide.eclipse.model
 
-import org.gradle.api.internal.XmlTransformer
+import org.gradle.api.internal.xml.XmlTransformer
 import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject
 
 /**
  * Creates the .settings/org.eclipse.wst.common.component file for WTP projects.
- *
- * @author Hans Dockter
  */
 class WtpComponent extends XmlPersistableConfigurationObject {
     String deployName
@@ -70,9 +68,9 @@ class WtpComponent extends XmlPersistableConfigurationObject {
         "defaultWtpComponent.xml"
     }
 
-    void configure(String deployName, String contextPath, List wbModuleEntries) {
-        this.wbModuleEntries.addAll(wbModuleEntries)
-        this.wbModuleEntries.unique()
+    void configure(String deployName, String contextPath, List newEntries) {
+        def entriesToBeKept = this.wbModuleEntries.findAll { !(it instanceof WbDependentModule) }
+        this.wbModuleEntries = (entriesToBeKept + newEntries).unique()
         if (deployName) {
             this.deployName = deployName
         }

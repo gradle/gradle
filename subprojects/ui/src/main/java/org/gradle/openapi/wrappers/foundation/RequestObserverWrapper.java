@@ -23,8 +23,6 @@ import org.gradle.openapi.external.foundation.RequestObserverVersion1;
 
 /**
  * * Implementation of RequestObserverVersion1 meant to help shield external users from internal changes.
- *
- * @author mhunsicker
  */
 public class RequestObserverWrapper implements GradlePluginLord.RequestObserver {
 

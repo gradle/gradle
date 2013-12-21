@@ -25,7 +25,7 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.util.TemporaryFolder;
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -39,20 +39,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.gradle.util.GUtil.toList;
+import static com.google.common.collect.Lists.newArrayList;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
-/**
- * @author Hans Dockter
- */
 public class DefaultArtifactPomTest {
     private DefaultArtifactPom artifactPom;
     private MavenPom testPom;
 
     @Rule
-    public TemporaryFolder tmpDir = new TemporaryFolder();
+    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
 
     Mockery context = new JUnit4Mockery();
 
@@ -247,7 +244,7 @@ public class DefaultArtifactPomTest {
     public void writePom() {
         final MavenPom mavenPomMock = context.mock(MavenPom.class);
         DefaultArtifactPom artifactPom = new DefaultArtifactPom(mavenPomMock);
-        final File somePomFile = new File(tmpDir.getDir(), "someDir/somePath");
+        final File somePomFile = new File(tmpDir.getTestDirectory(), "someDir/somePath");
         context.checking(new Expectations() {{
             allowing(mavenPomMock).getArtifactId();
             will(returnValue("artifactId"));
@@ -264,7 +261,7 @@ public class DefaultArtifactPomTest {
     }
 
     private <T> T singleItem(Iterable<? extends T> collection) {
-        List<T> elements = toList(collection);
+        List<T> elements = newArrayList(collection);
         assertThat(elements.size(), equalTo(1));
         return elements.get(0);
     }

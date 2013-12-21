@@ -15,14 +15,12 @@
  */
 package org.gradle.plugins.ide.eclipse.model
 
-import org.gradle.api.internal.XmlTransformer
-import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject
+import org.gradle.api.internal.xml.XmlTransformer
 import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory
+import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject
 
 /**
  * Represents the customizable elements of an eclipse classpath file. (via XML hooks everything is customizable).
- *
- * @author Hans Dockter
  */
 class Classpath extends XmlPersistableConfigurationObject {
     private final FileReferenceFactory fileReferenceFactory

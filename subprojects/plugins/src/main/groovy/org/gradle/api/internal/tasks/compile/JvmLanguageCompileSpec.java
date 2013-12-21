@@ -32,4 +32,8 @@ public interface JvmLanguageCompileSpec extends CompileSpec {
     Iterable<File> getClasspath();
 
     void setClasspath(Iterable<File> classpath);
+
+    String getTargetCompatibility();
+
+    void setTargetCompatibility(String version);
 }

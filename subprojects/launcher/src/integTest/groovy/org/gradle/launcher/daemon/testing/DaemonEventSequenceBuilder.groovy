@@ -19,7 +19,7 @@ import org.gradle.launcher.daemon.registry.DaemonRegistry
 
 class DaemonEventSequenceBuilder {
 
-    int pollRegistryMs = 300
+    int pollRegistryMs = 50
     final int stateTransitionTimeoutMs
 
     DaemonsState currentState = null

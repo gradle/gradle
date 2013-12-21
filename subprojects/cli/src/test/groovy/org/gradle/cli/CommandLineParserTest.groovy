@@ -265,51 +265,49 @@ class CommandLineParserTest extends Specification {
         result.extraArguments == ['a', '--option', 'b']
     }
 
-    def canMapOptionToSubcommand() {
-        parser.option('a').mapsToSubcommand('subcmd')
+    def canCombineSubcommandShortOptionWithOtherShortOptions() {
+        parser.option('b')
+        parser.allowMixedSubcommandsAndOptions()
 
-        expect:
-        def result = parser.parse(['-a', '--option', 'b'])
-        result.extraArguments == ['subcmd', '--option', 'b']
-        result.hasOption('a')
+        when:
+        def result = parser.parse(['cmd', '-b', '-a'])
+
+        then:
+        result.extraArguments == ['cmd', '-a']
+        result.hasOption('b')
+
+        when:
+        result = parser.parse(['cmd', '-ba'])
+
+        then:
+        result.extraArguments == ['cmd', '-a']
+        result.hasOption('b')
     }
 
-    def canCombineSubcommandShortOptionWithOtherShortOptions() {
-        parser.option('a').mapsToSubcommand('subcmd')
-        parser.option('b')
+    def returnsLastMutuallyExclusiveOptionThatIsPresent() {
+        parser.option("a")
+        parser.option("b")
+        parser.option("c", "long-option")
+        parser.option("d")
+        parser.allowOneOf("a", "b", "c")
 
         when:
-        def result = parser.parse(['-abc', '--option', 'b'])
+        def result = parser.parse(['-a', '-b', '-c'])
 
         then:
-        result.extraArguments == ['subcmd', '-b', '-c', '--option', 'b']
-        result.hasOption('a')
+        !result.hasOption('a')
         !result.hasOption('b')
+        result.hasOption('c')
+        result.hasOption('long-option')
 
         when:
-        result = parser.parse(['-bac', '--option', 'b'])
+        result = parser.parse(['-a', '-b', '--long-option'])
 
         then:
-        result.extraArguments == ['subcmd', '-c', '--option', 'b']
-        result.hasOption('a')
-        result.hasOption('b')
-
-        when:
-        parser.allowMixedSubcommandsAndOptions()
-        result = parser.parse(['-abc', '--option', 'b'])
-
-        then:
-        result.extraArguments == ['subcmd', '-c', '--option', 'b']
-        result.hasOption('a')
-        result.hasOption('b')
-
-        when:
-        result = parser.parse(['-bac', '--option', 'b'])
-
-        then:
-        result.extraArguments == ['subcmd', '-c', '--option', 'b']
-        result.hasOption('a')
-        result.hasOption('b')
+        !result.hasOption('a')
+        !result.hasOption('b')
+        result.hasOption('c')
+        result.hasOption('long-option')
     }
 
     def singleDashIsNotConsideredAnOption() {
@@ -341,7 +339,7 @@ class CommandLineParserTest extends Specification {
         parser.option('another-long-option').hasDescription('this is a long option')
         parser.option('z', 'y', 'last-option', 'end-option').hasDescription('this is the last option')
         parser.option('B')
-        def outstr = new ByteArrayOutputStream()
+        def outstr = new StringWriter()
 
         expect:
         parser.printUsage(outstr)
@@ -354,20 +352,20 @@ class CommandLineParserTest extends Specification {
         ]
     }
     
-    def formatsUsageMessageForDeprecatedAndExperimentalOptions() {
+    def formatsUsageMessageForDeprecatedAndIncubatingOptions() {
         parser.option('a', 'long-option').hasDescription('this is option a').deprecated("don't use this")
         parser.option('b').deprecated('will be removed')
-        parser.option('c').hasDescription('option c').experimental()
-        parser.option('d').experimental()
-        def outstr = new ByteArrayOutputStream()
+        parser.option('c').hasDescription('option c').incubating()
+        parser.option('d').incubating()
+        def outstr = new StringWriter()
 
         expect:
         parser.printUsage(outstr)
         outstr.toString().readLines() == [
                 '-a, --long-option  this is option a [deprecated - don\'t use this]',
                 '-b                 [deprecated - will be removed]',
-                '-c                 option c [experimental]',
-                '-d                 [experimental]'
+                '-c                 option c [incubating]',
+                '-d                 [incubating]'
         ]
     }
 
@@ -590,15 +588,34 @@ class CommandLineParserTest extends Specification {
         parser.allowUnknownOptions()
 
         when:
-        def result = parser.parse(['-a', '-b'])
+        def result = parser.parse(['-a', '-b', '--long-option'])
 
         then:
         result.option("a") != null
         
         and:
-        result.extraArguments.contains("-b")
+        result.extraArguments == ['-b', '--long-option']
     }
-    
+
+    def "allow unknown options mode collects unknown short options combined with known short options"() {
+        given:
+        parser.option("a")
+        parser.option("Z")
+
+        and:
+        parser.allowUnknownOptions()
+
+        when:
+        def result = parser.parse(['-abCdZ'])
+
+        then:
+        result.option("a") != null
+        result.option("Z") != null
+
+        and:
+        result.extraArguments == ["-b", "-C", "-d"]
+    }
+
     @Issue("http://issues.gradle.org/browse/GRADLE-1871")
     def "unknown options containing known arguments in their value are allowed"() {
         given:
@@ -614,8 +631,7 @@ class CommandLineParserTest extends Specification {
         result.option("a") != null
         
         and:
-        "-ba" in result.extraArguments
-        "-ba=c" in result.extraArguments
+        result.extraArguments == ['-ba', '-ba=c']
     }
 
 }

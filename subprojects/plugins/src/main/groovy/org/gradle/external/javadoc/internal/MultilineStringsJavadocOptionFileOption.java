@@ -16,13 +16,10 @@
 
 package org.gradle.external.javadoc.internal;
 
-import java.util.List;
-import java.util.ArrayList;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
-/**
- * @author Melanie Pfautz
- */
 public class MultilineStringsJavadocOptionFileOption extends AbstractListJavadocOptionFileOption<List<String>> {
 
     // We should never attempt to join strings so if you see this, there's a problem

@@ -15,71 +15,69 @@
  */
 package org.gradle.logging.internal;
 
+import net.jcip.annotations.ThreadSafe;
+import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputListener;
-import org.gradle.internal.nativeplatform.TerminalDetector;
+import org.gradle.internal.nativeplatform.console.ConsoleMetaData;
 import org.gradle.listener.ListenerBroadcast;
 
-import java.io.FileDescriptor;
-import java.io.PrintStream;
+import java.io.OutputStream;
 
 /**
  * A {@link org.gradle.logging.internal.OutputEventListener} implementation which renders output events to various
  * destinations. This implementation is thread-safe.
  */
+@ThreadSafe
 public class OutputEventRenderer implements OutputEventListener, LoggingConfigurer, LoggingOutputInternal {
     private final ListenerBroadcast<OutputEventListener> formatters = new ListenerBroadcast<OutputEventListener>(OutputEventListener.class);
     private final ListenerBroadcast<StandardOutputListener> stdoutListeners = new ListenerBroadcast<StandardOutputListener>(StandardOutputListener.class);
     private final ListenerBroadcast<StandardOutputListener> stderrListeners = new ListenerBroadcast<StandardOutputListener>(StandardOutputListener.class);
-    private final TerminalDetector terminalDetector;
     private final Object lock = new Object();
     private final DefaultColorMap colourMap = new DefaultColorMap();
     private LogLevel logLevel = LogLevel.LIFECYCLE;
+    private final Action<? super OutputEventRenderer> consoleConfigureAction;
+    private OutputStream originalStdOut;
+    private OutputStream originalStdErr;
+    private StreamBackedStandardOutputListener stdOutListener;
+    private StreamBackedStandardOutputListener stdErrListener;
 
-    public OutputEventRenderer(TerminalDetector terminalDetector) {
+    public OutputEventRenderer(Action<? super OutputEventRenderer> consoleConfigureAction) {
         OutputEventListener stdOutChain = onNonError(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stdoutListeners.getSource())), false));
         formatters.add(stdOutChain);
         OutputEventListener stdErrChain = onError(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stderrListeners.getSource())), false));
         formatters.add(stdErrChain);
-        this.terminalDetector = terminalDetector;
+        this.consoleConfigureAction = consoleConfigureAction;
     }
 
-    public void colorStdOutAndStdErr(boolean colorOutput) {
+    public ColorMap getColourMap() {
+        return colourMap;
+    }
+
+    public OutputStream getOriginalStdOut() {
+        return originalStdOut;
+    }
+
+    public OutputStream getOriginalStdErr() {
+        return originalStdErr;
+    }
+
+    public void attachConsole(boolean colorOutput) {
         synchronized (lock) {
             colourMap.setUseColor(colorOutput);
+            consoleConfigureAction.execute(this);
         }
     }
 
-    public OutputEventRenderer addStandardOutputAndError() {
-        boolean stdOutIsTerminal = terminalDetector.isTerminal(FileDescriptor.out);
-        boolean stdErrIsTerminal = terminalDetector.isTerminal(FileDescriptor.err);
-        if (stdOutIsTerminal) {
-            PrintStream outStr = org.fusesource.jansi.AnsiConsole.out();
-            Console console = new AnsiConsole(outStr, outStr, colourMap);
-            addConsole(console, true, stdErrIsTerminal);
-        } else if (stdErrIsTerminal) {
-            // Only stderr is connected to a terminal
-            PrintStream errStr = org.fusesource.jansi.AnsiConsole.err();
-            Console console = new AnsiConsole(errStr, errStr, colourMap);
-            addConsole(console, false, true);
+    public void addStandardOutputAndError() {
+        synchronized (lock) {
+            originalStdOut = System.out;
+            originalStdErr = System.err;
+            stdOutListener = new StreamBackedStandardOutputListener((Appendable) System.out);
+            stdErrListener = new StreamBackedStandardOutputListener((Appendable) System.err);
+            addStandardOutputListener(stdOutListener);
+            addStandardErrorListener(stdErrListener);
         }
-        if (!stdOutIsTerminal) {
-            addStandardOutput(System.out);
-        }
-        if (!stdErrIsTerminal) {
-            addStandardError(System.err);
-        }
-        return this;
-    }
-
-    public OutputEventRenderer addStandardOutput(final Appendable out) {
-        addStandardOutputListener(new StreamBackedStandardOutputListener(out));
-        return this;
-    }
-
-    public OutputEventRenderer addStandardError(final Appendable err) {
-        addStandardErrorListener(new StreamBackedStandardOutputListener(err));
-        return this;
     }
 
     public void addOutputEventListener(OutputEventListener listener) {
@@ -90,16 +88,25 @@ public class OutputEventRenderer implements OutputEventListener, LoggingConfigur
         formatters.remove(listener);
     }
 
-    public OutputEventRenderer addConsole(final Console console, boolean stdout, boolean stderr) {
-        final OutputEventListener consoleChain = new ConsoleBackedProgressRenderer(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(console.getMainArea()), true), console);
+    public OutputEventRenderer addConsole(Console console, boolean stdout, boolean stderr, ConsoleMetaData consoleMetaData) {
+        final OutputEventListener consoleChain = new ConsoleBackedProgressRenderer(
+                new ProgressLogEventGenerator(
+                        new StyledTextOutputBackedRenderer(console.getMainArea()), true),
+                console,
+                new DefaultStatusBarFormatter(consoleMetaData));
         synchronized (lock) {
             if (stdout && stderr) {
                 formatters.add(consoleChain);
+                stdoutListeners.remove(this.stdOutListener);
+                stderrListeners.remove(this.stdErrListener);
             } else if (stdout) {
                 formatters.add(onNonError(consoleChain));
+                stdoutListeners.remove(this.stdOutListener);
             } else {
                 formatters.add(onError(consoleChain));
+                stderrListeners.remove(this.stdErrListener);
             }
+            consoleChain.onOutput(new LogLevelChangeEvent(logLevel));
         }
         return this;
     }

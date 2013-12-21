@@ -25,8 +25,6 @@ import java.util.Set;
  * <p> A {@code ProjectDescriptor} is created when you add a project to the build from the settings script, using {@link
  * Settings#include(String[])} or {@link Settings#includeFlat(String[])}. You can access the descriptors using one of
  * the lookup methods on the {@link Settings} object.</p>
- *
- * @author Hans Dockter
  */
 public interface ProjectDescriptor {
     /**

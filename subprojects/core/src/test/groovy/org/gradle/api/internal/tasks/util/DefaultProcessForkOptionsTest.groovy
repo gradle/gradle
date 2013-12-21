@@ -15,25 +15,25 @@
  */
 package org.gradle.api.internal.tasks.util
 
-import static org.gradle.util.Matchers.*
-
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.util.JUnit4GroovyMockery
+import org.gradle.internal.Factory
 import org.gradle.process.ProcessForkOptions
+import org.gradle.process.internal.DefaultProcessForkOptions
+import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.integration.junit4.JMock
+import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+
+import static org.gradle.util.Matchers.isEmptyMap
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.assertThat
-import org.gradle.process.internal.DefaultProcessForkOptions
-import org.junit.Before
-import org.gradle.api.internal.file.FileSource
 
 @RunWith(JMock.class)
 public class DefaultProcessForkOptionsTest {
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
     private final FileResolver resolver = context.mock(FileResolver.class)
-    private final FileSource workingDir = context.mock(FileSource.class)
+    private final Factory workingDir = context.mock(Factory.class)
     private DefaultProcessForkOptions options
     private final File baseDir = new File("base-dir")
 
@@ -62,7 +62,7 @@ public class DefaultProcessForkOptionsTest {
         options.workingDir = 12
 
         context.checking {
-            one(workingDir).get()
+            one(workingDir).create()
             will(returnValue(baseDir))
         }
 

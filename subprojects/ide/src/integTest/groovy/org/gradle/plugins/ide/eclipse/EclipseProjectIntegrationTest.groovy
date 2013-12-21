@@ -19,13 +19,10 @@ import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 import org.junit.Test
 
-/**
- * @author Szczepan Faber
- */
 class EclipseProjectIntegrationTest extends AbstractEclipseIntegrationTest {
 
     @Rule
-    public final TestResources testResources = new TestResources()
+    public final TestResources testResources = new TestResources(testDirectoryProvider)
 
     String content
 

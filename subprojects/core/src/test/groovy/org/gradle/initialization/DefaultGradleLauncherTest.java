@@ -24,14 +24,15 @@ import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.api.internal.file.TestFiles;
 import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildExecuter;
 import org.gradle.execution.TaskGraphExecuter;
 import org.gradle.logging.LoggingManagerInternal;
-import org.gradle.util.HelperUtil;
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.JUnit4GroovyMockery;
-import org.gradle.util.TemporaryFolder;
+import org.gradle.util.TestUtil;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -47,9 +48,6 @@ import java.io.File;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 
-/**
- * @author Hans Dockter
- */
 @RunWith(org.jmock.integration.junit4.JMock.class)
 public class DefaultGradleLauncherTest {
     private BuildLoader buildLoaderMock;
@@ -75,9 +73,10 @@ public class DefaultGradleLauncherTest {
     private ExceptionAnalyser exceptionAnalyserMock = context.mock(ExceptionAnalyser.class);
     private LoggingManagerInternal loggingManagerMock = context.mock(LoggingManagerInternal.class);
     private ModelConfigurationListener modelListenerMock = context.mock(ModelConfigurationListener.class);
+    private TasksCompletionListener tasksCompletionListener = context.mock(TasksCompletionListener.class);
 
     @Rule
-    public TemporaryFolder tmpDir = new TemporaryFolder();
+    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
 
     @Before
     public void setUp() {
@@ -95,9 +94,10 @@ public class DefaultGradleLauncherTest {
         File expectedRootDir = tmpDir.file("rootDir");
         File expectedCurrentDir = new File(expectedRootDir, "currentDir");
 
-        expectedRootProjectDescriptor = new DefaultProjectDescriptor(null, "someName", new File("somedir"), new DefaultProjectDescriptorRegistry());
-        expectedRootProject = HelperUtil.createRootProject(expectedRootDir);
-        expectedCurrentProject = HelperUtil.createRootProject(expectedCurrentDir);
+        expectedRootProjectDescriptor = new DefaultProjectDescriptor(null, "someName", new File("somedir"), new DefaultProjectDescriptorRegistry(),
+                TestFiles.resolver(expectedRootDir));
+        expectedRootProject = TestUtil.createRootProject(expectedRootDir);
+        expectedCurrentProject = TestUtil.createRootProject(expectedCurrentDir);
 
         expectedStartParams = new StartParameter();
         expectedStartParams.setCurrentDir(expectedCurrentDir);
@@ -106,7 +106,7 @@ public class DefaultGradleLauncherTest {
 
         gradleLauncher = new DefaultGradleLauncher(gradleMock, initscriptHandlerMock, settingsHandlerMock,
                 buildLoaderMock, buildConfigurerMock, buildBroadcaster, exceptionAnalyserMock, loggingManagerMock,
-                modelListenerMock, buildExecuter);
+                modelListenerMock, tasksCompletionListener, buildExecuter);
 
         context.checking(new Expectations() {
             {
@@ -244,7 +244,7 @@ public class DefaultGradleLauncherTest {
             one(buildBroadcaster).projectsEvaluated(gradleMock);
             one(modelListenerMock).onConfigure(gradleMock);
             one(exceptionAnalyserMock).transform(failure);
-            will(returnValue(transformedException));
+             will(returnValue(transformedException));
             one(buildBroadcaster).buildFinished(with(result(sameInstance(transformedException))));
         }});
 
@@ -299,6 +299,7 @@ public class DefaultGradleLauncherTest {
         context.checking(new Expectations() {
             {
                 one(buildExecuter).execute();
+                one(tasksCompletionListener).onTasksFinished(gradleMock);
             }
         });
     }

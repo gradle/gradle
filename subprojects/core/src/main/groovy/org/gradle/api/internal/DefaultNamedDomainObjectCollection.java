@@ -25,6 +25,7 @@ import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.ConfigureUtil;
 
 import java.util.*;
@@ -127,6 +128,14 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
             map.put(namer.determineName(o), o);
         }
         return map;
+    }
+
+    public SortedSet<String> getNames() {
+        SortedSet<String> set = new TreeSet<String>();
+        for (T o : getStore()) {
+            set.add(namer.determineName(o));
+        }
+        return set;
     }
 
     public <S extends T> NamedDomainObjectCollection<S> withType(Class<S> type) {

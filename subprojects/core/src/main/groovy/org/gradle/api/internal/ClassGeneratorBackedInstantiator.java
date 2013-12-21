@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal;
 
+import org.gradle.internal.reflect.Instantiator;
+
 public class ClassGeneratorBackedInstantiator implements Instantiator {
     private final ClassGenerator classGenerator;
     private final Instantiator instantiator;
@@ -24,7 +26,7 @@ public class ClassGeneratorBackedInstantiator implements Instantiator {
         this.instantiator = instantiator;
     }
 
-    public <T> T newInstance(Class<T> type, Object... parameters) {
+    public <T> T newInstance(Class<? extends T> type, Object... parameters) {
         // During the construction of the object, it will look for this global instantiator.
         // This is to support ExtensionContainer.add(String, Class, Object...) which facilitates
         // making extensions ExtensionAware themselves.

@@ -15,12 +15,8 @@
  */
 package org.gradle.launcher.daemon.protocol;
 
-import org.gradle.initialization.BuildClientMetaData;
-
 public class CloseInput extends IoCommand {
-
-    public CloseInput(BuildClientMetaData clientMetaData) {
-        super(clientMetaData);
+    public CloseInput(Object identifier) {
+        super(identifier);
     }
-
 }

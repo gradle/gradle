@@ -16,11 +16,13 @@
 package org.gradle.api.internal.tasks.testing.results
 
 import org.gradle.api.tasks.testing.TestResult.ResultType
-import org.junit.Test
-import spock.lang.Issue
-import spock.lang.Specification
 import org.gradle.api.internal.tasks.testing.*
 import org.gradle.api.tasks.testing.*
+
+import org.junit.Test
+
+import spock.lang.Issue
+import spock.lang.Specification
 
 class TestListenerAdapterTest extends Specification {
 
@@ -37,7 +39,7 @@ class TestListenerAdapterTest extends Specification {
 
         then:
         1 * listener.beforeTest({ it instanceof DecoratingTestDescriptor && it.descriptor == test })
-        0 * _._
+        0 * _
     }
 
     public void notifiesAfter() {
@@ -54,7 +56,7 @@ class TestListenerAdapterTest extends Specification {
                 { it instanceof DecoratingTestDescriptor && it.descriptor == test },
                 { it.successfulTestCount == 1 && it.testCount == 1 && it.failedTestCount == 0 }
         )
-        0 * _._
+        0 * _
     }
 
     public void createsAResultForATestWithFailure() {
@@ -71,7 +73,7 @@ class TestListenerAdapterTest extends Specification {
         1 * listener.beforeTest(_)
         1 * listener.afterTest({ it.descriptor == test },
                 { it.successfulTestCount == 0 && it.testCount == 1 && it.failedTestCount == 1 && it.exception.is(failure) })
-        0 * _._
+        0 * _
     }
 
     public void createsAResultForATestWithMultipleFailures() {
@@ -104,7 +106,7 @@ class TestListenerAdapterTest extends Specification {
         1 * listener.afterSuite({it.descriptor == suite}, {
             it.testCount == 0 && it.resultType == ResultType.SUCCESS
         })
-        0 * _._
+        0 * _
     }
 
     public void createsAnAggregateResultForTestSuiteWithPassedTest() {
@@ -123,7 +125,7 @@ class TestListenerAdapterTest extends Specification {
         1 * listener.beforeTest({it.descriptor == test})
         1 * listener.afterTest({it.descriptor == test}, _ as TestResult)
         1 * listener.afterSuite({it.descriptor == suite}, { it.testCount == 1 })
-        0 * _._
+        0 * _
     }
 
     public void createsAnAggregateResultForTestSuiteWithFailedTest() {
@@ -148,7 +150,7 @@ class TestListenerAdapterTest extends Specification {
         1 * listener.afterTest({it.descriptor == ok}, _ as TestResult)
         1 * listener.afterTest({it.descriptor == broken}, _ as TestResult)
         1 * listener.afterSuite({it.descriptor == suite}, { it.testCount == 2 && it.failedTestCount == 1 && it.successfulTestCount == 1 })
-        0 * _._
+        0 * _
     }
 
     public void createsAnAggregateResultForTestSuiteWithSkippedTest() {
@@ -168,7 +170,7 @@ class TestListenerAdapterTest extends Specification {
         1 * listener.afterTest({it.descriptor == test}, _ as TestResult)
         1 * listener.afterSuite({it.descriptor == suite},
                 { it.resultType == ResultType.SUCCESS && it.testCount == 1 && it.failedTestCount == 0 && it.successfulTestCount == 0 })
-        0 * _._
+        0 * _
     }
 
     @Test
@@ -209,7 +211,7 @@ class TestListenerAdapterTest extends Specification {
         1 * listener.afterSuite({it.descriptor == suite1}, { it.successfulTestCount == 1 && it.testCount == 1 && it.resultType == ResultType.SUCCESS})
         1 * listener.afterSuite({it.descriptor == suite2}, { it.successfulTestCount == 0 && it.testCount == 1 && it.resultType == ResultType.FAILURE})
 
-        0 * _._
+        0 * _
     }
 
     public void createsAnAggregateResultForTestSuiteWithFailure() {
@@ -231,7 +233,7 @@ class TestListenerAdapterTest extends Specification {
         1 * listener.afterTest({it.descriptor == test}, _ as TestResult)
         1 * listener.afterSuite({it.descriptor == suite},
                 { it.resultType == ResultType.FAILURE && it.exception.is(failure) && it.exceptions == [failure] })
-        0 * _._
+        0 * _
     }
 
     def "notifies output listener"() {

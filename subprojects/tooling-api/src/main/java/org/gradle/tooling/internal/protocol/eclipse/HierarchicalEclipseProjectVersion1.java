@@ -19,6 +19,8 @@ import org.gradle.tooling.internal.protocol.HierarchicalProjectVersion1;
 
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ *
+ * @since 1.0-milestone-3
  */
 public interface HierarchicalEclipseProjectVersion1 extends HierarchicalProjectVersion1 {
     HierarchicalEclipseProjectVersion1 getParent();

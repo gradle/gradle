@@ -20,7 +20,7 @@ import org.gradle.tooling.model.Model;
 import org.gradle.tooling.model.UnsupportedMethodException;
 
 /**
- * Informs about the build environment, like Gradle version or the java home in use.
+ * Informs about the build environment, like Gradle version or the Java home in use.
  * <p>
  * Example:
  * <pre autoTested=''>
@@ -42,15 +42,18 @@ import org.gradle.tooling.model.UnsupportedMethodException;
 public interface BuildEnvironment extends Model {
 
     /**
-     * Informs about the gradle environment, for example the gradle version.
+     * Returns information about the Gradle environment, for example the Gradle version.
+     *
+     * @since 1.0-milestone-8
      */
     GradleEnvironment getGradle();
 
     /**
-     * Informs about the java environment, for example the java home or the jvm args used.
+     * Returns information about the Java environment, for example the Java home or the JVM args used.
      *
+     * @since 1.0-milestone-8
      * @throws org.gradle.tooling.model.UnsupportedMethodException
-     * when the gradle version the tooling api is connected to does not support the java environment information.
+     * when the Gradle version the tooling API is connected to does not support the Java environment information.
      */
     JavaEnvironment getJava() throws UnsupportedMethodException;
 }

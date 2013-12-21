@@ -18,13 +18,10 @@ package org.gradle.api.internal.file.pattern;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.specs.Spec;
 
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.ListIterator;
 
-/**
- * @author Steve Appling
- */
 public class DefaultPatternMatcher implements Spec<RelativePath> {
     private List<PatternStep> steps;
     private boolean partialMatchDirs;

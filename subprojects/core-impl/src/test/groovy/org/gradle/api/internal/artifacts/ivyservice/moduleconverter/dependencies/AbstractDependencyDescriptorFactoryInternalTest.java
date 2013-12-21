@@ -17,15 +17,20 @@
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies;
 
 import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
+import org.apache.ivy.core.module.descriptor.DefaultExcludeRule;
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.descriptor.DependencyArtifactDescriptor;
+import org.apache.ivy.core.module.id.ArtifactId;
+import org.apache.ivy.core.module.id.ModuleId;
+import org.apache.ivy.plugins.matcher.ExactPatternMatcher;
+import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ExcludeRuleConverter;
-import org.gradle.util.HelperUtil;
+import org.gradle.util.TestUtil;
 import org.gradle.util.WrapUtil;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
@@ -42,9 +47,6 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
-/**
- * @author Hans Dockter
- */
 @RunWith(JMock.class)
 public abstract class AbstractDependencyDescriptorFactoryInternalTest {
     private JUnit4Mockery context = new JUnit4Mockery();
@@ -53,9 +55,9 @@ public abstract class AbstractDependencyDescriptorFactoryInternalTest {
     protected static final String TEST_DEP_CONF = "depconf1";
 
     protected static final ExcludeRule TEST_EXCLUDE_RULE = new org.gradle.api.internal.artifacts.DefaultExcludeRule("testOrg", null);
-    protected static final org.apache.ivy.core.module.descriptor.ExcludeRule TEST_IVY_EXCLUDE_RULE = HelperUtil.getTestExcludeRule("testOrg");
+    protected static final org.apache.ivy.core.module.descriptor.ExcludeRule TEST_IVY_EXCLUDE_RULE = getTestExcludeRule();
     protected ExcludeRuleConverter excludeRuleConverterStub = context.mock(ExcludeRuleConverter.class);
-    protected final DefaultModuleDescriptor moduleDescriptor = HelperUtil.createModuleDescriptor(WrapUtil.toSet(TEST_CONF));
+    protected final DefaultModuleDescriptor moduleDescriptor = TestUtil.createModuleDescriptor(WrapUtil.toSet(TEST_CONF));
     private DefaultDependencyArtifact artifact = new DefaultDependencyArtifact("name", "type", null, null, null);
     private DefaultDependencyArtifact artifactWithClassifiers = new DefaultDependencyArtifact("name2", "type2", "ext2", "classifier2", "http://www.url2.com");
 
@@ -120,6 +122,14 @@ public abstract class AbstractDependencyDescriptorFactoryInternalTest {
     private void compareArtifacts(DependencyArtifact artifact, DependencyArtifactDescriptor artifactDescriptor) {
         assertEquals(artifact.getName(), artifactDescriptor.getName());
         assertEquals(artifact.getType(), artifactDescriptor.getType());
+    }
+
+    private static DefaultExcludeRule getTestExcludeRule() {
+        return new DefaultExcludeRule(new ArtifactId(
+                new ModuleId("org", "testOrg"), PatternMatcher.ANY_EXPRESSION,
+                PatternMatcher.ANY_EXPRESSION,
+                PatternMatcher.ANY_EXPRESSION),
+                ExactPatternMatcher.INSTANCE, null);
     }
 }
 

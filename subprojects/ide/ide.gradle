@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 dependencies {
-    groovy libraries.groovy
+    compile libraries.groovy
 
     compile project(':scala')
     compile project(':core')
@@ -22,6 +22,7 @@ dependencies {
     compile project(':ear')
     compile project(':toolingApi')
     compile libraries.slf4j_api
+    compile libraries.inject
 
     testCompile libraries.xmlunit
     testCompile project(':coreImpl')

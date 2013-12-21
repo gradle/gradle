@@ -26,9 +26,6 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * by Szczepan Faber, created at: 2/13/12
- */
 public class DaemonContextParser {
     public static DaemonContext parseFrom(String source) {
         Pattern pattern = Pattern.compile("^.*DefaultDaemonContext\\[uid=([^\\n]+),javaHome=([^\\n]+),daemonRegistryDir=([^\\n]+),pid=([^\\n]+),idleTimeout=(.+?),daemonOpts=([^\\n]+)].*",
@@ -39,7 +36,8 @@ public class DaemonContextParser {
             String uid = matcher.group(1);
             String javaHome = matcher.group(2);
             String daemonRegistryDir = matcher.group(3);
-            Long pid = Long.parseLong(matcher.group(4));
+            String pidStr = matcher.group(4);
+            Long pid = pidStr.equals("null") ? null : Long.parseLong(pidStr);
             Integer idleTimeout = Integer.decode(matcher.group(5));
             List<String> jvmOpts = Lists.newArrayList(Splitter.on(',').split(matcher.group(6)));
             return new DefaultDaemonContext(uid, new File(javaHome), new File(daemonRegistryDir), pid, idleTimeout, jvmOpts);

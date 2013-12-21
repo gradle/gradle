@@ -18,19 +18,14 @@ package org.gradle.plugins.ide.eclipse
 
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.plugins.ide.eclipse.model.AbstractClasspathEntry
-import org.gradle.plugins.ide.eclipse.model.EclipseWtp
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import spock.lang.Issue
 
-/**
- * @author Szczepan Faber, created at: 4/19/11
- */
 class EclipseWtpModelIntegrationTest extends AbstractEclipseIntegrationTest {
 
     @Rule
-    public final TestResources testResources = new TestResources()
+    public final TestResources testResources = new TestResources(testDirectoryProvider)
 
     String component
 
@@ -40,10 +35,9 @@ class EclipseWtpModelIntegrationTest extends AbstractEclipseIntegrationTest {
         file('someExtraSourceDir').mkdirs()
         file('src/foo/bar').mkdirs()
 
-        def repoDir = file("repo")
-        maven(repoDir).module("gradle", "foo").publish()
-        maven(repoDir).module("gradle", "bar").publish()
-        maven(repoDir).module("gradle", "baz").publish()
+        mavenRepo.module("gradle", "foo").publish()
+        mavenRepo.module("gradle", "bar").publish()
+        mavenRepo.module("gradle", "baz").publish()
 
         //when
         runEclipseTask """
@@ -57,7 +51,7 @@ configurations {
 }
 
 repositories {
-  maven { url "${repoDir.toURI()}" }
+  maven { url "${mavenRepo.uri}" }
 }
 
 dependencies {
@@ -111,6 +105,44 @@ eclipse {
 
         assert facet.contains('gradleFacet')
         assert facet.contains('1.333')
+    }
+
+    @Issue("GRADLE-2653")
+    @Test
+    void "wtp component respects configuration modifications"() {
+        //given
+        mavenRepo.module("gradle", "foo").publish()
+        mavenRepo.module("gradle", "bar").publish()
+        mavenRepo.module("gradle", "baz").publish()
+        mavenRepo.module("gradle", "baz", "2.0").publish()
+
+        //when
+        runEclipseTask """
+apply plugin: 'java'
+apply plugin: 'war'
+apply plugin: 'eclipse-wtp'
+
+repositories {
+  maven { url "${mavenRepo.uri}" }
+}
+
+dependencies {
+  compile 'gradle:foo:1.0', 'gradle:bar:1.0', 'gradle:baz:1.0'
+}
+
+configurations.compile {
+  exclude module: 'bar' //an exclusion
+  resolutionStrategy.force 'gradle:baz:2.0' //forced module
+}
+        """
+
+        //when
+        component = getFile([:], '.settings/org.eclipse.wst.common.component').text
+
+        //then
+        component.contains('foo-1.0.jar')
+        component.contains('baz-2.0.jar') //forced version
+        !component.contains('bar') //excluded
     }
 
     @Test
@@ -218,9 +250,9 @@ eclipse {
         assert facet.contains('<be>cool</be>')
     }
 
-    @Ignore("GRADLE-1487")
+    @Issue("GRADLE-2661")
     @Test
-    void allowsFileDependencies() {
+    void "file dependencies respect plus minus configurations"() {
         //when
         runEclipseTask """
 apply plugin: 'java'
@@ -453,8 +485,6 @@ project(':contrib') {
               apply plugin: 'eclipse-wtp'
             }
 
-            eclipse.wtp.useLibrariesContainer()
-
             repositories { mavenCentral() }
 
             dependencies {
@@ -467,15 +497,15 @@ project(':contrib') {
         executer.withTasks("eclipse").run()
 
         //then the container is configured
-        assert getClasspathFile().text.contains(EclipseWtp.WEB_LIBS_CONTAINER)
+        assert getClasspathFile().text.contains(EclipseWtpPlugin.WEB_LIBS_CONTAINER)
     }
 
     @Test
     @Issue("GRADLE-1974")
-    void "the web container is not present by default"() {
+    void "the web container is not present without war+wtp combo"() {
         //given
         file("build.gradle") << """
-            apply plugin: 'war'
+            apply plugin: 'java' //anything but not war
             apply plugin: 'eclipse-wtp'
         """
 
@@ -483,7 +513,7 @@ project(':contrib') {
         executer.withTasks("eclipse").run()
 
         //then container is added only once:
-        assert !getClasspathFile().text.contains(EclipseWtp.WEB_LIBS_CONTAINER)
+        assert !getClasspathFile().text.contains(EclipseWtpPlugin.WEB_LIBS_CONTAINER)
     }
 
     @Test

@@ -16,14 +16,17 @@
 package org.gradle.api.internal.tasks.execution
 
 import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.tasks.TaskExecuter
+import org.gradle.api.internal.tasks.TaskExecutionContext
+import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.integration.junit4.JMock
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.gradle.api.internal.tasks.TaskExecuter
-import org.gradle.api.internal.tasks.TaskStateInternal
-import static org.junit.Assert.*
-import static org.hamcrest.Matchers.*
+
+import static org.hamcrest.Matchers.sameInstance
+import static org.junit.Assert.assertThat
+import static org.junit.Assert.fail
 
 @RunWith(JMock.class)
 class ExecuteAtMostOnceTaskExecuterTest {
@@ -31,6 +34,7 @@ class ExecuteAtMostOnceTaskExecuterTest {
     private final TaskExecuter target = context.mock(TaskExecuter.class)
     private final TaskInternal task = context.mock(TaskInternal.class)
     private final TaskStateInternal state = context.mock(TaskStateInternal.class)
+    private final TaskExecutionContext executionContext = context.mock(TaskExecutionContext)
     private final ExecuteAtMostOnceTaskExecuter executer = new ExecuteAtMostOnceTaskExecuter(target)
 
     @Test
@@ -40,7 +44,7 @@ class ExecuteAtMostOnceTaskExecuterTest {
             will(returnValue(true))
         }
 
-        executer.execute(task, state)
+        executer.execute(task, state, executionContext)
     }
 
     @Test
@@ -48,11 +52,11 @@ class ExecuteAtMostOnceTaskExecuterTest {
         context.checking {
             allowing(state).getExecuted()
             will(returnValue(false))
-            one(target).execute(task, state)
+            one(target).execute(task, state, executionContext)
             one(state).executed()
         }
 
-        executer.execute(task, state)
+        executer.execute(task, state, executionContext)
     }
 
     @Test
@@ -62,13 +66,13 @@ class ExecuteAtMostOnceTaskExecuterTest {
         context.checking {
             allowing(state).getExecuted()
             will(returnValue(false))
-            one(target).execute(task, state)
+            one(target).execute(task, state, executionContext)
             will(throwException(failure))
             one(state).executed()
         }
 
         try {
-            executer.execute(task, state)
+            executer.execute(task, state, executionContext)
             fail()
         } catch (RuntimeException e) {
             assertThat(e, sameInstance(failure))

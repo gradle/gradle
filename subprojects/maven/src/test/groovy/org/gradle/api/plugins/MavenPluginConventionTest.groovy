@@ -15,19 +15,15 @@
  */
 package org.gradle.api.plugins
 
-import org.gradle.api.internal.project.DefaultProject
-import org.gradle.util.HelperUtil
 import org.gradle.api.artifacts.maven.MavenPom
-
-import spock.lang.Specification
-import org.gradle.api.publication.maven.internal.MavenFactory
+import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.publication.maven.internal.DefaultMavenFactory
+import org.gradle.api.publication.maven.internal.MavenFactory
+import org.gradle.util.TestUtil
+import spock.lang.Specification
 
-/**
- * @author Hans Dockter
- */
 class MavenPluginConventionTest extends Specification {
-    DefaultProject project = HelperUtil.createRootProject()
+    DefaultProject project = TestUtil.createRootProject()
     MavenFactory mavenFactory = new DefaultMavenFactory()
     MavenPluginConvention mavenPluginConvention = new MavenPluginConvention(project, mavenFactory)
 

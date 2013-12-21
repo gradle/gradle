@@ -20,26 +20,27 @@ import java.io.File;
 import java.util.List;
 
 /**
- * Informs about the java environment, for example the java home or the jvm args used.
- * <p>
- * See example in {@link BuildEnvironment}
+ * Informs about the Java environment, for example the Java home or the JVM args used.
+ * See example in {@link BuildEnvironment}.
  *
  * @since 1.0-milestone-8
  */
 public interface JavaEnvironment {
 
     /**
-     * The java home used for gradle operations (e.g. running tasks or acquiring model information, etc).
+     * The Java home used for Gradle operations (for example running tasks or acquiring model information).
+     *
+     * @since 1.0-milestone-8
      */
     File getJavaHome();
 
     /**
-     * The jvm arguments used to start the java process that handles gradle operations
-     * (e.g. running tasks or acquiring model information, etc).
-     * <p>
-     * The returned jvm arguments that were used to start the java process.
-     * They do not include system properties passed as -Dfoo=bar.
-     * They may include the implicitly immutable system properties like "file.encoding".
+     * The JVM arguments used to start the Java process that handles Gradle operations
+     * (for example running tasks or acquiring model information).
+     * The returned arguments do not include system properties passed as -Dfoo=bar.
+     * They may include implicitly immutable system properties like "file.encoding".
+     *
+     * @since 1.0-milestone-8
      */
     List<String> getJvmArguments();
 }

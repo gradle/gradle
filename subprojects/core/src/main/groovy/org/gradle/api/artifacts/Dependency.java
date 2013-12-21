@@ -17,14 +17,11 @@ package org.gradle.api.artifacts;
 
 /**
  * A {@code Dependency} represents a dependency on the artifacts from a particular source. A source can be an Ivy
- * module, a Maven pom, another Gradle project, a collection of Files, etc... A source can have zero or more artifacts.
- *
- * @author Hans Dockter
+ * module, a Maven POM, another Gradle project, a collection of Files, etc... A source can have zero or more artifacts.
  */
 public interface Dependency {
     String DEFAULT_CONFIGURATION = "default";
     String ARCHIVES_CONFIGURATION = "archives";
-    // todo Remove to ivy layer in 1.0
     String CLASSIFIER = "m:classifier";
 
     /**

@@ -20,8 +20,6 @@ import org.gradle.openapi.external.foundation.favorites.FavoriteTaskVersion1;
 
 /**
  * Implementation of FavoriteTaskVersion1 meant to help shield external users from internal changes.
- *
- * @author mhunsicker
  */
 public class FavoriteTaskWrapper implements FavoriteTaskVersion1 {
 

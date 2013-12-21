@@ -17,16 +17,10 @@
 package org.gradle.tooling.internal.protocol;
 
 /**
- * I needed this interface so that it is possible to develop new features incrementally.
- * In general I'd like to avoid growing VersionX interfaces
- * because we have an excellent test suite that tells the story of what has changed and when
- * <p>
- * A marker interface to document the problem consistently.
- * Might live only until we gradually remove old VersionX types.
- * <p>
- * If you make changes to inheritor of this interfaces make sure you run all compatibility tests.
+ * <p>A marker interface for some type that participates in the cross-version tooling protocol.
  *
- * @author: Szczepan Faber, created at: 8/5/11
+ * <p>Subtypes generally define only a few methods statically. Instances are usually inspected dynamically to
+ * determine which methods are actually supported.
  */
 public interface InternalProtocolInterface {
 }

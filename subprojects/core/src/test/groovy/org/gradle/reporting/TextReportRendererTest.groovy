@@ -15,12 +15,12 @@
  */
 package org.gradle.reporting
 
-import spock.lang.Specification
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
-import org.gradle.util.TemporaryFolder
+import spock.lang.Specification
 
 class TextReportRendererTest extends Specification {
-    @Rule final TemporaryFolder tmpDir = new TemporaryFolder()
+    @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     final TextReportRenderer<String> renderer = new TextReportRenderer<String>() {
         @Override protected void writeTo(String model, Writer out) {
             out.write("[")

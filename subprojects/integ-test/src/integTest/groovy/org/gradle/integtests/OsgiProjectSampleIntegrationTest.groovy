@@ -16,30 +16,28 @@
 
 package org.gradle.integtests
 
-import java.util.jar.Manifest
-import org.gradle.integtests.fixtures.GradleDistribution
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
-import org.gradle.util.TestFile
+import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.Sample
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.GradleVersion
 import org.junit.Rule
 import org.junit.Test
-import static org.junit.Assert.*
-import org.gradle.integtests.fixtures.Sample
-import org.gradle.util.GradleVersion
 
-/**
- * @author Hans Dockter
- */
-class OsgiProjectSampleIntegrationTest {
-    @Rule public final GradleDistribution dist = new GradleDistribution()
-    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
-    @Rule public final Sample sample = new Sample('osgi')
+import java.util.jar.Manifest
+
+import static org.junit.Assert.assertEquals
+import static org.junit.Assert.assertTrue
+
+class OsgiProjectSampleIntegrationTest extends AbstractIntegrationTest {
+
+    @Rule public final Sample sample = new Sample(testDirectoryProvider, 'osgi')
 
     @Test
     public void osgiProjectSamples() {
         long start = System.currentTimeMillis()
         TestFile osgiProjectDir = sample.dir
         executer.inDirectory(osgiProjectDir).withTasks('clean', 'assemble').run()
-        TestFile tmpDir = dist.testDir
+        TestFile tmpDir = testDirectory
         osgiProjectDir.file('build/libs/osgi-1.0.jar').unzipTo(tmpDir)
         tmpDir.file('META-INF/MANIFEST.MF').withInputStream { InputStream instr ->
             Manifest manifest = new Manifest(instr)
@@ -50,9 +48,9 @@ class OsgiProjectSampleIntegrationTest {
     static void checkManifest(Manifest manifest, start) {
         assertEquals('Example Gradle Activator', manifest.mainAttributes.getValue('Bundle-Name'))
         assertEquals('2', manifest.mainAttributes.getValue('Bundle-ManifestVersion'))
-        assertEquals('Bnd-1.50.0', manifest.mainAttributes.getValue('Tool'))
+        assertEquals('Bnd-2.1.0.20130426-122213', manifest.mainAttributes.getValue('Tool'))
         assertTrue(start <= Long.parseLong(manifest.mainAttributes.getValue('Bnd-LastModified')))
-        assertEquals('1.0', manifest.mainAttributes.getValue('Bundle-Version'))
+        assertEquals('1.0.0', manifest.mainAttributes.getValue('Bundle-Version'))
         assertEquals('gradle_tooling.osgi', manifest.mainAttributes.getValue('Bundle-SymbolicName'))
         assertEquals( GradleVersion.current().version, manifest.mainAttributes.getValue('Built-By'))
     }

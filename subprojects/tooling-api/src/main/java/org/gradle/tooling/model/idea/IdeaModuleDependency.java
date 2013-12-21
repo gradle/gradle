@@ -17,7 +17,7 @@
 package org.gradle.tooling.model.idea;
 
 /**
- * dependency to a module in a project
+ * Dependency on a module in a project.
  *
  * @since 1.0-milestone-5
  */

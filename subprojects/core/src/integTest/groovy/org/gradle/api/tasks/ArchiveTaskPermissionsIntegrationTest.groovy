@@ -17,136 +17,144 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.TemporaryFolder
-import org.junit.Rule
-import org.gradle.util.TextUtil
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
+import spock.lang.Unroll
+
+import static org.junit.Assert.assertTrue
 
 class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
-    @Rule TemporaryFolder tmpDir = new TemporaryFolder()
 
-    def "permissions are preserved, overridden by type, and overridden by copy action"() {
-        def referenceArchive = createReferenceArchiveWithPermissions(0666)
-
-        def buildScript = file("build.gradle") << """
-            $assertModesFunction
-
-            task copy(type: Tar) {
-                from tarTree('${TextUtil.escapeString(referenceArchive.absolutePath)}')
-                dirMode = 0777
-                eachFile {
-                    if (it.name == 'script') {
-                        it.mode = 0123;
-                    }
-                }
+    @Requires(TestPrecondition.FILE_PERMISSIONS)
+    @Unroll
+    def "file and directory permissions are preserved when using #taskName task"() {
+        given:
+        createDir('parent') {
+            child {
+                mode = 0777
+                file('reference.txt').mode = 0746
             }
-
-            task test(dependsOn: copy) << {
-                assertModes(tarTree(copy.archivePath), [
-                    file: '666',    // preserved
-                    script: '123',  // overridden by dirMode
-                    folder: '777'   // overridden by copy action
-                ])
-            }
-        """
-
-        when:
-        executer.usingBuildScript(buildScript)
-            .withTasks('test')
-            .run()
-
-        then:
-        noExceptionThrown()
-    }
-
-    def "expected permissions are exposed to copy action"() {
-        def referenceArchive = createReferenceArchiveWithPermissions(0666)
-
-        def buildScript = file("build.gradle") << """
-            import static java.lang.Integer.toOctalString
-            $assertModesFunction
-
-            def preservedModes = [:]
-            task copyPreserved(type: Tar) {
-                from tarTree('${TextUtil.escapeString(referenceArchive.absolutePath)}')
-                eachFile {
-                    preservedModes[it.name] = toOctalString(it.mode)
-                }
-            }
-
-            def overriddenModes = [:]
-            task copyOverridden(type: Tar) {
-                from tarTree('${TextUtil.escapeString(referenceArchive.absolutePath)}')
-                fileMode = 0123
-                eachFile {
-                    overriddenModes[it.name] = toOctalString(it.mode)
-                }
-            }
-
-            task test(dependsOn: [copyPreserved, copyOverridden]) << {
-                assert preservedModes == [file: "666", script: "666"]
-                assert overriddenModes == [file: "123", script: "123"]
-            }
-        """
-
-        when:
-        executer.usingBuildScript(buildScript)
-            .withTasks('test')
-            .run()
-
-        then:
-        noExceptionThrown()
-    }
-
-    /*
-     * Creates a TAR archive with three files, 'file', 'script' and 'folder'. These files
-     * are used as reference data for the tests. The TAR archive is used to make the tests
-     * independent of the file system, which may not support Unix permissions.
-     */
-    private File createReferenceArchiveWithPermissions(int mode) {
-        def archive = tmpDir.file("reference.tar")
-        def archiveTmp = tmpDir.createDir('reference')
-
-        archiveTmp.createFile("file")
-        archiveTmp.createFile("script")
-        archiveTmp.createDir("folder")
-
-        // create the archive, with correct permissions using a build script
-        def script = file("create-reference-archive.gradle") << """
-            import static java.lang.Integer.toOctalString
-            $assertModesFunction
-
-            task createReference(type: Tar) { 
-                destinationDir = file('${TextUtil.escapeString(tmpDir.dir)}')
-                archiveName = '${TextUtil.escapeString(archive.name)}'
-                from file('${TextUtil.escapeString(archiveTmp.absolutePath)}')
-                fileMode = $mode
-                dirMode = $mode
-            }
-
-            task verifyReference(dependsOn: createReference) << {
-                assertModes(tarTree(file('${TextUtil.escapeString(archive.absolutePath)}')), [
-                    file: toOctalString($mode),
-                    script: toOctalString($mode),
-                    folder: toOctalString($mode)
-                ])
-            }
-        """
-
-        executer.usingBuildScript(script)
-            .withTasks('verifyReference')
-            .run()
-
-        archive
-    }
-
-    // script fragment for extracting & checking files/modes from a FileTree
-    def assertModesFunction = """
-        def assertModes = { files, expectedModes ->
-            def actualModes = [:]
-            files.visit {
-                actualModes[it.name] = Integer.toOctalString(it.mode)
-            }
-            assert expectedModes == actualModes
         }
-    """
+        def archName = "test.${taskName.toLowerCase()}"
+        and:
+        buildFile << """
+            task pack(type: $taskName) {
+                archiveName = "$archName"
+                from 'parent'
+            }
+            """
+        when:
+        run "pack"
+        file(archName).usingNativeTools()."$unpackMethod"(file("build"))
+        then:
+        file("build/child").mode == 0777
+        file("build/child/reference.txt").mode == 0746
+        where:
+        taskName | unpackMethod
+        "Zip"    | "unzipTo"
+        "Tar"    | "untarTo"
+    }
+
+    @Requires(TestPrecondition.FILE_PERMISSIONS)
+    @Unroll
+    def "file and directory permissions can be overridden in #taskName task"() {
+        given:
+        createDir('parent') {
+            child {
+                mode = 0766
+                file('reference.txt').mode = 0777
+            }
+        }
+        def archName = "test.${taskName.toLowerCase()}"
+
+        and:
+        buildFile << """
+                task pack(type: $taskName) {
+                    archiveName = "$archName"
+                    fileMode = 0774
+                    dirMode = 0756
+                    from 'parent'
+                }
+                """
+        when:
+        run "pack"
+        and:
+        file(archName).usingNativeTools()."$unpackMethod"(file("build"))
+        then:
+        file("build/child").mode == 0756
+        file("build/child/reference.txt").mode == 0774
+        where:
+        taskName | unpackMethod
+        "Zip"    | "unzipTo"
+        "Tar"    | "untarTo"
+
+    }
+
+    @Requires(TestPrecondition.FILE_PERMISSIONS)
+    @Unroll
+    def "file and directory permissions are preserved for unpacked #taskName archives"() {
+        given:
+        TestFile testDir = createDir('testdir') {
+            mode = 0753
+            file('reference.txt').mode = 0762
+        }
+        def archName = "test.${taskName.toLowerCase()}"
+        testDir.usingNativeTools()."$packMethod"(file(archName))
+        and:
+        buildFile << """
+            task unpack(type: Copy) {
+                from $treeMethod("$archName")
+                into 'unpacked'
+            }
+            """
+
+        when:
+        run "unpack"
+        and:
+        then:
+        file("unpacked/testdir").mode == 0753
+        file("unpacked/testdir/reference.txt").mode == 0762
+        where:
+        taskName | packMethod | treeMethod
+        "Zip"    | "zipTo"    | "zipTree"
+        "Tar"    | "tarTo"    | "tarTree"
+    }
+
+    @Requires(TestPrecondition.WINDOWS)
+    @Unroll
+    def "file and directory permissions are not preserved when dealing with #taskName archives on OS with no permission support"() {
+        given:
+        TestFile testDir = createDir('root') {
+            def testDir = testdir{
+                def testFile = file('reference.txt')
+                assertTrue testFile.setReadOnly()
+            }
+            testDir.setReadOnly()
+        }
+        testDir.setReadOnly()
+        def archName = "test.${taskName.toLowerCase()}"
+        testDir."$packMethod"(file(archName))
+        and:
+        buildFile << """
+            task unpack(type: Copy) {
+                from $treeMethod("$archName")
+                into 'unpacked'
+            }
+            """
+        when:
+        run "unpack"
+        then:
+
+        def testOutputFile = file("unpacked/testdir/reference.txt")
+        testOutputFile.canWrite()
+
+        def testOutputDir = file("unpacked/testdir")
+        testOutputDir.canWrite()
+
+        where:
+        taskName | packMethod | treeMethod
+        "Zip"    | "zipTo"    | "zipTree"
+        "Tar"    | "tarTo"    | "tarTree"
+    }
 }

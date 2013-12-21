@@ -23,8 +23,6 @@ import java.io.File;
 
 /**
  * Wrapper to shield version changes in GradleRunner from an external user of gradle open API.
- *
- * @author mhunsicker
  */
 public class GradleRunnerWrapper implements GradleRunnerVersion1 {
     private GradleRunner gradleRunner;

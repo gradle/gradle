@@ -15,13 +15,10 @@
  */
 package org.gradle.util
 
-import org.gradle.tests.fixtures.ConcurrentTestUtil
+import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.junit.Rule
 import spock.lang.Specification
 
-/**
- * by Szczepan Faber, created at: 12/8/11
- */
 class ConcurrentSpecification extends Specification {
     @Rule @Delegate ConcurrentTestUtil concurrent = new ConcurrentTestUtil()
 }

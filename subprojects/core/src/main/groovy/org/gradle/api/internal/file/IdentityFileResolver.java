@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.file;
 
+import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.nativeplatform.filesystem.FileSystems;
 
 import java.io.File;
@@ -22,12 +23,14 @@ import java.io.File;
 /**
  * FileResolver that uses the file provided to it or constructs one from the toString of the provided object. Used in cases where a FileResolver is needed by the infrastructure, but no base directory
  * can be known.
- *
- * @author Steve Appling
  */
 public class IdentityFileResolver extends AbstractFileResolver {
     public IdentityFileResolver() {
         super(FileSystems.getDefault());
+    }
+
+    public IdentityFileResolver(FileSystem fileSystem) {
+        super(fileSystem);
     }
 
     @Override

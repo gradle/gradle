@@ -17,9 +17,6 @@ package org.gradle.plugins.ide.eclipse.model
 
 import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory
 
-/**
- * @author Hans Dockter
- */
 class Library extends AbstractLibrary {
     Library(Node node, FileReferenceFactory fileReferenceFactory) {
         super(node, fileReferenceFactory)

@@ -18,8 +18,6 @@ package org.gradle.gradleplugin.foundation.favorites;
 /**
  * This holds onto a favorite task. Note: a user may define a favorite task, but it may or may be not present (or may be hidden because of a temporary error in gradle files). So we hold onto the full
  * name of the task so we can get to the task should it become available.
- *
- * @author mhunsicker
  */
 public class FavoriteTask {
     private String fullCommandLine;

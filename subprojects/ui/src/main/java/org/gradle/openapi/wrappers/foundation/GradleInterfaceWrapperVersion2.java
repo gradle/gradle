@@ -29,8 +29,6 @@ import java.util.List;
 
 /**
  * Implementation of GradleInterfaceVersion2 meant to help shield external users from internal changes. This adds new functionality to GradleInterfaceWrapperVersion1.
- *
- * @author mhunsicker
  */
 public class GradleInterfaceWrapperVersion2 extends GradleInterfaceWrapperVersion1 implements GradleInterfaceVersion2 {
 

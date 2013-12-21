@@ -22,8 +22,6 @@ import java.io.Serializable;
 /**
  * Analog to gradle's Task but more light-weight and better suited for using the gradle API from an IDE plugin. It is also easily serializable for passing across a socket. A task is something you can
  * execute and is part of a project. This is immutable and ultimately comes from gradle files.
- *
- * @author mhunsicker
  */
 public class TaskView implements Comparable<TaskView>, Serializable {
     private ProjectView project;

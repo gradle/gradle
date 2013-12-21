@@ -19,6 +19,7 @@ package org.gradle.api.tasks
 import org.gradle.api.DefaultTask
 import org.gradle.api.InvalidUserDataException
 import org.gradle.util.DeprecationLogger
+import org.gradle.util.GFileUtils
 
 /**
  * Creates a directory.
@@ -29,19 +30,13 @@ public class Directory extends DefaultTask {
     File dir
     
     Directory() {
-        DeprecationLogger.nagUserOfReplacedTask("Directory", "Project.mkdir(java.lang.Object)");
+        DeprecationLogger.nagUserOfReplacedTaskType("Directory", "Project.mkdir(java.lang.Object) method");
         if (new File(name).isAbsolute()) { throw new InvalidUserDataException('Path must not be absolute.')}
         dir = project.file(name)
     }
 
     @TaskAction
     protected void mkdir() {
-        if (dir.exists()) {
-            if (dir.isFile()) {
-                throw new InvalidUserDataException("The directory $name can't be created. There exists a file already with this path.")
-            }
-        } else {
-            dir.mkdirs()
-        }
+        GFileUtils.mkdirs(dir)
     }
 }

@@ -176,6 +176,7 @@ abstract class ExtraPropertiesExtensionTest<T extends ExtraPropertiesExtension> 
 
         project.task("custom").extensions.add("dynamic", extension)
 
+        when:
         project.custom {
             dynamic {
                 doLast { // should resolve to task.doLast
@@ -184,7 +185,7 @@ abstract class ExtraPropertiesExtensionTest<T extends ExtraPropertiesExtension> 
             }
         }
 
-        expect:
+        then:
         notThrown(Exception)
     }
     

@@ -24,8 +24,6 @@ import org.gradle.util.ConfigureUtil;
 
 /**
  * The implementation of the {@link org.gradle.api.plugins.antlr.AntlrSourceVirtualDirectory} contract.
- *
- * @author Steve Ebersole
  */
 public class AntlrSourceVirtualDirectoryImpl implements AntlrSourceVirtualDirectory {
     private final SourceDirectorySet antlr;

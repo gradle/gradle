@@ -19,12 +19,8 @@ import org.codehaus.groovy.runtime.InvokerHelper
 import org.gradle.api.artifacts.maven.GroovyMavenDeployer
 import org.gradle.api.artifacts.maven.PomFilterContainer
 import org.gradle.api.publication.maven.internal.ArtifactPomContainer
-
 import org.gradle.logging.LoggingManagerInternal
 
-/**
- * @author Hans Dockter
- */
 class DefaultGroovyMavenDeployer extends BaseMavenDeployer implements GroovyMavenDeployer, PomFilterContainer {
     public static final String REPOSITORY_BUILDER = "repository"
     public static final String SNAPSHOT_REPOSITORY_BUILDER = 'snapshotRepository'

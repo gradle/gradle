@@ -19,12 +19,19 @@ import org.gradle.api.GradleException;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.launcher.daemon.DaemonExecHandleBuilder;
+import org.gradle.launcher.daemon.bootstrap.DaemonGreeter;
+import org.gradle.launcher.daemon.bootstrap.DaemonOutputConsumer;
 import org.gradle.launcher.daemon.bootstrap.GradleDaemon;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
-import org.gradle.launcher.daemon.logging.DaemonGreeter;
+import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
+import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo;
 import org.gradle.launcher.daemon.registry.DaemonDir;
-import org.gradle.process.internal.ProcessParentingInitializer;
-import org.gradle.util.GUtil;
+import org.gradle.process.ExecResult;
+import org.gradle.process.internal.ExecHandle;
+import org.gradle.util.Clock;
+import org.gradle.util.CollectionUtils;
+import org.gradle.util.GFileUtils;
 import org.gradle.util.GradleVersion;
 
 import java.io.File;
@@ -47,7 +54,7 @@ public class DefaultDaemonStarter implements DaemonStarter {
         this.daemonGreeter = daemonGreeter;
     }
 
-    public String startDaemon() {
+    public DaemonStartupInfo startDaemon() {
         DefaultModuleRegistry registry = new DefaultModuleRegistry();
         Set<File> bootstrapClasspath = new LinkedHashSet<File>();
         bootstrapClasspath.addAll(registry.getModule("gradle-launcher").getImplementationClasspath().getAsFiles());
@@ -69,7 +76,7 @@ public class DefaultDaemonStarter implements DaemonStarter {
 //        daemonArgs.add("-Xdebug");
 //        daemonArgs.add("-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5006");
         daemonArgs.add("-cp");
-        daemonArgs.add(GUtil.join(bootstrapClasspath, File.pathSeparator));
+        daemonArgs.add(CollectionUtils.join(File.pathSeparator, bootstrapClasspath));
         daemonArgs.add(GradleDaemon.class.getName());
         daemonArgs.add(GradleVersion.current().getVersion());
         daemonArgs.add(daemonDir.getBaseDir().getAbsolutePath());
@@ -80,26 +87,33 @@ public class DefaultDaemonStarter implements DaemonStarter {
         //we need to pass them as *program* arguments to avoid problems with getInputArguments().
         daemonArgs.addAll(daemonOpts);
 
-        startProcess(daemonArgs, daemonDir.getVersionedDir());
+        DaemonDiagnostics diagnostics = startProcess(daemonArgs, daemonDir.getVersionedDir());
 
-        return daemonParameters.getUid();
+        return new DaemonStartupInfo(daemonParameters.getUid(), diagnostics);
     }
 
-    private void startProcess(List<String> args, File workingDir) {
+    private DaemonDiagnostics startProcess(final List<String> args, final File workingDir) {
         LOGGER.info("Starting daemon process: workingDir = {}, daemonArgs: {}", workingDir, args);
+        Clock clock = new Clock();
         try {
-            workingDir.mkdirs();
-            ProcessParentingInitializer.intitialize();
-            Process process = new ProcessBuilder(args).redirectErrorStream(true).directory(workingDir).start();
-            daemonGreeter.verifyGreetingReceived(process);
+            GFileUtils.mkdirs(workingDir);
 
-            process.getOutputStream().close();
-            process.getErrorStream().close();
-            process.getInputStream().close();
+            DaemonOutputConsumer outputConsumer = new DaemonOutputConsumer();
+            ExecHandle handle = new DaemonExecHandleBuilder().build(args, workingDir, outputConsumer);
+
+            handle.start();
+            LOGGER.debug("Gradle daemon process is starting. Waiting for the daemon to detach...");
+            ExecResult result = handle.waitForFinish();
+            LOGGER.debug("Gradle daemon process is now detached.");
+
+            return daemonGreeter.parseDaemonOutput(outputConsumer.getProcessOutput(), result);
         } catch (GradleException e) {
             throw e;
         } catch (Exception e) {
             throw new GradleException("Could not start Gradle daemon.", e);
+        } finally {
+            LOGGER.info("An attempt to start the daemon took {}.", clock.getTime());
         }
     }
+
 }

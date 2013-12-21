@@ -16,18 +16,15 @@
 
 package org.gradle.integtests.samples
 
-import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.TestFile
+import org.gradle.integtests.fixtures.Sample
+import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
 
-/**
- * @author Hans Dockter
- */
 class SamplesWebProjectIntegrationTest extends AbstractIntegrationSpec {
-    static final String WEB_PROJECT_NAME = 'customised'
+    static final String WEB_PROJECT_NAME = 'customized'
 
-    @Rule public final Sample sample = new Sample('webApplication/customised')
+    @Rule public final Sample sample = new Sample(temporaryFolder, 'webApplication/customized')
 
     def "can build war"() {
         when:
@@ -36,7 +33,7 @@ class SamplesWebProjectIntegrationTest extends AbstractIntegrationSpec {
         
         then:
         TestFile tmpDir = file('unjar')
-        sample.dir.file("build/libs/customised-1.0.war").unzipTo(tmpDir)
+        sample.dir.file("build/libs/customized-1.0.war").unzipTo(tmpDir)
         tmpDir.assertHasDescendants(
                 'root.txt',
                 'META-INF/MANIFEST.MF',
@@ -74,7 +71,7 @@ task runWarTest(dependsOn: jettyRunWar) << {
 }
 
 private void callServlet() {
-    URL url = new URL("http://localhost:\$httpPort/customised/hello")
+    URL url = new URL("http://localhost:\$httpPort/customized/hello")
     println url.text
     jettyStop.execute()
 }

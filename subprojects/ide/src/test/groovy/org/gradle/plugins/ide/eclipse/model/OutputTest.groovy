@@ -17,9 +17,6 @@ package org.gradle.plugins.ide.eclipse.model
 
 import spock.lang.Specification
 
-/**
- * @author Hans Dockter
- */
 
 class OutputTest extends Specification {
     final static String XML_TEXT = '<classpathentry kind="output" path="somePath"/>'

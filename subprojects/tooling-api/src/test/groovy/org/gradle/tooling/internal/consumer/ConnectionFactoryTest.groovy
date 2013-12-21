@@ -17,10 +17,10 @@ package org.gradle.tooling.internal.consumer
 
 import org.gradle.listener.ListenerManager
 import org.gradle.logging.ProgressLoggerFactory
-import org.gradle.tooling.internal.consumer.async.DefaultAsyncConnection
-import org.gradle.tooling.internal.consumer.connection.LazyConnection
-import org.gradle.tooling.internal.consumer.connection.LoggingInitializerConnection
-import org.gradle.tooling.internal.consumer.connection.ProgressLoggingConnection
+import org.gradle.tooling.internal.consumer.async.DefaultAsyncConsumerActionExecutor
+import org.gradle.tooling.internal.consumer.connection.LazyConsumerActionExecutor
+import org.gradle.tooling.internal.consumer.connection.LoggingInitializerConsumerActionExecutor
+import org.gradle.tooling.internal.consumer.connection.ProgressLoggingConsumerActionExecutor
 import org.gradle.tooling.internal.consumer.loader.ToolingImplementationLoader
 import spock.lang.Specification
 
@@ -38,10 +38,11 @@ class ConnectionFactoryTest extends Specification {
 
         then:
         result instanceof DefaultProjectConnection
-        result.connection instanceof DefaultAsyncConnection
-        result.connection.connection instanceof LoggingInitializerConnection
-        result.connection.connection.connection instanceof ProgressLoggingConnection
-        result.connection.connection.connection.connection instanceof LazyConnection
+        result.connection instanceof DefaultAsyncConsumerActionExecutor
+        result.connection.actionExecutor instanceof LoggingInitializerConsumerActionExecutor
+        result.connection.actionExecutor.actionExecutor instanceof ProgressLoggingConsumerActionExecutor
+        result.connection.actionExecutor.actionExecutor.actionExecutor instanceof LazyConsumerActionExecutor
+        _ * distribution.displayName >> "[some distribution]"
         0 * _._
     }
 }

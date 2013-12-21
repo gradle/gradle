@@ -16,9 +16,12 @@
 package org.gradle.tooling.internal.protocol;
 
 /**
- * A wrapper around a build failure, to distinguish it from an infrastructure failure.
+ * A wrapper around a build failure, to distinguish it from an infrastructure failure. The details of the
+ * failure are made available in the cause of this exception.
  *
  * DO NOT CHANGE THIS CLASS. It is part of the cross-version protocol.
+ *
+ * @since 1.0-milestone-3
  */
 public class BuildExceptionVersion1 extends RuntimeException {
     public BuildExceptionVersion1(Throwable throwable) {

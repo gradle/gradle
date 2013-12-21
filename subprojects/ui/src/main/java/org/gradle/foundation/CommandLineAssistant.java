@@ -23,8 +23,6 @@ import java.util.List;
 
 /**
  * Some helpful functions for manipulating command line arguments.
- *
- * @author mhunsicker
  */
 public class CommandLineAssistant {
     private final LoggingCommandLineConverter loggingCommandLineConverter = new LoggingCommandLineConverter();

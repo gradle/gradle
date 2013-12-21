@@ -25,17 +25,17 @@ import java.util.Set;
  */
 public interface DomainObjectSet<T> extends Set<T> {
     /**
-     * Returns the elements of this set as a list, in iteration order of this set.
+     * Returns the elements of this set in the set's iteration order.
      *
-     * @return The elements.
+     * @return The elements of this set in the set's iteration order.
      */
     List<T> getAll();
 
     /**
-     * Returns the element of this set at the given index in iteration order of this set.
+     * Returns the element at the given index according to the set's iteration order.
      *
      * @param index The index of the element to get.
-     * @return The element.
+     * @return The element at the given index according to the set's iteration order.
      */
     T getAt(int index) throws IndexOutOfBoundsException;
 }

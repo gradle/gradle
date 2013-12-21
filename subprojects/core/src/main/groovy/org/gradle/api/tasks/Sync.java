@@ -16,10 +16,10 @@
 
 package org.gradle.api.tasks;
 
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.copy.FileCopyActionImpl;
-import org.gradle.api.internal.file.copy.FileCopySpecVisitor;
-import org.gradle.api.internal.file.copy.SyncCopySpecVisitor;
+import org.gradle.api.internal.file.copy.*;
+import org.gradle.internal.reflect.Instantiator;
 
 import java.io.File;
 
@@ -27,16 +27,27 @@ import java.io.File;
  * Synchronises the contents of a destination directory with some source directories and files.
  */
 public class Sync extends AbstractCopyTask {
-    private FileCopyActionImpl action;
 
-    public Sync() {
-        FileResolver fileResolver = getServices().get(FileResolver.class);
-        action = new FileCopyActionImpl(fileResolver, new SyncCopySpecVisitor(new FileCopySpecVisitor()));
+    @Override
+    protected CopyAction createCopyAction() {
+        File destinationDir = getDestinationDir();
+        if (destinationDir == null) {
+            throw new InvalidUserDataException("No copy destination directory has been specified, use 'into' to specify a target directory.");
+        }
+        return new SyncCopyActionDecorator(destinationDir, new FileCopyAction(getServices().get(FileResolver.class).withBaseDir(destinationDir)));
     }
 
     @Override
-    protected FileCopyActionImpl getCopyAction() {
-        return action;
+    protected CopySpecInternal createRootSpec() {
+        Instantiator instantiator = getServices().get(Instantiator.class);
+        FileResolver fileResolver = getServices().get(FileResolver.class);
+
+        return instantiator.newInstance(DestinationRootCopySpec.class, fileResolver, super.createRootSpec());
+    }
+
+    @Override
+    public DestinationRootCopySpec getRootSpec() {
+        return (DestinationRootCopySpec) super.getRootSpec();
     }
 
     /**
@@ -46,7 +57,7 @@ public class Sync extends AbstractCopyTask {
      */
     @OutputDirectory
     public File getDestinationDir() {
-        return getCopyAction().getDestinationDir();
+        return getRootSpec().getDestinationDir();
     }
 
     /**
@@ -57,4 +68,5 @@ public class Sync extends AbstractCopyTask {
     public void setDestinationDir(File destinationDir) {
         into(destinationDir);
     }
+
 }

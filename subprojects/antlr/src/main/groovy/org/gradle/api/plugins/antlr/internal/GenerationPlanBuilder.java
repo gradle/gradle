@@ -15,21 +15,19 @@
  */
 package org.gradle.api.plugins.antlr.internal;
 
-import java.io.File;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Iterator;
-import java.util.ArrayList;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
 
 /**
  * Builder for the properly order list of {@link GenerationPlan generation plans}.
  *
  * <p>IMPL NOTE : Uses recursive calls to achieve ordering.</p>
- *
- * @author Steve Ebersole
  */
 public class GenerationPlanBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(GenerationPlanBuilder.class);

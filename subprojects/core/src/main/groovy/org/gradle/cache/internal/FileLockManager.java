@@ -15,6 +15,8 @@
  */
 package org.gradle.cache.internal;
 
+import org.gradle.cache.internal.filelock.LockOptions;
+
 import java.io.File;
 
 public interface FileLockManager {
@@ -23,21 +25,31 @@ public interface FileLockManager {
      * released by calling {@link org.gradle.cache.internal.FileLock#close()}. This method blocks until the lock can be acquired.
      *
      * @param target The file to be locked.
-     * @param mode The lock mode.
+     * @param options The lock options.
      * @param targetDisplayName A display name for the target file. This is used in log and error messages.
      */
-    FileLock lock(File target, LockMode mode, String targetDisplayName) throws LockTimeoutException;
+    FileLock lock(File target, LockOptions options, String targetDisplayName) throws LockTimeoutException;
 
     /**
      * Creates a locks for the given file with the given mode. Acquires a lock with the given mode, which is held until the lock is
      * released by calling {@link org.gradle.cache.internal.FileLock#close()}. This method blocks until the lock can be acquired.
      *
      * @param target The file to be locked.
-     * @param mode The lock mode.
+     * @param options The lock options.
      * @param targetDisplayName A display name for the target file. This is used in log and error messages.
      * @param operationDisplayName A display name for the operation being performed on the target file. This is used in log and error messages.
      */
-    FileLock lock(File target, LockMode mode, String targetDisplayName, String operationDisplayName) throws LockTimeoutException;
+    FileLock lock(File target, LockOptions options, String targetDisplayName, String operationDisplayName) throws LockTimeoutException;
+
+    /**
+     * Enables other processes to request access to the provided lock. Provided action runs when the lock access request is received
+     * (it means that the lock is contended).
+     *
+     * @param fileLock the lock
+     * @param whenContended will be called asynchronously by the thread that listens for cache access requests, when such request is received.
+     * Note: currently, implementations are permitted to invoke the action <em>after</em> the lock as been closed.
+     */
+    void allowContention(FileLock fileLock, Runnable whenContended);
 
     enum LockMode {
         /**

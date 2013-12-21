@@ -61,6 +61,16 @@
             </listitem>
         </varlistentry>
         <varlistentry>
+            <term>
+                <option>--configure-on-demand (incubating)</option>
+            </term>
+            <listitem>
+                <para>Only relevant projects are configured in this build run. This means faster builds for large multi-projects.
+                    See <xref linkend="sec:configuration_on_demand"/>.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
             <term><option>-D</option>, <option>--system-prop</option>
             </term>
             <listitem>
@@ -151,6 +161,28 @@
             <listitem>
                 <para>Specifies the start directory for Gradle. Defaults to current directory.
                     See <xref linkend="sec:selecting_build"/>.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <option>--parallel (incubating)</option>
+            </term>
+            <listitem>
+                <para>
+                    Build projects in parallel. Gradle will attempt to determine the optimal number of executor threads to use.
+                    This option should only be used with decoupled projects (see <xref linkend="sec:decoupled_projects"/>).
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term>
+                <option>--parallel-threads (incubating)</option>
+            </term>
+            <listitem>
+                <para>
+                    Build projects in parallel, using the specified number of executor threads. For example<literal>--parallel-threads=3</literal>.
+                    This option should only be used with decoupled projects (see <xref linkend="sec:decoupled_projects"/>).
                 </para>
             </listitem>
         </varlistentry>

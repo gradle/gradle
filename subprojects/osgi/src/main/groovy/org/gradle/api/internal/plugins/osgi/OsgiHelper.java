@@ -23,9 +23,6 @@ import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * @author Hans Dockter
- */
 public class OsgiHelper {
     /**
      * Bundle-Version must match this pattern
@@ -61,8 +58,7 @@ public class OsgiHelper {
      * @return Returns the SymbolicName that should be used for the bundle.
      */
     public String getBundleSymbolicName(Project project) {
-
-        String group = (String) project.property("group");
+        String group = project.getGroup().toString();
         String archiveBaseName = project.getConvention().getPlugin(BasePluginConvention.class).getArchivesBaseName();
         if (archiveBaseName.startsWith(group)) {
             return archiveBaseName;
@@ -141,7 +137,7 @@ public class OsgiHelper {
     }
 
     private String fillQualifier(StringTokenizer st) {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         while (st.hasMoreTokens()) {
             String token = st.nextToken();
             if (QUALIFIER.matcher(token).matches()) {

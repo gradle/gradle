@@ -16,27 +16,28 @@
 package org.gradle.initialization;
 
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.internal.project.IProjectRegistry;
+import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.internal.project.ProjectIdentifier;
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.GFileUtils;
-import org.gradle.util.TemporaryFolder;
-import static org.gradle.util.WrapUtil.*;
-import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import static org.junit.Assert.*;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
 
+import static org.gradle.util.WrapUtil.toSet;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
+
 @RunWith(JMock.class)
 public class ProjectDirectoryProjectSpecTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     @Rule
-    public TemporaryFolder tmpDir = new TemporaryFolder();
+    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
     private final File dir = tmpDir.createDir("build");
     private final ProjectDirectoryProjectSpec spec = new ProjectDirectoryProjectSpec(dir);
     private int counter;
@@ -100,8 +101,8 @@ public class ProjectDirectoryProjectSpecTest {
         }
     }
 
-    private IProjectRegistry<ProjectIdentifier> registry(final ProjectIdentifier... projects) {
-        final IProjectRegistry<ProjectIdentifier> registry = context.mock(IProjectRegistry.class, String.valueOf(counter++));
+    private ProjectRegistry<ProjectIdentifier> registry(final ProjectIdentifier... projects) {
+        final ProjectRegistry<ProjectIdentifier> registry = context.mock(ProjectRegistry.class, String.valueOf(counter++));
         context.checking(new Expectations(){{
             allowing(registry).getAllProjects();
             will(returnValue(toSet(projects)));

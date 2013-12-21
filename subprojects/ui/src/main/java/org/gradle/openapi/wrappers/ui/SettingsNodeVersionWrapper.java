@@ -24,8 +24,6 @@ import java.util.List;
 
 /**
  * Wrapper to shield version changes in SettingsNode from an external user of gradle open API.
- *
- * @author mhunsicker
  */
 public class SettingsNodeVersionWrapper implements SettingsNode {
     private SettingsNodeVersion1 settingsNodeVersion1;

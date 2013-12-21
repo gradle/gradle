@@ -1,15 +1,15 @@
-import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency
-
-allprojects {
+allprojects { project->
 	apply plugin: "eclipse"
-}
-
-configure(groovyProjects()) {
-    eclipse {
-        classpath {
-            plusConfigurations.add(configurations.detachedConfiguration(new DefaultSelfResolvingDependency(files { sourceSets*.resources*.srcDirs*.findAll { it.isDirectory() }} )))
-            file.whenMerged { classpath ->
-                classpath.entries.removeAll { it instanceof org.gradle.plugins.ide.eclipse.model.SourceFolder && it.path.endsWith('/resources') }
+    plugins.withType(JavaPlugin) {
+        eclipse {
+            classpath {
+                file.whenMerged { classpath ->
+                    //There are classes in here not designed to be compiled, but just used in our testing
+                    classpath.entries.removeAll { it.path.contains('src/integTest/resources') }
+                    //Workaround for some projects referring to themselves as dependent projects
+                    classpath.entries.removeAll { it.path.contains("$project.name") && it.kind=='src' }
+                    classpath.entries.removeAll { it.path.contains("$project.name/build") && it.kind=='lib' }
+                }
             }
         }
     }

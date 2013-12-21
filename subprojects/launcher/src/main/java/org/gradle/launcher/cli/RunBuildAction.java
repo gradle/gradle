@@ -15,38 +15,40 @@
  */
 package org.gradle.launcher.cli;
 
-import org.gradle.BuildResult;
-import org.gradle.GradleLauncher;
-import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.initialization.BuildRequestMetaData;
-import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.StartParameter;
-import org.gradle.api.Action;
-import org.gradle.initialization.DefaultGradleLauncherFactory;
-import org.gradle.launcher.exec.ExecutionListener;
+import org.gradle.initialization.BuildClientMetaData;
+import org.gradle.launcher.exec.BuildActionParameters;
+import org.gradle.launcher.exec.DefaultBuildActionParameters;
+import org.gradle.launcher.exec.BuildActionExecuter;
+import org.gradle.util.GUtil;
 
-public class RunBuildAction implements Action<ExecutionListener> {
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
+
+public class RunBuildAction implements Runnable {
+    private final BuildActionExecuter<BuildActionParameters> executer;
     private final StartParameter startParameter;
-    private final ServiceRegistry loggingServices;
-    private final BuildRequestMetaData requestMetaData;
+    private final File currentDir;
+    private final BuildClientMetaData clientMetaData;
+    private final long startTime;
+    private final Map<String, String> systemProperties;
+    private final Map<String, String> envVariables;
 
-    public RunBuildAction(StartParameter startParameter, ServiceRegistry loggingServices, BuildRequestMetaData requestMetaData) {
+    public RunBuildAction(BuildActionExecuter<BuildActionParameters> executer, StartParameter startParameter, File currentDir, BuildClientMetaData clientMetaData, long startTime, Map<?, ?> systemProperties, Map<String, String> envVariables) {
+        this.executer = executer;
         this.startParameter = startParameter;
-        this.loggingServices = loggingServices;
-        this.requestMetaData = requestMetaData;
+        this.currentDir = currentDir;
+        this.clientMetaData = clientMetaData;
+        this.startTime = startTime;
+        this.systemProperties = new HashMap<String, String>();
+        GUtil.addToMap(this.systemProperties, systemProperties);
+        this.envVariables = envVariables;
     }
 
-    public void execute(ExecutionListener executionListener) {
-        GradleLauncherFactory gradleLauncherFactory = createGradleLauncherFactory(loggingServices);
-        GradleLauncher gradleLauncher = gradleLauncherFactory.newInstance(startParameter, requestMetaData);
-        BuildResult buildResult = gradleLauncher.run();
-        Throwable failure = buildResult.getFailure();
-        if (failure != null) {
-            executionListener.onFailure(failure);
-        }
-    }
-
-    GradleLauncherFactory createGradleLauncherFactory(ServiceRegistry loggingServices) {
-        return new DefaultGradleLauncherFactory(loggingServices);
+    public void run() {
+        executer.execute(
+                new ExecuteBuildAction(startParameter),
+                new DefaultBuildActionParameters(clientMetaData, startTime, systemProperties, envVariables, currentDir, startParameter.getLogLevel()));
     }
 }

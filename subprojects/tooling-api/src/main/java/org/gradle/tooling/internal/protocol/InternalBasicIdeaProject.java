@@ -17,6 +17,8 @@
 package org.gradle.tooling.internal.protocol;
 
 /**
- * See {@link org.gradle.tooling.internal.protocol.InternalProtocolInterface}
+ * See {@link InternalProtocolInterface}
+ *
+ * @since 1.0-milestone-5
  */
 public interface InternalBasicIdeaProject extends ProjectVersion3, InternalProtocolInterface {}

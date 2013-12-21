@@ -18,16 +18,14 @@ package org.gradle.api.tasks.bundling
 
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.file.copy.DefaultCopySpec
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Optional
 import org.gradle.util.ConfigureUtil
-import org.gradle.api.internal.file.copy.CopySpecImpl
 
 /**
  * Assembles a WAR archive.
- *
- * @author Hans Dockter
  */
 class War extends Jar {
     public static final String WAR_EXTENSION = 'war'
@@ -35,12 +33,13 @@ class War extends Jar {
     private File webXml
 
     private FileCollection classpath
-    private final CopySpecImpl webInf
+    private final DefaultCopySpec webInf
 
     War() {
         extension = WAR_EXTENSION
         // Add these as separate specs, so they are not affected by the changes to the main spec
-        webInf = copyAction.rootSpec.addChild().into('WEB-INF')
+
+        webInf = rootSpec.addChildBeforeSpec(mainSpec).into('WEB-INF')
         webInf.into('classes') {
             from {
                 def classpath = getClasspath()
@@ -104,7 +103,7 @@ class War extends Jar {
     /**
      * Adds files to the classpath to include in the WAR archive.
      *
-     * @param classpath The files to add. These are evaluated as for {@link org.gradle.api.Project#files(Object [])}
+     * @param classpath The files to add. These are evaluated as per {@link org.gradle.api.Project#files(Object [])}
      */
     void classpath(Object... classpath) {
         FileCollection oldClasspath = getClasspath()

@@ -17,30 +17,18 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.apache.ivy.plugins.resolver.AbstractPatternsBasedResolver;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.gradle.api.internal.artifacts.repositories.ExternalResourceResolver;
-import org.gradle.util.GUtil;
-import org.gradle.util.hash.HashUtil;
+import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver;
+import org.gradle.util.CollectionUtils;
+import org.gradle.internal.hash.HashUtil;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class DependencyResolverIdentifier {
-    private final String resolverId;
-    private final String resolverName;
-
-    public DependencyResolverIdentifier(DependencyResolver resolver) {
-        resolverName = resolver.getName();
-
+    public static String forIvyResolver(DependencyResolver resolver) {
         List<String> parts = new ArrayList<String>();
         parts.add(resolver.getClass().getName());
-        if (resolver instanceof ExternalResourceResolver) {
-            ExternalResourceResolver externalResourceResolver = (ExternalResourceResolver) resolver;
-            parts.add(joinPatterns(externalResourceResolver.getIvyPatterns()));
-            parts.add(joinPatterns(externalResourceResolver.getArtifactPatterns()));
-            if (externalResourceResolver.isM2compatible()) {
-                parts.add("m2compatible");
-            }
-        } else if (resolver instanceof AbstractPatternsBasedResolver) {
+        if (resolver instanceof AbstractPatternsBasedResolver) {
             AbstractPatternsBasedResolver patternsBasedResolver = (AbstractPatternsBasedResolver) resolver;
             parts.add(joinPatterns(patternsBasedResolver.getIvyPatterns()));
             parts.add(joinPatterns(patternsBasedResolver.getArtifactPatterns()));
@@ -52,23 +40,27 @@ public class DependencyResolverIdentifier {
             // TODO We should not be assuming equality between resolvers here based on name...
         }
 
-        resolverId = calculateId(parts);
+        return calculateId(parts);
     }
 
-    private String joinPatterns(List<String> patterns) {
-        return GUtil.join(patterns, ",");
+    // TODO: Move this logic into ExternalResourceResolver, and add some transport-specific information (bumping the cache version)
+    public static String forExternalResourceResolver(ExternalResourceResolver resolver) {
+        List<String> parts = new ArrayList<String>();
+        parts.add(resolver.getClass().getName());
+        parts.add(joinPatterns(resolver.getIvyPatterns()));
+        parts.add(joinPatterns(resolver.getArtifactPatterns()));
+        if (resolver.isM2compatible()) {
+            parts.add("m2compatible");
+        }
+        return calculateId(parts);
     }
 
-    private String calculateId(List<String> parts) {
-        String idString = GUtil.join(parts, "::");
+    private static String joinPatterns(List<String> patterns) {
+        return CollectionUtils.join(",", patterns);
+    }
+
+    private static String calculateId(List<String> parts) {
+        String idString = CollectionUtils.join("::", parts);
         return HashUtil.createHash(idString, "MD5").asHexString();
-    }
-
-    public String getUniqueId() {
-        return resolverId;
-    }
-
-    public String getName() {
-        return resolverName;
     }
 }

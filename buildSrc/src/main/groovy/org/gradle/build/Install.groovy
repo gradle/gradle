@@ -19,7 +19,7 @@ import org.gradle.api.tasks.Sync
 
 class Install extends Sync {
 
-    String installDirProperyName
+    String installDirPropertyName
     File installDir
 
     def Install() {
@@ -33,10 +33,10 @@ class Install extends Sync {
         project.gradle.taskGraph.whenReady {graph ->
             if (graph.hasTask(path)) {
                 // Do this early to ensure that the properties we need have been set, and fail early
-                if (!project.hasProperty(installDirProperyName)) {
-                    throw new RuntimeException("You can't install without setting the $installDirProperyName property.")
+                if (!project.hasProperty(installDirPropertyName)) {
+                    throw new RuntimeException("You can't install without setting the $installDirPropertyName property.")
                 }
-                installDir = project.file(this.project."$installDirProperyName")
+                installDir = project.file(this.project."$installDirPropertyName")
                 if (installDir.file) {
                     throw new RuntimeException("Install directory $installDir does not look like a Gradle installation. Cannot delete it to install.")
                 }

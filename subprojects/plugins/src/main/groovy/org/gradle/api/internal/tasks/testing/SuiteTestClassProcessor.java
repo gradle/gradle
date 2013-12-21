@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.internal.tasks.testing.results.AttachParentTestResultProcessor;
-import org.gradle.util.TimeProvider;
+import org.gradle.internal.TimeProvider;
 
 public class SuiteTestClassProcessor implements TestClassProcessor {
     private final TestClassProcessor processor;
@@ -39,6 +39,7 @@ public class SuiteTestClassProcessor implements TestClassProcessor {
         try {
             processor.startProcessing(resultProcessor);
         } catch (Throwable t) {
+            //TODO SF if this happens, we should not allow execution of processTestClass and stop
             resultProcessor.failure(suiteDescriptor.getId(), new TestSuiteExecutionException(String.format(
                     "Could not start %s.", suiteDescriptor), t));
         }

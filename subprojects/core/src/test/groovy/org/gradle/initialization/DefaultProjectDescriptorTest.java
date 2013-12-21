@@ -15,29 +15,28 @@
  */
 package org.gradle.initialization;
 
+import org.gradle.api.Project;
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.TestFiles;
 import org.gradle.util.Path;
+import org.jmock.Expectations;
+import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import org.gradle.api.Project;
-import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.Expectations;
 
 import java.io.File;
 import java.io.IOException;
 
-/**
- * @author Hans Dockter
- */
+import static org.junit.Assert.*;
+
 @RunWith(org.jmock.integration.junit4.JMock.class)
 public class DefaultProjectDescriptorTest {
     private DefaultProjectDescriptor projectDescriptor;
     private DefaultProjectDescriptor parentProjectDescriptor;
     private static final String TEST_NAME = "testName";
     private static final File TEST_DIR = new File("testDir");
+    private static final FileResolver FILE_RESOLVER = TestFiles.resolver(TEST_DIR.getAbsoluteFile());
     private DefaultProjectDescriptorRegistry testProjectDescriptorRegistry;
     private JUnit4Mockery context = new JUnit4Mockery();
 
@@ -45,9 +44,9 @@ public class DefaultProjectDescriptorTest {
     public void setUp() {
         testProjectDescriptorRegistry = new DefaultProjectDescriptorRegistry();
         parentProjectDescriptor = new DefaultProjectDescriptor(null, "somename", new File("somefile"),
-                testProjectDescriptorRegistry);
+                testProjectDescriptorRegistry, FILE_RESOLVER);
         projectDescriptor = new DefaultProjectDescriptor(parentProjectDescriptor, TEST_NAME, TEST_DIR,
-                testProjectDescriptorRegistry);
+                testProjectDescriptorRegistry, FILE_RESOLVER);
     }
 
     @Test
@@ -70,13 +69,31 @@ public class DefaultProjectDescriptorTest {
     @Test
     public void setName() {
         final String newName = "newName";
-        final IProjectDescriptorRegistry projectDescriptorRegistryMock = context.mock(IProjectDescriptorRegistry.class);
+        final ProjectDescriptorRegistry projectDescriptorRegistryMock = context.mock(ProjectDescriptorRegistry.class);
         projectDescriptor.setProjectDescriptorRegistry(projectDescriptorRegistryMock);
         context.checking(new Expectations() {{
             one(projectDescriptorRegistryMock).changeDescriptorPath(Path.path(TEST_NAME), Path.path(Project.PATH_SEPARATOR + newName));
         }});
         projectDescriptor.setName(newName);
         assertEquals(newName, projectDescriptor.getName());
+    }
+
+    @Test
+    public void setProjectDirRelative() {
+        final ProjectDescriptorRegistry projectDescriptorRegistryMock = context.mock(ProjectDescriptorRegistry.class);
+        projectDescriptor.setProjectDescriptorRegistry(projectDescriptorRegistryMock);
+        projectDescriptor.setProjectDir(new File("relative/path"));
+        final String expectedPath = new File(TEST_DIR, "relative/path").getAbsolutePath();
+        assertEquals(expectedPath, projectDescriptor.getProjectDir().getAbsolutePath());
+    }
+
+    @Test
+    public void setProjectDirAbsolute() {
+        final ProjectDescriptorRegistry projectDescriptorRegistryMock = context.mock(ProjectDescriptorRegistry.class);
+        projectDescriptor.setProjectDescriptorRegistry(projectDescriptorRegistryMock);
+        String absolutePath = new File("absolute/path").getAbsolutePath();
+        projectDescriptor.setProjectDir(new File(absolutePath));
+        assertEquals(absolutePath, projectDescriptor.getProjectDir().getAbsolutePath());
     }
 
     @Test

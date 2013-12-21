@@ -16,23 +16,19 @@
 package org.gradle.plugins.ide.eclipse.model
 
 import org.custommonkey.xmlunit.XMLUnit
-import org.gradle.api.internal.XmlTransformer
-import org.gradle.plugins.ide.eclipse.model.Facet.FacetType;
-import org.gradle.util.TemporaryFolder
+import org.gradle.api.internal.xml.XmlTransformer
+import org.gradle.plugins.ide.eclipse.model.Facet.FacetType
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
-
 import spock.lang.Specification
 
-/**
- * @author Hans Dockter
- */
 public class WtpFacetTest extends Specification {
     private static final List CUSTOM_FACETS = [new Facet(FacetType.fixed, 'jst.java', null), new Facet(FacetType.fixed, 'jst.web', null), new Facet(FacetType.installed, 'jst.web', '2.4'), new Facet(FacetType.installed, 'jst.java', '1.4')]
 
     private final WtpFacet facet = new WtpFacet(new XmlTransformer())
 
     @Rule
-    public TemporaryFolder tmpDir = new TemporaryFolder()
+    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     def "load existing XML file"() {
         when:

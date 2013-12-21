@@ -15,204 +15,425 @@
  */
 package org.gradle.api.internal.tasks.testing.junit.report
 
-import org.gradle.util.TemporaryFolder
-import org.gradle.util.TestFile
+import org.gradle.api.internal.tasks.testing.BuildableTestResultsProvider
+import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider
+import org.gradle.api.tasks.testing.TestResult
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.ConfigureUtil
 import org.junit.Rule
 import spock.lang.Specification
-import org.cyberneko.html.parsers.SAXParser
 
 class DefaultTestReportTest extends Specification {
-    @Rule public final TemporaryFolder tmpDir = new TemporaryFolder()
+    @Rule
+    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     final DefaultTestReport report = new DefaultTestReport()
     final TestFile reportDir = tmpDir.file('report')
-    final TestFile resultsDir = tmpDir.file('results')
     final TestFile indexFile = reportDir.file('index.html')
-
-    def setup() {
-        report.testReportDir = reportDir
-        report.testResultsDir = resultsDir
-    }
-
-    def generatesReportWhenResultsDirectoryDoesNotExist() {
-        when:
-        report.generateReport()
-
-        then:
-        def index = results(indexFile)
-        index.assertHasTests(0)
-    }
+    final TestResultsProvider testResultProvider = Mock()
 
     def generatesReportWhenThereAreNoTestResults() {
-        resultsDir.mkdir()
+        given:
+        emptyResultSet()
 
         when:
-        report.generateReport()
+        report.generateReport(testResultProvider, reportDir)
 
         then:
         def index = results(indexFile)
         index.assertHasTests(0)
         index.assertHasFailures(0)
+        index.assertHasIgnored(0)
         index.assertHasNoDuration()
         index.assertHasNoSuccessRate()
         index.assertHasNoNavLinks()
     }
 
-    def generatesReportWhichIncludesContentsOfEachTestResultFile() {
-        resultsDir.file('TEST-someClass.xml') << '''
-<testsuite name="org.gradle.Test">
-    <testcase classname="org.gradle.Test" name="test1" time="0.0010"/>
-    <testcase classname="org.gradle.Test" name="test2" time="0.0040"/>
-    <system-out>this is
-standard output</system-out>
-    <system-err>this is
-standard error</system-err>
-</testsuite>
-'''
-        resultsDir.file('TEST-someOtherClass.xml') << '''
-<testsuite name="org.gradle.Test2">
-    <testcase classname="org.gradle.Test2" name="test1" time="102.0010"/>
-    <testcase classname="org.gradle.sub.Test" name="test1" time="12.9"/>
-</testsuite>
-'''
-
-        when:
-        report.generateReport()
-
-        then:
-        def index = results(indexFile)
-        index.assertHasTests(4)
-        index.assertHasFailures(0)
-        index.assertHasSuccessRate(100)
-        index.assertHasDuration("1m54.91s")
-        index.assertHasLinkTo('org.gradle')
-        index.assertHasLinkTo('org.gradle.sub')
-        index.assertHasLinkTo('org.gradle.Test', 'org.gradle.Test')
-
-        reportDir.file("style.css").assertIsFile()
-
-        def packageFile = results(reportDir.file('org.gradle.html'))
-        packageFile.assertHasTests(3)
-        packageFile.assertHasFailures(0)
-        packageFile.assertHasSuccessRate(100)
-        packageFile.assertHasDuration("1m42.01s")
-        packageFile.assertHasLinkTo('org.gradle.Test', 'Test')
-        packageFile.assertHasLinkTo('org.gradle.Test2', 'Test2')
-
-        def testClassFile = results(reportDir.file('org.gradle.Test.html'))
-        testClassFile.assertHasTests(2)
-        testClassFile.assertHasFailures(0)
-        testClassFile.assertHasSuccessRate(100)
-        testClassFile.assertHasDuration("0.005s")
-        testClassFile.assertHasTest('test1')
-        testClassFile.assertHasTest('test2')
-        testClassFile.assertHasStandardOutput('this is\nstandard output')
-        testClassFile.assertHasStandardError('this is\nstandard error')
+    TestResultsProvider buildResults(Closure closure) {
+        ConfigureUtil.configure(closure, new BuildableTestResultsProvider())
     }
 
-    def generatesReportWhenThereAreFailures() {
-        resultsDir.file('TEST-someClass.xml') << '''
-<testsuite>
-    <testcase classname="org.gradle.Test" name="test1" time="0"><failure message="something failed">this is the failure
-at someClass
-</failure></testcase>
-    <testcase classname="org.gradle.Test" name="test2" time="0"><failure message="a multi-line
-message">this is a failure.</failure></testcase>
-    <testcase classname="org.gradle.Test2" name="test1" time="0"/>
-    <testcase classname="org.gradle.sub.Test" name="test1" time="0"/>
-</testsuite>
-'''
-
-        when:
-        report.generateReport()
-
-        then:
-        def index = results(indexFile)
-        index.assertHasTests(4)
-        index.assertHasFailures(2)
-        index.assertHasSuccessRate(50)
-        index.assertHasFailedTest('org.gradle.Test', 'test1')
-
-        def packageFile = results(reportDir.file('org.gradle.html'))
-        packageFile.assertHasTests(3)
-        packageFile.assertHasFailures(2)
-        packageFile.assertHasSuccessRate(33)
-        packageFile.assertHasFailedTest('org.gradle.Test', 'test1')
-
-        def testClassFile = results(reportDir.file('org.gradle.Test.html'))
-        testClassFile.assertHasTests(2)
-        testClassFile.assertHasFailures(2)
-        testClassFile.assertHasSuccessRate(0)
-        testClassFile.assertHasTest('test1')
-        testClassFile.assertHasFailure('test1', 'this is the failure\nat someClass\n')
-        testClassFile.assertHasTest('test2')
-        testClassFile.assertHasFailure('test2', 'this is a failure.')
+    TestResultsProvider passingBuildResults() {
+        buildResults {
+            testClassResult("org.gradle.passing.Passed") {
+                testcase("passed") {
+                    duration = 1000;
+                }
+            }
+            testClassResult("org.gradle.passing.subpackage.AlsoPassed") {
+                testcase("passedToo") {
+                    duration = 1000;
+                    stdout "this is\nstandard output"
+                    stderr "this is\nstandard error"
+                }
+            }
+        }
     }
 
-    def generatesReportWhenThereAreIgnoredTests() {
-        resultsDir.file('TEST-someClass.xml') << '''
-<testsuite>
-    <ignored-testcase classname="org.gradle.Test" name="test1"/>
-</testsuite>
-'''
+    TestResultsProvider failingBuildResults() {
+        buildResults {
+            testClassResult("org.gradle.passing.Passed") {
+                testcase("passed") {
+                    duration = 1000;
+                }
+            }
+            testClassResult("org.gradle.passing.AlsoPassed") {
+                testcase("passedToo") {
+                    duration = 1000;
+                    stdout "this is\nstandard output"
+                    stderr "this is\nstandard error"
+                }
+            }
+            testClassResult("org.gradle.ignoring.SomeIgnoredSomePassed") {
+                testcase("passed") {
+                    duration = 1000;
+                }
+                testcase("ignored") {
+                    duration = 1000;
+                    resultType = TestResult.ResultType.SKIPPED
+                }
+            }
+            testClassResult("org.gradle.failing.SomeIgnoredSomePassedSomeFailed") {
+                testcase("passed") {
+                    duration = 1000;
+                }
+                testcase("ignored") {
+                    duration = 1000;
+                    resultType = TestResult.ResultType.SKIPPED
+                }
+                testcase("failed") {
+                    duration = 1000;
+                    failure("something failed", "this is the failure\nat someClass")
+                }
+            }
+        }
+    }
+
+
+    def generatesReportWithAggregatedIndexPageForBuildWithNoFailures() {
+        given:
+        def testTestResults = passingBuildResults()
 
         when:
-        report.generateReport()
+        report.generateReport(testTestResults, reportDir)
 
         then:
         def index = results(indexFile)
-        index.assertHasTests(1)
+        index.assertHasTests(2)
         index.assertHasFailures(0)
+        index.assertHasIgnored(0)
         index.assertHasSuccessRate(100)
+        index.assertHasDuration("2.000s")
+        index.assertHasOverallResult("success")
+        index.assertHasNoFailedTests()
 
-        def packageFile = results(reportDir.file('org.gradle.html'))
-        packageFile.assertHasTests(1)
-        packageFile.assertHasFailures(0)
-        packageFile.assertHasSuccessRate(100)
+        def passingPackageDetails = index.packageDetails("org.gradle.passing");
+        passingPackageDetails.assertNumberOfTests(1);
+        passingPackageDetails.assertNumberOfFailures(0);
+        passingPackageDetails.assertNumberOfIgnored(0);
+        passingPackageDetails.assertDuration("1.000s");
+        passingPackageDetails.assertSuccessRate("100%");
+        passingPackageDetails.assertOverallResult("success")
+        passingPackageDetails.assertLinksTo("packages/org.gradle.passing.html");
 
-        def testClassFile = results(reportDir.file('org.gradle.Test.html'))
-        testClassFile.assertHasTests(1)
-        testClassFile.assertHasFailures(0)
-        testClassFile.assertHasSuccessRate(100)
-        testClassFile.assertHasTest('test1')
-        testClassFile.assertTestIgnored('test1')
+        def passingSubPackageDetails = index.packageDetails("org.gradle.passing.subpackage");
+        passingSubPackageDetails.assertNumberOfTests(1);
+        passingSubPackageDetails.assertNumberOfFailures(0);
+        passingSubPackageDetails.assertNumberOfIgnored(0);
+        passingSubPackageDetails.assertDuration("1.000s");
+        passingSubPackageDetails.assertSuccessRate("100%");
+        passingSubPackageDetails.assertOverallResult("success")
+        passingSubPackageDetails.assertLinksTo("packages/org.gradle.passing.subpackage.html");
+
+        def passedClassDetails = index.classDetails("org.gradle.passing.Passed");
+        passedClassDetails.assertNumberOfTests(1);
+        passedClassDetails.assertNumberOfFailures(0);
+        passedClassDetails.assertNumberOfIgnored(0);
+        passedClassDetails.assertDuration("1.000s");
+        passedClassDetails.assertSuccessRate("100%");
+        passedClassDetails.assertOverallResult("success")
+        passedClassDetails.assertLinksTo("classes/org.gradle.passing.Passed.html");
+
+        def alsoPassedClassDetails = index.classDetails("org.gradle.passing.subpackage.AlsoPassed");
+        alsoPassedClassDetails.assertNumberOfTests(1);
+        alsoPassedClassDetails.assertNumberOfFailures(0);
+        alsoPassedClassDetails.assertNumberOfIgnored(0);
+        alsoPassedClassDetails.assertDuration("1.000s");
+        alsoPassedClassDetails.assertSuccessRate("100%");
+        alsoPassedClassDetails.assertOverallResult("success")
+        alsoPassedClassDetails.assertLinksTo("classes/org.gradle.passing.subpackage.AlsoPassed.html");
+
+    }
+
+
+    def generatesReportWithAggregatedIndexPageForFailingBuild() {
+        given:
+        def testTestResults = failingBuildResults()
+
+        when:
+        report.generateReport(testTestResults, reportDir)
+
+        then:
+        def index = results(indexFile)
+        index.assertHasTests(7)
+        index.assertHasFailures(1)
+        index.assertHasIgnored(2)
+        index.assertHasSuccessRate(80)
+        index.assertHasDuration("7.000s")
+        index.assertHasOverallResult("failures")
+
+        index.assertHasFailedTest('classes/org.gradle.failing.SomeIgnoredSomePassedSomeFailed', 'failed')
+
+        def passingPackageDetails = index.packageDetails("org.gradle.passing");
+        passingPackageDetails.assertNumberOfTests(2);
+        passingPackageDetails.assertNumberOfFailures(0);
+        passingPackageDetails.assertNumberOfIgnored(0);
+        passingPackageDetails.assertDuration("2.000s");
+        passingPackageDetails.assertSuccessRate("100%");
+        passingPackageDetails.assertOverallResult("success")
+        passingPackageDetails.assertLinksTo("packages/org.gradle.passing.html");
+
+        def ignoringPackageDetails = index.packageDetails("org.gradle.ignoring");
+        ignoringPackageDetails.assertNumberOfTests(2);
+        ignoringPackageDetails.assertNumberOfFailures(0);
+        ignoringPackageDetails.assertNumberOfIgnored(1);
+        ignoringPackageDetails.assertDuration("2.000s");
+        ignoringPackageDetails.assertSuccessRate("100%");
+        ignoringPackageDetails.assertOverallResult("skipped")
+        ignoringPackageDetails.assertLinksTo("packages/org.gradle.ignoring.html");
+
+        def failingPackageDetails = index.packageDetails("org.gradle.failing");
+        failingPackageDetails.assertNumberOfTests(3);
+        failingPackageDetails.assertNumberOfFailures(1);
+        failingPackageDetails.assertNumberOfIgnored(1);
+        failingPackageDetails.assertDuration("3.000s");
+        failingPackageDetails.assertSuccessRate("50%");
+        failingPackageDetails.assertOverallResult("failures")
+        failingPackageDetails.assertLinksTo("packages/org.gradle.failing.html");
+
+        def passedClassDetails = index.classDetails("org.gradle.passing.Passed");
+        passedClassDetails.assertNumberOfTests(1);
+        passedClassDetails.assertNumberOfFailures(0);
+        passedClassDetails.assertNumberOfIgnored(0);
+        passedClassDetails.assertDuration("1.000s");
+        passedClassDetails.assertSuccessRate("100%");
+        passedClassDetails.assertOverallResult("success")
+        passedClassDetails.assertLinksTo("classes/org.gradle.passing.Passed.html");
+
+        def alsoPassedClassDetails = index.classDetails("org.gradle.passing.AlsoPassed");
+        alsoPassedClassDetails.assertNumberOfTests(1);
+        alsoPassedClassDetails.assertNumberOfFailures(0);
+        alsoPassedClassDetails.assertNumberOfIgnored(0);
+        alsoPassedClassDetails.assertDuration("1.000s");
+        alsoPassedClassDetails.assertSuccessRate("100%");
+        alsoPassedClassDetails.assertOverallResult("success")
+        alsoPassedClassDetails.assertLinksTo("classes/org.gradle.passing.AlsoPassed.html");
+
+        def someIgnoredClassDetails = index.classDetails("org.gradle.ignoring.SomeIgnoredSomePassed");
+        someIgnoredClassDetails.assertNumberOfTests(2);
+        someIgnoredClassDetails.assertNumberOfFailures(0);
+        someIgnoredClassDetails.assertNumberOfIgnored(1);
+        someIgnoredClassDetails.assertDuration("2.000s");
+        someIgnoredClassDetails.assertSuccessRate("100%");
+        someIgnoredClassDetails.assertOverallResult("skipped")
+        someIgnoredClassDetails.assertLinksTo("classes/org.gradle.ignoring.SomeIgnoredSomePassed.html");
+
+        def someFailedClassDetails = index.classDetails("org.gradle.failing.SomeIgnoredSomePassedSomeFailed");
+        someFailedClassDetails.assertNumberOfTests(3);
+        someFailedClassDetails.assertNumberOfFailures(1);
+        someFailedClassDetails.assertNumberOfIgnored(1);
+        someFailedClassDetails.assertDuration("3.000s");
+        someFailedClassDetails.assertSuccessRate("50%");
+        someFailedClassDetails.assertOverallResult("failures")
+        someFailedClassDetails.assertLinksTo("classes/org.gradle.failing.SomeIgnoredSomePassedSomeFailed.html");
+    }
+
+
+    def generatesReportWithAggregatedPackagePages() {
+        given:
+        def testTestResults = failingBuildResults()
+
+        when:
+        report.generateReport(testTestResults, reportDir)
+
+        then:
+        def passingPackageFile = results(reportDir.file('packages/org.gradle.passing.html'))
+        passingPackageFile.assertHasTests(2)
+        passingPackageFile.assertHasFailures(0)
+        passingPackageFile.assertHasSuccessRate(100)
+        passingPackageFile.assertHasDuration("2.000s")
+        passingPackageFile.assertHasLinkTo('../index', 'all')
+
+        def passedClassDetails = passingPackageFile.classDetails("Passed");
+        passedClassDetails.assertNumberOfTests(1);
+        passedClassDetails.assertNumberOfFailures(0);
+        passedClassDetails.assertNumberOfIgnored(0);
+        passedClassDetails.assertDuration("1.000s");
+        passedClassDetails.assertSuccessRate("100%");
+        passedClassDetails.assertOverallResult("success")
+        passedClassDetails.assertLinksTo("classes/org.gradle.passing.Passed.html");
+
+        def alsoPassedClassDetails = passingPackageFile.classDetails("AlsoPassed");
+        alsoPassedClassDetails.assertNumberOfTests(1);
+        alsoPassedClassDetails.assertNumberOfFailures(0);
+        alsoPassedClassDetails.assertNumberOfIgnored(0);
+        alsoPassedClassDetails.assertDuration("1.000s");
+        alsoPassedClassDetails.assertSuccessRate("100%");
+        alsoPassedClassDetails.assertOverallResult("success")
+        alsoPassedClassDetails.assertLinksTo("classes/org.gradle.passing.AlsoPassed.html");
+
+        def ignoredPackageFile = results(reportDir.file('packages/org.gradle.ignoring.html'))
+        ignoredPackageFile.assertHasTests(2)
+        ignoredPackageFile.assertHasFailures(0)
+        ignoredPackageFile.assertHasIgnored(1)
+        ignoredPackageFile.assertHasSuccessRate(100)
+        ignoredPackageFile.assertHasDuration("2.000s")
+        ignoredPackageFile.assertHasLinkTo('../index', 'all')
+
+        def someIgnoredClassDetails = ignoredPackageFile.classDetails("SomeIgnoredSomePassed");
+        someIgnoredClassDetails.assertNumberOfTests(2);
+        someIgnoredClassDetails.assertNumberOfFailures(0);
+        someIgnoredClassDetails.assertNumberOfIgnored(1);
+        someIgnoredClassDetails.assertDuration("2.000s");
+        someIgnoredClassDetails.assertSuccessRate("100%");
+        someIgnoredClassDetails.assertOverallResult("skipped")
+        someIgnoredClassDetails.assertLinksTo("classes/org.gradle.passing.SomeIgnoredSomePassed.html");
+
+        def failingPackageFile = results(reportDir.file('packages/org.gradle.failing.html'))
+        failingPackageFile.assertHasTests(3)
+        failingPackageFile.assertHasFailures(1)
+        failingPackageFile.assertHasIgnored(1)
+        failingPackageFile.assertHasSuccessRate(50)
+        failingPackageFile.assertHasDuration("3.000s")
+        failingPackageFile.assertHasFailedTest('../classes/org.gradle.failing.SomeIgnoredSomePassedSomeFailed', 'failed')
+        failingPackageFile.assertHasLinkTo('../index', 'all')
+
+        def someFailedClassDetails = failingPackageFile.classDetails("SomeIgnoredSomePassedSomeFailed");
+        someFailedClassDetails.assertNumberOfTests(3);
+        someFailedClassDetails.assertNumberOfFailures(1);
+        someFailedClassDetails.assertNumberOfIgnored(1);
+        someFailedClassDetails.assertDuration("3.000s");
+        someFailedClassDetails.assertSuccessRate("50%");
+        someFailedClassDetails.assertOverallResult("failures")
+        someFailedClassDetails.assertLinksTo("classes/org.gradle.failing.SomeIgnoredSomePassedSomeFailed.html");
+    }
+
+
+    def generatesReportWithClassPages() {
+        given:
+        def testTestResults = failingBuildResults()
+
+        when:
+        report.generateReport(testTestResults, reportDir)
+
+        then:
+        def passedClassFile = results(reportDir.file('classes/org.gradle.passing.Passed.html'))
+        passedClassFile.assertHasTests(1)
+        passedClassFile.assertHasFailures(0)
+        passedClassFile.assertHasIgnored(0)
+        passedClassFile.assertHasSuccessRate(100)
+        passedClassFile.assertHasDuration("1.000s")
+        passedClassFile.assertHasLinkTo('../index', 'all')
+        passedClassFile.assertHasLinkTo('../packages/org.gradle.passing', 'org.gradle.passing')
+
+        def passedTestDetails = passedClassFile.testDetails('passed')
+        passedTestDetails.assertDuration("1.000s");
+        passedTestDetails.assertResult("passed", "success");
+
+        def alsoPassedClassFile = results(reportDir.file('classes/org.gradle.passing.AlsoPassed.html'))
+        alsoPassedClassFile.assertHasTests(1)
+        alsoPassedClassFile.assertHasFailures(0)
+        alsoPassedClassFile.assertHasIgnored(0)
+        alsoPassedClassFile.assertHasSuccessRate(100)
+        alsoPassedClassFile.assertHasDuration("1.000s")
+        alsoPassedClassFile.assertHasLinkTo('../index', 'all')
+        alsoPassedClassFile.assertHasLinkTo('../packages/org.gradle.passing', 'org.gradle.passing')
+        alsoPassedClassFile.assertHasStandardOutput('this is\nstandard output')
+        alsoPassedClassFile.assertHasStandardError('this is\nstandard error')
+
+        def alsoPassedTestDetails = alsoPassedClassFile.testDetails('passedToo')
+        alsoPassedTestDetails.assertDuration("1.000s");
+        alsoPassedTestDetails.assertResult("passed", "success");
+
+        def someIgnoredClassFile = results(reportDir.file('classes/org.gradle.ignoring.SomeIgnoredSomePassed.html'))
+        someIgnoredClassFile.assertHasTests(2)
+        someIgnoredClassFile.assertHasFailures(0)
+        someIgnoredClassFile.assertHasIgnored(1)
+        someIgnoredClassFile.assertHasSuccessRate(100)
+        someIgnoredClassFile.assertHasDuration("2.000s")
+        someIgnoredClassFile.assertHasLinkTo('../index', 'all')
+        someIgnoredClassFile.assertHasLinkTo('../packages/org.gradle.ignoring', 'org.gradle.ignoring')
+
+        def passedInIgnoredTestDetails = someIgnoredClassFile.testDetails('passed')
+        passedInIgnoredTestDetails.assertDuration("1.000s");
+        passedInIgnoredTestDetails.assertResult("passed", "success");
+
+        def ignoredTestDetails = someIgnoredClassFile.testDetails('ignored')
+        ignoredTestDetails.assertDuration("-"); //is this right? it seems an ignored test may still have a duration?
+        ignoredTestDetails.assertResult("ignored", "skipped");
+
+        def failingClassFile = results(reportDir.file('classes/org.gradle.failing.SomeIgnoredSomePassedSomeFailed.html'))
+        failingClassFile.assertHasTests(3)
+        failingClassFile.assertHasFailures(1)
+        failingClassFile.assertHasIgnored(1)
+        failingClassFile.assertHasSuccessRate(50)
+        failingClassFile.assertHasDuration("3.000s")
+        failingClassFile.assertHasLinkTo('../index', 'all')
+        failingClassFile.assertHasLinkTo('../packages/org.gradle.failing', 'org.gradle.failing')
+
+        def passedInFailingTestDetails = failingClassFile.testDetails('passed')
+        passedInFailingTestDetails.assertDuration("1.000s");
+        passedInFailingTestDetails.assertResult("passed", "success");
+
+        def ignoredInFailingTestDetails = failingClassFile.testDetails('ignored')
+        ignoredInFailingTestDetails.assertDuration("-"); //is this right? it seems an ignored test may still have a duration?
+        ignoredInFailingTestDetails.assertResult("ignored", "skipped");
+
+        def failingTestDetails = failingClassFile.testDetails('failed')
+        failingTestDetails.assertDuration("1.000s");
+        failingTestDetails.assertResult("failed", "failures");
+
+        failingClassFile.assertHasFailure('failed', 'something failed\n\nthis is the failure\nat someClass\n')
     }
 
     def reportsOnClassesInDefaultPackage() {
-        resultsDir.file('TEST-someClass.xml') << '''
-<testsuite name="Test">
-    <testcase classname="Test" name="test1" time="0">
-    </testcase>
-</testsuite>
-'''
-
+        given:
+        def testTestResults = buildResults {
+            testClassResult("Test") {
+                testcase("test1") {
+                    duration = 0
+                }
+            }
+        }
         when:
-        report.generateReport()
+        report.generateReport(testTestResults, reportDir)
 
         then:
         def index = results(indexFile)
-        index.assertHasLinkTo('default-package')
-        index.assertHasLinkTo('Test')
+        index.assertHasLinkTo('packages/default-package', 'default-package')
+        index.assertHasLinkTo('classes/Test', 'Test')
 
-        def packageFile = results(reportDir.file('default-package.html'))
-        packageFile.assertHasLinkTo('Test')
+        def packageFile = results(reportDir.file('packages/default-package.html'))
+        packageFile.assertHasLinkTo('../classes/Test', 'Test')
     }
 
     def escapesHtmlContentInReport() {
-        resultsDir.file('TEST-someClass.xml') << '''
-<testsuite name="org.gradle.Test">
-    <testcase classname="org.gradle.Test" name="test1 &lt; test2" time="0">
-        <failure message="something failed">&lt;a failure&gt;</failure>
-    </testcase>
-    <system-out>&lt;/html> &amp; </system-out>
-    <system-err>&lt;/div> &amp; </system-err>
-</testsuite>
-'''
+        given:
+        def testTestResults = buildResults {
+            testClassResult("org.gradle.Test") {
+                testcase("test1 < test2") {
+                    failure("<a failure>", "<a failure>")
 
+                    stdout "</html> & "
+                    stderr "</div> & "
+                }
+            }
+        }
         when:
-        report.generateReport()
+        report.generateReport(testTestResults, reportDir)
 
         then:
-        def testClassFile = results(reportDir.file('org.gradle.Test.html'))
+        def testClassFile = results(reportDir.file('classes/org.gradle.Test.html'))
         testClassFile.assertHasTest('test1 < test2')
         testClassFile.assertHasFailure('test1 < test2', '<a failure>')
         testClassFile.assertHasStandardOutput('</html> & ')
@@ -220,157 +441,33 @@ message">this is a failure.</failure></testcase>
     }
 
     def encodesUnicodeCharactersInReport() {
-        resultsDir.file('TEST-someClass.xml') << '''
-<testsuite name="org.gradle.Test">
-    <testcase classname="org.gradle.Test" name="&#x0107;" time="0"/>
-    <system-out>out:&#x0256;</system-out>
-    <system-err>err:&#x0102;</system-err>
-</testsuite>
-'''
-
+        given:
+        def testTestResults = buildResults {
+            testClassResult("org.gradle.Test") {
+                testcase('\u0107') {
+                    duration = 0
+                    stdout "out:\u0256"
+                    stderr "err:\u0102"
+                }
+            }
+        }
         when:
-        report.generateReport()
+        report.generateReport(testTestResults, reportDir)
 
         then:
-        def testClassFile = results(reportDir.file('org.gradle.Test.html'))
+        def testClassFile = results(reportDir.file('classes/org.gradle.Test.html'))
         testClassFile.assertHasTest('\u0107')
         testClassFile.assertHasStandardOutput('out:\u0256')
         testClassFile.assertHasStandardError('err:\u0102')
     }
 
-    def ignoresFilesWhichAreNotResultFiles() {
-        resultsDir.file('TEST-someClass.xml') << '''
-<testsuite name="org.gradle.Test">
-    <testcase classname="org.gradle.Test" name="test1" time="0"></testcase>
-</testsuite>
-'''
-        resultsDir.file('TESTS-broken.xml') << 'broken'
-
-        when:
-        report.generateReport()
-
-        then:
-        results(indexFile).assertHasTests(1)
-    }
-
     def results(TestFile file) {
-        return new TestResultsFixture(file)
+        return new HtmlTestResultsFixture(file)
+    }
+
+    def emptyResultSet() {
+        _ * testResultProvider.visitClasses(_)
     }
 }
 
-class TestResultsFixture {
-    final TestFile file
-    Node content
 
-    TestResultsFixture(TestFile file) {
-        this.file = file
-        file.assertIsFile()
-        def text = file.getText('utf-8').readLines()
-        def withoutDocType = text.subList(1, text.size()).join('\n')
-        content = new XmlParser(new SAXParser()).parseText(withoutDocType)
-    }
-
-    void assertHasTests(int tests) {
-        Node testDiv = content.depthFirst().find { it.'@id' == 'tests' }
-        assert testDiv != null
-        Node counter = testDiv.DIV.find { it.'@class' == 'counter' }
-        assert counter != null
-        assert counter.text() == tests as String
-    }
-
-    void assertHasFailures(int tests) {
-        Node testDiv = content.depthFirst().find { it.'@id' == 'failures' }
-        assert testDiv != null
-        Node counter = testDiv.DIV.find { it.'@class' == 'counter' }
-        assert counter != null
-        assert counter.text() == tests as String
-    }
-
-    void assertHasDuration(String duration) {
-        Node testDiv = content.depthFirst().find { it.'@id' == 'duration' }
-        assert testDiv != null
-        Node counter = testDiv.DIV.find { it.'@class' == 'counter' }
-        assert counter != null
-        assert counter.text() == duration
-    }
-
-    void assertHasNoDuration() {
-        Node testDiv = content.depthFirst().find { it.'@id' == 'duration' }
-        assert testDiv != null
-        Node counter = testDiv.DIV.find { it.'@class' == 'counter' }
-        assert counter != null
-        assert counter.text() == '-'
-    }
-    
-    void assertHasSuccessRate(int rate) {
-        Node testDiv = content.depthFirst().find { it.'@id' == 'successRate' }
-        assert testDiv != null
-        Node counter = testDiv.DIV.find { it.'@class' == 'percent' }
-        assert counter != null
-        assert counter.text() == "${rate}%"
-    }
-
-    void assertHasNoSuccessRate() {
-        Node testDiv = content.depthFirst().find { it.'@id' == 'successRate' }
-        assert testDiv != null
-        Node counter = testDiv.DIV.find { it.'@class' == 'percent' }
-        assert counter != null
-        assert counter.text() == '-'
-    }
-
-    void assertHasNoNavLinks() {
-        assert findTab('Packages') == null
-    }
-
-    void assertHasLinkTo(String target, String display = target) {
-        assert content.depthFirst().find { it.name() == 'A' && it.'@href' == "${target}.html" && it.text() == display }
-    }
-
-    void assertHasFailedTest(String className, String testName) {
-        def tab = findTab('Failed tests')
-        assert tab != null
-        assert tab.depthFirst().find { it.name() == 'A' && it.'@href' == "${className}.html#${testName}" && it.text() == testName }
-    }
-
-    void assertHasTest(String testName) {
-        assert findTestDetails(testName)
-    }
-
-    void assertTestIgnored(String testName) {
-        def row = findTestDetails(testName)
-        assert row.TD[2].text() == 'ignored'
-    }
-
-    void assertHasFailure(String testName, String stackTrace) {
-        def detailsRow = findTestDetails(testName)
-        assert detailsRow.TD[2].text() == 'failed'
-
-        def tab = findTab('Failed tests')
-        assert tab != null
-        def pre = tab.depthFirst().findAll { it.name() == 'PRE' }
-        assert pre.find { it.text() == stackTrace.trim() }
-    }
-
-    private def findTestDetails(String testName) {
-        def tab = findTab('Tests')
-        def anchor = tab.depthFirst().find { it.name() == 'TD' && it.text() == testName }
-        return anchor?.parent()
-    }
-
-    void assertHasStandardOutput(String stdout) {
-        def tab = findTab('Standard output')
-        assert tab != null
-        assert tab.SPAN[0].PRE[0].text() == stdout.trim()
-    }
-
-    void assertHasStandardError(String stderr) {
-        def tab = findTab('Standard error')
-        assert tab != null
-        assert tab.SPAN[0].PRE[0].text() == stderr.trim()
-    }
-
-    private def findTab(String title) {
-        def tab = content.depthFirst().find { it.name() == 'DIV' && it.'@class' == 'tab' && it.H2[0].text() == title }
-        return tab
-    }
-}

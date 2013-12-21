@@ -31,8 +31,6 @@ import java.util.List;
 /**
  * This is a tabbed pane meant to handle several tabs of gradle-related things. To use this, instantiate it, place it some Swing container (dialog, frame), then call aboutToShow() before you show the
  * parent container. You can also add your own tabs to this (just call addGradleTab before calling aboutToShow()). When you shut down, call aboutToClose() before doing so.
- *
- * @author mhunsicker
  */
 public class MainGradlePanel extends JPanel {
     private static final String CURRENT_TAB = "current-tab";

@@ -30,8 +30,6 @@ package org.gradle.api.artifacts.maven;
  *
  * This call set the repository object and also returns an instance of this object. If you use 'snapshotRepository'
  * instead of repository, the snapshot repository is build.
- *
- * @author Hans Dockter
  * @see MavenDeployer
  */
 public interface GroovyMavenDeployer extends MavenDeployer {

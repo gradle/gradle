@@ -15,6 +15,10 @@
  */
 package org.gradle.api.file;
 
+import org.gradle.api.Incubating;
+import org.gradle.internal.HasInternalProtocol;
+import org.gradle.api.NonExtensible;
+
 /**
  * <p>Provides details about a file or directory about to be copied, and allows some aspects of the destination file to
  * be modified.</p>
@@ -22,6 +26,8 @@ package org.gradle.api.file;
  * <p>Using this interface, you can change the destination path of the file, filter the content of the file, or exclude
  * the file from the result entirely.</p>
  */
+@HasInternalProtocol
+@NonExtensible
 public interface FileCopyDetails extends FileTreeElement, ContentFilterable {
     /**
      * Excludes this file from the copy.
@@ -55,4 +61,22 @@ public interface FileCopyDetails extends FileTreeElement, ContentFilterable {
      * @param mode the Unix permissions, e.g. {@code 0644}.
      */
     void setMode(int mode);
+
+    /**
+     * The strategy to use if there is already a file at this file's destination.
+     */
+    @Incubating
+    void setDuplicatesStrategy(DuplicatesStrategy strategy);
+
+    /**
+     * The strategy to use if there is already a file at this file's destination.
+     * <p>
+     * The value can be set with a case insensitive string of the enum value (e.g. {@code 'exclude'} for {@link DuplicatesStrategy#EXCLUDE}).
+     *
+     * @see DuplicatesStrategy
+     * @return the strategy to use for this file.
+     */
+    @Incubating
+    DuplicatesStrategy getDuplicatesStrategy();
+
 }

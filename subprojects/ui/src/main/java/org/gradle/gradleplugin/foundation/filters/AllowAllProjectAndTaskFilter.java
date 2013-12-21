@@ -20,8 +20,6 @@ import org.gradle.foundation.TaskView;
 
 /**
  * This filter actually doesn't filter. It allows everything through.
- *
- * @author mhunsicker
  */
 public class AllowAllProjectAndTaskFilter implements ProjectAndTaskFilter {
     /**

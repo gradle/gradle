@@ -24,8 +24,6 @@ import java.util.Map;
  * Convention}, and the properties and methods of the convention object become available as properties and methods of
  * the object which the convention is associated to. A convention object is simply a POJO or POGO. Usually, a {@code
  * Convention} is used by plugins to extend a {@link org.gradle.api.Project} or a {@link org.gradle.api.Task}.</p>
- *
- * @author Hans Dockter
  */
 public interface Convention extends ExtensionContainer {
 

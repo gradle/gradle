@@ -26,8 +26,6 @@ import org.gradle.api.tasks.javadoc.Groovydoc;
 /**
  * <p>A {@link Plugin} which extends the {@link JavaPlugin} to provide support for compiling and documenting Groovy
  * source files.</p>
- *
- * @author Hans Dockter
  */
 public class GroovyPlugin implements Plugin<Project> {
     public static final String GROOVYDOC_TASK_NAME = "groovydoc";
@@ -46,7 +44,7 @@ public class GroovyPlugin implements Plugin<Project> {
     }
 
     private void configureGroovydoc(final Project project) {
-        Groovydoc groovyDoc = project.getTasks().add(GROOVYDOC_TASK_NAME, Groovydoc.class);
+        Groovydoc groovyDoc = project.getTasks().create(GROOVYDOC_TASK_NAME, Groovydoc.class);
         groovyDoc.setDescription("Generates Groovydoc API documentation for the main source code.");
         groovyDoc.setGroup(JavaBasePlugin.DOCUMENTATION_GROUP);
 

@@ -21,9 +21,6 @@ import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import java.io.File;
 import java.util.Date;
 
-/**
- * @author Hans Dockter
- */
 public class DefaultPublishArtifact extends AbstractPublishArtifact implements ConfigurablePublishArtifact {
     private String name;
     private String extension;

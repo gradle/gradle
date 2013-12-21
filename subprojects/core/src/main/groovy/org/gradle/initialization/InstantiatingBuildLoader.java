@@ -25,9 +25,6 @@ import org.gradle.api.internal.project.ProjectInternal;
 
 import java.io.File;
 
-/**
- * @author Hans Dockter
- */
 public class InstantiatingBuildLoader implements BuildLoader {
     private final IProjectFactory projectFactory;
 

@@ -18,9 +18,6 @@ package org.gradle.initialization;
 import java.io.File;
 import java.util.Map;
 
-/**
- * @author Hans Dockter
- */
 public interface IGradlePropertiesLoader {
     public static final String SYSTEM_PROJECT_PROPERTIES_PREFIX = "org.gradle.project.";
 

@@ -20,6 +20,7 @@ import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.internal.plugins.ExtraPropertiesDynamicObjectAdapter;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
+import org.gradle.internal.reflect.Instantiator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,7 +39,6 @@ public class ExtensibleDynamicObject extends CompositeDynamicObject implements H
         BeforeConvention, AfterConvention
     }
 
-    private final Object delegate;
     private final AbstractDynamicObject dynamicDelegate;
     private DynamicObject parent;
     private Convention convention;
@@ -67,7 +67,6 @@ public class ExtensibleDynamicObject extends CompositeDynamicObject implements H
     }
 
     public ExtensibleDynamicObject(Object delegate, AbstractDynamicObject dynamicDelegate, Convention convention) {
-        this.delegate = delegate;
         this.dynamicDelegate = dynamicDelegate;
         this.convention = convention;
         this.extraPropertiesDynamicObject = new ExtraPropertiesDynamicObjectAdapter(delegate, this, convention.getExtraProperties());
@@ -189,6 +188,14 @@ public class ExtensibleDynamicObject extends CompositeDynamicObject implements H
 
         public Object invokeMethod(String name, Object... arguments) {
             return snapshotInheritable().invokeMethod(name, arguments);
+        }
+
+        public boolean isMayImplementMissingMethods() {
+            return snapshotInheritable().isMayImplementMissingMethods();
+        }
+
+        public boolean isMayImplementMissingProperties() {
+            return snapshotInheritable().isMayImplementMissingProperties();
         }
     }
 

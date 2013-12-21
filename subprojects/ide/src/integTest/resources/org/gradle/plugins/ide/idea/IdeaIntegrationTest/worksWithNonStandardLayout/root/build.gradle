@@ -4,3 +4,5 @@ allprojects {
 
     sourceCompatibility = 1.5
 }
+
+idea.project.jdkName = '1.7'

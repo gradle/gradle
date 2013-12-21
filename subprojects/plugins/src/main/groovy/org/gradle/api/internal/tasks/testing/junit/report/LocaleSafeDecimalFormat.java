@@ -20,9 +20,6 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.ParseException;
 
-/**
- * @author Szczepan Faber, @date: 09.03.11
- */
 public class LocaleSafeDecimalFormat {
 
     /**

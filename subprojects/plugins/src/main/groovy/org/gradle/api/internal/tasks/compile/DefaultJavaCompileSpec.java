@@ -22,12 +22,15 @@ import java.io.File;
 
 public class DefaultJavaCompileSpec extends DefaultJvmLanguageCompileSpec implements JavaCompileSpec {
     private String sourceCompatibility;
-    private String targetCompatibility;
     private File dependencyCacheDir;
-    private final CompileOptions compileOptions = new CompileOptions();
+    private CompileOptions compileOptions;
 
     public CompileOptions getCompileOptions() {
         return compileOptions;
+    }
+
+    public void setCompileOptions(CompileOptions compileOptions) {
+        this.compileOptions = compileOptions;
     }
 
     public File getDependencyCacheDir() {
@@ -44,13 +47,5 @@ public class DefaultJavaCompileSpec extends DefaultJvmLanguageCompileSpec implem
 
     public void setSourceCompatibility(String sourceCompatibility) {
         this.sourceCompatibility = sourceCompatibility;
-    }
-
-    public String getTargetCompatibility() {
-        return targetCompatibility;
-    }
-
-    public void setTargetCompatibility(String targetCompatibility) {
-        this.targetCompatibility = targetCompatibility;
     }
 }

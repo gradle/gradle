@@ -1,0 +1,39 @@
+<section>
+    <section>
+        <title>Properties</title>
+        <table>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                    <td>Default with <literal>compare-gradle-builds</literal> plugin</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>projectDir</td>
+                <td/>
+            </tr>
+            <tr>
+                <td>gradleVersion</td>
+                <td/>
+            </tr>
+            <tr>
+                <td>tasks</td>
+                <td/>
+            </tr>
+            <tr>
+                <td>arguments</td>
+                <td/>
+            </tr>
+        </table>
+    </section>
+    <section>
+        <title>Methods</title>
+        <table>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                </tr>
+            </thead>
+        </table>
+    </section>
+</section>

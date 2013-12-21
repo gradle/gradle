@@ -1,0 +1,9 @@
+<ivy-module version="2.0">
+    <info organisation="sea.fish"
+          module="tuna"
+          revision="1.4"
+          status="release" />
+    <publications>
+        <artifact />
+    </publications>
+</ivy-module>

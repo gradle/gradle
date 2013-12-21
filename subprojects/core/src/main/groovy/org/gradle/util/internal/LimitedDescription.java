@@ -23,8 +23,6 @@ import java.util.List;
 
 /**
  * Discards old entries when current count is over the limit.
- * <p>
- * by Szczepan Faber, created at: 2/28/12
  */
 public class LimitedDescription {
 

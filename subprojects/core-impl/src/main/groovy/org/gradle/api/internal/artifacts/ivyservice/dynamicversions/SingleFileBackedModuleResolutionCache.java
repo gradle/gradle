@@ -15,30 +15,30 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.dynamicversions;
 
-import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
+import org.gradle.api.internal.artifacts.ModuleVersionIdentifierSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleVersionRepository;
 import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.util.TimeProvider;
+import org.gradle.messaging.serialize.Decoder;
+import org.gradle.messaging.serialize.Encoder;
+import org.gradle.messaging.serialize.Serializer;
+import org.gradle.util.BuildCommencedTimeProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.io.Serializable;
 
 public class SingleFileBackedModuleResolutionCache implements ModuleResolutionCache {
     private static final Logger LOGGER = LoggerFactory.getLogger(SingleFileBackedModuleResolutionCache.class);
 
-    private final TimeProvider timeProvider;
-    private final ArtifactCacheMetaData cacheMetadata;
+    private final BuildCommencedTimeProvider timeProvider;
     private final CacheLockingManager cacheLockingManager;
     private PersistentIndexedCache<RevisionKey, ModuleResolutionCacheEntry> cache;
 
-    public SingleFileBackedModuleResolutionCache(ArtifactCacheMetaData cacheMetadata, TimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
+    public SingleFileBackedModuleResolutionCache(BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
         this.timeProvider = timeProvider;
         this.cacheLockingManager = cacheLockingManager;
-        this.cacheMetadata = cacheMetadata;
     }
 
     private PersistentIndexedCache<RevisionKey, ModuleResolutionCacheEntry> getCache() {
@@ -49,12 +49,11 @@ public class SingleFileBackedModuleResolutionCache implements ModuleResolutionCa
     }
 
     private PersistentIndexedCache<RevisionKey, ModuleResolutionCacheEntry> initCache() {
-        File dynamicRevisionsFile = new File(cacheMetadata.getCacheDir(), "dynamic-revisions.bin");
-        return cacheLockingManager.createCache(dynamicRevisionsFile, RevisionKey.class, ModuleResolutionCacheEntry.class);
+        return cacheLockingManager.createCache("dynamic-revisions.bin", new RevisionKeySerializer(), new ModuleResolutionCacheEntrySerializer());
     }
 
-    public void cacheModuleResolution(ModuleVersionRepository repository, ModuleRevisionId requestedVersion, ModuleRevisionId resolvedVersion) {
-        if (requestedVersion.equals(resolvedVersion)) {
+    public void cacheModuleResolution(ModuleVersionRepository repository, ModuleVersionSelector requestedVersion, ModuleVersionIdentifier resolvedVersion) {
+        if (requestedVersion.matchesStrictly(resolvedVersion)) {
             return;
         }
 
@@ -62,29 +61,29 @@ public class SingleFileBackedModuleResolutionCache implements ModuleResolutionCa
         getCache().put(createKey(repository, requestedVersion), createEntry(resolvedVersion));
     }
 
-    public CachedModuleResolution getCachedModuleResolution(ModuleVersionRepository repository, ModuleRevisionId moduleId) {
-        ModuleResolutionCacheEntry moduleResolutionCacheEntry = getCache().get(createKey(repository, moduleId));
+    public CachedModuleResolution getCachedModuleResolution(ModuleVersionRepository repository, ModuleVersionSelector requestedVersion) {
+        ModuleResolutionCacheEntry moduleResolutionCacheEntry = getCache().get(createKey(repository, requestedVersion));
         if (moduleResolutionCacheEntry == null) {
             return null;
         }
-        return new DefaultCachedModuleResolution(moduleId, moduleResolutionCacheEntry, timeProvider);
+        return new DefaultCachedModuleResolution(requestedVersion, moduleResolutionCacheEntry, timeProvider);
     }
 
-    private RevisionKey createKey(ModuleVersionRepository repository, ModuleRevisionId revisionId) {
-        return new RevisionKey(repository, revisionId);
+    private RevisionKey createKey(ModuleVersionRepository repository, ModuleVersionSelector requestedVersion) {
+        return new RevisionKey(repository.getId(), requestedVersion);
     }
 
-    private ModuleResolutionCacheEntry createEntry(ModuleRevisionId revisionId) {
-        return new ModuleResolutionCacheEntry(revisionId, timeProvider);
+    private ModuleResolutionCacheEntry createEntry(ModuleVersionIdentifier moduleVersionIdentifier) {
+        return new ModuleResolutionCacheEntry(moduleVersionIdentifier, timeProvider.getCurrentTime());
     }
 
-    private static class RevisionKey implements Serializable {
-        private final String resolverId;
-        private final String revisionId;
+    private static class RevisionKey {
+        private final String repositoryId;
+        private final ModuleVersionSelector requestedVersion;
 
-        private RevisionKey(ModuleVersionRepository repository, ModuleRevisionId revision) {
-            this.resolverId = repository.getId();
-            this.revisionId = revision.encodeToString();
+        private RevisionKey(String repositoryId, ModuleVersionSelector requestedVersion) {
+            this.repositoryId = repositoryId;
+            this.requestedVersion = requestedVersion;
         }
 
         @Override
@@ -93,12 +92,44 @@ public class SingleFileBackedModuleResolutionCache implements ModuleResolutionCa
                 return false;
             }
             RevisionKey other = (RevisionKey) o;
-            return resolverId.equals(other.resolverId) && revisionId.equals(other.revisionId);
+            return repositoryId.equals(other.repositoryId) && requestedVersion.equals(other.requestedVersion);
         }
 
         @Override
         public int hashCode() {
-            return resolverId.hashCode() ^ revisionId.hashCode();
+            return repositoryId.hashCode() ^ requestedVersion.hashCode();
+        }
+    }
+
+    private static class RevisionKeySerializer implements Serializer<RevisionKey> {
+        public void write(Encoder encoder, RevisionKey value) throws Exception {
+            encoder.writeString(value.repositoryId);
+            encoder.writeString(value.requestedVersion.getGroup());
+            encoder.writeString(value.requestedVersion.getName());
+            encoder.writeString(value.requestedVersion.getVersion());
+        }
+
+        public RevisionKey read(Decoder decoder) throws Exception {
+            String resolverId = decoder.readString();
+            String group = decoder.readString();
+            String module = decoder.readString();
+            String version = decoder.readString();
+            return new RevisionKey(resolverId, DefaultModuleVersionSelector.newSelector(group, module, version));
+        }
+    }
+
+    private static class ModuleResolutionCacheEntrySerializer implements Serializer<ModuleResolutionCacheEntry> {
+        private final ModuleVersionIdentifierSerializer identifierSerializer = new ModuleVersionIdentifierSerializer();
+
+        public void write(Encoder encoder, ModuleResolutionCacheEntry value) throws Exception {
+            identifierSerializer.write(encoder, value.moduleVersionIdentifier);
+            encoder.writeLong(value.createTimestamp);
+        }
+
+        public ModuleResolutionCacheEntry read(Decoder decoder) throws Exception {
+            ModuleVersionIdentifier identifier = identifierSerializer.read(decoder);
+            long createTimestamp = decoder.readLong();
+            return new ModuleResolutionCacheEntry(identifier, createTimestamp);
         }
     }
 

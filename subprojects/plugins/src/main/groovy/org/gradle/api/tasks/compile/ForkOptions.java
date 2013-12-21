@@ -19,94 +19,56 @@ package org.gradle.api.tasks.compile;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-
-import java.util.List;
-import java.util.Map;
-
 /**
- * Fork options for Java compilation.
- *
- * @author Hans Dockter
+ * Fork options for Java compilation. Only take effect if {@code CompileOptions.fork} is {@code true}.
  */
-public class ForkOptions extends AbstractOptions {
+public class ForkOptions extends BaseForkOptions {
     private static final long serialVersionUID = 0;
 
-    /**
-     * The executable to use to fork the compiler.
-     */
-    @Input @Optional
     private String executable;
 
+    private String tempDir;
+
+    /**
+     * Returns the compiler executable to be used. If set,
+     * a new compiler process will be forked for every compile task.
+     * Defaults to {@code null}.
+     */
+    @Input
+    @Optional
     public String getExecutable() {
         return executable;
     }
 
+    /**
+     * Sets the compiler executable to be used. If set,
+     * a new compiler process will be forked for every compile task.
+     * Defaults to {@code null}.
+     */
     public void setExecutable(String executable) {
         this.executable = executable;
     }
 
     /**
-     * The initial heap size for the compiler process.
+     * Returns the directory used for temporary files that may be created to pass
+     * command line arguments to the compiler process. Defaults to {@code null},
+     * in which case the directory will be chosen automatically.
      */
-    private String memoryInitialSize;
-
-    public String getMemoryInitialSize() {
-        return memoryInitialSize;
-    }
-
-    public void setMemoryInitialSize(String memoryInitialSize) {
-        this.memoryInitialSize = memoryInitialSize;
-    }
-
-    /**
-     * The maximum heap size for the compiler process.
-     */
-    private String memoryMaximumSize;
-
-    public String getMemoryMaximumSize() {
-        return memoryMaximumSize;
-    }
-
-    public void setMemoryMaximumSize(String memoryMaximumSize) {
-        this.memoryMaximumSize = memoryMaximumSize;
-    }
-
-    /**
-   * Directory for temporary files. Only used if compilation is done by an
-   * underlying Ant javac task, happens in a forked process, and the command
-   * line args length exceeds 4k. Defaults to <tt>java.io.tmpdir</tt>.
-   */
-    private String tempDir;
-
     public String getTempDir() {
         return tempDir;
     }
 
+    /**
+     * Sets the directory used for temporary files that may be created to pass
+     * command line arguments to the compiler process. Defaults to {@code null},
+     * in which case the directory will be chosen automatically.
+     */
     public void setTempDir(String tempDir) {
         this.tempDir = tempDir;
     }
 
-    /**
-     * Any additional JVM arguments for the compiler process.
-     */
-    private List<String> jvmArgs = Lists.newArrayList();
-
-    public List<String> getJvmArgs() {
-        return jvmArgs;
-    }
-
-    public void setJvmArgs(List<String> jvmArgs) {
-        this.jvmArgs = jvmArgs;
-    }
-
-    public Map<String, String> fieldName2AntMap() {
-        return ImmutableMap.of("tempDir", "tempdir");
-    }
-
-    public List<String> excludedFieldsFromOptionMap() {
-        return ImmutableList.of("jvmArgs", "useAntForking", "useCompilerDaemon");
+    @Override
+    protected boolean excludeFromAntProperties(String fieldName) {
+        return fieldName.equals("jvmArgs");
     }
 }

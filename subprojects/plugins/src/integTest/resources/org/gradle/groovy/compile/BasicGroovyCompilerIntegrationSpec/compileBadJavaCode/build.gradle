@@ -1,0 +1,5 @@
+apply plugin: "groovy"
+
+repositories {
+    mavenCentral()
+}

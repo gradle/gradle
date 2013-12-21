@@ -15,34 +15,56 @@
  */
 package org.gradle.api.internal.externalresource.transport.http;
 
-import org.apache.ivy.core.cache.RepositoryCacheManager;
-import org.apache.ivy.plugins.resolver.AbstractResolver;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
-import org.gradle.api.internal.artifacts.repositories.DefaultExternalResourceRepository;
-import org.gradle.api.internal.artifacts.repositories.ExternalResourceRepository;
+import org.gradle.api.internal.artifacts.repositories.cachemanager.RepositoryArtifactCache;
+import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
+import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex;
+import org.gradle.api.internal.externalresource.transfer.DefaultCacheAwareExternalResourceAccessor;
+import org.gradle.api.internal.externalresource.transfer.ProgressLoggingExternalResourceAccessor;
+import org.gradle.api.internal.externalresource.transfer.ProgressLoggingExternalResourceUploader;
+import org.gradle.api.internal.externalresource.transport.DefaultExternalResourceRepository;
+import org.gradle.api.internal.externalresource.transport.ExternalResourceRepository;
+import org.gradle.api.internal.file.TemporaryFileProvider;
+import org.gradle.logging.ProgressLoggerFactory;
+import org.gradle.util.BuildCommencedTimeProvider;
 
 import java.net.URI;
 
 public class HttpTransport implements RepositoryTransport {
     private final String name;
-    private final PasswordCredentials credentials;
-    private final RepositoryCacheManager repositoryCacheManager;
+    private final RepositoryArtifactCache repositoryCacheManager;
+    private final ExternalResourceRepository repository;
 
-    public HttpTransport(String name, PasswordCredentials credentials, RepositoryCacheManager repositoryCacheManager) {
+    public HttpTransport(String name, PasswordCredentials credentials, RepositoryArtifactCache repositoryCacheManager,
+                         ProgressLoggerFactory progressLoggerFactory, TemporaryFileProvider temporaryFileProvider,
+                         CachedExternalResourceIndex<String> cachedExternalResourceIndex, BuildCommencedTimeProvider timeProvider) {
         this.name = name;
-        this.credentials = credentials;
         this.repositoryCacheManager = repositoryCacheManager;
+        repository = createRepository(credentials, progressLoggerFactory, temporaryFileProvider, cachedExternalResourceIndex, timeProvider);
     }
 
     public ExternalResourceRepository getRepository() {
+        return repository;
+    }
+
+    private ExternalResourceRepository createRepository(PasswordCredentials credentials, ProgressLoggerFactory progressLoggerFactory,
+                                                        TemporaryFileProvider temporaryFileProvider, CachedExternalResourceIndex<String> cachedExternalResourceIndex, BuildCommencedTimeProvider timeProvider) {
         HttpClientHelper http = new HttpClientHelper(new DefaultHttpSettings(credentials));
+        HttpResourceAccessor accessor = new HttpResourceAccessor(http);
+        HttpResourceUploader uploader = new HttpResourceUploader(http);
+        ProgressLoggingExternalResourceAccessor loggingAccessor = new ProgressLoggingExternalResourceAccessor(accessor, progressLoggerFactory);
         return new DefaultExternalResourceRepository(
-                name, new HttpResourceAccessor(http), new HttpResourceUploader(http), new HttpResourceLister()
+                name,
+                accessor,
+                new ProgressLoggingExternalResourceUploader(uploader, progressLoggerFactory),
+                new HttpResourceLister(accessor),
+                temporaryFileProvider,
+                new DefaultCacheAwareExternalResourceAccessor(loggingAccessor, cachedExternalResourceIndex, timeProvider)
         );
     }
 
-    public void configureCacheManager(AbstractResolver resolver) {
+    public void configureCacheManager(ExternalResourceResolver resolver) {
         resolver.setRepositoryCacheManager(repositoryCacheManager);
     }
 

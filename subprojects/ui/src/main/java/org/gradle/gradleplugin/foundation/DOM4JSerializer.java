@@ -32,8 +32,6 @@ import java.io.*;
 
 /**
  * This saves and reads thing to and from DOM structures.
- *
- * @author mhunsicker
  */
 public class DOM4JSerializer {
     private static final Logger LOGGER = Logging.getLogger(DOM4JSerializer.class);

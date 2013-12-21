@@ -17,9 +17,6 @@ package org.gradle.plugins.ide.idea.model
 
 import spock.lang.Specification
 
-/**
- * @author Hans Dockter
- */
 class ModuleLibraryTest extends Specification {
     def equality() {
         expect:

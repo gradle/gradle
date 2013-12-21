@@ -17,6 +17,7 @@ package org.gradle.initialization;
 
 import org.gradle.api.Project;
 import org.gradle.api.initialization.ProjectDescriptor;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.Path;
@@ -25,22 +26,21 @@ import java.io.File;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-/**
- * @author Hans Dockter
- */
 public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdentifier {
     private String name;
+    private final FileResolver fileResolver;
     private File dir;
     private DefaultProjectDescriptor parent;
     private Set<ProjectDescriptor> children = new LinkedHashSet<ProjectDescriptor>();
-    private IProjectDescriptorRegistry projectDescriptorRegistry;
+    private ProjectDescriptorRegistry projectDescriptorRegistry;
     private Path path;
     private String buildFileName = Project.DEFAULT_BUILD_FILE;
 
     public DefaultProjectDescriptor(DefaultProjectDescriptor parent, String name, File dir,
-                                    IProjectDescriptorRegistry projectDescriptorRegistry) {
+                                    ProjectDescriptorRegistry projectDescriptorRegistry, FileResolver fileResolver) {
         this.parent = parent;
         this.name = name;
+        this.fileResolver = fileResolver;
         this.dir = GFileUtils.canonicalise(dir);
         this.projectDescriptorRegistry = projectDescriptorRegistry;
         this.path = path(name);
@@ -80,7 +80,7 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
     }
 
     public void setProjectDir(File dir) {
-        this.dir = GFileUtils.canonicalise(dir);
+        this.dir = fileResolver.resolve(dir);
     }
 
     public DefaultProjectDescriptor getParent() {
@@ -115,11 +115,11 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
         return GFileUtils.canonicalise(new File(dir, buildFileName));
     }
 
-    public IProjectDescriptorRegistry getProjectDescriptorRegistry() {
+    public ProjectDescriptorRegistry getProjectDescriptorRegistry() {
         return projectDescriptorRegistry;
     }
 
-    public void setProjectDescriptorRegistry(IProjectDescriptorRegistry projectDescriptorRegistry) {
+    public void setProjectDescriptorRegistry(ProjectDescriptorRegistry projectDescriptorRegistry) {
         this.projectDescriptorRegistry = projectDescriptorRegistry;
     }
 

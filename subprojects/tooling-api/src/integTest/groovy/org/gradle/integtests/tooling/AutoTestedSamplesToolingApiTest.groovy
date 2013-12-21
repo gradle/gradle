@@ -16,20 +16,19 @@
 
 package org.gradle.integtests.tooling
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AutoTestedSamplesUtil
-import org.gradle.internal.jvm.Jvm
-import org.gradle.util.TemporaryFolder
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.tooling.model.Element
+import org.gradle.internal.classloader.ClasspathUtil
 import org.junit.Rule
 import spock.lang.IgnoreIf
 import spock.lang.Specification
 
-/**
- * by Szczepan Faber, created at: 1/5/12
- */
-@IgnoreIf({!Jvm.current().java6Compatible})
+@IgnoreIf({!JavaVersion.current().java6Compatible})
 public class AutoTestedSamplesToolingApiTest extends Specification {
 
-    @Rule public final TemporaryFolder temp = new TemporaryFolder()
+    @Rule public final TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
 
     void runSamples() {
         expect:
@@ -63,14 +62,17 @@ public class Sample {
     void tryCompile(String source) {
         //TODO SF generalize and move the test out of integ tests, add unit tests
         source = normalize(source)
-        def sourceFile = temp.dir.file("Sample.java")
+        def sourceFile = temp.testDirectory.file("Sample.java")
         sourceFile.text = source
 
         def compiler = ("javax.tools.ToolProvider" as Class).getSystemJavaCompiler()
         def fileManager = compiler.getStandardFileManager(null, null, null);
 
         def location = ("javax.tools.StandardLocation" as Class).CLASS_OUTPUT
-        fileManager.setLocation(location, Arrays.asList(temp.dir));
+        fileManager.setLocation(location, [temp.testDirectory]);
+
+        location = ("javax.tools.StandardLocation" as Class).CLASS_PATH
+        fileManager.setLocation(location, [ClasspathUtil.getClasspathForClass(Element)]);
 
         def checkDiagnostic = { diagnostic ->
             if (diagnostic.kind.name() == 'ERROR') {

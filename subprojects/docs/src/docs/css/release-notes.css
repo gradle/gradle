@@ -1,0 +1,162 @@
+img.logo {
+  margin-bottom: 1em;
+}
+
+section.major-detail {
+  margin: 0 10px 18px;
+  padding: 18px;
+  border: 1px dotted #999;
+  background-color: #FCFCFC;
+  border-radius: 5px;
+}
+
+section.major-detail > :first-child {
+  margin-top: 0px;
+}
+
+section.major-detail > :last-child {
+  margin-bottom: 0px;
+}
+
+section.minor-detail > :last-child {
+  margin-bottom: 0px;
+}
+
+h4 {
+  padding-left: 10px;
+}
+
+section.minor-detail {
+  padding: 0 10px;
+}
+
+ul.toc {
+  font-size: 15px
+}
+
+ul.toc-sub {
+  margin-bottom: 0px;
+}
+
+button.display-toggle {
+  cursor: pointer;
+}
+
+a.incubating-marker {
+    display: inline;
+    color: white;
+    font-style: italic;
+    font-size: 0.6em;
+    text-shadow: none;
+    margin-left: 0.6em;
+    border-radius: 6px;
+    background-color: rgb(160, 160, 160);
+    border: 1px solid rgb(150, 150, 150);
+    padding: 1px 5px;
+    box-shadow: none;
+    cursor: pointer;
+    vertical-align: 1px;
+}
+
+a.incubating-marker:hover {
+    text-decoration: none;
+    border: 1px solid rgb(150, 150, 150);
+}
+
+section.footer {
+  font-size: 75%;
+  margin-top: 3em;
+  padding-top: 1em;
+  width: 100%;
+  border-top: solid #d0d0d0 0.4em;
+  text-align: center;
+}
+
+.java_keyword {
+  color: #DDC498;
+}
+.java_comment {
+  color: #AFAFAF;
+}
+.java_plain, .java_type {
+
+}
+.java_separator {
+
+}
+.java_operator {
+  color: #C7B390;
+}
+.java_literal {
+  color: #83C283;
+}
+
+/* TipTip CSS - Version 1.2 */
+
+#tiptip_holder {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 99999;
+}
+
+#tiptip_holder.tip_top {
+    padding-bottom: 5px;
+}
+
+#tiptip_holder.tip_bottom {
+    padding-top: 5px;
+}
+
+#tiptip_holder.tip_right {
+    padding-left: 5px;
+}
+
+#tiptip_holder.tip_left {
+    padding-right: 5px;
+}
+
+#tiptip_content {
+    font-size: 13px;
+    color: #717171;
+    padding: 6px 10px;
+    border: 1px solid #8B8B8B;
+    background-color: #FFF;
+    border-radius: 8px;
+    box-shadow: 2px 2px 4px #acacac;
+    text-align: center;
+}
+
+#tiptip_arrow, #tiptip_arrow_inner {
+    position: absolute;
+    border-color: transparent;
+    border-style: solid;
+    border-width: 6px;
+    height: 0;
+    width: 0;
+}
+
+#tiptip_holder.tip_top #tiptip_arrow_inner {
+    margin-top: -7px;
+    margin-left: -6px;
+    border-top-color: #8B8B8B;
+}
+
+#tiptip_holder.tip_bottom #tiptip_arrow_inner {
+    margin-top: -5px;
+    margin-left: -6px;
+    border-bottom-color: #8B8B8B;
+}
+
+#tiptip_holder.tip_right #tiptip_arrow_inner {
+    margin-top: -6px;
+    margin-left: -5px;
+    border-right-color: #8B8B8B;
+}
+
+#tiptip_holder.tip_left #tiptip_arrow_inner {
+    margin-top: -6px;
+    margin-left: -7px;
+    border-left-color: #8B8B8B;
+}

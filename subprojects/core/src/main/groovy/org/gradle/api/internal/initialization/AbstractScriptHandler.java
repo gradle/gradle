@@ -22,7 +22,6 @@ import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.util.ConfigureUtil;
-import org.gradle.util.MutableURLClassLoader;
 
 import java.io.File;
 import java.net.URI;
@@ -32,18 +31,16 @@ public abstract class AbstractScriptHandler implements ScriptHandlerInternal {
     private final RepositoryHandler repositoryHandler;
     private final DependencyHandler dependencyHandler;
     private final ConfigurationContainer configContainer;
-    private final MutableURLClassLoader classLoader;
     private final Configuration classpathConfiguration;
 
-    public AbstractScriptHandler(MutableURLClassLoader classLoader, RepositoryHandler repositoryHandler,
+    public AbstractScriptHandler(RepositoryHandler repositoryHandler,
                                  DependencyHandler dependencyHandler, ScriptSource scriptSource,
                                  ConfigurationContainer configContainer) {
-        this.classLoader = classLoader;
         this.repositoryHandler = repositoryHandler;
         this.dependencyHandler = dependencyHandler;
         this.scriptSource = scriptSource;
         this.configContainer = configContainer;
-        classpathConfiguration = configContainer.add(CLASSPATH_CONFIGURATION);
+        classpathConfiguration = configContainer.create(CLASSPATH_CONFIGURATION);
     }
 
     public void dependencies(Closure configureClosure) {
@@ -70,8 +67,8 @@ public abstract class AbstractScriptHandler implements ScriptHandlerInternal {
         return configContainer;
     }
 
-    public MutableURLClassLoader getClassLoader() {
-        return classLoader;
+    public ClassLoader getClassLoader() {
+        return getScriptCompileClassLoader();
     }
 
     public File getSourceFile() {

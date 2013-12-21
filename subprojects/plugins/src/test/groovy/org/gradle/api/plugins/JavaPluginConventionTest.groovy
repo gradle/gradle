@@ -21,32 +21,31 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.internal.tasks.DefaultSourceSetContainer
 import org.gradle.api.java.archives.internal.DefaultManifest
-import org.gradle.util.HelperUtil
+import org.gradle.internal.reflect.Instantiator
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.JUnit4GroovyMockery
-import org.gradle.util.TemporaryFolder
-import org.gradle.util.TestFile
+import org.gradle.util.TestUtil
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.assertEquals
 import static org.junit.Assert.assertThat
 
-/**
- * @author Hans Dockter
- */
 class JavaPluginConventionTest {
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
-    private DefaultProject project = HelperUtil.createRootProject()
-    private File testDir = project.projectDir
+    private DefaultProject project = TestUtil.createRootProject()
+    private Instantiator instantiator = project.services.get(Instantiator)
     private JavaPluginConvention convention
 
     @Rule
-    public final TemporaryFolder tmpDir = new TemporaryFolder()
+    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     @Before public void setUp() {
         project.plugins.apply(ReportingBasePlugin)
-        convention = new JavaPluginConvention(project)
+        convention = new JavaPluginConvention(project, instantiator)
     }
 
     @Test public void defaultValues() {

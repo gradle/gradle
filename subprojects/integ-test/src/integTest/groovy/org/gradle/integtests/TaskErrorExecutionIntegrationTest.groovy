@@ -16,8 +16,8 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
-import org.gradle.integtests.fixtures.ExecutionFailure
-import org.gradle.util.TestFile
+import org.gradle.integtests.fixtures.executer.ExecutionFailure
+import org.gradle.test.fixtures.file.TestFile
 import org.junit.Test
 
 class TaskErrorExecutionIntegrationTest extends AbstractIntegrationTest {
@@ -33,7 +33,7 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationTest {
 
         failure.assertHasFileName(String.format("Build file '%s'", buildFile))
         failure.assertHasLineNumber(3)
-        failure.assertHasDescription("Execution failed for task ':do-stuff'")
+        failure.assertHasDescription("Execution failed for task ':do-stuff'.")
         failure.assertHasCause("broken")
     }
 
@@ -48,7 +48,7 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationTest {
 
         failure.assertHasFileName(String.format("Build file '%s'", buildFile))
         failure.assertHasLineNumber(2)
-        failure.assertHasDescription("Execution failed for task ':brokenClosure'")
+        failure.assertHasDescription("Execution failed for task ':brokenClosure'.")
         failure.assertHasCause("broken closure")
     }
 
@@ -74,7 +74,7 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationTest {
 
         ExecutionFailure failure = usingBuildFile(buildFile).withTasks("brokenJavaTask").runWithFailure()
 
-        failure.assertHasDescription("Execution failed for task ':brokenJavaTask'")
+        failure.assertHasDescription("Execution failed for task ':brokenJavaTask'.")
         failure.assertHasCause("broken action")
     }
 
@@ -93,7 +93,7 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationTest {
 
         failure.assertHasFileName(String.format("Build file '%s'", buildFile))
         failure.assertHasLineNumber(3)
-        failure.assertHasDescription("Execution failed for task ':a:a")
+        failure.assertHasDescription("Execution failed for task ':a:a'.")
         failure.assertHasCause("broken")
     }
 
@@ -114,5 +114,32 @@ task custom(type: CustomTask)
         failure.assertHasDescription("Some problems were found with the configuration of task ':custom'.")
         failure.assertHasCause("No value has been specified for property 'srcFile'.")
         failure.assertHasCause("No value has been specified for property 'destFile'.")
+    }
+
+    @Test
+    public void reportsUnknownTask() {
+        def settingsFile = testFile("settings.gradle")
+        settingsFile << """
+rootProject.name = 'test'
+include 'a', 'b'
+"""
+        def buildFile = testFile('build.gradle')
+        buildFile << """
+allprojects { task someTask }
+project(':a') { task someTaskA }
+project(':b') { task someTaskB }
+"""
+
+        def failure = inTestDirectory().withTasks("someTest").runWithFailure()
+        failure.assertHasDescription("Task 'someTest' not found in root project 'test'. Some candidates are: 'someTask', 'someTaskA', 'someTaskB'.")
+        failure.assertHasResolution("Run gradle tasks to get a list of available tasks. Run with --info or --debug option to get more log output.")
+
+        failure = inTestDirectory().withTasks(":someTest").runWithFailure()
+        failure.assertHasDescription("Task 'someTest' not found in root project 'test'. Some candidates are: 'someTask'.")
+        failure.assertHasResolution("Run gradle tasks to get a list of available tasks. Run with --info or --debug option to get more log output.")
+
+        failure = inTestDirectory().withTasks("a:someTest").runWithFailure()
+        failure.assertHasDescription("Task 'someTest' not found in project ':a'. Some candidates are: 'someTask', 'someTaskA'.")
+        failure.assertHasResolution("Run gradle tasks to get a list of available tasks. Run with --info or --debug option to get more log output.")
     }
 }

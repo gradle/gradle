@@ -16,15 +16,13 @@
 
 package org.gradle.wrapper
 
-import org.gradle.util.TemporaryFolder
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import static org.junit.Assert.*
 
-/**
- * @author Hans Dockter
- */
+import static org.junit.Assert.assertEquals
+
 class DownloadTest {
     Download download
     File testDir
@@ -33,11 +31,11 @@ class DownloadTest {
     URI sourceRoot
     File remoteFile
     @Rule
-    public TemporaryFolder tmpDir = new TemporaryFolder();
+    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
 
-    @Before public void setUp()  {
-        download = new Download()
-        testDir = tmpDir.dir
+    @Before public void setUp() {
+        download = new Download("gradlew", "aVersion")
+        testDir = tmpDir.testDirectory
         rootDir = new File(testDir, 'root')
         downloadFile = new File(rootDir, 'file')
         (remoteFile = new File(testDir, 'remoteFile')).write('sometext')

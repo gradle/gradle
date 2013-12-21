@@ -1,0 +1,14 @@
+description = "Sonar Test Customized Project"
+
+sourceSets {
+    main {
+        java {
+            srcDirs = ["src"]
+        }
+    }
+    test {
+        java {
+            srcDirs = ["test"]
+        }
+    }
+}

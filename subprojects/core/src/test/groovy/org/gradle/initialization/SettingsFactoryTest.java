@@ -16,11 +16,20 @@
 package org.gradle.initialization;
 
 import org.gradle.StartParameter;
+import org.gradle.api.initialization.Settings;
+import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.ThreadGlobalInstantiator;
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.plugins.PluginContainer;
+import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.scopes.ServiceRegistryFactory;
+import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.WrapUtil;
+import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -32,23 +41,40 @@ import java.util.Map;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
 
-/**
- * @author Hans Dockter
- */
 @RunWith(org.jmock.integration.junit4.JMock.class)
 public class SettingsFactoryTest {
-    private JUnit4Mockery context = new JUnit4Mockery() {{
-        setImposteriser(ClassImposteriser.INSTANCE);
-    }};
+    private JUnit4Mockery context = new JUnit4GroovyMockery();
 
     @Test
     public void createSettings() {
         final File expectedSettingsDir = new File("settingsDir");
         ScriptSource expectedScriptSource = context.mock(ScriptSource.class);
         Map<String, String> expectedGradleProperties = WrapUtil.toMap("key", "myvalue");
-        IProjectDescriptorRegistry expectedProjectDescriptorRegistry = new DefaultProjectDescriptorRegistry();
         StartParameter expectedStartParameter = new StartParameter();
-        SettingsFactory settingsFactory = new SettingsFactory(expectedProjectDescriptorRegistry);
+        final ServiceRegistryFactory serviceRegistryFactory = context.mock(ServiceRegistryFactory.class);
+        final ServiceRegistry settingsServices = context.mock(ServiceRegistry.class);
+        final PluginContainer pluginContainer = context.mock(PluginContainer.class);
+        final FileResolver fileResolver = context.mock(FileResolver.class);
+        final ScriptPluginFactory scriptPluginFactory = context.mock(ScriptPluginFactory.class);
+
+        final ProjectDescriptorRegistry expectedProjectDescriptorRegistry = context.mock(ProjectDescriptorRegistry.class);
+
+        context.checking(new Expectations() {{
+            one(serviceRegistryFactory).createFor(with(any(Settings.class)));
+            will(returnValue(settingsServices));
+            one(settingsServices).get(PluginContainer.class);
+            will(returnValue(pluginContainer));
+            one(settingsServices).get(FileResolver.class);
+            will(returnValue(fileResolver));
+            one(settingsServices).get(ScriptPluginFactory.class);
+            will(returnValue(scriptPluginFactory));
+            one(settingsServices).get(ProjectDescriptorRegistry.class);
+            will(returnValue(expectedProjectDescriptorRegistry));
+            one(expectedProjectDescriptorRegistry).addProject(with(any(DefaultProjectDescriptor.class)));
+        }});
+
+
+        SettingsFactory settingsFactory = new SettingsFactory(ThreadGlobalInstantiator.getOrCreate(), serviceRegistryFactory);
         final URLClassLoader urlClassLoader = new URLClassLoader(new URL[0]);
         GradleInternal gradle = context.mock(GradleInternal.class);
 
@@ -58,7 +84,7 @@ public class SettingsFactoryTest {
         assertSame(gradle, settings.getGradle());
         assertSame(expectedProjectDescriptorRegistry, settings.getProjectDescriptorRegistry());
         for (Map.Entry<String, String> entry : expectedGradleProperties.entrySet()) {
-            assertEquals(entry.getValue(), settings.getDynamicObject().getProperty(entry.getKey()));
+            assertEquals(entry.getValue(), ((DynamicObjectAware) settings).getAsDynamicObject().getProperty(entry.getKey()));
         }
 
         assertSame(expectedSettingsDir, settings.getSettingsDir());

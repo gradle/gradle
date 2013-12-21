@@ -15,15 +15,14 @@
  */
 package org.gradle.cli;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ParsedCommandLineOption implements Serializable {
+public class ParsedCommandLineOption {
     private final List<String> values = new ArrayList<String>();
 
     public String getValue() {
-        if (values.isEmpty()) {
+        if (!hasValue()) {
             throw new IllegalStateException("Option does not have any value.");
         }
         if (values.size() > 1) {
@@ -38,5 +37,9 @@ public class ParsedCommandLineOption implements Serializable {
 
     public void addArgument(String argument) {
         values.add(argument);
+    }
+
+    public boolean hasValue() {
+        return !values.isEmpty();
     }
 }

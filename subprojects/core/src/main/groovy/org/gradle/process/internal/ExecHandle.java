@@ -22,9 +22,6 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 
-/**
- * @author Tom Eyckmans
- */
 public interface ExecHandle {
 
     File getDirectory();
@@ -46,6 +43,11 @@ public interface ExecHandle {
 
     void abort();
 
+    /**
+     * Waits for the process to finish.
+     *
+     * @return result
+     */
     ExecResult waitForFinish();
 
     void addListener(ExecHandleListener listener);

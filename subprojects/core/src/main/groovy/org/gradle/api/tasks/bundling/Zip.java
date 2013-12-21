@@ -15,38 +15,67 @@
  */
 package org.gradle.api.tasks.bundling;
 
-import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.archive.ZipCopySpecVisitor;
-import org.gradle.api.internal.file.copy.ArchiveCopyAction;
-import org.gradle.api.internal.file.copy.CopyActionImpl;
-
-import java.io.File;
+import org.gradle.api.internal.file.archive.ZipCopyAction;
+import org.gradle.api.internal.file.copy.CopyAction;
+import org.gradle.api.internal.file.copy.ZipCompressor;
+import org.gradle.api.internal.file.copy.ZipDeflatedCompressor;
+import org.gradle.api.internal.file.copy.ZipStoredCompressor;
 
 /**
  * Assembles a ZIP archive.
  * 
- * @author Hans Dockter
+ * The default is to compress the contents of the zip.
  */
 public class Zip extends AbstractArchiveTask {
     public static final String ZIP_EXTENSION = "zip";
-    private final CopyActionImpl action;
+    private ZipEntryCompression entryCompression = ZipEntryCompression.DEFLATED;
 
     public Zip() {
         setExtension(ZIP_EXTENSION);
-        action = new ZipCopyAction(getServices().get(FileResolver.class));
     }
 
-    protected CopyActionImpl getCopyAction() {
-        return action;
-    }
-
-    private class ZipCopyAction extends CopyActionImpl implements ArchiveCopyAction {
-        public ZipCopyAction(FileResolver fileResolver) {
-            super(fileResolver, new ZipCopySpecVisitor());
-        }
-
-        public File getArchivePath() {
-            return Zip.this.getArchivePath();
+    protected ZipCompressor getCompressor() {
+        switch(entryCompression) {
+            case DEFLATED:
+                return ZipDeflatedCompressor.INSTANCE;
+            case STORED:
+                return ZipStoredCompressor.INSTANCE;
+            default:
+                throw new IllegalArgumentException(String.format("Unknown Compression type %s", entryCompression));
         }
     }
+
+    @Override
+    protected CopyAction createCopyAction() {
+        return new ZipCopyAction(getArchivePath(), getCompressor());
+    }
+
+    /**
+     * Returns the compression level of the entries of the archive. If set to {@link ZipEntryCompression#DEFLATED} (the default), each entry is
+     * compressed using the DEFLATE algorithm. If set to {@link ZipEntryCompression#STORED} the entries of the archive are left uncompressed.
+     *
+     * @return the compression level of the archive contents.
+     */
+    public ZipEntryCompression getEntryCompression() {
+        return entryCompression;
+    }
+    
+    /**
+     * Sets the compression level of the entries of the archive. If set to {@link ZipEntryCompression#DEFLATED} (the default), each entry is
+     * compressed using the DEFLATE algorithm. If set to {@link ZipEntryCompression#STORED} the entries of the archive are left uncompressed.
+     *
+     * @param entryCompression {@code STORED} or {@code DEFLATED}
+     */
+    public void setEntryCompression(ZipEntryCompression entryCompression) {
+        this.entryCompression = entryCompression;
+    }
+
+    /**
+     * DO NOT REMOVE.
+     *
+     * Do not use - kept for binary compatibility.
+     */
+    @SuppressWarnings("UnusedDeclaration")
+    @Deprecated
+    protected class ZipCopyActionImpl {}
 }

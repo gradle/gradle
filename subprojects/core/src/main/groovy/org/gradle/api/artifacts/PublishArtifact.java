@@ -23,8 +23,6 @@ import java.util.Date;
 
 /**
  * <p>A {@code PublishArtifact} is an artifact produced by a project.</p>
- *
- * @author Hans Dockter
  */
 public interface PublishArtifact extends Buildable {
     /**
@@ -36,7 +34,7 @@ public interface PublishArtifact extends Buildable {
 
     /**
      * Returns the extension of this published artifact. Often the extension is the same as the type,
-     * but sometimes this is not the case. For example for an ivy xml module descriptor, the type is
+     * but sometimes this is not the case. For example for an ivy XML module descriptor, the type is
      * <em>ivy</em> and the extension is <em>xml</em>.
      *
      * @return The extension. Never null.
@@ -45,7 +43,7 @@ public interface PublishArtifact extends Buildable {
 
     /**
      * Returns the type of the published artifact. Often the type is the same as the extension,
-     * but sometimes this is not the case. For example for an ivy xml module descriptor, the type is
+     * but sometimes this is not the case. For example for an ivy XML module descriptor, the type is
      * <em>ivy</em> and the extension is <em>xml</em>.
      *
      * @return The type. Never null.

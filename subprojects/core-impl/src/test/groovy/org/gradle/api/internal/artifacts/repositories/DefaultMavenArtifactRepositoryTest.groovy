@@ -15,44 +15,51 @@
  */
 package org.gradle.api.internal.artifacts.repositories
 
-import org.apache.ivy.core.cache.RepositoryCacheManager
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.repositories.PasswordCredentials
+import org.gradle.api.internal.artifacts.ModuleMetadataProcessor
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher
+import org.gradle.api.internal.artifacts.repositories.resolver.MavenResolver
+import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
-import org.gradle.api.internal.externalresource.transport.file.FileTransport
-import org.gradle.api.internal.externalresource.transport.http.HttpTransport
+import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder
+import org.gradle.api.internal.externalresource.transport.ExternalResourceRepository
 import org.gradle.api.internal.file.FileResolver
 import spock.lang.Specification
-import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder
-import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex
 
 class DefaultMavenArtifactRepositoryTest extends Specification {
     final FileResolver resolver = Mock()
     final PasswordCredentials credentials = Mock()
     final RepositoryTransportFactory transportFactory = Mock()
-    final RepositoryCacheManager cacheManager = Mock()
     final LocallyAvailableResourceFinder locallyAvailableResourceFinder = Mock()
-    final CachedExternalResourceIndex cachedExternalResourceIndex = Mock()
+    final ExternalResourceRepository resourceRepository = Mock()
+    final ModuleMetadataProcessor metadataProcessor = Mock()
+    final VersionMatcher versionMatcher = Stub()
+    final LatestStrategy latestStrategy = Stub()
+    final ResolverStrategy resolverStrategy = Stub()
 
-    final DefaultMavenArtifactRepository repository = new DefaultMavenArtifactRepository(resolver, credentials, transportFactory, locallyAvailableResourceFinder, cachedExternalResourceIndex)
+    final DefaultMavenArtifactRepository repository = new DefaultMavenArtifactRepository(
+            resolver, credentials, transportFactory, locallyAvailableResourceFinder, metadataProcessor, versionMatcher, latestStrategy, resolverStrategy)
 
     def "creates local repository"() {
         given:
         def file = new File('repo')
         def uri = file.toURI()
         _ * resolver.resolveUri('repo-dir') >> uri
-        transportFactory.createFileTransport('repo') >> new FileTransport('repo', cacheManager)
+        transportFactory.createFileTransport('repo') >> transport()
 
         and:
         repository.name = 'repo'
         repository.url = 'repo-dir'
 
         when:
-        def repo = repository.createResolver()
+        def repo = repository.createRealResolver()
 
         then:
         repo instanceof MavenResolver
-        repo.root == "${file.absolutePath}/"
+        repo.root == "${uri}/"
     }
 
     def "creates http repository"() {
@@ -61,20 +68,43 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         _ * resolver.resolveUri('repo-dir') >> uri
         _ * credentials.getUsername() >> 'username'
         _ * credentials.getPassword() >> 'password'
-        transportFactory.createHttpTransport('repo', credentials) >> createHttpTransport("repo", credentials)
-        cacheManager.name >> 'cache'
-        0 * _._
+        transportFactory.createHttpTransport('repo', credentials) >> transport()
 
         and:
         repository.name = 'repo'
         repository.url = 'repo-dir'
 
         when:
-        def repo = repository.createResolver()
+        def repo = repository.createRealResolver()
 
         then:
         repo instanceof MavenResolver
         repo.root == "${uri}/"
+    }
+
+    def "creates a DSL wrapper for the repository"() {
+        given:
+        def file = new File('repo')
+        def uri = file.toURI()
+        _ * this.resolver.resolveUri('repo-dir') >> uri
+        transportFactory.createFileTransport('repo') >> transport()
+
+        and:
+        repository.name = 'repo'
+        repository.url = 'repo-dir'
+
+        when:
+        def resolver = repository.createLegacyDslObject()
+
+        then:
+        resolver instanceof LegacyMavenResolver
+        resolver.resolver instanceof MavenResolver
+
+        when:
+        def repo = resolver.createResolver()
+
+        then:
+        repo.is(resolver.resolver)
     }
 
     def "creates repository with additional artifact URLs"() {
@@ -85,7 +115,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         _ * resolver.resolveUri('repo-dir') >> uri
         _ * resolver.resolveUri('repo1') >> uri1
         _ * resolver.resolveUri('repo2') >> uri2
-        transportFactory.createHttpTransport('repo', credentials) >> createHttpTransport("repo", credentials)
+        transportFactory.createHttpTransport('repo', credentials) >> transport()
 
         and:
         repository.name = 'repo'
@@ -93,7 +123,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         repository.artifactUrls('repo1', 'repo2')
 
         when:
-        def repo = repository.createResolver()
+        def repo = repository.createRealResolver()
 
         then:
         repo instanceof MavenResolver
@@ -104,16 +134,23 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         repo.artifactPatterns.any { it.startsWith uri2.toString() }
     }
 
-    private HttpTransport createHttpTransport(String repo, PasswordCredentials credentials) {
-        return new HttpTransport(repo, credentials, cacheManager)
-    }
-
     def "fails when no root url specified"() {
         when:
-        repository.createResolver()
+        repository.createLegacyDslObject()
 
         then:
         InvalidUserDataException e = thrown()
         e.message == 'You must specify a URL for a Maven repository.'
     }
+
+    private RepositoryTransport transport() {
+        return Mock(RepositoryTransport) {
+            getRepository() >> resourceRepository
+            convertToPath(_) >> { URI uri ->
+                def result = uri.toString()
+                return result.endsWith('/') ? result : result + '/'
+            }
+        }
+    }
+
 }

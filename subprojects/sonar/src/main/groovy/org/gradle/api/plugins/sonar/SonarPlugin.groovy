@@ -17,13 +17,16 @@ package org.gradle.api.plugins.sonar
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.internal.Instantiator
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPlugin
-import org.gradle.util.GradleVersion
-import org.gradle.internal.jvm.Jvm
 import org.gradle.api.plugins.sonar.model.*
+import org.gradle.internal.jvm.Jvm
+import org.gradle.internal.reflect.Instantiator
+import org.gradle.testing.jacoco.plugins.JacocoPlugin
+import org.gradle.util.GradleVersion
+
+import javax.inject.Inject
 
 /**
  * A plugin for integrating with <a href="http://www.sonarsource.org">Sonar</a>,
@@ -42,10 +45,14 @@ import org.gradle.api.plugins.sonar.model.*
 class SonarPlugin implements Plugin<ProjectInternal> {
     static final String SONAR_ANALYZE_TASK_NAME = "sonarAnalyze"
 
-    private Instantiator instantiator
+    private final Instantiator instantiator
+
+    @Inject
+    SonarPlugin(Instantiator instantiator) {
+        this.instantiator = instantiator
+    }
 
     void apply(ProjectInternal project) {
-        instantiator = project.services.get(Instantiator)
         def task = configureSonarTask(project)
         def model = configureSonarRootModel(project)
         task.rootModel = model
@@ -54,7 +61,7 @@ class SonarPlugin implements Plugin<ProjectInternal> {
     }
 
     private SonarAnalyze configureSonarTask(Project project) {
-        project.tasks.add(SONAR_ANALYZE_TASK_NAME, SonarAnalyze)
+        project.tasks.create(SONAR_ANALYZE_TASK_NAME, SonarAnalyze)
     }
 
     private SonarRootModel configureSonarRootModel(Project project) {
@@ -136,11 +143,15 @@ class SonarPlugin implements Plugin<ProjectInternal> {
                     }
                     libraries
                 }
-                testReportPath = { project.test.testResultsDir }
+                testReportPath = { project.test.reports.junitXml.destination }
                 language = { "java" }
             }
+            project.plugins.withType(JacocoPlugin) {
+                sonarProject.withProjectProperties { props ->
+                    props['sonar.jacoco.reportPath'] = project.test.jacoco.destinationFile
+                }
+            }
         }
-
         sonarProject
     }
 }

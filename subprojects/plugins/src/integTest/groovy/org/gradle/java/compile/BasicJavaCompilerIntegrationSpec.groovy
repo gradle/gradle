@@ -18,12 +18,17 @@
 package org.gradle.java.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ClassFile
 
 abstract class BasicJavaCompilerIntegrationSpec extends AbstractIntegrationSpec {
     def setup() {
         executer.withArguments("-i")
         buildFile << buildScript()
-        buildFile << compilerConfiguration()
+        buildFile << """
+DeprecationLogger.whileDisabled {
+    ${compilerConfiguration()}
+}
+"""
     }
 
     def compileGoodCode() {
@@ -80,6 +85,44 @@ abstract class BasicJavaCompilerIntegrationSpec extends AbstractIntegrationSpec 
         file('encoded.out').getText("utf-8") == "\u03b1\u03b2\u03b3"
     }
 
+    def compilesWithSpecifiedDebugSettings() {
+        given:
+        goodCode()
+
+        when:
+        run("compileJava")
+
+        then:
+        def fullDebug = classFile("build/classes/main/compile/test/Person.class")
+        fullDebug.debugIncludesSourceFile
+        fullDebug.debugIncludesLineNumbers
+        fullDebug.debugIncludesLocalVariables
+
+        when:
+        buildFile << """
+compileJava.options.debugOptions.debugLevel='lines'
+"""
+        run("compileJava")
+
+        then:
+        def linesOnly = classFile("build/classes/main/compile/test/Person.class")
+        !linesOnly.debugIncludesSourceFile
+        linesOnly.debugIncludesLineNumbers
+        !linesOnly.debugIncludesLocalVariables
+
+        when:
+        buildFile << """
+compileJava.options.debug = false
+"""
+        run("compileJava")
+
+        then:
+        def noDebug = classFile("build/classes/main/compile/test/Person.class")
+        !noDebug.debugIncludesSourceFile
+        !noDebug.debugIncludesLineNumbers
+        !noDebug.debugIncludesLocalVariables
+    }
+
     def getCompilerErrorOutput() {
         return errorOutput
     }
@@ -105,13 +148,15 @@ package compile.test;
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 
 import java.util.Arrays;
+import java.util.List;
 
 public class Person {
     String name;
     int age;
 
     void hello() {
-        DefaultGroovyMethods.max(Arrays.asList(3, 1, 2));
+        List<Integer> vars = Arrays.asList(3, 1, 2);
+        DefaultGroovyMethods.max(vars);
     }
 }'''
         file("src/main/java/compile/test/Person2.java") << '''
@@ -151,7 +196,7 @@ class Main {
 
     def badCode() {
         file("src/main/java/compile/test/Person.java") << '''
-        package compile.fork;
+        package compile.test;
 
         public class Person {
             String name;
@@ -162,4 +207,9 @@ class Main {
             }
         } '''
     }
+
+    def classFile(String path) {
+        return new ClassFile(file(path))
+    }
 }
+

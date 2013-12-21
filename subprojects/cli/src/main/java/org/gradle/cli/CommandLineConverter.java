@@ -15,9 +15,6 @@
  */
 package org.gradle.cli;
 
-/**
- * @author Hans Dockter
- */
 public interface CommandLineConverter<T> {
     T convert(Iterable<String> args) throws CommandLineArgumentException;
 

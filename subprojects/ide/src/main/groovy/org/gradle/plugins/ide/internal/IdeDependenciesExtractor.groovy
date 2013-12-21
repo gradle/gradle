@@ -17,14 +17,9 @@
 package org.gradle.plugins.ide.internal
 
 import org.gradle.api.Project
-import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
-import org.gradle.api.specs.Spec
-import org.gradle.api.specs.Specs
 import org.gradle.api.artifacts.*
+import org.gradle.api.specs.Spec
 
-/**
- * @author: Szczepan Faber, created at: 7/1/11
- */
 class IdeDependenciesExtractor {
 
     static class IdeDependency {
@@ -39,6 +34,7 @@ class IdeDependenciesExtractor {
         File file
         File sourceFile
         File javadocFile
+        ModuleVersionIdentifier id
     }
 
     static class UnresolvedIdeRepoFileDependency extends IdeRepoFileDependency {
@@ -69,48 +65,39 @@ class IdeDependenciesExtractor {
     List<IdeRepoFileDependency> extractRepoFileDependencies(ConfigurationContainer confContainer,
                                                            Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations,
                                                            boolean downloadSources, boolean downloadJavadoc) {
-        def out = []
+        List<IdeRepoFileDependency> out = []
 
-        def allResolvedDependencies = resolveDependencies(plusConfigurations, minusConfigurations)
+        def downloader = new JavadocAndSourcesDownloader(confContainer, plusConfigurations, minusConfigurations, downloadSources, downloadJavadoc)
 
-        Set sourceDependencies = getResolvableDependenciesForAllResolvedDependencies(allResolvedDependencies) { dependency ->
-            addSourceArtifact(dependency)
+        resolvedExternalDependencies(plusConfigurations, minusConfigurations).each { IdeRepoFileDependency dependency ->
+            dependency.sourceFile = downloader.sourceFor(dependency.file.name)
+            dependency.javadocFile = downloader.javadocFor(dependency.file.name)
+            out << dependency
         }
 
-        Map<String, File> sourceFiles = downloadSources ? getFiles(confContainer.detachedConfiguration(sourceDependencies as Dependency[]), "sources") : [:]
-
-        Set javadocDependencies = getResolvableDependenciesForAllResolvedDependencies(allResolvedDependencies) { dependency ->
-            addJavadocArtifact(dependency)
-        }
-
-        Map<String, File> javadocFiles = downloadJavadoc ? getFiles(confContainer.detachedConfiguration(javadocDependencies as Dependency[]), "javadoc") : [:]
-
-        resolvedExternalDependencies(plusConfigurations, minusConfigurations).each { File binaryFile, Configuration conf ->
-            File sourceFile = sourceFiles[binaryFile.name]
-            File javadocFile = javadocFiles[binaryFile.name]
-            out << new IdeRepoFileDependency( file: binaryFile, sourceFile: sourceFile, javadocFile: javadocFile, declaredConfiguration: conf)
-        }
-
-        unresolvedExternalDependencies(plusConfigurations, minusConfigurations) { config, dep ->
-            out << new UnresolvedIdeRepoFileDependency(problem: dep.problem, file: new File("unresolved dependency - $dep.id"), declaredConfiguration: config)
-        }
+        out.addAll(unresolvedExternalDependencies(plusConfigurations, minusConfigurations))
 
         out
     }
 
-    private void unresolvedExternalDependencies(Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations, Closure action) {
-        def unresolved = new LinkedHashMap<String, Map>()
+    private Collection<UnresolvedIdeRepoFileDependency> unresolvedExternalDependencies(Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations) {
+        def unresolved = new LinkedHashMap<String, UnresolvedIdeRepoFileDependency>()
         for (c in plusConfigurations) {
             def deps = c.resolvedConfiguration.lenientConfiguration.unresolvedModuleDependencies
-            deps.each { unresolved[it.id] = [dep: it, config: c] }
+            deps.each {
+                unresolved[it.selector] = new UnresolvedIdeRepoFileDependency(
+                    file: new File(unresolvedFileName(it)), declaredConfiguration: c)
+            }
         }
         for (c in minusConfigurations) {
             def deps = c.resolvedConfiguration.lenientConfiguration.unresolvedModuleDependencies
-            deps.each { unresolved.remove(it.id) }
+            deps.each { unresolved.remove(it.selector) }
         }
-        unresolved.values().each {
-            action.call(it.config, it.dep)
-        }
+        unresolved.values()
+    }
+
+    private String unresolvedFileName(UnresolvedDependency dep) {
+        "unresolved dependency - $dep.selector.group $dep.selector.name $dep.selector.version"
     }
 
     List<IdeLocalFileDependency> extractLocalFileDependencies(Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations) {
@@ -132,75 +119,18 @@ class IdeDependenciesExtractor {
         }
     }
 
-    private Map<File, Configuration> resolvedExternalDependencies(Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations) {
-        LinkedHashMap<File, Configuration> fileToConf = [:]
+    public Collection<IdeRepoFileDependency> resolvedExternalDependencies(Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations) {
+        LinkedHashMap<File, IdeRepoFileDependency> out = [:]
         for (plusConfiguration in plusConfigurations) {
-            for (file in plusConfiguration.resolvedConfiguration.lenientConfiguration.getFiles( { it instanceof ExternalDependency } as Spec)) {
-                fileToConf[file] = plusConfiguration
+            for (artifact in plusConfiguration.resolvedConfiguration.lenientConfiguration.getArtifacts({ it instanceof ExternalDependency } as Spec)) {
+                out[artifact.file] = new IdeRepoFileDependency( file: artifact.file, declaredConfiguration: plusConfiguration, id: artifact.moduleVersion.id)
             }
         }
         for (minusConfiguration in minusConfigurations) {
-            for (file in minusConfiguration.resolvedConfiguration.lenientConfiguration.getFiles({ it instanceof ExternalDependency } as Spec)) {
-                fileToConf.remove(file)
+            for (artifact in minusConfiguration.resolvedConfiguration.lenientConfiguration.getArtifacts({ it instanceof ExternalDependency } as Spec)) {
+                out.remove(artifact.file)
             }
         }
-        fileToConf
-    }
-
-    private Set<ResolvedDependency> resolveDependencies(Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations) {
-        def result = new LinkedHashSet()
-        for (plusConfiguration in plusConfigurations) {
-            result.addAll(getAllDeps(plusConfiguration.resolvedConfiguration.lenientConfiguration.getFirstLevelModuleDependencies({ it instanceof ExternalDependency } as Spec)))
-        }
-        for (minusConfiguration in minusConfigurations) {
-            result.removeAll(getAllDeps(minusConfiguration.resolvedConfiguration.lenientConfiguration.getFirstLevelModuleDependencies({ it instanceof ExternalDependency } as Spec)))
-        }
-        result
-    }
-
-    private Set getAllDeps(Collection deps, Set allDeps = new LinkedHashSet()) {
-        deps.each { ResolvedDependency resolvedDependency ->
-            def notSeenBefore = allDeps.add(resolvedDependency)
-            if (notSeenBefore) { // defend against circular dependencies
-                getAllDeps(resolvedDependency.children, allDeps)
-            }
-        }
-        allDeps
-    }
-
-    private List getResolvableDependenciesForAllResolvedDependencies(Set allResolvedDependencies, Closure configureClosure) {
-        return allResolvedDependencies.collect { ResolvedDependency resolvedDependency ->
-            def dependency = new DefaultExternalModuleDependency(resolvedDependency.moduleGroup, resolvedDependency.moduleName, resolvedDependency.moduleVersion,
-                    resolvedDependency.configuration)
-            dependency.transitive = false
-            configureClosure.call(dependency)
-            dependency
-        }
-    }
-
-    private void addSourceArtifact(DefaultExternalModuleDependency dependency) {
-        dependency.artifact { artifact ->
-            artifact.name = dependency.name
-            artifact.type = 'source'
-            artifact.extension = 'jar'
-            artifact.classifier = 'sources'
-        }
-    }
-
-    private void addJavadocArtifact(DefaultExternalModuleDependency dependency) {
-        dependency.artifact { artifact ->
-            artifact.name = dependency.name
-            artifact.type = 'javadoc'
-            artifact.extension = 'jar'
-            artifact.classifier = 'javadoc'
-        }
-    }
-
-    private Map getFiles(Configuration configuration, String classifier) {
-        return (Map) configuration.resolvedConfiguration.lenientConfiguration.getFiles(Specs.satisfyAll()).inject([:]) { result, sourceFile ->
-            String key = sourceFile.name.replace("-${classifier}.jar", '.jar')
-            result[key] = sourceFile
-            result
-        }
+        out.values()
     }
 }

@@ -15,6 +15,6 @@
  */
 
 /**
- * Models the build environment information like gradle or java versions
+ * Tooling models for the build environment, which includes information such as Gradle or Java versions.
  */
 package org.gradle.tooling.model.build;

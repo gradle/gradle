@@ -19,8 +19,6 @@ import groovy.util.Node;
 
 /**
  * A module element in a deployment descriptor like application.xml.
- * 
- * @author David Gileadi
  */
 public interface EarModule {
 

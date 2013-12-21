@@ -12,6 +12,7 @@ import org.codehaus.groovy.control.messages.SimpleMessage;
 import org.codehaus.groovy.transform.ASTTransformation;
 import org.codehaus.groovy.transform.GroovyASTTransformation;
 import org.codehaus.groovy.runtime.InvokerHelper;
+import org.codehaus.groovy.util.ReleaseInfo;
 
 import java.util.List;
 
@@ -40,7 +41,7 @@ public class DetectorTransform implements ASTTransformation {
     for (ClassNode clazz : (List<ClassNode>)module.getClasses()) {
       FieldNode field = clazz.getField(VERSION_FIELD_NAME);
       if (field != null) {
-        field.setInitialValueExpression(new ConstantExpression(InvokerHelper.getVersion()));
+        field.setInitialValueExpression(new ConstantExpression(ReleaseInfo.getVersion()));
         break;
       }
     }

@@ -23,8 +23,6 @@ import java.util.List;
 
 /**
  * An implementation of SettingsNode that uses DOM4J nodes as its actual storage medium.
- *
- * @author mhunsicker
  */
 public class DOM4JSettingsNode implements SettingsNode {
     public static final String TAG_NAME = "setting";

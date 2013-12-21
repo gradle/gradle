@@ -16,12 +16,13 @@
 
 package org.gradle.tooling.model.idea;
 
+import org.gradle.api.Nullable;
 import org.gradle.tooling.model.ExternalDependency;
 
 import java.io.File;
 
 /**
- * "Single-Entry Module Library" as IDEA calls it. For example a single jar file with sources jar.
+ * "Single-Entry Module Library" as IDEA calls it. For example a single Jar file with sources Jar.
  *
  * @since 1.0-milestone-5
  */
@@ -38,6 +39,7 @@ public interface IdeaSingleEntryLibraryDependency extends IdeaDependency, Extern
      *
      * @return The source file. Returns null when the source is not available for this dependency.
      */
+    @Nullable
     File getSource();
 
     /**
@@ -45,5 +47,6 @@ public interface IdeaSingleEntryLibraryDependency extends IdeaDependency, Extern
      *
      * @return The Javadoc file. Returns null when the Javadoc is not available for this dependency.
      */
+    @Nullable
     File getJavadoc();
 }

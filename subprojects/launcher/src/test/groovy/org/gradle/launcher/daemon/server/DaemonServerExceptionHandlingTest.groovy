@@ -16,11 +16,11 @@
 
 package org.gradle.launcher.daemon.server
 
-import org.gradle.BuildResult
-import org.gradle.GradleLauncher
+import org.gradle.api.logging.LogLevel
 import org.gradle.configuration.GradleLauncherMetaData
-import org.gradle.initialization.DefaultGradleLauncherFactory
-import org.gradle.initialization.GradleLauncherAction
+import org.gradle.initialization.BuildAction
+import org.gradle.initialization.BuildController
+import org.gradle.initialization.GradleLauncherFactory
 import org.gradle.internal.nativeplatform.ProcessEnvironment
 import org.gradle.launcher.daemon.client.DaemonClient
 import org.gradle.launcher.daemon.client.EmbeddedDaemonClientServices
@@ -29,25 +29,21 @@ import org.gradle.launcher.daemon.server.exec.DaemonCommandAction
 import org.gradle.launcher.daemon.server.exec.DaemonCommandExecuter
 import org.gradle.launcher.daemon.server.exec.DefaultDaemonCommandExecuter
 import org.gradle.launcher.daemon.server.exec.ForwardClientInput
+import org.gradle.launcher.daemon.server.exec.NoOpDaemonCommandAction
 import org.gradle.launcher.exec.DefaultBuildActionParameters
 import org.gradle.logging.LoggingManagerInternal
-import org.gradle.messaging.concurrent.ExecutorFactory
-import org.gradle.util.TemporaryFolder
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
-/**
- * by Szczepan Faber, created at: 12/21/11
- */
 class DaemonServerExceptionHandlingTest extends Specification {
 
-    @Rule TemporaryFolder temp = new TemporaryFolder()
-    def parameters = new DefaultBuildActionParameters(new GradleLauncherMetaData(), 0, new HashMap(System.properties), [:], temp.dir)
+    @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
+    def parameters = new DefaultBuildActionParameters(new GradleLauncherMetaData(), 0, new HashMap(System.properties), [:], temp.testDirectory, LogLevel.ERROR)
 
-    static class DummyLauncherAction implements GradleLauncherAction, Serializable {
+    static class DummyLauncherAction implements BuildAction, Serializable {
         Object someState
-        Object getResult() { null }
-        BuildResult run(GradleLauncher launcher) { null }
+        Object run(BuildController buildController) { null }
     }
 
     def "sends back failure when the daemon cannot receive the first command"() {
@@ -73,8 +69,9 @@ class DaemonServerExceptionHandlingTest extends Specification {
         //we need to override some methods to inject a failure action into the sequence
         def services = new EmbeddedDaemonClientServices() {
             DaemonCommandExecuter createDaemonCommandExecuter() {
-                return new DefaultDaemonCommandExecuter(new DefaultGradleLauncherFactory(loggingServices), get(ExecutorFactory),
-                        get(ProcessEnvironment), loggingServices.getFactory(LoggingManagerInternal.class).create(), new File("dummy")) {
+                return new DefaultDaemonCommandExecuter(get(GradleLauncherFactory),
+                        get(ProcessEnvironment), getFactory(LoggingManagerInternal.class).create(),
+                        new File("dummy"), new NoOpDaemonCommandAction()) {
                     List<DaemonCommandAction> createActions(DaemonContext daemonContext) {
                         def actions = new LinkedList(super.createActions(daemonContext));
                         configureDeamonActions(actions);

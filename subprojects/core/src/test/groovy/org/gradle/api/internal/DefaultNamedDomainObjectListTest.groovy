@@ -19,6 +19,7 @@ import spock.lang.Specification
 import org.gradle.api.Namer
 import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
+import org.gradle.internal.reflect.DirectInstantiator
 
 class DefaultNamedDomainObjectListTest extends Specification {
     final Namer<Object> toStringNamer = new Namer<Object>() {

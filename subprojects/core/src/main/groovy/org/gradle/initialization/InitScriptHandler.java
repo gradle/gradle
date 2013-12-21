@@ -16,29 +16,24 @@
 package org.gradle.initialization;
 
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.configuration.InitScriptProcessor;
+import org.gradle.groovy.scripts.UriScriptSource;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.File;
 
 /**
  * Finds and executes all init scripts for a given build.
  */
 public class InitScriptHandler {
-    private final InitScriptFinder finder;
     private final InitScriptProcessor processor;
 
-    public InitScriptHandler(InitScriptFinder finder, InitScriptProcessor processor) {
-        this.finder = finder;
+    public InitScriptHandler(InitScriptProcessor processor) {
         this.processor = processor;
     }
 
     public void executeScripts(GradleInternal gradle) {
-        List<ScriptSource> scriptSources = new ArrayList<ScriptSource>();
-        finder.findScripts(gradle, scriptSources);
-        for (ScriptSource source : scriptSources) {
-            processor.process(source, gradle);
+        for (File script : gradle.getStartParameter().getAllInitScripts()) {
+            processor.process(new UriScriptSource("initialization script", script), gradle);
         }
     }
 }

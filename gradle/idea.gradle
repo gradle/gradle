@@ -4,16 +4,16 @@ allprojects {
 	apply plugin: "idea"
 }
 
-configure(groovyProjects()) {
-    idea {
-        module {
-            scopes.RUNTIME.plus.add(configurations.detachedConfiguration(new DefaultSelfResolvingDependency(files { sourceSets.main.resources.srcDirs })))
-            scopes.TEST.plus.add(configurations.detachedConfiguration(new DefaultSelfResolvingDependency(files { sourceSets*.resources*.srcDirs })))
+subprojects {
+    plugins.withType(JavaPlugin) {
+        idea {
+            module {
+                scopes.RUNTIME.plus.add(configurations.detachedConfiguration(new DefaultSelfResolvingDependency(files { sourceSets.main.resources.srcDirs })))
+                scopes.TEST.plus.add(configurations.detachedConfiguration(new DefaultSelfResolvingDependency(files { sourceSets*.resources*.srcDirs })))
+            }
         }
     }
 }
-
-evaluationDependsOn(':docs')
 
 idea {
     module {
@@ -25,11 +25,9 @@ idea {
     project {
         wildcards += ['?*.gradle']
 
-        jdkName = '1.6'
         languageLevel = '1.5'
 
         ipr {
-
             withXml { provider ->
                 // Exclude resource directories from compilation and add them back in as classpath resources
                 def node = provider.asNode()
@@ -39,25 +37,30 @@ idea {
                     compilerConfig.remove(exclude)
                 }
                 exclude = compilerConfig.appendNode('excludeFromCompile')
-                Collection resourceFolder = groovyProjects().collect { project -> project.sourceSets*.resources*.srcDirs }.flatten()
+                Collection resourceFolder = groovyProjects.collect { project -> project.sourceSets*.resources*.srcDirs }.flatten()
                 resourceFolder.each {
                     if (it.exists()) {
                         exclude.appendNode('directory', [url: "file://\$PROJECT_DIR\$/${rootProject.relativePath(it)}", includeSubdirectories: true])
                     }
                 }
 
-                // exclude jdk7/** from compilation if current jvm is not JDK7
-                if (!Jvm.current().isJava7()) {
-                    Collection sourceDirs = groovyProjects().collect { project -> project.sourceSets*.allSource*.srcDirs }.flatten()
-                    def findAndExcludeJdk7PackageFolder = { packageFolder ->
-                        if (packageFolder.name == 'jdk7') {
-                            exclude.appendNode('directory', [url: "file://\$PROJECT_DIR\$/${rootProject.relativePath(packageFolder)}", includeSubdirectories: true])
+                // exclude java version specific classes from compilation when not compilable with current java version
+                def excludeSource = { version, sourceFolder ->
+                    if (sourceFolder.exists()) {
+                        sourceFolder.eachDirRecurse { packageFolder ->
+                            if (packageFolder.name == version) {
+                                exclude.appendNode('directory', [url: "file://\$PROJECT_DIR\$/${rootProject.relativePath(packageFolder)}", includeSubdirectories: true])
+                            }
                         }
                     }
-                    sourceDirs.each { sourceFolder ->
-                        if (sourceFolder.exists()) {
-                            sourceFolder.eachDirRecurse(findAndExcludeJdk7PackageFolder)
-                        }
+                }
+                Collection sourceDirs = groovyProjects.collect { project -> project.sourceSets*.allSource*.srcDirs }.flatten()
+                sourceDirs.each { sourceFolder ->
+                    if (!javaVersion.java7) {
+                        excludeSource("jdk7", sourceFolder)
+                    }
+                    if (!javaVersion.java6Compatible) {
+                        excludeSource("jdk6", sourceFolder)
                     }
                 }
 
@@ -69,6 +72,10 @@ idea {
                 def gradleSettings = node.appendNode('component', [name: 'GradleSettings'])
                 gradleSettings.appendNode('option', [name: 'SDK_HOME', value: gradle.gradleHomeDir.absolutePath])
 
+                // set compiler heap space
+                def javacSettings = node.appendNode('component', [name: 'JavacSettings'])
+                javacSettings.appendNode('option', [name: 'MAXIMUM_HEAP_SIZE', value: "256"])
+
                 // license header
                 def copyrightManager = node.component.find { it.'@name' == 'CopyrightManager' }
                 copyrightManager.@default = "ASL2"
@@ -76,7 +83,7 @@ idea {
                 if (aslCopyright == null) {
                   copyrightManager.append(new XmlParser().parseText('''
                       <copyright>
-                          <option name="notice" value="Copyright 2012 the original author or authors.&#10;&#10;Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);&#10;you may not use this file except in compliance with the License.&#10;You may obtain a copy of the License at&#10;&#10;     http://www.apache.org/licenses/LICENSE-2.0&#10;&#10;Unless required by applicable law or agreed to in writing, software&#10;distributed under the License is distributed on an &quot;AS IS&quot; BASIS,&#10;WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.&#10;See the License for the specific language governing permissions and&#10;limitations under the License." />
+                          <option name="notice" value="Copyright 2013 the original author or authors.&#10;&#10;Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);&#10;you may not use this file except in compliance with the License.&#10;You may obtain a copy of the License at&#10;&#10;     http://www.apache.org/licenses/LICENSE-2.0&#10;&#10;Unless required by applicable law or agreed to in writing, software&#10;distributed under the License is distributed on an &quot;AS IS&quot; BASIS,&#10;WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.&#10;See the License for the specific language governing permissions and&#10;limitations under the License." />
                           <option name="keyword" value="Copyright" />
                           <option name="allowReplaceKeyword" value="" />
                           <option name="myName" value="ASL2" />
@@ -189,12 +196,26 @@ idea {
           </component>
         ''')
                 node.append(codeFormatSettings)
+
+                node.append(new XmlParser().parseText('''
+                    <component name="GroovyCompilerProjectConfiguration">
+                      <excludes>
+                        <file url="file://$PROJECT_DIR$/subprojects/plugins/src/test/groovy/org/gradle/api/internal/tasks/testing/junit/JUnitTestClassProcessorTest.groovy" />
+                      </excludes>
+                    </component>
+                '''))
             }
         }
     }
 
     workspace.iws.withXml { provider ->
         Node node = provider.asNode()
+
+        node.append(new XmlParser().parseText('''
+            <component name="CompilerWorkspaceConfiguration">
+              <option name="USE_COMPILE_SERVER" value="false" />
+            </component>
+        '''))
 
         Node runManagerConfig = node.component.find { it.'@name' == 'RunManager' }
 
@@ -203,7 +224,18 @@ idea {
 
         Node vmParameters = runConfig.option.find { it.'@name' == 'VM_PARAMETERS' }
 
-        vmParameters.'@value' = "\"-DintegTest.samplesdir=${project(":docs").samplesDir.absolutePath}\" \"-DintegTest.gradleHomeDir=${intTestImage.destinationDir}\" -ea -Dorg.gradle.integtest.executer=embedded -XX:MaxPermSize=256m -Xmx512m"
+        def docsProject = project(":docs")
+        def defaultTestVmParams = [
+                "-Dorg.gradle.docs.releasenotes.source=${docsProject.releaseNotesMarkdown.source.singleFile}",
+                "-Dorg.gradle.docs.releasenotes.rendered=${new File(docsProject.releaseNotes.destinationDir, docsProject.releaseNotes.fileName)}",
+                "-DintegTest.gradleHomeDir=${intTestImage.destinationDir}",
+                "-Dorg.gradle.integtest.executer=embedded",
+                "-ea",
+                "-XX:MaxPermSize=512m",
+                "-Xmx512m"
+        ]
+
+        vmParameters.'@value' = defaultTestVmParams.collect { it.contains(" ") ? "\"$it\"" : it }.join(" ")
 
         // Add an application configuration
         runManagerConfig.'@selected' = 'Application.Gradle'
@@ -235,29 +267,45 @@ idea {
             </configuration>
         '''))
 
-        runManagerConfig.append(new XmlParser().parseText('''
-            <configuration default="false" name="Gradle Precommit Check" type="Application" factoryName="Application">
-              <extension name="coverage" enabled="false" merge="false" />
-              <option name="MAIN_CLASS_NAME" value="org.gradle.testing.internal.util.IdeQuickCheckRunner" />
-              <option name="VM_PARAMETERS" value="" />
-              <option name="PROGRAM_PARAMETERS" value="" />
-              <option name="WORKING_DIRECTORY" value="file://$PROJECT_DIR$" />
-              <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
-              <option name="ALTERNATIVE_JRE_PATH" value="" />
-              <option name="ENABLE_SWING_INSPECTOR" value="false" />
-              <option name="ENV_VARIABLES" />
-              <option name="PASS_PARENT_ENVS" value="true" />
-              <module name="internalTesting" />
-              <envs />
-              <method />
-            </configuration>
-        '''))
+        def gradleRunners = [
+                "Quick Check (precommit)": "quickCheck --daemon",
+                "Regenerate IDEA metadata": "idea --daemon",
+                "Regenerate Int Test Image": "intTestImage --daemon"
+        ]
 
-        runManagerConfig.append(new XmlParser().parseText('''
-            <list size="2">
-              <item index="0" class="java.lang.String" itemvalue="Application.Gradle" />
-              <item index="1" class="java.lang.String" itemvalue="Application.Gradle Precommit Check" />
+        def runnerClass = "org.gradle.testing.internal.util.GradlewRunner"
+        def runnerClassModule = "internalTesting"
+
+        def listItems = []
+        gradleRunners.each { runnerName, commandLine ->
+            runManagerConfig.append(new XmlParser().parseText("""
+                <configuration default='false' name='${runnerName}' type='Application' factoryName='Application'>
+                  <extension name='coverage' enabled='false' merge='false' />
+                  <option name='MAIN_CLASS_NAME' value='${runnerClass}' />
+                  <option name='VM_PARAMETERS' value='' />
+                  <option name='PROGRAM_PARAMETERS' value='${commandLine}' />
+                  <option name='WORKING_DIRECTORY' value='file://\$PROJECT_DIR\$' />
+                  <option name='ALTERNATIVE_JRE_PATH_ENABLED' value='false' />
+                  <option name='ALTERNATIVE_JRE_PATH' value='' />
+                  <option name='ENABLE_SWING_INSPECTOR' value='false' />
+                  <option name='ENV_VARIABLES' />
+                  <option name='PASS_PARENT_ENVS' value='true' />
+                  <module name='${runnerClassModule}' />
+                  <envs />
+                  <method>
+                    <option name="Make" enabled="false" />
+                  </method>
+                </configuration>
+            """))
+
+            listItems << "<item index='${listItems.size() + 1}' class='java.lang.String' itemvalue='Application.${runnerName}' />"
+        }
+
+        runManagerConfig.append(new XmlParser().parseText("""
+            <list size='${listItems.size() + 1}'>
+              <item index='0' class='java.lang.String' itemvalue='Application.Gradle' />
+              ${listItems}
             </list>
-        '''))
+        """))
     }
 }

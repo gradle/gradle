@@ -4,5 +4,5 @@ repositories {
     mavenCentral()
 }
 dependencies {
-    compile 'junit:junit:4.8.2'
+    compile 'junit:junit:4.11'
 }

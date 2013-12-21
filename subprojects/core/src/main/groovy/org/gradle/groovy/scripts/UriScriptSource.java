@@ -18,7 +18,7 @@ package org.gradle.groovy.scripts;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.internal.resource.Resource;
 import org.gradle.api.internal.resource.UriResource;
-import org.gradle.util.hash.HashUtil;
+import org.gradle.internal.hash.HashUtil;
 
 import java.io.File;
 import java.net.URI;

@@ -40,8 +40,6 @@ import java.util.TimerTask;
 /**
  * This manages the communication between the UI and an externally-launched copy of Gradle when using socket-based inter-process communication. This is the client (gradle) side used when executing
  * commands (the most common case). We add gradle listeners and send their notifications as messages back to the server.
- *
- * @author mhunsicker
  */
 public class ExecuteGradleCommandClientProtocol implements ClientProcess.Protocol {
     private final Logger logger = Logging.getLogger(ExecuteGradleCommandClientProtocol.class);

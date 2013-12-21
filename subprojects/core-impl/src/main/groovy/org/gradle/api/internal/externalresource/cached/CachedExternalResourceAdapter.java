@@ -15,8 +15,8 @@
  */
 package org.gradle.api.internal.externalresource.cached;
 
-import org.apache.ivy.util.CopyProgressListener;
 import org.gradle.api.internal.externalresource.LocalFileStandInExternalResource;
+import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
 import org.gradle.api.internal.externalresource.transfer.ExternalResourceAccessor;
 
 import java.io.File;
@@ -26,46 +26,50 @@ import java.io.IOException;
  * Creates an ExternalResource from something that has been cached locally.
  */
 public class CachedExternalResourceAdapter extends LocalFileStandInExternalResource {
-    private final CachedExternalResource cachedExternalResource;
+    private final CachedExternalResource cached;
     private final ExternalResourceAccessor accessor;
 
     public CachedExternalResourceAdapter(String source, CachedExternalResource cached, ExternalResourceAccessor accessor) {
-        super(source, cached.getCachedFile());
-        this.cachedExternalResource = cached;
+        this(source, cached, accessor, null);
+    }
+
+    public CachedExternalResourceAdapter(String source, CachedExternalResource cached, ExternalResourceAccessor accessor, ExternalResourceMetaData metaData) {
+        super(source, cached.getCachedFile(), metaData);
+        this.cached = cached;
         this.accessor = accessor;
     }
 
     @Override
     public String toString() {
-        return "CachedResource: " + cachedExternalResource.getCachedFile() + " for " + getName();
+        return "CachedResource: " + cached.getCachedFile() + " for " + getName();
     }
 
     public long getLastModified() {
-        return cachedExternalResource.getExternalLastModifiedAsTimestamp();
+        return cached.getExternalLastModifiedAsTimestamp();
     }
 
     public long getContentLength() {
-        return cachedExternalResource.getContentLength();
+        return cached.getContentLength();
     }
 
-    public void writeTo(File destination, CopyProgressListener progress) throws IOException {
+    public void writeTo(File destination) throws IOException {
         try {
-            super.writeTo(destination, progress);
+            super.writeTo(destination);
         } catch (IOException e) {
-            downloadResourceDirect(destination, progress);
+            downloadResourceDirect(destination);
             return;
         }
 
         // If the checksum of the downloaded file does not match the cached artifact, download it directly.
         // This may be the case if the cached artifact was changed before copying
         if (!getSha1(destination).equals(getLocalFileSha1())) {
-            downloadResourceDirect(destination, progress);
+            downloadResourceDirect(destination);
         }
     }
 
-    private void downloadResourceDirect(File destination, CopyProgressListener progress) throws IOException {
+    private void downloadResourceDirect(File destination) throws IOException {
         // Perform a regular download, without considering external caches
-        accessor.getResource(getName()).writeTo(destination, progress);
+        accessor.getResource(getName()).writeTo(destination);
     }
 
 }

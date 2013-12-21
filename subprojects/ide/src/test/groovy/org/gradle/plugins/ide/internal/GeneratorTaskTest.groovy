@@ -17,17 +17,17 @@ package org.gradle.plugins.ide.internal
 
 import org.gradle.plugins.ide.api.GeneratorTask
 import org.gradle.plugins.ide.internal.generator.generator.Generator
-import org.gradle.util.HelperUtil
-import org.gradle.util.TemporaryFolder
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
 
 class GeneratorTaskTest extends Specification {
-    @Rule public final TemporaryFolder tmpDir = new TemporaryFolder()
+    @Rule public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     final Generator<TestConfigurationObject> generator = Mock()
     final File inputFile = tmpDir.file('input')
     final File outputFile = tmpDir.file('output')
-    final GeneratorTask<TestConfigurationObject> task = HelperUtil.createTask(GeneratorTask)
+    final GeneratorTask<TestConfigurationObject> task = TestUtil.createTask(GeneratorTask)
 
     def setup() {
         task.inputFile = inputFile

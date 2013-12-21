@@ -8,6 +8,7 @@
 /buildSrc/lib
 /buildSrc/build
 /subprojects/*/build
+/subprojects/docs/src/samples/*/*/build
 /website/build
 /website/website.iml
 /website/website.ipr
@@ -30,3 +31,6 @@
 .DS_Store
 /performanceTest/lib
 .textmate
+/incoming-distributions
+.idea
+*.sublime-*

@@ -15,25 +15,23 @@
  */
 package org.gradle.api.internal.file
 
-import java.util.concurrent.Callable
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.PathValidation
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection
-import org.gradle.internal.nativeplatform.filesystem.FileSystems
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.PreconditionVerifier
 import org.gradle.util.Requires
-import org.gradle.util.TemporaryFolder
 import org.gradle.util.TestPrecondition
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+
+import java.util.concurrent.Callable
+
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 
-/**
- * @author Hans Dockter
- */
 class BaseDirFileResolverTest {
     static final String TEST_PATH = 'testpath'
 
@@ -42,12 +40,12 @@ class BaseDirFileResolverTest {
     File testDir
 
     BaseDirFileResolver baseDirConverter
-    @Rule public TemporaryFolder rootDir = new TemporaryFolder()
+    @Rule public TestNameTestDirectoryProvider rootDir = new TestNameTestDirectoryProvider()
     @Rule public PreconditionVerifier preconditions = new PreconditionVerifier()
 
     @Before public void setUp() {
-        baseDir = rootDir.dir
-        baseDirConverter = new BaseDirFileResolver(FileSystems.default, baseDir)
+        baseDir = rootDir.testDirectory
+        baseDirConverter = new BaseDirFileResolver(TestFiles.fileSystem(), baseDir)
         testFile = new File(baseDir, 'testfile')
         testDir = new File(baseDir, 'testdir')
     }
@@ -321,9 +319,9 @@ class BaseDirFileResolverTest {
     @Test public void testResolveLater() {
         String src;
         Closure cl = { src }
-        FileSource source = baseDirConverter.resolveLater(cl)
+        org.gradle.internal.Factory<File> source = baseDirConverter.resolveLater(cl)
         src = 'file1'
-        assertEquals(new File(baseDir, 'file1'), source.get())
+        assertEquals(new File(baseDir, 'file1'), source.create())
     }
     
     @Test public void testCreateFileResolver() {

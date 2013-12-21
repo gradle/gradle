@@ -23,9 +23,6 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * @author Hans Dockter
- */
 public class DefaultAttributes implements Attributes {
     protected Map<String, Object> attributes = new LinkedHashMap<String, Object>();
 

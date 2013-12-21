@@ -22,4 +22,6 @@ public interface ConfigurationInternal extends Configuration, DependencyMetaData
     DependencyResolutionListener getDependencyResolutionBroadcast();
 
     ResolutionStrategyInternal getResolutionStrategy();
+
+    String getPath();
 }

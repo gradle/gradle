@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.project.taskfactory;
 
+import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.Task;
@@ -23,9 +24,13 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.DefaultProject;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.*;
-import org.gradle.util.*;
+import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
+import org.gradle.internal.UncheckedException;
+import org.gradle.test.fixtures.file.TestFile;
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
+import org.gradle.util.GFileUtils;
+import org.gradle.util.TestUtil;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -33,8 +38,10 @@ import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import spock.lang.Issue;
 
 import java.io.File;
+import java.lang.reflect.Field;
 import java.util.*;
 import java.util.concurrent.Callable;
 
@@ -51,11 +58,10 @@ public class AnnotationProcessingTaskFactoryTest {
     }};
 
     private final ITaskFactory delegate = context.mock(ITaskFactory.class);
-    private final ProjectInternal project = context.mock(ProjectInternal.class);
     private final Map args = new HashMap();
     @Rule
-    public TemporaryFolder tmpDir = new TemporaryFolder();
-    private final TestFile testDir = tmpDir.getDir();
+    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
+    private final TestFile testDir = tmpDir.getTestDirectory();
     private final File existingFile = testDir.file("file.txt").touch();
     private final File missingFile = testDir.file("missing.txt");
     private final TestFile existingDir = testDir.file("dir").createDir();
@@ -75,7 +81,7 @@ public class AnnotationProcessingTaskFactoryTest {
     }
 
     private <T extends Task> T expectTaskCreated(final Class<T> type, final Object... params) {
-        DefaultProject project = HelperUtil.createRootProject();
+        DefaultProject project = TestUtil.createRootProject();
         T task = AbstractTask.injectIntoNewInstance(project, "task", new Callable<T>() {
             public T call() throws Exception {
                 if (params.length > 0) {
@@ -90,11 +96,11 @@ public class AnnotationProcessingTaskFactoryTest {
 
     private <T extends Task> T expectTaskCreated(final T task) {
         context.checking(new Expectations() {{
-            one(delegate).createTask(project, args);
+            one(delegate).createTask(args);
             will(returnValue(task));
         }});
 
-        assertThat(factory.createTask(project, args), sameInstance((Object) task));
+        assertThat(factory.createTask(args), sameInstance((Object) task));
         return task;
     }
 
@@ -137,11 +143,29 @@ public class AnnotationProcessingTaskFactoryTest {
     }
 
     @Test
+    public void createsContextualActionFoIncrementalTaskAction() {
+        final Action<IncrementalTaskInputs> action = context.mock(Action.class);
+        TaskWithIncrementalAction task = expectTaskCreated(TaskWithIncrementalAction.class, action);
+
+        context.checking(new Expectations() {{
+            one(action).execute(with(notNullValue(IncrementalTaskInputs.class)));
+        }});
+
+        task.execute();
+    }
+
+    @Test
+    public void failsWhenMultipleActionsAreIncremental() {
+        assertTaskCreationFails(TaskWithMultipleIncrementalActions.class,
+                "Cannot have multiple @TaskAction methods accepting an IncrementalTaskInputs parameter.");
+    }
+
+    @Test
     public void cachesClassMetaInfo() {
         TaskWithInputFile task = expectTaskCreated(TaskWithInputFile.class, existingFile);
         TaskWithInputFile task2 = expectTaskCreated(TaskWithInputFile.class, missingFile);
 
-        assertThat(ReflectionUtil.getProperty(task.getActions().get(0), "action"), sameInstance(ReflectionUtil.getProperty(task2.getActions().get(0), "action")));
+        assertThat(readField(task.getActions().get(0), Action.class, "action"), sameInstance(readField(task2.getActions().get(0), Action.class, "action")));
     }
     
     @Test
@@ -152,8 +176,14 @@ public class AnnotationProcessingTaskFactoryTest {
 
     @Test
     public void failsWhenMethodWithParametersHasTaskActionAnnotation() {
-        assertTaskCreationFails(TaskWithParamMethod.class,
-                "Cannot use @TaskAction annotation on method TaskWithParamMethod.doStuff() as this method takes parameters.");
+        assertTaskCreationFails(TaskWithMultiParamAction.class,
+                "Cannot use @TaskAction annotation on method TaskWithMultiParamAction.doStuff() as this method takes multiple parameters.");
+    }
+
+    @Test
+    public void failsWhenMethodWithInvalidParameterHasTaskActionAnnotation() {
+        assertTaskCreationFails(TaskWithSingleParamAction.class,
+                "Cannot use @TaskAction annotation on method TaskWithSingleParamAction.doStuff() because int is not a valid parameter to an action method.");
     }
 
     private void assertTaskCreationFails(Class<? extends Task> type, String message) {
@@ -563,6 +593,13 @@ public class AnnotationProcessingTaskFactoryTest {
     }
 
     @Test
+    @Issue("http://issues.gradle.org/browse/GRADLE-2815")
+    public void registersSpecifiedBooleanInputValue() {
+        TaskWithBooleanInput task = expectTaskCreated(TaskWithBooleanInput.class, true);
+        assertThat(task.getInputs().getProperties().get("inputValue"), equalTo((Object) true));
+    }
+
+    @Test
     public void validationActionSucceedsWhenPropertyMarkedWithOptionalAnnotationNotSpecified() {
         TaskWithOptionalInputFile task = expectTaskCreated(TaskWithOptionalInputFile.class);
         task.execute();
@@ -662,6 +699,26 @@ public class AnnotationProcessingTaskFactoryTest {
         }
     }
 
+    public static <T> T readField(Object target, Class<T> type, String name) {
+        Class<?> objectType = target.getClass();
+        while (objectType != null) {
+            try {
+                Field field = objectType.getDeclaredField(name);
+                field.setAccessible(true);
+                return (T) field.get(target);
+            } catch (NoSuchFieldException ignore) {
+                // ignore
+            } catch (Exception e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+
+            objectType = objectType.getSuperclass();
+        }
+
+        throw new RuntimeException("Could not find field '" + name + "' with type '" + type.getClass() + "' on class '" + target.getClass() + "'");
+    }
+
+
     public static class TestTask extends DefaultTask {
         final Runnable action;
 
@@ -730,9 +787,39 @@ public class AnnotationProcessingTaskFactoryTest {
         }
     }
 
-    public static class TaskWithParamMethod extends DefaultTask {
+    public static class TaskWithIncrementalAction extends DefaultTask {
+        private final Action<IncrementalTaskInputs> action;
+
+        public TaskWithIncrementalAction(Action<IncrementalTaskInputs> action) {
+            this.action = action;
+        }
+
         @TaskAction
-        public void doStuff(int value) {
+        public void doStuff(IncrementalTaskInputs changes) {
+            action.execute(changes);
+        }
+    }
+
+    public static class TaskWithMultipleIncrementalActions extends DefaultTask {
+
+        @TaskAction
+        public void doStuff(IncrementalTaskInputs changes) {
+        }
+
+        @TaskAction
+        public void doStuff2(IncrementalTaskInputs changes) {
+        }
+    }
+
+    public static class TaskWithSingleParamAction extends DefaultTask {
+        @TaskAction
+        public void doStuff(int value1) {
+        }
+    }
+
+    public static class TaskWithMultiParamAction extends DefaultTask {
+        @TaskAction
+        public void doStuff(int value1, int value2) {
         }
     }
 
@@ -771,6 +858,19 @@ public class AnnotationProcessingTaskFactoryTest {
 
         @Input
         public String getInputValue() {
+            return inputValue;
+        }
+    }
+
+    public static class TaskWithBooleanInput extends DefaultTask {
+        boolean inputValue;
+
+        public TaskWithBooleanInput(boolean inputValue) {
+            this.inputValue = inputValue;
+        }
+
+        @Input
+        public boolean isInputValue() {
             return inputValue;
         }
     }

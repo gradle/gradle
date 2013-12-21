@@ -21,9 +21,6 @@ import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import java.util.List;
 import java.util.Set;
 
-/**
- * @author Hans Dockter
- */
 public interface PomDependenciesConverter {
     public List<?> convert(Conf2ScopeMappingContainer conf2ScopeMappingContainer, Set<Configuration> configurations);
 }

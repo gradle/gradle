@@ -39,8 +39,8 @@ sourceSets {
 }
 
 dependencies {
-    intTestCompile 'junit:junit:4.8.2'
-    intTestRuntime 'asm:asm-all:3.3.1'
+    intTestCompile 'junit:junit:4.11'
+    intTestRuntime 'org.ow2.asm:asm-all:4.0'
 }
 // END SNIPPET source-set-dependencies
 

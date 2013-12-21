@@ -15,12 +15,10 @@
  */
 package org.gradle.api.internal.tasks.testing.junit.report;
 
+import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;
+
 import java.io.File;
 
 public interface TestReporter {
-    void setTestResultsDir(File resultDir);
-
-    void setTestReportDir(File reportDir);
-
-    void generateReport();
+    void generateReport(TestResultsProvider testResultsProvider, File reportDir);
 }

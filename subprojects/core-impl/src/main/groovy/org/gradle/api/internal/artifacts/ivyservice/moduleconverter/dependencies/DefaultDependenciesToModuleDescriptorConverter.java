@@ -23,9 +23,6 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ExcludeRuleC
 
 import java.util.Collection;
 
-/**
- * @author Hans Dockter
- */
 public class DefaultDependenciesToModuleDescriptorConverter implements DependenciesToModuleDescriptorConverter {
     private DependencyDescriptorFactory dependencyDescriptorFactory;
     private ExcludeRuleConverter excludeRuleConverter;
@@ -45,7 +42,7 @@ public class DefaultDependenciesToModuleDescriptorConverter implements Dependenc
     private void addDependencies(DefaultModuleDescriptor moduleDescriptor, Collection<? extends Configuration> configurations) {
         for (Configuration configuration : configurations) {
             for (ModuleDependency dependency : configuration.getDependencies().withType(ModuleDependency.class)) {
-                dependencyDescriptorFactory.addDependencyDescriptor(configuration, moduleDescriptor, dependency);
+                dependencyDescriptorFactory.addDependencyDescriptor(configuration.getName(), moduleDescriptor, dependency);
             }
         }
     }

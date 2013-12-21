@@ -24,9 +24,6 @@ import java.util.Enumeration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-/**
- * @author Tom Eyckmans
- */
 public class JarFilePackageLister {
     public void listJarPackages(File jarFile, JarFilePackageListener listener) {
         if (jarFile == null) {

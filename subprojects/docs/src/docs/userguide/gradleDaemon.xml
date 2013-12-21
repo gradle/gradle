@@ -29,7 +29,7 @@
             <itemizedlist>
                 <listitem>When using test driven development, where the unit tests are executed many times.</listitem>
                 <listitem>When developing a web application, where the application is assembled many times.</listitem>
-                <listitem>When discovering what a build can do, where gradle -t is executed a number of times.</listitem>
+                <listitem>When discovering what a build can do, where <userinput>gradle tasks</userinput> is executed a number of times.</listitem>
             </itemizedlist>
             For above sorts of workflows, it is important that the startup cost of invoking Gradle is as small as possible.
         </para>
@@ -50,12 +50,12 @@
         <para>
             The Tooling API (see <xref linkend="embedding"/>)
             uses the daemon all the time, e.g. you cannot officially use the Tooling API without the daemon.
-            This means that if you use the STS Gradle plugin for Eclipse or new Intellij IDEA plugin (IDEA>10)
-            the daemon acts behind the hood.
+            This means that whenever you are using the STS Gradle plugin for Eclipse or the Gradle support in Intellij IDEA,
+            you're already using the Gradle Daemon.
         </para>
         <para>In future the daemon will offer more features:
             <itemizedlist>
-                <listitem>Snappy up-to-date checks: use native file system change notifications (eg via jdk7 nio.2)
+                <listitem>Snappy up-to-date checks: use native file system change notifications (e.g. via jdk7 nio.2)
                     to preemptively perform up-to-date analysis.</listitem>
                 <listitem>Even faster builds: preemptively evaluate projects, so that the model is ready
                     when the user next invokes Gradle.</listitem>
@@ -71,10 +71,13 @@
         </para>
     </section>
 
-    <section id='daemon_implementation'>
-        <title>Implementation notes</title>
+    <section id='reusing_daemons'>
+        <title>Reusing and expiration of daemons</title>
         <para>The basic idea is that the gradle command forks a daemon process, which performs the actual build.
             Subsequent invocations of the gradle command will reuse the daemon, avoiding the startup costs.
+            Sometimes we cannot use an existing daemon because it is busy or its java version or jvm arguments are different.
+            For exact details on when exactly new daemon process is forked read the dedicated section below.
+            The daemon process automatically expire after 3 hours of idle time.
         </para>
         <para>
             Here're all situations in which we fork a new daemon process:
@@ -82,10 +85,15 @@
                 <listitem>If the daemon process is currently busy running some job, a brand new daemon process will be started.</listitem>
                 <listitem>We fork a separate daemon process per java home. So even if there is some idle daemon waiting
                     for build requests but you happen to run build with a different java home then a brand new daemon will be forked.</listitem>
+                <listitem>We fork a separate daemon process if the jvm arguments for the build are sufficiently different.
+                    For example we will not fork a new daemon if a some system property has changed.
+                    However if -Xmx memory setting change or some fundamental immutable system property changes (e.g. file.encoding)
+                    then new daemon will be forked.
+                </listitem>
                 <listitem>At the moment daemon is coupled with particular version of Gradle.
                     This means that even if some daemon is idle but you are running the build
                     with a different version of Gradle, a new daemon will be started.
-                    This also have a consequence for the <literal>--stop</literal> command line instruction:
+                    This also has a consequence for the <literal>--stop</literal> command line instruction:
                     You can only stop daemons that were started with the Gradle version you use when running <literal>--stop</literal>.
                 </listitem>
             </itemizedlist>
@@ -102,9 +110,6 @@
             (including turning on the daemon by default) in a more 'persistent' way.
         </para>
         <para>
-            As mentioned earlier we are actively improving the daemon. At the moment the daemon
-            is marked as 'experimental' in the user interface. We encourage everyone to try the
-            daemon out and get back to us with feedback (or even better: the pull requests).
             Some ways of troubleshooting the Gradle daemon:
             <itemizedlist>
                 <listitem>If you have a problem with your build, try temporarily disabling the daemon
@@ -120,10 +125,9 @@
     </section>
 
     <section id="sec:daemon_properties">
-        <title>Daemon properties</title>
-        <para>Some daemon settings can be configured in <filename>gradle.properties</filename>.
-            For example, jvm args - memory settings or the java home.
-            Please find more information in <xref linkend="sec:gradle_properties_and_system_properties"/>
+        <title>Configuring the daemon</title>
+        <para>Some daemon settings, such as JVM arguments, memory settings or the Java home, can be configured.
+            Please find more information in <xref linkend="sec:gradle_configuration_properties"/>
         </para>
     </section>
 

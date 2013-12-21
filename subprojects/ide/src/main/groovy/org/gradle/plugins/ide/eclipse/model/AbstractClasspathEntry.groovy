@@ -17,9 +17,6 @@ package org.gradle.plugins.ide.eclipse.model
 
 import org.gradle.plugins.ide.eclipse.model.internal.PathUtil
 
-/**
- * @author Hans Dockter
- */
 // TODO: consider entryAttributes in equals, hashCode, and toString
 abstract class AbstractClasspathEntry implements ClasspathEntry {
     private static final String NATIVE_LIBRARY_ATTRIBUTE = 'org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY'

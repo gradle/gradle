@@ -52,7 +52,7 @@ public interface ProcessForkOptions {
     File getWorkingDir();
 
     /**
-     * Sets the working directory for the process. The supplied argument is evaluated as for {@link
+     * Sets the working directory for the process. The supplied argument is evaluated as per {@link
      * org.gradle.api.Project#file(Object)}.
      *
      * @param dir The working directory. Must not be null.
@@ -60,7 +60,7 @@ public interface ProcessForkOptions {
     void setWorkingDir(Object dir);
 
     /**
-     * Sets the working directory for the process. The supplied argument is evaluated as for {@link
+     * Sets the working directory for the process. The supplied argument is evaluated as per {@link
      * org.gradle.api.Project#file(Object)}.
      *
      * @param dir The working directory. Must not be null.

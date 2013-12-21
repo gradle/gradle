@@ -15,52 +15,82 @@
  */
 package org.gradle.profile
 
+import org.gradle.StartParameter
+import org.gradle.api.tasks.TaskState
 import spock.lang.Specification
-import org.gradle.api.invocation.Gradle
-import org.gradle.api.artifacts.ResolvableDependencies
-import org.gradle.api.Project
 
 class BuildProfileTest extends Specification {
-    final Gradle gradle = Mock()
-    final BuildProfile profile = new BuildProfile(gradle)
+    private profile = new BuildProfile(new StartParameter())
 
     def "creates dependency set profile on first get"() {
-        given:
-        ResolvableDependencies deps = dependencySet("path")
-
         expect:
-        def dependencyProfile = profile.getDependencySetProfile(deps)
+        def dependencyProfile = profile.getDependencySetProfile("path")
         dependencyProfile != null
-        profile.getDependencySetProfile(deps) == dependencyProfile
+        profile.getDependencySetProfile("path") == dependencyProfile
     }
 
-    def "can get all dependency set profiles"() {
+    def "provides sorted dependency set profiles"() {
         given:
-        def a = profile.getDependencySetProfile(dependencySet("a"))
-        def b = profile.getDependencySetProfile(dependencySet("b"))
+        def a = profile.getDependencySetProfile("a").setStart(100).setFinish(200)
+        def b = profile.getDependencySetProfile("b").setStart(200).setFinish(400)
+        def c = profile.getDependencySetProfile("c").setStart(400).setFinish(600)
+        def d = profile.getDependencySetProfile("d").setStart(600).setFinish(601)
 
         expect:
-        profile.dependencySets.operations == [a, b]
+        profile.dependencySets.operations == [b, c, a, d]
     }
 
-    def "can get all project configuration profiles"() {
+    def "provides sorted configuration profiles"() {
         given:
-        def a = profile.getProjectProfile(project("a"))
-        def b = profile.getProjectProfile(project("b"))
+        def a = profile.getProjectProfile("a").configurationOperation.setStart(100).setFinish(200)
+        def b = profile.getProjectProfile("b").configurationOperation.setStart(200).setFinish(500)
+        def c = profile.getProjectProfile("c").configurationOperation.setStart(500).setFinish(800)
+        def d = profile.getProjectProfile("d").configurationOperation.setStart(800).setFinish(850)
 
         expect:
-        profile.projectConfiguration.operations == [a.evaluation, b.evaluation]
+        profile.projectConfiguration.operations == [b, c, a, d]
     }
 
-    def dependencySet(String path) {
-        ResolvableDependencies dependencies = Mock()
-        _ * dependencies.path >> path
-        return dependencies
+    def "provides sorted project profiles"() {
+        given:
+        profile.getProjectProfile("a").getTaskProfile("a:x").completed(Stub(TaskState)).setStart(100).setFinish(300)
+        profile.getProjectProfile("b").getTaskProfile("b:x").completed(Stub(TaskState)).setStart(300).setFinish(300)
+        profile.getProjectProfile("c").getTaskProfile("c:x").completed(Stub(TaskState)).setStart(300).setFinish(300)
+        profile.getProjectProfile("d").getTaskProfile("d:x").completed(Stub(TaskState)).setStart(301).setFinish(302)
+
+        expect:
+        profile.projects == [profile.getProjectProfile("a"), profile.getProjectProfile("d"), profile.getProjectProfile("b"), profile.getProjectProfile("c")]
     }
 
-    def project(String path) {
-        Project project = Mock()
-        _ * project.path >> path
-        return project
+    def "contains build description"() {
+        given:
+        def param = new StartParameter()
+        param.setTaskNames(["foo", "bar"])
+        param.setExcludedTaskNames(["one", "two"])
+
+        when:
+        profile = new BuildProfile(param)
+
+        then:
+        profile.buildDescription.contains(" -x one -x two foo bar")
+    }
+
+    def "build description looks nice even if no tasks specified"() {
+        given:
+        def param = new StartParameter()
+
+        when:
+        profile = new BuildProfile(param)
+
+        then:
+        profile.buildDescription.contains(" (no tasks specified)")
+    }
+
+    def "provides start time description"() {
+        when:
+        profile.buildStarted = new GregorianCalendar(2010, 1, 1, 12, 25).getTimeInMillis()
+
+        then:
+        profile.buildStartedDescription == "Started on: 2010/02/01 - 12:25:00"
     }
 }

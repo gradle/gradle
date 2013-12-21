@@ -18,9 +18,6 @@ package org.gradle.util
 
 import org.gradle.api.internal.ConventionTask
 
-/**
- * @author Hans Dockter
- */
 class TestTask extends ConventionTask  {
     TestTask self
     String customProp

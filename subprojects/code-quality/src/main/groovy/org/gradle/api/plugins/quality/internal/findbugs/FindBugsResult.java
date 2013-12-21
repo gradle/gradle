@@ -19,13 +19,36 @@ package org.gradle.api.plugins.quality.internal.findbugs;
 import java.io.Serializable;
 
 public class FindBugsResult implements Serializable {
-    private Boolean bugsFound;
 
-    public FindBugsResult(boolean bugsFound) {
-        this.bugsFound = bugsFound;
+    private final int bugCount;
+    private final int missingClassCount;
+    private final int errorCount;
+    private final Exception exception;
+
+    public FindBugsResult(int bugCount, int missingClassCount, int errorCount) {
+        this(bugCount, missingClassCount, errorCount, null);
     }
 
-    public boolean getBugsFound() {
-        return bugsFound;
+    public FindBugsResult(int bugCount, int missingClassCount, int errorCount, Exception exception) {
+        this.bugCount = bugCount;
+        this.missingClassCount = missingClassCount;
+        this.errorCount = errorCount;
+        this.exception = exception;
+    }
+
+    public int getBugCount() {
+        return bugCount;
+    }
+
+    public int getMissingClassCount() {
+        return missingClassCount;
+    }
+
+    public int getErrorCount() {
+        return errorCount;
+    }
+
+    public Exception getException() {
+        return exception;
     }
 }

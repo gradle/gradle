@@ -29,8 +29,6 @@ import java.util.List;
 
 /**
  * Implementation of FavoritesEditorVersion1 meant to help shield external users from internal changes.
- *
- * @author mhunsicker
  */
 public class FavoritesEditorWrapper implements FavoritesEditorVersion1 {
     private FavoritesEditor favoritesEditor;

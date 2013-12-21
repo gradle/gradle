@@ -17,12 +17,11 @@
 package org.gradle.tooling.internal.consumer;
 
 
-import org.gradle.tests.fixtures.ConcurrentTestUtil
+import org.gradle.test.fixtures.ConcurrentTestUtil
 import spock.lang.Specification
 
-/**
- * by Szczepan Faber, created at: 12/16/11
- */
+import java.util.concurrent.CopyOnWriteArraySet
+
 public class SynchronizedLoggingTest extends Specification {
 
     def logging = new SynchronizedLogging()
@@ -49,7 +48,7 @@ public class SynchronizedLoggingTest extends Specification {
     def "keeps state per thread"() {
         given:
 
-        Set loggingTools = []
+        Set loggingTools = new CopyOnWriteArraySet()
 
         when:
         2.times {

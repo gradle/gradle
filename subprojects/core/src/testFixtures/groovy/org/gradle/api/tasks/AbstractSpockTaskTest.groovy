@@ -14,42 +14,41 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks;
+package org.gradle.api.tasks
 
-
-import java.util.concurrent.atomic.AtomicBoolean
 import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.internal.AbstractTask
+import org.gradle.internal.Actions
 import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.project.AbstractProject
 import org.gradle.api.internal.project.DefaultProject
-import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.taskfactory.AnnotationProcessingTaskFactory
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.api.internal.project.taskfactory.TaskFactory
 import org.gradle.api.internal.tasks.TaskExecuter
+import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.specs.Spec
+import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GUtil
-import org.gradle.util.HelperUtil
-import org.gradle.util.Matchers
-import org.gradle.util.TemporaryFolder
+import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
+
+import java.util.concurrent.atomic.AtomicBoolean
+
 import static org.junit.Assert.assertFalse
 
-/**
- * @author Hans Dockter
- */
 public abstract class AbstractSpockTaskTest extends Specification {
     public static final String TEST_TASK_NAME = "taskname"
     @Rule
-    public TemporaryFolder tmpDir = new TemporaryFolder()
+    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
-    private AbstractProject project = HelperUtil.createRootProject()
+    private AbstractProject project = TestUtil.createRootProject()
 
     private static final ITaskFactory TASK_FACTORY = new AnnotationProcessingTaskFactory(new TaskFactory(new AsmBackedClassGenerator()))
 
@@ -64,7 +63,7 @@ public abstract class AbstractSpockTaskTest extends Specification {
     }
 
     public <T extends AbstractTask> T createTask(Class<T> type, Project project, String name) {
-        Task task = TASK_FACTORY.createTask((ProjectInternal) project,
+        Task task = TASK_FACTORY.createChild(project, new DirectInstantiator()).createTask(
                 GUtil.map(Task.TASK_TYPE, type,
                         Task.TASK_NAME, name))
         assert type.isAssignableFrom(task.getClass())
@@ -85,10 +84,10 @@ public abstract class AbstractSpockTaskTest extends Specification {
     }
 
     def testPath() {
-        DefaultProject rootProject = HelperUtil.createRootProject();
-        DefaultProject childProject = HelperUtil.createChildProject(rootProject, "child");
+        DefaultProject rootProject = TestUtil.createRootProject();
+        DefaultProject childProject = TestUtil.createChildProject(rootProject, "child");
         childProject.getProjectDir().mkdirs();
-        DefaultProject childchildProject = HelperUtil.createChildProject(childProject, "childchild");
+        DefaultProject childchildProject = TestUtil.createChildProject(childProject, "childchild");
         childchildProject.getProjectDir().mkdirs();
 
         when:
@@ -120,13 +119,13 @@ public abstract class AbstractSpockTaskTest extends Specification {
         task.dependsOn(Project.PATH_SEPARATOR + "path1");
 
         then:
-        Matchers.dependsOn("path1").matches(task)
+        TaskDependencyMatchers.dependsOn("path1").matches(task)
 
         when:
         task.dependsOn("path2", dependsOnTask);
 
         then:
-        Matchers.dependsOn("path1", "path2", "somename").matches(task)
+        TaskDependencyMatchers.dependsOn("path1", "path2", "somename").matches(task)
     }
 
     def testToString() {
@@ -135,8 +134,8 @@ public abstract class AbstractSpockTaskTest extends Specification {
 
     def testDeleteAllActions() {
         when:
-        Action<Task> action1 = createTaskAction();
-        Action<Task> action2 = createTaskAction();
+        Action action1 = Actions.doNothing();
+        Action action2 = Actions.doNothing();
         getTask().doLast(action1);
         getTask().doLast(action2);
 
@@ -162,7 +161,7 @@ public abstract class AbstractSpockTaskTest extends Specification {
         task.execute()
 
         then:
-        1 * executer.execute(task, _ as TaskStateInternal)
+        1 * executer.execute(task, _ as TaskStateInternal, _ as TaskExecutionContext)
 
     }
 
@@ -190,7 +189,7 @@ public abstract class AbstractSpockTaskTest extends Specification {
         task.getOnlyIf().isSatisfiedBy(task)
 
         when:
-        task.onlyIf(HelperUtil.toClosure("{ task -> false }"));
+        task.onlyIf(TestUtil.toClosure("{ task -> false }"));
 
         then:
         assertFalse(task.getOnlyIf().isSatisfiedBy(task));
@@ -204,10 +203,10 @@ public abstract class AbstractSpockTaskTest extends Specification {
         task.getOnlyIf().isSatisfiedBy(task)
 
         when:
-        spec.isSatisfiedBy(task) >> false
         task.onlyIf(spec);
 
         then:
+        spec.isSatisfiedBy(task) >> false
         assertFalse(task.getOnlyIf().isSatisfiedBy(task));
     }
 
@@ -290,23 +289,12 @@ public abstract class AbstractSpockTaskTest extends Specification {
         TaskDependency dependencyMock = Mock()
         getTask().dependsOn(dependencyMock)
         dependencyMock.getDependencies(getTask()) >> [task1, task2] 
-
-        when:
         task1.getDidWork() >> false
         task2.getDidWork() >>> [false, true]
 
-
-        then:
+        expect:
         !getTask().dependsOnTaskDidWork()
         getTask().dependsOnTaskDidWork()
-    }
-
-    public static Action<Task> createTaskAction() {
-        return new Action<Task>() {
-            public void execute(Task task) {
-
-            }
-        };
     }
 
 }

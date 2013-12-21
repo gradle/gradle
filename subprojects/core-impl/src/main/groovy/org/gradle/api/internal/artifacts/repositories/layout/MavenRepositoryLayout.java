@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts.repositories.layout;
 
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
-import org.gradle.api.internal.artifacts.repositories.PatternBasedResolver;
+import org.gradle.api.internal.artifacts.repositories.resolver.PatternBasedResolver;
 
 import java.net.URI;
 
@@ -27,7 +27,7 @@ import java.net.URI;
  *     <li>Ivy: $baseUri/{@value IvyArtifactRepository#MAVEN_IVY_PATTERN}</li>
  * </ul>
  *
- * Following the maven convention, the 'organisation' value is further processed by replacing '.' with '/'.
+ * Following the Maven convention, the 'organisation' value is further processed by replacing '.' with '/'.
  * Note that the resolver will follow the layout only, but will <em>not</em> use .pom files for meta data. Ivy metadata files are required/published.
  */
 public class MavenRepositoryLayout extends RepositoryLayout {

@@ -20,8 +20,10 @@ import java.io.File;
 
 public interface FileLock extends Closeable, FileAccess {
     /**
-     * Returns true if the most recent {@link #writeToFile(Runnable)} by any process succeeded (ie a process did not crash while updating
-     * the target file). Returns false if {@link #writeToFile(Runnable)} has never been called for the target file.
+     * Returns true if the most recent mutation method ({@link #updateFile(Runnable)} or {@link #writeFile(Runnable)} attempted by any process succeeded
+     * (ie a process did not crash while updating the target file).
+     *
+     * Returns false if no mutation method has ever been called for the target file.
      */
     boolean getUnlockedCleanly();
 
@@ -34,4 +36,21 @@ public interface FileLock extends Closeable, FileAccess {
      * Closes this lock, releasing the lock and any resources associated with it.
      */
     void close();
+
+    /**
+     * Returns some memento of the current state of this target file.
+     */
+    State getState();
+
+    /**
+     * The actual mode of the lock. May be different to what was requested.
+     */
+    FileLockManager.LockMode getMode();
+
+    /**
+     * An immutable snapshot of the state of a lock.
+     */
+    interface State {
+        boolean hasBeenUpdatedSince(State state);
+    }
 }

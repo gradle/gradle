@@ -16,9 +16,9 @@
 
 package org.gradle.util;
 
-/**
- * @author Hans Dockter
- */
+import org.gradle.internal.TimeProvider;
+import org.gradle.internal.TrueTimeProvider;
+
 public class Clock {
     private long start;
     private TimeProvider timeProvider;
@@ -45,16 +45,8 @@ public class Clock {
     }
 
     public String getTime() {
-        StringBuffer result = new StringBuffer();
         long timeInMs = getTimeInMs();
-        if (timeInMs > MS_PER_HOUR) {
-            result.append(timeInMs / MS_PER_HOUR).append(" hrs ");
-        }
-        if (timeInMs > MS_PER_MINUTE) {
-            result.append((timeInMs % MS_PER_HOUR) / MS_PER_MINUTE).append(" mins ");
-        }
-        result.append((timeInMs % MS_PER_MINUTE) / 1000.0).append(" secs");
-        return result.toString();
+        return prettyTime(timeInMs);
     }
 
     public long getTimeInMs() {
@@ -67,5 +59,17 @@ public class Clock {
 
     public long getStartTime() {
         return start;
+    }
+
+    public static String prettyTime(long timeInMs) {
+        StringBuffer result = new StringBuffer();
+        if (timeInMs > MS_PER_HOUR) {
+            result.append(timeInMs / MS_PER_HOUR).append(" hrs ");
+        }
+        if (timeInMs > MS_PER_MINUTE) {
+            result.append((timeInMs % MS_PER_HOUR) / MS_PER_MINUTE).append(" mins ");
+        }
+        result.append((timeInMs % MS_PER_MINUTE) / 1000.0).append(" secs");
+        return result.toString();
     }
 }

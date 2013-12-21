@@ -19,8 +19,6 @@ import java.util.Set;
 
 /**
  * Information about a resolved dependency.
- *
- * @author Hans Dockter
  */
 public interface ResolvedDependency {
     /**

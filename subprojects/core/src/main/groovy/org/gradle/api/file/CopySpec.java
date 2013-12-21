@@ -17,11 +17,14 @@ package org.gradle.api.file;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.tasks.util.PatternFilterable;
+import org.gradle.api.Incubating;
+import org.gradle.api.Nullable;
+import org.gradle.internal.HasInternalProtocol;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.util.PatternFilterable;
 
-import java.util.Map;
 import java.io.FilterReader;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 /**
@@ -62,10 +65,10 @@ import java.util.regex.Pattern;
  * In this example, the <code>into</code> and <code>exclude</code> specifications at the root level are inherited by the
  * two child CopySpecs.
  *
- * @author Steve Appling
  * @see org.gradle.api.tasks.Copy Copy Task
  * @see org.gradle.api.Project#copy(groovy.lang.Closure) Project.copy()
  */
+@HasInternalProtocol
 public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFilterable {
     /**
      * Specifies whether case-sensitive pattern matching should be used.
@@ -96,7 +99,51 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
     void setIncludeEmptyDirs(boolean includeEmptyDirs);
 
     /**
+     * Returns the strategy to use when trying to copy more than one file to the same destination.
+     * <p>
+     * The value can be set with a case insensitive string of the enum value (e.g. {@code 'exclude'} for {@link DuplicatesStrategy#EXCLUDE}).
+     * <p>
+     * This strategy can be overridden for individual files by using {@link #eachFile(org.gradle.api.Action)} or {@link #filesMatching(String, org.gradle.api.Action)}.
+     *
+     * @return the strategy to use for files included by this copy spec.
+     * @see DuplicatesStrategy
+     */
+    @Incubating
+    DuplicatesStrategy getDuplicatesStrategy();
+
+    /**
+     * The strategy to use when trying to copy more than one file to the same destination. Set to {@code null} to use the default strategy, which is inherited
+     * from the parent copy spec, if any, or {@link DuplicatesStrategy#INCLUDE} if this copy spec has no parent.
+     */
+    @Incubating
+    void setDuplicatesStrategy(@Nullable DuplicatesStrategy strategy);
+
+    /**
+     * Configure the {@link org.gradle.api.file.FileCopyDetails} for each file whose path matches the specified Ant-style pattern.
+     * This is equivalent to using eachFile() and selectively applying a configuration based on the file's path.
+     *
+     * @param pattern Ant-style pattern used to match against files' relative paths
+     * @param action action called for the FileCopyDetails of each file matching pattern
+     * @return this
+     */
+    @Incubating
+    CopySpec filesMatching(String pattern, Action<? super FileCopyDetails> action);
+
+    /**
+     * Configure the {@link org.gradle.api.file.FileCopyDetails} for each file whose path does not match the specified
+     * Ant-style pattern. This is equivalent to using eachFile() and selectively applying a configuration based on the
+     * file's path.
+     *
+     * @param pattern Ant-style pattern used to match against files' relative paths
+     * @param action action called for the FileCopyDetails of each file that does not match pattern
+     * @return this
+     */
+    @Incubating
+    CopySpec filesNotMatching(String pattern, Action<? super FileCopyDetails> action);
+
+    /**
      * Adds the given specs as a child of this spec.
+     *
      * @param sourceSpecs The specs to add
      * @return this
      */
@@ -195,7 +242,7 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
 
     /**
      * Creates and configures a child {@code CopySpec} with the given destination path.
-     * The destination is evaluated as for {@link org.gradle.api.Project#file(Object)}.
+     * The destination is evaluated as per {@link org.gradle.api.Project#file(Object)}.
      *
      * @param destPath Path to the destination directory for a Copy
      * @param configureClosure The closure to use to configure the child {@code CopySpec}.

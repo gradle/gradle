@@ -21,8 +21,6 @@ import java.io.Serializable;
 
 /**
  * A holder for a message that is sent over a socket.
- *
- * @author mhunsicker
  */
 public class MessageObject implements Serializable {
     private String messageType;

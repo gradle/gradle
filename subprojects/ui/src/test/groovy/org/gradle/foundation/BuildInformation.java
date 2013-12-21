@@ -17,14 +17,12 @@ package org.gradle.foundation;
 
 import org.gradle.api.Project;
 
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Collections;
 
 /**
  * This provides a simple way to hold onto and obtain projects and tasks for testing purposes.
- *
- * @author mhunsicker
  */
 public class BuildInformation {
     private List<ProjectView> projects;
@@ -42,7 +40,6 @@ public class BuildInformation {
        Call this to get the root level project with the given name.
        @param  name       the name of the project.
        @return the project if it exists.
-       @author mhunsicker
     */
 
     public ProjectView getRootLevelProject(String name) {
@@ -65,7 +62,6 @@ public class BuildInformation {
        Locates the project that has the specified full path
        @param  fullProjectPath the full path of the sought project.
        @return a project or null.
-       @author mhunsicker
     */
 
     public ProjectView getProjectFromFullPath(String fullProjectPath) {
@@ -104,7 +100,6 @@ public class BuildInformation {
 
        @param  fullTaskName the full task name (root_project:sub_project:sub_sub_project:task.).
        @return the task or null if not found.
-       @author mhunsicker
     */
 
     public TaskView getTaskFromFullPath(String fullTaskName) {

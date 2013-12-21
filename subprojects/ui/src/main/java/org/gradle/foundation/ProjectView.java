@@ -27,8 +27,6 @@ import java.util.List;
 /**
  * Analog to gradle's Project but more light-weight and is better suited for using the gradle API from an IDE plugin. It is also easily serializable for passing across a socket. A project is a
  * collection of source files that have tasks associated with them. The tasks build the project. Projects can contain other projects. This is immutable and ultimately comes from gradle files.
- *
- * @author mhunsicker
  */
 public class ProjectView implements Comparable<ProjectView>, Serializable {
     private final String name;

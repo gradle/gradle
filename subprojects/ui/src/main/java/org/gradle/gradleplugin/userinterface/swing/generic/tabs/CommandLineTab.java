@@ -27,8 +27,6 @@ import java.awt.event.KeyEvent;
 
 /**
  * A tab that allows you to just type a straight command line that is sent to Gradle.
- *
- * @author mhunsicker
  */
 public class CommandLineTab implements GradleTab {
     private GradlePluginLord gradlePluginLord;

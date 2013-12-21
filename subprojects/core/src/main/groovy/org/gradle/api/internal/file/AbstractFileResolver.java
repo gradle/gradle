@@ -22,15 +22,19 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
+import org.gradle.internal.typeconversion.NotationParser;
+import org.gradle.internal.typeconversion.UnsupportedNotationException;
 import org.gradle.api.resources.ReadableResource;
+import org.gradle.internal.Factory;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.util.GUtil;
+import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.regex.Pattern;
@@ -48,8 +52,25 @@ public abstract class AbstractFileResolver implements FileResolver {
         return new BaseDirFileResolver(fileSystem, resolve(path));
     }
 
+    public FileResolver withNoBaseDir() {
+        return new IdentityFileResolver(fileSystem);
+    }
+
     public File resolve(Object path) {
         return resolve(path, PathValidation.NONE);
+    }
+
+    public NotationParser<Object, File> asNotationParser() {
+        return new NotationParser<Object, File>() {
+            public File parseNotation(Object notation) throws UnsupportedNotationException {
+                // TODO Further differentiate between unsupported notation errors and others (particularly when we remove the deprecated 'notation.toString()' resolution)
+                return resolve(notation, PathValidation.NONE);
+            }
+
+            public void describe(Collection<String> candidateFormats) {
+                candidateFormats.add("Anything that can be converted to a file, as per Project.file()");
+            }
+        };
     }
 
     public File resolve(Object path, PathValidation validation) {
@@ -85,7 +106,7 @@ public abstract class AbstractFileResolver implements FileResolver {
                 }
             }
 
-            String resolvedPath = GUtil.join(path, File.separator);
+            String resolvedPath = CollectionUtils.join(File.separator, path);
             boolean needLeadingSeparator = File.listRoots()[0].getPath().startsWith(File.separator);
             if (needLeadingSeparator) {
                 resolvedPath = File.separator + resolvedPath;
@@ -107,7 +128,7 @@ public abstract class AbstractFileResolver implements FileResolver {
             for (int pos = 0; pos < path.size(); pos++) {
                 File child = findChild(current, path.get(pos));
                 if (child == null) {
-                    current = new File(current, GUtil.join(path.subList(pos, path.size()), File.separator));
+                    current = new File(current, CollectionUtils.join(File.separator, path.subList(pos, path.size())));
                     break;
                 }
                 current = child;
@@ -132,9 +153,9 @@ public abstract class AbstractFileResolver implements FileResolver {
         return new File(current, segment);
     }
 
-    public FileSource resolveLater(final Object path) {
-        return new FileSource() {
-            public File get() {
+    public Factory<File> resolveLater(final Object path) {
+        return new Factory<File>() {
+            public File create() {
                 return resolve(path);
             }
         };
@@ -179,8 +200,8 @@ public abstract class AbstractFileResolver implements FileResolver {
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
-            } else if (current instanceof FileSource) {
-                return ((FileSource) current).get();
+            } else if (current instanceof Factory) {
+                return ((Factory) current).create();
             } else {
                 return current;
             }
@@ -225,6 +246,10 @@ public abstract class AbstractFileResolver implements FileResolver {
 
     public FileTree resolveFilesAsTree(Object... paths) {
         return resolveFiles(paths).getAsFileTree();
+    }
+
+    public FileTree compositeFileTree(List<FileTree> fileTrees) {
+        return new DefaultCompositeFileTree(fileTrees);
     }
 
     public ReadableResource resolveResource(Object path) {

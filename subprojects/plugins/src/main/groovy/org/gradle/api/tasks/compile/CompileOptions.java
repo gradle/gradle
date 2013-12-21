@@ -16,357 +16,502 @@
 
 package org.gradle.api.tasks.compile;
 
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.util.DeprecationLogger;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
 
 /**
  * Main options for Java compilation.
- *
- * @author Hans Dockter
  */
 public class CompileOptions extends AbstractOptions {
     private static final long serialVersionUID = 0;
 
-    /**
-     * Specifies whether the compile task should fail when compilation fails. The default is {@code true}.
-     */
-    @Input
+    private static final ImmutableSet<String> EXCLUDE_FROM_ANT_PROPERTIES =
+            ImmutableSet.of("debugOptions", "forkOptions", "compilerArgs", "dependOptions", "useDepend", "useAnt");
+
     private boolean failOnError = true;
 
+    private boolean verbose;
+
+    private boolean listFiles;
+
+    private boolean deprecation;
+
+    private boolean warnings = true;
+
+    private String encoding;
+
+    private boolean optimize;
+
+    private boolean debug = true;
+
+    private DebugOptions debugOptions = new DebugOptions();
+
+    private boolean fork;
+
+    private ForkOptions forkOptions = new ForkOptions();
+
+    private boolean useDepend;
+
+    private DependOptions dependOptions = new DependOptions();
+
+    private String compiler;
+
+    private boolean includeJavaRuntime;
+
+    private String bootClasspath;
+
+    private String extensionDirs;
+
+    private List<String> compilerArgs = Lists.newArrayList();
+
+    private boolean useAnt;
+
+    /**
+     * Tells whether to fail the build when compilation fails. Defaults to {@code true}.
+     */
+    @Input
     public boolean isFailOnError() {
         return failOnError;
     }
 
-    // @Input not recognized if there is only an "is" method
+    /**
+     * Deprecated.
+     *
+     * @deprecated use {@link #isFailOnError()}
+     */
+    @Deprecated
     public boolean getFailOnError() {
+        DeprecationLogger.nagUserOfDiscontinuedProperty("CompileOptions.getFailOnError()", "CompileOptions.isFailOnError()");
         return failOnError;
     }
 
+    /**
+     * Sets whether to fail the build when compilation fails. Defaults to {@code true}.
+     */
     public void setFailOnError(boolean failOnError) {
         this.failOnError = failOnError;
     }
 
     /**
-     * Specifies whether the compile task should produce verbose output.
+     * Tells whether to produce verbose output. Defaults to {@code false}.
      */
-    private boolean verbose;
-
     public boolean isVerbose() {
         return verbose;
     }
 
+    /**
+     * Sets whether to produce verbose output. Defaults to {@code false}.
+     */
     public void setVerbose(boolean verbose) {
         this.verbose = verbose;
     }
 
     /**
-     * Specifies whether the compile task should list the files to be compiled.
+     * Tells whether to log the files to be compiled. Defaults to {@code false}.
      */
-    private boolean listFiles;
-
     public boolean isListFiles() {
         return listFiles;
     }
 
+    /**
+     * Sets whether to log the files to be compiled. Defaults to {@code false}.
+     */
     public void setListFiles(boolean listFiles) {
         this.listFiles = listFiles;
     }
 
     /**
-     * Specifies whether to log details of usage of deprecated members or classes. The default is {@code false}.
+     * Tells whether to log details of usage of deprecated members or classes. Defaults to {@code false}.
      */
-    private boolean deprecation;
-
     public boolean isDeprecation() {
         return deprecation;
     }
 
+    /**
+     * Sets whether to log details of usage of deprecated members or classes. Defaults to {@code false}.
+     */
     public void setDeprecation(boolean deprecation) {
         this.deprecation = deprecation;
     }
 
     /**
-     * Specifies whether to log warning messages. The default is {@code true}.
+     * Tells whether to log warning messages. The default is {@code true}.
      */
-    private boolean warnings = true;
-
     public boolean isWarnings() {
         return warnings;
     }
 
+    /**
+     * Sets whether to log warning messages. The default is {@code true}.
+     */
     public void setWarnings(boolean warnings) {
         this.warnings = warnings;
     }
 
     /**
-     * The source encoding name. Uses the platform default encoding if not specified. The default is {@code null}.
+     * Returns the character encoding to be used when reading source files. Defaults to {@code null}, in which
+     * case the platform default encoding will be used.
      */
-    @Input @Optional
-    private String encoding;
-
+    @Input
+    @Optional
     public String getEncoding() {
         return encoding;
     }
 
+    /**
+     * Sets the character encoding to be used when reading source files. Defaults to {@code null}, in which
+     * case the platform default encoding will be used.
+     */
     public void setEncoding(String encoding) {
         this.encoding = encoding;
     }
 
     /**
-     * Whether to produce optimized byte code. Note that this flag is ignored by Sun's javac starting with
-     * JDK 1.3 (since compile-time optimization is unnecessary)
+     * Tells whether to produce optimized byte code. Only takes effect if {@code useAnt} is {@code true}.
+     * Note that this flag is ignored by Sun's javac starting with JDK 1.3.
+     *
+     * @deprecated No replacement
      */
-    @Input
-    private boolean optimize;
-
+    @Deprecated
     public boolean isOptimize() {
         return optimize;
     }
 
-    // @Input not recognized if there is only an "is" method
+    /**
+     * Tells whether to produce optimized byte code. Only takes effect if {@code useAnt} is {@code true}.
+     * Note that this flag is ignored by Sun's javac starting with JDK 1.3.
+     *
+     * @deprecated No replacement
+     */
+    @Input
+    @Deprecated
     public boolean getOptimize() {
         return optimize;
     }
 
+    /**
+     * Sets whether to produce optimized byte code. Only takes effect if {@code useAnt} is {@code true}.
+     * Note that this flag is ignored by Sun's javac starting with JDK 1.3.
+     *
+     * @deprecated No replacement
+     */
+    @Deprecated
     public void setOptimize(boolean optimize) {
+        DeprecationLogger.nagUserOfDiscontinuedProperty("CompileOptions.optimize", "There is no replacement for this property.");
         this.optimize = optimize;
     }
 
     /**
-     * Specifies whether debugging information should be included in the generated {@code .class} files. The default
-     * is {@code true}. See {@link DebugOptions#debugLevel} for which debugging information will be generated.
+     * Tells whether to include debugging information in the generated class files. Defaults
+     * to {@code true}. See {@link DebugOptions#getDebugLevel()} for which debugging information will be generated.
      */
     @Input
-    private boolean debug = true;
-
     public boolean isDebug() {
         return debug;
     }
 
-    // @Input not recognized if there is only an "is" method
+    /**
+     * Deprecated.
+     *
+     * @deprecated use {@link #isDebug()}
+     */
+    @Deprecated
     public boolean getDebug() {
+        DeprecationLogger.nagUserOfReplacedMethod("CompileOptions.getDebug()", "CompileOptions.isDebug()");
         return debug;
     }
 
+    /**
+     * Sets whether to include debugging information in the generated class files. Defaults
+     * to {@code true}. See {@link DebugOptions#getDebugLevel()} for which debugging information will be generated.
+     */
     public void setDebug(boolean debug) {
         this.debug = debug;
     }
 
     /**
-     * Options for generating debugging information.
+     * Returns options for generating debugging information.
      */
     @Nested
-    private DebugOptions debugOptions = new DebugOptions();
-
     public DebugOptions getDebugOptions() {
         return debugOptions;
     }
 
+    /**
+     * Sets options for generating debugging information.
+     */
     public void setDebugOptions(DebugOptions debugOptions) {
         this.debugOptions = debugOptions;
     }
 
     /**
-     * Specifies whether to run the compiler in its own process. The default is {@code false}.
+     * Tells whether to run the compiler in its own process. Note that this does
+     * not necessarily mean that a new process will be created for each compile task.
+     * Defaults to {@code false}.
      */
-    private boolean fork;
-
     public boolean isFork() {
         return fork;
     }
 
+    /**
+     * Sets whether to run the compiler in its own process. Note that this does
+     * not necessarily mean that a new process will be created for each compile task.
+     * Defaults to {@code false}.
+     */
     public void setFork(boolean fork) {
         this.fork = fork;
     }
 
     /**
-     * The options for running the compiler in a child process.
+     * Returns options for running the compiler in a child process.
      */
     @Nested
-    private ForkOptions forkOptions = new ForkOptions();
-
     public ForkOptions getForkOptions() {
         return forkOptions;
     }
 
+    /**
+     * Sets options for running the compiler in a child process.
+     */
     public void setForkOptions(ForkOptions forkOptions) {
         this.forkOptions = forkOptions;
     }
 
     /**
-     * Specifies whether to use the Ant {@code <depend>} task.
+     * Tells whether to use the Ant {@code <depend>} task.
+     * Only takes effect if {@code useAnt} is {@code true}. Defaults to
+     * {@code false}.
      */
-    private boolean useDepend;
-
     public boolean isUseDepend() {
         return useDepend;
     }
 
+    /**
+     * Sets whether to use the Ant {@code <depend>} task.
+     * Only takes effect if {@code useAnt} is {@code true}. Defaults to
+     * {@code false}.
+     */
     public void setUseDepend(boolean useDepend) {
         this.useDepend = useDepend;
     }
 
     /**
-     * The options for using the Ant {@code <depend>} task.
+     * Returns options for using the Ant {@code <depend>} task.
      */
-    private DependOptions dependOptions = new DependOptions();
-
     public DependOptions getDependOptions() {
         return dependOptions;
     }
 
+    /**
+     * Sets options for using the Ant {@code <depend>} task.
+     */
     public void setDependOptions(DependOptions dependOptions) {
         this.dependOptions = dependOptions;
     }
 
     /**
-     * The compiler to use.
+     * Returns the compiler to be used. Only takes effect if {@code useAnt} is {@code true}.
+     *
+     * @deprecated use {@code CompileOptions.forkOptions.executable} instead
      */
     @Deprecated
     @Input @Optional
-    private String compiler;
-
     public String getCompiler() {
         return compiler;
     }
 
-    void setCompiler(String compiler) {
+    /**
+     * Sets the compiler to be used. Only takes effect if {@code useAnt} is {@code true}.
+     *
+     * @deprecated use {@code CompileOptions.forkOptions.executable instead}
+     */
+    @Deprecated
+    public void setCompiler(String compiler) {
         DeprecationLogger.nagUserOfDiscontinuedProperty("CompileOptions.compiler", "To use an alternative compiler, "
                 + "set 'CompileOptions.fork' to 'true', and 'CompileOptions.forkOptions.executable' to the path of the compiler executable.");
         this.compiler = compiler;
     }
 
-    @Input
-    private boolean includeJavaRuntime;
-
+    /**
+     * Tells whether the Java runtime should be put on the compile class path. Only takes effect if
+     * {@code useAnt} is {@code true}. Defaults to {@code false}.
+     *
+     * @deprecated No replacement
+     */
+    @Deprecated
     public boolean isIncludeJavaRuntime() {
         return includeJavaRuntime;
     }
 
-    // @Input not recognized if there is only an "is" method
+    /**
+     * Tells whether the Java runtime should be put on the compile class path. Only takes effect if
+     * {@code useAnt} is {@code true}. Defaults to {@code false}.
+     *
+     * @deprecated No replacement
+     */
+    @Input
+    @Deprecated
     public boolean getIncludeJavaRuntime() {
         return includeJavaRuntime;
     }
 
+    /**
+     * Sets whether the Java runtime should be put on the compile class path. Only takes effect if
+     * {@code useAnt} is {@code true}. Defaults to {@code false}.
+     *
+     * @deprecated No replacement
+     */
+    @Deprecated
     public void setIncludeJavaRuntime(boolean includeJavaRuntime) {
+        DeprecationLogger.nagUserOfDiscontinuedProperty("CompileOptions.includeJavaRuntime", "There is no replacement for this property.");
         this.includeJavaRuntime = includeJavaRuntime;
     }
 
     /**
-     * The bootstrap classpath to use when compiling.
+     * Returns the bootstrap classpath to be used for the compiler process.
+     * Only takes effect if {@code fork} is {@code true}. Defaults to {@code null}.
      */
-    @Input @Optional
-    private String bootClasspath;
-
+    @Input
+    @Optional
     public String getBootClasspath() {
         return bootClasspath;
     }
 
+    /**
+     * Sets the bootstrap classpath to be used for the compiler process.
+     * Only takes effect if {@code fork} is {@code true}. Defaults to {@code null}.
+     */
     public void setBootClasspath(String bootClasspath) {
         this.bootClasspath = bootClasspath;
     }
 
     /**
-     * The extension dirs to use when compiling.
+     * Returns the extension dirs to be used for the compiler process.
+     * Only takes effect if {@code fork} is {@code true}. Defaults to {@code null}.
      */
-    @Input @Optional
-    private String extensionDirs;
-
+    @Input 
+    @Optional
     public String getExtensionDirs() {
         return extensionDirs;
     }
 
+    /**
+     * Sets the extension dirs to be used for the compiler process.
+     * Only takes effect if {@code fork} is {@code true}. Defaults to {@code null}.
+     */
     public void setExtensionDirs(String extensionDirs) {
         this.extensionDirs = extensionDirs;
     }
 
     /**
-     * The arguments to pass to the compiler.
+     * Returns any additional arguments to be passed to the compiler.
+     * Defaults to the empty list.
      */
     @Input
-    private List<String> compilerArgs = Lists.newArrayList();
-
     public List<String> getCompilerArgs() {
         return compilerArgs;
     }
 
+    /**
+     * Sets any additional arguments to be passed to the compiler.
+     * Defaults to the empty list.
+     */
     public void setCompilerArgs(List<String> compilerArgs) {
         this.compilerArgs = compilerArgs;
     }
 
     /**
-     * Whether to use the Ant javac task or Gradle's own Java compiler integration.
-     * Defaults to <tt>false</tt>.
+     * Tells whether to use the Ant javac task over Gradle's own Java compiler integration.
+     * Defaults to {@code false}.
+     *
+     * @deprecated No replacement
      */
-    private boolean useAnt;
-
+    @Deprecated
     public boolean isUseAnt() {
         return useAnt;
     }
 
+    /**
+     * Sets whether to use the Ant javac task over Gradle's own Java compiler integration.
+     * Defaults to {@code false}.
+     *
+     * @deprecated No replacement
+     */
+    @Deprecated
     public void setUseAnt(boolean useAnt) {
+        DeprecationLogger.nagUserOfDiscontinuedProperty("CompileOptions.useAnt", "There is no replacement for this property.");
         this.useAnt = useAnt;
     }
 
     /**
-     * Convenience method to set fork options with named parameter syntax.
+     * Convenience method to set {@link ForkOptions} with named parameter syntax.
+     * Calling this method will set {@code fork} to {@code true}.
      */
-    CompileOptions fork(Map<String, Object> forkArgs) {
+    public CompileOptions fork(Map<String, Object> forkArgs) {
         fork = true;
         forkOptions.define(forkArgs);
         return this;
     }
 
     /**
-     * Convenience method to set debug options with named parameter syntax.
+     * Convenience method to set {@link DebugOptions} with named parameter syntax.
+     * Calling this method will set {@code debug} to {@code true}.
      */
-    CompileOptions debug(Map<String, Object> debugArgs) {
+    public CompileOptions debug(Map<String, Object> debugArgs) {
         debug = true;
         debugOptions.define(debugArgs);
         return this;
     }
 
     /**
-     * Set the dependency options from a map.  See  {@link DependOptions}  for
-     * a list of valid properties.  Calling this method will enable use
-     * of the depend task during a compile.
+     * Convenience method to set {@link DependOptions} with named parameter syntax.
+     * Calling this method will set {@code useDepend} to {@code true}.
      */
-    CompileOptions depend(Map<String, Object> dependArgs) {
+    public CompileOptions depend(Map<String, Object> dependArgs) {
         useDepend = true;
         dependOptions.define(dependArgs);
         return this;
     }
 
-    protected List<String> excludedFieldsFromOptionMap() {
-        return Arrays.asList("debugOptions", "forkOptions", "compilerArgs", "dependOptions", "useDepend", "useAnt");
-    }
-
-    protected Map<String, String> fieldName2AntMap() {
-        return ImmutableMap.of("warnings", "nowarn", "bootClasspath", "bootclasspath", "extensionDirs", "extdirs", "failOnError", "failonerror", "listFiles", "listfiles");
-    }
-
-    protected Map<String, ? extends Callable<Object>> fieldValue2AntMap() {
-        return ImmutableMap.of("warnings", new Callable<Object>() {
-            public Object call() {
-                return !warnings;
-            }
-        });
-    }
-
+    /**
+     * Internal method.
+     */
     public Map<String, Object> optionMap() {
         Map<String, Object> map = super.optionMap();
         map.putAll(debugOptions.optionMap());
         map.putAll(forkOptions.optionMap());
         return map;
+    }
+
+    @Override
+    protected boolean excludeFromAntProperties(String fieldName) {
+        return EXCLUDE_FROM_ANT_PROPERTIES.contains(fieldName);
+    }
+
+    @Override
+    protected String getAntPropertyName(String fieldName) {
+        if (fieldName.equals("warnings")) {
+            return "nowarn";
+        }
+        if (fieldName.equals("extensionDirs")) {
+            return "extdirs";
+        }
+        return fieldName;
+    }
+
+    @Override
+    protected Object getAntPropertyValue(String fieldName, Object value) {
+        if (fieldName.equals("warnings")) {
+            return !warnings;
+        }
+        return value;
     }
 }
 

@@ -16,10 +16,11 @@
 <chapter id="scala_plugin" xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>The Scala Plugin</title>
 
-    <para>The Scala plugin extends the Java plugin to add support for Scala projects. It can deal with Scala-only
-        projects and with mixed Java/Scala projects. It can even deal with Java-only projects.
-        The Scala plugin supports joint compilation of Java and Scala source. This means your project can contain
-        Scala classes which use Java classes, and vice versa.
+    <para>The Scala plugin extends the Java plugin to add support for Scala projects. It can deal with
+        Scala code, mixed Scala and Java code, and even pure Java code (although we don't necessarily recommend to use it for the latter).
+        The plugin supports <emphasis>joint compilation</emphasis>, which allows to freely mix and match Scala and Java code,
+        with dependencies in both directions. For example, a Scala class can extend a Java class that in turn extends a Scala class.
+        This makes it possible to use the best language for the job, and to rewrite any class in the other language if needed.
     </para>
 
     <section>
@@ -47,25 +48,25 @@
                 <td><literal>compileScala</literal></td>
                 <td><literal>compileJava</literal></td>
                 <td><apilink class="org.gradle.api.tasks.scala.ScalaCompile"/></td>
-                <td>Compiles production Scala source files using scalac.</td>
+                <td>Compiles production Scala source files.</td>
             </tr>
             <tr>
                 <td><literal>compileTestScala</literal></td>
                 <td><literal>compileTestJava</literal></td>
                 <td><apilink class="org.gradle.api.tasks.scala.ScalaCompile"/></td>
-                <td>Compiles test Scala source files using scalac.</td>
+                <td>Compiles test Scala source files.</td>
             </tr>
             <tr>
                 <td><literal>compile<replaceable>SourceSet</replaceable>Scala</literal></td>
                 <td><literal>compile<replaceable>SourceSet</replaceable>Java</literal></td>
                 <td><apilink class="org.gradle.api.tasks.scala.ScalaCompile"/></td>
-                <td>Compiles the given source set's Scala source files using scalac.</td>
+                <td>Compiles the given source set's Scala source files.</td>
             </tr>
             <tr>
                 <td><literal>scaladoc</literal></td>
                 <td>-</td>
                 <td><apilink class="org.gradle.api.tasks.scala.ScalaDoc"/></td>
-                <td>Generates API documentation for the production Scala source files using scaladoc.</td>
+                <td>Generates API documentation for the production Scala source files.</td>
             </tr>
         </table>
         <para>The Scala plugin adds the following dependencies to tasks added by the Java plugin.</para>
@@ -112,8 +113,9 @@
         <title>Project layout</title>
         <para>The Scala plugin assumes the project layout shown below.  All the Scala source directories can contain
             Scala <emphasis>and</emphasis> Java code. The Java source directories may only contain Java source code.
-            None of these directories need exist or have anything in them. The Scala plugin will compile whatever it
-            finds, and handles anything which is missing.</para>
+            None of these directories need to exist or have anything in them; the Scala plugin will simply compile
+            whatever it finds.
+        </para>
         <table id='scalalayout'>
             <title>Scala plugin - project layout</title>
             <thead>
@@ -127,46 +129,84 @@
                 <td>
                     <filename>src/main/scala</filename>
                 </td>
-                <td>Production Scala source. May also contain Java source for joint compilation.</td>
+                <td>Production Scala sources. May also contain Java sources for joint compilation.</td>
             </tr>
             <xi:include href="javaProjectTestLayout.xml"/>
             <tr>
                 <td>
                     <filename>src/test/scala</filename>
                 </td>
-                <td>Test Scala source. May also contain Java source for joint compilation.</td>
+                <td>Test Scala sources. May also contain Java sources for joint compilation.</td>
             </tr>
             <xi:include href="javaProjectGenericLayout.xml"/>
             <tr>
                 <td>
                     <filename>src/<replaceable>sourceSet</replaceable>/scala</filename>
                 </td>
-                <td>Scala source for the given source set. May also contain Java source for joint compilation.</td>
+                <td>Scala sources for the given source set. May also contain Java sources for joint compilation.</td>
             </tr>
         </table>
 
         <section>
             <title>Changing the project layout</title>
-            <para>TBD</para>
+            <para>Just like the Java plugin, the Scala plugin allows to configure custom locations for Scala production and test sources.</para>
             <sample id="customScalaSourceLayout" dir="scala/customizedLayout" title="Custom Scala source layout">
-                <sourcefile file="build.gradle" snippet="define-main"/>
+                <sourcefile file="build.gradle" snippet="custom-source-locations"/>
             </sample>
         </section>
 
     </section>
 
     <section>
-        <title>Dependency Management</title>
-        <para>The Scala plugin adds a <literal>scalaTools</literal> configuration, which it uses to locate the Scala
-            tools, such as scalac, to use. You must specify the version of Scala to use. Below is an example.
+        <title>Dependency management</title>
+        <para>
+            Scala projects need to declare a <literal>scala-library</literal> dependency. This dependency will then be used on compile and
+            runtime class paths. It will also be used to get hold of the Scala compiler and Scaladoc tool, respectively.
+            <footnote>
+                <para>See <xref linkend="sec:configure_scala_classpath"/>.</para>
+            </footnote>
         </para>
-        <sample id="declareScalaTools" dir="scala/quickstart" title="Declaring the Scala version to use">
-            <sourcefile file="build.gradle" snippet="declare-scala-version"/>
+        <para>
+            If Scala is used for production code, the <literal>scala-library</literal> dependency should be added to the
+            <literal>compile</literal> configuration:
+        </para>
+        <sample id="declareScalaDependency" dir="scala/quickstart" title="Declaring a Scala dependency for production code">
+            <sourcefile file="build.gradle" snippet="scala-dependency"/>
+        </sample>
+        <para>
+            If Scala is only used for test code, the <literal>scala-library</literal> dependency should be added to the <literal>testCompile</literal>
+            configuration:
+        </para>
+        <sample id="declareScalaTestDependency" dir="userguide/scala/scalaDependency" title="Declaring a Scala dependency for test code">
+            <sourcefile file="build.gradle" snippet="scala-test-dependency"/>
         </sample>
     </section>
 
+    <section id="sec:configure_scala_classpath">
+        <title>Automatic configuration of scalaClasspath</title>
+        <para>
+            <literal>ScalaCompile</literal> and <literal>ScalaDoc</literal> tasks consume Scala in two ways: on their <literal>classpath</literal>,
+            and on their <literal>scalaClasspath</literal>. The former is used to locate classes referenced by the source code, and will typically
+            contain <literal>scala-library</literal> along with other libraries. The latter is used to load and execute the Scala compiler
+            and Scaladoc tool, respectively, and should only contain the <literal>scala-compiler</literal> library and its dependencies.
+        </para>
+        <para>
+            Unless a task's <literal>scalaClasspath</literal> is configured explicitly, the Scala (base) plugin will try to infer it
+            from the task's <literal>classpath</literal>. This is done as follows:
+            <itemizedlist>
+                <listitem>
+                    If a <literal>scala-library</literal> Jar is found on <literal>classpath</literal>, and the project has at least one repository declared,
+                    a corresponding <literal>scala-compiler</literal> repository dependency will be added to <literal>scalaClasspath</literal>.
+                </listitem>
+                <listitem>
+                    Otherwise, execution of the task will fail with a message saying that <literal>scalaClasspath</literal> could not be inferred.
+                </listitem>
+            </itemizedlist>
+        </para>
+    </section>
+
     <section>
-        <title>Convention Properties</title>
+        <title>Convention properties</title>
         <para>The Scala plugin does not add any convention properties to the project.</para>
     </section>
     
@@ -272,4 +312,93 @@
         </para>
     </section>
 
+    <section>
+        <title>Compiling in external process</title>
+        <para>
+            When <literal>scalaCompileOptions.fork</literal> is set to <literal>true</literal>, compilation will take place
+            in an external process. The details of forking depend on which compiler is used. The Ant based compiler
+            (<literal>scalaCompileOptions.useAnt = true</literal>) will fork a new process for every <literal>ScalaCompile</literal> task,
+            and does not fork by default. The Zinc based compiler (<literal>scalaCompileOptions.useAnt = false</literal>) will leverage
+            the Gradle compiler daemon, and does so by default.
+        </para>
+        <para>Memory settings for the external process default to the JVM's defaults. To adjust memory settings,
+            configure <literal>scalaCompileOptions.forkOptions</literal> as needed:
+            <sample id="zinc" dir="scala/zinc" title="Adjusting memory settings">
+                <sourcefile file="build.gradle" snippet="adjust-memory"/>
+            </sample>
+        </para>
+    </section>
+
+    <section>
+        <title>Incremental compilation</title>
+        <para>
+            By compiling only classes whose source code has changed since the previous compilation, and classes affected by these changes,
+            incremental compilation can significantly reduce Scala compilation time. It is particularly effective when frequently compiling
+            small code increments, as is often done at development time.
+        </para>
+
+        <para>
+            The Scala plugin now supports incremental compilation by integrating with <ulink url="https://github.com/typesafehub/zinc">Zinc</ulink>,
+            a standalone version of <ulink url="https://github.com/harrah/xsbt">sbt</ulink>'s incremental Scala compiler. To switch the
+            <literal>ScalaCompile</literal> task from the default Ant based compiler to the new Zinc based compiler, set
+            <literal>scalaCompileOptions.useAnt</literal> to <literal>false</literal>:
+            <sample id="zinc" dir="scala/zinc" title="Activating the Zinc based compiler">
+                <sourcefile file="build.gradle" snippet="use-zinc"/>
+            </sample>
+        </para>
+
+        <para>
+            Except where noted in the<ulink url="http://gradle.org/docs/current/dsl/org.gradle.api.tasks.scala.ScalaCompile.html">API documentation</ulink>,
+            the Zinc based compiler supports exactly the same configuration options as the Ant based compiler. Note, however, that the Zinc compiler requires
+            Java 6 or higher to run. This means that Gradle itself has to be run with Java 6 or higher.
+        </para>
+
+        <para>
+            The Scala plugin adds a configuration named <literal>zinc</literal> to resolve the Zinc library and its dependencies. To override the
+            Zinc version that Gradle uses by default, add an explicit Zinc dependency (for example <literal>zinc "com.typesafe.zinc:zinc:0.1.4"</literal>).
+            Regardless of which Zinc version is used, Zinc will always use the Scala compiler found on the <literal>scalaTools</literal> configuration.
+        </para>
+
+        <para>
+            Just like Gradle's Ant based compiler, the Zinc based compiler supports joint compilation of Java and Scala code. By default, all Java and Scala code
+            under <literal>src/main/scala</literal> will participate in joint compilation. With the Zinc based compiler, even Java code will be compiled incrementally.
+        </para>
+
+        <para>
+            Incremental compilation requires dependency analysis of the source code. The results of this analysis are stored in the file designated
+            by <literal>scalaCompileOptions.incrementalOptions.analysisFile</literal> (which has a sensible default). In a multi-project build, analysis
+            files are passed on to downstream <literal>ScalaCompile</literal> tasks to enable incremental compilation across project boundaries. For
+            <literal>ScalaCompile</literal> tasks added by the Scala plugin, no configuration is necessary to make this work. For other
+            <literal>ScalaCompile</literal> tasks, <literal>scalaCompileOptions.incrementalOptions.publishedCode</literal> needs to be configured to point
+            to the classes folder or Jar archive by which the code is passed on to compile class paths of downstream <literal>ScalaCompile</literal> tasks.
+            Note that if <literal>publishedCode</literal> is not set correctly, downstream tasks may not recompile code affected by upstream changes,
+            leading to incorrect compilation results.
+        </para>
+
+        <para>
+            Due to the overhead of dependency analysis, a clean compilation or a compilation after a larger code change may take longer than with the Ant based compiler.
+            For CI builds and release builds, we currently recommend to use the Ant based compiler.
+        </para>
+
+        <para>
+            Note that Zinc's Nailgun based daemon mode is not supported. Instead, we plan to enhance Gradle's own compiler daemon to stay alive across Gradle
+            invocations, reusing the same Scala compiler. This is expected to yield another significant speedup for Scala compilation.
+        </para>
+    </section>
+
+    <section>
+        <title>Eclipse Integration</title>
+        <para>
+            When the Eclipse plugin encounters a Scala project, it adds additional configuration to make the project work with Scala IDE out of the box.
+            Specifically, the plugin adds a Scala nature and dependency container.
+        </para>
+    </section>
+
+    <section>
+        <title>IntelliJ IDEA Integration</title>
+        <para>
+            When the IDEA plugin encounters a Scala project, it adds additional configuration to make the project work with IDEA out of the box. Specifically,
+            the plugin adds a Scala facet and a Scala compiler library that matches the Scala version on the project's class path.
+        </para>
+    </section>
 </chapter>

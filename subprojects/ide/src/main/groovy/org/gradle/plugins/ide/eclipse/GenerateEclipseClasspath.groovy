@@ -26,8 +26,6 @@ import org.gradle.util.DeprecationLogger
  * Generates an Eclipse <code>.classpath</code> file. If you want to fine tune the eclipse configuration
  * <p>
  * At this moment nearly all configuration is done via {@link EclipseClasspath}.
- *
- * @author Hans Dockter
  */
 class GenerateEclipseClasspath extends XmlGeneratorTask<Classpath> {
 

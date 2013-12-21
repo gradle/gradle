@@ -23,7 +23,6 @@ import java.io.IOException;
 /**
  * Represents a Javadoc option.
  *
- * @author Tom Eyckmans
  * @param <T> The type which this option represents.
  */
 public interface OptionLessJavadocOptionFileOption<T> {

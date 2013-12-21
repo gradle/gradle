@@ -18,7 +18,7 @@
     <para>
         Gradle at its core intentionally provides little useful functionality for real world automation. All of the useful
         features, such as the ability to compile Java code for example, are added by <emphasis>plugins</emphasis>.
-        Plugins add new tasks (e.g. <apilink class='org.gradle.api.tasks.compile.Compile'/>), domain objects (e.g.
+        Plugins add new tasks (e.g. <apilink class='org.gradle.api.tasks.compile.JavaCompile'/>), domain objects (e.g.
         <apilink class="org.gradle.api.tasks.SourceSet"/>), conventions (e.g. main Java source is located at
         <literal>src/main/java</literal>) as well as extending core objects and objects from other plugins.
     </para>

@@ -17,8 +17,6 @@ package org.gradle.api.file;
 
 /**
  * <p>A {@code FileVisitor} is used to visit each of the files in a {@link FileTree}.</p>
- *
- * @author Steve Appling
  */
 public interface FileVisitor {
     /**

@@ -15,8 +15,13 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
-interface ModuleRevisionResolveState {
+import org.gradle.api.artifacts.result.ComponentSelectionReason;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.Versioned;
+
+interface ModuleRevisionResolveState extends Versioned {
     String getId();
 
-    String getRevision();
+    ComponentSelectionReason getSelectionReason();
+
+    void setSelectionReason(ComponentSelectionReason componentSelectionReason);
 }

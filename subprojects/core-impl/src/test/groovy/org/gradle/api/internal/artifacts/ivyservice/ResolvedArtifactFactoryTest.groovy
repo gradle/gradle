@@ -15,39 +15,34 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice
 
-import org.apache.ivy.core.module.descriptor.Artifact
-import org.gradle.api.artifacts.ResolvedArtifact
-import org.gradle.api.artifacts.ResolvedDependency
+import org.apache.ivy.Ivy
+import org.gradle.api.Transformer
+import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData
 import org.gradle.internal.Factory
-import org.gradle.api.internal.artifacts.DefaultResolvedArtifact
 import spock.lang.Specification
 
 class ResolvedArtifactFactoryTest extends Specification {
     final CacheLockingManager lockingManager = Mock()
-    final ResolvedArtifactFactory factory = new ResolvedArtifactFactory(lockingManager)
+    final IvyContextManager ivyContextManager = Mock()
+    final ResolvedArtifactFactory factory = new ResolvedArtifactFactory(lockingManager, ivyContextManager)
 
-    def "creates an artifact backed by module resolve result"() {
-        Artifact artifact = Mock()
+    def "provides artifact source"() {
+        ModuleVersionArtifactMetaData artifact = Mock()
         ArtifactResolver artifactResolver = Mock()
-        ArtifactResolveResult artifactResolveResult = Mock()
-        ResolvedDependency resolvedDependency = Mock()
         File file = new File("something.jar")
 
         when:
-        ResolvedArtifact resolvedArtifact = factory.create(resolvedDependency, artifact, artifactResolver)
+        File f = factory.artifactSource(artifact, artifactResolver).create()
 
         then:
-        resolvedArtifact instanceof DefaultResolvedArtifact
-
-        when:
-        resolvedArtifact.file
-
-        then:
+        f == file
         1 * lockingManager.useCache(!null, !null) >> {String displayName, Factory<?> action ->
             return action.create()
         }
-        1 * artifactResolver.resolve(artifact) >> artifactResolveResult
-        _ * artifactResolveResult.file >> file
+        1 * ivyContextManager.withIvy(!null) >> {Transformer action ->
+            return action.transform(Stub(Ivy))
+        }
+        1 * artifactResolver.resolve(artifact, _) >> { args -> args[1].resolved(file) }
         0 * _._
     }
 }

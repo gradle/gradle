@@ -24,6 +24,10 @@
                 <td>ruleSetFiles</td>
                 <td><literal>[]</literal></td>
             </tr>
+            <tr>
+                <td>targetJdk</td>
+                <td><literal>project.sourceCompatibility</literal></td>
+            </tr>
         </table>
     </section>
     <section>

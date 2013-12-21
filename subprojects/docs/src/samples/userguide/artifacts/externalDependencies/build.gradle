@@ -45,7 +45,7 @@ dependencies {
 
 //START SNIPPET dependencies-with-empty-attributes
 dependencies {
-    runtime ":junit:4.8.2", ":testng"
+    runtime ":junit:4.10", ":testng"
     runtime name: 'testng' 
 }
 //END SNIPPET dependencies-with-empty-attributes
@@ -59,19 +59,19 @@ dependencies {
 
 //START SNIPPET artifact-only
 dependencies {
-	runtime "org.groovy:groovy:1.5.6@jar"
-    runtime group: 'org.groovy', name: 'groovy', version: '1.5.6', ext: 'jar'
+	runtime "org.groovy:groovy:2.2.0@jar"
+    runtime group: 'org.groovy', name: 'groovy', version: '2.2.0', ext: 'jar'
 }
 //END SNIPPET artifact-only
 
 //START SNIPPET client-modules
 dependencies {
-    runtime module("org.codehaus.groovy:groovy-all:1.8.4") {
+    runtime module("org.codehaus.groovy:groovy-all:2.2.0") {
         dependency("commons-cli:commons-cli:1.0") {
             transitive = false
         }
-        module(group: 'org.apache.ant', name: 'ant', version: '1.8.2') {
-            dependencies "org.apache.ant:ant-launcher:1.8.2@jar", "org.apache.ant:ant-junit:1.8.2"
+        module(group: 'org.apache.ant', name: 'ant', version: '1.8.4') {
+            dependencies "org.apache.ant:ant-launcher:1.8.4@jar", "org.apache.ant:ant-junit:1.8.4"
         }
     }
 }
@@ -85,9 +85,9 @@ dependencies {
 //END SNIPPET file-dependencies
 
 //START SNIPPET list-grouping
-List groovy = ["org.codehaus.groovy:groovy-all:1.8.4@jar",
+List groovy = ["org.codehaus.groovy:groovy-all:2.2.0@jar",
                "commons-cli:commons-cli:1.0@jar",
-               "org.apache.ant:ant:1.8.2@jar"]
+               "org.apache.ant:ant:1.8.4@jar"]
 List hibernate = ['org.hibernate:hibernate:3.0.5@jar', 'somegroup:someorg:1.0@jar']
 dependencies {
 	runtime groovy, hibernate

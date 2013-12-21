@@ -10,14 +10,22 @@
             </thead>
             <tr>
                 <td>testClassesDir</td>
-                <td><literal>project.sourceSets.test.classesDir</literal></td>
+                <td><literal>project.sourceSets.test.output.classesDir</literal></td>
             </tr>
             <tr>
                 <td>testResultsDir</td>
                 <td><literal>project.testResultsDir</literal></td>
             </tr>
             <tr>
+                <td>binResultsDir</td>
+                <td><literal><replaceable>project.testResultsDir</replaceable>/binary/<replaceable>task.name</replaceable></literal></td>
+            </tr>
+            <tr>
                 <td>testReportDir</td>
+                <td><literal>project.testReportDir</literal></td>
+            </tr>
+            <tr>
+                <td>reports</td>
                 <td><literal>project.testReportDir</literal></td>
             </tr>
             <tr>
@@ -62,6 +70,10 @@
             </tr>
             <tr>
                 <td>maxHeapSize</td>
+                <td><literal>null</literal></td>
+            </tr>
+            <tr>
+                <td>minHeapSize</td>
                 <td><literal>null</literal></td>
             </tr>
             <tr>
@@ -176,6 +188,12 @@
             </tr>
             <tr>
                 <td>testLogging</td>
+            </tr>
+            <tr>
+                <td>reports</td>
+            </tr>
+            <tr>
+                <td>options</td>
             </tr>
         </table>
     </section>

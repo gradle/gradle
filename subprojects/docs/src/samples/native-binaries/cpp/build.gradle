@@ -1,0 +1,51 @@
+// START SNIPPET apply-plugin
+apply plugin: 'cpp'
+// END SNIPPET apply-plugin
+
+// START SNIPPET libraries
+libraries {
+    hello {}
+}
+// END SNIPPET libraries
+
+// START SNIPPET executables
+executables {
+    main {}
+}
+// END SNIPPET executables
+
+// START SNIPPET source-library
+sources {
+    main {
+        cpp {
+            lib libraries.hello
+        }
+    }
+}
+// END SNIPPET source-library
+
+// START SNIPPET all-binaries
+binaries.all {
+    // Define a preprocessor macro for every binary
+    cppCompiler.define "NDEBUG"
+
+    // Define toolchain-specific compiler and linker options
+    if (toolChain in Gcc) {
+        cppCompiler.args "-O2", "-fno-access-control"
+        linker.args "-S"
+    }
+    if (toolChain in VisualCpp) {
+        cppCompiler.args "/Zi"
+        linker.args "/DEBUG"
+    }
+}
+// END SNIPPET all-binaries
+
+// For any shared library binaries built with Visual C++, define the DLL_EXPORT macro
+binaries.withType(SharedLibraryBinary) {
+    if (toolChain in VisualCpp) {
+        cppCompiler.define "DLL_EXPORT"
+    }
+}
+
+

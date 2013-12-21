@@ -21,8 +21,6 @@ import org.gradle.StartParameter;
 /**
  * <p>A {@code GradleLauncherFactory} is responsible for creating a {@link org.gradle.GradleLauncher} instance for a build, from a {@link
  * org.gradle.StartParameter}.</p>
- *
- * @author Hans Dockter
  */
 public interface GradleLauncherFactory {
     /**

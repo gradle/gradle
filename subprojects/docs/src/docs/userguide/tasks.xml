@@ -32,7 +32,7 @@
             <sourcefile file="build.gradle"/>
         </sample>
         <para>You can also use strings for the task names:</para>
-        <sample id="defineUsingStringTaskNames" dir="userguide/tasks/defineUsingStringTaskNames" title="Defining tasks - using strings">
+        <sample id="defineUsingStringTaskNames" dir="userguide/tasks/defineUsingStringTaskNames" title="Defining tasks - using strings for task names">
             <sourcefile file="build.gradle"/>
         </sample>
         <para>There is an alternative syntax for defining tasks, which you may prefer to use:</para>
@@ -40,7 +40,7 @@
             <sourcefile file="build.gradle"/>
         </sample>
         <para>Here we add tasks to the <literal>tasks</literal> collection. Have a look at
-            <apilink class="org.gradle.api.tasks.TaskContainer"/> for more variations of the <literal>add()</literal>
+            <apilink class="org.gradle.api.tasks.TaskContainer"/> for more variations of the <literal>create()</literal>
             method.</para>
     </section>
     <section>
@@ -84,17 +84,7 @@
             (<literal>myCopy</literal>) in the configuration statement every time. This is a redundancy and not very
             nice to read.
         </para>
-        <para>There is a more convenient way of doing this.
-        </para>
-        <sample id="configureUsingLiterateStyle" dir="userguide/tasks/configureUsingLiterateStyle" title="Configuring a task - fluent interface">
-            <sourcefile file="build.gradle"/>
-        </sample>
-        <para>You might know this approach from the Hibernates Criteria Query API or JMock. Of course the API of a task
-            has to support this. The <literal>from</literal>, <literal>to</literal> and <literal>include</literal>
-            methods all return an object that may be used to chain to additional configuration methods. Gradle's built-in tasks usually
-            support this configuration style.
-        </para>
-        <para>But there is yet another way of configuring a task. It also preserves the context and it is arguably the
+        <para>There is another way of configuring a task. It also preserves the context and it is arguably the
             most readable. It is usually our favorite.
         </para>
         <sample id="configureUsingClosure" dir="userguide/tasks/configureUsingClosure" title="Configuring a task - with closure">
@@ -102,14 +92,8 @@
         </sample>
         <para>This works for <emphasis>any</emphasis> task. Line 3 of the example is just a shortcut for the
             <literal>tasks.getByName()</literal> method. It is important to note that if you pass a closure to the
-            <literal>getByName()</literal> method, this closure is applied to <emphasis>configure</emphasis> the task.
-        </para>
-        <para>There is a slightly different ways of doing this.</para>
-        <sample id="configureUsingConfigure" dir="userguide/tasks/configureUsingConfigure" title="Configuring a task - with configure() method">
-            <sourcefile file="build.gradle"/>
-        </sample>
-        <para>Every task has a <literal>configure()</literal> method, which you can pass a closure for configuring the task.
-            Gradle uses this style for configuring objects in many places, not just for tasks.
+            <literal>getByName()</literal> method, this closure is applied to <emphasis>configure</emphasis> the task, not when
+            the task executes.
         </para>
         <para>You can also use a configuration closure when you define a task.</para>
         <sample id="defineAndConfigure" dir="userguide/tasks/defineAndConfigure" title="Defining a task with closure">
@@ -150,6 +134,64 @@
             <output args="-q taskX"/>
         </sample>
         <para>For more information about task dependencies, see the <apilink class="org.gradle.api.Task"/> API.</para>
+    </section>
+    <section id="sec:ordering_tasks">
+        <title>Ordering tasks</title>
+        <note>
+            <para>
+                Task ordering is an <link linkend="feature_lifecycle">incubating</link> feature. Please be aware that this feature may change in later Gradle versions.
+            </para>
+        </note>
+        <para>
+            In some cases it is useful to control the <emphasis>order</emphasis> in which 2 tasks will execute, without introducing an explicit dependency between those tasks.
+            The primary difference between a task <emphasis>ordering</emphasis> and a task <emphasis>dependency</emphasis> is that an ordering rule does not influence which tasks
+            will be executed, only the order in which they will be executed.
+        </para>
+        <para>
+            Task ordering can be useful in a number of scenarios:
+        </para>
+        <itemizedlist>
+            <listitem>Enforce sequential ordering of tasks: eg. 'build' never runs before 'clean'.</listitem>
+            <listitem>Run build validations early in the build: eg. validate I have the correct credentials before starting the work for a release build.</listitem>
+            <listitem>Get feedback faster by running quick verification tasks before long verification tasks: eg. unit tests should run before integration tests.</listitem>
+            <listitem>A task that aggregates the results of all tasks of a particular type: eg. test report task combines the outputs of all executed test tasks.</listitem>
+        </itemizedlist>
+        <para>
+            There are two ordering rules available: "<emphasis>must run after</emphasis>" and "<emphasis>should run after</emphasis>".
+        </para>
+        <para>By using 'must run after" ordering rule you can specify that <literal>taskB</literal> must always run after <literal>taskA</literal>,
+            whenever both <literal>taskA</literal> and <literal>taskB</literal> are scheduled for execution. This is expressed as <literal>taskB.mustRunAfter(taskA)</literal>. The 'should run after' ordering rule is similar but less strict as it will be ignored in two situations. Firstly if using that rule introduces an ordering cycle. Secondly when using parallel execution and all dependencies of a task have been satisfied apart from should run after then this task will be run regardless of weather its 'should run after' dependencies have been run or not. You would use 'should run after' rule when ordering preference for faster feedback, where the ordering is helpful but not strictly required.
+        </para>
+        <para>
+            With these rules present it is still possible to execute <literal>taskA</literal> without <literal>taskB</literal> and vice-versa.
+        </para>
+        <sample id="mustRunAfter" dir="userguide/tasks/mustRunAfter" title="Adding a 'must run after' task ordering">
+            <sourcefile file="build.gradle"/>
+            <output args="-q taskY taskX"/>
+        </sample>
+        <sample id="shouldRunAfter" dir="userguide/tasks/shouldRunAfter" title="Adding a 'should run after' task ordering">
+            <sourcefile file="build.gradle"/>
+            <output args="-q taskY taskX"/>
+        </sample>
+        <para>In the examples above, it is still possible to execute <literal>taskY</literal> without causing <literal>taskX</literal> to run:</para>
+        <sample id="mustRunAfterSingleTask" dir="userguide/tasks/mustRunAfter" title="Task ordering does not imply task execution">
+            <output args="-q taskY"/>
+        </sample>
+        <para>To specify a "must run after" or "should run after" ordering between 2 tasks, you use the <apilink class="org.gradle.api.Task" method="mustRunAfter"/> and <apilink class="org.gradle.api.Task" method="shouldRunAfter"/> methods.
+            These method accept a task instance, a task name or any other input accepted by <apilink class="org.gradle.api.Task" method="dependsOn"/>.
+        </para>
+        <para>
+            Note that "<literal>B.mustRunAfter(A)</literal>" or "<literal>B.shouldRunAfter(A)</literal>" does not imply any execution dependency between the tasks:
+        </para>
+        <itemizedlist>
+            <listitem>It is possible to execute tasks <literal>A</literal> and <literal>B</literal> independently. The ordering rule only has an effect when both tasks are scheduled for execution.</listitem>
+            <listitem>When run with <literal>--continue</literal>, it is possible for <literal>B</literal> to execute in the event that <literal>A</literal> fails.</listitem>
+        </itemizedlist>
+        <para>As mentioned before 'should run after' ordering rule will be ignored if it introduces an ordering cycle:</para>
+        <sample id="shouldRunAfterWithCycle" dir="userguide/tasks/shouldRunAfterWithCycle" title="A 'should run after' task ordering is ignored if it introduces an ordering cycle">
+            <sourcefile file="build.gradle"/>
+            <output args="-q taskX"/>
+        </sample>
     </section>
     <section>
         <title>Adding a description to a task</title>
@@ -228,7 +270,7 @@
         </section>
     </section>
 
-    <section>
+    <section id="sec:up_to_date_checks">
         <title>Skipping tasks that are up-to-date</title>
         <para>If you are using one of the tasks that come with Gradle, such as a task added by the Java plugin,
             you might have noticed that Gradle will skip tasks that are up-to-date. This behaviour is also available
@@ -261,9 +303,18 @@
                 <output args="transform" ignoreExtraLines="true"/>
             </sample>
             <para>Now, Gradle knows which files to check to determine whether the task is up-to-date or not.</para>
-
-            <para>The task's <literal>inputs</literal> property is of type <apilink class="org.gradle.api.tasks.TaskInputs"/>.
+            <para>
+                The task's <literal>inputs</literal> property is of type <apilink class="org.gradle.api.tasks.TaskInputs"/>.
                 The task's <literal>outputs</literal> property is of type <apilink class="org.gradle.api.tasks.TaskOutputs"/>.
+            </para>
+            <para>
+                A task with no defined outputs will <emphasis>never</emphasis> be considered up-to-date.
+                For scenarios where the outputs of a task are not files, or for more complex scenarios, the
+                <apilink class="org.gradle.api.tasks.TaskOutputs" method="upToDateWhen(groovy.lang.Closure)" /> method allows you to calculate programmatically if
+                the tasks outputs should be considered up to date.
+            </para>
+            <para>
+                A task with only outputs defined will be considered up-to-date if those outputs are unchanged since the previous build.
             </para>
         </section>
         <section>
@@ -305,6 +356,34 @@
             <output args="-q groupPing"/>
         </sample>
     </section>
+
+    <section>
+        <title>Finalizer tasks</title>
+        <note>
+            <para>
+                Finalizers tasks are an <firstterm>incubating</firstterm> feature (see <xref linkend="sec:incubating_state"/>).
+            </para>
+        </note>
+        <para>Finalizer tasks are automatically added to the task graph when the finalized task is scheduled to run.</para>
+        <sample id="taskFinalizers" dir="userguide/tasks/finalizers" title="Adding a task finalizer">
+            <sourcefile file="build.gradle"/>
+            <output args="-q taskX"/>
+        </sample>
+        <para>Finalizer task will be executed even if the finalized task fails.</para>
+        <sample id="taskFinalizersWithFailure" dir="userguide/tasks/finalizersWithFailure" title="Task finalizer for a failing task">
+            <sourcefile file="build.gradle"/>
+            <output args="-q taskX"/>
+        </sample>
+        <para>On the other hand, finalizer tasks are not executed if the finalized task didn't do any work, for example due to failed
+            task dependency or if it's considered up to date.</para>
+        <para>Finalizer tasks are useful in situations where build creates a resource that has to be cleaned up regardless
+            of the build failing or succeeding. An example of such resource is a web container started before an integration test task
+            and which should be always shut down, even if some of the tests fail.</para>
+        <para>To specify a finalizer task you use the <apilink class="org.gradle.api.Task" method="finalizedBy"/> method.
+            This method accepts a task instance, a task name or any other input accepted by <apilink class="org.gradle.api.Task" method="dependsOn"/>.
+        </para>
+    </section>
+
     <section id='sec:the_idea_behind_gradle_tasks'>
         <title>Summary</title>
         <para>If you are coming from Ant, such an enhanced Gradle task as <emphasis>Copy</emphasis> looks like a mixture

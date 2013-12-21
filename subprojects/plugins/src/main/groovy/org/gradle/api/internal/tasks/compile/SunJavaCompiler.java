@@ -16,6 +16,7 @@
 package org.gradle.api.internal.tasks.compile;
 
 import com.sun.tools.javac.Main;
+import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.tasks.WorkResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

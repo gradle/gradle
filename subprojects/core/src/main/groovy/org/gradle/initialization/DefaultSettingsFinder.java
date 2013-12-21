@@ -20,9 +20,6 @@ import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.initialization.layout.BuildLayoutConfiguration;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 
-/**
- * @author Hans Dockter
- */
 public class DefaultSettingsFinder implements ISettingsFinder {
     private final BuildLayoutFactory layoutFactory;
 

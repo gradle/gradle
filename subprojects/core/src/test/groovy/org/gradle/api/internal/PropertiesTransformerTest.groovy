@@ -50,7 +50,7 @@ class PropertiesTransformerTest extends Specification {
     
     def 'can use closure as action'() {
         given:
-        transformer.addAction { Properties props ->
+        transformer.addAction action { Properties props ->
             props.added = 'value'
         }
         when:
@@ -61,13 +61,13 @@ class PropertiesTransformerTest extends Specification {
     
     def 'can chain actions'() {
         given:
-        transformer.addAction { Properties props ->
+        transformer.addAction action { Properties props ->
             props.remove('removed')
         }
-        transformer.addAction { Properties props ->
+        transformer.addAction action { Properties props ->
             props.changed = 'new'
         }
-        transformer.addAction { Properties props ->
+        transformer.addAction action { Properties props ->
             props.added = 'value'
         }
         Properties original = props(removed:'value', changed:'old')
@@ -79,7 +79,7 @@ class PropertiesTransformerTest extends Specification {
     
     def 'can transform to an OutputStream'() {
         given:
-        transformer.addAction { Properties props ->
+        transformer.addAction action { Properties props ->
             props.added = 'value'
         }
         ByteArrayOutputStream outstr = new ByteArrayOutputStream()
@@ -97,5 +97,9 @@ class PropertiesTransformerTest extends Specification {
         Properties props = new Properties()
         props.putAll(map)
         return props
+    }
+
+    Action action(Closure c) {
+        new ClosureBackedAction(c)
     }
 }

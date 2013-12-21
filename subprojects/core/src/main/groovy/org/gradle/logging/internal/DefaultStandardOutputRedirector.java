@@ -16,8 +16,9 @@
 
 package org.gradle.logging.internal;
 
-import org.gradle.api.Action;
+import org.gradle.api.Nullable;
 import org.gradle.api.logging.StandardOutputListener;
+import org.gradle.internal.io.TextStream;
 import org.gradle.logging.StandardOutputCapture;
 import org.gradle.logging.StandardOutputRedirector;
 import org.gradle.util.LinePerThreadBufferingOutputStream;
@@ -29,8 +30,8 @@ public class DefaultStandardOutputRedirector implements StandardOutputRedirector
     private PrintStream originalStdErr;
     private final WriteAction stdOut = new WriteAction();
     private final WriteAction stdErr = new WriteAction();
-    private final PrintStream redirectedStdOut = new LinePerThreadBufferingOutputStream(stdOut, true);
-    private final PrintStream redirectedStdErr = new LinePerThreadBufferingOutputStream(stdErr, true);
+    private final PrintStream redirectedStdOut = new LinePerThreadBufferingOutputStream(stdOut);
+    private final PrintStream redirectedStdErr = new LinePerThreadBufferingOutputStream(stdErr);
 
     public void redirectStandardOutputTo(StandardOutputListener stdOutDestination) {
         stdOut.setDestination(stdOutDestination);
@@ -76,11 +77,14 @@ public class DefaultStandardOutputRedirector implements StandardOutputRedirector
         }
     }
 
-    private static class WriteAction implements Action<String> {
+    private static class WriteAction implements TextStream {
         private StandardOutputListener destination;
 
-        public void execute(String message) {
+        public void text(String message) {
             destination.onOutput(message);
+        }
+
+        public void endOfStream(@Nullable Throwable failure) {
         }
 
         public void setDestination(StandardOutputListener destination) {

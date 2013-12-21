@@ -16,11 +16,12 @@
 package org.gradle.plugins.ide.eclipse
 
 import org.gradle.api.Project
-import org.gradle.api.internal.Instantiator
+import org.gradle.api.artifacts.Dependency
 import org.gradle.api.plugins.GroovyBasePlugin
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.scala.ScalaBasePlugin
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.plugins.ear.EarPlugin
 import org.gradle.plugins.ide.api.XmlFileContentMerger
 import org.gradle.plugins.ide.eclipse.internal.EclipseNameDeduper
@@ -30,10 +31,10 @@ import org.gradle.plugins.ide.eclipse.model.EclipseClasspath
 import org.gradle.plugins.ide.eclipse.model.EclipseModel
 import org.gradle.plugins.ide.internal.IdePlugin
 
+import javax.inject.Inject
+
 /**
  * <p>A plugin which generates Eclipse files.</p>
- *
- * @author Hans Dockter
  */
 class EclipsePlugin extends IdePlugin {
     static final String ECLIPSE_TASK_NAME = "eclipse"
@@ -41,7 +42,13 @@ class EclipsePlugin extends IdePlugin {
     static final String ECLIPSE_CP_TASK_NAME = "eclipseClasspath"
     static final String ECLIPSE_JDT_TASK_NAME = "eclipseJdt"
 
+    private final Instantiator instantiator
     EclipseModel model
+
+    @Inject
+    EclipsePlugin(Instantiator instantiator) {
+        this.instantiator = instantiator
+    }
 
     @Override protected String getLifecycleTaskName() {
         return 'eclipse'
@@ -108,7 +115,7 @@ class EclipsePlugin extends IdePlugin {
     }
 
     private void configureEclipseClasspath(Project project) {
-        model.classpath = project.services.get(Instantiator).newInstance(EclipseClasspath, project)
+        model.classpath = instantiator.newInstance(EclipseClasspath, project)
         model.classpath.conventionMapping.defaultOutputDir = { new File(project.projectDir, 'bin') }
 
         project.plugins.withType(JavaBasePlugin) {
@@ -135,6 +142,19 @@ class EclipsePlugin extends IdePlugin {
                         project.sourceSets.main.output.dirs + project.sourceSets.test.output.dirs
                     }
                 }
+
+                project.plugins.withType(ScalaBasePlugin) {
+                    classpath.containers 'org.scala-ide.sdt.launching.SCALA_CONTAINER'
+
+                    // exclude the dependencies already provided by SCALA_CONTAINER; prevents problems with Eclipse Scala plugin
+                    project.gradle.projectsEvaluated {
+                        def provided = ["scala-library", "scala-swing", "scala-dbc"]
+                        def dependencies = classpath.plusConfigurations.collectMany { it.allDependencies }.findAll { it.name in provided }
+                        if (!dependencies.empty) {
+                            classpath.minusConfigurations += project.configurations.detachedConfiguration(dependencies as Dependency[])
+                        }
+                    }
+                }
             }
         }
     }
@@ -156,7 +176,7 @@ class EclipsePlugin extends IdePlugin {
 
     private void maybeAddTask(Project project, IdePlugin plugin, String taskName, Class taskType, Closure action) {
         if (project.tasks.findByName(taskName)) { return }
-        def task = project.tasks.add(taskName, taskType)
+        def task = project.tasks.create(taskName, taskType)
         project.configure(task, action)
         plugin.addWorker(task)
     }

@@ -15,15 +15,17 @@
  */
 package org.gradle.api.internal.tasks
 
+import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.TaskExecutionHistory
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.FileResolver
 import spock.lang.Specification
-import org.gradle.api.internal.TaskExecutionHistory
-import org.gradle.api.file.FileCollection
 
 class DefaultTaskOutputsTest extends Specification {
+
+    private TaskStatusNagger taskStatusNagger = Mock()
     private final TaskInternal task = [toString: {'task'}] as TaskInternal
-    private final DefaultTaskOutputs outputs = new DefaultTaskOutputs({new File(it)} as FileResolver, task)
+    private final DefaultTaskOutputs outputs = new DefaultTaskOutputs({new File(it)} as FileResolver, task, taskStatusNagger)
 
     public void hasNoOutputsByDefault() {
         setup:
@@ -51,7 +53,7 @@ class DefaultTaskOutputsTest extends Specification {
         then:
         outputs.hasOutput
     }
-    
+
     public void hasOutputsWhenNonEmptyOutputFilesRegistered() {
         when:
         outputs.files('a')
@@ -67,7 +69,7 @@ class DefaultTaskOutputsTest extends Specification {
         then:
         outputs.hasOutput
     }
-    
+
     public void canSpecifyUpToDatePredicateUsingClosure() {
         boolean upToDate = false
 
@@ -98,7 +100,29 @@ class DefaultTaskOutputsTest extends Specification {
         f == outputFiles
         1 * history.outputFiles >> outputFiles
     }
-    
+
+    public void callsTaskStatusNaggerWhenFileMethodCalled() {
+        when:
+        outputs.file("aFile")
+        then:
+        1 * taskStatusNagger.nagIfTaskNotInConfigurableState("TaskOutputs.file(Object)")
+    }
+
+    public void callsTaskStatusNaggerWhenFilesMethodCalled() {
+        when:
+        outputs.files("aFile", "bFile")
+        then:
+        1 * taskStatusNagger.nagIfTaskNotInConfigurableState("TaskOutputs.files(Object...)")
+    }
+
+    public void callsTaskStatusNaggerWhenDirMethodCalled() {
+        when:
+        outputs.dir("aFile")
+        then:
+        1 * taskStatusNagger.nagIfTaskNotInConfigurableState("TaskOutputs.dir(Object)")
+        0 * taskStatusNagger.nagIfTaskNotInConfigurableState("TaskOutputs.files(Object...)");
+    }
+
     public void getPreviousFilesFailsWhenNoTaskHistoryAvailable() {
         when:
         outputs.previousFiles

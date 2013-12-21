@@ -18,18 +18,13 @@ package org.gradle.api.tasks.application
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.internal.plugins.StartScriptGenerator
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.InputFiles
-import org.gradle.api.tasks.OutputFile
-import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.*
 import org.gradle.util.GUtil
 
 /**
  * <p>A {@link org.gradle.api.Task} for creating OS dependent start scripts.</p>
- *
- * @author Rene Groeschke
  */
-class CreateStartScripts extends ConventionTask {
+public class CreateStartScripts extends ConventionTask {
 
     /**
      * The directory to write the scripts into.
@@ -41,6 +36,13 @@ class CreateStartScripts extends ConventionTask {
      */
     @Input
     String mainClassName
+
+    /**
+     * The application's default JVM options.
+     */
+    @Input
+    @Optional
+    Iterable<String> defaultJvmOpts = []
 
     /**
      * The application's name.
@@ -95,11 +97,10 @@ class CreateStartScripts extends ConventionTask {
 
     @TaskAction
     void generate() {
-        getOutputDir().mkdirs()
-
         def generator = new StartScriptGenerator()
         generator.applicationName = getApplicationName()
         generator.mainClassName = getMainClassName()
+        generator.defaultJvmOpts = getDefaultJvmOpts()
         generator.optsEnvironmentVar = getOptsEnvironmentVar()
         generator.exitEnvironmentVar = getExitEnvironmentVar()
         generator.classpath = getClasspath().collect { "lib/${it.name}" }

@@ -4,43 +4,73 @@ apply plugin: 'groovy'
 
 archivesBaseName = "gradle-${name.replaceAll("\\p{Upper}") { "-${it.toLowerCase()}" } }"
 
-if (!sourceSets.main.groovy.srcDirs.any{ it.exists() }) {
-    // Remove configurations.groovy from compile and runtime classpaths.
-    configurations {
-        compile.extendsFrom = []
-    }
+sourceCompatibility = 1.5
+targetCompatibility = 1.5
+
+ext {
+    compileTasks = tasks.matching { it instanceof Compile || it instanceof GroovyCompile }
+    testTasks = tasks.withType(Test)
+    generatedResourcesDir = file("$buildDir/generated-resources/main")
+    generatedTestResourcesDir = file("$buildDir/generated-resources/test")
+    jarTasks = tasks.withType(Jar)
 }
 
 dependencies {
     testCompile libraries.junit, libraries.jmock, libraries.spock
 }
 
+// Extracted as it's also used by buildSrc
 apply from: "$rootDir/gradle/compile.gradle"
 
-test {
-    maxParallelForks = guessMaxForks(project)
-    doFirst {
-        if (isCIBuild()) {
-            maxParallelForks = 2
+task classpathManifest(type: ClasspathManifest)
+
+sourceSets {
+    main.output.dir generatedResourcesDir, builtBy: classpathManifest
+}
+
+if (!javaVersion.java6Compatible) {
+    sourceSets.all {
+        java.exclude '**/jdk6/**'
+        groovy.exclude '**/jdk6/**'
+    }
+}
+if (!javaVersion.java7) {
+    sourceSets.all {
+        java.exclude '**/jdk7/**'
+        groovy.exclude '**/jdk7/**'
+    }
+}
+
+testTasks.all { task ->
+    maxParallelForks = rootProject.maxParallelForks
+    if (isCiServer) {
+        doFirst {
+            println "maxParallelForks for '$task.path' is $task.maxParallelForks"
         }
     }
 }
 
-tasks.matching { it instanceof Compile || it instanceof GroovyCompile }.all {
-    options.useAnt = false
-}
-
-tasks.withType(Jar).each { jar ->
-    jar.manifest.mainAttributes([
+jarTasks.all { jar ->
+    jar.manifest.mainAttributes(
             (Attributes.Name.IMPLEMENTATION_TITLE.toString()): 'Gradle',
             (Attributes.Name.IMPLEMENTATION_VERSION.toString()): version,
-    ])
+    )
 }
 
-ext.generatedResourcesDir = file("$buildDir/generated-resources/main")
+// Configures the project to use the test fixtures from another project, which by default is core.
+// Note this is not used to provide test fixtures, see gradle/testFixtures.gradle for that
+ext.useTestFixtures = { params = [:] ->
+    def projectPath = params.project ?: ":core"
+    def sourceSet = params.sourceSet ?: "test"
+    def compileConfiguration = sourceSet == "main" ? "compile" : "${sourceSet}Compile"
+    def runtimeConfiguration = sourceSet == "main" ? "runtime" : "${sourceSet}Runtime"
 
-task classpathManifest(type: ClasspathManifest)
-sourceSets.main.output.dir generatedResourcesDir, builtBy: classpathManifest
+    dependencies {
+        add(compileConfiguration, project(path: projectPath, configuration: "testFixturesUsageCompile"))
+        add(compileConfiguration, project(':internalTesting'))
+        add(runtimeConfiguration, project(path: projectPath, configuration: "testFixturesUsageRuntime"))
+    }
+}
 
 if (file("src/testFixtures").exists()) {
     apply from: "$rootDir/gradle/testFixtures.gradle"
@@ -51,6 +81,9 @@ if (file("src/integTest").exists()) {
 }
 
 class ClasspathManifest extends DefaultTask {
+
+    FileCollection input = project.configurations.runtime
+
     @OutputFile
     File getManifestFile() {
         return new File(project.generatedResourcesDir, "${project.archivesBaseName}-classpath.properties")
@@ -59,13 +92,28 @@ class ClasspathManifest extends DefaultTask {
     @Input
     Properties getProperties() {
         def properties = new Properties()
-        properties.runtime = project.configurations.runtime.fileCollection { it instanceof ExternalDependency }.collect {it.name}.join(',')
-        properties.projects = project.configurations.runtime.allDependencies.withType(ProjectDependency).collect {it.dependencyProject.archivesBaseName}.join(',')
+        properties.runtime = input.fileCollection {
+            (it instanceof ExternalDependency) || (it instanceof FileCollectionDependency)
+        }.collect {it.name}.join(',')
+        properties.projects = input.allDependencies.withType(ProjectDependency).collect {it.dependencyProject.archivesBaseName}.join(',')
         return properties
     }
 
     @TaskAction
     def generate() {
         manifestFile.withOutputStream { properties.save(it, 'module definition') }
+    }
+}
+ext.ClasspathManifest = ClasspathManifest
+
+// This is here mostly for the TravisCI build.
+// It advertises as an ANSI capable terminal but isn't, so we run with -q there to make
+// the output legible, but we still want test result info
+tasks.withType(Test) {
+    testLogging {
+        quiet {
+            events "failed"
+            exceptionFormat "full"
+        }
     }
 }

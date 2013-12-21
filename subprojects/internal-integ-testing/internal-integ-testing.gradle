@@ -13,10 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-apply from: "$rootDir/gradle/classycle.gradle"
-
 dependencies {
-    groovy libraries.groovy
+    compile libraries.groovy
     compile project(":internalTesting")
     compile project(':cli')
     compile project(':launcher')
@@ -30,21 +28,45 @@ dependencies {
 }
 
 useTestFixtures(sourceSet: 'main')
+useClassycle()
 
-task prepareVersionsInfo {
-    ext.destDir = file("$buildDir/generated-resources/main")
-
-    doLast {
-        def url = "http://services.gradle.org/versions/all"
-        logger.info "Getting the released versions from: $url"
-
-        def json = new URL("http://services.gradle.org/versions/all").text
-        def destFile = new File(ext.destDir, "all-released-versions.json")
-        assert destDir.mkdirs() || destDir.exists()
-        destFile.text = json
-
-        logger.info "Saved released versions information in: $destFile"
-    }
+task prepareVersionsInfo(type: PrepareVersionsInfo) {
+   url = "http://services.gradle.org/versions/all"
+   destDir = generatedResourcesDir
+   destFileName = "all-released-versions.json"
+   offline = gradle.startParameter.offline
 }
 
 sourceSets.main.output.dir prepareVersionsInfo.destDir, builtBy: prepareVersionsInfo
+
+class PrepareVersionsInfo extends DefaultTask {
+   File destDir
+   String destFileName
+   String url
+   boolean offline
+
+   @TaskAction void prepareVersions() {
+       if (offline) {
+           logger.warn("Versions information will not be downloaded because --offline switch is used.\n"
+                   + "Without the version information certain integration tests may fail or use outdated version details.")
+           return
+       }
+       logger.info "Downloading the released versions from: $url"
+
+       def theUrl = "http://services.gradle.org/versions/all"
+       def json
+       try {
+           json = new URL(theUrl).text
+       } catch (UnknownHostException e) {
+           throw new GradleException("Unable to acquire versions info. I've tried this url: '$theUrl'.\n"
+                   + "If you don't have the network connection please run with '--offline' or exclude this task from execution via '-x'."
+                   , e)
+       }
+
+       def destFile = new File(destDir, destFileName)
+       assert destDir.mkdirs() || destDir.exists() : "Problems creating output directory for $name. Attempted to create $destDir"
+       destFile.text = json
+
+       logger.info "Saved released versions information in: $destFile"
+   }
+}

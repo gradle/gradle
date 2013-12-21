@@ -21,20 +21,20 @@ import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
+import org.gradle.internal.TrueTimeProvider;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.concurrent.DefaultExecutorFactory;
+import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.id.CompositeIdGenerator;
+import org.gradle.internal.id.IdGenerator;
+import org.gradle.internal.id.LongIdGenerator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.listener.ContextClassLoaderProxy;
 import org.gradle.messaging.actor.ActorFactory;
 import org.gradle.messaging.actor.internal.DefaultActorFactory;
-import org.gradle.messaging.concurrent.DefaultExecutorFactory;
-import org.gradle.messaging.concurrent.ExecutorFactory;
 import org.gradle.messaging.remote.ObjectConnection;
 import org.gradle.process.internal.WorkerProcessContext;
-import org.gradle.util.CompositeIdGenerator;
-import org.gradle.util.IdGenerator;
-import org.gradle.util.LongIdGenerator;
-import org.gradle.util.TrueTimeProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,6 +71,8 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
             }
         } finally {
             LOGGER.info("{} finished executing tests.", workerProcessContext.getDisplayName());
+            // Clean out any security manager the tests might have installed
+            System.setSecurityManager(null);
             testServices.close();
         }
     }
@@ -91,10 +93,12 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
     }
 
     public void startProcessing() {
+        Thread.currentThread().setName("Test worker");
         processor.startProcessing(resultProcessor);
     }
 
     public void processTestClass(final TestClassRunInfo testClass) {
+        Thread.currentThread().setName("Test worker");
         try {
             processor.processTestClass(testClass);
         } finally {
@@ -104,6 +108,7 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
     }
 
     public void stop() {
+        Thread.currentThread().setName("Test worker");
         try {
             processor.stop();
         } finally {

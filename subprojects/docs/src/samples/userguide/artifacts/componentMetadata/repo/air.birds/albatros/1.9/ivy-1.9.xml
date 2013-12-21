@@ -1,0 +1,9 @@
+<ivy-module version="2.0">
+    <info organisation="air.birds"
+          module="albatros"
+          revision="1.9"
+          status="silver"/>
+    <publications>
+        <artifact />
+    </publications>
+</ivy-module>

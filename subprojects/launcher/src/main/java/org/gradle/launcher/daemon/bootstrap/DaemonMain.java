@@ -19,22 +19,24 @@ import com.google.common.io.Files;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.launcher.bootstrap.EntryPoint;
+import org.gradle.launcher.bootstrap.ExecutionListener;
 import org.gradle.launcher.daemon.configuration.DaemonServerConfiguration;
 import org.gradle.launcher.daemon.configuration.DefaultDaemonServerConfiguration;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.server.Daemon;
 import org.gradle.launcher.daemon.server.DaemonServices;
-import org.gradle.launcher.daemon.server.DaemonStoppedException;
-import org.gradle.launcher.exec.EntryPoint;
-import org.gradle.launcher.exec.ExecutionListener;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.LoggingServiceRegistry;
-import org.gradle.logging.internal.OutputEventRenderer;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * The entry point for a daemon process.
@@ -48,6 +50,8 @@ public class DaemonMain extends EntryPoint {
     private static final Logger LOGGER = Logging.getLogger(DaemonMain.class);
 
     private final DaemonServerConfiguration configuration;
+    private PrintStream originalOut;
+    private PrintStream originalErr;
 
     public static void main(String[] args) {
         //The first argument is not really used but it is very useful in diagnosing, i.e. running 'jps -m'
@@ -89,13 +93,13 @@ public class DaemonMain extends EntryPoint {
     }
 
     protected void doAction(ExecutionListener listener) {
-        LoggingServiceRegistry loggingRegistry = LoggingServiceRegistry.newChildProcessLogging();
-        LoggingManagerInternal loggingManager = loggingRegistry.getFactory(LoggingManagerInternal.class).create();
+        LoggingServiceRegistry loggingRegistry = LoggingServiceRegistry.newProcessLogging();
+        LoggingManagerInternal loggingManager = loggingRegistry.newInstance(LoggingManagerInternal.class);
         DaemonServices daemonServices = new DaemonServices(configuration, loggingRegistry, loggingManager);
         File daemonLog = daemonServices.getDaemonLogFile();
         final DaemonContext daemonContext = daemonServices.get(DaemonContext.class);
 
-        initialiseLogging(loggingRegistry.get(OutputEventRenderer.class), loggingManager, daemonLog);
+        initialiseLogging(loggingManager, daemonLog);
 
         Runtime.getRuntime().addShutdownHook(new Thread() {
             public void run() {
@@ -104,17 +108,35 @@ public class DaemonMain extends EntryPoint {
         });
 
         Daemon daemon = startDaemon(daemonServices);
+
+        Long pid = daemonContext.getPid();
+        LOGGER.lifecycle(DaemonMessages.PROCESS_STARTED + ((pid == null)? "":" Pid: " + pid + "."));
+        daemonStarted(pid, daemonLog);
+
         try {
-            daemon.awaitIdleTimeout(configuration.getIdleTimeout());
+            daemon.requestStopOnIdleTimeout(configuration.getIdleTimeout(), TimeUnit.MILLISECONDS);
             LOGGER.info("Daemon hit idle timeout (" + configuration.getIdleTimeout() + "ms), stopping...");
+        } finally {
             daemon.stop();
-        } catch (DaemonStoppedException e) {
-            LOGGER.debug("Daemon stopping due to the stop request");
-            listener.onFailure(e);
         }
     }
 
-    protected void initialiseLogging(OutputEventRenderer renderer, LoggingManagerInternal loggingManager, File daemonLog) {
+    protected void daemonStarted(Long pid, File daemonLog) {
+        //directly printing to the stream to avoid log level filtering.
+        new DaemonStartupCommunication().printDaemonStarted(originalOut, pid, daemonLog);
+        try {
+            originalOut.close();
+            originalErr.close();
+
+            //TODO - make this work on windows
+            //originalIn.close();
+        } finally {
+            originalOut = null;
+            originalErr = null;
+        }
+    }
+
+    protected void initialiseLogging(LoggingManagerInternal loggingManager, File daemonLog) {
         //create log file
         PrintStream result;
         try {
@@ -138,7 +160,7 @@ public class DaemonMain extends EntryPoint {
 
         //after redirecting we need to add the new std out/err to the renderer singleton
         //so that logging gets its way to the daemon log:
-        renderer.addStandardOutputAndError();
+        loggingManager.addStandardOutputAndError();
 
         //Making the daemon infrastructure log with DEBUG. This is only for the infrastructure!
         //Each build request carries it's own log level and it is used during the execution of the build (see LogToClient)
@@ -153,22 +175,13 @@ public class DaemonMain extends EntryPoint {
         return daemon;
     }
 
-    private static void redirectOutputsAndInput(OutputStream log) {
-        PrintStream originalOut = System.out;
-        PrintStream originalErr = System.err;
+    private void redirectOutputsAndInput(PrintStream printStream) {
+        this.originalOut = System.out;
+        this.originalErr = System.err;
         //InputStream originalIn = System.in;
-
-        PrintStream printStream = new PrintStream(log, true);
 
         System.setOut(printStream);
         System.setErr(printStream);
         System.setIn(new ByteArrayInputStream(new byte[0]));
-
-        originalOut.println(DaemonMessages.PROCESS_STARTED);
-        originalOut.close();
-        originalErr.close();
-
-        //TODO - make this work on windows
-        //originalIn.close();
     }
 }

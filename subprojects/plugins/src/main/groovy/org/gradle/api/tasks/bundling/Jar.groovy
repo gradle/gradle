@@ -17,30 +17,29 @@
 package org.gradle.api.tasks.bundling
 
 import org.gradle.api.file.CopySpec
+import org.gradle.api.file.FileCopyDetails
+import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.file.collections.FileTreeAdapter
 import org.gradle.api.internal.file.collections.MapFileTree
+import org.gradle.api.internal.file.copy.DefaultCopySpec
+import org.gradle.api.java.archives.Manifest
 import org.gradle.api.java.archives.internal.DefaultManifest
 import org.gradle.util.ConfigureUtil
-import org.gradle.api.internal.file.copy.CopySpecImpl
-import org.gradle.api.file.FileCopyDetails
-import org.gradle.api.java.archives.Manifest
-import org.gradle.api.internal.file.collections.FileTreeAdapter
 
 /**
  * Assembles a JAR archive.
- *
- * @author Hans Dockter
  */
 public class Jar extends Zip {
     public static final String DEFAULT_EXTENSION = 'jar'
 
     private Manifest manifest
-    private final CopySpecImpl metaInf
+    private final DefaultCopySpec metaInf
 
     Jar() {
         extension = DEFAULT_EXTENSION
-        manifest = new DefaultManifest(project.fileResolver)
+        manifest = new DefaultManifest(getServices().get(FileResolver))
         // Add these as separate specs, so they are not affected by the changes to the main spec
-        metaInf = copyAction.rootSpec.addFirst().into('META-INF')
+        metaInf = rootSpec.addFirst().into('META-INF')
         metaInf.addChild().from {
             MapFileTree manifestSource = new MapFileTree(temporaryDirFactory)
             manifestSource.add('MANIFEST.MF') {OutputStream outstr ->
@@ -49,7 +48,7 @@ public class Jar extends Zip {
             }
             return new FileTreeAdapter(manifestSource)
         }
-        copyAction.mainSpec.eachFile { FileCopyDetails details ->
+        mainSpec.eachFile { FileCopyDetails details ->
             if (details.path.equalsIgnoreCase('META-INF/MANIFEST.MF')) {
                 details.exclude()
             }

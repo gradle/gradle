@@ -16,34 +16,23 @@
 package org.gradle.launcher.daemon.configuration;
 
 import org.gradle.StartParameter;
-import org.gradle.api.GradleException;
-import org.gradle.api.Project;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.file.IdentityFileResolver;
-import org.gradle.initialization.layout.BuildLayout;
-import org.gradle.initialization.layout.BuildLayoutFactory;
-import org.gradle.internal.jvm.JavaHomeException;
+import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.process.internal.JvmOptions;
-import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.util.*;
 
 import static java.util.Arrays.asList;
 import static org.gradle.util.GFileUtils.canonicalise;
 
 public class DaemonParameters {
-    public static final String IDLE_TIMEOUT_SYS_PROPERTY = "org.gradle.daemon.idletimeout";
-    public static final String BASE_DIR_SYS_PROPERTY = "org.gradle.daemon.registry.base";
-    public static final String JVM_ARGS_SYS_PROPERTY = "org.gradle.jvmargs";
-    public static final String JAVA_HOME_SYS_PROPERTY = "org.gradle.java.home";
-    public static final String DAEMON_SYS_PROPERTY = "org.gradle.daemon";
     static final int DEFAULT_IDLE_TIMEOUT = 3 * 60 * 60 * 1000;
+
     private final String uid;
+
     private File baseDir = new File(StartParameter.DEFAULT_GRADLE_USER_HOME, "daemon");
     private int idleTimeout = DEFAULT_IDLE_TIMEOUT;
     private final JvmOptions jvmOptions = new JvmOptions(new IdentityFileResolver());
@@ -51,13 +40,10 @@ public class DaemonParameters {
     private boolean enabled;
     private File javaHome;
 
-    public DaemonParameters(String uid) {
-        this.uid = uid;
+    public DaemonParameters(BuildLayoutParameters layout) {
+        this.uid = UUID.randomUUID().toString();
         jvmOptions.setAllJvmArgs(getDefaultJvmArgs());
-    }
-
-    public DaemonParameters() {
-        this(UUID.randomUUID().toString());
+        baseDir = new File(layout.getGradleUserHomeDir(), "daemon");
     }
 
     List<String> getDefaultJvmArgs() {
@@ -68,16 +54,17 @@ public class DaemonParameters {
         return enabled;
     }
 
+    public DaemonParameters setEnabled(boolean enabled) {
+        this.enabled = enabled;
+        return this;
+    }
+
     public String getUid() {
         return uid;
     }
 
     public File getBaseDir() {
         return baseDir;
-    }
-
-    public void setBaseDir(File baseDir) {
-        this.baseDir = GFileUtils.canonicalise(baseDir);
     }
 
     public int getIdleTimeout() {
@@ -114,8 +101,9 @@ public class DaemonParameters {
         return Jvm.forHome(javaHome).getJavaExecutable().getAbsolutePath();
     }
 
-    public void setJavaHome(File javaHome) {
+    public DaemonParameters setJavaHome(File javaHome) {
         this.javaHome = javaHome;
+        return this;
     }
 
     public Map<String, String> getSystemProperties() {
@@ -136,74 +124,16 @@ public class DaemonParameters {
         jvmOptions.setAllJvmArgs(jvmArgs);
     }
 
-    public void configureFromGradleUserHome(File gradleUserHomeDir) {
-        setBaseDir(new File(gradleUserHomeDir, "daemon"));
-        maybeConfigureFrom(new File(gradleUserHomeDir, Project.GRADLE_PROPERTIES));
+    public void setDebug(boolean debug) {
+        jvmOptions.setDebug(debug);
     }
 
-    public void configureFromSystemProperties(Map<?, ?> properties) {
-        Object propertyValue = properties.get(BASE_DIR_SYS_PROPERTY);
-        if (propertyValue != null) {
-            setBaseDir(new File(propertyValue.toString()));
-        }
-        configureFrom(properties);
+    public DaemonParameters setBaseDir(File baseDir) {
+        this.baseDir = baseDir;
+        return this;
     }
 
-    public void configureFromBuildDir(File currentDir, boolean searchUpwards) {
-        BuildLayoutFactory factory = new BuildLayoutFactory();
-        BuildLayout layout = factory.getLayoutFor(currentDir, searchUpwards);
-        maybeConfigureFrom(new File(layout.getRootDirectory(), Project.GRADLE_PROPERTIES));
-    }
-
-    private void maybeConfigureFrom(File propertiesFile) {
-        if (!propertiesFile.isFile()) {
-            return;
-        }
-
-        Properties properties = new Properties();
-        try {
-            FileInputStream inputStream = new FileInputStream(propertiesFile);
-            try {
-                properties.load(inputStream);
-            } finally {
-                inputStream.close();
-            }
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-
-        configureFrom(properties);
-    }
-
-    void configureFrom(Map<?, ?> properties) {
-        Object propertyValue = properties.get(IDLE_TIMEOUT_SYS_PROPERTY);
-        if (propertyValue != null) {
-            try {
-                idleTimeout = Integer.parseInt(propertyValue.toString());
-            } catch (NumberFormatException e) {
-                throw new GradleException(String.format("Unable to parse %s property. The value should be an int but is: %s", IDLE_TIMEOUT_SYS_PROPERTY, propertyValue));
-            }
-        }
-        propertyValue = properties.get(JVM_ARGS_SYS_PROPERTY);
-        if (propertyValue != null) {
-            setJvmArgs(JvmOptions.fromString(propertyValue.toString()));
-        }
-        propertyValue = properties.get(DAEMON_SYS_PROPERTY);
-        if (propertyValue != null) {
-            enabled = propertyValue.toString().equalsIgnoreCase("true");
-        }
-
-        propertyValue = properties.get(JAVA_HOME_SYS_PROPERTY);
-        if (propertyValue != null) {
-            javaHome = new File(propertyValue.toString());
-            if (!javaHome.isDirectory()) {
-                throw new GradleException(String.format("Java home supplied via '%s' is invalid. Dir does not exist: %s", JAVA_HOME_SYS_PROPERTY, propertyValue));
-            }
-            try {
-                Jvm.forHome(javaHome);
-            } catch (JavaHomeException e) {
-                throw new GradleException(String.format("Java home supplied via '%s' seems to be invalid: %s", JAVA_HOME_SYS_PROPERTY, propertyValue));
-            }
-        }
+    public boolean getDebug() {
+        return jvmOptions.getDebug();
     }
 }

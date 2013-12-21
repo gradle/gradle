@@ -18,11 +18,15 @@ package org.gradle.execution;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import org.gradle.StartParameter;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.AbstractProject;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.CommandLineOption;
+import org.gradle.api.internal.tasks.options.Option;
+import org.gradle.api.internal.tasks.options.OptionReader;
+import org.gradle.execution.commandline.CommandLineTaskConfigurer;
+import org.gradle.execution.commandline.CommandLineTaskParser;
 import org.gradle.util.GUtil;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.jmock.Expectations;
@@ -41,7 +45,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
-@RunWith (org.jmock.integration.junit4.JMock.class)
+@RunWith(org.jmock.integration.junit4.JMock.class)
 public class TaskNameResolvingBuildConfigurationActionTest {
     private final JUnit4Mockery context = new JUnit4GroovyMockery();
     private final ProjectInternal project = context.mock(AbstractProject.class, "[project]");
@@ -52,11 +56,14 @@ public class TaskNameResolvingBuildConfigurationActionTest {
     private final TaskNameResolver resolver = context.mock(TaskNameResolver.class);
     private final BuildExecutionContext executionContext = context.mock(BuildExecutionContext.class);
     private final StartParameter startParameter = context.mock(StartParameter.class);
-    private final TaskNameResolvingBuildConfigurationAction action = new TaskNameResolvingBuildConfigurationAction(resolver);
+    private final OptionReader optionReader = new OptionReader();
+    private final CommandLineTaskParser parser = new CommandLineTaskParser(new CommandLineTaskConfigurer(optionReader));
+    private final TaskSelector selector = new TaskSelector(gradle, resolver);
+    private final TaskNameResolvingBuildConfigurationAction action = new TaskNameResolvingBuildConfigurationAction(parser, selector);
 
     @Before
     public void setUp() {
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             allowing(executionContext).getGradle();
             will(returnValue(gradle));
             allowing(gradle).getDefaultProject();
@@ -65,12 +72,6 @@ public class TaskNameResolvingBuildConfigurationActionTest {
             will(returnValue(taskExecuter));
             allowing(gradle).getStartParameter();
             will(returnValue(startParameter));
-            allowing(project).getAllprojects();
-            will(returnValue(toSet(project, otherProject)));
-            allowing(otherProject).getPath();
-            will(returnValue(":anotherProject"));
-            allowing(rootProject).getPath();
-            will(returnValue(":"));
         }});
     }
 
@@ -131,13 +132,13 @@ public class TaskNameResolvingBuildConfigurationActionTest {
 
         action.configure(executionContext);
     }
-    
+
     @Test
     public void selectsTaskWithMatchingRelativePath() {
         final Task task1 = task("b");
         final Task task2 = task("a");
 
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             allowing(startParameter).getTaskNames();
             will(returnValue(toList("a:b")));
 
@@ -157,7 +158,7 @@ public class TaskNameResolvingBuildConfigurationActionTest {
         final Task task1 = task("b");
         final Task task2 = task("a");
 
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             allowing(startParameter).getTaskNames();
             will(returnValue(toList(":b")));
 
@@ -177,7 +178,7 @@ public class TaskNameResolvingBuildConfigurationActionTest {
         final Task task1 = task("b");
         final Task task2 = task("a");
 
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             allowing(startParameter).getTaskNames();
             will(returnValue(toList(":a:b")));
 
@@ -199,7 +200,7 @@ public class TaskNameResolvingBuildConfigurationActionTest {
         final Task task1 = task("someTask");
         final Task task2 = task("other");
 
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             allowing(startParameter).getTaskNames();
             will(returnValue(toList("anotherProject:soTa")));
 
@@ -219,7 +220,7 @@ public class TaskNameResolvingBuildConfigurationActionTest {
         final Task task1 = task("someTask");
         final Task task2 = task("other");
 
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             allowing(startParameter).getTaskNames();
             will(returnValue(toList("anPr:soTa")));
 
@@ -372,7 +373,7 @@ public class TaskNameResolvingBuildConfigurationActionTest {
         try {
             action.configure(executionContext);
             fail();
-        } catch (TaskSelectionException e) {
+        } catch (InvalidUserDataException e) {
             assertThat(e.getMessage(), equalTo("Project 'a' is ambiguous in [project]. Candidates are: 'aa', 'ab'."));
         }
     }
@@ -383,27 +384,40 @@ public class TaskNameResolvingBuildConfigurationActionTest {
 
     private <T extends Task> T task(final String name, Class<T> taskType) {
         final T task = context.mock(taskType);
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             allowing(task).getName();
             will(returnValue(name));
         }});
         return task;
     }
 
-    private Multimap<String, Task> tasks(Task... tasks) {
+    private Multimap<String, TaskSelectionResult> tasks(Task... tasks) {
         return tasks(Arrays.asList(tasks));
     }
 
-    private Multimap<String, Task> tasks(Iterable<Task> tasks) {
-        Multimap<String, Task> map = LinkedHashMultimap.create();
-        for (Task task : tasks) {
-            map.put(task.getName(), task);
+    private Multimap<String, TaskSelectionResult> tasks(Iterable<Task> tasks) {
+        Multimap<String, TaskSelectionResult> map = LinkedHashMultimap.create();
+        for (final Task task : tasks) {
+            map.put(task.getName(), new SimpleTaskSelectionResult(task));
         }
         return map;
     }
 
+    private static class SimpleTaskSelectionResult implements TaskSelectionResult {
+        private final Task task;
+
+        public SimpleTaskSelectionResult(Task task) {
+            this.task = task;
+        }
+
+        public Task getTask() {
+            return task;
+        }
+    }
+
     public abstract class TaskWithBooleanProperty implements Task {
-        @CommandLineOption(options = "all", description = "Some boolean flag")
-        public void setSomeFlag(boolean flag) { }
+        @Option(option = "all", description = "Some boolean flag")
+        public void setSomeFlag(boolean flag) {
+        }
     }
 }

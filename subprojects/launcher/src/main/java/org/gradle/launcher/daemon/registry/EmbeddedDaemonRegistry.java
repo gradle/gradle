@@ -17,9 +17,6 @@ package org.gradle.launcher.daemon.registry;
 
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
-import org.gradle.internal.CompositeStoppable;
-import org.gradle.internal.Stoppable;
-import org.gradle.launcher.daemon.server.Daemon;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.messaging.remote.Address;
 
@@ -27,8 +24,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * A daemon registry for daemons running in the same JVM.
@@ -40,12 +35,8 @@ import java.util.concurrent.locks.ReentrantLock;
  * by the time they are returned to the caller. Clients must therefore be prepared for this and expect connection failures, either through
  * the endpoint disappearing or becoming busy between asking for idle daemons and trying to connect.
  */
-public class EmbeddedDaemonRegistry implements DaemonRegistry, Stoppable {
-
+public class EmbeddedDaemonRegistry implements DaemonRegistry {
     private final Map<Address, DaemonInfo> daemonInfos = new ConcurrentHashMap<Address, DaemonInfo>();
-    private final List<Daemon> daemons = new ArrayList<Daemon>();
-    private final Lock daemonsLock = new ReentrantLock();
-
     private final Spec<DaemonInfo> allSpec = new Spec<DaemonInfo>() {
         public boolean isSatisfiedBy(DaemonInfo entry) {
             return true;
@@ -78,8 +69,8 @@ public class EmbeddedDaemonRegistry implements DaemonRegistry, Stoppable {
         return daemonInfosOfEntriesMatching(busySpec);
     }
 
-    public void store(Address address, DaemonContext daemonContext, String password) {
-        daemonInfos.put(address, new DaemonInfo(address, daemonContext, password));
+    public void store(Address address, DaemonContext daemonContext, String password, boolean idle) {
+        daemonInfos.put(address, new DaemonInfo(address, daemonContext, password, idle));
     }
 
     public void remove(Address address) {
@@ -107,44 +98,5 @@ public class EmbeddedDaemonRegistry implements DaemonRegistry, Stoppable {
         }
 
         return matches;
-    }
-
-    /**
-     * Returns all daemons started in this registry since construction or most recent stopDaemons().
-     * <p>
-     * The returned daemons are not guaranteed to be running as they may have been stopped individually.
-     */
-    public List<Daemon> getDaemons() {
-        daemonsLock.lock();
-        try {
-            return new ArrayList<Daemon>(daemons);
-        } finally {
-            daemonsLock.unlock();
-        }
-    }
-    
-    public void startDaemon(Daemon daemon) {
-        daemonsLock.lock();
-        try {
-            daemons.add(daemon);
-        } finally {
-            daemonsLock.unlock();
-        }
-
-        daemon.start();
-    }
-
-    public void stop() {
-        List<Daemon> daemonsToStop;
-        
-        daemonsLock.lock();
-        try {
-            daemonsToStop = new ArrayList<Daemon>(daemons);
-            daemons.clear();
-        } finally {
-            daemonsLock.unlock();
-        }
-        
-        new CompositeStoppable(daemonsToStop).stop();
     }
 }

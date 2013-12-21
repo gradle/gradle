@@ -16,11 +16,11 @@
 
 package org.gradle.launcher.daemon.protocol;
 
-import org.gradle.initialization.GradleLauncherAction;
+import org.gradle.initialization.BuildAction;
 import org.gradle.launcher.exec.BuildActionParameters;
 
 public class BuildAndStop extends Build {
-    public BuildAndStop(GradleLauncherAction<?> action, BuildActionParameters parameters) {
-        super(action, parameters);
+    public BuildAndStop(Object identifier, BuildAction<?> action, BuildActionParameters parameters) {
+        super(identifier, action, parameters);
     }
 }

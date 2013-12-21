@@ -17,6 +17,7 @@ package org.gradle.api.plugins.quality
 
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import org.hamcrest.Matcher
+
 import static org.gradle.util.Matchers.containsLine
 import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.startsWith
@@ -32,6 +33,24 @@ class CheckstylePluginIntegrationTest extends WellBehavedPluginTest {
         writeConfigFile()
     }
 
+    def "allows configuring tool dependencies explicitly"() {
+        expect: //defaults exist and can be inspected
+        succeeds("dependencies", "--configuration", "checkstyle")
+        output.contains "com.puppycrawl.tools:checkstyle:"
+
+        when:
+        buildFile << """
+            dependencies {
+                //downgrade version:
+                checkstyle "com.puppycrawl.tools:checkstyle:5.5"
+            }
+        """
+
+        then:
+        succeeds("dependencies", "--configuration", "checkstyle")
+        output.contains "com.puppycrawl.tools:checkstyle:5.5"
+    }
+
     def "analyze good code"() {
         goodCode()
 
@@ -44,15 +63,44 @@ class CheckstylePluginIntegrationTest extends WellBehavedPluginTest {
     }
 
     def "analyze bad code"() {
-        file("src/main/java/org/gradle/class1.java") << "package org.gradle; class class1 { }"
-        file("src/test/java/org/gradle/testclass1.java") << "package org.gradle; class testclass1 { }"
-        file("src/main/groovy/org/gradle/class2.java") << "package org.gradle; class class2 { }"
-        file("src/test/groovy/org/gradle/testclass2.java") << "package org.gradle; class testclass2 { }"
+        badCode()
 
         expect:
         fails("check")
-        failure.assertHasDescription("Execution failed for task ':checkstyleMain'")
-        failure.assertThatCause(startsWith("Checkstyle rule violations were found. See the report at"))
+        failure.assertHasDescription("Execution failed for task ':checkstyleMain'.")
+        failure.assertThatCause(startsWith("Checkstyle rule violations were found. See the report at:"))
+        failure.error.contains("Name 'class1' must match pattern")
+        file("build/reports/checkstyle/main.xml").assertContents(containsClass("org.gradle.class1"))
+        file("build/reports/checkstyle/main.xml").assertContents(containsClass("org.gradle.class2"))
+    }
+
+    def "can suppress console output"() {
+        given:
+        badCode()
+
+        when:
+        buildFile << "checkstyle { showViolations = false }"
+
+        then:
+        fails("check")
+        failure.assertHasDescription("Execution failed for task ':checkstyleMain'.")
+        failure.assertThatCause(startsWith("Checkstyle rule violations were found. See the report at:"))
+        !failure.error.contains("Name 'class1' must match pattern")
+        file("build/reports/checkstyle/main.xml").assertContents(containsClass("org.gradle.class1"))
+        file("build/reports/checkstyle/main.xml").assertContents(containsClass("org.gradle.class2"))
+    }
+
+    def "can ignore failures"() {
+        badCode()
+        buildFile << """
+            checkstyle {
+                ignoreFailures = true
+            }
+        """
+
+        expect:
+        succeeds("check")
+        output.contains("Checkstyle rule violations were found. See the report at:")
         file("build/reports/checkstyle/main.xml").assertContents(containsClass("org.gradle.class1"))
         file("build/reports/checkstyle/main.xml").assertContents(containsClass("org.gradle.class2"))
     }
@@ -93,6 +141,13 @@ class CheckstylePluginIntegrationTest extends WellBehavedPluginTest {
         file('src/test/groovy/org/gradle/TestClass2.java') << 'package org.gradle; class TestClass1 { }'
     }
 
+    private badCode() {
+        file("src/main/java/org/gradle/class1.java") << "package org.gradle; class class1 { }"
+        file("src/test/java/org/gradle/testclass1.java") << "package org.gradle; class testclass1 { }"
+        file("src/main/groovy/org/gradle/class2.java") << "package org.gradle; class class2 { }"
+        file("src/test/groovy/org/gradle/testclass2.java") << "package org.gradle; class testclass2 { }"
+    }
+
     private Matcher<String> containsClass(String className) {
         containsLine(containsString(className.replace(".", File.separator)))
     }
@@ -107,7 +162,7 @@ repositories {
 }
 
 dependencies {
-    groovy localGroovy()
+    compile localGroovy()
 }
         """
     }

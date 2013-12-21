@@ -18,24 +18,22 @@ package org.gradle.util;
 
 import groovy.lang.Closure;
 import groovy.lang.MissingMethodException;
+import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.DynamicObject;
 import org.gradle.api.internal.DynamicObjectUtil;
 
 import java.util.Collection;
 import java.util.Map;
 
-import static org.apache.commons.collections.CollectionUtils.subtract;
+import static org.gradle.util.CollectionUtils.toStringList;
 
-/**
- * @author Hans Dockter
- */
 public class ConfigureUtil {
 
-    public static <T> T configureByMap(Map<String, ?> properties, T delegate) {
+    public static <T> T configureByMap(Map<?, ?> properties, T delegate) {
         DynamicObject dynamicObject = DynamicObjectUtil.asDynamicObject(delegate);
 
-        for (Map.Entry<String, ?> entry : properties.entrySet()) {
-            String name = entry.getKey();
+        for (Map.Entry<?, ?> entry : properties.entrySet()) {
+            String name = entry.getKey().toString();
             Object value = entry.getValue();
 
             if (dynamicObject.hasProperty(name)) {
@@ -52,10 +50,13 @@ public class ConfigureUtil {
         return delegate;
     }
 
-    public static <T> T configureByMap(Map<String, ?> properties, T delegate, Collection<String> mandatoryKeys) {
-        Collection missingKeys = subtract(mandatoryKeys, properties.keySet());
-        if(!missingKeys.isEmpty()) {
-            throw new IncompleteInputException("Input configuration map does not contain following mandatory keys: " + missingKeys, missingKeys);
+    public static <T> T configureByMap(Map<?, ?> properties, T delegate, Collection<?> mandatoryKeys) {
+        if (!mandatoryKeys.isEmpty()) {
+            Collection<String> missingKeys = toStringList(mandatoryKeys);
+            missingKeys.removeAll(toStringList(properties.keySet()));
+            if (!missingKeys.isEmpty()) {
+                throw new IncompleteInputException("Input configuration map does not contain following mandatory keys: " + missingKeys, missingKeys);
+            }
         }
         return configureByMap(properties, delegate);
     }
@@ -125,23 +126,8 @@ public class ConfigureUtil {
     }
 
     private static <T> T configure(Closure configureClosure, T delegate, int resolveStrategy, boolean configureableAware) {
-        if (configureClosure == null) {
-            return delegate;
-        }
-
-        if (configureableAware && delegate instanceof Configurable) {
-            ((Configurable)delegate).configure(configureClosure);
-        } else {
-            Closure copy = (Closure) configureClosure.clone();
-            copy.setResolveStrategy(resolveStrategy);
-            copy.setDelegate(delegate);
-            if (copy.getMaximumNumberOfParameters() == 0) {
-                copy.call();
-            } else {
-                copy.call(delegate);
-            }
-        }
-
+        ClosureBackedAction<T> action = new ClosureBackedAction<T>(configureClosure, resolveStrategy, configureableAware);
+        action.execute(delegate);
         return delegate;
     }
 }

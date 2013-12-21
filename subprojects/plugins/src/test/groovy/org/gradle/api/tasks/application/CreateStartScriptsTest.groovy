@@ -16,10 +16,10 @@
 package org.gradle.api.tasks.application
 
 import spock.lang.Specification
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 
 class CreateStartScriptsTest extends Specification {
-    final CreateStartScripts task = HelperUtil.createTask(CreateStartScripts.class)
+    final CreateStartScripts task = TestUtil.createTask(CreateStartScripts.class)
 
     def scriptNameDefaultsToApplicationName() {
         task.outputDir = new File('output')

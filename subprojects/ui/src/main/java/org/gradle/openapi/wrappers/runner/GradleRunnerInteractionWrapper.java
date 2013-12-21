@@ -24,8 +24,6 @@ import java.io.File;
 
 /**
  * Wrapper to shield version changes in GradleRunnerInteractionVersion1 from an external user of gradle open API.
- *
- * @author mhunsicker
  */
 public class GradleRunnerInteractionWrapper implements ExecuteGradleCommandServerProtocol.ExecutionInteraction {
     private GradleRunnerInteractionVersion1 interactionVersion1;

@@ -17,7 +17,7 @@
 package org.gradle.tooling.model.idea;
 
 /**
- * Language level setting for IDEA
+ * Language level setting for IDEA.
  *
  * @since 1.0-milestone-5
  */

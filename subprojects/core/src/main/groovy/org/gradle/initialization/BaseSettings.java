@@ -19,53 +19,56 @@ import org.gradle.StartParameter;
 import org.gradle.api.UnknownProjectException;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.initialization.Settings;
-import org.gradle.api.internal.DynamicObject;
-import org.gradle.api.internal.ExtensibleDynamicObject;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.api.internal.project.IProjectRegistry;
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.project.AbstractPluginAware;
+import org.gradle.api.internal.project.ProjectRegistry;
+import org.gradle.api.plugins.PluginContainer;
+import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 
 import java.io.File;
-import java.net.URLClassLoader;
-import java.util.Map;
 
-/**
- * @author Hans Dockter
- */
-public class BaseSettings implements SettingsInternal {
+public class BaseSettings extends AbstractPluginAware implements SettingsInternal {
     public static final String DEFAULT_BUILD_SRC_DIR = "buildSrc";
 
     private ScriptSource settingsScript;
 
     private StartParameter startParameter;
 
-    private URLClassLoader classloader;
+    private ClassLoader classloader;
 
     private File settingsDir;
 
     private DefaultProjectDescriptor rootProjectDescriptor;
 
-    private ExtensibleDynamicObject dynamicObject;
-
     private GradleInternal gradle;
-    private IProjectDescriptorRegistry projectDescriptorRegistry;
 
-    protected BaseSettings() {
-    }
+    private ProjectDescriptorRegistry projectDescriptorRegistry;
 
-    public BaseSettings(GradleInternal gradle,
-                        IProjectDescriptorRegistry projectDescriptorRegistry,
-                        URLClassLoader classloader, File settingsDir, ScriptSource settingsScript,
+    private PluginContainer plugins;
+
+    private FileResolver fileResolver;
+
+    private ScriptPluginFactory scriptPluginFactory;
+
+    public BaseSettings(ServiceRegistryFactory serviceRegistryFactory, GradleInternal gradle,
+                        ClassLoader classloader, File settingsDir, ScriptSource settingsScript,
                         StartParameter startParameter) {
         this.gradle = gradle;
-        this.projectDescriptorRegistry = projectDescriptorRegistry;
         this.settingsDir = settingsDir;
         this.settingsScript = settingsScript;
         this.startParameter = startParameter;
         this.classloader = classloader;
+        ServiceRegistry services = serviceRegistryFactory.createFor(this);
+        this.plugins = services.get(PluginContainer.class);
+        this.fileResolver = services.get(FileResolver.class);
+        this.scriptPluginFactory = services.get(ScriptPluginFactory.class);
+        this.projectDescriptorRegistry = services.get(ProjectDescriptorRegistry.class);
         rootProjectDescriptor = createProjectDescriptor(null, settingsDir.getName(), settingsDir);
-        dynamicObject = new ExtensibleDynamicObject(this);
     }
 
     @Override
@@ -82,7 +85,7 @@ public class BaseSettings implements SettingsInternal {
     }
 
     public DefaultProjectDescriptor createProjectDescriptor(DefaultProjectDescriptor parent, String name, File dir) {
-        return new DefaultProjectDescriptor(parent, name, dir, projectDescriptorRegistry);
+        return new DefaultProjectDescriptor(parent, name, dir, projectDescriptorRegistry, fileResolver);
     }
 
     public DefaultProjectDescriptor findProject(String path) {
@@ -140,7 +143,7 @@ public class BaseSettings implements SettingsInternal {
         return projectPath;
     }
 
-    public URLClassLoader getClassLoader() {
+    public ClassLoader getClassLoader() {
         return classloader;
     }
 
@@ -180,23 +183,30 @@ public class BaseSettings implements SettingsInternal {
         this.settingsScript = settingsScript;
     }
 
-    public IProjectDescriptorRegistry getProjectDescriptorRegistry() {
+    public ProjectDescriptorRegistry getProjectDescriptorRegistry() {
         return projectDescriptorRegistry;
     }
 
-    public void setProjectDescriptorRegistry(IProjectDescriptorRegistry projectDescriptorRegistry) {
+    public void setProjectDescriptorRegistry(ProjectDescriptorRegistry projectDescriptorRegistry) {
         this.projectDescriptorRegistry = projectDescriptorRegistry;
     }
 
-    public void addDynamicProperties(Map<String, ?> properties) {
-        dynamicObject.addProperties(properties);
-    }
-
-    protected DynamicObject getDynamicObject() {
-        return dynamicObject;
-    }
-
-    public IProjectRegistry<DefaultProjectDescriptor> getProjectRegistry() {
+    public ProjectRegistry<DefaultProjectDescriptor> getProjectRegistry() {
         return projectDescriptorRegistry;
+    }
+
+    public PluginContainer getPlugins() {
+        return plugins;
+    }
+
+
+    @Override
+    protected FileResolver getFileResolver() {
+        return fileResolver;
+    }
+
+    @Override
+    protected ScriptPluginFactory getScriptPluginFactory() {
+        return scriptPluginFactory;
     }
 }

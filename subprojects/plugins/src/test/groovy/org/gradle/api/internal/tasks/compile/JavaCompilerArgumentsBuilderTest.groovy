@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.tasks.compile
 
+import org.gradle.api.tasks.compile.CompileOptions
 import spock.lang.Specification
 import org.gradle.api.JavaVersion
 import org.gradle.api.internal.file.collections.SimpleFileCollection
@@ -23,37 +24,41 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
     def spec = new DefaultJavaCompileSpec()
     def builder = new JavaCompilerArgumentsBuilder(spec)
 
-    def "generates no options for an unconfigured spec"() {
+    def setup() {
+        spec.compileOptions = new CompileOptions()
+    }
+
+    def "generates options for an unconfigured spec"() {
         expect:
-        builder.build() == []
+        builder.build() == ["-g"]
     }
 
     def "generates no -source option when current Jvm Version is used"() {
         spec.sourceCompatibility = JavaVersion.current().toString();
 
         expect:
-        builder.build() == []
+        builder.build() == ["-g"]
     }
 
     def "generates -source option when compatibility differs from current Jvm version"() {
         spec.sourceCompatibility = "1.4"
 
         expect:
-        builder.build() == ["-source", "1.4"]
+        builder.build() == ["-source", "1.4", "-g"]
     }
 
     def "generates no -target option when current Jvm Version is used"() {
         spec.targetCompatibility = JavaVersion.current().toString();
 
         expect:
-        builder.build() == []
+        builder.build() == ["-g"]
     }
 
     def "generates -target option when compatibility differs current Jvm version"() {
         spec.targetCompatibility = "1.4"
 
         expect:
-        builder.build() == ["-target", "1.4"]
+        builder.build() == ["-target", "1.4", "-g"]
     }
 
     def "generates -d option"() {
@@ -61,7 +66,7 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
         spec.destinationDir = file
 
         expect:
-        builder.build() == ["-d", file.path]
+        builder.build() == ["-d", file.path, "-g"]
     }
 
     def "generates -verbose option"() {
@@ -69,13 +74,13 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
         spec.compileOptions.verbose = true
 
         then:
-        builder.build() == ["-verbose"]
+        builder.build() == ["-verbose", "-g"]
 
         when:
         spec.compileOptions.verbose = false
 
         then:
-        builder.build() == []
+        builder.build() == ["-g"]
     }
 
     def "generates -deprecation option"() {
@@ -83,13 +88,13 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
         spec.compileOptions.deprecation = true
 
         then:
-        builder.build() == ["-deprecation"]
+        builder.build() == ["-deprecation", "-g"]
 
         when:
         spec.compileOptions.deprecation = false
 
         then:
-        builder.build() == []
+        builder.build() == ["-g"]
     }
 
     def "generates -nowarn option"() {
@@ -97,24 +102,28 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
         spec.compileOptions.warnings = true
 
         then:
-        builder.build() == []
+        builder.build() == ["-g"]
 
         when:
         spec.compileOptions.warnings = false
 
         then:
-        builder.build() == ["-nowarn"]
+        builder.build() == ["-nowarn", "-g"]
     }
-    
+
     def "generates -g option"() {
-        spec.compileOptions.debugOptions.debugLevel = "source,vars"
-        
         when:
         spec.compileOptions.debug = true
-        
+
+        then:
+        builder.build() == ["-g"]
+
+        when:
+        spec.compileOptions.debugOptions.debugLevel = "source,vars"
+
         then:
         builder.build() == ["-g:source,vars"]
-        
+
         when:
         spec.compileOptions.debug = false
 
@@ -126,21 +135,21 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
         spec.compileOptions.encoding = "some-encoding"
 
         expect:
-        builder.build() == ["-encoding", "some-encoding"]
+        builder.build() == ["-g", "-encoding", "some-encoding"]
     }
 
     def "generates -bootclasspath option"() {
         spec.compileOptions.bootClasspath = "/lib/lib1.jar:/lib/lib2.jar"
 
         expect:
-        builder.build() == ["-bootclasspath", "/lib/lib1.jar:/lib/lib2.jar"]
+        builder.build() == ["-g", "-bootclasspath", "/lib/lib1.jar:/lib/lib2.jar"]
     }
 
     def "generates -extdirs option"() {
         spec.compileOptions.extensionDirs = "/dir1:/dir2"
 
         expect:
-        builder.build() == ["-extdirs", "/dir1:/dir2"]
+        builder.build() == ["-g", "-extdirs", "/dir1:/dir2"]
     }
 
     def "generates -classpath option"() {
@@ -149,14 +158,14 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
         spec.classpath = [file1, file2]
 
         expect:
-        builder.build() == ["-classpath", "$file1$File.pathSeparator$file2"]
+        builder.build() == ["-g", "-classpath", "$file1$File.pathSeparator$file2"]
     }
 
     def "adds custom compiler args"() {
         spec.compileOptions.compilerArgs = ["-a", "value-a", "-b", "value-b"]
 
         expect:
-        builder.build() == ["-a", "value-a", "-b", "value-b"]
+        builder.build() == ["-g", "-a", "value-a", "-b", "value-b"]
     }
 
     def "can include/exclude main options"() {
@@ -166,7 +175,7 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
         builder.includeMainOptions(true)
 
         then:
-        builder.build() == ["-source", "1.4"]
+        builder.build() == ["-source", "1.4", "-g"]
 
         when:
         builder.includeMainOptions(false)
@@ -179,7 +188,34 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
         spec.sourceCompatibility = "1.4"
 
         expect:
-        builder.build() == ["-source", "1.4"]
+        builder.build() == ["-source", "1.4", "-g"]
+    }
+
+    def "can include/exclude classpath"() {
+        def file1 = new File("/lib/lib1.jar")
+        def file2 = new File("/lib/lib2.jar")
+        spec.classpath = [file1, file2]
+
+        when:
+        builder.includeClasspath(true)
+
+        then:
+        builder.build() == ["-g", "-classpath", "$file1$File.pathSeparator$file2"]
+
+        when:
+        builder.includeClasspath(false)
+
+        then:
+        builder.build() == ["-g"]
+    }
+
+    def "includes classpath by default"() {
+        def file1 = new File("/lib/lib1.jar")
+        def file2 = new File("/lib/lib2.jar")
+        spec.classpath = [file1, file2]
+
+        expect:
+        builder.build() == ["-g", "-classpath", "$file1$File.pathSeparator$file2"]
     }
 
     def "can include/exclude launcher options"() {
@@ -192,13 +228,13 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
         builder.includeLauncherOptions(true)
 
         then:
-        builder.build() == ["-J-Xms64m", "-J-Xmx1g"]
+        builder.build() == ["-J-Xms64m", "-J-Xmx1g", "-g"]
 
         when:
         builder.includeLauncherOptions(false)
 
         then:
-        builder.build() == []
+        builder.build() == ["-g"]
     }
 
     def "does not include launcher options by default"() {
@@ -208,7 +244,7 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
         }
 
         expect:
-        builder.build() == []
+        builder.build() == ["-g"]
     }
 
     def "can include/exclude source files"() {
@@ -220,13 +256,13 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
         builder.includeSourceFiles(true)
 
         then:
-        builder.build() == [file1.path, file2.path]
+        builder.build() == ["-g", file1.path, file2.path]
 
         when:
         builder.includeSourceFiles(false)
 
         then:
-        builder.build() == []
+        builder.build() == ["-g"]
     }
 
     def "does not include source files by default"() {
@@ -235,6 +271,6 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
         spec.source = new SimpleFileCollection(file1, file2)
 
         expect:
-        builder.build() == []
+        builder.build() == ["-g"]
     }
 }

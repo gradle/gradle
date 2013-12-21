@@ -17,8 +17,8 @@ package org.gradle.logging.internal
 
 import org.gradle.api.logging.LogLevel
 import org.gradle.logging.LoggingConfiguration
-import spock.lang.Specification
 import org.gradle.logging.ShowStacktrace
+import spock.lang.Specification
 
 class LoggingCommandLineConverterTest extends Specification {
     final LoggingCommandLineConverter converter = new LoggingCommandLineConverter()
@@ -61,7 +61,7 @@ class LoggingCommandLineConverterTest extends Specification {
     }
 
     def convertsShowStacktrace() {
-        expectedConfig.showStacktrace = ShowStacktrace.ALWAYS;
+        expectedConfig.showStacktrace = ShowStacktrace.ALWAYS
 
         expect:
         checkConversion(['-s'])
@@ -69,11 +69,25 @@ class LoggingCommandLineConverterTest extends Specification {
     }
 
     def convertsShowFullStacktrace() {
-        expectedConfig.showStacktrace = ShowStacktrace.ALWAYS_FULL;
+        expectedConfig.showStacktrace = ShowStacktrace.ALWAYS_FULL
 
         expect:
         checkConversion(['-S'])
         checkConversion(['--full-stacktrace'])
+    }
+
+    def usesLastLogLevelAndStacktraceOption() {
+        expectedConfig.showStacktrace = ShowStacktrace.ALWAYS_FULL
+        expectedConfig.logLevel = LogLevel.QUIET
+
+        expect:
+        checkConversion(['-s', '--debug', '-q', '--full-stacktrace'])
+    }
+
+    def providesLogLevelOptions() {
+        expect:
+        converter.logLevelOptions == ["d", "q", "i"] as Set
+        converter.logLevels == [LogLevel.DEBUG, LogLevel.INFO, LogLevel.LIFECYCLE, LogLevel.QUIET] as Set
     }
 
     void checkConversion(List<String> args) {

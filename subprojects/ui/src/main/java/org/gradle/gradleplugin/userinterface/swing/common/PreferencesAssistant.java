@@ -25,8 +25,6 @@ import java.io.IOException;
 
 /**
  * This class just helps do some of the mundane tasks of saving and restoring the location of something.
- *
- * @author mhunsicker
  */
 public class PreferencesAssistant {
     private static final String WINDOW_X = "window_x";

@@ -16,7 +16,7 @@
 package org.gradle.plugins.ide.eclipse
 
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.internal.Instantiator
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.plugins.ide.api.XmlFileContentMerger
 import org.gradle.plugins.ide.api.XmlGeneratorTask
 import org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent
@@ -30,8 +30,6 @@ import org.gradle.util.DeprecationLogger
  * If you want to fine tune the eclipse configuration
  * <p>
  * At this moment nearly all configuration is done via {@link EclipseWtpComponent}.
- *
- * @author Hans Dockter
  */
 class GenerateEclipseWtpComponent extends XmlGeneratorTask<WtpComponent> {
 

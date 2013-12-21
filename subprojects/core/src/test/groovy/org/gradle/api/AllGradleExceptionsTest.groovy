@@ -17,11 +17,9 @@
 package org.gradle.api
 
 import org.junit.Test
-import static org.junit.Assert.*;
 
-/**
- * @author Hans Dockter
- */
+import static org.junit.Assert.assertEquals;
+
 class AllGradleExceptionsTest {
     static final List EXCEPTION_CLASSES = [UnknownTaskException, UnknownProjectException, InvalidUserDataException, GradleException, CircularReferenceException]
 

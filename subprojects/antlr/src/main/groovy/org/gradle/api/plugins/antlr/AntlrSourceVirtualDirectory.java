@@ -24,8 +24,6 @@ import org.gradle.api.file.SourceDirectorySet;
  * injecting a virtual directory named 'antlr' into the project's various {@link org.gradle.api.tasks.SourceSet source
  * sets}.  Its implementation gets pushed onto the {@link org.gradle.api.internal.DynamicObjectAware} portion of the
  * source set under the name 'antlr'.
- *
- * @author Steve Ebersole
  */
 public interface AntlrSourceVirtualDirectory {
     public static final String NAME = "antlr";

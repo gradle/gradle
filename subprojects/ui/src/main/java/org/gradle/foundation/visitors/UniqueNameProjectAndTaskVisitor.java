@@ -17,15 +17,13 @@ package org.gradle.foundation.visitors;
 
 import org.gradle.foundation.ProjectView;
 import org.gradle.foundation.TaskView;
+import org.gradle.util.CollectionUtils;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
  * This visitor builds up a list of unqiuely named projects and tasks. The projects will be their full path, so they're all unique.
- *
- * @author mhunsicker
  */
 public class UniqueNameProjectAndTaskVisitor implements AllProjectsAndTasksVisitor.Visitor<Object, Object> {
     private List<String> taskNames = new ArrayList<String>();
@@ -40,15 +38,11 @@ public class UniqueNameProjectAndTaskVisitor implements AllProjectsAndTasksVisit
     }
 
     public List<String> getSortedTaskNames() {
-        ArrayList<String> tasks = new ArrayList<String>(taskNames);
-        Collections.sort(tasks);
-        return tasks;
+        return CollectionUtils.sort(taskNames);
     }
 
     public List<String> getSortedProjectNames() {
-        ArrayList<String> projects = new ArrayList<String>(projectNames);
-        Collections.sort(projects);
-        return projects;
+        return CollectionUtils.sort(projectNames);
     }
 
     /*
@@ -59,7 +53,6 @@ public class UniqueNameProjectAndTaskVisitor implements AllProjectsAndTasksVisit
                                it'll be whatever was passed into the
                                visitPojectsAndTasks function.
     @return always null
-    @author mhunsicker
     */
 
     public Object visitProject(ProjectView project, Object parentProjectObject) {
@@ -76,7 +69,6 @@ public class UniqueNameProjectAndTaskVisitor implements AllProjectsAndTasksVisit
     @param task              the task
     @param tasksProject      the project for this task
     @param userProjectObject always null.
-    @author mhunsicker
     */
 
     public Object visitTask(TaskView task, ProjectView tasksProject, Object userProjectObject) {

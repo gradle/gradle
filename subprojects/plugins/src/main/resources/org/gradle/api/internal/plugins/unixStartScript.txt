@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 ##############################################################################
 ##
@@ -7,7 +7,7 @@
 ##############################################################################
 
 # Add default JVM options here. You can also use JAVA_OPTS and ${optsEnvironmentVar} to pass JVM options to this script.
-DEFAULT_JVM_OPTS=""
+DEFAULT_JVM_OPTS=${defaultJvmOpts}
 
 APP_NAME="${applicationName}"
 APP_BASE_NAME=`basename "\$0"`
@@ -61,9 +61,9 @@ while [ -h "\$PRG" ] ; do
     fi
 done
 SAVED="`pwd`"
-cd "`dirname \"\$PRG\"`/${appHomeRelativePath}"
+cd "`dirname \"\$PRG\"`/${appHomeRelativePath}" >&-
 APP_HOME="`pwd -P`"
-cd "\$SAVED"
+cd "\$SAVED" >&-
 
 CLASSPATH=$classpath
 
@@ -108,7 +108,7 @@ if [ "\$cygwin" = "false" -a "\$darwin" = "false" ] ; then
             warn "Could not set maximum file descriptor limit: \$MAX_FD"
         fi
     else
-        warn "Could not query businessSystem maximum file descriptor limit: \$MAX_FD_LIMIT"
+        warn "Could not query maximum file descriptor limit: \$MAX_FD_LIMIT"
     fi
 fi
 

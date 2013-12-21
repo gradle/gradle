@@ -20,7 +20,9 @@ package org.gradle.tooling.model.idea;
  * IdeaProject that does not provide/resolve any external dependencies.
  * Only project dependencies and local file dependencies are included on the modules' classpath.
  * <p>
- * Useful for 'previewing' the output model of IdeaProject because it supposed to be fast (e.g. does not download dependencies from the web).
+ * Useful for 'previewing' the output model of IdeaProject because it is supposed to be fast (e.g. does not download dependencies from the web).
+ *
+ * @since 1.0-milestone-5
  */
 public interface BasicIdeaProject extends IdeaProject {
 }

@@ -14,225 +14,166 @@
  * limitations under the License.
  */
 
-import org.gradle.build.Version
 import org.gradle.build.Install
-import org.gradle.build.Git
-import org.gradle.build.Releases
-
-/**
- * For building Gradle you usually don't need to specify any properties. Only certain functionality of the Gradle requires
- * setting certain properties. Those properties can be set in the gradle.properties file in the the gradle user home. The
- * following properties can be set:
- *
- * Uploading distributions to Gradle's release and snapshot repository at codehaus: artifactoryUserName, artifactoryUserPassword
- * Uploading the userguide and the javadoc to Gradle's website: websiteScpUserName, websiteScpUserPassword
- * Using the build to create a new distribution and install it on the local machine: gradle_installPath
- */
-
-ext.releases = new Releases(project(':core').file('src/releases.xml'), project)
-version = Version.forProject(project)
+import org.gradle.build.BuildTypes
+import org.gradle.build.TestReportAggregator
 
 defaultTasks 'assemble'
-
 apply plugin: 'java-base'
-
 archivesBaseName = 'gradle'
 
+extensions.buildTypes = new BuildTypes(project)
+
+buildTypes {
+    sanityCheck "classes", "doc:checkstyleApi", "codeQuality", "docs:check"
+
+    // The minimum to be run before check-in
+    preCommitBuild "doc:checkstyleApi", "docs:check", "codeQuality", "classes", "test"
+    quickCheck "doc:checkstyleApi", "docs:check", "codeQuality", "classes", "test"
+
+    // A full (in-process) test
+    developerBuild "check"
+
+    // Used by the first phase of the build pipeline
+    quickTest "runtimeTests", "runtimeIntegTests"
+
+    // Used for builds to run all tests, but not necessarily on all platforms
+    fullTest "runtimeTests", "runtimeIntegTests", useIncomingDistributions: true, defaultIntegTestExecuter: "forking"
+
+    // Used for builds to test the code on certain platforms
+    platformTest "runtimeTests", "runtimeIntegTests", useIncomingDistributions: true, defaultIntegTestExecuter: "forking", testAllPlatforms: true
+
+    // Tests using the daemon mode
+    daemonTest "runtimeIntegTests", useIncomingDistributions: true, defaultIntegTestExecuter: "daemon"
+
+    // Run the integration tests using the parallel executer
+    parallelTest "runtimeIntegTests", useIncomingDistributions: true, defaultIntegTestExecuter: "parallel"
+
+    // Run the performance tests
+    performanceTest "performance:integTest", useIncomingDistributions: true
+
+    // Run the performance tests
+    localPerformanceTest "performance:integTest"
+
+    // Used for cross version tests on CI
+    crossVersionTest "runtimeIntegTests", crossVersionTestsOnly: "", testAllVersions: "", useIncomingDistributions: true, defaultIntegTestExecuter: "forking"
+
+    // Used to build production distros and smoke test them
+    packageBuild "verifyIsProductionBuildEnvironment", "clean", "buildDists", "distributions:integTest"
+
+    // Used to build production distros and smoke test them
+    promotionBuild "verifyIsProductionBuildEnvironment", "clean", "docs:check", "buildDists", "distributions:integTest", "uploadArchives"
+}
+
 ext {
-    versions = [
-        commons_io: 'commons-io:commons-io:1.4'
-    ]
-    libraries = [
-        ant: dependencies.module('org.apache.ant:ant:1.8.2') {
-            dependency 'org.apache.ant:ant-launcher:1.8.2@jar'
-        },
-        asm: 'asm:asm-all:3.3.1@jar',
-        commons_cli: 'commons-cli:commons-cli:1.2@jar',
-        commons_io: dependencies.module(versions.commons_io),
-        commons_lang: 'commons-lang:commons-lang:2.6@jar',
-        commons_collections: 'commons-collections:commons-collections:3.2.1@jar',
-        ivy: dependencies.module('org.apache.ivy:ivy:2.2.0'){
-            dependency "com.jcraft:jsch:0.1.46"
-        },
-        jcip: "net.jcip:jcip-annotations:1.0@jar",
-    ]
-    
+    jvm = org.gradle.internal.jvm.Jvm.current()
+    javaVersion = JavaVersion.current()
+    isCiServer = System.getenv().containsKey("TEAMCITY_VERSION")
+    isWindows = org.gradle.internal.os.OperatingSystem.current().windows
+
+    if (project.hasProperty("maxParallelForks")) {
+        project.maxParallelForks = Integer.valueOf(project.maxParallelForks, 10)
+    } else {
+        ext.maxParallelForks = Math.max(2, (int) (Runtime.runtime.availableProcessors() / 2))
+    }
+
+    if (project.hasProperty("useIncomingDistributions")) {
+        project.useIncomingDistributions = true
+    } else {
+        ext.useIncomingDistributions = false
+    }
+
+    internalProjects = subprojects.findAll { it.name.startsWith("internal") || it.name in ["integTest", "distributions"] }
+    groovyProjects = subprojects
+    publicGroovyProjects = groovyProjects - internalProjects
+    publishedProjects = [project(':core'), project(':toolingApi'), project(':wrapper'), project(':baseServices'), project(':messaging')]
+    pluginProjects = [
+        'plugins', 'codeQuality', 'jetty', 'antlr', 'wrapper', 'osgi', 'maven',
+        'ide', 'announce', 'scala', 'sonar', 'signing', 'cpp', 'ear', 'javascript', 'buildComparison',
+        'diagnostics', 'reporting', 'publish', 'ivy', 'jacoco', 'buildInit', 'languageJvm', 'languageBase'
+    ].collect {
+        project(it)
+    }
 }
 
-// Logging
-libraries.slf4j_api = 'org.slf4j:slf4j-api:1.6.4@jar'
-libraries.jcl_to_slf4j = dependencies.module('org.slf4j:jcl-over-slf4j:1.6.4') {
-    dependency libraries.slf4j_api
-}
-libraries.jul_to_slf4j = dependencies.module('org.slf4j:jul-to-slf4j:1.6.4') {
-    dependency libraries.slf4j_api
-}
-libraries.log4j_to_slf4j = dependencies.module('org.slf4j:log4j-over-slf4j:1.6.4') {
-    dependency libraries.slf4j_api
-}
-libraries.logback_core = 'ch.qos.logback:logback-core:1.0.0@jar'
-libraries.logback_classic = dependencies.module('ch.qos.logback:logback-classic:1.0.0') {
-    dependency libraries.logback_core
-    dependency libraries.slf4j_api
-}
-
-// Jetty
-libraries.servlet_api = "org.mortbay.jetty:servlet-api:2.5-20081211@jar"
-libraries.jetty_util = dependencies.module("org.mortbay.jetty:jetty-util:6.1.25") {
-    dependency libraries.slf4j_api
-    dependency libraries.servlet_api
-}
-libraries.jetty = dependencies.module("org.mortbay.jetty:jetty:6.1.25") {
-    dependency libraries.jetty_util
-    dependency libraries.servlet_api
-}
-
-libraries.commons_httpclient = dependencies.module('org.apache.httpcomponents:httpclient:4.1.2') {
-    dependency "org.apache.httpcomponents:httpcore:4.1.2@jar"
-    dependency libraries.jcl_to_slf4j
-    dependency "commons-codec:commons-codec:1.4@jar"
-    dependency "org.samba.jcifs:jcifs:1.3.17"
-}
-
-libraries.maven_ant_tasks = dependencies.module("org.apache.maven:maven-ant-tasks:2.1.3") {
-    libraries.ant
-}
-
-libraries += [
-        ant_junit: 'org.apache.ant:ant-junit:1.8.2@jar',
-        ant_antlr: 'org.apache.ant:ant-antlr:1.8.2@jar',
-        antlr: 'antlr:antlr:2.7.7@jar',
-        dom4j: 'dom4j:dom4j:1.6.1@jar',
-        guava: 'com.google.guava:guava:11.0.1@jar',
-        groovy: 'org.codehaus.groovy:groovy-all:1.8.6@jar',
-        jaxen: 'jaxen:jaxen:1.1@jar',
-        jcip: "net.jcip:jcip-annotations:1.0",
-        jna: 'net.java.dev.jna:jna:3.2.7@jar',
-        junit: 'junit:junit:4.10',
-        xmlunit: 'xmlunit:xmlunit:1.3',
-        nekohtml: 'net.sourceforge.nekohtml:nekohtml:1.9.14'
-]
-
-libraries.spock = ['org.spockframework:spock-core:0.6-groovy-1.8@jar',
-        libraries.groovy,
-        'org.objenesis:objenesis:1.2',
-        'cglib:cglib-nodep:2.2']
-libraries.jmock = ['org.jmock:jmock:2.5.1',
-        'org.hamcrest:hamcrest-core:1.1',
-        'org.hamcrest:hamcrest-library:1.1',
-        'org.jmock:jmock-junit4:2.5.1',
-        'org.jmock:jmock-legacy:2.5.1',
-        'org.objenesis:objenesis:1.2',
-        'cglib:cglib-nodep:2.2']
+apply from: "gradle/buildReceipt.gradle"
+apply from: "gradle/incomingDistributions.gradle"
+apply from: "gradle/versioning.gradle"
+apply from: "gradle/dependencies.gradle"
+apply from: "gradle/wrapper.gradle"
+apply from: "gradle/idea.gradle"
+apply from: "gradle/eclipse.gradle"
+apply from: "gradle/classycle.gradle"
+apply from: "gradle/noDependencyResolutionDuringConfiguration.gradle"
+apply from: "gradle/testGroupings.gradle"
 
 allprojects {
     group = 'org.gradle'
 
-    plugins.withType(JavaPlugin) {
-        sourceCompatibility = 1.5
-        targetCompatibility = 1.5
-    }
-
     repositories {
         maven { url 'http://repo.gradle.org/gradle/libs' }
-        maven { url 'http://repository.codehaus.org/' }
-    }
-
-    configurations {
-        all {
-            resolutionStrategy {
-                //we cannot use 'hours' for now due to java 1.5 problem
-                cacheDynamicVersionsFor 24*60*60, 'seconds'
-                cacheChangingModulesFor 24*60*60, 'seconds'
-            }
-        }
-    }
-
-    version = this.version
-
-    apply from: "$rootDir/gradle/conventions-dsl.gradle"
-    
-    ext {
-        isDevBuild = {
-            gradle.taskGraph.hasTask(developerBuild)
-        }
-
-        isCIBuild = {
-            gradle.taskGraph.hasTask(ciBuild)
-        }
-
-        isCommitBuild = {
-            gradle.taskGraph.hasTask(commitBuild)
-        }
-
-        isFinalReleaseBuild = {
-            gradle.taskGraph.hasTask(releaseVersion)
-        }
-
-        isRcBuild = {
-            gradle.taskGraph.hasTask(rcVersion)
-        }
-
-        isNightlyBuild = {
-            gradle.taskGraph.hasTask(nightlyVersion)
-        }
-
-        isReleaseBuild = { // Are we doing any kind of “release”? i.e. final, nightly or rc
-            isFinalReleaseBuild() || isNightlyBuild() || isRcBuild()
-        }
     }
 }
 
-configure(groovyProjects()) {
-    apply from: "$rootDir/gradle/groovyProject.gradle"
-}
+subprojects {
+    version = rootProject.version
 
-configure(publishedProjects()) {
-    apply from: "$rootDir/gradle/publish.gradle"
-}
+    if (project in groovyProjects) {
+        apply from: "$rootDir/gradle/groovyProject.gradle"
+        apply from: "$rootDir/gradle/testWithUnknownOS.gradle"
+        check.dependsOn ":docs:checkstyleApi"
+        check.dependsOn "codeQuality"
+    }
 
-allprojects {
+    if (project in publishedProjects) {
+        apply from: "$rootDir/gradle/publish.gradle"
+    }
+
     apply from: "$rootDir/gradle/codeQuality.gradle"
-    apply from: "$rootDir/gradle/testWithUnknownOS.gradle"
-}
 
-apply from: "gradle/idea.gradle"
-apply from: "gradle/eclipse.gradle"
+    if (isCiServer) {
+        reporting.baseDir "$rootProject.reporting.baseDir/${path.replaceFirst(':', '').replaceAll(':', '.')}"
+    }
+}
 
 configurations {
-    dists
     runtime {
         visible = false
     }
-    plugins {
+    gradlePlugins {
         visible = false
     }
     testRuntime {
         extendsFrom runtime
-        extendsFrom plugins
+        extendsFrom gradlePlugins
     }
 }
 
 dependencies {
     runtime project(':launcher')
-    plugins pluginProjects()
-    plugins project(':coreImpl')
+    runtime project(':wrapper')
+    gradlePlugins pluginProjects
+    gradlePlugins project(':coreImpl')
 }
 
-evaluationDependsOn(':docs')
-evaluationDependsOn(':integTest')
-
-clean.dependsOn subprojects.collect { "$it.path:clean" }
-
-task check(overwrite: true, dependsOn: groovyProjects()*.check)
-check.dependsOn ':docs:checkstyleApi'
-configure(groovyProjects()) {
-    check.dependsOn ":docs:checkstyleApi"
+task verifyIsProductionBuildEnvironment << {
+    assert javaVersion.java7 : "Must use a Java 7 compatible JVM to perform this build. Current JVM is ${jvm}"
+    def systemCharset = java.nio.charset.Charset.defaultCharset().name()
+    assert systemCharset == "UTF-8" : "Platform encoding must be UTF-8. Is currently $systemCharset. Set -Dfile.encoding=UTF-8."
 }
 
-task test(overwrite: true, dependsOn: groovyProjects()*.test)
-task uploadArchives(dependsOn: publishedProjects()*.uploadArchives)
-task publishLocalArchives(dependsOn: publishedProjects()*.publishLocalArchives)
+task waitForDaemonsToDie {
+    if (!project.hasProperty("noWaitForDaemonsToDie")) {
+        if (isWindows && isCiServer) {
+            gradle.startParameter.taskNames.add(0, it.path)
+        }
+        doLast {
+            def mins = 2
+            println "I'm waiting for $mins mins so that existing daemons can die with honour. It's a workaround until we fix it properly."
+            sleep mins * 60 * 1000
+        }
+    }
+}
 
 task aggregateTestReports(type: TestReportAggregator) {
     testReportDir = reporting.file("tests")
@@ -240,301 +181,21 @@ task aggregateTestReports(type: TestReportAggregator) {
     projects = subprojects
 }
 
-ext.zipRootFolder = "$archivesBaseName-${-> version}"
-
-ext.binDistImage = copySpec {
-    from('src/toplevel') {
-        exclude 'media/**'
-        expand(version: version)
-    }
-    from('src/toplevel') {
-        include 'media/**'
-    }
-    from project(':docs').outputs.distDocs
-    into('bin') {
-        from { project(':launcher').startScripts.outputs.files }
-        fileMode = 0755
-    }
-    into('lib') {
-        from configurations.runtime
-        into('plugins') {
-            from configurations.plugins - configurations.runtime
-        }
-    }
-}
-
-ext.allDistImage = copySpec {
-    with binDistImage
-    into('src') {
-        from groovyProjects().collect {project -> project.sourceSets.main.allSource }
-    }
-    into('docs') {
-        from project(':docs').outputs.docs
-    }
-    into('samples') {
-        from project(':docs').outputs.samples
-    }
-}
-
-task allZip(type: Zip) {
-    classifier = 'all'
-    into(zipRootFolder) {
-        with allDistImage
-    }
-}
-
-task binZip(type: Zip) {
-    classifier = 'bin'
-    into(zipRootFolder) {
-        with binDistImage
-    }
-}
-
-task srcZip(type: Zip) {
-    classifier = 'src'
-    into(zipRootFolder) {
-        from('gradlew') {
-            fileMode = 0755
-        }
-        from(projectDir) {
-            def spec = delegate
-            ['buildSrc', 'subprojects/*'].each {
-                spec.include "$it/*.gradle"
-                spec.include "$it/src/"
-            }
-            include 'config/'
-            include 'gradle/'
-            include 'src/'
-            include '*.gradle'
-            include 'wrapper/'
-            include 'gradlew.bat'
-        }
-    }
-}
-
-artifacts {
-    tasks.withType(Zip).each {
-        dists it
-    }
-}
-
-task intTestImage(type: Sync) {
-    dependsOn "launcher:startScripts"
-    with binDistImage
-    ext.integTestGradleHome = file("$buildDir/integ test")
-    into integTestGradleHome
-    doLast { task ->
-        ant.chmod(dir: "$integTestGradleHome/bin", perm: "ugo+rx", includes: "**/*")
-    }
-}
-
-gradle.taskGraph.whenReady {
-    if (([isFinalReleaseBuild(), isNightlyBuild(), isRcBuild()].findAll { it }).size() > 1) {
-        throw new GradleException("This appears to be more than one type of release: final - ${isFinalReleaseBuild()}, rc - ${isRcBuild()}, nightly - ${isNightlyBuild() }")
-    }
-}
-
-def guessMaxForks(project) {
-    if (project.hasProperty("maxParallelForks")) {
-        return Integer.valueOf(project.getProperty("maxParallelForks"))
-    }
-    int processors = Runtime.runtime.availableProcessors()
-    return Math.max(2, (int) (processors / 2))
-}
+evaluationDependsOn ":distributions"
 
 task install(type: Install) {
     description = 'Installs the minimal distribution into directory $gradle_installPath'
     group = 'build'
-    dependsOn binZip.taskDependencies
-    with binDistImage
-    installDirProperyName = 'gradle_installPath'
+    with project(":distributions").binDistImage
+    installDirPropertyName = 'gradle_installPath'
 }
 
 task installAll(type: Install) {
     description = 'Installs the full distribution into directory $gradle_installPath'
     group = 'build'
-    dependsOn allZip.taskDependencies
-    with allDistImage
-    installDirProperyName = 'gradle_installPath'
-}
-
-task testedDists(dependsOn: [check]) {
-    outputs.files configurations.dists.allArtifacts.files
-}
-
-gradle.taskGraph.whenReady {graph ->
-    if (graph.hasTask(uploadArchives)) {
-        // check properties defined and fail early
-        artifactoryUserName
-        artifactoryUserPassword
-    }
-}
-
-task quickCheck {
-    def i = gradle.startParameter.taskNames.findIndexOf { it ==~ /(?i):?(quickCheck|qC)/ }
-    if (i >= 0) {
-        gradle.startParameter.taskNames.addAll(i, ["doc:checkstyleApi", "codeQuality", "classes", "test"])
-    }
-    doFirst {
-        if (i < 0) {
-            throw new GradleException("Due to the way it is implemented, the 'quickCheck' task has to be invoked directly, and its name can only be abbreviated to 'qC'.")
-        }
-    }
-}
-
-task developerBuild {
-    description = 'Builds distributions and runs pre-checkin checks'
-    group = 'build'
-    dependsOn testedDists
-}
-
-task ciBuild {
-    description = 'Full build performed by the CI server'
-    dependsOn clean, testedDists
-}
-
-task commitBuild {
-    description = 'Commit build performed by the CI server'
-    dependsOn testedDists
-}
-
-task nightlyVersion
-
-task checkJavaVersion << {
-    assert Jvm.current().isJava7() : "Must use a Java 7 compatible JVM to perform this build. Current JVM is ${Jvm.current()}"
-}
-
-task nightlyBuild {
-    description = 'Nightly build performed by the CI server'
-    dependsOn checkJavaVersion, nightlyVersion, testedDists, "uploadAll"
-}
-
-gradle.taskGraph.whenReady {graph ->
-    if (graph.hasTask(ciBuild)) {
-        subprojects { reporting.baseDir "$rootProject.reporting.baseDir/${path.replaceFirst(':', '').replaceAll(':', '.')}" }
-    }
-}
-
-// A marker task which causes the release version to be used when it is present in the task graph
-task releaseVersion
-//TODO SF - this task name is inconsistent because other releaseXxx tasks actually upload some content somewhere. Should be called something like 'markReleaseVersion'
-
-// A marker task which indicates that we are building an rc of some sort
-task rcVersion
-
-//TODO RG - we depend here on the alphabetical order of dependent task execution. We Should change that to fail early if javaversion is inappropriate
-task rc {
-    description "Builds a release candidate for the next release"
-    dependsOn checkJavaVersion, rcVersion, testedDists, "uploadAll"
-}
-
-task tag(type: Tag)
-
-task testedTag(type: Tag, dependsOn: testedDists)
-
-task releaseArtifacts {
-    description = 'Builds the release artifacts'
-    //TODO SF - this task name is inconsistent because other releaseXxx tasks actually upload some content somewhere. Should be called something like 'buildReleaseArtifacts'
-    group = 'release'
-    dependsOn releaseVersion, assemble
-}
-
-//TODO RG - we depend here on the alphabetical order of dependent task execution. We Should change that to fail early if javaversion is inappropriate
-task release {
-    description = 'Builds, tests and uploads the release artifacts'
-    group = 'release'
-    dependsOn releaseVersion, checkJavaVersion, testedTag, releaseArtifacts, testedDists, 'uploadAll'
-    doLast {
-        releases.incrementNextVersion()
-    }
-}
-
-task incrementNextVersion << {
-    releases.incrementNextVersion()
-}
-
-task uploadAll {
-    description = 'Uploads binaries, sources and documentation. Does not upload the website! Useful when release procedure breaks at upload and only upload tasks should executed again'
-    dependsOn uploadArchives, "website:uploadDistributions", "website:uploadDocs", "website:pushReleasesXml"
-}
-
-def wrapperUpdateTask = { name, label ->
-    task "${name}Wrapper"(type: Wrapper) {
-        doFirst {
-            def version = new groovy.json.JsonSlurper().parseText(new URL("http://services.gradle.org/versions/$label").text)
-            if (version.empty) {
-                throw new GradleException("Cannot update wrapper to '${label}' version as there is currently no version of that label")
-            }
-            println "updating wrapper to $label version: $version.version (downloadUrl: $version.downloadUrl)"
-            distributionUrl version.downloadUrl
-        }
-        doLast {
-            def jvmOpts = "-Xmx1024m -XX:MaxPermSize=256m -Dfile.encoding=UTF-8"
-            inputs.property("jvmOpts", jvmOpts)
-            def optsEnvVar = "DEFAULT_JVM_OPTS"
-            scriptFile.write scriptFile.text.replace("$optsEnvVar=\"\"", "$optsEnvVar=\"$jvmOpts\"")
-            batchScript.write batchScript.text.replace("set $optsEnvVar=", "set $optsEnvVar=$jvmOpts")
-        }
-    }
-}
-
-wrapperUpdateTask("nightly", "nightly")
-wrapperUpdateTask("rc", "release-candidate")
-wrapperUpdateTask("current", "current")
-
-def groovyProjects() {
-    subprojects.findAll { !(it.name in ["docs", "website"]) }
-}
-
-def publishedProjects() {
-    [project(':core'), project(':toolingApi'), project(':wrapper'), project(':baseServices')]
-}
-
-def pluginProjects() {
-    ['plugins', 'codeQuality', 'jetty', 'antlr', 'wrapper', 'osgi', 'maven', 'ide', 'announce', 'scala', 'sonar', 'signing', 'cpp', 'ear'].collect {
-        project(it)
-    }
-}
-
-class TestReportAggregator extends Copy {
-    def projects
-
-    File testResultsDir
-
-    @OutputDirectory
-    File testReportDir
-
-    def TestReportAggregator() {
-        dependsOn { testTasks }
-        from { inputTestResultDirs }
-        into { testResultsDir }
-    }
-
-    @TaskAction
-    def aggregate() {
-        def report = new org.gradle.api.internal.tasks.testing.junit.report.DefaultTestReport(testReportDir: testReportDir, testResultsDir: testResultsDir)
-        report.generateReport()
-    }
-
-    def getTestTasks() {
-        projects.collect { it.tasks.withType(Test) }.flatten()
-    }
-
-    def getInputTestResultDirs() {
-        testTasks*.testResultsDir
-    }
-
-}
-
-class Tag extends DefaultTask {
-    @TaskAction
-    def tagNow() {
-        def version = project.version
-        def git = new Git(project)
-        git.checkNoModifications()
-        git.tag("REL_$version", "Release $version")
-        git.branch("RB_$version")
-    }
+    with project(":distributions").allDistImage
+    installDirPropertyName = 'gradle_installPath'
 }
 
 
+apply from: "gradle/intTestImage.gradle"

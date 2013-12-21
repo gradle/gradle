@@ -33,7 +33,6 @@ public class ExecTest extends AbstractTaskTest {
 
     @Before
     public void setUp() {
-        super.setUp()
         execTask = createTask(Exec.class)
         execTask.setExecAction(execAction)
     }

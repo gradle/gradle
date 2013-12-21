@@ -19,31 +19,37 @@ package org.gradle.plugins.ide.eclipse
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ProjectDependency
-import org.gradle.api.internal.Instantiator
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.WarPlugin
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.plugins.ear.EarPlugin
+import org.gradle.plugins.ide.eclipse.model.*
 import org.gradle.plugins.ide.eclipse.model.Facet.FacetType
 import org.gradle.plugins.ide.internal.IdePlugin
-import org.gradle.plugins.ide.eclipse.model.*
 
-/**
- * @author: Szczepan Faber, created at: 6/28/11
- */
+import javax.inject.Inject
+
 class EclipseWtpPlugin extends IdePlugin {
 
     static final String ECLIPSE_WTP_COMPONENT_TASK_NAME = "eclipseWtpComponent"
     static final String ECLIPSE_WTP_FACET_TASK_NAME = "eclipseWtpFacet"
+    static final String WEB_LIBS_CONTAINER = 'org.eclipse.jst.j2ee.internal.web.container'
 
     @Override protected String getLifecycleTaskName() {
         return "eclipseWtp"
     }
 
+    private final Instantiator instantiator
     EclipseWtp eclipseWtpModel
+
+    @Inject
+    EclipseWtpPlugin(Instantiator instantiator) {
+        this.instantiator = instantiator
+    }
 
     @Override protected void onApply(Project project) {
         EclipsePlugin delegatePlugin = project.getPlugins().apply(EclipsePlugin.class);
-        delegatePlugin.model.wtp = project.services.get(Instantiator).newInstance(EclipseWtp, delegatePlugin.model.classpath)
+        delegatePlugin.model.wtp = instantiator.newInstance(EclipseWtp, delegatePlugin.model.classpath)
         eclipseWtpModel = delegatePlugin.model.wtp
 
         lifecycleTask.description = 'Generates Eclipse wtp configuration files.'
@@ -62,6 +68,8 @@ class EclipseWtpPlugin extends IdePlugin {
 
     private void configureEclipseClasspathForWarPlugin(Project project) {
         project.plugins.withType(WarPlugin) {
+            project.eclipse.classpath.containers WEB_LIBS_CONTAINER
+
             project.eclipse.classpath.file.whenMerged { Classpath classpath ->
                 for (entry in classpath.entries) {
                     if (entry instanceof AbstractLibrary) {
@@ -165,8 +173,10 @@ class EclipseWtpPlugin extends IdePlugin {
                 //model properties:
                 eclipseWtpModel.facet = facet
                 if (WarPlugin.isAssignableFrom(type)) {
-                    facet.conventionMapping.facets = { [new Facet(FacetType.fixed, "jst.java", null), new Facet(FacetType.fixed, "jst.web", null),
-                        new Facet(FacetType.installed, "jst.web", "2.4"), new Facet(FacetType.installed, "jst.java", toJavaFacetVersion(project.sourceCompatibility))] }
+                    facet.conventionMapping.facets = {
+                        [new Facet(FacetType.fixed, "jst.java", null), new Facet(FacetType.fixed, "jst.web", null),
+                                new Facet(FacetType.installed, "jst.web", "2.4"), new Facet(FacetType.installed, "jst.java", toJavaFacetVersion(project.sourceCompatibility))]
+                    }
                 } else if (EarPlugin.isAssignableFrom(type)) {
                     facet.conventionMapping.facets = { [new Facet(FacetType.fixed, "jst.ear", null), new Facet(FacetType.installed, "jst.ear", "5.0")] }
                 }
@@ -183,12 +193,14 @@ class EclipseWtpPlugin extends IdePlugin {
                     //model properties:
                     eclipseWtpPlugin.eclipseWtpModel.facet = facet
 
-                    facet.conventionMapping.facets = { [new Facet(FacetType.fixed, "jst.java", null), new Facet(FacetType.fixed, "jst.web", null),
-                        new Facet(FacetType.installed, "jst.utility", "1.0")] }
+                    facet.conventionMapping.facets = {
+                        [new Facet(FacetType.fixed, "jst.java", null), new Facet(FacetType.fixed, "jst.web", null),
+                                new Facet(FacetType.installed, "jst.utility", "1.0")]
+                    }
                     otherProject.plugins.withType(JavaPlugin) {
                         facet.conventionMapping.facets = {
                             [new Facet(FacetType.fixed, "jst.java", null), new Facet(FacetType.fixed, "jst.web", null),
-                                new Facet(FacetType.installed, "jst.utility", "1.0"), new Facet(FacetType.installed, "jst.java", toJavaFacetVersion(otherProject.sourceCompatibility))]
+                                    new Facet(FacetType.installed, "jst.utility", "1.0"), new Facet(FacetType.installed, "jst.java", toJavaFacetVersion(otherProject.sourceCompatibility))]
                         }
                     }
                 }
@@ -198,7 +210,7 @@ class EclipseWtpPlugin extends IdePlugin {
 
     private void maybeAddTask(Project project, IdePlugin plugin, String taskName, Class taskType, Closure action) {
         if (project.tasks.findByName(taskName)) { return }
-        def task = project.tasks.add(taskName, taskType)
+        def task = project.tasks.create(taskName, taskType)
         project.configure(task, action)
         plugin.addWorker(task)
     }

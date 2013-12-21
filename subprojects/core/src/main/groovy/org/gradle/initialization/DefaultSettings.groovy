@@ -18,26 +18,16 @@ package org.gradle.initialization
 
 import org.gradle.StartParameter
 import org.gradle.api.internal.GradleInternal
+import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.groovy.scripts.ScriptSource
 
-/**
- * @author Hans Dockter
- */
 public class DefaultSettings extends BaseSettings {
-    public DefaultSettings() {}
 
-    DefaultSettings(GradleInternal gradle,
-                    IProjectDescriptorRegistry projectDescriptorRegistry,
-                    URLClassLoader classloader, File settingsDir,
+    DefaultSettings(ServiceRegistryFactory serviceRegistryFactory,
+                    GradleInternal gradle,
+                    ClassLoader classloader, File settingsDir,
                     ScriptSource settingsScript, StartParameter startParameter) {
-      super(gradle, projectDescriptorRegistry, classloader, settingsDir, settingsScript, startParameter)
+      super(serviceRegistryFactory, gradle, classloader, settingsDir, settingsScript, startParameter)
     }
 
-    def propertyMissing(String property) {
-        return dynamicObject.getProperty(property)
-    }
-
-    void setProperty(String name, value) {
-        dynamicObject.setProperty(name, value)
-    }
 }

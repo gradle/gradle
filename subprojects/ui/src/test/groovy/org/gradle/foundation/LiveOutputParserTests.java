@@ -16,7 +16,6 @@
 package org.gradle.foundation;
 
 import junit.framework.TestCase;
-import junit.framework.AssertionFailedError;
 import org.gradle.foundation.output.FileLink;
 import org.gradle.foundation.output.FileLinkDefinitionLord;
 import org.gradle.foundation.output.LiveOutputParser;
@@ -26,8 +25,6 @@ import java.util.List;
 
 /**
  * Tests aspects of LiveOutputParser. This finds FileLinks within text that is being output constantly.
- *
- * @author mhunsicker
  */
 public class LiveOutputParserTests extends TestCase {
     private LiveOutputParser parser;
@@ -70,7 +67,7 @@ public class LiveOutputParserTests extends TestCase {
     private void appendTextWithoutFileLinks(String text) {
         List<FileLink> fileLinks = parser.appendText(text);
         if (!fileLinks.isEmpty()) {
-            throw new AssertionFailedError("FileLinks list is erroneously not empty: " + TestUtility.dumpList(fileLinks));
+            throw new AssertionError("FileLinks list is erroneously not empty: " + TestUtility.dumpList(fileLinks));
         }
     }
 

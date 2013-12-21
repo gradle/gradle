@@ -17,30 +17,33 @@
 package org.gradle.initialization;
 
 import org.gradle.StartParameter;
-import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.SettingsInternal;
+import org.gradle.api.internal.*;
+import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.internal.reflect.Instantiator;
 
 import java.io.File;
-import java.net.URLClassLoader;
 import java.util.Map;
 
-/**
- * @author Hans Dockter
- */
 public class SettingsFactory {
-    private IProjectDescriptorRegistry projectDescriptorRegistry;
+    private final Instantiator instantiator;
+    private final ServiceRegistryFactory serviceRegistryFactory;
 
-    public SettingsFactory(IProjectDescriptorRegistry projectDescriptorRegistry) {
-        this.projectDescriptorRegistry = projectDescriptorRegistry;
+    public SettingsFactory(Instantiator instantiator, ServiceRegistryFactory serviceRegistryFactory) {
+        this.instantiator = instantiator;
+        this.serviceRegistryFactory = serviceRegistryFactory;
     }
 
     public SettingsInternal createSettings(GradleInternal gradle, File settingsDir, ScriptSource settingsScript,
                                            Map<String, String> gradleProperties, StartParameter startParameter,
-                                           URLClassLoader classloader) {
-        DefaultSettings settings = new DefaultSettings(gradle, projectDescriptorRegistry, classloader, settingsDir, settingsScript, startParameter);
+                                           ClassLoader classloader) {
 
-        settings.addDynamicProperties(gradleProperties);
+        DefaultSettings settings = instantiator.newInstance(DefaultSettings.class, serviceRegistryFactory,
+                gradle, classloader, settingsDir, settingsScript, startParameter
+        );
+
+        DynamicObject dynamicObject = ((DynamicObjectAware) settings).getAsDynamicObject();
+        ((ExtensibleDynamicObject) dynamicObject).addProperties(gradleProperties);
         return settings;
     }
 }

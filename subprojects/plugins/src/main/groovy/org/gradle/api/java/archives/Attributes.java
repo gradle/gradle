@@ -19,8 +19,6 @@ import java.util.Map;
 
 /**
  * Represent the attributes of a manifest section.
- *
- * @author Hans Dockter
  */
 public interface Attributes extends Map<String, Object> {
     

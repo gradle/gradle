@@ -43,7 +43,7 @@ package org.gradle.api.plugins;
  * }
  * assert project.custom.foo == "other"
  *
- * // Extensions added with the extensnion container's create method are themselves extensible
+ * // Extensions added with the extension container's create method are themselves extensible
  * assert project.custom instanceof ExtensionAware
  * project.custom.extensions.create("nested", MyExtension, "baz")
  * assert project.custom.nested.foo == "baz"

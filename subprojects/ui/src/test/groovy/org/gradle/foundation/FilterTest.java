@@ -30,8 +30,6 @@ import java.util.List;
 
 /**
  * Test various aspects of filtering out tasks and projects from the GradlePluginLord.
- *
- * @author mhunsicker
  */
 public class FilterTest extends TestCase {
     private BuildInformation buildInformation;

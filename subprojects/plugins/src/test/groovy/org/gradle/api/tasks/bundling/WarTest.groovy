@@ -18,19 +18,14 @@ package org.gradle.api.tasks.bundling
 
 import org.junit.Before
 import org.junit.Test
+
 import static org.junit.Assert.assertEquals
 
-/**
- * @author Hans Dockter
- */
 class WarTest extends AbstractArchiveTaskTest {
 
     War war
 
-    Map filesFromDepencencyManager
-
     @Before public void setUp() {
-        super.setUp()
         war = createTask(War)
         configure(war)
     }

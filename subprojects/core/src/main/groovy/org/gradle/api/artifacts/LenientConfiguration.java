@@ -27,7 +27,7 @@ import java.util.Set;
 public interface LenientConfiguration {
 
     /**
-     * returns successfully resolved dependencies
+     * Returns successfully resolved dependencies.
      *
      * @param dependencySpec dependency spec
      * @return only resolved dependencies
@@ -43,11 +43,18 @@ public interface LenientConfiguration {
     public Set<UnresolvedDependency> getUnresolvedModuleDependencies();
 
     /**
-     * returns successfully resolved files for successfully resolved dependencies
+     * Returns successfully resolved files for successfully resolved dependencies.
      *
      * @param dependencySpec dependency spec
      * @return resolved dependencies files
      */
     public Set<File> getFiles(Spec<? super Dependency> dependencySpec);
 
+    /**
+     * Gets successfully resolved artifacts for dependencies that match given dependency spec.
+     *
+     * @param dependencySpec dependency spec
+     * @return successfully resolved artifacts for dependencies that match given dependency spec
+     */
+    Set<ResolvedArtifact> getArtifacts(Spec<? super Dependency> dependencySpec);
 }

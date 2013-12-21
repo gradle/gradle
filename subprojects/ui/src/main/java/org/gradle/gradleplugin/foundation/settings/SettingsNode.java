@@ -45,8 +45,6 @@ import java.util.List;
  *
  * This has several convenience functions for setting and getting values from child nodes. These are meant to be used in more of a java preferences replacement. You should create your own root node of
  * your settings (by call addChildIfNotPresent from a node that is given to you) then you can use these functions and you only need to worry about uniqueness within your own node.
- *
- * @author mhunsicker
  */
 public interface SettingsNode {
     /**

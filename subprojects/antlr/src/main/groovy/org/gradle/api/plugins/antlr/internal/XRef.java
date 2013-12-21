@@ -15,17 +15,15 @@
  */
 package org.gradle.api.plugins.antlr.internal;
 
-import java.util.LinkedHashMap;
+import antlr.preprocessor.Hierarchy;
+
 import java.util.HashMap;
 import java.util.Iterator;
-
-import antlr.preprocessor.Hierarchy;
+import java.util.LinkedHashMap;
 
 /**
  * Models cross-reference (x-ref) info about {@link GrammarFileMetadata grammar files} such as {@link #filesByPath},
  * {@link #filesByExportVocab} and {@link #filesByClassName}.
- *
- * @author Steve Ebersole
  */
 public class XRef {
     private final Hierarchy antlrHierarchy;

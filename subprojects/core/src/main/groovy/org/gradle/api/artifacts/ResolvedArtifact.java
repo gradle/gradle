@@ -19,8 +19,6 @@ import java.io.File;
 
 /**
  * Information about a resolved artifact.
- * 
- * @author Hans Dockter
  */
 public interface ResolvedArtifact {
     File getFile();

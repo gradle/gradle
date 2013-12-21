@@ -28,7 +28,7 @@ import java.util.Set;
  */
 public interface ConfigurableFileTree extends FileTree, DirectoryTree, PatternFilterable, Buildable {
     /**
-     * Specifies base directory for this file tree using the given path. The path is evaluated as for {@link
+     * Specifies base directory for this file tree using the given path. The path is evaluated as per {@link
      * org.gradle.api.Project#file(Object)}.
      *
      * @param dir The base directory.
@@ -44,7 +44,7 @@ public interface ConfigurableFileTree extends FileTree, DirectoryTree, PatternFi
     File getDir();
 
     /**
-     * Specifies base directory for this file tree using the given path. The path is evaluated as for {@link
+     * Specifies base directory for this file tree using the given path. The path is evaluated as per {@link
      * org.gradle.api.Project#file(Object)}.
      *
      * @param dir The base directory.
@@ -62,7 +62,7 @@ public interface ConfigurableFileTree extends FileTree, DirectoryTree, PatternFi
     /**
      * Sets the tasks which build the files of this collection.
      *
-     * @param tasks The tasks. These are evaluated as for {@link org.gradle.api.Task#dependsOn(Object...)}.
+     * @param tasks The tasks. These are evaluated as per {@link org.gradle.api.Task#dependsOn(Object...)}.
      * @return this
      */
     ConfigurableFileTree setBuiltBy(Iterable<?> tasks);
@@ -70,7 +70,7 @@ public interface ConfigurableFileTree extends FileTree, DirectoryTree, PatternFi
     /**
      * Registers some tasks which build the files of this collection.
      *
-     * @param tasks The tasks. These are evaluated as for {@link org.gradle.api.Task#dependsOn(Object...)}.
+     * @param tasks The tasks. These are evaluated as per {@link org.gradle.api.Task#dependsOn(Object...)}.
      * @return this
      */
     ConfigurableFileTree builtBy(Object... tasks);

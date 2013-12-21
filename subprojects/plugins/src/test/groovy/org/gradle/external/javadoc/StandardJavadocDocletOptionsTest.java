@@ -16,23 +16,21 @@
 
 package org.gradle.external.javadoc;
 
+import org.gradle.external.javadoc.internal.GroupsJavadocOptionFileOption;
+import org.gradle.external.javadoc.internal.JavadocOptionFile;
 import org.gradle.external.javadoc.internal.LinksOfflineJavadocOptionFileOption;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.After;
-import static org.junit.Assert.*;
+import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
-import org.jmock.Expectations;
-import org.gradle.external.javadoc.internal.JavadocOptionFile;
-import org.gradle.external.javadoc.internal.GroupsJavadocOptionFileOption;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
-import java.util.*;
 import java.io.File;
+import java.util.*;
 
-/**
- * @author Tom Eyckmans
- */
+import static org.junit.Assert.*;
+
 public class StandardJavadocDocletOptionsTest {
 
     private final JUnit4Mockery context = new JUnit4Mockery();

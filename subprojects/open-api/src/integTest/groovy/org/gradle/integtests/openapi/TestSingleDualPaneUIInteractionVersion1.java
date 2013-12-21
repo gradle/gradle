@@ -23,7 +23,6 @@ import org.gradle.openapi.external.ui.SinglePaneUIInteractionVersion1;
 /**
  * This is a test implementation of both SinglePaneUIInteractionVersion1 and DualPaneUIInteractionVersion1.
  * This is really just a container to hand off more complex interactions to the UI when asked for.
- * @author mhunsicker
  */
 public class TestSingleDualPaneUIInteractionVersion1 implements SinglePaneUIInteractionVersion1, DualPaneUIInteractionVersion1 {
 

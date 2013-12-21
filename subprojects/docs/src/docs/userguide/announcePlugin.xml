@@ -1,112 +1,81 @@
 <chapter id='announce_plugin'>
     <title>The Announce Plugin</title>
-    <para>The Gradle announce plugin enables you to publish messages on succeeded tasks to your favourite platforms.
-	It supports 
+    <para>The Gradle announce allows to send custom announcements during a build. The following notification systems are supported:
 	<itemizedlist>
  		<listitem><ulink url='http://twitter.com'>Twitter</ulink></listitem>
- 		<listitem><ulink url='http://ubuntu.com'>Ubuntu Notify</ulink></listitem>
-        <listitem><ulink url="https://sites.google.com/site/snarlapp/home">Snarl</ulink>, a Windows Notification System</listitem>
-        <listitem><ulink url="http://growl.info/">Growl</ulink>, a Mac OS X Notification System</listitem>
+ 		<listitem><ulink url='http://manpages.ubuntu.com/manpages/gutsy/man1/notify-send.1.html'>notify-send</ulink> (Ubuntu)</listitem>
+        <listitem><ulink url="https://sites.google.com/site/snarlapp/home">Snarl</ulink> (Windows)</listitem>
+        <listitem><ulink url="http://growl.info/">Growl</ulink> (Mac OS X)</listitem>
  	</itemizedlist>
-	
 	</para>
 
     <section>
         <title>Usage</title>
-        <para>To use the announce plugin, include in your build script:</para>
+        <para>To use the announce plugin, apply it to your build script:</para>
         <sample id="useAnnouncePlugin" dir="announce" title="Using the announce plugin">
             <sourcefile file="build.gradle" snippet="use-plugin"/>
         </sample>
 
-	<para>After that, configure you username and password (if required for the service you want to announce to) with:</para>
-	<sample id="useAnnouncePlugin" dir="announce" title="Configure the announce plugin">
+        <para>Next, configure your notification service(s) of choice (see table below for which configuration properties are available):</para>
+        <sample id="useAnnouncePlugin" dir="announce" title="Configure the announce plugin">
             <sourcefile file="build.gradle" snippet="announce-plugin-conf"/>
         </sample>
 
-	<para>Finally, you can use announce with any task by attaching it via task.dolast() as shown below</para>
-	<sample id="useAnnouncePlugin" dir="announce" title="Using the announce plugin">
+        <para>Finally, send announcements with the <literal>announce</literal> method:</para>
+        <sample id="useAnnouncePlugin" dir="announce" title="Using the announce plugin">
             <sourcefile file="build.gradle" snippet="announce-usage"/>
         </sample>
 
-	<para>As you can see, the syntax in <literal>.doLast</literal> is
-
-		 <cmdsynopsis>
-			<command> announce("MESSAGE", "TARGET")</command>
-		 </cmdsynopsis>
-
-		Where MESSAGE is any GString you pass (and might have constructed before). And TARGET might one of the following:
-
-	</para>
+        <para>The <literal>announce</literal> method takes two String arguments: The message to be sent, and the notification
+            service to be used. The following table lists supported notification services and their configuration properties.
+        </para>
     </section>
+
    <table>
-       <title>announce plugin targets</title>
+       <title>Announce Plugin Notification Services</title>
        <thead>
            <tr>
-               <td>target literal</td>
-               <td>target</td>
-               <td>configuration parameters</td>
-               <td>more information</td>
+               <td>Notification Service</td>
+               <td>Operating System</td>
+               <td>Configuration Properties</td>
+               <td>Further Information</td>
            </tr>
        </thead>
        <tr>
            <td>twitter</td>
-           <td>Twitter</td>
-           <td>username , password</td>
+           <td>Any</td>
+           <td>username, password</td>
            <td></td>
        </tr>
        <tr>
            <td>snarl</td>
-           <td>Snarl Windows Notification Service</td>
+           <td>Windows</td>
            <td></td>
            <td></td>
        </tr>
        <tr>
            <td>growl</td>
-           <td>Growl Mac OS X Notification Service</td>
+           <td>Mac OS X</td>
            <td></td>
            <td></td>
        </tr>
        <tr>
            <td>notify-send</td>
-           <td>Notify Ubuntu Notification Service</td>
+           <td>Ubuntu</td>
            <td></td>
-           <td>You need to have notify-send installed for this. Run <literal>sudo apt-get install libnotify-bin</literal>
-               on Ubuntu to install it.</td>
+           <td>Requires the notify-send package to be installed. Use <literal>sudo apt-get install libnotify-bin</literal>
+               to install it.</td>
+       </tr>
+       <tr>
+           <td>local</td>
+           <td>Windows, Mac OS X, Ubuntu</td>
+           <td></td>
+           <td>Automatically chooses between snarl, growl, and notify-send depending on the current operating system.</td>
        </tr>
    </table>
 
     <section>
-        <title>Tasks</title>
-        <para>TBD</para>
-    </section>
-
-    <section>
-        <title>Project layout</title>
-        <para>TBD</para>
-    </section>
-
-    <section>
-        <title>Dependency management</title>
-        <para>TBD</para>
-    </section>
-
-    <section>
-        <title>Convention properties</title>
-
-        <para>The announce plugin adds an 
-	
-	TBD
-        </para>
-     
-        <para>
-        	
-
-        </para>
-      <!--  <sample id="anouncePlugin" dir="userguide/tutorial/announce" title="example of annunce plugin usage.">
-            <sourcefile file="build.gradle" snippet="full-example"/> 
-        </sample>-->
-        <para>
-	TBD
-	</para>
+        <title>Configuration</title>
+        <para>See <apilink class="org.gradle.api.plugins.announce.AnnouncePluginExtension"/>.</para>
     </section>
 </chapter>

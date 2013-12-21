@@ -19,8 +19,6 @@ import java.io.File;
 
 /**
  * Models information relevant to generation of a particular Antlr grammar file.
- *
- * @author Steve Ebersole
  */
 public class GenerationPlan {
     private final File source;

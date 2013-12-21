@@ -21,9 +21,6 @@ import org.gradle.util.GUtil;
 import java.io.File;
 import java.util.Date;
 
-/**
- * @author Hans Dockter
- */
 public class ArchivePublishArtifact extends AbstractPublishArtifact {
     private String name;
     private String extension;
@@ -40,7 +37,17 @@ public class ArchivePublishArtifact extends AbstractPublishArtifact {
     }
 
     public String getName() {
-        return GUtil.elvis(name, archiveTask.getBaseName() + (GUtil.isTrue(archiveTask.getAppendix()) ? "-" + archiveTask.getAppendix() : ""));
+        if (name != null) {
+            return name;
+        }
+        if (archiveTask.getBaseName() != null) {
+            return withAppendix(archiveTask.getBaseName());
+        }
+        return archiveTask.getAppendix();
+    }
+
+    private String withAppendix(String baseName) {
+        return baseName + (GUtil.isTrue(archiveTask.getAppendix())? "-" + archiveTask.getAppendix() : "");
     }
 
     public String getExtension() {
@@ -67,8 +74,9 @@ public class ArchivePublishArtifact extends AbstractPublishArtifact {
         return archiveTask;
     }
 
-    public void setName(String name) {
+    public ArchivePublishArtifact setName(String name) {
         this.name = name;
+        return this;
     }
 
     public void setExtension(String extension) {

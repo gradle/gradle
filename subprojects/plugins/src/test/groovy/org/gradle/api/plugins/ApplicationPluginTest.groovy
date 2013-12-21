@@ -16,19 +16,19 @@
 package org.gradle.api.plugins
 
 import org.gradle.api.Project
+import org.gradle.api.tasks.TaskDependencyMatchers
 import org.gradle.api.tasks.application.CreateStartScripts
-import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.bundling.Zip
-import org.gradle.util.HelperUtil
-import org.gradle.util.Matchers
+import org.gradle.api.tasks.bundling.Tar
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 import org.gradle.api.tasks.Sync
 import org.gradle.api.file.CopySpec
 
 class ApplicationPluginTest extends Specification {
-    private final Project project = HelperUtil.createRootProject();
+    private final Project project = TestUtil.createRootProject();
     private final ApplicationPlugin plugin = new ApplicationPlugin();
 
     def "applies JavaPlugin and adds convention object with default values"() {
@@ -40,6 +40,7 @@ class ApplicationPluginTest extends Specification {
         project.convention.getPlugin(ApplicationPluginConvention.class) != null
         project.applicationName == project.name
         project.mainClassName == null
+        project.applicationDefaultJvmArgs == []
         project.applicationDistribution instanceof CopySpec
     }
 
@@ -51,7 +52,7 @@ class ApplicationPluginTest extends Specification {
         def task = project.tasks[ApplicationPlugin.TASK_RUN_NAME]
         task instanceof JavaExec
         task.classpath == project.sourceSets[SourceSet.MAIN_SOURCE_SET_NAME].runtimeClasspath
-        task Matchers.dependsOn('classes')
+        task TaskDependencyMatchers.dependsOn('classes')
     }
 
     public void "adds startScripts task to project"() {
@@ -63,6 +64,7 @@ class ApplicationPluginTest extends Specification {
         task instanceof CreateStartScripts
         task.applicationName == project.applicationName
         task.outputDir == project.file('build/scripts')
+        task.defaultJvmOpts == []
     }
 
     public void "adds installApp task to project with default target"() {
@@ -83,6 +85,16 @@ class ApplicationPluginTest extends Specification {
         def task = project.tasks[ApplicationPlugin.TASK_DIST_ZIP_NAME]
         task instanceof Zip
         task.archiveName == "${project.applicationName}.zip"
+    }
+
+    def "adds distTar task to project"() {
+        when:
+        plugin.apply(project)
+
+        then:
+        def task = project.tasks[ApplicationPlugin.TASK_DIST_TAR_NAME]
+        task instanceof Tar
+        task.archiveName == "${project.applicationName}.tar"
     }
 
     public void "applicationName is configurable"() {
@@ -119,5 +131,25 @@ class ApplicationPluginTest extends Specification {
         then:
         def startScripts = project.tasks[ApplicationPlugin.TASK_START_SCRIPTS_NAME]
         startScripts.mainClassName == "Acme"
+    }
+
+    public void "applicationDefaultJvmArgs in project delegates to jvmArgs in run task"() {
+        when:
+        plugin.apply(project)
+        project.applicationDefaultJvmArgs = ['-Dfoo=bar', '-Xmx500m']
+
+        then:
+        def run = project.tasks[ApplicationPlugin.TASK_RUN_NAME]
+        run.jvmArgs == ['-Dfoo=bar', '-Xmx500m']
+    }
+
+    public void "applicationDefaultJvmArgs in project delegates to defaultJvmOpts in startScripts task"() {
+        when:
+        plugin.apply(project);
+        project.applicationDefaultJvmArgs = ['-Dfoo=bar', '-Xmx500m']
+
+        then:
+        def startScripts = project.tasks[ApplicationPlugin.TASK_START_SCRIPTS_NAME]
+        startScripts.defaultJvmOpts == ['-Dfoo=bar', '-Xmx500m']
     }
 }

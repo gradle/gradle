@@ -14,11 +14,11 @@
             </tr>
             <tr>
                 <td>classpath</td>
-                <td><literal>project.sourceSets.main.classes + project.sourceSets.main.compileClasspath</literal></td>
+                <td><literal>project.sourceSets.main.output + project.sourceSets.main.compileClasspath</literal></td>
             </tr>
             <tr>
                 <td>scalaClasspath</td>
-                <td><literal>project.configurations.scalaTools</literal></td>
+                <td><literal>scala-compiler</literal> dependency matching the <literal>scala-library</literal> version found on <literal>classpath</literal></td>
             </tr>
             <tr>
                 <td>scalaDocOptions</td>

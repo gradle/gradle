@@ -22,33 +22,29 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.plugins.Convention;
 import org.gradle.internal.UncheckedException;
-import org.gradle.util.ReflectionUtil;
+import org.gradle.internal.reflect.JavaReflectionUtil;
 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
-/**
- * @author Hans Dockter
- */
 public class ConventionAwareHelper implements ConventionMapping, HasConvention {
-
-    private Convention convention;
-    private IConventionAware source;
-    private Map<String, MappedPropertyImpl> mappings = new HashMap<String, MappedPropertyImpl>();
+    //prefix internal fields with _ so that they don't get into the way of propertyMissing()
+    private final Convention _convention;
+    private final IConventionAware _source;
+    private final Map<String, MappedPropertyImpl> _mappings = new HashMap<String, MappedPropertyImpl>();
 
     /**
      * @see org.gradle.api.internal.AsmBackedClassGenerator.ClassBuilderImpl#mixInConventionAware()
      */
     public ConventionAwareHelper(IConventionAware source) {
-        this.source = source;
-        this.convention = new DefaultConvention();
+        this(source, new DefaultConvention());
     }
 
     public ConventionAwareHelper(IConventionAware source, Convention convention) {
-        this.source = source;
-        this.convention = convention;
+        this._source = source;
+        this._convention = convention;
     }
 
     private static interface Value<T> {
@@ -56,13 +52,13 @@ public class ConventionAwareHelper implements ConventionMapping, HasConvention {
     }
 
     private MappedProperty map(String propertyName, Value<?> value) {
-        if (!ReflectionUtil.hasProperty(source, propertyName)) {
+        if (!JavaReflectionUtil.propertyExists(_source, propertyName)) {
             throw new InvalidUserDataException(
                     "You can't map a property that does not exist: propertyName=" + propertyName);
         }
 
         MappedPropertyImpl mappedProperty = new MappedPropertyImpl(value);
-        mappings.put(propertyName, mappedProperty);
+        _mappings.put(propertyName, mappedProperty);
         return mappedProperty;
     }
 
@@ -107,7 +103,7 @@ public class ConventionAwareHelper implements ConventionMapping, HasConvention {
         }
 
         Object returnValue = actualValue;
-        if (mappings.containsKey(propertyName)) {
+        if (_mappings.containsKey(propertyName)) {
             boolean useMapping = true;
             if (actualValue instanceof Collection && !((Collection<?>) actualValue).isEmpty()) {
                 useMapping = false;
@@ -115,22 +111,14 @@ public class ConventionAwareHelper implements ConventionMapping, HasConvention {
                 useMapping = false;
             }
             if (useMapping) {
-                returnValue = mappings.get(propertyName).getValue(convention, source);
+                returnValue = _mappings.get(propertyName).getValue(_convention, _source);
             }
         }
         return (T) returnValue;
     }
 
     public Convention getConvention() {
-        return convention;
-    }
-
-    public IConventionAware getSource() {
-        return source;
-    }
-
-    public void setSource(IConventionAware source) {
-        this.source = source;
+        return _convention;
     }
 
     private static class MappedPropertyImpl implements MappedProperty {

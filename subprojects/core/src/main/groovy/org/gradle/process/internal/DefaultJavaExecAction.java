@@ -19,9 +19,6 @@ package org.gradle.process.internal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.process.ExecResult;
 
-/**
- * @author Hans Dockter
- */
 public class DefaultJavaExecAction extends JavaExecHandleBuilder implements JavaExecAction {
     public DefaultJavaExecAction(FileResolver fileResolver) {
         super(fileResolver);

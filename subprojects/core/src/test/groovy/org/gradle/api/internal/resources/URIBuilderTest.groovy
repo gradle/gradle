@@ -19,9 +19,6 @@ package org.gradle.api.internal.resources;
 
 import spock.lang.Specification
 
-/**
- * by Szczepan Faber, created at: 12/13/11
- */
 public class URIBuilderTest extends Specification {
 
     def "builds URIs"() {

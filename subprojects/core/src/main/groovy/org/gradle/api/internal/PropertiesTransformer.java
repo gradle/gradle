@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal;
 
-import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
@@ -39,14 +38,6 @@ public class PropertiesTransformer implements Transformer<Properties, Properties
         actions.add(action);
     }
 
-    /**
-     * Adds an action to be executed when properties are transformed.
-     * @param closure the closure to add
-     */
-    public void addAction(Closure closure) {
-        actions.add(closure);
-    }
-    
     /**
      * Transforms a properties object.  This will modify the
      * original.

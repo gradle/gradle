@@ -19,23 +19,22 @@ package org.gradle.initialization
 import org.gradle.StartParameter
 import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.internal.project.IProjectFactory
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.util.HelperUtil
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.JUnit4GroovyMockery
-import org.gradle.util.TemporaryFolder
+import org.gradle.util.TestUtil
 import org.jmock.integration.junit4.JMock
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.assertThat
 
-/**
- * @author Hans Dockter
- */
 @RunWith(JMock.class)
 class InstantiatingBuildLoaderTest {
 
@@ -44,7 +43,7 @@ class InstantiatingBuildLoaderTest {
     File testDir
     File rootProjectDir
     File childProjectDir
-    IProjectDescriptorRegistry projectDescriptorRegistry = new DefaultProjectDescriptorRegistry()
+    ProjectDescriptorRegistry projectDescriptorRegistry = new DefaultProjectDescriptorRegistry()
     StartParameter startParameter = new StartParameter()
     ProjectDescriptor rootDescriptor
     ProjectInternal rootProject
@@ -52,12 +51,12 @@ class InstantiatingBuildLoaderTest {
     ProjectInternal childProject
     GradleInternal build
     JUnit4GroovyMockery context = new JUnit4GroovyMockery()
-    @Rule public TemporaryFolder tmpDir = new TemporaryFolder();
+    @Rule public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
 
     @Before public void setUp()  {
         projectFactory = context.mock(IProjectFactory)
         buildLoader = new InstantiatingBuildLoader(projectFactory)
-        testDir = tmpDir.dir
+        testDir = tmpDir.testDirectory
         (rootProjectDir = new File(testDir, 'root')).mkdirs()
         (childProjectDir = new File(rootProjectDir, 'child')).mkdirs()
         startParameter.currentDir = rootProjectDir
@@ -125,15 +124,15 @@ class InstantiatingBuildLoaderTest {
     }
 
     private ProjectDescriptor descriptor(String name, ProjectDescriptor parent, File projectDir) {
-        new DefaultProjectDescriptor(parent, name, projectDir, projectDescriptorRegistry)
+        new DefaultProjectDescriptor(parent, name, projectDir, projectDescriptorRegistry, TestFiles.resolver(rootProjectDir))
     }
 
     private ProjectInternal project(ProjectDescriptor descriptor, ProjectInternal parent) {
         DefaultProject project
         if (parent) {
-            project = HelperUtil.createChildProject(parent, descriptor.name, descriptor.projectDir)
+            project = TestUtil.createChildProject(parent, descriptor.name, descriptor.projectDir)
         } else {
-            project = HelperUtil.createRootProject(descriptor.projectDir)
+            project = TestUtil.createRootProject(descriptor.projectDir)
         }
         project
     }

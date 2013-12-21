@@ -15,19 +15,14 @@
  */
 package org.gradle.initialization
 
-import org.gradle.api.internal.GradleDistributionLocator
-import org.gradle.api.internal.GradleInternal
-import org.gradle.util.TemporaryFolder
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
-import org.gradle.groovy.scripts.UriScriptSource
 
 class DistributionInitScriptFinderTest extends Specification {
-    @Rule final TemporaryFolder tmpDir = new TemporaryFolder()
+    @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     final def distDir = tmpDir.createDir("gradle-home")
-    final GradleDistributionLocator locator = Mock()
-    final GradleInternal gradle = Mock()
-    final DistributionInitScriptFinder finder = new DistributionInitScriptFinder(locator)
+    final DistributionInitScriptFinder finder = new DistributionInitScriptFinder(distDir)
 
     def setup() {
     }
@@ -35,11 +30,8 @@ class DistributionInitScriptFinderTest extends Specification {
     def "does nothing when init.d directory does not exist there is no distribution"() {
         def scripts = []
 
-        given:
-        _ * locator.gradleHome >> null
-
         when:
-        finder.findScripts(gradle, scripts)
+        finder.findScripts(scripts)
 
         then:
         scripts.empty
@@ -48,11 +40,8 @@ class DistributionInitScriptFinderTest extends Specification {
     def "does nothing when init.d directory does not exist in distribution"() {
         def scripts = []
 
-        given:
-        _ * locator.gradleHome >> distDir
-
         when:
-        finder.findScripts(gradle, scripts)
+        finder.findScripts(scripts)
 
         then:
         scripts.empty
@@ -67,19 +56,12 @@ class DistributionInitScriptFinderTest extends Specification {
         distDir.createFile("init.d/readme.txt")
         distDir.createFile("init.d/lib/test.jar")
 
-        and:
-        _ * locator.gradleHome >> distDir
-
         when:
-        finder.findScripts(gradle, scripts)
+        finder.findScripts(scripts)
 
         then:
         scripts.size() == 2
-        scripts.find {
-            it instanceof UriScriptSource && it.resource.sourceFile == script1
-        }
-        scripts.find {
-            it instanceof UriScriptSource && it.resource.sourceFile == script2
-        }
+        script1 in scripts
+        script2 in scripts
     }
 }

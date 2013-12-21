@@ -1,0 +1,41 @@
+repositories {
+    ivy {
+        url "$projectDir/repo"
+    }
+}
+
+configurations {
+    config1
+    config2
+    config3
+}
+
+// START SNIPPET latest-selector
+dependencies {
+    config1 "sea.fish:tuna:latest.integration"
+    config2 "sea.fish:tuna:latest.release"
+}
+
+task listFish << {
+    configurations.config1.each { println it.name }
+    println()
+    configurations.config2.each { println it.name}
+}
+// END SNIPPET latest-selector
+
+// START SNIPPET custom-status-scheme
+dependencies {
+    config3 "air.birds:albatros:latest.silver"
+    components {
+        eachComponent { ComponentMetadataDetails details ->
+            if (details.id.group == "air.birds") {
+                details.statusScheme = ["bronze", "silver", "gold", "platinum"]
+            }
+        }
+    }
+}
+
+task listBirds << {
+    configurations.config3.each { println it.name }
+}
+// END SNIPPET custom-status-scheme

@@ -15,34 +15,54 @@
  */
 package org.gradle.api.internal.artifacts.repositories
 
-import org.apache.ivy.core.cache.RepositoryCacheManager
-import org.apache.ivy.plugins.resolver.FileSystemResolver
+import org.apache.ivy.core.module.id.ArtifactRevisionId
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.internal.artifacts.ModuleMetadataProcessor
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher
+import org.gradle.api.internal.artifacts.repositories.resolver.IvyResolver
+import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
+import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceFinder
+import org.gradle.api.internal.externalresource.transport.ExternalResourceRepository
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import spock.lang.Specification
 
 class DefaultFlatDirArtifactRepositoryTest extends Specification {
     final FileResolver fileResolver = Mock()
+    final ExternalResourceRepository resourceRepository = Mock()
+    final RepositoryTransport repositoryTransport = Mock()
     final RepositoryTransportFactory transportFactory = Mock()
-    final DefaultFlatDirArtifactRepository repository = new DefaultFlatDirArtifactRepository(fileResolver, transportFactory)
+    final LocallyAvailableResourceFinder<ArtifactRevisionId> locallyAvailableResourceFinder = Mock()
+    final ModuleMetadataProcessor metadataProcessor = Mock()
+    final VersionMatcher versionMatcher = Mock()
+    final LatestStrategy latestStrategy = Mock()
+    final ResolverStrategy resolverStrategy = Stub()
+
+    final DefaultFlatDirArtifactRepository repository = new DefaultFlatDirArtifactRepository(
+            fileResolver, transportFactory, locallyAvailableResourceFinder, metadataProcessor, resolverStrategy, versionMatcher, latestStrategy)
 
     def "creates a repository with multiple root directories"() {
         given:
         def dir1 = new File('a')
         def dir2 = new File('b')
         _ * fileResolver.resolveFiles(['a', 'b']) >> new SimpleFileCollection(dir1, dir2)
-        1 * transportFactory.localCacheManager >> Mock(RepositoryCacheManager)
+        _ * repositoryTransport.repository >> resourceRepository
 
         and:
+        repository.name = 'repo-name'
         repository.dirs('a', 'b')
 
         when:
         def repo = repository.createResolver()
 
         then:
-        repo instanceof FileSystemResolver
+        1 * transportFactory.createFileTransport("repo-name") >> repositoryTransport
+
+        and:
+        repo instanceof IvyResolver
         def expectedPatterns = [
                 "$dir1.absolutePath/[artifact]-[revision](-[classifier]).[ext]",
                 "$dir1.absolutePath/[artifact](-[classifier]).[ext]",

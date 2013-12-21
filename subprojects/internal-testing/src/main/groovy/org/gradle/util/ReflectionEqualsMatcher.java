@@ -19,9 +19,6 @@ import org.apache.commons.lang.builder.EqualsBuilder;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 
-/**
- * @author Hans Dockter
-*/
 public class ReflectionEqualsMatcher<T> extends BaseMatcher<T> {
     private T toMatch;
 

@@ -1,5 +1,5 @@
 apply plugin: 'groovy'
 
 dependencies {
-    groovy localGroovy()
+    compile localGroovy()
 }

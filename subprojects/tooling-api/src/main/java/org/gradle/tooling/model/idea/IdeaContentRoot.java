@@ -22,7 +22,7 @@ import java.io.File;
 import java.util.Set;
 
 /**
- * Contains content root information
+ * Contains content root information.
  */
 public interface IdeaContentRoot {
 

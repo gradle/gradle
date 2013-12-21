@@ -66,6 +66,8 @@ public class ActionExecutionWorkerTest {
             one(action).execute(with(notNullValue(WorkerProcessContext.class)));
             will(collectTo(collector));
 
+            one(connection).stop();
+
             one(messagingServices).stop();
         }});
 
@@ -95,6 +97,8 @@ public class ActionExecutionWorkerTest {
 
             one(action).execute(with(notNullValue(WorkerProcessContext.class)));
             will(throwException(failure));
+
+            one(connection).stop();
 
             one(messagingServices).stop();
         }});

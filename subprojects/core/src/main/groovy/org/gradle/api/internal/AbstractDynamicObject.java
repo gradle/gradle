@@ -41,7 +41,7 @@ public abstract class AbstractDynamicObject implements DynamicObject {
 
     protected MissingPropertyException propertyMissingException(String name) {
         throw new MissingPropertyException(String.format("Could not find property '%s' on %s.", name,
-                getDisplayName()));
+                getDisplayName()), name, null);
     }
 
     public Map<String, ?> getProperties() {
@@ -54,6 +54,14 @@ public abstract class AbstractDynamicObject implements DynamicObject {
 
     public Object invokeMethod(String name, Object... arguments) throws groovy.lang.MissingMethodException {
         throw methodMissingException(name, arguments);
+    }
+
+    public boolean isMayImplementMissingMethods() {
+        return false;
+    }
+
+    public boolean isMayImplementMissingProperties() {
+        return false;
     }
 
     protected groovy.lang.MissingMethodException methodMissingException(String name, Object... params) {

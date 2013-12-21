@@ -1,0 +1,70 @@
+<chapter id='javaLibraryDistribution_plugin'>
+    <title>The Java Library Distribution Plugin</title>
+    <note>
+        <para>
+            The Java library distribution plugin is currently <link linkend="feature_lifecycle">incubating</link>. Please be aware that the DSL and other configuration may change in later Gradle versions.
+        </para>
+    </note>
+
+    <para>The Java library distribution plugin adds support for building a distribution ZIP for a Java library. The distribution contains the
+        JAR file for the library and its dependencies.
+    </para>
+
+    <section>
+        <title>Usage</title>
+        <para>To use the Java library distribution plugin, include in your build script:</para>
+        <sample id="usejavaLibraryPlugin" dir="userguide/javaLibraryDistribution" title="Using the java library distribution plugin">
+            <sourcefile file="build.gradle" snippet="use-plugin"/>
+        </sample>
+        <para>To define the name for the distribution you have to set the <literal>baseName</literal> property as shown below:
+        </para>
+        <sample id="useApplicationPlugin" dir="userguide/javaLibraryDistribution" title="Configure the distribution name">
+            <sourcefile file="build.gradle" snippet="name-conf"/>
+        </sample>
+
+        <para>The plugin build a distribution for your library. The distribution will package up the runtime dependencies of the library
+            All files stored in <filename>src/main/dist</filename> will be added to the root of the archive distribution. You can run
+            <userinput>gradle distZip</userinput> to create a ZIP containing the distribution.
+        </para>
+    </section>
+
+    <section>
+        <title>Tasks</title>
+        <para>The Java library distribution plugin adds the following tasks to the project.</para>
+        <table>
+            <title>Java library distribution plugin - tasks</title>
+            <thead>
+                <tr>
+                    <td>Task name</td>
+                    <td>Depends on</td>
+                    <td>Type</td>
+                    <td>Description</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>
+                    <literal>distZip</literal>
+                </td>
+                <td>
+                    <literal>jar</literal>
+                </td>
+                <td>
+                    <apilink class="org.gradle.api.tasks.bundling.Zip"/>
+                </td>
+                <td>Creates a full distribution ZIP archive including runtime libraries.</td>
+            </tr>
+        </table>
+    </section>
+
+    <section id="java_library_distribution_resources">
+        <title>Including other resources in the distribution</title>
+        <para>
+            All of the files from the <filename>src/dist</filename> directory are copied. To include any static files in the distribution, simply arrange
+            them in the <filename>src/dist</filename> directory, or add it to the content of the distribution.
+        </para>
+        <sample id="includeTaskOutputInApplicationDistribution" dir="userguide/javaLibraryDistribution" title="Include files in the distribution">
+            <sourcefile file="build.gradle" snippet="custom-distribution"/>
+        </sample>
+    </section>
+
+</chapter>

@@ -16,14 +16,13 @@
 package org.gradle.plugins.ide.internal.generator
 
 import org.gradle.api.internal.PropertiesTransformer
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Matchers
-import org.gradle.util.TemporaryFolder
 import org.junit.Rule
-
 import spock.lang.Specification
 
 class PropertiesPersistableConfigurationObjectTest extends Specification {
-    @Rule public final TemporaryFolder tmpDir = new TemporaryFolder()
+    @Rule public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     String propertyValue
     final org.gradle.plugins.ide.internal.generator.PropertiesPersistableConfigurationObject object = new org.gradle.plugins.ide.internal.generator.PropertiesPersistableConfigurationObject(new PropertiesTransformer()) {
         @Override protected String getDefaultResourceName() {

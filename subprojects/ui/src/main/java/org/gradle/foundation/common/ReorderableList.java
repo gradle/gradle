@@ -28,8 +28,6 @@ import java.util.*;
    Unfortunately, we can't use Java's Object.clone() method because it is
    protected and must be overridden as public to be used. So we can't call
    obj.clone() on an Object instance.
-
-   @author champton
 */
 
 public class ReorderableList<E> implements List<E> {
@@ -516,7 +514,6 @@ public class ReorderableList<E> implements List<E> {
 
     @param  elementsToMove the elements that were moved
     @return                an integer array of the items to select.
-    @author mhunsicker
     */
 
     public int[] getIndices(List<E> elementsToMove) {

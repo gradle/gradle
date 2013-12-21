@@ -18,12 +18,10 @@ package org.gradle.api.tasks.compile
 
 import org.junit.Before
 import org.junit.Test
-import static org.junit.Assert.*;
-import static org.gradle.util.Matchers.*
 
-/**
- * @author Hans Dockter
- */
+import static org.gradle.util.Matchers.isEmpty
+import static org.junit.Assert.*
+
 class CompileOptionsTest {
     static final Map TEST_DEBUG_OPTION_MAP = [someDebugOption: 'someDebugOptionValue']
     static final Map TEST_FORK_OPTION_MAP = [someForkOption: 'someForkOptionValue']
@@ -70,7 +68,7 @@ class CompileOptionsTest {
         Map nullables = [
                 encoding: 'encoding',
                 compiler: 'compiler',
-                bootClasspath: 'bootclasspath',
+                bootClasspath: 'bootClasspath',
                 extensionDirs: 'extdirs'
         ]
         nullables.each {String field, String antProperty ->
@@ -86,9 +84,9 @@ class CompileOptionsTest {
 
     @Test public void testOptionMapWithTrueFalseValues() {
         Map booleans = [
-                failOnError: 'failonerror',
+                failOnError: 'failOnError',
                 verbose: 'verbose',
-                listFiles: 'listfiles',
+                listFiles: 'listFiles',
                 deprecation: 'deprecation',
                 warnings: 'nowarn',
                 debug: 'debug',

@@ -17,15 +17,20 @@ package org.gradle.internal.nativeplatform.jna;
 
 import com.sun.jna.LastErrorException;
 import com.sun.jna.Library;
+import com.sun.jna.WString;
+import org.jruby.ext.posix.FileStat;
 
 public interface LibC extends Library {
     //CHECKSTYLE:OFF
     public int setenv(String name, String value, int overwrite) throws LastErrorException;
-    public int unsetenv(String name) throws LastErrorException;
     public String getcwd(byte[] out, int size) throws LastErrorException;
     public int chdir(String dirAbsolutePath) throws LastErrorException;
     public int getpid();
     public int isatty(int fdes);
-    public int chmod(String filename, int mode) throws LastErrorException;
+    public int stat(byte[] filePath, FileStat fileStat) throws LastErrorException;
+    public int __xstat64(int version, byte[] filePath, FileStat fileStat) throws LastErrorException;
+    public int chmod(byte[] filePath, int mode) throws LastErrorException;
+    public int wcstombs(byte[] dest, WString source, int size) throws LastErrorException;
+    public int symlink(String target, String link) throws LastErrorException;
     //CHECKSTYLE:ON
 }

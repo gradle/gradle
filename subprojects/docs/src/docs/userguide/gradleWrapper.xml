@@ -57,33 +57,24 @@
     </para>
     <section id='sec:configuration'>
         <title>Configuration</title>
-        <para>If you run Gradle with <command>gradlew</command>, Gradle checks if a Gradle distribution for the wrapper
+        <para>If you run Gradle with <command>gradlew</command>, the wrapper checks if a Gradle distribution for the wrapper
             is available. If not it tries to download it, otherwise it delegates to the <command>gradle</command>
             command of this distribution with all the arguments passed originally to the <command>gradlew</command>
             command.
         </para>
-        <para>You can specify where the wrapper files should be stored (within your project directory):</para>
-        <sample id="wrapperCustomized" dir="userguide/wrapper/customized" title="Configuration of wrapper task">
-            <sourcefile file="build.gradle"/>
-            <layout after="wrapper">
-                gradlew
-                gradlew.bat
-                wrapper/wrapper.jar
-                wrapper/wrapper.properties
-            </layout>
-        </sample>
         <para>
-            You can specify the download URL of the wrapper distribution. You can also specify where the wrapper distribution
-            should be stored and unpacked (either within the project or within the Gradle user home dir). If the wrapper
-            is run and there is local archive of the wrapper distribution Gradle tries to download it and stores it at
-            the specified place. If there is no unpacked wrapper distribution Gradle unpacks the local archive of the
-            wrapper distribution at the specified place. All the configuration options have defaults except the version of the wrapper distribution.</para>
+            When you configure the <literal>Wrapper</literal> task, you can specify the Gradle version you wish to use. The <command>gradlew</command>
+            command will download the appropriate distribution from the Gradle repository.
+            Alternatively, you can specify the download URL of the Gradle distribution. The <command>gradlew</command> command will use this URL to download
+            the distribution.
+            If you specify neither a Gradle version or download URL, the <command>gradlew</command> command will by default download whichever version
+            of Gradle was used to generate the wrapper files.
+        </para>
         <para>For the details on how to configure the wrapper, see <apilink class="org.gradle.api.tasks.wrapper.Wrapper"/>
         </para>
-        <para>If you don't
-            want any download to happen when your project is build via <command>gradlew</command>, simply add the Gradle
+        <para>If you don't want any download to happen when your project is build via <command>gradlew</command>, simply add the Gradle
             distribution zip to your version control at the location specified by your wrapper configuration.
-            Relative url is supported - you can specify a distribution file relative to the location of <literal>gradle-wrapper.properties</literal> file.
+            A relative URL is supported - you can specify a distribution file relative to the location of <literal>gradle-wrapper.properties</literal> file.
         </para>
         <para>If you build via the wrapper, any existing Gradle distribution installed on the machine is ignored.
         </para>
@@ -94,40 +85,5 @@
             Subversion preserves this file permission. We are not sure how other version control systems deal with this.
             What should always work is to execute <literal>sh gradlew</literal>.
         </para>
-    </section>
-    <section id='sec:environment_variable'>
-        <title>Environment variable</title>
-        <para>Some rather exotic use cases might occur when working with the Gradle Wrapper. For example the continuous
-            integration server goes down during unzipping the Gradle distribution. As the distribution directory exists
-            <command>gradlew</command>
-            delegates to it but the distribution is corrupt. Or the zip-distribution was not properly downloaded. When
-            you have no admin right on the continuous integration server to remove the corrupt files, Gradle offers a
-            solution via environment variables.
-        </para>
-        <table>
-            <title>Gradle wrapper environment variables</title>
-            <thead>
-                <tr>
-                    <td>Variable Name</td>
-                    <td>Meaning</td>
-                </tr>
-            </thead>
-            <tr>
-                <td>GRADLE_WRAPPER_ALWAYS_UNPACK</td>
-                <td>If set to <literal>true</literal>, the distribution directory gets always deleted when
-                    <command>gradlew</command>
-                    is run and the distribution zip is freshly unpacked. If the zip is not there, Gradle tries to
-                    download it.
-                </td>
-            </tr>
-            <tr>
-                <td>GRADLE_WRAPPER_ALWAYS_DOWNLOAD</td>
-                <td>If set to <literal>true</literal>, the distribution directory and the distribution zip gets always
-                    deleted when <command>gradlew</command>
-                    is run and the distribution zip is freshly downloaded.
-                </td>
-            </tr>
-
-        </table>
     </section>
 </chapter>

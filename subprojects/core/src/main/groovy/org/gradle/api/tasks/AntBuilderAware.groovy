@@ -19,8 +19,6 @@ package org.gradle.api.tasks
 /**
  * An {@code AntBuilderAware} represents an object which can add itself to Ant tasks, using an
  * {@link org.gradle.api.AntBuilder}.
- *
- * @author Hans Dockter
  */
 interface AntBuilderAware {
     def addToAntBuilder(node, String childNodeName)

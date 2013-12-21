@@ -20,17 +20,17 @@ import org.gradle.api.reporting.ReportContainer;
 import org.gradle.api.reporting.SingleFileReport;
 
 /**
- * The reporting configuration for the the {@link JDepend} task.
+ * The reporting configuration for the {@link JDepend} task.
  *
- * Exactly one of the xml or html reports can be enabled when the task executes. If more than one or none is enabled, an {@link org.gradle.api.InvalidUserDataException}
+ * Exactly one of the XML or HTML reports can be enabled when the task executes. If more than one or none is enabled, an {@link org.gradle.api.InvalidUserDataException}
  * will be thrown.
  */
 public interface JDependReports extends ReportContainer<SingleFileReport> {
 
     /**
-     * The jdepend xml report
+     * The jdepend XML report
      *
-     * @return The jdepend xml report
+     * @return The jdepend XML report
      */
     SingleFileReport getXml();
 
@@ -40,5 +40,4 @@ public interface JDependReports extends ReportContainer<SingleFileReport> {
      * @return The jdepend text report
      */
     SingleFileReport getText();
-     
 }

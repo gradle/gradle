@@ -18,7 +18,6 @@ package org.gradle.plugins.ide.internal.configurer
 /**
  * Able to deduplicate names. Useful for IDE plugins to make sure module names (IDEA) or project names (Eclipse) are unique.
  * <p>
- * @author Szczepan Faber, @date 11.03.11
  */
 class ModuleNameDeduper {
 

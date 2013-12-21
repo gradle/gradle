@@ -18,18 +18,10 @@ package org.gradle.api.internal.externalresource.transport.http;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.util.EntityUtils;
-import org.gradle.api.Nullable;
 import org.gradle.api.internal.externalresource.ExternalResource;
-import org.gradle.api.internal.externalresource.LocallyAvailableExternalResource;
-import org.gradle.api.internal.externalresource.cached.CachedExternalResource;
-import org.gradle.api.internal.externalresource.cached.CachedExternalResourceAdapter;
-import org.gradle.api.internal.externalresource.local.LocallyAvailableResource;
-import org.gradle.api.internal.externalresource.local.LocallyAvailableResourceCandidates;
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
-import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaDataCompare;
 import org.gradle.api.internal.externalresource.transfer.ExternalResourceAccessor;
-import org.gradle.internal.Factory;
-import org.gradle.util.hash.HashValue;
+import org.gradle.internal.hash.HashValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,38 +40,12 @@ public class HttpResourceAccessor implements ExternalResourceAccessor {
         this.http = http;
     }
 
-    public ExternalResource getResource(String source) throws IOException {
-        return getResource(source, null, null);
-    }
-
-    public ExternalResource getResource(String source, LocallyAvailableResourceCandidates localCandidates, @Nullable CachedExternalResource cached) throws IOException {
+    public HttpResponseResource getResource(String location) throws IOException {
         abortOpenResources();
-        LOGGER.debug("Constructing external resource: {}", source);
-
-        // Do we have any artifacts in the cache with the same checksum
-        boolean hasLocalCandidates = localCandidates != null && !localCandidates.isNone();
-        if (hasLocalCandidates) {
-            HashValue remoteChecksum = getChecksumFor(source);
-            if (remoteChecksum != null) {
-                LocallyAvailableResource local = localCandidates.findByHashValue(remoteChecksum);
-                if (local != null) {
-                    LOGGER.info("Found locally available resource with matching checksum: [{}, {}]", source, local.getFile());
-                    return new LocallyAvailableExternalResource(source, local);
-                }
-            }
-        }
-
-        // Is the cached version still current
-        if (cached != null) {
-            if (isUnchanged(source, cached)) {
-                LOGGER.info("Cached resource is up-to-date (lastModified: {}). [HTTP: {}]", cached.getExternalLastModified(), source);
-                return new CachedExternalResourceAdapter(source, cached, this);
-            }
-        }
-
-        HttpResponse response = http.performGet(source);
+        LOGGER.debug("Constructing external resource: {}", location);
+        HttpResponse response = http.performGet(location);
         if (response != null) {
-            ExternalResource resource = new HttpResponseResource("GET", source, response) {
+            HttpResponseResource resource = new HttpResponseResource("GET", location, response) {
                 @Override
                 public void close() throws IOException {
                     super.close();
@@ -93,22 +59,16 @@ public class HttpResourceAccessor implements ExternalResourceAccessor {
         }
     }
 
-    public ExternalResourceMetaData getMetaData(String source) {
+    public ExternalResourceMetaData getMetaData(String location) {
         abortOpenResources();
-        LOGGER.debug("Constructing external resource metadata: {}", source);
-        return getMetaDataInternal(source);
+        LOGGER.debug("Constructing external resource metadata: {}", location);
+        HttpResponse response = http.performHead(location);
+        return response == null ? null : new HttpResponseResource("HEAD", location, response).getMetaData();
     }
 
-    private ExternalResource recordOpenGetResource(ExternalResource httpResource) {
-        if (httpResource instanceof HttpResponseResource) {
-            openResources.add(httpResource);
-        }
+    private HttpResponseResource recordOpenGetResource(HttpResponseResource httpResource) {
+        openResources.add(httpResource);
         return httpResource;
-    }
-
-    private ExternalResourceMetaData getMetaDataInternal(String source) {
-        HttpResponse response = http.performHead(source);
-        return response == null ? null : new HttpResponseResource("HEAD", source, response).getMetaData();
     }
 
     private void abortOpenResources() {
@@ -123,18 +83,8 @@ public class HttpResourceAccessor implements ExternalResourceAccessor {
         openResources.clear();
     }
 
-    private boolean isUnchanged(final String source, CachedExternalResource cached) {
-        return ExternalResourceMetaDataCompare.isDefinitelyUnchanged(
-                cached.getExternalResourceMetaData(),
-                new Factory<ExternalResourceMetaData>() {
-                    public ExternalResourceMetaData create() {
-                        return getMetaDataInternal(source);
-                    }
-                });
-    }
-
-    private HashValue getChecksumFor(String source) {
-        String checksumUrl = source + ".sha1";
+    public HashValue getResourceSha1(String location) {
+        String checksumUrl = location + ".sha1";
         return downloadSha1(checksumUrl);
     }
 

@@ -17,11 +17,9 @@
 package org.gradle.util.internal
 
 import spock.lang.Specification
+
 import static org.gradle.util.internal.ArgumentsSplitter.split
 
-/**
- * by Szczepan Faber, created at: 2/29/12
- */
 class ArgumentsSplitterTest extends Specification {
 
     def breaksUpEmptyCommandLineIntoEmptyList() {

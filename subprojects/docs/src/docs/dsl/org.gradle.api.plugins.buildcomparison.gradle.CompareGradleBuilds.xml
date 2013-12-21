@@ -1,0 +1,45 @@
+<section>
+    <section>
+        <title>Properties</title>
+        <table>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                    <td>Default with <literal>compare-gradle-builds</literal> plugin</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>sourceBuild</td>
+                <td/>
+            </tr>
+            <tr>
+                <td>targetBuild</td>
+                <td/>
+            </tr>
+            <tr>
+                <td>reportDir</td>
+                <td><literal>${project.reporting.file(this.name)}</literal></td>
+            </tr>
+            <tr>
+                <td>ignoreFailures</td>
+                <td><literal>false</literal></td>
+            </tr>
+        </table>
+    </section>
+    <section>
+        <title>Methods</title>
+        <table>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>sourceBuild</td>
+            </tr>
+            <tr>
+                <td>targetBuild</td>
+            </tr>
+        </table>
+    </section>
+</section>

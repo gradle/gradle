@@ -20,8 +20,6 @@ import org.gradle.api.file.CopySpec
 
 /**
  * <p>A {@link Convention} used for the ApplicationPlugin.</p>
- *
- * @author Rene Groeschke
  */
 class ApplicationPluginConvention {
     /**
@@ -33,6 +31,11 @@ class ApplicationPluginConvention {
      * The fully qualified name of the application's main class.
      */
     String mainClassName
+
+    /**
+     * Array of string arguments to pass to the JVM when running the application
+     */
+    Iterable<String> applicationDefaultJvmArgs = []
 
     /**
      * <p>The specification of the contents of the distribution.</p>

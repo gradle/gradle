@@ -20,9 +20,6 @@ package org.gradle.api.internal.file.archive.compression;
 import org.gradle.api.internal.file.FileResource
 import spock.lang.Specification
 
-/**
- * by Szczepan Faber, created at: 12/13/11
- */
 public class ArchiversTest extends Specification {
 
     def "archivers have unqique URIs"() {

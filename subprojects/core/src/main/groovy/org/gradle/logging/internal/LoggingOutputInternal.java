@@ -18,7 +18,15 @@ package org.gradle.logging.internal;
 import org.gradle.api.logging.LoggingOutput;
 
 public interface LoggingOutputInternal extends LoggingOutput {
-    void colorStdOutAndStdErr(boolean colorOutput);
+    /**
+     * Add standard output and error as logging destinations.
+     */
+    void addStandardOutputAndError();
+
+    /**
+     * Adds the console as logging destination, if available.
+     */
+    void attachConsole(boolean colorOutput);
 
     void addOutputEventListener(OutputEventListener listener);
 

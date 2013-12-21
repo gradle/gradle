@@ -18,19 +18,17 @@ package org.gradle.api.internal.notations;
 import org.gradle.api.artifacts.SelfResolvingDependency;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ClassPathRegistry;
-import org.gradle.api.internal.Instantiator;
 import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.notations.api.NotationParser;
-import org.gradle.api.internal.notations.parsers.TypedNotationParser;
+import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.typeconversion.TypedNotationParser;
 
 import java.io.File;
 import java.util.Collection;
 
 public class DependencyClassPathNotationParser
-        extends TypedNotationParser<DependencyFactory.ClassPathNotation, SelfResolvingDependency>
-        implements NotationParser<SelfResolvingDependency> {
+        extends TypedNotationParser<DependencyFactory.ClassPathNotation, SelfResolvingDependency> {
 
     private final ClassPathRegistry classPathRegistry;
     private final Instantiator instantiator;

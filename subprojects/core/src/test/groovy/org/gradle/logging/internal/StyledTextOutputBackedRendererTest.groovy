@@ -17,6 +17,7 @@ package org.gradle.logging.internal
 
 import org.gradle.logging.StyledTextOutput
 import org.gradle.api.logging.LogLevel
+import org.gradle.logging.TestStyledTextOutput
 
 class StyledTextOutputBackedRendererTest extends OutputSpecification {
     def rendersOutputEvent() {

@@ -1,17 +1,21 @@
 apply plugin: 'groovy'
 
+repositories {
+    mavenCentral()
+}
+
 // START SNIPPET groovy-dependency
 repositories {
     flatDir { dirs 'lib' }
 }
 
 dependencies {
-    groovy module(':groovy:1.6.0') {
+    compile module('org.codehaus.groovy:groovy:1.6.0') {
         dependency('asm:asm-all:2.2.3')
         dependency('antlr:antlr:2.7.7')
         dependency('commons-cli:commons-cli:1.2')
-        module(':ant:1.7.0') {
-            dependencies(':ant-junit:1.7.0:jar', ':ant-launcher:1.7.0')
+        module('org.apache.ant:ant:1.7.0') {
+            dependencies('org.apache.ant:ant-junit:1.7.0@jar', 'org.apache.ant:ant-launcher:1.7.0')
         }
     }
 }

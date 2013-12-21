@@ -60,13 +60,14 @@ public class GeneratorTask<T> extends ConventionTask {
     @SuppressWarnings("UnusedDeclaration")
     @TaskAction
     void generate() {
-        if (getInputFile().exists()) {
+        File inputFile = getInputFile();
+        if (inputFile != null && inputFile.exists()) {
             try {
-                domainObject = generator.read(getInputFile());
+                domainObject = generator.read(inputFile);
             } catch (RuntimeException e) {
                 throw new GradleException(String.format("Cannot parse file '%s'.\n"
                         + "       Perhaps this file was tinkered with? In that case try delete this file and then retry.",
-                        getInputFile()), e);
+                        inputFile), e);
             }
         } else {
             domainObject = generator.defaultInstance();

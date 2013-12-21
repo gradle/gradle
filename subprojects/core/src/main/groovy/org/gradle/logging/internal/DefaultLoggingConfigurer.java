@@ -17,29 +17,21 @@
 package org.gradle.logging.internal;
 
 import org.gradle.api.logging.LogLevel;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 public class DefaultLoggingConfigurer implements LoggingConfigurer {
-    private final static Logger LOGGER = Logging.getLogger(DefaultLoggingConfigurer.class);
     private final List<LoggingConfigurer> configurers = new ArrayList<LoggingConfigurer>();
 
     public DefaultLoggingConfigurer(LoggingConfigurer... configurers) {
         this.configurers.addAll(Arrays.asList(configurers));
     }
 
-    public void add(LoggingConfigurer configurer) {
-        this.configurers.add(configurer);
-    }
-
     public void configure(LogLevel logLevel) {
         for (LoggingConfigurer configurer : configurers) {
             configurer.configure(logLevel);
         }
-        LOGGER.debug("Finished configuring with level: {}, configurers: {}", logLevel, configurers);
     }
 }

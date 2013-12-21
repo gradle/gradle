@@ -23,9 +23,6 @@ import org.gradle.api.internal.tasks.testing.TestStartEvent
 import org.gradle.api.tasks.testing.TestResult.ResultType
 import spock.lang.Specification
 
-/**
- * by Szczepan Faber, created at: 10/14/11
- */
 public class DefaultTestResultTest extends Specification {
 
     def "construct itself from the state"() {

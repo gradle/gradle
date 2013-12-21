@@ -18,8 +18,13 @@ package org.gradle.api.internal.project
 import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.project.ant.AntLoggingAdapter
 import org.gradle.api.internal.project.ant.BasicAntBuilder
+import org.gradle.internal.classloader.ClassLoaderFactory
+import org.gradle.internal.classloader.FilteringClassLoader
+import org.gradle.internal.classloader.MultiParentClassLoader
+import org.gradle.internal.classloader.MutableURLClassLoader
 import org.gradle.util.*
 import org.gradle.internal.jvm.Jvm
+import org.gradle.internal.classpath.DefaultClassPath
 
 class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
     private final Map<List<File>, ClassLoader> baseClassloaders = [:]
@@ -65,8 +70,7 @@ class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
             if (toolsJar) {
                 fullClasspath += toolsJar
             }
-            List<URI> classpathUrls = fullClasspath.collect { it.toURI() }
-            baseLoader = classLoaderFactory.createIsolatedClassLoader(classpathUrls)
+            baseLoader = classLoaderFactory.createIsolatedClassLoader(new DefaultClassPath(fullClasspath))
             baseClassloaders[baseClasspath] = baseLoader
         }
 

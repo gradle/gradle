@@ -17,7 +17,7 @@ package org.gradle.api.tasks;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.Task;
-import org.gradle.api.internal.Contextual;
+import org.gradle.internal.exceptions.Contextual;
 
 /**
  * <p>A {@code TaskExecutionException} is thrown when a task fails to execute successfully.</p>

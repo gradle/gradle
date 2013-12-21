@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,10 @@
 
 package org.gradle.launcher.daemon.client;
 
-import org.gradle.api.specs.Spec;
-import org.gradle.api.specs.Specs;
-import org.gradle.initialization.BuildClientMetaData;
+import org.gradle.api.internal.specs.ExplainingSpec;
+import org.gradle.api.internal.specs.ExplainingSpecs;
+import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.context.DaemonContext;
@@ -33,7 +34,13 @@ public class StopDaemonClientServices extends DaemonClientServices {
 
     @Override
     protected DaemonClient createDaemonClient() {
-        Spec<DaemonContext> matchAll = Specs.satisfyAll();
-        return new DaemonClient(get(DaemonConnector.class), get(BuildClientMetaData.class), get(OutputEventListener.class), matchAll, getBuildStandardInput());
+        ExplainingSpec<DaemonContext> matchAll = ExplainingSpecs.satisfyAll();
+        return new DaemonClient(
+                get(DaemonConnector.class),
+                get(OutputEventListener.class),
+                matchAll,
+                getBuildStandardInput(),
+                get(ExecutorFactory.class),
+                get(IdGenerator.class));
     }
 }

@@ -18,14 +18,15 @@ package org.gradle.api.plugins.jetty
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.WarPlugin
-import org.gradle.util.HelperUtil
+import org.gradle.api.tasks.TaskDependencyMatchers
+import org.gradle.util.TestUtil
 import org.junit.Test
-import static org.gradle.util.Matchers.*
+
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 
 public class JettyPluginTest {
-    private final Project project = HelperUtil.createRootProject()
+    private final Project project = TestUtil.createRootProject()
 
     @Test
     public void appliesWarPluginAndAddsConventionToProject() {
@@ -42,12 +43,12 @@ public class JettyPluginTest {
 
         def task = project.tasks[JettyPlugin.JETTY_RUN]
         assertThat(task, instanceOf(JettyRun))
-        assertThat(task, dependsOn(JavaPlugin.CLASSES_TASK_NAME))
+        assertThat(task, TaskDependencyMatchers.dependsOn(JavaPlugin.CLASSES_TASK_NAME))
         assertThat(task.httpPort, equalTo(project.httpPort))
 
         task = project.tasks[JettyPlugin.JETTY_RUN_WAR]
         assertThat(task, instanceOf(JettyRunWar))
-        assertThat(task, dependsOn(WarPlugin.WAR_TASK_NAME))
+        assertThat(task, TaskDependencyMatchers.dependsOn(WarPlugin.WAR_TASK_NAME))
         assertThat(task.httpPort, equalTo(project.httpPort))
 
         task = project.tasks[JettyPlugin.JETTY_STOP]
@@ -59,12 +60,12 @@ public class JettyPluginTest {
     public void addsMappingToNewJettyTasks() {
         new JettyPlugin().apply(project)
 
-        def task = project.tasks.add('customRun', JettyRun)
-        assertThat(task, dependsOn(JavaPlugin.CLASSES_TASK_NAME))
+        def task = project.tasks.create('customRun', JettyRun)
+        assertThat(task, TaskDependencyMatchers.dependsOn(JavaPlugin.CLASSES_TASK_NAME))
         assertThat(task.httpPort, equalTo(project.httpPort))
 
-        task = project.tasks.add('customWar', JettyRunWar)
-        assertThat(task, dependsOn(WarPlugin.WAR_TASK_NAME))
+        task = project.tasks.create('customWar', JettyRunWar)
+        assertThat(task, TaskDependencyMatchers.dependsOn(WarPlugin.WAR_TASK_NAME))
         assertThat(task.httpPort, equalTo(project.httpPort))
     }
 }

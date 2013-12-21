@@ -6,6 +6,9 @@ configurations {
     compile {
         extendsFrom publishCompile
     }
+    publishCompileWithProjectJar {
+        extendsFrom publishCompile
+    }
 }
 
 task sourceJar(type: Jar) {
@@ -20,7 +23,7 @@ task generatePom {
             configurations.publishCompile.allDependencies.withType(ProjectDependency).each {
                 publishRuntime "org.gradle:${it.dependencyProject.archivesBaseName}:${version}"
             }
-            configurations.publishCompile.allDependencies.withType(ExternalModuleDependency).each {
+            configurations.publishCompile.allDependencies.withType(ExternalDependency).each {
                 publishRuntime it
             }
         }
@@ -35,24 +38,35 @@ task generatePom {
             pom.version = version
             pom.writeTo(pomFile)
         }
-
     }
 }
 
 artifacts {
+    publishCompileWithProjectJar jar
     publishRuntime jar
     publishRuntime sourceJar
     publishRuntime new org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact(archivesBaseName, 'pom', 'pom', null, new Date(), generatePom.pomFile, generatePom)
 }
 
-uploadArchives {
+uploadArchives { task ->
+    onlyIf { !project.hasProperty("noUpload") }
+
+    gradle.taskGraph.whenReady { graph ->
+        if (graph.hasTask(task)) {
+            // check properties defined and fail early
+            artifactoryUserName
+            artifactoryUserPassword
+        }
+    }
+
     configuration = configurations.publishRuntime
     dependsOn generatePom
     uploadDescriptor = false
     doFirst {
         repositories {
             ivy {
-                artifactPattern "${version.libsUrl}/${project.group.replaceAll('\\.', '/')}/${archivesBaseName}/[revision]/[artifact]-[revision](-[classifier]).[ext]"
+                def repo = "https://gradle.artifactoryonline.com/gradle/libs-${isSnapshot ? 'snapshots' : 'releases'}-local"
+                artifactPattern "${repo}/${project.group.replaceAll('\\.', '/')}/${archivesBaseName}/[revision]/[artifact]-[revision](-[classifier]).[ext]"
                 credentials {
                     username = artifactoryUserName
                     password = artifactoryUserPassword

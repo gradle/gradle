@@ -15,9 +15,38 @@
  */
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.internal.DynamicObject;
+import org.gradle.api.tasks.TaskContainer;
+
+import java.util.Map;
 
 public interface TaskContainerInternal extends TaskContainer, TaskResolver {
+
+    // The path to the project's task container in the model registry
+    public String MODEL_PATH = "tasks";
+
     DynamicObject getTasksAsDynamicObject();
+
+    /**
+     * <p>Add placeholder action if task is referenced by name that does not (yet) exist.
+     * If a task is referenced by name and not listed as task, the provided action is executed and the task name is looked up again before proceeding
+     * This allows lazy application of plugins if task is referenced but not yet part of the taskcontainer.</p>
+     *
+     * @param placeholderName the placeholderName that references the placeholder action.
+     * @param runnable the Runnable executed when referencing a task that does not exist, but a placeholder with the given name is defined.
+     */
+    void addPlaceholderAction(String placeholderName, Runnable runnable);
+
+    /**
+     * Force the entire graph to come into existence.
+     *
+     * Tasks may have dependencies that are abstract (e.g. a dependency on a task _name_).
+     * Calling this method will force all task dependencies to be actualised, which may mean new tasks are
+     * created because of things like task rules etc.
+     *
+     * As part of this, all placeholder actions are materialized to show up in 'tasks' and 'tasks --all' overview.
+     */
+    void actualize();
+
+    Map<String, Runnable> getPlaceholderActions();
 }

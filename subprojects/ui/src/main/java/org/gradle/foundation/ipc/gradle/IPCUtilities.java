@@ -21,8 +21,6 @@ import org.gradle.api.logging.Logging;
 
 /**
  * Just some convenience functions to startup a GradleClient. See GradleClient for more information.
- *
- * @author mhunsicker
  */
 public class IPCUtilities {
     private static final Logger LOGGER = Logging.getLogger(IPCUtilities.class);

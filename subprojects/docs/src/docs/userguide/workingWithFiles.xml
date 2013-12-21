@@ -57,7 +57,7 @@
             <apilink class="org.gradle.api.Project" method="files(java.lang.Object...)"/> method. You can pass this method any number of
             objects, which are then converted into a set of <classname>File</classname> objects. The
             <literal>files()</literal> method accepts any type of object as its parameters. These are evaluated relative
-            to the project directory, as for the <literal>file()</literal> method, described in <xref linkend="sec:locating_files"/>.
+            to the project directory, as per the <literal>file()</literal> method, described in <xref linkend="sec:locating_files"/>.
             You can also pass collections, iterables, maps and arrays to the <literal>files()</literal> method. These are flattened
             and the contents converted to <classname>File</classname> instances.
         </para>
@@ -166,9 +166,9 @@
     <section id="sec:specifying_multiple_files">
         <title>Specifying a set of input files</title>
         <para>Many objects in Gradle have properties which accept a set of input files. For example, the
-            <apilink class="org.gradle.api.tasks.compile.Compile"/> task has a <literal>source</literal> property,
+            <apilink class="org.gradle.api.tasks.compile.JavaCompile"/> task has a <literal>source</literal> property,
             which defines the source files to compile. You can set the value of this property using any of the types
-            supported by the <link linkend="sec:file_collections">files()</link> method, which we have seen in above.
+            supported by the <link linkend="sec:file_collections">files()</link> method, which was shown above.
             This means you can set the property using, for example, a <classname>File</classname>, <classname>String</classname>,
             collection, <classname>FileCollection</classname> or even a closure.
             Here are some examples:
@@ -188,14 +188,14 @@
     <section id="sec:copying_files">
         <title>Copying files</title>
         <para>You can use the <apilink class="org.gradle.api.tasks.Copy"/> task to copy files. The copy task is very flexible, and allows
-            you to, for example, filter the contents of the files as they are copied, and to map the files names.
+            you to, for example, filter the contents of the files as they are copied, and map to the file names.
         </para>
         <para>To use the <literal>Copy</literal> task, you must provide a set of source files to copy, and a destination directory to copy
             the files to. You may also specify how to transform the files as they are copied. You do all this using a
             <firstterm>copy spec</firstterm>. A copy spec is represented by the <apilink class="org.gradle.api.file.CopySpec"/> interface. The
             <literal>Copy</literal> task implements this interface.
             You specify the source files using the <apilink class="org.gradle.api.file.CopySpec" method="from(java.lang.Object...)"/>
-            method. To specify the destination directory, you use the <apilink class="org.gradle.api.file.CopySpec" method="into(java.lang.Object)"/>
+            method. To specify the destination directory, use the <apilink class="org.gradle.api.file.CopySpec" method="into(java.lang.Object)"/>
             method.
         </para>
         <sample id="copy" dir="userguide/files/copy" title="Copying files using the copy task">
@@ -206,7 +206,9 @@
             <link linkend="sec:file_collections">files()</link> method does. When an argument resolves to a directory,
             everything under that directory (but not the directory itself) is recursively copied into the destination
             directory. When an argument resolves to a file, that file is copied into the destination directory.
-            When an argument resolves to a non-existing file, that argument is ignored.
+            When an argument resolves to a non-existing file, that argument is ignored. If the argument is
+            a task, the output files (i.e. the files the task creates) of the task are copied and the task is automatically
+            added as a dependency of the <literal>Copy</literal> task.
             The <literal>into()</literal> accepts
             any of the arguments that the <link linkend="sec:locating_files">file()</link> method does. Here is another
             example:
@@ -219,10 +221,26 @@
             <sourcefile file="build.gradle" snippet="copy-task-with-patterns"/>
         </sample>
         <para>You can also use the <apilink class="org.gradle.api.Project" method="copy"/> method to copy files. It works the
-            same way as the task.</para>
-        <sample id="copy" dir="userguide/files/copy" title="Copying files using the copy() method">
+            same way as the task with some major limitations though. First, the <literal>copy()</literal> is not incremental
+            (see <xref linkend="sec:up_to_date_checks" />).
+        </para>
+        <sample id="copy" dir="userguide/files/copy" title="Copying files using the copy() method without up-to-date check">
             <sourcefile file="build.gradle" snippet="copy-method"/>
         </sample>
+        <para>Secondly, the <literal>copy()</literal> method can not honor task dependencies when a task is used as a copy source
+            (i.e. as an argument to <literal>from()</literal>) because it's a method and not a task.
+            As such, if you are using the <literal>copy()</literal> method as part of a task action, you must explicitly
+            declare all inputs and outputs in order to get the correct behavior.
+        </para>
+        <sample id="copy" dir="userguide/files/copy" title="Copying files using the copy() method with up-to-date check">
+            <sourcefile file="build.gradle" snippet="copy-method-with-dependency"/>
+        </sample>
+        <para>
+            It is preferable to use the <literal>Copy</literal> task wherever possible, as it support incremental building and task dependency inference
+            without any extra effort on your part. The <literal>copy()</literal> method can be used to copy files as <emphasis>part</emphasis> of a task's
+            implementation. That is, the copy method is intended to be used by custom tasks (see <xref linkend="custom_tasks" />) that need to copy files
+            as part of their function. In such a scenario, the custom task should sufficiently declare the inputs/outputs relevant to the copy action.
+        </para>
         <section>
             <title>Renaming files</title>
             <sample id="renameOnCopy" dir="userguide/files/copy" title="Renaming files as they are copied">
@@ -238,7 +256,7 @@
         <section>
             <title>Using the <classname>CopySpec</classname> class</title>
             <para>Copy specs form a hierarchy. A copy spec inherits its destination path, include patterns, exclude patterns, copy actions,
-                name mappings, filters.</para>
+                name mappings and filters.</para>
             <sample id="nestedCopySpecs" dir="userguide/files/copy" title="Nested copy specs">
                 <sourcefile file="build.gradle" snippet="nested-specs"/>
             </sample>
@@ -267,8 +285,9 @@
             Archives are created using the various archive tasks:
             <apilink class="org.gradle.api.tasks.bundling.Zip"/>,
             <apilink class="org.gradle.api.tasks.bundling.Tar"/>,
-            <apilink class="org.gradle.api.tasks.bundling.Jar"/>, and
-            <apilink class="org.gradle.api.tasks.bundling.War"/>.
+            <apilink class="org.gradle.api.tasks.bundling.Jar"/>,
+            <apilink class="org.gradle.api.tasks.bundling.War"/>, and
+            <apilink class="org.gradle.plugins.ear.Ear"/>.
             They all work the same way, so let's look at how you create a ZIP file.
         </para>
         <sample id="createZip" dir="userguide/files/archives" title="Creating a ZIP archive">
@@ -302,7 +321,7 @@
             </sample>
 
             <para>This adds a <classname>Zip</classname> archive task with the name <literal>myZip</literal> which produces
-                ZIP file<filename>zipProject-1.0.zip</filename>. It is important to distinguish between the name of the archive task
+                ZIP file <filename>zipProject-1.0.zip</filename>. It is important to distinguish between the name of the archive task
                 and the name of the archive generated by the archive task. The default name for archives can be
                 changed with the <literal>archivesBaseName</literal> project property. The name of the archive can also be
                 changed at any time later on.</para>
@@ -389,7 +408,7 @@
 
         <section>
             <title>Sharing content between multiple archives</title>
-            <para>Using the <apilink class="org.gradle.api.Project" method="copySpec"/> method to share content between archives.</para>
+            <para>You can use the <apilink class="org.gradle.api.Project" method="copySpec"/> method to share content between archives.</para>
         </section>
 
         <para>Often you will want to publish an archive, so that it is usable from another project. This process is

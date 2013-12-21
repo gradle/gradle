@@ -15,10 +15,10 @@
  */
 package org.gradle.build.docs.dsl.docbook;
 
-import org.gradle.build.docs.dsl.TypeNameResolver;
-import org.gradle.build.docs.dsl.model.ClassMetaData;
-import org.gradle.build.docs.dsl.model.MethodMetaData;
-import org.gradle.build.docs.dsl.model.TypeMetaData;
+import org.gradle.build.docs.dsl.source.TypeNameResolver;
+import org.gradle.build.docs.dsl.source.model.ClassMetaData;
+import org.gradle.build.docs.dsl.source.model.MethodMetaData;
+import org.gradle.build.docs.dsl.source.model.TypeMetaData;
 import org.gradle.build.docs.model.ClassMetaDataRepository;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -113,6 +113,10 @@ public class JavadocLinkConverter {
             methodSignature = signature.toString();
         }
 
+        if (targetClass.isEnum() && targetClass.getEnumConstant(methodSignature) != null) {
+            return linkRenderer.link(targetClass.getEnumConstant(methodSignature), listener);
+        }
+
         MethodMetaData method = findMethod(methodSignature, targetClass);
         if (method == null) {
             return null;
@@ -165,6 +169,10 @@ public class JavadocLinkConverter {
             return element;
         }
 
+        return createLiteralNode(value);
+    }
+
+    private Node createLiteralNode(String value) {
         Element element = document.createElement("literal");
         element.appendChild(document.createTextNode(value));
         return element;

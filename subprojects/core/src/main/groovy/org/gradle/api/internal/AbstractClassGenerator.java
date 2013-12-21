@@ -19,16 +19,24 @@ package org.gradle.api.internal;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import groovy.lang.*;
+import org.apache.commons.collections.map.AbstractReferenceMap;
+import org.apache.commons.collections.map.ReferenceMap;
+import org.codehaus.groovy.reflection.CachedClass;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.plugins.ExtensionAware;
+import org.gradle.internal.reflect.DirectInstantiator;
+import org.gradle.internal.reflect.Instantiator;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
 import java.util.*;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public abstract class AbstractClassGenerator implements ClassGenerator {
-    private static final Map<Class, Map<Class, Class>> GENERATED_CLASSES = new HashMap<Class, Map<Class, Class>>();
+    private static final Map<Class<?>, Map<Class<?>, Class<?>>> GENERATED_CLASSES = new HashMap<Class<?>, Map<Class<?>, Class<?>>>();
+    private static final Lock CACHE_LOCK = new ReentrantLock();
 
     public <T> T newInstance(Class<T> type, Object... parameters) {
         Instantiator instantiator = new DirectInstantiator();
@@ -36,14 +44,26 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
     }
 
     public <T> Class<? extends T> generate(Class<T> type) {
-        Map<Class, Class> cache = GENERATED_CLASSES.get(getClass());
+        try {
+            CACHE_LOCK.lock();
+            return generateUnderLock(type);
+        } finally {
+            CACHE_LOCK.unlock();
+        }
+    }
+
+    private <T> Class<? extends T> generateUnderLock(Class<T> type) {
+        Map<Class<?>, Class<?>> cache = GENERATED_CLASSES.get(getClass());
         if (cache == null) {
-            cache = new HashMap<Class, Class>();
+            // WeakHashMap won't work here. It keeps a strong reference to the mapping value, which is the generated class in this case
+            // However, the generated class has a strong reference to the source class (it extends it), so the keys will always be
+            // strongly reachable while this Class is strongly reachable. Use weak references for both key and value of the mapping instead.
+            cache = new ReferenceMap(AbstractReferenceMap.WEAK, AbstractReferenceMap.WEAK);
             GENERATED_CLASSES.put(getClass(), cache);
         }
-        Class generatedClass = cache.get(type);
+        Class<?> generatedClass = cache.get(type);
         if (generatedClass != null) {
-            return generatedClass;
+            return generatedClass.asSubclass(type);
         }
 
         if (Modifier.isPrivate(type.getModifiers())) {
@@ -60,22 +80,19 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
             ClassBuilder<T> builder = start(type);
 
             boolean isConventionAware = type.getAnnotation(NoConventionMapping.class) == null;
-            boolean isDynamicAware = type.getAnnotation(NoDynamicObject.class) == null;
 
-            builder.startClass(isConventionAware, isDynamicAware);
+            builder.startClass(isConventionAware);
 
-            if (isDynamicAware && !DynamicObjectAware.class.isAssignableFrom(type)) {
+            if (!DynamicObjectAware.class.isAssignableFrom(type)) {
                 if (ExtensionAware.class.isAssignableFrom(type)) {
                     throw new UnsupportedOperationException("A type that implements ExtensionAware must currently also implement DynamicObjectAware.");
                 }
                 builder.mixInDynamicAware();
             }
-            if (isDynamicAware && !GroovyObject.class.isAssignableFrom(type)) {
+            if (!GroovyObject.class.isAssignableFrom(type)) {
                 builder.mixInGroovyObject();
             }
-            if (isDynamicAware) {
-                builder.addDynamicMethods();
-            }
+            builder.addDynamicMethods();
             if (isConventionAware && !IConventionAware.class.isAssignableFrom(type)) {
                 builder.mixInConventionAware();
             }
@@ -144,19 +161,27 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
                 if (method.isPrivate()) {
                     continue;
                 }
-                if (method.getParameterTypes().length != 1) {
+                CachedClass[] parameterTypes = method.getParameterTypes();
+                if (parameterTypes.length == 0) {
                     continue;
                 }
                 methods.put(method.getName(), method);
-                if (method.getParameterTypes()[0].getTheClass().equals(Action.class)) {
+
+                CachedClass lastParameter = parameterTypes[parameterTypes.length - 1];
+                if (lastParameter.getTheClass().equals(Action.class)) {
                     actionMethods.add(method);
                 }
             }
 
             for (MetaMethod method : actionMethods) {
                 boolean hasClosure = false;
+                Class[] actionMethodParameterTypes = method.getNativeParameterTypes();
+                int numParams = actionMethodParameterTypes.length;
+                Class[] closureMethodParameterTypes = new Class[actionMethodParameterTypes.length];
+                System.arraycopy(actionMethodParameterTypes, 0, closureMethodParameterTypes, 0, actionMethodParameterTypes.length);
+                closureMethodParameterTypes[numParams - 1] = Closure.class;
                 for (MetaMethod otherMethod : methods.get(method.getName())) {
-                    if (otherMethod.getParameterTypes()[0].getTheClass().equals(Closure.class)) {
+                    if (Arrays.equals(otherMethod.getNativeParameterTypes(), closureMethodParameterTypes)) {
                         hasClosure = true;
                         break;
                     }
@@ -166,14 +191,21 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
                 }
             }
 
+            // Adds a set method for each mutable property
             for (MetaBeanProperty property : settableProperties) {
                 Collection<MetaMethod> methodsForProperty = methods.get(property.getName());
-                if (methodsForProperty.isEmpty()) {
-                    builder.addSetMethod(property);
-                } else if (conventionProperties.contains(property)) {
-                    for (MetaMethod method : methodsForProperty) {
-                        builder.overrideSetMethod(property, method);
+                boolean hasSetMethod = false;
+                for (MetaMethod method : methodsForProperty) {
+                    if (method.getParameterTypes().length == 1) {
+                        if (conventionProperties.contains(property)) {
+                            builder.overrideSetMethod(property, method);
+                        }
+                        hasSetMethod = true;
                     }
+                }
+
+                if (!hasSetMethod) {
+                    builder.addSetMethod(property);
                 }
             }
 
@@ -196,7 +228,7 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
     protected abstract <T> ClassBuilder<T> start(Class<T> type);
 
     protected interface ClassBuilder<T> {
-        void startClass(boolean isConventionAware, boolean isDynamicAware);
+        void startClass(boolean isConventionAware);
 
         void addConstructor(Constructor<?> constructor) throws Exception;
 

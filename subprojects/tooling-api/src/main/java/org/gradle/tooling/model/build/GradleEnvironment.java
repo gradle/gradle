@@ -17,7 +17,7 @@
 package org.gradle.tooling.model.build;
 
 /**
- * Informs about the gradle environment, for example the gradle version.
+ * Informs about the Gradle environment, for example the Gradle version.
  * <p>
  * See example in {@link BuildEnvironment}
  *
@@ -26,7 +26,9 @@ package org.gradle.tooling.model.build;
 public interface GradleEnvironment {
 
     /**
-     * Informs about the gradle version.
+     * Informs about the Gradle version.
+     *
+     * @since 1.0-milestone-8
      */
     String getGradleVersion();
 }

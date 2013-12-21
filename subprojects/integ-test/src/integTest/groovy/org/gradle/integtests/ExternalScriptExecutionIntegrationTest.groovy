@@ -18,12 +18,15 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
-import org.gradle.integtests.fixtures.ArtifactBuilder
-import org.gradle.integtests.fixtures.ExecutionResult
-import org.gradle.integtests.fixtures.HttpServer
-import org.gradle.util.TestFile
+import org.gradle.integtests.fixtures.executer.ArtifactBuilder
+import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.server.http.HttpServer
+import org.gradle.test.matchers.UserAgentMatcher
+import org.gradle.util.GradleVersion
 import org.junit.Rule
 import org.junit.Test
+
 import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.not
 import static org.junit.Assert.assertThat
@@ -53,7 +56,6 @@ assert "${externalScript.absolutePath.replace("\\", "\\\\")}" == buildscript.sou
 assert "${externalScript.toURI()}" == buildscript.sourceURI as String
 assert buildscript.classLoader == getClass().classLoader.parent
 assert buildscript.classLoader == Thread.currentThread().contextClassLoader
-assert gradle.scriptClassLoader == buildscript.classLoader.parent
 assert project.buildscript.classLoader != buildscript.classLoader
 Gradle.class.classLoader.loadClass('${implClassName}')
 try {
@@ -90,8 +92,6 @@ new BuildSrcClass()
 assert 'doStuff' == name
 assert buildscript.classLoader == getClass().classLoader.parent
 assert buildscript.classLoader == Thread.currentThread().contextClassLoader
-assert project.gradle.scriptClassLoader == buildscript.classLoader.parent
-assert project.buildscript.classLoader != buildscript.classLoader
 ext.someProp = 'value'
 '''
         testFile('build.gradle') << '''
@@ -145,7 +145,7 @@ class ListenerImpl extends BuildAdapter {
     @Test
     public void canFetchScriptViaHttp() {
         TestFile script = testFile('external.gradle')
-
+        server.expectUserAgent(UserAgentMatcher.matchesNameAndVersion("Gradle", GradleVersion.current().getVersion()))
         server.expectGet('/external.gradle', script)
         server.start()
 

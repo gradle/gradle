@@ -13,7 +13,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<chapter id='build_lifecycle' xmlns:xi="http://www.w3.org/2001/XInclude">
+<chapter id='build_lifecycle'>
     <title>The Build Lifecycle</title>
     <para>We said earlier, that the core of Gradle is a language for dependency based programming. In Gradle terms this
         means that you can define tasks and dependencies between tasks. Gradle guarantees that these tasks are executed
@@ -43,8 +43,10 @@
             <varlistentry>
                 <term>Configuration</term>
                 <listitem>
-                    <para>The build scripts of <emphasis>all</emphasis> projects which are part of the build are
-                        executed. This configures the project objects.
+                    <para>During this phase the project objects are configured.
+                        The build scripts of <emphasis>all</emphasis> projects which are part of the build are
+                        executed. Gradle 1.4 introduces an <link linkend="feature_lifecycle">incubating</link> opt-in feature called <firstterm>configuration on demand</firstterm>.
+                        In this mode, Gradle configures only relevant projects (see <xref linkend="sec:configuration_on_demand"/>).
                     </para>
                 </listitem>
             </varlistentry>
@@ -64,7 +66,7 @@
         <title>Settings file</title>
         <para>Beside the build script files, Gradle defines a settings file. The settings file is determined by Gradle
             via a naming convention. The default name for this file is <filename>settings.gradle</filename>. Later in
-            this chapter we explain, how Gradle looks for a settings file.
+            this chapter we explain how Gradle looks for a settings file.
         </para>
         <para>The settings file gets executed during the initialization phase. A multiproject build must have a
             <filename>settings.gradle</filename>
@@ -95,9 +97,11 @@
         <section id='sub:project_locations'>
             <title>Project locations</title>
             <para>Multi-project builds are always represented by a tree with a single root. Each element in the tree
-                represent a project. A project has a virtual and a physical path. The virtual path denotes the position
-                of the project in the multi-project build tree. The project tree is created in the
-                <filename>settings.gradle</filename> file. By default it is assumed that the location of the settings
+                represents a project. A project has a path which denotes the position
+                of the project in the multi-project build tree. In majority of cases the project path is consistent with
+                the physical location of the project in the file system. However, this behavior is configurable.
+                The project tree is created in the <filename>settings.gradle</filename> file.
+                By default it is assumed that the location of the settings
                 file is also the location of the root project. But you can redefine the location of the root project
                 in the settings file.
             </para>
@@ -112,11 +116,12 @@
                 <sample id="standardLayouts" dir="userguide/multiproject/standardLayouts" title="Hierarchical layout">
                     <sourcefile file="settings.gradle" snippet="hierarchical-layout"/>
                 </sample>
-                <para>The <literal>include</literal> method takes as an argument a relative virtual path to the root
-                    project. This relative virtual path is assumed to be equal to the relative physical path of the
-                    subproject to the root project. You only need to specify the leafs of the tree. Each parent path of
-                    the leaf project is assumed to be another subproject which obeys to the physical path assumption
-                    described above.
+                <para>The <literal>include</literal> method takes project paths as arguments.
+                    The project path is assumed to be equal to the relative physical file system path.
+                    For example a path 'services:api' by default is mapped to a folder 'services/api'
+                    (relative from the project root). You only need to specify the leafs of the tree.
+                    This means that the inclusion of path 'services:hotels:api' will result in creating 3 projects:
+                    'services', 'services:hotels' and 'services:hotels:api'.
                 </para>
             </section>
             <section>
@@ -125,8 +130,8 @@
                     <sourcefile file="settings.gradle" snippet="flat-layout"/>
                 </sample>
                 <para>The <literal>includeFlat</literal> method takes directory names as an argument. Those directories
-                    need to exist at the same level as the root project directory. The location of those directories
-                    are considered as child projects of the root project in the virtual multi-project tree.
+                    need to exist as siblings of the root project directory. The location of those directories
+                    are considered as child projects of the root project in the multi-project tree.
                 </para>
             </section>
         </section>

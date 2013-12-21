@@ -16,13 +16,11 @@
  
 package org.gradle.api.tasks.compile
 
-import org.junit.Test
 import org.junit.Before
+import org.junit.Test
+
 import static org.junit.Assert.*
 
-/**
- * @author Hans Dockter
- */
 class GroovyCompileOptionsTest {
     static final Map TEST_FORK_OPTION_MAP = [someForkOption: 'someForkOptionValue']
 
@@ -40,6 +38,7 @@ class GroovyCompileOptionsTest {
         assertFalse(compileOptions.listFiles)
         assertFalse(compileOptions.verbose)
         assertTrue(compileOptions.fork)
+        assertEquals(['java', 'groovy'], compileOptions.fileExtensions)
         assertEquals('UTF-8', compileOptions.encoding)
         assertNotNull(compileOptions.forkOptions)
     }
@@ -51,9 +50,9 @@ class GroovyCompileOptionsTest {
 
     @Test public void testOptionMapWithTrueFalseValues() {
         Map booleans = [
-                failOnError: 'failonerror',
+                failOnError: 'failOnError',
                 verbose: 'verbose',
-                listFiles: 'listfiles',
+                listFiles: 'listFiles',
                 fork: 'fork',
                 includeJavaRuntime: 'includeJavaRuntime'
         ]

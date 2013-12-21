@@ -21,6 +21,7 @@ import org.gradle.gradleplugin.foundation.settings.DOM4JSettingsNode;
 import org.gradle.gradleplugin.userinterface.AlternateUIInteraction;
 import org.gradle.gradleplugin.userinterface.swing.common.PreferencesAssistant;
 import org.gradle.gradleplugin.userinterface.swing.generic.SinglePaneUIInstance;
+import org.gradle.internal.SystemProperties;
 import org.gradle.internal.UncheckedException;
 
 import javax.swing.*;
@@ -35,8 +36,6 @@ import java.net.URI;
 /**
  * The main entry point for a stand-alone application for Gradle. The real work is not done here. This is just a UI containing components that are meant to be reuseable in other UIs (say an IDE
  * plugin). Those other components do the real work. Most of the work is wrapped inside SinglePaneUIInstance.
- *
- * @author mhunsicker
  */
 public class Application implements AlternateUIInteraction {
     private static final int DEFAULT_WIDTH = 800;
@@ -307,7 +306,7 @@ public class Application implements AlternateUIInteraction {
      * @return the file that we save our settings to.
      */
     private File getSettingsFile() {
-        return new File(System.getProperty("user.dir"), "gradle-app" + SETTINGS_EXTENSION);
+        return new File(SystemProperties.getCurrentDir(), "gradle-app" + SETTINGS_EXTENSION);
     }
 
     private class SettingsImportInteraction implements DOM4JSerializer.ImportInteraction {

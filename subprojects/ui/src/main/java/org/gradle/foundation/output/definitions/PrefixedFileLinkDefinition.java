@@ -27,8 +27,6 @@ import java.util.List;
  * Here's a sample line output from an ant compile error: [ant:javac] /home/someguy/path/etc/etc.java:186: cannot find symbol
  *
  * Here's a sample line output from gradle when it encounters an exception: Build file '/home/someguy/path/etc/etc/build.gradle'
- *
- * @author mhunsicker
  */
 public class PrefixedFileLinkDefinition implements FileLinkDefinition {
     private String expression;

@@ -52,7 +52,7 @@
         </para>
         <figure>
             <title>gradle-imports</title>
-            <programlisting><xi:include href='../../../../../subprojects/core/src/main/resources/org/gradle/configuration/default-imports.txt' parse='text'/></programlisting>
+            <programlisting><xi:include href='../../../build/generated-resources/main/default-imports.txt' parse='text'/></programlisting>
         </figure>
     </section>
 </appendix>

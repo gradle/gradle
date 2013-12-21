@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,19 +18,16 @@ package org.gradle.api.internal.notations;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.internal.notations.api.NotationParser;
-import org.gradle.api.internal.notations.api.TopLevelNotationParser;
+import org.gradle.internal.typeconversion.NotationParser;
+import org.gradle.internal.typeconversion.NotationParserBuilder;
 
 import java.util.Collection;
 
-/**
- * by Szczepan Faber, created at: 11/8/11
- */
-public class DependencyNotationParser implements TopLevelNotationParser, NotationParser<Dependency> {
+public class DependencyNotationParser implements NotationParser<Object, Dependency> {
 
-    private final NotationParser<Dependency> delegate;
+    private final NotationParser<Object, Dependency> delegate;
 
-    public DependencyNotationParser(Iterable<NotationParser<? extends Dependency>> compositeParsers) {
+    public DependencyNotationParser(Iterable<NotationParser<Object, ? extends Dependency>> compositeParsers) {
         delegate = new NotationParserBuilder<Dependency>()
                 .resultingType(Dependency.class)
                 .parsers(compositeParsers)
@@ -38,7 +35,7 @@ public class DependencyNotationParser implements TopLevelNotationParser, Notatio
                 .toComposite();
     }
 
-    DependencyNotationParser(NotationParser<Dependency> delegate) {
+    DependencyNotationParser(NotationParser<Object, Dependency> delegate) {
         this.delegate = delegate;
     }
 

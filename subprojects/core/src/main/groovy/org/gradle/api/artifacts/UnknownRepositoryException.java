@@ -19,8 +19,6 @@ import org.gradle.api.UnknownDomainObjectException;
 
 /**
  * An {@code UnknownRepositoryException} is thrown when a repository referenced by name cannot be found.
- *
- * @author Hans Dockter
  */
 public class UnknownRepositoryException extends UnknownDomainObjectException {
     public UnknownRepositoryException(String message) {

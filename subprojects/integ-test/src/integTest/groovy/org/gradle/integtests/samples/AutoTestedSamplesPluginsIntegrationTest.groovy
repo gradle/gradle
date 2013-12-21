@@ -19,9 +19,6 @@ package org.gradle.integtests.samples
 import org.gradle.integtests.fixtures.AbstractAutoTestedSamplesTest
 import org.junit.Test
 
-/**
- * @author Szczepan Faber, created at: 3/28/11
- */
 class AutoTestedSamplesPluginsIntegrationTest extends AbstractAutoTestedSamplesTest {
 
     @Test

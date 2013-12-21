@@ -22,8 +22,6 @@ import java.io.File;
 
 /**
  * A filter for artifacts to be published.
- *
- * @author Hans Dockter
  */
 public interface PublishFilter {
     PublishFilter ALWAYS_ACCEPT = new PublishFilter() {

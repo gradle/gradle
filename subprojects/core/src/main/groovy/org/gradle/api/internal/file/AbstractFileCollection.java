@@ -61,7 +61,7 @@ public abstract class AbstractFileCollection implements FileCollection, MinimalF
     }
 
     public String getAsPath() {
-        return GUtil.join(getFiles(), File.pathSeparator);
+        return GUtil.asPath(getFiles());
     }
 
     public boolean contains(File file) {

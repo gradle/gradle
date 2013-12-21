@@ -24,11 +24,11 @@ import spock.lang.Issue
 
 class IdeaProjectIntegrationTest extends AbstractIdeIntegrationTest {
     @Rule
-    public final TestResources testResources = new TestResources()
+    public final TestResources testResources = new TestResources(testDirectoryProvider)
 
     @Issue("GRADLE-1011")
     @Test
-    void "uses java plugin compatibility settings"() {
+    void "uses java plugin source compatibility settings"() {
         //when
         runTask('idea', '''
 apply plugin: "java"
@@ -40,7 +40,6 @@ sourceCompatibility = 1.4
         //then
         def ipr = getFile([:], 'root.ipr').text
 
-        assert ipr.contains('project-jdk-name="1.4"')
         assert ipr.contains('languageLevel="JDK_1_4"')
     }
 

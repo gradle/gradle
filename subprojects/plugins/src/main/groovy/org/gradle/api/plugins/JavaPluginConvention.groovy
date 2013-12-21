@@ -16,9 +16,7 @@
 package org.gradle.api.plugins
 
 import org.gradle.api.JavaVersion
-import org.gradle.api.Project
 import org.gradle.api.file.SourceDirectorySet
-import org.gradle.api.internal.Instantiator
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.DefaultSourceSetContainer
 import org.gradle.api.java.archives.Manifest
@@ -26,13 +24,12 @@ import org.gradle.api.java.archives.internal.DefaultManifest
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.util.ConfigureUtil
 
 /**
  * Is mixed in into the project when applying the {@link org.gradle.api.plugins.JavaBasePlugin} or the
  * {@link org.gradle.api.plugins.JavaPlugin}.
- *
- * @author Hans Dockter
  */
 class JavaPluginConvention {
     ProjectInternal project
@@ -74,9 +71,8 @@ class JavaPluginConvention {
     @Deprecated
     DefaultManifest manifest
 
-    JavaPluginConvention(Project project) {
+    JavaPluginConvention(ProjectInternal project, Instantiator instantiator) {
         this.project = project
-        def instantiator = project.services.get(Instantiator)
         sourceSets = instantiator.newInstance(DefaultSourceSetContainer.class, project.fileResolver, project.tasks, instantiator)
         dependencyCacheDirName = 'dependency-cache'
         docsDirName = 'docs'

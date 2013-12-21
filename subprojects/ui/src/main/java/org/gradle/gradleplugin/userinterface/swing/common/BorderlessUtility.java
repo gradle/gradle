@@ -21,8 +21,6 @@ import java.awt.*;
 
 /**
  * Utility functions/constants for borderless buttons
- *
- * @author mhunsicker
  */
 public class BorderlessUtility {
     public static final Color ON_MOUSE_OVER_BACKGROUND = new Color(181, 190, 214);

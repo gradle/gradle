@@ -15,46 +15,50 @@
  */
 package org.gradle.api.internal.artifacts.mvnsettings;
 
-import org.apache.maven.settings.DefaultMavenSettingsBuilder;
-import org.apache.maven.settings.MavenSettingsBuilder;
-import org.apache.maven.settings.Settings;
-import org.gradle.api.internal.artifacts.PlexusLoggerAdapter;
+import org.gradle.mvn3.org.apache.maven.settings.Settings;
+import org.gradle.mvn3.org.apache.maven.settings.building.SettingsBuildingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.lang.reflect.Field;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * @author Steve Ebersole
- */
 public class DefaultLocalMavenRepositoryLocator implements LocalMavenRepositoryLocator {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultLocalMavenRepositoryLocator.class);
     private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("\\$\\{([^\\}]*)\\}");
 
-    private final MavenFileLocations mavenFileLocations;
     private final Map<String, String> systemProperties;
     private final Map<String, String> environmentVariables;
+    private final MavenSettingsProvider settingsProvider;
 
-    public DefaultLocalMavenRepositoryLocator(MavenFileLocations mavenFileLocations, Map<String, String> systemProperties, Map<String, String> environmentVariables) {
-        this.mavenFileLocations = mavenFileLocations;
+    public DefaultLocalMavenRepositoryLocator(MavenSettingsProvider settingsProvider, Map<String, String> systemProperties,
+                                              Map<String, String> environmentVariables) {
         this.systemProperties = systemProperties;
         this.environmentVariables = environmentVariables;
+        this.settingsProvider = settingsProvider;
     }
 
-    public File getLocalMavenRepository() {
-        Settings settings = buildSettings();
-        String repoPath = settings.getLocalRepository().trim();
-        return new File(resolvePlaceholders(repoPath));
+    public File getLocalMavenRepository() throws CannotLocateLocalMavenRepositoryException{
+        try {
+            Settings settings = settingsProvider.buildSettings();
+            String repoPath = settings.getLocalRepository();
+            if (repoPath != null) {
+                return new File(resolvePlaceholders(repoPath.trim()));
+            } else {
+                File defaultLocation = new File(System.getProperty("user.home"), "/.m2/repository").getAbsoluteFile();
+                LOGGER.debug(String.format("No local repository in Settings file defined. Using default path: %s", defaultLocation));
+                return defaultLocation;
+            }
+        } catch (SettingsBuildingException e) {
+            throw new CannotLocateLocalMavenRepositoryException("Unable to parse local Maven settings.", e);
+        }
     }
 
     private String resolvePlaceholders(String value) {
         StringBuffer result = new StringBuffer();
         Matcher matcher = PLACEHOLDER_PATTERN.matcher(value);
-
         while (matcher.find()) {
             String placeholder = matcher.group(1);
             String replacement = placeholder.startsWith("env.") ? environmentVariables.get(placeholder.substring(4)) : systemProperties.get(placeholder);
@@ -66,28 +70,5 @@ public class DefaultLocalMavenRepositoryLocator implements LocalMavenRepositoryL
         matcher.appendTail(result);
 
         return result.toString();
-    }
-
-    private Settings buildSettings() {
-        try {
-            return createSettingsBuilder().buildSettings();
-        } catch (Exception e) {
-            throw new CannotLocateLocalMavenRepositoryException(e);
-        }
-    }
-
-    private MavenSettingsBuilder createSettingsBuilder() throws Exception {
-        DefaultMavenSettingsBuilder builder = new DefaultMavenSettingsBuilder();
-        builder.enableLogging(new PlexusLoggerAdapter(LOGGER));
-
-        Field userSettingsFileField = DefaultMavenSettingsBuilder.class.getDeclaredField("userSettingsFile");
-        userSettingsFileField.setAccessible(true);
-        userSettingsFileField.set(builder, mavenFileLocations.getUserSettingsFile());
-
-        Field globalSettingsFileField = DefaultMavenSettingsBuilder.class.getDeclaredField("globalSettingsFile");
-        globalSettingsFileField.setAccessible(true);
-        globalSettingsFileField.set(builder, mavenFileLocations.getGlobalSettingsFile());
-
-        return builder;
     }
 }

@@ -27,8 +27,6 @@ import java.util.List;
 
 /**
  * This panel displays something that is filtered. Its really just a list with show/hide buttons. You populate it with whatever you like (in String form).
- *
- * @author mhunsicker
  */
 public abstract class AbstractFilterEditorPanel {
     private JPanel mainPanel;

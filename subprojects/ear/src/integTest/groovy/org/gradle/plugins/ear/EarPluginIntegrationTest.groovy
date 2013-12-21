@@ -17,12 +17,14 @@
 package org.gradle.plugins.ear
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.gradle.test.fixtures.archive.JarTestFixture
+import org.hamcrest.Matchers
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Test
 
-/**
- * @author: Szczepan Faber, created at: 6/3/11
- */
+import static org.testng.Assert.assertEquals
+
 class EarPluginIntegrationTest extends AbstractIntegrationTest {
 
     @Before
@@ -46,13 +48,13 @@ dependencies {
 """)
         //when
         executer.withTasks('assemble').run()
-        file("build/libs/root.ear").unzipTo(file("unzipped"))
 
         //then
-        file("unzipped/rootLib.jar").assertExists()
-        file("unzipped/META-INF/MANIFEST.MF").assertExists()
-        file("unzipped/META-INF/application.xml").assertExists()
-        file("unzipped/lib/earLib.jar").assertExists()
+        def ear = new JarTestFixture(file('build/libs/root.ear'))
+        ear.assertContainsFile("META-INF/MANIFEST.MF")
+        ear.assertContainsFile("META-INF/application.xml")
+        ear.assertContainsFile("rootLib.jar")
+        ear.assertContainsFile("lib/earLib.jar")
     }
 
     @Test
@@ -75,11 +77,35 @@ ear {
 """)
         //when
         executer.withTasks('assemble').run()
+
+        //then
+        def ear = new JarTestFixture(file('build/libs/root.ear'))
+        ear.assertContainsFile("CUSTOM/lib/earLib.jar")
+        ear.assertFileContent("META-INF/application.xml", Matchers.containsString("cool ear"))
+    }
+
+    @Test
+    void "includes modules in deployment descriptor"() {
+        file('moduleA.jar').createFile()
+        file('moduleB.war').createFile()
+
+        file("build.gradle").write("""
+apply plugin: 'ear'
+
+dependencies {
+    deploy files('moduleA.jar', 'moduleB.war')
+}
+""")
+        //when
+        executer.withTasks('assemble').run()
         file("build/libs/root.ear").unzipTo(file("unzipped"))
 
         //then
-        file("unzipped/CUSTOM/lib/earLib.jar").assertExists()
-        assert file("unzipped/META-INF/application.xml").text.contains('cool ear')
+        def appXml = new XmlSlurper().parse(
+                file('unzipped/META-INF/application.xml'))
+        def modules = appXml.module
+        assertEquals(modules[0].ejb.text(), 'moduleA.jar')
+        assertEquals(modules[1].web.'web-uri'.text(), 'moduleB.war')
     }
 
     @Test
@@ -103,12 +129,12 @@ ear {
 
         //when
         executer.withTasks('assemble').run()
-        file("build/libs/root.ear").unzipTo(file("unzipped"))
 
         //then
-        assert file("unzipped/someOtherFile.txt").assertExists()
-        assert file("unzipped/META-INF/stuff/yetAnotherFile.txt").assertExists()
-        assert file("unzipped/META-INF/application.xml").text == applicationXml
+        def ear = new JarTestFixture(file('build/libs/root.ear'))
+        ear.assertContainsFile("someOtherFile.txt")
+        ear.assertContainsFile("META-INF/stuff/yetAnotherFile.txt")
+        ear.assertFileContent("META-INF/application.xml", applicationXml)
     }
 
     @Test
@@ -133,11 +159,60 @@ ear {
 
         //when
         executer.withTasks('assemble').run()
-        file("build/libs/root.ear").unzipTo(file("unzipped"))
 
         //then
-        assert file("unzipped/someOtherFile.txt").assertExists()
-        assert file("unzipped/META-INF/stuff/yetAnotherFile.txt").assertExists()
-        assert file("unzipped/META-INF/application.xml").text == applicationXml
+        def ear = new JarTestFixture(file('build/libs/root.ear'))
+        ear.assertContainsFile("someOtherFile.txt")
+        ear.assertContainsFile("META-INF/stuff/yetAnotherFile.txt")
+        ear.assertFileContent("META-INF/application.xml", applicationXml)
     }
+
+    @Test @Ignore
+    void "exclude duplicates: deploymentDescriptor has priority over metaInf"() {
+        file('bad-meta-inf/application.xml').createFile().write('bad descriptor')
+        file('build.gradle').write('''
+apply plugin: 'ear'
+ear {
+   duplicatesStrategy = 'exclude'
+   metaInf {
+       from 'bad-meta-inf'
+   }
+   deploymentDescriptor {
+       applicationName = 'good'
+   }
+}''')
+
+        // when
+        executer.withTasks('assemble').run();
+
+        // then
+        def ear = new JarTestFixture(file('build/libs/root.ear'))
+        ear.assertFileContent("META-INF/application.xml", Matchers.not(Matchers.containsString("bad descriptor")))
+    }
+
+    @Test
+    void "exclude duplicates: lib has priority over other files"() {
+        file('bad-lib/file.txt').createFile().write('bad')
+        file('good-lib/file.txt').createFile().write('good')
+
+        file('build.gradle').write('''
+apply plugin: 'ear'
+ear {
+   duplicatesStrategy = 'exclude'
+   into('lib') {
+       from 'bad-lib'
+   }
+   lib {
+       from 'good-lib'
+   }
+}''')
+
+        // when
+        executer.withTasks('assemble').run();
+
+        // then
+        def ear = new JarTestFixture(file('build/libs/root.ear'))
+        ear.assertFileContent("lib/file.txt", "good")
+    }
+
 }

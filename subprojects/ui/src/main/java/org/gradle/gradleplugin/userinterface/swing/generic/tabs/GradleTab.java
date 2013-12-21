@@ -19,13 +19,10 @@ import java.awt.*;
 
 /**
  * Interface for a tab in the gradle UI.
- *
- * @author mhunsicker
  */
 public interface GradleTab {
     /**
      * @return the name of this tab
-     * @author mhunsicker
      */
     public String getName();
 

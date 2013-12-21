@@ -23,6 +23,7 @@ import org.apache.http.util.EntityUtils;
 import org.gradle.api.internal.externalresource.AbstractExternalResource;
 import org.gradle.api.internal.externalresource.metadata.DefaultExternalResourceMetaData;
 import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData;
+import org.gradle.internal.hash.HashValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,13 +37,15 @@ class HttpResponseResource extends AbstractExternalResource {
     private final String source;
     private final HttpResponse response;
     private final ExternalResourceMetaData metaData;
+    private boolean wasOpened;
 
     public HttpResponseResource(String method, String source, HttpResponse response) {
         this.method = method;
         this.source = source;
         this.response = response;
 
-        this.metaData = new DefaultExternalResourceMetaData(source, getLastModified(), getContentLength(), getEtag(response));
+        String etag = getEtag(response);
+        this.metaData = new DefaultExternalResourceMetaData(source, getLastModified(), getContentLength(), etag, getSha1(response, etag));
     }
 
     public String getName() {
@@ -88,6 +91,11 @@ class HttpResponseResource extends AbstractExternalResource {
         }
     }
 
+    public String getContentType() {
+        final Header header = response.getFirstHeader(HttpHeaders.CONTENT_TYPE);
+        return header == null ? null : header.getValue();
+    }
+
     public boolean exists() {
         return true;
     }
@@ -97,7 +105,11 @@ class HttpResponseResource extends AbstractExternalResource {
     }
 
     public InputStream openStream() throws IOException {
+        if(wasOpened){
+            throw new IOException("Unable to open Stream as it was opened before.");
+        }
         LOGGER.debug("Attempting to download resource {}.", source);
+        this.wasOpened = true;
         return response.getEntity().getContent();
     }
 
@@ -109,5 +121,21 @@ class HttpResponseResource extends AbstractExternalResource {
     private static String getEtag(HttpResponse response) {
         Header etagHeader = response.getFirstHeader(HttpHeaders.ETAG);
         return etagHeader == null ? null : etagHeader.getValue();
+    }
+    
+    private static HashValue getSha1(HttpResponse response, String etag) {
+        Header sha1Header = response.getFirstHeader("X-Checksum-Sha1");
+        if (sha1Header != null) {
+            return new HashValue(sha1Header.getValue());    
+        }
+
+        // Nexus uses sha1 etags, with a constant prefix
+        // e.g {SHA1{b8ad5573a5e9eba7d48ed77a48ad098e3ec2590b}}
+        if (etag != null && etag.startsWith("{SHA1{")) {
+            String hash = etag.substring(6, etag.length() - 2);
+            return new HashValue(hash);
+        }
+
+        return null;
     }
 }

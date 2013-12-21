@@ -23,7 +23,7 @@ package org.gradle.api.internal.tasks.testing.processors
 
 import org.gradle.api.internal.tasks.testing.TestClassProcessor
 import org.gradle.util.JUnit4GroovyMockery
-import org.gradle.util.TimeProvider
+import org.gradle.internal.TimeProvider
 import org.jmock.integration.junit4.JMock
 import org.junit.Test
 import org.junit.runner.RunWith

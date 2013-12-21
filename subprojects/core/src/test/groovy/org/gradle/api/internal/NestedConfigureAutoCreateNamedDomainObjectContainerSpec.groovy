@@ -16,6 +16,7 @@
 package org.gradle.api.internal
 
 import spock.lang.*
+import org.gradle.internal.reflect.DirectInstantiator
 
 class NestedConfigureAutoCreateNamedDomainObjectContainerSpec extends Specification {
 
@@ -98,7 +99,7 @@ class NestedConfigureAutoCreateNamedDomainObjectContainerSpec extends Specificat
 
 
         then:
-        def e = thrown(MissingMethodException)
+        def e = thrown(groovy.lang.MissingMethodException)
         e.method == "somethingThatDoesntExist"
         parent.c1.m1.prop == "c1c1m1"
         

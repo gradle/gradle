@@ -21,7 +21,7 @@ import java.io.IOException;
 /**
  * A file system accessible to Gradle.
  */
-public interface FileSystem {
+public interface FileSystem extends Chmod {
     /**
      * Default Unix permissions for directories, {@code 755}.
      */
@@ -79,16 +79,4 @@ public interface FileSystem {
      * @see #DEFAULT_FILE_MODE
      */
     int getUnixMode(File file) throws IOException;
-
-    /**
-     * Changes the Unix permissions of a provided file. Implementations that don't
-     * support Unix permissions may choose to ignore this request.
-     *
-     * @param file the file to change permissions on
-     * @param mode the permissions, e.g. 0755
-     * @throws java.io.FileNotFoundException if {@code file} doesn't exist
-     * @throws IOException if the permissions can't be changed
-     */
-    void chmod(File file, int mode) throws IOException;
 }
-

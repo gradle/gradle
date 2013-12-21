@@ -19,12 +19,10 @@ import groovy.lang.Closure;
 
 /**
  * Specifies sources for a file copy.
- *
- * @author Steve Appling
  */
 public interface CopySourceSpec {
     /**
-     * Specifies source files or directories for a copy. The given paths are evaluated as for {@link
+     * Specifies source files or directories for a copy. The given paths are evaluated as per {@link
      * org.gradle.api.Project#files(Object...)}.
      *
      * @param sourcePaths Paths to source files for the copy
@@ -33,7 +31,7 @@ public interface CopySourceSpec {
 
     /**
      * Specifies the source files or directories for a copy and creates a child {@code CopySourceSpec}. The given source
-     * path is evaluated as for {@link org.gradle.api.Project#files(Object...)} .
+     * path is evaluated as per {@link org.gradle.api.Project#files(Object...)} .
      *
      * @param sourcePath Path to source for the copy
      * @param configureClosure closure for configuring the child CopySourceSpec

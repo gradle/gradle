@@ -15,11 +15,22 @@
  */
 
 dependencies {
-    groovy libraries.groovy
+    compile libraries.groovy
     compile project(':core')
     compile project(":plugins")
     compile project(":ide")
+    compile libraries.commons_io
     integTestRuntime project(":maven")
 }
 
+
+integTestTasks.all {
+    if (isWindows && systemProperties['org.gradle.integtest.executer'] == "embedded") {
+        systemProperties['org.gradle.integtest.executer'] =  "forking"
+    }
+}
+
 useTestFixtures()
+useTestFixtures(sourceSet: "testFixtures")
+
+//useClassycle()

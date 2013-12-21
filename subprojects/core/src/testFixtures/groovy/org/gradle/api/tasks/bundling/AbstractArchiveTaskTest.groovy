@@ -16,22 +16,20 @@
 
 package org.gradle.api.tasks.bundling
 
-import org.gradle.api.internal.ConventionTask
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.tasks.AbstractConventionTaskTest
+import org.gradle.api.tasks.AbstractCopyTaskContractTest
 import org.junit.Test
-import static org.junit.Assert.*
 
-/**
- * @author Hans Dockter
- */
-abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
+import static org.junit.Assert.assertEquals
+import static org.junit.Assert.assertTrue
+
+abstract class AbstractArchiveTaskTest extends AbstractCopyTaskContractTest {
 
     FileResolver resolver = [resolve: {it as File}] as FileResolver
 
     abstract AbstractArchiveTask getArchiveTask()
 
-    ConventionTask getTask() {
+    AbstractArchiveTask getTask() {
         archiveTask
     }
 
@@ -44,10 +42,11 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
         archiveTask.appendix = 'testappendix'
         archiveTask.version = '1.0'
         archiveTask.classifier = 'src'
-        archiveTask.destinationDir = new File(tmpDir.dir, 'destinationDir')
+        archiveTask.destinationDir = new File(tmpDir.testDirectory, 'destinationDir')
     }
 
     @Test public void testExecute() {
+        archiveTask.from tmpDir.createFile('file.txt')
         archiveTask.execute()
         assertTrue(archiveTask.destinationDir.isDirectory())
         assertTrue(archiveTask.archivePath.isFile())

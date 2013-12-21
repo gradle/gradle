@@ -8,7 +8,7 @@ dependencies {
     compile gradleApi()
 // END SNIPPET gradle-api-dependencies
 // START SNIPPET local-groovy-dependencies
-    groovy localGroovy()
+    compile localGroovy()
 // START SNIPPET gradle-api-dependencies
 }
 // END SNIPPET gradle-api-dependencies
@@ -22,7 +22,7 @@ repositories {
 }
 
 dependencies {
-    testCompile 'junit:junit:4.8.2'
+    testCompile 'junit:junit:4.11'
 }
 
 group = 'org.gradle'

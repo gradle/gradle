@@ -20,12 +20,12 @@ import org.gradle.tooling.model.ExternalDependency;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.HasGradleProject;
 
-import java.io.File;
-
 /**
  * The complete model of an Eclipse project.
  *
  * <p>Note that the names of Eclipse projects are unique, and can be used as an identifier for the project.
+ *
+ * @since 1.0-milestone-3
  */
 public interface EclipseProject extends HierarchicalEclipseProject, HasGradleProject {
     /**
@@ -40,7 +40,7 @@ public interface EclipseProject extends HierarchicalEclipseProject, HasGradlePro
 
     /**
      * The gradle project that is associated with this project.
-     * Typically, a single eclipse project corresponds to a single gradle project.
+     * Typically, a single Eclipse project corresponds to a single gradle project.
      * <p>
      * See {@link HasGradleProject}
      *
@@ -53,14 +53,7 @@ public interface EclipseProject extends HierarchicalEclipseProject, HasGradlePro
      * Returns the external dependencies which make up the classpath of this project.
      *
      * @return The dependencies. Returns an empty set if the project has no external dependencies.
+     * @since 1.0-milestone-3
      */
     DomainObjectSet<? extends ExternalDependency> getClasspath();
-
-    /**
-     * Returns the project directory for this project.
-     *
-     * @return The project directory.
-     */
-    File getProjectDirectory();
-
 }

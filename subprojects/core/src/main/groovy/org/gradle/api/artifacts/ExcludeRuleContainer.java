@@ -20,8 +20,6 @@ import java.util.Set;
 
 /**
  * <p>A container for adding exclude rules for dependencies.</p>
- *
- * @author Hans Dockter
  */
 public interface ExcludeRuleContainer {
     /**

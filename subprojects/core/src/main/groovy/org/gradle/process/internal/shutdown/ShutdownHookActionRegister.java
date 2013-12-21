@@ -22,9 +22,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-/**
- * @author Tom Eyckmans
- */
 public class ShutdownHookActionRegister {
     private static final ShutdownHookActionRegister INSTANCE = new ShutdownHookActionRegister();
     private final List<Runnable> shutdownHookActions = new CopyOnWriteArrayList<Runnable>();

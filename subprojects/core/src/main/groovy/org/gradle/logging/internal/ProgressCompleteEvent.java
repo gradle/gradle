@@ -19,18 +19,30 @@ import org.gradle.api.logging.LogLevel;
 
 public class ProgressCompleteEvent extends CategorisedOutputEvent {
     private final String status;
+    private final String description;
+    private long operationId;
 
-    public ProgressCompleteEvent(long timestamp, String category, String status) {
+    public ProgressCompleteEvent(long operationId, long timestamp, String category, String description, String status) {
         super(timestamp, category, LogLevel.LIFECYCLE);
+        this.operationId = operationId;
         this.status = status;
+        this.description = description;
     }
 
     public String getStatus() {
         return status;
     }
 
+    public String getDescription() {
+        return description;
+    }
+
     @Override
     public String toString() {
         return String.format("ProgressComplete %s", status);
+    }
+
+    public long getOperationId() {
+        return operationId;
     }
 }

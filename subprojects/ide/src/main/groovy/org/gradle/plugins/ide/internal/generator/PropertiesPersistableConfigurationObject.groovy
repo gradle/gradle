@@ -15,8 +15,8 @@
  */
 package org.gradle.plugins.ide.internal.generator
 
+import org.gradle.api.internal.ClosureBackedAction
 import org.gradle.api.internal.PropertiesTransformer
-
 
 abstract class PropertiesPersistableConfigurationObject extends AbstractPersistableConfigurationObject {
     private final PropertiesTransformer transformer
@@ -44,6 +44,6 @@ abstract class PropertiesPersistableConfigurationObject extends AbstractPersista
     protected abstract void load(Properties properties)
     
     void transformAction(Closure action) {
-        transformer.addAction(action)
+        transformer.addAction(new ClosureBackedAction<Properties>(action))
     }
 }

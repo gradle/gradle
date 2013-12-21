@@ -20,14 +20,11 @@ import org.apache.commons.lang.StringUtils;
 import org.fusesource.jansi.Ansi;
 import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.internal.SystemProperties;
 
 import java.io.Flushable;
 import java.io.IOException;
 
 public class AnsiConsole implements Console {
-    private final static String EOL = SystemProperties.getLineSeparator();
-
     private final Appendable target;
     private final Flushable flushable;
     private LabelImpl statusBar;

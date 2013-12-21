@@ -31,7 +31,7 @@ public class LockingBlockStore implements BlockStore {
     public void open(final Runnable initAction, final BlockStore.Factory factory) {
         store.open(new Runnable() {
             public void run() {
-                fileAccess.writeToFile(initAction);
+                fileAccess.updateFile(initAction);
             }
         }, factory);
     }
@@ -41,7 +41,7 @@ public class LockingBlockStore implements BlockStore {
     }
 
     public void flush() {
-        fileAccess.writeToFile(new Runnable() {
+        fileAccess.updateFile(new Runnable() {
             public void run() {
                 store.flush();
             }
@@ -49,7 +49,7 @@ public class LockingBlockStore implements BlockStore {
     }
 
     public void clear() {
-        fileAccess.writeToFile(new Runnable() {
+        fileAccess.updateFile(new Runnable() {
             public void run() {
                 store.clear();
             }
@@ -61,7 +61,7 @@ public class LockingBlockStore implements BlockStore {
     }
 
     public <T extends BlockPayload> T read(final BlockPointer pos, final Class<T> payloadType) {
-        return fileAccess.readFromFile(new Callable<T>() {
+        return fileAccess.readFile(new Callable<T>() {
             public T call() throws Exception {
                 return store.read(pos, payloadType);
             }
@@ -69,7 +69,7 @@ public class LockingBlockStore implements BlockStore {
     }
 
     public <T extends BlockPayload> T readFirst(final Class<T> payloadType) {
-        return fileAccess.readFromFile(new Callable<T>() {
+        return fileAccess.readFile(new Callable<T>() {
             public T call() throws Exception {
                 return store.readFirst(payloadType);
             }
@@ -77,7 +77,7 @@ public class LockingBlockStore implements BlockStore {
     }
 
     public void write(final BlockPayload block) {
-        fileAccess.writeToFile(new Runnable() {
+        fileAccess.updateFile(new Runnable() {
             public void run() {
                 store.write(block);
             }
@@ -85,7 +85,7 @@ public class LockingBlockStore implements BlockStore {
     }
 
     public void remove(final BlockPayload block) {
-        fileAccess.writeToFile(new Runnable() {
+        fileAccess.updateFile(new Runnable() {
             public void run() {
                 store.remove(block);
             }

@@ -34,7 +34,7 @@
     <xsl:param name="html.stylesheet">DUMMY</xsl:param>
     <xsl:template name="output.html.stylesheets">
         <link href="base.css" rel="stylesheet" type="text/css"/>
-        <link href="style.css" rel="stylesheet" type="text/css"/>
+        <link href="docs.css" rel="stylesheet" type="text/css"/>
         <link href="userguide.css" rel="stylesheet" type="text/css"/>
     </xsl:template>
 
@@ -88,7 +88,7 @@
     
     <!-- BOOK TITLEPAGE -->
 
-    <!-- Customise the contents of the book titlepage -->
+    <!-- Customize the contents of the book titlepage -->
     <xsl:template name="book.titlepage">
         <div class="titlepage">
             <div class="title">

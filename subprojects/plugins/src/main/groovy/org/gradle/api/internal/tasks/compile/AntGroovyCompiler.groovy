@@ -21,19 +21,14 @@ import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.project.IsolatedAntBuilder
 import org.gradle.api.tasks.WorkResult
 import org.gradle.api.tasks.compile.CompileOptions
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import org.gradle.util.VersionNumber
 
 /**
  * Please note: includeAntRuntime=false is ignored if groovyc is used in non fork mode. In this case the runtime classpath is
  * added to the compile classpath.
  * See: http://jira.codehaus.org/browse/GROOVY-2717
- *
- * @author Hans Dockter
  */
 class AntGroovyCompiler implements org.gradle.api.internal.tasks.compile.Compiler<GroovyJavaJointCompileSpec> {
-    private static Logger logger = LoggerFactory.getLogger(AntGroovyCompiler)
-
     private final IsolatedAntBuilder ant
     private final ClassPathRegistry classPathRegistry
 
@@ -49,10 +44,17 @@ class AntGroovyCompiler implements org.gradle.api.internal.tasks.compile.Compile
 
         // Add in commons-cli, as the Groovy POM does not (for some versions of Groovy)
         Collection antBuilderClasspath = (spec.groovyClasspath as List) + classPathRegistry.getClassPath("COMMONS_CLI").asFiles
-        
+
+        def groovyVersion = sniffGroovyVersion(spec.groovyClasspath)
+        // in Groovy 1.7.11, 1.8.7, and beyond, the combination of includeAntRuntime=false and fork=false is no longer allowed by the
+        // groovyc Ant task and fails hard. That's why we have to enforce includeAntRuntime=true whenever fork=false in these versions,
+        // even though this breaks some stuff. For example, compiling a class that extends GroovyTestCase runs into a NoClassDefFoundError:
+        // org/junit/TestCase then.
+        def includeAntRuntime = groovyVersion == VersionNumber.parse("1.7.11") || groovyVersion >= VersionNumber.parse("1.8.7") ? !spec.groovyCompileOptions.fork : false
+
         ant.withGroovy(antBuilderClasspath).execute {
             taskdef(name: 'groovyc', classname: 'org.codehaus.groovy.ant.Groovyc')
-            def task = groovyc([includeAntRuntime: false, destdir: spec.destinationDir, classpath: ((spec.classpath as List) + antBuilderClasspath).join(File.pathSeparator)]
+            def task = groovyc([includeAntRuntime: includeAntRuntime, destdir: spec.destinationDir, classpath: ((spec.classpath as List) + antBuilderClasspath).join(File.pathSeparator)]
                     + spec.groovyCompileOptions.optionMap()) {
                 spec.source.addToAntBuilder(delegate, 'src', FileCollection.AntType.MatchingTask)
                 javac([source: spec.sourceCompatibility, target: spec.targetCompatibility] + filterNonGroovycOptions(spec.compileOptions)) {
@@ -76,5 +78,17 @@ class AntGroovyCompiler implements org.gradle.api.internal.tasks.compile.Compile
             }
         }
         result
+    }
+
+    private VersionNumber sniffGroovyVersion(Iterable<File> classpath) {
+        def classLoader = new URLClassLoader(classpath*.toURI()*.toURL() as URL[], (ClassLoader) null)
+        try {
+            def clazz = classLoader.loadClass("groovy.lang.GroovySystem")
+            return VersionNumber.parse(clazz.getVersion())
+        } catch (ClassNotFoundException ignored) {
+            return VersionNumber.UNKNOWN
+        } catch (LinkageError ignored) {
+            return VersionNumber.UNKNOWN
+        }
     }
 }

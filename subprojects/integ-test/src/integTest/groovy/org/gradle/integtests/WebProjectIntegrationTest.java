@@ -16,7 +16,7 @@
 package org.gradle.integtests;
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest;
-import org.gradle.util.TestFile;
+import org.gradle.test.fixtures.file.TestFile;
 import org.junit.Test;
 
 public class WebProjectIntegrationTest extends AbstractIntegrationTest {
@@ -34,7 +34,7 @@ public class WebProjectIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void canCustomiseArchiveNamesUsingConventionProperties() {
+    public void canCustomizeArchiveNamesUsingConventionProperties() {
         testFile("settings.gradle").writelns("rootProject.name = 'test'");
         TestFile buildFile = testFile("build.gradle");
         buildFile.writelns(

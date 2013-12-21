@@ -17,15 +17,15 @@
 package org.gradle.process.internal.child;
 
 import org.gradle.api.internal.ClassPathRegistry;
+import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.messaging.remote.Address;
+import org.gradle.process.JavaExecSpec;
 import org.gradle.process.internal.WorkerProcessBuilder;
-import org.gradle.util.GFileUtils;
+import org.gradle.process.internal.launcher.GradleWorkerMain;
 
-import java.io.File;
 import java.net.URI;
 import java.net.URL;
 import java.util.Collection;
-import java.util.List;
 import java.util.concurrent.Callable;
 
 /**
@@ -69,12 +69,13 @@ public class ApplicationClassesInIsolatedClassLoaderWorkerFactory implements Wor
         this.classPathRegistry = classPathRegistry;
     }
 
-    public Collection<File> getSystemClasspath() {
-        return classPathRegistry.getClassPath("WORKER_PROCESS").getAsFiles();
+    public void prepareJavaCommand(JavaExecSpec execSpec) {
+        execSpec.setMain(GradleWorkerMain.class.getName());
+        execSpec.classpath(classPathRegistry.getClassPath("WORKER_PROCESS").getAsFiles());
     }
 
     public Callable<?> create() {
-        List<URI> applicationClassPath = GFileUtils.toURIs(processBuilder.getApplicationClasspath());
+        Collection<URI> applicationClassPath = new DefaultClassPath(processBuilder.getApplicationClasspath()).getAsURIs();
         ActionExecutionWorker injectedWorker = new ActionExecutionWorker(processBuilder.getWorker(), workerId,
                 displayName, serverAddress);
         ImplementationClassLoaderWorker worker = new ImplementationClassLoaderWorker(processBuilder.getLogLevel(),

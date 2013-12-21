@@ -17,13 +17,19 @@ package org.gradle.testing
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import spock.lang.Issue
 
 @Issue("GRADLE-1009")
 public class TestOutputListenerIntegrationTest extends AbstractIntegrationSpec {
-    @Rule public final TestResources resources = new TestResources()
+    @Rule public final TestResources resources = new TestResources(temporaryFolder)
+
+    @Before
+    public void before() {
+        executer.noExtraLogging()
+    }
 
     @Test
     def "can use standard output listener for tests"() {
@@ -50,7 +56,7 @@ public class SomeTest {
         buildFile << """
 apply plugin: 'java'
 repositories { mavenCentral() }
-dependencies { testCompile "junit:junit:4.8.2" }
+dependencies { testCompile "junit:junit:4.11" }
 
 test.addTestOutputListener(new VerboseOutputListener(logger: project.logger))
 
@@ -103,7 +109,7 @@ public class SomeTest {
         buildFile << """
 apply plugin: 'java'
 repositories { mavenCentral() }
-dependencies { testCompile "junit:junit:4.8.2" }
+dependencies { testCompile "junit:junit:4.11" }
 
 test.onOutput { descriptor, event ->
     logger.lifecycle("first: " + event.message)
@@ -146,7 +152,7 @@ public class SomeTest {
         buildFile << """
 apply plugin: 'java'
 repositories { mavenCentral() }
-dependencies { testCompile "junit:junit:4.8.2" }
+dependencies { testCompile "junit:junit:4.11" }
 
 test.testLogging {
     showStandardStreams = true
@@ -187,16 +193,16 @@ test {
     testLogging.showStandardStreams = true
 }
 """
-        when: "run without '-i'"
-        def result = executer.setAllowExtraLogging(false).withTasks('test').run()
+        when: "run with quiet"
+        def result = executer.withArguments("-q").withTasks('test'). run()
         then:
         !result.output.contains('output from foo')
 
-        when: "run with '-i'"
-        result = executer.withTasks('cleanTest', 'test').withArguments('-i').run()
+        when: "run with lifecycle"
+        result = executer.noExtraLogging().withTasks('cleanTest', 'test').run()
 
         then:
         result.output.contains('output from foo')
-        result.error.contains('error from foo')
+        result.output.contains('error from foo')
     }
 }

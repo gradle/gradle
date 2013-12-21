@@ -16,14 +16,12 @@
 
 package org.gradle.process.internal;
 
-/**
- * @author Tom Eyckmans
- */
 public enum ExecHandleState {
     INIT,
     STARTING,
     STARTED,
     ABORTED,
     FAILED,
+    DETACHED,
     SUCCEEDED
 }

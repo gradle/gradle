@@ -17,16 +17,20 @@
 package org.gradle.internal.jvm
 
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.SetSystemProperties
-import org.gradle.util.TemporaryFolder
-import org.gradle.util.TestFile
 import org.junit.Rule
 import spock.lang.Specification
 
 class JvmTest extends Specification {
-    @Rule TemporaryFolder tmpDir = new TemporaryFolder()
+    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     @Rule SetSystemProperties sysProp = new SetSystemProperties()
-    OperatingSystem os = Mock()
+    OperatingSystem os = Mock() {
+        getExecutableName(_) >> { String name ->
+            return "${name}.exe"
+        }
+    }
     OperatingSystem theOs = OperatingSystem.current()
 
     Jvm getJvm() {
@@ -37,9 +41,9 @@ class JvmTest extends Specification {
         System.properties['java.version'] = "1.$version" as String
 
         expect:
-        jvm."java$version"
-        !jvm."java$other1"
-        !jvm."java$other2"
+        jvm.javaVersion."java$version"
+        !jvm.javaVersion."java$other1"
+        !jvm.javaVersion."java$other2"
 
         where:
         version | other1 | other2
@@ -48,49 +52,23 @@ class JvmTest extends Specification {
         7       | 5      | 6
     }
 
-    def "uses system property to determine if compatible with Java 5"() {
-        System.properties['java.version'] = '1.5'
-
-        expect:
-        jvm.java5Compatible
-        !jvm.java6Compatible
-    }
-
-    def "uses system property to determine if compatible with Java 6"() {
-        System.properties['java.version'] = '1.6'
-
-        expect:
-        jvm.java5Compatible
-        jvm.java6Compatible
-    }
-
-    def "looks for runtime Jar in Java home directory"() {
-        TestFile javaHomeDir = tmpDir.createDir('jdk')
-        TestFile runtimeJar = javaHomeDir.file('lib/rt.jar').createFile()
-        System.properties['java.home'] = javaHomeDir.absolutePath
-
-        expect:
-        jvm.javaHome == javaHomeDir
-        jvm.runtimeJar == runtimeJar
-    }
-
-    def "looks for tools Jar in Java home directory"() {
-        TestFile javaHomeDir = tmpDir.createDir('jdk')
-        TestFile toolsJar = javaHomeDir.file('lib/tools.jar').createFile()
-        System.properties['java.home'] = javaHomeDir.absolutePath
-
-        expect:
-        jvm.javaHome == javaHomeDir
-        jvm.toolsJar == toolsJar
-    }
-
-    def "provides information when typical jdk installed"() {
+    def "locates JDK and JRE installs when java.home points to a typical JRE installation embedded in a JDK installation"() {
         given:
         TestFile software = tmpDir.createDir('software')
         software.create {
             jdk {
-                jre { lib { file 'rt.jar' }}
-                lib { file 'tools.jar'}
+                lib {
+                    file 'tools.jar'
+                }
+                bin {
+                    file 'java.exe'
+                    file 'javac.exe'
+                    file 'javadoc.exe'
+                }
+                jre {
+                    lib { file 'rt.jar' }
+                    bin { file 'java.exe' }
+                }
             }
         }
 
@@ -98,70 +76,189 @@ class JvmTest extends Specification {
         System.properties['java.home'] = software.file('jdk/jre').absolutePath
 
         then:
-        jvm.javaHome.absolutePath == software.file('jdk').absolutePath
+        jvm.javaHome == software.file('jdk')
         jvm.runtimeJar == software.file('jdk/jre/lib/rt.jar')
         jvm.toolsJar == software.file('jdk/lib/tools.jar')
+        jvm.javaExecutable == software.file('jdk/bin/java.exe')
+        jvm.javacExecutable == software.file('jdk/bin/javac.exe')
+        jvm.javadocExecutable == software.file('jdk/bin/javadoc.exe')
+        jvm.jre.homeDir == software.file('jdk/jre')
+        jvm.standaloneJre == null
     }
 
-    def "provides information when typical jre installed"() {
+    def "locates JDK and JRE installs when java.home points to a typical JDK installation"() {
         given:
         TestFile software = tmpDir.createDir('software')
         software.create {
-            jre { lib { file 'rt.jar' }}
+            jdk {
+                lib {
+                    file 'tools.jar'
+                }
+                bin {
+                    file 'java.exe'
+                    file 'javac.exe'
+                    file 'javadoc.exe'
+                }
+                jre {
+                    lib { file 'rt.jar' }
+                    bin { file 'java.exe' }
+                }
+            }
+        }
+
+        when:
+        System.properties['java.home'] = software.file('jdk').absolutePath
+
+        then:
+        jvm.javaHome == software.file('jdk')
+        jvm.runtimeJar == software.file('jdk/jre/lib/rt.jar')
+        jvm.toolsJar == software.file('jdk/lib/tools.jar')
+        jvm.javaExecutable == software.file('jdk/bin/java.exe')
+        jvm.javacExecutable == software.file('jdk/bin/javac.exe')
+        jvm.javadocExecutable == software.file('jdk/bin/javadoc.exe')
+        jvm.jre.homeDir == software.file('jdk/jre')
+        jvm.standaloneJre == null
+    }
+
+    def "locates JDK and JRE installs when java.home points to a typical standalone JRE installation"() {
+        given:
+        TestFile software = tmpDir.createDir('software')
+        software.create {
+            jre {
+                bin { file 'java.exe' }
+                lib { file 'rt.jar' }
+            }
         }
 
         when:
         System.properties['java.home'] = software.file('jre').absolutePath
 
         then:
-        jvm.javaHome.absolutePath == software.file('jre').absolutePath
+        jvm.javaHome == software.file('jre')
         jvm.runtimeJar == software.file('jre/lib/rt.jar')
         jvm.toolsJar == null
+        jvm.javaExecutable == software.file('jre/bin/java.exe')
+        jvm.javacExecutable == new File('javac.exe')
+        jvm.javadocExecutable == new File('javadoc.exe')
+        jvm.jre.homeDir == software.file('jre')
+        jvm.standaloneJre.homeDir == software.file('jre')
     }
 
-    def "looks for tools Jar in parent of JRE's Java home directory"() {
-        TestFile javaHomeDir = tmpDir.createDir('jdk')
-        TestFile toolsJar = javaHomeDir.file('lib/tools.jar').createFile()
-        System.properties['java.home'] = javaHomeDir.file('jre').absolutePath
+    def "locates JDK and JRE installs when java.home points to a typical standalone JRE installation on Windows"() {
+        given:
+        TestFile software = tmpDir.createDir('software')
+        software.create {
+            "${jreDirName}" {
+                bin { file 'java.exe' }
+                lib { file 'rt.jar' }
+            }
+            "${jdkDirName}" {
+                bin {
+                    file 'java.exe'
+                    file 'javac.exe'
+                    file 'javadoc.exe'
+                }
+                lib { file 'tools.jar' }
+            }
+        }
+        def jreDir = software.file(jreDirName)
+        def jdkDir = software.file(jdkDirName)
 
-        expect:
-        def jvm = new Jvm(os)
-        jvm.javaHome == javaHomeDir
-        jvm.toolsJar == toolsJar
-    }
-
-    def "looks for tools Jar in sibling of JRE's Java home directory on Windows"() {
-        TestFile javaHomeDir = tmpDir.createDir('jdk1.6.0')
-        TestFile toolsJar = javaHomeDir.file('lib/tools.jar').createFile()
-        System.properties['java.home'] = tmpDir.createDir('jre6').absolutePath
-        System.properties['java.version'] = '1.6.0'
+        and:
         _ * os.windows >> true
 
-        expect:
-        jvm.javaHome == javaHomeDir
-        jvm.toolsJar == toolsJar
+        when:
+        System.properties['java.home'] = jreDir.absolutePath
+        System.properties['java.version'] = version
+
+        then:
+        jvm.javaHome == jdkDir
+        jvm.runtimeJar == jreDir.file("lib/rt.jar")
+        jvm.toolsJar == jdkDir.file("lib/tools.jar")
+        jvm.javaExecutable == jdkDir.file('bin/java.exe')
+        jvm.javacExecutable == jdkDir.file('bin/javac.exe')
+        jvm.javadocExecutable == jdkDir.file('bin/javadoc.exe')
+        jvm.jre.homeDir == jreDir
+        jvm.standaloneJre.homeDir == jreDir
+
+        where:
+        version    | jreDirName    | jdkDirName
+        '1.6.0'    | 'jre6'        | 'jdk1.6.0'
+        '1.5.0_22' | 'jre1.5.0_22' | 'jdk1.5.0_22'
     }
 
-    def "uses system property to locate Java home directory when tools Jar not found"() {
-        TestFile javaHomeDir = tmpDir.createDir('jdk')
-        System.properties['java.home'] = javaHomeDir.absolutePath
+    def "locates JDK and JRE installs when java.home points to a typical JDK installation on Windows"() {
+        given:
+        TestFile software = tmpDir.createDir('software')
+        software.create {
+            "${jreDirName}" {
+                bin { file 'java.exe' }
+                lib {
+                    file 'rt.jar'
+                }
+            }
+            "${jdkDirName}" {
+                bin {
+                    file 'java.exe'
+                    file 'javac.exe'
+                    file 'javadoc.exe'
+                }
+                jre {
+                    lib {
+                        file 'rt.jar'
+                    }
+                }
+                lib {
+                    file 'tools.jar'
+                }
+            }
+        }
+        def jreDir = software.file(jreDirName)
+        def jdkDir = software.file(jdkDirName)
 
-        expect:
-        jvm.javaHome == javaHomeDir
-        jvm.toolsJar == null
+        and:
+        _ * os.windows >> true
+
+        when:
+        System.properties['java.home'] = jdkDir.absolutePath
+        System.properties['java.version'] = version
+
+        then:
+        jvm.javaHome == jdkDir
+        jvm.runtimeJar == jdkDir.file("jre/lib/rt.jar")
+        jvm.toolsJar == jdkDir.file("lib/tools.jar")
+        jvm.javaExecutable == jdkDir.file('bin/java.exe')
+        jvm.javacExecutable == jdkDir.file('bin/javac.exe')
+        jvm.javadocExecutable == jdkDir.file('bin/javadoc.exe')
+        jvm.jre.homeDir == jdkDir.file('jre')
+        jvm.standaloneJre.homeDir == jreDir
+
+        where:
+        version    | jreDirName    | jdkDirName
+        '1.6.0'    | 'jre6'        | 'jdk1.6.0'
+        '1.5.0_22' | 'jre1.5.0_22' | 'jdk1.5.0_22'
+    }
+
+    def "uses system property to determine if Sun/Oracle JVM"() {
+        when:
+        System.properties['java.vm.vendor'] = 'Sun'
+        def jvm = Jvm.create(null)
+
+        then:
+        jvm.getClass() == Jvm
     }
 
     def "uses system property to determine if Apple JVM"() {
         when:
         System.properties['java.vm.vendor'] = 'Apple Inc.'
-        def jvm = Jvm.current()
+        def jvm = Jvm.create(null)
 
         then:
         jvm.getClass() == Jvm.AppleJvm
 
         when:
         System.properties['java.vm.vendor'] = 'Sun'
-        jvm = Jvm.current()
+        jvm = Jvm.create(null)
 
         then:
         jvm.getClass() == Jvm
@@ -170,13 +267,13 @@ class JvmTest extends Specification {
     def "uses system property to determine if IBM JVM"() {
         when:
         System.properties['java.vm.vendor'] = 'IBM Corporation'
-        def jvm = Jvm.current()
+        def jvm = Jvm.create(null)
 
         then:
         jvm.getClass() == Jvm.IbmJvm
     }
 
-    def "finds executable if for java home supplied"() {
+    def "finds executable for java home supplied"() {
         System.properties['java.vm.vendor'] = 'Sun'
 
         when:
@@ -192,7 +289,7 @@ class JvmTest extends Specification {
 
         then:
         home.file(theOs.getExecutableName("jre/bin/javadoc")).absolutePath ==
-            Jvm.forHome(home.file("jre")).getExecutable("javadoc").absolutePath
+                Jvm.forHome(home.file("jre")).getExecutable("javadoc").absolutePath
     }
 
     def "finds tools.jar if java home supplied"() {
@@ -209,7 +306,7 @@ class JvmTest extends Specification {
 
         then:
         home.file("jdk/lib/tools.jar").absolutePath ==
-            Jvm.forHome(home.file("jdk")).toolsJar.absolutePath
+                Jvm.forHome(home.file("jdk")).toolsJar.absolutePath
     }
 
     def "provides decent feedback if executable not found"() {
@@ -231,8 +328,7 @@ class JvmTest extends Specification {
         given:
         def home = tmpDir.createDir("home")
         System.properties['java.home'] = home.absolutePath
-        1 * os.getExecutableName(_ as String) >> "foobar.exe"
-        1 * os.findInPath("foobar") >> new File('/path/foobar.exe')
+        _ * os.findInPath("foobar") >> new File('/path/foobar.exe')
 
         when:
         def exec = jvm.getExecutable("foobar")
@@ -275,7 +371,7 @@ class JvmTest extends Specification {
         then:
         thrown(IllegalArgumentException)
     }
-    
+
     def "describes accurately when created for supplied java home"() {
         when:
         def jvm = new Jvm(theOs, new File('dummyFolder'))

@@ -16,30 +16,30 @@
 package org.gradle.api.plugins.scala
 
 import org.gradle.api.Project
+import org.gradle.api.file.FileCollectionMatchers
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.scala.ScalaCompile
 import org.gradle.api.tasks.scala.ScalaDoc
-import org.gradle.util.HelperUtil
-import org.gradle.util.Matchers
+import org.gradle.util.TestUtil
 import org.junit.Test
-import static org.gradle.util.Matchers.dependsOn
+
+import static org.gradle.api.tasks.TaskDependencyMatchers.dependsOn
 import static org.gradle.util.WrapUtil.toLinkedSet
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.assertThat
 import static org.junit.Assert.assertTrue
 
-public class ScalaPluginTest {
-
-    private final Project project = HelperUtil.createRootProject()
+class ScalaPluginTest {
+    private final Project project = TestUtil.createRootProject()
     private final ScalaPlugin scalaPlugin = new ScalaPlugin()
 
-    @Test public void appliesTheJavaPluginToTheProject() {
+    @Test void appliesTheJavaPluginToTheProject() {
         scalaPlugin.apply(project)
         assertTrue(project.getPlugins().hasPlugin(JavaPlugin))
     }
 
-    @Test public void addsScalaConventionToEachSourceSetAndAppliesMappings() {
+    @Test void addsScalaConventionToEachSourceSetAndAppliesMappings() {
         scalaPlugin.apply(project)
 
         def sourceSet = project.sourceSets.main
@@ -51,7 +51,7 @@ public class ScalaPluginTest {
         assertThat(sourceSet.scala.srcDirs, equalTo(toLinkedSet(project.file("src/test/scala"))))
     }
 
-    @Test public void addsCompileTaskForEachSourceSet() {
+    @Test void addsCompileTaskForEachSourceSet() {
         scalaPlugin.apply(project)
 
         def task = project.tasks['compileScala']
@@ -79,7 +79,7 @@ public class ScalaPluginTest {
         assertThat(task, dependsOn(hasItem('compileTestScala')))
     }
     
-    @Test public void addsScalaDocTasksToTheProject() {
+    @Test void addsScalaDocTasksToTheProject() {
         scalaPlugin.apply(project)
 
         def task = project.tasks[ScalaPlugin.SCALA_DOC_TASK_NAME]
@@ -87,15 +87,15 @@ public class ScalaPluginTest {
         assertThat(task, dependsOn(JavaPlugin.CLASSES_TASK_NAME))
         assertThat(task.destinationDir, equalTo(project.file("$project.docsDir/scaladoc")))
         assertThat(task.source as List, equalTo(project.sourceSets.main.scala as List))
-        assertThat(task.classpath, Matchers.sameCollection(project.files(project.sourceSets.main.output, project.sourceSets.main.compileClasspath)))
+        assertThat(task.classpath, FileCollectionMatchers.sameCollection(project.files(project.sourceSets.main.output, project.sourceSets.main.compileClasspath)))
         assertThat(task.title, equalTo(project.extensions.getByType(ReportingExtension).apiDocTitle))
     }
 
-    @Test public void configuresScalaDocTasksDefinedByTheBuildScript() {
+    @Test void configuresScalaDocTasksDefinedByTheBuildScript() {
         scalaPlugin.apply(project)
 
         def task = project.task('otherScaladoc', type: ScalaDoc)
         assertThat(task, dependsOn(JavaPlugin.CLASSES_TASK_NAME))
-        assertThat(task.classpath, Matchers.sameCollection(project.files(project.sourceSets.main.output, project.sourceSets.main.compileClasspath)))
+        assertThat(task.classpath, FileCollectionMatchers.sameCollection(project.files(project.sourceSets.main.output, project.sourceSets.main.compileClasspath)))
     }
 }

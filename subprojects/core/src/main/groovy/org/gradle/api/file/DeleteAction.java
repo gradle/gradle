@@ -17,8 +17,6 @@ package org.gradle.api.file;
 
 /**
  * Deletes files and directories.
- *
- * @author Hans Dockter
  */
 public interface DeleteAction {
     /**

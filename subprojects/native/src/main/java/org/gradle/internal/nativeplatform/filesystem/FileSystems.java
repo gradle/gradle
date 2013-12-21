@@ -15,12 +15,19 @@
  */
 package org.gradle.internal.nativeplatform.filesystem;
 
+import org.gradle.internal.service.ServiceRegistry;
+
 public abstract class FileSystems {
     public static FileSystem getDefault() {
         return DefaultFileSystem.INSTANCE;
     }
 
     private static class DefaultFileSystem {
-        static final FileSystem INSTANCE = new GenericFileSystem(FilePermissionHandlerFactory.createDefaultFilePermissionHandler());
+        static final FileSystem INSTANCE;
+
+        static {
+            ServiceRegistry services = FileSystemServices.getServices();
+            INSTANCE = new GenericFileSystem(services.get(Chmod.class), services.get(Stat.class), services.get(Symlink.class));
+        }
     }
 }

@@ -19,7 +19,14 @@ import java.util.List;
 
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ *
+ * @since 1.0-milestone-3
+ * @deprecated 1.2-rc-1. Use {@link BuildParameters} instead.
  */
+@Deprecated
 public interface BuildParametersVersion1 {
+    /**
+     * @since 1.0-milestone-3
+     */
     List<String> getTasks();
 }

@@ -24,9 +24,6 @@ import java.net.URISyntaxException;
 import java.util.Formatter;
 import java.util.Properties;
 
-/**
- * @author Hans Dockter
- */
 public class WrapperExecutor {
     public static final String DISTRIBUTION_URL_PROPERTY = "distributionUrl";
     public static final String DISTRIBUTION_BASE_PROPERTY = "distributionBase";

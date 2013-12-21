@@ -16,16 +16,16 @@
 
 package org.gradle.api.internal.tasks.compile
 
-import org.gradle.util.TemporaryFolder
+import com.google.common.collect.Lists
 import org.gradle.api.internal.file.TemporaryFileProvider
 import org.gradle.api.internal.file.collections.SimpleFileCollection
-import com.google.common.collect.Lists
-
+import org.gradle.api.tasks.compile.CompileOptions
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
 class CommandLineJavaCompilerArgumentsGeneratorTest extends Specification {
-    @Rule TemporaryFolder tempDir
+    @Rule TestNameTestDirectoryProvider tempDir
     TemporaryFileProvider tempFileProvider = Mock()
     CommandLineJavaCompilerArgumentsGenerator argsGenerator = new CommandLineJavaCompilerArgumentsGenerator(tempFileProvider)
 
@@ -37,7 +37,7 @@ class CommandLineJavaCompilerArgumentsGeneratorTest extends Specification {
 
         then:
         0 * tempFileProvider._
-        Lists.newArrayList(args) == ["-J-Xmx256m", "-classpath", spec.classpath.asPath, *spec.source*.path]
+        Lists.newArrayList(args) == ["-J-Xmx256m", "-g", "-classpath", spec.classpath.asPath, *spec.source*.path]
     }
 
     def "creates arguments file if arguments get too long"() {
@@ -52,13 +52,14 @@ class CommandLineJavaCompilerArgumentsGeneratorTest extends Specification {
         Lists.newArrayList(args) == ["-J-Xmx256m", "@$argsFile"]
 
         and: "args file contains remaining arguments (one per line, quoted)"
-        argsFile.readLines() == [quote("-classpath"), quote("$spec.classpath.asPath"), *(spec.source*.path.collect { quote(it) })]
+        argsFile.readLines() == ["-g", "-classpath", quote("$spec.classpath.asPath"), *(spec.source*.path.collect { quote(it) })]
     }
 
     def createCompileSpec(numFiles) {
         def sources = createFiles(numFiles)
         def classpath = createFiles(numFiles)
         def spec = new DefaultJavaCompileSpec()
+        spec.compileOptions = new CompileOptions()
         spec.compileOptions.forkOptions.memoryMaximumSize = "256m"
         spec.source = new SimpleFileCollection(sources)
         spec.classpath = new SimpleFileCollection(classpath)
@@ -66,7 +67,7 @@ class CommandLineJavaCompilerArgumentsGeneratorTest extends Specification {
     }
 
     def createFiles(numFiles) {
-        (1..numFiles).collect { new File("/foo/bar/File$it") }
+        (1..numFiles).collect { new File("/foo bar/File$it") }
     }
 
     def quote(arg) {

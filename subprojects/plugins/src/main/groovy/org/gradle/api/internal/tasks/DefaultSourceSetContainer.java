@@ -18,10 +18,11 @@ package org.gradle.api.internal.tasks;
 import groovy.lang.Closure;
 import org.gradle.api.Namer;
 import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
-import org.gradle.api.internal.Instantiator;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
+import org.gradle.util.DeprecationLogger;
 
 public class DefaultSourceSetContainer extends AbstractNamedDomainObjectContainer<SourceSet> implements SourceSetContainer {
     private final FileResolver fileResolver;
@@ -44,10 +45,12 @@ public class DefaultSourceSetContainer extends AbstractNamedDomainObjectContaine
     }
 
     public SourceSet add(String name) {
+        DeprecationLogger.nagUserOfReplacedMethod("SourceSetContainer.add()", "create()");
         return create(name);
     }
 
     public SourceSet add(String name, Closure closure) {
+        DeprecationLogger.nagUserOfReplacedMethod("SourceSetContainer.add()", "create()");
         return create(name, closure);
     }
 

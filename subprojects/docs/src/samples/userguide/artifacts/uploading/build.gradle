@@ -16,7 +16,7 @@ artifacts {
 }
 //END SNIPPET file-artifact
 
-//START SNIPPET customised-file-artifact
+//START SNIPPET customized-file-artifact
 task myTask(type:  MyTaskType) {
     destFile = file('build/somefile.txt')
 }
@@ -28,7 +28,7 @@ artifacts {
         builtBy myTask
     }
 }
-//END SNIPPET customised-file-artifact
+//END SNIPPET customized-file-artifact
 
 //START SNIPPET map-file-artifact
 task generate(type:  MyTaskType) {

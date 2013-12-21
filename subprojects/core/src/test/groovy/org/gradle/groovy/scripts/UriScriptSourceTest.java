@@ -17,8 +17,8 @@
 package org.gradle.groovy.scripts;
 
 import org.gradle.api.internal.resource.UriResource;
-import org.gradle.util.TemporaryFolder;
-import org.gradle.util.TestFile;
+import org.gradle.test.fixtures.file.TestFile;
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -27,16 +27,16 @@ import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import static org.gradle.util.Matchers.*;
+import static org.gradle.util.Matchers.matchesRegexp;
 import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
 
 public class UriScriptSourceTest {
     private TestFile testDir;
     private File scriptFile;
     private URI scriptFileUri;
     @Rule
-    public TemporaryFolder tmpDir = new TemporaryFolder();
+    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
 
     @Before
     public void setUp() throws URISyntaxException {
@@ -47,7 +47,7 @@ public class UriScriptSourceTest {
     }
 
     private URI createJar() throws URISyntaxException {
-        TestFile jarFile = tmpDir.getDir().file("test.jar");
+        TestFile jarFile = tmpDir.getTestDirectory().file("test.jar");
         testDir.file("ignoreme").write("content");
         testDir.zipTo(jarFile);
         return new URI(String.format("jar:%s!/build.script", jarFile.toURI()));

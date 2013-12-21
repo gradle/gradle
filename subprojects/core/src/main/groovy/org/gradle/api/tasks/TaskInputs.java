@@ -43,7 +43,7 @@ public interface TaskInputs {
     /**
      * Registers some input files for this task.
      *
-     * @param paths The input files. The given paths are evaluated as for {@link org.gradle.api.Project#files(Object...)}.
+     * @param paths The input files. The given paths are evaluated as per {@link org.gradle.api.Project#files(Object...)}.
      * @return this
      */
     TaskInputs files(Object... paths);
@@ -51,7 +51,7 @@ public interface TaskInputs {
     /**
      * Registers some input file for this task.
      *
-     * @param path The input file. The given path is evaluated as for {@link org.gradle.api.Project#files(Object...)}.
+     * @param path The input file. The given path is evaluated as per {@link org.gradle.api.Project#files(Object...)}.
      * @return this
      */
     TaskInputs file(Object path);
@@ -60,7 +60,7 @@ public interface TaskInputs {
      * Registers an input directory hierarchy. All files found under the given directory are treated as input files for
      * this task.
      *
-     * @param dirPath The directory. The path is evaluated as for {@link org.gradle.api.Project#file(Object)}.
+     * @param dirPath The directory. The path is evaluated as per {@link org.gradle.api.Project#file(Object)}.
      * @return this
      */
     TaskInputs dir(Object dirPath);
@@ -113,7 +113,7 @@ public interface TaskInputs {
      * Registers some source files for this task. Note that source files are also considered input files, so calling this method implies
      * a call to {@link #files(Object...)}.
      *
-     * @param paths The paths. These are evaluated as for {@link org.gradle.api.Project#files(Object...)}.
+     * @param paths The paths. These are evaluated as per {@link org.gradle.api.Project#files(Object...)}.
      * @return this
      */
     TaskInputs source(Object... paths);
@@ -122,7 +122,7 @@ public interface TaskInputs {
      * Registers some source files for this task. Note that source files are also considered input files, so calling this method implies
      * a call to {@link #files(Object...)}.
      *
-     * @param path The path. This is evaluated as for {@link org.gradle.api.Project#files(Object...)}.
+     * @param path The path. This is evaluated as per {@link org.gradle.api.Project#files(Object...)}.
      * @return this
      */
     TaskInputs source(Object path);
@@ -131,7 +131,7 @@ public interface TaskInputs {
      * Registers a source directory for this task. All files under this directory are treated as source files for this task. Note that
      * source files are also considered input files, so calling this method implies a call to {@link #dir(Object)}.
      *
-     * @param path The path. This is evaluated as for {@link org.gradle.api.Project#file(Object)}.
+     * @param path The path. This is evaluated as per {@link org.gradle.api.Project#file(Object)}.
      * @return this
      */
     TaskInputs sourceDir(Object path);

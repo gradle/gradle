@@ -16,26 +16,27 @@
 
 package org.gradle.process.internal;
 
+import org.gradle.api.Action;
 import org.gradle.api.internal.ClassPathRegistry;
-import org.gradle.internal.Factory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.messaging.remote.Address;
-import org.gradle.messaging.remote.MessagingServer;
+import org.gradle.internal.Factory;
+import org.gradle.internal.id.IdGenerator;
+import org.gradle.messaging.remote.*;
 import org.gradle.process.internal.child.ApplicationClassesInIsolatedClassLoaderWorkerFactory;
 import org.gradle.process.internal.child.ApplicationClassesInSystemClassLoaderWorkerFactory;
+import org.gradle.process.internal.child.EncodedStream;
 import org.gradle.process.internal.child.WorkerFactory;
-import org.gradle.process.internal.launcher.GradleWorkerMain;
-import org.gradle.util.ClasspathUtil;
+import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.util.GUtil;
-import org.gradle.util.IdGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.OutputStream;
 import java.net.URL;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
 public class DefaultWorkerProcessFactory implements Factory<WorkerProcessBuilder> {
@@ -64,7 +65,6 @@ public class DefaultWorkerProcessFactory implements Factory<WorkerProcessBuilder
         public DefaultWorkerProcessBuilder() {
             super(resolver);
             setLogLevel(workerLogLevel);
-            getJavaCommand().setMain(GradleWorkerMain.class.getName());
         }
 
         @Override
@@ -74,7 +74,13 @@ public class DefaultWorkerProcessFactory implements Factory<WorkerProcessBuilder
             }
 
             final DefaultWorkerProcess workerProcess = new DefaultWorkerProcess(120, TimeUnit.SECONDS);
-            Address localAddress = server.accept(workerProcess.getConnectAction());
+            ConnectionAcceptor acceptor = server.accept(new Action<ConnectEvent<ObjectConnection>>() {
+                public void execute(ConnectEvent<ObjectConnection> event) {
+                    workerProcess.onConnect(event.getConnection());
+                }
+            });
+            workerProcess.startAccepting(acceptor);
+            Address localAddress = acceptor.getAddress();
 
             // Build configuration for GradleWorkerMain
             List<URL> implementationClassPath = ClasspathUtil.getClasspath(getWorker().getClass().getClassLoader());
@@ -89,22 +95,28 @@ public class DefaultWorkerProcessFactory implements Factory<WorkerProcessBuilder
                 workerFactory = new ApplicationClassesInIsolatedClassLoaderWorkerFactory(id, displayName, this,
                         implementationClassPath, localAddress, classPathRegistry);
             }
-            Callable<?> workerMain = workerFactory.create();
-            byte[] config = GUtil.serialize(workerMain);
 
             LOGGER.debug("Creating {}", displayName);
             LOGGER.debug("Using application classpath {}", getApplicationClasspath());
             LOGGER.debug("Using implementation classpath {}", implementationClassPath);
 
             JavaExecHandleBuilder javaCommand = getJavaCommand();
-            javaCommand.classpath(workerFactory.getSystemClasspath());
-            javaCommand.setStandardInput(new ByteArrayInputStream(config));
+            attachStdInContent(workerFactory, javaCommand);
+            workerFactory.prepareJavaCommand(javaCommand);
             javaCommand.setDisplayName(displayName);
             ExecHandle execHandle = javaCommand.build();
 
             workerProcess.setExecHandle(execHandle);
 
             return workerProcess;
+        }
+
+        private void attachStdInContent(WorkerFactory workerFactory, JavaExecHandleBuilder javaCommand) {
+            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+            OutputStream encoded = new EncodedStream.EncodedOutput(bytes);
+            GUtil.serialize(workerFactory.create(), encoded);
+            ByteArrayInputStream stdinContent = new ByteArrayInputStream(bytes.toByteArray());
+            javaCommand.setStandardInput(stdinContent);
         }
     }
 }

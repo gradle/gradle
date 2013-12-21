@@ -15,7 +15,6 @@
  */
 package org.gradle.foundation;
 
-import junit.framework.AssertionFailedError;
 import junit.framework.TestCase;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -32,8 +31,6 @@ import java.util.List;
 
 /**
  * Tests aspects of favorite tasks and the favorites editor.
- *
- * @author mhunsicker
  */
 public class FavoritesTest extends TestCase {
     private BuildInformation buildInformation;
@@ -272,7 +269,7 @@ public class FavoritesTest extends TestCase {
             }
 
             public void reportError(String error) {
-                throw new AssertionFailedError("unexpected error: " + error);
+                throw new AssertionError("unexpected error: " + error);
             }
         });
 
@@ -324,7 +321,7 @@ public class FavoritesTest extends TestCase {
             }
 
             public void reportError(String error) {
-                throw new AssertionFailedError("unexpected error: " + error);
+                throw new AssertionError("unexpected error: " + error);
             }
         });
 
@@ -353,7 +350,7 @@ public class FavoritesTest extends TestCase {
             }
 
             public void reportError(String error) {
-                throw new AssertionFailedError("unexpected error: " + error);
+                throw new AssertionError("unexpected error: " + error);
             }
         });
 
@@ -400,7 +397,7 @@ public class FavoritesTest extends TestCase {
             }
 
             public void reportError(String error) {
-                throw new AssertionFailedError("unexpected error: " + error);
+                throw new AssertionError("unexpected error: " + error);
             }
         });
 
@@ -706,7 +703,7 @@ public class FavoritesTest extends TestCase {
         }
 
         public void favoritesChanged() {
-            throw new AssertionFailedError("Did not expect to get a favoritesChanged notification!");
+            throw new AssertionError("Did not expect to get a favoritesChanged notification!");
         }
 
         public void favoritesReordered(List<FavoriteTask> favoritesReordered) {

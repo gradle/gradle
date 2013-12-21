@@ -27,16 +27,14 @@ import org.gradle.api.tasks.Upload
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.bundling.Tar
 import org.gradle.api.tasks.bundling.Zip
-import org.gradle.util.HelperUtil
+import org.gradle.util.TestUtil
 import spock.lang.Specification
-import static org.gradle.util.Matchers.dependsOn
+
+import static org.gradle.api.tasks.TaskDependencyMatchers.dependsOn
 import static org.hamcrest.Matchers.instanceOf
 
-/**
- * @author Hans Dockter
- */
 class BasePluginTest extends Specification {
-    private final Project project = HelperUtil.createRootProject()
+    private final Project project = TestUtil.createRootProject()
     private final BasePlugin plugin = new BasePlugin()
 
     public void addsConventionObjects() {
@@ -65,7 +63,7 @@ class BasePluginTest extends Specification {
 
     public void assembleTaskBuildsThePublishedArtifacts() {
         given:
-        def someJar = project.tasks.add('someJar', Jar)
+        def someJar = project.tasks.create('someJar', Jar)
 
         when:
         plugin.apply(project)
@@ -86,7 +84,7 @@ class BasePluginTest extends Specification {
 
     public void addsImplicitTasksForConfiguration() {
         given:
-        def someJar = project.tasks.add('someJar', Jar)
+        def someJar = project.tasks.create('someJar', Jar)
 
         when:
         plugin.apply(project)
@@ -103,7 +101,7 @@ class BasePluginTest extends Specification {
         uploadArchives dependsOn('someJar')
 
         when:
-        project.configurations.add('conf')
+        project.configurations.create('conf')
         project.artifacts.conf someJar
 
         then:
@@ -153,19 +151,19 @@ class BasePluginTest extends Specification {
         project.version = '1.0'
 
         then:
-        def someJar = project.tasks.add('someJar', Jar)
+        def someJar = project.tasks.create('someJar', Jar)
         someJar.destinationDir == project.libsDir
         someJar.version == project.version
         someJar.baseName == project.archivesBaseName
 
         and:
-        def someZip = project.tasks.add('someZip', Zip)
+        def someZip = project.tasks.create('someZip', Zip)
         someZip.destinationDir == project.distsDir
         someZip.version == project.version
         someZip.baseName == project.archivesBaseName
 
         and:
-        def someTar = project.tasks.add('someTar', Tar)
+        def someTar = project.tasks.create('someTar', Tar)
         someTar.destinationDir == project.distsDir
         someTar.version == project.version
         someTar.baseName == project.archivesBaseName
@@ -176,7 +174,7 @@ class BasePluginTest extends Specification {
         plugin.apply(project)
 
         then:
-        def task = project.tasks.add('someJar', Jar)
+        def task = project.tasks.create('someJar', Jar)
         task.version == null
 
         when:
@@ -208,7 +206,7 @@ class BasePluginTest extends Specification {
 
         when:
         plugin.apply(project)
-        project.configurations.add("custom").artifacts.add(artifact)
+        project.configurations.create("custom").artifacts.add(artifact)
 
         then:
         project.configurations[Dependency.ARCHIVES_CONFIGURATION].artifacts.contains(artifact)

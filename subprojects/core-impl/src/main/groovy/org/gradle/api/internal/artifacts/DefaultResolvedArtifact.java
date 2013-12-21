@@ -15,43 +15,51 @@
  */
 package org.gradle.api.internal.artifacts;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
-import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
-import org.gradle.api.internal.file.FileSource;
+import org.gradle.api.internal.artifacts.metadata.IvyArtifactName;
+import org.gradle.internal.Factory;
 import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 
-/**
- * @author Hans Dockter
- */
 public class DefaultResolvedArtifact implements ResolvedArtifact {
-    private final ResolvedDependency resolvedDependency;
-    private final Artifact artifact;
-    private FileSource artifactSource;
+    private final ResolvedModuleVersion owner;
+    private final IvyArtifactName artifact;
+    private long id;
+    private final Factory<ResolvedDependency> ownerSource;
+    private Factory<File> artifactSource;
     private File file;
 
-    public DefaultResolvedArtifact(ResolvedDependency resolvedDependency, Artifact artifact, FileSource artifactSource) {
-        this.resolvedDependency = resolvedDependency;
+    public DefaultResolvedArtifact(ResolvedModuleVersion owner, Factory<ResolvedDependency> ownerSource, IvyArtifactName artifact, Factory<File> artifactSource, long id) {
+        this.ownerSource = ownerSource;
+        this.owner = owner;
         this.artifact = artifact;
+        this.id = id;
         this.artifactSource = artifactSource;
     }
 
+    public long getId() {
+        return id;
+    }
+
     public ResolvedDependency getResolvedDependency() {
-        DeprecationLogger.nagUserWith("ResolvedArtifact.getResolvedDependency() is deprecated. For version info use ResolvedArtifact.getModuleVersion(), to access the dependency graph use ResolvedConfiguration.getFirstLevelModuleDependencies()");
-        return resolvedDependency;
+        DeprecationLogger.nagUserOfDeprecated(
+                "ResolvedArtifact.getResolvedDependency()",
+                "For version info use ResolvedArtifact.getModuleVersion(), to access the dependency graph use ResolvedConfiguration.getFirstLevelModuleDependencies()"
+        );
+        //resolvedDependency is expensive so lazily create it
+        return ownerSource.create();
     }
 
     public ResolvedModuleVersion getModuleVersion() {
-        return resolvedDependency.getModule();
+        return owner;
     }
 
     @Override
     public String toString() {
-        return String.format("[ResolvedArtifact dependency:%s name:%s classifier:%s extension:%s type:%s]", resolvedDependency, getName(), getClassifier(), getExtension(), getType());
+        return String.format("[ResolvedArtifact dependency:%s name:%s classifier:%s extension:%s type:%s]", owner, getName(), getClassifier(), getExtension(), getType());
     }
 
     @Override
@@ -63,19 +71,10 @@ public class DefaultResolvedArtifact implements ResolvedArtifact {
             return false;
         }
         DefaultResolvedArtifact other = (DefaultResolvedArtifact) obj;
-        if (!other.resolvedDependency.getModule().getId().equals(resolvedDependency.getModule().getId())) {
+        if (!other.owner.getId().equals(owner.getId())) {
             return false;
         }
-        if (!other.getName().equals(getName())) {
-            return false;
-        }
-        if (!other.getType().equals(getType())) {
-            return false;
-        }
-        if (!other.getExtension().equals(getExtension())) {
-            return false;
-        }
-        if (!other.artifact.getExtraAttributes().equals(artifact.getExtraAttributes())) {
+        if (!other.artifact.equals(artifact)) {
             return false;
         }
         return true;
@@ -83,7 +82,7 @@ public class DefaultResolvedArtifact implements ResolvedArtifact {
 
     @Override
     public int hashCode() {
-        return resolvedDependency.getModule().getId().hashCode() ^ getName().hashCode() ^ getType().hashCode() ^ getExtension().hashCode() ^ artifact.getExtraAttributes().hashCode();
+        return owner.getId().hashCode() ^ getName().hashCode() ^ getType().hashCode() ^ getExtension().hashCode() ^ artifact.hashCode();
     }
 
     public String getName() {
@@ -95,16 +94,16 @@ public class DefaultResolvedArtifact implements ResolvedArtifact {
     }
 
     public String getExtension() {
-        return artifact.getExt();
+        return artifact.getExtension();
     }
 
     public String getClassifier() {
-        return artifact.getExtraAttribute(Dependency.CLASSIFIER);
+        return artifact.getClassifier();
     }
     
     public File getFile() {
         if (file == null) {
-            file = artifactSource.get();
+            file = artifactSource.create();
             artifactSource = null;
         }
         return file;

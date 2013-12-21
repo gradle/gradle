@@ -16,9 +16,8 @@
 
 package org.gradle.launcher;
 
-/**
- * @author Steven Devijver, Hans Dockter
- */
+import org.gradle.launcher.bootstrap.ProcessBootstrap;
+
 public class GradleMain {
     public static void main(String[] args) throws Exception {
         new ProcessBootstrap().run("org.gradle.launcher.Main", args);

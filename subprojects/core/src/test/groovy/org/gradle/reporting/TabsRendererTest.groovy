@@ -15,34 +15,42 @@
  */
 package org.gradle.reporting
 
+import org.gradle.api.internal.html.SimpleHtmlWriter
+import org.jsoup.Jsoup
+import org.jsoup.nodes.Document
 import spock.lang.Specification
-import org.w3c.dom.Element
-import javax.xml.parsers.DocumentBuilderFactory
 
 class TabsRendererTest extends Specification {
-    final DomReportRenderer<String> contentRenderer = new DomReportRenderer<String>() {
+    final ReportRenderer<String, SimpleHtmlWriter> contentRenderer = new ReportRenderer<String, SimpleHtmlWriter>() {
         @Override
-        void render(String model, Element parent) {
-            parent.appendChild(parent.ownerDocument.createTextNode(model))
+        void render(String model, SimpleHtmlWriter parent) throws IOException {
         }
     }
     final TabsRenderer renderer = new TabsRenderer()
 
     def "renders tabs"() {
+        def writer = new StringWriter()
         given:
-        def doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument()
-        def parent = doc.createElement("parent")
+        SimpleHtmlWriter htmlBuilder = new SimpleHtmlWriter(writer);
 
         and:
         renderer.add('tab 1', contentRenderer)
         renderer.add('tab 2', contentRenderer)
 
         when:
-        renderer.render("test", parent)
+        renderer.render("test", htmlBuilder)
 
+        def html = html(writer.toString());
         then:
-        parent.childNodes.length == 1
-        parent.childNodes.item(0) instanceof Element
-        parent.childNodes.item(0).nodeName == 'div'
+        html.select("div#tabs > ul > li > a").find { it.text() == "tab 1" }
+        html.select("div#tabs > ul > li > a").find { it.text() == "tab 2" }
+
+        html.select("div#tabs > div#tab0 > h2").find { it.text() == "tab 1" }
+        html.select("div#tabs > div#tab1 > h2").find { it.text() == "tab 2" }
     }
+
+    Document html(String renderedString) {
+        Jsoup.parse(renderedString)
+    }
+
 }

@@ -24,9 +24,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-/**
- * @author: Szczepan Faber, created at: 8/29/11
- */
 public class DaemonRegistryContent implements Serializable {
 
     private Map<Address, DaemonInfo> infosMap = new HashMap<Address, DaemonInfo>();

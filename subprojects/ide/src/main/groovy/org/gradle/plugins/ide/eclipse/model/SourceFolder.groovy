@@ -17,8 +17,6 @@ package org.gradle.plugins.ide.eclipse.model
 
 /**
  * SourceFolder.path contains only project relative path.
- *
- * @author Hans Dockter
  */
 class SourceFolder extends AbstractClasspathEntry {
     String output

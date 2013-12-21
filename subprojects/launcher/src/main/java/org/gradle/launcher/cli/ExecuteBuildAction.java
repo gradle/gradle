@@ -15,45 +15,22 @@
  */
 package org.gradle.launcher.cli;
 
-import org.gradle.BuildResult;
-import org.gradle.GradleLauncher;
 import org.gradle.StartParameter;
-import org.gradle.cli.ParsedCommandLine;
-import org.gradle.initialization.DefaultCommandLineConverter;
-import org.gradle.initialization.GradleLauncherAction;
-import org.gradle.launcher.exec.InitializationAware;
+import org.gradle.initialization.BuildAction;
+import org.gradle.initialization.BuildController;
 
-import java.io.File;
 import java.io.Serializable;
 
-public class ExecuteBuildAction implements GradleLauncherAction<Void>, InitializationAware, Serializable {
-    private final File currentDir;
-    private final ParsedCommandLine args;
+public class ExecuteBuildAction implements BuildAction<Void>, Serializable {
+    private final StartParameter startParameter;
 
-    public ExecuteBuildAction(File currentDir, ParsedCommandLine args) {
-        this.currentDir = currentDir;
-        this.args = args;
+    public ExecuteBuildAction(StartParameter startParameter) {
+        this.startParameter = startParameter;
     }
 
-    public void configureStartParameter(StartParameter startParameter) {
-        DefaultCommandLineConverter converter = new DefaultCommandLineConverter();
-        startParameter.setCurrentDir(currentDir);
-        converter.convert(args, startParameter);
-    }
-
-    public BuildResult run(GradleLauncher launcher) {
-        return launcher.run();
-    }
-
-    public Void getResult() {
+    public Void run(BuildController buildController) {
+        buildController.setStartParameter(startParameter);
+        buildController.run();
         return null;
-    }
-
-    @Override
-    public String toString() {
-        return "ExecuteBuildAction{"
-                + "currentDir=" + currentDir
-                + ", args=" + args
-                + '}';
     }
 }

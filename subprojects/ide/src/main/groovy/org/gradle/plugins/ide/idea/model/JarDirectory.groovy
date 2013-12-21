@@ -17,8 +17,6 @@ package org.gradle.plugins.ide.idea.model
 
 /**
  * Represents a jar directory element of an idea module library.
- *
- * @author Hans Dockter
  */
 class JarDirectory {
     /**

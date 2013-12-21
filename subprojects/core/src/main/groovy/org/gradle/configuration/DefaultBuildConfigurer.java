@@ -15,29 +15,31 @@
  */
 package org.gradle.configuration;
 
-import org.gradle.api.Action;
+import org.gradle.StartParameter;
 import org.gradle.api.Project;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import org.gradle.util.SingleMessageLogger;
 
 public class DefaultBuildConfigurer implements BuildConfigurer {
-    private List<Action<? super ProjectInternal>> actions;
-
-    public DefaultBuildConfigurer(Action<? super ProjectInternal>... actions) {
-        this.actions = new ArrayList<Action<? super ProjectInternal>>(Arrays.asList(actions));
+    public void configure(GradleInternal gradle) {
+        maybeInformAboutIncubatingMode(gradle.getStartParameter());
+        if (gradle.getStartParameter().isConfigureOnDemand()) {
+            gradle.getRootProject().evaluate();
+        } else {
+            for (Project project : gradle.getRootProject().getAllprojects()) {
+                ((ProjectInternal) project).evaluate();
+            }
+        }
     }
 
-    public void configure(GradleInternal gradle) {
-        gradle.getRootProject().allprojects(new Action<Project>() {
-            public void execute(Project project) {
-                for (Action<? super ProjectInternal> action : actions) {
-                    action.execute((ProjectInternal) project);
-                }
-            }
-        });
+    private void maybeInformAboutIncubatingMode(StartParameter startParameter) {
+        if (startParameter.getParallelThreadCount() != 0 && startParameter.isConfigureOnDemand()) {
+            SingleMessageLogger.incubatingFeatureUsed("Parallel execution with configuration on demand");
+        } else if (startParameter.getParallelThreadCount() != 0) {
+            SingleMessageLogger.incubatingFeatureUsed("Parallel execution");
+        } else if (startParameter.isConfigureOnDemand()) {
+            SingleMessageLogger.incubatingFeatureUsed("Configuration on demand");
+        }
     }
 }

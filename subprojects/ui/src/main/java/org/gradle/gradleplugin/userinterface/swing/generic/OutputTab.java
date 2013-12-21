@@ -20,24 +20,18 @@ import org.gradle.api.logging.Logging;
 import org.gradle.gradleplugin.foundation.GradlePluginLord;
 import org.gradle.gradleplugin.userinterface.AlternateUIInteraction;
 
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.ImageIcon;
 import javax.imageio.ImageIO;
-import java.awt.Component;
-import java.awt.image.BufferedImage;
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.InputStream;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * This just wraps up an OutputPanel so it has a tab header that can be dynamic. The current (rather awkward) JTabbedPane implementation is to separate the tab contents from its component. This only
  * works with java 1.6 or later.
- *
- * @author mhunsicker
  */
 public class OutputTab extends OutputPanel {
 
@@ -124,7 +118,6 @@ public class OutputTab extends OutputPanel {
     /**
      * Call this before you use this tab. It resets its output as well as enabling buttons appropriately.
      *
-     * @author mhunsicker
      */
     @Override
     public void reset() {
@@ -155,7 +148,6 @@ public class OutputTab extends OutputPanel {
      * Overridden so we can indicate the pinned state.
      *
      * @param pinned whether or not we're pinned
-     * @author mhunsicker
      */
     @Override
     public void setPinned(boolean pinned) {

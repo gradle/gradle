@@ -17,9 +17,6 @@ package org.gradle.logging.internal;
 
 import org.gradle.api.logging.LogLevel;
 
-/**
- * @author Hans Dockter
- */
 public interface LoggingConfigurer {
     void configure(LogLevel logLevel);
 }

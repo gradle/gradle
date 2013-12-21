@@ -19,9 +19,10 @@ import org.gradle.api.InvalidUserDataException;
 
 /**
  * <p>{@code CacheUsage} specifies how compiled scripts should be cached.</p>
- * 
- * @author Hans Dockter
+ *
+ * @deprecated This enum has been deprecated. Use {@link StartParameter#isRerunTasks()} and {@link StartParameter#isRecompileScripts()} instead.
  */
+@Deprecated
 public enum CacheUsage {
     ON, REBUILD;
 

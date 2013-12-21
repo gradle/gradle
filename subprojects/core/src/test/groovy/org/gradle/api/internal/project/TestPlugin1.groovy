@@ -19,9 +19,6 @@ package org.gradle.api.internal.project
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
-/**
-* @author Hans Dockter
-*/
 class TestPlugin1 implements Plugin<Project> {
 
     int applyCounter = 0

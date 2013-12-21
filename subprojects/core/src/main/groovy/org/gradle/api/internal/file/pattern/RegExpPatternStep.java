@@ -18,9 +18,6 @@ package org.gradle.api.internal.file.pattern;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * @author Steve Appling
- */
 public class RegExpPatternStep implements PatternStep {
     private static final String ESCAPE_CHARS = "\\[]^-&.{}()$+|<=!";
     private static final String PATTERN_CHARS = "*?";

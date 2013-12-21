@@ -20,9 +20,6 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 
-/**
- * @author Hans Dockter
- */
 public class BootstrapMainStarter {
     public void start(String[] args, File gradleHome) throws Exception {
         File gradleJar = findLauncherJar(gradleHome);

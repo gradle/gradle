@@ -16,12 +16,11 @@
 package org.gradle.api.tasks;
 
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
 import org.gradle.process.ProcessForkOptions;
-import org.gradle.process.internal.DefaultExecAction;
 import org.gradle.process.internal.ExecAction;
+import org.gradle.process.internal.ExecActionFactory;
 
 import java.io.File;
 import java.io.InputStream;
@@ -38,19 +37,25 @@ import java.util.Map;
  *   //on windows:
  *   commandLine 'cmd', '/c', 'stop.bat'
  *
- *   //on linux (oh yeah!!!)
+ *   //on linux
  *   commandLine './stop.sh'
+ *
+ *   //store the output instead of printing to the console:
+ *   standardOutput = new ByteArrayOutputStream()
+ *
+ *   //extension method stopTomcat.output() can be used to obtain the output:
+ *   ext.output = {
+ *     return standardOutput.toString()
+ *   }
  * }
  * </pre>
- * 
- * @author Hans Dockter
  */
 public class Exec extends ConventionTask implements ExecSpec {
     private ExecAction execAction;
     private ExecResult execResult;
 
     public Exec() {
-        execAction = new DefaultExecAction(getServices().get(FileResolver.class));
+        execAction = getServices().get(ExecActionFactory.class).newExecAction();
     }
 
     @TaskAction

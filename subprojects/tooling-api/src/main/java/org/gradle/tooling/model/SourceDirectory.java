@@ -24,7 +24,7 @@ public interface SourceDirectory {
     /**
      * Returns the source directory.
      *
-     * @return The directory. Does not return null.
+     * @return The source directory.
      */
     File getDirectory();
 }

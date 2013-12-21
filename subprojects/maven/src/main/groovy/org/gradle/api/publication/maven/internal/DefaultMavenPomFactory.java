@@ -18,12 +18,9 @@ package org.gradle.api.publication.maven.internal;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.artifacts.maven.MavenPom;
-import org.gradle.internal.Factory;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.internal.Factory;
 
-/**
- * @author Hans Dockter
- */
 public class DefaultMavenPomFactory implements Factory<MavenPom> {
     private ConfigurationContainer configurationContainer;
     private Conf2ScopeMappingContainer conf2ScopeMappingContainer;

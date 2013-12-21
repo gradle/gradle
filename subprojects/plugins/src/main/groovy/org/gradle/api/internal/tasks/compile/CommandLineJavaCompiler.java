@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.internal.file.TemporaryFileProvider;
+import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.ExecHandle;
@@ -25,14 +26,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.Serializable;
 
 /**
  * Executes the Java command line compiler specified in {@code JavaCompileSpec.forkOptions.getExecutable()}.
  */
-public class CommandLineJavaCompiler implements Compiler<JavaCompileSpec> {
+public class CommandLineJavaCompiler implements Compiler<JavaCompileSpec>, Serializable {
     private static final Logger LOGGER = LoggerFactory.getLogger(CommandLineJavaCompiler.class);
 
-    private final CommandLineJavaCompilerArgumentsGenerator argumentsGenerator;
+    private final CompileSpecToArguments<JavaCompileSpec> argumentsGenerator;
     private final File workingDir;
 
     public CommandLineJavaCompiler(TemporaryFileProvider tempFileProvider, File workingDir) {
@@ -44,18 +46,17 @@ public class CommandLineJavaCompiler implements Compiler<JavaCompileSpec> {
         String executable = spec.getCompileOptions().getForkOptions().getExecutable();
         LOGGER.info("Compiling with Java command line compiler '{}'.", executable);
 
-        Iterable<String> args = argumentsGenerator.generate(spec);
-        ExecHandle handle = createCompilerHandle(executable, args);
+        ExecHandle handle = createCompilerHandle(executable, spec);
         executeCompiler(handle);
 
         return new SimpleWorkResult(true);
     }
 
-    private ExecHandle createCompilerHandle(String executable, Iterable<String> args) {
+    private ExecHandle createCompilerHandle(String executable, JavaCompileSpec spec) {
         ExecHandleBuilder builder = new ExecHandleBuilder();
         builder.setWorkingDir(workingDir);
         builder.setExecutable(executable);
-        builder.setArgs(args);
+        argumentsGenerator.collectArguments(spec, new ExecSpecBackedArgCollector(builder));
         builder.setIgnoreExitValue(true);
         return builder.build();
     }

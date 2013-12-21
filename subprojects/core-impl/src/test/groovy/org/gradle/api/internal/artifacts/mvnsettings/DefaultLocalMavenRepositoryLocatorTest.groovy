@@ -15,13 +15,14 @@
  */
 package org.gradle.api.internal.artifacts.mvnsettings
 
-import org.gradle.util.TemporaryFolder
-
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class DefaultLocalMavenRepositoryLocatorTest extends Specification {
-    @Rule TemporaryFolder tmpDir = new TemporaryFolder()
+    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     SimpleMavenFileLocations locations
     DefaultLocalMavenRepositoryLocator locator
@@ -34,13 +35,37 @@ class DefaultLocalMavenRepositoryLocatorTest extends Specification {
 
     def setup() {
         locations = new SimpleMavenFileLocations()
-        locator = new DefaultLocalMavenRepositoryLocator(locations, systemProperties, environmentVariables)
+        locator = new DefaultLocalMavenRepositoryLocator(new DefaultMavenSettingsProvider(locations), systemProperties, environmentVariables)
     }
 
     def "returns default location if no settings file exists"() {
         expect:
         // this default comes from DefaultMavenSettingsBuilder which uses System.getProperty() directly
         locator.localMavenRepository == new File("${System.getProperty("user.home")}/.m2/repository")
+    }
+
+    def "throws exception on broken global settings file with decent error message"() {
+        given:
+        def settingsFile = locations.globalSettingsFile
+        settingsFile << "broken content"
+        when:
+        locator.localMavenRepository
+        then:
+        def ex = thrown(CannotLocateLocalMavenRepositoryException);
+        ex.message == "Unable to parse local Maven settings."
+        ex.cause.message.contains(settingsFile.absolutePath)
+    }
+
+    def "throws exception on broken user settings file with decent error message"() {
+        given:
+        def settingsFile = locations.userSettingsFile
+        settingsFile << "broken content"
+        when:
+        locator.localMavenRepository
+        then:
+        def ex = thrown(CannotLocateLocalMavenRepositoryException)
+        ex.message == "Unable to parse local Maven settings."
+        ex.cause.message.contains(settingsFile.absolutePath)
     }
 
     def "honors location specified in user settings file"() {
@@ -84,6 +109,23 @@ class DefaultLocalMavenRepositoryLocatorTest extends Specification {
         expect:
         locator.localMavenRepository == tmpDir.file("sys/prop/value/env/var/value")
     }
+
+    @Unroll
+    def "unresolvable placeholder for #propType throws exception with decent error message"() {
+        TestFile repoPath = tmpDir.file("\${$prop}")
+        writeSettingsFile(locations.userSettingsFile, repoPath)
+        when:
+        locator.localMavenRepository
+        then:
+        def ex = thrown(CannotLocateLocalMavenRepositoryException);
+        ex.message == "Cannot resolve placeholder '${prop}' in value '${repoPath.absolutePath}'"
+        where:
+        prop                  |   propType
+        'sys.unknown.prop'    |   "system property"
+        'env.unknown.ENV_VAR' |   "environment variable"
+    }
+
+
 
     private void writeSettingsFile(File settings, File repo) {
         writeSettingsFile(settings, repo.absolutePath)

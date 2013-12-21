@@ -15,85 +15,42 @@
  */
 package org.gradle.api.internal.artifacts.repositories.transport;
 
-import org.apache.ivy.core.cache.RepositoryCacheManager;
-import org.apache.ivy.core.module.id.ArtifactRevisionId;
-import org.apache.ivy.plugins.repository.Repository;
-import org.apache.ivy.plugins.repository.TransferListener;
-import org.apache.ivy.plugins.resolver.AbstractResolver;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
-import org.gradle.api.internal.artifacts.repositories.ExternalResourceRepository;
-import org.gradle.api.internal.artifacts.repositories.ProgressLoggingTransferListener;
-import org.gradle.api.internal.artifacts.repositories.cachemanager.DownloadingRepositoryCacheManager;
-import org.gradle.api.internal.artifacts.repositories.cachemanager.LocalFileRepositoryCacheManager;
+import org.gradle.api.internal.artifacts.repositories.cachemanager.RepositoryArtifactCache;
 import org.gradle.api.internal.externalresource.cached.CachedExternalResourceIndex;
 import org.gradle.api.internal.externalresource.transport.file.FileTransport;
 import org.gradle.api.internal.externalresource.transport.http.HttpTransport;
-import org.gradle.api.internal.filestore.FileStore;
+import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.logging.ProgressLoggerFactory;
-
-import java.net.URI;
+import org.gradle.util.BuildCommencedTimeProvider;
 
 public class RepositoryTransportFactory {
-    private final TransferListener transferListener;
-    private final RepositoryCacheManager downloadingCacheManager;
-    private final RepositoryCacheManager localCacheManager;
+    private final RepositoryArtifactCache downloadingCacheManager;
+    private final TemporaryFileProvider temporaryFileProvider;
+    private final CachedExternalResourceIndex<String> cachedExternalResourceIndex;
+    private final RepositoryArtifactCache localCacheManager;
+    private final ProgressLoggerFactory progressLoggerFactory;
+    private final BuildCommencedTimeProvider timeProvider;
 
     public RepositoryTransportFactory(ProgressLoggerFactory progressLoggerFactory,
-            FileStore<ArtifactRevisionId> fileStore, CachedExternalResourceIndex<String> byUrlCachedExternalResourceIndex) {
-        this.transferListener = new ProgressLoggingTransferListener(progressLoggerFactory, RepositoryTransport.class);
-        this.downloadingCacheManager = new DownloadingRepositoryCacheManager("downloading", fileStore, byUrlCachedExternalResourceIndex);
-        this.localCacheManager = new LocalFileRepositoryCacheManager("local");
+                                      RepositoryArtifactCache localCacheManager,
+                                      RepositoryArtifactCache downloadingCacheManager,
+                                      TemporaryFileProvider temporaryFileProvider,
+                                      CachedExternalResourceIndex<String> cachedExternalResourceIndex,
+                                      BuildCommencedTimeProvider timeProvider) {
+        this.progressLoggerFactory = progressLoggerFactory;
+        this.localCacheManager = localCacheManager;
+        this.downloadingCacheManager = downloadingCacheManager;
+        this.temporaryFileProvider = temporaryFileProvider;
+        this.cachedExternalResourceIndex = cachedExternalResourceIndex;
+        this.timeProvider = timeProvider;
     }
 
     public RepositoryTransport createHttpTransport(String name, PasswordCredentials credentials) {
-        return decorate(new HttpTransport(name, credentials, downloadingCacheManager));
+        return new HttpTransport(name, credentials, downloadingCacheManager, progressLoggerFactory, temporaryFileProvider, cachedExternalResourceIndex, timeProvider);
     }
 
     public RepositoryTransport createFileTransport(String name) {
-        return decorate(new FileTransport(name, localCacheManager));
-    }
-    
-    private RepositoryTransport decorate(RepositoryTransport original) {
-        return new ListeningRepositoryTransport(original);
-    }
-
-    public void attachListener(Repository repository) {
-        if (!repository.hasTransferListener(transferListener)) {
-            repository.addTransferListener(transferListener);
-        }
-    }
-
-    public RepositoryCacheManager getDownloadingCacheManager() {
-        return downloadingCacheManager;
-    }
-
-    public RepositoryCacheManager getLocalCacheManager() {
-        return localCacheManager;
-    }
-
-    public TransferListener getTransferListener() {
-        return transferListener;
-    }
-
-    private class ListeningRepositoryTransport implements RepositoryTransport {
-        private final RepositoryTransport delegate;
-
-        private ListeningRepositoryTransport(RepositoryTransport delegate) {
-            this.delegate = delegate;
-        }
-
-        public void configureCacheManager(AbstractResolver resolver) {
-            delegate.configureCacheManager(resolver);
-        }
-
-        public ExternalResourceRepository getRepository() {
-            ExternalResourceRepository repository = delegate.getRepository();
-            attachListener(repository);
-            return repository;
-        }
-
-        public String convertToPath(URI uri) {
-            return delegate.convertToPath(uri);
-        }
+        return new FileTransport(name, localCacheManager, temporaryFileProvider);
     }
 }

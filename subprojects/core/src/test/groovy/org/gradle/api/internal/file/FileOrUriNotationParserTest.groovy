@@ -16,16 +16,15 @@
 
 package org.gradle.api.internal.file
 
-import org.gradle.internal.nativeplatform.filesystem.FileSystems
-import org.gradle.util.TemporaryFolder
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
 class FileOrUriNotationParserTest extends Specification {
 
-    @Rule public TemporaryFolder folder = new TemporaryFolder();
+    @Rule public TestNameTestDirectoryProvider folder = new TestNameTestDirectoryProvider();
 
-    final FileOrUriNotationParser<Serializable> parser = new FileOrUriNotationParser<Serializable>(FileSystems.default)
+    final FileOrUriNotationParser<Serializable> parser = new FileOrUriNotationParser<Serializable>(TestFiles.fileSystem())
 
     def "with File returns this File"() {
         setup:

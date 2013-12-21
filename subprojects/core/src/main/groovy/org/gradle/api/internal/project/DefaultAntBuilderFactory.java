@@ -20,9 +20,6 @@ import org.gradle.api.AntBuilder;
 import org.gradle.api.Project;
 import org.gradle.internal.Factory;
 
-/**
- * @author Hans Dockter
- */
 public class DefaultAntBuilderFactory implements Factory<AntBuilder> {
     private final BuildListener buildListener;
     private final Project project;

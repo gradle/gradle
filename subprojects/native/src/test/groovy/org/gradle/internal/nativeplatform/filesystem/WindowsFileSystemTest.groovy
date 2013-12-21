@@ -16,13 +16,14 @@
 
 package org.gradle.internal.nativeplatform.filesystem
 
+import org.gradle.internal.nativeplatform.services.NativeServices
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Specification
 
 @Requires(TestPrecondition.WINDOWS)
 class WindowsFileSystemTest extends Specification {
-    def fs = FileSystems.default
+    def fs = NativeServices.instance.get(FileSystem)
 
     def "windows file system is case insensitive"() {
         expect:

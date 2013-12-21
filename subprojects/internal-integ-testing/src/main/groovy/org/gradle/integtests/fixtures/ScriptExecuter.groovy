@@ -15,16 +15,17 @@
  */
 package org.gradle.integtests.fixtures
 
-import org.gradle.process.internal.ExecHandleBuilder
-import org.gradle.process.internal.ExecHandle
-import org.gradle.process.ExecResult
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.process.ExecResult
+import org.gradle.process.internal.ExecHandle
+import org.gradle.process.internal.ExecHandleBuilder
 
 class ScriptExecuter extends ExecHandleBuilder {
     @Override
     ExecHandle build() {
         if (OperatingSystem.current().isWindows()) {
-            args = ['/c', executable.replace('/', File.separator)] + args
+            def theArgs = ['/c', executable.replace('/', File.separator)] + getArgs()
+            setArgs(theArgs) //split purposefully to avoid weird windows CI issue
             executable = 'cmd'
         } else {
             executable = "${workingDir}/${executable}"

@@ -16,7 +16,7 @@
 <chapter id="embedding">
     <title>Embedding Gradle</title>
 
-    <section id='sec:Introduction'>
+    <section id='sec:embedding_introduction'>
         <title>Introduction to the Tooling API</title>
         <para>The 1.0 milestone 3 release brought a new API called the tooling API,
             which you can use for embedding Gradle. This API allows you to execute and monitor builds,
@@ -72,14 +72,24 @@
         <para>The Tooling API is the official and recommended way to embed Gradle.
             This means that the existing APIs, namely <apilink class="org.gradle.GradleLauncher"/>
             and the open API (the UIFactory and friends),
-            are mildly deprecated and will be removed in some future version of Gradle.
+            are deprecated and will be removed in some future version of Gradle.
             If you happen to use one of the above APIs, please consider changing your application to use the tooling API instead.
         </para>
     </section>
 
-    <section id='sec:Quickstart'>
+    <section id='sec:embedding_daemon'>
+        <title>Tooling API and the Gradle Build Daemon</title>
+        <para>Please take a look at <xref linkend="gradle_daemon"/>.
+            The Tooling API uses the daemon all the time, e.g. you cannot officially use the Tooling API without the daemon.
+            This means that subsequent calls to the Tooling API, be it model building requests or task executing requests
+            can be executed in the same long-living process. <xref linkend="gradle_daemon"/> contains more details about the daemon,
+            specifically information on situations when new daemons are forked.
+        </para>
+    </section>
+
+    <section id='sec:embedding_quickstart'>
         <title>Quickstart</title>
-        <para>Since the tooling API is an interface for a programmer most of the documentation lives in Javadoc/Groovydoc.
+        <para>Since the tooling API is an interface for a programmer most of the documentation lives in the Javadoc.
             This is exactly our intention - we don't expect this chapter to grow very much.
             Instead we will add more code samples and improve the Javadoc documentation.
             The main entry point to the tooling API is the

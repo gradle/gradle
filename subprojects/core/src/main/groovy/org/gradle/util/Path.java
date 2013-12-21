@@ -23,9 +23,6 @@ import org.gradle.api.Project;
 import java.util.Arrays;
 import java.util.Comparator;
 
-/**
- * @author Hans Dockter
- */
 public class Path implements Comparable<Path> {
     private static final Comparator<String> STRING_COMPARATOR = GUtil.caseInsensitive();
     private final String prefix;

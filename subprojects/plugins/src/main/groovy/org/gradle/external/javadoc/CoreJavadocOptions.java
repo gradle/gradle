@@ -29,8 +29,6 @@ import java.util.List;
 
 /**
  * Provides the core Javadoc Options. That is, provides the options which are not doclet specific.
- *
- * @author Tom Eyckmans
  */
 public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
     private final JavadocOptionFile optionFile;

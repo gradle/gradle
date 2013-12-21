@@ -17,36 +17,62 @@
 package org.gradle.integtests.fixtures
 
 import groovy.util.slurpersupport.GPathResult
-import org.gradle.util.TestFile
+import org.gradle.test.fixtures.file.TestFile
 import org.hamcrest.Matcher
 
-/**
- * by Szczepan Faber, created at: 11/3/11
- */
 class TestNGExecutionResult implements TestExecutionResult {
     private final TestFile projectDir
-    private final GPathResult resultsXml
+    private GPathResult resultsXml
+    public static final String DEFAULT_TESTNG_REPORT = "build/reports/tests"
+    private final String outputDirectory
 
-    def TestNGExecutionResult(projectDir) {
-        this.projectDir = projectDir;
-        resultsXml = new XmlSlurper().parse(projectDir.file('build/reports/tests/testng-results.xml').assertIsFile())
+    TestNGExecutionResult(projectDir, String outputDirectory = DEFAULT_TESTNG_REPORT) {
+        this.projectDir = projectDir
+        this.outputDirectory = outputDirectory
+    }
+
+    boolean hasTestNGXmlResults() {
+        xmlReportFile().isFile()
+    }
+
+    boolean hasJUnitResultsGeneratedByTestNG() {
+        def dir = projectDir.file("$outputDirectory/junitreports")
+        dir.isDirectory() && dir.list().length > 0
+    }
+
+    boolean hasHtmlResults() {
+        htmlReportFile().isFile()
     }
 
     TestExecutionResult assertTestClassesExecuted(String... testClasses) {
-        projectDir.file('build/reports/tests/index.html').assertIsFile()
+        parseResults()
+        htmlReportFile().assertIsFile()
         def actualTestClasses = findTestClasses().keySet()
-        org.junit.Assert.assertThat(actualTestClasses, org.hamcrest.Matchers.equalTo(testClasses as Set))
+        assert actualTestClasses == testClasses as Set
         this
     }
 
+    private TestFile htmlReportFile() {
+        projectDir.file("$outputDirectory/index.html")
+    }
+
     TestClassExecutionResult testClass(String testClass) {
-        return new org.gradle.integtests.fixtures.TestNgTestClassExecutionResult(testClass, findTestClass(testClass))
+        parseResults()
+        return new TestNgTestClassExecutionResult(testClass, findTestClass(testClass))
+    }
+
+    private void parseResults() {
+        resultsXml = new XmlSlurper().parse(xmlReportFile().assertIsFile())
+    }
+
+    private TestFile xmlReportFile() {
+        projectDir.file("$outputDirectory/testng-results.xml")
     }
 
     private def findTestClass(String testClass) {
         def testClasses = findTestClasses()
         if (!testClasses.containsKey(testClass)) {
-            org.junit.Assert.fail("Could not find test class ${testClass}. Found ${testClasses.keySet()}")
+            throw new AssertionError("Could not find test class ${testClass}. Found ${testClasses.keySet()}")
         }
         testClasses[testClass]
     }
@@ -69,15 +95,19 @@ private class TestNgTestClassExecutionResult implements TestClassExecutionResult
         this.testClassNode = resultXml
     }
 
+    TestClassExecutionResult assertTestCount(int tests, int failures, int errors) {
+        throw new RuntimeException("Unsupported. Implement if you need it.");
+    }
+
     TestClassExecutionResult assertTestsExecuted(String... testNames) {
         def actualTestMethods = findTestMethods().keySet()
-        org.junit.Assert.assertThat(actualTestMethods, org.hamcrest.Matchers.equalTo(testNames as Set))
+        assert actualTestMethods == testNames as Set
         this
     }
 
     TestClassExecutionResult assertTestPassed(String name) {
         def testMethodNode = findTestMethod(name)
-        org.junit.Assert.assertEquals('PASS', testMethodNode.@status as String)
+        assert testMethodNode.@status as String == 'PASS'
         this
     }
 
@@ -87,19 +117,19 @@ private class TestNgTestClassExecutionResult implements TestClassExecutionResult
 
     TestClassExecutionResult assertTestSkipped(String name) {
         def testMethodNode = findTestMethod(name)
-        org.junit.Assert.assertEquals('SKIP', testMethodNode.@status as String)
+        assert testMethodNode.@status as String == 'SKIP'
         this
     }
 
     TestClassExecutionResult assertTestFailed(String name, Matcher<? super String>... messageMatchers) {
         def testMethodNode = findTestMethod(name)
-        org.junit.Assert.assertEquals('FAIL', testMethodNode.@status as String)
+        assert testMethodNode.@status as String == 'FAIL'
 
         def exceptions = testMethodNode.exception
-        org.junit.Assert.assertThat(exceptions.size(), org.hamcrest.Matchers.equalTo(messageMatchers.length))
+        assert exceptions.size() == messageMatchers.length
 
         for (int i = 0; i < messageMatchers.length; i++) {
-            org.junit.Assert.assertThat(exceptions[i].message[0].text().trim(), messageMatchers[i])
+            assert messageMatchers[i].matches(exceptions[i].message[0].text().trim())
         }
         this
     }
@@ -108,26 +138,34 @@ private class TestNgTestClassExecutionResult implements TestClassExecutionResult
         throw new UnsupportedOperationException();
     }
 
+    TestClassExecutionResult assertTestCaseStdout(String testCaseName, Matcher<? super String> matcher) {
+        throw new UnsupportedOperationException();
+    }
+
     TestClassExecutionResult assertStderr(Matcher<? super String> matcher) {
+        throw new UnsupportedOperationException();
+    }
+
+    TestClassExecutionResult assertTestCaseStderr(String testCaseName, Matcher<? super String> matcher) {
         throw new UnsupportedOperationException();
     }
 
     TestClassExecutionResult assertConfigMethodPassed(String name) {
         def testMethodNode = findConfigMethod(name)
-        org.junit.Assert.assertEquals('PASS', testMethodNode.@status as String)
+        assert testMethodNode.@status as String == 'PASS'
         this
     }
 
     TestClassExecutionResult assertConfigMethodFailed(String name) {
         def testMethodNode = findConfigMethod(name)
-        org.junit.Assert.assertEquals('FAIL', testMethodNode.@status as String)
+        assert testMethodNode.@status as String == 'FAIL'
         this
     }
 
     private def findConfigMethod(String testName) {
         def testMethods = findConfigMethods()
         if (!testMethods.containsKey(testName)) {
-            org.junit.Assert.fail("Could not find configuration method ${testClass}.${testName}. Found ${testMethods.keySet()}")
+            throw new AssertionError("Could not find configuration method ${testClass}.${testName}. Found ${testMethods.keySet()}")
         }
         testMethods[testName]
     }
@@ -143,7 +181,7 @@ private class TestNgTestClassExecutionResult implements TestClassExecutionResult
     private def findTestMethod(String testName) {
         def testMethods = findTestMethods()
         if (!testMethods.containsKey(testName)) {
-            org.junit.Assert.fail("Could not find test ${testClass}.${testName}. Found ${testMethods.keySet()}")
+            throw new AssertionError("Could not find test ${testClass}.${testName}. Found ${testMethods.keySet()}")
         }
         testMethods[testName]
     }

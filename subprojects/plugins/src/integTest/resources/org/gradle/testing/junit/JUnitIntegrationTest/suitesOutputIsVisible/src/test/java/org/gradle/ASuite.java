@@ -28,6 +28,7 @@ public class ASuite {
 
     @org.junit.BeforeClass public static void init() {
         System.out.println("before suite class out");
+        System.out.println("non-asci char: ż");
         System.err.println("before suite class err");
     }
 

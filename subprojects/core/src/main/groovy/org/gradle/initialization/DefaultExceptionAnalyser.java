@@ -16,16 +16,15 @@
 package org.gradle.initialization;
 
 import org.gradle.api.GradleScriptException;
-import org.gradle.api.internal.Contextual;
+import org.gradle.internal.exceptions.Contextual;
 import org.gradle.api.internal.ExceptionAnalyser;
-import org.gradle.api.internal.LocationAwareException;
+import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.groovy.scripts.Script;
 import org.gradle.groovy.scripts.ScriptCompilationException;
 import org.gradle.groovy.scripts.ScriptExecutionListener;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.listener.ListenerManager;
-import org.gradle.listener.ListenerNotificationException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -46,26 +45,19 @@ public class DefaultExceptionAnalyser implements ExceptionAnalyser, ScriptExecut
     }
 
     public Throwable transform(Throwable exception) {
-        Throwable actualException = findDeepest(exception);
-        if (actualException == null) {
-            return exception;
-        }
+        Throwable actualException = findDeepestRootException(exception);
         if (actualException instanceof LocationAwareException) {
             return actualException;
         }
 
         ScriptSource source = null;
         Integer lineNumber = null;
-        Throwable target = actualException;
 
-        // todo - remove these special cases
+        // TODO: remove these special cases
         if (actualException instanceof ScriptCompilationException) {
             ScriptCompilationException scriptCompilationException = (ScriptCompilationException) actualException;
             source = scriptCompilationException.getScriptSource();
             lineNumber = scriptCompilationException.getLineNumber();
-        }
-        if (actualException instanceof ListenerNotificationException && actualException.getCause() != null) {
-            target = actualException.getCause();
         }
 
         if (source == null) {
@@ -82,10 +74,11 @@ public class DefaultExceptionAnalyser implements ExceptionAnalyser, ScriptExecut
             }
         }
 
-        return new LocationAwareException(actualException, target, source, lineNumber);
+        return new LocationAwareException(actualException, source, lineNumber);
     }
 
-    private Throwable findDeepest(Throwable exception) {
+    private Throwable findDeepestRootException(Throwable exception) {
+        // TODO: fix the way we work out which exception is important: TaskExecutionException is not always the most helpful
         Throwable locationAware = null;
         Throwable result = null;
         Throwable contextMatch = null;
@@ -102,8 +95,10 @@ public class DefaultExceptionAnalyser implements ExceptionAnalyser, ScriptExecut
             return locationAware;
         } else if (result != null) {
             return result;
-        } else {
+        } else if (contextMatch != null) {
             return contextMatch;
+        } else {
+            return exception;
         }
     }
 }

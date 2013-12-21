@@ -13,13 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-dependencies {
-    groovy libraries.groovy
 
-    compile project(':core')
-    compile project(':plugins')
+apply from: "$rootDir/gradle/providedConfiguration.gradle"
+
+dependencies {
+    compile libraries.groovy
+
+    compile project(":core")
+    compile project(":languageJvm")
+    compile project(":plugins")
+
+    // keep in sync with ScalaBasePlugin code
+    provided("com.typesafe.zinc:zinc:0.2.1")
 
     testCompile libraries.slf4j_api
+
+    integTestRuntime project(":ide")
 }
 
 useTestFixtures(project: ":plugins") // includes core test fixtures
+
+configure([integTest, daemonIntegTest]) {
+    jvmArgs "-XX:MaxPermSize=1g" // AntInProcessScalaCompilerIntegrationTest needs lots of permgen
+}

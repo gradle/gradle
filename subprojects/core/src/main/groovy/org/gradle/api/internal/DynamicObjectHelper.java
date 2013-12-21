@@ -16,18 +16,45 @@
 
 package org.gradle.api.internal;
 
-/**
- * This is necessary because DynamicObjectHelper was renamed to ExtensibleDynamicObject in 1.0-milestone-9.
- *
- * AbstractTask leaked DynamicObjectHelper by having a public method that returned this type. This method
- * has been deprecated but we need to keep a class around with the same name for backwards compatibility.
- *
- * This will probably have to stay until we remove task inheritance.
- */
-public class DynamicObjectHelper extends BeanDynamicObject {
+import groovy.lang.*;
+import groovy.lang.MissingMethodException;
 
-    public DynamicObjectHelper(ExtensibleDynamicObject delegate) {
-        super(delegate);
+import java.util.Map;
+
+/**
+ * @deprecated This is here because tasks implemented in Groovy that are compiled against older versions of Gradle have this type baked into their byte-code, and cannot be loaded if it's not found.
+ */
+@Deprecated
+public class DynamicObjectHelper implements DynamicObject {
+    public Map<String, ?> getProperties() {
+        throw new UnsupportedOperationException();
     }
 
+    public boolean hasProperty(String name) {
+        throw new UnsupportedOperationException();
+    }
+
+    public Object getProperty(String name) throws MissingPropertyException {
+        throw new UnsupportedOperationException();
+    }
+
+    public void setProperty(String name, Object value) throws MissingPropertyException {
+        throw new UnsupportedOperationException();
+    }
+
+    public boolean hasMethod(String name, Object... arguments) {
+        throw new UnsupportedOperationException();
+    }
+
+    public Object invokeMethod(String name, Object... arguments) throws MissingMethodException {
+        throw new UnsupportedOperationException();
+    }
+
+    public boolean isMayImplementMissingMethods() {
+        throw new UnsupportedOperationException();
+    }
+
+    public boolean isMayImplementMissingProperties() {
+        throw new UnsupportedOperationException();
+    }
 }

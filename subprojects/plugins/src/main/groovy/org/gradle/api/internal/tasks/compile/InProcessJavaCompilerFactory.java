@@ -16,15 +16,15 @@
 package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.GradleException;
+import org.gradle.api.JavaVersion;
 import org.gradle.api.tasks.compile.CompileOptions;
-import org.gradle.internal.jvm.Jvm;
-import org.gradle.util.ReflectionUtil;
+import org.gradle.internal.reflect.JavaReflectionUtil;
 
 public class InProcessJavaCompilerFactory implements JavaCompilerFactory {
-    private static final boolean SUN_COMPILER_AVAILABLE = ReflectionUtil.isClassAvailable("com.sun.tools.javac.Main");
+    private static final boolean SUN_COMPILER_AVAILABLE = JavaReflectionUtil.isClassAvailable("com.sun.tools.javac.Main");
 
     public Compiler<JavaCompileSpec> create(CompileOptions options) {
-        if (Jvm.current().isJava6Compatible()) {
+        if (JavaVersion.current().isJava6Compatible()) {
             return createJdk6Compiler();
         }
         if (SUN_COMPILER_AVAILABLE) {

@@ -23,8 +23,6 @@ import java.util.regex.Pattern;
 
 /**
  * This class holds on FileLinkDefinitions used for searching output.
- *
- * @author mhunsicker
  */
 public class FileLinkDefinitionLord {
     private List<String> extensions = new ArrayList<String>();

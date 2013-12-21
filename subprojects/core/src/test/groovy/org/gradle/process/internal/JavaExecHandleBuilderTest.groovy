@@ -13,20 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.process.internal;
+package org.gradle.process.internal
 
-
-import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.file.IdentityFileResolver
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.jvm.Jvm
 import spock.lang.Specification
-import static java.util.Arrays.asList
-import java.nio.charset.Charset
 import spock.lang.Unroll
 
+import java.nio.charset.Charset
+
+import static java.util.Arrays.asList
+
 public class JavaExecHandleBuilderTest extends Specification {
-    FileResolver fileResolver = new IdentityFileResolver()
-    JavaExecHandleBuilder builder = new JavaExecHandleBuilder(fileResolver)
+    JavaExecHandleBuilder builder = new JavaExecHandleBuilder(TestFiles.resolver())
     
     public void cannotSetAllJvmArgs() {
         when:

@@ -15,12 +15,16 @@
  */
 package org.gradle.launcher.daemon.client
 
-import org.gradle.api.specs.Spec
+import org.gradle.api.internal.specs.ExplainingSpec
+import org.gradle.api.internal.specs.ExplainingSpecs
 import org.gradle.launcher.daemon.context.DaemonContext
 import org.gradle.launcher.daemon.context.DefaultDaemonContext
+import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo
 import org.gradle.launcher.daemon.registry.EmbeddedDaemonRegistry
 import org.gradle.messaging.remote.Address
+import org.gradle.messaging.remote.internal.ConnectException
 import org.gradle.messaging.remote.internal.Connection
+import org.gradle.messaging.remote.internal.MessageSerializer
 import org.gradle.messaging.remote.internal.OutgoingConnector
 import spock.lang.Specification
 
@@ -30,14 +34,16 @@ class DefaultDaemonConnectorTest extends Specification {
     def connectTimeoutSecs = 1
     def daemonCounter = 0
 
-    def createOutgoingConnector() {
-        new OutgoingConnector() {
-            Connection connect(Address address) {
-                def connection = [:] as Connection
-                // unsure why I can't add this as property in the map-mock above
-                connection.metaClass.num = address.num
-                connection
-            }
+    class OutgoingConnectorStub implements OutgoingConnector {
+        Connection connect(Address address, ClassLoader messageClassLoader) throws ConnectException {
+            def connection = [:] as Connection
+            // unsure why I can't add this as property in the map-mock above
+            connection.metaClass.num = address.num
+            connection
+        }
+
+        Connection connect(Address address, MessageSerializer serializer) {
+            throw new UnsupportedOperationException()
         }
     }
 
@@ -50,10 +56,10 @@ class DefaultDaemonConnectorTest extends Specification {
     }
 
     def createConnector() {
-        def connector = new DefaultDaemonConnector(
+        def connector = Spy(DefaultDaemonConnector, constructorArgs: [
                 new EmbeddedDaemonRegistry(),
-                createOutgoingConnector(),
-                { startBusyDaemon() } as DaemonStarter
+                Spy(OutgoingConnectorStub),
+                { startBusyDaemon() } as DaemonStarter]
         )
         connector.connectTimeout = connectTimeoutSecs * 1000
         connector
@@ -63,21 +69,21 @@ class DefaultDaemonConnectorTest extends Specification {
         def daemonNum = daemonCounter++
         DaemonContext context = new DefaultDaemonContext(daemonNum.toString(), javaHome, javaHome, daemonNum, 1000, [])
         def address = createAddress(daemonNum)
-        registry.store(address, context, "password")
+        registry.store(address, context, "password", false)
         registry.markBusy(address)
-        return daemonNum.toString()
+        return new DaemonStartupInfo(daemonNum.toString(), null);
     }
 
     def startIdleDaemon() {
         def daemonNum = daemonCounter++
         DaemonContext context = new DefaultDaemonContext(daemonNum.toString(), javaHome, javaHome, daemonNum, 1000, [])
         def address = createAddress(daemonNum)
-        registry.store(address, context, "password")
+        registry.store(address, context, "password", true)
     }
 
     def theConnector
 
-    def getConnector() {
+    def DefaultDaemonConnector getConnector() {
         if (theConnector == null) {
             theConnector = createConnector()
         }
@@ -92,13 +98,19 @@ class DefaultDaemonConnectorTest extends Specification {
         registry.all.size()
     }
 
+    abstract static class DummyExplainingSpec implements ExplainingSpec {
+        String whyUnsatisfied(Object element) {
+            ""
+        }
+    }
+
     def "maybeConnect() returns connection to any daemon that matches spec"() {
         given:
         startIdleDaemon()
         startIdleDaemon()
         
         expect:
-        def connection = connector.maybeConnect({it.pid < 12} as Spec)
+        def connection = connector.maybeConnect({it.pid < 12} as ExplainingSpec)
         connection && connection.connection.num < 12
     }
 
@@ -108,7 +120,7 @@ class DefaultDaemonConnectorTest extends Specification {
         startIdleDaemon()
 
         expect:
-        connector.maybeConnect({it.pid == 12} as Spec) == null
+        connector.maybeConnect({it.pid == 12} as DummyExplainingSpec) == null
     }
 
     def "maybeConnect() ignores daemons that do not match spec"() {
@@ -117,7 +129,7 @@ class DefaultDaemonConnectorTest extends Specification {
         startIdleDaemon()
 
         expect:
-        def connection = connector.maybeConnect({it.pid == 1} as Spec)
+        def connection = connector.maybeConnect({it.pid == 1} as DummyExplainingSpec)
         connection && connection.connection.num == 1
     }
 
@@ -127,7 +139,7 @@ class DefaultDaemonConnectorTest extends Specification {
         startIdleDaemon()
 
         expect:
-        def connection = connector.connect({it.pid < 12} as Spec)
+        def connection = connector.connect({it.pid < 12} as ExplainingSpec)
         connection && connection.connection.num < 12
 
         and:
@@ -139,7 +151,7 @@ class DefaultDaemonConnectorTest extends Specification {
         startIdleDaemon()
 
         expect:
-        def connection = connector.connect({it.pid > 0} as Spec)
+        def connection = connector.connect({it.pid > 0} as DummyExplainingSpec)
         connection && connection.connection.num > 0
 
         and:
@@ -151,21 +163,34 @@ class DefaultDaemonConnectorTest extends Specification {
         startIdleDaemon()
 
         expect:
-        def connection = connector.connect({it.pid != 0} as Spec)
+        def connection = connector.connect({it.pid != 0} as DummyExplainingSpec)
         connection && connection.connection.num != 0
 
         and:
         numAllDaemons == 2
     }
 
-    def "connect() will use daemon started by connector even if it fails compatibility spec"() {
+    def "connect() will fail early if newly started daemon fails the compatibility spec"() {
         when:
-        def connection = connector.connect({false} as Spec)
-        connection && connection.connection.num == 0
+        connector.connect(ExplainingSpecs.satisfyNone())
 
         then:
-        numAllDaemons == 1
+        thrown(DaemonConnectionException)
     }
 
+    def "suspect address is removed from the registry on connect failure"() {
+        given:
+        startIdleDaemon()
+        assert !registry.all.empty
 
+        connector.connector.connect(_ as Address, _) >> { throw new ConnectException("Problem!", new RuntimeException("foo")) }
+
+        when:
+        def connection = connector.maybeConnect( { true } as ExplainingSpec)
+
+        then:
+        !connection
+
+        registry.all.empty
+    }
 }

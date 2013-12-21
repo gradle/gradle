@@ -17,16 +17,14 @@ package org.gradle.api.internal.notations;
 
 import org.gradle.api.artifacts.SelfResolvingDependency;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.Instantiator;
 import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency;
-import org.gradle.api.internal.notations.api.NotationParser;
-import org.gradle.api.internal.notations.parsers.TypedNotationParser;
+import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.typeconversion.TypedNotationParser;
 
 import java.util.Collection;
 
 public class DependencyFilesNotationParser
-        extends TypedNotationParser<FileCollection, SelfResolvingDependency>
-        implements NotationParser<SelfResolvingDependency> {
+        extends TypedNotationParser<FileCollection, SelfResolvingDependency> {
 
     private final Instantiator instantiator;
 

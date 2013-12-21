@@ -17,14 +17,14 @@ package org.gradle.internal.jvm
 
 import org.gradle.internal.jvm.Jvm.AppleJvm
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.SetSystemProperties
-import org.gradle.util.TemporaryFolder
-import org.gradle.util.TestFile
 import org.junit.Rule
 import spock.lang.Specification
 
 class AppleJvmTest extends Specification {
-    @Rule TemporaryFolder tmpDir = new TemporaryFolder()
+    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     @Rule SetSystemProperties sysProp = new SetSystemProperties()
     OperatingSystem os = Mock(OperatingSystem)
 
@@ -60,7 +60,7 @@ class AppleJvmTest extends Specification {
     }
 
     def "finds executable if java home supplied"() {
-        when:
+        given:
         def home = tmpDir.createDir("home")
         home.create {
             bin { file 'java' }
@@ -69,8 +69,8 @@ class AppleJvmTest extends Specification {
 
         AppleJvm jvm = new AppleJvm(os, home)
 
-        then:
-        home.file('bin/java').absolutePath == jvm.getExecutable('java').absolutePath
+        expect:
+        jvm.getExecutable('java').absolutePath == home.file('bin/java').absolutePath
     }
 
     def "provides decent feedback when executable not found"() {

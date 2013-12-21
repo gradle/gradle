@@ -24,9 +24,6 @@ import org.gradle.api.artifacts.ModuleDependency;
 import java.util.HashSet;
 import java.util.Set;
 
-/**
- * @author Hans Dockter
- */
 public class DefaultClientModule extends AbstractExternalDependency implements ClientModule {
 
     private String group;

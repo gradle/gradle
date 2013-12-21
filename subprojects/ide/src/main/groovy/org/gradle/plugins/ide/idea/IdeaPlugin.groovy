@@ -13,27 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.ide.idea;
-
+package org.gradle.plugins.ide.idea
 
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
-import org.gradle.api.internal.Instantiator
 import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.plugins.scala.ScalaBasePlugin
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.plugins.ide.api.XmlFileContentMerger
 import org.gradle.plugins.ide.idea.internal.IdeaNameDeduper
-import org.gradle.plugins.ide.internal.IdePlugin
+import org.gradle.plugins.ide.idea.internal.IdeaScalaConfigurer
 import org.gradle.plugins.ide.idea.model.*
+import org.gradle.plugins.ide.internal.IdePlugin
+
+import javax.inject.Inject
 
 /**
  * Adds a GenerateIdeaModule task. When applied to a root project, also adds a GenerateIdeaProject task.
  * For projects that have the Java plugin applied, the tasks receive additional Java-specific configuration.
- *
- *  @author Hans Dockter
  */
 class IdeaPlugin extends IdePlugin {
-
+    private final Instantiator instantiator
     IdeaModel model
+
+    @Inject
+    IdeaPlugin(Instantiator instantiator) {
+        this.instantiator = instantiator
+    }
 
     @Override protected String getLifecycleTaskName() {
         return 'idea'
@@ -43,12 +49,13 @@ class IdeaPlugin extends IdePlugin {
         lifecycleTask.description = 'Generates IDEA project files (IML, IPR, IWS)'
         cleanTask.description = 'Cleans IDEA project files (IML, IPR)'
 
-        model= project.extensions.create("idea", IdeaModel)
+        model = project.extensions.create("idea", IdeaModel)
 
         configureIdeaWorkspace(project)
         configureIdeaProject(project)
         configureIdeaModule(project)
         configureForJavaPlugin(project)
+        configureForScalaPlugin()
 
         hookDeduplicationToTheRoot(project)
     }
@@ -79,7 +86,7 @@ class IdeaPlugin extends IdePlugin {
     private configureIdeaModule(Project project) {
         def task = project.task('ideaModule', description: 'Generates IDEA module files (IML)', type: GenerateIdeaModule) {
             def iml = new IdeaModuleIml(xmlTransformer, project.projectDir)
-            module = services.get(Instantiator).newInstance(IdeaModule, project, iml)
+            module = instantiator.newInstance(IdeaModule, project, iml)
 
             model.module = module
 
@@ -106,12 +113,12 @@ class IdeaPlugin extends IdePlugin {
         if (isRoot(project)) {
             def task = project.task('ideaProject', description: 'Generates IDEA project file (IPR)', type: GenerateIdeaProject) {
                 def ipr = new XmlFileContentMerger(xmlTransformer)
-                ideaProject = services.get(Instantiator).newInstance(IdeaProject, ipr)
+                ideaProject = instantiator.newInstance(IdeaProject, ipr)
 
                 model.project = ideaProject
 
                 ideaProject.outputFile = new File(project.projectDir, project.name + ".ipr")
-                ideaProject.conventionMapping.jdkName = { JavaVersion.VERSION_1_6.toString() }
+                ideaProject.conventionMapping.jdkName = { JavaVersion.current().toString() }
                 ideaProject.conventionMapping.languageLevel = { new IdeaLanguageLevel(JavaVersion.VERSION_1_6) }
                 ideaProject.wildcards = ['!?*.java', '!?*.groovy'] as Set
                 ideaProject.conventionMapping.modules = {
@@ -135,7 +142,6 @@ class IdeaPlugin extends IdePlugin {
 
     private configureIdeaProjectForJava(Project project) {
         if (isRoot(project)) {
-            project.idea.project.conventionMapping.jdkName   = { project.sourceCompatibility.toString() }
             project.idea.project.conventionMapping.languageLevel = {
                 new IdeaLanguageLevel(project.sourceCompatibility)
             }
@@ -153,13 +159,25 @@ class IdeaPlugin extends IdePlugin {
                     RUNTIME: [plus: [configurations.runtime], minus: [configurations.compile]],
                     TEST: [plus: [configurations.testRuntime], minus: [configurations.runtime]]
             ]
-            module.conventionMapping.singleEntryLibraries = { [
-                    RUNTIME: project.sourceSets.main.output.dirs,
-                    TEST: project.sourceSets.test.output.dirs
-            ] }
+            module.conventionMapping.singleEntryLibraries = {
+                [
+                        RUNTIME: project.sourceSets.main.output.dirs,
+                        TEST: project.sourceSets.test.output.dirs
+                ]
+            }
             dependsOn {
                 project.sourceSets.main.output.dirs + project.sourceSets.test.output.dirs
             }
+        }
+    }
+
+    private void configureForScalaPlugin() {
+        project.plugins.withType(ScalaBasePlugin) {
+            //see IdeaScalaConfigurer
+            project.tasks.ideaModule.dependsOn(project.rootProject.tasks.ideaProject)
+        }
+        if (isRoot(project)) {
+            new IdeaScalaConfigurer(project).configure()
         }
     }
 

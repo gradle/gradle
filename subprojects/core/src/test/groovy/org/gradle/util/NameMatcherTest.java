@@ -15,15 +15,20 @@
  */
 package org.gradle.util;
 
+import org.junit.Test;
+
 import java.util.List;
 import java.util.Map;
-import org.junit.Test;
-import static java.util.Collections.*;
-import static org.gradle.util.GUtil.*;
-import static org.gradle.util.Matchers.*;
-import static org.gradle.util.WrapUtil.*;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+
+import static com.google.common.collect.Iterables.concat;
+import static com.google.common.collect.Lists.newArrayList;
+import static java.util.Collections.singletonMap;
+import static org.gradle.util.Matchers.isEmpty;
+import static org.gradle.util.WrapUtil.toList;
+import static org.gradle.util.WrapUtil.toSet;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.assertThat;
 
 public class NameMatcherTest {
     private final NameMatcher matcher = new NameMatcher();
@@ -198,7 +203,7 @@ public class NameMatcherTest {
     }
 
     private void assertMatches(String name, String match, String... extraItems) {
-        List<String> allItems = addLists(toList(match), toList(extraItems));
+        List<String> allItems = newArrayList(concat(toList(match), toList(extraItems)));
         assertThat(matcher.find(name, allItems), equalTo(match));
         assertThat(matcher.getMatches(), equalTo(toSet(match)));
     }

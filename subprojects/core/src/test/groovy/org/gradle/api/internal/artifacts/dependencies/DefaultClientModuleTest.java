@@ -16,25 +16,19 @@
 
 package org.gradle.api.internal.artifacts.dependencies;
 
-import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.util.HelperUtil;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 
-/**
- * @author Hans Dockter
- */
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.assertThat;
+
 public class DefaultClientModuleTest extends AbstractModuleDependencyTest {
     private static final String TEST_GROUP = "org.gradle";
     private static final String TEST_NAME = "gradle-core";
     private static final String TEST_VERSION = "4.4-beta2";
 
     DefaultClientModule clientModule;
-
-    DefaultDependencyDescriptor expectedDependencyDescriptor;
 
     protected AbstractModuleDependency getDependency() {
         return clientModule;
@@ -51,7 +45,6 @@ public class DefaultClientModuleTest extends AbstractModuleDependencyTest {
     @Before
     public void setUp() {
         clientModule = new DefaultClientModule(TEST_GROUP, TEST_NAME, TEST_VERSION);
-        expectedDependencyDescriptor = HelperUtil.getTestDescriptor();
     }
 
     @Test

@@ -16,14 +16,17 @@
 package org.gradle.launcher.daemon.context
 
 import org.gradle.internal.nativeplatform.ProcessEnvironment
+import org.gradle.internal.nativeplatform.filesystem.FileSystems
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.ConfigureUtil
-import org.gradle.util.TemporaryFolder
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Specification
 
 class DaemonCompatibilitySpecSpec extends Specification {
 
-    @Rule TemporaryFolder tmp = new TemporaryFolder()
+    @Rule TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider()
 
     def clientConfigure = {}
     def serverConfigure = {}
@@ -50,13 +53,18 @@ class DaemonCompatibilitySpecSpec extends Specification {
         createContext(serverConfigure)
     }
 
-    boolean isCompatible() {
+    private boolean isCompatible() {
         new DaemonCompatibilitySpec(clientContext).isSatisfiedBy(serverContext)
+    }
+
+    private String getUnsatisfiedReason() {
+        new DaemonCompatibilitySpec(clientContext).whyUnsatisfied(serverContext)
     }
 
     def "default contexts are compatible"() {
         expect:
         compatible
+        !unsatisfiedReason
     }
 
     def "contexts with different java homes are incompatible"() {
@@ -65,6 +73,23 @@ class DaemonCompatibilitySpecSpec extends Specification {
 
         expect:
         !compatible
+        unsatisfiedReason.contains "Java home is different"
+    }
+
+    @Requires(TestPrecondition.SYMLINKS)
+    def "contexts with symlinked javaHome are compatible"() {
+        File dir = tmp.createDir("a")
+        File link = new File(tmp.testDirectory, "link")
+        FileSystems.default.createSymbolicLink(link, dir)
+
+        assert dir != link
+        assert dir.canonicalFile == link.canonicalFile
+
+        client { javaHome = dir }
+        server { javaHome = link }
+
+        expect:
+        compatible
     }
 
     def "contexts with same daemon opts are compatible"() {
@@ -89,6 +114,7 @@ class DaemonCompatibilitySpecSpec extends Specification {
 
         expect:
         !compatible
+        unsatisfiedReason.contains "At least one daemon option is different"
     }
 
     def "contexts with different daemon opts are incompatible"() {

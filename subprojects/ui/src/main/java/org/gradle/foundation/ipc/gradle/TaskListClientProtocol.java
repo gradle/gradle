@@ -36,8 +36,6 @@ import java.util.List;
 /**
  * This manages the communication between the UI and an externally-launched copy of Gradle when using socket-based inter-process communication. This is the client (gradle) side used to build a task
  * list (tree actually). We add gradle listeners and send their notifications as messages back to the server.
- *
- * @author mhunsicker
  */
 public class TaskListClientProtocol implements ClientProcess.Protocol {
     private final Logger logger = Logging.getLogger(TaskListClientProtocol.class);

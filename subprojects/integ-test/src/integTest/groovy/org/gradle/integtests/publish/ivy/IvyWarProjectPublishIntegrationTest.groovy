@@ -15,7 +15,6 @@
  */
 package org.gradle.integtests.publish.ivy
 
-import org.gradle.integtests.fixtures.IvyRepository
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class IvyWarProjectPublishIntegrationTest extends AbstractIntegrationSpec {
@@ -43,7 +42,7 @@ dependencies {
 uploadArchives {
     repositories {
         ivy {
-            url 'ivy-repo'
+            url '${ivyRepo.uri}'
         }
     }
 }
@@ -53,7 +52,7 @@ uploadArchives {
         run "uploadArchives"
 
         then:
-        def ivyModule = new IvyRepository(file("ivy-repo")).module("org.gradle.test", "publishTest", "1.9")
+        def ivyModule = ivyRepo.module("org.gradle.test", "publishTest", "1.9")
         ivyModule.assertArtifactsPublished("ivy-1.9.xml", "publishTest-1.9.war")
     }
 }

@@ -16,37 +16,42 @@
 package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.AntBuilder;
+import org.gradle.api.internal.file.DefaultTemporaryFileProvider;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
 import org.gradle.api.internal.tasks.compile.daemon.DaemonJavaCompiler;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.internal.Factory;
 
+import java.io.File;
+import java.io.Serializable;
+
 public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
     private final static Logger LOGGER = Logging.getLogger(DefaultJavaCompilerFactory.class);
 
     private final ProjectInternal project;
-    private final TemporaryFileProvider tempFileProvider;
     private final Factory<AntBuilder> antBuilderFactory;
     private final JavaCompilerFactory inProcessCompilerFactory;
-    private boolean groovyJointCompilation;
+    private final CompilerDaemonManager compilerDaemonManager;
+    private boolean jointCompilation;
 
-    public DefaultJavaCompilerFactory(ProjectInternal project, TemporaryFileProvider tempFileProvider, Factory<AntBuilder> antBuilderFactory, JavaCompilerFactory inProcessCompilerFactory){
+    public DefaultJavaCompilerFactory(ProjectInternal project, Factory<AntBuilder> antBuilderFactory, JavaCompilerFactory inProcessCompilerFactory, CompilerDaemonManager compilerDaemonManager){
         this.project = project;
-        this.tempFileProvider = tempFileProvider;
         this.antBuilderFactory = antBuilderFactory;
         this.inProcessCompilerFactory = inProcessCompilerFactory;
+        this.compilerDaemonManager = compilerDaemonManager;
     }
 
     /**
      * If true, the Java compiler to be created is used for joint compilation
-     * together with a Groovy compiler in the compiler daemon.
-     * In that case, the Groovy normalizing and daemon compilers should be used.
+     * together with another language's compiler in the compiler daemon.
+     * In that case, the other language's normalizing and daemon compilers should be used.
      */
-    public void setGroovyJointCompilation(boolean flag) {
-        groovyJointCompilation = flag;
+    public void setJointCompilation(boolean flag) {
+        jointCompilation = flag;
     }
 
     public Compiler<JavaCompileSpec> create(CompileOptions options) {
@@ -57,7 +62,7 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
         }
 
         Compiler<JavaCompileSpec> result = createTargetCompiler(options);
-        if (!groovyJointCompilation) {
+        if (!jointCompilation) {
             result = new NormalizingJavaCompiler(result);
         }
         return result;
@@ -74,14 +79,30 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
 
     private Compiler<JavaCompileSpec> createTargetCompiler(CompileOptions options) {
         if (options.isFork() && options.getForkOptions().getExecutable() != null) {
-            return new CommandLineJavaCompiler(tempFileProvider, project.getProjectDir());
+            return new CommandLineJavaCompiler(createSerializableTempFileProvider(), project.getProjectDir());
         }
 
         Compiler<JavaCompileSpec> compiler = inProcessCompilerFactory.create(options);
-        if (options.isFork() && !groovyJointCompilation) {
-            return new DaemonJavaCompiler(project, compiler);
+        if (options.isFork() && !jointCompilation) {
+            return new DaemonJavaCompiler(project, compiler, compilerDaemonManager);
         }
 
         return compiler;
+    }
+
+    private TemporaryFileProvider createSerializableTempFileProvider() {
+        return new DefaultTemporaryFileProvider(new FileFactory(project.getBuildDir()));
+    }
+
+    private static class FileFactory implements Factory<File>, Serializable {
+        private final File file;
+
+        private FileFactory(File file) {
+            this.file = file;
+        }
+
+        public File create() {
+            return file;
+        }
     }
 }

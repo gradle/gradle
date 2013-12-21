@@ -19,17 +19,15 @@ package org.gradle.api.tasks.compile;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.tasks.AbstractConventionTaskTest;
 import org.gradle.util.WrapUtil;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
 import java.util.List;
 
-import static org.gradle.util.Matchers.*;
+import static org.gradle.util.Matchers.isEmpty;
 import static org.junit.Assert.*;
 
-/**
- * @author Hans Dockter
- */
 public abstract class AbstractCompileTest extends AbstractConventionTaskTest {
     public static final String TEST_PATTERN_1 = "pattern1";
     public static final String TEST_PATTERN_2 = "pattern2";
@@ -45,9 +43,8 @@ public abstract class AbstractCompileTest extends AbstractConventionTaskTest {
 
     protected abstract AbstractCompile getCompile();
 
-    @Override
-    public void setUp() {
-        super.setUp();
+    @Before
+    public final void setUpDirs() {
         destDir = getProject().file("destDir");
         depCacheDir = getProject().file("depCache");
         srcDir = getProject().file("src");

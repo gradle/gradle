@@ -70,7 +70,7 @@ public abstract class AbstractLineChoppingStyledTextOutput extends AbstractStyle
 
     /**
      * Called when text is to be appended.
-     * @param text The text.
+     * @param text The text, includes any end-of-line terminator
      * @param terminatesLine true if the given text terminates a line (including the end-of-line string).
      */
     protected abstract void doLineText(CharSequence text, boolean terminatesLine);

@@ -16,11 +16,9 @@
 package org.gradle.api.internal.file.pattern;
 
 import org.junit.Test;
+
 import static org.junit.Assert.*;
 
-/**
- * @author Steve Appling
- */
 public class RegExpPatternStepTest {
 
     private void testPatternEscape(String expected, String pattern) {

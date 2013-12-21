@@ -15,6 +15,7 @@
  */
 package org.gradle.util;
 
+import org.gradle.test.fixtures.file.TestFile;
 import org.junit.rules.MethodRule;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
@@ -23,7 +24,8 @@ import java.io.File;
 import java.net.URISyntaxException;
 import java.net.URL;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * A JUnit rule which helps locate test resources.
@@ -51,7 +53,7 @@ public class Resources implements MethodRule {
         if (resource == null) {
             return null;
         }
-        assertEquals("file", resource.getProtocol());
+        assertEquals(String.format("Cannot handle resource URI %s", resource), "file", resource.getProtocol());
         File file;
         try {
             file = new File(resource.toURI());

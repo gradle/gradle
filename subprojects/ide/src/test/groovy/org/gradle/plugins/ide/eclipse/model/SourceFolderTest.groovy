@@ -17,9 +17,6 @@ package org.gradle.plugins.ide.eclipse.model
 
 import spock.lang.Specification
 
-/**
- * @author Hans Dockter
- */
 class SourceFolderTest extends Specification {
     final static String XML_TEXT = '''
                 <classpathentry including="**/Test1*|**/Test2*" excluding="**/Test3*|**/Test4*" kind="src" output="bin2" path="src">

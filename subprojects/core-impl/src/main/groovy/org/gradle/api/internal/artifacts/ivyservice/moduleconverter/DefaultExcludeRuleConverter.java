@@ -23,9 +23,6 @@ import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.util.GUtil;
 
-/**
- * @author Hans Dockter
- */
 public class DefaultExcludeRuleConverter implements ExcludeRuleConverter {
     public DefaultExcludeRule createExcludeRule(String configurationName, ExcludeRule excludeRule) {
         String org = GUtil.elvis(excludeRule.getGroup(), PatternMatcher.ANY_EXPRESSION);

@@ -16,6 +16,7 @@
 package org.gradle.api.internal
 
 import spock.lang.Specification
+import org.gradle.internal.reflect.Instantiator
 
 class ClassGeneratorBackedInstantiatorTest extends Specification {
     final ClassGenerator classGenerator = Mock()

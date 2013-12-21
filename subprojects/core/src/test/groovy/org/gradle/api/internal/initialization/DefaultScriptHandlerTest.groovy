@@ -19,87 +19,178 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.artifacts.dsl.RepositoryHandler
-import org.gradle.util.JUnit4GroovyMockery
-import org.gradle.util.WrapUtil
-import org.jmock.integration.junit4.JMock
-import org.junit.Test
-import org.junit.runner.RunWith
-
-import static org.hamcrest.Matchers.*
-import static org.junit.Assert.*
 import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.util.MutableURLClassLoader
+import org.gradle.internal.classloader.CachingClassLoader
+import org.gradle.internal.classloader.ClassLoaderVisitor
+import org.gradle.internal.classloader.MultiParentClassLoader
+import org.gradle.internal.classloader.MutableURLClassLoader
 import org.gradle.util.ConfigureUtil
+import spock.lang.Specification
 
-@RunWith(JMock)
-public class DefaultScriptHandlerTest {
-    private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
-    private final RepositoryHandler repositoryHandler = context.mock(RepositoryHandler.class)
-    private final DependencyHandler dependencyHandler = context.mock(DependencyHandler.class)
-    private final ConfigurationContainer configurationContainer = context.mock(ConfigurationContainer.class)
-    private final Configuration configuration = context.mock(Configuration.class)
-    private final ScriptSource scriptSource = context.mock(ScriptSource.class)
-    private final MutableURLClassLoader classLoader = context.mock(MutableURLClassLoader.class)
-
-    @Test void addsClasspathConfiguration() {
-        context.checking {
-            one(configurationContainer).add('classpath')
-        }
-
-        new DefaultScriptHandler(scriptSource, repositoryHandler, dependencyHandler, configurationContainer, classLoader)
+class DefaultScriptHandlerTest extends Specification {
+    def repositoryHandler = Mock(RepositoryHandler)
+    def dependencyHandler = Mock(DependencyHandler)
+    def configurationContainer = Mock(ConfigurationContainer)
+    def configuration = Stub(Configuration)
+    def scriptSource = Stub(ScriptSource)
+    def baseClassLoader = new ClassLoader() {}
+    def parentScope = Stub(ScriptCompileScope) {
+        getScriptCompileClassLoader() >> baseClassLoader
     }
 
-    @Test void createsAClassLoaderAndAddsContentsOfClassPathConfiguration() {
-        DefaultScriptHandler handler = handler()
+    def "adds classpath configuration"() {
+        when:
+        new DefaultScriptHandler(scriptSource, repositoryHandler, dependencyHandler, configurationContainer, parentScope)
 
-        ClassLoader classLoader = handler.classLoader
-        assertThat(classLoader, sameInstance(this.classLoader))
+        then:
+        1 * configurationContainer.create('classpath')
+    }
 
-        File file1 = new File('a')
-        File file2 = new File('b')
-        context.checking {
-            one(configuration).getFiles()
-            will(returnValue(WrapUtil.toSet(file1, file2)))
-            one(classLoader).addURL(file1.toURI().toURL())
-            one(classLoader).addURL(file2.toURI().toURL())
-        }
+    def "uses base class loader when classpath configuration is empty and no parents declared"() {
+        def handler = handler()
 
+        given:
+        configuration.files >> []
+
+        when:
         handler.updateClassPath()
+        def classLoader = handler.classLoader
+
+        then:
+        classLoader == baseClassLoader
     }
 
-    @Test void canConfigureRepositories() {
-        DefaultScriptHandler handler = handler()
+    def "creates a class loader when classpath configuration is not empty and no parents declared"() {
+        def handler = handler()
+        def file1 = new File('a')
+        def file2 = new File('b')
 
+        given:
+        configuration.files >> [file1, file2]
+
+        when:
+        handler.updateClassPath()
+        def classLoader = handler.classLoader
+
+        then:
+        classLoader instanceof MutableURLClassLoader
+        classLoader.parent == baseClassLoader
+        classLoader.URLs == [file1.toURI().toURL(), file2.toURI().toURL()] as URL[]
+    }
+
+    def "creates a class loader when classpath configuration is empty and parents declared"() {
+        def handler = handler()
+        def parent = Mock(ClassLoader)
+        def visitor = Mock(ClassLoaderVisitor)
+
+        given:
+        configuration.files >> []
+        handler.addParent(parent)
+
+        when:
+        handler.updateClassPath()
+        def classLoader = handler.classLoader
+
+        then:
+        classLoader instanceof CachingClassLoader
+        classLoader.parent instanceof MultiParentClassLoader
+
+        when:
+        classLoader.parent.visit(visitor)
+
+        then:
+        1 * visitor.visitParent(baseClassLoader)
+        1 * visitor.visitParent(parent)
+    }
+
+    def "creates a class loader when classpath configuration is not empty and parents declared"() {
+        def handler = handler()
+        def parent = Mock(ClassLoader)
+        def visitor = Mock(ClassLoaderVisitor)
+        def file1 = new File('a')
+        def file2 = new File('b')
+
+        given:
+        configuration.files >> [file1, file2]
+        handler.addParent(parent)
+
+        when:
+        handler.updateClassPath()
+        def classLoader = handler.classLoader
+
+        then:
+        classLoader instanceof CachingClassLoader
+        classLoader.parent instanceof MultiParentClassLoader
+
+        when:
+        classLoader.parent.visit(visitor)
+
+        then:
+        1 * visitor.visitParent({ it instanceof MutableURLClassLoader }) >> { ClassLoader cl ->
+            assert cl.parent == baseClassLoader
+            assert cl.URLs == [file1.toURI().toURL(), file2.toURI().toURL()] as URL[]
+        }
+        1 * visitor.visitParent(parent)
+    }
+
+    def "creates script class loader on demand when not finalized and fills in the missing pieces once finalized"() {
+        def handler = handler()
+        def visitor = Mock(ClassLoaderVisitor)
+        def parent = Mock(ClassLoader)
+        def file1 = new File('a')
+        def file2 = new File('b')
+
+        given:
+        configuration.files >> [file1, file2]
+
+        when:
+        def classLoader = handler.classLoader
+
+        then:
+        classLoader instanceof CachingClassLoader
+        classLoader.parent instanceof MultiParentClassLoader
+
+        when:
+        handler.addParent(parent)
+        handler.updateClassPath()
+        classLoader.parent.visit(visitor)
+
+        then:
+        1 * visitor.visitParent({ it instanceof MutableURLClassLoader }) >> { ClassLoader cl ->
+            assert cl.parent == baseClassLoader
+            assert cl.URLs == [file1.toURI().toURL(), file2.toURI().toURL()] as URL[]
+        }
+        1 * visitor.visitParent(parent)
+    }
+
+    def "can configure repositories"() {
+        def handler = handler()
         def configure = {
             mavenCentral()
         }
 
-        context.checking {
-            one(repositoryHandler).configure(configure)
-            will { ConfigureUtil.configure(configure, repositoryHandler, false) }
-            one(repositoryHandler).mavenCentral()
-        }
-
+        when:
         handler.repositories(configure)
+
+        then:
+        1 * repositoryHandler.configure(configure) >> { ConfigureUtil.configure(configure, repositoryHandler, false) }
+        1 * repositoryHandler.mavenCentral()
     }
 
-    @Test void canConfigureDependencies() {
-        DefaultScriptHandler handler = handler()
+    def "can configure dependencies"() {
+        def handler = handler()
 
-        context.checking {
-            one(dependencyHandler).add('config', 'dep')
-        }
-
+        when:
         handler.dependencies {
             add('config', 'dep')
         }
+
+        then:
+        1 * dependencyHandler.add('config', 'dep')
     }
 
     private DefaultScriptHandler handler() {
-        context.checking {
-            one(configurationContainer).add('classpath')
-            will(returnValue(configuration))
-        }
-        return new DefaultScriptHandler(scriptSource, repositoryHandler, dependencyHandler, configurationContainer, classLoader)
+        1 * configurationContainer.create('classpath') >> configuration
+        return new DefaultScriptHandler(scriptSource, repositoryHandler, dependencyHandler, configurationContainer, parentScope)
     }
 }

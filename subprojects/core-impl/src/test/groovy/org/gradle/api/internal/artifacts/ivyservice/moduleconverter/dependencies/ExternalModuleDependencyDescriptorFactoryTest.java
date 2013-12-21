@@ -30,14 +30,11 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
-/**
- * @author Hans Dockter
- */
 public class ExternalModuleDependencyDescriptorFactoryTest extends AbstractDependencyDescriptorFactoryInternalTest {
     private JUnit4Mockery context = new JUnit4Mockery();
 
-    ExternalModuleDependencyDescriptorFactory externalModuleDependencyDescriptorFactory =
-            new ExternalModuleDependencyDescriptorFactory(excludeRuleConverterStub);
+    ExternalModuleIvyDependencyDescriptorFactory externalModuleDependencyDescriptorFactory =
+            new ExternalModuleIvyDependencyDescriptorFactory(excludeRuleConverterStub);
     
     @Test
     public void canConvert() {
@@ -48,8 +45,7 @@ public class ExternalModuleDependencyDescriptorFactoryTest extends AbstractDepen
     @Test
     public void testAddWithNullGroupAndNullVersionShouldHaveEmptyStringModuleRevisionValues() {
         ModuleDependency dependency = new DefaultExternalModuleDependency(null, "gradle-core", null, TEST_DEP_CONF);
-        externalModuleDependencyDescriptorFactory.addDependencyDescriptor(TEST_CONF, moduleDescriptor, dependency);
-        DefaultDependencyDescriptor dependencyDescriptor = (DefaultDependencyDescriptor) moduleDescriptor.getDependencies()[0];
+        DefaultDependencyDescriptor dependencyDescriptor = externalModuleDependencyDescriptorFactory.createDependencyDescriptor(TEST_CONF, dependency, moduleDescriptor);
         assertThat(dependencyDescriptor.getDependencyRevisionId(), equalTo(IvyUtil.createModuleRevisionId(dependency)));
     }
 
@@ -59,10 +55,7 @@ public class ExternalModuleDependencyDescriptorFactoryTest extends AbstractDepen
                 "gradle-core", "1.0", TEST_DEP_CONF);
         setUpDependency(moduleDependency);
 
-        externalModuleDependencyDescriptorFactory.addDependencyDescriptor(TEST_CONF, moduleDescriptor,
-                moduleDependency);
-        DefaultDependencyDescriptor dependencyDescriptor = (DefaultDependencyDescriptor) moduleDescriptor
-                .getDependencies()[0];
+        DefaultDependencyDescriptor dependencyDescriptor = externalModuleDependencyDescriptorFactory.createDependencyDescriptor(TEST_CONF, moduleDependency, moduleDescriptor);
 
         assertEquals(moduleDependency.isChanging(), dependencyDescriptor.isChanging());
         assertEquals(dependencyDescriptor.isForce(), moduleDependency.isForce());

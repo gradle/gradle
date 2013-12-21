@@ -15,24 +15,30 @@
   -->
 
 <chapter id="antlr_plugin">
-    <title>The Antlr Plugin</title>
+    <title>The ANTLR Plugin</title>
 
-    <para>The Antlr plugin extends the Java plugin to add support for generating parsers using <ulink url="http://www.antlr.org/">Antlr</ulink>.</para>
+    <para>The ANTLR plugin extends the Java plugin to add support for generating parsers using <ulink url="http://www.antlr.org/">ANTLR</ulink>.</para>
+
+    <note>
+        <para>
+            The ANTLR plugin only supports ANTLR version 2.
+        </para>
+    </note>
 
     <section>
         <title>Usage</title>
-        <para>To use the Antlr plugin, include in your build script:</para>
-        <sample id="useAntlrPlugin" dir="antlr" title="Using the Antlr plugin">
+        <para>To use the ANTLR plugin, include in your build script:</para>
+        <sample id="useAntlrPlugin" dir="antlr" title="Using the ANTLR plugin">
             <sourcefile file="build.gradle" snippet="use-plugin"/>
         </sample>
     </section>
 
     <section>
         <title>Tasks</title>
-        <para>The Antlr plugin adds a number of tasks to your project, as shown below.</para>
+        <para>The ANTLR plugin adds a number of tasks to your project, as shown below.</para>
 
         <table>
-            <title>Antlr plugin - tasks</title>
+            <title>ANTLR plugin - tasks</title>
             <thead>
                 <tr>
                     <td>Task name</td>
@@ -47,7 +53,7 @@
                 </td>
                 <td>-</td>
                 <td><apilink class="org.gradle.api.plugins.antlr.AntlrTask"/></td>
-                <td>Generates the source files for all production Antlr grammars.</td>
+                <td>Generates the source files for all production ANTLR grammars.</td>
             </tr>
             <tr>
                 <td>
@@ -55,7 +61,7 @@
                 </td>
                 <td>-</td>
                 <td><apilink class="org.gradle.api.plugins.antlr.AntlrTask"/></td>
-                <td>Generates the source files for all test Antlr grammars.</td>
+                <td>Generates the source files for all test ANTLR grammars.</td>
             </tr>
             <tr>
                 <td>
@@ -63,12 +69,12 @@
                 </td>
                 <td>-</td>
                 <td><apilink class="org.gradle.api.plugins.antlr.AntlrTask"/></td>
-                <td>Generates the source files for all Antlr grammars for the given source set.</td>
+                <td>Generates the source files for all ANTLR grammars for the given source set.</td>
             </tr>
         </table>
-        <para>The Antlr plugin adds the following dependencies to tasks added by the Java plugin.</para>
+        <para>The ANTLR plugin adds the following dependencies to tasks added by the Java plugin.</para>
         <table>
-            <title>Antlr plugin - additional task dependencies</title>
+            <title>ANTLR plugin - additional task dependencies</title>
             <thead>
                 <td>Task name</td>
                 <td>Depends on</td>
@@ -91,7 +97,7 @@
     <section>
         <title>Project layout</title>
         <table>
-            <title>Antlr plugin - project layout</title>
+            <title>ANTLR plugin - project layout</title>
             <thead>
                 <tr>
                     <td>Directory</td>
@@ -102,42 +108,42 @@
                 <td>
                     <filename>src/main/antlr</filename>
                 </td>
-                <td>Production Antlr grammar files.</td>
+                <td>Production ANTLR grammar files.</td>
             </tr>
             <tr>
                 <td>
                     <filename>src/test/antlr</filename>
                 </td>
-                <td>Test Antlr grammar files.</td>
+                <td>Test ANTLR grammar files.</td>
             </tr>
             <tr>
                 <td>
                     <filename>src/<replaceable>sourceSet</replaceable>/antlr</filename>
                 </td>
-                <td>Antlr grammar files for the given source set.</td>
+                <td>ANTLR grammar files for the given source set.</td>
             </tr>
         </table>
     </section>
 
     <section>
         <title>Dependency management</title>
-        <para>The Antlr plugin adds an <literal>antlr</literal> dependency configuration. You use this to declare the
-            version of Antlr you wish to use.</para>
-        <sample id="declareAntlrVersion" dir="antlr" title="Declare Antlr version">
+        <para>The ANTLR plugin adds an <literal>antlr</literal> dependency configuration. You use this to declare the
+            ANTLR dependency that you wish to use.</para>
+        <sample id="declareAntlrVersion" dir="antlr" title="Declare ANTLR version">
             <sourcefile file="build.gradle" snippet="declare-dependency"/>
         </sample>
     </section>
 
     <section>
         <title>Convention properties</title>
-        <para>The Antlr plugin does not add any convention properties.</para>
+        <para>The ANTLR plugin does not add any convention properties.</para>
     </section>
 
     <section>
         <title>Source set properties</title>
-        <para>The Antlr plugin adds the following properties to each source set in the project.</para>
+        <para>The ANTLR plugin adds the following properties to each source set in the project.</para>
         <table>
-            <title>Antlr plugin - source set properties</title>
+            <title>ANTLR plugin - source set properties</title>
             <thead>
                 <tr>
                     <td>Property name</td>
@@ -157,7 +163,7 @@
                     Not null
                 </td>
                 <td>
-                    The Antlr grammar files of this source set. Contains all <filename>.g</filename> found in the Antlr
+                    The ANTLR grammar files of this source set. Contains all <filename>.g</filename> found in the ANTLR
                     source directories, and excludes all other types of files.
                 </td>
             </tr>
@@ -172,7 +178,7 @@
                     <literal>[<replaceable>projectDir</replaceable>/src/<replaceable>name</replaceable>/antlr]</literal>
                 </td>
                 <td>
-                    The source directories containing the Antlr grammar files of this source set.
+                    The source directories containing the ANTLR grammar files of this source set.
                 </td>
             </tr>
         </table>

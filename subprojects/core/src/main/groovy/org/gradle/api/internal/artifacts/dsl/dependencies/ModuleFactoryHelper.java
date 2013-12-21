@@ -15,13 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
-import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.artifacts.DependencyArtifact;
+import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyArtifact;
 
-/**
- * @author Hans Dockter
- */
 public class ModuleFactoryHelper {
     public static void addExplicitArtifactsIfDefined(ExternalDependency moduleDependency, String artifactType, String classifier) {
         String actualArtifactType = artifactType;

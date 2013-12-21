@@ -22,9 +22,6 @@ import org.apache.maven.artifact.ant.Proxy;
 import org.apache.maven.artifact.ant.RemoteRepository;
 import org.apache.maven.artifact.ant.RepositoryPolicy;
 
-/**
- * @author Hans Dockter
- */
 public class RepositoryFactory extends BeanFactory {
     public RepositoryFactory(Class klass) {
         super(klass);

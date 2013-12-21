@@ -25,11 +25,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
-/**
- * @author Hans Dockter
- */
 @RunWith(JMock.class)
 public class DefaultLoggingManagerTest {
     @Rule

@@ -18,8 +18,13 @@ package org.gradle.api.internal.plugins;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Plugin;
+import org.gradle.api.internal.initialization.ScriptCompileScope;
 import org.gradle.api.plugins.PluginInstantiationException;
 import org.gradle.api.plugins.UnknownPluginException;
+import org.gradle.internal.Factories;
+import org.gradle.internal.Factory;
+import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.reflect.ObjectInstantiationException;
 import org.gradle.util.GUtil;
 
 import java.net.URL;
@@ -27,46 +32,42 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-/**
- * @author Hans Dockter
- */
-
 public class DefaultPluginRegistry implements PluginRegistry {
     private final Map<String, Class<? extends Plugin>> idMappings = new HashMap<String, Class<? extends Plugin>>();
     private final DefaultPluginRegistry parent;
-    private final ClassLoader classLoader;
+    private final Factory<ClassLoader> classLoaderFactory;
+    private final Instantiator instantiator;
 
-    public DefaultPluginRegistry(ClassLoader classLoader) {
-        this(null, classLoader);
+    public DefaultPluginRegistry(ClassLoader classLoaderFactory, Instantiator instantiator) {
+        this(null, Factories.constant(classLoaderFactory), instantiator);
     }
 
-    private DefaultPluginRegistry(DefaultPluginRegistry parent, ClassLoader classLoader) {
+    private DefaultPluginRegistry(DefaultPluginRegistry parent, Factory<ClassLoader> classLoaderFactory, Instantiator instantiator) {
         this.parent = parent;
-        this.classLoader = classLoader;
+        this.classLoaderFactory = classLoaderFactory;
+        this.instantiator = instantiator;
     }
 
-    public PluginRegistry createChild(ClassLoader childClassPath) {
-        return new DefaultPluginRegistry(this, childClassPath);
+    public PluginRegistry createChild(final ScriptCompileScope lookupScope, Instantiator instantiator) {
+        Factory<ClassLoader> classLoaderFactory = new Factory<ClassLoader>() {
+            public ClassLoader create() {
+                return lookupScope.getScriptCompileClassLoader();
+            }
+        };
+        return new DefaultPluginRegistry(this, classLoaderFactory, instantiator);
     }
 
     public <T extends Plugin> T loadPlugin(Class<T> pluginClass) {
-        if (parent != null) {
-            return parent.loadPlugin(pluginClass);
-        }
-
         if (!Plugin.class.isAssignableFrom(pluginClass)) {
             throw new InvalidUserDataException(String.format(
                     "Cannot create plugin of type '%s' as it does not implement the Plugin interface.",
                     pluginClass.getSimpleName()));
         }
         try {
-            return pluginClass.newInstance();
-        } catch (InstantiationException e) {
+            return instantiator.newInstance(pluginClass);
+        } catch (ObjectInstantiationException e) {
             throw new PluginInstantiationException(String.format("Could not create plugin of type '%s'.",
                     pluginClass.getSimpleName()), e.getCause());
-        } catch (Exception e) {
-            throw new PluginInstantiationException(String.format("Could not create plugin of type '%s'.",
-                    pluginClass.getSimpleName()), e);
         }
     }
 
@@ -83,6 +84,8 @@ public class DefaultPluginRegistry implements PluginRegistry {
         if (implClass != null) {
             return implClass;
         }
+
+        ClassLoader classLoader = this.classLoaderFactory.create();
 
         URL resource = classLoader.getResource(String.format("META-INF/gradle-plugins/%s.properties", pluginId));
         if (resource == null) {

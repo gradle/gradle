@@ -64,7 +64,7 @@ abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInternal> {
     }
 
     protected void createConfigurations() {
-        project.configurations.add(configurationName).with {
+        project.configurations.create(configurationName).with {
             visible = false
             transitive = true
             description = "The ${toolName} libraries to be used for this project."
@@ -109,7 +109,7 @@ abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInternal> {
     private void configureSourceSetRule() {
         project.plugins.withType(basePlugin) {
             project.sourceSets.all { SourceSet sourceSet ->
-                T task = project.tasks.add(sourceSet.getTaskName(taskBaseName, null), taskType)
+                T task = project.tasks.create(sourceSet.getTaskName(taskBaseName, null), taskType)
                 configureForSourceSet(sourceSet, task)
             }
         }

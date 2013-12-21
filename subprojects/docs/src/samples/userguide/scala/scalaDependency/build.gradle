@@ -1,0 +1,11 @@
+apply plugin: "scala"
+
+repositories {
+    mavenCentral()
+}
+
+// START SNIPPET scala-test-dependency
+dependencies {
+    testCompile "org.scala-lang:scala-library:2.9.2"
+}
+// END SNIPPET scala-test-dependency

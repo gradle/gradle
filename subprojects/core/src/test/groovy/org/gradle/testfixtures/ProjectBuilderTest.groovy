@@ -21,13 +21,13 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.tasks.TaskAction
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Resources
-import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
 
 class ProjectBuilderTest extends Specification {
-    @Rule public final TemporaryFolder temporaryFolder = new TemporaryFolder()
+    @Rule public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
     @Rule public final Resources resources = new Resources()
 
     def canCreateARootProject() {
@@ -48,17 +48,17 @@ class ProjectBuilderTest extends Specification {
 
     def canCreateARootProjectWithAGivenProjectDir() {
         when:
-        def project = ProjectBuilder.builder().withProjectDir(temporaryFolder.dir).build()
+        def project = ProjectBuilder.builder().withProjectDir(temporaryFolder.testDirectory).build()
 
         then:
-        project.projectDir == temporaryFolder.dir
+        project.projectDir == temporaryFolder.testDirectory
         project.gradle.gradleHomeDir == project.file('gradleHome')
         project.gradle.gradleUserHomeDir == project.file('userHome')
     }
 
     def canApplyACustomPluginByType() {
         when:
-        def project = ProjectBuilder.builder().withProjectDir(temporaryFolder.dir).build()
+        def project = ProjectBuilder.builder().withProjectDir(temporaryFolder.testDirectory).build()
         project.apply plugin: CustomPlugin
 
         then:
@@ -67,7 +67,7 @@ class ProjectBuilderTest extends Specification {
 
     def canApplyACustomPluginById() {
         when:
-        def project = ProjectBuilder.builder().withProjectDir(temporaryFolder.dir).build()
+        def project = ProjectBuilder.builder().withProjectDir(temporaryFolder.testDirectory).build()
         project.apply plugin: 'custom-plugin'
 
         then:
@@ -76,7 +76,7 @@ class ProjectBuilderTest extends Specification {
 
     def canCreateAndExecuteACustomTask() {
         when:
-        def project = ProjectBuilder.builder().withProjectDir(temporaryFolder.dir).build()
+        def project = ProjectBuilder.builder().withProjectDir(temporaryFolder.testDirectory).build()
         def task = project.task('custom', type: CustomTask)
         task.doStuff()
 
@@ -86,7 +86,7 @@ class ProjectBuilderTest extends Specification {
 
     def canApplyABuildScript() {
         when:
-        def project = ProjectBuilder.builder().withProjectDir(temporaryFolder.dir).build()
+        def project = ProjectBuilder.builder().withProjectDir(temporaryFolder.testDirectory).build()
         project.apply from: resources.getResource('ProjectBuilderTest.gradle')
 
         then:

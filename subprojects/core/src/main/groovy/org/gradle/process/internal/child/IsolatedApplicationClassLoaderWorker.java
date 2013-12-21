@@ -17,7 +17,7 @@
 package org.gradle.process.internal.child;
 
 import org.gradle.api.Action;
-import org.gradle.util.DefaultClassLoaderFactory;
+import org.gradle.internal.classloader.DefaultClassLoaderFactory;
 
 import java.io.Serializable;
 import java.net.URI;

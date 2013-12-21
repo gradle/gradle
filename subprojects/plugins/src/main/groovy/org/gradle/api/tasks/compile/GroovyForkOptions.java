@@ -16,30 +16,9 @@
 package org.gradle.api.tasks.compile;
 
 /**
- * Fork options for Groovy compilation.
- *
- * @author Hans Dockter
+ * Fork options for Groovy compilation. Only take effect if {@code GroovyCompileOptions.fork}
+ * is {@code true}.
  */
-public class GroovyForkOptions extends AbstractOptions {
+public class GroovyForkOptions extends BaseForkOptions {
     private static final long serialVersionUID = 0;
-
-    private String memoryInitialSize;
-
-    public String getMemoryInitialSize() {
-        return memoryInitialSize;
-    }
-
-    public void setMemoryInitialSize(String memoryInitialSize) {
-        this.memoryInitialSize = memoryInitialSize;
-    }
-
-    private String memoryMaximumSize;
-
-    public String getMemoryMaximumSize() {
-        return memoryMaximumSize;
-    }
-
-    public void setMemoryMaximumSize(String memoryMaximumSize) {
-        this.memoryMaximumSize = memoryMaximumSize;
-    }
 }

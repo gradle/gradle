@@ -33,7 +33,7 @@ public interface FileTree extends FileCollection {
      * that any changes to this tree are reflected in the filtered tree.</p>
      *
      * <p>The given closure is used to configure the filter. A {@link org.gradle.api.tasks.util.PatternFilterable} is
-     * passed to the closure as it's delegate. Only files which match the specified include patterns will be included in
+     * passed to the closure as its delegate. Only files which match the specified include patterns will be included in
      * the filtered tree. Any files which match the specified exclude patterns will be excluded from the filtered
      * tree.</p>
      *
@@ -56,7 +56,7 @@ public interface FileTree extends FileCollection {
     FileTree matching(PatternFilterable patterns);
 
     /**
-     * Visits the files and directories in this file tree. Files are visited in breadth-wise order, so that a directory
+     * Visits the files and directories in this file tree. Files are visited in depth-first prefix order, so that a directory
      * is visited before its children.
      *
      * @param visitor The visitor.
@@ -65,7 +65,7 @@ public interface FileTree extends FileCollection {
     FileTree visit(FileVisitor visitor);
 
     /**
-     * Visits the files and directories in this file tree. Files are visited in breadth-wise order, so that a directory
+     * Visits the files and directories in this file tree. Files are visited in depth-first prefix order, so that a directory
      * is visited before its children. The file/directory to be visited is passed to the given closure as a {@link
      * FileVisitDetails}
      *

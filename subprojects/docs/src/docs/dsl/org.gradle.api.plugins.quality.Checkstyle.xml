@@ -21,6 +21,10 @@
                 <td><literal>project.checkstyle.ignoreFailures</literal></td>
             </tr>
             <tr>
+                <td>showViolations</td>
+                <td><literal>project.checkstyle.showViolations</literal></td>
+            </tr>
+            <tr>
                 <td>configProperties</td>
                 <td><literal>project.checkstyle.configProperties</literal></td>
             </tr>

@@ -1,0 +1,134 @@
+.variablelist dt {
+    font-weight: bold;
+}
+
+.variablelist dt a {
+    font-weight: normal;
+}
+
+.itemizedlist li p {
+    margin: 0;
+}
+
+.example, .figure, .table {
+    margin-top: 0;
+    margin-bottom: 1.8em;
+}
+
+.example .title, .figure .title, .table .title {
+    white-space: nowrap;
+    /*overflow-x: hidden;*/
+    margin-top: 0;
+    margin-bottom: 0.6em;
+}
+
+.example pre, .figure pre {
+    margin: 0;
+    margin-bottom: 0.6em;
+}
+
+.example-contents > p {
+    display: block;
+    margin: 0;
+    margin-bottom: 0.2em;
+}
+
+.example-break, .figure-break {
+    display: none
+}
+
+.exampleLocation {
+    margin-top: 0.5em;
+    padding-left: 1.7em;
+    background: #FEFEDD;
+    color: #777744;
+    border: 1px solid #DBDBA8;
+    padding-top: 0.4em;
+    padding-bottom: 0.4em;
+}
+
+.exampleLocation .emphasis em {
+    font-style: normal;
+    font-weight: bold;
+}
+
+.cmdsynopsis {
+    font-family: "Ubuntu Mono", courier, monospace;
+    margin-left: 2em;
+}
+
+.appendix h1 {
+    margin-bottom: 1.0em;
+}
+
+.footnote sup {
+    vertical-align: baseline;
+    font-size: 100%;
+}
+
+.note > :last-child, .tip > :last-child, .examplelocation > :last-child {
+    margin-bottom: 0px
+}
+
+.note, .tip {
+    padding: 1em 1.2em;
+    margin-bottom: 1em;
+}
+
+.note {
+    background: #ebf4f7;
+    border: solid #c3d9e6 1px;
+}
+
+.note .title {
+    color: #5283a1;
+    margin-left: 0px;
+}
+
+.tip {
+    background: #FAF7F5;
+    border: solid #e2d2c9 1px;
+    float: right;
+    clear: right;
+    margin-left: 2em;
+    margin-top: 1em;
+    margin-bottom: 1em;
+    max-width: 30%;
+    width: 30%;
+}
+
+.tip .title {
+    color: #80614D;
+    margin-left: 0px;
+}
+
+.tip h1, .note h1
+.tip h2, .note h2,
+.tip h3, .note h3,
+.tip h4, .note h4,
+.tip h5, .note h5,
+.tip h6, .note h6
+{
+   margin-top: 0;
+}
+
+.literal, .userinput, .filename {
+    white-space: nowrap;
+}
+
+/*
+ * Code highlighting
+ */
+.hl-string, .hl-number, .hl-value { color: #83C283; }
+
+.hl-keyword { color: #DDC498 }
+
+.hl-comment, .hl-doccomment { color: #AFAFAF; }
+
+.hl-annotation { color: #DDDD97; }
+
+.hl-directive { color: white !important; }
+
+a.link {
+    white-space: nowrap;
+}

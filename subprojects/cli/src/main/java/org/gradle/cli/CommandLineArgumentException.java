@@ -17,8 +17,6 @@ package org.gradle.cli;
 
 /**
  * A {@code CommandLineArgumentException} is thrown when command-line arguments cannot be parsed.
- * 
- * @author Hans Dockter
  */
 public class CommandLineArgumentException extends RuntimeException {
     public CommandLineArgumentException(String message) {

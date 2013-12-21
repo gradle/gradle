@@ -17,9 +17,9 @@ package org.gradle.launcher.daemon.context;
 
 import com.google.common.collect.Lists;
 import org.gradle.internal.Factory;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.nativeplatform.ProcessEnvironment;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
-import org.gradle.internal.jvm.Jvm;
 
 import java.io.File;
 import java.util.List;
@@ -55,7 +55,7 @@ public class DaemonContextBuilder implements Factory<DaemonContext> {
     }
 
     public File getDaemonRegistryDir() {
-        return this.daemonRegistryDir = daemonRegistryDir;
+        return this.daemonRegistryDir;
     }
 
     public void setDaemonRegistryDir(File daemonRegistryDir) {

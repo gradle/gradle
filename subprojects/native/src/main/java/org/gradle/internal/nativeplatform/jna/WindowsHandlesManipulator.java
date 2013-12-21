@@ -67,11 +67,11 @@ public class WindowsHandlesManipulator {
             int setHandleError = kernel32.GetLastError();
             if (setHandleError == ERROR_INVALID_PARAMETER) {
                 // Didn't get a valid handle: ignore.
-                LOGGER.warn("Invalid parameter attempting to uninherit stream - child process may remain attached.");
+                LOGGER.debug("Invalid parameter attempting to uninherit stream - child process may remain attached.");
                 return;
             }
             if (setHandleError == ERROR_INVALID_HANDLE) {
-                LOGGER.warn("Invalid handle attempting to uninherit stream - child process may remain attached.");
+                LOGGER.debug("Invalid handle attempting to uninherit stream - child process may remain attached.");
                 return;
             }
             throw new IOException("Could not set flag on handle. Errno: " + kernel32.GetLastError());

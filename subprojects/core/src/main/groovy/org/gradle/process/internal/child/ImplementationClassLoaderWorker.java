@@ -19,6 +19,11 @@ package org.gradle.process.internal.child;
 import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.classloader.CachingClassLoader;
+import org.gradle.internal.classloader.FilteringClassLoader;
+import org.gradle.internal.classloader.MultiParentClassLoader;
+import org.gradle.internal.classloader.MutableURLClassLoader;
+import org.gradle.internal.io.ClassLoaderObjectInputStream;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.util.*;
@@ -81,10 +86,10 @@ public class ImplementationClassLoaderWorker implements Action<WorkerContext>, S
     }
 
     LoggingManagerInternal createLoggingManager() {
-        return LoggingServiceRegistry.newChildProcessLogging().newInstance(LoggingManagerInternal.class);
+        return LoggingServiceRegistry.newProcessLogging().newInstance(LoggingManagerInternal.class);
     }
 
     MutableURLClassLoader createImplementationClassLoader(ClassLoader system, ClassLoader application) {
-        return new MutableURLClassLoader(new MultiParentClassLoader(application, system));
+        return new MutableURLClassLoader(new CachingClassLoader(new MultiParentClassLoader(application, system)));
     }
 }

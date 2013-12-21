@@ -15,56 +15,100 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
+import org.apache.ivy.Ivy;
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ResolveException;
-import org.gradle.api.artifacts.ResolvedConfiguration;
+import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
+import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
-import org.gradle.api.internal.artifacts.configurations.conflicts.StrictConflictResolution;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.clientmodule.ClientModuleResolver;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.IvyAdapter;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.LazyDependencyToModuleResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestStrategy;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyResolver;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectModuleRegistry;
+import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.StrictConflictResolution;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.DefaultResolvedConfigurationBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResults;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.StreamingResolutionResultBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.StoreSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.ResolutionResultsStoreFactory;
+import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
+import org.gradle.api.internal.cache.BinaryStore;
+import org.gradle.api.internal.cache.Store;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
+
 public class DefaultDependencyResolver implements ArtifactDependencyResolver {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultDependencyResolver.class);
-    private final ModuleDescriptorConverter moduleDescriptorConverter;
+    private final LocalComponentFactory localComponentFactory;
     private final ResolvedArtifactFactory resolvedArtifactFactory;
     private final ResolveIvyFactory ivyFactory;
     private final ProjectModuleRegistry projectModuleRegistry;
+    private final CacheLockingManager cacheLockingManager;
+    private final IvyContextManager ivyContextManager;
+    private final ResolutionResultsStoreFactory storeFactory;
+    private final VersionMatcher versionMatcher;
+    private final LatestStrategy latestStrategy;
 
-    public DefaultDependencyResolver(ResolveIvyFactory ivyFactory, ModuleDescriptorConverter moduleDescriptorConverter, ResolvedArtifactFactory resolvedArtifactFactory,
-                                     ProjectModuleRegistry projectModuleRegistry) {
+    public DefaultDependencyResolver(ResolveIvyFactory ivyFactory, LocalComponentFactory localComponentFactory, ResolvedArtifactFactory resolvedArtifactFactory,
+                                     ProjectModuleRegistry projectModuleRegistry, CacheLockingManager cacheLockingManager, IvyContextManager ivyContextManager,
+                                     ResolutionResultsStoreFactory storeFactory, VersionMatcher versionMatcher, LatestStrategy latestStrategy) {
         this.ivyFactory = ivyFactory;
-        this.moduleDescriptorConverter = moduleDescriptorConverter;
+        this.localComponentFactory = localComponentFactory;
         this.resolvedArtifactFactory = resolvedArtifactFactory;
         this.projectModuleRegistry = projectModuleRegistry;
+        this.cacheLockingManager = cacheLockingManager;
+        this.ivyContextManager = ivyContextManager;
+        this.storeFactory = storeFactory;
+        this.versionMatcher = versionMatcher;
+        this.latestStrategy = latestStrategy;
     }
 
-    public ResolvedConfiguration resolve(ConfigurationInternal configuration) throws ResolveException {
+    public ResolverResults resolve(final ConfigurationInternal configuration, final List<? extends ResolutionAwareRepository> repositories) throws ResolveException {
         LOGGER.debug("Resolving {}", configuration);
+        return ivyContextManager.withIvy(new Transformer<ResolverResults, Ivy>() {
+            public ResolverResults transform(Ivy ivy) {
+                DependencyToModuleVersionResolver dependencyResolver = ivyFactory.create(configuration, repositories);
 
-        IvyAdapter ivyAdapter = ivyFactory.create(configuration);
+                dependencyResolver = new ClientModuleResolver(dependencyResolver);
+                ProjectDependencyResolver projectDependencyResolver = new ProjectDependencyResolver(projectModuleRegistry, dependencyResolver, localComponentFactory);
+                dependencyResolver = projectDependencyResolver;
+                DependencyToModuleVersionIdResolver idResolver = new LazyDependencyToModuleResolver(dependencyResolver, versionMatcher);
+                idResolver = new VersionForcingDependencyToModuleResolver(idResolver, configuration.getResolutionStrategy().getDependencyResolveRule());
 
-        DependencyToModuleResolver dependencyResolver = ivyAdapter.getDependencyToModuleResolver();
-        dependencyResolver = new ClientModuleResolver(dependencyResolver);
-        dependencyResolver = new ProjectDependencyResolver(projectModuleRegistry, dependencyResolver);
-        DependencyToModuleVersionIdResolver idResolver = new LazyDependencyToModuleResolver(dependencyResolver, ivyAdapter.getResolveData().getSettings().getVersionMatcher());
-        idResolver = new VersionForcingDependencyToModuleResolver(idResolver, configuration.getResolutionStrategy().getForcedModules());
+                ModuleConflictResolver conflictResolver;
+                if (configuration.getResolutionStrategy().getConflictResolution() instanceof StrictConflictResolution) {
+                    conflictResolver = new StrictConflictResolver();
+                } else {
+                    conflictResolver = new LatestModuleConflictResolver(latestStrategy);
+                }
+                conflictResolver = new VersionSelectionReasonResolver(conflictResolver);
 
-        ModuleConflictResolver conflictResolver;
-        if (configuration.getResolutionStrategy().getConflictResolution() instanceof StrictConflictResolution) {
-            conflictResolver = new StrictConflictResolver();
-        } else {
-            conflictResolver = new LatestModuleConflictResolver();
-        }
+                DependencyGraphBuilder builder = new DependencyGraphBuilder(idResolver, projectDependencyResolver, conflictResolver, new DefaultDependencyToConfigurationResolver());
 
-        DependencyGraphBuilder builder = new DependencyGraphBuilder(moduleDescriptorConverter, resolvedArtifactFactory, idResolver, conflictResolver);
-        DefaultLenientConfiguration result = builder.resolve(configuration, ivyAdapter.getResolveData());
-        return new DefaultResolvedConfiguration(result);
+                StoreSet stores = storeFactory.createStoreSet();
+
+                BinaryStore newModelStore = stores.nextBinaryStore();
+                Store<ResolvedComponentResult> newModelCache = stores.oldModelStore();
+                ResolutionResultBuilder newModelBuilder = new StreamingResolutionResultBuilder(newModelStore, newModelCache);
+
+                BinaryStore oldModelStore = stores.nextBinaryStore();
+                Store<TransientConfigurationResults> oldModelCache = stores.newModelStore();
+                TransientConfigurationResultsBuilder oldTransientModelBuilder = new TransientConfigurationResultsBuilder(oldModelStore, oldModelCache);
+                DefaultResolvedConfigurationBuilder oldModelBuilder = new DefaultResolvedConfigurationBuilder(resolvedArtifactFactory, oldTransientModelBuilder);
+
+                builder.resolve(configuration, newModelBuilder, oldModelBuilder);
+                DefaultLenientConfiguration result = new DefaultLenientConfiguration(configuration, oldModelBuilder, cacheLockingManager);
+                return new ResolverResults(new DefaultResolvedConfiguration(result), newModelBuilder.complete());
+            }
+        });
     }
 }

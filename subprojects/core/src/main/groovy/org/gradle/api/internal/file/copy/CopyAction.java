@@ -15,11 +15,10 @@
  */
 package org.gradle.api.internal.file.copy;
 
-import org.gradle.api.file.CopySpec;
 import org.gradle.api.tasks.WorkResult;
 
-/**
- * @author Steve Appling
- */
-public interface CopyAction extends CopySpec, WorkResult {
+public interface CopyAction {
+
+    public WorkResult execute(CopyActionProcessingStream stream);
+
 }

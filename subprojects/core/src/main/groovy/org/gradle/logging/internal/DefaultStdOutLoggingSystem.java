@@ -15,7 +15,7 @@
  */
 package org.gradle.logging.internal;
 
-import org.gradle.util.TimeProvider;
+import org.gradle.internal.TimeProvider;
 
 import java.io.PrintStream;
 

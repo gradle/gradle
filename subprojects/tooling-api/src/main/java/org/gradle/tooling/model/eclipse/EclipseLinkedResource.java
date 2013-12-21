@@ -26,7 +26,7 @@ public interface EclipseLinkedResource {
     /**
      * The project-relative path of the linked resource as it appears in the workspace.
      * <p>
-     * See the official eclipse documentation for most up-to-date information on properties of a linked resource
+     * See the official Eclipse documentation for most up-to-date information on properties of a linked resource
      * <p>
      * For example, a linked resource to a file system folder /some/path/to/someFolder can have a name 'someFolder'
      *
@@ -43,9 +43,9 @@ public interface EclipseLinkedResource {
      * "1" for file or folder when 'locationUri' first segment is a workspace path variable (or path variable navigation element),
      * "2" for an eclipse virtual folder.
      * <p>
-     * See the official eclipse documentation for most up-to-date information on properties of a linked resource
+     * See the official Eclipse documentation for most up-to-date information on properties of a linked resource
      *
-     * @return eclipse link type
+     * @return Eclipse link type
      */
     String getType();
 
@@ -53,7 +53,7 @@ public interface EclipseLinkedResource {
      * The local file system absolute path of the target of the linked resource. For example: '/path/to/somewhere'.
      * Mutually exclusive with 'locationUri'
      * <p>
-     * See the official eclipse documentation for most up-to-date information on properties of a linked resource
+     * See the official Eclipse documentation for most up-to-date information on properties of a linked resource
      *
      * @return location
      */
@@ -67,7 +67,7 @@ public interface EclipseLinkedResource {
      * <p>
      * Used for virtual folders. In that case the value is: 'virtual:/virtual'
      * <p>
-     * See the official eclipse documentation for most up-to-date information on properties of a linked resource
+     * See the official Eclipse documentation for most up-to-date information on properties of a linked resource
      *
      * @return location uri
      */

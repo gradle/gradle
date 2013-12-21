@@ -19,8 +19,6 @@ import java.util.regex.Pattern;
 
 /**
  * This is basic search criteria for searching text. This could be extended for more advanced searches.
- *
- * @author mhunsicker
  */
 public class BasicTextSearchCriteria {
     private String textToMatch = "";

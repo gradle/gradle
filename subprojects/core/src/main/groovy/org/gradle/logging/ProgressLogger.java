@@ -87,6 +87,13 @@ public interface ProgressLogger {
     void setLoggingHeader(String header);
 
     /**
+     * Convenience method that sets descriptions and logs started() event.
+     *
+     * @return this logger instance
+     */
+    ProgressLogger start(String description, String shortDescription);
+
+    /**
      * Logs the start of the operation, with no initial status.
      */
     void started();
@@ -116,4 +123,6 @@ public interface ProgressLogger {
      * @param status The final status message. Can be null or empty.
      */
     void completed(String status);
+
+    long currentOperationId();
 }

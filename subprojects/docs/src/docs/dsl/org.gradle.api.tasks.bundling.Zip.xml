@@ -9,6 +9,10 @@
                 </tr>
             </thead>
             <tr>
+                <td>entryCompression</td>
+                <td><literal>ZipEntryCompression.DEFLATED</literal></td>
+            </tr>
+            <tr>
                 <td>extension</td>
                 <td><literal>zip</literal></td>
             </tr>
