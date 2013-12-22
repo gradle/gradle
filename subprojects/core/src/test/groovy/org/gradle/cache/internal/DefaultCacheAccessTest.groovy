@@ -15,6 +15,7 @@
  */
 package org.gradle.cache.internal
 
+import org.gradle.cache.PersistentIndexedCacheParameters
 import org.gradle.cache.internal.btree.BTreePersistentIndexedCache
 import org.gradle.internal.Factory
 import org.gradle.messaging.serialize.Serializer

@@ -19,8 +19,9 @@ import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.cache.internal.CacheDecorator;
 import org.gradle.cache.internal.FileLockManager;
-import org.gradle.cache.internal.PersistentIndexedCacheParameters;
+import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.internal.Factory;
 import org.gradle.listener.LazyCreationProxy;
 import org.gradle.messaging.serialize.Serializer;
@@ -30,11 +31,11 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 public class DefaultTaskArtifactStateCacheAccess implements TaskArtifactStateCacheAccess {
     private final Gradle gradle;
     private final CacheRepository cacheRepository;
-    private InMemoryPersistentCacheDecorator inMemoryDecorator;
+    private CacheDecorator inMemoryDecorator;
     private PersistentCache cache;
     private final Object lock = new Object();
 
-    public DefaultTaskArtifactStateCacheAccess(Gradle gradle, CacheRepository cacheRepository, InMemoryPersistentCacheDecorator decorator) {
+    public DefaultTaskArtifactStateCacheAccess(Gradle gradle, CacheRepository cacheRepository, CacheDecorator decorator) {
         this.gradle = gradle;
         this.cacheRepository = cacheRepository;
         this.inMemoryDecorator = decorator;

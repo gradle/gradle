@@ -27,6 +27,7 @@ import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.execution.*;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheRepository;
+import org.gradle.cache.internal.CacheDecorator;
 import org.gradle.execution.taskgraph.TaskPlanExecutor;
 import org.gradle.execution.taskgraph.TaskPlanExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
@@ -50,7 +51,7 @@ public class TaskExecutionServices {
     }
 
     TaskArtifactStateCacheAccess createCacheAccess(Gradle gradle, CacheRepository cacheRepository, InMemoryTaskArtifactCache inMemoryTaskArtifactCache, GradleBuildEnvironment environment) {
-        InMemoryPersistentCacheDecorator decorator;
+        CacheDecorator decorator;
         if (environment.isLongLivingProcess()) {
             decorator = inMemoryTaskArtifactCache;
         } else {

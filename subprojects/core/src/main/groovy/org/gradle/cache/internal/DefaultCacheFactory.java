@@ -17,10 +17,7 @@ package org.gradle.cache.internal;
 
 import org.gradle.CacheUsage;
 import org.gradle.api.Action;
-import org.gradle.cache.CacheOpenException;
-import org.gradle.cache.CacheValidator;
-import org.gradle.cache.PersistentCache;
-import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.cache.*;
 import org.gradle.cache.internal.filelock.LockOptions;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.CompositeStoppable;

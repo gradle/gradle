@@ -25,7 +25,7 @@ class InMemoryTaskArtifactCacheTest extends Specification {
 
     def "caches result from backing cache"() {
         given:
-        def cache = cacheFactory.withMemoryCaching("fileSnapshots", target)
+        def cache = cacheFactory.decorate("fileSnapshots", target)
 
         when:
         def result = cache.get("key")
@@ -49,7 +49,7 @@ class InMemoryTaskArtifactCacheTest extends Specification {
 
     def "caches null result from backing cache"() {
         given:
-        def cache = cacheFactory.withMemoryCaching("fileSnapshots", target)
+        def cache = cacheFactory.decorate("fileSnapshots", target)
 
         when:
         def result = cache.get("key")
@@ -73,7 +73,7 @@ class InMemoryTaskArtifactCacheTest extends Specification {
 
     def "caches result of putting item"() {
         given:
-        def cache = cacheFactory.withMemoryCaching("fileSnapshots", target)
+        def cache = cacheFactory.decorate("fileSnapshots", target)
 
         when:
         def result = cache.get("key")
@@ -104,7 +104,7 @@ class InMemoryTaskArtifactCacheTest extends Specification {
 
     def "caches result of removing item"() {
         given:
-        def cache = cacheFactory.withMemoryCaching("fileSnapshots", target)
+        def cache = cacheFactory.decorate("fileSnapshots", target)
 
         when:
         def result = cache.get("key")

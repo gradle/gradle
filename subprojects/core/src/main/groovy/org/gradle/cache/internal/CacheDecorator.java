@@ -14,13 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state;
+package org.gradle.cache.internal;
 
-import org.gradle.cache.internal.MultiProcessSafePersistentIndexedCache;
-
-public interface InMemoryPersistentCacheDecorator {
+public interface CacheDecorator {
     /**
      * @param cacheId Unique id for this cache instance.
      */
-    <K, V> MultiProcessSafePersistentIndexedCache<K, V> withMemoryCaching(String cacheId, MultiProcessSafePersistentIndexedCache<K, V> original);
+    <K, V> MultiProcessSafePersistentIndexedCache<K, V> decorate(String cacheId, MultiProcessSafePersistentIndexedCache<K, V> original);
 }

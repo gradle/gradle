@@ -20,6 +20,7 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.cache.internal.CacheDecorator;
 import org.gradle.cache.internal.FileLock;
 import org.gradle.cache.internal.MultiProcessSafePersistentIndexedCache;
 
@@ -27,7 +28,7 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
-public class InMemoryTaskArtifactCache implements InMemoryPersistentCacheDecorator {
+public class InMemoryTaskArtifactCache implements CacheDecorator {
     private final static Logger LOG = Logging.getLogger(InMemoryTaskArtifactCache.class);
     private final static Object NULL = new Object();
 
@@ -53,7 +54,7 @@ public class InMemoryTaskArtifactCache implements InMemoryPersistentCacheDecorat
 
     private final Map<String, FileLock.State> states = new HashMap<String, FileLock.State>();
 
-    public <K, V> MultiProcessSafePersistentIndexedCache<K, V> withMemoryCaching(final String cacheId, final MultiProcessSafePersistentIndexedCache<K, V> original) {
+    public <K, V> MultiProcessSafePersistentIndexedCache<K, V> decorate(final String cacheId, final MultiProcessSafePersistentIndexedCache<K, V> original) {
         final Cache<Object, Object> data = loadData(cacheId);
 
         return new MultiProcessSafePersistentIndexedCache<K, V>() {

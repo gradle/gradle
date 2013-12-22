@@ -15,8 +15,6 @@
  */
 package org.gradle.cache;
 
-import org.gradle.cache.internal.PersistentIndexedCacheParameters;
-
 import java.io.Closeable;
 import java.io.File;
 

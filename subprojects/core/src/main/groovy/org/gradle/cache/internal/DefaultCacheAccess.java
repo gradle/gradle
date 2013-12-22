@@ -16,10 +16,10 @@
 package org.gradle.cache.internal;
 
 import net.jcip.annotations.ThreadSafe;
-import org.gradle.api.internal.changedetection.state.InMemoryPersistentCacheDecorator;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.CacheOpenException;
+import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.btree.BTreePersistentIndexedCache;
 import org.gradle.cache.internal.cacheops.CacheAccessOperationsStack;
 import org.gradle.cache.internal.filelock.LockOptions;
@@ -317,8 +317,8 @@ public class DefaultCacheAccess implements CacheCoordinator {
         };
 
         MultiProcessSafePersistentIndexedCache<K, V> indexedCache = new DefaultMultiProcessSafePersistentIndexedCache<K, V>(indexedCacheFactory, fileAccess);
-        InMemoryPersistentCacheDecorator decorator = parameters.getCacheDecorator();
-        indexedCache = decorator == null ? indexedCache : decorator.withMemoryCaching(cacheFile.getAbsolutePath(), indexedCache);
+        CacheDecorator decorator = parameters.getCacheDecorator();
+        indexedCache = decorator == null ? indexedCache : decorator.decorate(cacheFile.getAbsolutePath(), indexedCache);
 
         lock.lock();
         try {

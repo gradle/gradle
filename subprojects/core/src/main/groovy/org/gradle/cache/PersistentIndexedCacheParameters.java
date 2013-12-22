@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.cache.internal;
+package org.gradle.cache;
 
 import org.gradle.api.Nullable;
-import org.gradle.api.internal.changedetection.state.InMemoryPersistentCacheDecorator;
+import org.gradle.cache.internal.CacheDecorator;
 import org.gradle.messaging.serialize.DefaultSerializer;
 import org.gradle.messaging.serialize.Serializer;
 
@@ -24,7 +24,7 @@ public class PersistentIndexedCacheParameters<K, V> {
     private final String cacheName;
     private final Serializer<K> keySerializer;
     private final Serializer<V> valueSerializer;
-    private InMemoryPersistentCacheDecorator cacheDecorator;
+    private CacheDecorator cacheDecorator;
 
     public PersistentIndexedCacheParameters(String cacheName, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
         this.cacheName = cacheName;
@@ -53,11 +53,11 @@ public class PersistentIndexedCacheParameters<K, V> {
     }
 
     @Nullable
-    public InMemoryPersistentCacheDecorator getCacheDecorator() {
+    public CacheDecorator getCacheDecorator() {
         return cacheDecorator;
     }
 
-    public PersistentIndexedCacheParameters<K, V> cacheDecorator(InMemoryPersistentCacheDecorator cacheDecorator) {
+    public PersistentIndexedCacheParameters<K, V> cacheDecorator(CacheDecorator cacheDecorator) {
         assert cacheDecorator != null;
         this.cacheDecorator = cacheDecorator;
         return this;

@@ -47,7 +47,7 @@ class DefaultCacheLockingManagerTest extends Specification {
         1 * directoryCacheBuilder.withCrossVersionCache() >> directoryCacheBuilder
         1 * directoryCacheBuilder.withLockOptions(mode(FileLockManager.LockMode.None)) >> directoryCacheBuilder
         1 * directoryCacheBuilder.open() >> persistentCache
-        2 * persistentCache.baseDir >> testCacheDir
+        _ * persistentCache.baseDir >> testCacheDir
         fileStore != null
         fileStore.baseDir == new File(testCacheDir, CacheLayout.FILE_STORE.key)
     }
@@ -66,7 +66,7 @@ class DefaultCacheLockingManagerTest extends Specification {
         1 * directoryCacheBuilder.withCrossVersionCache() >> directoryCacheBuilder
         1 * directoryCacheBuilder.withLockOptions(mode(FileLockManager.LockMode.None)) >> directoryCacheBuilder
         1 * directoryCacheBuilder.open() >> persistentCache
-        2 * persistentCache.baseDir >> testCacheDir
+        _ * persistentCache.baseDir >> testCacheDir
         fileStore != null
         fileStore.baseDir == new File(testCacheDir, CacheLayout.META_DATA.key + System.properties['file.separator'] + 'descriptors')
     }
