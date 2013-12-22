@@ -19,5 +19,8 @@ package org.gradle.api.internal.changedetection.state;
 import org.gradle.cache.internal.MultiProcessSafePersistentIndexedCache;
 
 public interface InMemoryPersistentCacheDecorator {
-    <K, V> MultiProcessSafePersistentIndexedCache<K, V> withMemoryCaching(String cacheName, MultiProcessSafePersistentIndexedCache<K, V> original);
+    /**
+     * @param cacheId Unique id for this cache instance.
+     */
+    <K, V> MultiProcessSafePersistentIndexedCache<K, V> withMemoryCaching(String cacheId, MultiProcessSafePersistentIndexedCache<K, V> original);
 }

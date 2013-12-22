@@ -15,13 +15,11 @@
  */
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.api.Transformer;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.internal.FileLockManager;
-import org.gradle.cache.internal.MultiProcessSafePersistentIndexedCache;
 import org.gradle.cache.internal.PersistentIndexedCacheParameters;
 import org.gradle.internal.Factory;
 import org.gradle.listener.LazyCreationProxy;
@@ -65,13 +63,8 @@ public class DefaultTaskArtifactStateCacheAccess implements TaskArtifactStateCac
     public <K, V> PersistentIndexedCache<K, V> createCache(final String cacheName, final Class<K> keyType, final Serializer<V> valueSerializer) {
         Factory<PersistentIndexedCache> factory = new Factory<PersistentIndexedCache>() {
             public PersistentIndexedCache create() {
-                PersistentIndexedCacheParameters parameters =
-                        new PersistentIndexedCacheParameters(cacheName, keyType, valueSerializer)
-                            .cacheDecorator(new Transformer<MultiProcessSafePersistentIndexedCache<Object, Object>, MultiProcessSafePersistentIndexedCache<Object, Object>>() {
-                                public MultiProcessSafePersistentIndexedCache<Object, Object> transform(MultiProcessSafePersistentIndexedCache<Object, Object> original) {
-                                    return inMemoryDecorator.withMemoryCaching(cacheName, original);
-                                }
-                            });
+                PersistentIndexedCacheParameters<K, V> parameters = new PersistentIndexedCacheParameters<K, V>(cacheName, keyType, valueSerializer)
+                        .cacheDecorator(inMemoryDecorator);
                 return getCache().createCache(parameters);
             }
         };

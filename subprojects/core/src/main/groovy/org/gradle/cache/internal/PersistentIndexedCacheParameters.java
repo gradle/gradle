@@ -15,8 +15,8 @@
  */
 package org.gradle.cache.internal;
 
-import org.gradle.api.Transformer;
-import org.gradle.internal.Transformers;
+import org.gradle.api.Nullable;
+import org.gradle.api.internal.changedetection.state.InMemoryPersistentCacheDecorator;
 import org.gradle.messaging.serialize.DefaultSerializer;
 import org.gradle.messaging.serialize.Serializer;
 
@@ -24,8 +24,7 @@ public class PersistentIndexedCacheParameters<K, V> {
     private final String cacheName;
     private final Serializer<K> keySerializer;
     private final Serializer<V> valueSerializer;
-    private Transformer<MultiProcessSafePersistentIndexedCache<K, V>, MultiProcessSafePersistentIndexedCache<K, V>> cacheDecorator =
-            Transformers.noOpTransformer();
+    private InMemoryPersistentCacheDecorator cacheDecorator;
 
     public PersistentIndexedCacheParameters(String cacheName, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
         this.cacheName = cacheName;
@@ -53,13 +52,14 @@ public class PersistentIndexedCacheParameters<K, V> {
         return valueSerializer;
     }
 
-    public PersistentIndexedCacheParameters cacheDecorator(Transformer<MultiProcessSafePersistentIndexedCache<K, V>, MultiProcessSafePersistentIndexedCache<K, V>> cacheDecorator) {
+    @Nullable
+    public InMemoryPersistentCacheDecorator getCacheDecorator() {
+        return cacheDecorator;
+    }
+
+    public PersistentIndexedCacheParameters<K, V> cacheDecorator(InMemoryPersistentCacheDecorator cacheDecorator) {
         assert cacheDecorator != null;
         this.cacheDecorator = cacheDecorator;
         return this;
-    }
-
-    public MultiProcessSafePersistentIndexedCache<K, V> decorate(MultiProcessSafePersistentIndexedCache<K, V> input) {
-        return cacheDecorator.transform(input);
     }
 }

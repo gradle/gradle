@@ -16,6 +16,7 @@
 package org.gradle.cache.internal;
 
 import net.jcip.annotations.ThreadSafe;
+import org.gradle.api.internal.changedetection.state.InMemoryPersistentCacheDecorator;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.CacheOpenException;
@@ -35,7 +36,8 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import static org.gradle.cache.internal.FileLockManager.LockMode.*;
+import static org.gradle.cache.internal.FileLockManager.LockMode.Exclusive;
+import static org.gradle.cache.internal.FileLockManager.LockMode.Shared;
 
 @ThreadSafe
 public class DefaultCacheAccess implements CacheCoordinator {
@@ -307,14 +309,16 @@ public class DefaultCacheAccess implements CacheCoordinator {
     }
 
     public <K, V> MultiProcessSafePersistentIndexedCache<K, V> newCache(final PersistentIndexedCacheParameters<K, V> parameters) {
+        final File cacheFile = new File(baseDir, parameters.getCacheName() + ".bin");
         Factory<BTreePersistentIndexedCache<K, V>> indexedCacheFactory = new Factory<BTreePersistentIndexedCache<K, V>>() {
             public BTreePersistentIndexedCache<K, V> create() {
-                File cacheFile = new File(baseDir, parameters.getCacheName() + ".bin");
                 return doCreateCache(cacheFile, parameters.getKeySerializer(), parameters.getValueSerializer());
             }
         };
-        MultiProcessSafePersistentIndexedCache<K, V> indexedCache = parameters.decorate(
-                new DefaultMultiProcessSafePersistentIndexedCache<K, V>(indexedCacheFactory, fileAccess));
+
+        MultiProcessSafePersistentIndexedCache<K, V> indexedCache = new DefaultMultiProcessSafePersistentIndexedCache<K, V>(indexedCacheFactory, fileAccess);
+        InMemoryPersistentCacheDecorator decorator = parameters.getCacheDecorator();
+        indexedCache = decorator == null ? indexedCache : decorator.withMemoryCaching(cacheFile.getAbsolutePath(), indexedCache);
 
         lock.lock();
         try {

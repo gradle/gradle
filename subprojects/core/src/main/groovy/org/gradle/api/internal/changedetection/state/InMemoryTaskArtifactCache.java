@@ -53,8 +53,8 @@ public class InMemoryTaskArtifactCache implements InMemoryPersistentCacheDecorat
 
     private final Map<String, FileLock.State> states = new HashMap<String, FileLock.State>();
 
-    public <K, V> MultiProcessSafePersistentIndexedCache<K, V> withMemoryCaching(final String cacheName, final MultiProcessSafePersistentIndexedCache<K, V> original) {
-        final Cache<Object, Object> data = loadData(cacheName);
+    public <K, V> MultiProcessSafePersistentIndexedCache<K, V> withMemoryCaching(final String cacheId, final MultiProcessSafePersistentIndexedCache<K, V> original) {
+        final Cache<Object, Object> data = loadData(cacheId);
 
         return new MultiProcessSafePersistentIndexedCache<K, V>() {
             public void close() {
@@ -88,35 +88,35 @@ public class InMemoryTaskArtifactCache implements InMemoryPersistentCacheDecorat
             public void onStartWork(String operationDisplayName, FileLock.State currentCacheState) {
                 boolean outOfDate;
                 synchronized (lock) {
-                    FileLock.State previousState = states.get(cacheName);
+                    FileLock.State previousState = states.get(cacheId);
                     outOfDate = previousState == null || currentCacheState.hasBeenUpdatedSince(previousState);
                 }
 
                 if (outOfDate) {
-                    LOG.info("Invalidating in-memory cache of {}", cacheName);
+                    LOG.info("Invalidating in-memory cache of {}", cacheId);
                     data.invalidateAll();
                 }
             }
 
             public void onEndWork(FileLock.State currentCacheState) {
                 synchronized (lock) {
-                    states.put(cacheName, currentCacheState);
+                    states.put(cacheId, currentCacheState);
                 }
             }
         };
     }
 
-    private Cache<Object, Object> loadData(String cacheName) {
+    private Cache<Object, Object> loadData(String cacheId) {
         Cache<Object, Object> theData;
         synchronized (lock) {
-            theData = this.cache.getIfPresent(cacheName);
+            theData = this.cache.getIfPresent(cacheId);
             if (theData != null) {
-                LOG.info("In-memory cache of {}: Size{{}}, {}", cacheName, theData.size() , theData.stats());
+                LOG.info("In-memory cache of {}: Size{{}}, {}", cacheId, theData.size() , theData.stats());
             } else {
-                Integer maxSize = CACHE_CAPS.get(cacheName);
+                Integer maxSize = CACHE_CAPS.get(cacheId);
                 assert maxSize != null : "Unknown cache.";
                 theData = CacheBuilder.newBuilder().maximumSize(maxSize).build();
-                this.cache.put(cacheName, theData);
+                this.cache.put(cacheId, theData);
             }
         }
         return theData;

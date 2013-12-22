@@ -19,7 +19,7 @@ package org.gradle.api.internal.changedetection.state;
 import org.gradle.cache.internal.MultiProcessSafePersistentIndexedCache;
 
 public class NoOpDecorator implements InMemoryPersistentCacheDecorator {
-    public <K, V> MultiProcessSafePersistentIndexedCache<K, V> withMemoryCaching(String cacheName, MultiProcessSafePersistentIndexedCache<K, V> original) {
+    public <K, V> MultiProcessSafePersistentIndexedCache<K, V> withMemoryCaching(String cacheId, MultiProcessSafePersistentIndexedCache<K, V> original) {
         return original;
     }
 }
