@@ -25,10 +25,10 @@ import org.gradle.ide.visualstudio.tasks.GenerateProjectFileTask;
 import org.gradle.ide.visualstudio.tasks.GenerateSolutionFileTask;
 import org.gradle.model.ModelRule;
 
-@SuppressWarnings("UnusedDeclaration")
 public class CreateVisualStudioTasks extends ModelRule {
 
-    public void createTasksForVisualStudio(VisualStudioExtension visualStudioExtension, TaskContainer tasks) {
+    @SuppressWarnings("UnusedDeclaration")
+    public void createTasksForVisualStudio(TaskContainer tasks, VisualStudioExtension visualStudioExtension) {
         for (VisualStudioProject vsProject : visualStudioExtension.getProjects()) {
             vsProject.builtBy(createProjectsFileTask(tasks, vsProject));
             vsProject.builtBy(createFiltersFileTask(tasks, vsProject));
@@ -39,7 +39,8 @@ public class CreateVisualStudioTasks extends ModelRule {
             vsSolution.builtBy(createSolutionTask(tasks, vsSolution));
 
             // Lifecycle task for component
-            tasks.create(vsSolution.getComponent().getName() + "VisualStudio").dependsOn(vsSolution);
+            Task lifecycleTask = tasks.create(vsSolution.getComponent().getName() + "VisualStudio").dependsOn(vsSolution);
+            lifecycleTask.setGroup("IDE");
         }
     }
 

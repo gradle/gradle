@@ -21,12 +21,10 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.tasks.Delete
-import org.gradle.api.tasks.TaskContainer
 import org.gradle.ide.visualstudio.internal.DefaultVisualStudioExtension
 import org.gradle.ide.visualstudio.internal.rules.CreateVisualStudioModel
 import org.gradle.ide.visualstudio.internal.rules.CreateVisualStudioTasks
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.model.ModelRule
 import org.gradle.model.ModelRules
 import org.gradle.model.internal.Inputs
 import org.gradle.model.internal.ModelCreator
@@ -54,14 +52,14 @@ class VisualStudioPlugin implements Plugin<ProjectInternal> {
         project.modelRegistry.create("visualStudio", ["flavors", "platforms"], new VisualStudioExtensionFactory(instantiator, new RelativeProjectFinder(project), project.getFileResolver()))
         modelRules.rule(new CreateVisualStudioModel())
         modelRules.rule(new CreateVisualStudioTasks())
-        modelRules.rule(new CloseVisualStudioForTasks());
 
-        project.task("cleanVisualStudio", type: Delete) {
+        def cleanTask = project.task("cleanVisualStudio", type: Delete) {
             delete "visualStudio"
         }
+        cleanTask.group = "IDE"
     }
 
-    private static class VisualStudioExtensionFactory implements ModelCreator<VisualStudioExtension> {
+    private static class VisualStudioExtensionFactory implements ModelCreator<DefaultVisualStudioExtension> {
         private final Instantiator instantiator;
         private final ProjectFinder projectFinder;
         private final FileResolver fileResolver;
@@ -72,22 +70,14 @@ class VisualStudioPlugin implements Plugin<ProjectInternal> {
             this.fileResolver = fileResolver;
         }
 
-        VisualStudioExtension create(Inputs inputs) {
+        DefaultVisualStudioExtension create(Inputs inputs) {
             FlavorContainer flavors = inputs.get(0, FlavorContainer)
             PlatformContainer platforms = inputs.get(1, PlatformContainer)
             return instantiator.newInstance(DefaultVisualStudioExtension.class, instantiator, projectFinder, fileResolver, flavors, platforms);
         }
 
-        Class<VisualStudioExtension> getType() {
-            return VisualStudioExtension
-        }
-    }
-
-    @SuppressWarnings("UnusedDeclaration")
-    private static class CloseVisualStudioForTasks extends ModelRule {
-        void closeForTasks(TaskContainer tasks, VisualStudioExtension extension) {
-            // nothing needed here
+        Class<DefaultVisualStudioExtension> getType() {
+            return DefaultVisualStudioExtension
         }
     }
 }
-

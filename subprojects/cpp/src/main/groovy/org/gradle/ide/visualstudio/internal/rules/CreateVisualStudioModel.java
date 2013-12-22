@@ -15,7 +15,6 @@
  */
 package org.gradle.ide.visualstudio.internal.rules;
 
-import org.gradle.ide.visualstudio.VisualStudioExtension;
 import org.gradle.ide.visualstudio.internal.DefaultVisualStudioExtension;
 import org.gradle.language.base.BinaryContainer;
 import org.gradle.model.ModelRule;
@@ -23,15 +22,14 @@ import org.gradle.nativebinaries.NativeBinary;
 import org.gradle.nativebinaries.ProjectNativeBinary;
 import org.gradle.nativebinaries.ProjectNativeComponent;
 
-@SuppressWarnings("UnusedDeclaration")
 public class CreateVisualStudioModel extends ModelRule {
-    public void createVisualStudioModelForBinaries(VisualStudioExtension visualStudioExtension, BinaryContainer binaryContainer) {
-        DefaultVisualStudioExtension vsExtension = (DefaultVisualStudioExtension) visualStudioExtension;
+    @SuppressWarnings("UnusedDeclaration")
+    public void createVisualStudioModelForBinaries(DefaultVisualStudioExtension visualStudioExtension, BinaryContainer binaryContainer) {
         for (ProjectNativeBinary binary : binaryContainer.withType(ProjectNativeBinary.class)) {
-            vsExtension.getProjectRegistry().addProjectConfiguration(binary);
+            visualStudioExtension.getProjectRegistry().addProjectConfiguration(binary);
 
             if (isDevelopmentBinary(binary)) {
-                vsExtension.getSolutionRegistry().addSolution(binary);
+                visualStudioExtension.getSolutionRegistry().addSolution(binary);
             }
         }
     }
