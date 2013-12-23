@@ -27,9 +27,13 @@ public class MacroArgsConverter implements Transformer<List<String>, Map<String,
         List<String> macroList = new ArrayList<String>(original.size());
         for (String macroName : original.keySet()) {
             String macroDef = original.get(macroName);
-            String arg = macroDef == null ? macroName : String.format("%s=%s", macroName, macroDef);
+            String arg = macroDef == null ? macroName : String.format("%s=%s", macroName, escapeMacroValue(macroDef));
             macroList.add(arg);
         }
         return macroList;
+    }
+
+    private static String escapeMacroValue(String value) {
+        return value.replace("\"", "\\\"");
     }
 }

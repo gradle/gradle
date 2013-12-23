@@ -31,6 +31,10 @@ public abstract class HelloWorldApp extends TestApp {
         return HELLO_WORLD_FRENCH + "\n12";
     }
 
+    public String getCustomOutput(String value) {
+        return value + "\n12";
+    }
+
     public String getExtraConfiguration() {
         return "";
     }
@@ -59,11 +63,22 @@ public abstract class HelloWorldApp extends TestApp {
         return compilerConfig("define", define);
     }
 
-    private String compilerConfig(String action, String arg) {
+    public String compilerDefine(String define, String value) {
+        return compilerConfig("define", define, value);
+    }
+
+    private String compilerConfig(String action, String... args) {
         StringBuilder builder = new StringBuilder();
         for (String plugin : getPluginList()) {
             if (plugin.equals("c") || plugin.equals("cpp")) {
-                builder.append(plugin).append("Compiler.").append(action).append(" '").append(arg).append("'\n");
+                builder.append(plugin).append("Compiler.").append(action).append(" ");
+                for (int i = 0; i != args.length; ++i) {
+                    if (i != 0) {
+                        builder.append(", ");
+                    }
+                    builder.append("'").append(args[i]).append("'");
+                }
+                builder.append("\n");
             }
         }
         return builder.toString();

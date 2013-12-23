@@ -98,6 +98,30 @@ abstract class AbstractLanguageIntegrationTest extends AbstractInstalledToolChai
         mainExecutable.exec().out == helloWorldApp.frenchOutput
     }
 
+    def "build executable with a double-quoted definition"() {
+        given:
+        buildFile << """
+            executables {
+                main {
+                    binaries.all {
+                        ${helloWorldApp.compilerDefine("CUSTOM", '"custom"')}
+                    }
+                }
+            }
+        """
+
+        and:
+        helloWorldApp.writeSources(file("src/main"))
+
+        when:
+        run "mainExecutable"
+
+        then:
+        def mainExecutable = executable("build/binaries/mainExecutable/main")
+        mainExecutable.assertExists()
+        mainExecutable.exec().out == helloWorldApp.getCustomOutput("custom")
+    }
+
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
     def "build shared library and link into executable"() {
         given:
