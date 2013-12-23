@@ -256,16 +256,6 @@ include 'exe', 'lib'
             #define OUTPUT "C"
 """
 
-        // TODO:DAZ Should deal with header-only libraries
-        file("src/libCpp/cpp/main.cpp") << """
-            void neverUsed() {
-            }
-"""
-        file("src/libC/c/main.c") << """
-            void neverUsed() {
-            }
-"""
-
         when:
         succeeds "installMainExecutable"
 

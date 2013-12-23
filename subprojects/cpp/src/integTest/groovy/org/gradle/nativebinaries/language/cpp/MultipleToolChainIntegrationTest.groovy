@@ -46,7 +46,7 @@ class MultipleToolChainIntegrationTest extends AbstractIntegrationSpec {
         helloWorld.library.writeSources(file("src/hello"))
     }
 
-    // TODO:DAZ Test building for 2 platforms that require different tool chains (visual c++ and gcc)
+    // TODO:DAZ Test building for 2 platforms that require different tool chains
     @Ignore
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
     def "can build with all multiple tool chains"() {

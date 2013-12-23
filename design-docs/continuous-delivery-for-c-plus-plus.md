@@ -1045,9 +1045,15 @@ from the same sources that link against different implementation libraries.
 - Define multiple variants (buildType/platform) of a prebuilt library. Build multiple variants (buildType/platform) of executable using this library
 - Define a header-only prebuilt library. Executable depends on 'api' linkage and references header files.
 - Generate visual studio solution for executable that depends on prebuilt library.
+- Useful error message when:
+    - no output file for selected binary
+    - output file specified does not exist
+    - library not found in project or prebuilt libraries
+    - library with name in prebuilt libraries, but other project specified
 
 ### Open issues
 
+- Allow access to prebuilt libraries in another project?
 - Allow these to be set as toolchain specific linker args (ie -l and -L) as well.
 - Sources of prebuilt libs
 - Dependencies of prebuilt libs
