@@ -26,6 +26,7 @@ class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegra
     final app = new CppHelloWorldApp()
 
     def "setup"() {
+        settingsFile << "rootProject.name = 'test'"
         app.executable.writeSources(file("src/main"))
         app.library.writeSources(file("libs/src/hello"))
 
@@ -134,5 +135,115 @@ class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegra
         then:
         installation("build/install/mainExecutable").exec().out == app.frenchOutput
         installation("build/install/mainStaticExecutable").exec().out == app.englishOutput
+    }
+
+    def "produces reasonable error message when no output file is defined for binary"() {
+        given:
+        buildFile << """
+            apply plugin: 'cpp'
+            model {
+                repositories {
+                    libs(PrebuiltLibraries) {
+                        create("hello") {
+                            headers.srcDir "libs/src/hello/headers"
+                        }
+                    }
+                }
+            }
+            executables {
+                main {}
+            }
+            sources.main.cpp.lib library: 'hello', linkage: 'static'
+        """
+
+        when:
+        fails "mainExecutable"
+
+        then:
+        failure.assertHasDescription("Could not determine the dependencies of task ':linkMainExecutable'.")
+        failure.assertHasCause("Static library file not set for prebuilt library 'hello'.")
+    }
+
+    def "produces reasonable error message when prebuilt library output file does not exist"() {
+        given:
+        buildFile << """
+            apply plugin: 'cpp'
+            model {
+                repositories {
+                    libs(PrebuiltLibraries) {
+                        create("hello") {
+                            headers.srcDir "libs/src/hello/headers"
+                            binaries.withType(StaticLibraryBinary) { binary ->
+                                staticLibraryFile = file("does_not_exist")
+                            }
+                        }
+                    }
+                }
+            }
+            executables {
+                main {}
+            }
+            sources.main.cpp.lib library: 'hello', linkage: 'static'
+        """
+
+        when:
+        fails "mainExecutable"
+
+        then:
+        failure.assertHasDescription("Could not determine the dependencies of task ':linkMainExecutable'.")
+        failure.assertHasCause("Static library file does not exist for prebuilt library 'hello'.")
+    }
+
+    def "produces reasonable error message when prebuilt library does not exist"() {
+        given:
+        buildFile << """
+            apply plugin: 'cpp'
+            model {
+                repositories {
+                    libs(PrebuiltLibraries) {
+                        create("hello") {
+                        }
+                    }
+                }
+            }
+            executables {
+                main {}
+            }
+            sources.main.cpp.lib library: 'other'
+        """
+
+        when:
+        fails "mainExecutable"
+
+        then:
+        failure.assertHasDescription("Could not determine the dependencies of task ':linkMainExecutable'.")
+        failure.assertHasCause("Could not locate library 'other'.")
+    }
+
+    def "produces reasonable error message when attempting to access prebuilt library in a different project"() {
+        given:
+        buildFile << """
+            apply plugin: 'cpp'
+            model {
+                repositories {
+                    libs(PrebuiltLibraries) {
+                        create("hello") {
+                            headers.srcDir "libs/src/hello/headers"
+                        }
+                    }
+                }
+            }
+            executables {
+                main {}
+            }
+            sources.main.cpp.lib project: ':other', library: 'hello', linkage: 'api'
+        """
+
+        when:
+        fails "mainExecutable"
+
+        then:
+        failure.assertHasDescription("Could not determine the dependencies of task ':linkMainExecutable'.")
+        failure.assertHasCause("Could not locate library 'hello' for project ':other'.")
     }
 }

@@ -17,7 +17,6 @@
 package org.gradle.nativebinaries.internal.resolve;
 
 import org.gradle.api.DomainObjectSet;
-import org.gradle.internal.exceptions.AbstractMultiCauseException;
 import org.gradle.nativebinaries.NativeBinary;
 import org.gradle.nativebinaries.NativeLibraryRequirement;
 
@@ -40,13 +39,13 @@ public class ChainedLibraryBinaryLocator implements LibraryBinaryLocator {
                 failures.add(e);
             }
         }
-        // TODO:DAZ Better exception. Test.
-        throw new LibraryResolveException("Could not find library for " + requirement, failures);
+        throw new LibraryResolveException(getFailureMessage(requirement), failures);
     }
 
-    private static class LibraryResolveException extends AbstractMultiCauseException {
-        private LibraryResolveException(String message, Iterable<? extends Throwable> causes) {
-            super(message, causes);
-        }
+    private String getFailureMessage(NativeLibraryRequirement requirement) {
+        return requirement.getProjectPath() == null
+                ? String.format("Could not locate library '%s'.", requirement.getLibraryName())
+                : String.format("Could not locate library '%s' for project '%s'.", requirement.getLibraryName(), requirement.getProjectPath());
     }
+
 }

@@ -17,7 +17,6 @@
 package org.gradle.nativebinaries.internal.prebuilt;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.nativebinaries.BuildType;
 import org.gradle.nativebinaries.Flavor;
 import org.gradle.nativebinaries.PrebuiltLibrary;
@@ -42,6 +41,9 @@ public class DefaultPrebuiltSharedLibraryBinary extends AbstractPrebuiltLibraryB
     }
 
     public File getSharedLibraryLinkFile() {
+        if (sharedLibraryFile == null) {
+            return null;
+        }
         // TODO:DAZ Push this functionality into Platform
         if (getTargetPlatform().getOperatingSystem().isWindows()) {
             String fileName = sharedLibraryFile.getName().replaceFirst("\\.dll$", ".lib");
@@ -51,10 +53,10 @@ public class DefaultPrebuiltSharedLibraryBinary extends AbstractPrebuiltLibraryB
     }
 
     public FileCollection getLinkFiles() {
-        return new SimpleFileCollection(getSharedLibraryLinkFile());
+        return createFileCollection(getSharedLibraryLinkFile(), "Shared library link file");
     }
 
     public FileCollection getRuntimeFiles() {
-        return new SimpleFileCollection(getSharedLibraryFile());
+        return createFileCollection(getSharedLibraryFile(), "Shared library runtime file");
     }
 }

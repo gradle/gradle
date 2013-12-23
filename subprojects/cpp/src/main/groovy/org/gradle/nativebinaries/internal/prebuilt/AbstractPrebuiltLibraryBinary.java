@@ -25,6 +25,8 @@ import org.gradle.nativebinaries.PrebuiltLibrary;
 import org.gradle.nativebinaries.internal.LibraryBinaryInternal;
 import org.gradle.nativebinaries.platform.Platform;
 
+import java.io.File;
+
 public abstract class AbstractPrebuiltLibraryBinary extends AbstractBuildableModelElement implements LibraryBinaryInternal {
     private final String name;
     private final PrebuiltLibrary library;
@@ -67,5 +69,15 @@ public abstract class AbstractPrebuiltLibraryBinary extends AbstractBuildableMod
 
     public FileCollection getHeaderDirs() {
         return new SimpleFileCollection(library.getHeaders().getSrcDirs());
+    }
+
+    protected FileCollection createFileCollection(File file, String fileName) {
+        if (file == null) {
+            throw new PrebuiltLibraryResolveException(String.format("%s not set for prebuilt library '%s'.", fileName, getComponent().getName()));
+        }
+        if (!file.exists() || !file.isFile()) {
+            throw new PrebuiltLibraryResolveException(String.format("%s does not exist for prebuilt library '%s'.", fileName, getComponent().getName()));
+        }
+        return new SimpleFileCollection(file);
     }
 }

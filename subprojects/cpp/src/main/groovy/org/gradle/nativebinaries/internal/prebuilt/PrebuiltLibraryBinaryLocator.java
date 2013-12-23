@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries.internal.resolve;
+package org.gradle.nativebinaries.internal.prebuilt;
 
 import org.gradle.api.DomainObjectSet;
 import org.gradle.nativebinaries.NativeBinary;
 import org.gradle.nativebinaries.NativeLibraryRequirement;
 import org.gradle.nativebinaries.PrebuiltLibraries;
+import org.gradle.nativebinaries.internal.resolve.LibraryBinaryLocator;
 
 public class PrebuiltLibraryBinaryLocator implements LibraryBinaryLocator {
     private final PrebuiltLibraries prebuiltLibraries;
@@ -29,7 +30,9 @@ public class PrebuiltLibraryBinaryLocator implements LibraryBinaryLocator {
     }
 
     public DomainObjectSet<NativeBinary> getBinaries(NativeLibraryRequirement requirement) {
-        // TODO:DAZ Ignore requirements for other projects
+        if (requirement.getProjectPath() != null) {
+            throw new PrebuiltLibraryResolveException(String.format("Cannot resolve prebuilt library for project '%s'", requirement.getProjectPath()));
+        }
         return prebuiltLibraries.getByName(requirement.getLibraryName()).getBinaries();
     }
 }

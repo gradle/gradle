@@ -42,7 +42,7 @@ public class DefaultPrebuiltStaticLibraryBinary extends AbstractPrebuiltLibraryB
     }
 
     public FileCollection getLinkFiles() {
-        return new SimpleFileCollection(getStaticLibraryFile());
+        return createFileCollection(getStaticLibraryFile(), "Static library file");
     }
 
     public FileCollection getRuntimeFiles() {
