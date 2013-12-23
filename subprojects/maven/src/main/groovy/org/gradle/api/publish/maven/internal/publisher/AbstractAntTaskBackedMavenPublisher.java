@@ -37,7 +37,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.util.Set;
 
-abstract public class AbstractAntTaskBackedMavenPublisher implements MavenPublisher {
+abstract public class AbstractAntTaskBackedMavenPublisher<T extends InstallDeployTaskSupport> implements MavenPublisher {
     private final Factory<LoggingManagerInternal> loggingManagerFactory;
 
     private static Logger logger = LoggerFactory.getLogger(AbstractAntTaskBackedMavenPublisher.class);
@@ -50,7 +50,7 @@ abstract public class AbstractAntTaskBackedMavenPublisher implements MavenPublis
 
     public void publish(MavenNormalizedPublication publication, MavenArtifactRepository artifactRepository) {
         logger.info("Publishing to repository {}", artifactRepository);
-        InstallDeployTaskSupport deployTask = createDeployTask();
+        T deployTask = createDeployTask();
         deployTask.setProject(AntUtil.createProject());
 
         MavenSettingsSupplier mavenSettingsSupplier = new EmptyMavenSettingsSupplier();
@@ -63,9 +63,9 @@ abstract public class AbstractAntTaskBackedMavenPublisher implements MavenPublis
         mavenSettingsSupplier.done();
     }
 
-    abstract protected void postConfigure(InstallDeployTaskSupport task, MavenArtifactRepository artifactRepository);
+    abstract protected void postConfigure(T task, MavenArtifactRepository artifactRepository);
 
-    abstract protected InstallDeployTaskSupport createDeployTask();
+    abstract protected T createDeployTask();
 
     private void addPomAndArtifacts(InstallDeployTaskSupport installOrDeployTask, MavenNormalizedPublication publication) {
         Pom pom = new Pom();

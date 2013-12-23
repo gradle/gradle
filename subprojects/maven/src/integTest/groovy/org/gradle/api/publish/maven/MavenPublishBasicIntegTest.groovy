@@ -27,11 +27,12 @@ import spock.lang.Ignore
 class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
     @Rule SetSystemProperties sysProp = new SetSystemProperties()
 
-    MavenLocalRepository m2Repo
+    MavenLocalRepository localM2Repo
+    private M2Installation m2Installation
 
     def "setup"() {
-        def m2Installation = new M2Installation(testDirectory)
-        m2Repo = m2Installation.mavenRepo()
+        m2Installation = new M2Installation(testDirectory)
+        localM2Repo = m2Installation.mavenRepo()
         executer.beforeExecute m2Installation
     }
 
@@ -90,7 +91,7 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
     def "can publish simple jar"() {
         given:
         def repoModule = mavenRepo.module('group', 'root', '1.0')
-        def localModule = m2Repo.module('group', 'root', '1.0')
+        def localModule = localM2Repo.module('group', 'root', '1.0')
 
         and:
         settingsFile << "rootProject.name = 'root'"
@@ -136,6 +137,37 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
 
         and:
         resolveArtifacts(repoModule) == ['root-1.0.jar']
+    }
+
+    def "can publish to custom maven local repo defined in settings.xml"() {
+        given:
+        def customLocalRepo = new MavenLocalRepository(file("custom-maven-local"))
+        m2Installation.generateUserSettingsFile(customLocalRepo)
+
+        and:
+        settingsFile << "rootProject.name = 'root'"
+        buildFile << """
+            apply plugin: 'maven-publish'
+            apply plugin: 'java'
+
+            group = 'group'
+            version = '1.0'
+
+            publishing {
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds 'publishToMavenLocal'
+
+        then:
+        !localM2Repo.module("group", "root", "1.0").artifactFile(type: "pom").exists()
+        customLocalRepo.module("group", "root", "1.0").assertPublishedAsJavaModule()
     }
 
     def "can publish a snapshot version"() {
