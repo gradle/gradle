@@ -19,6 +19,7 @@ package org.gradle.cache.internal;
 public interface CacheDecorator {
     /**
      * @param cacheId Unique id for this cache instance.
+     * @param cacheName Name for the type of contents stored in this cache instance.
      */
-    <K, V> MultiProcessSafePersistentIndexedCache<K, V> decorate(String cacheId, MultiProcessSafePersistentIndexedCache<K, V> original);
+    <K, V> MultiProcessSafePersistentIndexedCache<K, V> decorate(String cacheId, String cacheName, MultiProcessSafePersistentIndexedCache<K, V> original);
 }

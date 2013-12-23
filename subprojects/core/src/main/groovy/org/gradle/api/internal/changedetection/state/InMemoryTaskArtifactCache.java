@@ -54,8 +54,8 @@ public class InMemoryTaskArtifactCache implements CacheDecorator {
 
     private final Map<String, FileLock.State> states = new HashMap<String, FileLock.State>();
 
-    public <K, V> MultiProcessSafePersistentIndexedCache<K, V> decorate(final String cacheId, final MultiProcessSafePersistentIndexedCache<K, V> original) {
-        final Cache<Object, Object> data = loadData(cacheId);
+    public <K, V> MultiProcessSafePersistentIndexedCache<K, V> decorate(final String cacheId, String cacheName, final MultiProcessSafePersistentIndexedCache<K, V> original) {
+        final Cache<Object, Object> data = loadData(cacheId, cacheName);
 
         return new MultiProcessSafePersistentIndexedCache<K, V>() {
             public void close() {
@@ -107,14 +107,14 @@ public class InMemoryTaskArtifactCache implements CacheDecorator {
         };
     }
 
-    private Cache<Object, Object> loadData(String cacheId) {
+    private Cache<Object, Object> loadData(String cacheId, String cacheName) {
         Cache<Object, Object> theData;
         synchronized (lock) {
             theData = this.cache.getIfPresent(cacheId);
             if (theData != null) {
                 LOG.info("In-memory cache of {}: Size{{}}, {}", cacheId, theData.size() , theData.stats());
             } else {
-                Integer maxSize = CACHE_CAPS.get(cacheId);
+                Integer maxSize = CACHE_CAPS.get(cacheName);
                 assert maxSize != null : "Unknown cache.";
                 theData = CacheBuilder.newBuilder().maximumSize(maxSize).build();
                 this.cache.put(cacheId, theData);

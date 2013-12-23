@@ -20,7 +20,7 @@ import org.gradle.cache.internal.CacheDecorator;
 import org.gradle.cache.internal.MultiProcessSafePersistentIndexedCache;
 
 public class NoOpDecorator implements CacheDecorator {
-    public <K, V> MultiProcessSafePersistentIndexedCache<K, V> decorate(String cacheId, MultiProcessSafePersistentIndexedCache<K, V> original) {
+    public <K, V> MultiProcessSafePersistentIndexedCache<K, V> decorate(String cacheId, String cacheName, MultiProcessSafePersistentIndexedCache<K, V> original) {
         return original;
     }
 }

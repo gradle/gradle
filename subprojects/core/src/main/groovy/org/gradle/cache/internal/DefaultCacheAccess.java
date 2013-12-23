@@ -318,7 +318,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
 
         MultiProcessSafePersistentIndexedCache<K, V> indexedCache = new DefaultMultiProcessSafePersistentIndexedCache<K, V>(indexedCacheFactory, fileAccess);
         CacheDecorator decorator = parameters.getCacheDecorator();
-        indexedCache = decorator == null ? indexedCache : decorator.decorate(cacheFile.getAbsolutePath(), indexedCache);
+        indexedCache = decorator == null ? indexedCache : decorator.decorate(cacheFile.getAbsolutePath(), parameters.getCacheName(), indexedCache);
 
         lock.lock();
         try {
