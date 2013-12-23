@@ -16,16 +16,9 @@
 
 package org.gradle.nativebinaries.toolchain.internal.msvcpp;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
 import net.rubygrapefruit.platform.MissingRegistryEntryException;
+import net.rubygrapefruit.platform.SystemInfo;
 import net.rubygrapefruit.platform.WindowsRegistry;
-
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.typeconversion.NotationParser;
@@ -36,6 +29,9 @@ import org.gradle.util.TreeVisitor;
 import org.gradle.util.VersionNumber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.util.*;
 
 public class DefaultVisualStudioLocator extends DefaultWindowsLocator implements VisualStudioLocator {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultVisualStudioLocator.class);
@@ -54,7 +50,6 @@ public class DefaultVisualStudioLocator extends DefaultWindowsLocator implements
     private static final String VERSION_PATH = "path";
     private static final String VERSION_USER = "user";
 
-    private static final String NATIVEPREFIX_AMD64 = "win32-amd64";
     private static final String ARCHITECTURE_AMD64 = "amd64";
     private static final String ARCHITECTURE_X86 = "x86";
     private static final String ARCHITECTURE_ARM = "arm";
@@ -86,14 +81,16 @@ public class DefaultVisualStudioLocator extends DefaultWindowsLocator implements
     private final Map<File, VisualStudioInstall> foundInstalls = new HashMap<File, VisualStudioInstall>();
     private final OperatingSystem os;
     private final WindowsRegistry windowsRegistry;
+    private final SystemInfo systemInfo;
     private VisualStudioInstall pathInstall;
     private VisualStudioInstall userInstall;
     private VisualStudioInstall defaultInstall;
     private ToolSearchResult result;
 
-    public DefaultVisualStudioLocator(OperatingSystem os, WindowsRegistry windowsRegistry) {
+    public DefaultVisualStudioLocator(OperatingSystem os, WindowsRegistry windowsRegistry, SystemInfo systemInfo) {
         this.os = os;
         this.windowsRegistry = windowsRegistry;
+        this.systemInfo = systemInfo;
     }
 
     public ToolSearchResult locateVisualStudioInstalls(File candidate) {
@@ -228,7 +225,7 @@ public class DefaultVisualStudioLocator extends DefaultWindowsLocator implements
     }
 
     private VisualCppInstall buildVisualCppInstall(File vsPath, File basePath, VersionNumber version) {
-        boolean isNativeAmd64 = NATIVEPREFIX_AMD64.equals(org.gradle.internal.os.OperatingSystem.current().getNativePrefix());
+        boolean isNativeAmd64 = systemInfo.getArchitecture() == SystemInfo.Architecture.amd64;
         Map<Architecture, List<File>> paths = new HashMap<Architecture, List<File>>();
         Map<Architecture, File> binaryPaths = new HashMap<Architecture, File>();
         Map<Architecture, File> libraryPaths = new HashMap<Architecture, File>();

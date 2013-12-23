@@ -17,6 +17,7 @@
 package org.gradle.nativebinaries.language.cpp.fixtures;
 
 import com.google.common.base.Joiner;
+import net.rubygrapefruit.platform.SystemInfo;
 import net.rubygrapefruit.platform.WindowsRegistry;
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.internal.nativeplatform.ProcessEnvironment;
@@ -104,7 +105,7 @@ public class AvailableToolChains {
 
     static private ToolChainCandidate findVisualCpp() {
         // Search in the standard installation locations
-        VisualStudioLocator vsLocator = new DefaultVisualStudioLocator(OperatingSystem.current(), NativeServices.getInstance().get(WindowsRegistry.class));
+        VisualStudioLocator vsLocator = new DefaultVisualStudioLocator(OperatingSystem.current(), NativeServices.getInstance().get(WindowsRegistry.class), NativeServices.getInstance().get(SystemInfo.class));
         vsLocator.locateVisualStudioInstalls(null);
         VisualStudioInstall install = vsLocator.getDefaultInstall();
         if (install != null) {

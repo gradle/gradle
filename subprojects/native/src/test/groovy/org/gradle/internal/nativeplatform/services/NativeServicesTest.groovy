@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.nativeplatform.services
 
+import net.rubygrapefruit.platform.SystemInfo
 import net.rubygrapefruit.platform.WindowsRegistry
 import org.gradle.internal.nativeplatform.console.ConsoleDetector
 import org.gradle.internal.nativeplatform.ProcessEnvironment
@@ -48,5 +49,10 @@ class NativeServicesTest extends Specification {
     def "makes a WindowsRegistry available"() {
         expect:
         services.get(WindowsRegistry) != null
+    }
+
+    def "makes a SystemInfo available"() {
+        expect:
+        services.get(SystemInfo) != null
     }
 }

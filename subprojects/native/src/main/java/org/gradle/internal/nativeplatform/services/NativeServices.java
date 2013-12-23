@@ -17,10 +17,11 @@ package org.gradle.internal.nativeplatform.services;
 
 import com.sun.jna.Native;
 import net.rubygrapefruit.platform.*;
+import net.rubygrapefruit.platform.NativeIntegrationUnavailableException;
 import net.rubygrapefruit.platform.Process;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.jvm.Jvm;
-import org.gradle.internal.nativeplatform.ProcessEnvironment;
+import org.gradle.internal.nativeplatform.*;
 import org.gradle.internal.nativeplatform.console.ConsoleDetector;
 import org.gradle.internal.nativeplatform.console.NativePlatformConsoleDetector;
 import org.gradle.internal.nativeplatform.console.NoOpConsoleDetector;
@@ -35,7 +36,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.List;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 
 /**
  * Provides various native platform integration services.
@@ -144,7 +147,20 @@ public class NativeServices extends DefaultServiceRegistry {
         if (operatingSystem.isWindows()) {
             return net.rubygrapefruit.platform.Native.get(WindowsRegistry.class);
         }
-        return new BrokenWindowsRegistry();
+        return notAvailable(WindowsRegistry.class);
+    }
+
+    protected SystemInfo createSystemInfo() {
+        try {
+            return net.rubygrapefruit.platform.Native.get(SystemInfo.class);
+        } catch (NativeIntegrationUnavailableException e) {
+            LOGGER.debug("Native-platform system info is not available. Continuing with fallback.");
+        }
+        return notAvailable(SystemInfo.class);
+    }
+
+    private <T> T notAvailable(Class<T> type) {
+        return (T) Proxy.newProxyInstance(type.getClassLoader(), new Class[]{type}, new BrokenService(type.getSimpleName()));
     }
 
     protected LibC createLibC() {
@@ -162,21 +178,15 @@ public class NativeServices extends DefaultServiceRegistry {
         return builder.toString();
     }
 
-    private static class BrokenWindowsRegistry implements WindowsRegistry {
-        public String getStringValue(Key key, String subkey, String value) throws NativeException {
-            throw failure();
+    private static class BrokenService implements InvocationHandler {
+        private final String type;
+
+        private BrokenService(String type) {
+            this.type = type;
         }
 
-        public List<String> getSubkeys(Key key, String subkey) throws NativeException {
-            throw failure();
-        }
-
-        public List<String> getValueNames(Key key, String subkey) throws NativeException {
-            throw failure();
-        }
-
-        private NativeIntegrationUnavailableException failure() {
-            return new NativeIntegrationUnavailableException("Windows registry is not supported on this operating system.");
+        public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+            return new org.gradle.internal.nativeplatform.NativeIntegrationUnavailableException(String.format("%s is not supported on this operating system.", type));
         }
     }
 }

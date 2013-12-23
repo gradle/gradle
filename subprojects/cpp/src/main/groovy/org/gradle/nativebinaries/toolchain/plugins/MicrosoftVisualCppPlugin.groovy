@@ -18,6 +18,7 @@
 
 package org.gradle.nativebinaries.toolchain.plugins
 
+import net.rubygrapefruit.platform.SystemInfo
 import net.rubygrapefruit.platform.WindowsRegistry
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
@@ -48,9 +49,12 @@ class MicrosoftVisualCppPlugin implements Plugin<Project> {
     private final ModelRules modelRules
     private final OperatingSystem operatingSystem
     private final WindowsRegistry windowsRegistry
+    private final SystemInfo systemInfo
 
     @Inject
-    MicrosoftVisualCppPlugin(FileResolver fileResolver, ExecActionFactory execActionFactory, ModelRules modelRules, Instantiator instantiator, OperatingSystem operatingSystem, WindowsRegistry windowsRegistry) {
+    MicrosoftVisualCppPlugin(FileResolver fileResolver, ExecActionFactory execActionFactory, ModelRules modelRules, Instantiator instantiator, OperatingSystem operatingSystem,
+                             WindowsRegistry windowsRegistry, SystemInfo systemInfo) {
+        this.systemInfo = systemInfo
         this.windowsRegistry = windowsRegistry
         this.operatingSystem = operatingSystem
         this.execActionFactory = execActionFactory
@@ -65,7 +69,7 @@ class MicrosoftVisualCppPlugin implements Plugin<Project> {
         modelRules.rule(new ModelRule() {
             void addToolChain(ToolChainRegistryInternal toolChainRegistry) {
                 toolChainRegistry.registerFactory(VisualCpp, { String name ->
-                    return instantiator.newInstance(VisualCppToolChain, name, operatingSystem, fileResolver, execActionFactory, new DefaultVisualStudioLocator(operatingSystem, windowsRegistry), new DefaultWindowsSdkLocator(operatingSystem, windowsRegistry))
+                    return instantiator.newInstance(VisualCppToolChain, name, operatingSystem, fileResolver, execActionFactory, new DefaultVisualStudioLocator(operatingSystem, windowsRegistry, systemInfo), new DefaultWindowsSdkLocator(operatingSystem, windowsRegistry))
                 })
                 toolChainRegistry.registerDefaultToolChain(VisualCppToolChain.DEFAULT_NAME, VisualCpp)
             }

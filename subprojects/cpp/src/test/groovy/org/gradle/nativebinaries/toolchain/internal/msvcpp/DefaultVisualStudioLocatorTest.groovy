@@ -16,6 +16,7 @@
 
 package org.gradle.nativebinaries.toolchain.internal.msvcpp
 
+import net.rubygrapefruit.platform.SystemInfo
 import net.rubygrapefruit.platform.WindowsRegistry
 
 import org.gradle.internal.os.OperatingSystem
@@ -28,11 +29,12 @@ import spock.lang.Specification
 class DefaultVisualStudioLocatorTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     final WindowsRegistry windowsRegistry =  Stub(WindowsRegistry)
+    final SystemInfo systemInfo =  Stub(SystemInfo)
     final OperatingSystem operatingSystem = Stub(OperatingSystem) {
         isWindows() >> true
         getExecutableName(_ as String) >> { String exeName -> exeName }
     }
-    final VisualStudioLocator visualStudioLocator = new DefaultVisualStudioLocator(operatingSystem, windowsRegistry)
+    final VisualStudioLocator visualStudioLocator = new DefaultVisualStudioLocator(operatingSystem, windowsRegistry, systemInfo)
 
     def "use highest visual studio version found in the registry"() {
         def dir1 = vsDir("vs1");
