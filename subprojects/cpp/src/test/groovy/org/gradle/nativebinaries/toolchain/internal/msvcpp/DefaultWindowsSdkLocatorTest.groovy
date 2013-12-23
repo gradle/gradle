@@ -56,6 +56,28 @@ class DefaultWindowsSdkLocatorTest extends Specification {
         windowsSdkLocator.defaultSdk.baseDir == dir2
     }
 
+    def "uses windows kit if version is higher than windows SDK"() {
+        def dir1 = sdkDir("sdk1")
+        def dir2 = kitDir("sdk2")
+
+        given:
+        operatingSystem.findInPath(_) >> null
+        windowsRegistry.getSubkeys(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\SDKs\Windows/) >> ["v1"]
+        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows\v1/, "InstallationFolder") >> dir1.absolutePath
+        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows\v1/, "ProductVersion") >> "7.1"
+        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows\v1/, "ProductName") >> "sdk 1"
+        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Windows Kits\Installed Roots/, "KitsRoot81") >> dir2.absolutePath
+
+        when:
+        def located = windowsSdkLocator.locateWindowsSdks(null)
+
+        then:
+        located.available
+        windowsSdkLocator.defaultSdk.name == "Windows Kit 8.1"
+        windowsSdkLocator.defaultSdk.version == VersionNumber.parse("8.1")
+        windowsSdkLocator.defaultSdk.baseDir == dir2
+    }
+
     def "locates windows SDK based on executables in path"() {
         def sdkDir = sdkDir("sdk")
 
@@ -114,6 +136,13 @@ class DefaultWindowsSdkLocatorTest extends Specification {
         def dir = tmpDir.createDir(name)
         dir.createFile("bin/rc.exe")
         dir.createFile("lib/kernel32.lib")
+        return dir
+    }
+
+    def kitDir(String name) {
+        def dir = tmpDir.createDir(name)
+        dir.createFile("bin/x86/rc.exe")
+        dir.createFile("lib/win8/um/x86/kernel32.lib")
         return dir
     }
 }

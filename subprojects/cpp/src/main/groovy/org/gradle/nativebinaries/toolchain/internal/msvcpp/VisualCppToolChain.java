@@ -16,21 +16,30 @@
 
 package org.gradle.nativebinaries.toolchain.internal.msvcpp;
 
+import java.io.File;
+import java.util.Map.Entry;
+
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.compile.Compiler;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.nativebinaries.platform.Platform;
-import org.gradle.nativebinaries.internal.*;
+import org.gradle.nativebinaries.internal.BinaryToolSpec;
+import org.gradle.nativebinaries.internal.LinkerSpec;
+import org.gradle.nativebinaries.internal.StaticLibraryArchiverSpec;
 import org.gradle.nativebinaries.language.assembler.internal.AssembleSpec;
 import org.gradle.nativebinaries.language.c.internal.CCompileSpec;
 import org.gradle.nativebinaries.language.cpp.internal.CppCompileSpec;
 import org.gradle.nativebinaries.language.rc.internal.WindowsResourceCompileSpec;
+import org.gradle.nativebinaries.platform.Platform;
 import org.gradle.nativebinaries.toolchain.VisualCpp;
-import org.gradle.nativebinaries.toolchain.internal.*;
+import org.gradle.nativebinaries.toolchain.internal.AbstractToolChain;
+import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
+import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec;
+import org.gradle.nativebinaries.toolchain.internal.OutputCleaningCompiler;
+import org.gradle.nativebinaries.toolchain.internal.PlatformToolChain;
+import org.gradle.nativebinaries.toolchain.internal.ToolChainAvailability;
+import org.gradle.nativebinaries.toolchain.internal.ToolSearchResult;
 import org.gradle.process.internal.ExecActionFactory;
-
-import java.io.File;
 
 public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
 
@@ -66,15 +75,12 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
     }
 
     private VisualStudioInstall locateVisualStudioInstall() {
-        InstallationSearchResult searchResult = locateVisualStudio();
-        return new VisualStudioInstall(searchResult.getResult(), searchResult.getVersion());
+        locateVisualStudio();
+        return visualStudioLocator.getDefaultInstall();
     }
 
-    private InstallationSearchResult locateVisualStudio() {
-        if (installDir != null) {
-            return visualStudioLocator.locateVisualStudio(installDir);
-        }
-        return visualStudioLocator.locateDefaultVisualStudio();
+    private ToolSearchResult locateVisualStudio() {
+        return visualStudioLocator.locateVisualStudioInstalls(installDir);
     }
 
     private ToolSearchResult locateWindowsSdk() {
@@ -135,7 +141,7 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
 
         public <T extends BinaryToolSpec> Compiler<T> createCppCompiler() {
             CommandLineTool<CppCompileSpec> commandLineTool = commandLineTool("C++ compiler", install.getCompiler(targetPlatform));
-            Transformer<CppCompileSpec, CppCompileSpec> specTransformer = addIncludePath();
+            Transformer<CppCompileSpec, CppCompileSpec> specTransformer = addIncludePathAndDefinitions();
             commandLineTool.withSpecTransformer(specTransformer);
             CppCompiler cppCompiler = new CppCompiler(commandLineTool);
             return (Compiler<T>) new OutputCleaningCompiler<CppCompileSpec>(cppCompiler, ".obj");
@@ -143,7 +149,7 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
 
         public <T extends BinaryToolSpec> Compiler<T> createCCompiler() {
             CommandLineTool<CCompileSpec> commandLineTool = commandLineTool("C compiler", install.getCompiler(targetPlatform));
-            Transformer<CCompileSpec, CCompileSpec> specTransformer = addIncludePath();
+            Transformer<CCompileSpec, CCompileSpec> specTransformer = addIncludePathAndDefinitions();
             commandLineTool.withSpecTransformer(specTransformer);
             CCompiler cCompiler = new CCompiler(commandLineTool);
             return (Compiler<T>) new OutputCleaningCompiler<CCompileSpec>(cCompiler, ".obj");
@@ -156,7 +162,7 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
 
         public <T extends BinaryToolSpec> Compiler<T> createWindowsResourceCompiler() {
             CommandLineTool<WindowsResourceCompileSpec> commandLineTool = commandLineTool("Windows resource compiler", sdk.getResourceCompiler(targetPlatform));
-            Transformer<WindowsResourceCompileSpec, WindowsResourceCompileSpec> specTransformer = addIncludePath();
+            Transformer<WindowsResourceCompileSpec, WindowsResourceCompileSpec> specTransformer = addIncludePathAndDefinitions();
             commandLineTool.withSpecTransformer(specTransformer);
             WindowsResourceCompiler windowsResourceCompiler = new WindowsResourceCompiler(commandLineTool);
             return (Compiler<T>) new OutputCleaningCompiler<WindowsResourceCompileSpec>(windowsResourceCompiler, ".res");
@@ -188,11 +194,14 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
             return String.format("%s-%s", getName(), operatingSystem.getName());
         }
 
-        private <T extends NativeCompileSpec> Transformer<T, T> addIncludePath() {
+        private <T extends NativeCompileSpec> Transformer<T, T> addIncludePathAndDefinitions() {
             return new Transformer<T, T>() {
                 public T transform(T original) {
-                    original.include(install.getVisualCppInclude());
+                    original.include(install.getVisualCppInclude(targetPlatform));
                     original.include(sdk.getIncludeDirs());
+                    for (Entry<String, String> definition : install.getVisualCppDefines(targetPlatform).entrySet()) {
+                        original.define(definition.getKey(), definition.getValue());
+                    }
                     return original;
                 }
             };

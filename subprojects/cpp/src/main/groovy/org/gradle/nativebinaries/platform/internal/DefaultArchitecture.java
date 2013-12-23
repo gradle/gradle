@@ -57,4 +57,35 @@ public class DefaultArchitecture implements ArchitectureInternal {
     public boolean isArmv8() {
         return instructionSet == InstructionSet.ARM && registerSize == 64;
     }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result
+                + ((instructionSet == null) ? 0 : instructionSet.hashCode());
+        result = prime * result + registerSize;
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        DefaultArchitecture other = (DefaultArchitecture) obj;
+        if (instructionSet != other.instructionSet) {
+            return false;
+        }
+        if (registerSize != other.registerSize) {
+            return false;
+        }
+        return true;
+    }
 }

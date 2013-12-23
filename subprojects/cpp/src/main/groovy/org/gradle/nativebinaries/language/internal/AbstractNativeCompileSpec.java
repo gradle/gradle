@@ -85,6 +85,14 @@ public abstract class AbstractNativeCompileSpec extends AbstractBinaryToolSpec i
         this.macros = macros;
     }
 
+    public void define(String name) {
+        macros.put(name, null);
+    }
+
+    public void define(String name, String value) {
+        macros.put(name, value);
+    }
+
     public boolean isPositionIndependentCode() {
         return positionIndependentCode;
     }

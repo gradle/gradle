@@ -33,8 +33,12 @@ import java.util.Map;
 
 public class DefaultWindowsSdkLocator extends DefaultWindowsLocator implements WindowsSdkLocator {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultWindowsSdkLocator.class);
-    private static final String REGISTRY_ROOTPATH_SDK = "SOFTWARE\\Microsoft\\Microsoft SDKs\\Windows";
-    private static final String REGISTRY_ROOTPATH_KIT = "SOFTWARE\\Microsoft\\Windows Kits\\Installed Roots";
+    private static final String REGISTRY_BASEPATHS[] = {
+        "SOFTWARE\\",
+        "SOFTWARE\\Wow6432Node\\"
+    };
+    private static final String REGISTRY_ROOTPATH_SDK = "Microsoft\\Microsoft SDKs\\Windows";
+    private static final String REGISTRY_ROOTPATH_KIT = "Microsoft\\Windows Kits\\Installed Roots";
     private static final String REGISTRY_FOLDER = "InstallationFolder";
     private static final String REGISTRY_VERSION = "ProductVersion";
     private static final String REGISTRY_NAME = "ProductName";
@@ -110,12 +114,18 @@ public class DefaultWindowsSdkLocator extends DefaultWindowsLocator implements W
     }
 
     private void locateSdksInRegistry() {
+        for (String baseKey : REGISTRY_BASEPATHS) {
+            locateSdksInRegistry(baseKey);
+        }
+    }
+
+    private void locateSdksInRegistry(String baseKey) {
         try {
-            List<String> subkeys = windowsRegistry.getSubkeys(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, REGISTRY_ROOTPATH_SDK);
+            List<String> subkeys = windowsRegistry.getSubkeys(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, baseKey + REGISTRY_ROOTPATH_SDK);
 
             for (String subkey : subkeys) {
                 try {
-                    String basePath = REGISTRY_ROOTPATH_SDK + "\\" + subkey;
+                    String basePath = baseKey + REGISTRY_ROOTPATH_SDK + "\\" + subkey;
                     File sdkDir = new File(windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, basePath, REGISTRY_FOLDER));
                     String version = formatVersion(windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, basePath, REGISTRY_VERSION));
                     String name = windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, basePath, REGISTRY_NAME);
@@ -136,6 +146,12 @@ public class DefaultWindowsSdkLocator extends DefaultWindowsLocator implements W
     }
 
     private void locateKitsInRegistry() {
+        for (String baseKey : REGISTRY_BASEPATHS) {
+            locateKitsInRegistry(baseKey);
+        }
+    }
+
+    private void locateKitsInRegistry(String baseKey) {
         String[] versions = {
                 VERSION_KIT_8,
                 VERSION_KIT_81
@@ -147,7 +163,7 @@ public class DefaultWindowsSdkLocator extends DefaultWindowsLocator implements W
 
         for (int i = 0; i != keys.length; ++i) {
             try {
-                File kitDir = new File(windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, REGISTRY_ROOTPATH_KIT, keys[i]));
+                File kitDir = new File(windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, baseKey + REGISTRY_ROOTPATH_KIT, keys[i]));
                 if (isWindowsSdk(kitDir)) {
                     LOGGER.debug("Found Windows Kit {} at {}", versions[i], kitDir);
                     addSdk(kitDir, versions[i], NAME_KIT + " " + versions[i]);

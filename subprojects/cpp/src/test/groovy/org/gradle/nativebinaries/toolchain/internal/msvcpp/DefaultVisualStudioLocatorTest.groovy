@@ -16,46 +16,116 @@
 
 package org.gradle.nativebinaries.toolchain.internal.msvcpp
 
+import net.rubygrapefruit.platform.WindowsRegistry
+
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.VersionNumber
+import org.junit.Rule
+
 import spock.lang.Specification
 
 class DefaultVisualStudioLocatorTest extends Specification {
-    TestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
+    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    final WindowsRegistry windowsRegistry =  Stub(WindowsRegistry)
     final OperatingSystem operatingSystem = Stub(OperatingSystem) {
         isWindows() >> true
         getExecutableName(_ as String) >> { String exeName -> exeName }
-        findInPath("cl.exe") >> file('VisualStudio/VC/bin/cl.exe')
     }
-    final VisualStudioLocator visualStudioLocator = new DefaultVisualStudioLocator(operatingSystem)
+    final VisualStudioLocator visualStudioLocator = new DefaultVisualStudioLocator(operatingSystem, windowsRegistry)
 
-    def "visual studio not found when executables do not exist"() {
+    def "use highest visual studio version found in the registry"() {
+        def dir1 = vsDir("vs1");
+        def dir2 = vsDir("vs2");
+
+        given:
+        operatingSystem.findInPath(_) >> null
+        windowsRegistry.getValueNames(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VS7/) >> ["11.0", "12.0"]
+        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VS7/, "11.0") >> dir1.absolutePath
+        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VS7/, "12.0") >> dir2.absolutePath
+        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VC7/, "11.0") >> dir1.absolutePath + "/VC"
+        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VC7/, "12.0") >> dir2.absolutePath + "/VC"
+
         when:
-        def visualStudioLocation = visualStudioLocator.locateDefaultVisualStudio()
+        def located = visualStudioLocator.locateVisualStudioInstalls(null)
 
         then:
-        !visualStudioLocation.available
-        visualStudioLocation.result == null
+        located.available
+        visualStudioLocator.defaultInstall.name == "Visual Studio 12.0"
+        visualStudioLocator.defaultInstall.version == VersionNumber.parse("12.0")
+        visualStudioLocator.defaultInstall.baseDir == dir2
+    }
+
+    def "visual studio not found when executables do not exist"() {
+        given:
+        operatingSystem.findInPath(_) >> null
+
+        when:
+        def located = visualStudioLocator.locateVisualStudioInstalls(null)
+
+        then:
+        !located.available
+        visualStudioLocator.defaultInstall == null
     }
 
     def "locates visual studio installation based on executables in path"() {
-        when:
-        createFile('VisualStudio/VC/bin/cl.exe')
+        def vsDir = vsDir("vs")
 
-        and:
-        def visualStudioLocation = visualStudioLocator.locateDefaultVisualStudio()
+        given:
+        operatingSystem.findInPath("cl.exe") >> vsDir.file("VC/bin/cl.exe")
+
+        when:
+        def located = visualStudioLocator.locateVisualStudioInstalls(null)
 
         then:
-        visualStudioLocation.available
-        visualStudioLocation.result == file('VisualStudio')
+        located.available
+        visualStudioLocator.defaultInstall.name == "Path-resolved Visual Studio"
+        visualStudioLocator.defaultInstall.version == VersionNumber.UNKNOWN
+        visualStudioLocator.defaultInstall.baseDir == vsDir
     }
 
-    def file(String name) {
-        testDirectoryProvider.testDirectory.file(name)
+    def "uses visual studio using specified install dir"() {
+        def vsDir = vsDir("vs")
+
+        given:
+        operatingSystem.findInPath(_) >> null
+
+        when:
+        def located = visualStudioLocator.locateVisualStudioInstalls(vsDir)
+
+        then:
+        located.available
+        visualStudioLocator.defaultInstall.name == "User-provided Visual Studio"
+        visualStudioLocator.defaultInstall.version == VersionNumber.UNKNOWN
+        visualStudioLocator.defaultInstall.baseDir == vsDir
     }
 
-    def createFile(String name) {
-        file(name).createFile()
+    def "fills in meta-data from registry for install discovered using the path"() {
+        def vsDir = vsDir("vs")
+
+        given:
+        operatingSystem.findInPath("cl.exe") >> vsDir.file("VC/bin/cl.exe")
+
+        and:
+        windowsRegistry.getValueNames(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VS7/) >> ["12.0"]
+        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VS7/, "12.0") >> vsDir.absolutePath
+        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VC7/, "12.0") >> vsDir.absolutePath + "/VC"
+        
+        when:
+        def located = visualStudioLocator.locateVisualStudioInstalls(null)
+
+        then:
+        located.available
+        visualStudioLocator.defaultInstall.name == "Visual Studio 12.0"
+        visualStudioLocator.defaultInstall.version == VersionNumber.parse("12.0")
+        visualStudioLocator.defaultInstall.baseDir == vsDir
+    }
+
+    def vsDir(String name) {
+        def dir = tmpDir.createDir(name)
+        dir.createDir("Common7")
+        dir.createFile("VC/bin/cl.exe")
+        dir.createDir("VC/lib")
+        return dir
     }
 }
