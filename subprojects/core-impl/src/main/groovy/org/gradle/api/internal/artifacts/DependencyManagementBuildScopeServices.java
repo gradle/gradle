@@ -133,7 +133,7 @@ class DependencyManagementBuildScopeServices {
 
     ArtifactAtRepositoryCachedArtifactIndex createArtifactAtRepositoryCachedResolutionIndex(BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
         return new ArtifactAtRepositoryCachedArtifactIndex(
-                "artifact-at-repository.bin",
+                "artifact-at-repository",
                 timeProvider,
                 cacheLockingManager
         );
@@ -141,7 +141,7 @@ class DependencyManagementBuildScopeServices {
 
     ByUrlCachedExternalResourceIndex createArtifactUrlCachedResolutionIndex(BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
         return new ByUrlCachedExternalResourceIndex(
-                "artifact-at-url.bin",
+                "artifact-at-url",
                 timeProvider,
                 cacheLockingManager
         );
