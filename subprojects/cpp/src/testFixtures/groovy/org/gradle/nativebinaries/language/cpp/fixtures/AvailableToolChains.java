@@ -17,10 +17,7 @@
 package org.gradle.nativebinaries.language.cpp.fixtures;
 
 import com.google.common.base.Joiner;
-
-import net.rubygrapefruit.platform.Native;
 import net.rubygrapefruit.platform.WindowsRegistry;
-
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.internal.nativeplatform.ProcessEnvironment;
 import org.gradle.internal.nativeplatform.services.NativeServices;
@@ -31,7 +28,9 @@ import org.gradle.nativebinaries.toolchain.Gcc;
 import org.gradle.nativebinaries.toolchain.VisualCpp;
 import org.gradle.nativebinaries.toolchain.internal.gcc.version.GccVersionDeterminer;
 import org.gradle.nativebinaries.toolchain.internal.gcc.version.GccVersionResult;
-import org.gradle.nativebinaries.toolchain.internal.msvcpp.*;
+import org.gradle.nativebinaries.toolchain.internal.msvcpp.DefaultVisualStudioLocator;
+import org.gradle.nativebinaries.toolchain.internal.msvcpp.VisualStudioInstall;
+import org.gradle.nativebinaries.toolchain.internal.msvcpp.VisualStudioLocator;
 import org.gradle.nativebinaries.toolchain.plugins.ClangCompilerPlugin;
 import org.gradle.nativebinaries.toolchain.plugins.GccCompilerPlugin;
 import org.gradle.nativebinaries.toolchain.plugins.MicrosoftVisualCppPlugin;
@@ -105,7 +104,7 @@ public class AvailableToolChains {
 
     static private ToolChainCandidate findVisualCpp() {
         // Search in the standard installation locations
-        VisualStudioLocator vsLocator = new DefaultVisualStudioLocator(OperatingSystem.current(), Native.get(WindowsRegistry.class));
+        VisualStudioLocator vsLocator = new DefaultVisualStudioLocator(OperatingSystem.current(), NativeServices.getInstance().get(WindowsRegistry.class));
         vsLocator.locateVisualStudioInstalls(null);
         VisualStudioInstall install = vsLocator.getDefaultInstall();
         if (install != null) {

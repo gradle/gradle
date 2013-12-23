@@ -15,10 +15,10 @@
  */
 
 package org.gradle.nativebinaries.language.cpp.fixtures.binaryinfo
-import net.rubygrapefruit.platform.Native;
-import net.rubygrapefruit.platform.WindowsRegistry;
 
-import org.gradle.internal.os.OperatingSystem;
+import net.rubygrapefruit.platform.WindowsRegistry
+import org.gradle.internal.nativeplatform.services.NativeServices
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.language.cpp.fixtures.AvailableToolChains.InstalledToolChain
 import org.gradle.nativebinaries.platform.internal.ArchitectureInternal
 import org.gradle.nativebinaries.platform.internal.DefaultArchitecture
@@ -41,7 +41,7 @@ class DumpbinBinaryInfo implements BinaryInfo {
     }
 
     static VisualStudioInstall findVisualStudio() {
-        def vsLocator = new DefaultVisualStudioLocator(OperatingSystem.current(), Native.get(WindowsRegistry.class))
+        def vsLocator = new DefaultVisualStudioLocator(OperatingSystem.current(), NativeServices.instance.get(WindowsRegistry.class))
         vsLocator.locateVisualStudioInstalls(null)
         vsLocator.defaultInstall
     }
