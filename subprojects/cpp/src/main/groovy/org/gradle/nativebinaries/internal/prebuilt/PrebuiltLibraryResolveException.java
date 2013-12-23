@@ -17,7 +17,9 @@
 package org.gradle.nativebinaries.internal.prebuilt;
 
 import org.gradle.api.GradleException;
+import org.gradle.internal.exceptions.Contextual;
 
+@Contextual
 public class PrebuiltLibraryResolveException extends GradleException {
     public PrebuiltLibraryResolveException(String message) {
         super(message);

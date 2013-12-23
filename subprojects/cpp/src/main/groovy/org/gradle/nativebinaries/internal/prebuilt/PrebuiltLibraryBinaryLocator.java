@@ -31,7 +31,7 @@ public class PrebuiltLibraryBinaryLocator implements LibraryBinaryLocator {
 
     public DomainObjectSet<NativeBinary> getBinaries(NativeLibraryRequirement requirement) {
         if (requirement.getProjectPath() != null) {
-            throw new PrebuiltLibraryResolveException(String.format("Cannot resolve prebuilt library for project '%s'", requirement.getProjectPath()));
+            throw new PrebuiltLibraryResolveException("Cannot resolve prebuilt library in another project.");
         }
         return prebuiltLibraries.getByName(requirement.getLibraryName()).getBinaries();
     }

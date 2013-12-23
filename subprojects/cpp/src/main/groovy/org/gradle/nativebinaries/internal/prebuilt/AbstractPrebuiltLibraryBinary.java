@@ -17,6 +17,8 @@
 package org.gradle.nativebinaries.internal.prebuilt;
 
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.collections.FileCollectionAdapter;
+import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.language.base.internal.AbstractBuildableModelElement;
 import org.gradle.nativebinaries.BuildType;
@@ -26,6 +28,8 @@ import org.gradle.nativebinaries.internal.LibraryBinaryInternal;
 import org.gradle.nativebinaries.platform.Platform;
 
 import java.io.File;
+import java.util.Collections;
+import java.util.Set;
 
 public abstract class AbstractPrebuiltLibraryBinary extends AbstractBuildableModelElement implements LibraryBinaryInternal {
     private final String name;
@@ -71,13 +75,33 @@ public abstract class AbstractPrebuiltLibraryBinary extends AbstractBuildableMod
         return new SimpleFileCollection(library.getHeaders().getSrcDirs());
     }
 
-    protected FileCollection createFileCollection(File file, String fileName) {
-        if (file == null) {
-            throw new PrebuiltLibraryResolveException(String.format("%s not set for prebuilt library '%s'.", fileName, getComponent().getName()));
+    protected FileCollection createFileCollection(File file, String fileDescription) {
+        return new FileCollectionAdapter(new ValidatingFileSet(file, getComponent().getName(), fileDescription));
+    }
+
+    private static class ValidatingFileSet implements MinimalFileSet {
+        private final File file;
+        private final String libraryName;
+        private final String fileDescription;
+
+        private ValidatingFileSet(File file, String libraryName, String fileDescription) {
+            this.file = file;
+            this.libraryName = libraryName;
+            this.fileDescription = fileDescription;
         }
-        if (!file.exists() || !file.isFile()) {
-            throw new PrebuiltLibraryResolveException(String.format("%s does not exist for prebuilt library '%s'.", fileName, getComponent().getName()));
+
+        public String getDisplayName() {
+            return String.format("%s for prebuilt library '%s'", fileDescription, libraryName);
         }
-        return new SimpleFileCollection(file);
+
+        public Set<File> getFiles() {
+            if (file == null) {
+                throw new PrebuiltLibraryResolveException(String.format("%s not set for prebuilt library '%s'.", fileDescription, libraryName));
+            }
+            if (!file.exists() || !file.isFile()) {
+                throw new PrebuiltLibraryResolveException(String.format("%s %s does not exist for prebuilt library '%s'.", fileDescription, file.getAbsolutePath(), libraryName));
+            }
+            return Collections.singleton(file);
+        }
     }
 }

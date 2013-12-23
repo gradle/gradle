@@ -17,7 +17,9 @@
 package org.gradle.nativebinaries.internal.resolve;
 
 import org.gradle.internal.exceptions.AbstractMultiCauseException;
+import org.gradle.internal.exceptions.Contextual;
 
+@Contextual
 class LibraryResolveException extends AbstractMultiCauseException {
     LibraryResolveException(String message, Iterable<? extends Throwable> causes) {
         super(message, causes);

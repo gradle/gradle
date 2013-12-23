@@ -31,7 +31,7 @@ public class RelativeProjectFinder implements ProjectFinder {
             return project;
         }
 
-        ProjectInternal referencedProject = project.findProject(path);
+        ProjectInternal referencedProject = project.project(path);
         // TODO:DAZ This is a brain-dead way to ensure that the reference project's model is ready to access
         referencedProject.evaluate();
         return referencedProject;

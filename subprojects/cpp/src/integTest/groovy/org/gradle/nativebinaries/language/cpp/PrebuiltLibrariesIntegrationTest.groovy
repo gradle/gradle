@@ -52,7 +52,6 @@ class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegra
                     it.buildable
                 }
             }
-
 """
     }
 
@@ -160,8 +159,7 @@ class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegra
         fails "mainExecutable"
 
         then:
-        failure.assertHasDescription("Could not determine the dependencies of task ':linkMainExecutable'.")
-        failure.assertHasCause("Static library file not set for prebuilt library 'hello'.")
+        failure.assertHasDescription("Static library file not set for prebuilt library 'hello'.")
     }
 
     def "produces reasonable error message when prebuilt library output file does not exist"() {
@@ -187,11 +185,11 @@ class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegra
         """
 
         when:
+        succeeds "tasks"
         fails "mainExecutable"
 
         then:
-        failure.assertHasDescription("Could not determine the dependencies of task ':linkMainExecutable'.")
-        failure.assertHasCause("Static library file does not exist for prebuilt library 'hello'.")
+        failure.assertHasDescription("Static library file ${file("does_not_exist").absolutePath} does not exist for prebuilt library 'hello'.")
     }
 
     def "produces reasonable error message when prebuilt library does not exist"() {
@@ -216,8 +214,9 @@ class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegra
         fails "mainExecutable"
 
         then:
-        failure.assertHasDescription("Could not determine the dependencies of task ':linkMainExecutable'.")
-        failure.assertHasCause("Could not locate library 'other'.")
+        failure.assertHasDescription("Could not locate library 'other'.")
+        failure.assertHasCause("Library with name 'other' not found.")
+        failure.assertHasCause("PrebuiltLibrary with name 'other' not found.")
     }
 
     def "produces reasonable error message when attempting to access prebuilt library in a different project"() {
@@ -236,14 +235,15 @@ class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegra
             executables {
                 main {}
             }
-            sources.main.cpp.lib project: ':other', library: 'hello', linkage: 'api'
+            sources.main.cpp.lib project: ':different', library: 'hello', linkage: 'api'
         """
 
         when:
         fails "mainExecutable"
 
         then:
-        failure.assertHasDescription("Could not determine the dependencies of task ':linkMainExecutable'.")
-        failure.assertHasCause("Could not locate library 'hello' for project ':other'.")
+        failure.assertHasDescription("Could not locate library 'hello' for project ':different'.")
+        failure.assertHasCause("Project with path ':different' could not be found in root project 'test'.")
+        failure.assertHasCause("Cannot resolve prebuilt library in another project.")
     }
 }
