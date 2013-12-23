@@ -1,0 +1,34 @@
+apply plugin: 'cpp'
+model {
+    buildTypes {
+        create("debug")
+        create("release")
+    }
+    repositories {
+        libs(PrebuiltLibraries) {
+            create("boost") {
+                headers.srcDir "3rd-party-lib/boost_1_55_0/boost"
+            }
+            create("util") {
+                headers.srcDir "3rd-party-lib/util/src/util/headers"
+                binaries.withType(StaticLibraryBinary) {
+                    def libName = targetPlatform.operatingSystem.windows ? 'util.lib' : 'libutil.a'
+                    staticLibraryFile = file("3rd-party-lib/util/build/binaries/utilStaticLibrary/${buildType.name}/${libName}")
+                }
+                binaries.withType(SharedLibraryBinary) {
+                    def libName = targetPlatform.operatingSystem.windows ? 'util.dll' : 'libutil.so'
+                    sharedLibraryFile = file("3rd-party-lib/util/build/binaries/utilSharedLibrary/${buildType.name}/${libName}")
+                }
+            }
+        }
+    }
+}
+executables {
+    main {}
+}
+sources.main.cpp.lib library: 'boost', linkage: 'api'
+sources.main.cpp.lib library: 'util', linkage: 'static'
+task buildExecutables {
+    dependsOn binaries.withType(ExecutableBinary)
+}
+

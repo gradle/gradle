@@ -61,6 +61,9 @@ class AbstractIntegrationSpec extends Specification implements TestDirectoryProv
     }
 
     protected TestFile file(Object... path) {
+        if (path.length == 1 && path[0] instanceof TestFile) {
+            return path[0] as TestFile
+        }
         getTestDirectory().file(path);
     }
 

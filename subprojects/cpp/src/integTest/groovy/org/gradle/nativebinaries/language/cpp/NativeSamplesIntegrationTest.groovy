@@ -38,6 +38,7 @@ class NativeSamplesIntegrationTest extends AbstractInstalledToolChainIntegration
     @Rule public final Sample toolChains = new Sample(temporaryFolder, 'native-binaries/tool-chains')
     @Rule public final Sample windowsResources = new Sample(temporaryFolder, 'native-binaries/windows-resources')
     @Rule public final Sample visualStudio = new Sample(temporaryFolder, 'native-binaries/visual-studio')
+    @Rule public final Sample prebuilt = new Sample(temporaryFolder, 'native-binaries/prebuilt')
 
     def "assembler"() {
         given:
@@ -278,5 +279,28 @@ class NativeSamplesIntegrationTest extends AbstractInstalledToolChainIntegration
 
         final projectFile = new ProjectFile(visualStudio.dir.file("vs/helloDll.vcxproj"))
         projectFile.projectXml.PropertyGroup.find({it.'@Label' == 'Custom'}).ProjectDetails[0].text() == "Project is named helloDll"
+    }
+
+    def prebuilt() {
+        given:
+        inDirectory(prebuilt.dir.file("3rd-party-lib/util"))
+        run "buildLibraries"
+
+        and:
+        sample prebuilt
+
+        when:
+        succeeds "buildExecutables"
+
+        then:
+
+        executable(prebuilt.dir.file("build/binaries/mainExecutable/debug/main")).exec().out ==
+"""Built with Boost version: 1_55
+Util build type: DEBUG
+"""
+        executable(prebuilt.dir.file("build/binaries/mainExecutable/release/main")).exec().out ==
+"""Built with Boost version: 1_55
+Util build type: RELEASE
+"""
     }
 }
