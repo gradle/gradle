@@ -16,44 +16,70 @@
 
 package org.gradle.nativebinaries.language.cpp.fixtures.app
 
-class PlatformDetectingTestApp extends TestComponent {
+class PlatformDetectingTestApp extends TestApp {
     @Override
-    List<SourceFile> getHeaderFiles() {
-        return []
+    SourceFile getMainSource() {
+        sourceFile("cpp", "main.cpp", """
+#include <iostream>
+using namespace std;
+#include "hello.h"
+
+int main () {
+    ${outputPlatform()}
+
+    outputLibraryPlatform();
+}
+""")
     }
 
     @Override
-    List<SourceFile> getSourceFiles() {
-        return [
-                sourceFile("cpp", "main.cpp", """
+    SourceFile getLibraryHeader() {
+        sourceFile("headers", "hello.h", """
+#ifdef _WIN32
+#define DLL_FUNC __declspec(dllexport)
+#else
+#define DLL_FUNC
+#endif
+
+void DLL_FUNC outputLibraryPlatform();
+        """);
+    }
+
+
+    List<SourceFile> librarySources = [
+        sourceFile("cpp", "hello.cpp", """
 #include <iostream>
 using namespace std;
+#include "hello.h"
 
-int main () {
+void DLL_FUNC outputLibraryPlatform() {
+    ${outputPlatform()}
+}
+        """)
+    ]
 
-#if defined(__x86_64__) || defined(_M_X64)
+    def outputPlatform() {
+        return """
+    #if defined(__x86_64__) || defined(_M_X64)
     cout << "amd64";
-#elif defined(__i386) || defined(_M_IX86)
+    #elif defined(__i386) || defined(_M_IX86)
     cout << "i386";
-#elif defined(_M_IA64)
+    #elif defined(_M_IA64)
     cout << "itanium";
-#else
+    #else
     cout << "unknown";
-#endif
+    #endif
     cout << " ";
 
-#if defined(__linux__)
+    #if defined(__linux__)
     cout << "linux";
-#elif defined(__APPLE__) && defined(__MACH__)
+    #elif defined(__APPLE__) && defined(__MACH__)
     cout << "os x";
-#elif defined(_WIN32) || defined (_WIN64) || defined (__CYGWIN__)
+    #elif defined(_WIN32) || defined (_WIN64) || defined (__CYGWIN__)
     cout << "windows";
-#else
+    #else
     cout << "unknown";
-#endif
-
-}
-""")
-        ]
+    #endif
+"""
     }
 }

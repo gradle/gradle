@@ -15,7 +15,6 @@
  */
 
 package org.gradle.nativebinaries.language.cpp
-
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativebinaries.language.cpp.fixtures.app.PlatformDetectingTestApp
@@ -72,7 +71,43 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
         // Platform dimension is flattened since there is only one possible value
         executedAndNotSkipped(":mainExecutable")
         executable("build/binaries/mainExecutable/main").binaryInfo.arch.name == "x86"
-        executable("build/binaries/mainExecutable/main").exec().out == "i386 ${os.familyName}"
+        executable("build/binaries/mainExecutable/main").exec().out == "i386 ${os.familyName}" * 2
+    }
+
+    def "library with matching platform is chosen by dependency resolution"() {
+        given:
+        testApp.executable.writeSources(file("src/exe"))
+        testApp.library.writeSources(file("src/hello"))
+        when:
+        buildFile << """
+            model {
+                platforms {
+                    create("x86") {
+                        architecture "x86"
+                    }
+                    create("x86_64") {
+                        architecture "x86_64"
+                    }
+                }
+            }
+            executables {
+                exe {}
+            }
+            libraries {
+                hello {}
+            }
+            sources.exe.cpp.lib libraries.hello.static
+            executables.exe.targetPlatforms "x86"
+"""
+
+        and:
+        succeeds "exeExecutable"
+
+        then:
+        // Platform dimension is flattened since there is only one possible value
+        executedAndNotSkipped(":exeExecutable")
+        executable("build/binaries/exeExecutable/exe").binaryInfo.arch.name == "x86"
+        executable("build/binaries/exeExecutable/exe").exec().out == "i386 ${os.familyName}" * 2
     }
 
     def "build binary for multiple target architectures"() {
@@ -106,7 +141,7 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
 
         then:
         executable("build/binaries/mainExecutable/x86/main").binaryInfo.arch.name == "x86"
-        executable("build/binaries/mainExecutable/x86/main").exec().out == "i386 ${os.familyName}"
+        executable("build/binaries/mainExecutable/x86/main").exec().out == "i386 ${os.familyName}" * 2
         binaryInfo(objectFile("build/objectFiles/mainExecutable/x86/mainCpp/main")).arch.name == "x86"
 
         // x86_64 binaries not supported on MinGW or cygwin
@@ -114,7 +149,7 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
             executable("build/binaries/mainExecutable/x86_64/main").assertDoesNotExist()
         } else {
             executable("build/binaries/mainExecutable/x86_64/main").binaryInfo.arch.name == "x86_64"
-            executable("build/binaries/mainExecutable/x86_64/main").exec().out == "amd64 ${os.familyName}"
+            executable("build/binaries/mainExecutable/x86_64/main").exec().out == "amd64 ${os.familyName}" * 2
             binaryInfo(objectFile("build/objectFiles/mainExecutable/x86_64/mainCpp/main")).arch.name == "x86_64"
         }
 
@@ -167,11 +202,11 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
 
         then:
         if (os.windows) {
-            executable("build/binaries/mainExecutable/windows/main").exec().out == "amd64 windows"
+            executable("build/binaries/mainExecutable/windows/main").exec().out == "amd64 windows" * 2
         } else if (os.linux) {
-            executable("build/binaries/mainExecutable/linux/main").exec().out == "amd64 linux"
+            executable("build/binaries/mainExecutable/linux/main").exec().out == "amd64 linux" * 2
         } else if (os.macOsX) {
-            executable("build/binaries/mainExecutable/osx/main").exec().out == "amd64 os x"
+            executable("build/binaries/mainExecutable/osx/main").exec().out == "amd64 os x" * 2
         } else {
             throw new AssertionError("Unexpected operating system")
         }
@@ -248,6 +283,34 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
         then:
         failure.assertHasDescription("A problem occurred configuring root project 'bad-platform'.")
         failure.assertHasCause("Invalid Platform: 'unknown'")
+    }
+
+    def "fails with reasonable error message when depended on library has no variant with matching platform"() {
+        when:
+        settingsFile << "rootProject.name = 'no-matching-platform'"
+        buildFile << """
+            apply plugin: 'cpp'
+            model {
+                platforms {
+                    create("one") {}
+                    create("two") {}
+                }
+            }
+            libraries {
+                hello {
+                    targetPlatforms "two"
+                }
+            }
+            sources.main.cpp.lib libraries.hello
+"""
+
+        and:
+        fails "oneMainExecutable"
+
+        then:
+        // TODO:DAZ Improve the exception message
+        failure.assertHasDescription("Could not determine the dependencies of task ':linkOneMainExecutable'.")
+        failure.assertHasCause("No shared library binary available for library 'hello' with [flavor: 'default', platform: 'one',")
     }
 
     def binaryInfo(TestFile file) {

@@ -174,4 +174,35 @@ class BinaryBuildTypesIntegrationTest extends AbstractInstalledToolChainIntegrat
         failure.assertHasDescription("A problem occurred configuring root project 'bad-build-type'.")
         failure.assertHasCause("Invalid BuildType: 'unknown'")
     }
+
+    def "fails with reasonable error message when depended on library has no variant with matching build type"() {
+        when:
+        settingsFile << "rootProject.name = 'no-matching-build-type'"
+        buildFile << """
+            apply plugin: 'cpp'
+            model {
+                buildTypes {
+                    create("debug") {}
+                    create("release") {}
+                }
+            }
+            executables {
+                main {}
+            }
+            libraries {
+                hello {
+                    targetBuildTypes "debug"
+                }
+            }
+            sources.main.cpp.lib libraries.hello.static
+"""
+
+        and:
+        fails "releaseMainExecutable"
+
+        then:
+        // TODO:DAZ Improve the exception message
+        failure.assertHasDescription("Could not determine the dependencies of task ':linkReleaseMainExecutable'.")
+        failure.assertHasCause("No static library binary available for library 'hello' with [flavor: 'default', platform: 'current', buildType: 'release']")
+    }
 }
