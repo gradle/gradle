@@ -133,6 +133,10 @@ A dependency on the 'api' linkage can be specified by both the direct and the ma
     sources.main.cpp.lib project: ':A', library: 'my-lib', linkage: 'api'
     sources.main.cpp.lib libraries.hello.api
 
+#### Improved detection of Visual studio and Windows SDK installations
+
+TBD
+
 ### Independent control of TestNG output directory
 
 It is now possible to specify the location that TestNG should write its output files to.
@@ -217,7 +221,7 @@ A test run with 1 failed test, 1 successful test and 8 ignored tests will now re
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
-* [Michael Putters](https://github.com/mputters) - improved the native binaries support to use the Windows registry to locate available Windows SDKs
+* [Michael Putters](https://github.com/mputters) - improved the detection of available Visual studio and Windows SDKs installations
 * [Jean-Baptiste Nizet](https://github.com/jnizet) - improved HTML test reports to better report on ignored tests
 * [Piotr Kubowicz](https://github.com/Derbeth) - Documentation regarding incrementalness of tasks with no declared output
 
