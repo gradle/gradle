@@ -22,6 +22,7 @@ import net.rubygrapefruit.platform.WindowsRegistry
 
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.TreeVisitor
 import org.gradle.util.VersionNumber
 import org.junit.Rule
 
@@ -58,7 +59,9 @@ class DefaultVisualStudioLocatorTest extends Specification {
         result.visualStudio.visualCpp
     }
 
-    def "visual studio not found when nothing in registry and executable not found in path"() {
+    def "visual studio not available when nothing in registry and executable not found in path"() {
+        def visitor = Mock(TreeVisitor)
+
         given:
         windowsRegistry.getValueNames(_, _) >> { throw new MissingRegistryEntryException("not found") }
         operatingSystem.findInPath(_) >> null
@@ -69,6 +72,12 @@ class DefaultVisualStudioLocatorTest extends Specification {
         then:
         !result.available
         result.visualStudio == null
+
+        when:
+        result.explain(visitor)
+
+        then:
+        1 * visitor.node("Could not locate a Visual Studio installation, using the Windows registry and system path.")
     }
 
     def "locates visual studio installation based on executables in path"() {
@@ -119,6 +128,7 @@ class DefaultVisualStudioLocatorTest extends Specification {
     }
 
     def "visual studio not found when specified directory does not look like an install"() {
+        def visitor = Mock(TreeVisitor)
         def providedDir = tmpDir.createDir("vs")
         def ignoredDir = vsDir("vs-2")
 
@@ -133,6 +143,13 @@ class DefaultVisualStudioLocatorTest extends Specification {
 
         then:
         !result.available
+        result.visualStudio == null
+
+        when:
+        result.explain(visitor)
+
+        then:
+        1 * visitor.node("The specified installation directory '$providedDir' does not appear to contain a Visual Studio installation.")
     }
 
     def "fills in meta-data from registry for install discovered using the system path"() {

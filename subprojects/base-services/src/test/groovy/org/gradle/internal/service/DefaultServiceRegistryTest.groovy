@@ -96,6 +96,28 @@ class DefaultServiceRegistryTest extends Specification {
         registry.get(Object) == value
     }
 
+    def createsInstanceOfServiceImplementation() {
+        def registry = new DefaultServiceRegistry()
+        registry.register({ ServiceRegistration registration ->
+            registration.add(TestServiceImpl)
+        } as Action)
+
+        expect:
+        registry.get(TestService) instanceof TestServiceImpl
+        registry.get(TestService) == registry.get(TestServiceImpl)
+    }
+
+    def injectsServicesIntoServiceImplementation() {
+        def registry = new DefaultServiceRegistry()
+        registry.register({ ServiceRegistration registration ->
+            registration.add(ServiceWithDependency)
+            registration.add(TestServiceImpl)
+        } as Action)
+
+        expect:
+        registry.get(ServiceWithDependency).service == registry.get(TestServiceImpl)
+    }
+
     def usesFactoryMethodOnProviderToCreateServiceInstance() {
         def registry = new DefaultServiceRegistry()
         registry.addProvider(new TestProvider())
@@ -509,7 +531,7 @@ class DefaultServiceRegistryTest extends Specification {
         given:
         registry.register({ ServiceRegistration registration ->
             registration.add(Number, 12)
-            registration.add(StringBuilder)
+            registration.add(TestServiceImpl)
             registration.addProvider(new Object() {
                 String createString() {
                     return "hi"
@@ -519,7 +541,7 @@ class DefaultServiceRegistryTest extends Specification {
 
         expect:
         registry.get(Number) == 12
-        registry.get(StringBuilder).length() == 0
+        registry.get(TestServiceImpl)
         registry.get(String) == "hi"
     }
 
@@ -986,6 +1008,20 @@ class DefaultServiceRegistryTest extends Specification {
         int value;
         public BigDecimal create() {
             return BigDecimal.valueOf(value++)
+        }
+    }
+
+    private interface TestService {
+    }
+
+    private static class TestServiceImpl implements TestService {
+    }
+
+    private static class ServiceWithDependency {
+        final TestService service
+
+        ServiceWithDependency(TestService service) {
+            this.service = service
         }
     }
 

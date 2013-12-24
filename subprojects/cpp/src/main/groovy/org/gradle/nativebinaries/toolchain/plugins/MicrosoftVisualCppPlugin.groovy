@@ -18,8 +18,6 @@
 
 package org.gradle.nativebinaries.toolchain.plugins
 
-import net.rubygrapefruit.platform.SystemInfo
-import net.rubygrapefruit.platform.WindowsRegistry
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -31,9 +29,9 @@ import org.gradle.model.ModelRules
 import org.gradle.nativebinaries.plugins.NativeBinariesPlugin
 import org.gradle.nativebinaries.toolchain.VisualCpp
 import org.gradle.nativebinaries.toolchain.internal.ToolChainRegistryInternal
-import org.gradle.nativebinaries.toolchain.internal.msvcpp.DefaultVisualStudioLocator
-import org.gradle.nativebinaries.toolchain.internal.msvcpp.DefaultWindowsSdkLocator
 import org.gradle.nativebinaries.toolchain.internal.msvcpp.VisualCppToolChain
+import org.gradle.nativebinaries.toolchain.internal.msvcpp.VisualStudioLocator
+import org.gradle.nativebinaries.toolchain.internal.msvcpp.WindowsSdkLocator
 import org.gradle.process.internal.ExecActionFactory
 
 import javax.inject.Inject
@@ -48,14 +46,14 @@ class MicrosoftVisualCppPlugin implements Plugin<Project> {
     private final Instantiator instantiator
     private final ModelRules modelRules
     private final OperatingSystem operatingSystem
-    private final WindowsRegistry windowsRegistry
-    private final SystemInfo systemInfo
+    private final VisualStudioLocator visualStudioLocator
+    private final WindowsSdkLocator windowsSdkLocator
 
     @Inject
     MicrosoftVisualCppPlugin(FileResolver fileResolver, ExecActionFactory execActionFactory, ModelRules modelRules, Instantiator instantiator, OperatingSystem operatingSystem,
-                             WindowsRegistry windowsRegistry, SystemInfo systemInfo) {
-        this.systemInfo = systemInfo
-        this.windowsRegistry = windowsRegistry
+                             VisualStudioLocator visualStudioLocator, WindowsSdkLocator windowsSdkLocator) {
+        this.windowsSdkLocator = windowsSdkLocator
+        this.visualStudioLocator = visualStudioLocator
         this.operatingSystem = operatingSystem
         this.execActionFactory = execActionFactory
         this.fileResolver = fileResolver
@@ -69,7 +67,7 @@ class MicrosoftVisualCppPlugin implements Plugin<Project> {
         modelRules.rule(new ModelRule() {
             void addToolChain(ToolChainRegistryInternal toolChainRegistry) {
                 toolChainRegistry.registerFactory(VisualCpp, { String name ->
-                    return instantiator.newInstance(VisualCppToolChain, name, operatingSystem, fileResolver, execActionFactory, new DefaultVisualStudioLocator(operatingSystem, windowsRegistry, systemInfo), new DefaultWindowsSdkLocator(operatingSystem, windowsRegistry))
+                    return instantiator.newInstance(VisualCppToolChain, name, operatingSystem, fileResolver, execActionFactory, visualStudioLocator, windowsSdkLocator)
                 })
                 toolChainRegistry.registerDefaultToolChain(VisualCppToolChain.DEFAULT_NAME, VisualCpp)
             }

@@ -67,8 +67,6 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
     private static final String ASSEMBLER_FILENAME_X86 = "ml.exe";
     private static final String DEFINE_ARMPARTITIONAVAILABLE = "_ARM_WINAPI_PARTITION_DESKTOP_SDK_AVAILABLE";
 
-    private static final String VISUAL_STUDIO_DISPLAY_NAME = "Visual Studio installation";
-
     private final Map<File, VisualStudioInstall> foundInstalls = new HashMap<File, VisualStudioInstall>();
     private final OperatingSystem os;
     private final WindowsRegistry windowsRegistry;
@@ -90,10 +88,10 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
         }
 
         if (candidate != null) {
-            return new SearchResultImpl(locateUserSpecifiedInstall(candidate));
+            return locateUserSpecifiedInstall(candidate);
         }
 
-        return new SearchResultImpl(determineDefaultInstall());
+        return determineDefaultInstall();
     }
 
     private void locateInstallsInRegistry() {
@@ -103,30 +101,32 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
     }
 
     private void locateInstallsInRegistry(String baseKey) {
+        List<String> visualCppVersions;
         try {
-            List<String> visualCppVersions = windowsRegistry.getValueNames(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, baseKey + REGISTRY_ROOTPATH_VC);
-
-            for (String valueName : visualCppVersions) {
-                if (!valueName.matches("\\d+\\.\\d+")) {
-                    // Ignore the other values
-                    continue;
-                }
-                File visualCppDir = new File(windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, baseKey + REGISTRY_ROOTPATH_VC, valueName));
-                visualCppDir = GFileUtils.canonicalise(visualCppDir);
-                File visualStudioDir = visualCppDir.getParentFile();
-
-                if (isVisualCpp(visualCppDir) && isVisualStudio(visualStudioDir)) {
-                    LOGGER.debug("Found Visual C++ {} at {}", valueName, visualCppDir);
-                    VersionNumber version = VersionNumber.parse(valueName);
-                    VisualCppInstall visualCpp = buildVisualCppInstall("Visual C++ " + valueName, visualStudioDir, visualCppDir, version);
-                    VisualStudioInstall visualStudio = new VisualStudioInstall(visualStudioDir, visualCpp);
-                    foundInstalls.put(visualStudioDir, visualStudio);
-                } else {
-                    LOGGER.debug("Ignoring candidate Visual C++ directory {} as it does not look like a Visual C++ installation.", visualCppDir);
-                }
-            }
+            visualCppVersions = windowsRegistry.getValueNames(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, baseKey + REGISTRY_ROOTPATH_VC);
         } catch (MissingRegistryEntryException e) {
             // No Visual Studio information available in the registry
+            return;
+        }
+
+        for (String valueName : visualCppVersions) {
+            if (!valueName.matches("\\d+\\.\\d+")) {
+                // Ignore the other values
+                continue;
+            }
+            File visualCppDir = new File(windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, baseKey + REGISTRY_ROOTPATH_VC, valueName));
+            visualCppDir = GFileUtils.canonicalise(visualCppDir);
+            File visualStudioDir = visualCppDir.getParentFile();
+
+            if (isVisualCpp(visualCppDir) && isVisualStudio(visualStudioDir)) {
+                LOGGER.debug("Found Visual C++ {} at {}", valueName, visualCppDir);
+                VersionNumber version = VersionNumber.parse(valueName);
+                VisualCppInstall visualCpp = buildVisualCppInstall("Visual C++ " + valueName, visualStudioDir, visualCppDir, version);
+                VisualStudioInstall visualStudio = new VisualStudioInstall(visualStudioDir, visualCpp);
+                foundInstalls.put(visualStudioDir, visualStudio);
+            } else {
+                LOGGER.debug("Ignoring candidate Visual C++ directory {} as it does not look like a Visual C++ installation.", visualCppDir);
+            }
         }
     }
 
@@ -156,12 +156,12 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
         pathInstall = foundInstalls.get(visualStudioDir);
     }
 
-    private VisualStudioInstall locateUserSpecifiedInstall(File candidate) {
+    private SearchResult locateUserSpecifiedInstall(File candidate) {
         File visualStudioDir = GFileUtils.canonicalise(candidate);
         File visualCppDir = new File(visualStudioDir, "VC");
         if (!isVisualStudio(visualStudioDir) || !isVisualCpp(visualCppDir)) {
             LOGGER.debug("Ignoring candidate Visual C++ install for {} as it does not look like a Visual C++ installation.", candidate);
-            return null;
+            return new InstallNotFound(String.format("The specified installation directory '%s' does not appear to contain a Visual Studio installation.", candidate));
         }
 
         if (!foundInstalls.containsKey(visualStudioDir)) {
@@ -169,7 +169,7 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
             VisualStudioInstall visualStudio = new VisualStudioInstall(visualStudioDir, visualCpp);
             foundInstalls.put(visualStudioDir, visualStudio);
         }
-        return foundInstalls.get(visualStudioDir);
+        return new InstallFound(foundInstalls.get(visualStudioDir));
     }
 
     private VisualCppInstall buildVisualCppInstall(String name, File vsPath, File basePath, VersionNumber version) {
@@ -304,9 +304,9 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
         return new VisualCppInstall(name, version, x86, paths, binaryPaths, libraryPaths, includePaths, assemblerFilenames, definitions);
     }
 
-    private VisualStudioInstall determineDefaultInstall() {
+    private SearchResult determineDefaultInstall() {
         if (pathInstall != null) {
-            return pathInstall;
+            return new InstallFound(pathInstall);
         }
 
         VisualStudioInstall candidate = null;
@@ -317,7 +317,7 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
             }
         }
 
-        return candidate;
+        return candidate == null ? new InstallNotFound("Could not locate a Visual Studio installation, using the Windows registry and system path.") : new InstallFound(candidate);
     }
 
     private static boolean isVisualStudio(File candidate) {
@@ -328,23 +328,42 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
         return new File(candidate, PATH_BIN + COMPILER_FILENAME).isFile();
     }
 
-    private static class SearchResultImpl implements SearchResult {
-        private final VisualStudioInstall defaultInstall;
+    private static class InstallFound implements SearchResult {
+        private final VisualStudioInstall install;
 
-        public SearchResultImpl(VisualStudioInstall defaultInstall) {
-            this.defaultInstall = defaultInstall;
+        public InstallFound(VisualStudioInstall install) {
+            this.install = install;
         }
 
         public VisualStudioInstall getVisualStudio() {
-            return defaultInstall;
+            return install;
         }
 
         public boolean isAvailable() {
-            return defaultInstall != null;
+            return true;
         }
 
         public void explain(TreeVisitor<? super String> visitor) {
-            visitor.node(String.format("%s could not be found.", VISUAL_STUDIO_DISPLAY_NAME));
+        }
+    }
+
+    private static class InstallNotFound implements SearchResult {
+        private final String message;
+
+        private InstallNotFound(String message) {
+            this.message = message;
+        }
+
+        public VisualStudioInstall getVisualStudio() {
+            return null;
+        }
+
+        public boolean isAvailable() {
+            return false;
+        }
+
+        public void explain(TreeVisitor<? super String> visitor) {
+            visitor.node(message);
         }
     }
 }

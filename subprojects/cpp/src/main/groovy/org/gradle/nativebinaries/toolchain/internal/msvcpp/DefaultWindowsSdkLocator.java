@@ -18,7 +18,6 @@ package org.gradle.nativebinaries.toolchain.internal.msvcpp;
 import net.rubygrapefruit.platform.MissingRegistryEntryException;
 import net.rubygrapefruit.platform.WindowsRegistry;
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.specs.Spec;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.TreeVisitor;
@@ -48,7 +47,6 @@ public class DefaultWindowsSdkLocator implements WindowsSdkLocator {
     private static final String VERSION_KIT_81 = "8.1";
     private static final String VERSION_USER = "user";
 
-    private static final String SDK_DISPLAY_NAME = "Windows SDK";
     private static final String NAME_USER = "User-provided Windows SDK";
     private static final String NAME_KIT = "Windows Kit";
 
@@ -86,10 +84,10 @@ public class DefaultWindowsSdkLocator implements WindowsSdkLocator {
         }
 
         if (candidate != null) {
-            return new SearchResultImpl(locateUserSpecifiedSdk(candidate));
+            return locateUserSpecifiedSdk(candidate);
         }
 
-        return new SearchResultImpl(determineDefaultSdk());
+        return locateDefaultSdk();
     }
 
     private void locateSdksInRegistry() {
@@ -101,7 +99,6 @@ public class DefaultWindowsSdkLocator implements WindowsSdkLocator {
     private void locateSdksInRegistry(String baseKey) {
         try {
             List<String> subkeys = windowsRegistry.getSubkeys(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, baseKey + REGISTRY_ROOTPATH_SDK);
-
             for (String subkey : subkeys) {
                 try {
                     String basePath = baseKey + REGISTRY_ROOTPATH_SDK + "\\" + subkey;
@@ -176,21 +173,21 @@ public class DefaultWindowsSdkLocator implements WindowsSdkLocator {
         pathSdk = foundSdks.get(sdkDir);
     }
 
-    private WindowsSdk locateUserSpecifiedSdk(File candidate) {
+    private SearchResult locateUserSpecifiedSdk(File candidate) {
         File sdkDir = GFileUtils.canonicalise(candidate);
         if (!isWindowsSdk(sdkDir)) {
-            return null;
+            return new SdkNotFound(String.format("The specified installation directory '%s' does not appear to contain a Windows SDK installation.", candidate));
         }
 
         if (!foundSdks.containsKey(sdkDir)) {
             addSdk(sdkDir, VERSION_USER, NAME_USER);
         }
-        return foundSdks.get(sdkDir);
+        return new SdkFound(foundSdks.get(sdkDir));
     }
 
-    private WindowsSdk determineDefaultSdk() {
+    private SearchResult locateDefaultSdk() {
         if (pathSdk != null) {
-            return pathSdk;
+            return new SdkFound(pathSdk);
         }
 
         WindowsSdk candidate = null;
@@ -199,19 +196,11 @@ public class DefaultWindowsSdkLocator implements WindowsSdkLocator {
                 candidate = windowsSdk;
             }
         }
-        return candidate;
+        return candidate == null ? new SdkNotFound("Could not locate a Windows SDK installation, using the Windows registry and system path.") : new SdkFound(candidate);
     }
 
     private void addSdk(File path, String version, String name) {
         foundSdks.put(path, new WindowsSdk(path, VersionNumber.parse(version), name));
-    }
-
-    private static Spec<File> isWindowsSdk() {
-        return new Spec<File>() {
-            public boolean isSatisfiedBy(File element) {
-                return isWindowsSdk(element);
-            }
-        };
     }
 
     private static boolean isWindowsSdk(File candidate) {
@@ -245,23 +234,42 @@ public class DefaultWindowsSdkLocator implements WindowsSdkLocator {
         return version;
     }
 
-    private static class SearchResultImpl implements SearchResult {
-        private final WindowsSdk defaultSdk;
+    private static class SdkFound implements SearchResult {
+        private final WindowsSdk sdk;
 
-        public SearchResultImpl(WindowsSdk defaultSdk) {
-            this.defaultSdk = defaultSdk;
+        public SdkFound(WindowsSdk sdk) {
+            this.sdk = sdk;
         }
 
         public WindowsSdk getSdk() {
-            return defaultSdk;
+            return sdk;
         }
 
         public boolean isAvailable() {
-            return defaultSdk != null;
+            return true;
         }
 
         public void explain(TreeVisitor<? super String> visitor) {
-            visitor.node(String.format("%s could not be found.", SDK_DISPLAY_NAME));
+        }
+    }
+
+    private static class SdkNotFound implements SearchResult {
+        private final String message;
+
+        private SdkNotFound(String message) {
+            this.message = message;
+        }
+
+        public WindowsSdk getSdk() {
+            return null;
+        }
+
+        public boolean isAvailable() {
+            return false;
+        }
+
+        public void explain(TreeVisitor<? super String> visitor) {
+            visitor.node(message);
         }
     }
 }

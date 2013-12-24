@@ -16,9 +16,11 @@
 
 package org.gradle.nativebinaries.toolchain.internal.msvcpp
 
+import net.rubygrapefruit.platform.MissingRegistryEntryException
 import net.rubygrapefruit.platform.WindowsRegistry
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.TreeVisitor
 import org.gradle.util.VersionNumber
 import org.junit.Rule
 import spock.lang.Specification
@@ -59,6 +61,7 @@ class DefaultWindowsSdkLocatorTest extends Specification {
     def "uses windows kit if version is higher than windows SDK"() {
         def dir1 = sdkDir("sdk1")
         def dir2 = kitDir("sdk2")
+        def dir3 = kitDir("sdk3")
 
         given:
         operatingSystem.findInPath(_) >> null
@@ -66,7 +69,8 @@ class DefaultWindowsSdkLocatorTest extends Specification {
         windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows\v1/, "InstallationFolder") >> dir1.absolutePath
         windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows\v1/, "ProductVersion") >> "7.1"
         windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows\v1/, "ProductName") >> "sdk 1"
-        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Windows Kits\Installed Roots/, "KitsRoot81") >> dir2.absolutePath
+        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Windows Kits\Installed Roots/, "KitsRoot") >> dir2.absolutePath
+        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Windows Kits\Installed Roots/, "KitsRoot81") >> dir3.absolutePath
 
         when:
         def result = windowsSdkLocator.locateWindowsSdks(null)
@@ -75,7 +79,26 @@ class DefaultWindowsSdkLocatorTest extends Specification {
         result.available
         result.sdk.name == "Windows Kit 8.1"
         result.sdk.version == VersionNumber.parse("8.1")
-        result.sdk.baseDir == dir2
+        result.sdk.baseDir == dir3
+    }
+
+    def "handles missing SDKs and Kits"() {
+        def dir = sdkDir("sdk1")
+
+        given:
+        operatingSystem.findInPath(_) >> null
+        windowsRegistry.getSubkeys(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\SDKs\Windows/) >> { throw new MissingRegistryEntryException("missing") }
+        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Windows Kits\Installed Roots/, "KitsRoot") >> { throw new MissingRegistryEntryException("missing") }
+        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Windows Kits\Installed Roots/, "KitsRoot81") >> dir.absolutePath
+
+        when:
+        def result = windowsSdkLocator.locateWindowsSdks(null)
+
+        then:
+        result.available
+        result.sdk.name == "Windows Kit 8.1"
+        result.sdk.version == VersionNumber.parse("8.1")
+        result.sdk.baseDir == dir
     }
 
     def "locates windows SDK based on executables in path"() {
@@ -92,6 +115,26 @@ class DefaultWindowsSdkLocatorTest extends Specification {
         result.sdk.name == "Path-resolved Windows SDK"
         result.sdk.version == VersionNumber.UNKNOWN
         result.sdk.baseDir == sdkDir
+    }
+
+    def "SDK not available when not found in registry or system path"() {
+        def visitor = Mock(TreeVisitor)
+
+        given:
+        operatingSystem.findInPath(_) >> null
+
+        when:
+        def result = windowsSdkLocator.locateWindowsSdks(null)
+
+        then:
+        !result.available
+        result.sdk == null
+
+        when:
+        result.explain(visitor)
+
+        then:
+        1 * visitor.node("Could not locate a Windows SDK installation, using the Windows registry and system path.")
     }
 
     def "uses windows SDK using specified install dir"() {
@@ -129,6 +172,7 @@ class DefaultWindowsSdkLocatorTest extends Specification {
     def "SDK not available when specified install dir does not look like an SDK"() {
         def sdkDir1 = tmpDir.createDir("dir")
         def ignoredDir = sdkDir("ignored")
+        def visitor = Mock(TreeVisitor)
 
         given:
         operatingSystem.findInPath(_) >> null
@@ -143,6 +187,13 @@ class DefaultWindowsSdkLocatorTest extends Specification {
 
         then:
         !result.available
+        result.sdk == null
+
+        when:
+        result.explain(visitor)
+
+        then:
+        1 * visitor.node("The specified installation directory '$sdkDir1' does not appear to contain a Windows SDK installation.")
     }
 
     def "fills in meta-data from registry for SDK discovered using the path"() {
