@@ -37,8 +37,8 @@ class DumpbinBinaryInfo implements BinaryInfo {
 
         VisualStudioInstall vsInstall = findVisualStudio()
         DefaultPlatform targetPlatform = new DefaultPlatform("default");
-        vcBin = vsInstall.getVisualCppBin(targetPlatform)
-        vcPath = vsInstall.getVisualCppPathForPlatform(targetPlatform).join(';')
+        vcBin = vsInstall.getVisualCpp().getBinaryPath(targetPlatform)
+        vcPath = vsInstall.getVisualCpp().getPath(targetPlatform).join(';')
     }
 
     static VisualStudioInstall findVisualStudio() {

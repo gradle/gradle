@@ -16,13 +16,10 @@
 
 package org.gradle.nativebinaries.toolchain.internal.msvcpp;
 
-import java.io.File;
-import java.util.List;
-import java.util.Map;
-
 import org.gradle.api.Named;
-import org.gradle.nativebinaries.platform.Platform;
 import org.gradle.util.VersionNumber;
+
+import java.io.File;
 
 public class VisualStudioInstall implements Named {
     private final VisualCppInstall visualCppInstall;
@@ -45,48 +42,11 @@ public class VisualStudioInstall implements Named {
         return version;
     }
 
-    public boolean isSupportedPlatform(Platform targetPlatform) {
-        return visualCppInstall.isSupportedPlatform(targetPlatform);
-    }
-
     public File getVisualStudioDir() {
         return baseDir;
     }
 
-    public File getCompiler(Platform targetPlatform) {
-        return visualCppInstall.getCompiler(targetPlatform);
+    public VisualCppInstall getVisualCpp() {
+        return visualCppInstall;
     }
-
-    public File getLinker(Platform targetPlatform) {
-        return visualCppInstall.getLinker(targetPlatform);
-    }
-
-    public File getAssembler(Platform targetPlatform) {
-        return visualCppInstall.getAssembler(targetPlatform);
-    }
-
-    public File getStaticLibArchiver(Platform targetPlatform) {
-        return visualCppInstall.getArchiver(targetPlatform);
-    }
-
-    public List<File> getVisualCppPathForPlatform(Platform targetPlatform) {
-        return visualCppInstall.getPath(targetPlatform);
-    }
-
-    public File getVisualCppBin(Platform targetPlatform) {
-        return visualCppInstall.getBinaryPath(targetPlatform);
-    }
-
-    public Map<String, String> getVisualCppDefines(Platform targetPlatform) {
-        return visualCppInstall.getDefinitions(targetPlatform);
-    }
-
-    public File getVisualCppInclude(Platform targetPlatform) {
-        return visualCppInstall.getIncludePath(targetPlatform);
-    }
-
-    public File getVisualCppLib(Platform targetPlatform) {
-        return visualCppInstall.getLibraryPath(targetPlatform);
-    }
- 
 }

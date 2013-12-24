@@ -29,8 +29,8 @@ class VisualCppToolChainTest extends Specification {
     TestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
     final FileResolver fileResolver = Mock(FileResolver)
     final ExecActionFactory execActionFactory = Mock(ExecActionFactory)
-    final VisualStudioLocator.SearchResult visualStudioLookup = Mock(VisualStudioLocator.SearchResult)
-    final WindowsSdkLocator.SearchResult windowsSdkLookup = Mock(WindowsSdkLocator.SearchResult)
+    final VisualStudioLocator.SearchResult visualStudioLookup = Stub(VisualStudioLocator.SearchResult)
+    final WindowsSdkLocator.SearchResult windowsSdkLookup = Stub(WindowsSdkLocator.SearchResult)
     final VisualStudioLocator visualStudioLocator = Stub(VisualStudioLocator) {
         locateVisualStudioInstalls(_) >> visualStudioLookup
     }
@@ -91,6 +91,7 @@ class VisualCppToolChainTest extends Specification {
     def "is unavailable when windows SDK cannot be located"() {
         when:
         visualStudioLookup.available >> true
+
         windowsSdkLookup.available >> false
         windowsSdkLookup.explain(_) >> { TreeVisitor<String> visitor -> visitor.node("sdk not found anywhere") }
 

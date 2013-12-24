@@ -44,8 +44,8 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
     private final WindowsSdkLocator windowsSdkLocator;
     private File installDir;
     private File windowsSdkDir;
-    private VisualStudioLocator.SearchResult visualStudioSearchResult;
-    private WindowsSdkLocator.SearchResult windowsSdkSearchResult;
+    private VisualCppInstall visualCpp;
+    private WindowsSdk windowsSdk;
 
     public VisualCppToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory,
                               VisualStudioLocator visualStudioLocator, WindowsSdkLocator windowsSdkLocator) {
@@ -66,10 +66,16 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
             availability.unavailable("Visual Studio is not available on this operating system.");
             return;
         }
-        visualStudioSearchResult = visualStudioLocator.locateVisualStudioInstalls(installDir);
-        windowsSdkSearchResult = windowsSdkLocator.locateWindowsSdks(windowsSdkDir);
+        VisualStudioLocator.SearchResult visualStudioSearchResult = visualStudioLocator.locateVisualStudioInstalls(installDir);
         availability.mustBeAvailable(visualStudioSearchResult);
+        if (visualStudioSearchResult.isAvailable()) {
+            visualCpp = visualStudioSearchResult.getVisualStudio().getVisualCpp();
+        }
+        WindowsSdkLocator.SearchResult windowsSdkSearchResult = windowsSdkLocator.locateWindowsSdks(windowsSdkDir);
         availability.mustBeAvailable(windowsSdkSearchResult);
+        if (windowsSdkSearchResult.isAvailable()) {
+            windowsSdk = windowsSdkSearchResult.getSdk();
+        }
     }
 
     public File getInstallDir() {
@@ -92,9 +98,7 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
         assertAvailable();
         checkPlatform(targetPlatform);
 
-        VisualStudioInstall visualStudioInstall = visualStudioSearchResult.getVisualStudio();
-        WindowsSdk windowsSdk = windowsSdkSearchResult.getSdk();
-        return new VisualCppPlatformToolChain(visualStudioInstall, windowsSdk, targetPlatform);
+        return new VisualCppPlatformToolChain(visualCpp, windowsSdk, targetPlatform);
     }
 
     private void checkPlatform(Platform targetPlatform) {
@@ -104,7 +108,7 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
     }
 
     public boolean canTargetPlatform(Platform targetPlatform) {
-        return visualStudioSearchResult.getVisualStudio().isSupportedPlatform(targetPlatform);
+        return visualCpp != null && visualCpp.isSupportedPlatform(targetPlatform);
     }
 
     @Override
@@ -113,18 +117,18 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
     }
 
     private class VisualCppPlatformToolChain implements PlatformToolChain {
-        private final VisualStudioInstall install;
         private final WindowsSdk sdk;
         private final Platform targetPlatform;
+        private final VisualCppInstall visualCpp;
 
-        private VisualCppPlatformToolChain(VisualStudioInstall install, WindowsSdk sdk, Platform targetPlatform) {
-            this.install = install;
+        private VisualCppPlatformToolChain(VisualCppInstall visualCpp, WindowsSdk sdk, Platform targetPlatform) {
+            this.visualCpp = visualCpp;
             this.sdk = sdk;
             this.targetPlatform = targetPlatform;
         }
 
         public <T extends BinaryToolSpec> Compiler<T> createCppCompiler() {
-            CommandLineTool<CppCompileSpec> commandLineTool = commandLineTool("C++ compiler", install.getCompiler(targetPlatform));
+            CommandLineTool<CppCompileSpec> commandLineTool = commandLineTool("C++ compiler", visualCpp.getCompiler(targetPlatform));
             Transformer<CppCompileSpec, CppCompileSpec> specTransformer = addIncludePathAndDefinitions();
             commandLineTool.withSpecTransformer(specTransformer);
             CppCompiler cppCompiler = new CppCompiler(commandLineTool);
@@ -132,7 +136,7 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
         }
 
         public <T extends BinaryToolSpec> Compiler<T> createCCompiler() {
-            CommandLineTool<CCompileSpec> commandLineTool = commandLineTool("C compiler", install.getCompiler(targetPlatform));
+            CommandLineTool<CCompileSpec> commandLineTool = commandLineTool("C compiler", visualCpp.getCompiler(targetPlatform));
             Transformer<CCompileSpec, CCompileSpec> specTransformer = addIncludePathAndDefinitions();
             commandLineTool.withSpecTransformer(specTransformer);
             CCompiler cCompiler = new CCompiler(commandLineTool);
@@ -140,7 +144,7 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
         }
 
         public <T extends BinaryToolSpec> Compiler<T> createAssembler() {
-            CommandLineTool<AssembleSpec> commandLineTool = commandLineTool("Assembler", install.getAssembler(targetPlatform));
+            CommandLineTool<AssembleSpec> commandLineTool = commandLineTool("Assembler", visualCpp.getAssembler(targetPlatform));
             return (Compiler<T>) new Assembler(commandLineTool);
         }
 
@@ -153,13 +157,13 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
         }
 
         public <T extends LinkerSpec> Compiler<T> createLinker() {
-            CommandLineTool<LinkerSpec> commandLineTool = commandLineTool("Linker", install.getLinker(targetPlatform));
+            CommandLineTool<LinkerSpec> commandLineTool = commandLineTool("Linker", visualCpp.getLinker(targetPlatform));
             commandLineTool.withSpecTransformer(addLibraryPath());
             return (Compiler<T>) new LinkExeLinker(commandLineTool);
         }
 
         public <T extends StaticLibraryArchiverSpec> Compiler<T> createStaticLibraryArchiver() {
-            CommandLineTool<StaticLibraryArchiverSpec> commandLineTool = commandLineTool("Static library archiver", install.getStaticLibArchiver(targetPlatform));
+            CommandLineTool<StaticLibraryArchiverSpec> commandLineTool = commandLineTool("Static library archiver", visualCpp.getArchiver(targetPlatform));
             return (Compiler<T>) new LibExeStaticLibraryArchiver(commandLineTool);
         }
 
@@ -168,7 +172,7 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
 
             // The visual C++ tools use the path to find other executables
             // TODO:ADAM - restrict this to the specific path for the target tool
-            tool.withPath(install.getVisualCppPathForPlatform(targetPlatform));
+            tool.withPath(visualCpp.getPath(targetPlatform));
             tool.withPath(sdk.getBinDir(targetPlatform));
 
             return tool;
@@ -181,9 +185,9 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
         private <T extends NativeCompileSpec> Transformer<T, T> addIncludePathAndDefinitions() {
             return new Transformer<T, T>() {
                 public T transform(T original) {
-                    original.include(install.getVisualCppInclude(targetPlatform));
+                    original.include(visualCpp.getIncludePath(targetPlatform));
                     original.include(sdk.getIncludeDirs());
-                    for (Entry<String, String> definition : install.getVisualCppDefines(targetPlatform).entrySet()) {
+                    for (Entry<String, String> definition : visualCpp.getDefinitions(targetPlatform).entrySet()) {
                         original.define(definition.getKey(), definition.getValue());
                     }
                     return original;
@@ -194,7 +198,7 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
         private Transformer<LinkerSpec, LinkerSpec> addLibraryPath() {
             return new Transformer<LinkerSpec, LinkerSpec>() {
                 public LinkerSpec transform(LinkerSpec original) {
-                    original.libraryPath(install.getVisualCppLib(targetPlatform), sdk.getLibDir(targetPlatform));
+                    original.libraryPath(visualCpp.getLibraryPath(targetPlatform), sdk.getLibDir(targetPlatform));
                     return original;
                 }
             };

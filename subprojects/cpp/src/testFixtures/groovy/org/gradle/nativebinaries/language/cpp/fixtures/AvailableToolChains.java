@@ -342,7 +342,7 @@ public class AvailableToolChains {
             DefaultPlatform targetPlatform = new DefaultPlatform("default");
             installDir = install.getVisualStudioDir();
             version = install.getVersion();
-            pathEntries.addAll(install.getVisualCppPathForPlatform(targetPlatform));
+            pathEntries.addAll(install.getVisualCpp().getPath(targetPlatform));
             return this;
         }
 
