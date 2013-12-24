@@ -169,7 +169,8 @@ providing more sophisticated support for system libraries (such as the Windows S
 
 ### Improved detection of Visual studio and Windows SDK installations
 
-TBD
+- Uses registry to find installations.
+- Can build using Windows SDK 7.x without a Visual Studio installation.
 
 ### Independent control of TestNG output directory
 
