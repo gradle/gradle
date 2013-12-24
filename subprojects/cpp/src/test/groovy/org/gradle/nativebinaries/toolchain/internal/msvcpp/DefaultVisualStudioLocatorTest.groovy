@@ -16,6 +16,7 @@
 
 package org.gradle.nativebinaries.toolchain.internal.msvcpp
 
+import net.rubygrapefruit.platform.MissingRegistryEntryException
 import net.rubygrapefruit.platform.SystemInfo
 import net.rubygrapefruit.platform.WindowsRegistry
 
@@ -42,9 +43,7 @@ class DefaultVisualStudioLocatorTest extends Specification {
 
         given:
         operatingSystem.findInPath(_) >> null
-        windowsRegistry.getValueNames(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VS7/) >> ["", "11.0", "12.0"]
-        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VS7/, "11.0") >> dir1.absolutePath
-        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VS7/, "12.0") >> dir2.absolutePath
+        windowsRegistry.getValueNames(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VC7/) >> ["", "11.0", "12.0", "ignore-me"]
         windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VC7/, "11.0") >> dir1.absolutePath + "/VC"
         windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VC7/, "12.0") >> dir2.absolutePath + "/VC"
 
@@ -53,14 +52,15 @@ class DefaultVisualStudioLocatorTest extends Specification {
 
         then:
         result.available
-        result.visualStudio.name == "Visual Studio 12.0"
+        result.visualStudio.name == "Visual C++ 12.0"
         result.visualStudio.version == VersionNumber.parse("12.0")
         result.visualStudio.baseDir == dir2
         result.visualStudio.visualCpp
     }
 
-    def "visual studio not found when executables do not exist"() {
+    def "visual studio not found when nothing in registry and executable not found in path"() {
         given:
+        windowsRegistry.getValueNames(_, _) >> { throw new MissingRegistryEntryException("not found") }
         operatingSystem.findInPath(_) >> null
 
         when:
@@ -75,6 +75,7 @@ class DefaultVisualStudioLocatorTest extends Specification {
         def vsDir = vsDir("vs")
 
         given:
+        windowsRegistry.getValueNames(_, _) >> { throw new MissingRegistryEntryException("not found") }
         operatingSystem.findInPath("cl.exe") >> vsDir.file("VC/bin/cl.exe")
 
         when:
@@ -82,7 +83,7 @@ class DefaultVisualStudioLocatorTest extends Specification {
 
         then:
         result.available
-        result.visualStudio.name == "Path-resolved Visual Studio"
+        result.visualStudio.name == "Visual C++ from system path"
         result.visualStudio.version == VersionNumber.UNKNOWN
         result.visualStudio.baseDir == vsDir
     }
@@ -98,7 +99,7 @@ class DefaultVisualStudioLocatorTest extends Specification {
 
         then:
         result.available
-        result.visualStudio.name == "User-provided Visual Studio"
+        result.visualStudio.name == "Visual C++ from user provided path"
         result.visualStudio.version == VersionNumber.UNKNOWN
         result.visualStudio.baseDir == vsDir
     }
@@ -110,8 +111,7 @@ class DefaultVisualStudioLocatorTest extends Specification {
         operatingSystem.findInPath("cl.exe") >> vsDir.file("VC/bin/cl.exe")
 
         and:
-        windowsRegistry.getValueNames(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VS7/) >> ["12.0"]
-        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VS7/, "12.0") >> vsDir.absolutePath
+        windowsRegistry.getValueNames(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VC7/) >> ["12.0"]
         windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VC7/, "12.0") >> vsDir.absolutePath + "/VC"
         
         when:
@@ -119,7 +119,7 @@ class DefaultVisualStudioLocatorTest extends Specification {
 
         then:
         result.available
-        result.visualStudio.name == "Visual Studio 12.0"
+        result.visualStudio.name == "Visual C++ 12.0"
         result.visualStudio.version == VersionNumber.parse("12.0")
         result.visualStudio.baseDir == vsDir
     }
