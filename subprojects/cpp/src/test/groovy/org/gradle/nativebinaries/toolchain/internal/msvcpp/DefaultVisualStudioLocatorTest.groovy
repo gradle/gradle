@@ -89,22 +89,53 @@ class DefaultVisualStudioLocatorTest extends Specification {
     }
 
     def "uses visual studio using specified install dir"() {
-        def vsDir = vsDir("vs")
+        def vsDir1 = vsDir("vs")
+        def vsDir2 = vsDir("vs-2")
+        def ignored = vsDir("vs-3")
 
         given:
         operatingSystem.findInPath(_) >> null
+        windowsRegistry.getValueNames(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VC7/) >> ["12.0"]
+        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VC7/, "12.0") >> ignored.absolutePath + "/VC"
+        assert visualStudioLocator.locateVisualStudioInstalls(null).available
 
         when:
-        def result = visualStudioLocator.locateVisualStudioInstalls(vsDir)
+        def result = visualStudioLocator.locateVisualStudioInstalls(vsDir1)
 
         then:
         result.available
         result.visualStudio.name == "Visual C++ from user provided path"
         result.visualStudio.version == VersionNumber.UNKNOWN
-        result.visualStudio.baseDir == vsDir
+        result.visualStudio.baseDir == vsDir1
+
+        when:
+        result = visualStudioLocator.locateVisualStudioInstalls(vsDir2)
+
+        then:
+        result.available
+        result.visualStudio.name == "Visual C++ from user provided path"
+        result.visualStudio.version == VersionNumber.UNKNOWN
+        result.visualStudio.baseDir == vsDir2
     }
 
-    def "fills in meta-data from registry for install discovered using the path"() {
+    def "visual studio not found when specified directory does not look like an install"() {
+        def providedDir = tmpDir.createDir("vs")
+        def ignoredDir = vsDir("vs-2")
+
+        given:
+        operatingSystem.findInPath(_) >> null
+        windowsRegistry.getValueNames(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VC7/) >> ["12.0"]
+        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VC7/, "12.0") >> ignoredDir.absolutePath + "/VC"
+        assert visualStudioLocator.locateVisualStudioInstalls(null).available
+
+        when:
+        def result = visualStudioLocator.locateVisualStudioInstalls(providedDir)
+
+        then:
+        !result.available
+    }
+
+    def "fills in meta-data from registry for install discovered using the system path"() {
         def vsDir = vsDir("vs")
 
         given:
@@ -116,6 +147,26 @@ class DefaultVisualStudioLocatorTest extends Specification {
         
         when:
         def result = visualStudioLocator.locateVisualStudioInstalls(null)
+
+        then:
+        result.available
+        result.visualStudio.name == "Visual C++ 12.0"
+        result.visualStudio.version == VersionNumber.parse("12.0")
+        result.visualStudio.baseDir == vsDir
+    }
+
+    def "fills in meta-data from registry for user specified install"() {
+        def vsDir = vsDir("vs")
+
+        given:
+        operatingSystem.findInPath(_) >> null
+
+        and:
+        windowsRegistry.getValueNames(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VC7/) >> ["12.0"]
+        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VC7/, "12.0") >> vsDir.absolutePath + "/VC"
+
+        when:
+        def result = visualStudioLocator.locateVisualStudioInstalls(vsDir)
 
         then:
         result.available

@@ -23,23 +23,19 @@ import java.io.File;
 
 public class VisualStudioInstall implements Named {
     private final VisualCppInstall visualCppInstall;
-    private final VersionNumber version;
     private final File baseDir;
-    private final String name;
 
-    public VisualStudioInstall(File baseDir, VersionNumber version, String name, VisualCppInstall visualCppInstall) {
+    public VisualStudioInstall(File baseDir,  VisualCppInstall visualCppInstall) {
         this.baseDir = baseDir;
-        this.version = version;
-        this.name = name;
         this.visualCppInstall = visualCppInstall;
     }
 
     public String getName() {
-        return name;
+        return visualCppInstall.getName();
     }
 
     public VersionNumber getVersion() {
-        return version;
+        return visualCppInstall.getVersion();
     }
 
     public File getVisualStudioDir() {

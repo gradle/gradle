@@ -95,19 +95,54 @@ class DefaultWindowsSdkLocatorTest extends Specification {
     }
 
     def "uses windows SDK using specified install dir"() {
-        def sdkDir = sdkDir("sdk")
+        def sdkDir1 = this.sdkDir("sdk-1")
+        def sdkDir2 = this.sdkDir("sdk-2")
+        def ignoredDir = sdkDir("ignored")
 
         given:
         operatingSystem.findInPath(_) >> null
+        windowsRegistry.getSubkeys(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows/) >> ["v1"]
+        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows\v1/, "InstallationFolder") >> ignoredDir.absolutePath
+        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows\v1/, "ProductVersion") >> "7.0"
+        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows\v1/, "ProductName") >> "installed sdk"
+        assert windowsSdkLocator.locateWindowsSdks(null).available
 
         when:
-        def result = windowsSdkLocator.locateWindowsSdks(sdkDir)
+        def result = windowsSdkLocator.locateWindowsSdks(sdkDir1)
 
         then:
         result.available
         result.sdk.name == "User-provided Windows SDK"
         result.sdk.version == VersionNumber.UNKNOWN
-        result.sdk.baseDir == sdkDir
+        result.sdk.baseDir == sdkDir1
+
+        when:
+        result = windowsSdkLocator.locateWindowsSdks(sdkDir2)
+
+        then:
+        result.available
+        result.sdk.name == "User-provided Windows SDK"
+        result.sdk.version == VersionNumber.UNKNOWN
+        result.sdk.baseDir == sdkDir2
+    }
+
+    def "SDK not available when specified install dir does not look like an SDK"() {
+        def sdkDir1 = tmpDir.createDir("dir")
+        def ignoredDir = sdkDir("ignored")
+
+        given:
+        operatingSystem.findInPath(_) >> null
+        windowsRegistry.getSubkeys(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows/) >> ["v1"]
+        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows\v1/, "InstallationFolder") >> ignoredDir.absolutePath
+        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows\v1/, "ProductVersion") >> "7.0"
+        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows\v1/, "ProductName") >> "installed sdk"
+        assert windowsSdkLocator.locateWindowsSdks(null).available
+
+        when:
+        def result = windowsSdkLocator.locateWindowsSdks(sdkDir1)
+
+        then:
+        !result.available
     }
 
     def "fills in meta-data from registry for SDK discovered using the path"() {
@@ -124,6 +159,28 @@ class DefaultWindowsSdkLocatorTest extends Specification {
 
         when:
         def result = windowsSdkLocator.locateWindowsSdks(null)
+
+        then:
+        result.available
+        result.sdk.name == "installed sdk"
+        result.sdk.version == VersionNumber.parse("7.0")
+        result.sdk.baseDir == sdkDir
+    }
+
+    def "fills in meta-data from registry for SDK specified by user"() {
+        def sdkDir = sdkDir("sdk1")
+
+        given:
+        operatingSystem.findInPath(_) >> null
+
+        and:
+        windowsRegistry.getSubkeys(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows/) >> ["v1"]
+        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows\v1/, "InstallationFolder") >> sdkDir.absolutePath
+        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows\v1/, "ProductVersion") >> "7.0"
+        windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows\v1/, "ProductName") >> "installed sdk"
+
+        when:
+        def result = windowsSdkLocator.locateWindowsSdks(sdkDir)
 
         then:
         result.available
