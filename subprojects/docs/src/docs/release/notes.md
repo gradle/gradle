@@ -133,7 +133,41 @@ A dependency on the 'api' linkage can be specified by both the direct and the ma
     sources.main.cpp.lib project: ':A', library: 'my-lib', linkage: 'api'
     sources.main.cpp.lib libraries.hello.api
 
-#### Improved detection of Visual studio and Windows SDK installations
+#### Support for pre-built libraries
+
+It would be very unusual for a sophisticated software project not to make some use of 3rd party system libraries.
+In some cases these libraries are already available locally. This version of Gradle makes it possible to reference
+these 'pre-built' libraries such that they can be referenced as a dependency in the same way as libraries built by
+Gradle.
+
+In order to reference pre-built libraries, they must be added to a local repository of type `PrebuiltLibraries`.
+For each library, the header directories to include can be defined, as well as the actual binary files for
+static and shared library linkages.
+
+    model {
+        repositories {
+            libs(PrebuiltLibraries) {
+                create("boost-headers") {
+                    headers.srcDir "libs/boost_1_55_0/boost"
+                }
+                create("util") {
+                    headers.srcDir "libs/util/src/include"
+                    binaries.withType(StaticLibraryBinary) {
+                        staticLibraryFile = file("libs/util/bin/libutil.a")
+                    }
+                    binaries.withType(SharedLibraryBinary) {
+                        sharedLibraryFile = file("libs/util/bin/libutil.so")
+                    }
+                }
+            }
+        }
+    }
+
+Future releases of Gradle will provide full-featured dependency resolution for third-party libraries, as well as
+providing more sophisticated support for system libraries (such as the Windows SDK).
+`PrebuiltLibraries` takes a step in that direction, and provides a tool that can be used for many use cases.
+
+### Improved detection of Visual studio and Windows SDK installations
 
 TBD
 
