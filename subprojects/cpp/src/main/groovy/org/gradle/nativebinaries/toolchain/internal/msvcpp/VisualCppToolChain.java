@@ -16,9 +16,6 @@
 
 package org.gradle.nativebinaries.toolchain.internal.msvcpp;
 
-import java.io.File;
-import java.util.Map.Entry;
-
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.compile.Compiler;
@@ -32,14 +29,11 @@ import org.gradle.nativebinaries.language.cpp.internal.CppCompileSpec;
 import org.gradle.nativebinaries.language.rc.internal.WindowsResourceCompileSpec;
 import org.gradle.nativebinaries.platform.Platform;
 import org.gradle.nativebinaries.toolchain.VisualCpp;
-import org.gradle.nativebinaries.toolchain.internal.AbstractToolChain;
-import org.gradle.nativebinaries.toolchain.internal.CommandLineTool;
-import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec;
-import org.gradle.nativebinaries.toolchain.internal.OutputCleaningCompiler;
-import org.gradle.nativebinaries.toolchain.internal.PlatformToolChain;
-import org.gradle.nativebinaries.toolchain.internal.ToolChainAvailability;
-import org.gradle.nativebinaries.toolchain.internal.ToolSearchResult;
+import org.gradle.nativebinaries.toolchain.internal.*;
 import org.gradle.process.internal.ExecActionFactory;
+
+import java.io.File;
+import java.util.Map.Entry;
 
 public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
 
@@ -50,6 +44,8 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
     private final WindowsSdkLocator windowsSdkLocator;
     private File installDir;
     private File windowsSdkDir;
+    private VisualStudioLocator.SearchResult visualStudioSearchResult;
+    private WindowsSdkLocator.SearchResult windowsSdkSearchResult;
 
     public VisualCppToolChain(String name, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory,
                               VisualStudioLocator visualStudioLocator, WindowsSdkLocator windowsSdkLocator) {
@@ -70,21 +66,10 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
             availability.unavailable("Visual Studio is not available on this operating system.");
             return;
         }
-        availability.mustBeAvailable(locateVisualStudio());
-        availability.mustBeAvailable(locateWindowsSdk());
-    }
-
-    private VisualStudioInstall locateVisualStudioInstall() {
-        locateVisualStudio();
-        return visualStudioLocator.getDefaultInstall();
-    }
-
-    private ToolSearchResult locateVisualStudio() {
-        return visualStudioLocator.locateVisualStudioInstalls(installDir);
-    }
-
-    private ToolSearchResult locateWindowsSdk() {
-        return windowsSdkLocator.locateWindowsSdks(windowsSdkDir);
+        visualStudioSearchResult = visualStudioLocator.locateVisualStudioInstalls(installDir);
+        windowsSdkSearchResult = windowsSdkLocator.locateWindowsSdks(windowsSdkDir);
+        availability.mustBeAvailable(visualStudioSearchResult);
+        availability.mustBeAvailable(windowsSdkSearchResult);
     }
 
     public File getInstallDir() {
@@ -106,10 +91,9 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
     public PlatformToolChain target(Platform targetPlatform) {
         assertAvailable();
         checkPlatform(targetPlatform);
-        VisualStudioInstall visualStudioInstall = locateVisualStudioInstall();
 
-        WindowsSdk windowsSdk = windowsSdkLocator.getDefaultSdk();
-
+        VisualStudioInstall visualStudioInstall = visualStudioSearchResult.getVisualStudio();
+        WindowsSdk windowsSdk = windowsSdkSearchResult.getSdk();
         return new VisualCppPlatformToolChain(visualStudioInstall, windowsSdk, targetPlatform);
     }
 
@@ -120,7 +104,7 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
     }
 
     public boolean canTargetPlatform(Platform targetPlatform) {
-        return locateVisualStudioInstall().isSupportedPlatform(targetPlatform);
+        return visualStudioSearchResult.getVisualStudio().isSupportedPlatform(targetPlatform);
     }
 
     @Override

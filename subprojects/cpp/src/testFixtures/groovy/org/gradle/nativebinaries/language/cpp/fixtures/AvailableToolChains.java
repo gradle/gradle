@@ -106,9 +106,9 @@ public class AvailableToolChains {
     static private ToolChainCandidate findVisualCpp() {
         // Search in the standard installation locations
         VisualStudioLocator vsLocator = new DefaultVisualStudioLocator(OperatingSystem.current(), NativeServices.getInstance().get(WindowsRegistry.class), NativeServices.getInstance().get(SystemInfo.class));
-        vsLocator.locateVisualStudioInstalls(null);
-        VisualStudioInstall install = vsLocator.getDefaultInstall();
-        if (install != null) {
+        VisualStudioLocator.SearchResult searchResult = vsLocator.locateVisualStudioInstalls(null);
+        if (searchResult.isAvailable()) {
+            VisualStudioInstall install = searchResult.getVisualStudio();
             return new InstalledVisualCpp("visual c++").withInstall(install);
         }
 

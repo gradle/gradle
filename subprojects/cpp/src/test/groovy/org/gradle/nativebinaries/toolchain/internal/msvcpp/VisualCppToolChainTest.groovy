@@ -19,7 +19,6 @@ package org.gradle.nativebinaries.toolchain.internal.msvcpp
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.toolchain.internal.ToolChainAvailability
-import org.gradle.nativebinaries.toolchain.internal.ToolSearchResult
 import org.gradle.process.internal.ExecActionFactory
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -30,15 +29,13 @@ class VisualCppToolChainTest extends Specification {
     TestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
     final FileResolver fileResolver = Mock(FileResolver)
     final ExecActionFactory execActionFactory = Mock(ExecActionFactory)
-    final ToolSearchResult visualStudio = Mock(ToolSearchResult)
-    final ToolSearchResult windowsSdkLookup = Mock(ToolSearchResult)
-    final WindowsSdk windowsSdk = Mock(WindowsSdk)
+    final VisualStudioLocator.SearchResult visualStudioLookup = Mock(VisualStudioLocator.SearchResult)
+    final WindowsSdkLocator.SearchResult windowsSdkLookup = Mock(WindowsSdkLocator.SearchResult)
     final VisualStudioLocator visualStudioLocator = Stub(VisualStudioLocator) {
-        locateVisualStudioInstalls(_) >> visualStudio
+        locateVisualStudioInstalls(_) >> visualStudioLookup
     }
     final WindowsSdkLocator windowsSdkLocator = Stub(WindowsSdkLocator) {
         locateWindowsSdks(_) >> windowsSdkLookup
-        getDefaultSdk() >> windowsSdk
     }
     final OperatingSystem operatingSystem = Stub(OperatingSystem) {
         isWindows() >> true
@@ -78,8 +75,8 @@ class VisualCppToolChainTest extends Specification {
 
     def "is unavailable when visual studio installation cannot be located"() {
         when:
-        visualStudio.available >> false
-        visualStudio.explain(_) >> { TreeVisitor<String> visitor -> visitor.node("vs install not found anywhere") }
+        visualStudioLookup.available >> false
+        visualStudioLookup.explain(_) >> { TreeVisitor<String> visitor -> visitor.node("vs install not found anywhere") }
         windowsSdkLookup.available >> false
 
         and:
@@ -93,7 +90,7 @@ class VisualCppToolChainTest extends Specification {
 
     def "is unavailable when windows SDK cannot be located"() {
         when:
-        visualStudio.available >> true
+        visualStudioLookup.available >> true
         windowsSdkLookup.available >> false
         windowsSdkLookup.explain(_) >> { TreeVisitor<String> visitor -> visitor.node("sdk not found anywhere") }
 
@@ -108,7 +105,7 @@ class VisualCppToolChainTest extends Specification {
 
     def "is available when visual studio installation and windows SDK can be located"() {
         when:
-        visualStudio.available >> true
+        visualStudioLookup.available >> true
         windowsSdkLookup.available >> true
 
         and:
@@ -126,8 +123,8 @@ class VisualCppToolChainTest extends Specification {
 
         and:
         fileResolver.resolve("install-dir") >> file("vs")
-        visualStudioLocator.locateVisualStudioInstalls(file("vs")) >> visualStudio
-        visualStudio.available >> true
+        visualStudioLocator.locateVisualStudioInstalls(file("vs")) >> visualStudioLookup
+        visualStudioLookup.available >> true
 
         and:
         fileResolver.resolve("windows-sdk-dir") >> file("win-sdk")

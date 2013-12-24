@@ -46,8 +46,7 @@ public class VisualStudioInstall implements Named {
     }
 
     public boolean isSupportedPlatform(Platform targetPlatform) {
-        return targetPlatform.getOperatingSystem().isWindows()
-                && visualCppInstall.isSupportedPlatform(targetPlatform);
+        return visualCppInstall.isSupportedPlatform(targetPlatform);
     }
 
     public File getVisualStudioDir() {

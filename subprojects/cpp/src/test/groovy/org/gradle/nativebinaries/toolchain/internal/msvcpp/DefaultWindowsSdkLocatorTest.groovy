@@ -47,13 +47,13 @@ class DefaultWindowsSdkLocatorTest extends Specification {
         windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows\v2/, "ProductName") >> "sdk 2"
 
         when:
-        def located = windowsSdkLocator.locateWindowsSdks(null)
+        def result = windowsSdkLocator.locateWindowsSdks(null)
 
         then:
-        located.available
-        windowsSdkLocator.defaultSdk.name == "sdk 2"
-        windowsSdkLocator.defaultSdk.version == VersionNumber.parse("7.1")
-        windowsSdkLocator.defaultSdk.baseDir == dir2
+        result.available
+        result.sdk.name == "sdk 2"
+        result.sdk.version == VersionNumber.parse("7.1")
+        result.sdk.baseDir == dir2
     }
 
     def "uses windows kit if version is higher than windows SDK"() {
@@ -69,13 +69,13 @@ class DefaultWindowsSdkLocatorTest extends Specification {
         windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Windows Kits\Installed Roots/, "KitsRoot81") >> dir2.absolutePath
 
         when:
-        def located = windowsSdkLocator.locateWindowsSdks(null)
+        def result = windowsSdkLocator.locateWindowsSdks(null)
 
         then:
-        located.available
-        windowsSdkLocator.defaultSdk.name == "Windows Kit 8.1"
-        windowsSdkLocator.defaultSdk.version == VersionNumber.parse("8.1")
-        windowsSdkLocator.defaultSdk.baseDir == dir2
+        result.available
+        result.sdk.name == "Windows Kit 8.1"
+        result.sdk.version == VersionNumber.parse("8.1")
+        result.sdk.baseDir == dir2
     }
 
     def "locates windows SDK based on executables in path"() {
@@ -85,13 +85,13 @@ class DefaultWindowsSdkLocatorTest extends Specification {
         operatingSystem.findInPath("rc.exe") >> sdkDir.file("bin/rc.exe")
 
         when:
-        def located = windowsSdkLocator.locateWindowsSdks(null)
+        def result = windowsSdkLocator.locateWindowsSdks(null)
 
         then:
-        located.available
-        windowsSdkLocator.defaultSdk.name == "Path-resolved Windows SDK"
-        windowsSdkLocator.defaultSdk.version == VersionNumber.UNKNOWN
-        windowsSdkLocator.defaultSdk.baseDir == sdkDir
+        result.available
+        result.sdk.name == "Path-resolved Windows SDK"
+        result.sdk.version == VersionNumber.UNKNOWN
+        result.sdk.baseDir == sdkDir
     }
 
     def "uses windows SDK using specified install dir"() {
@@ -101,13 +101,13 @@ class DefaultWindowsSdkLocatorTest extends Specification {
         operatingSystem.findInPath(_) >> null
 
         when:
-        def located = windowsSdkLocator.locateWindowsSdks(sdkDir)
+        def result = windowsSdkLocator.locateWindowsSdks(sdkDir)
 
         then:
-        located.available
-        windowsSdkLocator.defaultSdk.name == "User-provided Windows SDK"
-        windowsSdkLocator.defaultSdk.version == VersionNumber.UNKNOWN
-        windowsSdkLocator.defaultSdk.baseDir == sdkDir
+        result.available
+        result.sdk.name == "User-provided Windows SDK"
+        result.sdk.version == VersionNumber.UNKNOWN
+        result.sdk.baseDir == sdkDir
     }
 
     def "fills in meta-data from registry for SDK discovered using the path"() {
@@ -123,13 +123,13 @@ class DefaultWindowsSdkLocatorTest extends Specification {
         windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows\v1/, "ProductName") >> "installed sdk"
 
         when:
-        def located = windowsSdkLocator.locateWindowsSdks(null)
+        def result = windowsSdkLocator.locateWindowsSdks(null)
 
         then:
-        located.available
-        windowsSdkLocator.defaultSdk.name == "installed sdk"
-        windowsSdkLocator.defaultSdk.version == VersionNumber.parse("7.0")
-        windowsSdkLocator.defaultSdk.baseDir == sdkDir
+        result.available
+        result.sdk.name == "installed sdk"
+        result.sdk.version == VersionNumber.parse("7.0")
+        result.sdk.baseDir == sdkDir
     }
 
     def sdkDir(String name) {

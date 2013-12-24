@@ -49,13 +49,13 @@ class DefaultVisualStudioLocatorTest extends Specification {
         windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VC7/, "12.0") >> dir2.absolutePath + "/VC"
 
         when:
-        def located = visualStudioLocator.locateVisualStudioInstalls(null)
+        def result = visualStudioLocator.locateVisualStudioInstalls(null)
 
         then:
-        located.available
-        visualStudioLocator.defaultInstall.name == "Visual Studio 12.0"
-        visualStudioLocator.defaultInstall.version == VersionNumber.parse("12.0")
-        visualStudioLocator.defaultInstall.baseDir == dir2
+        result.available
+        result.visualStudio.name == "Visual Studio 12.0"
+        result.visualStudio.version == VersionNumber.parse("12.0")
+        result.visualStudio.baseDir == dir2
     }
 
     def "visual studio not found when executables do not exist"() {
@@ -63,11 +63,11 @@ class DefaultVisualStudioLocatorTest extends Specification {
         operatingSystem.findInPath(_) >> null
 
         when:
-        def located = visualStudioLocator.locateVisualStudioInstalls(null)
+        def result = visualStudioLocator.locateVisualStudioInstalls(null)
 
         then:
-        !located.available
-        visualStudioLocator.defaultInstall == null
+        !result.available
+        result.visualStudio == null
     }
 
     def "locates visual studio installation based on executables in path"() {
@@ -77,13 +77,13 @@ class DefaultVisualStudioLocatorTest extends Specification {
         operatingSystem.findInPath("cl.exe") >> vsDir.file("VC/bin/cl.exe")
 
         when:
-        def located = visualStudioLocator.locateVisualStudioInstalls(null)
+        def result = visualStudioLocator.locateVisualStudioInstalls(null)
 
         then:
-        located.available
-        visualStudioLocator.defaultInstall.name == "Path-resolved Visual Studio"
-        visualStudioLocator.defaultInstall.version == VersionNumber.UNKNOWN
-        visualStudioLocator.defaultInstall.baseDir == vsDir
+        result.available
+        result.visualStudio.name == "Path-resolved Visual Studio"
+        result.visualStudio.version == VersionNumber.UNKNOWN
+        result.visualStudio.baseDir == vsDir
     }
 
     def "uses visual studio using specified install dir"() {
@@ -93,13 +93,13 @@ class DefaultVisualStudioLocatorTest extends Specification {
         operatingSystem.findInPath(_) >> null
 
         when:
-        def located = visualStudioLocator.locateVisualStudioInstalls(vsDir)
+        def result = visualStudioLocator.locateVisualStudioInstalls(vsDir)
 
         then:
-        located.available
-        visualStudioLocator.defaultInstall.name == "User-provided Visual Studio"
-        visualStudioLocator.defaultInstall.version == VersionNumber.UNKNOWN
-        visualStudioLocator.defaultInstall.baseDir == vsDir
+        result.available
+        result.visualStudio.name == "User-provided Visual Studio"
+        result.visualStudio.version == VersionNumber.UNKNOWN
+        result.visualStudio.baseDir == vsDir
     }
 
     def "fills in meta-data from registry for install discovered using the path"() {
@@ -114,13 +114,13 @@ class DefaultVisualStudioLocatorTest extends Specification {
         windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VC7/, "12.0") >> vsDir.absolutePath + "/VC"
         
         when:
-        def located = visualStudioLocator.locateVisualStudioInstalls(null)
+        def result = visualStudioLocator.locateVisualStudioInstalls(null)
 
         then:
-        located.available
-        visualStudioLocator.defaultInstall.name == "Visual Studio 12.0"
-        visualStudioLocator.defaultInstall.version == VersionNumber.parse("12.0")
-        visualStudioLocator.defaultInstall.baseDir == vsDir
+        result.available
+        result.visualStudio.name == "Visual Studio 12.0"
+        result.visualStudio.version == VersionNumber.parse("12.0")
+        result.visualStudio.baseDir == vsDir
     }
 
     def vsDir(String name) {

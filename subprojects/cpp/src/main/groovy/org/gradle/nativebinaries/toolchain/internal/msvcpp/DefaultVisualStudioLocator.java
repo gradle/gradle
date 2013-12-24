@@ -24,7 +24,6 @@ import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.nativebinaries.platform.Architecture;
 import org.gradle.nativebinaries.platform.internal.ArchitectureNotationParser;
-import org.gradle.nativebinaries.toolchain.internal.ToolSearchResult;
 import org.gradle.util.TreeVisitor;
 import org.gradle.util.VersionNumber;
 import org.slf4j.Logger;
@@ -84,8 +83,7 @@ public class DefaultVisualStudioLocator extends DefaultWindowsLocator implements
     private final SystemInfo systemInfo;
     private VisualStudioInstall pathInstall;
     private VisualStudioInstall userInstall;
-    private VisualStudioInstall defaultInstall;
-    private ToolSearchResult result;
+    private SearchResult result;
 
     public DefaultVisualStudioLocator(OperatingSystem os, WindowsRegistry windowsRegistry, SystemInfo systemInfo) {
         this.os = os;
@@ -93,7 +91,7 @@ public class DefaultVisualStudioLocator extends DefaultWindowsLocator implements
         this.systemInfo = systemInfo;
     }
 
-    public ToolSearchResult locateVisualStudioInstalls(File candidate) {
+    public SearchResult locateVisualStudioInstalls(File candidate) {
         if (result != null) {
             return result;
         }
@@ -105,9 +103,12 @@ public class DefaultVisualStudioLocator extends DefaultWindowsLocator implements
             locateUserSpecifiedInstall(candidate);
         }
 
-        defaultInstall = determineDefaultInstall();
+        final VisualStudioInstall defaultInstall = determineDefaultInstall();
 
-        result = new ToolSearchResult() {
+        result = new SearchResult() {
+            public VisualStudioInstall getVisualStudio() {
+                return defaultInstall;
+            }
 
             public boolean isAvailable() {
                 return defaultInstall != null;
@@ -120,10 +121,6 @@ public class DefaultVisualStudioLocator extends DefaultWindowsLocator implements
         };
 
         return result;
-    }
-
-    public VisualStudioInstall getDefaultInstall() {
-        return defaultInstall;
     }
 
     private void locateInstallsInRegistry() {

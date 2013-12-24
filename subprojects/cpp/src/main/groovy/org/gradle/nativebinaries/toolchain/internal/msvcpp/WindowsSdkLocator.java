@@ -21,7 +21,9 @@ import java.io.File;
 
 public interface WindowsSdkLocator {
 
-    ToolSearchResult locateWindowsSdks(File candidate);
+    SearchResult locateWindowsSdks(File candidate);
 
-    WindowsSdk getDefaultSdk();
+    interface SearchResult extends ToolSearchResult {
+        WindowsSdk getSdk();
+    }
 }

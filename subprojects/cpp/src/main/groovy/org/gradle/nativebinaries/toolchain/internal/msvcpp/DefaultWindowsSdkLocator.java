@@ -20,7 +20,6 @@ import net.rubygrapefruit.platform.WindowsRegistry;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.nativebinaries.toolchain.internal.ToolSearchResult;
 import org.gradle.util.TreeVisitor;
 import org.gradle.util.VersionNumber;
 import org.slf4j.Logger;
@@ -73,15 +72,14 @@ public class DefaultWindowsSdkLocator extends DefaultWindowsLocator implements W
     private final WindowsRegistry windowsRegistry;
     private WindowsSdk pathSdk;
     private WindowsSdk userSdk;
-    private WindowsSdk defaultSdk;
-    private ToolSearchResult result;
+    private SearchResult result;
 
     public DefaultWindowsSdkLocator(OperatingSystem os, WindowsRegistry windowsRegistry) {
         this.os = os;
         this.windowsRegistry = windowsRegistry;
     }
 
-    public ToolSearchResult locateWindowsSdks(File candidate) {
+    public SearchResult locateWindowsSdks(File candidate) {
         if (result != null) {
             return result;
         }
@@ -94,9 +92,13 @@ public class DefaultWindowsSdkLocator extends DefaultWindowsLocator implements W
             locateUserSpecifiedSdk(candidate);
         }
 
-        defaultSdk = determineDefaultSdk();
+        final WindowsSdk defaultSdk = determineDefaultSdk();
 
-        result = new ToolSearchResult() {
+        result = new SearchResult() {
+            public WindowsSdk getSdk() {
+                return defaultSdk;
+            }
+
             public boolean isAvailable() {
                 return defaultSdk != null;
             }
@@ -107,10 +109,6 @@ public class DefaultWindowsSdkLocator extends DefaultWindowsLocator implements W
         };
 
         return result;
-    }
-
-    public WindowsSdk getDefaultSdk() {
-        return defaultSdk;
     }
 
     private void locateSdksInRegistry() {
