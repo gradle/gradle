@@ -27,6 +27,7 @@ import java.io.File;
 
 public class DefaultPrebuiltSharedLibraryBinary extends AbstractPrebuiltLibraryBinary implements PrebuiltSharedLibraryBinary {
     private File sharedLibraryFile;
+    private File sharedLibraryLinkFile;
 
     public DefaultPrebuiltSharedLibraryBinary(String name, PrebuiltLibrary library, BuildType buildType, Platform targetPlatform, Flavor flavor) {
         super(name, library, buildType, targetPlatform, flavor);
@@ -40,14 +41,13 @@ public class DefaultPrebuiltSharedLibraryBinary extends AbstractPrebuiltLibraryB
         return sharedLibraryFile;
     }
 
+    public void setSharedLibraryLinkFile(File sharedLibraryLinkFile) {
+        this.sharedLibraryLinkFile = sharedLibraryLinkFile;
+    }
+
     public File getSharedLibraryLinkFile() {
-        if (sharedLibraryFile == null) {
-            return null;
-        }
-        // TODO:DAZ Push this functionality into Platform
-        if (getTargetPlatform().getOperatingSystem().isWindows()) {
-            String fileName = sharedLibraryFile.getName().replaceFirst("\\.dll$", ".lib");
-            return new File(sharedLibraryFile.getParent(), fileName);
+        if (sharedLibraryLinkFile != null) {
+            return sharedLibraryLinkFile;
         }
         return sharedLibraryFile;
     }

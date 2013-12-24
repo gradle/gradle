@@ -19,9 +19,7 @@ import org.gradle.nativebinaries.language.cpp.fixtures.app.CppHelloWorldApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
-// TODO:DAZ Get this working on MinGW and cygwin
-//@Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
-@Requires([TestPrecondition.NOT_WINDOWS, TestPrecondition.CAN_INSTALL_EXECUTABLE])
+@Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
 class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     final app = new CppHelloWorldApp()
 
@@ -87,6 +85,7 @@ class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegra
         installation("build/install/mainExecutable").exec().out == app.alternateLibraryOutput
     }
 
+    // TODO:DAZ Make it much easier to define the file locations
     def "can link to a prebuilt library with static and shared linkage"() {
         given:
         preBuildLibrary()
@@ -99,15 +98,24 @@ class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegra
                     libs(PrebuiltLibraries) {
                         create("hello") {
                             headers.srcDir "libs/src/hello/headers"
-                            binaries.withType(StaticLibraryBinary) { binary ->
-                                def os = binary.targetPlatform.operatingSystem
-                                def libName = os.windows ? 'hello.lib' : 'libhello.a'
+                            binaries.withType(StaticLibraryBinary) {
+                                def libName = targetPlatform.operatingSystem.windows ? 'hello.lib' : 'libhello.a'
                                 staticLibraryFile = file("libs/build/binaries/helloStaticLibrary/english/\${libName}")
                             }
-                            binaries.withType(SharedLibraryBinary) { binary ->
-                                def os = binary.targetPlatform.operatingSystem
-                                def libName = os.windows ? 'hello.dll' : (os.macOsX ? 'libhello.dylib' : 'libhello.so')
-                                sharedLibraryFile = file("libs/build/binaries/helloSharedLibrary/french/\${libName}")
+                            binaries.withType(SharedLibraryBinary) {
+                                def os = targetPlatform.operatingSystem
+                                def baseDir = "libs/build/binaries/helloSharedLibrary/french"
+                                if (os.windows) {
+                                    // Windows uses a .dll file, and a different link file if it exists (not Cygwin or MinGW)
+                                    sharedLibraryFile = file("\${baseDir}/hello.dll")
+                                    if (file("\${baseDir}/hello.lib").exists()) {
+                                        sharedLibraryLinkFile = file("\${baseDir}/hello.lib")
+                                    }
+                                } else if (os.macOsX) {
+                                    sharedLibraryFile = file("\${baseDir}/libhello.dylib")
+                                } else {
+                                    sharedLibraryFile = file("\${baseDir}/libhello.so")
+                                }
                             }
                         }
                     }

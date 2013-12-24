@@ -26,4 +26,9 @@ public interface PrebuiltSharedLibraryBinary extends SharedLibraryBinary {
      * The shared library file.
      */
     void setSharedLibraryFile(File sharedLibraryFile);
+
+    /**
+     * The shared library file.
+     */
+    void setSharedLibraryLinkFile(File sharedLibraryLinkFile);
 }
