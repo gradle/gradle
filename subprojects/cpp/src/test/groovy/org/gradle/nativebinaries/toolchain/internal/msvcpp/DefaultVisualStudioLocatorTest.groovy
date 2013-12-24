@@ -42,7 +42,7 @@ class DefaultVisualStudioLocatorTest extends Specification {
 
         given:
         operatingSystem.findInPath(_) >> null
-        windowsRegistry.getValueNames(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VS7/) >> ["11.0", "12.0"]
+        windowsRegistry.getValueNames(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VS7/) >> ["", "11.0", "12.0"]
         windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VS7/, "11.0") >> dir1.absolutePath
         windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VS7/, "12.0") >> dir2.absolutePath
         windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\VisualStudio\SxS\VC7/, "11.0") >> dir1.absolutePath + "/VC"
@@ -56,6 +56,7 @@ class DefaultVisualStudioLocatorTest extends Specification {
         result.visualStudio.name == "Visual Studio 12.0"
         result.visualStudio.version == VersionNumber.parse("12.0")
         result.visualStudio.baseDir == dir2
+        result.visualStudio.visualCpp
     }
 
     def "visual studio not found when executables do not exist"() {

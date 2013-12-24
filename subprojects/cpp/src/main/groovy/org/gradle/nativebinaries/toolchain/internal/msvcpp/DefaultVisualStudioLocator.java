@@ -134,6 +134,10 @@ public class DefaultVisualStudioLocator extends DefaultWindowsLocator implements
             List<String> valueNames = windowsRegistry.getValueNames(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, baseKey + REGISTRY_ROOTPATH_VS);
 
             for (String valueName : valueNames) {
+                if (valueName.length() == 0) {
+                    // Ignore the default version
+                    continue;
+                }
                 File installDir = new File(windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, baseKey + REGISTRY_ROOTPATH_VS, valueName));
 
                 if (isVisualStudio(installDir)) {
