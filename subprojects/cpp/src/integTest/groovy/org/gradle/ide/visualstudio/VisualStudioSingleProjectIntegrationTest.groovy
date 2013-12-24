@@ -588,6 +588,43 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         }
     }
 
+    def "visual studio solution with pre-built library"() {
+        given:
+        app.writeSources(file("src/main"))
+        buildFile << """
+    model {
+        repositories {
+            libs(PrebuiltLibraries) {
+                create("test") {
+                    headers.srcDir "libs/test/include"
+                }
+            }
+        }
+    }
+    executables {
+        main {}
+    }
+    sources.main.cpp.lib library: 'test', linkage: 'api'
+"""
+
+        when:
+        run "mainVisualStudio"
+
+        then:
+        executedAndNotSkipped ":mainExeVisualStudio"
+        and:
+
+        then:
+        final mainSolution = solutionFile("visualStudio/mainExe.sln")
+        mainSolution.assertHasProjects("mainExe")
+
+        and:
+        final mainExeProject = projectFile("visualStudio/mainExe.vcxproj")
+        with (mainExeProject.projectConfigurations['debug|Win32']) {
+            includePath == filePath("src/main/headers", "libs/test/include")
+        }
+    }
+
     def "visual studio solution for component graph with library dependency cycle"() {
         given:
         def app = new ExeWithLibraryUsingLibraryHelloWorldApp()
