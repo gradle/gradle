@@ -136,6 +136,44 @@ class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegra
         installation("build/install/mainStaticExecutable").exec().out == app.englishOutput
     }
 
+    def "searches all prebuilt library repositories"() {
+        given:
+        preBuildLibrary()
+
+        and:
+        buildFile << """
+            apply plugin: 'cpp'
+            model {
+                repositories {
+                    libs1(PrebuiltLibraries) {
+                        create("nope") {
+                            headers.srcDir "not/here"
+                        }
+                    }
+                    libs2(PrebuiltLibraries) {
+                        create("hello") {
+                            headers.srcDir "libs/src/hello/headers"
+                            binaries.withType(StaticLibraryBinary) {
+                                def libName = targetPlatform.operatingSystem.windows ? 'hello.lib' : 'libhello.a'
+                                staticLibraryFile = file("libs/build/binaries/helloStaticLibrary/french/\${libName}")
+                            }
+                        }
+                    }
+                }
+            }
+            executables {
+                main {}
+            }
+            sources.main.cpp.lib library: 'hello', linkage: 'static'
+        """
+
+        when:
+        succeeds "installMainExecutable"
+
+        then:
+        installation("build/install/mainExecutable").exec().out == app.frenchOutput
+    }
+
     def "produces reasonable error message when no output file is defined for binary"() {
         given:
         buildFile << """
@@ -202,6 +240,10 @@ class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegra
                         create("hello") {
                         }
                     }
+                    libs2(PrebuiltLibraries) {
+                        create("hello2") {
+                        }
+                    }
                 }
             }
             executables {
@@ -216,7 +258,8 @@ class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegra
         then:
         failure.assertHasDescription("Could not locate library 'other'.")
         failure.assertHasCause("Library with name 'other' not found.")
-        failure.assertHasCause("PrebuiltLibrary with name 'other' not found.")
+        failure.assertHasCause("Prebuilt library with name 'other' not found in 'libs'.")
+        failure.assertHasCause("Prebuilt library with name 'other' not found in 'libs2'.")
     }
 
     def "produces reasonable error message when attempting to access prebuilt library in a different project"() {

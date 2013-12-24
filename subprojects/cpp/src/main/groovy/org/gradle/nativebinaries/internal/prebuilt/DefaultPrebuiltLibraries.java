@@ -16,6 +16,7 @@
 
 package org.gradle.nativebinaries.internal.prebuilt;
 
+import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.reflect.Instantiator;
@@ -43,5 +44,10 @@ public class DefaultPrebuiltLibraries extends AbstractNamedDomainObjectContainer
     @Override
     protected PrebuiltLibrary doCreate(String name) {
         return getInstantiator().newInstance(DefaultPrebuiltLibrary.class, name, fileResolver);
+    }
+
+    @Override
+    protected UnknownDomainObjectException createNotFoundException(String libraryName) {
+        return new UnknownDomainObjectException(String.format("Prebuilt library with name '%s' not found in '%s'.", libraryName, getName()));
     }
 }
