@@ -68,6 +68,11 @@ public class CommandLineTool<T extends BinaryToolSpec> {
         return this;
     }
 
+    public CommandLineTool<T> withEnvironmentVar(String name, String value) {
+        environment.put(name, value);
+        return this;
+    }
+
     public CommandLineTool<T> withArguments(ArgsTransformer<T> arguments) {
         this.specToArgs = arguments;
         return this;

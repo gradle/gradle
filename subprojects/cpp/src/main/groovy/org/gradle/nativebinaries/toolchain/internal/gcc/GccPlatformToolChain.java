@@ -85,6 +85,7 @@ class GccPlatformToolChain implements PlatformToolChain {
         CommandLineTool<T> commandLineTool = new CommandLineTool<T>(key.getToolName(), tools.locate(key).getTool(), execActionFactory);
         // MinGW requires the path to be set
         commandLineTool.withPath(tools.getPath());
+        commandLineTool.withEnvironmentVar("CYGWIN", "nodosfilewarning");
         return commandLineTool;
     }
 
