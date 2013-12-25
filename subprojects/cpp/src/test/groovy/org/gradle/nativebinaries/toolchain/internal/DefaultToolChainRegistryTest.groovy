@@ -68,7 +68,7 @@ class DefaultToolChainRegistryTest extends Specification {
         registry.asList() == [configuredToolChain, defaultToolChain]
     }
 
-    def "provides unavailable tool chain when no tool chain available"() {
+    def "provides unavailable tool chain when no tool chain available for requested  platform"() {
         unavailableToolChain("test", "nope")
         unavailableToolChain("test2", "not me")
         unavailableToolChain("test3", "not me either")
@@ -139,38 +139,19 @@ class DefaultToolChainRegistryTest extends Specification {
         def defaultToolChain2 = availableToolChain("test2")
         def defaultToolChain3 = availableToolChain("test3")
 
-        when:
+        given:
         registry.add(defaultToolChain1)
         registry.add(defaultToolChain2)
         registry.add(defaultToolChain3)
 
-        defaultToolChain1.canTargetPlatform(platform) >> true
-        defaultToolChain2.canTargetPlatform(platform) >> false
-        defaultToolChain3.canTargetPlatform(platform) >> true
-
-        then:
-        registry.getForPlatform(platform) == defaultToolChain3
-    }
-
-    def "tool chains are inspected in order added"() {
-        def defaultToolChain1 = availableToolChain("test1")
-        def defaultToolChain2 = availableToolChain("first")
-
-        when:
-        registry.add(defaultToolChain1)
-        registry.add(defaultToolChain2)
-
-        defaultToolChain1.canTargetPlatform(platform) >> true
-        defaultToolChain2.canTargetPlatform(platform) >> true
-
-        then:
-        registry.getForPlatform(platform) == defaultToolChain1
+        expect:
+        registry.getForPlatform(platform) == defaultToolChain2
     }
 
     def availableToolChain(String name) {
         TestToolChain testToolChain = Mock(TestToolChain) {
             _ * getName() >> name
-            _ * getAvailability() >> new ToolChainAvailability()
+            _ * canTargetPlatform(platform) >> new ToolChainAvailability()
         }
         factory.create(name) >> testToolChain
         return testToolChain
@@ -180,7 +161,7 @@ class DefaultToolChainRegistryTest extends Specification {
         TestToolChain testToolChain = Mock(TestToolChain) {
             _ * getName() >> name
             _ * getDisplayName() >> "Tool chain '$name'"
-            _ * getAvailability() >> new ToolChainAvailability().unavailable(message)
+            _ * canTargetPlatform(platform) >> new ToolChainAvailability().unavailable(message)
         }
         factory.create(name) >> testToolChain
         return testToolChain

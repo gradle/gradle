@@ -95,20 +95,25 @@ public class VisualCppToolChain extends AbstractToolChain implements VisualCpp {
     }
 
     public PlatformToolChain target(Platform targetPlatform) {
-        assertAvailable();
         checkPlatform(targetPlatform);
 
         return new VisualCppPlatformToolChain(visualCpp, windowsSdk, targetPlatform);
     }
 
     private void checkPlatform(Platform targetPlatform) {
-        if (!canTargetPlatform(targetPlatform)) {
+        assertAvailable();
+        if (!canTargetPlatform(targetPlatform).isAvailable()) {
             throw new IllegalStateException(String.format("Tool chain %s cannot build for platform: %s", getName(), targetPlatform.getName()));
         }
     }
 
-    public boolean canTargetPlatform(Platform targetPlatform) {
-        return visualCpp != null && visualCpp.isSupportedPlatform(targetPlatform);
+    public ToolSearchResult canTargetPlatform(Platform targetPlatform) {
+        ToolChainAvailability result = new ToolChainAvailability();
+        result.mustBeAvailable(getAvailability());
+        if (visualCpp != null && !visualCpp.isSupportedPlatform(targetPlatform)) {
+            result.unavailable(String.format("Don't know how to build for platform '%s'.", targetPlatform.getName()));
+        }
+        return result;
     }
 
     @Override

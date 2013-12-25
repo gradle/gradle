@@ -60,23 +60,24 @@ class AbstractGccCompatibleToolChainTest extends Specification {
     }
 
     def "is available if all tools can be found"() {
+        given:
+        toolRegistry.locate(_) >> tool
+
         when:
         def availability = toolChain.getAvailability()
 
         then:
-        toolRegistry.locate(_) >> tool
-
-        and:
         availability.available
     }
 
     def "supplies no additional arguments to target native binary for tool chain default"() {
         when:
+        toolRegistry.locate(_) >> tool
         platform.getOperatingSystem() >> DefaultOperatingSystem.TOOL_CHAIN_DEFAULT
         platform.getArchitecture() >> ArchitectureInternal.TOOL_CHAIN_DEFAULT
 
         then:
-        toolChain.canTargetPlatform(platform)
+        toolChain.canTargetPlatform(platform).available
 
         with(toolChain.getPlatformConfiguration(platform)) {
             linkerArgs == []
@@ -90,11 +91,12 @@ class AbstractGccCompatibleToolChainTest extends Specification {
     @Requires(TestPrecondition.NOT_WINDOWS)
     def "supplies args for supported architecture"() {
         when:
+        toolRegistry.locate(_) >> tool
         platform.getOperatingSystem() >> DefaultOperatingSystem.TOOL_CHAIN_DEFAULT
         platform.getArchitecture() >> new DefaultArchitecture(arch, instructionSet, registerSize)
 
         then:
-        toolChain.canTargetPlatform(platform)
+        toolChain.canTargetPlatform(platform).available
 
         with(toolChain.getPlatformConfiguration(platform)) {
             linkerArgs == [linkerArg]
@@ -117,11 +119,12 @@ class AbstractGccCompatibleToolChainTest extends Specification {
     @Requires(TestPrecondition.WINDOWS)
     def "supplies args for supported architecture for i386 architecture on windows"() {
         when:
+        toolRegistry.locate(_) >> tool
         platform.getOperatingSystem() >> DefaultOperatingSystem.TOOL_CHAIN_DEFAULT
         platform.getArchitecture() >> new DefaultArchitecture("i386", X86, 32)
 
         then:
-        toolChain.canTargetPlatform(platform)
+        toolChain.canTargetPlatform(platform).available
 
         with(toolChain.getPlatformConfiguration(platform)) {
             linkerArgs == ["-m32"]
@@ -154,6 +157,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         def platformConfig1 = Mock(TargetPlatformConfiguration)
         def platformConfig2 = Mock(TargetPlatformConfiguration)
         when:
+        toolRegistry.locate(_) >> tool
         platform.getOperatingSystem() >> new DefaultOperatingSystem("other", OperatingSystem.SOLARIS)
 
         and:
@@ -165,7 +169,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         platformConfig2.supportsPlatform(platform) >> true
 
         then:
-        toolChain.canTargetPlatform(platform)
+        toolChain.canTargetPlatform(platform).available
 
         and:
         toolChain.getPlatformConfiguration(platform) == platformConfig2

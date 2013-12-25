@@ -24,6 +24,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.text.TreeFormatter;
 import org.gradle.nativebinaries.platform.Platform;
 import org.gradle.nativebinaries.toolchain.ToolChain;
+import org.gradle.util.TreeVisitor;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -65,7 +66,7 @@ public class DefaultToolChainRegistry extends DefaultPolymorphicDomainObjectCont
 
     public ToolChain getForPlatform(Platform targetPlatform) {
         for (ToolChainInternal toolChain : searchOrder) {
-            if (toolChain.getAvailability().isAvailable() && toolChain.canTargetPlatform(targetPlatform)) {
+            if (toolChain.canTargetPlatform(targetPlatform).isAvailable()) {
                 return toolChain;
             }
         }
@@ -76,14 +77,10 @@ public class DefaultToolChainRegistry extends DefaultPolymorphicDomainObjectCont
         failureMessage.node(String.format("No tool chain is available to build for platform '%s'", targetPlatform.getName()));
         failureMessage.startChildren();
         for (ToolChainInternal toolChain : searchOrder) {
-            if (!toolChain.getAvailability().isAvailable()) {
-                failureMessage.node(toolChain.getDisplayName());
-                failureMessage.startChildren();
-                toolChain.getAvailability().explain(failureMessage);
-                failureMessage.endChildren();
-            } else {
-                failureMessage.node(String.format("%s cannot build for platform '%s'.", toolChain.getDisplayName(), targetPlatform.getName()));
-            }
+            failureMessage.node(toolChain.getDisplayName());
+            failureMessage.startChildren();
+            toolChain.canTargetPlatform(targetPlatform).explain(failureMessage);
+            failureMessage.endChildren();
         }
         if (searchOrder.isEmpty()) {
             failureMessage.node("No tool chain plugin applied.");
@@ -113,16 +110,20 @@ public class DefaultToolChainRegistry extends DefaultPolymorphicDomainObjectCont
             throw failure();
         }
 
-        public boolean canTargetPlatform(Platform targetPlatform) {
-            return false;
+        public ToolSearchResult canTargetPlatform(Platform targetPlatform) {
+            return new ToolSearchResult() {
+                public boolean isAvailable() {
+                    return false;
+                }
+
+                public void explain(TreeVisitor<? super String> visitor) {
+                    visitor.node(failureMessage);
+                }
+            };
         }
 
         private RuntimeException failure() {
             return new GradleException(failureMessage);
-        }
-
-        public ToolChainAvailability getAvailability() {
-            return new ToolChainAvailability().unavailable("No tool chain is available.");
         }
 
         public String getExecutableName(String executablePath) {

@@ -18,6 +18,7 @@ package org.gradle.nativebinaries.toolchain.internal.msvcpp
 
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.nativebinaries.platform.Platform
 import org.gradle.nativebinaries.toolchain.internal.ToolChainAvailability
 import org.gradle.process.internal.ExecActionFactory
 import org.gradle.test.fixtures.file.TestDirectoryProvider
@@ -80,12 +81,11 @@ class VisualCppToolChainTest extends Specification {
         windowsSdkLookup.available >> false
 
         and:
-        def availability = new ToolChainAvailability()
-        toolChain.checkAvailable(availability)
+        def result = toolChain.canTargetPlatform(Stub(Platform))
 
         then:
-        !availability.available
-        availability.unavailableMessage == "vs install not found anywhere"
+        !result.available
+        result.unavailableMessage == "vs install not found anywhere"
     }
 
     def "is unavailable when windows SDK cannot be located"() {
@@ -96,22 +96,47 @@ class VisualCppToolChainTest extends Specification {
         windowsSdkLookup.explain(_) >> { TreeVisitor<String> visitor -> visitor.node("sdk not found anywhere") }
 
         and:
-        def availability = new ToolChainAvailability()
-        toolChain.checkAvailable(availability);
+        def result = toolChain.canTargetPlatform(Stub(Platform))
+
+        then:
+        !result.available
+        result.unavailableMessage == "sdk not found anywhere"
+    }
+
+    def "is not available when visual studio installation and windows SDK can be located and visual studio install does not support target platform"() {
+        when:
+        def visualStudio = Stub(VisualStudioInstall)
+        def visualCpp = Stub(VisualCppInstall)
+        def platform = Stub(Platform) { getName() >> 'platform' }
+        visualStudioLookup.available >> true
+        windowsSdkLookup.available >> true
+        visualStudioLookup.visualStudio >> visualStudio
+        visualStudioLookup.visualStudio >> Stub(VisualStudioInstall)
+        visualStudio.visualCpp >> visualCpp
+        visualCpp.isSupportedPlatform(platform) >> false
+
+        and:
+        def availability = toolChain.canTargetPlatform(platform)
 
         then:
         !availability.available
-        availability.unavailableMessage == "sdk not found anywhere"
+        availability.unavailableMessage == "Don't know how to build for platform 'platform'."
     }
 
-    def "is available when visual studio installation and windows SDK can be located"() {
+    def "is available when visual studio installation and windows SDK can be located and visual studio install supports target platform"() {
         when:
+        def visualStudio = Stub(VisualStudioInstall)
+        def visualCpp = Stub(VisualCppInstall)
+        def platform = Stub(Platform)
         visualStudioLookup.available >> true
         windowsSdkLookup.available >> true
+        visualStudioLookup.visualStudio >> visualStudio
+        visualStudioLookup.visualStudio >> Stub(VisualStudioInstall)
+        visualStudio.visualCpp >> visualCpp
+        visualCpp.isSupportedPlatform(platform) >> true
 
         and:
-        def availability = new ToolChainAvailability()
-        toolChain.checkAvailable(availability);
+        def availability = toolChain.canTargetPlatform(platform)
 
         then:
         availability.available

@@ -27,6 +27,7 @@ import org.gradle.nativebinaries.platform.Platform
 import org.gradle.nativebinaries.platform.PlatformContainer
 import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal
 import org.gradle.nativebinaries.toolchain.ToolChainRegistry
+import org.gradle.nativebinaries.toolchain.internal.ToolSearchResult
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -223,7 +224,9 @@ class NativeBinariesModelPluginTest extends Specification {
     def toolChain(def name) {
         Stub(ToolChainInternal) {
             getName() >> name
-            canTargetPlatform(_) >> true
+            canTargetPlatform(_) >> Stub(ToolSearchResult) {
+                isAvailable() >> true
+            }
         }
     }
 

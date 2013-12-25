@@ -16,18 +16,13 @@
 package org.gradle.nativebinaries.toolchain.internal.gcc;
 
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.specs.Spec;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativebinaries.platform.Platform;
 import org.gradle.nativebinaries.platform.internal.ArchitectureInternal;
-import org.gradle.nativebinaries.toolchain.internal.PlatformToolChain;
-import org.gradle.nativebinaries.toolchain.internal.ToolChainAvailability;
 import org.gradle.nativebinaries.toolchain.PlatformConfigurableToolChain;
 import org.gradle.nativebinaries.toolchain.TargetPlatformConfiguration;
-import org.gradle.nativebinaries.toolchain.internal.AbstractToolChain;
-import org.gradle.nativebinaries.toolchain.internal.ToolType;
+import org.gradle.nativebinaries.toolchain.internal.*;
 import org.gradle.process.internal.ExecActionFactory;
-import org.gradle.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -71,6 +66,9 @@ public abstract class AbstractGccCompatibleToolChain extends AbstractToolChain i
     public PlatformToolChain target(Platform targetPlatform) {
         assertAvailable();
         TargetPlatformConfiguration platformConfiguration = getPlatformConfiguration(targetPlatform);
+        if (platformConfiguration == null) {
+            throw new IllegalStateException(String.format("Tool chain %s cannot build for platform: %s", getName(), targetPlatform.getName()));
+        }
         return new GccPlatformToolChain(tools, execActionFactory, platformConfiguration, canUseCommandFile());
     }
 
@@ -80,19 +78,20 @@ public abstract class AbstractGccCompatibleToolChain extends AbstractToolChain i
                 return platformConfig;
             }
         }
-        throw new IllegalStateException(String.format("Tool chain %s cannot build for platform: %s", getName(), targetPlatform.getName()));
+        return null;
     }
 
     protected boolean canUseCommandFile() {
         return true;
     }
 
-    public boolean canTargetPlatform(final Platform targetPlatform) {
-        return CollectionUtils.any(platformConfigs, new Spec<TargetPlatformConfiguration>() {
-            public boolean isSatisfiedBy(TargetPlatformConfiguration element) {
-                return element.supportsPlatform(targetPlatform);
-            }
-        });
+    public ToolSearchResult canTargetPlatform(final Platform targetPlatform) {
+        ToolChainAvailability result = new ToolChainAvailability();
+        result.mustBeAvailable(getAvailability());
+        if (getPlatformConfiguration(targetPlatform) == null) {
+            result.unavailable(String.format("Don't know how to build for platform '%s'.", targetPlatform.getName()));
+        }
+        return result;
     }
 
     private static class ToolChainDefaultArchitecture implements TargetPlatformConfiguration {

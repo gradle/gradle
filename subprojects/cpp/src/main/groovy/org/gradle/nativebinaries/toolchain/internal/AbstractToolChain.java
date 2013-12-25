@@ -48,7 +48,7 @@ public abstract class AbstractToolChain implements ToolChainInternal {
         return getDisplayName();
     }
 
-    public ToolChainAvailability getAvailability() {
+    protected ToolChainAvailability getAvailability() {
         if (availability == null) {
             availability = new ToolChainAvailability();
             checkAvailable(availability);
