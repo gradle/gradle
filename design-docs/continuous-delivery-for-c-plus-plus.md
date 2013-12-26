@@ -902,6 +902,17 @@ Here's an example:
 - Transitive project dependencies - :a:exe -> :b:lib1 -> :c:lib2
 - Mixed multi-project with multiple components per project
 - Multi-project where :a:exe -> :b:lib1 -> :a:lib2 (Gradle project cycle)
+- Multiple component that all use defaults for platform, build types and flavours
+
+### Open issues
+
+- Handle generated source.
+- Handle case where target operating system for some variants is not windows.
+- Handle case where build tools for a variant are not available for visual studio (eg exclude it with a warning or disable it - if possible).
+- Handle case where component depends on a component in a project without the visual-studio plugin applied (eg auto-apply it or give reasonable error message).
+- Command-line interface is kind of awkward when there are multiple components with the same name in the project hierarchy.
+- Sync extensions in the filters file with those on the corresponding source sets.
+- Generate a project files for VS 2010, VS 2012 or VS 2013 as appropriate
 
 ## Story: Customise generated Visual Studio files
 
@@ -1129,6 +1140,12 @@ To implement this:
 
 # Milestone 4
 
+## Story: CI coverage for more tool chains
+
+- Visual Studio 2013
+- GCC 3
+- XCode on OS X
+
 ## Feature: Flexible source sets
 
 A sequence of stories to make source sets much more flexible, and to improve the conventions of the source sets for a component:
@@ -1265,26 +1282,42 @@ This story moves definition and configuration of the source sets for a component
 
 ## Feature: Objective-C support
 
-### Story: Compile Objective-C source files using the Objective-C compiler
+### Story: Compile Objective-C and ObjectiveC++ source files
+
+- Apply pull request: https://github.com/gradle/gradle/pull/222
+- Add integration test coverage, as below
+- Update documentation:
+    - Mention in the 'native binaries' user guide chapter.
+    - Add types and extensions to DSL reference.
+    - List the new plugins in the 'standard plugins'
 
 #### Test cases
 
-- Reasonable error message when attempting to build an Objective-C binary using Visual Studio.
+- Add `HelloWorldApp` implementation based on Objective-C and add `AbstractLanguageIntegrationTest` and `AbstractLanguageIncrementalBuildIntegrationTest` subclasses
+  that use this.
+- Add `HelloWorldApp` implementation based on Objective-C++ and add `AbstractLanguageIntegrationTest` and `AbstractLanguageIncrementalBuildIntegrationTest` subclasses
+  that use this.
+- Add `HelloWorldApp` implementation that uses a mix of C, C++, Objective-C and Objective-C++ as for `MixedLanguageIntegrationTest`.
+- Source layout for Objective-C and Objective-C++ can be customised
+- Reasonable error message when attempting to build binary from Objective-C or Objective-C++ when using Visual Studio.
 
 #### Open issues
 
-- CI coverage
+- Cross-compilation for iPhone.
 - Make toolchain extensible so that not every toolchain implementation necessarily provides every tool, and may provide additional tools beyond the
   built-in tools.
 - Fix `TargetPlatformConfiguration` so that it extensible, so that not every configuration supports every tool.
-- Incremental compilation should understand `#import`
-- Cross-compilation for iPhone.
 
-### Story: Compile Objective-C++ source files using the Objective-C++ compiler
+### Story: Incremental compilation for Objective-C and Objective-C++
 
-#### Open issues
+- Change the Objective-C and Objective-C++ task implementations to apply incremental compilation, similar to the C and C++ tasks.
+- Source import parsing should understand `#import` directive.
 
-- Incremental compilation.
+#### Test cases
+
+- Add an `AbstractLanguageIncrementalCompileIntegrationTest` subclass for each of Objective-C and Objective-C++
+- Source file uses `#include` to include a header file.
+- Source file uses `#import` to include a header file.
 
 # Later Milestones
 
