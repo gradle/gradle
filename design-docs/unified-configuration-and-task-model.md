@@ -69,11 +69,14 @@ There are a number of other places where the plugins use `container.all { }` to 
 
 These should be refactored to use model rules instead. These will probably require some DSL and rules support.
 
+- Remove all usages of `ModelRegistry` outside the rules infrastructure.
+
 ### Open issues
 
 - Don't close the task container of a project until after all projects that need to be configured have been configured. Need to expose model closing time
   in the profile report.
-- Add `ModelRules.register()` overload that is given an implementation class and takes care of instantiation.
+- Add `ModelRules.register()` overload that is given an implementation class and takes care of instantiation and dependency injection.
+- Replace `ModelRules.register()` method that takes a `Factory` and instead takes a rule that is inspected for its dependencies and return type.
 
 ## Native language plugins use model rules to define and configure tasks
 

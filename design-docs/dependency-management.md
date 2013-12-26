@@ -302,6 +302,12 @@ reports.
 - Verify that when a local component is replaced by an external component (via conflict resolution or dependency substitution) then none of the files
   from the local component are included in the result. For example, when a local component includes some file dependency declarations.
 
+## Story: Native component dependencies are visible in the dependency reports
+
+### Open issues
+
+- Dependencies need to shown per-variant.
+
 ## Story: Plugin contributes a component type implementation
 
 Allow a plugin to contribute a component type implementation, which is responsible for defining some component type. For this story, the definition is
