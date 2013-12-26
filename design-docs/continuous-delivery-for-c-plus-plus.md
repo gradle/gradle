@@ -1025,21 +1025,23 @@ To implement this:
 
 ### Implementation
 
-* Change C++ and C compiler implementations (GCC and VisualCpp) so that only a single sources file is compiled per execution 
+* Change language compiler implementations (GCC and VisualCpp) so that only a single sources file is compiled per execution:
     * Create a single compiler options file to reuse for compiling all source files
     * For each source file specify the source file name and the output file name on the command line
-* Ensure that the generated object files differentiate source files with the same name (and different path)
-    * Given a source file, calculate the hash of the path of the directory containing the sourcefile
-    * Generate the object file into: <task-output-dir>/<hash-of-directory-that-contains-the-source-file>/<source-file-name>.o
+* Ensure that the generated object files differentiate source files with the same name and different path
+    * Given a source file, calculate the hash of the path of the directory containing the source file
+    * Generate the object file into: <task-output-dir>/<hash-of-directory-that-contains-the-source-file>/<source-file-name>.<object-file-extension>
 * Update `OutputCleaningCompiler` with knowledge of the new source->object file mapping
 
 ### Test cases
 
 * C source set includes files with the same name in different directories.
 * C++ source set includes files with the same name in different directories.
+* Objective-C source set includes files with the same name in different directories.
+* Objective-C++ source set includes files with the same name in different directories.
 * Assemble source set includes files with the same name in different directories.
 * Windows resource source set includes files with the same name in different directories.
-* A C and C++ source set include files with the same base name (eg there's a 'foo.c' and a 'foo.cpp' in the same directory)
+* C, C++, Objective-C and Objective-C++ source sets include files with the same base name (eg there's a `foo.c`, `foo.cpp`, `foo.m` and `foo.mm` in the same directory)
 * Removes stale outputs when source file is moved to a different directory
 
 # Milestone 4
