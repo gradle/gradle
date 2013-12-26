@@ -121,3 +121,100 @@ Running `gradle customStaticLibrary customSharedLibrary` will build the static a
 - For a build that uses the `cpp-lib` plugin, `gradle mainStaticLibrary` will produce the static library.
 - For a build that uses the `cpp` plugin and defines multiple libraries, each library can be built as both a static and shared library binary.
 - Can link a static library into an executable and install and run the resulting executable.
+
+## Story: Allow customization of binaries before and after linking (DONE)
+
+This story introduces a lifecycle task for each binary, to allow tasks to be wired into the task graph for a given binary. These tasks will be able to modify the object files or binary files before they are consumed.
+
+- Change `Binary` to extend `Buildable`.
+- Change `NativeComponent` so that it no longer extends `Buildable`.
+- Change the binaries plugin to add a lifecycle task called `${binary.name}`.
+- Change the cpp plugin to rename the link tasks for a binary to `link${binary.name}`.
+- Change `DefaultClassDirectoryBinary` to implement `getBuildDependencies()` (it currently has an empty implementation).
+- Change `CppPlugin` so that the link task for a binary uses the compile task's output as input, rather than depend on the compile task.
+- Add an `InstallExecutable` task type and use this to install an executable.
+- Change `CppPlugin` so that the install task for an executable uses the executable binary as input, rather than depend on the link task.
+- Add `NativeBinary.tasks` property of type `NativeBinaryTasks` that is a `DomainObjectSet<Task>` containing key tasks for a binary.
+     - `NativeBinaryTasks.link` and `NativeBinaryTasks.createStaticLib` are convenience methods for accessing the link/create tasks for a binary.
+
+*Note*: There is a breaking change here, as the link task for a given binary has been renamed.
+
+### User visible changes
+
+    apply plugin: 'cpp'
+
+    binaries.all { binary ->
+        def stripTask = task("${binary.name}Strip") {
+            dependsOn binary.tasks.link
+            doFirst {
+                ["strip", binary.tasks.link.outputFile].execute()
+            }
+        }
+        binary.builtBy stripTask
+    }
+
+## Story: Allow customization of binary compilation and linking (DONE)
+
+This story allows some configuration of the settings used to compile and link a given binary.
+
+Some initial support for settings that will be shared by all binaries of a component will also be added.
+
+Later stories will add more flexible and convenient support for customization of the settings for a binary.
+
+- Add the following mutable properties to `NativeBinary`:
+    - `outputFile`
+    - `objectFileDirectory`
+    - `compilerArgs`
+- Add the following mutable properties to `ExecutableBinary` and `SharedLibraryBinary`:
+    - `linkerArgs`
+- Add a `binaries` property to `NativeComponent`. This is a `DomainObjectCollection` of all binaries for the component.
+- Remove `NativeComponent.compilerArgs` and `linkerArgs` properties. Instead, configuration injection via the `binaries` container can be used to
+  define shared settings for the binaries of a component.
+
+### User visible changes
+
+    apply plugin: 'cpp-lib'
+
+    libraries {
+        main {
+            // Defaults for all binaries for this library
+            binaries.all {
+                compilerArgs = ['-DSOME_DEFINE']
+                linkerArgs = ['-lsomelib']
+            }
+            // Defaults for all shared library binaries for this library
+            binaries.withType(SharedLibraryBinary) {
+                compilerArgs << '/DDLL_EXPORT'
+            }
+        }
+    }
+
+    binaries {
+        mainSharedLibrary {
+            // Adjust the args for this binary
+            compileArgs << '-DSOME_OTHER_DEFINE'
+            linkerArgs << '-lotherlib
+        }
+    }
+
+    binaries.withType(NativeBinary) {
+        outputFile = file("$buildDir/${name}/${outputFileName}")
+        objectFileDirectory = file("$buildDir/${name}/obj")
+    }
+
+## Story: Ensure CI builds exercise test coverage for supported tool chains (DONE)
+
+The CI builds include coverage for each supported tool chain. However, the coverage silently ignores tool chains which are not
+available on the current machine. Instead, the CI builds should asert that every expected tool chain is avilable on the current
+machine.
+
+Later stories will add further integration test coverage for particular OS and tool chain combinations.
+
+- Change `AbstractBinariesIntegrationSpec` to assert that each expected tool chain is installed on the current machine when
+  runnning as part of a CI coverage build.
+- Change `AbstractBinariesIntegrationSpec` to use a single tool chain for each machine as part of a CI commit build. For Windows,
+  the test should use a recent version of Visual C++, and for Linux, the test should use GCC.
+- Install Visual C++ 2010 express, Cygwin and MinGW on the Windows CI agents, as required.
+- Install GCC 3 and GCC 4 the linux CI agents, as required.
+- Update the server wiki pages to describe the installation steps required for each machine.
+
