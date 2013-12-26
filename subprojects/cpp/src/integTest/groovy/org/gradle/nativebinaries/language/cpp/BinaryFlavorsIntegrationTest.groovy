@@ -208,9 +208,7 @@ class BinaryFlavorsIntegrationTest extends AbstractInstalledToolChainIntegration
 
         then:
         fails "germanMainExecutable"
-        // TODO:DAZ Improve the exception message
-        failure.assertHasDescription("Could not determine the dependencies of task ':linkGermanMainExecutable'.")
-        failure.assertHasCause("No shared library binary available for library 'hello' with [flavor: 'german'")
+        failure.assertHasDescription("No shared library binary available for library 'hello' with [flavor: 'german', platform: 'current', buildType: 'debug']")
     }
 
     def "fails with reasonable error message when trying to target an unknown flavor"() {

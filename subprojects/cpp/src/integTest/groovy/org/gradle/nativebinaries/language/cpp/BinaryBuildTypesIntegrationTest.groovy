@@ -201,8 +201,6 @@ class BinaryBuildTypesIntegrationTest extends AbstractInstalledToolChainIntegrat
         fails "releaseMainExecutable"
 
         then:
-        // TODO:DAZ Improve the exception message
-        failure.assertHasDescription("Could not determine the dependencies of task ':linkReleaseMainExecutable'.")
-        failure.assertHasCause("No static library binary available for library 'hello' with [flavor: 'default', platform: 'current', buildType: 'release']")
+        failure.assertHasDescription("No static library binary available for library 'hello' with [flavor: 'default', platform: 'current', buildType: 'release']")
     }
 }

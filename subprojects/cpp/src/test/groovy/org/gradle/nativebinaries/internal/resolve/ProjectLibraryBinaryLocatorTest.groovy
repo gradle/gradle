@@ -15,13 +15,14 @@
  */
 package org.gradle.nativebinaries.internal.resolve
 import org.gradle.api.DomainObjectSet
-import org.gradle.api.InvalidUserDataException
 import org.gradle.api.UnknownDomainObjectException
 import org.gradle.api.UnknownProjectException
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
 import org.gradle.api.internal.plugins.ExtensionContainerInternal
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.nativebinaries.*
+import org.gradle.nativebinaries.Library
+import org.gradle.nativebinaries.LibraryContainer
+import org.gradle.nativebinaries.NativeLibraryRequirement
 import org.gradle.nativebinaries.internal.ProjectNativeLibraryRequirement
 import spock.lang.Specification
 
@@ -118,7 +119,7 @@ class ProjectLibraryBinaryLocatorTest extends Specification {
         locator.getBinaries(requirement)
 
         then:
-        def e = thrown(InvalidUserDataException)
+        def e = thrown(LibraryResolveException)
         e.message == "Project does not have a libraries container: 'project-path'"
     }
 

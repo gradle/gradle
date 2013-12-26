@@ -68,7 +68,6 @@ int main () {
 
     @Override
     SourceFile getLibraryHeader() {
-        // TODO:DAZ Split this into 2 header files
         return sourceFile("headers", "hello.h", """
 #define IDS_HELLO    111
 

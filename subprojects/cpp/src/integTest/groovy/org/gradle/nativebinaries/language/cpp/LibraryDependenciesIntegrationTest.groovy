@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.nativebinaries.language.cpp
+
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativebinaries.language.cpp.fixtures.app.CppHelloWorldApp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.ExeWithDiamondDependencyHelloWorldApp
@@ -37,6 +38,46 @@ class LibraryDependenciesIntegrationTest extends AbstractInstalledToolChainInteg
                 }
             }
 """
+    }
+
+    @Unroll
+    def "produces reasonable error message when referenced library #label"() {
+        given:
+        def app = new CppHelloWorldApp()
+        app.executable.writeSources(file("exe/src/main"))
+        app.library.writeSources(file("lib/src/hello"))
+
+        and:
+        settingsFile.text = "include ':exe', ':other'"
+        buildFile << """
+        project(":exe") {
+            executables {
+                main {}
+            }
+            libraries {
+                hello {}
+            }
+            sources.main.cpp.lib ${dependencyNotation}
+        }
+        project(":other") {
+            libraries {
+                hello {}
+            }
+        }
+        """
+
+        when:
+        fails ":exe:mainExecutable"
+
+        then:
+        failure.assertHasDescription(description)
+        failure.assertHasCause(cause)
+
+        where:
+        label                                  | dependencyNotation                      | description                                                | cause
+        "does not exist"                       | "library: 'unknown'"                    | "Could not locate library 'unknown'."                      | "Library with name 'unknown' not found."
+        "project that does not exist"          | "project: ':unknown', library: 'hello'" | "Could not locate library 'hello' for project ':unknown'." | "Project with path ':unknown' could not be found in project ':exe'."
+        "does not exist in referenced project" | "project: ':other', library: 'unknown'" | "Could not locate library 'unknown' for project ':other'." | "Library with name 'unknown' not found."
     }
 
     def "can use map notation to reference library in same project"() {

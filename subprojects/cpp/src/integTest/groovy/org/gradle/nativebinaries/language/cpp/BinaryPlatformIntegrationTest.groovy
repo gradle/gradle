@@ -311,9 +311,7 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
         fails "oneMainExecutable"
 
         then:
-        // TODO:DAZ Improve the exception message
-        failure.assertHasDescription("Could not determine the dependencies of task ':linkOneMainExecutable'.")
-        failure.assertHasCause("No shared library binary available for library 'hello' with [flavor: 'default', platform: 'one',")
+        failure.assertHasDescription("No shared library binary available for library 'hello' with [flavor: 'default', platform: 'one', buildType: 'debug']")
     }
 
     def binaryInfo(TestFile file) {

@@ -16,7 +16,6 @@
 package org.gradle.nativebinaries.internal.resolve;
 
 import org.gradle.api.DomainObjectSet;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.nativebinaries.LibraryContainer;
@@ -34,7 +33,7 @@ public class ProjectLibraryBinaryLocator implements LibraryBinaryLocator {
         Project project = findProject(requirement);
         LibraryContainer libraryContainer = (LibraryContainer) project.getExtensions().findByName("libraries");
         if (libraryContainer == null) {
-            throw new InvalidUserDataException(String.format("Project does not have a libraries container: '%s'", project.getPath()));
+            throw new LibraryResolveException(String.format("Project does not have a libraries container: '%s'", project.getPath()));
         }
         return libraryContainer.getByName(requirement.getLibraryName()).getBinaries();
     }
