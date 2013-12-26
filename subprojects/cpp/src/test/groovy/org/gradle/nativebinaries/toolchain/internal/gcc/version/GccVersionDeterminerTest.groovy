@@ -55,7 +55,7 @@ class GccVersionDeterminerTest extends Specification {
         output << [ "not sure about this", "" ]
     }
 
-    def "g++ -v execution error ok"() {
+    def "g++ execution error ok"() {
         given:
         def visitor = Mock(TreeVisitor)
         def action = Mock(ExecAction)
@@ -87,11 +87,16 @@ class GccVersionDeterminerTest extends Specification {
         def visitor = Mock(TreeVisitor)
 
         expect:
-        def result = output """Configured with: --prefix=/Applications/Xcode.app/Contents/Developer/usr --with-gxx-include-dir=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk/usr/include/c++/4.2.1
-        Apple LLVM version 5.0 (clang-500.2.79) (based on LLVM 3.3svn)
-        Target: x86_64-apple-darwin13.0.0
-        Thread model: posix
-        """
+        def result = output """#define __GNUC_MINOR__ 2
+#define __GNUC_PATCHLEVEL__ 1
+#define __GNUC__ 4
+#define __VERSION__ "4.2.1 Compatible Apple LLVM 5.0 (clang-500.2.79)"
+#define __clang__ 1
+#define __clang_major__ 5
+#define __clang_minor__ 0
+#define __clang_patchlevel__ 0
+#define __clang_version__ "5.0 (clang-500.2.79)"
+"""
         !result.available
 
         when:
@@ -105,7 +110,7 @@ class GccVersionDeterminerTest extends Specification {
         def action = Mock(ExecAction)
         def result = Mock(ExecResult)
         1 * execActionFactory.newExecAction() >> action
-        1 * action.setErrorOutput(_) >> { OutputStream outstr -> outstr << output; action }
+        1 * action.setStandardOutput(_) >> { OutputStream outstr -> outstr << output; action }
         1 * action.execute() >> result
         new GccVersionDeterminer(execActionFactory).transform(new File("g++"))
     }
@@ -123,18 +128,12 @@ class GccVersionDeterminerTest extends Specification {
     }
 
     static final OUTPUTS = [
-            """Using built-in specs.
-Target: i686-apple-darwin11
-Configured with: /private/var/tmp/llvmgcc42/llvmgcc42-2336.1~22/src/configure
-Thread model: posix
-gcc version 4.2.1 (Based on Apple Inc. build 5658) (LLVM build 2336.1.00)""": "4.2.1",
-            """Reading specs from /opt/gcc/3.4.6/usr/local/bin/../lib/gcc/i686-pc-linux-gnu/3.4.6/specs
-Configured with: /home/ld/Downloads/gcc-3.4.6/configure
-Thread model: posix
-gcc version 3.4.6""": "3.4.6",
-            """Reading specs from /opt/gcc/3.4.6/usr/local/bin/../lib/gcc/i686-pc-linux-gnu/3.4.6/specs
-Configured with: /home/ld/Downloads/gcc-3.4.6/configure
-Thread model: posix
-gcc version 3.4.6-sometag""": "3.4.6-sometag"
+        """#define __GNUC_MINOR__ 2
+#define __GNUC_PATCHLEVEL__ 1
+#define __GNUC__ 4
+#define __INTMAX_C(c) c ## LL
+#define __REGISTER_PREFIX__ """: "4",
+        """#define __gnu_linux__ 1
+#define __GNUC__ 3""": "3",
     ]
 }

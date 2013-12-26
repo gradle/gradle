@@ -17,13 +17,15 @@
 package org.gradle.nativebinaries.toolchain.internal.gcc.version;
 
 import org.gradle.api.Transformer;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.ExecAction;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.util.TreeVisitor;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
+import java.io.*;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -31,8 +33,7 @@ import java.util.regex.Pattern;
  * Given a File pointing to an (existing) g++ binary, extracts the version number by running with -v and scraping the output.
  */
 public class GccVersionDeterminer implements Transformer<GccVersionResult, File> {
-    private static final String GCC_VERSION_PATTERN = ".*gcc version (\\S+).*";
-    private static final String APPLE_LLVM_PATTERN = ".*Apple LLVM.*";
+    private static final Pattern DEFINE_PATTERN = Pattern.compile("\\s*#define\\s+(\\S+)\\s+(.*)");
 
     private final Transformer<String, File> outputProducer;
 
@@ -49,19 +50,28 @@ public class GccVersionDeterminer implements Transformer<GccVersionResult, File>
     }
 
     private GccVersionResult transform(String output, File gccBinary) {
-        Pattern pattern = Pattern.compile(GCC_VERSION_PATTERN, Pattern.DOTALL);
-        Matcher matcher = pattern.matcher(output);
-        if (matcher.matches()) {
-            String scrapedVersion = matcher.group(1);
-            return new DefaultGccVersionResult(scrapedVersion);
-        } else {
-            Matcher xcodeGccMatcher = Pattern.compile(APPLE_LLVM_PATTERN, Pattern.DOTALL).matcher(output);
-            if (xcodeGccMatcher.matches()) {
-                return new BrokenResult(String.format("XCode %s is a wrapper around Clang. Treating it as Clang and not GCC.", gccBinary.getName()));
-            } else {
-                return new BrokenResult(String.format("Could not determine GCC version: %s produced unexpected output.", gccBinary.getName()));
+        BufferedReader reader = new BufferedReader(new StringReader(output));
+        String line;
+        Map<String, String> defines = new HashMap<String, String>();
+        try {
+            while ((line = reader.readLine()) != null) {
+                Matcher matcher = DEFINE_PATTERN.matcher(line);
+                if (!matcher.matches()) {
+                    return new BrokenResult(String.format("Could not determine GCC version: %s produced unexpected output.", gccBinary.getName()));
+                }
+                defines.put(matcher.group(1), matcher.group(2));
             }
+        } catch (IOException e) {
+            // Should not happen reading from a StringReader
+            throw new UncheckedIOException(e);
         }
+        if (!defines.containsKey("__GNUC__")) {
+            return new BrokenResult(String.format("Could not determine GCC version: %s produced unexpected output.", gccBinary.getName()));
+        }
+        if (defines.containsKey("__clang__")) {
+            return new BrokenResult(String.format("XCode %s is a wrapper around Clang. Treating it as Clang and not GCC.", gccBinary.getName()));
+        }
+        return new DefaultGccVersionResult(defines.get("__GNUC__"));
     }
 
     private static class DefaultGccVersionResult implements GccVersionResult {
@@ -95,9 +105,9 @@ public class GccVersionDeterminer implements Transformer<GccVersionResult, File>
             ExecAction exec = execActionFactory.newExecAction();
             exec.executable(gccBinary.getAbsolutePath());
             exec.setWorkingDir(gccBinary.getParentFile());
-            exec.args("-v");
+            exec.args("-dM", "-E", "-");
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            exec.setErrorOutput(baos);
+            exec.setStandardOutput(baos);
             exec.setIgnoreExitValue(true);
             ExecResult result = exec.execute();
 
