@@ -16,6 +16,7 @@
 package org.gradle.ide.visualstudio.internal.rules;
 
 import org.gradle.api.Task;
+import org.gradle.api.tasks.Delete;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.ide.visualstudio.VisualStudioExtension;
 import org.gradle.ide.visualstudio.VisualStudioProject;
@@ -24,6 +25,7 @@ import org.gradle.ide.visualstudio.tasks.GenerateFiltersFileTask;
 import org.gradle.ide.visualstudio.tasks.GenerateProjectFileTask;
 import org.gradle.ide.visualstudio.tasks.GenerateSolutionFileTask;
 import org.gradle.model.ModelRule;
+import org.gradle.nativebinaries.ProjectNativeComponent;
 
 public class CreateVisualStudioTasks extends ModelRule {
 
@@ -35,13 +37,22 @@ public class CreateVisualStudioTasks extends ModelRule {
         }
 
         for (VisualStudioSolution vsSolution : visualStudioExtension.getSolutions()) {
-            vsSolution.setLifecycleTask(tasks.create(vsSolution.getName() + "VisualStudio"));
+            Task solutionTask = tasks.create(vsSolution.getName() + "VisualStudio");
+            solutionTask.setDescription(String.format("Generates the '%s' Visual Studio solution file.", vsSolution.getName()));
+            vsSolution.setLifecycleTask(solutionTask);
             vsSolution.builtBy(createSolutionTask(tasks, vsSolution));
 
             // Lifecycle task for component
-            Task lifecycleTask = tasks.create(vsSolution.getComponent().getName() + "VisualStudio").dependsOn(vsSolution);
+            ProjectNativeComponent component = vsSolution.getComponent();
+            Task lifecycleTask = tasks.create(component.getName() + "VisualStudio").dependsOn(vsSolution);
             lifecycleTask.setGroup("IDE");
+            lifecycleTask.setDescription(String.format("Generates the Visual Studio solution for %s.", component));
         }
+
+        Delete cleanTask = tasks.create("cleanVisualStudio", Delete.class);
+        cleanTask.delete("visualStudio");
+        cleanTask.setGroup("IDE");
+        cleanTask.setDescription("Removes all Visual Studio project and solution files");
     }
 
     private Task createSolutionTask(TaskContainer tasks, VisualStudioSolution solution) {

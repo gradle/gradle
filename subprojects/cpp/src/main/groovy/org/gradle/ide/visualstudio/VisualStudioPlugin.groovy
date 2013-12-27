@@ -20,7 +20,6 @@ import org.gradle.api.Plugin
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.tasks.Delete
 import org.gradle.ide.visualstudio.internal.DefaultVisualStudioExtension
 import org.gradle.ide.visualstudio.internal.rules.CreateVisualStudioModel
 import org.gradle.ide.visualstudio.internal.rules.CreateVisualStudioTasks
@@ -52,11 +51,6 @@ class VisualStudioPlugin implements Plugin<ProjectInternal> {
         project.modelRegistry.create("visualStudio", ["flavors", "platforms"], new VisualStudioExtensionFactory(instantiator, new RelativeProjectFinder(project), project.getFileResolver()))
         modelRules.rule(new CreateVisualStudioModel())
         modelRules.rule(new CreateVisualStudioTasks())
-
-        def cleanTask = project.task("cleanVisualStudio", type: Delete) {
-            delete "visualStudio"
-        }
-        cleanTask.group = "IDE"
     }
 
     private static class VisualStudioExtensionFactory implements ModelCreator<DefaultVisualStudioExtension> {
