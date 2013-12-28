@@ -18,8 +18,6 @@ package org.gradle.foundation.queue;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
@@ -61,6 +59,10 @@ public class ExecutionQueue<R extends ExecutionQueue.Request> {
         public Type getType();
     }
 
+    public interface RequestCancellation {
+        void onCancel(Request request);
+    }
+
     public ExecutionQueue(ExecutionInteraction<R> executeInteraction) {
         executionThread = new Thread(new ExecutionThread(executeInteraction));
 
@@ -79,16 +81,8 @@ public class ExecutionQueue<R extends ExecutionQueue.Request> {
         requests.offer(request);
     }
 
-    public boolean removeRequestFromQueue(R request) {
+    public boolean removeRequestFromQueue(Request request) {
         return requests.remove(request);
-    }
-
-    public boolean hasRequests() {
-        return !requests.isEmpty();
-    }
-
-    public List<R> getRequests() {
-        return new ArrayList<R>(requests);
     }
 
     /**

@@ -33,8 +33,8 @@ public class ExecutionRequest extends AbstractRequest {
     public static final Type TYPE = new Type() {
     };
 
-    public ExecutionRequest(long requestID, String fullCommandLine, String displayName, boolean forceOutputToBeShown, ExecutionQueue executionQueue) {
-        super(requestID, fullCommandLine, displayName, forceOutputToBeShown, executionQueue);
+    public ExecutionRequest(long requestID, String fullCommandLine, String displayName, boolean forceOutputToBeShown, ExecutionQueue.RequestCancellation cancellation) {
+        super(requestID, fullCommandLine, displayName, forceOutputToBeShown, cancellation);
     }
 
     /**
