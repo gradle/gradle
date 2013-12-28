@@ -18,7 +18,8 @@ package org.gradle.ide.visualstudio.internal
 
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.language.HeaderExportingSourceSet
-import org.gradle.nativebinaries.*
+import org.gradle.nativebinaries.ProjectNativeBinary
+import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
 import org.gradle.nativebinaries.language.PreprocessingTool
 import org.gradle.nativebinaries.toolchain.internal.MacroArgsConverter
 
@@ -26,10 +27,10 @@ class VisualStudioProjectConfiguration {
     private final DefaultVisualStudioProject vsProject
     private final String configurationName
     private final String platformName
-    final ProjectNativeBinary binary
+    final ProjectNativeBinaryInternal binary
     final String type
 
-    VisualStudioProjectConfiguration(DefaultVisualStudioProject vsProject, String configurationName, String platformName, NativeBinary binary, String type) {
+    VisualStudioProjectConfiguration(DefaultVisualStudioProject vsProject, String configurationName, String platformName, ProjectNativeBinary binary, String type) {
         this.vsProject = vsProject
         this.configurationName = configurationName
         this.platformName = platformName
