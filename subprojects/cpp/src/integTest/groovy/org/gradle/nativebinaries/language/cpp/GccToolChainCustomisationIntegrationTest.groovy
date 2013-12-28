@@ -84,8 +84,8 @@ class GccToolChainCustomisationIntegrationTest extends AbstractIntegrationSpec {
                         create("arm") {
                             architecture "arm"
                         }
-                        create("x64") {
-                            architecture "x86_64"
+                        create("i386") {
+                            architecture "i386"
                         }
                     }
                 }
@@ -97,11 +97,11 @@ class GccToolChainCustomisationIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 List<String> getCppCompilerArgs() {
-                    ["-m32"]
+                    ["-m32", "-DFRENCH"]
                 }
 
                 List<String> getCCompilerArgs() {
-                    ["-m32"]
+                    ["-m32", "-DFRENCH"]
                 }
 
                 List<String> getAssemblerArgs() {
@@ -119,13 +119,13 @@ class GccToolChainCustomisationIntegrationTest extends AbstractIntegrationSpec {
 """
 
         and:
-        succeeds "armMainExecutable", "x64MainExecutable"
+        succeeds "armMainExecutable", "i386MainExecutable"
 
         then:
         executable("build/binaries/mainExecutable/arm/main").binaryInfo.arch.name == "x86"
-        executable("build/binaries/mainExecutable/arm/main").exec().out == helloWorldApp.englishOutput
+        executable("build/binaries/mainExecutable/arm/main").exec().out == helloWorldApp.frenchOutput
 
-        executable("build/binaries/mainExecutable/x64/main").binaryInfo.arch.name == "x86_64"
+        executable("build/binaries/mainExecutable/x64/main").binaryInfo.arch.name == "x86"
         executable("build/binaries/mainExecutable/x64/main").exec().out == helloWorldApp.englishOutput
     }
 
