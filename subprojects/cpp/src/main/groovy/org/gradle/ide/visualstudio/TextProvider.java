@@ -16,9 +16,12 @@
 
 package org.gradle.ide.visualstudio;
 
+import org.gradle.api.Incubating;
+
 /**
  * Provides access to the content of a generated text file.
  */
+@Incubating
 public interface TextProvider {
     /**
      * The text content.

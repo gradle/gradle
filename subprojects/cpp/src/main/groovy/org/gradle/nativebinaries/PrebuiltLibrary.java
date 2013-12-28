@@ -17,12 +17,14 @@
 package org.gradle.nativebinaries;
 
 import org.gradle.api.DomainObjectSet;
+import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.api.file.SourceDirectorySet;
 
 /**
  * A library component that is not built by gradle.
  */
+@Incubating
 public interface PrebuiltLibrary extends Named {
     /**
      * The binaries that are built for this component. You can use this to configure the binaries for this component.

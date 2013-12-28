@@ -16,11 +16,13 @@
 
 package org.gradle.nativebinaries;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.PolymorphicDomainObjectContainer;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
 
 /**
  * The repositories that Gradle will search for prebuilt libraries.
  */
+@Incubating
 public interface Repositories extends PolymorphicDomainObjectContainer<ArtifactRepository> {
 }

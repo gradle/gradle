@@ -16,11 +16,14 @@
 
 package org.gradle.nativebinaries;
 
+import org.gradle.api.Incubating;
+
 import java.io.File;
 
 /**
  * The static linkage of a {@link PrebuiltLibrary}.
  */
+@Incubating
 public interface PrebuiltStaticLibraryBinary extends StaticLibraryBinary {
     /**
      * The static library binary file.

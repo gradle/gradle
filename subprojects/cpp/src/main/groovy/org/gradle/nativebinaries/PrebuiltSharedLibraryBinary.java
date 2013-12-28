@@ -16,11 +16,14 @@
 
 package org.gradle.nativebinaries;
 
+import org.gradle.api.Incubating;
+
 import java.io.File;
 
 /**
  * The shared library linkage of a {@link PrebuiltLibrary}.
  */
+@Incubating
 public interface PrebuiltSharedLibraryBinary extends SharedLibraryBinary {
     /**
      * The shared library file.

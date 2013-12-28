@@ -16,11 +16,13 @@
 
 package org.gradle.nativebinaries;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
 
 /**
  * A container of {@link PrebuiltLibrary} instances.
  */
+@Incubating
 public interface PrebuiltLibraries extends ArtifactRepository, NamedDomainObjectSet<PrebuiltLibrary> {
 }

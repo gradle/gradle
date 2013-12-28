@@ -15,9 +15,12 @@
  */
 package org.gradle.nativebinaries;
 
+import org.gradle.api.Incubating;
+
 /**
  * A dependency on a native-binaries library within the build.
  */
+@Incubating
 public interface NativeLibraryRequirement {
     /**
      * The path to the project containing the library.
