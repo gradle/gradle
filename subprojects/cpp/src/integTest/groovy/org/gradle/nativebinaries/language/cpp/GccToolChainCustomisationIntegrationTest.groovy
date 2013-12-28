@@ -37,6 +37,12 @@ class GccToolChainCustomisationIntegrationTest extends AbstractIntegrationSpec {
             apply plugin: 'cpp'
             apply plugin: 'c'
 
+            model {
+                toolChains {
+                    ${gcc.buildScriptConfig}
+                }
+            }
+
             executables {
                 main {
                     binaries.all {
@@ -71,7 +77,7 @@ class GccToolChainCustomisationIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             model {
                 toolChains {
-                    crossCompiler(Gcc) {
+                    ${gcc.id} {
                         addPlatformConfiguration(new ArmArchitecture())
                     }
                     platforms {
@@ -128,7 +134,7 @@ class GccToolChainCustomisationIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             model {
                 toolChains {
-                    gcc(Gcc) {
+                    ${gcc.id} {
                         cppCompiler.withArguments { args ->
                             Collections.replaceAll(args, "CUSTOM", "-O3")
                         }
