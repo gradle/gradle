@@ -125,8 +125,8 @@ class GccToolChainCustomisationIntegrationTest extends AbstractIntegrationSpec {
         executable("build/binaries/mainExecutable/arm/main").binaryInfo.arch.name == "x86"
         executable("build/binaries/mainExecutable/arm/main").exec().out == helloWorldApp.frenchOutput
 
-        executable("build/binaries/mainExecutable/x64/main").binaryInfo.arch.name == "x86"
-        executable("build/binaries/mainExecutable/x64/main").exec().out == helloWorldApp.englishOutput
+        executable("build/binaries/mainExecutable/i386/main").binaryInfo.arch.name == "x86"
+        executable("build/binaries/mainExecutable/i386/main").exec().out == helloWorldApp.englishOutput
     }
 
     def "can add action to tool chain that modifies tool arguments prior to execution"() {
