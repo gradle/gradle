@@ -39,15 +39,7 @@ public class InputStreamBackedDecoder extends AbstractDecoder implements Decoder
         return inputStream.readLong();
     }
 
-    public long readSmallLong() throws IOException {
-        return inputStream.readLong();
-    }
-
     public int readInt() throws EOFException, IOException {
-        return inputStream.readInt();
-    }
-
-    public int readSmallInt() throws EOFException, IOException {
         return inputStream.readInt();
     }
 
@@ -57,21 +49,6 @@ public class InputStreamBackedDecoder extends AbstractDecoder implements Decoder
 
     public String readString() throws EOFException, IOException {
         return inputStream.readUTF();
-    }
-
-    public String readNullableString() throws EOFException, IOException {
-        if (inputStream.readBoolean()) {
-            return inputStream.readUTF();
-        } else {
-            return null;
-        }
-    }
-
-    public byte[] readBinary() throws IOException {
-        int length = inputStream.readInt();
-        byte[] result = new byte[length];
-        inputStream.readFully(result);
-        return result;
     }
 
     public byte readByte() throws IOException {

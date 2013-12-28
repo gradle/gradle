@@ -16,8 +16,6 @@
 
 package org.gradle.messaging.serialize;
 
-import org.gradle.api.Nullable;
-
 import java.io.Closeable;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -34,15 +32,7 @@ public class OutputStreamBackedEncoder extends AbstractEncoder implements Closea
         outputStream.writeLong(value);
     }
 
-    public void writeSmallLong(long value) throws IOException {
-        outputStream.writeLong(value);
-    }
-
     public void writeInt(int value) throws IOException {
-        outputStream.writeInt(value);
-    }
-
-    public void writeSmallInt(int value) throws IOException {
         outputStream.writeInt(value);
     }
 
@@ -55,20 +45,6 @@ public class OutputStreamBackedEncoder extends AbstractEncoder implements Closea
             throw new IllegalArgumentException("Cannot encode a null string.");
         }
         outputStream.writeUTF(value.toString());
-    }
-
-    public void writeNullableString(@Nullable CharSequence value) throws IOException {
-        if (value == null) {
-            outputStream.writeBoolean(false);
-        } else {
-            outputStream.writeBoolean(true);
-            outputStream.writeUTF(value.toString());
-        }
-    }
-
-    public void writeBinary(byte[] bytes, int offset, int count) throws IOException {
-        outputStream.writeInt(count);
-        outputStream.write(bytes, offset, count);
     }
 
     public void writeByte(byte value) throws IOException {

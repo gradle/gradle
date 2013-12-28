@@ -34,6 +34,29 @@ public abstract class AbstractDecoder implements Decoder {
         readBytes(buffer, 0, buffer.length);
     }
 
+    public byte[] readBinary() throws EOFException, IOException {
+        int size = readSmallInt();
+        byte[] result = new byte[size];
+        readBytes(result);
+        return result;
+    }
+
+    public int readSmallInt() throws EOFException, IOException {
+        return readInt();
+    }
+
+    public long readSmallLong() throws EOFException, IOException {
+        return readLong();
+    }
+
+    public String readNullableString() throws EOFException, IOException {
+        if (readBoolean()) {
+            return readString();
+        } else {
+            return null;
+        }
+    }
+
     public void skipBytes(long count) throws EOFException, IOException {
         long remaining = count;
         while (remaining > 0) {

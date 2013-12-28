@@ -16,6 +16,8 @@
 
 package org.gradle.messaging.serialize;
 
+import org.gradle.api.Nullable;
+
 import java.io.IOException;
 import java.io.OutputStream;
 
@@ -35,6 +37,28 @@ public abstract class AbstractEncoder implements Encoder {
 
     public void writeBinary(byte[] bytes) throws IOException {
         writeBinary(bytes, 0, bytes.length);
+    }
+
+    public void writeBinary(byte[] bytes, int offset, int count) throws IOException {
+        writeSmallInt(count);
+        writeBytes(bytes, offset, count);
+    }
+
+    public void writeSmallInt(int value) throws IOException {
+        writeInt(value);
+    }
+
+    public void writeSmallLong(long value) throws IOException {
+        writeLong(value);
+    }
+
+    public void writeNullableString(@Nullable CharSequence value) throws IOException {
+        if (value == null) {
+            writeBoolean(false);
+        } else {
+            writeBoolean(true);
+            writeString(value.toString());
+        }
     }
 
     private class EncoderStream extends OutputStream {
