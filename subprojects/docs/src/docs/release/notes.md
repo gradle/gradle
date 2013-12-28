@@ -219,6 +219,16 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ## Potential breaking changes
 
+### Changed DSL and model for native binary components
+
+Much of the model and DSL for defining native binary components has been changed. Most build scripts leveraging this functionality
+will need to be updated.
+
+- Gradle no longer creates a binary variant for every available tool chain. Instead, the variants of a component are defined
+  by it's flavors, build types and target platforms. Gradle will attempt to locate a tool chain to build each possible variant.
+- The set of configured platforms can be defined separately from the target platforms for a component. The set of all platforms
+  is specified by the `platforms` container within the `model` block.
+
 ### Changes to native binary support
 
 - Moved definitions of `buildTypes`, `targetPlatforms` and `flavors` into model block (see above)
