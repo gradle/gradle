@@ -26,6 +26,5 @@ import java.lang.annotation.Target
 @Target([ElementType.METHOD, ElementType.TYPE])
 @ExtensionAnnotation(RequiresInstalledToolChainExtension.class)
 public @interface RequiresInstalledToolChain {
-    String value() default ""
+    ToolChainRequirement value() default ToolChainRequirement.Available;
 }
-

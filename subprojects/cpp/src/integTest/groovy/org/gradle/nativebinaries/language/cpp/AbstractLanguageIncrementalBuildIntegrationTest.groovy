@@ -15,6 +15,7 @@
  */
 
 package org.gradle.nativebinaries.language.cpp
+
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativebinaries.language.cpp.fixtures.RequiresInstalledToolChain
@@ -25,6 +26,7 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Ignore
 
+import static org.gradle.nativebinaries.language.cpp.fixtures.ToolChainRequirement.VisualCpp
 import static org.gradle.util.TextUtil.escapeString
 
 abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
@@ -389,7 +391,7 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         assert !staticLibrary("build/binaries/helloStaticLibrary/hello").listObjectFiles().contains(oldObjFile.name)
     }
 
-    @RequiresInstalledToolChain("visual c++")
+    @RequiresInstalledToolChain(VisualCpp)
     def "cleans up stale debug files when changing from debug to non-debug"() {
 
         given:

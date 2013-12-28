@@ -14,13 +14,16 @@
  * limitations under the License.
  */
 package org.gradle.nativebinaries.language.cpp
+
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativebinaries.language.cpp.fixtures.ExecutableFixture
 import org.gradle.nativebinaries.language.cpp.fixtures.RequiresInstalledToolChain
 import org.gradle.nativebinaries.language.cpp.fixtures.app.HelloWorldApp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.WindowsResourceHelloWorldApp
 
-@RequiresInstalledToolChain("visual c++")
+import static org.gradle.nativebinaries.language.cpp.fixtures.ToolChainRequirement.VisualCpp
+
+@RequiresInstalledToolChain(VisualCpp)
 class WindowsResourcesIncrementalBuildIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
     HelloWorldApp helloWorldApp = new WindowsResourceHelloWorldApp()

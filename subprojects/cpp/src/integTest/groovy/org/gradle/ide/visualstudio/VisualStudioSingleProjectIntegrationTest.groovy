@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 package org.gradle.ide.visualstudio
+
 import org.gradle.ide.visualstudio.fixtures.ProjectFile
 import org.gradle.ide.visualstudio.fixtures.SolutionFile
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativebinaries.language.cpp.fixtures.RequiresInstalledToolChain
 import org.gradle.nativebinaries.language.cpp.fixtures.app.*
+
+import static org.gradle.nativebinaries.language.cpp.fixtures.ToolChainRequirement.VisualCpp
 
 class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     private final Set<String> projectConfigurations = ['debug|Win32', 'release|Win32', 'debug|x64', 'release|x64'] as Set
@@ -484,7 +487,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         solutionFile("visualStudio/mainExe.sln").assertHasProjects("mainExe")
     }
 
-    @RequiresInstalledToolChain("visual c++")
+    @RequiresInstalledToolChain(VisualCpp)
     def "generate visual studio solution for executable with windows resource files"() {
         given:
         def resourceApp = new WindowsResourceHelloWorldApp()

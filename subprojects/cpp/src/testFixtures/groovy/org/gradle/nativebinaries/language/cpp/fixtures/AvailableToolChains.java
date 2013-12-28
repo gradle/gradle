@@ -64,9 +64,9 @@ public class AvailableToolChains {
     /**
      * @return The tool chain with the given name.
      */
-    public static ToolChainCandidate getToolChain(String name) {
+    public static ToolChainCandidate getToolChain(ToolChainRequirement requirement) {
         for (ToolChainCandidate toolChainCandidate : getToolChains()) {
-            if (toolChainCandidate.getDisplayName().equals(name)) {
+            if (toolChainCandidate.meets(requirement)) {
                 return toolChainCandidate;
             }
         }
@@ -176,6 +176,8 @@ public class AvailableToolChains {
         public abstract String getDisplayName();
 
         public abstract boolean isAvailable();
+
+        public abstract boolean meets(ToolChainRequirement requirement);
 
         public abstract void initialiseEnvironment();
 
@@ -290,6 +292,11 @@ public class AvailableToolChains {
         }
 
         @Override
+        public boolean meets(ToolChainRequirement requirement) {
+            return requirement == ToolChainRequirement.Gcc || requirement == ToolChainRequirement.Available;
+        }
+
+        @Override
         public String getBuildScriptConfig() {
             String config = String.format("%s(%s)\n", getId(), getImplementationClass());
             for (File pathEntry : getPathEntries()) {
@@ -347,6 +354,19 @@ public class AvailableToolChains {
         }
 
         @Override
+        public boolean meets(ToolChainRequirement requirement) {
+            switch (requirement) {
+                case Available:
+                case VisualCpp:
+                    return true;
+                case VisualCpp2013:
+                    return version.compareTo(VersionNumber.parse("12.0")) >= 0;
+                default:
+                    return false;
+            }
+        }
+
+        @Override
         public String getBuildScriptConfig() {
             String config = String.format("%s(%s)\n", getId(), getImplementationClass());
             if (installDir != null) {
@@ -388,6 +408,11 @@ public class AvailableToolChains {
         }
 
         @Override
+        public boolean meets(ToolChainRequirement requirement) {
+            return requirement == ToolChainRequirement.Available;
+        }
+
+        @Override
         public String getBuildScriptConfig() {
             return "clang(Clang)";
         }
@@ -412,6 +437,11 @@ public class AvailableToolChains {
 
         public UnavailableToolChain(String name) {
             this.name = name;
+        }
+
+        @Override
+        public boolean meets(ToolChainRequirement requirement) {
+            return false;
         }
 
         @Override

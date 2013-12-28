@@ -17,6 +17,7 @@
 package org.gradle.nativebinaries.language.cpp
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativebinaries.language.cpp.fixtures.ToolChainRequirement
 import org.gradle.nativebinaries.language.cpp.fixtures.app.PlatformDetectingTestApp
 import org.gradle.nativebinaries.language.cpp.fixtures.binaryinfo.DumpbinBinaryInfo
 import org.gradle.nativebinaries.language.cpp.fixtures.binaryinfo.OtoolBinaryInfo
@@ -163,7 +164,7 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
         }
 
         // ARM only supported on visualCpp 2013
-        if (toolChain.visualCpp && toolChain.version == "2013") {
+        if (toolChain.meets(ToolChainRequirement.VisualCpp2013)) {
             executable("build/binaries/mainExecutable/arm/main").binaryInfo.arch.name == "arm"
             binaryInfo(objectFile("build/objectFiles/mainExecutable/arm/mainCpp/main")).arch.name == "arm"
         } else {

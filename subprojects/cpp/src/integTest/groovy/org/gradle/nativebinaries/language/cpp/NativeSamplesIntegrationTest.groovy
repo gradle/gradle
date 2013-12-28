@@ -24,6 +24,8 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
 
+import static org.gradle.nativebinaries.language.cpp.fixtures.ToolChainRequirement.VisualCpp
+
 @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
 class NativeSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     @Rule public final Sample c = new Sample(temporaryFolder, 'native-binaries/c')
@@ -85,7 +87,7 @@ class NativeSamplesIntegrationTest extends AbstractInstalledToolChainIntegration
         installation("native-binaries/cpp/build/install/mainExecutable").exec().out == "Hello world!\n"
     }
 
-    @RequiresInstalledToolChain("visual c++")
+    @RequiresInstalledToolChain(VisualCpp)
     def "windows resources"() {
         given:
         sample windowsResources
