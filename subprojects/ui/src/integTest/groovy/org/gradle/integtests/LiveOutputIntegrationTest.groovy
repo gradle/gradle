@@ -72,8 +72,6 @@ that's likely to change over time. This version executes the command via GradleP
         gradlePluginLord.setGradleHomeDirectory(distribution.gradleHomeDir);
         gradlePluginLord.addCommandLineArgumentAlteringListener(new ExtraTestCommandLineOptionsListener(executer.gradleUserHomeDir))
 
-        gradlePluginLord.startExecutionQueue(); //for tests, we'll need to explicitly start the execution queue (unless we do a refresh via the TestUtility).
-
         TestExecutionInteraction executionInteraction = new TestExecutionInteraction();
 
         //execute a command. We don't really care what the command is, just something that generates output
