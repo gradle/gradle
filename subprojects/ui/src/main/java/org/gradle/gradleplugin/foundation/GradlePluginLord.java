@@ -58,8 +58,6 @@ public class GradlePluginLord {
 
     private QueueManager queueManager = new QueueManager();
 
-    private boolean isStarted;  //this flag is mostly to prevent initialization from firing off repeated refresh requests.
-
     private ShowStacktrace stackTraceLevel = ShowStacktrace.INTERNAL_EXCEPTIONS;
     private LogLevel logLevel = LogLevel.LIFECYCLE;
 
@@ -238,13 +236,6 @@ public class GradlePluginLord {
         }
         this.logLevel = logLevel;
         notifySettingsChanged();
-    }
-
-    /**
-     * Call this to start execution. This is done after you've initialized everything.
-     */
-    public void startExecutionQueue() {
-        isStarted = true;
     }
 
     /**
@@ -428,10 +419,6 @@ public class GradlePluginLord {
      * @param forceOutputToBeShown overrides the user setting onlyShowOutputOnErrors so that the output is shown regardless
      */
     public Request addExecutionRequestToQueue(String fullCommandLine, String displayName, boolean forceOutputToBeShown) {
-        if (!isStarted) {
-            return null;
-        }
-
         if (fullCommandLine == null) {
             return null;
         }
@@ -466,17 +453,9 @@ public class GradlePluginLord {
      * This will refresh the project/task tree. This version allows you to specify additional arguments to be passed to gradle during the refresh (such as -b to specify a build file)
      *
      * @param additionalCommandLineArguments the arguments to add, or null if none.
-     * @return the Request that was created. Null if no request created.
+     * @return the Request that was created.
      */
     public Request addRefreshRequestToQueue(String additionalCommandLineArguments) {
-        if (!isStarted) {
-            return null;
-        }
-
-        if (queueManager.hasRequestOfType(RefreshTaskListRequest.TYPE)) {
-            return null; //we're already doing a refresh.
-        }
-
         //we'll request a task list since there is no way to do a no op. We're not really interested
         //in what's being executed, just the ability to get the task list (which must be populated as
         //part of executing anything).
@@ -488,6 +467,15 @@ public class GradlePluginLord {
 
         //here we'll give the UI a chance to add things to the command line.
         fullCommandLine = alterCommandLine(fullCommandLine);
+
+        // Don't schedule again if already doing a refresh with the specified arguments
+        // TODO - fix this race condition - multiple threads may be requesting a refresh
+        List<Request> currentRequests = queueManager.findRequestsOfType(RefreshTaskListRequest.TYPE);
+        for (Request currentRequest : currentRequests) {
+            if (currentRequest.getFullCommandLine().equals(fullCommandLine)) {
+                return currentRequest;
+            }
+        }
 
         final RefreshTaskListRequest request = new RefreshTaskListRequest(getNextRequestID(), fullCommandLine, queueManager, this);
         queueManager.addRequestToQueue(request);
@@ -629,7 +617,7 @@ public class GradlePluginLord {
      * @return true if this is busy, false if not.
      */
     public boolean isBusy() {
-        return queueManager.hasRequestOfType(ExecutionRequest.TYPE);
+        return !queueManager.findRequestsOfType(ExecutionRequest.TYPE).isEmpty();
     }
 
     private class QueueManager implements ExecutionQueue.RequestCancellation {
@@ -637,15 +625,16 @@ public class GradlePluginLord {
         private final ExecutionQueue<Request> executionQueue = new ExecutionQueue<Request>(new ExecutionQueueInteraction());
         private final Set<Request> currentlyExecutingRequests = new HashSet<Request>();
 
-        private boolean hasRequestOfType(Request.Type type) {
+        private List<Request> findRequestsOfType(Request.Type type) {
+            List<Request> requests = new ArrayList<Request>();
             synchronized (lock) {
                 for (Request request : currentlyExecutingRequests) {
                     if (request.getType() == type) {
-                        return true;
+                        requests.add(request);
                     }
                 }
             }
-            return false;
+            return requests;
         }
 
         public void onCancel(ExecutionQueue.Request request) {
