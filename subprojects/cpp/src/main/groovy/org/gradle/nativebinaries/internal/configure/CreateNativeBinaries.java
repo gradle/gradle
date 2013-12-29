@@ -71,6 +71,7 @@ public class CreateNativeBinaries extends ModelRule {
         NativeDependencyResolver resolver = new LibraryNativeDependencyResolver(locator);
         resolver = new ApiRequirementNativeDependencyResolver(resolver);
         resolver = new RequirementParsingNativeDependencyResolver(resolver);
+        resolver = new SourceSetNativeDependencyResolver(resolver);
         return new InputHandlingNativeDependencyResolver(resolver);
     }
 
