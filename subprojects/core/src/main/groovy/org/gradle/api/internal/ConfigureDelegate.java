@@ -52,7 +52,7 @@ public class ConfigureDelegate extends GroovyObjectSupport {
     public Object invokeMethod(String name, Object paramsObj) {
         Object[] params = (Object[])paramsObj;
 
-        boolean isTopLevelCall = !_configuring.get();
+        boolean isAlreadyConfiguring = _configuring.get();
         _configuring.set(true);
         try {
             if (_delegate.hasMethod(name, params)) {
@@ -66,31 +66,39 @@ public class ConfigureDelegate extends GroovyObjectSupport {
                 // ignore
             }
 
-            if (isTopLevelCall && _isConfigureMethod(name, params)) {
+            if (!isAlreadyConfiguring && _isConfigureMethod(name, params)) {
                 _configure(name, params);
             }
 
             return _delegate.invokeMethod(name, params);
         } finally {
-            _configuring.set(!isTopLevelCall);
+            _configuring.set(isAlreadyConfiguring);
         }
     }
 
     public Object get(String name) {
-        if (_delegate.hasProperty(name)) {
-            return _delegate.getProperty(name);
-        }
-
-        // try the owner
+        boolean isAlreadyConfiguring = _configuring.get();
+        _configuring.set(true);
         try {
-            return _owner.getProperty(name);
-        } catch (groovy.lang.MissingPropertyException e) {
-            // Ignore
+            if (_delegate.hasProperty(name)) {
+                return _delegate.getProperty(name);
+            }
+
+            // try the owner
+            try {
+                return _owner.getProperty(name);
+            } catch (groovy.lang.MissingPropertyException e) {
+                // Ignore
+            }
+
+            if (!isAlreadyConfiguring) {
+                _configure(name, EMPTY_PARAMS);
+            }
+
+            // try the delegate again
+            return _delegate.getProperty(name);
+        } finally {
+            _configuring.set(isAlreadyConfiguring);
         }
-
-        _configure(name, EMPTY_PARAMS);
-
-        // try the delegate again
-        return _delegate.getProperty(name);
     }
 }

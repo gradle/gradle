@@ -251,7 +251,11 @@ when writing a `Spec` for the `DependencyInsightReportTask`. Here's an example f
         setDependencySpec { it.requested instanceof ModuleComponentSelector && it.requested.module == 'leaf2' }
     }
 
-### Changes to incubating test filtering.
+### Changes to container configuration DSL
+
+TBD - Property access on a container only implicitly adds an element when invoked directly on the container
+
+### Changes to incubating test filtering
 
 JUnit tests that JUnit API internally represents by 'null' test methods are filtered only by class name.
 This is a very internal change and should not affect users. It is mentioned for completeness.

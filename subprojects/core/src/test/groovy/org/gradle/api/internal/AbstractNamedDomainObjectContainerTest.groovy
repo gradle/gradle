@@ -17,10 +17,8 @@ package org.gradle.api.internal
 
 import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
-import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.reflect.DirectInstantiator
-
-import spock.lang.Ignore
+import org.gradle.internal.reflect.Instantiator
 import spock.lang.Specification
 
 class AbstractNamedDomainObjectContainerTest extends Specification {
@@ -34,21 +32,23 @@ class AbstractNamedDomainObjectContainerTest extends Specification {
 
     def "can create object by name"() {
         when:
-        container.create('obj')
+        def obj = container.create('obj')
 
         then:
-        container.getByName('obj') == ['obj']
+        container.getByName('obj') == obj
+        container.findByName('obj') == obj
+        container.obj == obj
+        container['obj'] == obj
     }
 
     def "can create and configure object using closure"() {
         when:
         container.create('obj') {
-            add(1)
-            add('value')
+            prop = 'value'
         }
 
         then:
-        container.getByName('obj') == ['obj', 1, 'value']
+        container.obj.prop == 'value'
     }
 
     def "can create and configure object using action"() {
@@ -56,25 +56,19 @@ class AbstractNamedDomainObjectContainerTest extends Specification {
 
         given:
         action.execute(_) >> { TestObject obj ->
-            obj.add(1)
-            obj.add('value')
+            obj.prop = 'value'
         }
 
         when:
         container.create('obj', action)
 
         then:
-        container.getByName('obj') == ['obj', 1, 'value']
+        container.obj.prop == 'value'
     }
 
     def "can use 'maybeCreate' to find or create object by name"() {
         when:
         def created = container.maybeCreate('obj')
-
-        then:
-        container.getByName('obj') == ['obj']
-
-        when:
         def fetched = container.maybeCreate('obj')
 
         then:
@@ -97,19 +91,19 @@ class AbstractNamedDomainObjectContainerTest extends Specification {
 
         when:
         container.configure {
-            list1 { add(1) }
+            someObj { prop = 'value' }
         }
 
         then:
-        container.list1 == ['list1', 1]
+        container.someObj.prop == 'value'
     }
 
     def "propagates nested MissingMethodException"() {
-        container.create('list1')
+        container.create('someObj')
 
         when:
         container.configure {
-            list1 { unknown { anotherUnknown(2) } }
+            someObj { unknown { anotherUnknown(2) } }
         }
 
         then:
@@ -123,7 +117,7 @@ class AbstractNamedDomainObjectContainerTest extends Specification {
 
         when:
         container.configure {
-            list1 { throw failure }
+            someObj { throw failure }
         }
 
         then:
@@ -134,13 +128,70 @@ class AbstractNamedDomainObjectContainerTest extends Specification {
     def "implicitly creates an object when container is being configured"() {
         when:
         container.configure {
-            list1
-            list2 { add(1) }
+            obj1
+            obj2 { prop = 'value' }
         }
 
         then:
-        container.list1 == ['list1']
-        container.list2 == ['list2', 1]
+        container.obj1.prop == null
+        container.obj2.prop == 'value'
+    }
+
+    def "does not implicitly create an object when container is not being configured"() {
+        when:
+        container.obj1
+
+        then:
+        MissingPropertyException missingProp = thrown()
+        missingProp.property == 'obj1'
+
+        when:
+        container.obj2 { }
+
+        then:
+        MissingMethodException missingMethod = thrown()
+        missingMethod.method == 'obj2'
+
+        when:
+        container.configure {
+            element {
+                nested
+            }
+        }
+
+        then:
+        missingProp = thrown()
+        missingProp.property == 'nested'
+
+        when:
+        container.configure {
+            element {
+                prop = nested
+            }
+        }
+
+        then:
+        missingProp = thrown()
+        missingProp.property == 'nested'
+    }
+
+    def "can nest containers"() {
+        when:
+        container.configure {
+            someObj {
+                children {
+                    child1 { prop = 'child1' }
+                    child2
+                }
+            }
+        }
+
+        then:
+        container.names == ['someObj'] as SortedSet
+        container.someObj.prop == null
+        container.someObj.children.names == ['child1', 'child2'] as SortedSet
+        container.someObj.children.child1.prop == 'child1'
+        container.someObj.children.child2.prop == null
     }
 
     def "can refer to properties and methods of owner"() {
@@ -148,28 +199,8 @@ class AbstractNamedDomainObjectContainerTest extends Specification {
 
         expect:
         container.asMap.keySet() == ['list1', 'list2'] as Set
-        container.list1 == ['list1', 'dynamicProp', 'ownerProp', 'ownerMethod', 'dynamicMethod', 'dynamicMethod', 1, 'prop', 'testObjectDynamicMethod']
-        container.list1.prop == 'prop'
-        container.list2 == ['list2', container.list1]
-    }
-
-    @Ignore
-    def "can use an item called 'main' in a script"() {
-        def script = new GroovyShell().parse("""import org.gradle.util.ConfigureUtil
-            c.configure {
-                run
-                main { add(1) }
-            }
-
-""")
-        script.getBinding().setProperty("c", container)
-
-        when:
-        script.run()
-
-        then:
-        container.run == ['run']
-        container.main == ['main', 1]
+        container.list1.prop == 'list1'
+        container.list2.prop == 'list2'
     }
 }
 
@@ -211,31 +242,37 @@ class DynamicOwner {
             list1 {
                 // owner properties and methods - owner is a DynamicOwner
                 dynamicProp = 'dynamicProp'
-                add dynamicProp
-                add ownerProp
-                add ownerMethod('ownerMethod')
-                add dynamicMethod('a', 'b', 'c')
-                add dynamicMethod { doesntGetEvaluated }
+                assert dynamicProp == 'dynamicProp'
+                assert ownerProp == 'ownerProp'
+                assert ownerMethod('ownerMethod') == 'ownerMethod'
+                assert dynamicMethod('a', 'b', 'c') == 'dynamicMethod'
+                assert dynamicMethod { doesntGetEvaluated } == 'dynamicMethod'
                 // delegate properties and methods - delegate is a TestObject
-                add owner.size()
-                prop = 'prop'
-                add prop
-                testObjectDynamicMethod { doesntGetEvaluated }
+                prop = 'list1'
+                assert testObjectDynamicMethod { doesntGetEvaluated } == 'testObjectDynamicMethod'
             }
             list2 {
-                add list1
+                prop = 'list2'
             }
         }
     }
 }
 
-class TestObject extends ArrayList<String> {
+class TestObject {
     String prop
     String name
+    final children
+
+    TestObject(Instantiator instantiator) {
+        children = instantiator.newInstance(TestContainer, instantiator)
+    }
+
+    def children(Closure cl) {
+        children.configure(cl)
+    }
 
     def methodMissing(String name, Object params) {
         if (name == 'testObjectDynamicMethod') {
-            add(name)
             return name
         }
         throw new groovy.lang.MissingMethodException(name, getClass(), params)

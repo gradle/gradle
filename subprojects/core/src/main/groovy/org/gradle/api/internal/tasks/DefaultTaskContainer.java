@@ -175,12 +175,8 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         return task;
     }
 
-    protected Object createConfigureDelegate(Closure configureClosure) {
-        return new NamedDomainObjectContainerConfigureDelegate(configureClosure.getOwner(), this);
-    }
-
     public TaskContainerInternal configure(Closure configureClosure) {
-        ConfigureUtil.configure(configureClosure, createConfigureDelegate(configureClosure));
+        ConfigureUtil.configure(configureClosure, new NamedDomainObjectContainerConfigureDelegate(configureClosure.getOwner(), this));
         return this;
     }
 
