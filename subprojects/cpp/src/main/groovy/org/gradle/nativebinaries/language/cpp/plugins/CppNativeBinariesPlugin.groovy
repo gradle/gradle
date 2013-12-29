@@ -53,8 +53,9 @@ class CppNativeBinariesPlugin implements Plugin<ProjectInternal> {
 
         project.binaries.withType(ProjectNativeBinary) { ProjectNativeBinaryInternal binary ->
             binary.source.withType(CppSourceSet).all { CppSourceSet sourceSet ->
-                if (!sourceSet.source.empty) {
+                if (sourceSet.mayHaveSources) {
                     def compileTask = createCompileTask(project, binary, sourceSet)
+                    compileTask.dependsOn sourceSet
                     binary.tasks.add compileTask
                     binary.tasks.builder.source compileTask.outputs.files.asFileTree.matching { include '**/*.obj', '**/*.o' }
                 }

@@ -26,4 +26,9 @@ public interface LanguageSourceSetInternal extends LanguageSourceSet {
      */
     String getFullName();
 
+    /**
+     * Return true if the source set contains sources, or if the source set is generated.
+     */
+    boolean getMayHaveSources();
+
 }
