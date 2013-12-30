@@ -18,6 +18,7 @@ package org.gradle.language.base.internal;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
+import org.gradle.api.Task;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.language.base.FunctionalSourceSet;
 
@@ -27,6 +28,7 @@ public abstract class AbstractLanguageSourceSet extends AbstractBuildableModelEl
     private final String displayName;
     private final SourceDirectorySet source;
     private boolean generated;
+    private Task generatorTask;
 
     public AbstractLanguageSourceSet(String name, FunctionalSourceSet parent, String typeName, SourceDirectorySet source) {
         this.name = name;
@@ -48,6 +50,14 @@ public abstract class AbstractLanguageSourceSet extends AbstractBuildableModelEl
     public void builtBy(Object... tasks) {
         generated = true;
         super.builtBy(tasks);
+    }
+
+    public void generatedBy(Task generatorTask) {
+        this.generatorTask = generatorTask;
+    }
+
+    public Task getGeneratorTask() {
+        return generatorTask;
     }
 
     public boolean getMayHaveSources() {

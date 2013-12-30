@@ -18,6 +18,7 @@ package org.gradle.language.base;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
+import org.gradle.api.Task;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.internal.HasInternalProtocol;
 
@@ -41,4 +42,6 @@ public interface LanguageSourceSet extends Named, BuildableModelElement {
      */
     void source(Action<? super SourceDirectorySet> config);
 
+    // TODO:DAZ Maybe add this as an extension property, and only in domains where it is handled (currently in native-binaries)
+    void generatedBy(Task generatorTask);
 }
