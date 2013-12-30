@@ -1,15 +1,15 @@
 apply plugin: 'cpp'
 model {
     buildTypes {
-        create("debug")
-        create("release")
+        debug
+        release
     }
     repositories {
         libs(PrebuiltLibraries) {
-            create("boost") {
+            boost {
                 headers.srcDir "3rd-party-lib/boost_1_55_0/boost"
             }
-            create("util") {
+            util {
                 headers.srcDir "3rd-party-lib/util/src/util/headers"
                 binaries.withType(StaticLibraryBinary) {
                     def libName = targetPlatform.operatingSystem.windows ? 'util.lib' : 'libutil.a'

@@ -7,8 +7,8 @@ sources {
 // START SNIPPET flavors
 model {
     flavors {
-        create("english")
-        create("french")
+        english
+        french
     }
 }
 

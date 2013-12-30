@@ -32,14 +32,14 @@ class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegra
             apply plugin: 'cpp'
             model {
                 flavors {
-                    create("english")
-                    create("french")
+                    english
+                    french
                 }
             }
             libraries {
                 hello {
                     binaries.all {
-                        if (flavor.name == "french") {
+                        if (flavor == flavors.french) {
                             cppCompiler.define "FRENCH"
                         }
                     }
@@ -66,7 +66,7 @@ class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegra
             model {
                 repositories {
                     libs(PrebuiltLibraries) {
-                        create("hello") {
+                        hello {
                             headers.srcDir "libs/src/hello/headers"
                         }
                     }
@@ -96,7 +96,7 @@ class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegra
             model {
                 repositories {
                     libs(PrebuiltLibraries) {
-                        create("hello") {
+                        hello {
                             headers.srcDir "libs/src/hello/headers"
                             binaries.withType(StaticLibraryBinary) {
                                 def libName = targetPlatform.operatingSystem.windows ? 'hello.lib' : 'libhello.a'
@@ -154,12 +154,12 @@ class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegra
             model {
                 repositories {
                     libs1(PrebuiltLibraries) {
-                        create("nope") {
+                        nope {
                             headers.srcDir "not/here"
                         }
                     }
                     libs2(PrebuiltLibraries) {
-                        create("hello") {
+                        hello {
                             headers.srcDir "libs/src/hello/headers"
                             binaries.withType(StaticLibraryBinary) {
                                 def libName = targetPlatform.operatingSystem.windows ? 'hello.lib' : 'libhello.a'
@@ -189,7 +189,7 @@ class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegra
             model {
                 repositories {
                     libs(PrebuiltLibraries) {
-                        create("hello") {
+                        hello {
                             headers.srcDir "libs/src/hello/headers"
                         }
                     }
@@ -215,7 +215,7 @@ class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegra
             model {
                 repositories {
                     libs(PrebuiltLibraries) {
-                        create("hello") {
+                        hello {
                             headers.srcDir "libs/src/hello/headers"
                             binaries.withType(StaticLibraryBinary) { binary ->
                                 staticLibraryFile = file("does_not_exist")
@@ -245,12 +245,10 @@ class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegra
             model {
                 repositories {
                     libs(PrebuiltLibraries) {
-                        create("hello") {
-                        }
+                        hello
                     }
                     libs2(PrebuiltLibraries) {
-                        create("hello2") {
-                        }
+                        hello2
                     }
                 }
             }
@@ -277,7 +275,7 @@ class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegra
             model {
                 repositories {
                     libs(PrebuiltLibraries) {
-                        create("hello") {
+                        hello {
                             headers.srcDir "libs/src/hello/headers"
                         }
                     }

@@ -21,7 +21,7 @@ apply plugin: 'c'
 
 model {
     platforms {
-        create("x86") {
+        x86 {
             architecture "i386"
         }
     }

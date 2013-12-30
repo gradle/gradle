@@ -36,9 +36,9 @@ class BinaryFlavorsIntegrationTest extends AbstractInstalledToolChainIntegration
             apply plugin: "cpp"
             model {
                 flavors {
-                    create("english")
-                    create("french")
-                    create("german")
+                    english
+                    french
+                    german
                 }
             }
             libraries {

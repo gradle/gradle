@@ -81,10 +81,10 @@ class GccToolChainCustomisationIntegrationTest extends AbstractIntegrationSpec {
                         addPlatformConfiguration(new ArmArchitecture())
                     }
                     platforms {
-                        create("arm") {
+                        arm {
                             architecture "arm"
                         }
-                        create("i386") {
+                        i386 {
                             architecture "i386"
                         }
                     }

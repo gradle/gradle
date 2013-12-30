@@ -121,12 +121,12 @@ class LibraryApiDependenciesIntegrationTest extends AbstractInstalledToolChainIn
         buildFile << """
             model {
                 buildTypes {
-                    create("debug")
-                    create("release")
+                    debug
+                    release
                 }
             }
             executables {
-                main {}
+                main
             }
             libraries {
                 util {

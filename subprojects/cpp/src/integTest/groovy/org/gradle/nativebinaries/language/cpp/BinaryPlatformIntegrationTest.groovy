@@ -50,10 +50,10 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
         buildFile << """
             model {
                 platforms {
-                    create("x86") {
+                    x86 {
                         architecture "x86"
                     }
-                    create("x86_64") {
+                    x86_64 {
                         architecture "x86_64"
                     }
                 }
@@ -84,10 +84,10 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
         buildFile << """
             model {
                 platforms {
-                    create("x86") {
+                    x86 {
                         architecture "x86"
                     }
-                    create("x86_64") {
+                    x86_64 {
                         architecture "x86_64"
                     }
                 }
@@ -117,16 +117,16 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
         buildFile << """
             model {
                 platforms {
-                    create("x86") {
+                    x86 {
                         architecture "x86"
                     }
-                    create("x86_64") {
+                    x86_64 {
                         architecture "x86_64"
                     }
-                    create("itanium") {
+                    itanium {
                         architecture "ia-64"
                     }
-                    create("arm") {
+                    arm {
                         architecture "arm"
                     }
                 }
@@ -177,13 +177,13 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
         buildFile << """
             model {
                 platforms {
-                    create("windows") {
+                    windows {
                         operatingSystem "windows"
                     }
-                    create("linux") {
+                    linux {
                         operatingSystem "linux"
                     }
-                    create("osx") {
+                    osx {
                         operatingSystem "osx"
                     }
                 }
@@ -220,7 +220,7 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
         buildFile << """
             model {
                 platforms {
-                    create("unavailable") {
+                    unavailable {
                         ${config}
                     }
                 }
@@ -248,7 +248,7 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
         buildFile << """
             model {
                 platforms {
-                    create("bad") {
+                    bad {
                         ${badConfig}
                     }
                 }
@@ -274,7 +274,7 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
         buildFile << """
             model {
                 platforms {
-                    create("main") {}
+                    main
                 }
             }
             executables.main.targetPlatforms "unknown"
@@ -295,8 +295,8 @@ class BinaryPlatformIntegrationTest extends AbstractInstalledToolChainIntegratio
             apply plugin: 'cpp'
             model {
                 platforms {
-                    create("one") {}
-                    create("two") {}
+                    one
+                    two
                 }
             }
             libraries {

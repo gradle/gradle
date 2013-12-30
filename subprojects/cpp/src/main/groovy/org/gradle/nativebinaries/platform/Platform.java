@@ -27,7 +27,7 @@ import org.gradle.internal.HasInternalProtocol;
  * <pre>
  *     model {
  *         platforms {
- *             create("windows_x86") {
+ *             windows_x86 {
  *                 architecture "i386"
  *                 operatingSystem "windows"
  *             }

@@ -259,7 +259,7 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
         buildFile << """
     model {
         platforms {
-            create("arch") {
+            arch {
                 // Tool chain defaults
             }
         }

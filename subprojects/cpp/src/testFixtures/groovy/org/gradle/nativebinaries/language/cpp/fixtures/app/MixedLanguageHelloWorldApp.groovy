@@ -34,7 +34,7 @@ public class MixedLanguageHelloWorldApp extends HelloWorldApp {
         return """
             model {
                 platforms {
-                    create("x86") {
+                    x86 {
                         architecture "i386"
                     }
                 }

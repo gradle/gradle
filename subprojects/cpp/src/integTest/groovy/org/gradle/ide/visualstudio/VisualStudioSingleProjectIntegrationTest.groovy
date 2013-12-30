@@ -35,16 +35,16 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
 
     model {
         platforms {
-            create("win32") {
+            win32 {
                 architecture "i386"
             }
-            create("x86") {
+            x86 {
                 architecture "amd64"
             }
         }
         buildTypes {
-            create("debug")
-            create("release")
+            debug
+            release
         }
     }
 
@@ -351,7 +351,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         buildFile << """
     model {
         platforms {
-            create("otherWin32") {
+            otherWin32 {
                 architecture "i386"
             }
         }
@@ -598,7 +598,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
     model {
         repositories {
             libs(PrebuiltLibraries) {
-                create("test") {
+                test {
                     headers.srcDir "libs/test/include"
                 }
             }

@@ -34,13 +34,13 @@ class VisualStudioFileCustomizationIntegrationTest extends AbstractInstalledTool
 
     model {
         platforms {
-            create("win32") {
+            win32 {
                 architecture "i386"
             }
         }
         buildTypes {
-            create("debug")
-            create("release")
+            debug
+            release
         }
     }
     executables {

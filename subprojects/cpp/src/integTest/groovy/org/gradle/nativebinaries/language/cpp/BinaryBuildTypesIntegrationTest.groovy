@@ -30,13 +30,13 @@ class BinaryBuildTypesIntegrationTest extends AbstractInstalledToolChainIntegrat
             apply plugin: 'cpp'
             model {
                 buildTypes {
-                    create("debug") {
+                    debug {
                         ext.debug = true
                     }
-                    create("integration") {
+                    integration {
                         ext.debug = true
                     }
-                    create("release") {
+                    release {
                         ext.debug = false
                     }
                 }
@@ -90,8 +90,8 @@ class BinaryBuildTypesIntegrationTest extends AbstractInstalledToolChainIntegrat
             apply plugin: 'cpp'
             model {
                 buildTypes {
-                    create("debug")
-                    create("release")
+                    debug
+                    release
                 }
             }
             executables {
@@ -126,8 +126,8 @@ class BinaryBuildTypesIntegrationTest extends AbstractInstalledToolChainIntegrat
             apply plugin: 'cpp'
             model {
                 buildTypes {
-                    create("debug") { }
-                    create("release") {}
+                    debug
+                    release
                 }
             }
             binaries.all {
@@ -157,7 +157,7 @@ class BinaryBuildTypesIntegrationTest extends AbstractInstalledToolChainIntegrat
         buildFile << """
             model {
                 buildTypes {
-                    create("debug") {}
+                    debug
                 }
             }
             executables {
@@ -182,8 +182,8 @@ class BinaryBuildTypesIntegrationTest extends AbstractInstalledToolChainIntegrat
             apply plugin: 'cpp'
             model {
                 buildTypes {
-                    create("debug") {}
-                    create("release") {}
+                    debug
+                    release
                 }
             }
             executables {

@@ -3,13 +3,13 @@ apply plugin: 'cpp'
 // START SNIPPET platforms
 model {
     platforms {
-        create("x86") {
+        x86 {
             architecture "x86"
         }
-        create("x64") {
+        x64 {
             architecture "x86_64"
         }
-        create("itanium") {
+        itanium {
             architecture "ia-64"
         }
     }
@@ -19,8 +19,8 @@ model {
 // START SNIPPET build-types
 model {
     buildTypes {
-        create("debug")
-        create("release")
+        debug
+        release
     }
 }
 // END SNIPPET build-types

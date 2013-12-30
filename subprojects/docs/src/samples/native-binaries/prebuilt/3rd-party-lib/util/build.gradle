@@ -1,14 +1,14 @@
 apply plugin: 'cpp'
 model {
     buildTypes {
-        create("debug")
-        create("release")
+        debug
+        release
     }
 }
 libraries {
     util {
         binaries.all {
-            if (buildType.name == "debug") {
+            if (buildType == buildTypes.debug) {
                 cppCompiler.define 'DEBUG'
                 if (toolChain in VisualCpp) {
                     cppCompiler.args '/Zi'
