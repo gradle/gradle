@@ -9,13 +9,7 @@ task idl(type: DummyIdlCompiler) {
 sources {
     main {
         idlOutput(CSourceSet) {
-            builtBy tasks.idl
-            source {
-                srcDir tasks.idl.sourceDir
-            }
-            exportedHeaders {
-                srcDir tasks.idl.headerDir
-            }
+            generatedBy tasks.idl
         }
     }
 }
@@ -29,7 +23,7 @@ class DummyIdlCompiler extends DefaultTask {
     @InputFiles FileCollection idlFiles
     @OutputDirectory File headerDir
     @OutputDirectory File sourceDir
-    
+
     @TaskAction
     void processIdlFiles() {
         idlFiles.files.each { File idlFile ->
