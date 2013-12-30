@@ -15,11 +15,10 @@
  */
 package org.gradle.api.internal;
 
+import groovy.lang.Closure;
 import org.gradle.api.PolymorphicDomainObjectContainer;
 
-import groovy.lang.Closure;
-
-public class PolymorphicDomainObjectContainerConfigureDelegate extends NamedDomainObjectContainerConfigureDelegate {
+public class PolymorphicDomainObjectContainerConfigureDelegate extends ConfigureDelegate {
     private final PolymorphicDomainObjectContainer _container;
 
     public PolymorphicDomainObjectContainerConfigureDelegate(Object owner, PolymorphicDomainObjectContainer container) {
@@ -29,18 +28,22 @@ public class PolymorphicDomainObjectContainerConfigureDelegate extends NamedDoma
 
     @Override
     protected boolean _isConfigureMethod(String name, Object[] params) {
-        return super._isConfigureMethod(name, params)
+        return params.length == 1 && params[0] instanceof Closure
                 || params.length == 1 && params[0] instanceof Class
                 || params.length == 2 && params[0] instanceof Class && params[1] instanceof Closure;
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    protected void _configure(String name, Object[] params) {
-        if (params.length > 0 && params[0] instanceof Class) {
-            _container.create(name, (Class) params[0]);
+    protected Object _configure(String name, Object[] params) {
+        if (params.length == 0) {
+            return _container.create(name);
+        } else if (params.length == 1 && params[0] instanceof Closure) {
+            return _container.create(name, (Closure) params[0]);
+        } else if (params.length == 1 && params[0] instanceof Class) {
+            return _container.create(name, (Class) params[0]);
         } else {
-            _container.create(name);
+            return _container.create(name, (Class) params[0], new ClosureBackedAction((Closure) params[1]));
         }
     }
 }

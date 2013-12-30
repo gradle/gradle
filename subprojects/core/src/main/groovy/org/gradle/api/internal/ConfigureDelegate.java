@@ -16,8 +16,9 @@
 
 package org.gradle.api.internal;
 
-import groovy.lang.Closure;
 import groovy.lang.GroovyObjectSupport;
+import groovy.lang.MissingMethodException;
+import groovy.lang.MissingPropertyException;
 
 public class ConfigureDelegate extends GroovyObjectSupport {
     private static final Object[] EMPTY_PARAMS = new Object[0];
@@ -42,11 +43,12 @@ public class ConfigureDelegate extends GroovyObjectSupport {
     }
 
     protected boolean _isConfigureMethod(String name, Object[] params) {
-        return params.length == 1 && params[0] instanceof Closure;
+        return false;
     }
 
-    protected void _configure(String name, Object[] params) {
+    protected Object _configure(String name, Object[] params) {
         // do nothing
+        return null;
     }
 
     public Object invokeMethod(String name, Object paramsObj) {
@@ -55,8 +57,11 @@ public class ConfigureDelegate extends GroovyObjectSupport {
         boolean isAlreadyConfiguring = _configuring.get();
         _configuring.set(true);
         try {
-            if (_delegate.hasMethod(name, params)) {
+            MissingMethodException failure;
+            try {
                 return _delegate.invokeMethod(name, params);
+            } catch (groovy.lang.MissingMethodException e) {
+                failure = e;
             }
 
             // try the owner
@@ -66,11 +71,11 @@ public class ConfigureDelegate extends GroovyObjectSupport {
                 // ignore
             }
 
-            if (!isAlreadyConfiguring && _isConfigureMethod(name, params)) {
-                _configure(name, params);
+            if (isAlreadyConfiguring || !_isConfigureMethod(name, params)) {
+                throw failure;
             }
 
-            return _delegate.invokeMethod(name, params);
+            return _configure(name, params);
         } finally {
             _configuring.set(isAlreadyConfiguring);
         }
@@ -80,23 +85,25 @@ public class ConfigureDelegate extends GroovyObjectSupport {
         boolean isAlreadyConfiguring = _configuring.get();
         _configuring.set(true);
         try {
-            if (_delegate.hasProperty(name)) {
+            MissingPropertyException failure;
+            try {
                 return _delegate.getProperty(name);
+            } catch (MissingPropertyException e) {
+                failure = e;
             }
 
             // try the owner
             try {
                 return _owner.getProperty(name);
-            } catch (groovy.lang.MissingPropertyException e) {
+            } catch (MissingPropertyException e) {
                 // Ignore
             }
 
-            if (!isAlreadyConfiguring) {
-                _configure(name, EMPTY_PARAMS);
+            if (isAlreadyConfiguring) {
+                throw failure;
             }
 
-            // try the delegate again
-            return _delegate.getProperty(name);
+            return _configure(name, EMPTY_PARAMS);
         } finally {
             _configuring.set(isAlreadyConfiguring);
         }
