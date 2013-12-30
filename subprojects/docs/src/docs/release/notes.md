@@ -48,8 +48,8 @@ Additionally, you can change the content of the generated files:
 
 While Visual Studio support is functional, there remain some limitations:
 
-- Macros defined by passing '/D' to compiler args are not included in your project configuration. Use 'cppCompiler.define' instead.
-- Includes defined by passing '/I' to compiler args are not included in your project configuration. Use library dependencies instead.
+- Macros defined by passing `/D` to compiler args are not included in your project configuration. Use `cppCompiler.define` instead.
+- Includes defined by passing `/I` to compiler args are not included in your project configuration. Use library dependencies instead.
 - External dependencies supplied via `sourceSet.dependency` are not yet handled.
 
 Please try it out an let us know how it works for you.
@@ -67,15 +67,15 @@ bunch of platforms, build types, and/or flavors, and have the build script choos
 
     model {
         platforms {
-            create('x86') {
+            x86 {
                 ... config
             }
         }
         buildTypes {
-            create('debug')
+            debug
         }
         flavors {
-            create('my-flavor')
+            custom
         }
         ... Many others, perhaps added by capability plugins
     }
@@ -90,9 +90,8 @@ bunch of platforms, build types, and/or flavors, and have the build script choos
 
 #### Current Limitations
 
-The model registry and it's DSL are very new, and impose some DSL limitations. We plan to improve these in the future.
+The `model { }` DSL is very new, and imposes some DSL limitations. We plan to improve these in the future.
 
-- Elements in containers under `model` must be added with the `create(name)` method.
 - The `component.target*` methods match on element _name_. It is not possible to supply an element instance at this time.
 
 ### Better support for declaring library dependencies when building native binaries (i)
@@ -101,18 +100,26 @@ The model registry and it's DSL are very new, and impose some DSL limitations. W
 
 When building native binaries, it is now possible to declare a dependency on a library by a dependency notation.
 
-    executables {
-        main {}
-    }
-    sources.main.cpp.lib library: 'hello', linkage: 'static'
-    sources.main.c.lib project: ':another', library: 'hi'
-
     libraries {
-        hello {}
+        hello
     }
 
-The 'project', 'library' and 'linkage' can be specified. Only 'library' is required and must be the name of a library
-in the specified project, or in the current project if the 'project' attribute is omitted.
+    executables {
+        main
+    }
+    sources {
+        main {
+            cpp {
+                lib library: 'hello', linkage: 'static'
+            }
+            c {
+                lib project: ':another', library: 'hi'
+            }
+        }
+    }
+
+The `project`, `library` and `linkage` attributes can be specified. Only `library` is required and must be the name of a library
+in the specified project, or in the current project if the `project` attribute is omitted.
 
 This notation based syntax provides a number of benefits over directly accessing the library when declaring the dependency requirement:
 
@@ -130,8 +137,14 @@ of the library will be available when compiling, but no binary will be provided 
 
 A dependency on the 'api' linkage can be specified by both the direct and the map-based syntax.
 
-    sources.main.cpp.lib project: ':A', library: 'my-lib', linkage: 'api'
-    sources.main.cpp.lib libraries.hello.api
+    sources {
+        main {
+            cpp {
+                lib project: ':A', library: 'my-lib', linkage: 'api'
+                lib libraries.hello.api
+            }
+        }
+    }
 
 #### Support for pre-built libraries
 
@@ -147,10 +160,10 @@ static and shared library linkages.
     model {
         repositories {
             libs(PrebuiltLibraries) {
-                create("boost-headers") {
+                boost {
                     headers.srcDir "libs/boost_1_55_0/boost"
                 }
-                create("util") {
+                util {
                     headers.srcDir "libs/util/src/include"
                     binaries.withType(StaticLibraryBinary) {
                         staticLibraryFile = file("libs/util/bin/libutil.a")
