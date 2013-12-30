@@ -41,6 +41,7 @@ class NativeSamplesIntegrationTest extends AbstractInstalledToolChainIntegration
     @Rule public final Sample windowsResources = new Sample(temporaryFolder, 'native-binaries/windows-resources')
     @Rule public final Sample visualStudio = new Sample(temporaryFolder, 'native-binaries/visual-studio')
     @Rule public final Sample prebuilt = new Sample(temporaryFolder, 'native-binaries/prebuilt')
+    @Rule public final Sample idl = new Sample(temporaryFolder, 'native-binaries/idl')
 
     def "assembler"() {
         given:
@@ -304,5 +305,20 @@ Util build type: DEBUG
 """Built with Boost version: 1_55
 Util build type: RELEASE
 """
+    }
+
+    def "idl"() {
+        given:
+        sample idl
+
+        when:
+        run "installMainExecutable"
+
+        then:
+        executedAndNotSkipped ":idl", ":compileMainExecutableMainC", ":compileMainExecutableMainIdlOutput",
+                              ":linkMainExecutable", ":mainExecutable"
+
+        and:
+        installation("native-binaries/idl/build/install/mainExecutable").exec().out == "Hello from generated source!!\n"
     }
 }
