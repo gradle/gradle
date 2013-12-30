@@ -22,8 +22,7 @@ public class DefaultExecutable extends AbstractProjectNativeComponent implements
         super(id);
     }
 
-    @Override
-    public String toString() {
+    public String getDisplayName() {
         return String.format("executable '%s'", getName());
     }
 }

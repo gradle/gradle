@@ -182,6 +182,10 @@ class ProjectNativeBinaryTest extends Specification {
         TestProjectNativeComponent(NativeProjectComponentIdentifier id) {
             super(id)
         }
+
+        String getDisplayName() {
+            return "test component"
+        }
     }
 
     class TestProjectNativeBinary extends AbstractProjectNativeBinary {

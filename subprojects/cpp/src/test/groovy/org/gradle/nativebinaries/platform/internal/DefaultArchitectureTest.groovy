@@ -14,28 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries.internal;
+package org.gradle.nativebinaries.platform.internal
 
-import org.gradle.nativebinaries.Flavor;
+import spock.lang.Specification
 
-public class DefaultFlavor implements Flavor {
-    public static final String DEFAULT = "default";
-    private final String name;
+class DefaultArchitectureTest extends Specification {
+    def "has useful string representation"() {
+        def architecture = new DefaultArchitecture("arch", ArchitectureInternal.InstructionSet.ARM, 32)
 
-    public DefaultFlavor(String name) {
-        this.name = name;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    @Override
-    public String toString() {
-        return getDisplayName();
-    }
-
-    public String getDisplayName() {
-        return String.format("flavor '%s'", name);
+        expect:
+        architecture.toString() == "architecture 'arch'"
+        architecture.displayName == "architecture 'arch'"
     }
 }

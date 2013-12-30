@@ -33,6 +33,15 @@ public class DefaultOperatingSystem implements OperatingSystem {
         return name;
     }
 
+    public String getDisplayName() {
+        return String.format("operating system '%s'", name);
+    }
+
+    @Override
+    public String toString() {
+        return getDisplayName();
+    }
+
     public boolean isCurrent() {
         return internalOs == CURRENT_OS;
     }

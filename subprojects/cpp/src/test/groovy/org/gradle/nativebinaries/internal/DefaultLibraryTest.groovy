@@ -22,9 +22,9 @@ class DefaultLibraryTest extends Specification {
     final library = new DefaultLibrary(new NativeProjectComponentIdentifier("project-path", "someLib"))
 
     def "has useful string representation"() {
-
         expect:
         library.toString() == "library 'someLib'"
+        library.displayName == "library 'someLib'"
     }
 
     def "can use shared variant as requirement"() {

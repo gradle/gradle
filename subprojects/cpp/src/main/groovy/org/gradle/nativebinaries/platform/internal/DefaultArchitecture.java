@@ -30,6 +30,15 @@ public class DefaultArchitecture implements ArchitectureInternal {
         return name;
     }
 
+    @Override
+    public String toString() {
+        return getDisplayName();
+    }
+
+    public String getDisplayName() {
+        return String.format("architecture '%s'", name);
+    }
+
     public InstructionSet getInstructionSet() {
         return instructionSet;
     }

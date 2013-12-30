@@ -68,6 +68,7 @@ public class DefaultClassDirectoryBinaryTest extends Specification {
         expect:
         def binary = new DefaultClassDirectoryBinary(name)
         binary.toString() == displayName
+        binary.displayName == displayName
 
         where:
         name    | displayName

@@ -14,28 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries.internal;
+package org.gradle.nativebinaries.internal
 
-import org.gradle.nativebinaries.Flavor;
+import spock.lang.Specification
 
-public class DefaultFlavor implements Flavor {
-    public static final String DEFAULT = "default";
-    private final String name;
+class DefaultBuildTypeTest extends Specification {
+    def "has useful string representation"() {
+        def buildType = new DefaultBuildType("release")
 
-    public DefaultFlavor(String name) {
-        this.name = name;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    @Override
-    public String toString() {
-        return getDisplayName();
-    }
-
-    public String getDisplayName() {
-        return String.format("flavor '%s'", name);
+        expect:
+        buildType.toString() == "build type 'release'"
+        buildType.displayName == "build type 'release'"
     }
 }

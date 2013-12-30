@@ -73,6 +73,10 @@ public abstract class AbstractProjectNativeBinary extends AbstractBuildableModel
 
     @Override
     public String toString() {
+        return getDisplayName();
+    }
+
+    public String getDisplayName() {
         return namingScheme.getDescription();
     }
 

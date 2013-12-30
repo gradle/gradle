@@ -24,6 +24,11 @@ import org.gradle.api.Named;
 @Incubating
 public interface OperatingSystem extends Named {
     /**
+     * Returns a human-consumable display name for this operating system.
+     */
+    String getDisplayName();
+
+    /**
      * Is this the current OS?
      */
     boolean isCurrent();

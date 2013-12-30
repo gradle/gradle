@@ -47,6 +47,11 @@ public abstract class AbstractProjectNativeComponent implements ProjectNativeCom
         binaries = new DefaultDomainObjectSet<NativeBinary>(NativeBinary.class);
     }
 
+    @Override
+    public String toString() {
+        return getDisplayName();
+    }
+
     public String getProjectPath() {
         return id.getProjectPath();
     }

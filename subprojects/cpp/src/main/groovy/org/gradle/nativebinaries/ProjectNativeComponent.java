@@ -26,6 +26,11 @@ import org.gradle.language.base.LanguageSourceSet;
 @Incubating
 public interface ProjectNativeComponent extends Named {
     /**
+     * Returns a human-consumable display name for this component.
+     */
+    String getDisplayName();
+
+    /**
      * The binaries that are built for this component. You can use this to configure the binaries for this component.
      */
     DomainObjectSet<NativeBinary> getBinaries();

@@ -33,6 +33,10 @@ public class DefaultPrebuiltStaticLibraryBinary extends AbstractPrebuiltLibraryB
         super(name, library, buildType, targetPlatform, flavor);
     }
 
+    public String getDisplayName() {
+        return String.format("static library '%s'", getName());
+    }
+
     public void setStaticLibraryFile(File staticLibraryFile) {
         this.staticLibraryFile = staticLibraryFile;
     }

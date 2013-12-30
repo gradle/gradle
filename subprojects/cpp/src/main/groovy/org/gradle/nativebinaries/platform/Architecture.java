@@ -25,4 +25,8 @@ import org.gradle.internal.HasInternalProtocol;
 @Incubating
 @HasInternalProtocol
 public interface Architecture extends Named {
+    /**
+     * Returns a human-consumable display name for this architecture.
+     */
+    String getDisplayName();
 }

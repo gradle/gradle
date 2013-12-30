@@ -33,6 +33,10 @@ public class DefaultPrebuiltSharedLibraryBinary extends AbstractPrebuiltLibraryB
         super(name, library, buildType, targetPlatform, flavor);
     }
 
+    public String getDisplayName() {
+        return String.format("shared library '%s'", getName());
+    }
+
     public void setSharedLibraryFile(File sharedLibraryFile) {
         this.sharedLibraryFile = sharedLibraryFile;
     }

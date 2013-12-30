@@ -48,7 +48,7 @@ public abstract class AbstractPrebuiltLibraryBinary extends AbstractBuildableMod
 
     @Override
     public String toString() {
-        return String.format("%s : %s", name, getClass().getSimpleName());
+        return getDisplayName();
     }
 
     public String getName() {

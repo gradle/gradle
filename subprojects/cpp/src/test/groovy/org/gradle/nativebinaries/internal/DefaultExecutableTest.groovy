@@ -20,9 +20,10 @@ import spock.lang.Specification
 
 class DefaultExecutableTest extends Specification {
     def executable = new DefaultExecutable(new NativeProjectComponentIdentifier("project-path", "someExe"))
-    def "has useful string representation"() {
 
+    def "has useful string representation"() {
         expect:
         executable.toString() == "executable 'someExe'"
+        executable.displayName == "executable 'someExe'"
     }
 }

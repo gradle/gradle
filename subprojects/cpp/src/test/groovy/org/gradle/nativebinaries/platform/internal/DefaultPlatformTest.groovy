@@ -23,6 +23,12 @@ class DefaultPlatformTest extends Specification {
     def osParser = Mock(NotationParser)
     def platform = new DefaultPlatform("platform", archParser, osParser)
 
+    def "has useful string representation"() {
+        expect:
+        platform.displayName == "platform 'platform'"
+        platform.toString() == "platform 'platform'"
+    }
+
     def "has default architecture and operating system"() {
         expect:
         platform.architecture == ArchitectureInternal.TOOL_CHAIN_DEFAULT

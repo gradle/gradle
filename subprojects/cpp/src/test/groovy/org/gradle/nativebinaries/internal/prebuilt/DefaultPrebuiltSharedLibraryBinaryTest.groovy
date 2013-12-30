@@ -14,16 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries.internal
+package org.gradle.nativebinaries.internal.prebuilt
 
+import org.gradle.nativebinaries.BuildType
+import org.gradle.nativebinaries.Flavor
+import org.gradle.nativebinaries.PrebuiltLibrary
+import org.gradle.nativebinaries.platform.Platform
 import spock.lang.Specification
 
-class DefaultFlavorTest extends Specification {
-    def "has useful string representation"() {
-        def flavor = new DefaultFlavor("someFlavor")
+class DefaultPrebuiltSharedLibraryBinaryTest extends Specification {
+    def binary = new DefaultPrebuiltSharedLibraryBinary("name", Stub(PrebuiltLibrary), Stub(BuildType), Stub(Platform), Stub(Flavor))
 
+    def "has useful string representation"() {
         expect:
-        flavor.toString() == "flavor 'someFlavor'"
-        flavor.displayName == "flavor 'someFlavor'"
+        binary.toString() == "shared library 'name'"
+        binary.displayName == "shared library 'name'"
     }
 }

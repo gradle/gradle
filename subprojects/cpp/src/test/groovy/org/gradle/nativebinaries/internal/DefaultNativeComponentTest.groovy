@@ -65,6 +65,10 @@ class DefaultNativeComponentTest extends Specification {
         TestProjectNativeComponent(NativeProjectComponentIdentifier id) {
             super(id)
         }
+
+        String getDisplayName() {
+            return "test component"
+        }
     }
 
     def flavor(String name) {

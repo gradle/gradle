@@ -27,4 +27,13 @@ public class DefaultBuildType implements BuildType {
     public String getName() {
         return name;
     }
+
+    @Override
+    public String toString() {
+        return getDisplayName();
+    }
+
+    public String getDisplayName() {
+        return String.format("build type '%s'", name);
+    }
 }

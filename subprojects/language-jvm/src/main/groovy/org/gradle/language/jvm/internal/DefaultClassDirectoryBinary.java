@@ -72,6 +72,10 @@ public class DefaultClassDirectoryBinary extends AbstractBuildableModelElement i
         return source;
     }
 
+    public String getDisplayName() {
+        return namingScheme.getDescription();
+    }
+
     public String toString() {
         return namingScheme.getDescription();
     }

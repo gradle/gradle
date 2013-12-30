@@ -20,13 +20,11 @@ import org.gradle.nativebinaries.Library;
 import org.gradle.nativebinaries.NativeLibraryRequirement;
 
 public class DefaultLibrary extends AbstractProjectNativeComponent implements Library {
-
     public DefaultLibrary(NativeProjectComponentIdentifier id) {
         super(id);
     }
 
-    @Override
-    public String toString() {
+    public String getDisplayName() {
         return String.format("library '%s'", getName());
     }
 

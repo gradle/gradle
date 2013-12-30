@@ -43,6 +43,15 @@ public class DefaultPlatform implements PlatformInternal {
         return name;
     }
 
+    @Override
+    public String toString() {
+        return getDisplayName();
+    }
+
+    public String getDisplayName() {
+        return String.format("platform '%s'", name);
+    }
+
     public Architecture getArchitecture() {
         return architecture;
     }

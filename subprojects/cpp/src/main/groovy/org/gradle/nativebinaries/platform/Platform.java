@@ -38,6 +38,10 @@ import org.gradle.internal.HasInternalProtocol;
 @Incubating
 @HasInternalProtocol
 public interface Platform extends Named {
+    /**
+     * Returns a human-consumable display name for this platform.
+     */
+    String getDisplayName();
 
     /**
      * The cpu architecture being targeted. Defaults to the default architecture produced by the tool chain.

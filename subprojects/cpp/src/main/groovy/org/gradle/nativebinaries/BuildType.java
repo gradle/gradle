@@ -23,4 +23,8 @@ import org.gradle.api.Named;
  */
 @Incubating
 public interface BuildType extends Named {
+    /**
+     * Returns a human-consumable name for this build type.
+     */
+    String getDisplayName();
 }
