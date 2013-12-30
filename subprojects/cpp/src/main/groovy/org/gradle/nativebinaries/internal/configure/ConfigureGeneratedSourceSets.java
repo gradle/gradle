@@ -17,6 +17,7 @@ package org.gradle.nativebinaries.internal.configure;
 
 import org.gradle.api.Action;
 import org.gradle.api.Task;
+import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.language.HeaderExportingSourceSet;
 import org.gradle.language.base.FunctionalSourceSet;
@@ -34,14 +35,20 @@ public class ConfigureGeneratedSourceSets implements Action<ProjectInternal> {
                 Task generatorTask = languageSourceSet.getGeneratorTask();
                 if (generatorTask != null) {
                     languageSourceSet.builtBy(generatorTask);
-                    if (generatorTask.hasProperty("sourceDir")) {
-                        languageSourceSet.getSource().srcDir(generatorTask.property("sourceDir"));
-                    }
-                    if (languageSourceSet instanceof HeaderExportingSourceSet && generatorTask.hasProperty("headerDir")) {
-                        ((HeaderExportingSourceSet) languageSourceSet).getExportedHeaders().srcDir(generatorTask.property("headerDir"));
+                    maybeSetSourceDir(languageSourceSet.getSource(), generatorTask, "sourceDir");
+                    if (languageSourceSet instanceof HeaderExportingSourceSet) {
+                        maybeSetSourceDir(((HeaderExportingSourceSet) languageSourceSet).getExportedHeaders(), generatorTask, "headerDir");
                     }
                 }
             }
+        }
+    }
+
+    private void maybeSetSourceDir(SourceDirectorySet sourceSet, Task task, String propertyName) {
+        // TODO:DAZ Handle multiple output directories
+        Object value = task.property(propertyName);
+        if (value != null) {
+            sourceSet.srcDir(value);
         }
     }
 }

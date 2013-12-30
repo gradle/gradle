@@ -28,6 +28,7 @@ import static org.gradle.nativebinaries.language.cpp.fixtures.ToolChainRequireme
 class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
     def setup() {
+        settingsFile << "rootProject.name = 'test'"
         buildFile << """
     class GenerateSources extends DefaultTask {
         @InputDirectory File inputDir
@@ -219,6 +220,28 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
 
         then:
         executableBuilt(app)
+    }
+
+    def "produces reasonable error message when generator task does not have sourceDir property"() {
+        when:
+        buildFile << """
+    apply plugin: 'c'
+
+    task generateSources {
+    }
+
+    executables {
+        main {}
+    }
+    sources.main.c.generatedBy tasks.generateSources
+"""
+
+        and:
+        fails "mainExecutable"
+
+        then:
+        failure.assertHasDescription "A problem occurred configuring root project 'test'."
+        failure.assertHasCause "Could not find property 'sourceDir' on task ':generateSources'."
     }
 
     def "can explicitly configure source and header directories from generator task"() {
