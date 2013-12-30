@@ -274,8 +274,9 @@ A test run with 1 failed test, 1 successful test and 8 ignored tests will now re
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
-* [Michael Putters](https://github.com/mputters) - improved the detection of available Visual studio and Windows SDKs installations
-												 - add basic support for Objective-C
+* [Michael Putters](https://github.com/mputters) 
+	* improved the detection of available Visual studio and Windows SDKs installations
+	* add basic support for Objective-C
 * [Jean-Baptiste Nizet](https://github.com/jnizet) - improved HTML test reports to better report on ignored tests
 * [Piotr Kubowicz](https://github.com/Derbeth) - Documentation regarding incrementalness of tasks with no declared output
 
