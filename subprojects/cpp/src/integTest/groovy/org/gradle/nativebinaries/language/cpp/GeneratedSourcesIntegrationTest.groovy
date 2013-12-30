@@ -26,27 +26,36 @@ import static org.gradle.nativebinaries.language.cpp.fixtures.ToolChainRequireme
 
 // TODO:DAZ Test incremental
 class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
-    def generatorTask
 
     def setup() {
-        generatorTask = """
-    task generateSources(type: Copy) {
-        from "src/input"
-        into "\${buildDir}/src/generated"
-        filter { String line ->
-            if (line.startsWith("REMOVE ME")) {
-                ""
-            } else {
-                line
+        buildFile << """
+    class GenerateSources extends DefaultTask {
+        @InputDirectory File inputDir
+        @OutputDirectory File sourceDir
+        @OutputDirectory @Optional File headerDir
+
+        @TaskAction
+        void processIdlFiles() {
+            project.copy {
+                from inputDir
+                into sourceDir.parentFile
+                filter { String line ->
+                    line.replaceAll('REMOVE_ME', '')
+                }
             }
         }
+    }
+    task generateCSources(type: GenerateSources) {
+        inputDir project.file("src/input")
+        headerDir project.file("build/src/generated/headers")
+        sourceDir project.file("build/src/generated/c")
     }
 """
     }
 
     private void degenerateInputSources() {
         FileUtils.listFiles(file("src/input"), null, true).each { File file ->
-            file.text = "REMOVE ME\n" + file.text
+            file.text = "REMOVE_ME\n" + file.text
         }
     }
 
@@ -56,10 +65,9 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
         app.writeSources(file("src/input"))
         degenerateInputSources()
 
+        when:
         buildFile << """
     apply plugin: 'c'
-
-    $generatorTask
 
     executables {
         main {}
@@ -67,23 +75,20 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
     sources {
         main {
             c {
-                builtBy tasks.generateSources
+                builtBy tasks.generateCSources
                 source {
-                    srcDir "\${buildDir}/src/generated/c"
+                    srcDirs tasks.generateCSources.sourceDir
                 }
                 exportedHeaders {
-                    srcDirs "\${buildDir}/src/generated/headers"
+                    srcDirs tasks.generateCSources.headerDir
                 }
             }
         }
     }
 """
 
-        when:
-        succeeds "mainExecutable"
-
         then:
-        executable("build/binaries/mainExecutable/main").exec().out == app.englishOutput
+        executableBuilt(app)
     }
 
     def "test dependent headers source set generated"() {
@@ -95,11 +100,9 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
         app.library.headerFiles*.writeToDir(file("src/input"))
         degenerateInputSources()
 
-        and:
+        when:
         buildFile << """
     apply plugin: 'c'
-
-    $generatorTask
 
     executables {
         main {}
@@ -107,9 +110,9 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
     sources {
         generated {
             cHeaders(CSourceSet) {
-                builtBy tasks.generateSources
+                builtBy tasks.generateCSources
                 exportedHeaders {
-                    srcDirs "\${buildDir}/src/generated/headers"
+                    srcDirs tasks.generateCSources.headerDir
                 }
             }
         }
@@ -117,11 +120,8 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
     sources.main.c.lib sources.generated.cHeaders
 """
 
-        when:
-        succeeds "mainExecutable"
-
         then:
-        executable("build/binaries/mainExecutable/main").exec().out == app.englishOutput
+        executableBuilt(app)
     }
 
     def "test dependent source set generated"() {
@@ -131,11 +131,9 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
         app.library.writeSources(file("src/input"))
         degenerateInputSources()
 
-        and:
+        when:
         buildFile << """
     apply plugin: 'c'
-
-    $generatorTask
 
     executables {
         main {}
@@ -143,12 +141,12 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
     sources {
         generated {
             c {
-                builtBy tasks.generateSources
+                builtBy tasks.generateCSources
                 source {
-                    srcDir "\${buildDir}/src/generated/c"
+                    srcDir tasks.generateCSources.sourceDir
                 }
                 exportedHeaders {
-                    srcDirs "\${buildDir}/src/generated/headers"
+                    srcDirs tasks.generateCSources.headerDir
                 }
             }
         }
@@ -157,11 +155,8 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
     executables.main.source sources.generated.c
 """
 
-        when:
-        succeeds "mainExecutable"
-
         then:
-        executable("build/binaries/mainExecutable/main").exec().out == app.englishOutput
+        executableBuilt(app)
     }
 
     def "test generated cpp"() {
@@ -170,10 +165,15 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
         app.writeSources(file("src/input"))
         degenerateInputSources()
 
+        when:
         buildFile << """
     apply plugin: 'cpp'
 
-    $generatorTask
+    task generateCppSources(type: GenerateSources) {
+        inputDir project.file("src/input")
+        headerDir project.file("build/src/generated/headers")
+        sourceDir project.file("build/src/generated/cpp")
+    }
 
     executables {
         main {}
@@ -181,23 +181,20 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
     sources {
         main {
             cpp {
-                builtBy tasks.generateSources
+                builtBy tasks.generateCppSources
                 source {
-                    srcDir "\${buildDir}/src/generated/cpp"
+                    srcDir tasks.generateCppSources.sourceDir
                 }
                 exportedHeaders {
-                    srcDirs "\${buildDir}/src/generated/headers"
+                    srcDirs tasks.generateCppSources.headerDir
                 }
             }
         }
     }
 """
 
-        when:
-        succeeds "mainExecutable"
-
         then:
-        executable("build/binaries/mainExecutable/main").exec().out == app.englishOutput
+        executableBuilt(app)
     }
 
     def "test generated asm"() {
@@ -209,10 +206,14 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
         asmSources*.writeToDir(file("src/input"))
         degenerateInputSources()
 
+        when:
         buildFile << app.pluginScript
         buildFile << app.extraConfiguration
         buildFile << """
-    $generatorTask
+    task generateAsmSources(type: GenerateSources) {
+        inputDir project.file("src/input")
+        sourceDir project.file("build/src/generated/asm")
+    }
 
     executables {
         main {}
@@ -220,20 +221,17 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
     sources {
         main {
             asm {
-                builtBy tasks.generateSources
+                builtBy tasks.generateAsmSources
                 source {
-                    srcDir "\${buildDir}/src/generated/asm"
+                    srcDir tasks.generateAsmSources.sourceDir
                 }
             }
         }
     }
 """
 
-        when:
-        succeeds "mainExecutable"
-
         then:
-        executable("build/binaries/mainExecutable/main").exec().out == app.englishOutput
+        executableBuilt(app)
     }
 
     @RequiresInstalledToolChain(VisualCpp)
@@ -246,10 +244,14 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
         rcSources*.writeToDir(file("src/input"))
         degenerateInputSources()
 
+        when:
         buildFile << app.pluginScript
         buildFile << app.extraConfiguration
         buildFile << """
-    $generatorTask
+    task generateRcSources(type: GenerateSources) {
+        inputDir project.file("src/input")
+        sourceDir project.file("build/src/generated/rc")
+    }
 
     executables {
         main {}
@@ -257,19 +259,22 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
     sources {
         main {
             rc {
-                builtBy tasks.generateSources
+                builtBy tasks.generateRcSources
                 source {
-                    srcDir "\${buildDir}/src/generated/rc"
+                    srcDir tasks.generateRcSources.sourceDir
                 }
             }
         }
     }
 """
 
-        when:
-        succeeds "mainExecutable"
-
         then:
-        executable("build/binaries/mainExecutable/main").exec().out == app.englishOutput
+        executableBuilt(app)
+    }
+
+    def executableBuilt(def app) {
+        succeeds "mainExecutable"
+        assert executable("build/binaries/mainExecutable/main").exec().out == app.englishOutput
+        true
     }
 }
