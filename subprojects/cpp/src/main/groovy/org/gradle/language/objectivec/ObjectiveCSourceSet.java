@@ -21,6 +21,31 @@ import org.gradle.language.DependentSourceSet;
 import org.gradle.language.HeaderExportingSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
 
+
+/**
+ * A set of Objective-C source files.
+ *
+ * <p>An ObjectiveC source set contains a set of source files, together with an optional set of exported header files.</p>
+ *
+ * <pre autoTested="true">
+ * apply plugin: "objc"
+ *
+ * sources {
+ *     main {
+ *         // Configure an existing ObjectiveCSourceSet
+ *         objc {
+ *             source {
+ *                 srcDirs "src/main/objc", "src/shared/objc"
+ *                 include "**{@literal /}*.m"
+ *             }
+ *             exportedHeaders {
+ *                 srcDirs "src/main/include"
+ *             }
+ *         }
+ *     }
+ * }
+ * </pre>
+ */
 @Incubating
 public interface ObjectiveCSourceSet extends HeaderExportingSourceSet, LanguageSourceSet, DependentSourceSet {
 

@@ -20,7 +20,7 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.language.objectivecpp.ObjectiveCppSourceSet
 import org.gradle.language.objectivecpp.plugins.ObjectiveCppLangPlugin
 import org.gradle.nativebinaries.*
-import org.gradle.nativebinaries.internal.NativeBinaryInternal
+import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
 import org.gradle.nativebinaries.language.objectivecpp.tasks.ObjectiveCppCompile
 import org.gradle.nativebinaries.language.internal.DefaultPreprocessingTool
 import org.gradle.nativebinaries.plugins.NativeBinariesPlugin
@@ -50,7 +50,7 @@ class ObjectiveCppNativeBinariesPlugin implements Plugin<ProjectInternal> {
             }
         }
 
-        project.binaries.withType(NativeBinary) { NativeBinaryInternal binary ->
+        project.binaries.withType(NativeBinary) { ProjectNativeBinaryInternal binary ->
             binary.source.withType(ObjectiveCppSourceSet).all { ObjectiveCppSourceSet sourceSet ->
                 def compileTask = createCompileTask(project, binary, sourceSet)
                 binary.tasks.add compileTask
@@ -59,7 +59,7 @@ class ObjectiveCppNativeBinariesPlugin implements Plugin<ProjectInternal> {
         }
     }
 
-    private def createCompileTask(ProjectInternal project, NativeBinaryInternal binary, ObjectiveCppSourceSet sourceSet) {
+    private def createCompileTask(ProjectInternal project, ProjectNativeBinaryInternal binary, ObjectiveCppSourceSet sourceSet) {
         def compileTask = project.task(binary.namingScheme.getTaskName("compile", sourceSet.fullName), type: ObjectiveCppCompile) {
             description = "Compiles the $sourceSet of $binary"
         }
