@@ -40,17 +40,17 @@ class ObjectiveCNativeBinariesPlugin implements Plugin<ProjectInternal> {
 
         project.executables.all { Executable executable ->
             executable.binaries.all { binary ->
-                binary.extensions.create("objectiveCCompiler", DefaultPreprocessingTool)
+                binary.extensions.create("objcCompiler", DefaultPreprocessingTool)
             }
         }
 
         project.libraries.all { Library library ->
             library.binaries.all { binary ->
-                binary.extensions.create("objectiveCCompiler", DefaultPreprocessingTool)
+                binary.extensions.create("objcCompiler", DefaultPreprocessingTool)
             }
         }
 
-        project.binaries.withType(NativeBinary) { ProjectNativeBinaryInternal binary ->
+        project.binaries.withType(ProjectNativeBinary) { ProjectNativeBinary binary ->
             binary.source.withType(ObjectiveCSourceSet).all { ObjectiveCSourceSet sourceSet ->
                 def compileTask = createCompileTask(project, binary, sourceSet)
                 binary.tasks.add compileTask
@@ -73,10 +73,13 @@ class ObjectiveCNativeBinariesPlugin implements Plugin<ProjectInternal> {
         binary.getLibs(sourceSet).each { deps ->
             compileTask.includes deps.includeRoots
         }
+        compileTask.includes {
+            sourceSet.exportedHeaders.srcDirs
+        }
 
         compileTask.objectFileDir = project.file("${project.buildDir}/objectFiles/${binary.namingScheme.outputDirectoryBase}/${sourceSet.fullName}")
-        compileTask.macros = binary.objectiveCCompiler.macros
-        compileTask.compilerArgs = binary.objectiveCCompiler.args
+        compileTask.macros = binary.objcCompiler.macros
+        compileTask.compilerArgs = binary.objcCompiler.args
 
         compileTask
     }
