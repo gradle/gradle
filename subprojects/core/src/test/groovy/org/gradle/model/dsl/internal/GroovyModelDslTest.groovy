@@ -28,16 +28,74 @@ class GroovyModelDslTest extends Specification {
 
     def "can add rules via dsl"() {
         given:
+        modelRules.register("foo", [])
+
+        when:
+        modelDsl.configure {
+            foo {
+                add 1
+            }
+        }
+
+        then:
+        modelRegistry.get("foo", List) == [1]
+    }
+
+    def "can use property accessors in DSL to build model object path"() {
+        given:
         modelRules.register("foo.bar", [])
 
         when:
-        modelDsl.foo.bar {
-            add 1
+        modelDsl.configure {
+            foo.bar {
+                add 1
+            }
         }
 
         then:
         modelRegistry.get("foo.bar", List) == [1]
-
     }
 
+    def "does not add rules when not configuring"() {
+        given:
+        modelRules.register("foo", new TestObject())
+        modelRules.register("bah", new TestObject())
+
+        when:
+        modelDsl.configure {
+            foo {
+                defineSomeThing {
+                    unknown
+                }
+            }
+        }
+        modelRegistry.get("foo", Object)
+
+        then:
+        MissingPropertyException missingProp = thrown()
+        missingProp.property == 'unknown'
+
+        when:
+        modelDsl.configure {
+            bah {
+                defineSomeThing {
+                    unknown { }
+                }
+            }
+        }
+        modelRegistry.get("bah", Object)
+
+        then:
+        MissingMethodException missingMethod = thrown()
+        missingMethod.method == 'unknown'
+    }
+}
+
+class TestObject {
+    String prop
+
+    def defineSomeThing(Closure cl) {
+        cl.delegate = this
+        cl.call()
+    }
 }

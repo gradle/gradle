@@ -16,7 +16,6 @@
 
 package org.gradle.model.dsl;
 
-import groovy.lang.Closure;
 import org.gradle.api.Incubating;
 
 /**
@@ -24,9 +23,4 @@ import org.gradle.api.Incubating;
  */
 @Incubating
 public interface ModelDsl {
-
-    ModelDsl get(String name);
-
-    void configure(Closure<?> closure);
-
 }

@@ -55,15 +55,14 @@ import org.gradle.configuration.project.ProjectEvaluator;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.StandardOutputCapture;
 import org.gradle.model.ModelPath;
 import org.gradle.model.ModelRules;
-import org.gradle.model.dsl.ModelDsl;
 import org.gradle.model.dsl.internal.GroovyModelDsl;
 import org.gradle.model.internal.ModelRegistry;
 import org.gradle.process.ExecResult;
@@ -1008,7 +1007,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
 
     // This is here temporarily as a quick way to expose it in the build script
     // Longer term it will not be available via Project, but be only available in a build script
-    public void model(Action<? super ModelDsl> action) {
-        action.execute(new GroovyModelDsl(modelRules));
+    public void model(Closure action) {
+        new GroovyModelDsl(modelRules).configure(action);
     }
 }
