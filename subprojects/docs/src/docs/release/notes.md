@@ -167,6 +167,10 @@ Future releases of Gradle will provide full-featured dependency resolution for t
 providing more sophisticated support for system libraries (such as the Windows SDK).
 `PrebuiltLibraries` takes a step in that direction, and provides a tool that can be used for many use cases.
 
+### Objective-C and Objective-CPP Support
+
+TODO
+
 ### Improved detection of Visual studio and Windows SDK installations
 
 - Uses registry to find installations.
@@ -271,6 +275,7 @@ A test run with 1 failed test, 1 successful test and 8 ignored tests will now re
 We would like to thank the following community members for making contributions to this release of Gradle.
 
 * [Michael Putters](https://github.com/mputters) - improved the detection of available Visual studio and Windows SDKs installations
+												 - add basic support for Objective-C
 * [Jean-Baptiste Nizet](https://github.com/jnizet) - improved HTML test reports to better report on ignored tests
 * [Piotr Kubowicz](https://github.com/Derbeth) - Documentation regarding incrementalness of tasks with no declared output
 
