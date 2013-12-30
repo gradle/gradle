@@ -14,31 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries.internal;
+package org.gradle.language.objectivecpp;
 
-import java.io.File;
-import java.util.List;
+import org.gradle.api.Incubating;
+import org.gradle.language.DependentSourceSet;
+import org.gradle.language.HeaderExportingSourceSet;
+import org.gradle.language.base.LanguageSourceSet;
 
-/**
- * A high level interface to the linker, specifying what is to be linked and how.
- */
-public interface LinkerSpec extends BinaryToolSpec {
-
-    List<File> getObjectFiles();
-
-    void objectFiles(Iterable<File> objectFiles);
-
-    List<File> getLibraries();
-
-    void libraries(Iterable<File> libraries);
-
-    // TODO:DAZ Work out how to test this
-    List<File> getLibraryPath();
-
-    void libraryPath(File... libraryPath);
-
-    File getOutputFile();
-
-    void setOutputFile(File outputFile);
+@Incubating
+public interface ObjectiveCppSourceSet extends HeaderExportingSourceSet, LanguageSourceSet, DependentSourceSet {
 
 }

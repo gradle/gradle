@@ -41,6 +41,16 @@ public interface TargetPlatformConfiguration {
     List<String> getCCompilerArgs();
 
     /**
+     * The additional args supplied to the Objective-C++ compiler to target the platform.
+     */
+    List<String> getObjectiveCppCompilerArgs();
+
+    /**
+     * The additional args supplied to the Objective-C compiler to target the platform.
+     */
+    List<String> getObjectiveCCompilerArgs();
+
+    /**
      * The additional args supplied to the Assembler to target the platform.
      */
     List<String> getAssemblerArgs();
