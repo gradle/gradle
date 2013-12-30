@@ -62,7 +62,7 @@ public abstract class HelloWorldApp extends TestApp {
     private String compilerConfig(String action, String arg) {
         StringBuilder builder = new StringBuilder();
         for (String plugin : getPluginList()) {
-            if (plugin.equals("c") || plugin.equals("cpp")) {
+            if (plugin.equals("c") || plugin.equals("cpp") || plugin.equals("objc")) {
                 builder.append(plugin).append("Compiler.").append(action).append(" '").append(arg).append("'\n");
             }
         }
