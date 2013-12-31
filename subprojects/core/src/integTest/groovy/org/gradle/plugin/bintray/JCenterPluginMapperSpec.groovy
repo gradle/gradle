@@ -14,10 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.resolve.internal
+package org.gradle.plugin.bintray
 
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.dsl.DependencyHandler
+import org.gradle.plugin.resolve.internal.DefaultPluginRequest
+import org.gradle.plugin.resolve.internal.InvalidPluginRequest
+import org.gradle.plugin.resolve.internal.JCenterPluginMapper
 import spock.lang.Specification
 
 class JCenterPluginMapperSpec extends Specification {

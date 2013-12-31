@@ -16,6 +16,7 @@
 
 package org.gradle.plugin.resolve.internal;
 
+import com.jfrog.bintray.client.api.handle.Bintray;
 import com.jfrog.bintray.client.api.model.Pkg;
 import com.jfrog.bintray.client.impl.BintrayClient;
 import org.gradle.api.artifacts.Dependency;
@@ -24,13 +25,17 @@ import org.gradle.api.artifacts.dsl.DependencyHandler;
 import java.util.List;
 
 public class JCenterPluginMapper implements ModuleMappingPluginResolver.Mapper {
-    private static final String GRADLE_PLUGINS_ORG = "gradle-plugins-development";
-    private static final String GRADLE_PLUGINS_REPO = "gradle-plugins";
-    private static final String PLUGIN_ID_ATTRIBUTE_NAME = "gradle-plugin-id";
+
+    public static final String BINTRAY_API_OVERRIDE_URL_PROPERTY = JCenterPluginMapper.class + ".bintray.override";
+
+    public static final String GRADLE_PLUGINS_ORG = "gradle-plugins-development";
+    public static final String GRADLE_PLUGINS_REPO = "gradle-plugins";
+    public static final String PLUGIN_ID_ATTRIBUTE_NAME = "gradle-plugin-id";
 
     public Dependency map(PluginRequest request, DependencyHandler dependencyHandler) {
         String pluginId = request.getId();
-        List<Pkg> results = BintrayClient.create().
+        Bintray bintrayClient = createBintrayClient();
+        List<Pkg> results = bintrayClient.
                 subject(GRADLE_PLUGINS_ORG).
                 repository(GRADLE_PLUGINS_REPO).
                 searchForPackage().
@@ -55,5 +60,15 @@ public class JCenterPluginMapper implements ModuleMappingPluginResolver.Mapper {
         }
         return dependencyHandler.create(systemIds.get(0) + ":" + version);
     }
+
+    private Bintray createBintrayClient() {
+        String override = System.getProperty(BINTRAY_API_OVERRIDE_URL_PROPERTY);
+        if (override == null) {
+            return BintrayClient.create();
+        } else {
+            return BintrayClient.create(override, null, null);
+        }
+    }
+
 }
 
