@@ -10,8 +10,24 @@ Below is a list of stories, in approximate priority order:
 
 ## Feature - Tooling API parity with command-line for task visualisation and execution
 
-This feature exposes via the tooling API some task execution and reporting features that are currently available on the command-line. It also
-makes some improvements to the task reporting capabilities.
+This feature exposes via the tooling API some task execution and reporting features that are currently available on the command-line.
+
+- Task selection by name, where I can run `gradle test` and this will find and execute all tasks with name `test` in the current project and its subprojects.
+  However, this selection logic does have some special cases. For example, when I run `gradle help` or `gradle tasks`, then the task from the current project
+  only is executed, and no subproject tasks are executed.
+- Task reporting, where I can run `gradle tasks` and this will show me the things I can run from the current project. This report, by default, shows only the public
+  interface tasks and hides the implementation tasks.
+
+The first part of this feature involves extracting the logic for task selection and task reporting into some reusable service, that is used for command-line invocation
+and exposed through the tooling API. This way, both tools and the command-line use the same version-specific logic.
+
+The second part of this feature involves some improvements to the task reporting, to simplify the base logic, improve performance and to integrate with the component
+model introduced by the new language plugins:
+
+- Task reporting treats as public any task with a non-empty `group` attribute, or any task that is declared as a public task of a build element.
+- All other tasks are treated as private.
+- This is a breaking change. Previously, the reporting logic used to analyse the task dependency graph and treated any task which was not a dependency of some other task
+  as a public task. This is very slow, requires every task in every project to be configured, and was not particularly accurate.
 
 ### GRADLE-2434 - IDE visualises and runs aggregate tasks
 
@@ -27,6 +43,10 @@ See [tooling-api-improvements.md](tooling-api-improvements.md#story-gradle-2434-
 On the command-line I can run `gradle tasks` and see the 'main' tasks for the build, and `gradle tasks --all` to see all the tasks.
 
 Expose some information to allow the IDE to visualise this.
+
+### Simplify task reporting logic
+
+TBD
 
 ## Feature - Tooling API client cancels an operation
 
