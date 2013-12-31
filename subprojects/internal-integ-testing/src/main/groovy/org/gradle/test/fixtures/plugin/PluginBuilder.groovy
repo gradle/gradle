@@ -18,6 +18,7 @@ package org.gradle.test.fixtures.plugin
 
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.TextUtil
 
 class PluginBuilder {
 
@@ -64,7 +65,7 @@ class PluginBuilder {
         generateBuildScript """
             jar {
                 archiveName = "$testFile.name"
-                destinationDir = file("$testFile.parentFile.absolutePath")
+                destinationDir = file("${TextUtil.escapeString(testFile.parentFile.absolutePath)}")
             }
         """
 
