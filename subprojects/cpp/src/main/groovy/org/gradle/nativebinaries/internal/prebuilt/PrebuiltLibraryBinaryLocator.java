@@ -17,22 +17,42 @@
 package org.gradle.nativebinaries.internal.prebuilt;
 
 import org.gradle.api.DomainObjectSet;
-import org.gradle.nativebinaries.NativeBinary;
-import org.gradle.nativebinaries.NativeLibraryRequirement;
-import org.gradle.nativebinaries.PrebuiltLibraries;
+import org.gradle.api.NamedDomainObjectSet;
+import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.nativebinaries.*;
 import org.gradle.nativebinaries.internal.resolve.LibraryBinaryLocator;
 
-public class PrebuiltLibraryBinaryLocator implements LibraryBinaryLocator {
-    private final PrebuiltLibraries prebuiltLibraries;
+import java.util.ArrayList;
+import java.util.List;
 
-    public PrebuiltLibraryBinaryLocator(PrebuiltLibraries prebuiltLibraries) {
-        this.prebuiltLibraries = prebuiltLibraries;
+public class PrebuiltLibraryBinaryLocator implements LibraryBinaryLocator {
+    private final ProjectFinder projectFinder;
+
+    public PrebuiltLibraryBinaryLocator(ProjectFinder projectFinder) {
+        this.projectFinder = projectFinder;
     }
 
     public DomainObjectSet<NativeBinary> getBinaries(NativeLibraryRequirement requirement) {
-        if (requirement.getProjectPath() != null) {
-            throw new PrebuiltLibraryResolveException("Cannot resolve prebuilt library in another project.");
+        ProjectInternal project = projectFinder.getProject(requirement.getProjectPath());
+        NamedDomainObjectSet<PrebuiltLibraries> repositories = project.getModelRegistry().get("repositories", Repositories.class).withType(PrebuiltLibraries.class);
+        if (repositories.isEmpty()) {
+            throw new PrebuiltLibraryResolveException("Project does not have any prebuilt library repositories.");
         }
-        return prebuiltLibraries.getByName(requirement.getLibraryName()).getBinaries();
+        PrebuiltLibrary prebuiltLibrary = getPrebuiltLibrary(repositories, requirement.getLibraryName());
+        return prebuiltLibrary.getBinaries();
+    }
+
+    private PrebuiltLibrary getPrebuiltLibrary(NamedDomainObjectSet<PrebuiltLibraries> repositories, String libraryName) {
+        List<String> repositoryNames = new ArrayList<String>();
+        for (PrebuiltLibraries prebuiltLibraries : repositories) {
+            repositoryNames.add(prebuiltLibraries.getName());
+            PrebuiltLibrary prebuiltLibrary = prebuiltLibraries.findByName(libraryName);
+            if (prebuiltLibrary != null) {
+                return prebuiltLibrary;
+            }
+        }
+        throw new PrebuiltLibraryResolveException(
+                String.format("Prebuilt library with name '%s' not found in repositories '%s'.", libraryName, repositoryNames));
     }
 }

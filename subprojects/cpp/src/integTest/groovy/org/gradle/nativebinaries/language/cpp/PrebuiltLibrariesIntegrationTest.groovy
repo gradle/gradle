@@ -182,6 +182,43 @@ class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegra
         installation("build/install/mainExecutable").exec().out == app.frenchOutput
     }
 
+    def "locates prebuilt library in another project"() {
+        given:
+        app.executable.writeSources(file("projectA/src/main"))
+        app.librarySources*.writeToDir(file("projectA/src/main"))
+        app.libraryHeader.writeToDir(file("projectB/libs/src/hello"))
+
+        and:
+        settingsFile.text = "include ':projectA', ':projectB'"
+        buildFile << """
+            project(':projectA') {
+                apply plugin: 'cpp'
+                executables {
+                    main {}
+                }
+                sources.main.cpp.lib project: ':projectB', library: 'hello', linkage: 'api'
+            }
+            project(':projectB') {
+                apply plugin: 'cpp'
+                model {
+                    repositories {
+                        libs(PrebuiltLibraries) {
+                            hello {
+                                headers.srcDir "../libs/src/hello/headers"
+                            }
+                        }
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds "installMainExecutable"
+
+        then:
+        installation("projectA/build/install/mainExecutable").exec().out == app.englishOutput
+    }
+
     def "produces reasonable error message when no output file is defined for binary"() {
         given:
         buildFile << """
@@ -264,35 +301,50 @@ class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegra
         then:
         failure.assertHasDescription("Could not locate library 'other'.")
         failure.assertHasCause("Library with name 'other' not found.")
-        failure.assertHasCause("Prebuilt library with name 'other' not found in 'libs'.")
-        failure.assertHasCause("Prebuilt library with name 'other' not found in 'libs2'.")
+        failure.assertHasCause("Prebuilt library with name 'other' not found in repositories '[libs, libs2]'.")
     }
 
-    def "produces reasonable error message when attempting to access prebuilt library in a different project"() {
+    def "produces reasonable error message when prebuilt library does not exist in a different project"() {
         given:
+        settingsFile.text = "include ':projectA', ':projectB'"
         buildFile << """
-            apply plugin: 'cpp'
-            model {
-                repositories {
-                    libs(PrebuiltLibraries) {
-                        hello {
-                            headers.srcDir "libs/src/hello/headers"
+            project(':projectA') {
+                apply plugin: 'cpp'
+                model {
+                    repositories {
+                        libs(PrebuiltLibraries) {
+                            hello {
+                                headers.srcDir "libs/src/hello/headers"
+                            }
+                        }
+                    }
+                }
+                executables {
+                    main {}
+                }
+                sources.main.cpp.lib project: ':projectB', library: 'hello', linkage: 'api'
+            }
+            project(':projectB') {
+                apply plugin: 'cpp'
+                model {
+                    repositories {
+                        libs(PrebuiltLibraries) {
+                            hello1
+                        }
+                        libs2(PrebuiltLibraries) {
+                            hello2
                         }
                     }
                 }
             }
-            executables {
-                main {}
-            }
-            sources.main.cpp.lib project: ':different', library: 'hello', linkage: 'api'
         """
 
         when:
         fails "mainExecutable"
 
         then:
-        failure.assertHasDescription("Could not locate library 'hello' for project ':different'.")
-        failure.assertHasCause("Project with path ':different' could not be found in root project 'test'.")
-        failure.assertHasCause("Cannot resolve prebuilt library in another project.")
+        failure.assertHasDescription("Could not locate library 'hello' for project ':projectB'.")
+        failure.assertHasCause("Library with name 'hello' not found.")
+        failure.assertHasCause("Prebuilt library with name 'hello' not found in repositories '[libs, libs2]'.")
     }
 }

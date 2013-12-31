@@ -24,6 +24,7 @@ import org.gradle.nativebinaries.language.cpp.fixtures.app.CppCallingCHelloWorld
 // TODO:DAZ Test incremental
 // TODO:DAZ Test dependency on functional source set
 // TODO:DAZ Test dependency on source set that is not HeaderExportingSourceSet
+// TODO:DAZ Sad day tests
 class SourceSetDependenciesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
     def "source dependency on source set of same type"() {
