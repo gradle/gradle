@@ -104,6 +104,14 @@ class GccToolChainCustomisationIntegrationTest extends AbstractIntegrationSpec {
                     ["-m32", "-DFRENCH"]
                 }
 
+                List<String> getObjectiveCCompilerArgs() {
+                    []
+                }
+
+                List<String> getObjectiveCppCompilerArgs() {
+                    []
+                }
+
                 List<String> getAssemblerArgs() {
                     []
                 }
