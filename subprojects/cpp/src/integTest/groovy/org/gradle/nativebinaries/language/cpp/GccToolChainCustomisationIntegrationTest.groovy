@@ -80,13 +80,13 @@ class GccToolChainCustomisationIntegrationTest extends AbstractIntegrationSpec {
                     ${gcc.id} {
                         addPlatformConfiguration(new ArmArchitecture())
                     }
-                    platforms {
-                        arm {
-                            architecture "arm"
-                        }
-                        i386 {
-                            architecture "i386"
-                        }
+                }
+                platforms {
+                    arm {
+                        architecture "arm"
+                    }
+                    i386 {
+                        architecture "i386"
                     }
                 }
             }
