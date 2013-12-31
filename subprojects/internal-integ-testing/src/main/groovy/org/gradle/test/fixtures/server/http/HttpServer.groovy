@@ -15,6 +15,8 @@
  */
 package org.gradle.test.fixtures.server.http
 
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.internal.hash.HashUtil
 import org.gradle.test.matchers.UserAgentMatcher
@@ -536,7 +538,11 @@ class HttpServer extends ExternalResource {
         }
     }
 
-    private void expect(String path, boolean matchPrefix, Collection<String> methods, Action action, PasswordCredentials credentials = null) {
+    void expect(String path, Collection<String> methods, PasswordCredentials passwordCredentials = null, Action action) {
+        expect(path, false, methods, action, passwordCredentials)
+    }
+
+    void expect(String path, boolean matchPrefix, Collection<String> methods, Action action, PasswordCredentials credentials = null) {
         if (credentials != null) {
             action = withAuthentication(path, credentials.username, credentials.password, action)
         }
@@ -612,6 +618,31 @@ class HttpServer extends ExternalResource {
         String getDisplayName()
 
         void handle(HttpServletRequest request, HttpServletResponse response)
+    }
+
+    static abstract class ActionSupport implements Action {
+        final String displayName
+
+        ActionSupport(String displayName) {
+            this.displayName = displayName
+        }
+    }
+
+    static class Utils {
+        static JsonNode json(HttpServletRequest request) {
+            new ObjectMapper().reader().readTree(request.reader)
+        }
+
+        static JsonNode json(String json) {
+            new ObjectMapper().reader().readTree(json)
+        }
+
+        static void json(HttpServletResponse response, Object data) {
+            if (!response.contentType) {
+                response.setContentType("application/json")
+            }
+            new ObjectMapper().writer().writeValue(response.writer, data)
+        }
     }
 
     abstract static class AuthSchemeHandler {
