@@ -102,6 +102,13 @@ class HttpServer extends ExternalResource {
         server.setHandler(handlers)
     }
 
+    String getAddress() {
+        if (!server.started) {
+            server.start()
+        }
+        "http://localhost:${port}"
+    }
+
     void start() {
         start(0)
     }
