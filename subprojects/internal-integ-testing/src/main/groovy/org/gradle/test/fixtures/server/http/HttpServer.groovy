@@ -16,9 +16,9 @@
 package org.gradle.test.fixtures.server.http
 
 import org.gradle.api.artifacts.repositories.PasswordCredentials
+import org.gradle.internal.hash.HashUtil
 import org.gradle.test.matchers.UserAgentMatcher
 import org.gradle.util.GFileUtils
-import org.gradle.internal.hash.HashUtil
 import org.hamcrest.Matcher
 import org.junit.rules.ExternalResource
 import org.mortbay.jetty.*
@@ -529,14 +529,14 @@ class HttpServer extends ExternalResource {
         }
     }
 
-    private void expect(String path, boolean recursive, Collection<String> methods, Action action, PasswordCredentials credentials = null) {
+    private void expect(String path, boolean matchPrefix, Collection<String> methods, Action action, PasswordCredentials credentials = null) {
         if (credentials != null) {
             action = withAuthentication(path, credentials.username, credentials.password, action)
         }
 
         ExpectOne expectation = new ExpectOne(action, methods, path)
         expections << expectation
-        add(path, recursive, methods, new AbstractHandler() {
+        add(path, matchPrefix, methods, new AbstractHandler() {
             void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
                 if (expectation.run) {
                     return
@@ -548,8 +548,8 @@ class HttpServer extends ExternalResource {
         })
     }
 
-    private void allow(String path, boolean recursive, Collection<String> methods, Action action) {
-        add(path, recursive, methods, new AbstractHandler() {
+    private void allow(String path, boolean matchPrefix, Collection<String> methods, Action action) {
+        add(path, matchPrefix, methods, new AbstractHandler() {
             void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
                 action.handle(request, response)
                 request.handled = true
@@ -557,7 +557,7 @@ class HttpServer extends ExternalResource {
         })
     }
 
-    private void add(String path, boolean recursive, Collection<String> methods, Handler handler) {
+    private void add(String path, boolean matchPrefix, Collection<String> methods, Handler handler) {
         assert path.startsWith('/')
 //        assert path == '/' || !path.endsWith('/')
         def prefix = path == '/' ? '/' : path + '/'
@@ -566,7 +566,7 @@ class HttpServer extends ExternalResource {
                 if (methods != null && !methods.contains(request.method)) {
                     return
                 }
-                boolean match = request.pathInfo == path || (recursive && request.pathInfo.startsWith(prefix))
+                boolean match = request.pathInfo == path || (matchPrefix && request.pathInfo.startsWith(prefix))
                 if (match && !request.handled) {
                     handler.handle(target, request, response, dispatch)
                 }
