@@ -25,7 +25,7 @@ dependencies {
         dependency "org.jboss.netty:netty:3.2.4.Final"
     }
     compile "org.apache.sshd:sshd-core:0.6.0"
-    compile "com.google.code.gson:gson:2.2.4"
+    compile libraries.gson
 }
 
 useTestFixtures(sourceSet: 'main')

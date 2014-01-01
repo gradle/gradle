@@ -149,3 +149,4 @@ libraries.jmock = [
     libraries.objenesis,
     'cglib:cglib-nodep:2.2'
 ]
+libraries.gson = "com.google.code.gson:gson:2.2.4"
