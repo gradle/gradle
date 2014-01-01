@@ -15,8 +15,8 @@
  */
 package org.gradle.test.fixtures.server.http
 
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.gson.Gson
+import com.google.gson.JsonElement
 import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.internal.hash.HashUtil
 import org.gradle.test.matchers.UserAgentMatcher
@@ -629,19 +629,19 @@ class HttpServer extends ExternalResource {
     }
 
     static class Utils {
-        static JsonNode json(HttpServletRequest request) {
-            new ObjectMapper().reader().readTree(request.reader)
+        static JsonElement json(HttpServletRequest request) {
+            new Gson().fromJson(request.reader, JsonElement.class)
         }
 
-        static JsonNode json(String json) {
-            new ObjectMapper().reader().readTree(json)
+        static JsonElement json(String json) {
+            new Gson().fromJson(json, JsonElement.class)
         }
 
         static void json(HttpServletResponse response, Object data) {
             if (!response.contentType) {
                 response.setContentType("application/json")
             }
-            new ObjectMapper().writer().writeValue(response.writer, data)
+            new Gson().toJson(data, response.writer)
         }
     }
 
