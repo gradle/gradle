@@ -52,7 +52,7 @@ public class CreateNativeBinaries extends ModelRule {
         project.getExtensions().add("buildTypes", buildTypes);
         project.getExtensions().add("flavors", flavors);
 
-        NativeDependencyResolver resolver = createResolver(project, repositories);
+        NativeDependencyResolver resolver = createResolver(project);
         Transformer<Collection<NativeBinary>, ProjectNativeComponent> factory =
                 new NativeBinaryFactory(instantiator, resolver, project, toolChains, platforms, buildTypes, flavors);
 
@@ -61,7 +61,7 @@ public class CreateNativeBinaries extends ModelRule {
         }
     }
 
-    private static NativeDependencyResolver createResolver(ProjectInternal project, Repositories repositories) {
+    private static NativeDependencyResolver createResolver(ProjectInternal project) {
         List<LibraryBinaryLocator> locators = new ArrayList<LibraryBinaryLocator>();
         RelativeProjectFinder projectFinder = new RelativeProjectFinder(project);
         locators.add(new ProjectLibraryBinaryLocator(projectFinder));
@@ -87,4 +87,5 @@ public class CreateNativeBinaries extends ModelRule {
         }
         return components;
     }
+
 }

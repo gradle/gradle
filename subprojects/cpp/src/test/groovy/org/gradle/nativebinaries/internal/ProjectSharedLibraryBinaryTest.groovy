@@ -37,24 +37,35 @@ class ProjectSharedLibraryBinaryTest extends Specification {
     final buildType = Stub(BuildType)
     final library = Stub(Library)
     final resolver = Stub(NativeDependencyResolver)
+    def sharedLibraryFile = Mock(File)
+    def sharedLibraryLinkFile = Mock(File)
 
     def "has useful string representation"() {
         expect:
         sharedLibrary.toString() == "shared library 'main:sharedLibrary'"
     }
 
+    def "can set output files"() {
+        given:
+        def binary = sharedLibrary
+
+        when:
+        binary.sharedLibraryFile = sharedLibraryFile
+        binary.sharedLibraryLinkFile = sharedLibraryLinkFile
+
+        then:
+        binary.sharedLibraryFile == sharedLibraryFile
+        binary.sharedLibraryLinkFile == sharedLibraryLinkFile
+    }
+
     def "can convert binary to a native dependency"() {
         given:
         def binary = sharedLibrary
-        def outputDir = tmpDir.createDir("binaryOut")
+        binary.sharedLibraryFile = sharedLibraryFile
+        binary.sharedLibraryLinkFile = sharedLibraryLinkFile
         def lifecycleTask = Stub(Task)
         binary.setLifecycleTask(lifecycleTask)
         binary.builtBy(Stub(Task))
-        binary.outputDir = outputDir
-
-        and:
-        toolChain.getSharedLibraryName(_) >> "mainShared"
-        toolChain.getSharedLibraryLinkFileName(_) >> "mainSharedLink"
 
         and: "has at least one header exporting source set"
         final headerDir = tmpDir.createDir("headerDir")
@@ -71,8 +82,8 @@ class ProjectSharedLibraryBinaryTest extends Specification {
         binary.source sourceSet
 
         expect:
-        binary.sharedLibraryFile == outputDir.file("mainSharedLibrary/mainShared")
-        binary.sharedLibraryLinkFile == outputDir.file("mainSharedLibrary/mainSharedLink")
+        binary.sharedLibraryFile == sharedLibraryFile
+        binary.sharedLibraryLinkFile == sharedLibraryLinkFile
 
         binary.headerDirs.files == [headerDir] as Set
 

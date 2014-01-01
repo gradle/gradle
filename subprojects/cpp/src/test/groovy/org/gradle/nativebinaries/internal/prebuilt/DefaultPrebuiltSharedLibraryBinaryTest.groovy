@@ -30,4 +30,45 @@ class DefaultPrebuiltSharedLibraryBinaryTest extends Specification {
         binary.toString() == "shared library 'name'"
         binary.displayName == "shared library 'name'"
     }
+
+    def "uses library file when link file not set"() {
+        given:
+        def sharedLibraryFile = Mock(File)
+        def sharedLibraryLinkFile = Mock(File)
+
+        when:
+        binary.sharedLibraryFile = sharedLibraryFile
+
+        then:
+        binary.sharedLibraryFile == sharedLibraryFile
+        binary.sharedLibraryLinkFile == sharedLibraryFile
+
+        when:
+        binary.sharedLibraryLinkFile = sharedLibraryLinkFile
+
+        then:
+        binary.sharedLibraryFile == sharedLibraryFile
+        binary.sharedLibraryLinkFile == sharedLibraryLinkFile
+    }
+
+    def "uses specified linke file and library file"() {
+        given:
+        def sharedLibraryFile = createFile()
+        def sharedLibraryLinkFile = createFile()
+
+        when:
+        binary.sharedLibraryFile = sharedLibraryFile
+        binary.sharedLibraryLinkFile = sharedLibraryLinkFile
+
+        then:
+        binary.linkFiles.files == [sharedLibraryLinkFile] as Set
+        binary.runtimeFiles.files == [sharedLibraryFile] as Set
+    }
+
+    def createFile() {
+        def file = Stub(File) {
+            exists() >> true
+            isFile() >> true
+        }
+    }
 }

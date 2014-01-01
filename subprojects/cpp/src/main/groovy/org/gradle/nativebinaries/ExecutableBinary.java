@@ -24,5 +24,13 @@ import java.io.File;
  */
 @Incubating
 public interface ExecutableBinary extends NativeBinary {
+    /**
+     * The executable file.
+     */
     File getExecutableFile();
+
+    /**
+     * The executable file.
+     */
+    void setExecutableFile(File executableFile);
 }

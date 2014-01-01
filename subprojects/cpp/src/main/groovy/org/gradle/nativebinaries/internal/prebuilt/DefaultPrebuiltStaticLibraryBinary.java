@@ -21,12 +21,12 @@ import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.nativebinaries.BuildType;
 import org.gradle.nativebinaries.Flavor;
 import org.gradle.nativebinaries.PrebuiltLibrary;
-import org.gradle.nativebinaries.PrebuiltStaticLibraryBinary;
+import org.gradle.nativebinaries.StaticLibraryBinary;
 import org.gradle.nativebinaries.platform.Platform;
 
 import java.io.File;
 
-public class DefaultPrebuiltStaticLibraryBinary extends AbstractPrebuiltLibraryBinary implements PrebuiltStaticLibraryBinary {
+public class DefaultPrebuiltStaticLibraryBinary extends AbstractPrebuiltLibraryBinary implements StaticLibraryBinary {
     private File staticLibraryFile;
 
     public DefaultPrebuiltStaticLibraryBinary(String name, PrebuiltLibrary library, BuildType buildType, Platform targetPlatform, Flavor flavor) {

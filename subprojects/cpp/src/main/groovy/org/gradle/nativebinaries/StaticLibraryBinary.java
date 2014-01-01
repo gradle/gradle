@@ -32,4 +32,9 @@ public interface StaticLibraryBinary extends LibraryBinary {
      * The static library file.
      */
     File getStaticLibraryFile();
+
+    /**
+     * The static library binary file.
+     */
+    void setStaticLibraryFile(File staticLibraryFile);
 }

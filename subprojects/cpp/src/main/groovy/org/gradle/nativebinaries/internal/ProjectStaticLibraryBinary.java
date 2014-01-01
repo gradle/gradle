@@ -34,6 +34,7 @@ import java.util.Set;
 
 public class ProjectStaticLibraryBinary extends AbstractProjectLibraryBinary implements StaticLibraryBinaryInternal {
     private final List<FileCollection> additionalLinkFiles = new ArrayList<FileCollection>();
+    private File staticLibraryFile;
 
     public ProjectStaticLibraryBinary(Library library, Flavor flavor, ToolChainInternal toolChain, Platform platform, BuildType buildType,
                                       DefaultBinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
@@ -41,8 +42,11 @@ public class ProjectStaticLibraryBinary extends AbstractProjectLibraryBinary imp
     }
 
     public File getStaticLibraryFile() {
-        String outputFileName = getToolChain().getStaticLibraryName(getComponent().getBaseName());
-        return new File(getBinaryOutputDir(), outputFileName);
+        return staticLibraryFile;
+    }
+
+    public void setStaticLibraryFile(File staticLibraryFile) {
+        this.staticLibraryFile = staticLibraryFile;
     }
 
     public File getPrimaryOutput() {

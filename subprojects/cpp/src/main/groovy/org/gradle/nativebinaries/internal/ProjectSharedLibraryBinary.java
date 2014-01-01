@@ -33,6 +33,8 @@ import java.util.Collections;
 import java.util.Set;
 
 public class ProjectSharedLibraryBinary extends AbstractProjectLibraryBinary implements SharedLibraryBinary {
+    private File sharedLibraryFile;
+    private File sharedLibraryLinkFile;
 
     public ProjectSharedLibraryBinary(Library library, Flavor flavor, ToolChainInternal toolChain, Platform platform, BuildType buildType,
                                       DefaultBinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
@@ -40,17 +42,23 @@ public class ProjectSharedLibraryBinary extends AbstractProjectLibraryBinary imp
     }
 
     public File getSharedLibraryFile() {
-        String sharedLibraryName = getToolChain().getSharedLibraryName(getComponent().getBaseName());
-        return new File(getBinaryOutputDir(), sharedLibraryName);
+        return sharedLibraryFile;
+    }
+
+    public void setSharedLibraryFile(File sharedLibraryFile) {
+        this.sharedLibraryFile = sharedLibraryFile;
+    }
+
+    public File getSharedLibraryLinkFile() {
+        return sharedLibraryLinkFile;
+    }
+
+    public void setSharedLibraryLinkFile(File sharedLibraryLinkFile) {
+        this.sharedLibraryLinkFile = sharedLibraryLinkFile;
     }
 
     public File getPrimaryOutput() {
         return getSharedLibraryFile();
-    }
-
-    public File getSharedLibraryLinkFile() {
-        String sharedLibraryLinkFileName = getToolChain().getSharedLibraryLinkFileName(getComponent().getBaseName());
-        return new File(getBinaryOutputDir(), sharedLibraryLinkFileName);
     }
 
     public FileCollection getLinkFiles() {

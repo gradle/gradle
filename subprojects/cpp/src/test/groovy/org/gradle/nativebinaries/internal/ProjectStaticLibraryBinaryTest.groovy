@@ -38,6 +38,7 @@ class ProjectStaticLibraryBinaryTest extends Specification {
     def platform = Stub(Platform)
     def buildType = Stub(BuildType)
     final resolver = Stub(NativeDependencyResolver)
+    final outputFile = Mock(File)
 
     def "has useful string representation"() {  
         expect:
@@ -48,8 +49,19 @@ class ProjectStaticLibraryBinaryTest extends Specification {
         new ProjectStaticLibraryBinary(library, new DefaultFlavor("flavorOne"), toolChain, platform, buildType, namingScheme, resolver)
     }
 
+    def "can set output file"() {
+        given:
+        final binary = staticLibrary
+        def outputFile = Mock(File)
+
+        when:
+        binary.staticLibraryFile = outputFile
+
+        then:
+        binary.staticLibraryFile == outputFile
+    }
+
     def "can convert binary to a native dependency"() {
-        final outputDir = tmpDir.createDir("bin")
         final binary = staticLibrary
         given:
         def lifecycleTask = Stub(Task)
@@ -57,8 +69,7 @@ class ProjectStaticLibraryBinaryTest extends Specification {
         binary.builtBy(Stub(Task))
 
         and:
-        binary.outputDir = outputDir
-        toolChain.getStaticLibraryName(_) >> "mainStatic"
+        binary.staticLibraryFile = outputFile
 
         and:
         final headerDir = tmpDir.createDir("headerDir")
@@ -66,7 +77,7 @@ class ProjectStaticLibraryBinaryTest extends Specification {
 
         expect:
         binary.headerDirs.files == [headerDir] as Set
-        binary.staticLibraryFile == outputDir.file("mainStaticLibrary/mainStatic")
+        binary.staticLibraryFile == outputFile
 
         and:
         binary.linkFiles.files == [binary.staticLibraryFile] as Set
@@ -79,25 +90,21 @@ class ProjectStaticLibraryBinaryTest extends Specification {
     }
 
     def "includes additional link files in native dependency"() {
-        final outputDir = tmpDir.createDir("bin")
         final binary = staticLibrary
         given:
-        def linkFile1 = outputDir.file("one")
-        def linkFile2 = outputDir.file("two")
+        binary.staticLibraryFile = outputFile
+        def linkFile1 = Mock(File)
+        def linkFile2 = Mock(File)
         def additionalLinkFiles = Stub(FileCollection) {
             getFiles() >> [linkFile1, linkFile2]
         }
         binary.additionalLinkFiles(additionalLinkFiles)
 
         and:
-        binary.outputDir = outputDir
-        toolChain.getStaticLibraryName(_) >> "mainStatic"
-
-        and:
         addSources(binary, tmpDir.createDir("headerDir"))
 
         expect:
-        binary.staticLibraryFile == outputDir.file("mainStaticLibrary/mainStatic")
+        binary.staticLibraryFile == outputFile
         binary.linkFiles.files == [binary.staticLibraryFile, linkFile1, linkFile2] as Set
     }
 

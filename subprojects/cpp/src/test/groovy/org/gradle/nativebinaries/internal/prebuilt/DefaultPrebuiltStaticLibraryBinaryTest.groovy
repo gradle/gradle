@@ -30,4 +30,27 @@ class DefaultPrebuiltStaticLibraryBinaryTest extends Specification {
         binary.toString() == "static library 'name'"
         binary.displayName == "static library 'name'"
     }
+
+    def "can set static library file"() {
+        given:
+        def file = createFile()
+
+        when:
+        binary.staticLibraryFile = file
+
+        then:
+        binary.staticLibraryFile == file
+        binary.linkFiles.files == [file] as Set
+
+        and:
+        binary.runtimeFiles.empty
+    }
+
+    def createFile() {
+        def file = Stub(File) {
+            exists() >> true
+            isFile() >> true
+        }
+    }
+
 }

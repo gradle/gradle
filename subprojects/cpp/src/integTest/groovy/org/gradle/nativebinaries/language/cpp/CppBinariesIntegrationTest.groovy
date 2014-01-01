@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 package org.gradle.nativebinaries.language.cpp
-
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativebinaries.language.cpp.fixtures.app.CppHelloWorldApp
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.hamcrest.Matchers
 import spock.lang.IgnoreIf
 import spock.lang.Issue
+import spock.lang.Unroll
 
 class CppBinariesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def "can configure the binaries of a C++ application"() {
@@ -282,5 +283,90 @@ class CppBinariesIntegrationTest extends AbstractInstalledToolChainIntegrationSp
         expect:
         fails "mainExecutable"
         failure.assertThatCause(Matchers.not(Matchers.containsString("Could not stop")))
+    }
+
+    def "can configure output file for binaries"() {
+        given:
+        def app = new CppHelloWorldApp()
+        app.writeSources(file("src/main"))
+        app.library.writeSources(file("src/hello"))
+
+        and:
+        buildFile << """
+            apply plugin: 'cpp'
+            executables {
+                main {
+                    binaries.all {
+                        executableFile = modPath(executableFile)
+                    }
+                }
+            }
+            libraries {
+                hello {
+                    binaries.withType(SharedLibraryBinary) {
+                        sharedLibraryFile = modPath(sharedLibraryFile)
+                        sharedLibraryLinkFile = modPath(sharedLibraryLinkFile)
+                    }
+                    binaries.withType(StaticLibraryBinary) {
+                        staticLibraryFile = modPath(staticLibraryFile)
+                    }
+                }
+            }
+            //sources.main.cpp.lib libraries.hello
+
+            def modPath(File file) {
+                new File("\${file.parentFile}/new_output/_\${file.name}")
+            }
+"""
+
+        when:
+        succeeds "mainExecutable", "helloSharedLibrary", "helloStaticLibrary"
+
+        then:
+        def modPath = {TestFile file -> new TestFile("${file.parentFile}/new_output/_${file.name}")}
+        modPath(executable("build/binaries/mainExecutable/main").file).assertExists()
+        modPath(sharedLibrary("build/binaries/helloSharedLibrary/hello").file).assertExists()
+        modPath(staticLibrary("build/binaries/helloStaticLibrary/hello").file).assertExists()
+    }
+
+    @Unroll
+    def "can link to #linkage library binary with custom output file"() {
+        given:
+        def app = new CppHelloWorldApp()
+        app.executable.writeSources(file("src/main"))
+        app.library.writeSources(file("src/hello"))
+
+        and:
+        buildFile << """
+            apply plugin: 'cpp'
+            executables {
+                main {}
+            }
+            libraries {
+                hello {
+                    binaries.withType(SharedLibraryBinary) {
+                        sharedLibraryFile = modPath(sharedLibraryFile)
+                        sharedLibraryLinkFile = modPath(sharedLibraryLinkFile)
+                    }
+                    binaries.withType(StaticLibraryBinary) {
+                        staticLibraryFile = modPath(staticLibraryFile)
+                    }
+                }
+            }
+            sources.main.cpp.lib libraries.hello.${linkage}
+
+            def modPath(File file) {
+                new File("\${file.parentFile}/new_output/_\${file.name}")
+            }
+"""
+
+        when:
+        succeeds "installMainExecutable"
+
+        then:
+        installation("build/install/mainExecutable").exec().out == app.englishOutput
+
+        where:
+        linkage << ["static", "shared"]
     }
 }

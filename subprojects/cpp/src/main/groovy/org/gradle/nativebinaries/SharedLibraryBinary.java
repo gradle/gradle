@@ -34,4 +34,14 @@ public interface SharedLibraryBinary extends LibraryBinary {
      * The shared library link file.
      */
     File getSharedLibraryLinkFile();
+
+    /**
+     * The shared library file.
+     */
+    void setSharedLibraryFile(File sharedLibraryFile);
+
+    /**
+     * The shared library file.
+     */
+    void setSharedLibraryLinkFile(File sharedLibraryLinkFile);
 }

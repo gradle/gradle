@@ -20,12 +20,12 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.nativebinaries.BuildType;
 import org.gradle.nativebinaries.Flavor;
 import org.gradle.nativebinaries.PrebuiltLibrary;
-import org.gradle.nativebinaries.PrebuiltSharedLibraryBinary;
+import org.gradle.nativebinaries.SharedLibraryBinary;
 import org.gradle.nativebinaries.platform.Platform;
 
 import java.io.File;
 
-public class DefaultPrebuiltSharedLibraryBinary extends AbstractPrebuiltLibraryBinary implements PrebuiltSharedLibraryBinary {
+public class DefaultPrebuiltSharedLibraryBinary extends AbstractPrebuiltLibraryBinary implements SharedLibraryBinary {
     private File sharedLibraryFile;
     private File sharedLibraryLinkFile;
 
