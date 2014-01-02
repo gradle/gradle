@@ -20,7 +20,6 @@ import org.gradle.api.Action
 import org.gradle.api.internal.artifacts.BaseRepositoryFactory
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.plugin.resolve.internal.JCenterPluginMapper
-import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.maven.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.HttpServer
@@ -34,9 +33,9 @@ class BintrayTestServer extends ExternalResource {
     final MavenFileRepository repo
     final BintrayApi api
 
-    BintrayTestServer(GradleExecuter executer, TestFile repoDir) {
+    BintrayTestServer(GradleExecuter executer, MavenFileRepository repo) {
         this.http = new HttpServer()
-        this.repo = new MavenFileRepository(repoDir)
+        this.repo = repo
         this.jcenter = new MavenHttpRepository(http, repo)
         this.api = new BintrayApi(http)
 

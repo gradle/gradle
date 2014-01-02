@@ -16,6 +16,8 @@
 
 package org.gradle.test.fixtures.plugin
 
+import org.gradle.api.Plugin
+import org.gradle.api.Project
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.TextUtil
@@ -40,10 +42,6 @@ class PluginBuilder {
 
     TestFile groovy(String path) {
         file("src/main/groovy/${packageName.replaceAll("\\.", "/")}/$path")
-    }
-
-    void writeBuildScript() {
-        file("build.gradle").text = generateBuildScript()
     }
 
     @SuppressWarnings("GrMethodMayBeStatic")
@@ -84,4 +82,19 @@ class PluginBuilder {
         file("src/main/resources/META-INF/gradle-plugins")
     }
 
+    PluginBuilder addPluginWithPrintlnTask(String taskName, String message, String id = "test-plugin", String className = "TestPlugin") {
+        pluginIds[id] = className
+
+        groovy("${className}.groovy") << """
+            package $packageName
+
+            class $className implements $Plugin.name<$Project.name> {
+                void apply($Project.name project) {
+                    project.task("$taskName") << { println "$message" }
+                }
+            }
+        """
+
+        this
+    }
 }

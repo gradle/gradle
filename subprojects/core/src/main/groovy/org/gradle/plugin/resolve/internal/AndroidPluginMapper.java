@@ -16,14 +16,22 @@
 
 package org.gradle.plugin.resolve.internal;
 
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 
 public class AndroidPluginMapper implements ModuleMappingPluginResolver.Mapper {
+    public static final String GROUP = "com.android.tools.build";
+    public static final String NAME = "gradle";
+    public static final String ID = "android";
+
     public Dependency map(PluginRequest request, DependencyHandler dependencyHandler) {
-        if (request.getId().equals("android")) {
-            String version = request.getVersion() == null ? "latest.release" : request.getVersion();
-            return dependencyHandler.create("com.android.tools.build:gradle:" + version);
+        if (request.getId().equals(ID)) {
+            String version = request.getVersion();
+            if (version == null) {
+                throw new InvalidPluginRequestException("The '" + ID + "' plugin requires a version");
+            }
+            return dependencyHandler.create(StringUtils.join(new Object[]{GROUP, NAME, version}, ":"));
         } else {
             return null;
         }

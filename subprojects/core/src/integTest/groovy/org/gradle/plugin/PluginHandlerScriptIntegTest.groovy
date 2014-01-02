@@ -17,12 +17,23 @@
 package org.gradle.plugin
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.plugin.resolve.internal.AndroidPluginMapper
+import org.gradle.test.fixtures.bintray.BintrayTestServer
+import org.gradle.test.fixtures.plugin.PluginBuilder
+import org.junit.Rule
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 class PluginHandlerScriptIntegTest extends AbstractIntegrationSpec {
 
     private static final String SCRIPT = "println 'out'; plugins { println 'in' }"
+
+    @Rule BintrayTestServer bintray = new BintrayTestServer(executer, mavenRepo) // provides a double for JCenter
+    def pluginBuilder = new PluginBuilder(executer, file("plugin"))
+
+    def pluginMessage = "from plugin"
+    def pluginTaskName = "pluginTask"
+    def pluginVersion = "1.0"
 
     def "build scripts have plugin blocks"() {
         when:
@@ -107,19 +118,46 @@ class PluginHandlerScriptIntegTest extends AbstractIntegrationSpec {
 
     void "can resolve android plugin"() {
         given:
-        buildFile << """
-            plugins {
-                apply plugin: "android"
-            }
+        bintray.start()
+
+        // Not expecting a search of the bintray API, as there is an explicit mapper for this guy
+        publishPluginToBintray(AndroidPluginMapper.ID, AndroidPluginMapper.GROUP, AndroidPluginMapper.NAME)
+
+        buildScript """
+          plugins {
+            apply plugin: "$AndroidPluginMapper.ID", version: $pluginVersion
+          }
+        """
+
+        when:
+        succeeds pluginTaskName
+
+        then:
+        output.contains pluginMessage
+    }
+
+    def "android plugin requires version"() {
+        given:
+        buildScript """
+          plugins {
+            apply plugin: "$AndroidPluginMapper.ID"
+          }
         """
 
         when:
         fails "tasks"
 
         then:
-        // This is a very lame test
-        // This error message is produced due to a binary incompatible change on an incubating class
-        errorOutput.contains "Could not create plugin of type 'AppPlugin'"
+        failure.assertHasCause("The 'android' plugin requires a version")
+    }
+
+    def void publishPluginToBintray(String id, String group, String name, String version = pluginVersion) {
+        def module = bintray.jcenter.module(group, name, version)
+        module.allowAll()
+        def artifact = module.artifact([:])
+        module.publish()
+        pluginBuilder.addPluginWithPrintlnTask(pluginTaskName, pluginMessage, id)
+        pluginBuilder.publishTo(artifact.file)
     }
 
     void "can use plugin classes in script"() {
