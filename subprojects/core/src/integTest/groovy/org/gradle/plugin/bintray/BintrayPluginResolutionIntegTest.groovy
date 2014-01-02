@@ -62,7 +62,7 @@ class BintrayPluginResolutionIntegTest extends AbstractIntegrationSpec {
 
         buildScript """
           plugins {
-            apply "fake-plugin"
+            apply plugin: "fake-plugin"
           }
         """
 

@@ -29,7 +29,7 @@ class PluginHandlerScriptIntegTest extends AbstractIntegrationSpec {
         buildFile << SCRIPT
         buildFile << """
             plugins {
-              apply 'java'
+              apply plugin: 'java'
             }
         """
 
@@ -68,7 +68,7 @@ class PluginHandlerScriptIntegTest extends AbstractIntegrationSpec {
 
         file("plugin.gradle") << """
             plugins {
-                apply "foo"
+                apply plugin: "foo"
             }
         """
 
@@ -109,7 +109,7 @@ class PluginHandlerScriptIntegTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
             plugins {
-                apply "android"
+                apply plugin: "android"
             }
         """
 
@@ -126,7 +126,7 @@ class PluginHandlerScriptIntegTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
             plugins {
-                apply "tomcat", "1.0"
+                apply plugin: "tomcat", version: "1.0"
             }
 
             import org.gradle.api.plugins.tomcat.TomcatRun
