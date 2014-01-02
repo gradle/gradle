@@ -26,18 +26,16 @@ import org.gradle.plugin.resolve.internal.DefaultPluginRequest;
 import org.gradle.plugin.resolve.internal.PluginRequest;
 import org.gradle.plugin.resolve.internal.PluginResolution;
 import org.gradle.plugin.resolve.internal.PluginResolver;
-import org.gradle.util.CollectionUtils;
 
-import java.util.List;
 import java.util.Map;
 
 public class DefaultPluginHandler implements PluginHandler {
 
+    private final PluginResolver pluginResolver;
     private final Action<? super PluginResolution> pluginResolutionHandler;
-    private final List<PluginResolver> repositories;
 
-    public DefaultPluginHandler(List<PluginResolver> repositories, Action<? super PluginResolution> pluginResolutionHandler) {
-        this.repositories = repositories;
+    public DefaultPluginHandler(PluginResolver pluginResolver, Action<? super PluginResolution> pluginResolutionHandler) {
+        this.pluginResolver = pluginResolver;
         this.pluginResolutionHandler = pluginResolutionHandler;
     }
 
@@ -53,16 +51,9 @@ public class DefaultPluginHandler implements PluginHandler {
     }
 
     private void apply(PluginRequest request) {
-        PluginResolution resolution = null;
-        for (PluginResolver repository : repositories) {
-            resolution = repository.resolve(request);
-            if (resolution != null) {
-                break;
-            }
-        }
-
+        PluginResolution resolution = pluginResolver.resolve(request);
         if (resolution == null) {
-            throw new UnknownPluginException("Cannot resolve plugin request " + request + " from repositories: " + CollectionUtils.toStringList(repositories));
+            throw new UnknownPluginException("Cannot resolve plugin request " + request + " from plugin resolver: " + pluginResolver);
         }
 
         pluginResolutionHandler.execute(resolution);

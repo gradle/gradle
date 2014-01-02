@@ -63,8 +63,8 @@ public class DefaultPluginHandlerFactory implements PluginHandlerFactory {
     public PluginHandler createPluginHandler(final Object target, ScriptClassLoaderProvider classLoaderProvider) {
         if (target instanceof PluginAware) {
             List<PluginResolver> resolvers = new LinkedList<PluginResolver>();
-            PluginHandler pluginHandler = new DefaultPluginHandler(resolvers, new PluginResolutionApplicator((PluginAware) target, parentClassLoader));
             addDefaultResolvers(resolvers, classLoaderProvider);
+            PluginHandler pluginHandler = new DefaultPluginHandler(new CompositePluginResolver(resolvers), new PluginResolutionApplicator((PluginAware) target, parentClassLoader));
             return pluginHandler;
         } else {
             return new NonPluggableTargetPluginHandler(target);
