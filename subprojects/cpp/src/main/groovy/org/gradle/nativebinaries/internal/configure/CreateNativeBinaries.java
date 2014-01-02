@@ -16,6 +16,7 @@
 
 package org.gradle.nativebinaries.internal.configure;
 
+import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.reflect.Instantiator;
@@ -53,8 +54,9 @@ public class CreateNativeBinaries extends ModelRule {
         project.getExtensions().add("flavors", flavors);
 
         NativeDependencyResolver resolver = createResolver(project);
+        Action<ProjectNativeBinary> configureAction = new ProjectNativeBinaryConfiguration(project);
         Transformer<Collection<NativeBinary>, ProjectNativeComponent> factory =
-                new NativeBinaryFactory(instantiator, resolver, project, toolChains, platforms, buildTypes, flavors);
+                new ProjectNativeBinaryFactory(instantiator, resolver, configureAction, toolChains, platforms, buildTypes, flavors);
 
         for (ProjectNativeComponent component : allComponents()) {
             binaries.addAll(factory.transform(component));

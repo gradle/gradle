@@ -17,43 +17,39 @@
 package org.gradle.nativebinaries.internal.configure;
 
 import org.gradle.api.Action;
-import org.gradle.api.Project;
 import org.gradle.api.Transformer;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.language.base.internal.BinaryNamingScheme;
 import org.gradle.language.base.internal.DefaultBinaryNamingScheme;
 import org.gradle.nativebinaries.*;
 import org.gradle.nativebinaries.internal.*;
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativebinaries.platform.Platform;
 import org.gradle.nativebinaries.toolchain.ToolChain;
-import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal;
 import org.gradle.nativebinaries.toolchain.internal.ToolChainRegistryInternal;
 
-import java.io.File;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.Set;
 
-class NativeBinaryFactory implements Transformer<Collection<NativeBinary>, ProjectNativeComponent> {
+class ProjectNativeBinaryFactory implements Transformer<Collection<NativeBinary>, ProjectNativeComponent> {
     private final Instantiator instantiator;
     private final NativeDependencyResolver resolver;
     private final ToolChainRegistryInternal toolChainRegistry;
     private final Set<Platform> allPlatforms = new LinkedHashSet<Platform>();
     private final Set<BuildType> allBuildTypes = new LinkedHashSet<BuildType>();
     private final Set<Flavor> allFlavors = new LinkedHashSet<Flavor>();
-    private final Action<ProjectNativeBinary> nativeBinaryDefaults;
+    private final Action<ProjectNativeBinary> configureAction;
 
-    public NativeBinaryFactory(Instantiator instantiator, NativeDependencyResolver resolver, Project project, ToolChainRegistryInternal toolChainRegistry,
-                               Collection<? extends Platform> allPlatforms, Collection<? extends BuildType> allBuildTypes, Collection<? extends Flavor> allFlavors) {
+    public ProjectNativeBinaryFactory(Instantiator instantiator, NativeDependencyResolver resolver, Action<ProjectNativeBinary> configureAction, ToolChainRegistryInternal toolChainRegistry,
+                                      Collection<? extends Platform> allPlatforms, Collection<? extends BuildType> allBuildTypes, Collection<? extends Flavor> allFlavors) {
         this.instantiator = instantiator;
         this.resolver = resolver;
+        this.configureAction = configureAction;
         this.toolChainRegistry = toolChainRegistry;
         this.allPlatforms.addAll(allPlatforms);
         this.allBuildTypes.addAll(allBuildTypes);
         this.allFlavors.addAll(allFlavors);
-        nativeBinaryDefaults = new ProjectNativeBinaryDefaults(project);
     }
 
     public Collection<NativeBinary> transform(ProjectNativeComponent original) {
@@ -119,32 +115,7 @@ class NativeBinaryFactory implements Transformer<Collection<NativeBinary>, Proje
     }
 
     private void setupDefaults(AbstractProjectNativeBinary nativeBinary) {
-        nativeBinaryDefaults.execute(nativeBinary);
-    }
-
-        // TODO:DAZ Extract, inject and unit test
-    private static class ProjectNativeBinaryDefaults implements Action<ProjectNativeBinary> {
-        private final File binariesOutputDir;
-
-        private ProjectNativeBinaryDefaults(Project project) {
-            binariesOutputDir = new File(project.getBuildDir(), "binaries");
-        }
-
-        public void execute(ProjectNativeBinary nativeBinary) {
-            ToolChainInternal tc = (ToolChainInternal) nativeBinary.getToolChain();
-            BinaryNamingScheme namingScheme = ((ProjectNativeBinaryInternal) nativeBinary).getNamingScheme();
-            File binaryOutputDir = new File(binariesOutputDir, namingScheme.getOutputDirectoryBase());
-            String baseName = nativeBinary.getComponent().getBaseName();
-
-            if (nativeBinary instanceof ExecutableBinary) {
-                ((ExecutableBinary) nativeBinary).setExecutableFile(new File(binaryOutputDir, tc.getExecutableName(baseName)));
-            } else if (nativeBinary instanceof SharedLibraryBinary) {
-                ((SharedLibraryBinary) nativeBinary).setSharedLibraryFile(new File(binaryOutputDir, tc.getSharedLibraryName(baseName)));
-                ((SharedLibraryBinary) nativeBinary).setSharedLibraryLinkFile(new File(binaryOutputDir, tc.getSharedLibraryLinkFileName(baseName)));
-            } else if (nativeBinary instanceof StaticLibraryBinary) {
-                ((StaticLibraryBinary) nativeBinary).setStaticLibraryFile(new File(binaryOutputDir, tc.getStaticLibraryName(baseName)));
-            }
-        }
+        configureAction.execute(nativeBinary);
     }
 
 }
