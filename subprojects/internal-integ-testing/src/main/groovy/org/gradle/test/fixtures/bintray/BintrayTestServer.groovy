@@ -16,7 +16,9 @@
 
 package org.gradle.test.fixtures.bintray
 
+import org.gradle.api.Action
 import org.gradle.api.internal.artifacts.BaseRepositoryFactory
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.plugin.resolve.internal.JCenterPluginMapper
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.MavenFileRepository
@@ -32,24 +34,30 @@ class BintrayTestServer extends ExternalResource {
     final MavenFileRepository repo
     final BintrayApi api
 
-    BintrayTestServer(TestFile repoDir) {
-        http = new HttpServer()
+    BintrayTestServer(GradleExecuter executer, TestFile repoDir) {
+        this.http = new HttpServer()
+        this.repo = new MavenFileRepository(repoDir)
+        this.jcenter = new MavenHttpRepository(http, repo)
+        this.api = new BintrayApi(http)
 
-        repo = new MavenFileRepository(repoDir)
-        jcenter = new MavenHttpRepository(http, repo)
-        api = new BintrayApi(http)
+        executer.beforeExecute(new Action<GradleExecuter>() {
+            void execute(GradleExecuter e) {
+                if (http.running) {
+                    e.withArguments(
+                            "-D$JCenterPluginMapper.BINTRAY_API_OVERRIDE_URL_PROPERTY=$api.address",
+                            "-D$BaseRepositoryFactory.JCENTER_REPO_OVERRIDE_URL_PROPERTY=$jcenter.uri"
+                    )
+                }
+            }
+        })
     }
 
     void start() {
         http.start()
-        System.setProperty(JCenterPluginMapper.BINTRAY_API_OVERRIDE_URL_PROPERTY, api.address)
-        System.setProperty(BaseRepositoryFactory.JCENTER_REPO_OVERRIDE_URL_PROPERTY, jcenter.uri.toString())
     }
 
     @Override
     protected void after() {
-        System.clearProperty(JCenterPluginMapper.BINTRAY_API_OVERRIDE_URL_PROPERTY)
-        System.clearProperty(BaseRepositoryFactory.JCENTER_REPO_OVERRIDE_URL_PROPERTY)
         http.stop()
     }
 }

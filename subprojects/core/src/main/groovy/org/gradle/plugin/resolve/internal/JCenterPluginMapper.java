@@ -26,7 +26,7 @@ import java.util.List;
 
 public class JCenterPluginMapper implements ModuleMappingPluginResolver.Mapper {
 
-    public static final String BINTRAY_API_OVERRIDE_URL_PROPERTY = JCenterPluginMapper.class + ".bintray.override";
+    public static final String BINTRAY_API_OVERRIDE_URL_PROPERTY = JCenterPluginMapper.class.getName() + ".bintray.override";
 
     public static final String GRADLE_PLUGINS_ORG = "gradle-plugins-development";
     public static final String GRADLE_PLUGINS_REPO = "gradle-plugins";

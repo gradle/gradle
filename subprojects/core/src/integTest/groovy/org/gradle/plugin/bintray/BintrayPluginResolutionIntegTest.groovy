@@ -26,7 +26,7 @@ import org.junit.Rule
 
 class BintrayPluginResolutionIntegTest extends AbstractIntegrationSpec {
 
-    @Rule BintrayTestServer bintray = new BintrayTestServer(file("repo"))
+    @Rule BintrayTestServer bintray = new BintrayTestServer(executer, file("repo"))
     def pluginBuilder = new PluginBuilder(executer, file("plugin"))
 
     def setup() {
