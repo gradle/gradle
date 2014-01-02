@@ -28,14 +28,14 @@ import org.gradle.language.base.LanguageSourceSet;
  * <p>An ObjectiveC source set contains a set of source files, together with an optional set of exported header files.</p>
  *
  * <pre autoTested="true">
- * apply plugin: "objc"
+ * apply plugin: "objective-c"
  *
  * sources {
  *     main {
  *         // Configure an existing ObjectiveCSourceSet
- *         objc {
+ *         objectiveC {
  *             source {
- *                 srcDirs "src/main/objc", "src/shared/objc"
+ *                 srcDirs "src/main/objectiveC", "src/shared/objectiveC"
  *                 include "**{@literal /}*.m"
  *             }
  *             exportedHeaders {

@@ -16,6 +16,8 @@
 
 package org.gradle.nativebinaries.language.cpp.fixtures.app;
 
+import org.gradle.util.GUtil;
+
 import java.util.Collections;
 import java.util.List;
 
@@ -40,7 +42,11 @@ public abstract class HelloWorldApp extends TestApp {
     }
 
     public List<String> getPluginList() {
-        return Collections.singletonList(getSourceType());
+        return Collections.singletonList(getNormalizedPluginName());
+    }
+
+    private String getNormalizedPluginName() {
+        return getSourceType().replaceAll("([a-z])([A-Z])", "$1-$2").toLowerCase();
     }
 
     public String getPluginScript() {
@@ -62,8 +68,9 @@ public abstract class HelloWorldApp extends TestApp {
     private String compilerConfig(String action, String arg) {
         StringBuilder builder = new StringBuilder();
         for (String plugin : getPluginList()) {
-            if (plugin.equals("c") || plugin.equals("cpp") || plugin.equals("objc")) {
-                builder.append(plugin).append("Compiler.").append(action).append(" '").append(arg).append("'\n");
+            if (plugin.equals("c") || plugin.equals("cpp") || plugin.equals("objective-c")) {
+                System.out.println("plugin = " + GUtil.toLowerCamelCase(plugin));
+                builder.append(GUtil.toLowerCamelCase(plugin)).append("Compiler.").append(action).append(" '").append(arg).append("'\n");
             }
         }
         return builder.toString();

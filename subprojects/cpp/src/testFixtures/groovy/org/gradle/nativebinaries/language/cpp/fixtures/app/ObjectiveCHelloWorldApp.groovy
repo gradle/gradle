@@ -19,7 +19,7 @@ package org.gradle.nativebinaries.language.cpp.fixtures.app
 class ObjectiveCHelloWorldApp extends HelloWorldApp {
     @Override
     SourceFile getMainSource() {
-        return sourceFile("objc", "main.m", """
+        return sourceFile("objectiveC", "main.m", """
             #import <cocoa/cocoa.h>
             #import "hello.h"
 
@@ -48,7 +48,7 @@ class ObjectiveCHelloWorldApp extends HelloWorldApp {
     @Override
     List<SourceFile> getLibrarySources() {
         return [
-                sourceFile("objc", "hello.m", """
+                sourceFile("objectiveC", "hello.m", """
             #import <cocoa/cocoa.h>
             #import "hello.h"
 
@@ -61,7 +61,7 @@ class ObjectiveCHelloWorldApp extends HelloWorldApp {
                 #endif
             }
         """),
-            sourceFile("objc", "sum.m", """
+            sourceFile("objectiveC", "sum.m", """
             #import "hello.h"
 
             int sum (int a, int b)
