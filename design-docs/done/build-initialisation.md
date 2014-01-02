@@ -146,3 +146,12 @@ From the command-line:
 * When a build script defines a `wrap` task, then calling `gradle wrap` does not apply the `wrapper` plugin.
 * Decent error message when a POM cannot be parsed (this is adding more coverage for a previous story).
 * Running `gradle init` in an empty directory generates build files that do not blow up when `gradle help` is run (this is adding more coverage for a previous story).
+
+# Story: Add further project types (Partially done)
+
+Add the following types:
+
+- `groovy-library`
+    - Include a spock unit test
+- `scala-library`
+    - Include a scalatest suite
