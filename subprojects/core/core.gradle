@@ -47,13 +47,14 @@ dependencies {
     compile project(":native")
 
     runtime project(":docs")
-    compile(group: 'com.jfrog.bintray.client', name: 'bintray-client-java-impl', version: '0.1.0'){
+
+    compile(group: 'com.jfrog.bintray.client', name: 'bintray-client-java-impl', version: '0.1.0') {
         exclude module:'groovy-all'
         exclude module:'groovy'
         exclude group: 'org.slf4j'
         exclude module: 'commons-collections'
         exclude module: 'commons-lang'
-        exclude module: 'httpclient'
+        // exclude module: 'httpclient'
         exclude module: 'nekohtml'
     }
 
