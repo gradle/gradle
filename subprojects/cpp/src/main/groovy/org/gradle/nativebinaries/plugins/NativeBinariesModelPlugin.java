@@ -44,6 +44,7 @@ import org.gradle.nativebinaries.internal.DefaultFlavorContainer;
 import org.gradle.nativebinaries.internal.DefaultLibraryContainer;
 import org.gradle.nativebinaries.internal.configure.*;
 import org.gradle.nativebinaries.internal.prebuilt.DefaultPrebuiltLibraries;
+import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativebinaries.platform.PlatformContainer;
 import org.gradle.nativebinaries.platform.internal.DefaultPlatformContainer;
 import org.gradle.nativebinaries.toolchain.internal.DefaultToolChainRegistry;
@@ -60,12 +61,15 @@ public class NativeBinariesModelPlugin implements Plugin<ProjectInternal> {
     private final Instantiator instantiator;
     private final ProjectConfigurationActionContainer configurationActions;
     private final ModelRules modelRules;
+    private final NativeDependencyResolver resolver;
 
     @Inject
-    public NativeBinariesModelPlugin(Instantiator instantiator, ProjectConfigurationActionContainer configurationActions, ModelRules modelRules) {
+    public NativeBinariesModelPlugin(Instantiator instantiator, ProjectConfigurationActionContainer configurationActions, ModelRules modelRules,
+                                     NativeDependencyResolver resolver) {
         this.instantiator = instantiator;
         this.configurationActions = configurationActions;
         this.modelRules = modelRules;
+        this.resolver = resolver;
     }
 
     public void apply(final ProjectInternal project) {
@@ -82,7 +86,7 @@ public class NativeBinariesModelPlugin implements Plugin<ProjectInternal> {
         modelRules.rule(new CreateDefaultBuildTypes());
         modelRules.rule(new CreateDefaultFlavors());
         modelRules.rule(new AddDefaultToolChainsIfRequired());
-        modelRules.rule(new CreateNativeBinaries(instantiator, project));
+        modelRules.rule(new CreateNativeBinaries(instantiator, project, resolver));
         modelRules.rule(new CloseBinariesForTasks());
 
         project.getExtensions().create(

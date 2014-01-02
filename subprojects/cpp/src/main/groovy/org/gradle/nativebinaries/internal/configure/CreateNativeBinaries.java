@@ -23,8 +23,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.BinaryContainer;
 import org.gradle.model.ModelRule;
 import org.gradle.nativebinaries.*;
-import org.gradle.nativebinaries.internal.prebuilt.PrebuiltLibraryBinaryLocator;
-import org.gradle.nativebinaries.internal.resolve.*;
+import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativebinaries.platform.PlatformContainer;
 import org.gradle.nativebinaries.toolchain.internal.ToolChainRegistryInternal;
 
@@ -35,11 +34,13 @@ import java.util.List;
 public class CreateNativeBinaries extends ModelRule {
     private final Instantiator instantiator;
     private final ProjectInternal project;
+    private final NativeDependencyResolver resolver;
     private final CreatePrebuiltBinaries prebuiltBinariesRule;
 
-    public CreateNativeBinaries(Instantiator instantiator, ProjectInternal project) {
+    public CreateNativeBinaries(Instantiator instantiator, ProjectInternal project, NativeDependencyResolver resolver) {
         this.instantiator = instantiator;
         this.project = project;
+        this.resolver = resolver;
         prebuiltBinariesRule = new CreatePrebuiltBinaries(instantiator);
     }
 
@@ -53,7 +54,6 @@ public class CreateNativeBinaries extends ModelRule {
         project.getExtensions().add("buildTypes", buildTypes);
         project.getExtensions().add("flavors", flavors);
 
-        NativeDependencyResolver resolver = createResolver(project);
         Action<ProjectNativeBinary> configureAction = new ProjectNativeBinaryConfiguration(project);
         Transformer<Collection<NativeBinary>, ProjectNativeComponent> factory =
                 new ProjectNativeBinaryFactory(instantiator, resolver, configureAction, toolChains, platforms, buildTypes, flavors);
@@ -61,19 +61,6 @@ public class CreateNativeBinaries extends ModelRule {
         for (ProjectNativeComponent component : allComponents()) {
             binaries.addAll(factory.transform(component));
         }
-    }
-
-    private static NativeDependencyResolver createResolver(ProjectInternal project) {
-        List<LibraryBinaryLocator> locators = new ArrayList<LibraryBinaryLocator>();
-        RelativeProjectFinder projectFinder = new RelativeProjectFinder(project);
-        locators.add(new ProjectLibraryBinaryLocator(projectFinder));
-        locators.add(new PrebuiltLibraryBinaryLocator(projectFinder));
-        LibraryBinaryLocator locator = new ChainedLibraryBinaryLocator(locators);
-        NativeDependencyResolver resolver = new LibraryNativeDependencyResolver(locator);
-        resolver = new ApiRequirementNativeDependencyResolver(resolver);
-        resolver = new RequirementParsingNativeDependencyResolver(resolver);
-        resolver = new SourceSetNativeDependencyResolver(resolver);
-        return new InputHandlingNativeDependencyResolver(resolver);
     }
 
     private Collection<ProjectNativeComponent> allComponents() {

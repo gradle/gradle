@@ -20,18 +20,20 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.project.ProjectInternal;
 
 public class RelativeProjectFinder implements ProjectFinder {
-    private final ProjectInternal project;
+    private final String projectPath;
+    private final ProjectFinder delegate;
 
-    public RelativeProjectFinder(ProjectInternal project) {
-        this.project = project;
+    public RelativeProjectFinder(String projectPath, ProjectFinder delegate) {
+        this.projectPath = projectPath;
+        this.delegate = delegate;
     }
 
     public ProjectInternal getProject(String path) {
         if (path == null || path.length() == 0) {
-            return project;
+            return delegate.getProject(projectPath);
         }
 
-        ProjectInternal referencedProject = project.project(path);
+        ProjectInternal referencedProject = delegate.getProject(path);
         // TODO:DAZ This is a brain-dead way to ensure that the reference project's model is ready to access
         referencedProject.evaluate();
         return referencedProject;
