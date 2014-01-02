@@ -16,12 +16,11 @@
 
 package org.gradle.plugin.internal;
 
-import org.gradle.api.NamedDomainObjectList;
-import org.gradle.plugin.resolve.internal.PluginResolver;
+import org.gradle.plugin.PluginHandler;
 
 import java.util.Map;
 
-public class NonPluggableTargetPluginHandler implements PluginHandlerInternal {
+public class NonPluggableTargetPluginHandler implements PluginHandler {
 
     private final Object target;
 
@@ -30,10 +29,6 @@ public class NonPluggableTargetPluginHandler implements PluginHandlerInternal {
     }
 
     public void apply(Map<String, ?> attributes) {
-        throw fail();
-    }
-
-    public NamedDomainObjectList<PluginResolver> getResolvers() {
         throw fail();
     }
 

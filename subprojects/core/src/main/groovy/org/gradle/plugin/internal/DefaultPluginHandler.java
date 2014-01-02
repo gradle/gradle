@@ -17,14 +17,12 @@
 package org.gradle.plugin.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectList;
-import org.gradle.api.internal.DefaultNamedDomainObjectList;
 import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.api.tasks.Optional;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.MapKey;
 import org.gradle.internal.typeconversion.MapNotationParser;
+import org.gradle.plugin.PluginHandler;
 import org.gradle.plugin.resolve.internal.DefaultPluginRequest;
 import org.gradle.plugin.resolve.internal.PluginRequest;
 import org.gradle.plugin.resolve.internal.PluginResolution;
@@ -33,17 +31,14 @@ import org.gradle.util.CollectionUtils;
 
 import java.util.Map;
 
-public class DefaultPluginHandler implements PluginHandlerInternal {
+public class DefaultPluginHandler implements PluginHandler {
 
     private final Action<? super PluginResolution> pluginResolutionHandler;
     private final NamedDomainObjectList<PluginResolver> repositories;
 
-    public DefaultPluginHandler(Instantiator instantiator, Action<? super PluginResolution> pluginResolutionHandler) {
+    public DefaultPluginHandler(NamedDomainObjectList<PluginResolver> repositories, Action<? super PluginResolution> pluginResolutionHandler) {
+        this.repositories = repositories;
         this.pluginResolutionHandler = pluginResolutionHandler;
-
-        @SuppressWarnings("unchecked")
-        DefaultNamedDomainObjectList<PluginResolver> unchecked = instantiator.newInstance(DefaultNamedDomainObjectList.class, PluginResolver.class, instantiator, Named.Namer.forType(PluginResolver.class));
-        this.repositories = unchecked;
     }
 
     private static class PluginRequestNotationParser extends MapNotationParser<PluginRequest> {
@@ -73,7 +68,4 @@ public class DefaultPluginHandler implements PluginHandlerInternal {
         pluginResolutionHandler.execute(resolution);
     }
 
-    public NamedDomainObjectList<PluginResolver> getResolvers() {
-        return repositories;
-    }
 }

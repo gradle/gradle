@@ -17,8 +17,11 @@
 package org.gradle.plugin.internal;
 
 import org.gradle.api.Action;
+import org.gradle.api.Named;
+import org.gradle.api.NamedDomainObjectList;
 import org.gradle.api.UnknownProjectException;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.internal.DefaultNamedDomainObjectList;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
@@ -30,10 +33,8 @@ import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.PluginAware;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.plugin.resolve.internal.AndroidPluginMapper;
-import org.gradle.plugin.resolve.internal.JCenterPluginMapper;
-import org.gradle.plugin.resolve.internal.ModuleMappingPluginResolver;
-import org.gradle.plugin.resolve.internal.PluginRegistryPluginResolver;
+import org.gradle.plugin.PluginHandler;
+import org.gradle.plugin.resolve.internal.*;
 
 public class DefaultPluginHandlerFactory implements PluginHandlerFactory {
 
@@ -59,20 +60,21 @@ public class DefaultPluginHandlerFactory implements PluginHandlerFactory {
         this.parentClassLoader = parentClassLoader;
     }
 
-    public PluginHandlerInternal createPluginHandler(final Object target, ScriptClassLoaderProvider classLoaderProvider) {
+    public PluginHandler createPluginHandler(final Object target, ScriptClassLoaderProvider classLoaderProvider) {
         if (target instanceof PluginAware) {
-            PluginHandlerInternal pluginHandler = new DefaultPluginHandler(instantiator, new PluginResolutionApplicator((PluginAware) target, parentClassLoader));
-            addDefaultResolvers(pluginHandler, classLoaderProvider);
+            @SuppressWarnings("unchecked") DefaultNamedDomainObjectList<PluginResolver> resolvers = instantiator.newInstance(DefaultNamedDomainObjectList.class, PluginResolver.class, instantiator, Named.Namer.forType(PluginResolver.class));
+            PluginHandler pluginHandler = new DefaultPluginHandler(resolvers, new PluginResolutionApplicator((PluginAware) target, parentClassLoader));
+            addDefaultResolvers(resolvers, classLoaderProvider);
             return pluginHandler;
         } else {
             return new NonPluggableTargetPluginHandler(target);
         }
     }
 
-    private void addDefaultResolvers(PluginHandlerInternal pluginHandler, ScriptClassLoaderProvider classLoaderProvider) {
-        pluginHandler.getResolvers().add(new PluginRegistryPluginResolver(pluginRegistry));
-        pluginHandler.getResolvers().add(new ModuleMappingPluginResolver("android plugin resolver", classLoaderProvider, createDependencyResolutionServices(), instantiator, new AndroidPluginMapper(), new JCenterRepositoryConfigurer()));
-        pluginHandler.getResolvers().add(new ModuleMappingPluginResolver("jcenter plugin resolver", classLoaderProvider, createDependencyResolutionServices(), instantiator, new JCenterPluginMapper(), new JCenterRepositoryConfigurer()));
+    private void addDefaultResolvers(NamedDomainObjectList<PluginResolver> resolvers, ScriptClassLoaderProvider classLoaderProvider) {
+        resolvers.add(new PluginRegistryPluginResolver(pluginRegistry));
+        resolvers.add(new ModuleMappingPluginResolver("android plugin resolver", classLoaderProvider, createDependencyResolutionServices(), instantiator, new AndroidPluginMapper(), new JCenterRepositoryConfigurer()));
+        resolvers.add(new ModuleMappingPluginResolver("jcenter plugin resolver", classLoaderProvider, createDependencyResolutionServices(), instantiator, new JCenterPluginMapper(), new JCenterRepositoryConfigurer()));
     }
 
     private DependencyResolutionServices createDependencyResolutionServices() {
