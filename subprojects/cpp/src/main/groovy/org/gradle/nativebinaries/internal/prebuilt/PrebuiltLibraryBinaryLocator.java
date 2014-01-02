@@ -47,7 +47,7 @@ public class PrebuiltLibraryBinaryLocator implements LibraryBinaryLocator {
         List<String> repositoryNames = new ArrayList<String>();
         for (PrebuiltLibraries prebuiltLibraries : repositories) {
             repositoryNames.add(prebuiltLibraries.getName());
-            PrebuiltLibrary prebuiltLibrary = prebuiltLibraries.findByName(libraryName);
+            PrebuiltLibrary prebuiltLibrary = prebuiltLibraries.resolveLibrary(libraryName);
             if (prebuiltLibrary != null) {
                 return prebuiltLibrary;
             }

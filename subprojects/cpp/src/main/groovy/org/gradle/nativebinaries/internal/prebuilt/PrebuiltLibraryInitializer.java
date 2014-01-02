@@ -16,6 +16,7 @@
 
 package org.gradle.nativebinaries.internal.prebuilt;
 
+import org.gradle.api.Action;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.internal.DefaultBinaryNamingScheme;
 import org.gradle.nativebinaries.BuildType;
@@ -28,25 +29,25 @@ import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public class PrebuiltBinaryFactory {
+public class PrebuiltLibraryInitializer implements Action<PrebuiltLibrary> {
     private final Instantiator instantiator;
     private final Set<Platform> allPlatforms = new LinkedHashSet<Platform>();
     private final Set<BuildType> allBuildTypes = new LinkedHashSet<BuildType>();
     private final Set<Flavor> allFlavors = new LinkedHashSet<Flavor>();
 
-    public PrebuiltBinaryFactory(Instantiator instantiator,
-                                 Collection<? extends Platform> allPlatforms, Collection<? extends BuildType> allBuildTypes, Collection<? extends Flavor> allFlavors) {
+    public PrebuiltLibraryInitializer(Instantiator instantiator,
+                                      Collection<? extends Platform> allPlatforms, Collection<? extends BuildType> allBuildTypes, Collection<? extends Flavor> allFlavors) {
         this.instantiator = instantiator;
         this.allPlatforms.addAll(allPlatforms);
         this.allBuildTypes.addAll(allBuildTypes);
         this.allFlavors.addAll(allFlavors);
     }
 
-    public void initialise(PrebuiltLibrary library) {
+    public void execute(PrebuiltLibrary prebuiltLibrary) {
         for (Platform platform : allPlatforms) {
             for (BuildType buildType : allBuildTypes) {
                 for (Flavor flavor : allFlavors) {
-                    createNativeBinaries(library, platform, buildType, flavor);
+                    createNativeBinaries(prebuiltLibrary, platform, buildType, flavor);
                 }
             }
         }

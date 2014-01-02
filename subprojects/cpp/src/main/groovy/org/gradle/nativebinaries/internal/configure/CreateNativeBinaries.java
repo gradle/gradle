@@ -17,7 +17,6 @@
 package org.gradle.nativebinaries.internal.configure;
 
 import org.gradle.api.Action;
-import org.gradle.api.Transformer;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.BinaryContainer;
@@ -35,20 +34,15 @@ public class CreateNativeBinaries extends ModelRule {
     private final Instantiator instantiator;
     private final ProjectInternal project;
     private final NativeDependencyResolver resolver;
-    private final CreatePrebuiltBinaries prebuiltBinariesRule;
 
     public CreateNativeBinaries(Instantiator instantiator, ProjectInternal project, NativeDependencyResolver resolver) {
         this.instantiator = instantiator;
         this.project = project;
         this.resolver = resolver;
-        prebuiltBinariesRule = new CreatePrebuiltBinaries(instantiator);
     }
 
-    public void create(BinaryContainer binaries, ToolChainRegistryInternal toolChains, Repositories repositories,
+    public void create(BinaryContainer binaries, ToolChainRegistryInternal toolChains,
                        PlatformContainer platforms, BuildTypeContainer buildTypes, FlavorContainer flavors) {
-        // TODO:DAZ This should be executed as a separate rule.
-        prebuiltBinariesRule.create(repositories, platforms, buildTypes, flavors);
-
         // TODO:DAZ Work out the right way to make these containers available to binaries.all
         project.getExtensions().add("platforms", platforms);
         project.getExtensions().add("buildTypes", buildTypes);

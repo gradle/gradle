@@ -16,11 +16,7 @@
 package org.gradle.nativebinaries.plugins;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.NamedDomainObjectFactory;
-import org.gradle.api.Namer;
 import org.gradle.api.Plugin;
-import org.gradle.api.artifacts.repositories.ArtifactRepository;
-import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.BasePlugin;
@@ -36,14 +32,11 @@ import org.gradle.model.ModelRule;
 import org.gradle.model.ModelRules;
 import org.gradle.nativebinaries.BuildTypeContainer;
 import org.gradle.nativebinaries.FlavorContainer;
-import org.gradle.nativebinaries.PrebuiltLibraries;
-import org.gradle.nativebinaries.Repositories;
 import org.gradle.nativebinaries.internal.DefaultBuildTypeContainer;
 import org.gradle.nativebinaries.internal.DefaultExecutableContainer;
 import org.gradle.nativebinaries.internal.DefaultFlavorContainer;
 import org.gradle.nativebinaries.internal.DefaultLibraryContainer;
 import org.gradle.nativebinaries.internal.configure.*;
-import org.gradle.nativebinaries.internal.prebuilt.DefaultPrebuiltLibraries;
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativebinaries.platform.PlatformContainer;
 import org.gradle.nativebinaries.platform.internal.DefaultPlatformContainer;
@@ -51,6 +44,7 @@ import org.gradle.nativebinaries.toolchain.internal.DefaultToolChainRegistry;
 import org.gradle.nativebinaries.toolchain.internal.ToolChainRegistryInternal;
 
 import javax.inject.Inject;
+import java.util.Arrays;
 
 /**
  * A plugin that sets up the infrastructure for defining native binaries.
@@ -62,14 +56,16 @@ public class NativeBinariesModelPlugin implements Plugin<ProjectInternal> {
     private final ProjectConfigurationActionContainer configurationActions;
     private final ModelRules modelRules;
     private final NativeDependencyResolver resolver;
+    private final FileResolver fileResolver;
 
     @Inject
     public NativeBinariesModelPlugin(Instantiator instantiator, ProjectConfigurationActionContainer configurationActions, ModelRules modelRules,
-                                     NativeDependencyResolver resolver) {
+                                     NativeDependencyResolver resolver, FileResolver fileResolver) {
         this.instantiator = instantiator;
         this.configurationActions = configurationActions;
         this.modelRules = modelRules;
         this.resolver = resolver;
+        this.fileResolver = fileResolver;
     }
 
     public void apply(final ProjectInternal project) {
@@ -80,7 +76,8 @@ public class NativeBinariesModelPlugin implements Plugin<ProjectInternal> {
         modelRules.register("platforms", PlatformContainer.class, factory(DefaultPlatformContainer.class));
         modelRules.register("buildTypes", BuildTypeContainer.class, factory(DefaultBuildTypeContainer.class));
         modelRules.register("flavors", FlavorContainer.class, factory(DefaultFlavorContainer.class));
-        modelRules.register("repositories", Repositories.class, new RepositoriesFactory(instantiator, project.getFileResolver()));
+
+        project.getModelRegistry().create("repositories", Arrays.asList("flavors", "platforms", "buildTypes"), new RepositoriesFactory(instantiator, fileResolver));
 
         modelRules.rule(new CreateDefaultPlatform());
         modelRules.rule(new CreateDefaultBuildTypes());
@@ -140,38 +137,6 @@ public class NativeBinariesModelPlugin implements Plugin<ProjectInternal> {
 
         public T create() {
             return instantiator.newInstance(type, instantiator);
-        }
-    }
-
-    private static class RepositoriesFactory implements Factory<Repositories> {
-        private final Instantiator instantiator;
-        private final FileResolver fileResolver;
-
-        public RepositoriesFactory(Instantiator instantiator, FileResolver fileResolver) {
-            this.instantiator = instantiator;
-            this.fileResolver = fileResolver;
-        }
-
-
-        public Repositories create() {
-            return new DefaultRepositories(instantiator, fileResolver);
-        }
-    }
-
-    private static class DefaultRepositories extends DefaultPolymorphicDomainObjectContainer<ArtifactRepository> implements Repositories {
-        private DefaultRepositories(final Instantiator instantiator, final FileResolver fileResolver) {
-            super(ArtifactRepository.class, instantiator, new ArtifactRepositoryNamer());
-            registerFactory(PrebuiltLibraries.class, new NamedDomainObjectFactory<PrebuiltLibraries>() {
-                public PrebuiltLibraries create(String name) {
-                    return instantiator.newInstance(DefaultPrebuiltLibraries.class, name, instantiator, fileResolver);
-                }
-            });
-        }
-    }
-
-    private static class ArtifactRepositoryNamer implements Namer<ArtifactRepository> {
-        public String determineName(ArtifactRepository object) {
-            return object.getName();
         }
     }
 }
