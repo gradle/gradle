@@ -55,7 +55,7 @@ class ObjectiveCppLangPlugin implements Plugin<ProjectInternal> {
                     instantiator.newInstance(DefaultObjectiveCppSourceSet, name, functionalSourceSet, project)
                 }
                 // Add a single Objective-C++ source set
-                functionalSourceSet.create "objcpp", ObjectiveCppSourceSet
+                functionalSourceSet.create "objectiveCpp", ObjectiveCppSourceSet
             }
         });
     }
