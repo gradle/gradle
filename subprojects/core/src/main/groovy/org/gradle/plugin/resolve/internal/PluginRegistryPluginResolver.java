@@ -37,7 +37,8 @@ public class PluginRegistryPluginResolver implements PluginResolver {
         }
     }
 
-    public String getName() {
-        return "core plugins";
+    @Override
+    public String toString() {
+        return "PluginRegistryPluginResolver[" + pluginRegistry + "]";
     }
 }

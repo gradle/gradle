@@ -17,7 +17,6 @@
 package org.gradle.plugin.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.NamedDomainObjectList;
 import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.typeconversion.MapKey;
@@ -29,14 +28,15 @@ import org.gradle.plugin.resolve.internal.PluginResolution;
 import org.gradle.plugin.resolve.internal.PluginResolver;
 import org.gradle.util.CollectionUtils;
 
+import java.util.List;
 import java.util.Map;
 
 public class DefaultPluginHandler implements PluginHandler {
 
     private final Action<? super PluginResolution> pluginResolutionHandler;
-    private final NamedDomainObjectList<PluginResolver> repositories;
+    private final List<PluginResolver> repositories;
 
-    public DefaultPluginHandler(NamedDomainObjectList<PluginResolver> repositories, Action<? super PluginResolution> pluginResolutionHandler) {
+    public DefaultPluginHandler(List<PluginResolver> repositories, Action<? super PluginResolution> pluginResolutionHandler) {
         this.repositories = repositories;
         this.pluginResolutionHandler = pluginResolutionHandler;
     }

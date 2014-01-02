@@ -62,8 +62,8 @@ public class ModuleMappingPluginResolver implements PluginResolver {
         }
     }
 
-    public String getName() {
-        return name;
+    @Override
+    public String toString() {
+        return getClass().getName() + "[" + name + "]";
     }
-
 }

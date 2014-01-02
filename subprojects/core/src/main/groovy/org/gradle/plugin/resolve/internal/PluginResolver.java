@@ -17,14 +17,13 @@
 package org.gradle.plugin.resolve.internal;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.Named;
 import org.gradle.api.Nullable;
 
 /**
  * A repository of plugins.
  */
 @Incubating
-public interface PluginResolver extends Named {
+public interface PluginResolver {
 
     @Nullable
     PluginResolution resolve(PluginRequest pluginRequest);
