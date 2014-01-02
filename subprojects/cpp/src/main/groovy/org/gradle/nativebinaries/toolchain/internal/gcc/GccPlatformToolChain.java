@@ -47,28 +47,28 @@ class GccPlatformToolChain implements PlatformToolChain {
         this.useCommandFile = useCommandFile;
     }
 
-    public <T extends BinaryToolSpec> org.gradle.api.internal.tasks.compile.Compiler<T> createCppCompiler() {
+    public <T extends BinaryToolSpec> Compiler<T> createCppCompiler() {
         CommandLineTool<CppCompileSpec> commandLineTool = commandLineTool(ToolType.CPP_COMPILER);
         commandLineTool.withSpecTransformer(withSystemArgs(CppCompileSpec.class, platformConfiguration.getCppCompilerArgs()));
         CppCompiler cppCompiler = new CppCompiler(commandLineTool, tools.getArgTransformer(ToolType.CPP_COMPILER), useCommandFile);
         return (Compiler<T>) new OutputCleaningCompiler<CppCompileSpec>(cppCompiler, ".o");
     }
 
-    public <T extends BinaryToolSpec> org.gradle.api.internal.tasks.compile.Compiler<T> createCCompiler() {
+    public <T extends BinaryToolSpec> Compiler<T> createCCompiler() {
         CommandLineTool<CCompileSpec> commandLineTool = commandLineTool(ToolType.C_COMPILER);
         commandLineTool.withSpecTransformer(withSystemArgs(CCompileSpec.class, platformConfiguration.getCCompilerArgs()));
         CCompiler cCompiler = new CCompiler(commandLineTool, tools.getArgTransformer(ToolType.C_COMPILER), useCommandFile);
         return (Compiler<T>) new OutputCleaningCompiler<CCompileSpec>(cCompiler, ".o");
     }
 
-    public <T extends BinaryToolSpec> org.gradle.api.internal.tasks.compile.Compiler<T> createObjectiveCppCompiler() {
+    public <T extends BinaryToolSpec> Compiler<T> createObjectiveCppCompiler() {
         CommandLineTool<ObjectiveCppCompileSpec> commandLineTool = commandLineTool(ToolType.OBJECTIVECPP_COMPILER);
         commandLineTool.withSpecTransformer(withSystemArgs(ObjectiveCppCompileSpec.class, platformConfiguration.getObjectiveCppCompilerArgs()));
         ObjectiveCppCompiler objectiveCppCompiler = new ObjectiveCppCompiler(commandLineTool, tools.getArgTransformer(ToolType.OBJECTIVECPP_COMPILER), useCommandFile);
         return (Compiler<T>) new OutputCleaningCompiler<ObjectiveCppCompileSpec>(objectiveCppCompiler, ".o");
     }
 
-    public <T extends BinaryToolSpec> org.gradle.api.internal.tasks.compile.Compiler<T> createObjectiveCCompiler() {
+    public <T extends BinaryToolSpec> Compiler<T> createObjectiveCCompiler() {
         CommandLineTool<ObjectiveCCompileSpec> commandLineTool = commandLineTool(ToolType.OBJECTIVEC_COMPILER);
         commandLineTool.withSpecTransformer(withSystemArgs(ObjectiveCCompileSpec.class, platformConfiguration.getObjectiveCCompilerArgs()));
         ObjectiveCCompiler objectiveCCompiler = new ObjectiveCCompiler(commandLineTool, tools.getArgTransformer(ToolType.OBJECTIVEC_COMPILER), useCommandFile);
