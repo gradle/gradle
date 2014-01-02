@@ -16,129 +16,130 @@
 
 package org.gradle.nativebinaries.internal.configure
 
-import org.gradle.api.Action
-import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.api.Named
+import org.gradle.language.base.internal.BinaryNamingSchemeBuilder
 import org.gradle.nativebinaries.BuildType
-import org.gradle.nativebinaries.ProjectNativeBinary
-import org.gradle.nativebinaries.internal.*
-import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver
+import org.gradle.nativebinaries.Flavor
+import org.gradle.nativebinaries.internal.DefaultExecutable
+import org.gradle.nativebinaries.internal.NativeProjectComponentIdentifier
 import org.gradle.nativebinaries.platform.Platform
 import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal
 import org.gradle.nativebinaries.toolchain.internal.ToolChainRegistryInternal
 import spock.lang.Specification
 
 class ProjectNativeComponentInitializerTest extends Specification {
-    def resolver = Mock(NativeDependencyResolver)
-    Action<ProjectNativeBinary> configAction = Mock(Action)
     def toolChains = Mock(ToolChainRegistryInternal)
     def toolChain = Mock(ToolChainInternal)
-    def platform = Mock(Platform)
-    def buildType = Mock(BuildType)
+    def nativeBinariesFactory = Mock(NativeBinariesFactory)
+    def namingSchemeBuilder = Mock(BinaryNamingSchemeBuilder)
 
-    def flavor1 = new DefaultFlavor("flavor1")
-    def flavors = new DefaultFlavorContainer(new DirectInstantiator())
+    def platform = createStub(Platform, "platform1")
+    def buildType = createStub(BuildType, "buildType1")
+    def flavor = createStub(Flavor, "flavor1")
+
     def id = new NativeProjectComponentIdentifier("project", "name")
     def component = new DefaultExecutable(id)
 
-    def setup() {
-        platform.name >> "platform1"
-
-        flavors.create(DefaultFlavor.DEFAULT)
-        flavors.create("flavor1")
-    }
-
-    def "applies configure action to each binary"() {
+    def "does not use variant dimension names for single valued dimensions"() {
         when:
-        1 * configAction.execute(_)
+        def factory = new ProjectNativeComponentInitializer(nativeBinariesFactory, namingSchemeBuilder, toolChains, [platform], [buildType], [flavor])
+        factory.execute(component)
 
         then:
-        def factory = new ProjectNativeComponentInitializer(new DirectInstantiator(), resolver, configAction, toolChains, [], [], flavors)
-        factory.createNativeBinary(ProjectExecutableBinary, component, toolChain, platform, buildType, flavor1)
-
+        1 * toolChains.getForPlatform(platform) >> toolChain
+        1 * namingSchemeBuilder.withComponentName("name") >> namingSchemeBuilder
+        1 * nativeBinariesFactory.createNativeBinaries(component, namingSchemeBuilder, toolChain, platform, buildType, flavor)
+        0 * namingSchemeBuilder._
     }
 
-    def "does not use flavor in names when component has only one configured flavor"() {
+    def "does not use variant dimension names when component targets a single point on dimension"() {
         when:
-        component.targetFlavors "flavor1"
-
-        and:
-        def factory = new ProjectNativeComponentInitializer(new DirectInstantiator(), resolver, configAction, toolChains, [], [], flavors)
-        def binary = factory.createNativeBinary(ProjectExecutableBinary, component, toolChain, platform, buildType, flavor1)
-
-        then:
-        binary.namingScheme.lifecycleTaskName == 'nameExecutable'
-        binary.namingScheme.outputDirectoryBase == 'nameExecutable'
-        binary.namingScheme.getTaskName("link") == 'linkNameExecutable'
-        binary.namingScheme.getTaskName("compile", "cpp") == 'compileNameExecutableCpp'
-    }
-
-    def "includes flavor in names when component has multiple flavors"() {
-        when:
-        def factory = new ProjectNativeComponentInitializer(new DirectInstantiator(), resolver, configAction, toolChains, [], [], flavors)
-        def binary = factory.createNativeBinary(ProjectExecutableBinary, component, toolChain, platform, buildType, flavor1)
-
-        then:
-        binary.namingScheme.lifecycleTaskName == 'flavor1NameExecutable'
-        binary.namingScheme.outputDirectoryBase == 'nameExecutable/flavor1'
-        binary.namingScheme.getTaskName("link") == 'linkFlavor1NameExecutable'
-        binary.namingScheme.getTaskName("compile", "cpp") == 'compileFlavor1NameExecutableCpp'
-    }
-
-    def "includes platform in names when component targets multiple platforms"() {
-        given:
-        def platform2 = Stub(Platform) {
-            getName() >> "platform2"
-        }
-        and:
-        def factory = new ProjectNativeComponentInitializer(new DirectInstantiator(), resolver, configAction, toolChains, [platform, platform2], [], flavors)
-
-        when:
-        component.targetPlatforms("platform2")
-        def binary = factory.createNativeBinary(ProjectExecutableBinary, component, toolChain, platform2, buildType, flavor1)
-
-        then:
-        binary.namingScheme.lifecycleTaskName == 'flavor1NameExecutable'
-        binary.namingScheme.outputDirectoryBase == 'nameExecutable/flavor1'
-        binary.namingScheme.getTaskName("link") == 'linkFlavor1NameExecutable'
-        binary.namingScheme.getTaskName("compile", "cpp") == 'compileFlavor1NameExecutableCpp'
-
-        when:
+        def factory = new ProjectNativeComponentInitializer(nativeBinariesFactory, namingSchemeBuilder, toolChains,
+                [platform, Mock(Platform)], [buildType, Mock(BuildType)], [flavor, Mock(Flavor)])
         component.targetPlatforms("platform1")
-        binary = factory.createNativeBinary(ProjectExecutableBinary, component, toolChain, platform2, buildType, flavor1)
+        component.targetBuildTypes("buildType1")
+        component.targetFlavors("flavor1")
+        factory.execute(component)
 
         then:
-        binary.namingScheme.lifecycleTaskName == 'platform2Flavor1NameExecutable'
-        binary.namingScheme.outputDirectoryBase == 'nameExecutable/platform2Flavor1'
-        binary.namingScheme.getTaskName("link") == 'linkPlatform2Flavor1NameExecutable'
-        binary.namingScheme.getTaskName("compile", "cpp") == 'compilePlatform2Flavor1NameExecutableCpp'
+        1 * toolChains.getForPlatform(platform) >> toolChain
+        1 * namingSchemeBuilder.withComponentName("name") >> namingSchemeBuilder
+        1 * nativeBinariesFactory.createNativeBinaries(component, namingSchemeBuilder, toolChain, platform, buildType, flavor)
+        0 * namingSchemeBuilder._
     }
 
-    def "includes buildType in names when component has multiple build types"() {
-        given:
-        def buildType2 = Stub(BuildType) {
-            getName() >> "buildType2"
+    def "includes platform in name for when multiple platforms"() {
+        final Platform platform2 = createStub(Platform, "platform2")
+        when:
+        def factory = new ProjectNativeComponentInitializer(nativeBinariesFactory, namingSchemeBuilder, toolChains,
+                [platform, platform2], [buildType], [flavor])
+        factory.execute(component)
+
+        then:
+        1 * toolChains.getForPlatform(platform) >> toolChain
+        1 * namingSchemeBuilder.withComponentName("name") >> namingSchemeBuilder
+        1 * namingSchemeBuilder.withVariantDimension("platform1") >> namingSchemeBuilder
+        1 * nativeBinariesFactory.createNativeBinaries(component, namingSchemeBuilder, toolChain, platform, buildType, flavor)
+        0 * _
+
+        then:
+        1 * toolChains.getForPlatform(platform2) >> toolChain
+        1 * namingSchemeBuilder.withComponentName("name") >> namingSchemeBuilder
+        1 * namingSchemeBuilder.withVariantDimension("platform2") >> namingSchemeBuilder
+        1 * nativeBinariesFactory.createNativeBinaries(component, namingSchemeBuilder, toolChain, platform2, buildType, flavor)
+        0 * _
+    }
+
+    def "includes buildType in name for when multiple buildTypes"() {
+        final BuildType buildType2 = createStub(BuildType, "buildType2")
+        when:
+        def factory = new ProjectNativeComponentInitializer(nativeBinariesFactory, namingSchemeBuilder, toolChains,
+                [platform], [buildType, buildType2], [flavor])
+        factory.execute(component)
+
+        then:
+        1 * toolChains.getForPlatform(platform) >> toolChain
+
+        then:
+        1 * namingSchemeBuilder.withComponentName("name") >> namingSchemeBuilder
+        1 * namingSchemeBuilder.withVariantDimension("buildType1") >> namingSchemeBuilder
+        1 * nativeBinariesFactory.createNativeBinaries(component, namingSchemeBuilder, toolChain, platform, buildType, flavor)
+        0 * _
+
+        then:
+        1 * namingSchemeBuilder.withComponentName("name") >> namingSchemeBuilder
+        1 * namingSchemeBuilder.withVariantDimension("buildType2") >> namingSchemeBuilder
+        1 * nativeBinariesFactory.createNativeBinaries(component, namingSchemeBuilder, toolChain, platform, buildType2, flavor)
+        0 * _
+    }
+
+    def "includes flavor in name for when multiple flavors"() {
+        final Flavor flavor2 = createStub(Flavor, "flavor2")
+        when:
+        def factory = new ProjectNativeComponentInitializer(nativeBinariesFactory, namingSchemeBuilder, toolChains,
+                [platform], [buildType], [flavor, flavor2])
+        factory.execute(component)
+
+        then:
+        1 * toolChains.getForPlatform(platform) >> toolChain
+
+        then:
+        1 * namingSchemeBuilder.withComponentName("name") >> namingSchemeBuilder
+        1 * namingSchemeBuilder.withVariantDimension("flavor1") >> namingSchemeBuilder
+        1 * nativeBinariesFactory.createNativeBinaries(component, namingSchemeBuilder, toolChain, platform, buildType, flavor)
+        0 * _
+
+        then:
+        1 * namingSchemeBuilder.withComponentName("name") >> namingSchemeBuilder
+        1 * namingSchemeBuilder.withVariantDimension("flavor2") >> namingSchemeBuilder
+        1 * nativeBinariesFactory.createNativeBinaries(component, namingSchemeBuilder, toolChain, platform, buildType, flavor2)
+        0 * _
+    }
+
+    private <T extends Named> T createStub(Class<T> type, def name) {
+        def stub = Stub(type) {
+            getName() >> name
         }
-
-        and:
-        def factory = new ProjectNativeComponentInitializer(new DirectInstantiator(), resolver, configAction, toolChains, [platform], [buildType, buildType2], flavors)
-
-        when:
-        def binary = factory.createNativeBinary(ProjectExecutableBinary, component, toolChain, platform, buildType2, flavor1)
-
-        then:
-        binary.namingScheme.lifecycleTaskName == 'buildType2Flavor1NameExecutable'
-        binary.namingScheme.outputDirectoryBase == 'nameExecutable/buildType2Flavor1'
-        binary.namingScheme.getTaskName("link") == 'linkBuildType2Flavor1NameExecutable'
-        binary.namingScheme.getTaskName("compile", "cpp") == 'compileBuildType2Flavor1NameExecutableCpp'
-
-        when:
-        component.targetBuildTypes("buildType2")
-        binary = factory.createNativeBinary(ProjectExecutableBinary, component, toolChain, platform, buildType2, flavor1)
-
-        then:
-        binary.namingScheme.lifecycleTaskName == 'flavor1NameExecutable'
-        binary.namingScheme.outputDirectoryBase == 'nameExecutable/flavor1'
-        binary.namingScheme.getTaskName("link") == 'linkFlavor1NameExecutable'
-        binary.namingScheme.getTaskName("compile", "cpp") == 'compileFlavor1NameExecutableCpp'
+        return stub
     }
 }

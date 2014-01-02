@@ -19,7 +19,6 @@ package org.gradle.language.base.internal;
 import org.gradle.api.Nullable;
 import org.gradle.util.GUtil;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class DefaultBinaryNamingScheme implements BinaryNamingScheme {
@@ -28,21 +27,7 @@ public class DefaultBinaryNamingScheme implements BinaryNamingScheme {
     private final String dimensionPrefix;
     private final List<String> dimensions;
 
-    public DefaultBinaryNamingScheme(String parentName) {
-        this(parentName, "", new ArrayList<String>());
-    }
-
-    public DefaultBinaryNamingScheme withTypeString(String newTypeString) {
-        return new DefaultBinaryNamingScheme(parentName, newTypeString, dimensions);
-    }
-
-    public DefaultBinaryNamingScheme withVariantDimension(String dimension) {
-        List<String> newDimensions = new ArrayList<String>(dimensions);
-        newDimensions.add(dimension);
-        return new DefaultBinaryNamingScheme(parentName, typeString, newDimensions);
-    }
-
-    private DefaultBinaryNamingScheme(String parentName, String typeString, List<String> dimensions) {
+    public DefaultBinaryNamingScheme(String parentName, String typeString, List<String> dimensions) {
         this.parentName = parentName;
         this.typeString = typeString;
         this.dimensions = dimensions;

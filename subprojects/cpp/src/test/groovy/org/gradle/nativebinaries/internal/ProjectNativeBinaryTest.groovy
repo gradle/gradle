@@ -18,6 +18,7 @@ package org.gradle.nativebinaries.internal
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.DependentSourceSet
 import org.gradle.language.base.LanguageSourceSet
+import org.gradle.language.base.internal.BinaryNamingScheme
 import org.gradle.language.base.internal.DefaultBinaryNamingScheme
 import org.gradle.language.base.internal.DefaultFunctionalSourceSet
 import org.gradle.nativebinaries.*
@@ -175,7 +176,7 @@ class ProjectNativeBinaryTest extends Specification {
     }
 
     def testBinary(ProjectNativeComponent owner, Flavor flavor = new DefaultFlavor(DefaultFlavor.DEFAULT)) {
-        return new TestProjectNativeBinary(owner, flavor, toolChain1, platform1, buildType1, new DefaultBinaryNamingScheme("baseName"), resolver)
+        return new TestProjectNativeBinary(owner, flavor, toolChain1, platform1, buildType1, new DefaultBinaryNamingScheme("baseName", "", []), resolver)
     }
 
     class TestProjectNativeComponent extends AbstractProjectNativeComponent {
@@ -192,7 +193,7 @@ class ProjectNativeBinaryTest extends Specification {
         def owner
 
         TestProjectNativeBinary(ProjectNativeComponent owner, Flavor flavor, ToolChainInternal toolChain, Platform targetPlatform, BuildType buildType,
-                   DefaultBinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
+                   BinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
             super(owner, flavor, toolChain, targetPlatform, buildType, namingScheme, resolver)
             this.owner = owner
         }

@@ -20,6 +20,8 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.BinaryContainer;
+import org.gradle.language.base.internal.BinaryNamingSchemeBuilder;
+import org.gradle.language.base.internal.DefaultBinaryNamingSchemeBuilder;
 import org.gradle.model.ModelRule;
 import org.gradle.nativebinaries.*;
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
@@ -49,8 +51,10 @@ public class CreateNativeBinaries extends ModelRule {
         project.getExtensions().add("flavors", flavors);
 
         Action<ProjectNativeBinary> configureBinaryAction = new ProjectNativeBinaryInitializer(project);
+        NativeBinariesFactory factory = new DefaultNativeBinariesFactory(instantiator, configureBinaryAction, resolver);
+        BinaryNamingSchemeBuilder namingSchemeBuilder = new DefaultBinaryNamingSchemeBuilder();
         Action<ProjectNativeComponent> createBinariesAction =
-                new ProjectNativeComponentInitializer(instantiator, resolver, configureBinaryAction, toolChains, platforms, buildTypes, flavors);
+                new ProjectNativeComponentInitializer(factory, namingSchemeBuilder, toolChains, platforms, buildTypes, flavors);
 
         for (ProjectNativeComponent component : allComponents()) {
             createBinariesAction.execute(component);

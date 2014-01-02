@@ -16,8 +16,11 @@
 
 package org.gradle.nativebinaries.internal;
 
-import org.gradle.language.base.internal.DefaultBinaryNamingScheme;
-import org.gradle.nativebinaries.*;
+import org.gradle.language.base.internal.BinaryNamingScheme;
+import org.gradle.nativebinaries.BuildType;
+import org.gradle.nativebinaries.Executable;
+import org.gradle.nativebinaries.ExecutableBinary;
+import org.gradle.nativebinaries.Flavor;
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativebinaries.platform.Platform;
 import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal;
@@ -28,8 +31,8 @@ public class ProjectExecutableBinary extends AbstractProjectNativeBinary impleme
     private File executableFile;
 
     public ProjectExecutableBinary(Executable executable, Flavor flavor, ToolChainInternal toolChain, Platform platform, BuildType buildType,
-                                   DefaultBinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
-        super(executable, flavor, toolChain, platform, buildType, namingScheme.withTypeString("Executable"), resolver);
+                                   BinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
+        super(executable, flavor, toolChain, platform, buildType, namingScheme, resolver);
     }
 
     public File getExecutableFile() {

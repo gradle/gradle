@@ -18,7 +18,7 @@ package org.gradle.nativebinaries.internal;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
-import org.gradle.language.base.internal.DefaultBinaryNamingScheme;
+import org.gradle.language.base.internal.BinaryNamingScheme;
 import org.gradle.nativebinaries.BuildType;
 import org.gradle.nativebinaries.Flavor;
 import org.gradle.nativebinaries.Library;
@@ -37,8 +37,8 @@ public class ProjectStaticLibraryBinary extends AbstractProjectLibraryBinary imp
     private File staticLibraryFile;
 
     public ProjectStaticLibraryBinary(Library library, Flavor flavor, ToolChainInternal toolChain, Platform platform, BuildType buildType,
-                                      DefaultBinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
-        super(library, flavor, toolChain, platform, buildType, namingScheme.withTypeString("StaticLibrary"), resolver);
+                                      BinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
+        super(library, flavor, toolChain, platform, buildType, namingScheme, resolver);
     }
 
     public File getStaticLibraryFile() {

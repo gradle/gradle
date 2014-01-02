@@ -21,7 +21,7 @@ import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.language.HeaderExportingSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.language.base.internal.DefaultBinaryNamingScheme;
+import org.gradle.language.base.internal.BinaryNamingScheme;
 import org.gradle.nativebinaries.BuildType;
 import org.gradle.nativebinaries.Flavor;
 import org.gradle.nativebinaries.Library;
@@ -37,7 +37,7 @@ import java.util.Set;
 public abstract class AbstractProjectLibraryBinary extends AbstractProjectNativeBinary implements LibraryBinaryInternal {
 
     protected AbstractProjectLibraryBinary(Library library, Flavor flavor, ToolChainInternal toolChain, Platform targetPlatform, BuildType buildType,
-                                           DefaultBinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
+                                           BinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
         super(library, flavor, toolChain, targetPlatform, buildType, namingScheme, resolver);
     }
 

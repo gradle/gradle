@@ -24,7 +24,7 @@ import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal
 import spock.lang.Specification
 
 class DefaultExecutableBinaryTest extends Specification {
-    def namingScheme = new DefaultBinaryNamingScheme("bigOne")
+    def namingScheme = new DefaultBinaryNamingScheme("bigOne", "executable", [])
 
     def "has useful string representation"() {
         given:

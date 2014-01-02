@@ -18,7 +18,8 @@ package org.gradle.nativebinaries.internal.prebuilt;
 
 import org.gradle.api.Action;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.language.base.internal.DefaultBinaryNamingScheme;
+import org.gradle.language.base.internal.BinaryNamingSchemeBuilder;
+import org.gradle.language.base.internal.DefaultBinaryNamingSchemeBuilder;
 import org.gradle.nativebinaries.BuildType;
 import org.gradle.nativebinaries.Flavor;
 import org.gradle.nativebinaries.LibraryBinary;
@@ -65,11 +66,12 @@ public class PrebuiltLibraryInitializer implements Action<PrebuiltLibrary> {
     }
 
     private <T extends LibraryBinary> String getName(Class<T> type, PrebuiltLibrary library, Platform platform, BuildType buildType, Flavor flavor) {
-        DefaultBinaryNamingScheme namingScheme = new DefaultBinaryNamingScheme(library.getName())
+        BinaryNamingSchemeBuilder namingScheme = new DefaultBinaryNamingSchemeBuilder()
+                .withComponentName(library.getName())
                 .withTypeString(type.getSimpleName())
                 .withVariantDimension(platform.getName())
                 .withVariantDimension(buildType.getName())
                 .withVariantDimension(flavor.getName());
-        return namingScheme.getLifecycleTaskName();
+        return namingScheme.build().getLifecycleTaskName();
     }
 }

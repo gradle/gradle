@@ -32,7 +32,7 @@ import spock.lang.Specification
 
 class ProjectStaticLibraryBinaryTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir
-    def namingScheme = new DefaultBinaryNamingScheme("main")
+    def namingScheme = new DefaultBinaryNamingScheme("main", "staticLibrary", [])
     def library = Stub(Library)
     def toolChain = Stub(ToolChainInternal)
     def platform = Stub(Platform)

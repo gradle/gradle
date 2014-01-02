@@ -24,7 +24,6 @@ import org.gradle.language.DependentSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.AbstractBuildableModelElement;
 import org.gradle.language.base.internal.BinaryNamingScheme;
-import org.gradle.language.base.internal.DefaultBinaryNamingScheme;
 import org.gradle.nativebinaries.*;
 import org.gradle.nativebinaries.internal.resolve.NativeBinaryResolveResult;
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
@@ -55,7 +54,7 @@ public abstract class AbstractProjectNativeBinary extends AbstractBuildableModel
     private boolean buildable;
 
     protected AbstractProjectNativeBinary(ProjectNativeComponent owner, Flavor flavor, ToolChainInternal toolChain, Platform targetPlatform, BuildType buildType,
-                                          DefaultBinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
+                                          BinaryNamingScheme namingScheme, NativeDependencyResolver resolver) {
         this.component = owner;
         this.namingScheme = namingScheme;
         this.flavor = flavor;
