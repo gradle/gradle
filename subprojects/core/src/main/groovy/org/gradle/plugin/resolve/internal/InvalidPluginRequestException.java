@@ -18,8 +18,8 @@ package org.gradle.plugin.resolve.internal;
 
 import org.gradle.api.GradleException;
 
-public class InvalidPluginRequest extends GradleException {
-    public InvalidPluginRequest(String message) {
+public class InvalidPluginRequestException extends GradleException {
+    public InvalidPluginRequestException(String message) {
         super(message);
     }
 }

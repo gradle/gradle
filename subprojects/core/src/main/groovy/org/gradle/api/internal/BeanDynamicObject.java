@@ -17,15 +17,10 @@ package org.gradle.api.internal;
 
 import groovy.lang.*;
 import groovy.lang.MissingMethodException;
-import org.codehaus.groovy.reflection.ParameterTypes;
 import org.codehaus.groovy.runtime.InvokerInvocationException;
 import org.gradle.api.internal.coerce.MethodArgumentsTransformer;
 import org.gradle.api.internal.coerce.TypeCoercingMethodArgumentsTransformer;
-import org.gradle.api.specs.Spec;
-import org.gradle.internal.reflect.JavaReflectionUtil;
 
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -222,23 +217,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
         }
 
         public boolean hasMethod(final String name, final Object... arguments) {
-            boolean respondsTo = !getMetaClass().respondsTo(bean, name, arguments).isEmpty();
-            if (respondsTo) {
-                return true;
-            } else {
-                Method method = JavaReflectionUtil.findMethod(bean.getClass(), new Spec<Method>() {
-                    public boolean isSatisfiedBy(Method potentialMethod) {
-                        if (Modifier.isPrivate(potentialMethod.getModifiers()) && potentialMethod.getName().equals(name)) {
-                            ParameterTypes parameterTypes = new ParameterTypes(potentialMethod.getParameterTypes());
-                            return parameterTypes.isValidMethod(arguments);
-                        } else {
-                            return false;
-                        }
-                    }
-                });
-
-                return method != null;
-            }
+            return !getMetaClass().respondsTo(bean, name, arguments).isEmpty();
         }
 
         public Object invokeMethod(final String name, final Object... arguments) throws MissingMethodException {

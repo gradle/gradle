@@ -19,6 +19,8 @@ package org.gradle.plugin.internal;
 import org.gradle.api.NamedDomainObjectList;
 import org.gradle.plugin.resolve.internal.PluginResolver;
 
+import java.util.Map;
+
 public class NonPluggableTargetPluginHandler implements PluginHandlerInternal {
 
     private final Object target;
@@ -27,11 +29,7 @@ public class NonPluggableTargetPluginHandler implements PluginHandlerInternal {
         this.target = target;
     }
 
-    public void apply(String pluginId) {
-        throw fail();
-    }
-
-    public void apply(String pluginId, String version) {
+    public void apply(Map<String, ?> attributes) {
         throw fail();
     }
 

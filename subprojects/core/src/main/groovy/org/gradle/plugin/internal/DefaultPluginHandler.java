@@ -21,12 +21,17 @@ import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectList;
 import org.gradle.api.internal.DefaultNamedDomainObjectList;
 import org.gradle.api.plugins.UnknownPluginException;
+import org.gradle.api.tasks.Optional;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.typeconversion.MapKey;
+import org.gradle.internal.typeconversion.MapNotationParser;
 import org.gradle.plugin.resolve.internal.DefaultPluginRequest;
 import org.gradle.plugin.resolve.internal.PluginRequest;
 import org.gradle.plugin.resolve.internal.PluginResolution;
 import org.gradle.plugin.resolve.internal.PluginResolver;
 import org.gradle.util.CollectionUtils;
+
+import java.util.Map;
 
 public class DefaultPluginHandler implements PluginHandlerInternal {
 
@@ -41,12 +46,15 @@ public class DefaultPluginHandler implements PluginHandlerInternal {
         this.repositories = unchecked;
     }
 
-    public void apply(String pluginId) {
-       apply(new DefaultPluginRequest(pluginId));
+    private static class PluginRequestNotationParser extends MapNotationParser<PluginRequest> {
+        protected PluginRequest parseMap(@MapKey("plugin") String id, @MapKey("version") @Optional String version) {
+            return version == null ? new DefaultPluginRequest(id) : new DefaultPluginRequest(id, version);
+        }
     }
 
-    public void apply(String pluginId, String version) {
-        apply(new DefaultPluginRequest(pluginId, version));
+    public void apply(Map<String, ?> attributes) {
+        PluginRequest pluginRequest = new PluginRequestNotationParser().parseType(attributes);
+        apply(pluginRequest);
     }
 
     private void apply(PluginRequest request) {

@@ -16,8 +16,6 @@
 
 package org.gradle.plugin.bintray
 
-import org.gradle.api.Plugin
-import org.gradle.api.Project
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.bintray.BintrayApi
 import org.gradle.test.fixtures.bintray.BintrayTestServer
@@ -26,7 +24,7 @@ import org.junit.Rule
 
 class BintrayPluginResolutionIntegTest extends AbstractIntegrationSpec {
 
-    @Rule BintrayTestServer bintray = new BintrayTestServer(file("repo"))
+    @Rule BintrayTestServer bintray = new BintrayTestServer(executer, mavenRepo)
     def pluginBuilder = new PluginBuilder(executer, file("plugin"))
 
     def setup() {
@@ -42,35 +40,27 @@ class BintrayPluginResolutionIntegTest extends AbstractIntegrationSpec {
 
         bintray.api.expectPackageSearch(id, new BintrayApi.FoundPackage(version, "$group:$name"))
 
-        pluginBuilder.pluginIds[id] = "FakePlugin"
-
-        pluginBuilder.groovy("FakePlugin.groovy") << """
-            package $pluginBuilder.packageName
-
-            class FakePlugin implements $Plugin.name<$Project.name> {
-                void apply($Project.name project) {
-                    project.task("pluginTask") << { println "Output from plugin task" }
-                }
-            }
-        """
-
         def module = bintray.jcenter.module(group, name, version)
         module.allowAll()
         def artifact = module.artifact([:])
         module.publish()
+
+        def message = "from plugin"
+        def taskName = "pluginTask"
+        pluginBuilder.addPluginWithPrintlnTask(taskName, message, id)
         pluginBuilder.publishTo(artifact.file)
 
         buildScript """
           plugins {
-            apply "fake-plugin"
+            apply plugin: "$id"
           }
         """
 
         when:
-        succeeds "pluginTask"
+        succeeds taskName
 
         then:
-        output.contains "Output from plugin task"
+        output.contains message
     }
 
 }

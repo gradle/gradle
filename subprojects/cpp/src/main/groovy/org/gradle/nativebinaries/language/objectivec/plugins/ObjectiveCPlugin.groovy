@@ -18,8 +18,7 @@ package org.gradle.nativebinaries.language.objectivec.plugins
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.nativebinaries.toolchain.plugins.ClangCompilerPlugin
-import org.gradle.nativebinaries.toolchain.plugins.GccCompilerPlugin
+import org.gradle.nativebinaries.toolchain.internal.plugins.StandardToolChainsPlugin
 
 /**
  * A plugin for projects wishing to build native binary components from Objective-C sources.
@@ -30,8 +29,7 @@ import org.gradle.nativebinaries.toolchain.plugins.GccCompilerPlugin
 class ObjectiveCPlugin implements Plugin<ProjectInternal> {
 
     void apply(ProjectInternal project) {
-        project.plugins.apply(ClangCompilerPlugin)
-        project.plugins.apply(GccCompilerPlugin)
+        project.plugins.apply(StandardToolChainsPlugin)
         project.plugins.apply(ObjectiveCNativeBinariesPlugin)
     }
 

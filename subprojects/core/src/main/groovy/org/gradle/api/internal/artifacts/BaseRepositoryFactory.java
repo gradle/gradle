@@ -27,7 +27,7 @@ import org.gradle.plugin.internal.DefaultPluginHandlerFactory;
  */
 public interface BaseRepositoryFactory {
 
-    String JCENTER_REPO_OVERRIDE_URL_PROPERTY = DefaultPluginHandlerFactory.class + ".jcenter.override";
+    String JCENTER_REPO_OVERRIDE_URL_PROPERTY = DefaultPluginHandlerFactory.class.getName() + ".jcenter.override";
 
     ArtifactRepository createRepository(Object userDescription);
 

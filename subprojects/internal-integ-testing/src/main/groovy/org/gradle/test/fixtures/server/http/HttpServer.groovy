@@ -115,6 +115,10 @@ class HttpServer extends ExternalResource {
         start(0)
     }
 
+    boolean isRunning() {
+        server.running
+    }
+
     void start(int port) {
         connector = new SocketConnector()
         connector.port = port

@@ -26,7 +26,7 @@ import java.util.List;
 
 public class JCenterPluginMapper implements ModuleMappingPluginResolver.Mapper {
 
-    public static final String BINTRAY_API_OVERRIDE_URL_PROPERTY = JCenterPluginMapper.class + ".bintray.override";
+    public static final String BINTRAY_API_OVERRIDE_URL_PROPERTY = JCenterPluginMapper.class.getName() + ".bintray.override";
 
     public static final String GRADLE_PLUGINS_ORG = "gradle-plugins-development";
     public static final String GRADLE_PLUGINS_REPO = "gradle-plugins";
@@ -44,15 +44,15 @@ public class JCenterPluginMapper implements ModuleMappingPluginResolver.Mapper {
                 search();
 
         if (results.isEmpty()) {
-            throw new InvalidPluginRequest("No plugins found for plugin id " + pluginId);
+            throw new InvalidPluginRequestException("No plugins found for plugin id " + pluginId);
         }
         if (results.size() > 1) {
-            throw new InvalidPluginRequest("Found more than one plugin for plugin id " + pluginId);
+            throw new InvalidPluginRequestException("Found more than one plugin for plugin id " + pluginId);
         }
         Pkg pluginPackage = results.get(0);
         List<String> systemIds = pluginPackage.systemIds();
         if (systemIds.isEmpty()) {
-            throw new InvalidPluginRequest("No artifacts in maven layout found for plugin id" + pluginId);
+            throw new InvalidPluginRequestException("No artifacts in maven layout found for plugin id" + pluginId);
         }
         String version = request.getVersion();
         if (version == null) {

@@ -16,7 +16,14 @@
 
 package org.gradle.plugin
 
+import org.gradle.api.DefaultTask
+import org.gradle.api.tasks.TaskAction
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.plugin.resolve.internal.AndroidPluginMapper
+import org.gradle.test.fixtures.bintray.BintrayApi
+import org.gradle.test.fixtures.bintray.BintrayTestServer
+import org.gradle.test.fixtures.plugin.PluginBuilder
+import org.junit.Rule
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
@@ -24,12 +31,19 @@ class PluginHandlerScriptIntegTest extends AbstractIntegrationSpec {
 
     private static final String SCRIPT = "println 'out'; plugins { println 'in' }"
 
+    @Rule BintrayTestServer bintray = new BintrayTestServer(executer, mavenRepo) // provides a double for JCenter
+    def pluginBuilder = new PluginBuilder(executer, file("plugin"))
+
+    def pluginMessage = "from plugin"
+    def pluginTaskName = "pluginTask"
+    def pluginVersion = "1.0"
+
     def "build scripts have plugin blocks"() {
         when:
         buildFile << SCRIPT
         buildFile << """
             plugins {
-              apply 'java'
+              apply plugin: 'java'
             }
         """
 
@@ -68,7 +82,7 @@ class PluginHandlerScriptIntegTest extends AbstractIntegrationSpec {
 
         file("plugin.gradle") << """
             plugins {
-                apply "foo"
+                apply plugin: "foo"
             }
         """
 
@@ -85,40 +99,101 @@ class PluginHandlerScriptIntegTest extends AbstractIntegrationSpec {
         assert output.contains(toPlatformLineSeparators("in\nout\n")) // Testing the the plugins {} block is extracted and executed before the “main” content
     }
 
+    void "plugins block has no implicit access to owner context"() {
+        when:
+        buildScript """
+            plugins {
+                owner.buildscript {} // works
+                try {
+                    buildscript {}
+                } catch(MissingMethodException e) {
+                    // ok
+                }
+                println "end-of-plugins"
+            }
+        """
+
+        then:
+        succeeds "tasks"
+        and:
+        output.contains("end-of-plugins")
+    }
+
     void "can resolve android plugin"() {
         given:
-        buildFile << """
-            plugins {
-                apply "android"
-            }
+        bintray.start()
+
+        // Not expecting a search of the bintray API, as there is an explicit mapper for this guy
+        publishPluginToBintray(AndroidPluginMapper.ID, AndroidPluginMapper.GROUP, AndroidPluginMapper.NAME)
+
+        buildScript """
+          plugins {
+            apply plugin: "$AndroidPluginMapper.ID", version: $pluginVersion
+          }
+        """
+
+        when:
+        succeeds pluginTaskName
+
+        then:
+        output.contains pluginMessage
+    }
+
+    def "android plugin requires version"() {
+        given:
+        buildScript """
+          plugins {
+            apply plugin: "$AndroidPluginMapper.ID"
+          }
         """
 
         when:
         fails "tasks"
 
         then:
-        // This is a very lame test
-        // This error message is produced due to a binary incompatible change on an incubating class
-        errorOutput.contains "Could not create plugin of type 'AppPlugin'"
+        failure.assertHasCause("The 'android' plugin requires a version")
+    }
+
+    def void publishPluginToBintray(String id, String group, String name, String version = pluginVersion) {
+        def module = bintray.jcenter.module(group, name, version)
+        module.allowAll()
+        def artifact = module.artifact([:])
+        module.publish()
+        pluginBuilder.addPluginWithPrintlnTask(pluginTaskName, pluginMessage, id)
+        pluginBuilder.publishTo(artifact.file)
     }
 
     void "can use plugin classes in script"() {
         given:
-        buildFile << """
-            plugins {
-                apply "tomcat", "1.0"
+        bintray.start()
+
+        pluginBuilder.groovy("EchoTask.groovy") << """
+            package $pluginBuilder.packageName
+
+            class EchoTask extends ${DefaultTask.name} {
+                @${TaskAction.name}
+                void doEcho() {
+                    println "$pluginMessage"
+                }
             }
+        """
 
-            import org.gradle.api.plugins.tomcat.TomcatRun
+        publishPluginToBintray("test", "test", "test")
+        bintray.api.expectPackageSearch("test", new BintrayApi.FoundPackage("foo", "test:test"))
 
-            task customRun(type: TomcatRun)
+        buildScript """
+          plugins {
+            apply plugin: "test", version: "$pluginVersion"
+          }
+
+          task echo(type: ${pluginBuilder.packageName}.EchoTask) {}
         """
 
         when:
-        succeeds "tasks"
+        succeeds "echo"
 
         then:
-        output.contains "customRun"
+        output.contains pluginMessage
     }
 
     void "plugins block does not leak into build script proper"() {

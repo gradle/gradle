@@ -19,7 +19,7 @@ package org.gradle.plugin.bintray
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.plugin.resolve.internal.DefaultPluginRequest
-import org.gradle.plugin.resolve.internal.InvalidPluginRequest
+import org.gradle.plugin.resolve.internal.InvalidPluginRequestException
 import org.gradle.plugin.resolve.internal.JCenterPluginMapper
 import spock.lang.Specification
 
@@ -70,7 +70,7 @@ class JCenterPluginMapperSpec extends Specification {
         when:
         mapper.map(new DefaultPluginRequest(badPluginId), getMockForVersion(TEST_PLUGIN_EXPLICIT_VERSION))
         then:
-        InvalidPluginRequest e = thrown()
+        InvalidPluginRequestException e = thrown()
         e.message.contains(badPluginId)
     }
 }
