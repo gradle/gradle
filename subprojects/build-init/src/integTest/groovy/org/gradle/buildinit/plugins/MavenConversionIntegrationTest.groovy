@@ -44,6 +44,9 @@ class MavenConversionIntegrationTest extends AbstractIntegrationSpec {
     public final HttpServer server = new HttpServer()
 
     def "multiModule"() {
+        setup:
+        withLocalM2Installation()
+
         when:
         run 'init'
 
@@ -73,6 +76,9 @@ Root project 'webinar-parent'
     }
 
     def "multiModuleWithNestedParent"() {
+        setup:
+        withLocalM2Installation()
+
         when:
         run 'init'
 
@@ -91,6 +97,9 @@ Root project 'webinar-parent'
     }
 
     def "flatmultimodule"() {
+        setup:
+        withLocalM2Installation()
+
         when:
         executer.inDirectory(file("webinar-parent"))
         run 'init'
@@ -123,6 +132,9 @@ Root project 'webinar-parent'
     }
 
     def "singleModule"() {
+        setup:
+        withLocalM2Installation()
+
         when:
         run 'init'
 
@@ -139,6 +151,9 @@ Root project 'webinar-parent'
     }
 
     def "testjar"() {
+        setup:
+        withLocalM2Installation()
+
         when:
         run 'init'
 
@@ -154,6 +169,9 @@ Root project 'webinar-parent'
     }
 
     def "enforcerplugin"() {
+        setup:
+        withLocalM2Installation()
+
         when:
         run 'init'
 
