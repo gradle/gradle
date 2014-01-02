@@ -25,7 +25,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
-class ProjectNativeBinaryConfigurationTest extends Specification {
+class ProjectNativeBinaryInitializerTest extends Specification {
     @Rule public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
 
     def component = Mock(ProjectNativeComponent)
@@ -37,7 +37,7 @@ class ProjectNativeBinaryConfigurationTest extends Specification {
 
     def setup() {
         project.buildDir >> tmpDir.testDirectory
-        configAction = new ProjectNativeBinaryConfiguration(project)
+        configAction = new ProjectNativeBinaryInitializer(project)
     }
 
     def "test executable"() {

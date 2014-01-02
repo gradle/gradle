@@ -17,7 +17,6 @@
 package org.gradle.nativebinaries.internal.configure;
 
 import org.gradle.api.Action;
-import org.gradle.api.Transformer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.internal.DefaultBinaryNamingScheme;
 import org.gradle.nativebinaries.*;
@@ -29,10 +28,9 @@ import org.gradle.nativebinaries.toolchain.internal.ToolChainRegistryInternal;
 
 import java.util.Collection;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.Set;
 
-class ProjectNativeBinaryFactory implements Transformer<Collection<NativeBinary>, ProjectNativeComponent> {
+class ProjectNativeComponentInitializer implements Action<ProjectNativeComponent> {
     private final Instantiator instantiator;
     private final NativeDependencyResolver resolver;
     private final ToolChainRegistryInternal toolChainRegistry;
@@ -41,8 +39,8 @@ class ProjectNativeBinaryFactory implements Transformer<Collection<NativeBinary>
     private final Set<Flavor> allFlavors = new LinkedHashSet<Flavor>();
     private final Action<ProjectNativeBinary> configureAction;
 
-    public ProjectNativeBinaryFactory(Instantiator instantiator, NativeDependencyResolver resolver, Action<ProjectNativeBinary> configureAction, ToolChainRegistryInternal toolChainRegistry,
-                                      Collection<? extends Platform> allPlatforms, Collection<? extends BuildType> allBuildTypes, Collection<? extends Flavor> allFlavors) {
+    public ProjectNativeComponentInitializer(Instantiator instantiator, NativeDependencyResolver resolver, Action<ProjectNativeBinary> configureAction, ToolChainRegistryInternal toolChainRegistry,
+                                             Collection<? extends Platform> allPlatforms, Collection<? extends BuildType> allBuildTypes, Collection<? extends Flavor> allFlavors) {
         this.instantiator = instantiator;
         this.resolver = resolver;
         this.configureAction = configureAction;
@@ -52,32 +50,25 @@ class ProjectNativeBinaryFactory implements Transformer<Collection<NativeBinary>
         this.allFlavors.addAll(allFlavors);
     }
 
-    public Collection<NativeBinary> transform(ProjectNativeComponent original) {
-        return createNativeBinaries((ProjectNativeComponentInternal) original);
-    }
-
-    public Collection<NativeBinary> createNativeBinaries(ProjectNativeComponentInternal component) {
-        Set<NativeBinary> componentBinaries = new LinkedHashSet<NativeBinary>();
-         for (Platform platform : component.choosePlatforms(allPlatforms)) {
-             ToolChain toolChain = toolChainRegistry.getForPlatform(platform);
-             for (BuildType buildType : component.chooseBuildTypes(allBuildTypes)) {
-                 for (Flavor flavor : component.chooseFlavors(allFlavors)) {
-                     componentBinaries.addAll(createNativeBinaries(component, toolChain, platform, buildType, flavor));
-                 }
-             }
-         }
-        return componentBinaries;
-    }
-
-    public Collection<NativeBinary> createNativeBinaries(ProjectNativeComponentInternal component, ToolChain toolChain, Platform platform, BuildType buildType, Flavor flavor) {
-        Collection<NativeBinary> binaries = new LinkedList<NativeBinary>();
-        if (component instanceof Library) {
-            binaries.add(createNativeBinary(ProjectSharedLibraryBinary.class, component, toolChain, platform, buildType, flavor));
-            binaries.add(createNativeBinary(ProjectStaticLibraryBinary.class, component, toolChain, platform, buildType, flavor));
-        } else {
-            binaries.add(createNativeBinary(ProjectExecutableBinary.class, component, toolChain, platform, buildType, flavor));
+    public void execute(ProjectNativeComponent projectNativeComponent) {
+        ProjectNativeComponentInternal component = (ProjectNativeComponentInternal) projectNativeComponent;
+        for (Platform platform : component.choosePlatforms(allPlatforms)) {
+            ToolChain toolChain = toolChainRegistry.getForPlatform(platform);
+            for (BuildType buildType : component.chooseBuildTypes(allBuildTypes)) {
+                for (Flavor flavor : component.chooseFlavors(allFlavors)) {
+                    createNativeBinaries(component, toolChain, platform, buildType, flavor);
+                }
+            }
         }
-        return binaries;
+    }
+
+    public void createNativeBinaries(ProjectNativeComponentInternal component, ToolChain toolChain, Platform platform, BuildType buildType, Flavor flavor) {
+        if (component instanceof Library) {
+            createNativeBinary(ProjectSharedLibraryBinary.class, component, toolChain, platform, buildType, flavor);
+            createNativeBinary(ProjectStaticLibraryBinary.class, component, toolChain, platform, buildType, flavor);
+        } else {
+            createNativeBinary(ProjectExecutableBinary.class, component, toolChain, platform, buildType, flavor);
+        }
     }
 
     public <T extends AbstractProjectNativeBinary> T createNativeBinary(Class<T> type, ProjectNativeComponentInternal component, ToolChain toolChain, Platform platform, BuildType buildType, Flavor flavor) {
@@ -117,5 +108,4 @@ class ProjectNativeBinaryFactory implements Transformer<Collection<NativeBinary>
     private void setupDefaults(AbstractProjectNativeBinary nativeBinary) {
         configureAction.execute(nativeBinary);
     }
-
 }

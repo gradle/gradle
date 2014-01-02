@@ -48,12 +48,13 @@ public class CreateNativeBinaries extends ModelRule {
         project.getExtensions().add("buildTypes", buildTypes);
         project.getExtensions().add("flavors", flavors);
 
-        Action<ProjectNativeBinary> configureAction = new ProjectNativeBinaryConfiguration(project);
-        Transformer<Collection<NativeBinary>, ProjectNativeComponent> factory =
-                new ProjectNativeBinaryFactory(instantiator, resolver, configureAction, toolChains, platforms, buildTypes, flavors);
+        Action<ProjectNativeBinary> configureBinaryAction = new ProjectNativeBinaryInitializer(project);
+        Action<ProjectNativeComponent> createBinariesAction =
+                new ProjectNativeComponentInitializer(instantiator, resolver, configureBinaryAction, toolChains, platforms, buildTypes, flavors);
 
         for (ProjectNativeComponent component : allComponents()) {
-            binaries.addAll(factory.transform(component));
+            createBinariesAction.execute(component);
+            binaries.addAll(component.getBinaries());
         }
     }
 

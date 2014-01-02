@@ -27,10 +27,10 @@ import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal;
 
 import java.io.File;
 
-class ProjectNativeBinaryConfiguration implements Action<ProjectNativeBinary> {
+class ProjectNativeBinaryInitializer implements Action<ProjectNativeBinary> {
     private final File binariesOutputDir;
 
-    ProjectNativeBinaryConfiguration(Project project) {
+    ProjectNativeBinaryInitializer(Project project) {
         binariesOutputDir = new File(project.getBuildDir(), "binaries");
     }
 
