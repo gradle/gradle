@@ -16,8 +16,11 @@
 
 package org.gradle.plugin
 
+import org.gradle.api.DefaultTask
+import org.gradle.api.tasks.TaskAction
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.plugin.resolve.internal.AndroidPluginMapper
+import org.gradle.test.fixtures.bintray.BintrayApi
 import org.gradle.test.fixtures.bintray.BintrayTestServer
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.junit.Rule
@@ -162,21 +165,35 @@ class PluginHandlerScriptIntegTest extends AbstractIntegrationSpec {
 
     void "can use plugin classes in script"() {
         given:
-        buildFile << """
-            plugins {
-                apply plugin: "tomcat", version: "1.0"
+        bintray.start()
+
+        pluginBuilder.groovy("EchoTask.groovy") << """
+            package $pluginBuilder.packageName
+
+            class EchoTask extends ${DefaultTask.name} {
+                @${TaskAction.name}
+                void doEcho() {
+                    println "$pluginMessage"
+                }
             }
+        """
 
-            import org.gradle.api.plugins.tomcat.TomcatRun
+        publishPluginToBintray("test", "test", "test")
+        bintray.api.expectPackageSearch("test", new BintrayApi.FoundPackage("foo", "test:test"))
 
-            task customRun(type: TomcatRun)
+        buildScript """
+          plugins {
+            apply plugin: "test", version: "$pluginVersion"
+          }
+
+          task echo(type: ${pluginBuilder.packageName}.EchoTask) {}
         """
 
         when:
-        succeeds "tasks"
+        succeeds "echo"
 
         then:
-        output.contains "customRun"
+        output.contains pluginMessage
     }
 
     void "plugins block does not leak into build script proper"() {
