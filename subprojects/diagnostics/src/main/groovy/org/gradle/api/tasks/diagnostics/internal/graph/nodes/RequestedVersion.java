@@ -18,7 +18,6 @@ package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
-import org.gradle.api.internal.artifacts.component.ComponentSelectorFactory;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -29,10 +28,6 @@ public class RequestedVersion extends AbstractRenderableDependencyResult {
     private final boolean resolvable;
     private final String description;
     private final Set<RenderableDependency> children = new LinkedHashSet<RenderableDependency>();
-
-    public RequestedVersion(ComponentIdentifier actual, boolean resolvable, String description) {
-        this(ComponentSelectorFactory.getInstance().createSelector(actual), actual, resolvable, description);
-    }
 
     public RequestedVersion(ComponentSelector requested, ComponentIdentifier actual, boolean resolvable, String description) {
         this.requested = requested;
