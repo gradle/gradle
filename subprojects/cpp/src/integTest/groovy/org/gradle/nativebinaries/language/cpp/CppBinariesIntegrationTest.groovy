@@ -330,6 +330,7 @@ class CppBinariesIntegrationTest extends AbstractInstalledToolChainIntegrationSp
     }
 
     @Unroll
+    @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
     def "can link to #linkage library binary with custom output file"() {
         given:
         def app = new CppHelloWorldApp()
