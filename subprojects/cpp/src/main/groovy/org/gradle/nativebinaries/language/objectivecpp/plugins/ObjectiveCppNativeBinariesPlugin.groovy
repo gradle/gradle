@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.nativebinaries.language.objectivecpp.plugins
+
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
@@ -24,6 +25,7 @@ import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
 import org.gradle.nativebinaries.language.objectivecpp.tasks.ObjectiveCppCompile
 import org.gradle.nativebinaries.language.internal.DefaultPreprocessingTool
 import org.gradle.nativebinaries.plugins.NativeBinariesPlugin
+
 /**
  * A plugin for projects wishing to build native binary components from Objective-C++ sources.
  *
@@ -52,9 +54,11 @@ class ObjectiveCppNativeBinariesPlugin implements Plugin<ProjectInternal> {
 
         project.binaries.withType(NativeBinary) { ProjectNativeBinaryInternal binary ->
             binary.source.withType(ObjectiveCppSourceSet).all { ObjectiveCppSourceSet sourceSet ->
-                def compileTask = createCompileTask(project, binary, sourceSet)
-                binary.tasks.add compileTask
-                binary.tasks.builder.source compileTask.outputs.files.asFileTree.matching { include '**/*.obj', '**/*.o' }
+                if (sourceSet.mayHaveSources) {
+                    def compileTask = createCompileTask(project, binary, sourceSet)
+                    binary.tasks.add compileTask
+                    binary.tasks.builder.source compileTask.outputs.files.asFileTree.matching { include '**/*.obj', '**/*.o' }
+                }
             }
         }
     }

@@ -22,9 +22,9 @@ import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.internal.AbstractHeaderExportingDependentSourceSet;
-import org.gradle.language.objectivec.ObjectiveCSourceSet;
+import org.gradle.language.objectivecpp.ObjectiveCppSourceSet;
 
-public class DefaultObjectiveCppSourceSet extends AbstractHeaderExportingDependentSourceSet implements ObjectiveCSourceSet {
+public class DefaultObjectiveCppSourceSet extends AbstractHeaderExportingDependentSourceSet implements ObjectiveCppSourceSet {
     @Inject
     public DefaultObjectiveCppSourceSet(String name, FunctionalSourceSet parent, ProjectInternal project) {
         super(name, parent, project, "Objective-C++ source", new DefaultSourceDirectorySet("source", project.getFileResolver()));
