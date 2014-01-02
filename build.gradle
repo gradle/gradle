@@ -31,6 +31,9 @@ buildTypes {
     preCommitBuild "doc:checkstyleApi", "docs:check", "codeQuality", "classes", "test"
     quickCheck "doc:checkstyleApi", "docs:check", "codeQuality", "classes", "test"
 
+    // For testing pull requests
+    pullRequestValidation "doc:checkstyleApi", "docs:check", "codeQuality", "classes"
+
     // A full (in-process) test
     developerBuild "check"
 

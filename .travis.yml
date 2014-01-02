@@ -1,4 +1,4 @@
 language: java
 jdk:
   - oraclejdk7
-script: "./gradlew quickCheck -q"
+script: "./gradlew pullRequestValidation -q"
