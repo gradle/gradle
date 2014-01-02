@@ -54,9 +54,10 @@ dependencies {
         exclude group: 'org.slf4j'
         exclude module: 'commons-collections'
         exclude module: 'commons-lang'
-        // exclude module: 'httpclient'
+        exclude module: 'httpclient'
         exclude module: 'nekohtml'
     }
+    compile libraries.commons_httpclient // Needed by bintray client
 
     runtime libraries.log4j_to_slf4j
     runtime libraries.jcl_to_slf4j
