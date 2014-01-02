@@ -196,6 +196,21 @@ class PluginHandlerScriptIntegTest extends AbstractIntegrationSpec {
         output.contains pluginMessage
     }
 
+    void "core plugins cannot have a version number"() {
+        given:
+        buildScript """
+            plugins {
+                apply plugin: "java", version: "1.0"
+            }
+        """
+
+        when:
+        fails "tasks"
+
+        then:
+        failure.assertHasCause("Core plugins cannot have a version number. They are versioned with Gradle itself.")
+    }
+
     void "plugins block does not leak into build script proper"() {
         given:
         buildFile << """
