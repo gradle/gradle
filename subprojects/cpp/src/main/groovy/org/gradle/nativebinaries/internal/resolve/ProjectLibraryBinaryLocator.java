@@ -17,16 +17,15 @@ package org.gradle.nativebinaries.internal.resolve;
 
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Project;
-import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.nativebinaries.LibraryContainer;
 import org.gradle.nativebinaries.NativeBinary;
 import org.gradle.nativebinaries.NativeLibraryRequirement;
 
 public class ProjectLibraryBinaryLocator implements LibraryBinaryLocator {
-    private final ProjectFinder projectFinder;
+    private final ProjectLocator projectLocator;
 
-    public ProjectLibraryBinaryLocator(ProjectFinder projectFinder) {
-        this.projectFinder = projectFinder;
+    public ProjectLibraryBinaryLocator(ProjectLocator projectLocator) {
+        this.projectLocator = projectLocator;
     }
 
     public DomainObjectSet<NativeBinary> getBinaries(NativeLibraryRequirement requirement) {
@@ -39,7 +38,7 @@ public class ProjectLibraryBinaryLocator implements LibraryBinaryLocator {
     }
 
     private Project findProject(NativeLibraryRequirement requirement) {
-        return projectFinder.getProject(requirement.getProjectPath());
+        return projectLocator.locateProject(requirement.getProjectPath());
     }
 
 }

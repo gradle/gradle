@@ -16,22 +16,22 @@
 package org.gradle.ide.visualstudio.internal;
 
 import org.gradle.api.NamedDomainObjectSet;
-import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.ide.visualstudio.VisualStudioExtension;
 import org.gradle.ide.visualstudio.VisualStudioProject;
 import org.gradle.ide.visualstudio.VisualStudioSolution;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.nativebinaries.FlavorContainer;
+import org.gradle.nativebinaries.internal.resolve.ProjectLocator;
 import org.gradle.nativebinaries.platform.PlatformContainer;
 
 public class DefaultVisualStudioExtension implements VisualStudioExtension {
     private final VisualStudioProjectRegistry projectRegistry;
     private final VisualStudioSolutionRegistry solutionRegistry;
 
-    public DefaultVisualStudioExtension(Instantiator instantiator, ProjectFinder projectFinder, FileResolver fileResolver,
+    public DefaultVisualStudioExtension(Instantiator instantiator, ProjectLocator projectLocator, FileResolver fileResolver,
                                         FlavorContainer flavors, PlatformContainer platforms) {
-        VisualStudioProjectResolver projectResolver = new VisualStudioProjectResolver(projectFinder);
+        VisualStudioProjectResolver projectResolver = new VisualStudioProjectResolver(projectLocator);
         VisualStudioProjectMapper projectMapper = new VisualStudioProjectMapper(flavors, platforms);
         projectRegistry = new VisualStudioProjectRegistry(fileResolver, projectResolver, projectMapper, instantiator);
         solutionRegistry = new VisualStudioSolutionRegistry(fileResolver, projectResolver, projectRegistry, instantiator);

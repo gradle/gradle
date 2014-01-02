@@ -19,16 +19,17 @@ package org.gradle.nativebinaries.internal.resolve;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.project.ProjectInternal;
 
-public class RelativeProjectFinder implements ProjectFinder {
+public class DefaultProjectLocator implements ProjectLocator {
     private final String projectPath;
     private final ProjectFinder delegate;
 
-    public RelativeProjectFinder(String projectPath, ProjectFinder delegate) {
+    public DefaultProjectLocator(String projectPath, ProjectFinder delegate) {
         this.projectPath = projectPath;
         this.delegate = delegate;
     }
 
-    public ProjectInternal getProject(String path) {
+    public ProjectInternal locateProject(String path) {
+        // TODO:DAZ Maybe don't permit this
         if (path == null || path.length() == 0) {
             return delegate.getProject(projectPath);
         }

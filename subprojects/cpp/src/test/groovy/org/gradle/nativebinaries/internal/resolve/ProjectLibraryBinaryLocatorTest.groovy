@@ -17,7 +17,6 @@ package org.gradle.nativebinaries.internal.resolve
 import org.gradle.api.DomainObjectSet
 import org.gradle.api.UnknownDomainObjectException
 import org.gradle.api.UnknownProjectException
-import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
 import org.gradle.api.internal.plugins.ExtensionContainerInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.nativebinaries.Library
@@ -28,11 +27,11 @@ import spock.lang.Specification
 
 class ProjectLibraryBinaryLocatorTest extends Specification {
     def project = Mock(ProjectInternal)
-    def projectFinder = Mock(ProjectFinder)
+    def projectLocator = Mock(ProjectLocator)
     def requirement = Mock(NativeLibraryRequirement)
     def library = Mock(Library)
     def binaries = Mock(DomainObjectSet)
-    def locator = new ProjectLibraryBinaryLocator(projectFinder)
+    def locator = new ProjectLibraryBinaryLocator(projectLocator)
 
     def setup() {
         library.binaries >> binaries
@@ -43,7 +42,7 @@ class ProjectLibraryBinaryLocatorTest extends Specification {
         requirement = new ProjectNativeLibraryRequirement("libName", null)
 
         and:
-        projectFinder.getProject(null) >> project
+        projectLocator.locateProject(null) >> project
         findLibraryInProject()
 
         then:
@@ -55,7 +54,7 @@ class ProjectLibraryBinaryLocatorTest extends Specification {
         requirement = new ProjectNativeLibraryRequirement("other", "libName", null)
 
         and:
-        projectFinder.getProject("other") >> project
+        projectLocator.locateProject("other") >> project
         findLibraryInProject()
 
         then:
@@ -67,7 +66,7 @@ class ProjectLibraryBinaryLocatorTest extends Specification {
         requirement = new ProjectNativeLibraryRequirement("other", "libName", "static")
 
         and:
-        projectFinder.getProject("other") >> project
+        projectLocator.locateProject("other") >> project
         findLibraryInProject()
 
         then:
@@ -79,7 +78,7 @@ class ProjectLibraryBinaryLocatorTest extends Specification {
         requirement = new ProjectNativeLibraryRequirement("unknown", "libName", "static")
 
         and:
-        projectFinder.getProject("unknown") >> { throw new UnknownProjectException("unknown")}
+        projectLocator.locateProject("unknown") >> { throw new UnknownProjectException("unknown")}
 
         and:
         locator.getBinaries(requirement)
@@ -93,7 +92,7 @@ class ProjectLibraryBinaryLocatorTest extends Specification {
         requirement = new ProjectNativeLibraryRequirement("other", "unknown", "static")
 
         and:
-        projectFinder.getProject("other") >> project
+        projectLocator.locateProject("other") >> project
         def libraries = findLibraryContainer(project)
         libraries.getByName("unknown") >> { throw new UnknownDomainObjectException("unknown") }
 
@@ -109,7 +108,7 @@ class ProjectLibraryBinaryLocatorTest extends Specification {
         requirement = new ProjectNativeLibraryRequirement("other", "libName", "static")
 
         and:
-        projectFinder.getProject("other") >> project
+        projectLocator.locateProject("other") >> project
         def extensions = Mock(ExtensionContainerInternal)
         project.getExtensions() >> extensions
         extensions.findByName("libraries") >> null

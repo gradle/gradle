@@ -24,13 +24,15 @@ import java.util.List;
 
 public class NativeDependencyResolverServices {
 
-    public LibraryBinaryLocator createLibraryBinaryLocator(ProjectFinder projectFinder, DependencyMetaDataProvider metaDataProvider) {
+    public ProjectLocator createProjectLocator(ProjectFinder projectFinder, DependencyMetaDataProvider metaDataProvider) {
         String currentProjectPath = metaDataProvider.getModule().getProjectPath();
-        RelativeProjectFinder relativeProjectFinder = new RelativeProjectFinder(currentProjectPath, projectFinder);
+        return new DefaultProjectLocator(currentProjectPath, projectFinder);
+    }
 
+    public LibraryBinaryLocator createLibraryBinaryLocator(ProjectLocator projectLocator) {
         List<LibraryBinaryLocator> locators = new ArrayList<LibraryBinaryLocator>();
-        locators.add(new ProjectLibraryBinaryLocator(relativeProjectFinder));
-        locators.add(new PrebuiltLibraryBinaryLocator(relativeProjectFinder));
+        locators.add(new ProjectLibraryBinaryLocator(projectLocator));
+        locators.add(new PrebuiltLibraryBinaryLocator(projectLocator));
         return new ChainedLibraryBinaryLocator(locators);
     }
 

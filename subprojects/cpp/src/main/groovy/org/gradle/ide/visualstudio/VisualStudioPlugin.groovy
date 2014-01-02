@@ -14,10 +14,8 @@
  * limitations under the License.
  */
 package org.gradle.ide.visualstudio
-
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
-import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.ide.visualstudio.internal.DefaultVisualStudioExtension
@@ -28,7 +26,7 @@ import org.gradle.model.ModelRules
 import org.gradle.model.internal.Inputs
 import org.gradle.model.internal.ModelCreator
 import org.gradle.nativebinaries.FlavorContainer
-import org.gradle.nativebinaries.internal.resolve.RelativeProjectFinder
+import org.gradle.nativebinaries.internal.resolve.ProjectLocator
 import org.gradle.nativebinaries.platform.PlatformContainer
 import org.gradle.nativebinaries.plugins.NativeBinariesModelPlugin
 
@@ -38,36 +36,40 @@ import javax.inject.Inject
 class VisualStudioPlugin implements Plugin<ProjectInternal> {
     private final Instantiator instantiator
     private final ModelRules modelRules
+    private final ProjectLocator projectLocator
+    private final FileResolver fileResolver
 
     @Inject
-    VisualStudioPlugin(Instantiator instantiator, ModelRules modelRules) {
+    VisualStudioPlugin(Instantiator instantiator, ModelRules modelRules, ProjectLocator projectLocator, FileResolver fileResolver) {
         this.instantiator = instantiator
         this.modelRules = modelRules
+        this.projectLocator = projectLocator
+        this.fileResolver = fileResolver
     }
 
     void apply(ProjectInternal project) {
         project.plugins.apply(NativeBinariesModelPlugin)
 
-        project.modelRegistry.create("visualStudio", ["flavors", "platforms"], new VisualStudioExtensionFactory(instantiator, new RelativeProjectFinder(project), project.getFileResolver()))
+        project.modelRegistry.create("visualStudio", ["flavors", "platforms"], new VisualStudioExtensionFactory(instantiator, projectLocator, fileResolver))
         modelRules.rule(new CreateVisualStudioModel())
         modelRules.rule(new CreateVisualStudioTasks())
     }
 
     private static class VisualStudioExtensionFactory implements ModelCreator<DefaultVisualStudioExtension> {
         private final Instantiator instantiator;
-        private final ProjectFinder projectFinder;
+        private final ProjectLocator projectLocator;
         private final FileResolver fileResolver;
 
-        public VisualStudioExtensionFactory(Instantiator instantiator, ProjectFinder projectFinder, FileResolver fileResolver) {
+        public VisualStudioExtensionFactory(Instantiator instantiator, ProjectLocator projectLocator, FileResolver fileResolver) {
             this.instantiator = instantiator;
-            this.projectFinder = projectFinder;
+            this.projectLocator = projectLocator;
             this.fileResolver = fileResolver;
         }
 
         DefaultVisualStudioExtension create(Inputs inputs) {
             FlavorContainer flavors = inputs.get(0, FlavorContainer)
             PlatformContainer platforms = inputs.get(1, PlatformContainer)
-            return instantiator.newInstance(DefaultVisualStudioExtension.class, instantiator, projectFinder, fileResolver, flavors, platforms);
+            return instantiator.newInstance(DefaultVisualStudioExtension.class, instantiator, projectLocator, fileResolver, flavors, platforms);
         }
 
         Class<DefaultVisualStudioExtension> getType() {
