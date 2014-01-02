@@ -34,3 +34,4 @@
 /incoming-distributions
 .idea
 *.sublime-*
+.nb-gradle
