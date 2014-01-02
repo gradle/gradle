@@ -85,6 +85,26 @@ class PluginHandlerScriptIntegTest extends AbstractIntegrationSpec {
         assert output.contains(toPlatformLineSeparators("in\nout\n")) // Testing the the plugins {} block is extracted and executed before the “main” content
     }
 
+    void "plugins block has no implicit access to owner context"() {
+        when:
+        buildScript """
+            plugins {
+                owner.buildscript {} // works
+                try {
+                    buildscript {}
+                } catch(MissingMethodException e) {
+                    // ok
+                }
+                println "end-of-plugins"
+            }
+        """
+
+        then:
+        succeeds "tasks"
+        and:
+        output.contains("end-of-plugins")
+    }
+
     void "can resolve android plugin"() {
         given:
         buildFile << """
