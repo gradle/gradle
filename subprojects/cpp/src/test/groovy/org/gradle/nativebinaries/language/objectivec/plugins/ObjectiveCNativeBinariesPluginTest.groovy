@@ -14,35 +14,33 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries.language.c.plugins
+package org.gradle.nativebinaries.language.objectivec.plugins
 
 import org.gradle.api.Plugin
 import org.gradle.language.base.LanguageSourceSet
-import org.gradle.language.c.CSourceSet
+import org.gradle.language.objectivec.ObjectiveCSourceSet
 import org.gradle.nativebinaries.language.AbstractNativeBinariesPluginTest
-import org.gradle.nativebinaries.language.c.tasks.CCompile
-import org.gradle.util.TestUtil
+import org.gradle.nativebinaries.language.objectivec.tasks.ObjectiveCCompile
 
-class CNativeBinariesPluginTest extends AbstractNativeBinariesPluginTest{
-    final def project = TestUtil.createRootProject()
-
+class ObjectiveCNativeBinariesPluginTest extends AbstractNativeBinariesPluginTest{
     @Override
     Class<? extends Plugin> getPluginClass() {
-        return CNativeBinariesPlugin
+        return ObjectiveCNativeBinariesPlugin
     }
 
     @Override
     Class<? extends LanguageSourceSet> getSourceSetClass() {
-        return CSourceSet
+        return ObjectiveCSourceSet
     }
 
     @Override
     Class<? extends Plugin> getCompileTaskClass() {
-        return CCompile
+        return ObjectiveCCompile
     }
 
     @Override
     String getPluginName() {
-        return "c"
+        return "objc"
     }
+
 }

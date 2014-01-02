@@ -52,9 +52,11 @@ class ObjectiveCNativeBinariesPlugin implements Plugin<ProjectInternal> {
 
         project.binaries.withType(ProjectNativeBinary) { ProjectNativeBinary binary ->
             binary.source.withType(ObjectiveCSourceSet).all { ObjectiveCSourceSet sourceSet ->
-                def compileTask = createCompileTask(project, binary, sourceSet)
-                binary.tasks.add compileTask
-                binary.tasks.builder.source compileTask.outputs.files.asFileTree.matching { include '**/*.obj', '**/*.o' }
+                if (sourceSet.mayHaveSources) {
+                    def compileTask = createCompileTask(project, binary, sourceSet)
+                    binary.tasks.add compileTask
+                    binary.tasks.builder.source compileTask.outputs.files.asFileTree.matching { include '**/*.obj', '**/*.o' }
+                }
             }
         }
     }
