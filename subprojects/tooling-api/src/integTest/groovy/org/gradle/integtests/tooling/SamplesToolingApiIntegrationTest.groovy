@@ -77,9 +77,27 @@ class SamplesToolingApiIntegrationTest extends AbstractIntegrationSpec {
         result.output.contains("    build")
     }
 
-    private void tweakProject() {
-        def projectDir = sample.dir
+    @UsesSample('toolingApi/customModel')
+    def "can use tooling API to register custom model"() {
+        tweakPluginProject(sample.dir.file('plugin'))
+        tweakProject(sample.dir.file('tooling'))
 
+        when:
+        run('publish', sample.dir.file('plugin'))
+        def result = run('run', sample.dir.file('tooling'))
+
+        then:
+        result.output.contains("   :a")
+        result.output.contains("   :b")
+        result.output.contains("   :c")
+        noExceptionThrown()
+    }
+
+    private void tweakProject() {
+        tweakProject(sample.dir, 'repositories {')
+    }
+
+    private void tweakProject(File projectDir) {
         // Inject some additional configuration into the sample build script
         def buildFile = projectDir.file('build.gradle')
         def buildScript = buildFile.text
@@ -103,11 +121,34 @@ run {
         projectDir.file('settings.gradle').text = '// to stop search upwards'
     }
 
+    private void tweakPluginProject(File projectDir) {
+        // Inject some additional configuration into the sample build script
+        def buildFile = projectDir.file('build.gradle')
+        def buildScript = buildFile.text
+        def index = buildScript.indexOf('publishing {')
+        assert index >= 0
+        buildContext = new IntegrationTestBuildContext()
+        buildScript = buildScript.substring(0, index) + """
+repositories {
+    maven { url "${buildContext.libsRepo.toURI()}" }
+}
+""" + buildScript.substring(index)
+
+        buildFile.text = buildScript
+
+        // Add in an empty settings file to avoid searching up
+        projectDir.file('settings.gradle').text = '// to stop search upwards'
+    }
+
     private ExecutionResult run() {
+        return run('run', sample.dir)
+    }
+
+    private ExecutionResult run(String task, File dir) {
         try {
             return new GradleContextualExecuter(distribution, temporaryFolder)
-                    .inDirectory(sample.dir)
-                    .withTasks('run')
+                    .inDirectory(dir)
+                    .withTasks(task)
                     .run()
         } catch (Exception e) {
             throw new IntegrationTestHint(e);
