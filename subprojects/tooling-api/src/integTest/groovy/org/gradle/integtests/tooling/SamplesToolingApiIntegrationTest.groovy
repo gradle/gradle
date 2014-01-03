@@ -93,11 +93,7 @@ class SamplesToolingApiIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
     }
 
-    private void tweakProject() {
-        tweakProject(sample.dir, 'repositories {')
-    }
-
-    private void tweakProject(File projectDir) {
+    private void tweakProject(File projectDir = sample.dir) {
         // Inject some additional configuration into the sample build script
         def buildFile = projectDir.file('build.gradle')
         def buildScript = buildFile.text
@@ -140,11 +136,7 @@ repositories {
         projectDir.file('settings.gradle').text = '// to stop search upwards'
     }
 
-    private ExecutionResult run() {
-        return run('run', sample.dir)
-    }
-
-    private ExecutionResult run(String task, File dir) {
+    private ExecutionResult run(String task = 'run', File dir = sample.dir) {
         try {
             return new GradleContextualExecuter(distribution, temporaryFolder)
                     .inDirectory(dir)
