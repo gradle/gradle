@@ -69,7 +69,6 @@ public abstract class HelloWorldApp extends TestApp {
         StringBuilder builder = new StringBuilder();
         for (String plugin : getPluginList()) {
             if (plugin.equals("c") || plugin.equals("cpp") || plugin.equals("objective-c")) {
-                System.out.println("plugin = " + GUtil.toLowerCamelCase(plugin));
                 builder.append(GUtil.toLowerCamelCase(plugin)).append("Compiler.").append(action).append(" '").append(arg).append("'\n");
             }
         }
