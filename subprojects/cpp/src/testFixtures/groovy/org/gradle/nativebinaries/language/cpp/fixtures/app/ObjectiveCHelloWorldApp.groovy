@@ -17,20 +17,21 @@
 package org.gradle.nativebinaries.language.cpp.fixtures.app
 
 class ObjectiveCHelloWorldApp extends HelloWorldApp {
+
     @Override
     SourceFile getMainSource() {
         return sourceFile("objectiveC", "main.m", """
-            #import <cocoa/cocoa.h>
+            #import <Foundation/Foundation.h>
             #import "hello.h"
 
             int main (int argc, const char * argv[])
             {
-                NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-
                 sayHello();
+                NSString *s = @"Hello, World!";
+                NSLog(@"%@", s);
+
                 printf("%d", sum(7, 5));
 
-                [pool drain];
                 return 0;
             }
         """);
@@ -49,16 +50,17 @@ class ObjectiveCHelloWorldApp extends HelloWorldApp {
     List<SourceFile> getLibrarySources() {
         return [
                 sourceFile("objectiveC", "hello.m", """
-            #import <cocoa/cocoa.h>
+            #import <Foundation/Foundation.h>
             #import "hello.h"
 
             void sayHello()
             {
                 #ifdef FRENCH
-                printf("%s", [@"${HELLO_WORLD_FRENCH}\\n" UTF8String]);
+                NSString *helloWorld = @"${HELLO_WORLD_FRENCH}\\n";
                 #else
-                printf("%s", [@"${HELLO_WORLD}\\n" UTF8String]);
+                NSString *helloWorld = @"${HELLO_WORLD}\\n";
                 #endif
+                printf("%s", [helloWorld UTF8String]);
             }
         """),
             sourceFile("objectiveC", "sum.m", """

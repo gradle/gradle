@@ -18,10 +18,7 @@ package org.gradle.nativebinaries.language.objectivec
 import org.gradle.nativebinaries.language.cpp.AbstractLanguageIntegrationTest
 import org.gradle.nativebinaries.language.cpp.fixtures.app.HelloWorldApp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.ObjectiveCHelloWorldApp
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
-@Requires(TestPrecondition.MAC_OS_X)
 class ObjectiveCHelloWorldIntegrationTest extends AbstractLanguageIntegrationTest{
 
     def "setup"() {
