@@ -103,12 +103,22 @@ class PluginHandlerScriptIntegTest extends AbstractIntegrationSpec {
         when:
         buildScript """
             plugins {
-                owner.buildscript {} // works
                 try {
                     buildscript {}
                 } catch(MissingMethodException e) {
                     // ok
                 }
+
+                try {
+                    version
+                } catch(MissingPropertyException e) {
+                    // ok
+                }
+
+                assert delegate == null
+                assert this instanceof ${PluginHandler.name}
+                assert owner == this
+
                 println "end-of-plugins"
             }
         """
@@ -210,6 +220,39 @@ class PluginHandlerScriptIntegTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasCause("Core plugins cannot have a version number. They are versioned with Gradle itself.")
     }
+
+    def "non core plugins cannot be loaded off the classpath"() {
+        given:
+        def id = "test"
+        def group = "org.gradle.test"
+        def name = "test"
+
+        // Not expecting a search of the bintray API
+        publishPluginToBintray(id, group, name)
+
+        bintray.start()
+
+        buildScript """
+          buildscript {
+            repositories {
+                maven { url "$bintray.jcenter.uri" }
+            }
+            dependencies {
+              classpath "$group:$name:${pluginVersion}x"
+            }
+          }
+          plugins {
+            apply plugin: "$id"
+          }
+        """
+
+        when:
+        fails "tasks"
+
+        then:
+        failure.assertHasCause("The 'android' plugin requires a version")
+    }
+
 
     void "plugins block does not leak into build script proper"() {
         given:

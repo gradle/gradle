@@ -16,7 +16,6 @@
 
 package org.gradle.configuration;
 
-import groovy.lang.Closure;
 import org.codehaus.groovy.ast.ClassNode;
 import org.codehaus.groovy.ast.expr.*;
 import org.codehaus.groovy.ast.stmt.ExpressionStatement;
@@ -49,10 +48,13 @@ public class ScriptBlockToServiceConfigurationTransformer implements Transformer
 
         ClassNode configureUtilClass = new ClassNode(ConfigureUtil.class);
 
-        Expression configureMethodCall = new StaticMethodCallExpression(configureUtilClass, "configure",
-                new ArgumentListExpression(closureArg, getServiceMethodCall, new ConstantExpression(Closure.DELEGATE_ONLY, true))
-        );
+        // Remove access to any surrounding context
+        Expression hydrateMethodCall = new MethodCallExpression(closureArg, "rehydrate", new ArgumentListExpression(
+                ConstantExpression.NULL, getServiceMethodCall, getServiceMethodCall
+        ));
 
-        return new ExpressionStatement(configureMethodCall);
+        Expression closureCall = new MethodCallExpression(hydrateMethodCall, "call", ArgumentListExpression.EMPTY_ARGUMENTS);
+
+        return new ExpressionStatement(closureCall);
     }
 }
