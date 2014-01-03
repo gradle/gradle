@@ -16,21 +16,15 @@
 
 package org.gradle.plugin.internal
 
-import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.plugins.UnknownPluginException
 import org.gradle.plugin.resolve.internal.DefaultPluginRequest
-import org.gradle.plugin.resolve.internal.PluginResolution
-import org.gradle.plugin.resolve.internal.PluginResolver
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class DefaultPluginHandlerTest extends Specification {
 
-    def resolver = Mock(PluginResolver)
-    def applicator = Mock(Action)
-
-    def handler = new DefaultPluginHandler(resolver, applicator)
+    def requests = []
+    def handler = new DefaultPluginHandler(requests)
 
     @Unroll
     def "errors on invalid notation - #map"() {
@@ -45,45 +39,24 @@ class DefaultPluginHandlerTest extends Specification {
                 [:],
                 [foo: "bar"],
                 [version: "1.0"],
-                [version: 1],
-                [plugin: 1],
-                [plugin: 1, version: 1]
+                [version: "1"]
         ]
     }
 
     @Unroll
     def "accepts valid notation and applies when resolved - #map"() {
-        given:
-        def resolution = Mock(PluginResolution)
-
         when:
         handler.apply(map)
 
         then:
-        1 * resolver.resolve(request) >> resolution
-        1 * applicator.execute(resolution)
+        requests.first() == request
 
         where:
         map                             | request
         [plugin: "foo"]                 | new DefaultPluginRequest("foo")
         [plugin: "foo", version: "bar"] | new DefaultPluginRequest("foo", "bar")
-    }
-
-    @Unroll
-    def "accepts valid notation and errors when unresolved - #map"() {
-        when:
-        handler.apply(map)
-
-        then:
-        1 * resolver.resolve(request) >> null
-
-        and:
-        thrown UnknownPluginException
-
-        where:
-        map                             | request
-        [plugin: "foo"]                 | new DefaultPluginRequest("foo")
-        [plugin: "foo", version: "bar"] | new DefaultPluginRequest("foo", "bar")
+        [plugin: "foo", version: 1]     | new DefaultPluginRequest("foo", "1")
+        [plugin: "foo", version: []]    | new DefaultPluginRequest("foo", "[]")
     }
 
 }

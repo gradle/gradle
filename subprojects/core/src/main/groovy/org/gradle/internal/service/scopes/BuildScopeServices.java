@@ -66,8 +66,8 @@ import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.messaging.actor.ActorFactory;
 import org.gradle.messaging.actor.internal.DefaultActorFactory;
 import org.gradle.messaging.remote.MessagingServer;
-import org.gradle.plugin.internal.DefaultPluginHandlerFactory;
-import org.gradle.plugin.internal.PluginHandlerFactory;
+import org.gradle.plugin.internal.PluginResolverFactory;
+import org.gradle.plugin.resolve.internal.PluginResolver;
 import org.gradle.process.internal.DefaultWorkerProcessFactory;
 import org.gradle.process.internal.WorkerProcessBuilder;
 import org.gradle.process.internal.child.WorkerProcessClassPathProvider;
@@ -206,7 +206,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                 get(BuildClassLoaderRegistry.class).getRootCompileScope(),
                 getFactory(LoggingManagerInternal.class),
                 get(Instantiator.class),
-                get(PluginHandlerFactory.class)
+                get(PluginResolver.class),
+                get(ClassLoaderRegistry.class).getPluginsClassLoader()
         );
     }
 
@@ -239,15 +240,16 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                 new DependencyMetaDataProviderImpl());
     }
 
-    protected PluginHandlerFactory createPluginHandlerFactory() {
-        return new DefaultPluginHandlerFactory(
+    protected PluginResolver createPluginResolver() {
+        PluginResolverFactory pluginResolverFactory = new PluginResolverFactory(
                 get(PluginRegistry.class),
                 get(Instantiator.class),
                 get(DependencyManagementServices.class),
                 get(FileResolver.class),
-                new DependencyMetaDataProviderImpl(),
-                get(ClassLoaderRegistry.class).getPluginsClassLoader()
+                new DependencyMetaDataProviderImpl()
         );
+
+        return pluginResolverFactory.createPluginResolver();
     }
 
     protected Factory<WorkerProcessBuilder> createWorkerProcessFactory() {

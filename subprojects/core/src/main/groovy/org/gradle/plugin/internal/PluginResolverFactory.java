@@ -25,25 +25,21 @@ import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.plugins.PluginAware;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.plugin.PluginHandler;
 import org.gradle.plugin.resolve.internal.*;
 
 import java.util.LinkedList;
 import java.util.List;
 
-public class DefaultPluginHandlerFactory implements PluginHandlerFactory {
+public class PluginResolverFactory {
 
     private final PluginRegistry pluginRegistry;
     private final Instantiator instantiator;
     private final DependencyManagementServices dependencyManagementServices;
     private final FileResolver fileResolver;
     private final DependencyMetaDataProvider dependencyMetaDataProvider;
-    private final ClassLoader parentClassLoader;
 
     private final ProjectFinder projectFinder = new ProjectFinder() {
         public ProjectInternal getProject(String path) {
@@ -51,30 +47,24 @@ public class DefaultPluginHandlerFactory implements PluginHandlerFactory {
         }
     };
 
-    public DefaultPluginHandlerFactory(PluginRegistry pluginRegistry, Instantiator instantiator, DependencyManagementServices dependencyManagementServices, FileResolver fileResolver, DependencyMetaDataProvider dependencyMetaDataProvider, ClassLoader parentClassLoader) {
+    public PluginResolverFactory(PluginRegistry pluginRegistry, Instantiator instantiator, DependencyManagementServices dependencyManagementServices, FileResolver fileResolver, DependencyMetaDataProvider dependencyMetaDataProvider) {
         this.pluginRegistry = pluginRegistry;
         this.instantiator = instantiator;
         this.dependencyManagementServices = dependencyManagementServices;
         this.fileResolver = fileResolver;
         this.dependencyMetaDataProvider = dependencyMetaDataProvider;
-        this.parentClassLoader = parentClassLoader;
     }
 
-    public PluginHandler createPluginHandler(final Object target, ScriptClassLoaderProvider classLoaderProvider) {
-        if (target instanceof PluginAware) {
-            List<PluginResolver> resolvers = new LinkedList<PluginResolver>();
-            addDefaultResolvers(resolvers, classLoaderProvider);
-            PluginHandler pluginHandler = new DefaultPluginHandler(new CompositePluginResolver(resolvers), new PluginResolutionApplicator((PluginAware) target, parentClassLoader));
-            return pluginHandler;
-        } else {
-            return new NonPluggableTargetPluginHandler(target);
-        }
+    public PluginResolver createPluginResolver() {
+        List<PluginResolver> resolvers = new LinkedList<PluginResolver>();
+        addDefaultResolvers(resolvers);
+        return new CompositePluginResolver(resolvers);
     }
 
-    private void addDefaultResolvers(List<PluginResolver> resolvers, ScriptClassLoaderProvider classLoaderProvider) {
+    private void addDefaultResolvers(List<PluginResolver> resolvers) {
         resolvers.add(new PluginRegistryPluginResolver(pluginRegistry));
-        resolvers.add(new ModuleMappingPluginResolver("android plugin resolver", classLoaderProvider, createDependencyResolutionServices(), instantiator, new AndroidPluginMapper(), new JCenterRepositoryConfigurer()));
-        resolvers.add(new ModuleMappingPluginResolver("jcenter plugin resolver", classLoaderProvider, createDependencyResolutionServices(), instantiator, new JCenterPluginMapper(), new JCenterRepositoryConfigurer()));
+        resolvers.add(new ModuleMappingPluginResolver("android plugin resolver", createDependencyResolutionServices(), instantiator, new AndroidPluginMapper(), new JCenterRepositoryConfigurer()));
+        resolvers.add(new ModuleMappingPluginResolver("jcenter plugin resolver", createDependencyResolutionServices(), instantiator, new JCenterPluginMapper(), new JCenterRepositoryConfigurer()));
     }
 
     private DependencyResolutionServices createDependencyResolutionServices() {

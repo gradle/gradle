@@ -22,6 +22,7 @@ import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.internal.initialization.ScriptCompileScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
+import org.gradle.api.plugins.PluginAware;
 import org.gradle.groovy.scripts.*;
 import org.gradle.groovy.scripts.internal.BuildScriptTransformer;
 import org.gradle.groovy.scripts.internal.FilteredScriptBlockTransformer;
@@ -32,8 +33,15 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.plugin.PluginHandler;
-import org.gradle.plugin.internal.PluginHandlerFactory;
+import org.gradle.plugin.internal.DefaultPluginHandler;
+import org.gradle.plugin.internal.NonPluggableTargetPluginHandler;
+import org.gradle.plugin.internal.PluginRequestApplicator;
+import org.gradle.plugin.internal.PluginResolutionApplicator;
+import org.gradle.plugin.resolve.internal.PluginRequest;
+import org.gradle.plugin.resolve.internal.PluginResolver;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 public class DefaultScriptPluginFactory implements ScriptPluginFactory {
@@ -43,7 +51,8 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private final ScriptCompileScope defaultCompileScope;
     private final Factory<LoggingManagerInternal> loggingManagerFactory;
     private final Instantiator instantiator;
-    private final PluginHandlerFactory pluginHandlerFactory;
+    private final PluginResolver pluginResolver;
+    private ClassLoader pluginParentClassLoader;
 
     public DefaultScriptPluginFactory(ScriptCompilerFactory scriptCompilerFactory,
                                       ImportsReader importsReader,
@@ -51,15 +60,16 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
                                       ScriptCompileScope defaultCompileScope,
                                       Factory<LoggingManagerInternal> loggingManagerFactory,
                                       Instantiator instantiator,
-                                      PluginHandlerFactory pluginHandlerFactory
-    ) {
+                                      PluginResolver pluginResolver,
+                                      ClassLoader pluginParentClassLoader) {
         this.scriptCompilerFactory = scriptCompilerFactory;
         this.importsReader = importsReader;
         this.scriptHandlerFactory = scriptHandlerFactory;
         this.defaultCompileScope = defaultCompileScope;
         this.loggingManagerFactory = loggingManagerFactory;
         this.instantiator = instantiator;
-        this.pluginHandlerFactory = pluginHandlerFactory;
+        this.pluginResolver = pluginResolver;
+        this.pluginParentClassLoader = pluginParentClassLoader;
     }
 
     public ScriptPlugin create(ScriptSource scriptSource) {
@@ -121,7 +131,12 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
                 classLoaderProvider = defaultScriptHandler;
             }
 
-            services.add(PluginHandler.class, pluginHandlerFactory.createPluginHandler(target, classLoaderProvider));
+            List<PluginRequest> pluginRequests = new LinkedList<PluginRequest>();
+            if (target instanceof PluginAware) {
+                services.add(PluginHandler.class, new DefaultPluginHandler(pluginRequests));
+            } else {
+                services.add(PluginHandler.class, new NonPluggableTargetPluginHandler(target));
+            }
 
             ScriptCompiler compiler = scriptCompilerFactory.createCompiler(withImports);
 
@@ -142,8 +157,14 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             classPathScriptRunner.getScript().init(target, services);
             classPathScriptRunner.run();
 
-            classLoaderProvider.updateClassPath();
+            if (!pluginRequests.isEmpty()) {
+                @SuppressWarnings("ConstantConditions")
+                PluginResolutionApplicator resolutionApplicator = new PluginResolutionApplicator((PluginAware) target, pluginParentClassLoader, classLoaderProvider);
+                PluginRequestApplicator requestApplicator = new PluginRequestApplicator(pluginResolver, resolutionApplicator);
+                requestApplicator.applyPlugin(pluginRequests);
+            }
 
+            classLoaderProvider.updateClassPath();
             compiler.setClassloader(classLoaderProvider.getScriptCompileClassLoader());
 
             compiler.setTransformer(new BuildScriptTransformer("no_" + classpathScriptTransformer.getId(), classpathScriptTransformer.invert()));

@@ -18,20 +18,25 @@ package org.gradle.plugin.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
+import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.plugins.PluginAware;
 import org.gradle.plugin.resolve.internal.PluginResolution;
 
-class PluginResolutionApplicator implements Action<PluginResolution> {
+public class PluginResolutionApplicator implements Action<PluginResolution> {
     private final PluginAware target;
     private final ClassLoader parentClassLoader;
+    private final ScriptClassLoaderProvider classLoaderProvider;
 
-    public PluginResolutionApplicator(PluginAware target, ClassLoader parentClassLoader) {
+    public PluginResolutionApplicator(PluginAware target, ClassLoader parentClassLoader, ScriptClassLoaderProvider classLoaderProvider) {
         this.target = target;
         this.parentClassLoader = parentClassLoader;
+        this.classLoaderProvider = classLoaderProvider;
     }
 
     public void execute(PluginResolution pluginResolution) {
         Class<? extends Plugin> pluginClass = pluginResolution.resolve(parentClassLoader);
+        ClassLoader classLoader = pluginClass.getClassLoader();
+        classLoaderProvider.addParent(classLoader);
         target.getPlugins().apply(pluginClass);
     }
 }

@@ -16,27 +16,22 @@
 
 package org.gradle.plugin.internal;
 
-import org.gradle.api.Action;
-import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.typeconversion.MapKey;
 import org.gradle.internal.typeconversion.MapNotationParser;
 import org.gradle.plugin.PluginHandler;
 import org.gradle.plugin.resolve.internal.DefaultPluginRequest;
 import org.gradle.plugin.resolve.internal.PluginRequest;
-import org.gradle.plugin.resolve.internal.PluginResolution;
-import org.gradle.plugin.resolve.internal.PluginResolver;
 
+import java.util.List;
 import java.util.Map;
 
 public class DefaultPluginHandler implements PluginHandler {
 
-    private final PluginResolver pluginResolver;
-    private final Action<? super PluginResolution> pluginResolutionHandler;
+    private final List<PluginRequest> pluginRequests;
 
-    public DefaultPluginHandler(PluginResolver pluginResolver, Action<? super PluginResolution> pluginResolutionHandler) {
-        this.pluginResolver = pluginResolver;
-        this.pluginResolutionHandler = pluginResolutionHandler;
+    public DefaultPluginHandler(List<PluginRequest> pluginRequests) {
+        this.pluginRequests = pluginRequests;
     }
 
     private static class PluginRequestNotationParser extends MapNotationParser<PluginRequest> {
@@ -47,16 +42,7 @@ public class DefaultPluginHandler implements PluginHandler {
 
     public void apply(Map<String, ?> attributes) {
         PluginRequest pluginRequest = new PluginRequestNotationParser().parseType(attributes);
-        apply(pluginRequest);
-    }
-
-    private void apply(PluginRequest request) {
-        PluginResolution resolution = pluginResolver.resolve(request);
-        if (resolution == null) {
-            throw new UnknownPluginException("Cannot resolve plugin request " + request + " from plugin resolver: " + pluginResolver);
-        }
-
-        pluginResolutionHandler.execute(resolution);
+        pluginRequests.add(pluginRequest);
     }
 
 }
