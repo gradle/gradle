@@ -317,7 +317,6 @@ task javadocAll(type: Javadoc) {
     destinationDir = new File(docsDir, 'javadoc')
     classpath = files(publicGroovyProjects.collect {project -> [project.sourceSets.main.compileClasspath, project.sourceSets.main.output] })
     include 'org/gradle/api/**'
-    include 'org/gradle/model/**'
     include 'org/gradle/*'
     include 'org/gradle/external/javadoc/**'
     include 'org/gradle/language/**'
