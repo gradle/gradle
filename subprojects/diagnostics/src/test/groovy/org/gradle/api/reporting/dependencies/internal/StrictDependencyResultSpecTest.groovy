@@ -22,7 +22,6 @@ import static org.gradle.api.internal.artifacts.result.ResolutionResultDataBuild
 import static org.gradle.api.internal.artifacts.result.ResolutionResultDataBuilder.newUnresolvedDependency
 /**
  * Unit tests for <code>StrictDependencyResultSpec</code>
- * @author JB Nizet
  */
 class StrictDependencyResultSpecTest extends Specification {
 

@@ -22,7 +22,6 @@ import spock.lang.Issue
 
 /**
  * Integration tests for the HTML dependency report generation task
- * @author JB Nizet
  */
 class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
     def setup() {

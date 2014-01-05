@@ -37,7 +37,6 @@ import org.gradle.util.GFileUtils
  *
  * @see JsonDependencyReportIndexRenderer
  * @see JsonProjectDependencyRenderer
- * @author JB Nizet
  */
 class HtmlDependencyReporter {
 

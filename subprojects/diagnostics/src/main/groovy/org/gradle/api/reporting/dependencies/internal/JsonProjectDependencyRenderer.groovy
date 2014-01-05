@@ -91,8 +91,6 @@ import org.gradle.util.GradleVersion
  *          }
  *      }
  * </pre>
- *
- * @author JB Nizet
  */
 class JsonProjectDependencyRenderer {
     private final VersionMatcher versionMatcher
