@@ -30,7 +30,7 @@ import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-class ProjectNativeComponentInitializer implements Action<ProjectNativeComponent> {
+public class ProjectNativeComponentInitializer implements Action<ProjectNativeComponent> {
     private final NativeBinariesFactory factory;
     private final ToolChainRegistryInternal toolChainRegistry;
     private final Set<Platform> allPlatforms = new LinkedHashSet<Platform>();
