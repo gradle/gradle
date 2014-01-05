@@ -15,17 +15,19 @@
  */
 package org.gradle.nativebinaries.language.cpp
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativebinaries.language.cpp.fixtures.app.CHelloWorldApp
 
 // TODO:DAZ Add unit tests to TestApp and use it here
 class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
-    def "can build and run cunit test suite"() {
-        given:
+    def app = new CHelloWorldApp()
+
+    def setup() {
         buildFile << """
             apply plugin: "c"
             apply plugin: "cunit"
 
             libraries {
-                math {}
+                hello {}
             }
             binaries.withType(TestSuiteExecutableBinary) {
                 linker.args "-lcunit"
@@ -33,64 +35,27 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
         """
         settingsFile << "rootProject.name = 'test'"
 
-        and:
-        file("src/math/headers/math.h") << """
-int maxInt(int i1, int i2);
-        """
-        file("src/math/c/math.c") << """
-int maxInt(int i1, int i2) {
-    return (i1 > i2) ? i1 : i2;
-}
-        """
+        app.library.writeSources(file("src/hello"))
+        app.cunitTests.writeSources(file("src/helloTest"))
+    }
 
-        and:
-        file("src/mathTest/cunit/mathtest.c") << """
-#include <CUnit/Basic.h>
-#include "math.h"
-
-int init_mathtest(void) {
-    return 0;
-}
-
-int clean_mathtest(void) {
-    return 0;
-}
-
-void test_maxInt(void) {
-  CU_ASSERT(maxInt(0, 2) == 2);
-  CU_ASSERT(maxInt(0, -2) == 0);
-  CU_ASSERT(maxInt(2, 2) == 2);
-}
-
-int main() {
-    CU_initialize_registry();
-
-    CU_pSuite pSuiteMath = CU_add_suite("math test", init_mathtest, clean_mathtest);
-    CU_add_test(pSuiteMath, "test of maxInt", test_maxInt);
-
-    CU_basic_set_mode(CU_BRM_VERBOSE);
-    CU_basic_run_tests();
-    int failureCount = CU_get_number_of_failures();
-    CU_cleanup_registry();
-
-    return failureCount == 0 ? 0 : -1;
-}
-"""
-
+    def "can build and run cunit test suite"() {
         when:
-        run "runMathTestCUnitExe"
+        run "runHelloTestCUnitExe"
 
         then:
-        executedAndNotSkipped ":compileMathTestCUnitExeMathC", ":compileMathTestCUnitExeMathC",
-                              ":linkMathTestCUnitExe", ":mathTestCUnitExe", ":runMathTestCUnitExe"
-        output.contains """
-Suite: math test
-  Test: test of maxInt ...passed
+        executedAndNotSkipped ":compileHelloTestCUnitExeHelloC", ":compileHelloTestCUnitExeHelloTestCunit",
+                              ":linkHelloTestCUnitExe", ":helloTestCUnitExe", ":runHelloTestCUnitExe"
+        output.contains app.cunitTests.testOutput
+    }
 
-Run Summary:    Type  Total    Ran Passed Failed Inactive
-              suites      1      1    n/a      0        0
-               tests      1      1      1      0        0
-             asserts      3      3      3      0      n/a
-"""
+    def "can build and run cunit failing test suite"() {
+        when:
+        file("src/hello/c/sum.c").text = file("src/hello/c/sum.c").text.replace("return a + b;", "return a - b;")
+        fails "runHelloTestCUnitExe"
+
+        then:
+        executedAndNotSkipped ":compileHelloTestCUnitExeHelloC", ":compileHelloTestCUnitExeHelloTestCunit",
+                              ":linkHelloTestCUnitExe", ":helloTestCUnitExe", ":runHelloTestCUnitExe"
     }
 }
