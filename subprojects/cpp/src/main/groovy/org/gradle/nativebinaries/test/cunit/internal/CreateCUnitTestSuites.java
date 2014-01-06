@@ -26,9 +26,12 @@ import org.gradle.nativebinaries.*;
 import org.gradle.nativebinaries.language.internal.DefaultPreprocessingTool;
 import org.gradle.nativebinaries.test.TestSuite;
 import org.gradle.nativebinaries.test.TestSuiteContainer;
+import org.gradle.nativebinaries.test.cunit.tasks.GenerateCUnitLauncher;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 public class CreateCUnitTestSuites implements Action<TestSuiteContainer> {
@@ -60,6 +63,12 @@ public class CreateCUnitTestSuites implements Action<TestSuiteContainer> {
     private void addComponentCUnitSources(TestSuite suite, ProjectNativeComponent testedComponent) {
         ProjectSourceSet projectSourceSet = project.getExtensions().getByType(ProjectSourceSet.class);
         FunctionalSourceSet componentTestSources = projectSourceSet.maybeCreate(suite.getName());
+        CSourceSet cunitSourceSet = createCUnitSourceSet(testedComponent, componentTestSources);
+        suite.source(cunitSourceSet);
+        suite.source(testedComponent.getSource());
+    }
+
+    private CSourceSet createCUnitSourceSet(ProjectNativeComponent testedComponent, FunctionalSourceSet componentTestSources) {
         // TODO:DAZ Add PolyMorphicDomainObjectContainer.maybeCreate(name, type)
         CSourceSet cunitSourceSet = (CSourceSet) componentTestSources.findByName("cunit");
         if (cunitSourceSet == null) {
@@ -73,8 +82,17 @@ public class CreateCUnitTestSuites implements Action<TestSuiteContainer> {
         for (LanguageSourceSet componentSourceSet : testedComponent.getSource().withType(CSourceSet.class)) {
             cunitSourceSet.lib(componentSourceSet);
         }
-        suite.source(cunitSourceSet);
-        suite.source(testedComponent.getSource());
+        attachSkeletonGenerator(cunitSourceSet);
+        return cunitSourceSet;
+    }
+
+    private void attachSkeletonGenerator(CSourceSet cunitSourceSet) {
+        // TODO:DAZ This needs a unique task name and output dir
+        File genSrcDir = new File(project.getBuildDir(), "cunit-gen");
+        GenerateCUnitLauncher skeletonTask = (GenerateCUnitLauncher) project.task(Collections.singletonMap("type", GenerateCUnitLauncher.class), "genCunit");
+        skeletonTask.setSourceDir(genSrcDir);
+        cunitSourceSet.builtBy(skeletonTask);
+        cunitSourceSet.getSource().srcDir(genSrcDir);
     }
 
     private Collection<ProjectNativeComponent> allComponents() {

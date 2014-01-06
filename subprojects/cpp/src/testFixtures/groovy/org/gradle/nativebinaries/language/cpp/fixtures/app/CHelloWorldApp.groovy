@@ -136,22 +136,14 @@ void test_sum(void) {
   CU_ASSERT(sum(2, 2) == 4);
 }
 
-int main() {
-    CU_initialize_registry();
-
+void gradle_cunit_register() {
     CU_pSuite pSuiteMath = CU_add_suite("hello test", init_test, clean_test);
     CU_add_test(pSuiteMath, "test of sum", test_sum);
-
-    CU_basic_set_mode(CU_BRM_VERBOSE);
-    CU_basic_run_tests();
-    int failureCount = CU_get_number_of_failures();
-    CU_cleanup_registry();
-
-    return failureCount == 0 ? 0 : -1;
 }
-                    """)
+                    """),
             ]
-            List<SourceFile> headerFiles = []
+            List<SourceFile> headerFiles = [
+            ]
 
             String testOutput = """
 Suite: hello test
