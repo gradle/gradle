@@ -20,8 +20,10 @@ import org.gradle.nativebinaries.language.cpp.fixtures.app.HelloWorldApp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.ObjectiveCHelloWorldApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Ignore
 
 @Requires(TestPrecondition.NOT_WINDOWS)
+@Ignore
 class ObjectiveCHelloWorldIntegrationTest extends AbstractLanguageIntegrationTest{
 
     def "setup"() {
