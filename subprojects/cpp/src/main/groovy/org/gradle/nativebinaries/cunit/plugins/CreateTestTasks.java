@@ -18,23 +18,27 @@ package org.gradle.nativebinaries.cunit.plugins;
 
 import org.gradle.api.tasks.Exec;
 import org.gradle.api.tasks.TaskContainer;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.language.base.BinaryContainer;
 import org.gradle.model.ModelRule;
 import org.gradle.nativebinaries.cunit.TestSuiteExecutableBinary;
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal;
+import org.gradle.nativebinaries.tasks.InstallExecutable;
 
 class CreateTestTasks extends ModelRule {
 
-    // TODO:DAZ Needs to run installed image (depend on task, and execute task output)
     @SuppressWarnings("unused")
     void create(TaskContainer tasks, BinaryContainer binaries) {
         for (TestSuiteExecutableBinary testBinary : binaries.withType(TestSuiteExecutableBinary.class)) {
             ProjectNativeBinaryInternal binary = (ProjectNativeBinaryInternal) testBinary;
+            // TODO:DAZ Need a better model for accessing tasks related to binary
+            InstallExecutable installTask = binary.getTasks().withType(InstallExecutable.class).iterator().next();
             String taskName = binary.getNamingScheme().getTaskName("run");
+
             Exec runTask = tasks.create(taskName, Exec.class);
             runTask.setDescription("Runs the " + binary.getDisplayName());
-            runTask.dependsOn(binary);
-            runTask.setExecutable(binary.getPrimaryOutput());
+            runTask.dependsOn(installTask);
+            runTask.setExecutable(installTask.getRunScript());
         }
     }
 }

@@ -54,7 +54,7 @@ public class NativeBinariesPlugin implements Plugin<ProjectInternal> {
         def builderTask
         if (binary instanceof ExecutableBinary) {
             builderTask = createLinkExecutableTask(project, binary as ExecutableBinary)
-            createInstallTask(project, binary as ExecutableBinary);
+            binary.tasks.add createInstallTask(project, binary as ExecutableBinary);
         } else if (binary instanceof SharedLibraryBinary) {
             builderTask = createLinkSharedLibraryTask(project, binary)
         } else if (binary instanceof StaticLibraryBinary) {
@@ -126,5 +126,6 @@ public class NativeBinariesPlugin implements Plugin<ProjectInternal> {
         installTask.lib { binary.libs*.runtimeFiles }
 
         installTask.dependsOn(executable)
+        return installTask
     }
 }

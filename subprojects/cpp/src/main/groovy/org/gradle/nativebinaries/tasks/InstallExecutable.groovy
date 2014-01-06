@@ -79,6 +79,13 @@ public class InstallExecutable extends DefaultTask {
         this.libs.from libs
     }
 
+    /**
+     * Returns the script file that can be used to run the install image.
+     */
+    File getRunScript() {
+        new File(getDestinationDir(), os.getScriptName(getExecutable().name))
+    }
+
     // TODO:DAZ Allow this to be configured
     private OperatingSystem os = OperatingSystem.current()
 
@@ -107,8 +114,7 @@ public class InstallExecutable extends DefaultTask {
             toolChainPath.append("%PATH%")
         }
 
-        File script = new File(destination, os.getScriptName(executable.name));
-        script.text = """
+        runScript.text = """
 @echo off
 SETLOCAL
 $toolChainPath
@@ -124,8 +130,7 @@ ENDLOCAL
 
         installToDir(new File(destination, "lib"))
 
-        File script = new File(destination, executable.name);
-        script.text = """
+        runScript.text = """
 #/bin/sh
 APP_BASE_NAME=`dirname "\$0"`
 export DYLD_LIBRARY_PATH="\$APP_BASE_NAME/lib"
@@ -134,7 +139,7 @@ exec "\$APP_BASE_NAME/lib/${executable.name}" \"\$@\"
 """
 
         FileSystem fileSystem = getServices().get(FileSystem.class);
-        fileSystem.chmod(script, 0755)
+        fileSystem.chmod(runScript, 0755)
     }
 
     private void installToDir(File binaryDir) {
