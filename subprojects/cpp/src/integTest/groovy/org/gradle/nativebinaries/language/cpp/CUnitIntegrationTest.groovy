@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 package org.gradle.nativebinaries.language.cpp
-
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativebinaries.language.cpp.fixtures.app.CHelloWorldApp
 import org.junit.Rule
+
+import static org.gradle.util.TextUtil.normaliseLineSeparators
 
 class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     @Rule TestResources resources = new TestResources(temporaryFolder)
@@ -94,5 +95,15 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
         then:
         executedAndNotSkipped ":compileHelloTestCUnitExeHelloC", ":compileHelloTestCUnitExeHelloTestCunit",
                               ":linkHelloTestCUnitExe", ":helloTestCUnitExe", ":runHelloTestCUnitExe"
+
+        output.contains """
+Suite: hello test
+  Test: test of sum ...FAILED
+"""
+    }
+
+    @Override
+    String getOutput() {
+        return normaliseLineSeparators(super.getOutput())
     }
 }
