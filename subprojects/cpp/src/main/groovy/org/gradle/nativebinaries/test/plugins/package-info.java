@@ -14,14 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries.cunit;
-
-import org.gradle.api.Incubating;
-import org.gradle.api.NamedDomainObjectContainer;
-
 /**
- * A container of native executables.
+ * Plugin classes for generic support for testing native binaries.
  */
-@Incubating
-public interface TestSuiteContainer extends NamedDomainObjectContainer<TestSuite> {
-}
+package org.gradle.nativebinaries.test.plugins;

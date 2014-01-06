@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.nativebinaries.cunit.plugins;
+package org.gradle.nativebinaries.test.internal;
 
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.internal.BinaryNamingScheme;
@@ -21,13 +21,12 @@ import org.gradle.language.base.internal.BinaryNamingSchemeBuilder;
 import org.gradle.nativebinaries.BuildType;
 import org.gradle.nativebinaries.Flavor;
 import org.gradle.nativebinaries.ProjectNativeBinary;
-import org.gradle.nativebinaries.cunit.TestSuiteExecutableBinary;
-import org.gradle.nativebinaries.cunit.internal.DefaultTestSuiteExecutableBinary;
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal;
 import org.gradle.nativebinaries.internal.ProjectNativeComponentInternal;
 import org.gradle.nativebinaries.internal.configure.NativeBinariesFactory;
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativebinaries.platform.Platform;
+import org.gradle.nativebinaries.test.TestSuiteExecutableBinary;
 import org.gradle.nativebinaries.toolchain.ToolChain;
 import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal;
 

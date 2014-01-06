@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries.cunit.internal;
+package org.gradle.nativebinaries.test.internal;
 
 import org.gradle.api.Project;
 import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.nativebinaries.cunit.TestSuite;
-import org.gradle.nativebinaries.cunit.TestSuiteContainer;
+import org.gradle.nativebinaries.test.TestSuite;
+import org.gradle.nativebinaries.test.TestSuiteContainer;
 import org.gradle.nativebinaries.internal.NativeProjectComponentIdentifier;
 
 // TODO:DAZ Add a 'components' container (polymorphic), and then a writable container filtered by type that looks like a non-polymorphic container

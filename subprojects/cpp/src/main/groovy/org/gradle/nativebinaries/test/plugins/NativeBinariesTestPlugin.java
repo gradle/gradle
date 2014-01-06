@@ -13,33 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.nativebinaries.cunit.plugins;
+package org.gradle.nativebinaries.test.plugins;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.ModelRules;
-import org.gradle.nativebinaries.cunit.internal.DefaultTestSuiteContainer;
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativebinaries.plugins.NativeBinariesModelPlugin;
+import org.gradle.nativebinaries.test.internal.CreateTestBinaries;
+import org.gradle.nativebinaries.test.internal.CreateTestTasks;
+import org.gradle.nativebinaries.test.internal.DefaultTestSuiteContainer;
 
 import javax.inject.Inject;
 import java.io.File;
 
-// TODO:DAZ Split into generic testing infrastructure and CUnit support
 /**
  * A plugin that sets up the infrastructure for testing native binaries with CUnit.
  */
 @Incubating
-public class CUnitPlugin implements Plugin<ProjectInternal> {
+public class NativeBinariesTestPlugin implements Plugin<ProjectInternal> {
 
     private final Instantiator instantiator;
     private final ModelRules modelRules;
     private final NativeDependencyResolver resolver;
 
     @Inject
-    public CUnitPlugin(Instantiator instantiator, ModelRules modelRules, NativeDependencyResolver resolver) {
+    public NativeBinariesTestPlugin(Instantiator instantiator, ModelRules modelRules, NativeDependencyResolver resolver) {
         this.instantiator = instantiator;
         this.modelRules = modelRules;
         this.resolver = resolver;
@@ -51,7 +52,6 @@ public class CUnitPlugin implements Plugin<ProjectInternal> {
         File buildDir = project.getBuildDir();
 
         modelRules.register("testSuites", new DefaultTestSuiteContainer(instantiator, project));
-        modelRules.rule(new CreateTestSuites(project));
         modelRules.rule(new CreateTestBinaries(instantiator, resolver, buildDir));
         modelRules.rule(new CreateTestTasks());
     }

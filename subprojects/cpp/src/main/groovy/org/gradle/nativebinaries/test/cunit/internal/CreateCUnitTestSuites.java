@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.nativebinaries.cunit.plugins;
+package org.gradle.nativebinaries.test.cunit.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -22,25 +22,23 @@ import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.c.CSourceSet;
-import org.gradle.model.ModelRule;
 import org.gradle.nativebinaries.*;
-import org.gradle.nativebinaries.cunit.TestSuite;
-import org.gradle.nativebinaries.cunit.TestSuiteContainer;
 import org.gradle.nativebinaries.language.internal.DefaultPreprocessingTool;
+import org.gradle.nativebinaries.test.TestSuite;
+import org.gradle.nativebinaries.test.TestSuiteContainer;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-class CreateTestSuites extends ModelRule {
+public class CreateCUnitTestSuites implements Action<TestSuiteContainer> {
     private final ProjectInternal project;
 
-    public CreateTestSuites(ProjectInternal project) {
+    public CreateCUnitTestSuites(ProjectInternal project) {
         this.project = project;
     }
 
-    // TODO:DAZ Will we combine multiple test frameworks into a single 'suite'? (eg cppUnit + cUnit)
-    public void create(TestSuiteContainer testSuites) {
+    public void execute(TestSuiteContainer testSuites) {
         for (ProjectNativeComponent component : allComponents()) {
             String suiteName = component.getName() + "Test";
             TestSuite testSuite = testSuites.create(suiteName);

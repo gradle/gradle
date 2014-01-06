@@ -13,19 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.nativebinaries.cunit.internal;
 
-import org.gradle.nativebinaries.cunit.TestSuite;
-import org.gradle.nativebinaries.internal.AbstractProjectNativeComponent;
-import org.gradle.nativebinaries.internal.NativeProjectComponentIdentifier;
+package org.gradle.nativebinaries.test;
 
-public class DefaultTestSuite extends AbstractProjectNativeComponent implements TestSuite {
-    public DefaultTestSuite(NativeProjectComponentIdentifier id) {
-        super(id);
-    }
+import org.gradle.api.Incubating;
+import org.gradle.api.NamedDomainObjectContainer;
 
-    public String getDisplayName() {
-        return String.format("cunit tests '%s'", getName());
-    }
-
+/**
+ * A container of test suites.
+ */
+@Incubating
+public interface TestSuiteContainer extends NamedDomainObjectContainer<TestSuite> {
 }

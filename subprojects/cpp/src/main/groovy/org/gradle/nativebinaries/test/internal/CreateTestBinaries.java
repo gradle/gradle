@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.nativebinaries.cunit.plugins;
+package org.gradle.nativebinaries.test.internal;
 
 import org.gradle.api.Action;
 import org.gradle.internal.reflect.Instantiator;
@@ -24,8 +24,8 @@ import org.gradle.model.ModelRule;
 import org.gradle.nativebinaries.BuildTypeContainer;
 import org.gradle.nativebinaries.FlavorContainer;
 import org.gradle.nativebinaries.ProjectNativeComponent;
-import org.gradle.nativebinaries.cunit.TestSuite;
-import org.gradle.nativebinaries.cunit.TestSuiteContainer;
+import org.gradle.nativebinaries.test.TestSuite;
+import org.gradle.nativebinaries.test.TestSuiteContainer;
 import org.gradle.nativebinaries.internal.configure.NativeBinariesFactory;
 import org.gradle.nativebinaries.internal.configure.ProjectNativeComponentInitializer;
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
@@ -34,7 +34,7 @@ import org.gradle.nativebinaries.toolchain.internal.ToolChainRegistryInternal;
 
 import java.io.File;
 
-class CreateTestBinaries extends ModelRule {
+public class CreateTestBinaries extends ModelRule {
     private final Instantiator instantiator;
     private final NativeDependencyResolver resolver;
     private final File binaryOutputDir;

@@ -14,18 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.nativebinaries.cunit.plugins;
+package org.gradle.nativebinaries.test.internal;
 
 import org.gradle.api.tasks.Exec;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.internal.os.OperatingSystem;
 import org.gradle.language.base.BinaryContainer;
 import org.gradle.model.ModelRule;
-import org.gradle.nativebinaries.cunit.TestSuiteExecutableBinary;
+import org.gradle.nativebinaries.test.TestSuiteExecutableBinary;
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal;
 import org.gradle.nativebinaries.tasks.InstallExecutable;
 
-class CreateTestTasks extends ModelRule {
+public class CreateTestTasks extends ModelRule {
 
     @SuppressWarnings("unused")
     void create(TaskContainer tasks, BinaryContainer binaries) {

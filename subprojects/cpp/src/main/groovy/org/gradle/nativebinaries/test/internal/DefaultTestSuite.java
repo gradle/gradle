@@ -13,12 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.nativebinaries.cunit;
+package org.gradle.nativebinaries.test.internal;
 
-import org.gradle.api.Incubating;
-import org.gradle.nativebinaries.ProjectNativeComponent;
+import org.gradle.nativebinaries.test.TestSuite;
+import org.gradle.nativebinaries.internal.AbstractProjectNativeComponent;
+import org.gradle.nativebinaries.internal.NativeProjectComponentIdentifier;
 
-// TODO:DAZ Don't extend ProjectNativeComponent
-@Incubating
-public interface TestSuite extends ProjectNativeComponent {
+public class DefaultTestSuite extends AbstractProjectNativeComponent implements TestSuite {
+    public DefaultTestSuite(NativeProjectComponentIdentifier id) {
+        super(id);
+    }
+
+    public String getDisplayName() {
+        return String.format("unit tests '%s'", getName());
+    }
 }

@@ -13,12 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.nativebinaries.cunit;
 
-import org.gradle.api.Incubating;
-import org.gradle.nativebinaries.ExecutableBinary;
-
-// TODO:DAZ Make this "TestBinary"
-@Incubating
-public interface TestSuiteExecutableBinary extends ExecutableBinary {
-}
+/**
+ * Plugins for cunit testing.
+ */
+package org.gradle.nativebinaries.test.cunit.plugins;
