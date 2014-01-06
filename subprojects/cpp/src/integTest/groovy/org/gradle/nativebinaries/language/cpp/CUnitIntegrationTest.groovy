@@ -14,11 +14,17 @@
  * limitations under the License.
  */
 package org.gradle.nativebinaries.language.cpp
+
+import org.gradle.integtests.fixtures.TestResources
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativebinaries.language.cpp.fixtures.app.CHelloWorldApp
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
+import org.junit.Rule
 
-// TODO:DAZ Add unit tests to TestApp and use it here
+@Requires(TestPrecondition.MAC_OS_X)
 class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+    @Rule TestResources resources = new TestResources(temporaryFolder)
     def app = new CHelloWorldApp()
 
     def setup() {
@@ -26,11 +32,24 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
             apply plugin: "c"
             apply plugin: "cunit"
 
+            model {
+                repositories {
+                    libs(PrebuiltLibraries) {
+                        cunit {
+                            headers.srcDir "libs/cunit/2.1-2/include"
+                            binaries.withType(StaticLibraryBinary) {
+                                staticLibraryFile = file("libs/cunit/2.1-2/lib/osx-x86_64/libcunit.a")
+                            }
+                        }
+                    }
+                }
+            }
+
             libraries {
                 hello {}
             }
             binaries.withType(TestSuiteExecutableBinary) {
-                linker.args "-lcunit"
+                lib library: "cunit", linkage: "static"
             }
         """
         settingsFile << "rootProject.name = 'test'"
