@@ -91,25 +91,25 @@ instance.
 This story also changes the dependency resolution model so that local component instances are no longer treated as module versions. Instead, a local project
 path will be used to identify these instances. For now, every local component instance will have an associated (group, module, version) identifier.
 
-1. Introduce a `BuildComponentIdentifier` type that extends `ComponentIdentifier` and add a private implementation.
+1. Introduce a `ProjectComponentIdentifier` type that extends `ComponentIdentifier` and add a private implementation.
     - `project` property, as the project path.
     - `displayName` should be something like `project :path`.
 2. Change `ModuleVersionMetaData` to add a `ComponentIdentifier getComponentId()` method.
     - Default should be a `ModuleComponentIdentifier` with the same attributes as `getId()`.
-    - For project components (as resolved by `ProjectDependencyResolver`) this should return a `BuildComponentIdentifier` instance.
+    - For project components (as resolved by `ProjectDependencyResolver`) this should return a `ProjectComponentIdentifier` instance.
 3. Change `ResolvedComponentResult` implementations so that:
     - `getId()` returns the identifier from `ModuleVersionMetaData.getComponentId()`.
     - `getModuleVersion()` returns a `ModuleVersionIdentifier` with the same attributes as `ModuleVersionMetaData.getId()`.
-4. Introduce `BuildComponentSelector` type that extends `ComponentSelector` and add a private implementation.
+4. Introduce `ProjectComponentSelector` type that extends `ComponentSelector` and add a private implementation.
     - `project` property, as the project path.
 5. Change `DependencyMetaData` to add a `ComponentSelector getSelector()`
     - Default should be a `ModuleComponentSelector` with the same attributes as `getRequested()`.
-    - For project dependencies this should return a `BuildComponentSelector` instance.
+    - For project dependencies this should return a `ProjectComponentSelector` instance.
 
 This will allow a consumer to extract the external and project components as follows:
 
-    def result = configurations.compile.incoming.resolve()
-    def projectComponents = result.root.dependencies.selected.findAll { it.id instanceof BuildComponentIdentifier }
+    def result = configurations.compile.incoming.resolutionResult
+    def projectComponents = result.root.dependencies.selected.findAll { it.id instanceof ProjectComponentIdentifier }
     def externalComponents = result.root.dependencies.selected.findAll { it.id instanceof ModuleComponentIdentifier }
 
 ### Test coverage
@@ -117,12 +117,12 @@ This will allow a consumer to extract the external and project components as fol
 - Need to update the existing tests for the dependency report tasks, as they will now render different values for project dependencies.
 - Update existing integration test cases so that, for the resolution result:
     - for the root component
-        - `id` is a `BuildComponentIdentifier` with `project` value referring to the consuming project.
+        - `id` is a `ProjectComponentIdentifier` with `project` value referring to the consuming project.
         - `moduleVersion` is a `ModuleVersionIdentifier` with correct `group`, `module`, `version` values.
     - for a project dependency
-        - `requested` is a `BuildComponentSelector` with `project` value referring to the target project.
+        - `requested` is a `ProjectComponentSelector` with `project` value referring to the target project.
     - for a resolved project component
-        - `id` is a `BuildComponentIdentifier` with `project` value referring to the target project.
+        - `id` is a `ProjectComponentIdentifier` with `project` value referring to the target project.
         - `moduleVersion` is a `ModuleVersionIdentifier` with correct `group`, `module`, `version` values.
     - for an external dependency:
         - `requested` is a `ModuleComponentSelector` with correct `group`, `module`, `version` values.
@@ -136,17 +136,17 @@ The dependency reporting will change to give some indication of the source of th
 
 For an external component instance, this will be unchanged:
 
-+- group:name:1.2
++- group:name:1.2<br>
 +- group:other:1.3 -> group:other:1.3.1
 
 For a local component that is not a module version, this will look something like:
 
-+- project :some:path
++- project :some:path<br>
 +- project :some:path -> group:other:1.2
 
 For a local component that is a module version, this will look something like
 
-+- project :some:path (group:name:1.2)
++- project :some:path (group:name:1.2)<br>
 +- project :some:path (group:name:1.2) -> group:other:1.2
 
 1. Change the `RenderableDependency` hierarchy to use the component id and module version id, if not null.

@@ -18,6 +18,12 @@ package org.gradle.plugins.ide.internal
 
 import org.gradle.api.Project
 import org.gradle.api.artifacts.*
+import org.gradle.api.artifacts.component.ModuleComponentSelector
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier
+import org.gradle.api.artifacts.result.ResolutionResult
+import org.gradle.api.artifacts.result.ResolvedComponentResult
+import org.gradle.api.artifacts.result.ResolvedDependencyResult
+import org.gradle.api.artifacts.result.UnresolvedDependencyResult
 import org.gradle.api.specs.Spec
 
 class IdeDependenciesExtractor {
@@ -45,20 +51,20 @@ class IdeDependenciesExtractor {
         Project project
     }
 
-    List<IdeProjectDependency> extractProjectDependencies(Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations) {
-        LinkedHashMap<ProjectDependency, Configuration> depToConf = [:]
+    List<IdeProjectDependency> extractProjectDependencies(Project project, Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations) {
+        LinkedHashMap<Project, Configuration> depToConf = [:]
         for (plusConfiguration in plusConfigurations) {
-            for (ProjectDependency dependency in plusConfiguration.allDependencies.findAll({ it instanceof ProjectDependency })) {
-                depToConf[dependency] = plusConfiguration
+            for (Project projectDependency in getResolvedProjectDependencies(plusConfiguration, project)) {
+                depToConf[projectDependency] = plusConfiguration
             }
         }
         for (minusConfiguration in minusConfigurations) {
-            for(minusDep in minusConfiguration.allDependencies.findAll({ it instanceof ProjectDependency })) {
+            for(minusDep in getResolvedProjectDependencies(minusConfiguration, project)) {
                 depToConf.remove(minusDep)
             }
         }
         return depToConf.collect { projectDependency, conf ->
-            new IdeProjectDependency(project: projectDependency.dependencyProject, declaredConfiguration: conf)
+            new IdeProjectDependency(project: projectDependency, declaredConfiguration: conf)
         }
     }
 
@@ -81,23 +87,23 @@ class IdeDependenciesExtractor {
     }
 
     private Collection<UnresolvedIdeRepoFileDependency> unresolvedExternalDependencies(Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations) {
-        def unresolved = new LinkedHashMap<String, UnresolvedIdeRepoFileDependency>()
+        def unresolved = new LinkedHashMap<ModuleComponentSelector, UnresolvedIdeRepoFileDependency>()
         for (c in plusConfigurations) {
-            def deps = c.resolvedConfiguration.lenientConfiguration.unresolvedModuleDependencies
+            def deps = getUnresolvedModuleComponentSelectors(c)
             deps.each {
-                unresolved[it.selector] = new UnresolvedIdeRepoFileDependency(
+                unresolved[it] = new UnresolvedIdeRepoFileDependency(
                     file: new File(unresolvedFileName(it)), declaredConfiguration: c)
             }
         }
         for (c in minusConfigurations) {
-            def deps = c.resolvedConfiguration.lenientConfiguration.unresolvedModuleDependencies
-            deps.each { unresolved.remove(it.selector) }
+            def deps = getUnresolvedModuleComponentSelectors(c)
+            deps.each { unresolved.remove(it) }
         }
         unresolved.values()
     }
 
-    private String unresolvedFileName(UnresolvedDependency dep) {
-        "unresolved dependency - $dep.selector.group $dep.selector.name $dep.selector.version"
+    private String unresolvedFileName(ModuleComponentSelector dep) {
+        "unresolved dependency - $dep.group $dep.module $dep.version"
     }
 
     List<IdeLocalFileDependency> extractLocalFileDependencies(Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations) {
@@ -132,5 +138,41 @@ class IdeDependenciesExtractor {
             }
         }
         out.values()
+    }
+
+    /**
+     * Gets incoming resolution result for a given configuration.
+     *
+     * @param configuration Configuration
+     * @return Incoming resolution result
+     */
+    private ResolutionResult getIncomingResolutionResult(Configuration configuration) {
+        configuration.incoming.resolutionResult
+    }
+
+    /**
+     * Gets resolved project dependencies for a given configuration.
+     *
+     * @param configuration Configuration
+     * @param project Project
+     * @return List of resolved project dependencies
+     */
+    private List<Project> getResolvedProjectDependencies(Configuration configuration, Project project) {
+        ResolutionResult result = getIncomingResolutionResult(configuration)
+        Collection<ResolvedDependencyResult> resolvedDependencies = result.root.dependencies.findAll { it instanceof ResolvedDependencyResult }
+        Collection<ResolvedComponentResult> projectComponents = resolvedDependencies.selected.findAll { it.id instanceof ProjectComponentIdentifier }
+        projectComponents.collect { project.project(it.id.projectPath) }
+    }
+
+    /**
+     * Gets unresolved module component selectors for a given configuration.
+     *
+     * @param configuration Configuration
+     * @return List of unresolved module component selectors
+     */
+    private Collection<ModuleComponentSelector> getUnresolvedModuleComponentSelectors(Configuration configuration) {
+        ResolutionResult result = getIncomingResolutionResult(configuration)
+        Collection<UnresolvedDependencyResult> unresolvedDependencies = result.root.dependencies.findAll { it instanceof UnresolvedDependencyResult }
+        unresolvedDependencies.requested.findAll { it instanceof ModuleComponentSelector }
     }
 }

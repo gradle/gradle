@@ -42,7 +42,7 @@ class ClasspathFactory {
 
     private final ClasspathEntryBuilder projectDependenciesCreator = new ClasspathEntryBuilder() {
         void update(List<ClasspathEntry> entries, EclipseClasspath eclipseClasspath) {
-            entries.addAll(dependenciesExtractor.extractProjectDependencies(eclipseClasspath.plusConfigurations, eclipseClasspath.minusConfigurations)
+            entries.addAll(dependenciesExtractor.extractProjectDependencies(eclipseClasspath.project, eclipseClasspath.plusConfigurations, eclipseClasspath.minusConfigurations)
                 .collect { IdeProjectDependency it -> new ProjectDependencyBuilder().build(it.project, it.declaredConfiguration.name) })
         }
     }
