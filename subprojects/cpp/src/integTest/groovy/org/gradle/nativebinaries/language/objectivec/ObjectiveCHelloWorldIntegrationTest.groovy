@@ -21,14 +21,20 @@ import org.gradle.nativebinaries.language.cpp.fixtures.app.ObjectiveCHelloWorldA
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
-
-@Requires(TestPrecondition.MAC_OS_X)
+@Requires(TestPrecondition.NOT_WINDOWS)
 class ObjectiveCHelloWorldIntegrationTest extends AbstractLanguageIntegrationTest{
 
     def "setup"() {
         buildFile << """
             binaries.all {
-                linker.args "-framework", "Foundation"
+                if (toolChain in Gcc) {
+                    objectiveCCompiler.args "-I/usr/include/GNUstep", "-fconstant-string-class=NSConstantString", "-D_NATIVE_OBJC_EXCEPTIONS" //compile
+                    linker.args "-lgnustep-base"
+                }
+
+                if (toolChain in Clang) {
+                    linker.args "-framework", "Foundation"
+                }
             }
         """
     }
