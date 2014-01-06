@@ -457,10 +457,10 @@ rootProject.name = 'root'
         compileConfiguration
         compileConfiguration.dependencies.size() == 4
         compileConfiguration.dependencies[0].module == "root:a"
-        compileConfiguration.dependencies[0].name == "project :a (root:a:1.0)"
+        compileConfiguration.dependencies[0].name == "project :a \u27A1 root:a:1.0"
         compileConfiguration.dependencies[0].resolvable == true
         compileConfiguration.dependencies[0].alreadyRendered == false
-        compileConfiguration.dependencies[0].hasConflict == false
+        compileConfiguration.dependencies[0].hasConflict == true
         compileConfiguration.dependencies[0].children.size() == 1
         compileConfiguration.dependencies[0].children[0].module == "foo:bar"
         compileConfiguration.dependencies[0].children[0].name == "foo:bar:1.0 \u27A1 2.0"
@@ -470,10 +470,10 @@ rootProject.name = 'root'
         compileConfiguration.dependencies[0].children[0].children.empty
 
         compileConfiguration.dependencies[1].module == "root:b"
-        compileConfiguration.dependencies[1].name == "project :b (root:b:1.0)"
+        compileConfiguration.dependencies[1].name == "project :b \u27A1 root:b:1.0"
         compileConfiguration.dependencies[1].resolvable == true
         compileConfiguration.dependencies[1].alreadyRendered == false
-        compileConfiguration.dependencies[1].hasConflict == false
+        compileConfiguration.dependencies[1].hasConflict == true
         compileConfiguration.dependencies[1].children.size() == 1
         compileConfiguration.dependencies[1].children[0].module == "foo:bar"
         compileConfiguration.dependencies[1].children[0].name == "foo:bar:0.5.dont.exist \u27A1 2.0"
@@ -483,10 +483,10 @@ rootProject.name = 'root'
         compileConfiguration.dependencies[1].children[0].children.empty
 
         compileConfiguration.dependencies[2].module == "root.a:c"
-        compileConfiguration.dependencies[2].name == "project :a:c (root.a:c:1.0)"
+        compileConfiguration.dependencies[2].name == "project :a:c \u27A1 root.a:c:1.0"
         compileConfiguration.dependencies[2].resolvable == true
         compileConfiguration.dependencies[2].alreadyRendered == false
-        compileConfiguration.dependencies[2].hasConflict == false
+        compileConfiguration.dependencies[2].hasConflict == true
         compileConfiguration.dependencies[2].children.size() == 1
         compileConfiguration.dependencies[2].children[0].module == "foo:bar"
         compileConfiguration.dependencies[2].children[0].name == "foo:bar:2.0"
@@ -496,16 +496,16 @@ rootProject.name = 'root'
         compileConfiguration.dependencies[2].children[0].children.empty
 
         compileConfiguration.dependencies[3].module == "root:d"
-        compileConfiguration.dependencies[3].name == "project :d (root:d:1.0)"
+        compileConfiguration.dependencies[3].name == "project :d \u27A1 root:d:1.0"
         compileConfiguration.dependencies[3].resolvable == true
         compileConfiguration.dependencies[3].alreadyRendered == false
-        compileConfiguration.dependencies[3].hasConflict == false
+        compileConfiguration.dependencies[3].hasConflict == true
         compileConfiguration.dependencies[3].children.size() == 1
         compileConfiguration.dependencies[3].children[0].module == "root:e"
-        compileConfiguration.dependencies[3].children[0].name == "project :e (root:e:1.0)"
+        compileConfiguration.dependencies[3].children[0].name == "project :e \u27A1 root:e:1.0"
         compileConfiguration.dependencies[3].children[0].resolvable == true
         compileConfiguration.dependencies[3].children[0].alreadyRendered == false
-        compileConfiguration.dependencies[3].children[0].hasConflict == false
+        compileConfiguration.dependencies[3].children[0].hasConflict == true
         compileConfiguration.dependencies[3].children[0].children.size() == 1
         compileConfiguration.dependencies[3].children[0].children[0].module == "foo:bar"
         compileConfiguration.dependencies[3].children[0].children[0].name == "foo:bar:2.0"

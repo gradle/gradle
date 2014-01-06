@@ -16,7 +16,10 @@
 package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
 import org.gradle.api.Nullable;
-import org.gradle.api.artifacts.component.*;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.component.ComponentSelector;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
 
 public abstract class AbstractRenderableDependencyResult implements RenderableDependency {
     public ComponentIdentifier getId() {
@@ -24,62 +27,36 @@ public abstract class AbstractRenderableDependencyResult implements RenderableDe
     }
 
     public String getName() {
-        if (requestedEqualsSelected()) {
-            return getSimpleName();
+        ComponentSelector requested = getRequested();
+        ComponentIdentifier selected = getActual();
+
+        if(requested.matchesStrictly(selected)) {
+            return requested.getDisplayName();
         }
-        return getVerboseName();
-    }
 
-    public abstract boolean isResolvable();
+        if(requested instanceof ModuleComponentSelector && selected instanceof ModuleComponentIdentifier) {
+            ModuleComponentSelector requestedModuleComponentSelector = (ModuleComponentSelector)requested;
+            ModuleComponentIdentifier selectedModuleComponentedIdentifier = (ModuleComponentIdentifier)selected;
 
-    private boolean requestedEqualsSelected() {
-        return getRequested().matchesStrictly(getActual());
-    }
+            if(requestedModuleComponentSelector.getGroup().equals(selectedModuleComponentedIdentifier.getGroup())
+                    && requestedModuleComponentSelector.getModule().equals(selectedModuleComponentedIdentifier.getModule())
+                    && !requestedModuleComponentSelector.getVersion().equals(selectedModuleComponentedIdentifier.getVersion())) {
+                return getSimpleName() + " -> " + selectedModuleComponentedIdentifier.getVersion();
+            }
+        }
 
-    @Nullable
-    public String getDescription() {
-        return null;
+        return getSimpleName() + " -> " + selected.getDisplayName();
     }
 
     private String getSimpleName() {
         return getRequested().getDisplayName();
     }
 
-    private String getVerboseName() {
-        ComponentSelector requested = getRequested();
-        ComponentIdentifier selected = getActual();
+    public abstract boolean isResolvable();
 
-        if(requested instanceof ModuleComponentSelector) {
-            ModuleComponentSelector requestedModuleComponentSelector = (ModuleComponentSelector)requested;
-
-            if(selected instanceof ModuleComponentIdentifier) {
-                ModuleComponentIdentifier selectedModuleComponentedIdentifier = (ModuleComponentIdentifier)selected;
-                if(!selectedModuleComponentedIdentifier.getGroup().equals(requestedModuleComponentSelector.getGroup())
-                   || !selectedModuleComponentedIdentifier.getModule().equals(requestedModuleComponentSelector.getModule())) {
-                    return getSimpleName() + " -> " + selectedModuleComponentedIdentifier.getGroup() + ":" + selectedModuleComponentedIdentifier.getModule() + ":" + selectedModuleComponentedIdentifier.getVersion();
-                }
-                if (!selectedModuleComponentedIdentifier.getVersion().equals(requestedModuleComponentSelector.getVersion())) {
-                    return getSimpleName() + " -> " + selectedModuleComponentedIdentifier.getVersion();
-                }
-            }
-        } else if(requested instanceof ProjectComponentSelector) {
-            return buildProjectComponentName();
-        }
-
-        return getSimpleName();
-    }
-
-    private String buildProjectComponentName() {
-        StringBuilder verboseName = new StringBuilder();
-        verboseName.append(getSimpleName());
-
-        ComponentIdentifier id = getId();
-
-        if(id != null) {
-            verboseName.append(" (").append(id).append(")");
-        }
-
-        return verboseName.toString();
+    @Nullable
+    public String getDescription() {
+        return null;
     }
 
     protected abstract ComponentSelector getRequested();
