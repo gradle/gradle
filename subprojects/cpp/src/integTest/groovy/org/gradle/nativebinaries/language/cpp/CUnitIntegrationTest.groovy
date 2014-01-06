@@ -16,13 +16,11 @@
 package org.gradle.nativebinaries.language.cpp
 
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativebinaries.language.cpp.fixtures.app.CHelloWorldApp
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.junit.Rule
 
-@Requires(TestPrecondition.MAC_OS_X)
 class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     @Rule TestResources resources = new TestResources(temporaryFolder)
     def app = new CHelloWorldApp()
@@ -38,7 +36,7 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
                         cunit {
                             headers.srcDir "libs/cunit/2.1-2/include"
                             binaries.withType(StaticLibraryBinary) {
-                                staticLibraryFile = file("libs/cunit/2.1-2/lib/osx-x86_64/libcunit.a")
+                                staticLibraryFile = file("libs/cunit/2.1-2/lib/${cunitPlatform}/${cunitLibName}")
                             }
                         }
                     }
@@ -56,6 +54,26 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
         app.library.writeSources(file("src/hello"))
         app.cunitTests.writeSources(file("src/helloTest"))
+    }
+
+    private def getCunitPlatform() {
+        if (OperatingSystem.current().isMacOsX()) {
+            return "osx"
+        }
+        if (OperatingSystem.current().isLinux()) {
+            return "linux"
+        }
+        if (toolChain.displayName == "mingw") {
+            return "mingw"
+        }
+        if (toolChain.displayName == "gcc cygwin") {
+            return "cygwin"
+        }
+        return "win"
+    }
+
+    private def getCunitLibName() {
+        return OperatingSystem.current().getStaticLibraryName("cunit")
     }
 
     def "can build and run cunit test suite"() {
