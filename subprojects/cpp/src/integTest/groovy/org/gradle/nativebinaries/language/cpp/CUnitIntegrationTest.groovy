@@ -14,14 +14,19 @@
  * limitations under the License.
  */
 package org.gradle.nativebinaries.language.cpp
+
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativebinaries.language.cpp.fixtures.AvailableToolChains
 import org.gradle.nativebinaries.language.cpp.fixtures.app.CHelloWorldApp
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
 
 import static org.gradle.util.TextUtil.normaliseLineSeparators
 
+@Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
 // TODO:DAZ Test up-to-date checks
 class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     @Rule TestResources resources = new TestResources(temporaryFolder)
@@ -71,7 +76,16 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
         if (toolChain.displayName == "gcc cygwin") {
             return "cygwin"
         }
-        return "win"
+        if (toolChain.visualCpp) {
+            def vcVersion = (toolChain as AvailableToolChains.InstalledVisualCpp).version
+            switch (vcVersion.major) {
+                case "12":
+                    return "vs2013"
+                case "10":
+                    return "vs2010"
+            }
+        }
+        throw new IllegalStateException("No cunit binary available for ${toolChain.displayName}")
     }
 
     private def getCunitLibName() {
