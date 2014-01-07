@@ -23,13 +23,15 @@
  *      void gradle_cunit_register();
  */
 int main() {
+    int failureCount;
+
     CU_initialize_registry();
 
     gradle_cunit_register();
 
     CU_list_tests_to_file();
     CU_automated_run_tests();
-    int failureCount = CU_get_number_of_failures();
+    failureCount = CU_get_number_of_failures();
 
     // Write test failures to the console
     if (failureCount > 0) {
