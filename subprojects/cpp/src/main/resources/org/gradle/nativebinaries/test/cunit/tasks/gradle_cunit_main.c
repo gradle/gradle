@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <CUnit/Automated.h>
 #include <CUnit/Basic.h>
+#include <stdio.h>
 #include "gradle_cunit_register.h"
 
 /*
@@ -25,10 +27,20 @@ int main() {
 
     gradle_cunit_register();
 
-    CU_basic_set_mode(CU_BRM_VERBOSE);
-    CU_basic_run_tests();
+    CU_list_tests_to_file();
+    CU_automated_run_tests();
     int failureCount = CU_get_number_of_failures();
+
+    // Write test failures to the console
+    if (failureCount > 0) {
+        printf("\nThere were test failures:");
+        CU_basic_show_failures(CU_get_failure_list());
+        printf("\n\n");
+    }
+
     CU_cleanup_registry();
+
+    // TODO Wire a test listener and use it to generate a test event stream and binary results (don't use Automated)
 
     return failureCount == 0 ? 0 : -1;
 }

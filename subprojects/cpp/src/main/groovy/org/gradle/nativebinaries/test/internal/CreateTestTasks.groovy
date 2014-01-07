@@ -42,6 +42,8 @@ public class CreateTestTasks extends ModelRule {
             def taskName = binary.namingScheme.getTaskName("run");
 
             // TODO:DAZ Use a custom task type here
+            // TODO:DAZ Up-to-date checks and test
+            // TODO:DAZ Inspect the exit value and report accordingly (with link to outputs)
             def runTask = tasks.create(taskName, Exec);
             runTask.setDescription("Runs the " + binary.getDisplayName());
             runTask.dependsOn(installTask);

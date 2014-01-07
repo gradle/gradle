@@ -22,6 +22,7 @@ import org.junit.Rule
 
 import static org.gradle.util.TextUtil.normaliseLineSeparators
 
+// TODO:DAZ Test up-to-date checks
 class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     @Rule TestResources resources = new TestResources(temporaryFolder)
     def app = new CHelloWorldApp()
@@ -84,7 +85,9 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
         then:
         executedAndNotSkipped ":compileHelloTestCUnitExeHelloC", ":compileHelloTestCUnitExeHelloTestCunit",
                               ":linkHelloTestCUnitExe", ":helloTestCUnitExe", ":runHelloTestCUnitExe"
-        output.contains app.cunitTests.testOutput
+        file("build/test-results/helloTestCUnitExe/CUnitAutomated-Results.xml").assertExists()
+        file("build/test-results/helloTestCUnitExe/CUnitAutomated-Listing.xml").assertExists()
+        // TODO:DAZ Verify the generated xml
     }
 
     def "can build and run cunit failing test suite"() {
@@ -97,9 +100,12 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
                               ":linkHelloTestCUnitExe", ":helloTestCUnitExe", ":runHelloTestCUnitExe"
 
         output.contains """
-Suite: hello test
-  Test: test of sum ...FAILED
+There were test failures:
 """
+        file("build/test-results/helloTestCUnitExe/CUnitAutomated-Results.xml").assertExists()
+        file("build/test-results/helloTestCUnitExe/CUnitAutomated-Listing.xml").assertExists()
+        // TODO:DAZ Verify the failure message: should include useful error and link to results file
+        // TODO:DAZ Verify the generated xml
     }
 
     @Override
