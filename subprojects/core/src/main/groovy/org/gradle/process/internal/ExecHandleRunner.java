@@ -58,9 +58,9 @@ public class ExecHandleRunner implements Runnable {
     }
 
     public void run() {
-        ProcessParentingInitializer.intitialize();
-        ProcessBuilder processBuilder = processBuilderFactory.createProcessBuilder(execHandle);
         try {
+            ProcessParentingInitializer.intitialize();
+            ProcessBuilder processBuilder = processBuilderFactory.createProcessBuilder(execHandle);
             Process process;
 
             // This big fat static lock is here for windows. When starting multiple processes concurrently, the stdout

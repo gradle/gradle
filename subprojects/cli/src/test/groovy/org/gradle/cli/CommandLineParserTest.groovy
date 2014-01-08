@@ -90,6 +90,16 @@ class CommandLineParserTest extends Specification {
         result.option('a').values == ['arg']
     }
 
+    def parsesShortOptionWithEqualMultilineArgument() {
+        parser.option('a').hasArgument()
+
+        expect:
+        def result = parser.parse(['-a=1\n2\n3'])
+        result.hasOption('a')
+        result.option('a').value == '1\n2\n3'
+        result.option('a').values == ['1\n2\n3']
+    }
+
     def parsesShortOptionWithEqualsCharacterInAttachedArgument() {
         parser.option('a').hasArgument()
 
@@ -160,6 +170,14 @@ class CommandLineParserTest extends Specification {
         result.hasOption('long-option-a')
         result.option('long-option-a').value == 'arg'
         result.option('long-option-a').values == ['arg']
+    }
+
+    def parsesLongOptionWithNewline() {
+        parser.option('weird\nmulti\nline\noption')
+
+        expect:
+        def result = parser.parse(['--weird\nmulti\nline\noption'])
+        result.hasOption('weird\nmulti\nline\noption')
     }
 
     def parsesMultipleOptions() {
@@ -442,6 +460,15 @@ class CommandLineParserTest extends Specification {
         e.message == 'Unknown command-line option \'-u\'.'
     }
 
+    def parseFailsWhenCommandLineContainsUnknownLongOptionWithNewline() {
+        when:
+        parser.parse(['--a\nb'])
+
+        then:
+        def e = thrown(CommandLineArgumentException)
+        e.message == 'Unknown command-line option \'--a\nb\'.'
+    }
+
     def parseFailsWhenCommandLineContainsUnknownLongOptionWithEqualsArgument() {
         when:
         parser.parse(['--unknown=arg'])
@@ -522,6 +549,23 @@ class CommandLineParserTest extends Specification {
         then:
         def e = thrown(CommandLineArgumentException)
         e.message == 'An empty argument was provided for command-line option \'-a\'.'
+    }
+
+    def parseAcceptsMultilineArgument() {
+        parser.option('D').hasArgument()
+
+        expect:
+        def result = parser.parse(['-Dprops=a:1\nb:2\nc:3'])
+        result.option('D').values == ['props=a:1\nb:2\nc:3']
+    }
+
+    def parseAcceptsMultilineArgumentForLongOption() {
+        parser.option('a', 'long-option').hasArgument()
+
+        expect:
+        def result = parser.parse(['--long-option=a\nb\nc'])
+        result.option('long-option').values == ['a\nb\nc']
+
     }
 
     def parseFailsWhenEmptyArgumentIsProvided() {
@@ -634,4 +678,11 @@ class CommandLineParserTest extends Specification {
         result.extraArguments == ['-ba', '-ba=c']
     }
 
+    def parseExtraArguments() {
+        when:
+        def result = parser.parse(['arg1', 'arg\ntwo'])
+
+        then:
+        result.extraArguments == ['arg1', 'arg\ntwo']
+    }
 }
