@@ -183,7 +183,16 @@ class JvmOptionsTest extends Specification {
         opts.allJvmArgs.containsAll(['-Xmx1G', '-Xms1G', '-Xdebug', '-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005'])
     }
 
-    private JvmOptions createOpts() {
+    def "options with newlines are parsed correctly"() {
+        def opts = createOpts()
+        when:
+        opts.jvmArgs('-Dprops=a:1\nb:2\nc:3')
+        then:
+        opts.allJvmArgs.contains('-Dprops=a:1\nb:2\nc:3')
+        opts.systemProperties['props'] == 'a:1\nb:2\nc:3'
+    }
+
+  private JvmOptions createOpts() {
         return new JvmOptions(TestFiles.resolver())
     }
 
