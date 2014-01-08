@@ -15,18 +15,18 @@
  */
 package org.gradle.nativebinaries.language.objectivec
 
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.language.cpp.AbstractLanguageIntegrationTest
 import org.gradle.nativebinaries.language.cpp.fixtures.app.HelloWorldApp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.ObjectiveCHelloWorldApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.junit.Ignore
 
 @Requires(TestPrecondition.NOT_WINDOWS)
-@Ignore
 class ObjectiveCHelloWorldIntegrationTest extends AbstractLanguageIntegrationTest{
 
     def "setup"() {
+        def linkerArgs = OperatingSystem.current().isMacOsX() ? '"-framework", "Foundation"' : '"-lgnustep-base", "-lobjc"'
         buildFile << """
             binaries.all {
                 if (toolChain in Gcc) {
@@ -37,7 +37,7 @@ class ObjectiveCHelloWorldIntegrationTest extends AbstractLanguageIntegrationTes
                     objectiveCCompiler.args "-I/usr/include/GNUstep", "-I/usr/local/include/objc", "-fconstant-string-class=NSConstantString", "-D_NATIVE_OBJC_EXCEPTIONS"
                 }
 
-                linker.args "-lgnustep-base", "-lobjc"
+                linker.args $linkerArgs
             }
         """
     }
