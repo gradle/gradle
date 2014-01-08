@@ -94,15 +94,15 @@ public class CommandLineParser {
                 } else if (arg.matches("--[^=]+")) {
                     OptionParserState parsedOption = parseState.onStartOption(arg, arg.substring(2));
                     parseState = parsedOption.onStartNextArg();
-                } else if (arg.matches("--[^=]+=.*")) {
+                } else if (arg.matches("(?s)--[^=]+=.*")) {
                     int endArg = arg.indexOf('=');
                     OptionParserState parsedOption = parseState.onStartOption(arg, arg.substring(2, endArg));
                     parseState = parsedOption.onArgument(arg.substring(endArg + 1));
-                } else if (arg.matches("-[^=]=.*")) {
+                } else if (arg.matches("(?s)-[^=]=.*")) {
                     OptionParserState parsedOption = parseState.onStartOption(arg, arg.substring(1, 2));
                     parseState = parsedOption.onArgument(arg.substring(3));
                 } else {
-                    assert arg.matches("-[^-].*");
+                    assert arg.matches("(?s)-[^-].*");
                     String option = arg.substring(1);
                     if (optionsByString.containsKey(option)) {
                         OptionParserState parsedOption = parseState.onStartOption(arg, option);
@@ -277,7 +277,7 @@ public class CommandLineParser {
         public abstract boolean maybeStartOption(String arg);
 
         boolean isOption(String arg) {
-            return arg.matches("-.+");
+            return arg.matches("(?s)-.+");
         }
 
         public abstract OptionParserState onStartOption(String arg, String option);
