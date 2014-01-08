@@ -27,7 +27,8 @@ import org.junit.Rule
 import static org.gradle.util.TextUtil.normaliseLineSeparators
 
 @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
-// TODO:DAZ Test up-to-date checks
+
+// TODO:DAZ Test incremental
 class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     @Rule TestResources resources = new TestResources(temporaryFolder)
     def app = new CHelloWorldApp()

@@ -15,15 +15,14 @@
  */
 
 package org.gradle.nativebinaries.test.internal
-
 import org.gradle.api.Project
-import org.gradle.api.tasks.Exec
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.language.base.BinaryContainer
 import org.gradle.model.ModelRule
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
 import org.gradle.nativebinaries.tasks.InstallExecutable
 import org.gradle.nativebinaries.test.TestSuiteExecutableBinary
+import org.gradle.nativebinaries.test.tasks.RunTestExecutable
 
 public class CreateTestTasks extends ModelRule {
     private final Project project
@@ -36,24 +35,17 @@ public class CreateTestTasks extends ModelRule {
     void create(TaskContainer tasks, BinaryContainer binaries) {
         binaries.withType(TestSuiteExecutableBinary).each { testBinary ->
             def binary = testBinary as ProjectNativeBinaryInternal
+            def namingScheme = binary.namingScheme
 
             // TODO:DAZ Need a better model for accessing tasks related to binary
             def installTask = binary.tasks.withType(InstallExecutable).find()
-            def taskName = binary.namingScheme.getTaskName("run");
 
-            // TODO:DAZ Use a custom task type here
-            // TODO:DAZ Up-to-date checks and test
-            // TODO:DAZ Inspect the exit value and report accordingly (with link to outputs)
-            def runTask = tasks.create(taskName, Exec);
-            runTask.setDescription("Runs the " + binary.getDisplayName());
-            runTask.dependsOn(installTask);
+            def runTask = tasks.create(namingScheme.getTaskName("run"), RunTestExecutable)
+            runTask.setDescription("Runs the " + binary.getDisplayName())
+            runTask.dependsOn(installTask)
 
-            // TODO:DAZ Use a convention mapping
-            runTask.executable = installTask.runScript
-            runTask.workingDir = project.file("${project.buildDir}/test-results/${binary.namingScheme.outputDirectoryBase}")
-            runTask.doFirst {
-                runTask.workingDir.mkdirs()
-            }
+            runTask.conventionMapping.testExecutable = { installTask.runScript }
+            runTask.conventionMapping.outputDir = { project.file("${project.buildDir}/test-results/${namingScheme.outputDirectoryBase}") }
         }
     }
 }

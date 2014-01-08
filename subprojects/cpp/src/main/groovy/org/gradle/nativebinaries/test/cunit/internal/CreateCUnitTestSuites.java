@@ -31,7 +31,6 @@ import org.gradle.nativebinaries.test.cunit.tasks.GenerateCUnitLauncher;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 public class CreateCUnitTestSuites implements Action<TestSuiteContainer> {
@@ -82,17 +81,18 @@ public class CreateCUnitTestSuites implements Action<TestSuiteContainer> {
         for (LanguageSourceSet componentSourceSet : testedComponent.getSource().withType(CSourceSet.class)) {
             cunitSourceSet.lib(componentSourceSet);
         }
-        attachSkeletonGenerator(cunitSourceSet);
+        createCUnitLauncherTask(cunitSourceSet);
         return cunitSourceSet;
     }
 
-    private void attachSkeletonGenerator(CSourceSet cunitSourceSet) {
-        // TODO:DAZ This needs a unique task name and output dir
-        File genSrcDir = new File(project.getBuildDir(), "cunit-gen");
-        GenerateCUnitLauncher skeletonTask = (GenerateCUnitLauncher) project.task(Collections.singletonMap("type", GenerateCUnitLauncher.class), "genCunit");
-        skeletonTask.setSourceDir(genSrcDir);
+    private void createCUnitLauncherTask(CSourceSet cunitSourceSet) {
+        String taskName = cunitSourceSet.getName() + "Launcher";
+        GenerateCUnitLauncher skeletonTask = project.getTasks().create(taskName, GenerateCUnitLauncher.class);
+
+        // TODO:DAZ Can't use 'generatedBy' because the ConfigureGeneratedSourceSets action runs before this (need to make it a rule)
+        skeletonTask.setSourceDir(new File(project.getBuildDir(), "src/" + taskName));
         cunitSourceSet.builtBy(skeletonTask);
-        cunitSourceSet.getSource().srcDir(genSrcDir);
+        cunitSourceSet.getSource().srcDir(skeletonTask.getSourceDir());
     }
 
     private Collection<ProjectNativeComponent> allComponents() {
