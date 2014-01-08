@@ -336,7 +336,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         for (VersionList.ListedVersion listedVersion : versions.sortLatestFirst(latestStrategy)) {
             String foundVersion = listedVersion.getVersion();
 
-            boolean needsMetadata = versionMatcher.needModuleMetadata(requestedVersion, foundVersion);
+            boolean needsMetadata = versionMatcher.needModuleMetadata(requestedVersion);
             if (!needsMetadata && !versionMatcher.accept(requestedVersion, foundVersion)) {
                 LOGGER.debug(name + ": rejected by version matcher: " + foundVersion);
                 continue;
