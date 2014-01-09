@@ -49,6 +49,14 @@ public abstract class AbstractPolymorphicDomainObjectContainer<T>
         return create(name, type, null);
     }
 
+    public <U extends T> U maybeCreate(String name, Class<U> type) throws InvalidUserDataException {
+        T item = findByName(name);
+        if (item != null) {
+            return type.cast(item);
+        }
+        return create(name, type);
+    }
+
     public <U extends T> U create(String name, Class<U> type, Action<? super U> configuration) {
         assertCanAdd(name);
         U object = doCreate(name, type);

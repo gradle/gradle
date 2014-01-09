@@ -68,11 +68,7 @@ public class CreateCUnitTestSuites implements Action<TestSuiteContainer> {
     }
 
     private CSourceSet createCUnitSourceSet(ProjectNativeComponent testedComponent, FunctionalSourceSet componentTestSources) {
-        // TODO:DAZ Add PolyMorphicDomainObjectContainer.maybeCreate(name, type)
-        CSourceSet cunitSourceSet = (CSourceSet) componentTestSources.findByName("cunit");
-        if (cunitSourceSet == null) {
-            cunitSourceSet = componentTestSources.create("cunit", CSourceSet.class);
-        }
+        CSourceSet cunitSourceSet = componentTestSources.maybeCreate("cunit", CSourceSet.class);
         // TODO:DAZ This duplicates ApplySourceSetConventions, but is executed _after_ that rule.
         if (cunitSourceSet.getSource().getSrcDirs().isEmpty()) {
             cunitSourceSet.getSource().srcDir(String.format("src/%s/%s", componentTestSources.getName(), cunitSourceSet.getName()));

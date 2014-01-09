@@ -67,6 +67,14 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         return task;
     }
 
+    public <U extends Task> U maybeCreate(String name, Class<U> type) throws InvalidUserDataException {
+        Task existing = findByName(name);
+        if (existing != null) {
+            return type.cast(existing);
+        }
+        return create(name, type);
+    }
+
     public Task add(Map<String, ?> options) {
         DeprecationLogger.nagUserOfReplacedMethod("TaskContainer.add()", "create()");
         return create(options);

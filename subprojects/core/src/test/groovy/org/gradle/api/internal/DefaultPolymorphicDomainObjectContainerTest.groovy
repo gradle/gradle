@@ -99,6 +99,19 @@ class DefaultPolymorphicDomainObjectContainerTest extends Specification {
         container.asDynamicObject.getProperty("barney") == barney
     }
 
+    def "maybe create elements without specifying type"() {
+        container.registerDefaultFactory({ new DefaultPerson(name: it) } as NamedDomainObjectFactory )
+
+        when:
+        def first = container.maybeCreate("fred")
+        def second = container.maybeCreate("fred")
+
+        then:
+        container.size() == 1
+        container.findByName("fred") == fred
+        first == second
+    }
+
     def "throws meaningful exception if it doesn't support creating domain objects without specifying a type"() {
         container = new DefaultPolymorphicDomainObjectContainer<Person>(Person, new DirectInstantiator())
 
@@ -164,6 +177,31 @@ class DefaultPolymorphicDomainObjectContainerTest extends Specification {
             it.getClass() == DefaultCtorNamedPerson
             name == "barney"
         }
+    }
+
+    def "maybe create elements with specified type"() {
+        container.registerFactory(Person, { new DefaultPerson(name: it) } as NamedDomainObjectFactory)
+
+        when:
+        def first = container.maybeCreate("fred", Person)
+        def second = container.maybeCreate("fred", Person)
+
+        then:
+        container.size() == 1
+        container.findByName("fred") == fred
+        first == second
+    }
+
+    def "throws meaningful exception if element with same name exists with incompatible type"() {
+        container.registerFactory(Person, { new DefaultPerson(name: it) } as NamedDomainObjectFactory)
+        container.create("fred", Person)
+
+        when:
+        container.maybeCreate("fred", AgeAwarePerson)
+
+        then:
+        ClassCastException e = thrown()
+        e.message == "Cannot cast ${DefaultPerson.class.name} to ${AgeAwarePerson.class.name}"
     }
 
     def "throws meaningful exception if it doesn't support creating domain objects with the specified type"() {
