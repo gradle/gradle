@@ -97,6 +97,9 @@ enum TestPrecondition {
     JDK7_POSIX({
         JDK7_OR_LATER.fulfilled && NOT_WINDOWS.fulfilled
     }),
+    NOT_JDK_IBM({
+        System.getProperty('java.vm.vendor') != 'IBM Corporation'
+    }),
     ONLINE({
         try {
             new URL("http://google.com").openConnection().openStream()
