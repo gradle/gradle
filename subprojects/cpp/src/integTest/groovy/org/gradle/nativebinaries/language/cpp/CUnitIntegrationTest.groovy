@@ -30,7 +30,6 @@ import static org.gradle.util.TextUtil.normaliseLineSeparators
 
 @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
 
-// TODO:DAZ Test incremental
 class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     @Rule TestResources resources = new TestResources(temporaryFolder)
     def app = new CHelloWorldApp()
@@ -107,6 +106,17 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
         // TODO:DAZ Verify the generated xml
     }
 
+    def "test suite skipped after successful run"() {
+        given:
+        run "runHelloTestCUnitExe"
+
+        when:
+        run "runHelloTestCUnitExe"
+
+        then:
+        skipped ":helloTestCUnitExe", ":runHelloTestCUnitExe"
+    }
+
     def "can build and run cunit failing test suite"() {
         when:
         file("src/hello/c/sum.c").text = file("src/hello/c/sum.c").text.replace("return a + b;", "return a - b;")
@@ -123,6 +133,20 @@ There were test failures:
         file("build/test-results/helloTestCUnitExe/CUnitAutomated-Listing.xml").assertExists()
         // TODO:DAZ Verify the failure message: should include useful error and link to results file
         // TODO:DAZ Verify the generated xml
+    }
+
+    def "test suite not skipped after failing run"() {
+        given:
+        final String originalText = file("src/hello/c/sum.c").text
+        file("src/hello/c/sum.c").text = originalText.replace("return a + b;", "return a - b;")
+        fails "runHelloTestCUnitExe"
+
+        when:
+        file("src/hello/c/sum.c").text = originalText
+        run "runHelloTestCUnitExe"
+
+        then:
+        executedAndNotSkipped ":runHelloTestCUnitExe"
     }
 
     def "creates visual studio solution and project for cunit test suite"() {
