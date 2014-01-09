@@ -25,7 +25,10 @@ import org.gradle.language.HeaderExportingSourceSet
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.internal.AbstractBuildableModelElement
 import org.gradle.language.rc.WindowsResourceSet
-import org.gradle.nativebinaries.*
+import org.gradle.nativebinaries.LibraryBinary
+import org.gradle.nativebinaries.NativeBinary
+import org.gradle.nativebinaries.ProjectNativeBinary
+import org.gradle.nativebinaries.ProjectNativeComponent
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
 import org.gradle.nativebinaries.internal.ProjectNativeComponentInternal
 import org.gradle.util.CollectionUtils
@@ -36,6 +39,7 @@ class DefaultVisualStudioProject extends AbstractBuildableModelElement implement
     final VisualStudioProjectResolver projectResolver
     final String name
     final ProjectNativeComponent component
+    final List<LanguageSourceSet> sources = new ArrayList<LanguageSourceSet>()
     final Map<NativeBinary, VisualStudioProjectConfiguration> configurations = [:]
     final DefaultConfigFile projectFile
     final DefaultConfigFile filtersFile
@@ -54,9 +58,13 @@ class DefaultVisualStudioProject extends AbstractBuildableModelElement implement
         return '{' + UUID.nameUUIDFromBytes(vsComponentPath.bytes).toString().toUpperCase() + '}'
     }
 
+    void source(Collection<LanguageSourceSet> sources) {
+        this.sources.addAll(sources)
+    }
+
     List<File> getSourceFiles() {
         def allSource = [] as Set
-        component.source.each { LanguageSourceSet sourceSet ->
+        sources.each { LanguageSourceSet sourceSet ->
             if (!(sourceSet instanceof WindowsResourceSet)) {
                 allSource.addAll sourceSet.source.files
             }
@@ -66,20 +74,25 @@ class DefaultVisualStudioProject extends AbstractBuildableModelElement implement
 
     List<File> getResourceFiles() {
         def allResources = [] as Set
-        component.source.withType(WindowsResourceSet).each { WindowsResourceSet sourceSet ->
-            allResources.addAll sourceSet.source.files
+        sources.each { LanguageSourceSet sourceSet ->
+            if (sourceSet instanceof WindowsResourceSet) {
+                allResources.addAll sourceSet.source.files
+            }
         }
         return allResources as List
     }
 
     List<File> getHeaderFiles() {
         def allHeaders = [] as Set
-        component.source.withType(HeaderExportingSourceSet).each { HeaderExportingSourceSet sourceSet ->
-            allHeaders.addAll sourceSet.exportedHeaders.files
+        sources.each { LanguageSourceSet sourceSet ->
+            if (sourceSet instanceof HeaderExportingSourceSet) {
+                allHeaders.addAll sourceSet.exportedHeaders.files
+            }
         }
         return allHeaders as List
     }
 
+    // TODO:DAZ This isn't right
     Set<DefaultVisualStudioProject> getProjectReferences() {
         def projects = [] as Set
         component.binaries.each { ProjectNativeBinaryInternal binary ->

@@ -16,12 +16,10 @@
 
 package org.gradle.ide.visualstudio.internal
 import org.gradle.api.file.SourceDirectorySet
-import org.gradle.api.internal.DefaultDomainObjectSet
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.HeaderExportingSourceSet
 import org.gradle.language.base.LanguageSourceSet
-import org.gradle.language.cpp.CppSourceSet
 import org.gradle.nativebinaries.internal.ProjectNativeComponentInternal
 import spock.lang.Specification
 
@@ -52,7 +50,7 @@ class DefaultVisualStudioProjectTest extends Specification {
         def file3 = Mock(File)
         def sourceSet1 = sourceSet(file1, file2)
         def sourceSet2 = sourceSet(file3)
-        component.source >> new DefaultDomainObjectSet<LanguageSourceSet>(CppSourceSet, [sourceSet1, sourceSet2])
+        vsProject.source([sourceSet1, sourceSet2])
 
         then:
         vsProject.sourceFiles == [file1, file2, file3]
@@ -65,7 +63,7 @@ class DefaultVisualStudioProjectTest extends Specification {
         def file3 = Mock(File)
         def sourceSet1 = headerSourceSet(file1, file2)
         def sourceSet2 = headerSourceSet(file3)
-        component.source >> new DefaultDomainObjectSet<LanguageSourceSet>(CppSourceSet, [sourceSet1, sourceSet2])
+        vsProject.source([sourceSet1, sourceSet2])
 
         then:
         vsProject.headerFiles == [file1, file2, file3]

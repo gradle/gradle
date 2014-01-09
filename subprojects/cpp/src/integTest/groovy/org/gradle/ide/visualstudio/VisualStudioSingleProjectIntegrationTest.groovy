@@ -591,6 +591,40 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         }
     }
 
+    def "create visual studio solution for executable with variant conditional sources"() {
+        when:
+        app.writeSources(file("src/win32"))
+        app.alternate.writeSources(file("src/x86"))
+        buildFile << """
+    sources {
+        win32 {}
+        x86 {}
+    }
+    executables {
+        main {}
+    }
+    binaries.all {
+        source sources[it.targetPlatform.name]
+    }
+"""
+        and:
+        run "mainVisualStudio"
+
+        then:
+        executedAndNotSkipped ":win32MainExeVisualStudio"
+
+        and:
+        final projectFile = projectFile("visualStudio/win32MainExe.vcxproj")
+        projectFile.sourceFiles == allFiles("src/win32/cpp")
+        projectFile.headerFiles == allFiles("src/win32/headers")
+        projectFile.projectConfigurations.keySet() == ['debug|Win32', 'release|Win32'] as Set
+
+        and:
+        final mainSolution = solutionFile("visualStudio/win32MainExe.sln")
+        mainSolution.assertHasProjects("win32MainExe")
+        mainSolution.assertReferencesProject(projectFile, ["debug|Win32"])
+    }
+
     def "visual studio solution with pre-built library"() {
         given:
         app.writeSources(file("src/main"))

@@ -15,8 +15,11 @@
  */
 
 package org.gradle.ide.visualstudio.internal
+
+import org.gradle.api.internal.DefaultDomainObjectSet
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.language.base.LanguageSourceSet
 import org.gradle.nativebinaries.ExecutableBinary
 import org.gradle.nativebinaries.SharedLibraryBinary
 import org.gradle.nativebinaries.StaticLibraryBinary
@@ -24,6 +27,7 @@ import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
 import spock.lang.Specification
 
 class VisualStudioProjectRegistryTest extends Specification {
+    private DefaultDomainObjectSet<LanguageSourceSet> sources = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet)
     def fileResolver = Mock(FileResolver)
     def visualStudioProjectResolver = Mock(VisualStudioProjectResolver)
     def visualStudioProjectMapper = Mock(VisualStudioProjectMapper)
@@ -36,6 +40,7 @@ class VisualStudioProjectRegistryTest extends Specification {
     def "creates a matching visual studio project configuration for NativeBinary"() {
         when:
         visualStudioProjectMapper.mapToConfiguration(executableBinary) >> new VisualStudioProjectMapper.ProjectConfigurationNames("vsProject", "vsConfig", "vsPlatform")
+        executableBinary.source >> sources
         registry.addProjectConfiguration(executableBinary)
 
         then:
@@ -49,6 +54,7 @@ class VisualStudioProjectRegistryTest extends Specification {
     def "creates visual studio project and project configuration for SharedLibraryBinary"() {
         when:
         visualStudioProjectMapper.mapToConfiguration(sharedLibraryBinary) >> new VisualStudioProjectMapper.ProjectConfigurationNames("vsProject", "vsConfig", "vsPlatform")
+        sharedLibraryBinary.source >> sources
         registry.addProjectConfiguration(sharedLibraryBinary)
 
         then:
@@ -62,6 +68,7 @@ class VisualStudioProjectRegistryTest extends Specification {
     def "creates visual studio project and project configuration for StaticLibraryBinary"() {
         when:
         visualStudioProjectMapper.mapToConfiguration(staticLibraryBinary) >> new VisualStudioProjectMapper.ProjectConfigurationNames("vsProject", "vsConfig", "vsPlatform")
+        staticLibraryBinary.source >> sources
         registry.addProjectConfiguration(staticLibraryBinary)
 
         and:
@@ -78,10 +85,12 @@ class VisualStudioProjectRegistryTest extends Specification {
     def "returns same visual studio project configuration for native binaries that share project name"() {
         when:
         visualStudioProjectMapper.mapToConfiguration(sharedLibraryBinary) >> new VisualStudioProjectMapper.ProjectConfigurationNames("vsProject", "vsConfig", "vsPlatform")
+        sharedLibraryBinary.source >> sources
         registry.addProjectConfiguration(sharedLibraryBinary)
 
         and:
         visualStudioProjectMapper.mapToConfiguration(staticLibraryBinary) >> new VisualStudioProjectMapper.ProjectConfigurationNames("vsProject", "other", "other")
+        staticLibraryBinary.source >> sources
         registry.addProjectConfiguration(staticLibraryBinary)
 
         then:

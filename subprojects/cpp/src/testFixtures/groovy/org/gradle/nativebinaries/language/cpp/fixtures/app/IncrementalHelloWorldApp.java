@@ -19,6 +19,28 @@ package org.gradle.nativebinaries.language.cpp.fixtures.app;
 import java.util.List;
 
 public abstract class IncrementalHelloWorldApp extends HelloWorldApp {
+    public TestApp getAlternate() {
+        return new TestApp() {
+            @Override
+            public SourceFile getMainSource() {
+                return getAlternateMainSource();
+            }
+
+            @Override
+            public SourceFile getLibraryHeader() {
+                return getAlternateLibraryHeader();
+            }
+
+            @Override
+            public List<SourceFile> getLibrarySources() {
+                return getAlternateLibrarySources();
+            }
+        };
+    }
+    private SourceFile getAlternateLibraryHeader() {
+        return getLibraryHeader();
+    }
+
     public abstract SourceFile getAlternateMainSource();
     public abstract String getAlternateOutput();
 

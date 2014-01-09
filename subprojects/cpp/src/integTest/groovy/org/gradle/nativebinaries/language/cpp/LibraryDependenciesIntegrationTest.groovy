@@ -80,7 +80,8 @@ class LibraryDependenciesIntegrationTest extends AbstractInstalledToolChainInteg
         "does not exist in referenced project" | "project: ':other', library: 'unknown'" | "Could not locate library 'unknown' for project ':other'." | "Library with name 'unknown' not found."
     }
 
-    def "can use map notation to reference library in same project"() {
+    @Unroll
+    def "can use #notationName notation to reference library in same project"() {
         given:
         def app = new CppHelloWorldApp()
         app.executable.writeSources(file("src/main"))
@@ -91,10 +92,10 @@ class LibraryDependenciesIntegrationTest extends AbstractInstalledToolChainInteg
             executables {
                 main {}
             }
-            sources.main.cpp.lib library: 'hello'
             libraries {
                 hello {}
             }
+            sources.main.cpp.lib ${notation}
         """
 
         when:
@@ -102,9 +103,15 @@ class LibraryDependenciesIntegrationTest extends AbstractInstalledToolChainInteg
 
         then:
         installation("build/install/mainExecutable").exec().out == app.englishOutput
+
+        where:
+        notationName | notation
+        "direct"     | "libraries.hello"
+        "map"        | "library: 'hello'"
     }
 
-    def "can use map notation to reference library dependency of binary"() {
+    @Unroll
+    def "can use map #notationName notation to reference library dependency of binary"() {
         given:
         def app = new CppHelloWorldApp()
         app.executable.writeSources(file("src/main"))
@@ -115,7 +122,7 @@ class LibraryDependenciesIntegrationTest extends AbstractInstalledToolChainInteg
             executables {
                 main {
                     binaries.all { binary ->
-                        binary.lib library: 'hello'
+                        binary.lib ${notation}
                     }
                 }
             }
@@ -129,6 +136,11 @@ class LibraryDependenciesIntegrationTest extends AbstractInstalledToolChainInteg
 
         then:
         installation("build/install/mainExecutable").exec().out == app.englishOutput
+
+        where:
+        notationName | notation
+        "direct"     | "libraries.hello"
+        "map"        | "library: 'hello'"
     }
 
     def "can use map notation to reference static library in same project"() {
