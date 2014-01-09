@@ -15,6 +15,8 @@
  */
 package org.gradle.nativebinaries.language.cpp
 import org.apache.commons.io.FileUtils
+import org.gradle.ide.visualstudio.fixtures.ProjectFile
+import org.gradle.ide.visualstudio.fixtures.SolutionFile
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativebinaries.language.cpp.fixtures.RequiresInstalledToolChain
 import org.gradle.nativebinaries.language.cpp.fixtures.app.CHelloWorldApp
@@ -23,7 +25,6 @@ import org.gradle.nativebinaries.language.cpp.fixtures.app.MixedLanguageHelloWor
 import org.gradle.nativebinaries.language.cpp.fixtures.app.WindowsResourceHelloWorldApp
 
 import static org.gradle.nativebinaries.language.cpp.fixtures.ToolChainRequirement.VisualCpp
-
 // TODO:DAZ Test incremental
 class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
@@ -302,6 +303,46 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
 
         then:
         executableBuilt(app)
+    }
+
+    def "creates visual studio project including generated sources"() {
+        given:
+        def app = new CHelloWorldApp()
+        app.writeSources(file("src/input"))
+        degenerateInputSources()
+
+        and:
+        buildFile << """
+    apply plugin: 'visual-studio'
+    apply plugin: 'c'
+
+    executables {
+        main {}
+    }
+    sources.main.c.generatedBy tasks.generateCSources
+"""
+
+        when:
+        succeeds "mainVisualStudio"
+
+        then:
+        final mainSolution = new SolutionFile(file("visualStudio/mainExe.sln"))
+        mainSolution.assertHasProjects("mainExe")
+
+        and:
+        final projectFile = new ProjectFile(file("visualStudio/mainExe.vcxproj"))
+        projectFile.sourceFiles == [
+                file("build/src/generated/c/hello.c"),
+                file("build/src/generated/c/main.c"),
+                file("build/src/generated/c/sum.c")
+        ]*.absolutePath
+        projectFile.headerFiles == [
+                file("build/src/generated/headers/hello.h")
+        ]*.absolutePath
+        projectFile.projectConfigurations.keySet() == ['debug|Win32'] as Set
+        with (projectFile.projectConfigurations['debug|Win32']) {
+            includePath == file("build/src/generated/headers").absolutePath
+        }
     }
 
     def executableBuilt(def app) {

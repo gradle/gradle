@@ -60,6 +60,7 @@ class DefaultVisualStudioProject extends AbstractBuildableModelElement implement
 
     void source(Collection<LanguageSourceSet> sources) {
         this.sources.addAll(sources)
+        builtBy(sources)
     }
 
     List<File> getSourceFiles() {

@@ -15,6 +15,8 @@
  */
 package org.gradle.nativebinaries.language.cpp
 
+import org.gradle.ide.visualstudio.fixtures.ProjectFile
+import org.gradle.ide.visualstudio.fixtures.SolutionFile
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
@@ -121,6 +123,34 @@ There were test failures:
         file("build/test-results/helloTestCUnitExe/CUnitAutomated-Listing.xml").assertExists()
         // TODO:DAZ Verify the failure message: should include useful error and link to results file
         // TODO:DAZ Verify the generated xml
+    }
+
+    def "creates visual studio solution and project for cunit test suite"() {
+        buildFile.text = "apply plugin: 'visual-studio'\n" + buildFile.text
+
+        when:
+        succeeds "helloTestVisualStudio"
+
+        then:
+        final mainSolution = new SolutionFile(file("visualStudio/helloTestExe.sln"))
+        mainSolution.assertHasProjects("helloTestExe")
+
+        and:
+        final projectFile = new ProjectFile(file("visualStudio/helloTestExe.vcxproj"))
+        projectFile.sourceFiles == [
+                file("src/helloTest/cunit/test.c"),
+                file("build/src/cunitLauncher/gradle_cunit_main.c"),
+                file("build/src/cunitLauncher/gradle_cunit_register.h"),
+                file("src/hello/c/hello.c"),
+                file("src/hello/c/sum.c")
+        ]*.absolutePath
+        projectFile.headerFiles == [
+                file("src/hello/headers/hello.h")
+        ]*.absolutePath
+        projectFile.projectConfigurations.keySet() == ['debug|Win32'] as Set
+        with (projectFile.projectConfigurations['debug|Win32']) {
+            includePath == [file("src/hello/headers"), file("libs/cunit/2.1-2/include")]*.absolutePath.join(';')
+        }
     }
 
     @Override
