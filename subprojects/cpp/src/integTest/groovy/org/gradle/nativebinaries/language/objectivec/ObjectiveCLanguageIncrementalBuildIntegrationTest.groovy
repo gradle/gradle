@@ -13,18 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.nativebinaries.language.objectivec
 
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.nativebinaries.language.cpp.AbstractLanguageIntegrationTest
-import org.gradle.nativebinaries.language.cpp.fixtures.app.HelloWorldApp
+import org.gradle.nativebinaries.language.cpp.AbstractLanguageIncrementalBuildIntegrationTest
+import org.gradle.nativebinaries.language.cpp.fixtures.app.IncrementalHelloWorldApp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.ObjectiveCHelloWorldApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 @Requires(TestPrecondition.NOT_WINDOWS)
-class ObjectiveCHelloWorldIntegrationTest extends AbstractLanguageIntegrationTest{
+class ObjectiveCLanguageIncrementalBuildIntegrationTest extends AbstractLanguageIncrementalBuildIntegrationTest{
 
+    // TODO Rene: same configuration as in ObjectiveCLanguageIntegrationTest; Move into a fixture
     def "setup"() {
         def linkerArgs = OperatingSystem.current().isMacOsX() ? '"-framework", "Foundation"' : '"-lgnustep-base", "-lobjc"'
         buildFile << """
@@ -43,7 +45,7 @@ class ObjectiveCHelloWorldIntegrationTest extends AbstractLanguageIntegrationTes
     }
 
     @Override
-    HelloWorldApp getHelloWorldApp() {
+    IncrementalHelloWorldApp getHelloWorldApp() {
         return new ObjectiveCHelloWorldApp()
     }
 }

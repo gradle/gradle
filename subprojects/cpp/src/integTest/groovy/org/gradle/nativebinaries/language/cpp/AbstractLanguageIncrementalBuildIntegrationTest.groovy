@@ -70,7 +70,6 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
             }
         """
         settingsFile << "rootProject.name = 'test'"
-
         sourceFile = app.mainSource.writeToDir(file("src/main"))
         headerFile = app.libraryHeader.writeToDir(file("src/hello"))
         app.librarySources.each {
@@ -175,7 +174,7 @@ abstract class AbstractLanguageIncrementalBuildIntegrationTest extends AbstractI
 
         when:
         headerFile << """
-            void DLL_FUNC unused();
+            int unused();
 """
 
         run "mainExecutable"

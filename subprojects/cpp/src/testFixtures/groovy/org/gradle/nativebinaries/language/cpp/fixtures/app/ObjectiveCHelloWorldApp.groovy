@@ -16,10 +16,26 @@
 
 package org.gradle.nativebinaries.language.cpp.fixtures.app
 
-class ObjectiveCHelloWorldApp extends HelloWorldApp {
+class ObjectiveCHelloWorldApp extends IncrementalHelloWorldApp {
 
     @Override
     SourceFile getMainSource() {
+        return sourceFile("objectiveC", "main.m", """
+            // Simple hello world app
+            #import <Foundation/Foundation.h>
+            #import "hello.h"
+
+            int main (int argc, const char * argv[])
+            {
+                sayHello();
+                printf("%d", sum(7, 5));
+                return 0;
+            }
+        """);
+    }
+
+    @Override
+    SourceFile getAlternateMainSource() {
         return sourceFile("objectiveC", "main.m", """
             #import <Foundation/Foundation.h>
             #import "hello.h"
@@ -27,15 +43,13 @@ class ObjectiveCHelloWorldApp extends HelloWorldApp {
             int main (int argc, const char * argv[])
             {
                 sayHello();
-                NSString *s = @"Hello, World!";
-                NSLog(@"%@", s);
-
-                printf("%d", sum(7, 5));
-
                 return 0;
             }
         """);
     }
+
+    String alternateOutput = "$HELLO_WORLD\n"
+
 
     @Override
     SourceFile getLibraryHeader() {
@@ -63,7 +77,7 @@ class ObjectiveCHelloWorldApp extends HelloWorldApp {
                 printf("%s", [helloWorld UTF8String]);
             }
         """),
-            sourceFile("objectiveC", "sum.m", """
+                sourceFile("objectiveC", "sum.m", """
             #import "hello.h"
 
             int sum (int a, int b)
@@ -72,4 +86,34 @@ class ObjectiveCHelloWorldApp extends HelloWorldApp {
             }
         """)]
     }
+
+    @Override
+    List<SourceFile> getAlternateLibrarySources() {
+        return [
+                sourceFile("objectiveC", "hello.m", """
+            #import <Foundation/Foundation.h>
+            #import "hello.h"
+
+            void sayHello()
+            {
+                NSString *helloWorld = @"${HELLO_WORLD} - ${HELLO_WORLD_FRENCH}\\n";
+                printf("%s", [helloWorld UTF8String]);
+            }
+
+            // Extra function to ensure library has different size
+            int anotherFunction() {
+                return 1000;
+            }
+        """),
+                sourceFile("objectiveC", "sum.m", """
+            #import "hello.h"
+
+            int sum (int a, int b)
+            {
+                return a + b;
+            }
+        """)]
+    }
+
+    String alternateLibraryOutput = "${HELLO_WORLD} - ${HELLO_WORLD_FRENCH}\n12"
 }
