@@ -21,6 +21,7 @@ import org.gradle.language.DependentSourceSet;
 import org.gradle.language.HeaderExportingSourceSet;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -49,7 +50,12 @@ public abstract class AbstractHeaderExportingDependentSourceSet extends Abstract
     }
 
     public void lib(Object library) {
-        libs.add(library);
+        if (library instanceof Iterable<?>) {
+            Iterable<?> iterable = (Iterable) library;
+            CollectionUtils.addAll(libs, iterable);
+        } else {
+            libs.add(library);
+        }
     }
 
     public void dependency(Map<?, ?> dep) {

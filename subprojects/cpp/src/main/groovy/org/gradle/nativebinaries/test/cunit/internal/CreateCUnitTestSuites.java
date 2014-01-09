@@ -19,7 +19,6 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.language.base.FunctionalSourceSet;
-import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.c.CSourceSet;
 import org.gradle.nativebinaries.*;
@@ -73,10 +72,7 @@ public class CreateCUnitTestSuites implements Action<TestSuiteContainer> {
         if (cunitSourceSet.getSource().getSrcDirs().isEmpty()) {
             cunitSourceSet.getSource().srcDir(String.format("src/%s/%s", componentTestSources.getName(), cunitSourceSet.getName()));
         }
-        // TODO:DAZ Allow sourceSet.lib Collection<LanguageSourceSet>
-        for (LanguageSourceSet componentSourceSet : testedComponent.getSource().withType(CSourceSet.class)) {
-            cunitSourceSet.lib(componentSourceSet);
-        }
+        cunitSourceSet.lib(testedComponent.getSource().withType(CSourceSet.class));
         createCUnitLauncherTask(cunitSourceSet);
         return cunitSourceSet;
     }
