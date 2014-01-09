@@ -137,13 +137,13 @@ There were test failures:
 
         and:
         final projectFile = new ProjectFile(file("visualStudio/helloTestExe.vcxproj"))
-        projectFile.sourceFiles == [
+        projectFile.sourceFiles as Set == [
                 file("src/helloTest/cunit/test.c"),
                 file("build/src/cunitLauncher/gradle_cunit_main.c"),
                 file("build/src/cunitLauncher/gradle_cunit_register.h"),
                 file("src/hello/c/hello.c"),
                 file("src/hello/c/sum.c")
-        ]*.absolutePath
+        ]*.absolutePath as Set
         projectFile.headerFiles == [
                 file("src/hello/headers/hello.h")
         ]*.absolutePath

@@ -331,11 +331,11 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
 
         and:
         final projectFile = new ProjectFile(file("visualStudio/mainExe.vcxproj"))
-        projectFile.sourceFiles == [
+        projectFile.sourceFiles as Set == [
                 file("build/src/generated/c/hello.c"),
                 file("build/src/generated/c/main.c"),
                 file("build/src/generated/c/sum.c")
-        ]*.absolutePath
+        ]*.absolutePath as Set
         projectFile.headerFiles == [
                 file("build/src/generated/headers/hello.h")
         ]*.absolutePath
