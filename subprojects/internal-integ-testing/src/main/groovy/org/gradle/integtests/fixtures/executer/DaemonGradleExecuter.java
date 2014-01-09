@@ -61,7 +61,7 @@ public class DaemonGradleExecuter extends ForkingGradleExecuter {
             // Instead of just adding these as standalone opts, we need to add to
             // -Dorg.gradle.jvmArgs in order for them to be effectual
             List<String> jvmArgs = new ArrayList<String>(4);
-            jvmArgs.add("-XX:MaxPermSize=256m");
+            jvmArgs.add("-XX:MaxPermSize=320m");
             jvmArgs.add("-XX:+HeapDumpOnOutOfMemoryError");
             if (JavaVersion.current().isJava5()) {
                 jvmArgs.add("-XX:+CMSPermGenSweepingEnabled");
