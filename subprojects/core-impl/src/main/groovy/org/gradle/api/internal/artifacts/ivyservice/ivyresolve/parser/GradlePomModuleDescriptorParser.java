@@ -74,7 +74,6 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
     }
 
     private void doParsePom(DescriptorParseContext parserSettings, GradlePomModuleDescriptorBuilder mdBuilder, PomReader pomReader) throws IOException, SAXException {
-        PomReader parentDescr = null;
         if (pomReader.hasParent()) {
             //Is there any other parent properties?
 
@@ -82,7 +81,7 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
                     pomReader.getParentGroupId(),
                     pomReader.getParentArtifactId(),
                     pomReader.getParentVersion());
-            parentDescr = parseOtherPom(parserSettings, parentModRevID);
+            PomReader parentDescr = parseOtherPom(parserSettings, parentModRevID);
             pomReader.setPomParent(parentDescr);
         }
         pomReader.resolveGAV();
