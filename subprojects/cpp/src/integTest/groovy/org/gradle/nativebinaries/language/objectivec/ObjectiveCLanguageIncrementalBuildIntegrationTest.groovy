@@ -26,6 +26,10 @@ import org.gradle.util.TestPrecondition
 @Requires(TestPrecondition.NOT_WINDOWS)
 class ObjectiveCLanguageIncrementalBuildIntegrationTest extends AbstractLanguageIncrementalBuildIntegrationTest{
 
+    def setupSpec(){
+        multiPlatformsAvailable = OperatingSystem.current().isMacOsX();
+    }
+
     // TODO Rene: same configuration as in ObjectiveCLanguageIntegrationTest; Move into a fixture
     def "setup"() {
         def linkerArgs = OperatingSystem.current().isMacOsX() ? '"-framework", "Foundation"' : '"-lgnustep-base", "-lobjc"'
