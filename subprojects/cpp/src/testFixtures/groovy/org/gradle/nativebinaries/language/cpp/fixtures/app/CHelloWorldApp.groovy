@@ -138,7 +138,7 @@ void test_sum(void) {
 
 void gradle_cunit_register() {
     CU_pSuite pSuiteMath = CU_add_suite("hello test", init_test, clean_test);
-    CU_add_test(pSuiteMath, "test of sum", test_sum);
+    CU_add_test(pSuiteMath, "test_sum", test_sum);
 }
                     """),
             ]

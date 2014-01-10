@@ -22,6 +22,7 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativebinaries.language.cpp.fixtures.AvailableToolChains
 import org.gradle.nativebinaries.language.cpp.fixtures.app.CHelloWorldApp
+import org.gradle.nativebinaries.test.cunit.CUnitTestResults
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
@@ -29,7 +30,6 @@ import org.junit.Rule
 import static org.gradle.util.TextUtil.normaliseLineSeparators
 
 @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
-
 class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     @Rule TestResources resources = new TestResources(temporaryFolder)
     def app = new CHelloWorldApp()
@@ -101,9 +101,14 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
         then:
         executedAndNotSkipped ":compileHelloTestCUnitExeHelloC", ":compileHelloTestCUnitExeHelloTestCunit",
                               ":linkHelloTestCUnitExe", ":helloTestCUnitExe", ":runHelloTestCUnitExe"
-        file("build/test-results/helloTestCUnitExe/CUnitAutomated-Results.xml").assertExists()
         file("build/test-results/helloTestCUnitExe/CUnitAutomated-Listing.xml").assertExists()
-        // TODO:DAZ Verify the generated xml
+
+        def testResults = new CUnitTestResults(file("build/test-results/helloTestCUnitExe/CUnitAutomated-Results.xml"))
+        testResults.suiteNames == ['hello test']
+        testResults.suites['hello test'].passingTests == ['test_sum']
+        testResults.suites['hello test'].failingTests == []
+        testResults.checkTestCases(1, 1, 0)
+        testResults.checkAssertions(3, 3, 0)
     }
 
     def "test suite skipped after successful run"() {
@@ -119,26 +124,30 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
     def "can build and run cunit failing test suite"() {
         when:
-        file("src/hello/c/sum.c").text = file("src/hello/c/sum.c").text.replace("return a + b;", "return a - b;")
+        file("src/hello/c/sum.c").text = file("src/hello/c/sum.c").text.replace("return a + b;", "return 2;")
         fails "runHelloTestCUnitExe"
 
         then:
+        // TODO:DAZ Verify the failure message: should include useful error and link to results file
         executedAndNotSkipped ":compileHelloTestCUnitExeHelloC", ":compileHelloTestCUnitExeHelloTestCunit",
                               ":linkHelloTestCUnitExe", ":helloTestCUnitExe", ":runHelloTestCUnitExe"
 
         output.contains """
 There were test failures:
 """
-        file("build/test-results/helloTestCUnitExe/CUnitAutomated-Results.xml").assertExists()
         file("build/test-results/helloTestCUnitExe/CUnitAutomated-Listing.xml").assertExists()
-        // TODO:DAZ Verify the failure message: should include useful error and link to results file
-        // TODO:DAZ Verify the generated xml
+        def testResults = new CUnitTestResults(file("build/test-results/helloTestCUnitExe/CUnitAutomated-Results.xml"))
+        testResults.suiteNames == ['hello test']
+        testResults.suites['hello test'].passingTests == []
+        testResults.suites['hello test'].failingTests == ['test_sum']
+        testResults.checkTestCases(1, 0, 1)
+        testResults.checkAssertions(3, 1, 2)
     }
 
     def "test suite not skipped after failing run"() {
         given:
         final String originalText = file("src/hello/c/sum.c").text
-        file("src/hello/c/sum.c").text = originalText.replace("return a + b;", "return a - b;")
+        file("src/hello/c/sum.c").text = originalText.replace("return a + b;", "return 2;")
         fails "runHelloTestCUnitExe"
 
         when:
