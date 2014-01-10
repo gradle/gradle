@@ -180,7 +180,47 @@ Future releases of Gradle will provide full-featured dependency resolution for t
 providing more sophisticated support for system libraries (such as the Windows SDK).
 `PrebuiltLibraries` takes a step in that direction, and provides a tool that can be used for many use cases.
 
-### Objective-C and Objective-CPP Support
+### Support for generated sources in native binary projects (i)
+
+Any `LanguageSourceSet` (eg `CSourceSet`, `CppSourceSet`) is now a `BuildableModelElement`, which means that a
+task can be supplied which will be executed before the sources are used.
+
+The 'builder' task can be specified stating that the source set is `builtBy` the task. The source inputs will then need to be
+explicitly configured, either as directory paths or by connecting task outputs.
+
+    sources {
+        main {
+            c {
+                builtBy tasks.generateCSources
+                source {
+                    srcDirs tasks.generateCSources.sourceDir
+                }
+                exportedHeaders {
+                    srcDirs tasks.generateCSources.headerDir
+                }
+            }
+        }
+    }
+
+Additionally, it is possible to specify that the source set is `generatedBy` the specified task. In this case, Gradle will
+inspect the task for `sourceDir` and `headerDir` output properties, which will then be automatically configured as source set inputs.
+The above example can thus be simplified to:
+
+    source {
+        main {
+            c {
+                generatedBy tasks.generateCSources
+            }
+        }
+    }
+
+See the `idl` sample in your Gradle distribution for a working example of generated sources for a native binary.
+
+### CUnit integration (i)
+
+TODO
+
+### Objective-C and Objective-CPP Support (i)
 
 TODO
 
