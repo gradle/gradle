@@ -1,5 +1,6 @@
-This spec defines a number of stories to improve IDE experience with Gradle. It covers changes in Gradle to improve those features that
-directly affect the IDE user experience. This includes the tooling API and tooling models, the Gradle daemon, and the Gradle IDE plugins
+
+This spec defines a number of features to improve the developer IDE experience with Gradle. It covers changes in Gradle to improve those features
+that directly affect the IDE user experience. This includes the tooling API and tooling models, the Gradle daemon, and the Gradle IDE plugins
 (i.e. the plugins that run inside Gradle to provide the IDE models).
 
 This spec does not cover more general features such as improving dependency resolution or configuration performance.
@@ -19,17 +20,17 @@ This feature exposes via the tooling API some task execution and reporting featu
   interface tasks and hides the implementation tasks.
 
 The first part of this feature involves extracting the logic for task selection and task reporting into some reusable service, that is used for command-line invocation
-and exposed through the tooling API. This way, both tools and the command-line use the same version-specific logic.
+and exposed through the tooling API. This way, both tools and the command-line use the same consistent logic.
 
-The second part of this feature involves some improvements to the task reporting, to simplify the base logic, improve performance and to integrate with the component
+The second part of this feature involves some improvements to the task reporting, to simplify it, improve performance and to integrate with the component
 model introduced by the new language plugins:
 
 - Task reporting treats as public any task with a non-empty `group` attribute, or any task that is declared as a public task of a build element.
 - All other tasks are treated as private.
 - This is a breaking change. Previously, the reporting logic used to analyse the task dependency graph and treated any task which was not a dependency of some other task
-  as a public task. This is very slow, requires every task in every project to be configured, and was not particularly accurate.
+  as a public task. This is very slow, requires every task in every project to be configured, and is not particularly accurate.
 
-### GRADLE-2434 - IDE visualises and runs aggregate tasks
+### GRADLE-2434 - IDE visualises and runs task selectors
 
 On the command-line I can run `gradle test` and this will find and execute all tasks with name `test` in the current project
 and all its subprojects.
@@ -40,7 +41,7 @@ See [tooling-api-improvements.md](tooling-api-improvements.md#story-gradle-2434-
 
 ### IDE hides implementation tasks
 
-On the command-line I can run `gradle tasks` and see the 'main' tasks for the build, and `gradle tasks --all` to see all the tasks.
+On the command-line I can run `gradle tasks` and see the public tasks for the build, and `gradle tasks --all` to see all the tasks.
 
 Expose some information to allow the IDE to visualise this.
 

@@ -103,6 +103,8 @@ There are two approaches we might take here:
    as they are still incubating, but will help drive backwards compatibility with the existing DSL for stable plugins.
 2. Change the native language plugins so that they do not use extensions and ignore integration between the old and new DSL for now.
 
+- Change native language plugins so that they no longer use extensions (see `CreateNativeBinaries`).
+
 ## Build author uses the model DSL to configure the native components tasks
 
 The model DSL should allow the tasks for a native binary and component to be configured. The configuration should happen only when the task is added to the task graph.
@@ -243,6 +245,13 @@ Another example ordering problem:
     }
 
 ## Native language plugins do not create tasks for binaries that cannot be built
+
+Change the native language plugins so a single lifecycle task is created for each binary that is not buildable.
+
+## Native language plugins do not create model objects that are not required
+
+Change the visual studio plugin so that it does not create visual studio project instances that are not required by any visual studio solution,
+or the associated generation tasks.
 
 ## Plugins use model rules to define implicit tasks
 
