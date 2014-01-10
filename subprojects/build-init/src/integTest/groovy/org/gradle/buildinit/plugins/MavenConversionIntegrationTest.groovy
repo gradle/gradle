@@ -43,10 +43,11 @@ class MavenConversionIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     public final HttpServer server = new HttpServer()
 
-    def "multiModule"() {
-        setup:
+    def setup() {
         withLocalM2Installation()
+    }
 
+    def "multiModule"() {
         when:
         run 'init'
 
@@ -76,9 +77,6 @@ Root project 'webinar-parent'
     }
 
     def "multiModuleWithNestedParent"() {
-        setup:
-        withLocalM2Installation()
-
         when:
         run 'init'
 
@@ -97,9 +95,6 @@ Root project 'webinar-parent'
     }
 
     def "flatmultimodule"() {
-        setup:
-        withLocalM2Installation()
-
         when:
         executer.inDirectory(file("webinar-parent"))
         run 'init'
@@ -132,9 +127,6 @@ Root project 'webinar-parent'
     }
 
     def "singleModule"() {
-        setup:
-        withLocalM2Installation()
-
         when:
         run 'init'
 
@@ -151,9 +143,6 @@ Root project 'webinar-parent'
     }
 
     def "testjar"() {
-        setup:
-        withLocalM2Installation()
-
         when:
         run 'init'
 
@@ -169,9 +158,6 @@ Root project 'webinar-parent'
     }
 
     def "enforcerplugin"() {
-        setup:
-        withLocalM2Installation()
-
         when:
         run 'init'
 
@@ -239,7 +225,6 @@ it.exclude group: '*', module: 'badArtifact'
         file("pom.xml").text = file("pom.xml").text.replaceAll('LOCAL_MAVEN_REPO_URL', repo.getUri().toString())
 
         expectParentPomRequest(repo)
-        withLocalM2Installation()
 
         when:
         run 'init'
@@ -260,7 +245,7 @@ it.exclude group: '*', module: 'badArtifact'
         setup:
         withSharedResources()
         executer.withArgument("-DCOMMONS_LANG_VERSION=2.6")
-        withLocalM2Installation()
+
         when:
         run 'init'
         then:
@@ -282,7 +267,6 @@ it.exclude group: '*', module: 'badArtifact'
         file("pom.xml").text = file("pom.xml").text.replaceAll('LOCAL_MAVEN_REPO_URL', repo.getUri().toString())
 
         expectParentPomRequest(repo)
-        withLocalM2Installation()
 
         when:
         run 'init'
