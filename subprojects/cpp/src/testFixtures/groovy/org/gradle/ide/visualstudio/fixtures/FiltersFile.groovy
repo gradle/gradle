@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-
-
 package org.gradle.ide.visualstudio.fixtures
 import org.gradle.test.fixtures.file.TestFile
 
