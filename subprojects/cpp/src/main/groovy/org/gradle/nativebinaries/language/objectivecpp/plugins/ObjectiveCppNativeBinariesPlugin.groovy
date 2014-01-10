@@ -72,7 +72,10 @@ class ObjectiveCppNativeBinariesPlugin implements Plugin<ProjectInternal> {
         compileTask.targetPlatform = binary.targetPlatform
         compileTask.positionIndependentCode = binary instanceof SharedLibraryBinary
 
-        compileTask.includes sourceSet.exportedHeaders
+        compileTask.includes {
+            sourceSet.exportedHeaders.srcDirs
+        }
+
         compileTask.source sourceSet.source
         binary.getLibs(sourceSet).each { deps ->
             compileTask.includes deps.includeRoots
