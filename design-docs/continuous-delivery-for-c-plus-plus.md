@@ -715,26 +715,26 @@ Here's an example:
 
     model {
         platforms {
-            create("win32") {
+            win32 {
                 architecture "i386"
                 operatingSystem "windows"
             }
-            create("linux32") {
+            linux32 {
                 architecture "i386"
                 operatingSystem "linux"
             }
-            create("linux64") {
+            linux64 {
                 architecture "amd64"
                 operatingSystem "linux"
             }
         }
         buildTypes {
-            create("debug")
-            create("release")
+            debug
+            release
         }
         flavors {
-            create("free")
-            create("paid")
+            free
+            paid
         }
     }
     executables {
@@ -1212,7 +1212,8 @@ This story moves definition and configuration of the source sets for a component
 - Cross-compilation for iPhone.
 - Make toolchain extensible so that not every toolchain implementation necessarily provides every tool, and may provide additional tools beyond the
   built-in tools.
-- Fix `TargetPlatformConfiguration` so that it extensible, so that not every configuration supports every tool.
+- Fix `TargetPlatformConfiguration` and `PlatformToolChain` to make them extensible, so that not every configuration supports every tool.
+- Gcc and Clang tool chains need to provide the correct compile and link time arguments on OS X and Linux.
 
 ### Story: Incremental compilation for Objective-C and Objective-C++
 
@@ -1243,11 +1244,11 @@ This story also aggregates a bunch of review items that relate to Architecture a
         architectures.add customArch
         platforms {
             // Custom platforms
-            create("custom") {
+            custom {
                 operatingSystem operatingSystems.customOs
                 architecture architectures.customArch
             }
-            create("customCurrent") {
+            customCurrent {
                 operatingSystem operatingSystems.current()
                 architecture architectures.current()
             }
