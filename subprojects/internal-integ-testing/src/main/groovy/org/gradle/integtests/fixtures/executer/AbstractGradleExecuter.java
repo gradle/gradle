@@ -36,13 +36,14 @@ import java.nio.charset.Charset;
 import java.util.*;
 
 import static java.util.Arrays.asList;
-import static org.gradle.util.Matchers.*;
+import static org.gradle.util.Matchers.containsLine;
+import static org.gradle.util.Matchers.matchesRegexp;
 
 public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     private final Logger logger;
 
-    private final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext();
+    protected final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext();
 
     private final List<String> args = new ArrayList<String>();
     private final List<String> tasks = new ArrayList<String>();
