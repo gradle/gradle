@@ -52,8 +52,6 @@ public abstract class AbstractRenderableDependencyResult implements RenderableDe
         return getRequested().getDisplayName();
     }
 
-    public abstract boolean isResolvable();
-
     @Nullable
     public String getDescription() {
         return null;
