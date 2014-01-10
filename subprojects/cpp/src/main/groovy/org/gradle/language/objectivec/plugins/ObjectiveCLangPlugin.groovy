@@ -30,8 +30,8 @@ import javax.inject.Inject
  * Adds core Objective-C language support.
  *
  * <ul>
- *     <li>For any {@link FunctionalSourceSet}, adds a conventional {@link ObjectiveCSourceSet} called 'objc'.</li>
- *     <li>Establishes a convention for all {@link ObjectiveCSourceSet}s so that sources are located in 'src/<name>/objc' and
+ *     <li>For any {@link FunctionalSourceSet}, adds a conventional {@link ObjectiveCSourceSet} called 'objectiveC'.</li>
+ *     <li>Establishes a convention for all {@link ObjectiveCSourceSet}s so that sources are located in 'src/<name>/objectiveC' and
  *         headers are located in 'src/<name>/headers'.</li>
  *     <li>
  * </ul>
