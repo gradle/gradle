@@ -46,8 +46,7 @@ public class MavenLocalResolver extends MavenResolver {
         ModuleVersionMetaData metaData = getArtifactMetadata(ivyRef.getArtifact(), ivyRef.getResource());
 
         if (!metaData.isMetaDataOnly()) {
-            ModuleVersionMetaData defaultMetaData = getDefaultMetaData(dependencyDescriptor, moduleRevisionId);
-            ResolvedArtifact artifactRef = findAnyArtifact(defaultMetaData);
+            ResolvedArtifact artifactRef = findAnyArtifact(metaData);
             if (artifactRef == null) {
                 LOGGER.debug("POM file found for module '{}' in repository '{}' but no artifact found. Ignoring.", moduleRevisionId, getName());
                 return;
