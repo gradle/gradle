@@ -22,55 +22,37 @@ dependencies {
 
 ext.integTestTasks = tasks.withType(Test).matching { it.name.toLowerCase().endsWith('integtest') }
 
-// TODO:ADAM - remove this
+import org.gradle.util.GradleVersion
+
+def removeOldVersionsFromDir(File dir, boolean onlySnapshots = false) {
+    def current = GradleVersion.version(gradle.gradleVersion)
+    if (dir.directory) {
+        for (File cacheDir: dir.listFiles()) {
+            if (!cacheDir.name.matches("\\d+\\.\\d+(\\.\\d+)?(-\\w+)*(-\\d{14}[+-]\\d{4})?")) {
+                continue
+            }
+
+            def cacheVersion
+            try {
+                cacheVersion = GradleVersion.version(cacheDir.name)
+            } catch (IllegalArgumentException e) {
+                // Ignore
+                continue
+            }
+            if (cacheVersion.baseVersion < current.baseVersion && (!onlySnapshots || cacheVersion.snapshot)) {
+                println "Removing old cache directory ${cacheDir}"
+                delete(cacheDir)
+            }
+        }
+    }
+}
+
 task cleanUpCaches {
     doLast {
-        File intTestHomeDir = rootProject.file("intTestHomeDir")
-
-        // Clean up files for previous versions
-        File previousVersionsDir = new File(intTestHomeDir, "previousVersion")
-        if (previousVersionsDir.directory) {
-            for (File versionDir: previousVersionsDir.listFiles()) {
-                // Clean up the old lock files
-                File lockFile = new File(versionDir, "cache.properties.lock")
-                if (lockFile.file && lockFile.length() > 0) {
-                    def version = lockFile.bytes[0]
-                    if (version != 1) {
-                        println "Cleaning lock file for ${versionDir}"
-                        lockFile.delete()
-                    }
-                }
-                // Clean up exploded distribution from old location
-                File oldDistDir = new File(versionDir, "cache-lock-5")
-                if (oldDistDir.directory) {
-                    println "Cleaning unused previous distribution from ${oldDistDir}"
-                    delete(oldDistDir)
-                }
-            }
-        }
-
-        // Clean up the downloaded distribution from old location
-        if (intTestHomeDir.directory) {
-            for (File child: intTestHomeDir.listFiles()) {
-                if (child.file && child.name.matches("gradle-.*-bin.zip")) {
-                    println "Cleaning unused previous distribution ${child}"
-                    delete(child)
-                }
-            }
-        }
-
-        // Clean up the lock files for the shared cache
-        File modulesCacheDir = rootProject.file("intTestHomeDir/worker-1/caches/modules-1")
-        if (modulesCacheDir.directory) {
-            File lockFile = new File(modulesCacheDir, "modules-1.lock")
-            if (lockFile.file && lockFile.length() > 0) {
-                def version = lockFile.bytes[0]
-                if (version != 3) {
-                    println "Cleaning lock file for ${modulesCacheDir}"
-                    lockFile.delete()
-                }
-            }
-        }
+        removeOldVersionsFromDir(rootProject.file("buildSrc/.gradle"))
+        removeOldVersionsFromDir(rootProject.file(".gradle"))
+        removeOldVersionsFromDir(rootProject.file("intTestHomeDir/worker-1/caches"), true)
+        removeOldVersionsFromDir(rootProject.file("intTestHomeDir/worker-1/daemon"), true)
     }
 }
 
