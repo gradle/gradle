@@ -18,6 +18,7 @@ package org.gradle.integtests.openapi;
 import org.gradle.openapi.external.foundation.GradleInterfaceVersion2;
 import org.gradle.openapi.external.foundation.ProjectVersion1;
 import org.gradle.openapi.external.foundation.RequestVersion1;
+import org.gradle.openapi.external.ui.CommandLineArgumentAlteringListenerVersion1;
 import org.gradle.openapi.external.ui.SinglePaneUIVersion1;
 import org.gradle.openapi.external.ui.UIFactory;
 
@@ -63,6 +64,11 @@ public class CrossVersionBuilder {
 
         TestSingleDualPaneUIInteractionVersion1 testSingleDualPaneUIInteractionVersion1 = new TestSingleDualPaneUIInteractionVersion1(new TestAlternateUIInteractionVersion1(), new TestSettingsNodeVersion1());
         SinglePaneUIVersion1 singlePane = UIFactory.createSinglePaneUI(getClass().getClassLoader(), targetGradleHomeDir, testSingleDualPaneUIInteractionVersion1, false);
+        singlePane.addCommandLineArgumentAlteringListener(new CommandLineArgumentAlteringListenerVersion1() {
+            public String getAdditionalCommandLineArguments(String commandLineArguments) {
+                return "'-g=" + new File(currentDir, "gradle-user-home").getAbsolutePath() + "'";
+            }
+        });
 
         String actualVersion = ((GradleInterfaceVersion2) singlePane.getGradleInterfaceVersion1()).getVersion();
         assertEquals(version, actualVersion);
