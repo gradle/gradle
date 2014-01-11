@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 package org.gradle.nativebinaries.language.cpp
-
 import org.gradle.ide.visualstudio.fixtures.ProjectFile
 import org.gradle.ide.visualstudio.fixtures.SolutionFile
 import org.gradle.integtests.fixtures.TestResources
@@ -124,24 +123,49 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
     def "can build and run cunit failing test suite"() {
         when:
-        file("src/hello/c/sum.c").text = file("src/hello/c/sum.c").text.replace("return a + b;", "return 2;")
+        useFailingSources()
         fails "runHelloTestCUnitExe"
 
         then:
-        // TODO:DAZ Verify the failure message: should include useful error and link to results file
+        failure.assertHasDescription("Execution failed for task ':runHelloTestCUnitExe'.")
+        failure.assertHasCause("There were failing tests. See the results at: ")
+
+        and:
         executedAndNotSkipped ":compileHelloTestCUnitExeHelloC", ":compileHelloTestCUnitExeHelloTestCunit",
                               ":linkHelloTestCUnitExe", ":helloTestCUnitExe", ":runHelloTestCUnitExe"
-
         output.contains """
 There were test failures:
 """
-        file("build/test-results/helloTestCUnitExe/CUnitAutomated-Listing.xml").assertExists()
+        and:
         def testResults = new CUnitTestResults(file("build/test-results/helloTestCUnitExe/CUnitAutomated-Results.xml"))
         testResults.suiteNames == ['hello test']
         testResults.suites['hello test'].passingTests == []
         testResults.suites['hello test'].failingTests == ['test_sum']
         testResults.checkTestCases(1, 0, 1)
         testResults.checkAssertions(3, 1, 2)
+        file("build/test-results/helloTestCUnitExe/CUnitAutomated-Listing.xml").assertExists()
+    }
+
+
+    def "build does not break for failing tests if ignoreFailures is true"() {
+        when:
+        useFailingSources()
+        buildFile << """
+    tasks.withType(RunTestExecutable) {
+        it.ignoreFailures = true
+    }
+"""
+        succeeds "runHelloTestCUnitExe"
+
+        then:
+        output.contains """
+There were test failures:
+"""
+        output.contains "There were failing tests. See the results at: "
+
+        and:
+        file("build/test-results/helloTestCUnitExe/CUnitAutomated-Results.xml").assertExists()
+        file("build/test-results/helloTestCUnitExe/CUnitAutomated-Listing.xml").assertExists()
     }
 
     def "test suite not skipped after failing run"() {
@@ -151,8 +175,7 @@ There were test failures:
         fails "runHelloTestCUnitExe"
 
         when:
-        file("src/hello/c/sum.c").text = originalText
-        run "runHelloTestCUnitExe"
+        fails "runHelloTestCUnitExe"
 
         then:
         executedAndNotSkipped ":runHelloTestCUnitExe"
@@ -184,6 +207,10 @@ There were test failures:
         with (projectFile.projectConfigurations['debug|Win32']) {
             includePath == [file("src/hello/headers"), file("libs/cunit/2.1-2/include")]*.absolutePath.join(';')
         }
+    }
+
+    private def useFailingSources() {
+        file("src/hello/c/sum.c").text = file("src/hello/c/sum.c").text.replace("return a + b;", "return 2;")
     }
 
     @Override

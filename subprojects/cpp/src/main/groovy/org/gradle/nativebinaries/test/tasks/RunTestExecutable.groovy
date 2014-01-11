@@ -15,16 +15,17 @@
  */
 
 package org.gradle.nativebinaries.test.tasks
-
+import org.gradle.api.GradleException
 import org.gradle.api.Incubating
 import org.gradle.api.internal.ConventionTask
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
+import org.gradle.logging.ConsoleRenderer
 import org.gradle.process.ExecResult
 import org.gradle.process.internal.ExecAction
 import org.gradle.process.internal.ExecActionFactory
-
 /**
  * Runs a compiled and installed test executable.
  */
@@ -40,6 +41,11 @@ public class RunTestExecutable extends ConventionTask {
      */
     @OutputDirectory File outputDir
 
+    /**
+     * Should the build continue if a test fails, or should the build break?
+     */
+    @Input boolean ignoreFailures
+
     private ExecAction execAction;
     private ExecResult execResult;
 
@@ -49,9 +55,25 @@ public class RunTestExecutable extends ConventionTask {
 
     @TaskAction
     void exec() {
-        // TODO:DAZ Inspect the exit value and report accordingly (with link to outputs)
         execAction.setExecutable(getTestExecutable())
         execAction.setWorkingDir(getOutputDir())
-        execResult = execAction.execute();
+        try {
+            execResult = execAction.execute();
+        } catch (Exception e) {
+            handleTestFailures(e);
+        }
     }
+
+    private void handleTestFailures(Exception e) {
+        String message = "There were failing tests";
+        String resultsUrl = new ConsoleRenderer().asClickableFileUrl(getOutputDir());
+        message = message.concat(". See the results at: " + resultsUrl);
+
+        if (isIgnoreFailures()) {
+            getLogger().warn(message);
+        } else {
+            throw new GradleException(message, e);
+        }
+    }
+
 }
