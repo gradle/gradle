@@ -55,7 +55,6 @@ public class RequestedVersion extends AbstractRenderableDependencyResult {
         return requested;
     }
 
-    @Override
     public boolean isResolvable() {
         return resolvable;
     }

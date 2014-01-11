@@ -33,7 +33,6 @@ public class RenderableDependencyResult extends AbstractRenderableDependencyResu
         this.dependency = dependency;
     }
 
-    @Override
     public boolean isResolvable() {
         return true;
     }
