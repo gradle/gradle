@@ -118,7 +118,9 @@ public class CommandLineIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void checkDefaultGradleUserHome() {
         // the actual testing is done in the build script.
-        executer.withGradleUserHomeDir(null).withTasks("checkDefaultGradleUserHome").run();
+        File userHome = file('customUserHome')
+        executer.withGradleUserHomeDir(null).withGradleOpts("-Duser.home=${userHome.absolutePath}").withTasks("checkDefaultGradleUserHome").run();
+        assert userHome.file(".gradle").exists()
     }
 
     @Test
