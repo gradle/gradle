@@ -17,8 +17,8 @@ package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.integtests.fixtures.executer.DaemonGradleExecuter
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
@@ -118,7 +118,7 @@ public class CommandLineIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void checkDefaultGradleUserHome() {
-        if (executer instanceof DaemonGradleExecuter) {
+        if (GradleContextualExecuter.isDaemon()) {
             return // can't override user.home when using the daemon
         }
         // the actual testing is done in the build script.
