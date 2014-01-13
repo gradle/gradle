@@ -27,7 +27,13 @@ class GenerateCUnitLauncher extends DefaultTask {
 
     @TaskAction
     void generate() {
-        new File(sourceDir, "gradle_cunit_main.c") << getClass().getResourceAsStream("gradle_cunit_main.c")
-        new File(sourceDir, "gradle_cunit_register.h") << getClass().getResourceAsStream("gradle_cunit_register.h")
+        writeToFile("gradle_cunit_main.c")
+        writeToFile("gradle_cunit_register.h")
+    }
+
+    private void writeToFile(String fileName) {
+        final File file = new File(sourceDir, fileName)
+        file.text = ''
+        file << getClass().getResourceAsStream(fileName)
     }
 }
