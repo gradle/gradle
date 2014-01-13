@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.ide.internal.resolver.model
+package org.gradle.plugins.ide.internal.resolver.model;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier
+import org.gradle.api.Project;
+import org.gradle.api.artifacts.Configuration;
 
-class IdeRepoFileDependency extends IdeDependency {
-    File file
-    File sourceFile
-    File javadocFile
-    ModuleVersionIdentifier id
+public class IdeProjectDependency extends IdeDependency {
+    private final Project project;
+
+    public IdeProjectDependency(Configuration declaredConfiguration, Project project) {
+        super(declaredConfiguration);
+        this.project = project;
+    }
+
+    public Project getProject() {
+        return project;
+    }
 }

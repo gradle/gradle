@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.ide.internal.resolver
+package org.gradle.plugins.ide.internal.resolver;
 
-import org.gradle.api.Project
-import org.gradle.api.artifacts.Configuration
-import org.gradle.plugins.ide.internal.resolver.model.IdeLocalFileDependency
-import org.gradle.plugins.ide.internal.resolver.model.IdeProjectDependency
-import org.gradle.plugins.ide.internal.resolver.model.IdeRepoFileDependency
-import org.gradle.plugins.ide.internal.resolver.model.UnresolvedIdeRepoFileDependency
+import org.gradle.api.Project;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.plugins.ide.internal.resolver.model.IdeLocalFileDependency;
+import org.gradle.plugins.ide.internal.resolver.model.IdeProjectDependency;
+import org.gradle.plugins.ide.internal.resolver.model.IdeRepoFileDependency;
+import org.gradle.plugins.ide.internal.resolver.model.UnresolvedIdeRepoFileDependency;
 
-interface IdeDependencyResolver {
+import java.util.List;
+
+public interface IdeDependencyResolver {
     /**
      * Gets IDE project dependencies for a given configuration.
      *
@@ -31,7 +33,7 @@ interface IdeDependencyResolver {
      * @param project Project
      * @return List of resolved IDE project dependencies
      */
-    List<IdeProjectDependency> getIdeProjectDependencies(Configuration configuration, Project project)
+    List<IdeProjectDependency> getIdeProjectDependencies(Configuration configuration, Project project);
 
     /**
      * Gets unresolved IDE repository file dependencies for a given configuration.
@@ -39,7 +41,7 @@ interface IdeDependencyResolver {
      * @param configuration Configuration
      * @return List of unresolved IDE repository file dependencies
      */
-    List<UnresolvedIdeRepoFileDependency> getUnresolvedIdeRepoFileDependencies(Configuration configuration)
+    List<UnresolvedIdeRepoFileDependency> getUnresolvedIdeRepoFileDependencies(Configuration configuration);
 
     /**
      * Gets IDE repository file dependencies for a given configuration.
@@ -47,7 +49,7 @@ interface IdeDependencyResolver {
      * @param configuration Configuration
      * @return List of IDE repository file dependencies
      */
-    List<IdeRepoFileDependency> getIdeRepoFileDependencies(Configuration configuration)
+    List<IdeRepoFileDependency> getIdeRepoFileDependencies(Configuration configuration);
 
     /**
      * Gets IDE local file dependencies for a given configuration.
@@ -55,5 +57,5 @@ interface IdeDependencyResolver {
      * @param configuration Configuration
      * @return List of IDE local file dependencies
      */
-    List<IdeLocalFileDependency> getIdeLocalFileDependencies(Configuration configuration)
+    List<IdeLocalFileDependency> getIdeLocalFileDependencies(Configuration configuration);
 }
