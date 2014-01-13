@@ -20,12 +20,10 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.tasks.diagnostics.internal.insight.DescribableComponentSelectionReason;
 
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
 
 public class DependencyReportHeader implements RenderableDependency {
     private final DependencyEdge dependency;
-    private final Set<RenderableDependency> children = Collections.unmodifiableSet(new HashSet<RenderableDependency>());
 
     public DependencyReportHeader(DependencyEdge dependency) {
         this.dependency = dependency;
@@ -48,6 +46,6 @@ public class DependencyReportHeader implements RenderableDependency {
     }
 
     public Set<? extends RenderableDependency> getChildren() {
-        return children;
+        return Collections.emptySet();
     }
 }
