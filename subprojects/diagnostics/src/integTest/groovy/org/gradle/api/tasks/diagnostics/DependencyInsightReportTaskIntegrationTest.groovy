@@ -991,7 +991,7 @@ org:leaf2:1.0
 
         then:
         output.contains(toPlatformLineSeparators("""
-project :impl -> org.foo:impl:1.0-SNAPSHOT
+project :impl
 \\--- compile
 """))
     }
@@ -1080,7 +1080,7 @@ org:leaf4:1.0
 
         then:
         output.contains(toPlatformLineSeparators("""
-project :api -> org.foo:api:1.0-SNAPSHOT
+project :api
 \\--- project :impl
      \\--- compile
 """))
