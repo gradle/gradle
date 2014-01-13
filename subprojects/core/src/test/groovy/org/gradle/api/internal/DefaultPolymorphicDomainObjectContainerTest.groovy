@@ -200,7 +200,8 @@ class DefaultPolymorphicDomainObjectContainerTest extends Specification {
         container.maybeCreate("fred", AgeAwarePerson)
 
         then:
-        thrown(ClassCastException)
+        ClassCastException e = thrown()
+        e.message == "Failed to cast object fred of type ${DefaultPerson.class.name} to target type ${AgeAwarePerson.class.name}"
     }
 
     def "throws meaningful exception if it doesn't support creating domain objects with the specified type"() {

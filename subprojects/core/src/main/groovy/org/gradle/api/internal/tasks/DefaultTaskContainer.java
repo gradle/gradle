@@ -23,6 +23,7 @@ import org.gradle.api.internal.NamedDomainObjectContainerConfigureDelegate;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.initialization.ProjectAccessListener;
+import org.gradle.internal.Transformers;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
 import org.gradle.internal.graph.DirectedGraph;
 import org.gradle.internal.reflect.Instantiator;
@@ -70,7 +71,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     public <U extends Task> U maybeCreate(String name, Class<U> type) throws InvalidUserDataException {
         Task existing = findByName(name);
         if (existing != null) {
-            return type.cast(existing);
+            return Transformers.cast(type).transform(existing);
         }
         return create(name, type);
     }
