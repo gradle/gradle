@@ -365,6 +365,6 @@ project(':impl') {
         assert content.count("someDependency.jar") == 1
         assert content.count("artifactTwo-1.0.jar") == 1
         assert content.count("someApiProject") == 1
-        assert content.count("unresolved dependency - i.dont:Exist:1.0") == 1
+        assert content.count("unresolved dependency - i.dont Exist 1.0") == 1
     }
 }

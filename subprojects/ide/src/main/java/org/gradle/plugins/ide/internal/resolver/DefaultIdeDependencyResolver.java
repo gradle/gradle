@@ -118,7 +118,7 @@ public class DefaultIdeDependencyResolver implements IdeDependencyResolver {
      * @return Unresolved file name
      */
     private String unresolvedFileName(ComponentSelector componentSelector) {
-        return "unresolved dependency - " + componentSelector.getDisplayName();
+        return "unresolved dependency - " + componentSelector.getDisplayName().replaceAll(":", " ");
     }
 
     /**
