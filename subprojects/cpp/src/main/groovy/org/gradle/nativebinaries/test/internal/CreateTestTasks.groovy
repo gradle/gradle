@@ -42,7 +42,7 @@ public class CreateTestTasks extends ModelRule {
 
             def runTask = tasks.create(namingScheme.getTaskName("run"), RunTestExecutable)
             runTask.setDescription("Runs the " + binary.getDisplayName())
-            runTask.dependsOn(installTask)
+            runTask.inputs.files(installTask.outputs.files)
 
             runTask.conventionMapping.testExecutable = { installTask.runScript }
             runTask.conventionMapping.outputDir = { project.file("${project.buildDir}/test-results/${namingScheme.outputDirectoryBase}") }
