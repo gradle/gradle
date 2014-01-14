@@ -19,6 +19,7 @@ package org.gradle.ide.visualstudio;
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.language.base.BuildableModelElement;
+import org.gradle.nativebinaries.ProjectNativeComponent;
 
 /**
  * A visual studio project, created from one or more {@link org.gradle.nativebinaries.NativeBinary} instances.
@@ -44,6 +45,11 @@ import org.gradle.language.base.BuildableModelElement;
  */
 @Incubating
 public interface VisualStudioProject extends Named, BuildableModelElement {
+    /**
+     * The component that this project represents.
+     */
+    ProjectNativeComponent getComponent();
+
     /**
      * Configuration for the generated project file.
      */

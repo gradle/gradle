@@ -64,6 +64,10 @@ class DefaultVisualStudioProject extends AbstractBuildableModelElement implement
         return filtersFile
     }
 
+    ProjectNativeComponent getComponent() {
+        return component
+    }
+
     String getUuid() {
         String projectPath = (component as ProjectNativeComponentInternal).projectPath
         String vsComponentPath = "${projectPath}:${name}"
