@@ -18,12 +18,13 @@ package org.gradle.nativebinaries;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
+import org.gradle.internal.HasInternalProtocol;
 import org.gradle.language.base.LanguageSourceSet;
 
 /**
  * Represents a logical software component, which may be built in a number of variant binaries.
  */
-@Incubating
+@Incubating @HasInternalProtocol
 public interface ProjectNativeComponent extends Named {
     /**
      * Returns a human-consumable display name for this component.
