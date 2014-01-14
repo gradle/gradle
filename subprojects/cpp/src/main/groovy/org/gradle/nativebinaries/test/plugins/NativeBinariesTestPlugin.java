@@ -51,7 +51,7 @@ public class NativeBinariesTestPlugin implements Plugin<ProjectInternal> {
 
         File buildDir = project.getBuildDir();
 
-        modelRules.register("testSuites", new DefaultTestSuiteContainer(instantiator, project));
+        modelRules.register("testSuites", new DefaultTestSuiteContainer(instantiator));
         modelRules.rule(new CreateTestBinaries(instantiator, resolver, buildDir));
         modelRules.rule(new CreateTestTasks(project));
     }

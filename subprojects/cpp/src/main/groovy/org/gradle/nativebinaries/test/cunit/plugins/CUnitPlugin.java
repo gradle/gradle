@@ -19,6 +19,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.model.ModelRules;
+import org.gradle.nativebinaries.test.cunit.internal.ConfigureCUnitTestSources;
 import org.gradle.nativebinaries.test.cunit.internal.CreateCUnitTestSuites;
 import org.gradle.nativebinaries.test.plugins.NativeBinariesTestPlugin;
 
@@ -41,5 +42,6 @@ public class CUnitPlugin implements Plugin<ProjectInternal> {
         project.getPlugins().apply(NativeBinariesTestPlugin.class);
 
         modelRules.config("testSuites", new CreateCUnitTestSuites(project));
+        modelRules.rule(new ConfigureCUnitTestSources(project));
     }
 }

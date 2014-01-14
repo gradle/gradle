@@ -18,16 +18,11 @@ package org.gradle.nativebinaries.test.cunit.internal;
 import org.gradle.api.Action;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.ExtensionAware;
-import org.gradle.language.base.FunctionalSourceSet;
-import org.gradle.language.base.ProjectSourceSet;
-import org.gradle.language.c.CSourceSet;
 import org.gradle.nativebinaries.*;
+import org.gradle.nativebinaries.internal.NativeProjectComponentIdentifier;
 import org.gradle.nativebinaries.language.internal.DefaultPreprocessingTool;
-import org.gradle.nativebinaries.test.TestSuite;
 import org.gradle.nativebinaries.test.TestSuiteContainer;
-import org.gradle.nativebinaries.test.cunit.tasks.GenerateCUnitLauncher;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -42,51 +37,12 @@ public class CreateCUnitTestSuites implements Action<TestSuiteContainer> {
     public void execute(TestSuiteContainer testSuites) {
         for (ProjectNativeComponent component : allComponents()) {
             String suiteName = component.getName() + "Test";
-            TestSuite testSuite = testSuites.create(suiteName);
-            addCLanguageExtension(testSuite);
-            addComponentCUnitSources(testSuite, component);
+            NativeProjectComponentIdentifier id = new NativeProjectComponentIdentifier(project.getPath(), suiteName);
+            DefaultCUnitTestSuite cUnitTestSuite = new DefaultCUnitTestSuite(id, component);
+            addCLanguageExtension(cUnitTestSuite);
+            testSuites.add(cUnitTestSuite);
         }
     }
-
-    // TODO:DAZ This is getting terrible. Add a components container, then this would be handled by the CNativeBinariesPlugin
-    private void addCLanguageExtension(ProjectNativeComponent component) {
-        component.getBinaries().all(new Action<NativeBinary>() {
-            public void execute(NativeBinary nativeBinary) {
-                ((ExtensionAware) nativeBinary).getExtensions().create("cCompiler", DefaultPreprocessingTool.class);
-            }
-        });
-    }
-
-    // TODO:DAZ This should be in a separate rule
-    private void addComponentCUnitSources(TestSuite suite, ProjectNativeComponent testedComponent) {
-        ProjectSourceSet projectSourceSet = project.getExtensions().getByType(ProjectSourceSet.class);
-        FunctionalSourceSet componentTestSources = projectSourceSet.maybeCreate(suite.getName());
-        CSourceSet cunitSourceSet = createCUnitSourceSet(testedComponent, componentTestSources);
-        suite.source(cunitSourceSet);
-        suite.source(testedComponent.getSource());
-    }
-
-    private CSourceSet createCUnitSourceSet(ProjectNativeComponent testedComponent, FunctionalSourceSet componentTestSources) {
-        CSourceSet cunitSourceSet = componentTestSources.maybeCreate("cunit", CSourceSet.class);
-        // TODO:DAZ This duplicates ApplySourceSetConventions, but is executed _after_ that rule.
-        if (cunitSourceSet.getSource().getSrcDirs().isEmpty()) {
-            cunitSourceSet.getSource().srcDir(String.format("src/%s/%s", componentTestSources.getName(), cunitSourceSet.getName()));
-        }
-        cunitSourceSet.lib(testedComponent.getSource().withType(CSourceSet.class));
-        createCUnitLauncherTask(cunitSourceSet);
-        return cunitSourceSet;
-    }
-
-    private void createCUnitLauncherTask(CSourceSet cunitSourceSet) {
-        String taskName = cunitSourceSet.getName() + "Launcher";
-        GenerateCUnitLauncher skeletonTask = project.getTasks().create(taskName, GenerateCUnitLauncher.class);
-
-        // TODO:DAZ Can't use 'generatedBy' because the ConfigureGeneratedSourceSets action runs before this (need to make it a rule)
-        skeletonTask.setSourceDir(new File(project.getBuildDir(), "src/" + taskName));
-        cunitSourceSet.builtBy(skeletonTask);
-        cunitSourceSet.getSource().srcDir(skeletonTask.getSourceDir());
-    }
-
     private Collection<ProjectNativeComponent> allComponents() {
         ExecutableContainer executables = project.getExtensions().getByType(ExecutableContainer.class);
         LibraryContainer libraries = project.getExtensions().getByType(LibraryContainer.class);
@@ -99,6 +55,15 @@ public class CreateCUnitTestSuites implements Action<TestSuiteContainer> {
             components.add(executable);
         }
         return components;
+    }
+
+    // TODO:DAZ This is getting terrible. Add a components container, then this would be handled by the CNativeBinariesPlugin
+    private void addCLanguageExtension(ProjectNativeComponent component) {
+        component.getBinaries().all(new Action<NativeBinary>() {
+            public void execute(NativeBinary nativeBinary) {
+                ((ExtensionAware) nativeBinary).getExtensions().create("cCompiler", DefaultPreprocessingTool.class);
+            }
+        });
     }
 
 }
