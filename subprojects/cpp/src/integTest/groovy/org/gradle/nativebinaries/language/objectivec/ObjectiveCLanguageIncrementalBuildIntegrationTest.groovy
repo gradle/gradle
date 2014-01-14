@@ -22,8 +22,10 @@ import org.gradle.nativebinaries.language.cpp.fixtures.app.IncrementalHelloWorld
 import org.gradle.nativebinaries.language.cpp.fixtures.app.ObjectiveCHelloWorldApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Ignore
 
 @Requires(TestPrecondition.NOT_WINDOWS)
+@Ignore
 class ObjectiveCLanguageIncrementalBuildIntegrationTest extends AbstractLanguageIncrementalBuildIntegrationTest{
 
     def setupSpec(){
