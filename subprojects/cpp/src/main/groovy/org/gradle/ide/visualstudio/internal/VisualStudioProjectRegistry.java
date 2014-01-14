@@ -42,14 +42,19 @@ public class VisualStudioProjectRegistry extends DefaultNamedDomainObjectSet<Def
     public void addProjectConfiguration(ProjectNativeBinary nativeBinary) {
         VisualStudioProjectMapper.ProjectConfigurationNames names = projectMapper.mapToConfiguration(nativeBinary);
         DefaultVisualStudioProject project = getOrCreateProject(nativeBinary, names.project);
-        VisualStudioProjectConfiguration configuration = new VisualStudioProjectConfiguration(project, names.configuration, names.platform, nativeBinary, configurationType(nativeBinary));
+        VisualStudioProjectConfiguration configuration = createVisualStudioProjectConfiguration(nativeBinary, project, names.configuration, names.platform);
         project.addConfiguration(nativeBinary, configuration);
+    }
+
+    private VisualStudioProjectConfiguration createVisualStudioProjectConfiguration(ProjectNativeBinary nativeBinary, DefaultVisualStudioProject project, String configuration, String platform) {
+        return getInstantiator().newInstance(
+                VisualStudioProjectConfiguration.class, project, configuration, platform, nativeBinary, configurationType(nativeBinary));
     }
 
     private DefaultVisualStudioProject getOrCreateProject(ProjectNativeBinary nativeBinary, String projectName) {
         DefaultVisualStudioProject vsProject = findByName(projectName);
         if (vsProject == null) {
-            vsProject = new DefaultVisualStudioProject(projectName, nativeBinary.getComponent(), fileResolver, projectResolver, getInstantiator());
+            vsProject = getInstantiator().newInstance(DefaultVisualStudioProject.class, projectName, nativeBinary.getComponent(), fileResolver, projectResolver, getInstantiator());
             vsProject.source(nativeBinary.getSource());
             add(vsProject);
         }

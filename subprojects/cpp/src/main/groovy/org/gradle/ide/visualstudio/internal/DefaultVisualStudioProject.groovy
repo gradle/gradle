@@ -37,12 +37,12 @@ import org.gradle.util.CollectionUtils
  */
 class DefaultVisualStudioProject extends AbstractBuildableModelElement implements VisualStudioProject {
     final VisualStudioProjectResolver projectResolver
-    final String name
-    final ProjectNativeComponent component
-    final List<LanguageSourceSet> sources = new ArrayList<LanguageSourceSet>()
-    final Map<NativeBinary, VisualStudioProjectConfiguration> configurations = [:]
-    final DefaultConfigFile projectFile
-    final DefaultConfigFile filtersFile
+    private final String name
+    private final DefaultConfigFile projectFile
+    private final DefaultConfigFile filtersFile
+    private final ProjectNativeComponent component
+    private final List<LanguageSourceSet> sources = new ArrayList<LanguageSourceSet>()
+    private final Map<NativeBinary, VisualStudioProjectConfiguration> configurations = [:]
 
     DefaultVisualStudioProject(String name, ProjectNativeComponent component, FileResolver fileResolver, VisualStudioProjectResolver projectResolver, Instantiator instantiator) {
         this.name = name
@@ -50,6 +50,18 @@ class DefaultVisualStudioProject extends AbstractBuildableModelElement implement
         this.projectResolver = projectResolver
         projectFile = instantiator.newInstance(DefaultConfigFile, fileResolver, "visualStudio/${name}.vcxproj" as String)
         filtersFile = instantiator.newInstance(DefaultConfigFile, fileResolver, "visualStudio/${name}.vcxproj.filters" as String)
+    }
+
+    String getName() {
+        return name
+    }
+
+    DefaultConfigFile getProjectFile() {
+        return projectFile
+    }
+
+    DefaultConfigFile getFiltersFile() {
+        return filtersFile
     }
 
     String getUuid() {
@@ -99,7 +111,7 @@ class DefaultVisualStudioProject extends AbstractBuildableModelElement implement
         component.binaries.each { ProjectNativeBinaryInternal binary ->
             for (LibraryBinary library : binary.dependentBinaries) {
                 if (library instanceof ProjectNativeBinary) {
-                    projects << projectResolver.lookupProjectConfiguration(library).getProject()
+                    projects << getProjectResolver().lookupProjectConfiguration(library).getProject()
                 }
             }
         }

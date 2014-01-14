@@ -29,9 +29,9 @@ import org.gradle.nativebinaries.ProjectNativeComponent
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
 
 class DefaultVisualStudioSolution extends AbstractBuildableModelElement implements VisualStudioSolution {
-    final String name
-    final String configurationName
-    final SolutionFile solutionFile
+    private final String name
+    private final String configurationName
+    private final SolutionFile solutionFile
     private final ProjectNativeBinaryInternal rootBinary
     private final VisualStudioProjectResolver vsProjectResolver
 
@@ -42,6 +42,18 @@ class DefaultVisualStudioSolution extends AbstractBuildableModelElement implemen
         this.rootBinary = rootBinary as ProjectNativeBinaryInternal
         this.vsProjectResolver = vsProjectResolver
         this.solutionFile = instantiator.newInstance(SolutionFile, fileResolver, "visualStudio/${name}.sln" as String)
+    }
+
+    String getName() {
+        return name
+    }
+
+    String getConfigurationName() {
+        return configurationName
+    }
+
+    SolutionFile getSolutionFile() {
+        return solutionFile
     }
 
     ProjectNativeComponent getComponent() {
