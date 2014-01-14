@@ -48,7 +48,7 @@ class SimpleXmlWriterSpec extends Specification {
         writer.endElement()
 
         then:
-        xml == '<?xml version="1.1" encoding="UTF-8"?><root items="9"><item/><item size="10m">some chars and some other chars.<foo> </foo></item></root>'
+        xml == '<?xml version="1.0" encoding="UTF-8"?><root items="9"><item/><item size="10m">some chars and some other chars.<foo> </foo></item></root>'
     }
 
     def "escapes reserved characters in text content"() {
@@ -151,11 +151,11 @@ class SimpleXmlWriterSpec extends Specification {
         writer.startElement("root")
         writer.attribute("name", "\u0084\u0002")
         writer.characters("\u0084\u0002\u009f")
-        writer.startCDATA().characters("\u0084\u0002").endCDATA()
+        writer.startCDATA().characters("\u0084\u0084\u0002").endCDATA()
         writer.endElement()
 
         then:
-        xml.contains('<root name="&#x84;&#x2;">&#x84;&#x2;&#x9f;<![CDATA[]]>&#x84;<![CDATA[]]>&#x2;<![CDATA[]]></root>')
+        xml.contains('<root name="&#x84;?">&#x84;?&#x9f;<![CDATA[]]>&#x84;<![CDATA[]]>&#x84;<![CDATA[?]]></root>')
     }
 
     def "replaces illegal characters in text content"() {
@@ -343,7 +343,7 @@ class SimpleXmlWriterSpec extends Specification {
         writer.endElement()
 
         then:
-        xml == TextUtil.toPlatformLineSeparators('''<?xml version="1.1" encoding="UTF-8"?>
+        xml == TextUtil.toPlatformLineSeparators('''<?xml version="1.0" encoding="UTF-8"?>
 <root items="9">
     <item/>
     <item>some text</item>

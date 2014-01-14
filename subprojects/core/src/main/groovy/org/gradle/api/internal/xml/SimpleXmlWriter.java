@@ -40,6 +40,6 @@ public class SimpleXmlWriter extends SimpleMarkupWriter {
     }
 
     private void writeXmlDeclaration(String encoding) throws IOException {
-        writeRaw(String.format("<?xml version=\"1.1\" encoding=\"%s\"?>", encoding));
+        writeRaw(String.format("<?xml version=\"1.0\" encoding=\"%s\"?>", encoding));
     }
 }
