@@ -520,6 +520,9 @@
                 <td>org.gradle.language.cpp.CppSourceSet</td>
             </tr>
             <tr>
+                <td>org.gradle.language.objectivec.ObjectiveCSourceSet</td>
+            </tr>
+            <tr>
                 <td>org.gradle.language.rc.WindowsResourceSet</td>
             </tr>
             <tr>
@@ -543,6 +546,9 @@
             </tr>
             <tr>
                 <td>org.gradle.nativebinaries.language.assembler.tasks.Assemble</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativebinaries.language.objectivec.tasks.ObjectiveCCompile</td>
             </tr>
             <tr>
                 <td>org.gradle.nativebinaries.tasks.LinkExecutable</td>
