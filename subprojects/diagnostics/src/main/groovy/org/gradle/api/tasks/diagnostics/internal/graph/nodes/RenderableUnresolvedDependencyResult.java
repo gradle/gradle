@@ -16,13 +16,9 @@
 
 package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
-import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
-import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.component.DefaultProjectComponentIdentifier;
 
 import java.util.Collections;
 import java.util.Set;
@@ -38,27 +34,12 @@ public class RenderableUnresolvedDependencyResult implements RenderableDependenc
         return false;
     }
 
-    protected ComponentSelector getRequested() {
-        return dependency.getRequested();
-    }
-
-    protected ComponentIdentifier getActual() {
-        return null;
-    }
-
     public Set<RenderableDependency> getChildren() {
         return Collections.emptySet();
     }
 
-    public ComponentIdentifier getId() {
-        ComponentSelector attempted = dependency.getAttempted();
-
-        if(attempted instanceof ProjectComponentSelector) {
-            return DefaultProjectComponentIdentifier.newId(((ProjectComponentSelector) attempted).getProjectPath());
-        }
-
-        ModuleComponentSelector moduleComponentSelector = (ModuleComponentSelector)attempted;
-        return DefaultModuleComponentIdentifier.newId(moduleComponentSelector.getGroup(), moduleComponentSelector.getModule(), moduleComponentSelector.getVersion());
+    public Object getId() {
+        return dependency.getAttempted();
     }
 
     public String getDescription() {
@@ -78,8 +59,8 @@ public class RenderableUnresolvedDependencyResult implements RenderableDependenc
             ModuleComponentSelector attemptedSelector = (ModuleComponentSelector)attempted;
 
             if(requestedSelector.getGroup().equals(attemptedSelector.getGroup())
-               && requestedSelector.getModule().equals(attemptedSelector.getModule())
-               && !requestedSelector.getVersion().equals(attemptedSelector.getVersion())) {
+                    && requestedSelector.getModule().equals(attemptedSelector.getModule())
+                    && !requestedSelector.getVersion().equals(attemptedSelector.getVersion())) {
                 return requested.getDisplayName() + " -> " + ((ModuleComponentSelector) attempted).getVersion();
             }
         }

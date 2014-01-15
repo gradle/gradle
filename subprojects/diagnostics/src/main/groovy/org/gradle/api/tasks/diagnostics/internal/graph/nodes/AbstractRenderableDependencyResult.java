@@ -31,16 +31,14 @@ public abstract class AbstractRenderableDependencyResult implements RenderableDe
         ComponentIdentifier selected = getActual();
 
         if(requested.matchesStrictly(selected)) {
-            return requested.getDisplayName();
+            return getSimpleName();
         }
 
         if(requested instanceof ModuleComponentSelector && selected instanceof ModuleComponentIdentifier) {
             ModuleComponentSelector requestedModuleComponentSelector = (ModuleComponentSelector)requested;
             ModuleComponentIdentifier selectedModuleComponentedIdentifier = (ModuleComponentIdentifier)selected;
 
-            if(requestedModuleComponentSelector.getGroup().equals(selectedModuleComponentedIdentifier.getGroup())
-                    && requestedModuleComponentSelector.getModule().equals(selectedModuleComponentedIdentifier.getModule())
-                    && !requestedModuleComponentSelector.getVersion().equals(selectedModuleComponentedIdentifier.getVersion())) {
+            if(isSameGroupAndModuleButDifferentVersion(requestedModuleComponentSelector, selectedModuleComponentedIdentifier)) {
                 return getSimpleName() + " -> " + selectedModuleComponentedIdentifier.getVersion();
             }
         }
@@ -48,6 +46,22 @@ public abstract class AbstractRenderableDependencyResult implements RenderableDe
         return getSimpleName() + " -> " + selected.getDisplayName();
     }
 
+    /**
+     * Checks if requested and selected module component differ by version.
+     *
+     * @param requested Requested module component selector
+     * @param selected Selected module component identifier
+     * @return Indicates whether version differs
+     */
+    private boolean isSameGroupAndModuleButDifferentVersion(ModuleComponentSelector requested, ModuleComponentIdentifier selected) {
+        return requested.getGroup().equals(selected.getGroup()) && requested.getModule().equals(selected.getModule()) && !requested.getVersion().equals(selected.getVersion());
+    }
+
+    /**
+     * Gets simple name of requested component selector.
+     *
+     * @return Display name of requested component selector
+     */
     private String getSimpleName() {
         return getRequested().getDisplayName();
     }
