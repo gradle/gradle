@@ -27,11 +27,8 @@ import java.net.URISyntaxException;
 import java.util.Properties;
 
 public class GradleWrapperMain {
-    public static final String DEFAULT_GRADLE_USER_HOME = System.getProperty("user.home") + "/.gradle";
     public static final String GRADLE_USER_HOME_OPTION = "g";
     public static final String GRADLE_USER_HOME_DETAILED_OPTION = "gradle-user-home";
-    public static final String GRADLE_USER_HOME_PROPERTY_KEY = "gradle.user.home";
-    public static final String GRADLE_USER_HOME_ENV_KEY = "GRADLE_USER_HOME";
 
     public static void main(String[] args) throws Exception {
         File wrapperJar = wrapperJar();
@@ -113,13 +110,6 @@ public class GradleWrapperMain {
         if (options.hasOption(GRADLE_USER_HOME_OPTION)) {
             return new File(options.option(GRADLE_USER_HOME_OPTION).getValue());
         }
-        String gradleUserHome;
-        if ((gradleUserHome = System.getProperty(GRADLE_USER_HOME_PROPERTY_KEY)) != null) {
-            return new File(gradleUserHome);
-        }
-        if ((gradleUserHome = System.getenv(GRADLE_USER_HOME_ENV_KEY)) != null) {
-            return new File(gradleUserHome);
-        }
-        return new File(DEFAULT_GRADLE_USER_HOME);
+        return GradleUserHomeLookup.gradleUserHome();
     }
 }
