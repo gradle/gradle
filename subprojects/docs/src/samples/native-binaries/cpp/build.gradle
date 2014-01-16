@@ -1,5 +1,5 @@
 // START SNIPPET apply-plugin
-apply plugin: 'objective-c'
+apply plugin: 'cpp'
 // END SNIPPET apply-plugin
 
 // START SNIPPET libraries
@@ -17,7 +17,7 @@ executables {
 // START SNIPPET source-library
 sources {
     main {
-        objectiveC{
+        cpp {
             lib libraries.hello
         }
     }
