@@ -43,7 +43,7 @@ public abstract class TabbedPageRenderer<T> extends ReportRenderer<T, SimpleHtml
     public void render(final T model, SimpleHtmlWriter htmlWriter) throws IOException {
         this.model = model;
         htmlWriter.startElement("head")
-            .startElement("meta").attribute("httpEquiv", "Content-Type").attribute("content", "text/html; charset=utf-8").endElement()
+            .startElement("meta").attribute("http-equiv", "Content-Type").attribute("content", "text/html; charset=utf-8").endElement()
             .startElement("title").characters(getPageTitle()).endElement()
             .startElement("link").attribute("href", "css/base-style.css").attribute("rel", "stylesheet").attribute("type", "text/css").endElement()
             .startElement("link").attribute("href", "css/style.css").attribute("rel", "stylesheet").attribute("type", "text/css").endElement()
