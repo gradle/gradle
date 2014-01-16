@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,25 @@ import org.gradle.integtests.fixtures.executer.GradleExecuter;
 import org.gradle.performance.measure.MeasuredOperation;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.List;
 
-public interface DataCollector {
-    void beforeExecute(GradleExecuter executer);
+public class CompositeDataCollector implements DataCollector {
+    private final List<DataCollector> collectors;
 
-    void collect(File testProjectDir, MeasuredOperation operation);
+    public CompositeDataCollector(DataCollector... collectors) {
+        this.collectors = Arrays.asList(collectors);
+    }
+
+    public void beforeExecute(GradleExecuter executer) {
+        for (DataCollector collector : collectors) {
+            collector.beforeExecute(executer);
+        }
+    }
+
+    public void collect(File testProjectDir, MeasuredOperation operation) {
+        for (DataCollector collector : collectors) {
+            collector.collect(testProjectDir, operation);
+        }
+    }
 }

@@ -57,8 +57,8 @@ class PerformanceTestRunnerTest extends ResultSpecification {
         results.jvm
         results.operatingSystem
         results.current.size() == 4
-        results.current.avgTime() == Duration.seconds(10)
-        results.current.avgMemory() == DataAmount.kbytes(10)
+        results.current.executionTime.average == Duration.seconds(10)
+        results.current.totalMemoryUsed.average == DataAmount.kbytes(10)
         results.baselineVersions*.version == ['1.0', '1.1']
         results.baseline('1.0').results.size() == 4
         results.baseline('1.1').results.size() == 4
@@ -67,8 +67,8 @@ class PerformanceTestRunnerTest extends ResultSpecification {
 
         and:
         // warmup runs are discarded
-        3 * timer.measure(_) >> operation(executionTime: Duration.seconds(100), heapUsed: DataAmount.kbytes(100))
-        12 * timer.measure(_) >> operation(executionTime: Duration.seconds(10), heapUsed: DataAmount.kbytes(10))
+        3 * timer.measure(_) >> operation(executionTime: Duration.seconds(100), totalMemoryUsed: DataAmount.kbytes(100))
+        12 * timer.measure(_) >> operation(executionTime: Duration.seconds(10), totalMemoryUsed: DataAmount.kbytes(10))
         1 * reporter.report(_)
         0 * timer._
         0 * reporter._

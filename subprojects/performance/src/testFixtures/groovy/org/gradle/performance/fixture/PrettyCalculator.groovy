@@ -24,16 +24,8 @@ import java.math.RoundingMode
 
 class PrettyCalculator {
 
-    static String prettyBytes(Amount<DataAmount> bytes) {
-        return bytes.format()
-    }
-
     static String toBytes(Amount<DataAmount> bytes) {
         return bytes.toUnits(DataAmount.BYTES).value.setScale(3, RoundingMode.HALF_UP).stripTrailingZeros().toString() + " B"
-    }
-
-    static String prettyTime(Amount<Duration> duration) {
-        return duration.format()
     }
 
     static String toMillis(Amount<Duration> duration) {

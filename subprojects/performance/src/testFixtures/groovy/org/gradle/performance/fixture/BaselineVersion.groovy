@@ -46,7 +46,7 @@ class BaselineVersion {
         }
         def diff = current.avgTime() - results.avgTime()
         def desc = diff > Duration.millis(0) ? "slower" : "faster"
-        sb.append("Difference: ${prettyTime(diff.abs())} $desc (${toMillis(diff.abs())}), ${PrettyCalculator.percentChange(current.avgTime(), results.avgTime())}%, max regression: ${prettyTime(maxExecutionTimeRegression)}\n")
+        sb.append("Difference: ${diff.abs().format()} $desc (${toMillis(diff.abs())}), ${PrettyCalculator.percentChange(current.avgTime(), results.avgTime())}%, max regression: ${maxExecutionTimeRegression.format()}\n")
         sb.append(current.speedStats)
         sb.append(results.speedStats)
         sb.append("\n")
@@ -62,7 +62,7 @@ class BaselineVersion {
         }
         def diff = current.avgMemory() - results.avgMemory()
         def desc = diff > DataAmount.bytes(0) ? "more" : "less"
-        sb.append("Difference: ${prettyBytes(diff.abs())} $desc (${toBytes(diff.abs())}), ${PrettyCalculator.percentChange(current.avgMemory(), results.avgMemory())}%, max regression: ${prettyBytes(maxMemoryRegression)}\n")
+        sb.append("Difference: ${diff.abs().format()} $desc (${toBytes(diff.abs())}), ${PrettyCalculator.percentChange(current.avgMemory(), results.avgMemory())}%, max regression: ${maxMemoryRegression.format()}\n")
         sb.append(current.memoryStats)
         sb.append(results.memoryStats)
         sb.append("\n")

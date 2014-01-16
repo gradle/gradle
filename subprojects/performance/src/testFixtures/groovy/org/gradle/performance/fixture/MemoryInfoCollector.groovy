@@ -16,12 +16,15 @@
 
 package org.gradle.performance.fixture
 
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.performance.measure.DataAmount
 import org.gradle.performance.measure.MeasuredOperation
 
 public class MemoryInfoCollector implements DataCollector {
-
     String outputFileName
+
+    public void beforeExecute(GradleExecuter executer) {
+    }
 
     public void collect(File testProjectDir, MeasuredOperation operation) {
         def file = new File(testProjectDir, outputFileName).canonicalFile

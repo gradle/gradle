@@ -87,18 +87,18 @@ class PerformanceResultsTest extends ResultSpecification {
 
     def "passes when average heap usage for current release is smaller than average heap usage for previous releases"() {
         given:
-        result.baseline("1.0").results << operation(heapUsed: 1000)
-        result.baseline("1.0").results << operation(heapUsed: 1000)
-        result.baseline("1.0").results << operation(heapUsed: 1000)
+        result.baseline("1.0").results << operation(totalMemoryUsed: 1000)
+        result.baseline("1.0").results << operation(totalMemoryUsed: 1000)
+        result.baseline("1.0").results << operation(totalMemoryUsed: 1000)
 
-        result.baseline("1.3").results << operation(heapUsed: 800)
-        result.baseline("1.3").results << operation(heapUsed: 1000)
-        result.baseline("1.3").results << operation(heapUsed: 1200)
+        result.baseline("1.3").results << operation(totalMemoryUsed: 800)
+        result.baseline("1.3").results << operation(totalMemoryUsed: 1000)
+        result.baseline("1.3").results << operation(totalMemoryUsed: 1200)
 
         and:
-        result.current << operation(heapUsed: 1000)
-        result.current << operation(heapUsed: 1005)
-        result.current << operation(heapUsed: 994)
+        result.current << operation(totalMemoryUsed: 1000)
+        result.current << operation(totalMemoryUsed: 1005)
+        result.current << operation(totalMemoryUsed: 994)
 
         expect:
         result.assertCurrentVersionHasNotRegressed()
@@ -107,19 +107,19 @@ class PerformanceResultsTest extends ResultSpecification {
     def "passes when average heap usage for current release is slightly larger than average heap usage for previous releases"() {
         given:
         result.baseline("1.0").maxMemoryRegression = DataAmount.bytes(100)
-        result.baseline("1.0").results << operation(heapUsed: 1000)
-        result.baseline("1.0").results << operation(heapUsed: 1000)
-        result.baseline("1.0").results << operation(heapUsed: 1000)
+        result.baseline("1.0").results << operation(totalMemoryUsed: 1000)
+        result.baseline("1.0").results << operation(totalMemoryUsed: 1000)
+        result.baseline("1.0").results << operation(totalMemoryUsed: 1000)
 
         result.baseline("1.3").maxMemoryRegression = DataAmount.bytes(100)
-        result.baseline("1.3").results << operation(heapUsed: 900)
-        result.baseline("1.3").results << operation(heapUsed: 1000)
-        result.baseline("1.3").results << operation(heapUsed: 1100)
+        result.baseline("1.3").results << operation(totalMemoryUsed: 900)
+        result.baseline("1.3").results << operation(totalMemoryUsed: 1000)
+        result.baseline("1.3").results << operation(totalMemoryUsed: 1100)
 
         and:
-        result.current << operation(heapUsed: 1100)
-        result.current << operation(heapUsed: 1100)
-        result.current << operation(heapUsed: 1100)
+        result.current << operation(totalMemoryUsed: 1100)
+        result.current << operation(totalMemoryUsed: 1100)
+        result.current << operation(totalMemoryUsed: 1100)
 
         expect:
         result.assertCurrentVersionHasNotRegressed()
@@ -128,19 +128,19 @@ class PerformanceResultsTest extends ResultSpecification {
     def "fails when average heap usage for current release is larger than average heap usage for previous releases"() {
         given:
         result.baseline("1.0").maxMemoryRegression = DataAmount.bytes(100)
-        result.baseline("1.0").results << operation(heapUsed: 1001)
-        result.baseline("1.0").results << operation(heapUsed: 1001)
-        result.baseline("1.0").results << operation(heapUsed: 1001)
+        result.baseline("1.0").results << operation(totalMemoryUsed: 1001)
+        result.baseline("1.0").results << operation(totalMemoryUsed: 1001)
+        result.baseline("1.0").results << operation(totalMemoryUsed: 1001)
 
         result.baseline("1.2").maxMemoryRegression = DataAmount.bytes(100)
-        result.baseline("1.2").results << operation(heapUsed: 1000)
-        result.baseline("1.2").results << operation(heapUsed: 1000)
-        result.baseline("1.2").results << operation(heapUsed: 1000)
+        result.baseline("1.2").results << operation(totalMemoryUsed: 1000)
+        result.baseline("1.2").results << operation(totalMemoryUsed: 1000)
+        result.baseline("1.2").results << operation(totalMemoryUsed: 1000)
 
         and:
-        result.current << operation(heapUsed: 1100)
-        result.current << operation(heapUsed: 1100)
-        result.current << operation(heapUsed: 1101)
+        result.current << operation(totalMemoryUsed: 1100)
+        result.current << operation(totalMemoryUsed: 1100)
+        result.current << operation(totalMemoryUsed: 1101)
 
         when:
         result.assertCurrentVersionHasNotRegressed()
@@ -154,18 +154,18 @@ class PerformanceResultsTest extends ResultSpecification {
 
     def "fails when both heap usage and execution time have regressed"() {
         given:
-        result.baseline("1.0").results << operation(heapUsed: 1200, executionTime: 150)
-        result.baseline("1.0").results << operation(heapUsed: 1000, executionTime: 100)
-        result.baseline("1.0").results << operation(heapUsed: 1200, executionTime: 150)
+        result.baseline("1.0").results << operation(totalMemoryUsed: 1200, executionTime: 150)
+        result.baseline("1.0").results << operation(totalMemoryUsed: 1000, executionTime: 100)
+        result.baseline("1.0").results << operation(totalMemoryUsed: 1200, executionTime: 150)
 
-        result.baseline("1.2").results << operation(heapUsed: 1000, executionTime: 100)
-        result.baseline("1.2").results << operation(heapUsed: 1000, executionTime: 100)
-        result.baseline("1.2").results << operation(heapUsed: 1000, executionTime: 100)
+        result.baseline("1.2").results << operation(totalMemoryUsed: 1000, executionTime: 100)
+        result.baseline("1.2").results << operation(totalMemoryUsed: 1000, executionTime: 100)
+        result.baseline("1.2").results << operation(totalMemoryUsed: 1000, executionTime: 100)
 
         and:
-        result.current << operation(heapUsed: 1100, executionTime: 110)
-        result.current << operation(heapUsed: 1100, executionTime: 110)
-        result.current << operation(heapUsed: 1101, executionTime: 111)
+        result.current << operation(totalMemoryUsed: 1100, executionTime: 110)
+        result.current << operation(totalMemoryUsed: 1100, executionTime: 110)
+        result.current << operation(totalMemoryUsed: 1101, executionTime: 111)
 
         when:
         result.assertCurrentVersionHasNotRegressed()
@@ -221,15 +221,15 @@ class PerformanceResultsTest extends ResultSpecification {
 
     def "fails if one of the baseline version is faster and the other needs less memory"() {
         given:
-        result.baseline("1.0").results << operation(heapUsed: 1200, executionTime: 100)
-        result.baseline("1.0").results << operation(heapUsed: 1200, executionTime: 100)
+        result.baseline("1.0").results << operation(totalMemoryUsed: 1200, executionTime: 100)
+        result.baseline("1.0").results << operation(totalMemoryUsed: 1200, executionTime: 100)
 
-        result.baseline("1.2").results << operation(heapUsed: 1000, executionTime: 150)
-        result.baseline("1.2").results << operation(heapUsed: 1000, executionTime: 150)
+        result.baseline("1.2").results << operation(totalMemoryUsed: 1000, executionTime: 150)
+        result.baseline("1.2").results << operation(totalMemoryUsed: 1000, executionTime: 150)
 
         and:
-        result.current << operation(heapUsed: 1100, executionTime: 125)
-        result.current << operation(heapUsed: 1100, executionTime: 125)
+        result.current << operation(totalMemoryUsed: 1100, executionTime: 125)
+        result.current << operation(totalMemoryUsed: 1100, executionTime: 125)
 
         when:
         result.assertCurrentVersionHasNotRegressed()
@@ -245,15 +245,15 @@ class PerformanceResultsTest extends ResultSpecification {
 
     def "fails if all of the baseline versions are better in every respect"() {
         given:
-        result.baseline("1.0").results << operation(heapUsed: 1200, executionTime: 120)
-        result.baseline("1.0").results << operation(heapUsed: 1200, executionTime: 120)
+        result.baseline("1.0").results << operation(totalMemoryUsed: 1200, executionTime: 120)
+        result.baseline("1.0").results << operation(totalMemoryUsed: 1200, executionTime: 120)
 
-        result.baseline("1.2").results << operation(heapUsed: 1100, executionTime: 150)
-        result.baseline("1.2").results << operation(heapUsed: 1100, executionTime: 150)
+        result.baseline("1.2").results << operation(totalMemoryUsed: 1100, executionTime: 150)
+        result.baseline("1.2").results << operation(totalMemoryUsed: 1100, executionTime: 150)
 
         and:
-        result.current << operation(heapUsed: 1300, executionTime: 200)
-        result.current << operation(heapUsed: 1300, executionTime: 200)
+        result.current << operation(totalMemoryUsed: 1300, executionTime: 200)
+        result.current << operation(totalMemoryUsed: 1300, executionTime: 200)
 
         when:
         result.assertCurrentVersionHasNotRegressed()

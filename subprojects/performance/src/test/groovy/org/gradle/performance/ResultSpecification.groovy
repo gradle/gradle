@@ -41,7 +41,11 @@ class ResultSpecification extends Specification {
     MeasuredOperation operation(Map<String, Object> args = [:]) {
         def operation = new MeasuredOperation()
         operation.executionTime = args.executionTime instanceof Amount ? args.executionTime : Duration.millis(args?.executionTime ?: 120)
-        operation.totalMemoryUsed = args.heapUsed instanceof Amount ? args.heapUsed : DataAmount.bytes(args?.heapUsed ?: 1024)
+        operation.totalMemoryUsed = args.totalMemoryUsed instanceof Amount ? args.totalMemoryUsed : DataAmount.bytes(args?.totalMemoryUsed ?: 1024)
+        operation.totalHeapUsage = args.totalHeapUsage instanceof Amount ? args.totalHeapUsage : DataAmount.bytes(args?.totalHeapUsage ?: 4096)
+        operation.maxHeapUsage = args.maxHeapUsage instanceof Amount ? args.maxHeapUsage : DataAmount.bytes(args?.maxHeapUsage ?: 2000)
+        operation.maxUncollectedHeap = args.maxUncollectedHeap instanceof Amount ? args.maxUncollectedHeap : DataAmount.bytes(args?.maxUncollectedHeap ?: 120)
+        operation.maxCommittedHeap = args.maxCommittedHeap instanceof Amount ? args.maxCommittedHeap : DataAmount.bytes(args?.maxCommittedHeap ?: 3000)
         operation.exception = args?.failure
         return operation
     }
