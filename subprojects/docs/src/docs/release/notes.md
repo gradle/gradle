@@ -90,13 +90,9 @@ bunch of platforms, build types, and/or flavors, and have the build script choos
 
 #### Current Limitations
 
-The `model { }` DSL is very new, and imposes some DSL limitations. We plan to improve these in the future.
-
 - The `component.target*` methods match on element _name_. It is not possible to supply an element instance at this time.
 
-### Better support for declaring library dependencies when building native binaries (i)
-
-#### New dependency notation
+### Improved notation for declaring library dependencies when building native binaries (i)
 
 When building native binaries, it is now possible to declare a dependency on a library by a dependency notation.
 
@@ -127,9 +123,7 @@ This notation based syntax provides a number of benefits over directly accessing
 - For libraries in another project, the depended-on project does not need to have been evaluated when the dependency declaration is added
 - The linkage is clearly specified
 
-#### Support for header-only libraries
-
-#### Support for api dependencies
+### Header-only library dependencies in native binary projects (i)
 
 There are times when your source may require the headers of a library at compile time, but not require the library binary when linking.
 To support this use case, it is now possible to add a dependency on the 'api' linkage of a library. In this case, the headers
@@ -146,7 +140,7 @@ A dependency on the 'api' linkage can be specified by both the direct and the ma
         }
     }
 
-#### Support for pre-built libraries
+### Pre-built libraries in native binary projects (i)
 
 It would be very unusual for a sophisticated software project not to make some use of 3rd party system libraries.
 In some cases these libraries are already available locally. This version of Gradle makes it possible to reference
@@ -215,10 +209,6 @@ The above example can thus be simplified to:
     }
 
 See the `idl` sample in your Gradle distribution for a working example of generated sources for a native binary.
-
-### CUnit integration (i)
-
-TODO
 
 ### Objective-C and Objective-CPP Support (i)
 
