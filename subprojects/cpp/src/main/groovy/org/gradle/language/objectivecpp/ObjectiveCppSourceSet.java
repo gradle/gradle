@@ -31,7 +31,7 @@ import org.gradle.language.base.LanguageSourceSet;
  *
  * sources {
  *     main {
- *         // Configure an existing ObjectiveCSourceSet
+ *         // Configure an existing ObjectiveCppSourceSet
  *         objectiveCpp {
  *             source {
  *                 srcDirs "src/main/objectiveCpp", "src/shared/objectiveCpp"
