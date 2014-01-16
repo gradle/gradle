@@ -2,9 +2,9 @@
 
 Here are the new features introduced in this Gradle release.
 
-<!--
-### Example new and noteworthy
--->
+### CUnit integration (i)
+
+TODO
 
 ## Promoted features
 
