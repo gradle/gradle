@@ -34,7 +34,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class DistributionFactory {
-    private final File userHomeDir;
+    private File userHomeDir;
 
     public DistributionFactory(File userHomeDir) {
         this.userHomeDir = userHomeDir;
@@ -47,7 +47,7 @@ public class DistributionFactory {
         BuildLayout layout = new BuildLayoutFactory().getLayoutFor(projectDir, searchUpwards);
         WrapperExecutor wrapper = WrapperExecutor.forProjectDirectory(layout.getRootDirectory(), System.out);
         if (wrapper.getDistribution() != null) {
-            return new ZippedDistribution(wrapper.getConfiguration());
+            return new ZippedDistribution(wrapper.getConfiguration(), userHomeDir);
         }
         return getDownloadedDistribution(GradleVersion.current().getVersion());
     }
@@ -73,7 +73,7 @@ public class DistributionFactory {
     public Distribution getDistribution(URI gradleDistribution) {
         WrapperConfiguration configuration = new WrapperConfiguration();
         configuration.setDistribution(gradleDistribution);
-        return new ZippedDistribution(configuration);
+        return new ZippedDistribution(configuration, userHomeDir);
     }
 
     /**
@@ -88,12 +88,33 @@ public class DistributionFactory {
         return getDistribution(distUri);
     }
 
-    private class ZippedDistribution implements Distribution {
+    public Distribution getDistributionForGradleUserHomeDir(Distribution distribution, File userHomeDir) {
+        this.userHomeDir = userHomeDir;
+        if (distribution instanceof DistributionWithUserHomeDir) {
+            return ((DistributionWithUserHomeDir) distribution).withUserHomeDir(userHomeDir);
+        }
+        return distribution;
+    }
+
+    public abstract static class DistributionWithUserHomeDir implements Distribution {
+        public DistributionWithUserHomeDir withUserHomeDir(File userHomeDir) {
+            return this;
+        }
+    }
+
+    private static class ZippedDistribution extends DistributionWithUserHomeDir {
         private InstalledDistribution installedDistribution;
         private final WrapperConfiguration wrapperConfiguration;
+        private final File userHomeDir;
 
-        private ZippedDistribution(WrapperConfiguration wrapperConfiguration) {
+        private ZippedDistribution(WrapperConfiguration wrapperConfiguration, File userHomeDir) {
             this.wrapperConfiguration = wrapperConfiguration;
+            this.userHomeDir = userHomeDir;
+        }
+
+        @Override
+        public DistributionWithUserHomeDir withUserHomeDir(File userHomeDir) {
+            return new ZippedDistribution(wrapperConfiguration, userHomeDir);
         }
 
         public String getDisplayName() {

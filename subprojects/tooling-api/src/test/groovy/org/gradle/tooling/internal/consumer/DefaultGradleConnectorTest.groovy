@@ -51,7 +51,28 @@ class DefaultGradleConnectorTest extends Specification {
         result == connection
 
         and:
+        1 * distributionFactory.getDistributionForGradleUserHomeDir(null, userDir) >> null
         1 * distributionFactory.getDefaultDistribution(projectDir, true) >> distribution
+        1 * connectionFactory.create(distribution, { it.gradleUserHomeDir == userDir }) >> connection
+    }
+
+    def canSpecifyDistributionAndUserHomeDir() {
+        ProjectConnection connection = Mock()
+        URI gradleDist = new URI('http://server/dist.zip')
+        File userDir = new File('user-dir')
+        final Distribution distributionInDefaultUserDir = Mock(DistributionFactory.DistributionWithUserHomeDir)
+
+        when:
+        def result = connector
+                .useDistribution(gradleDist)
+                .useGradleUserHomeDir(userDir).forProjectDirectory(projectDir).connect()
+
+        then:
+        result == connection
+
+        and:
+        1 * distributionFactory.getDistribution(gradleDist) >> distributionInDefaultUserDir
+        1 * distributionFactory.getDistributionForGradleUserHomeDir(distributionInDefaultUserDir, userDir) >> distribution
         1 * connectionFactory.create(distribution, { it.gradleUserHomeDir == userDir }) >> connection
     }
 

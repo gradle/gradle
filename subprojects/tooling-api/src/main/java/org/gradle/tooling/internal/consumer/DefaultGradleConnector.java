@@ -70,6 +70,7 @@ public class DefaultGradleConnector extends GradleConnector {
     }
 
     public GradleConnector useGradleUserHomeDir(File gradleUserHomeDir) {
+        distribution = distributionFactory.getDistributionForGradleUserHomeDir(distribution, gradleUserHomeDir);
         connectionParameters.setGradleUserHomeDir(gradleUserHomeDir);
         return this;
     }

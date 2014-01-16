@@ -130,6 +130,56 @@ class DistributionFactoryTest extends Specification {
         dist.getToolingImplementationClasspath(progressLoggerFactory).asFiles.name as Set == ['a.jar', 'b.jar'] as Set
     }
 
+    def usesWrapperDistributionInstalledIntoSpecifiedUserHomeDirAsImplementationClasspath() {
+        File customUserHome = tmpDir.file('customUserHome')
+        def zipFile = createZip {
+            lib {
+                file("a.jar")
+                file("b.jar")
+            }
+        }
+        tmpDir.file('gradle/wrapper/gradle-wrapper.properties') << "distributionUrl=${zipFile.toURI()}"
+        def dist = factory.getDistributionForGradleUserHomeDir(null, customUserHome)
+        def defaultDist = factory.getDefaultDistribution(tmpDir.testDirectory, false)
+
+        expect:
+        dist == null
+        defaultDist.getToolingImplementationClasspath(progressLoggerFactory).asFiles.name as Set == ['a.jar', 'b.jar'] as Set
+        (defaultDist.getToolingImplementationClasspath(progressLoggerFactory).asFiles.path as Set).every { it.contains('customUserHome')}
+    }
+
+    def usesZipDistributionInstalledIntoSpecifiedUserHomeDirAsImplementationClasspath() {
+        File customUserHome = tmpDir.file('customUserHome')
+        def zipFile = createZip {
+            lib {
+                file("a.jar")
+                file("b.jar")
+            }
+        }
+        def dist = factory.getDistribution(zipFile.toURI())
+        dist = factory.getDistributionForGradleUserHomeDir(dist, customUserHome)
+
+        expect:
+        dist.getToolingImplementationClasspath(progressLoggerFactory).asFiles.name as Set == ['a.jar', 'b.jar'] as Set
+        (dist.getToolingImplementationClasspath(progressLoggerFactory).asFiles.path as Set).every { it.contains('customUserHome')}
+    }
+
+    def usesZipDistributionInstalledIntoSpecifiedUserHomeDirAsImplementationClasspathDifferentOrder() {
+        File customUserHome = tmpDir.file('customUserHome')
+        def zipFile = createZip {
+            lib {
+                file("a.jar")
+                file("b.jar")
+            }
+        }
+        factory.getDistributionForGradleUserHomeDir(null, customUserHome)
+        def dist = factory.getDistribution(zipFile.toURI())
+
+        expect:
+        dist.getToolingImplementationClasspath(progressLoggerFactory).asFiles.name as Set == ['a.jar', 'b.jar'] as Set
+        (dist.getToolingImplementationClasspath(progressLoggerFactory).asFiles.path as Set).every { it.contains('customUserHome')}
+    }
+
     def reportsZipDownload() {
         def zipFile = createZip {
             lib {
