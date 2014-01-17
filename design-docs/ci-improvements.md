@@ -77,3 +77,19 @@ Also remove the fast feedback agent pool
 # Leverage incremental build
 
 # Leverage parallel execution
+
+# Run all Windows builds with virtual agents
+
+At the moment running multiple Windows builds with virtual agents in parallel may cause memory issues. As a result the build fails. One of the observed error message
+we see is the following:
+
+    Error occurred during initialization of VM
+    Could not reserve enough space for object heap
+
+This error mainly occurs if one of the builds spawns new Gradle processses. To mitigate this situation the following builds are configured to only use the physical
+Windows machine `winagent perf1`:
+
+- Windows - Java 1.5 - Daemon integration tests
+- Windows - Java 1.6 - Cross-version tests
+
+All other builds are still using the virtual agents. After identifying and fixing the root cause for the error, we should change back the configuration.
