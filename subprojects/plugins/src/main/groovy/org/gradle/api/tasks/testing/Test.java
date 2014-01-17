@@ -35,6 +35,7 @@ import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework;
 import org.gradle.api.internal.tasks.testing.junit.report.DefaultTestReport;
 import org.gradle.api.internal.tasks.testing.junit.report.TestReporter;
 import org.gradle.api.internal.tasks.testing.junit.result.*;
+import org.gradle.api.internal.tasks.testing.NoMatchingTestsReporter;
 import org.gradle.api.internal.tasks.testing.logging.*;
 import org.gradle.api.internal.tasks.testing.results.TestListenerAdapter;
 import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework;
@@ -440,6 +441,11 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         TestEventLogger eventLogger = new TestEventLogger(textOutputFactory, currentLevel, levelLogging, exceptionFormatter);
         addTestListener(eventLogger);
         addTestOutputListener(eventLogger);
+        TestListener noTestsReporter = null;
+        if (!getFilter().getIncludePatterns().isEmpty()) {
+            noTestsReporter = new NoMatchingTestsReporter("No tests found for given includes: " + getFilter().getIncludePatterns());
+            addTestListener(noTestsReporter);
+        }
 
         File binaryResultsDir = getBinResultsDir();
         getProject().delete(binaryResultsDir);
@@ -465,6 +471,9 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         } finally {
             testListenerBroadcaster.removeAll(asList(eventLogger, testReportDataCollector, testCountLogger));
             testOutputListenerBroadcaster.removeAll(asList(eventLogger, testReportDataCollector));
+            if (noTestsReporter != null) {
+                testListenerBroadcaster.remove(noTestsReporter);
+            }
             outputWriter.close();
         }
 

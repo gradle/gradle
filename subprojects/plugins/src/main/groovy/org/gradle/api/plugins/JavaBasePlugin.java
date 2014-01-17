@@ -24,6 +24,7 @@ import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.SourceSetCompileClasspath;
+import org.gradle.api.internal.tasks.testing.NoMatchingTestsReporter;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.compile.AbstractCompile;
@@ -43,7 +44,6 @@ import org.gradle.util.WrapUtil;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.Set;
 import java.util.concurrent.Callable;
 
 /**
@@ -258,7 +258,6 @@ public class JavaBasePlugin implements Plugin<Project> {
                 project.getTasks().withType(Test.class, new Action<Test>() {
                     public void execute(Test test) {
                         configureBasedOnSingleProperty(test);
-                        configureBasedOnIncludedMethods(test);
                         overwriteDebugIfDebugPropertyIsSet(test);
                     }
                 });
@@ -293,36 +292,7 @@ public class JavaBasePlugin implements Plugin<Project> {
             }
         });
         test.setIncludes(WrapUtil.toSet(String.format("**/%s*.class", singleTest)));
-        failIfNoTestIsExecuted(test, "Could not find matching test for pattern: " + singleTest);
-    }
-
-    private void configureBasedOnIncludedMethods(final Test test) {
-        Set included = test.getFilter().getIncludePatterns();
-        if (!included.isEmpty()) {
-            failIfNoTestIsExecuted(test, "No tests found for given includes: " + included);
-        }
-    }
-
-    private void failIfNoTestIsExecuted(Test test, final String message) {
-        test.addTestListener(new TestListener() {
-            public void beforeSuite(TestDescriptor suite) {
-                // do nothing
-            }
-
-            public void afterSuite(TestDescriptor suite, TestResult result) {
-                if (suite.getParent() == null && result.getTestCount() == 0) {
-                    throw new GradleException(message);
-                }
-            }
-
-            public void beforeTest(TestDescriptor testDescriptor) {
-                // do nothing
-            }
-
-            public void afterTest(TestDescriptor testDescriptor, TestResult result) {
-                // do nothing
-            }
-        });
+        test.addTestListener(new NoMatchingTestsReporter("Could not find matching test for pattern: " + singleTest));
     }
 
     private String getTaskPrefixedProperty(Task task, String propertyName) {
@@ -355,4 +325,5 @@ public class JavaBasePlugin implements Plugin<Project> {
         });
         test.workingDir(project.getProjectDir());
     }
+
 }
