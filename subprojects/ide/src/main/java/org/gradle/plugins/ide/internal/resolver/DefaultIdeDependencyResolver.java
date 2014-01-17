@@ -41,8 +41,7 @@ public class DefaultIdeDependencyResolver implements IdeDependencyResolver {
      */
     public List<IdeProjectDependency> getIdeProjectDependencies(Configuration configuration, Project project) {
         ResolutionResult result = getIncomingResolutionResult(configuration);
-        List<ResolvedDependencyResult> resolvedDependencies = findAllResolvedDependencyResults(result.getRoot().getDependencies());
-        List<ResolvedComponentResult> projectComponents = findAllProjectComponents(resolvedDependencies);
+        List<ResolvedComponentResult> projectComponents = findAllProjectComponents(result.getAllComponents());
 
         List<IdeProjectDependency> ideProjectDependencies = new ArrayList<IdeProjectDependency>();
 
@@ -94,17 +93,16 @@ public class DefaultIdeDependencyResolver implements IdeDependencyResolver {
     /**
      * Finds all project components.
      *
-     * @param resolvedDependencies Resolved dependencies
+     * @param resolvedComponents Resolved components
      * @return Project components
      */
-    private List<ResolvedComponentResult> findAllProjectComponents(List<ResolvedDependencyResult> resolvedDependencies) {
+    private List<ResolvedComponentResult> findAllProjectComponents(Set<ResolvedComponentResult> resolvedComponents) {
         List<ResolvedComponentResult> projectComponents = new ArrayList<ResolvedComponentResult>();
 
-        for(ResolvedDependencyResult resolvedDependencyResult : resolvedDependencies) {
-            ResolvedComponentResult selected = resolvedDependencyResult.getSelected();
+        for(ResolvedComponentResult resolvedDependencyResult : resolvedComponents) {
 
-            if(selected.getId() instanceof ProjectComponentIdentifier) {
-                projectComponents.add(selected);
+            if(resolvedDependencyResult.getId() instanceof ProjectComponentIdentifier) {
+                projectComponents.add(resolvedDependencyResult);
             }
         }
 
