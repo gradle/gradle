@@ -30,9 +30,9 @@ public class CompositeDataCollector implements DataCollector {
         this.collectors = Arrays.asList(collectors);
     }
 
-    public void beforeExecute(GradleExecuter executer) {
+    public void beforeExecute(File testProjectDir, GradleExecuter executer) {
         for (DataCollector collector : collectors) {
-            collector.beforeExecute(executer);
+            collector.beforeExecute(testProjectDir, executer);
         }
     }
 

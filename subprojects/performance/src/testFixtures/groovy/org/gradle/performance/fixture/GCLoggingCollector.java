@@ -29,12 +29,14 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class GCLoggingCollector implements DataCollector {
-    public void beforeExecute(GradleExecuter executer) {
-        executer.withGradleOpts("-verbosegc", "-XX:+PrintGCDetails", "-Xloggc:build/gc.txt");
+    private File logFile;
+
+    public void beforeExecute(File testProjectDir, GradleExecuter executer) {
+        logFile = new File(testProjectDir, "gc.txt");
+        executer.withGradleOpts("-verbosegc", "-XX:+PrintGCDetails", "-Xloggc:" + logFile.getAbsolutePath());
     }
 
     public void collect(File testProjectDir, MeasuredOperation operation) {
-        File logFile = new File(testProjectDir, "build/gc.txt");
         try {
             BufferedReader reader = new BufferedReader(new FileReader(logFile));
             try {
@@ -48,8 +50,7 @@ public class GCLoggingCollector implements DataCollector {
     }
 
     private void collect(BufferedReader reader, MeasuredOperation operation) throws IOException {
-        Pattern gcLinePattern = Pattern.compile(".+: \\[GC");
-        Pattern collectionEventPattern = Pattern.compile("\\d+\\.\\d+: \\[GC \\d+\\.\\d+: \\[.*\\] (\\d+)K->(\\d+)K\\((\\d+)K\\)");
+        Pattern collectionEventPattern = Pattern.compile("\\d+\\.\\d+: \\[(?:(?:Full GC(?: [^\\s]+)?)|GC) (\\d+\\.\\d+: )?\\[.*\\] (\\d+)K->(\\d+)K\\((\\d+)K\\)");
         Pattern memoryPoolPattern = Pattern.compile("([\\w\\s]+) total (\\d+)K, used (\\d+)K \\[.+");
 
         long totalHeapUsage = 0;
@@ -68,20 +69,15 @@ public class GCLoggingCollector implements DataCollector {
                 break;
             }
 
-            Matcher matcher = gcLinePattern.matcher(line);
-            if (!matcher.lookingAt()) {
-                continue;
-            }
-            events++;
-
-            matcher = collectionEventPattern.matcher(line);
+            Matcher matcher = collectionEventPattern.matcher(line);
             if (!matcher.lookingAt()) {
                 throw new IllegalArgumentException("Unrecognized garbage collection event found in garbage collection log: " + line);
             }
+            events++;
 
-            long start = Long.parseLong(matcher.group(1));
-            long end = Long.parseLong(matcher.group(2));
-            long committed = Long.parseLong(matcher.group(3));
+            long start = Long.parseLong(matcher.group(2));
+            long end = Long.parseLong(matcher.group(3));
+            long committed = Long.parseLong(matcher.group(4));
 
             if (start < usageAtPreviousCollection) {
                 throw new IllegalArgumentException("Unexpected max heap size found in garbage collection event: " + line);
@@ -114,7 +110,7 @@ public class GCLoggingCollector implements DataCollector {
             }
 
             String pool = matcher.group(1).trim();
-            if (pool.contains("perm gen")) {
+            if (pool.toLowerCase().contains("perm gen") || pool.toLowerCase().contains("permgen")) {
                 continue;
             }
 

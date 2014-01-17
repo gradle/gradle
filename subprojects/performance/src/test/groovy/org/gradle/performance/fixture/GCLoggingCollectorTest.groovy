@@ -16,30 +16,40 @@
 
 package org.gradle.performance.fixture
 
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.performance.measure.DataAmount
 import org.gradle.performance.measure.MeasuredOperation
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Resources
 import org.junit.Rule
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class GCLoggingCollectorTest extends Specification {
     @Rule Resources resources = new Resources()
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def collector = new GCLoggingCollector()
 
-    def "parses GC Log"() {
+    @Unroll
+    def "parses GC Log #logName"() {
         def operation = new MeasuredOperation()
         def projectDir = tmpDir.createDir("project")
-        resources.getResource("gc.txt").copyTo(projectDir.file("build/gc.txt"))
+        resources.getResource(logName).copyTo(projectDir.file("gc.txt"))
 
         when:
+        collector.beforeExecute(projectDir, Stub(GradleExecuter))
         collector.collect(projectDir, operation)
 
         then:
-        operation.totalHeapUsage == DataAmount.kbytes(76639)
-        operation.maxHeapUsage == DataAmount.kbytes(33334)
-        operation.maxUncollectedHeap == DataAmount.kbytes(20002)
-        operation.maxCommittedHeap == DataAmount.kbytes(44092)
+        operation.totalHeapUsage == DataAmount.kbytes(totalHeapUsage)
+        operation.maxHeapUsage == DataAmount.kbytes(maxHeapUsage)
+        operation.maxUncollectedHeap == DataAmount.kbytes(maxUncollectedHeap)
+        operation.maxCommittedHeap == DataAmount.kbytes(maxCommittedHeap)
+
+        where:
+        logName    | totalHeapUsage | maxHeapUsage | maxUncollectedHeap | maxCommittedHeap
+        "gc-1.txt" | 76639          | 33334        | 20002              | 44092
+        "gc-2.txt" | 140210         | 40427        | 34145              | 223360
+        "gc-3.txt" | 183544         | 119384       | 37982              | 295488
     }
 }

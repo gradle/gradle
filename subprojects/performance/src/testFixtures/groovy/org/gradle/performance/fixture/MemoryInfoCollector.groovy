@@ -23,7 +23,7 @@ import org.gradle.performance.measure.MeasuredOperation
 public class MemoryInfoCollector implements DataCollector {
     String outputFileName
 
-    public void beforeExecute(GradleExecuter executer) {
+    public void beforeExecute(File testProjectDir, GradleExecuter executer) {
     }
 
     public void collect(File testProjectDir, MeasuredOperation operation) {

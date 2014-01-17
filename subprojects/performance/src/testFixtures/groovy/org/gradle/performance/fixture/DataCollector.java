@@ -22,7 +22,7 @@ import org.gradle.performance.measure.MeasuredOperation;
 import java.io.File;
 
 public interface DataCollector {
-    void beforeExecute(GradleExecuter executer);
+    void beforeExecute(File testProjectDir, GradleExecuter executer);
 
     void collect(File testProjectDir, MeasuredOperation operation);
 }
