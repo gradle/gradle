@@ -17,7 +17,6 @@
 package org.gradle.performance.measure;
 
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * A collection of measurements of some given units.
@@ -27,18 +26,30 @@ public class DataSeries<Q> extends ArrayList<Amount<Q>> {
     private final Amount<Q> max;
     private final Amount<Q> min;
 
-    public DataSeries(List<? extends Amount<Q>> values) {
-        super(values);
-        Amount<Q> total = values.get(0);
-        Amount<Q> min = values.get(0);
-        Amount<Q> max = values.get(0);
-        for (int i = 1; i < values.size(); i++) {
-            Amount<Q> amount = values.get(i);
+    public DataSeries(Iterable<? extends Amount<Q>> values) {
+        for (Amount<Q> value : values) {
+            if (value != null) {
+                add(value);
+            }
+        }
+
+        if (isEmpty()) {
+            average = null;
+            max = null;
+            min = null;
+            return;
+        }
+
+        Amount<Q> total = get(0);
+        Amount<Q> min = get(0);
+        Amount<Q> max = get(0);
+        for (int i = 1; i < size(); i++) {
+            Amount<Q> amount = get(i);
             total = total.plus(amount);
             min = min.compareTo(amount) <= 0 ? min : amount;
             max = max.compareTo(amount) >= 0 ? max : amount;
         }
-        average = total.div(values.size());
+        average = total.div(size());
         this.min = min;
         this.max = max;
     }

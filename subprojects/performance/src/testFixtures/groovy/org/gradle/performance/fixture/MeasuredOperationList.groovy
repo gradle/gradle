@@ -41,16 +41,8 @@ public class MeasuredOperationList extends LinkedList<MeasuredOperation> {
         return new DataSeries<DataAmount>(this.collect { it.maxCommittedHeap })
     }
 
-    Amount<DataAmount> avgMemory() {
-        totalMemoryUsed.average
-    }
-
     DataSeries<Duration> getExecutionTime() {
         return new DataSeries<Duration>(this.collect { it.executionTime })
-    }
-
-    Amount<Duration> avgTime() {
-        executionTime.average
     }
 
     String getSpeedStats() {

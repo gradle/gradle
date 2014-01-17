@@ -15,6 +15,8 @@
  */
 package org.gradle.performance.measure;
 
+import org.gradle.api.Nullable;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
@@ -42,7 +44,14 @@ public class Amount<Q> implements Comparable<Amount<Q>> {
         return valueOf(BigDecimal.valueOf(value), units);
     }
 
-    public static <Q> Amount<Q> valueOf(BigDecimal value, Units<Q> units) {
+    /**
+     * Returns null if the given value is null.
+     */
+    @Nullable
+    public static <Q> Amount<Q> valueOf(@Nullable BigDecimal value, Units<Q> units) {
+        if (value == null) {
+            return null;
+        }
         return new Amount<Q>(value, units);
     }
 

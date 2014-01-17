@@ -18,8 +18,11 @@ package org.gradle.performance.results;
 
 import com.google.common.base.Joiner;
 import com.googlecode.jatl.Html;
+import org.gradle.api.Transformer;
 import org.gradle.performance.fixture.BaselineVersion;
+import org.gradle.performance.fixture.MeasuredOperationList;
 import org.gradle.performance.fixture.PerformanceResults;
+import org.gradle.performance.measure.DataSeries;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -79,13 +82,33 @@ public class TestPageGenerator extends HtmlPageGenerator<TestExecutionHistory> {
                         tr();
                             th().colspan("3").end();
                             th().colspan(String.valueOf(testHistory.getBaselineVersions().size() + 1)).text("Average execution time").end();
-                            th().colspan(String.valueOf(testHistory.getBaselineVersions().size() + 1)).text("Average heap usage").end();
+                            th().colspan(String.valueOf(testHistory.getBaselineVersions().size() + 1)).text("Average heap usage (old measurement)").end();
+                            th().colspan(String.valueOf(testHistory.getBaselineVersions().size() + 1)).text("Average total heap usage").end();
+                            th().colspan(String.valueOf(testHistory.getBaselineVersions().size() + 1)).text("Average max heap usage").end();
+                            th().colspan(String.valueOf(testHistory.getBaselineVersions().size() + 1)).text("Average max uncollected heap").end();
+                            th().colspan(String.valueOf(testHistory.getBaselineVersions().size() + 1)).text("Average max committed heap").end();
                             th().colspan("5").text("Details").end();
                         end();
                         tr();
                             th().text("Date").end();
                             th().text("Test version").end();
                             th().text("Branch").end();
+                            for (String version : testHistory.getBaselineVersions()) {
+                                th().classAttr("numeric").text(version).end();
+                            }
+                            th().classAttr("numeric").text("Current").end();
+                            for (String version : testHistory.getBaselineVersions()) {
+                                th().classAttr("numeric").text(version).end();
+                            }
+                            th().classAttr("numeric").text("Current").end();
+                            for (String version : testHistory.getBaselineVersions()) {
+                                th().classAttr("numeric").text(version).end();
+                            }
+                            th().classAttr("numeric").text("Current").end();
+                            for (String version : testHistory.getBaselineVersions()) {
+                                th().classAttr("numeric").text(version).end();
+                            }
+                            th().classAttr("numeric").text("Current").end();
                             for (String version : testHistory.getBaselineVersions()) {
                                 th().classAttr("numeric").text(version).end();
                             }
@@ -105,24 +128,36 @@ public class TestPageGenerator extends HtmlPageGenerator<TestExecutionHistory> {
                                 td().text(format.timestamp(new Date(performanceResults.getTestTime()))).end();
                                 td().text(performanceResults.getVersionUnderTest()).end();
                                 td().text(performanceResults.getVcsBranch()).end();
-                                for (String version : testHistory.getBaselineVersions()) {
-                                    BaselineVersion baselineVersion = performanceResults.baseline(version);
-                                    if (baselineVersion.getResults().isEmpty()) {
-                                        td().text("").end();
-                                    } else {
-                                        td().classAttr("numeric").text(baselineVersion.getResults().getExecutionTime().getAverage().format()).end();
+                                renderMetricForVersions(testHistory, performanceResults, new Transformer<DataSeries<?>, MeasuredOperationList>() {
+                                    public DataSeries<?> transform(MeasuredOperationList original) {
+                                        return original.getExecutionTime();
                                     }
-                                }
-                                td().classAttr("numeric").text(performanceResults.getCurrent().getExecutionTime().getAverage().format()).end();
-                            for (String version : testHistory.getBaselineVersions()) {
-                                    BaselineVersion baselineVersion = performanceResults.baseline(version);
-                                    if (baselineVersion.getResults().isEmpty()) {
-                                        td().text("").end();
-                                    } else {
-                                        td().classAttr("numeric").text(baselineVersion.getResults().getTotalMemoryUsed().getAverage().format()).end();
+                                });
+                                renderMetricForVersions(testHistory, performanceResults, new Transformer<DataSeries<?>, MeasuredOperationList>() {
+                                    public DataSeries<?> transform(MeasuredOperationList original) {
+                                        return original.getTotalMemoryUsed();
                                     }
-                                }
-                                td().classAttr("numeric").text(performanceResults.getCurrent().getTotalMemoryUsed().getAverage().format()).end();
+                                });
+                                renderMetricForVersions(testHistory, performanceResults, new Transformer<DataSeries<?>, MeasuredOperationList>() {
+                                    public DataSeries<?> transform(MeasuredOperationList original) {
+                                        return original.getTotalHeapUsage();
+                                    }
+                                });
+                                renderMetricForVersions(testHistory, performanceResults, new Transformer<DataSeries<?>, MeasuredOperationList>() {
+                                    public DataSeries<?> transform(MeasuredOperationList original) {
+                                        return original.getMaxHeapUsage();
+                                    }
+                                });
+                                renderMetricForVersions(testHistory, performanceResults, new Transformer<DataSeries<?>, MeasuredOperationList>() {
+                                    public DataSeries<?> transform(MeasuredOperationList original) {
+                                        return original.getMaxUncollectedHeap();
+                                    }
+                                });
+                                renderMetricForVersions(testHistory, performanceResults, new Transformer<DataSeries<?>, MeasuredOperationList>() {
+                                    public DataSeries<?> transform(MeasuredOperationList original) {
+                                        return original.getMaxCommittedHeap();
+                                    }
+                                });
                                 td().text(performanceResults.getTestProject()).end();
                                 td();
                                     text(Joiner.on(", ").join(performanceResults.getArgs()));
@@ -138,6 +173,26 @@ public class TestPageGenerator extends HtmlPageGenerator<TestExecutionHistory> {
                 end();
                 footer(this);
             endAll();
-        }};
+        }
+
+            private void renderMetricForVersions(TestExecutionHistory testHistory, PerformanceResults testExecution, Transformer<DataSeries<?>, MeasuredOperationList> transformer) {
+                for (String version : testHistory.getBaselineVersions()) {
+                    BaselineVersion baselineVersion = testExecution.baseline(version);
+                    DataSeries<?> data = transformer.transform(baselineVersion.getResults());
+                    if (data.isEmpty()) {
+                        td().text("").end();
+                    } else {
+                        td().classAttr("numeric").text(data.getAverage().format()).end();
+                    }
+                }
+                DataSeries<?> data = transformer.transform(testExecution.getCurrent());
+                if (data.isEmpty()) {
+                    td().text("").end();
+                } else {
+                    td().classAttr("numeric").text(data.getAverage().format()).end();
+                }
+            }
+        };
     }
+
 }

@@ -39,14 +39,16 @@ class BaselineVersion {
 
     String getSpeedStatsAgainst(String displayName, MeasuredOperationList current) {
         def sb = new StringBuilder()
-        if (current.avgTime() > results.avgTime()) {
+        def thisVersionAverage = results.executionTime.average
+        def currentVersionAverage = current.executionTime.average
+        if (currentVersionAverage > thisVersionAverage) {
             sb.append "Speed $displayName: we're slower than $version.\n"
         } else {
             sb.append "Speed $displayName: AWESOME! we're faster than $version :D\n"
         }
-        def diff = current.avgTime() - results.avgTime()
+        def diff = currentVersionAverage - thisVersionAverage
         def desc = diff > Duration.millis(0) ? "slower" : "faster"
-        sb.append("Difference: ${diff.abs().format()} $desc (${toMillis(diff.abs())}), ${PrettyCalculator.percentChange(current.avgTime(), results.avgTime())}%, max regression: ${maxExecutionTimeRegression.format()}\n")
+        sb.append("Difference: ${diff.abs().format()} $desc (${toMillis(diff.abs())}), ${PrettyCalculator.percentChange(currentVersionAverage, thisVersionAverage)}%, max regression: ${maxExecutionTimeRegression.format()}\n")
         sb.append(current.speedStats)
         sb.append(results.speedStats)
         sb.append("\n")
@@ -55,14 +57,16 @@ class BaselineVersion {
 
     String getMemoryStatsAgainst(String displayName, MeasuredOperationList current) {
         def sb = new StringBuilder()
-        if (current.avgMemory() > results.avgMemory()) {
+        def currentVersionAverage = current.totalMemoryUsed.average
+        def thisVersionAverage = results.totalMemoryUsed.average
+        if (currentVersionAverage > thisVersionAverage) {
             sb.append("Memory $displayName: we need more memory than $version.\n")
         } else {
             sb.append("Memory $displayName: AWESOME! we need less memory than $version :D\n")
         }
-        def diff = current.avgMemory() - results.avgMemory()
+        def diff = currentVersionAverage - thisVersionAverage
         def desc = diff > DataAmount.bytes(0) ? "more" : "less"
-        sb.append("Difference: ${diff.abs().format()} $desc (${toBytes(diff.abs())}), ${PrettyCalculator.percentChange(current.avgMemory(), results.avgMemory())}%, max regression: ${maxMemoryRegression.format()}\n")
+        sb.append("Difference: ${diff.abs().format()} $desc (${toBytes(diff.abs())}), ${PrettyCalculator.percentChange(currentVersionAverage, thisVersionAverage)}%, max regression: ${maxMemoryRegression.format()}\n")
         sb.append(current.memoryStats)
         sb.append(results.memoryStats)
         sb.append("\n")
@@ -70,10 +74,10 @@ class BaselineVersion {
     }
 
     boolean usesLessMemoryThan(MeasuredOperationList current) {
-        current.avgMemory() - results.avgMemory() > maxMemoryRegression
+        current.totalMemoryUsed.average - results.totalMemoryUsed.average > maxMemoryRegression
     }
 
     boolean fasterThan(MeasuredOperationList current) {
-        current.avgTime() - results.avgTime() > maxExecutionTimeRegression
+        current.executionTime.average - results.executionTime.average > maxExecutionTimeRegression
     }
 }

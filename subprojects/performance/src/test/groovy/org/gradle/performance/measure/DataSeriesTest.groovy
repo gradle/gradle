@@ -30,4 +30,27 @@ class DataSeriesTest extends Specification {
         series.min == v1
         series.max == v3
     }
+
+    def "ignores null values"() {
+        def v1 = DataAmount.kbytes(10)
+        def v2 = DataAmount.kbytes(20)
+        def v3 = DataAmount.kbytes(30)
+        def series = new DataSeries([v1, v2, null, v3, null])
+
+        expect:
+        series.size() == 3
+        series.average == v2
+        series.min == v1
+        series.max == v3
+    }
+
+    def "can be empty"() {
+        def series = new DataSeries([null, null])
+
+        expect:
+        series.empty
+        series.average == null
+        series.min == null
+        series.max == null
+    }
 }
