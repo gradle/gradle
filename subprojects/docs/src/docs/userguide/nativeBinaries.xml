@@ -229,6 +229,22 @@
                 <filename>.m</filename> source files under <filename>src/${name}/objectiveC</filename>.
             </para>
         </section>
+
+        <section>
+            <title>Objective-C++ sources</title>
+            <para>
+                Objective-C++ language support is provided by means of the <literal>'objective-cpp'</literal> plugin.
+            </para>
+            <sample id="objectiveCppPlugin" dir="native-binaries/objective-cpp" title="The 'objective-cpp' plugin">
+                <sourcefile file="build.gradle" snippet="apply-plugin"/>
+            </sample>
+            <para>
+                Objective-C++ sources to be included in a native binary are provided via a <apilink class="org.gradle.language.objectivecpp.ObjectiveCppSourceSet"/>,
+                which defines a set of Objective-C++ source files.
+                By default, for any named component the <apilink class="org.gradle.language.objectivecpp.ObjectiveCppSourceSet"/> contains
+                <filename>.mm</filename> source files under <filename>src/${name}/objectiveCpp</filename>.
+            </para>
+        </section>
     </section>
 
     <section>
