@@ -170,6 +170,10 @@ This story changes the `idea` and `eclipse` plugins to use the resolution result
 - Change `IdeDependenciesExtractor` and `JavadocAndSourcesDownloader` to use the resolution result to determine the project and
   external dependencies.
 
+### Open issues
+
+- No way to locate artifacts for a component, have to use the component's module version id and match up with the artifact's module version id.
+
 ## Story: Dependency resolution result exposes a consumer that is not a module version
 
 This story exposes different kinds of consumers for a dependency graph.
@@ -294,6 +298,7 @@ reports.
 - Merge the special case resolution algorithm for self-resolving dependencies into the general purpose resolution algorithm.
 - Introduce a new type of component identifier to represent a file-only component.
 - Update reporting to understand this kind of component identifier.
+- Change the IDE dependency extraction so that it uses the resolution result to extract local file dependencies, rather than using the input `Dependency` set.
 
 ### Test coverage
 
