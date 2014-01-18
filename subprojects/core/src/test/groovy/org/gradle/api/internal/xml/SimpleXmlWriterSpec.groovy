@@ -149,13 +149,13 @@ class SimpleXmlWriterSpec extends Specification {
     def "escapes restricted characters in text content"() {
         when:
         writer.startElement("root")
-        writer.attribute("name", "\u0084\u0002")
-        writer.characters("\u0084\u0002\u009f")
-        writer.startCDATA().characters("\u0084\u0084\u0002").endCDATA()
+        writer.attribute("name", "\u0084\u009f")
+        writer.characters("\u0084\u009f")
+        writer.startCDATA().characters("\u0084\u009f").endCDATA()
         writer.endElement()
 
         then:
-        xml.contains('<root name="&#x84;?">&#x84;?&#x9f;<![CDATA[]]>&#x84;<![CDATA[]]>&#x84;<![CDATA[?]]></root>')
+        xml.contains('<root name="&#x84;&#x9f;">&#x84;&#x9f;<![CDATA[]]>&#x84;<![CDATA[]]>&#x9f;<![CDATA[]]></root>')
     }
 
     def "replaces illegal characters in text content"() {
