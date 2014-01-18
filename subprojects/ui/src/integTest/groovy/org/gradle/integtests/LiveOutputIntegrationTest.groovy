@@ -40,13 +40,6 @@ This tests the that live output is gathered while executing a task.
 */
 class LiveOutputIntegrationTest extends AbstractIntegrationTest {
 
-    static final String JAVA_PROJECT_NAME = 'javaproject'
-    static final String SHARED_NAME = 'shared'
-    static final String API_NAME = 'api'
-    static final String WEBAPP_NAME = 'webservice'
-    static final String SERVICES_NAME = 'services'
-    static final String WEBAPP_PATH = "$SERVICES_NAME/$WEBAPP_NAME" as String
-
     private File javaprojectDir
 
     @Rule public final Sample sample = new Sample(testDirectoryProvider, 'java/quickstart')
@@ -57,7 +50,7 @@ class LiveOutputIntegrationTest extends AbstractIntegrationTest {
     }
 
     /**
-This executes 'build' on the java multiproject sample. We want to make sure that
+This executes 'build' on the java quickstart sample. We want to make sure that
 we do get live output from gradle. We're not concerned with what it is, because
 that's likely to change over time. This version executes the command via GradlePlugin.
 */
