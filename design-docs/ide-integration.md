@@ -45,7 +45,9 @@ On the command-line I can run `gradle tasks` and see the public tasks for the bu
 
 Expose some information to allow the IDE to visualise this.
 
-### Simplify task reporting logic
+See [tooling-api-improvements.md](tooling-api-improvements.md#expose-information-about-the-visibility-of-a-task)
+
+### Simplify task visibility logic
 
 TBD
 
@@ -56,7 +58,7 @@ Add some way for a tooling API client to request that an operation be cancelled.
 The implementation will do the same thing as if the daemon client is disconnected, which is to drop the daemon process.
 Later stories incrementally add more graceful cancellation handling.
 
-See [tooling-api-improvements.md](tooling-api-improvements.md#story-tooling-api-client-cancels-an-operation)
+See [tooling-api-improvements.md](tooling-api-improvements.md#story-tooling-api-client-cancels-a-long-running-operation)
 
 ## Feature - Expose build script compilation details
 
