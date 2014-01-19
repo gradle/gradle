@@ -36,7 +36,7 @@ public class PerformanceResults {
     final MeasuredOperationList current = new MeasuredOperationList(name:  "Current Gradle")
 
     def clear() {
-        baselineVersions.values()each { it.clearResults() }
+        baselineVersions.values().each { it.clearResults() }
         current.clear()
     }
 

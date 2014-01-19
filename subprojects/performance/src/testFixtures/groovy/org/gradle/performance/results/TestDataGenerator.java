@@ -47,14 +47,14 @@ public class TestDataGenerator extends ReportRenderer<TestExecutionHistory, Writ
         out.print("\"executionTime\":");
         render(testHistory, new Transformer<String, MeasuredOperationList>() {
             public String transform(MeasuredOperationList original) {
-                return format.seconds(original.avgTime());
+                return format.seconds(original.getExecutionTime().getAverage());
             }
         }, out);
         out.println(",");
         out.print("\"heapUsage\":");
         render(testHistory, new Transformer<String, MeasuredOperationList>() {
             public String transform(MeasuredOperationList original) {
-                return format.megabytes(original.avgMemory());
+                return format.megabytes(original.getTotalMemoryUsed().getAverage());
             }
         }, out);
         out.println("}");

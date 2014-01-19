@@ -47,6 +47,24 @@ The public API for launching Gradle is now the tooling API. The `GradleBuild` ta
 * Remove the public `StartParameter` constructor.
 * Change `StartParameter` into an interface.
 
+## Remove tooling API support for Gradle 1.1 clients and earlier
+
+Gradle 1.2 was released on 12th sept 2012. This change means that tooling more than roughly 18 months old as of the Gradle 2.0 release
+will not be able to invoke Gradle 2.0 or later.
+
+* Change the implementation of methods on `ConnectionVersion4` and `InternalConnection` to fail with a decent error message.
+* The model implementations no longer need to implement `ProjectVersion3` or the protocol interfaces.
+* Add integration test coverage.
+
+## Remove tooling API support for Gradle version 1.0-milestone-7 and earlier
+
+Gradle 1.0-milestone-8 was release on 14th feb 2012. This change means that tooling will not be able to run builds using Gradle versions more than
+approximately 2 years old as of the Gradle 2.0 release.
+
+* Consumer fails with a decent error message instead of falling back to the methods on `ConnectionVersion4`.
+* Remove the appropriate ConsumerConnection implementations.
+* Add integration test coverage.
+
 ## Misc API tidy-ups
 
 * Remove unused `IllegalOperationAtExecutionTimeException`.
@@ -55,6 +73,8 @@ The public API for launching Gradle is now the tooling API. The `GradleBuild` ta
 # Candidates
 
 The following stories are candidates to be included in Gradle 2.0. They have not been scheduled yet:
+
+## All Gradle scripts use UTF-8 encoding
 
 ## Remove `group` and `status` from project
 
@@ -125,15 +145,8 @@ types and to offer a more consistent DSL.
 * Remove CharSequence -> Enum conversion code in `DefaultTaskLogging`.
 * Remove all set methods that contain no custom logic.
 
-## Remove tooling API support for some older versions
+## Tooling API clean ups
 
-* Remove support from the consumer for providers earlier than 1.0-milestone-8:
-    * Consumer fails with a decent error message instead of falling back to the methods on `ConnectionVersion4`.
-    * Add integration test coverage.
-* Remove support from the provider for consumers earlier than 1.2 (we can't tell the difference between clients from 1.0-milestone-8 and 1.1).
-    * Change the implementation of methods on `ConnectionVersion4` and `InternalConnection` to fail with a decent error message.
-    * Model implementations no longer need to implement `ProjectVersion3` or the protocol interfaces.
-    * Add integration test coverage.
 * Move `UnsupportedBuildArgumentException` and `UnsupportedOperationConfigurationException` up to `org.gradle.tooling`, to remove
   package cycle from the API.
 

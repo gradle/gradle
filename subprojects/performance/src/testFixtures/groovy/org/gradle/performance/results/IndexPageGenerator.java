@@ -75,19 +75,19 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                                     if (baselineVersion.getResults().isEmpty()) {
                                         td().text("").end();
                                     } else {
-                                        td().classAttr("numeric").text(baselineVersion.getResults().avgTime().format()).end();
+                                        td().classAttr("numeric").text(baselineVersion.getResults().getExecutionTime().getAverage().format()).end();
                                     }
                                 }
-                                td().classAttr("numeric").text(performanceResults.getCurrent().avgTime().format()).end();
+                                td().classAttr("numeric").text(performanceResults.getCurrent().getExecutionTime().getAverage().format()).end();
                                 for (String version : testHistory.getBaselineVersions()) {
                                     BaselineVersion baselineVersion = performanceResults.baseline(version);
                                     if (baselineVersion.getResults().isEmpty()) {
                                         td().text("").end();
                                     } else {
-                                        td().classAttr("numeric").text(baselineVersion.getResults().avgMemory().format()).end();
+                                        td().classAttr("numeric").text(baselineVersion.getResults().getTotalMemoryUsed().getAverage().format()).end();
                                     }
                                 }
-                                td().classAttr("numeric").text(performanceResults.getCurrent().avgMemory().format()).end();
+                                td().classAttr("numeric").text(performanceResults.getCurrent().getTotalMemoryUsed().getAverage().format()).end();
                             end();
                         }
                         tr();

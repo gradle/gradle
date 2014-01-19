@@ -15,8 +15,18 @@
  */
 
 package org.gradle.performance.measure
+
 public class MeasuredOperation {
     Amount<Duration> executionTime
     Exception exception
+    /** The non-collectable heap usage at the end of the build. This was the original metric used */
     Amount<DataAmount> totalMemoryUsed
+    /** The total amount of heap used over the life of the operation. Does not include the perm gen. */
+    Amount<DataAmount> totalHeapUsage
+    /** The largest amount of heap remaining at the end of a garbage collection. Does not include the perm gen. */
+    Amount<DataAmount> maxUncollectedHeap
+    /** The largest amount of heap used at the start of a garbage collection. Does not include the perm gen. */
+    Amount<DataAmount> maxHeapUsage
+    /** The largest amount of committed heap (that is heap requested from the OS). Does not include the perm gen. */
+    Amount<DataAmount> maxCommittedHeap
 }

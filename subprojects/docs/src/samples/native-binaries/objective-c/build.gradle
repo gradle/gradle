@@ -1,0 +1,24 @@
+// START SNIPPET apply-plugin
+apply plugin: 'objective-c'
+// END SNIPPET apply-plugin
+
+// START SNIPPET executables
+executables {
+    main {}
+}
+// END SNIPPET executables
+
+
+// START SNIPPET all-binaries
+binaries.all {
+    if (toolChain in Gcc) {
+        objectiveCCompiler.args "-I/usr/include/GNUstep", "-fconstant-string-class=NSConstantString", "-D_NATIVE_OBJC_EXCEPTIONS"
+        linker.args "-lgnustep-base", "-lobjc"
+    }
+
+    if (toolChain in Clang) {
+        linker.args  '-framework', 'Foundation'
+    }
+}
+// END SNIPPET all-binaries
+

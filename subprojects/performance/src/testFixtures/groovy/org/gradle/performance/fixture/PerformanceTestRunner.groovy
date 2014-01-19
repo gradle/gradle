@@ -43,7 +43,9 @@ public class PerformanceTestRunner {
     int warmUpRuns
 
     List<String> tasksToRun = []
-    DataCollector dataCollector = new MemoryInfoCollector(outputFileName: "build/totalMemoryUsed.txt")
+    DataCollector dataCollector = new CompositeDataCollector(
+            new MemoryInfoCollector(outputFileName: "build/totalMemoryUsed.txt"),
+            new GCLoggingCollector())
     List<String> args = []
 
     List<String> targetVersions = []
@@ -113,10 +115,13 @@ public class PerformanceTestRunner {
 
     void runOnce(GradleDistribution dist, File projectDir, MeasuredOperationList results) {
         def executer = this.executer(dist, projectDir)
+        dataCollector.beforeExecute(projectDir, executer)
         def operation = timer.measure { MeasuredOperation operation ->
             executer.run()
         }
-        dataCollector.collect(projectDir, operation)
+        if (operation.exception == null) {
+            dataCollector.collect(projectDir, operation)
+        }
         results.add(operation)
     }
 

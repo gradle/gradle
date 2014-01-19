@@ -40,7 +40,12 @@ class ResultsStoreTest extends ResultSpecification {
                 vcsCommit: "1234")
         def baseline1 = result1.baseline("1.0")
         def baseline2 = result1.baseline("1.5")
-        result1.current << operation(executionTime: minutes(12), heapUsed: kbytes(12.33))
+        result1.current << operation(executionTime: minutes(12),
+                totalMemoryUsed: kbytes(12.33),
+                totalHeapUsage: kbytes(5612.45),
+                maxHeapUsage: kbytes(124.01),
+                maxUncollectedHeap: kbytes(45.22),
+                maxCommittedHeap: kbytes(200))
         baseline1.results << operation()
         baseline2.results << operation()
         baseline2.results << operation()
@@ -91,6 +96,10 @@ class ResultsStoreTest extends ResultSpecification {
         results[0].current.size() == 1
         results[0].current[0].executionTime == minutes(12)
         results[0].current[0].totalMemoryUsed == kbytes(12.33)
+        results[0].current[0].totalHeapUsage == kbytes(5612.45)
+        results[0].current[0].maxHeapUsage == kbytes(124.01)
+        results[0].current[0].maxUncollectedHeap == kbytes(45.22)
+        results[0].current[0].maxCommittedHeap == kbytes(200)
         results[0].baselineVersions*.version == ["1.0", "1.5"]
         results[0].baseline("1.0").results.size() == 1
         results[0].baseline("1.5").results.size() == 3

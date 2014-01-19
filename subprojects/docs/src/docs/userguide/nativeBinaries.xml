@@ -24,7 +24,7 @@
     </note>
 
     <para>
-        The various native binary plugins add support for building native software components from C++, C and Assembler sources.
+        The various native binary plugins add support for building native software components from C++, C, Objective-C, Objective-C++ and Assembler sources.
         While many excellent build tools exist for this space of software development, Gradle offers developers it's trademark power and flexibility
         together with the dependency management practices more traditionally found in the JVM development space.
     </para>
@@ -133,11 +133,11 @@
     </section>
 
     <section id="native_binaries:languages">
-        <title>Core language support: C, C++ and Assembler</title>
+        <title>Core language support: C, C++, Assembler, Objective-C and Objective-C++ </title>
         <para>
-            Presently, Gradle supports building native binaries from any combination of C++, C and Assembler sources.
+            Presently, Gradle supports building native binaries from any combination of C++, C, Assembler, Objective-C and Objective-C++ sources.
             A native binary project will contain one or more named <literal>FunctionalSourceSet</literal> instances (eg 'main', 'test', etc),
-            each of which can contain <literal>LanguageSourceSet</literal>s containing C++, C or Assembler source files.
+            each of which can contain <literal>LanguageSourceSet</literal>s containing C++, C, Assembler, Objective-C or Objective-C++ source files.
         </para>
 
         <section>
@@ -211,6 +211,38 @@
                 which defines a set of Assembler source files.
                 By default, for any named component the <apilink class="org.gradle.language.assembler.AssemblerSourceSet"/> contains
                 <filename>.s</filename> source files under <filename>src/${name}/asm</filename>.
+            </para>
+        </section>
+
+        <section>
+            <title>Objective-C sources</title>
+            <para>
+                Objective-C language support is provided by means of the <literal>'objective-c'</literal> plugin.
+            </para>
+            <sample id="objectiveCPlugin" dir="native-binaries/objective-c" title="The 'objective-c' plugin">
+                <sourcefile file="build.gradle" snippet="apply-plugin"/>
+            </sample>
+            <para>
+                Objective-C sources to be included in a native binary are provided via a <apilink class="org.gradle.language.objectivec.ObjectiveCSourceSet"/>,
+                which defines a set of Objective-C source files.
+                By default, for any named component the <apilink class="org.gradle.language.objectivec.ObjectiveCSourceSet"/> contains
+                <filename>.m</filename> source files under <filename>src/${name}/objectiveC</filename>.
+            </para>
+        </section>
+
+        <section>
+            <title>Objective-C++ sources</title>
+            <para>
+                Objective-C++ language support is provided by means of the <literal>'objective-cpp'</literal> plugin.
+            </para>
+            <sample id="objectiveCppPlugin" dir="native-binaries/objective-cpp" title="The 'objective-cpp' plugin">
+                <sourcefile file="build.gradle" snippet="apply-plugin"/>
+            </sample>
+            <para>
+                Objective-C++ sources to be included in a native binary are provided via a <apilink class="org.gradle.language.objectivecpp.ObjectiveCppSourceSet"/>,
+                which defines a set of Objective-C++ source files.
+                By default, for any named component the <apilink class="org.gradle.language.objectivecpp.ObjectiveCppSourceSet"/> contains
+                <filename>.mm</filename> source files under <filename>src/${name}/objectiveCpp</filename>.
             </para>
         </section>
     </section>

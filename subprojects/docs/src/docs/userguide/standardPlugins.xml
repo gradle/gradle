@@ -129,6 +129,30 @@
             <tr>
                 <td>
                     <link linkend='nativeBinaries'>
+                        <literal>objective-c</literal>
+                    </link>
+                </td>
+                <td>-</td>
+                <td>-</td>
+                <td>
+                    <para>Adds Objective-C source compilation capabilities to a project.</para>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <link linkend='nativeBinaries'>
+                        <literal>objective-cpp</literal>
+                    </link>
+                </td>
+                <td>-</td>
+                <td>-</td>
+                <td>
+                    <para>Adds Objective-C++ source compilation capabilities to a project.</para>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <link linkend='nativeBinaries'>
                         <literal>windows-resources</literal>
                     </link>
                 </td>
@@ -592,8 +616,20 @@
                 <td>
                     <para>Provides integration with the
                         <ulink url="http://www.sonarsource.org">Sonar</ulink>
-                        code quality platform. Superceeds the <link linkend='sonar_plugin'><literal>sonar</literal></link> plugin.
+                        code quality platform. Supersedes the <link linkend='sonar_plugin'><literal>sonar</literal></link> plugin.
                     </para>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <link linkend="nativeBinaries">
+                        <literal>visual-studio</literal>
+                    </link>
+                </td>
+                <td>-</td>
+                <td>native language plugins</td>
+                <td>
+                    <para>Adds integration with Visual Studio.</para>
                 </td>
             </tr>
             <tr>

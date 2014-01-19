@@ -22,20 +22,20 @@ import org.gradle.language.HeaderExportingSourceSet;
 import org.gradle.language.base.LanguageSourceSet;
 
 /**
- * A set of Objective-CPP source files.
+ * A set of Objective-C++ source files.
  *
- * <p>An ObjectiveC source set contains a set of source files, together with an optional set of exported header files.</p>
+ * <p>An Objective-C++ source set contains a set of source files, together with an optional set of exported header files.</p>
  *
  * <pre autoTested="true">
  * apply plugin: "objective-cpp"
  *
  * sources {
  *     main {
- *         // Configure an existing ObjectiveCSourceSet
+ *         // Configure an existing ObjectiveCppSourceSet
  *         objectiveCpp {
  *             source {
  *                 srcDirs "src/main/objectiveCpp", "src/shared/objectiveCpp"
- *                 include "**{@literal /}*.m"
+ *                 include "**{@literal /}*.mm"
  *             }
  *             exportedHeaders {
  *                 srcDirs "src/main/include"

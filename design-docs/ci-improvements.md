@@ -17,6 +17,16 @@ Here is a rough overview of the current structure of the CI pipeline
 
 This pipeline is replicated for the release and master branches.
 
+# Reduce memory consumption of the full tooling API test suite
+
+Currently, the full cross version integration test suite for the tooling API starts daemons for every Gradle version, and starts
+multiple daemons for each version.
+
+- Verify that many daemon processes are running while the test suite is executing.
+- Verify that daemon processes are started with relatively small heap and permgen limits, rather than the defaults for the daemon, and fix if not.
+- Change test execution for the tooling API test suite so that the tests for a single Gradle version (or small set of versions) are completed before starting
+  tests on another Gradle version. One potential implementation is to introduce a test task per Gradle version.
+
 # Split builds up so that each build covers a smaller slice of the source
 
 Currently, most builds cover the entire Gradle code-base for a particular environment. We might split this up so that each build covers
