@@ -20,7 +20,7 @@ import java.util.Set;
 
 /**
  * Collects information on the "logical" publications of each project.
- * The information is gathered from multiple sources ({@code project.publications}
+ * The information is gathered from multiple sources ({@code publishing.publications}
  * container, {@code uploadArchives} task, etc.).
  */
 public interface ProjectPublicationRegistry {

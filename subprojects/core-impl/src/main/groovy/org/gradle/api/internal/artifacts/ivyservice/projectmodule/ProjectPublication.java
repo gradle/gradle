@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 
 /**
  * Provides information on a "logical" publication of a project.
- * The publication could have been declared via `project.publications`,
+ * The publication could have been declared via `publishing.publications`,
  * an `uploadArchives` task, etc.
  */
 public interface ProjectPublication {
