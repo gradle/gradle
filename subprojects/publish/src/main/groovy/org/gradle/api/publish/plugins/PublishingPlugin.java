@@ -16,16 +16,17 @@
 
 package org.gradle.api.publish.plugins;
 
-import org.gradle.api.Incubating;
-import org.gradle.api.Plugin;
-import org.gradle.api.Project;
-import org.gradle.api.Task;
+import org.gradle.api.*;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.internal.artifacts.ArtifactPublicationServices;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectPublication;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
+import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.PublicationContainer;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.internal.DefaultPublicationContainer;
 import org.gradle.api.publish.internal.DefaultPublishingExtension;
+import org.gradle.api.publish.internal.PublicationInternal;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.ModelPath;
 import org.gradle.model.ModelRule;
@@ -47,12 +48,14 @@ public class PublishingPlugin implements Plugin<Project> {
     private final Instantiator instantiator;
     private final ModelRules modelRules;
     private final ArtifactPublicationServices publicationServices;
+    private final ProjectPublicationRegistry publicationRegistry;
 
     @Inject
-    public PublishingPlugin(ArtifactPublicationServices publicationServices, Instantiator instantiator, ModelRules modelRules) {
+    public PublishingPlugin(ArtifactPublicationServices publicationServices, Instantiator instantiator, ModelRules modelRules, ProjectPublicationRegistry publicationRegistry) {
         this.publicationServices = publicationServices;
         this.instantiator = instantiator;
         this.modelRules = modelRules;
+        this.publicationRegistry = publicationRegistry;
     }
 
     public void apply(final Project project) {
@@ -61,6 +64,13 @@ public class PublishingPlugin implements Plugin<Project> {
 
         // TODO Registering an extension should register it with the model registry as well
         PublishingExtension extension = project.getExtensions().create(PublishingExtension.NAME, DefaultPublishingExtension.class, repositories, publications);
+
+        extension.getPublications().whenObjectAdded(new Action<Publication>() {
+            public void execute(Publication publication) {
+                PublicationInternal internalPublication = (PublicationInternal) publication;
+                publicationRegistry.registerPublication(project.getPath(), new DefaultProjectPublication(internalPublication.getCoordinates()));
+            }
+        });
 
         ModelPath extensionModelPath = ModelPath.path(PublishingExtension.NAME);
 
