@@ -69,7 +69,7 @@ public interface GradleProject extends HierarchicalElement, BuildableElement {
     /**
      * Returns the publications for this project.
      *
-     * @since 1.11
+     * @since 1.12
      */
     @Incubating
     DomainObjectSet<GradlePublication> getPublications();

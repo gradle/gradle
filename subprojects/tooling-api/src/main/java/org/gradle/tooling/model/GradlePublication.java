@@ -21,7 +21,7 @@ import org.gradle.api.Incubating;
 /**
  * A publication of a Gradle project.
  *
- * @since 1.11
+ * @since 1.12
  */
 @Incubating
 public interface GradlePublication {
