@@ -43,7 +43,7 @@ allprojects {
     }
 }
 """
-        executer.withArgument('--parallel')
+        executer.withArgument('--parallel-threads=3') // needs to be set to the maximum number of expectConcurrentExecution() calls
         executer.withArgument('--info')
     }
 
