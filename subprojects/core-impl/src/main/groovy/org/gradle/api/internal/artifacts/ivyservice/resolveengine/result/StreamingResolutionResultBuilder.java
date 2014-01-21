@@ -96,7 +96,7 @@ public class StreamingResolutionResultBuilder implements ResolutionResultBuilder
                 public void write(Encoder encoder) throws IOException {
                     encoder.writeByte(DEPENDENCY);
                     moduleVersionIdentifierSerializer.write(encoder, from);
-                    encoder.writeInt(dependencies.size());
+                    encoder.writeSmallInt(dependencies.size());
                     for (InternalDependencyResult dependency : dependencies) {
                         internalDependencyResultSerializer.write(encoder, dependency);
                         if (dependency.getFailure() != null) {
@@ -171,7 +171,7 @@ public class StreamingResolutionResultBuilder implements ResolutionResultBuilder
                             break;
                         case DEPENDENCY:
                             id = moduleVersionIdentifierSerializer.read(decoder);
-                            int size = decoder.readInt();
+                            int size = decoder.readSmallInt();
                             List<InternalDependencyResult> deps = new LinkedList<InternalDependencyResult>();
                             for (int i = 0; i < size; i++) {
                                 deps.add(internalDependencyResultSerializer.read(decoder, failures));
