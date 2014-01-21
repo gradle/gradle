@@ -239,30 +239,7 @@ If you are using the file outputs from TestNG listeners (i.e. you are calling `u
 it is recommended that you explicitly set this new property to a value other than the default.
 The default value for this property will change in Gradle 2.0.
 
-## Promoted features
-
-Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
-See the User guide section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
-
-The following are the features that have been promoted in this Gradle release.
-
-<!--
-### Example promoted
--->
-
 ## Fixed issues
-
-
-## Deprecations
-
-Features that have become superseded or irrelevant due to the natural evolution of Gradle become *deprecated*, and scheduled to be removed
-in the next major Gradle version (Gradle 2.0). See the User guide section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
-
-The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](http://forums.gradle.org).
-
-<!--
-### Example deprecation
--->
 
 ## Potential breaking changes
 
