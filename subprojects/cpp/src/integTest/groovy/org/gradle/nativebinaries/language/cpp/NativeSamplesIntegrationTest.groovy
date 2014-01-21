@@ -31,6 +31,7 @@ class NativeSamplesIntegrationTest extends AbstractInstalledToolChainIntegration
     @Rule public final Sample c = new Sample(temporaryFolder, 'native-binaries/c')
     @Rule public final Sample assembler = new Sample(temporaryFolder, 'native-binaries/assembler')
     @Rule public final Sample cpp = new Sample(temporaryFolder, 'native-binaries/cpp')
+    @Rule public final Sample cppLib = new Sample(temporaryFolder, 'native-binaries/cpp-lib')
     @Rule public final Sample customLayout = new Sample(temporaryFolder, 'native-binaries/custom-layout')
     @Rule public final Sample multiProject = new Sample(temporaryFolder, 'native-binaries/multi-project')
     @Rule public final Sample flavors = new Sample(temporaryFolder, 'native-binaries/flavors')
@@ -84,6 +85,30 @@ class NativeSamplesIntegrationTest extends AbstractInstalledToolChainIntegration
 
         and:
         installation("native-binaries/cpp/build/install/mainExecutable").exec().out == "Hello world!\n"
+    }
+
+    def "lib"() {
+        given:
+        sample cppLib
+
+        when:
+        run "mainSharedLibrary"
+
+        then:
+        executedAndNotSkipped ":compileMainSharedLibraryMainCpp", ":linkMainSharedLibrary", ":mainSharedLibrary"
+
+        and:
+        sharedLibrary("native-binaries/cpp-lib/build/binaries/mainSharedLibrary/main").assertExists()
+
+        when:
+        sample cppLib
+        run "mainStaticLibrary"
+
+        then:
+        executedAndNotSkipped ":compileMainStaticLibraryMainCpp", ":createMainStaticLibrary", ":mainStaticLibrary"
+
+        and:
+        staticLibrary("native-binaries/cpp-lib/build/binaries/mainStaticLibrary/main").assertExists()
     }
 
     @RequiresInstalledToolChain(VisualCpp)
