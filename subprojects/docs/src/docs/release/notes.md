@@ -268,7 +268,7 @@ will need to be updated.
 
 ### Removal of incubating 'cpp-exe' and  'cpp-lib' plugins
 
-These incubating plugins have been removed in Gradle 1.10. Both plugins were very light additions to the `cpp` plugin which remains. 
+These incubating plugins have been removed in Gradle 1.11. Both plugins were very light additions to the `cpp` plugin which remains. 
 
 If you are using the `cpp-exe` or `cpp-lib`, you will need to now explicitly create your main executable or library respectively. 
 
@@ -285,7 +285,7 @@ when writing a `Spec` for the `DependencyInsightReportTask`. Here's an example f
 
 In previous versions of Gradle, accessing a property on the [configuration container](dsl/org.gradle.api.Project.html#org.gradle.api.Project:configurations(groovy.lang.Closure)) would 
 create a new configuration on demand if a configuration with the name of the property did not exist.
-In Gradle 1.10, this behavior only now occurs when inside the configurations script block…
+In Gradle 1.11, this behavior only now occurs when inside the configurations script block…
 
     configurations.xyz // will not create configuration 'xyz'
     
