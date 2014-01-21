@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.r111;
+package org.gradle.integtests.tooling.r112;
 
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController
@@ -22,17 +22,21 @@ import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.TaskSelector;
 
-public class FetchTaskSelectorsBuildAction implements BuildAction<Map<String, DomainObjectSet<? extends TaskSelector>>> {
+public class FetchTaskSelectorsBuildAction implements BuildAction<Map<String, Set<String>>> {
     public Map<String, DomainObjectSet<? extends TaskSelector>> execute(BuildController controller) {
         // Use a GradleProject to reference a project
         GradleProject rootProject = controller.getModel(GradleProject.class);
-        Map<String, DomainObjectSet<? extends TaskSelector>> projects = new HashMap<String, DomainObjectSet<? extends TaskSelector>>();
-        visit(rootProject, projects);
-        return projects;
+        Map<String, DomainObjectSet<? extends TaskSelector>> results = new HashMap<String, Set<String>>();
+        visit(rootProject, results);
+        return results;
     }
 
-    void visit(GradleProject project, Map<String, DomainObjectSet<? extends TaskSelector>> results) {
-        results.put(project.name, project.taskSelectors);
+    void visit(GradleProject project, Map<String, Set<String>> results) {
+        Set<String> tsNames = new HashSet<String>();
+        for (TaskSelector ts: project.taskSelectors) {
+            tsNames.add(ts.name);
+        }
+        results.put(project.name, tsNames);
         for (GradleProject child : project.getChildren()) {
             visit(child, results);
         }

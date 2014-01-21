@@ -38,8 +38,11 @@ public class ModelBuilderBackedConsumerConnection extends AbstractPost12Consumer
         modelProducer = new GradleBuildAdapterProducer(adapter, getVersionDetails(), modelMapping, consumerConnectionBackedModelProducer);
     }
 
-    private static R16VersionDetails getMetaData(ConnectionVersion4 delegate) {
+    private static VersionDetails getMetaData(ConnectionVersion4 delegate) {
         GradleVersion version = GradleVersion.version(delegate.getMetaData().getVersion());
+        if (version.compareTo(GradleVersion.version("1.11")) > 0) {
+            return new R112VersionDetails(version.getVersion());
+        }
         if (version.compareTo(GradleVersion.version("1.8-rc-1")) >= 0) {
             return new R18VersionDetails(version.getVersion());
         }
@@ -73,6 +76,22 @@ public class ModelBuilderBackedConsumerConnection extends AbstractPost12Consumer
 
         @Override
         public boolean isModelSupported(Class<?> modelType) {
+            return true;
+        }
+    }
+
+    private static class R112VersionDetails extends R18VersionDetails {
+        private R112VersionDetails(String version) {
+            super(version);
+        }
+
+        @Override
+        public boolean isModelSupported(Class<?> modelType) {
+            return true;
+        }
+
+        @Override
+        public boolean supportsTaskSelectors() {
             return true;
         }
     }

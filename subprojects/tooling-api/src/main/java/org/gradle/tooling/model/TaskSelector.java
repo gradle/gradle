@@ -15,11 +15,14 @@
  */
 package org.gradle.tooling.model;
 
+import org.gradle.api.Incubating;
+
 /**
  * Represents an entry point that uses task name to select tasks to execute.
  *
- * @since 1.11
+ * @since 1.12
  */
+@Incubating
 public interface TaskSelector extends EntryPoint {
     /**
      * Returns the display name.
