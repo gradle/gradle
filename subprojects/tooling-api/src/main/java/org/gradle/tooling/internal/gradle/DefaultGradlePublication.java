@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.gradle;
 
+import com.google.common.base.Objects;
 import org.gradle.tooling.model.GradleModuleVersion;
 
 import java.io.Serializable;
@@ -30,5 +31,11 @@ public class DefaultGradlePublication implements Serializable {
     public DefaultGradlePublication setId(GradleModuleVersion id) {
         this.id = id;
         return this;
+    }
+
+    public String toString() {
+        return Objects.toStringHelper(this)
+                .add("id", id)
+                .toString();
     }
 }
