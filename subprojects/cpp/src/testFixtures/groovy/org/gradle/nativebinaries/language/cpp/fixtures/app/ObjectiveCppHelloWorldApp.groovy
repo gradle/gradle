@@ -17,7 +17,7 @@
 package org.gradle.nativebinaries.language.cpp.fixtures.app
 
 
-class ObjectiveCppHelloWorldApp extends HelloWorldApp {
+class ObjectiveCppHelloWorldApp extends IncrementalHelloWorldApp {
     @Override
     SourceFile getMainSource() {
         return sourceFile("objectiveCpp", "main.mm", """
@@ -69,10 +69,50 @@ class ObjectiveCppHelloWorldApp extends HelloWorldApp {
         """),
             sourceFile("objectiveCpp", "sum.mm", """
             #include "hello.h"
-
             int DLL_FUNC sum(int a, int b) {
                 return a + b;
             }
         """)
     ]
+
+    @Override
+    SourceFile getAlternateMainSource() {
+        return sourceFile("objectiveCpp", "main.mm", """
+            // Simple hello world app
+            #import <Foundation/Foundation.h>
+            #import <iostream>
+            #import "hello.h"
+
+            int main (int argc, const char * argv[])
+            {
+                std::cout << "${HELLO_WORLD} ${HELLO_WORLD}" << std::endl;
+                return 0;
+            }
+        """);
+    }
+
+    String alternateOutput = "${HELLO_WORLD} ${HELLO_WORLD}\n"
+
+
+    @Override
+    List<SourceFile> getAlternateLibrarySources() {
+        return [
+            sourceFile("objectiveCpp", "hello.mm", """
+            #include <iostream>
+            #include "hello.h"
+
+            void DLL_FUNC sayHello() {
+                std::cout << "${HELLO_WORLD} - ${HELLO_WORLD_FRENCH}" << std::endl;
+            }
+        """),
+        sourceFile("objectiveCpp", "sum.mm", """
+            #include "hello.h"
+            int DLL_FUNC sum(int a, int b) {
+                return a + b;
+            }
+        """)]
+    }
+
+    String alternateLibraryOutput = "${HELLO_WORLD} - ${HELLO_WORLD_FRENCH}\n12"
+
 }
