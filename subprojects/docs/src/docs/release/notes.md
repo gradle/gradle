@@ -213,8 +213,9 @@ See the `idl` sample in your Gradle distribution for a working example of genera
 ### Objective-C and Objective-C++ Support (i)
 
 With Gradle 1.11, it is now possible to include 'Objective-C' and 'Objective-C++' source files to create a native library or executable.
-
-Including Objective-C and Objective-C++ sources in your project is straightforward. Whereas C++ sources are contained in a 'cpp' source directory, Objective-C source files should be located in a 'objectiveC' directory and Objective-C++ source files in a 'objectiveCpp' directory. These directory locations are by convention, and can be updated in your build script.
+Including Objective-C and Objective-C++ sources in your project is straightforward. Whereas C++ sources are contained in a 'cpp' source directory,
+Objective-C source files should be located in a 'objectiveC' directory and Objective-C++ source files in a 'objectiveCpp' directory.
+These directory locations are by convention, and can be updated in your build script.
 
 Here's an example of how you can customize which source files and directories to include:
 
