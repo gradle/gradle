@@ -32,8 +32,6 @@ class NativeSamplesIntegrationTest extends AbstractInstalledToolChainIntegration
     @Rule public final Sample assembler = new Sample(temporaryFolder, 'native-binaries/assembler')
     @Rule public final Sample cpp = new Sample(temporaryFolder, 'native-binaries/cpp')
     @Rule public final Sample customLayout = new Sample(temporaryFolder, 'native-binaries/custom-layout')
-    @Rule public final Sample cppExe = new Sample(temporaryFolder, 'native-binaries/cpp-exe')
-    @Rule public final Sample cppLib = new Sample(temporaryFolder, 'native-binaries/cpp-lib')
     @Rule public final Sample multiProject = new Sample(temporaryFolder, 'native-binaries/multi-project')
     @Rule public final Sample flavors = new Sample(temporaryFolder, 'native-binaries/flavors')
     @Rule public final Sample variants = new Sample(temporaryFolder, 'native-binaries/variants')
@@ -127,52 +125,6 @@ class NativeSamplesIntegrationTest extends AbstractInstalledToolChainIntegration
         installation("native-binaries/custom-layout/build/install/mainExecutable").exec().out == "Hello world!"
     }
 
-    def "exe"() {
-        given:
-        // Need to PATH to be set to find the 'strip' executable
-        toolChain.initialiseEnvironment()
-
-        and:
-        sample cppExe
-
-        when:
-        run "installMain"
-
-        then:
-        executedAndNotSkipped ":compileMainExecutableMainCpp", ":linkMainExecutable", ":stripMainExecutable", ":mainExecutable"
-
-        and:
-        executable("native-binaries/cpp-exe/build/binaries/mainExecutable/sampleExe").exec().out == "Hello, World!\n"
-        installation("native-binaries/cpp-exe/build/install/mainExecutable").exec().out == "Hello, World!\n"
-
-        cleanup:
-        toolChain.resetEnvironment()
-    }
-
-    def "lib"() {
-        given:
-        sample cppLib
-        
-        when:
-        run "mainSharedLibrary"
-        
-        then:
-        executedAndNotSkipped ":compileMainSharedLibraryMainCpp", ":linkMainSharedLibrary", ":mainSharedLibrary"
-        
-        and:
-        sharedLibrary("native-binaries/cpp-lib/build/binaries/mainSharedLibrary/sampleLib").assertExists()
-        
-        when:
-        sample cppLib
-        run "mainStaticLibrary"
-        
-        then:
-        executedAndNotSkipped ":compileMainStaticLibraryMainCpp", ":createMainStaticLibrary", ":mainStaticLibrary"
-        
-        and:
-        staticLibrary("native-binaries/cpp-lib/build/binaries/mainStaticLibrary/sampleLib").assertExists()
-    }
-
     def flavors() {
         when:
         sample flavors
@@ -262,8 +214,8 @@ class NativeSamplesIntegrationTest extends AbstractInstalledToolChainIntegration
         ":exe:mainExecutable" in executedTasks
 
         and:
-        sharedLibrary("native-binaries/multi-project/lib/build/binaries/mainSharedLibrary/lib").assertExists()
-        executable("native-binaries/multi-project/exe/build/binaries/mainExecutable/exe").assertExists()
+        sharedLibrary("native-binaries/multi-project/lib/build/binaries/mainSharedLibrary/main").assertExists()
+        executable("native-binaries/multi-project/exe/build/binaries/mainExecutable/main").assertExists()
         installation("native-binaries/multi-project/exe/build/install/mainExecutable").exec().out == "Hello, World!\n"
     }
 

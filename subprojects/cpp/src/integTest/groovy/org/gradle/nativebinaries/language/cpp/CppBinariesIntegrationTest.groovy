@@ -29,7 +29,7 @@ class CppBinariesIntegrationTest extends AbstractInstalledToolChainIntegrationSp
     def "can configure the binaries of a C++ application"() {
         given:
         buildFile << """
-            apply plugin: "cpp-exe"
+            apply plugin: "cpp"
 
             executables {
                 main {
@@ -39,7 +39,6 @@ class CppBinariesIntegrationTest extends AbstractInstalledToolChainIntegrationSp
                 }
             }
         """
-        settingsFile << "rootProject.name = 'test'"
 
         and:
         file("src/main/cpp/helloworld.cpp") << """
@@ -57,14 +56,14 @@ class CppBinariesIntegrationTest extends AbstractInstalledToolChainIntegrationSp
         run "mainExecutable"
 
         then:
-        def executable = executable("build/binaries/mainExecutable/test")
+        def executable = executable("build/binaries/mainExecutable/main")
         executable.exec().out == "Hello!"
     }
 
     def "can build debug binaries for a C++ executable"() {
         given:
         buildFile << """
-            apply plugin: "cpp-exe"
+            apply plugin: "cpp"
 
             executables {
                 main {
@@ -79,7 +78,6 @@ class CppBinariesIntegrationTest extends AbstractInstalledToolChainIntegrationSp
                 }
             }
         """
-        settingsFile << "rootProject.name = 'test'"
 
         and:
         file("src/main/cpp/helloworld.cpp") << """
@@ -95,7 +93,7 @@ class CppBinariesIntegrationTest extends AbstractInstalledToolChainIntegrationSp
         run "mainExecutable"
 
         then:
-        def executable = executable("build/binaries/mainExecutable/test")
+        def executable = executable("build/binaries/mainExecutable/main")
         executable.exec().out == "Hello!"
         executable.assertDebugFileExists()
         // TODO - need to verify that the debug info ended up in the binary
@@ -105,7 +103,7 @@ class CppBinariesIntegrationTest extends AbstractInstalledToolChainIntegrationSp
     def "can configure the binaries of a C++ library"() {
         given:
         buildFile << """
-            apply plugin: "cpp-exe"
+            apply plugin: "cpp"
 
             libraries {
                 hello {

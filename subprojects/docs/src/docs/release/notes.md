@@ -289,6 +289,12 @@ will need to be updated.
 - Extracted methods relating to building a native binary out of `NativeBinary` into `ProjectNativeBinary`.
 - `NativeBinary.outputFile` has been replaced by `ExecutableBinary.executableFile`, `SharedLibraryBinary.sharedLibraryFile` and `StaticLibraryBinary.staticLibraryFile`.
 
+### Removal of incubating 'cpp-exe' and  'cpp-lib' plugins
+
+These incubating plugins have been removed in Gradle 1.10. Both plugins were very light additions to the `cpp` plugin which remains. 
+
+If you are using the `cpp-exe` or `cpp-lib`, you will need to now explicitly create your main executable or library respectively. 
+
 ### A requested dependency returns different types of selectors
 
 The method `DependencyResult.getRequested()` method was changed to return an implementation of type `ComponentSelector`. This change to the API has to be taken into account
