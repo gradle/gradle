@@ -283,7 +283,17 @@ when writing a `Spec` for the `DependencyInsightReportTask`. Here's an example f
 
 ### Changes to container configuration DSL
 
-TBD - Property access on a container only implicitly adds an element when invoked directly on the container
+In previous versions of Gradle, accessing a property on the [configuration container](dsl/org.gradle.api.Project.html#org.gradle.api.Project:configurations(groovy.lang.Closure)) would 
+create a new configuration on demand if a configuration with the name of the property did not exist.
+In Gradle 1.10, this behavior only now occurs when inside the configurations script block…
+
+    configurations.xyz // will not create configuration 'xyz'
+    
+    configurations {
+      xyz // will create configuration 'xyz'
+    }
+
+The previous behavior was surprising in certain circumstances and has been removed.
 
 ### Changes to incubating test filtering
 
