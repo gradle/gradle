@@ -1,3 +1,10 @@
+Gradle 1.11 primarily features improvements to the rapidly evolving native support. 
+The new Visual Studio integration means that it is now possible to easily generate Visual Studio configuration files that allow you to develop your Gradle based native project.
+The support for pre-built native dependencies is also a strong step forward and makes Gradle a compelling build tool choice for a new class of native code projects.
+
+As always there are bug fixes and internal performance and stability improvements, along with a mix of other new and improved features.
+Thanks to all who submitted contributions, bug reports and ideas for the release.
+
 ## New and noteworthy
 
 Here are the new features introduced in this Gradle release.
