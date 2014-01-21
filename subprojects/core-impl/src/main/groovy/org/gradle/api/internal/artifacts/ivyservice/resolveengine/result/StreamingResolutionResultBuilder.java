@@ -48,7 +48,7 @@ public class StreamingResolutionResultBuilder implements ResolutionResultBuilder
     private final BinaryStore store;
     private final ModuleVersionIdentifierSerializer moduleVersionIdentifierSerializer = new ModuleVersionIdentifierSerializer();
     private final ModuleVersionSelectionSerializer moduleVersionSelectionSerializer = new ModuleVersionSelectionSerializer();
-    private Store<ResolvedComponentResult> cache;
+    private final Store<ResolvedComponentResult> cache;
     private final InternalDependencyResultSerializer internalDependencyResultSerializer = new InternalDependencyResultSerializer();
 
     public StreamingResolutionResultBuilder(BinaryStore store, Store<ResolvedComponentResult> cache) {
@@ -115,9 +115,9 @@ public class StreamingResolutionResultBuilder implements ResolutionResultBuilder
         private final static Logger LOG = Logging.getLogger(RootFactory.class);
         private final ModuleVersionSelectionSerializer moduleVersionSelectionSerializer = new ModuleVersionSelectionSerializer();
 
-        private BinaryStore.BinaryData data;
+        private final BinaryStore.BinaryData data;
         private final Map<ComponentSelector, ModuleVersionResolveException> failures;
-        private Store<ResolvedComponentResult> cache;
+        private final Store<ResolvedComponentResult> cache;
         private final Object lock = new Object();
         private final ModuleVersionIdentifierSerializer moduleVersionIdentifierSerializer = new ModuleVersionIdentifierSerializer();
         private final InternalDependencyResultSerializer internalDependencyResultSerializer = new InternalDependencyResultSerializer();

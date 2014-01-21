@@ -391,8 +391,8 @@ public class DependencyGraphBuilder {
             return selector.getFailure();
         }
 
-        public ModuleVersionResolveState getSelected() {
-            return selector.getSelected();
+        public ModuleVersionIdentifier getSelected() {
+            return selector.getSelected().getSelectedId();
         }
 
         public ComponentSelectionReason getReason() {
