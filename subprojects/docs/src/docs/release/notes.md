@@ -176,7 +176,7 @@ providing more sophisticated support for system libraries (such as the Windows S
 
 ### Support for generated sources in native binary projects (i)
 
-Any `LanguageSourceSet` (eg `CSourceSet`, `CppSourceSet`) is now a `BuildableModelElement`, which means that a
+Any `LanguageSourceSet` (e.g. `CSourceSet`, `CppSourceSet`) is now a `BuildableModelElement`, which means that a
 task can be supplied which will be executed before the sources are used.
 
 The 'builder' task can be specified stating that the source set is `builtBy` the task. The source inputs will then need to be
