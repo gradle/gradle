@@ -65,16 +65,6 @@ public class GccToolChain extends AbstractGccCompatibleToolChain implements Gcc 
         return "GNU GCC";
     }
 
-    public List<File> getPath() {
-        return tools.getPath();
-    }
-
-    public void path(Object... pathEntries) {
-        for (Object path : pathEntries) {
-            tools.path(resolve(path));
-        }
-    }
-
     @Override
     protected void checkAvailable(ToolChainAvailability availability) {
         super.checkAvailable(availability);

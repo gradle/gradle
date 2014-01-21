@@ -15,12 +15,6 @@
  */
 package org.gradle.nativebinaries.toolchain.internal.gcc;
 
-import static java.util.Arrays.asList;
-import static java.util.Collections.emptyList;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativebinaries.platform.Platform;
@@ -29,6 +23,13 @@ import org.gradle.nativebinaries.toolchain.PlatformConfigurableToolChain;
 import org.gradle.nativebinaries.toolchain.TargetPlatformConfiguration;
 import org.gradle.nativebinaries.toolchain.internal.*;
 import org.gradle.process.internal.ExecActionFactory;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
+import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
 
 /**
  * A tool chain that has GCC semantics, where all platform variants are produced by varying the tool args.
@@ -49,6 +50,16 @@ public abstract class AbstractGccCompatibleToolChain extends AbstractToolChain i
         addPlatformConfiguration(new Intel32Architecture());
         addPlatformConfiguration(new Intel64Architecture());
         configInsertLocation = 0;
+    }
+
+    public List<File> getPath() {
+        return tools.getPath();
+    }
+
+    public void path(Object... pathEntries) {
+        for (Object path : pathEntries) {
+            tools.path(resolve(path));
+        }
     }
 
     @Override

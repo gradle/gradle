@@ -511,6 +511,15 @@
                 <td>org.gradle.nativebinaries.toolchain.ToolChain</td>
             </tr>
             <tr>
+                <td>org.gradle.nativebinaries.toolchain.Gcc</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativebinaries.toolchain.Clang</td>
+            </tr>
+            <tr>
+                <td>org.gradle.nativebinaries.toolchain.VisualCpp</td>
+            </tr>
+            <tr>
                 <td>org.gradle.language.assembler.AssemblerSourceSet</td>
             </tr>
             <tr>
