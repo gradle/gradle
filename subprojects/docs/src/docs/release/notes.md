@@ -328,6 +328,7 @@ We would like to thank the following community members for making contributions 
 	* add basic support for Objective-C
 * [Jean-Baptiste Nizet](https://github.com/jnizet) - improved HTML test reports to better report on ignored tests
 * [Piotr Kubowicz](https://github.com/Derbeth) - Documentation regarding incrementalness of tasks with no declared output
+* [Cédric Champeau](https://github.com/melix) - Recognition of Java 9 to the `JavaVersion` class
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
