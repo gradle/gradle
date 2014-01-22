@@ -14,12 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests;
+package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
+import spock.lang.IgnoreIf
 
+@IgnoreIf({GradleContextualExecuter.parallel}) // no point, always runs in parallel
 public class ParallelProjectExecutionIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule public final BlockingHttpServer blockingServer = new BlockingHttpServer()
