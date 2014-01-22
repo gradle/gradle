@@ -38,4 +38,8 @@ public abstract class VersionDetails {
     public boolean supportsGradleProjectModel() {
         return false;
     }
+
+    public boolean supportsTaskSelectors() {
+        return false;
+    }
 }

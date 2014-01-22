@@ -16,7 +16,10 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
+import org.gradle.api.Action;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
+import org.gradle.tooling.internal.adapter.SourceObjectMapping;
+import org.gradle.tooling.internal.consumer.converters.TaskSelectorsPropertyHandlerFactory;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
@@ -28,10 +31,12 @@ import org.gradle.tooling.model.internal.Exceptions;
 
 public class ModelBuilderBackedModelProducer extends AbstractModelProducer {
     private final ModelBuilder builder;
+    private final Action<SourceObjectMapping> mapper;
 
     public ModelBuilderBackedModelProducer(ProtocolToModelAdapter adapter, VersionDetails versionDetails, ModelMapping modelMapping, ModelBuilder builder) {
         super(adapter, versionDetails, modelMapping);
         this.builder = builder;
+        mapper = new TaskSelectorsPropertyHandlerFactory().forVersion(versionDetails);
     }
 
     public <T> T produceModel(Class<T> type, ConsumerOperationParameters operationParameters) {
@@ -45,6 +50,6 @@ public class ModelBuilderBackedModelProducer extends AbstractModelProducer {
         } catch (InternalUnsupportedModelException e) {
             throw Exceptions.unknownModel(type, e);
         }
-        return adapter.adapt(type, result.getModel());
+        return adapter.adapt(type, result.getModel(), mapper);
     }
 }

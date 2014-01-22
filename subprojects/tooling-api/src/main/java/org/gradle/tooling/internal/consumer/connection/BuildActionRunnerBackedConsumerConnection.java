@@ -16,7 +16,10 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
+import org.gradle.api.Action;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
+import org.gradle.tooling.internal.adapter.SourceObjectMapping;
+import org.gradle.tooling.internal.consumer.converters.TaskSelectorsPropertyHandlerFactory;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
@@ -72,10 +75,12 @@ public class BuildActionRunnerBackedConsumerConnection extends AbstractPost12Con
 
     private class BuildActionRunnerBackedModelProducer extends AbstractModelProducer {
         private final BuildActionRunner buildActionRunner;
+        private final Action<SourceObjectMapping> mapper;
 
         public BuildActionRunnerBackedModelProducer(ProtocolToModelAdapter adapter, VersionDetails versionDetails, ModelMapping modelMapping, BuildActionRunner buildActionRunner) {
             super(adapter, versionDetails, modelMapping);
             this.buildActionRunner = buildActionRunner;
+            mapper = new TaskSelectorsPropertyHandlerFactory().forVersion(versionDetails);
         }
 
         public <T> T produceModel(Class<T> type, ConsumerOperationParameters operationParameters) {
@@ -86,7 +91,7 @@ public class BuildActionRunnerBackedConsumerConnection extends AbstractPost12Con
             }
             Class<?> protocolType = modelMapping.getProtocolType(type);
             Object model = buildActionRunner.run(protocolType, operationParameters).getModel();
-            return adapter.adapt(type, model);
+            return adapter.adapt(type, model, mapper);
         }
     }
 }
