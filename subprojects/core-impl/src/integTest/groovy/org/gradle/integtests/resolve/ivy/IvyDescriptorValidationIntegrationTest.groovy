@@ -19,8 +19,8 @@ import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 
 import static org.hamcrest.CoreMatchers.containsString
 
-class IvyMetadataConsistencyIntegrationTest extends AbstractDependencyResolutionTest {
-    def "latest.integration selects highest version regardless of status"() {
+class IvyDescriptorValidationIntegrationTest extends AbstractDependencyResolutionTest {
+    def "incorrect value for revision attribute is flagged"() {
         given:
         buildFile << """
   repositories {

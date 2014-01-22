@@ -36,6 +36,8 @@ import org.gradle.api.internal.artifacts.ivyservice.modulecache.DefaultModuleMet
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetaDataCache;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.PublishLocalComponentFactory;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectModuleRegistry;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectPublicationRegistry;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.DefaultDependencyResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.ResolutionResultsStoreFactory;
 import org.gradle.api.internal.artifacts.mvnsettings.*;
@@ -268,4 +270,7 @@ class DependencyManagementBuildScopeServices {
         return new ResolutionResultsStoreFactory(temporaryFileProvider);
     }
 
+    ProjectPublicationRegistry createProjectPublicationRegistry() {
+        return new DefaultProjectPublicationRegistry();
+    }
 }

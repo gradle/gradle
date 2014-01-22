@@ -17,6 +17,7 @@ package org.gradle.cli;
 
 import java.io.*;
 import java.util.*;
+import java.util.regex.Pattern;
 
 /**
  * <p>A command-line parser which supports a command/sub-command style command-line interface. Supports the following
@@ -51,6 +52,8 @@ import java.util.*;
  * </ul>
  */
 public class CommandLineParser {
+    private static final Pattern OPTION_NAME_PATTERN = Pattern.compile("(\\?|\\p{Alnum}[\\p{Alnum}-_]*)");
+
     private Map<String, CommandLineOption> optionsByString = new HashMap<String, CommandLineOption>();
     private boolean allowMixedOptions;
     private boolean allowUnknownOptions;
@@ -245,6 +248,9 @@ public class CommandLineParser {
             }
             if (option.startsWith("-")) {
                 throw new IllegalArgumentException(String.format("Cannot add option '%s' as an option cannot start with '-'.", option));
+            }
+            if (!OPTION_NAME_PATTERN.matcher(option).matches()) {
+                throw new IllegalArgumentException(String.format("Cannot add option '%s' as an option can only contain alphanumeric characters or '-' or '_'.", option));
             }
         }
         CommandLineOption option = new CommandLineOption(Arrays.asList(options));

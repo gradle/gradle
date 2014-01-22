@@ -56,12 +56,12 @@ class ChainVersionMatcherTest extends Specification {
 
     def "delegates needModuleMetadata to first matcher that can handle the selector"() {
         when:
-        def result = chain.needModuleMetadata("1+", "2")
+        def result = chain.needModuleMetadata("1+")
 
         then:
         1 * matcher1.canHandle("1+") >> false
         1 * matcher2.canHandle("1+") >> true
-        1 * matcher2.needModuleMetadata("1+", "2") >> false
+        1 * matcher2.needModuleMetadata("1+") >> false
         0 * _
 
         and:

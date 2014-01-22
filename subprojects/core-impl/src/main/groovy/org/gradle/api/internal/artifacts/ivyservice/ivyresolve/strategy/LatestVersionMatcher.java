@@ -26,7 +26,7 @@ public class LatestVersionMatcher implements VersionMatcher {
         return true;
     }
 
-    public boolean needModuleMetadata(String selector, String candidate) {
+    public boolean needModuleMetadata(String selector) {
         return true;
     }
 

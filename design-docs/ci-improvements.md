@@ -88,6 +88,10 @@ Also remove the fast feedback agent pool
 
 # Leverage parallel execution
 
+# Proactively clean disks to avoid accumulation
+
+- To avoid accumulation of cruft (e.g. old wrappers, old dependencies), we should periodically recreate the build VMs.
+
 # Run all Windows builds with virtual agents
 
 At the moment running multiple Windows builds with virtual agents in parallel may cause memory issues. As a result the build fails. One of the observed error message

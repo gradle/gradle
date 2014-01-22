@@ -29,8 +29,13 @@ import java.io.File;
 import java.util.*;
 
 public class IdeaModelBuilder implements ToolingModelBuilder {
-    private final GradleProjectBuilder gradleProjectBuilder = new GradleProjectBuilder();
+    private final GradleProjectBuilder gradleProjectBuilder;
+
     private boolean offlineDependencyResolution;
+
+    public IdeaModelBuilder(GradleProjectBuilder gradleProjectBuilder) {
+        this.gradleProjectBuilder = gradleProjectBuilder;
+    }
 
     public boolean canBuild(String modelName) {
         return modelName.equals("org.gradle.tooling.model.idea.IdeaProject");

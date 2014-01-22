@@ -37,7 +37,7 @@ public class ExactVersionMatcher implements VersionMatcher {
         return false;
     }
 
-    public boolean needModuleMetadata(String selector, String candidate) {
+    public boolean needModuleMetadata(String selector) {
         return false;
     }
 

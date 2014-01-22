@@ -39,9 +39,9 @@ class LatestVersionMatcherTest extends Specification {
 
     def "always needs metadata"() {
         expect:
-        matcher.needModuleMetadata("latest.integration", "1.0")
-        matcher.needModuleMetadata("latest.foo", "1.0")
-        matcher.needModuleMetadata("latest.123", "1.0")
+        matcher.needModuleMetadata("latest.integration")
+        matcher.needModuleMetadata("latest.foo")
+        matcher.needModuleMetadata("latest.123")
     }
 
     def "only supports metadata-aware accept method"() {
