@@ -63,12 +63,14 @@ public class PublishingPlugin implements Plugin<Project> {
         PublicationContainer publications = instantiator.newInstance(DefaultPublicationContainer.class, instantiator);
 
         // TODO Registering an extension should register it with the model registry as well
-        PublishingExtension extension = project.getExtensions().create(PublishingExtension.NAME, DefaultPublishingExtension.class, repositories, publications);
+        final PublishingExtension extension = project.getExtensions().create(PublishingExtension.NAME, DefaultPublishingExtension.class, repositories, publications);
 
-        extension.getPublications().whenObjectAdded(new Action<Publication>() {
-            public void execute(Publication publication) {
-                PublicationInternal internalPublication = (PublicationInternal) publication;
-                publicationRegistry.registerPublication(project.getPath(), new DefaultProjectPublication(internalPublication.getCoordinates()));
+        project.afterEvaluate(new Action<Project>() {
+            public void execute(Project project) {
+                for (Publication publication : extension.getPublications()) {
+                    PublicationInternal internalPublication = (PublicationInternal) publication;
+                    publicationRegistry.registerPublication(project.getPath(), new DefaultProjectPublication(internalPublication.getCoordinates()));
+                }
             }
         });
 
