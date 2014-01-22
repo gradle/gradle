@@ -172,12 +172,17 @@ class CommandLineParserTest extends Specification {
         result.option('long-option-a').values == ['arg']
     }
 
-    def parsesLongOptionWithNewline() {
-        parser.option('weird\nmulti\nline\noption')
+    @Unroll
+    def "parse fails for invalid option name #badOptionName"() {
+        when:
+        parser.option(badOptionName)
 
-        expect:
-        def result = parser.parse(['--weird\nmulti\nline\noption'])
-        result.hasOption('weird\nmulti\nline\noption')
+        then:
+        def e = thrown(IllegalArgumentException)
+        e != null
+
+        where:
+        badOptionName << ['weird\nmulti\nline\noption', '!@#$', 'with space', '=', '-']
     }
 
     def parsesMultipleOptions() {
@@ -226,6 +231,14 @@ class CommandLineParserTest extends Specification {
         result.hasOption('a')
         result.hasOption('long')
         result.option('a').values == ['arg1', 'arg2', 'arg3', 'arg4']
+    }
+
+    def parsesHelpOption() {
+        parser.option('h', '?', 'help')
+
+        expect:
+        def result = parser.parse(['-?'])
+        result.hasOption('?')
     }
 
     def parsesCommandLineWithSubcommand() {
@@ -460,13 +473,17 @@ class CommandLineParserTest extends Specification {
         e.message == 'Unknown command-line option \'-u\'.'
     }
 
-    def parseFailsWhenCommandLineContainsUnknownLongOptionWithNewline() {
+    @Unroll
+    def "parse fails when command line contains unknown long option with newline #argv"() {
         when:
-        parser.parse(['--a\nb'])
+        parser.parse([argv])
 
         then:
         def e = thrown(CommandLineArgumentException)
         e.message == 'Unknown command-line option \'--a\nb\'.'
+
+        where:
+        argv << ['--a\nb', '--a\nb=something']
     }
 
     def parseFailsWhenCommandLineContainsUnknownLongOptionWithEqualsArgument() {
