@@ -26,7 +26,6 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.artifacts.maven.MavenResolver;
-import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectPublication;
@@ -38,7 +37,6 @@ import org.gradle.api.publication.maven.internal.DefaultDeployerFactory;
 import org.gradle.api.publication.maven.internal.DefaultMavenFactory;
 import org.gradle.api.publication.maven.internal.DefaultMavenRepositoryHandlerConvention;
 import org.gradle.api.publication.maven.internal.MavenFactory;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Upload;
 import org.gradle.internal.Factory;
 import org.gradle.logging.LoggingManagerInternal;
@@ -116,24 +114,16 @@ public class MavenPlugin implements Plugin<ProjectInternal> {
     }
 
     private void configureUploadArchivesTask() {
-        project.getTasks().withType(Upload.class).matching(new Spec<Upload>() {
-            public boolean isSatisfiedBy(Upload upload) {
-                return upload.getName().equals(BasePlugin.UPLOAD_ARCHIVES_TASK_NAME);
-            }
-        }).all(new Action<Upload>() {
-            public void execute(Upload upload) {
-                upload.getRepositories().matching(new Spec<ArtifactRepository>() {
-                    public boolean isSatisfiedBy(ArtifactRepository element) {
-                        return element instanceof MavenResolver;
-                    }
-                }).all(new Action<ArtifactRepository>() {
-                    public void execute(ArtifactRepository repository) {
-                        MavenResolver resolver = (MavenResolver) repository;
-                        MavenPom pom = resolver.getPom();
-                        ModuleVersionIdentifier publicationId = new DefaultModuleVersionIdentifier(pom.getGroupId(), pom.getArtifactId(), pom.getVersion());
-                        publicationRegistry.registerPublication(project.getPath(), new DefaultProjectPublication(publicationId));
-                    }
-                });
+        project.afterEvaluate(new Action<Project>() {
+            public void execute(Project project) {
+                Upload uploadArchives = project.getTasks().withType(Upload.class).findByName(BasePlugin.UPLOAD_ARCHIVES_TASK_NAME);
+                if (uploadArchives == null) { return; }
+
+                for (MavenResolver resolver : uploadArchives.getRepositories().withType(MavenResolver.class)) {
+                    MavenPom pom = resolver.getPom();
+                    ModuleVersionIdentifier publicationId = new DefaultModuleVersionIdentifier(pom.getGroupId(), pom.getArtifactId(), pom.getVersion());
+                    publicationRegistry.registerPublication(project.getPath(), new DefaultProjectPublication(publicationId));
+                }
             }
         });
     }
