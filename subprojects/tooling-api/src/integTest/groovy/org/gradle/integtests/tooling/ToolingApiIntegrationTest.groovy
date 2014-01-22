@@ -23,6 +23,7 @@ import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApi
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.model.GradleProject
 import org.gradle.util.GradleVersion
@@ -52,6 +53,32 @@ class ToolingApiIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         model != null
+    }
+
+    def "tooling api spawns a daemon in specified userHomeDir"() {
+        toolingApi.isEmbedded = false
+        File userHomeDir = temporaryFolder.testDirectory.createDir('userhomedir')
+        projectDir.file('settings.gradle')
+        projectDir.file('build.gradle') << """task gradleBuild(type: GradleBuild) << {
+    println 'userHomeDir=' + startParameter.gradleUserHomeDir
+}
+"""
+        ByteArrayOutputStream baos = new ByteArrayOutputStream()
+
+        when:
+        toolingApi.withConnector { connector ->
+            connector.useGradleUserHomeDir(userHomeDir)
+        }
+        toolingApi.withConnection { connection ->
+            BuildLauncher build = connection.newBuild();
+            build.forTasks("gradleBuild");
+            build.standardOutput = baos
+            build.run()
+        }
+        def output = baos.toString("UTF-8")
+
+        then:
+        output.contains('userHomeDir=' + userHomeDir.absolutePath)
     }
 
     def "tooling api uses the wrapper properties to determine which version to use"() {
