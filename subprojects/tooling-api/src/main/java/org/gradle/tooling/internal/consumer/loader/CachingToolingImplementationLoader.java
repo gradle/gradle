@@ -33,7 +33,7 @@ public class CachingToolingImplementationLoader implements ToolingImplementation
     }
 
     public ConsumerConnection create(Distribution distribution, ProgressLoggerFactory progressLoggerFactory, ConsumerConnectionParameters connectionParameters) {
-        ClassPath classpath = distribution.getToolingImplementationClasspath(progressLoggerFactory);
+        ClassPath classpath = distribution.getToolingImplementationClasspath(progressLoggerFactory, connectionParameters.getUserHomeDir());
 
         ConsumerConnection connection = connections.get(classpath);
         if (connection == null) {

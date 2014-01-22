@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.internal.consumer;
 
-import org.gradle.StartParameter;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.tooling.internal.consumer.loader.CachingToolingImplementationLoader;
@@ -30,7 +29,7 @@ public class ConnectorServices {
 
     public DefaultGradleConnector createConnector() {
         ConnectionFactory connectionFactory = new ConnectionFactory(singletonRegistry.get(ToolingImplementationLoader.class));
-        return new DefaultGradleConnector(connectionFactory, new DistributionFactory(StartParameter.DEFAULT_GRADLE_USER_HOME));
+        return new DefaultGradleConnector(connectionFactory, new DistributionFactory());
     }
 
     /**

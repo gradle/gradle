@@ -32,7 +32,7 @@ class LazyConsumerActionExecutorTest extends Specification {
     final ConsumerConnection consumerConnection = Mock()
     final LoggingProvider loggingProvider = Mock()
     final ProgressLoggerFactory progressLoggerFactory = Mock()
-    final LazyConsumerActionExecutor connection = new LazyConsumerActionExecutor(distribution, implementationLoader, loggingProvider, false)
+    final LazyConsumerActionExecutor connection = new LazyConsumerActionExecutor(distribution, implementationLoader, loggingProvider, false, null)
 
     def setup() {
         connection.connectionParameters = connectionParams

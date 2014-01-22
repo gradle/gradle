@@ -35,11 +35,12 @@ class DefaultToolingImplementationLoaderTest extends Specification {
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     Distribution distribution = Mock()
     ProgressLoggerFactory loggerFactory = Mock()
+    File userHomeDir = Mock()
     final loader = new DefaultToolingImplementationLoader()
 
     def "locates connection implementation using meta-inf service then instantiates and configures the connection"() {
         given:
-        distribution.getToolingImplementationClasspath(loggerFactory) >> new DefaultClassPath(
+        distribution.getToolingImplementationClasspath(loggerFactory, userHomeDir) >> new DefaultClassPath(
                 getToolingApiResourcesDir(connectionImplementation),
                 ClasspathUtil.getClasspathForClass(TestConnection.class),
                 ClasspathUtil.getClasspathForClass(ActorFactory.class),
@@ -49,7 +50,7 @@ class DefaultToolingImplementationLoaderTest extends Specification {
                 ClasspathUtil.getClasspathForClass(GradleVersion.class))
 
         when:
-        def adaptedConnection = loader.create(distribution, loggerFactory, new ConsumerConnectionParameters(true))
+        def adaptedConnection = loader.create(distribution, loggerFactory, new ConsumerConnectionParameters(true, userHomeDir))
 
         then:
         adaptedConnection.delegate.class != connectionImplementation //different classloaders
@@ -81,10 +82,10 @@ class DefaultToolingImplementationLoaderTest extends Specification {
         def loader = new DefaultToolingImplementationLoader()
 
         given:
-        distribution.getToolingImplementationClasspath(loggerFactory) >> new DefaultClassPath()
+        distribution.getToolingImplementationClasspath(loggerFactory, userHomeDir) >> new DefaultClassPath()
 
         expect:
-        loader.create(distribution, loggerFactory, new ConsumerConnectionParameters(true)) instanceof NoToolingApiConnection
+        loader.create(distribution, loggerFactory, new ConsumerConnectionParameters(true, userHomeDir)) instanceof NoToolingApiConnection
     }
 }
 

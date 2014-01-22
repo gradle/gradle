@@ -18,8 +18,10 @@ package org.gradle.tooling.internal.consumer;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.logging.ProgressLoggerFactory;
 
+import java.io.File;
+
 public interface Distribution {
     String getDisplayName();
 
-    ClassPath getToolingImplementationClasspath(ProgressLoggerFactory progressLoggerFactory);
+    ClassPath getToolingImplementationClasspath(ProgressLoggerFactory progressLoggerFactory, File userHomeDir);
 }
