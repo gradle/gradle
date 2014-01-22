@@ -21,7 +21,6 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.*;
-import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
@@ -33,7 +32,6 @@ import org.gradle.api.internal.plugins.BuildConfigurationRule;
 import org.gradle.api.internal.plugins.CleanRule;
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.plugins.UploadRule;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Delete;
 import org.gradle.api.tasks.Upload;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
@@ -143,25 +141,19 @@ public class BasePlugin implements Plugin<Project> {
     }
 
     private void configureUploadArchivesTask(Project project) {
-        project.getTasks().withType(Upload.class).matching(new Spec<Upload>() {
-            public boolean isSatisfiedBy(Upload element) {
-                return element.getName().equals(UPLOAD_ARCHIVES_TASK_NAME);
-            }
-        }).all(new Action<Upload>() {
-            public void execute(final Upload upload) {
-                upload.getRepositories().matching(new Spec<ArtifactRepository>() {
-                    public boolean isSatisfiedBy(ArtifactRepository repository) {
-                        return repository instanceof IvyArtifactRepository;
-                    }
-                }).all(new Action<ArtifactRepository>() {
-                    public void execute(ArtifactRepository artifactRepository) {
-                        ConfigurationInternal internalConfig = (ConfigurationInternal) upload.getConfiguration();
-                        ModuleInternal module = internalConfig.getModule();
-                        ModuleVersionIdentifier publicationId =
-                                new DefaultModuleVersionIdentifier(module.getGroup(), module.getName(), module.getVersion());
-                        publicationRegistry.registerPublication(module.getProjectPath(), new DefaultProjectPublication(publicationId));
-                    }
-                });
+        project.afterEvaluate(new Action<Project>() {
+            public void execute(Project project) {
+                Upload uploadArchives = project.getTasks().withType(Upload.class).findByName(UPLOAD_ARCHIVES_TASK_NAME);
+                if (uploadArchives == null) { return; }
+
+                boolean hasIvyRepo = !uploadArchives.getRepositories().withType(IvyArtifactRepository.class).isEmpty();
+                if (!hasIvyRepo) return; // Maven repos are handled by MavenPlugin
+
+                ConfigurationInternal configuration = (ConfigurationInternal) uploadArchives.getConfiguration();
+                ModuleInternal module = configuration.getModule();
+                ModuleVersionIdentifier publicationId =
+                        new DefaultModuleVersionIdentifier(module.getGroup(), module.getName(), module.getVersion());
+                publicationRegistry.registerPublication(module.getProjectPath(), new DefaultProjectPublication(publicationId));
             }
         });
     }
