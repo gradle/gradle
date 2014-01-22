@@ -147,7 +147,7 @@ public class BasePlugin implements Plugin<Project> {
                 if (uploadArchives == null) { return; }
 
                 boolean hasIvyRepo = !uploadArchives.getRepositories().withType(IvyArtifactRepository.class).isEmpty();
-                if (!hasIvyRepo) return; // Maven repos are handled by MavenPlugin
+                if (!hasIvyRepo) { return; } // Maven repos are handled by MavenPlugin
 
                 ConfigurationInternal configuration = (ConfigurationInternal) uploadArchives.getConfiguration();
                 ModuleInternal module = configuration.getModule();
