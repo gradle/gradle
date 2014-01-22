@@ -25,7 +25,7 @@ import spock.lang.Ignore
 class PublicationsCrossVersionSpec extends ToolingApiSpecification {
     @ToolingApiVersion('current')
     @TargetGradleVersion('current')
-    def "GradleProject provides publication for each uploadArchives task with Ivy repository"() {
+    def "Ivy repository based publication"() {
         settingsFile << "rootProject.name = 'test.project'"
         buildFile <<
 """
@@ -56,7 +56,7 @@ uploadArchives {
     @Ignore
     @ToolingApiVersion('current')
     @TargetGradleVersion('current')
-    def "GradleProject provides publication for each uploadArchives task with Maven repository"() {
+    def "Maven repository based publication with coordinates inferred from project"() {
         settingsFile << "rootProject.name = 'test.project'"
         buildFile <<
 """
@@ -88,7 +88,42 @@ uploadArchives {
 
     @ToolingApiVersion('current')
     @TargetGradleVersion('current')
-    def "GradleProject provides publication for each publication added to publishing.publications"() {
+    def "Maven repository based publication with coordinates inferred from POM configuration"() {
+        settingsFile << "rootProject.name = 'test.project'"
+        buildFile <<
+                """
+apply plugin: "maven"
+
+version = 1.0
+group = "test.group"
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: "file:///\$buildDir/maven-repo")
+            pom.groupId = "test.groupId"
+            pom.artifactId = "test.artifactId"
+            pom.version = "1.1"
+        }
+    }
+}
+"""
+
+        when:
+        GradleProject project = withConnection { it.getModel(GradleProject.class) }
+
+        then:
+        project.publications.size() == 1
+        with(project.publications.iterator().next()) {
+            id.group == "test.groupId"
+            id.name == "test.artifactId"
+            id.version == "1.1"
+        }
+    }
+
+    @ToolingApiVersion('current')
+    @TargetGradleVersion('current')
+    def "publishing.publications based publication"() {
         settingsFile << "rootProject.name = 'test.project'"
         buildFile <<
                 """
