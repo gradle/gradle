@@ -184,7 +184,7 @@ class CommandLineParserTest extends Specification {
         where:
         badOptionName << ['weird\nmulti\nline\noption', '!@#$', 'with space', '=', '-']
     }
-    
+
     def parsesMultipleOptions() {
         parser.option('a').hasArgument()
         parser.option('long-option')
