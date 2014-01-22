@@ -86,7 +86,6 @@ uploadArchives {
         }
     }
 
-    @Ignore
     @ToolingApiVersion('current')
     @TargetGradleVersion('current')
     def "GradleProject provides publication for each publication added to publishing.publications"() {
