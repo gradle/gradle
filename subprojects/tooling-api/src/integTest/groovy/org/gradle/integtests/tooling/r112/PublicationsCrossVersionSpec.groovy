@@ -22,6 +22,17 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.GradleProject
 
 class PublicationsCrossVersionSpec extends ToolingApiSpecification {
+
+    def "project without any configured publications"() {
+        buildFile << "apply plugin: 'java'"
+
+        when:
+        GradleProject project = withConnection { it.getModel(GradleProject.class) }
+
+        then:
+        project.publications.empty
+    }
+
     @ToolingApiVersion('current')
     @TargetGradleVersion('current')
     def "Ivy repository based publication"() {
