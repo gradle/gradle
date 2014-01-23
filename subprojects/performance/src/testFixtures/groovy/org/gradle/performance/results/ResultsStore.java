@@ -24,6 +24,7 @@ import org.gradle.performance.fixture.PerformanceResults;
 import org.gradle.performance.measure.DataAmount;
 import org.gradle.performance.measure.Duration;
 import org.gradle.performance.measure.MeasuredOperation;
+import org.gradle.util.GradleVersion;
 
 import java.io.File;
 import java.sql.*;
@@ -134,9 +135,13 @@ public class ResultsStore implements DataReporter {
             return withConnection(new ConnectionAction<TestExecutionHistory>() {
                 public TestExecutionHistory execute(Connection connection) throws Exception {
                     List<PerformanceResults> results = new ArrayList<PerformanceResults>();
-                    Set<String> allVersions = new TreeSet<String>();
+                    Set<String> allVersions = new TreeSet<String>(new Comparator<String>() {
+                        public int compare(String o1, String o2) {
+                            return GradleVersion.version(o1).compareTo(GradleVersion.version(o2));
+                        }
+                    });
                     PreparedStatement executionsForName = connection.prepareStatement("select id, executionTime, targetVersion, testProject, tasks, args, operatingSystem, jvm, vcsBranch, vcsCommit from testExecution where testId = ? order by executionTime desc");
-                    PreparedStatement buildsForTest = connection.prepareStatement("select version, executionTimeMs, heapUsageBytes, totalHeapUsageBytes, maxHeapUsageBytes, maxUncollectedHeapBytes, maxCommittedHeapBytes from testOperation where testExecution = ?");
+                    PreparedStatement operationsForExecution = connection.prepareStatement("select version, executionTimeMs, heapUsageBytes, totalHeapUsageBytes, maxHeapUsageBytes, maxUncollectedHeapBytes, maxCommittedHeapBytes from testOperation where testExecution = ?");
                     executionsForName.setString(1, testName);
                     ResultSet testExecutions = executionsForName.executeQuery();
                     while (testExecutions.next()) {
@@ -155,8 +160,8 @@ public class ResultsStore implements DataReporter {
 
                         results.add(performanceResults);
 
-                        buildsForTest.setLong(1, id);
-                        ResultSet builds = buildsForTest.executeQuery();
+                        operationsForExecution.setLong(1, id);
+                        ResultSet builds = operationsForExecution.executeQuery();
                         while (builds.next()) {
                             String version = builds.getString(1);
                             if ("1.7".equals(version) && performanceResults.getTestTime() <= ignoreV17Before) {
@@ -181,7 +186,7 @@ public class ResultsStore implements DataReporter {
                         }
                     }
                     testExecutions.close();
-                    buildsForTest.close();
+                    operationsForExecution.close();
                     executionsForName.close();
 
                     return new TestExecutionHistory(testName, new ArrayList<String>(allVersions), results);
