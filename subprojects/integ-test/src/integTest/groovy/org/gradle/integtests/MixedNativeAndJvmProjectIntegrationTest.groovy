@@ -24,8 +24,10 @@ public class MixedNativeAndJvmProjectIntegrationTest extends AbstractIntegration
         settingsFile << "rootProject.name = 'test'"
         buildFile << """
             apply plugin: "java"
-            apply plugin: "cpp-exe"
-            apply plugin: "cpp-lib"
+            apply plugin: "cpp"
+
+            executables { main {} }
+            libraries { main {} }
 
             task checkBinaries << {
                 assert binaries.mainClasses instanceof ClassDirectoryBinary

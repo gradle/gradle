@@ -24,6 +24,7 @@ import java.io.IOException;
 
 public interface BinaryStore {
     void write(WriteAction write);
+
     //done writing data, release any resources
     BinaryData done();
 

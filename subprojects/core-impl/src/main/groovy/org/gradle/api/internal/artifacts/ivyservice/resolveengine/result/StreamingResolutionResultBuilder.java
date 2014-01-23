@@ -48,7 +48,7 @@ public class StreamingResolutionResultBuilder implements ResolutionResultBuilder
     private final BinaryStore store;
     private final ModuleVersionIdentifierSerializer moduleVersionIdentifierSerializer = new ModuleVersionIdentifierSerializer();
     private final ModuleVersionSelectionSerializer moduleVersionSelectionSerializer = new ModuleVersionSelectionSerializer();
-    private Store<ResolvedComponentResult> cache;
+    private final Store<ResolvedComponentResult> cache;
     private final InternalDependencyResultSerializer internalDependencyResultSerializer = new InternalDependencyResultSerializer();
 
     public StreamingResolutionResultBuilder(BinaryStore store, Store<ResolvedComponentResult> cache) {
@@ -96,7 +96,7 @@ public class StreamingResolutionResultBuilder implements ResolutionResultBuilder
                 public void write(Encoder encoder) throws IOException {
                     encoder.writeByte(DEPENDENCY);
                     moduleVersionIdentifierSerializer.write(encoder, from);
-                    encoder.writeInt(dependencies.size());
+                    encoder.writeSmallInt(dependencies.size());
                     for (InternalDependencyResult dependency : dependencies) {
                         internalDependencyResultSerializer.write(encoder, dependency);
                         if (dependency.getFailure() != null) {
@@ -115,9 +115,9 @@ public class StreamingResolutionResultBuilder implements ResolutionResultBuilder
         private final static Logger LOG = Logging.getLogger(RootFactory.class);
         private final ModuleVersionSelectionSerializer moduleVersionSelectionSerializer = new ModuleVersionSelectionSerializer();
 
-        private BinaryStore.BinaryData data;
+        private final BinaryStore.BinaryData data;
         private final Map<ComponentSelector, ModuleVersionResolveException> failures;
-        private Store<ResolvedComponentResult> cache;
+        private final Store<ResolvedComponentResult> cache;
         private final Object lock = new Object();
         private final ModuleVersionIdentifierSerializer moduleVersionIdentifierSerializer = new ModuleVersionIdentifierSerializer();
         private final InternalDependencyResultSerializer internalDependencyResultSerializer = new InternalDependencyResultSerializer();
@@ -171,7 +171,7 @@ public class StreamingResolutionResultBuilder implements ResolutionResultBuilder
                             break;
                         case DEPENDENCY:
                             id = moduleVersionIdentifierSerializer.read(decoder);
-                            int size = decoder.readInt();
+                            int size = decoder.readSmallInt();
                             List<InternalDependencyResult> deps = new LinkedList<InternalDependencyResult>();
                             for (int i = 0; i < size; i++) {
                                 deps.add(internalDependencyResultSerializer.read(decoder, failures));

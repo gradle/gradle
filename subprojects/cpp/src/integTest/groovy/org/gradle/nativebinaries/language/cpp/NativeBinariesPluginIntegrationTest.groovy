@@ -156,7 +156,10 @@ class NativeBinariesPluginIntegrationTest extends AbstractInstalledToolChainInte
     def "build fails when link executable fails"() {
         given:
         buildFile << """
-            apply plugin: "cpp-exe"
+            apply plugin: "cpp"
+            executables {
+                main {}
+            }
         """
 
         and:
@@ -173,7 +176,8 @@ class NativeBinariesPluginIntegrationTest extends AbstractInstalledToolChainInte
     def "build fails when link library fails"() {
         given:
         buildFile << """
-            apply plugin: "cpp-lib"
+            apply plugin: "cpp"
+            libraries { main {} }
         """
 
         and:
@@ -199,7 +203,8 @@ class NativeBinariesPluginIntegrationTest extends AbstractInstalledToolChainInte
     def "build fails when create static library fails"() {
         given:
         buildFile << """
-            apply plugin: "cpp-lib"
+            apply plugin: "cpp"
+            libraries { main {} }
             binaries.withType(StaticLibraryBinary) {
                 staticLibArchiver.args "not_a_file"
             }

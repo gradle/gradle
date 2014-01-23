@@ -13,14 +13,14 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<chapter id='tutorial_using_tasks' xmlns:xi="http://www.w3.org/2001/XInclude">
+<chapter id='tutorial_using_tasks'>
     <title>Build Script Basics</title>
     <section><title>Projects and tasks</title>
     <para>Everything in Gradle sits on top of two basic concepts: <firstterm>projects</firstterm> and <firstterm>tasks</firstterm>.</para>
     <para>
-        Every Gradle build is made up of one or more <firstterm>projects</firstterm>. A project represents
-        some component of your software which can be built. What this means exactly depends on what it is that you are
-        building. For example, a project might represent a library JAR or a web application. It might represent a
+        Every Gradle build is made up of one or more <firstterm>projects</firstterm>.
+        What a project represents depends on what it is that you are doing with Gradle.
+        For example, a project might represent a library JAR or a web application. It might represent a
         distribution ZIP assembled from the JARs produced by other projects. A project does not necessarily represent
         a thing to be built. It might represent a thing to be done, such as deploying your application to staging or
         production environments. Don't worry if this seems a little vague for now. Gradle's build-by-convention support adds

@@ -37,6 +37,15 @@ class DefaultResolutionResultBuilderSpec extends Specification {
     def "builds basic graph"() {
         given:
         builder.start(confId("root"))
+
+        node("root")
+        node("mid1")
+        node("mid2")
+        node("leaf1")
+        node("leaf2")
+        node("leaf3")
+        node("leaf4")
+
         resolvedConf("root", [dep("mid1"), dep("mid2")])
 
         resolvedConf("mid1", [dep("leaf1"), dep("leaf2")])
@@ -64,6 +73,12 @@ class DefaultResolutionResultBuilderSpec extends Specification {
     def "graph with multiple dependents"() {
         given:
         builder.start(confId("a"))
+
+        node("a")
+        node("b1")
+        node("b2")
+        node("b3")
+
         resolvedConf("a", [dep("b1"), dep("b2"), dep("b3")])
 
         resolvedConf("b1", [dep("b2"), dep("b3")])
@@ -87,6 +102,9 @@ class DefaultResolutionResultBuilderSpec extends Specification {
     def "builds graph with cycles"() {
         given:
         builder.start(confId("a"))
+        node("a")
+        node("b")
+        node("c")
         resolvedConf("a", [dep("b")])
         resolvedConf("b", [dep("c")])
         resolvedConf("c", [dep("a")])
@@ -105,7 +123,10 @@ class DefaultResolutionResultBuilderSpec extends Specification {
     def "includes selection reason"() {
         given:
         builder.start(confId("a"))
-        resolvedConf("a", [dep("b", null, "b", VersionSelectionReasons.FORCED), dep("c", null, "c", VersionSelectionReasons.CONFLICT_RESOLUTION), dep("d", new RuntimeException("Boo!"))])
+        node("b", VersionSelectionReasons.FORCED)
+        node("c", VersionSelectionReasons.CONFLICT_RESOLUTION)
+        node("d")
+        resolvedConf("a", [dep("b"), dep("c"), dep("d", new RuntimeException("Boo!"))])
         resolvedConf("b", [])
         resolvedConf("c", [])
         resolvedConf("d", [])
@@ -124,6 +145,9 @@ class DefaultResolutionResultBuilderSpec extends Specification {
     def "links dependents correctly"() {
         given:
         builder.start(confId("a"))
+        node("a")
+        node("b")
+        node("c")
         resolvedConf("a", [dep("b")])
         resolvedConf("b", [dep("c")])
         resolvedConf("c", [dep("a")])
@@ -154,6 +178,11 @@ class DefaultResolutionResultBuilderSpec extends Specification {
     def "accumulates and avoids duplicate dependencies"() {
         given:
         builder.start(confId("root"))
+        node("root")
+        node("mid1")
+        node("leaf1")
+        node("leaf2")
+
         resolvedConf("root", [dep("mid1")])
 
         resolvedConf("mid1", [dep("leaf1")])
@@ -177,6 +206,9 @@ class DefaultResolutionResultBuilderSpec extends Specification {
     def "accumulates and avoids duplicate unresolved dependencies"() {
         given:
         builder.start(confId("root"))
+        node("mid1")
+        node("leaf1")
+        node("leaf2")
         resolvedConf("root", [dep("mid1")])
 
         resolvedConf("mid1", [dep("leaf1", new RuntimeException("foo!"))])
@@ -195,6 +227,8 @@ class DefaultResolutionResultBuilderSpec extends Specification {
     def "graph includes unresolved deps"() {
         given:
         builder.start(confId("a"))
+        node("b")
+        node("c")
         resolvedConf("a", [dep("b"), dep("c"), dep("U", new RuntimeException("unresolved!"))])
         resolvedConf("b", [])
         resolvedConf("c", [])
@@ -210,19 +244,17 @@ class DefaultResolutionResultBuilderSpec extends Specification {
 """
     }
 
-    private void resolvedConf(String module, List<InternalDependencyResult> deps) {
-        def moduleVersion = new DummyModuleVersionSelection(selectedId: newId("x", module, "1"), selectionReason: VersionSelectionReasons.REQUESTED, componentId: new DefaultModuleComponentIdentifier("x", module, "1"))
+    private void node(String module, ComponentSelectionReason reason = VersionSelectionReasons.REQUESTED) {
+        def moduleVersion = new DummyModuleVersionSelection(selectedId: newId("x", module, "1"), selectionReason: reason, componentId: new DefaultModuleComponentIdentifier("x", module, "1"))
         builder.resolvedModuleVersion(moduleVersion)
-        deps.each {
-            if (it.selected) {
-                builder.resolvedModuleVersion(it.selected)
-            }
-        }
+    }
+
+    private void resolvedConf(String module, List<InternalDependencyResult> deps) {
         builder.resolvedConfiguration(confId(module), deps)
     }
 
-    private InternalDependencyResult dep(String requested, Exception failure = null, String selected = requested, ComponentSelectionReason selectionReason = VersionSelectionReasons.REQUESTED) {
-        def selection = new DummyModuleVersionSelection(selectedId: newId("x", selected, "1"), selectionReason: selectionReason, componentId: new DefaultModuleComponentIdentifier("x", selected, "1"))
+    private InternalDependencyResult dep(String requested, Exception failure = null, String selected = requested) {
+        def selection = newId("x", selected, "1")
         def selector = new DefaultModuleComponentSelector("x", requested, "1")
         def moduleVersionSelector = newSelector("x", requested, "1")
         failure = failure == null ? null : new ModuleVersionResolveException(moduleVersionSelector, failure)
@@ -241,7 +273,7 @@ class DefaultResolutionResultBuilderSpec extends Specification {
 
     class DummyInternalDependencyResult implements InternalDependencyResult {
         ComponentSelector requested
-        ModuleVersionSelection selected
+        ModuleVersionIdentifier selected
         ModuleVersionResolveException failure
         ComponentSelectionReason reason
     }
