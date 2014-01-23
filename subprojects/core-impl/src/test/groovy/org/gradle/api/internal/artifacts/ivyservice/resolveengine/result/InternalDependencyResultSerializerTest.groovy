@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
 import org.gradle.api.artifacts.component.ModuleComponentSelector
-import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentSelector
 import org.gradle.api.internal.artifacts.ivyservice.ModuleVersionResolveException
 import org.gradle.messaging.serialize.InputStreamBackedDecoder
@@ -35,7 +34,7 @@ class InternalDependencyResultSerializerTest extends Specification {
         def successful = Mock(InternalDependencyResult) {
             getRequested() >> DefaultModuleComponentSelector.newSelector("org", "foo", "1.0")
             getFailure() >> null
-            getSelected() >> new DefaultModuleVersionSelection(newId("org", "foo", "1.0"), VersionSelectionReasons.REQUESTED, new DefaultModuleComponentIdentifier("org", "foo", "1.0"))
+            getSelected() >> newId("org", "foo", "1.0")
             getReason() >> VersionSelectionReasons.REQUESTED
         }
 
@@ -49,8 +48,7 @@ class InternalDependencyResultSerializerTest extends Specification {
         then:
         out.requested == DefaultModuleComponentSelector.newSelector("org", "foo", "1.0")
         out.failure == null
-        out.selected.selectedId == newId("org", "foo", "1.0")
-        out.selected.selectionReason == VersionSelectionReasons.REQUESTED
+        out.selected == newId("org", "foo", "1.0")
     }
 
     def "serializes failed dependency result"() {

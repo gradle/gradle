@@ -20,12 +20,22 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.GradleProject
-import spock.lang.Ignore
+import org.gradle.tooling.model.UnsupportedMethodException
 
+@ToolingApiVersion('>=1.12')
+@TargetGradleVersion('>=1.12')
 class PublicationsCrossVersionSpec extends ToolingApiSpecification {
-    @ToolingApiVersion('current')
-    @TargetGradleVersion('current')
-    def "GradleProject provides publication for each uploadArchives task with Ivy repository"() {
+    def "project without any configured publications"() {
+        buildFile << "apply plugin: 'java'"
+
+        when:
+        GradleProject project = withConnection { it.getModel(GradleProject.class) }
+
+        then:
+        project.publications.empty
+    }
+
+    def "Ivy repository based publication"() {
         settingsFile << "rootProject.name = 'test.project'"
         buildFile <<
 """
@@ -53,10 +63,7 @@ uploadArchives {
         }
     }
 
-    @Ignore
-    @ToolingApiVersion('current')
-    @TargetGradleVersion('current')
-    def "GradleProject provides publication for each uploadArchives task with Maven repository"() {
+    def "Maven repository based publication with coordinates inferred from project"() {
         settingsFile << "rootProject.name = 'test.project'"
         buildFile <<
 """
@@ -86,9 +93,40 @@ uploadArchives {
         }
     }
 
-    @ToolingApiVersion('current')
-    @TargetGradleVersion('current')
-    def "GradleProject provides publication for each publication added to publishing.publications"() {
+    def "Maven repository based publication with coordinates inferred from POM configuration"() {
+        settingsFile << "rootProject.name = 'test.project'"
+        buildFile <<
+                """
+apply plugin: "maven"
+
+version = 1.0
+group = "test.group"
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: "file:///\$buildDir/maven-repo")
+            pom.groupId = "test.groupId"
+            pom.artifactId = "test.artifactId"
+            pom.version = "1.1"
+        }
+    }
+}
+"""
+
+        when:
+        GradleProject project = withConnection { it.getModel(GradleProject.class) }
+
+        then:
+        project.publications.size() == 1
+        with(project.publications.iterator().next()) {
+            id.group == "test.groupId"
+            id.name == "test.artifactId"
+            id.version == "1.1"
+        }
+    }
+
+    def "publishing.publications based publication"() {
         settingsFile << "rootProject.name = 'test.project'"
         buildFile <<
                 """
@@ -138,5 +176,16 @@ publishing {
         pub2 != null
         pub2.id.name == "test-artifactId"
         pub2.id.version == "1.2"
+    }
+
+    @TargetGradleVersion('=1.10')
+    def "decent error message for Gradle version that doesn't expose publications"() {
+        when:
+        GradleProject project = withConnection { it.getModel(GradleProject.class) }
+        project.publications
+
+        then:
+        UnsupportedMethodException e = thrown()
+        e.message.contains("Unsupported method: GradleProject.getPublications()")
     }
 }

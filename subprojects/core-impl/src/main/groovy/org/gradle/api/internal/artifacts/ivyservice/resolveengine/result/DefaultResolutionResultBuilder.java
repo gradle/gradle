@@ -57,7 +57,7 @@ public class DefaultResolutionResultBuilder implements ResolutionResultBuilder {
             if (d.getFailure() != null) {
                 dependency = dependencyResultFactory.createUnresolvedDependency(d.getRequested(), from, d.getReason(), d.getFailure());
             } else {
-                DefaultResolvedComponentResult selected = modules.get(d.getSelected().getSelectedId());
+                DefaultResolvedComponentResult selected = modules.get(d.getSelected());
                 dependency = dependencyResultFactory.createResolvedDependency(d.getRequested(), from, selected);
                 selected.addDependent((ResolvedDependencyResult) dependency);
             }

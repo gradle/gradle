@@ -27,6 +27,8 @@ import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.artifacts.maven.MavenResolver;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.ModuleInternal;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectPublication;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
@@ -119,9 +121,15 @@ public class MavenPlugin implements Plugin<ProjectInternal> {
                 Upload uploadArchives = project.getTasks().withType(Upload.class).findByName(BasePlugin.UPLOAD_ARCHIVES_TASK_NAME);
                 if (uploadArchives == null) { return; }
 
+                ConfigurationInternal configuration = (ConfigurationInternal) uploadArchives.getConfiguration();
+                ModuleInternal module = configuration.getModule();
                 for (MavenResolver resolver : uploadArchives.getRepositories().withType(MavenResolver.class)) {
                     MavenPom pom = resolver.getPom();
-                    ModuleVersionIdentifier publicationId = new DefaultModuleVersionIdentifier(pom.getGroupId(), pom.getArtifactId(), pom.getVersion());
+                    ModuleVersionIdentifier publicationId = new DefaultModuleVersionIdentifier(
+                            pom.getGroupId().equals("unknown") ? module.getGroup() : pom.getGroupId(),
+                            pom.getArtifactId().equals("empty-project") ? module.getName() : pom.getArtifactId(),
+                            pom.getVersion().equals("0") ? module.getVersion() : pom.getVersion()
+                    );
                     publicationRegistry.registerPublication(project.getPath(), new DefaultProjectPublication(publicationId));
                 }
             }

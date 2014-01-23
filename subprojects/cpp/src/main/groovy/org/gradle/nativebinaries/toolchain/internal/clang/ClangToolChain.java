@@ -19,9 +19,9 @@ package org.gradle.nativebinaries.toolchain.internal.clang;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativebinaries.toolchain.Clang;
-import org.gradle.nativebinaries.toolchain.internal.gcc.ToolRegistry;
 import org.gradle.nativebinaries.toolchain.internal.ToolType;
 import org.gradle.nativebinaries.toolchain.internal.gcc.AbstractGccCompatibleToolChain;
+import org.gradle.nativebinaries.toolchain.internal.gcc.ToolRegistry;
 import org.gradle.process.internal.ExecActionFactory;
 
 public class ClangToolChain extends AbstractGccCompatibleToolChain implements Clang {

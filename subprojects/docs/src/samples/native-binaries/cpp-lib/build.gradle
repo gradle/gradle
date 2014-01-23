@@ -1,5 +1,5 @@
 // START SNIPPET use-plugin
-apply plugin: "cpp-lib"
+apply plugin: "cpp"
 // END SNIPPET use-plugin
 
 // START SNIPPET args
