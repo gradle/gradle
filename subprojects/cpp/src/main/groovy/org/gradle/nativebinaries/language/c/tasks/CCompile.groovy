@@ -20,6 +20,7 @@ import org.gradle.cache.CacheRepository
 import org.gradle.nativebinaries.toolchain.internal.PlatformToolChain
 import org.gradle.nativebinaries.language.c.internal.DefaultCCompileSpec
 import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec
+import org.gradle.api.internal.tasks.compile.Compiler
 
 import javax.inject.Inject
 /**
@@ -37,7 +38,7 @@ class CCompile extends AbstractNativeCompileTask {
         new DefaultCCompileSpec()
     }
 
-    protected org.gradle.api.internal.tasks.compile.Compiler<NativeCompileSpec> createCompiler(PlatformToolChain toolChain) {
+    protected Compiler<NativeCompileSpec> createCompiler(PlatformToolChain toolChain) {
         toolChain.createCCompiler()
     }
 }
