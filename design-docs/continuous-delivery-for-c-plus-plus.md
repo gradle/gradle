@@ -566,6 +566,10 @@ The implementation will also remove stale object files.
     - Change a source file so that it contains an error. Compilation fails.
     - Change the source file to fix the error and change another source file. Compilation succeeds.
 
+### Open issues
+
+- Need to handle `#import` with Visual C++, which may reference a `.tld` file.
+
 ## Story: Modify command line arguments for binary tool prior to execution
 
 This story provides a 'hook' allowing the build author to control the exact set of arguments passed to a tool chain executable.
