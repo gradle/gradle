@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.configuration;
+package org.gradle.groovy.scripts.internal;
 
 import org.codehaus.groovy.ast.ClassNode;
 import org.codehaus.groovy.ast.expr.*;
 import org.codehaus.groovy.ast.stmt.ExpressionStatement;
 import org.codehaus.groovy.ast.stmt.Statement;
 import org.gradle.api.Transformer;
-import org.gradle.util.ConfigureUtil;
 
-public class ScriptBlockToServiceConfigurationTransformer implements Transformer<Statement, Statement> {
+public class ScriptBlockToServiceConfigurationTransformer implements Transformer<Statement, ScriptBlock> {
 
     private final String servicesFieldName;
     private final Class<?> serviceClass;
@@ -33,11 +32,8 @@ public class ScriptBlockToServiceConfigurationTransformer implements Transformer
         this.serviceClass = serviceClass;
     }
 
-    public Statement transform(Statement original) {
-        ExpressionStatement expressionStatement = (ExpressionStatement) original;
-        MethodCallExpression methodCall = (MethodCallExpression) expressionStatement.getExpression();
-        ArgumentListExpression args = (ArgumentListExpression) methodCall.getArguments();
-        Expression closureArg = args.getExpression(0);
+    public Statement transform(ScriptBlock scriptBlock) {
+        Expression closureArg = scriptBlock.getClosureExpression();
 
         PropertyExpression servicesProperty = new PropertyExpression(VariableExpression.THIS_EXPRESSION, servicesFieldName);
         MethodCallExpression getServiceMethodCall = new MethodCallExpression(servicesProperty, "get",
@@ -45,8 +41,6 @@ public class ScriptBlockToServiceConfigurationTransformer implements Transformer
                         new ClassExpression(new ClassNode(serviceClass))
                 )
         );
-
-        ClassNode configureUtilClass = new ClassNode(ConfigureUtil.class);
 
         // Remove access to any surrounding context
         Expression hydrateMethodCall = new MethodCallExpression(closureArg, "rehydrate", new ArgumentListExpression(

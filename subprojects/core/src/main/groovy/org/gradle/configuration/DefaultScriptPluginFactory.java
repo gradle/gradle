@@ -16,8 +16,6 @@
 
 package org.gradle.configuration;
 
-import com.google.common.collect.ImmutableMap;
-import org.codehaus.groovy.ast.stmt.Statement;
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.internal.initialization.ScriptCompileScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
@@ -25,10 +23,9 @@ import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.plugins.PluginAware;
 import org.gradle.groovy.scripts.*;
 import org.gradle.groovy.scripts.internal.BuildScriptTransformer;
-import org.gradle.groovy.scripts.internal.FilteredScriptBlockTransformer;
+import org.gradle.groovy.scripts.internal.PluginsAndBuildscriptTransformer;
 import org.gradle.groovy.scripts.internal.StatementExtractingScriptTransformer;
 import org.gradle.internal.Factory;
-import org.gradle.internal.Transformers;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.logging.LoggingManagerInternal;
@@ -42,7 +39,6 @@ import org.gradle.plugin.resolve.internal.PluginResolver;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private final ScriptCompilerFactory scriptCompilerFactory;
@@ -142,12 +138,8 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
 
             compiler.setClassloader(classLoaderProvider.getBaseCompilationClassLoader());
 
-            Map<String, org.gradle.api.Transformer<Statement, Statement>> blockTransforms = ImmutableMap.of(
-                    classpathClosureName, Transformers.<Statement>noOpTransformer(),
-                    "plugins", new ScriptBlockToServiceConfigurationTransformer(DefaultScript.SCRIPT_SERVICES_PROPERTY, PluginHandler.class)
-            );
 
-            FilteredScriptBlockTransformer scriptBlockTransformer = new FilteredScriptBlockTransformer(blockTransforms);
+            PluginsAndBuildscriptTransformer scriptBlockTransformer = new PluginsAndBuildscriptTransformer(classpathClosureName);
 
             StatementExtractingScriptTransformer classpathScriptTransformer = new StatementExtractingScriptTransformer(classpathClosureName, scriptBlockTransformer);
 
