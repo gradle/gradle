@@ -29,7 +29,7 @@ import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 class PluginHandlerScriptIntegTest extends AbstractIntegrationSpec {
 
-    private static final String SCRIPT = "println 'out'; plugins { println 'in' }"
+    private static final String SCRIPT = "plugins { println 'in' }; println 'out'"
 
     @Rule BintrayTestServer bintray = new BintrayTestServer(executer, mavenRepo) // provides a double for JCenter
     def pluginBuilder = new PluginBuilder(executer, file("plugin"))
@@ -41,15 +41,9 @@ class PluginHandlerScriptIntegTest extends AbstractIntegrationSpec {
     def "build scripts have plugin blocks"() {
         when:
         buildFile << SCRIPT
-        buildFile << """
-            plugins {
-              apply plugin: 'java'
-            }
-        """
 
         then:
         executesCorrectly()
-        output.contains "javadoc" // task added by java plugin
     }
 
     def "settings scripts have plugin blocks"() {
@@ -96,7 +90,7 @@ class PluginHandlerScriptIntegTest extends AbstractIntegrationSpec {
 
     def void executesCorrectly() {
         succeeds "tasks"
-        assert output.contains(toPlatformLineSeparators("in\nout\n")) // Testing the the plugins {} block is extracted and executed before the “main” content
+        assert output.contains(toPlatformLineSeparators("in\nout\n"))
     }
 
     void "plugins block has no implicit access to owner context"() {
@@ -127,6 +121,33 @@ class PluginHandlerScriptIntegTest extends AbstractIntegrationSpec {
         succeeds "tasks"
         and:
         output.contains("end-of-plugins")
+    }
+
+    void "can resolve core plugins"() {
+        when:
+        buildScript """
+            plugins {
+              apply plugin: 'java'
+            }
+        """
+
+        then:
+        succeeds "javadoc"
+    }
+
+    void "core plugins cannot have a version number"() {
+        given:
+        buildScript """
+            plugins {
+                apply plugin: "java", version: "1.0"
+            }
+        """
+
+        when:
+        fails "tasks"
+
+        then:
+        failure.assertHasCause("Core plugins cannot have a version number. They are versioned with Gradle itself.")
     }
 
     void "can resolve android plugin"() {
@@ -206,21 +227,6 @@ class PluginHandlerScriptIntegTest extends AbstractIntegrationSpec {
         output.contains pluginMessage
     }
 
-    void "core plugins cannot have a version number"() {
-        given:
-        buildScript """
-            plugins {
-                apply plugin: "java", version: "1.0"
-            }
-        """
-
-        when:
-        fails "tasks"
-
-        then:
-        failure.assertHasCause("Core plugins cannot have a version number. They are versioned with Gradle itself.")
-    }
-
     void "plugins block does not leak into build script proper"() {
         given:
         buildFile << """
@@ -243,4 +249,47 @@ class PluginHandlerScriptIntegTest extends AbstractIntegrationSpec {
         output.contains("configurations: 1")
         output.contains("plugins transitive: false")
     }
+
+    def "buildscript blocks are allowed before plugin statements"() {
+        when:
+        buildScript """
+            buildscript {}
+            plugins {}
+        """
+
+        then:
+        succeeds "tasks"
+    }
+
+    def "build logic cannot precede plugins block"() {
+        when:
+        buildScript """
+            someThing()
+            plugins {}
+        """
+
+        then:
+        fails "tasks"
+
+        and:
+        failure.assertHasLineNumber 3
+        errorOutput.contains "only buildscript {} and and other plugins {} script blocks are allowed before plugins {} blocks, no other statements are allowed"
+    }
+
+    def "build logic cannot precede any plugins block"() {
+        when:
+        buildScript """
+            plugins {}
+            someThing()
+            plugins {}
+        """
+
+        then:
+        fails "tasks"
+
+        and:
+        failure.assertHasLineNumber 4
+        errorOutput.contains "only buildscript {} and and other plugins {} script blocks are allowed before plugins {} blocks, no other statements are allowed"
+    }
+
 }

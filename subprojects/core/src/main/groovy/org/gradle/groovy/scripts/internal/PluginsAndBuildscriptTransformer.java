@@ -22,7 +22,8 @@ import org.codehaus.groovy.ast.expr.ConstantExpression;
 import org.codehaus.groovy.ast.expr.MethodCallExpression;
 import org.codehaus.groovy.ast.stmt.ExpressionStatement;
 import org.codehaus.groovy.ast.stmt.Statement;
-import org.codehaus.groovy.control.ErrorCollector;
+import org.codehaus.groovy.control.SourceUnit;
+import org.codehaus.groovy.syntax.SyntaxException;
 import org.gradle.api.specs.Spec;
 import org.gradle.groovy.scripts.DefaultScript;
 import org.gradle.plugin.PluginHandler;
@@ -33,18 +34,32 @@ public class PluginsAndBuildscriptTransformer implements StatementTransformer {
     private static final ScriptBlockToServiceConfigurationTransformer PLUGIN_BLOCK_TRANSFORMER = new ScriptBlockToServiceConfigurationTransformer(DefaultScript.SCRIPT_SERVICES_PROPERTY, PluginHandler.class);
 
     private final String classpathBlockName;
+    private boolean seenNonClasspathStatement;
 
     public PluginsAndBuildscriptTransformer(String classpathBlockName) {
         this.classpathBlockName = classpathBlockName;
     }
 
-    public Statement transform(ErrorCollector errorCollector, Statement statement) {
+    public Statement transform(SourceUnit sourceUnit, Statement statement) {
         ScriptBlock scriptBlock = detectScriptBlock(statement);
         if (scriptBlock == null) {
+            seenNonClasspathStatement = true;
             return null;
         } else {
             if (scriptBlock.getName().equals(PLUGINS)) {
-                return PLUGIN_BLOCK_TRANSFORMER.transform(scriptBlock);
+                if (seenNonClasspathStatement) {
+                    String message = String.format(
+                            "only %s {} and and other %s {} script blocks are allowed before %s {} blocks, no other statements are allowed",
+                            classpathBlockName, PLUGINS, PLUGINS
+                    );
+                    sourceUnit.getErrorCollector().addError(
+                            new SyntaxException(message, statement.getLineNumber(), statement.getColumnNumber()),
+                            sourceUnit
+                    );
+                    return statement;
+                } else {
+                    return PLUGIN_BLOCK_TRANSFORMER.transform(scriptBlock);
+                }
             } else {
                 return statement; // don't transform classpathBlockName
             }

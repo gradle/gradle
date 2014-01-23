@@ -17,7 +17,7 @@
 package org.gradle.groovy.scripts.internal;
 
 import org.codehaus.groovy.ast.stmt.Statement;
-import org.codehaus.groovy.control.ErrorCollector;
+import org.codehaus.groovy.control.SourceUnit;
 import org.gradle.api.specs.Spec;
 
 public class FilteringStatementTransformer implements StatementTransformer {
@@ -28,7 +28,7 @@ public class FilteringStatementTransformer implements StatementTransformer {
         this.spec = spec;
     }
 
-    public Statement transform(ErrorCollector errorCollector, Statement statement) {
+    public Statement transform(SourceUnit sourceUnit, Statement statement) {
         if (spec.isSatisfiedBy(statement)) {
             return statement;
         } else {

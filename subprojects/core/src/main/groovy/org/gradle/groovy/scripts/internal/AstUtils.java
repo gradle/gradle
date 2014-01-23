@@ -24,7 +24,6 @@ import org.codehaus.groovy.ast.expr.Expression;
 import org.codehaus.groovy.ast.expr.MethodCallExpression;
 import org.codehaus.groovy.ast.expr.VariableExpression;
 import org.codehaus.groovy.ast.stmt.Statement;
-import org.codehaus.groovy.control.ErrorCollector;
 import org.codehaus.groovy.control.SourceUnit;
 
 import java.util.ListIterator;
@@ -69,11 +68,10 @@ public abstract class AstUtils {
     }
 
     public static void filterAndTransformStatements(SourceUnit source, StatementTransformer transformer) {
-        ErrorCollector errorCollector = source.getErrorCollector();
         ListIterator<Statement> statementIterator = source.getAST().getStatementBlock().getStatements().listIterator();
         while (statementIterator.hasNext()) {
             Statement originalStatement = statementIterator.next();
-            Statement transformedStatement = transformer.transform(errorCollector, originalStatement);
+            Statement transformedStatement = transformer.transform(source, originalStatement);
             if (transformedStatement == null) {
                 statementIterator.remove();
             } else if (transformedStatement != originalStatement) {

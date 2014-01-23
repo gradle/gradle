@@ -17,13 +17,13 @@ package org.gradle.groovy.scripts.internal;
 
 
 import org.codehaus.groovy.ast.stmt.Statement;
-import org.codehaus.groovy.control.ErrorCollector;
+import org.codehaus.groovy.control.SourceUnit;
 import org.gradle.api.specs.Spec;
 
 public interface StatementTransformer {
 
     // Return null to remove the statement
-    Statement transform(ErrorCollector errorCollector, Statement statement);
+    Statement transform(SourceUnit sourceUnit, Statement statement);
 
     Spec<? super Statement> getSpec();
 
