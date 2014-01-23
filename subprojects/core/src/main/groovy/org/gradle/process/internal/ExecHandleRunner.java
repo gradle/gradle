@@ -16,16 +16,15 @@
 
 package org.gradle.process.internal;
 
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 import net.rubygrapefruit.platform.Native;
 import net.rubygrapefruit.platform.ProcessLauncher;
-import net.rubygrapefruit.platform.internal.DefaultProcessLauncher;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.process.internal.streams.StreamsHandler;
-
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 public class ExecHandleRunner implements Runnable {
     private static final Object START_LOCK = new Object();
