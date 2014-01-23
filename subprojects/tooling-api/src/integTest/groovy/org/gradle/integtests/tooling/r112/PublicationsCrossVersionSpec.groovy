@@ -20,9 +20,11 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.GradleProject
+import org.gradle.tooling.model.UnsupportedMethodException
 
+@ToolingApiVersion('>=1.12')
+@TargetGradleVersion('>=1.12')
 class PublicationsCrossVersionSpec extends ToolingApiSpecification {
-
     def "project without any configured publications"() {
         buildFile << "apply plugin: 'java'"
 
@@ -33,8 +35,6 @@ class PublicationsCrossVersionSpec extends ToolingApiSpecification {
         project.publications.empty
     }
 
-    @ToolingApiVersion('current')
-    @TargetGradleVersion('current')
     def "Ivy repository based publication"() {
         settingsFile << "rootProject.name = 'test.project'"
         buildFile <<
@@ -63,8 +63,6 @@ uploadArchives {
         }
     }
 
-    @ToolingApiVersion('current')
-    @TargetGradleVersion('current')
     def "Maven repository based publication with coordinates inferred from project"() {
         settingsFile << "rootProject.name = 'test.project'"
         buildFile <<
@@ -95,8 +93,6 @@ uploadArchives {
         }
     }
 
-    @ToolingApiVersion('current')
-    @TargetGradleVersion('current')
     def "Maven repository based publication with coordinates inferred from POM configuration"() {
         settingsFile << "rootProject.name = 'test.project'"
         buildFile <<
@@ -130,8 +126,6 @@ uploadArchives {
         }
     }
 
-    @ToolingApiVersion('current')
-    @TargetGradleVersion('current')
     def "publishing.publications based publication"() {
         settingsFile << "rootProject.name = 'test.project'"
         buildFile <<
@@ -182,5 +176,16 @@ publishing {
         pub2 != null
         pub2.id.name == "test-artifactId"
         pub2.id.version == "1.2"
+    }
+
+    @TargetGradleVersion('=1.10')
+    def "decent error message for Gradle version that doesn't expose publications"() {
+        when:
+        GradleProject project = withConnection { it.getModel(GradleProject.class) }
+        project.publications
+
+        then:
+        UnsupportedMethodException e = thrown()
+        e.message.contains("Unsupported method: GradleProject.getPublications()")
     }
 }
