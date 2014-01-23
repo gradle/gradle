@@ -20,7 +20,6 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.GradleProject
-import spock.lang.Ignore
 
 class PublicationsCrossVersionSpec extends ToolingApiSpecification {
     @ToolingApiVersion('current')
@@ -53,7 +52,6 @@ uploadArchives {
         }
     }
 
-    @Ignore
     @ToolingApiVersion('current')
     @TargetGradleVersion('current')
     def "Maven repository based publication with coordinates inferred from project"() {
