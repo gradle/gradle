@@ -128,7 +128,7 @@ public class MavenPlugin implements Plugin<ProjectInternal> {
                     ModuleVersionIdentifier publicationId = new DefaultModuleVersionIdentifier(
                             pom.getGroupId().equals("unknown") ? module.getGroup() : pom.getGroupId(),
                             pom.getArtifactId().equals("empty-project") ? module.getName() : pom.getArtifactId(),
-                            pom.getVersion() == "0" ? module.getVersion() : pom.getVersion()
+                            pom.getVersion().equals("0") ? module.getVersion() : pom.getVersion()
                     );
                     publicationRegistry.registerPublication(project.getPath(), new DefaultProjectPublication(publicationId));
                 }
