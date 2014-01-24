@@ -16,9 +16,9 @@
 
 package org.gradle.messaging.serialize.kryo;
 
-import com.esotericsoftware.kryo.io.Input;
-import com.esotericsoftware.kryo.io.Output;
 import org.gradle.messaging.remote.internal.Message;
+import org.gradle.messaging.serialize.Decoder;
+import org.gradle.messaging.serialize.Encoder;
 import org.gradle.messaging.serialize.ObjectReader;
 import org.gradle.messaging.serialize.ObjectWriter;
 
@@ -29,37 +29,37 @@ public class JavaSerializer<T> implements KryoAwareSerializer<T> {
         this.classLoader = classLoader;
     }
 
-    public ObjectReader<T> newReader(Input input) {
-        return new JavaReader<T>(input, classLoader);
+    public ObjectReader<T> newReader(Decoder decoder) {
+        return new JavaReader<T>(decoder, classLoader);
     }
 
-    public ObjectWriter<T> newWriter(Output output) {
-        return new JavaWriter<T>(output);
+    public ObjectWriter<T> newWriter(Encoder encoder) {
+        return new JavaWriter<T>(encoder);
     }
 
     private static class JavaReader<T> implements ObjectReader<T> {
-        private final Input input;
+        private final Decoder decoder;
         private final ClassLoader classLoader;
 
-        private JavaReader(Input input, ClassLoader classLoader) {
-            this.input = input;
+        private JavaReader(Decoder decoder, ClassLoader classLoader) {
+            this.decoder = decoder;
             this.classLoader = classLoader;
         }
 
         public T read() throws Exception {
-            return (T) Message.receive(input, classLoader);
+            return (T) Message.receive(decoder.getInputStream(), classLoader);
         }
     }
 
     private class JavaWriter<T> implements ObjectWriter<T> {
-        private final Output output;
+        private final Encoder encoder;
 
-        public JavaWriter(Output output) {
-            this.output = output;
+        public JavaWriter(Encoder encoder) {
+            this.encoder = encoder;
         }
 
         public void write(T value) throws Exception {
-            Message.send(value, output);
+            Message.send(value, encoder.getOutputStream());
         }
     }
 }

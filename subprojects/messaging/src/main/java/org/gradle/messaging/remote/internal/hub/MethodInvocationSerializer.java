@@ -16,13 +16,14 @@
 
 package org.gradle.messaging.remote.internal.hub;
 
-import com.esotericsoftware.kryo.io.Input;
-import com.esotericsoftware.kryo.io.Output;
 import org.gradle.messaging.dispatch.MethodInvocation;
+import org.gradle.messaging.serialize.Decoder;
+import org.gradle.messaging.serialize.Encoder;
 import org.gradle.messaging.serialize.ObjectReader;
 import org.gradle.messaging.serialize.ObjectWriter;
 import org.gradle.messaging.serialize.kryo.KryoAwareSerializer;
 
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
@@ -36,21 +37,21 @@ public class MethodInvocationSerializer implements KryoAwareSerializer<MethodInv
         this.argsSerializer = argsSerializer;
     }
 
-    public ObjectReader<MethodInvocation> newReader(Input input) {
-        return new MethodInvocationReader(input, classLoader, argsSerializer.newReader(input));
+    public ObjectReader<MethodInvocation> newReader(Decoder decoder) {
+        return new MethodInvocationReader(decoder, classLoader, argsSerializer.newReader(decoder));
     }
 
-    public ObjectWriter<MethodInvocation> newWriter(Output output) {
-        return new MethodInvocationWriter(output, argsSerializer.newWriter(output));
+    public ObjectWriter<MethodInvocation> newWriter(Encoder encoder) {
+        return new MethodInvocationWriter(encoder, argsSerializer.newWriter(encoder));
     }
 
     private static class MethodInvocationWriter implements ObjectWriter<MethodInvocation> {
-        private final Output output;
+        private final Encoder encoder;
         private final ObjectWriter<Object[]> argsWriter;
         private final Map<Method, Integer> methods = new HashMap<Method, Integer>();
 
-        public MethodInvocationWriter(Output output, ObjectWriter<Object[]> argsWriter) {
-            this.output = output;
+        public MethodInvocationWriter(Encoder encoder, ObjectWriter<Object[]> argsWriter) {
+            this.encoder = encoder;
             this.argsWriter = argsWriter;
         }
 
@@ -66,20 +67,20 @@ public class MethodInvocationSerializer implements KryoAwareSerializer<MethodInv
             argsWriter.write(value.getArguments());
         }
 
-        private void writeMethod(Method method) {
+        private void writeMethod(Method method) throws IOException {
             Integer methodId = methods.get(method);
             if (methodId == null) {
                 methodId = methods.size();
                 methods.put(method, methodId);
-                output.writeInt(methodId, true);
-                output.writeString(method.getDeclaringClass().getName());
-                output.writeString(method.getName());
-                output.writeInt(method.getParameterTypes().length, true);
+                encoder.writeSmallInt(methodId);
+                encoder.writeString(method.getDeclaringClass().getName());
+                encoder.writeString(method.getName());
+                encoder.writeSmallInt(method.getParameterTypes().length);
                 for (Class<?> paramType : method.getParameterTypes()) {
-                    output.writeString(paramType.getName());
+                    encoder.writeString(paramType.getName());
                 }
             } else {
-                output.writeInt(methodId, true);
+                encoder.writeSmallInt(methodId);
             }
         }
     }
@@ -91,13 +92,13 @@ public class MethodInvocationSerializer implements KryoAwareSerializer<MethodInv
             PRIMITIVE_TYPES.put(Integer.TYPE.getName(), Integer.TYPE);
         }
 
-        private final Input input;
+        private final Decoder decoder;
         private final ClassLoader classLoader;
         private final ObjectReader<Object[]> argsReader;
         private final Map<Integer, Method> methods = new HashMap<Integer, Method>();
 
-        public MethodInvocationReader(Input input, ClassLoader classLoader, ObjectReader<Object[]> argsReader) {
-            this.input = input;
+        public MethodInvocationReader(Decoder decoder, ClassLoader classLoader, ObjectReader<Object[]> argsReader) {
+            this.decoder = decoder;
             this.classLoader = classLoader;
             this.argsReader = argsReader;
         }
@@ -112,13 +113,13 @@ public class MethodInvocationSerializer implements KryoAwareSerializer<MethodInv
             return argsReader.read();
         }
 
-        private Method readMethod() throws ClassNotFoundException, NoSuchMethodException {
-            int methodId = input.readInt(true);
+        private Method readMethod() throws ClassNotFoundException, NoSuchMethodException, IOException {
+            int methodId = decoder.readSmallInt();
             Method method = methods.get(methodId);
             if (method == null) {
                 Class<?> declaringClass = readType();
-                String methodName = input.readString();
-                int paramCount = input.readInt(true);
+                String methodName = decoder.readString();
+                int paramCount = decoder.readSmallInt();
                 Class<?>[] paramTypes = new Class<?>[paramCount];
                 for (int i = 0; i < paramTypes.length; i++) {
                     paramTypes[i] = readType();
@@ -129,8 +130,8 @@ public class MethodInvocationSerializer implements KryoAwareSerializer<MethodInv
             return method;
         }
 
-        private Class<?> readType() throws ClassNotFoundException {
-            String typeName = input.readString();
+        private Class<?> readType() throws ClassNotFoundException, IOException {
+            String typeName = decoder.readString();
             Class<?> paramType = PRIMITIVE_TYPES.get(typeName);
             if (paramType == null) {
                 paramType = classLoader.loadClass(typeName);

@@ -16,13 +16,13 @@
 
 package org.gradle.messaging.serialize.kryo;
 
-import com.esotericsoftware.kryo.io.Input;
-import com.esotericsoftware.kryo.io.Output;
+import org.gradle.messaging.serialize.Decoder;
+import org.gradle.messaging.serialize.Encoder;
 import org.gradle.messaging.serialize.ObjectReader;
 import org.gradle.messaging.serialize.ObjectWriter;
 
 public interface KryoAwareSerializer<T> {
-    ObjectReader<T> newReader(Input input);
+    ObjectReader<T> newReader(Decoder decoder);
 
-    ObjectWriter<T> newWriter(Output output);
+    ObjectWriter<T> newWriter(Encoder encoder);
 }

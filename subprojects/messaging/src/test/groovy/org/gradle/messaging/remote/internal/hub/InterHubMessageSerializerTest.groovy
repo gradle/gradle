@@ -20,11 +20,11 @@ import org.gradle.messaging.remote.internal.hub.protocol.ChannelIdentifier
 import org.gradle.messaging.remote.internal.hub.protocol.ChannelMessage
 import org.gradle.messaging.remote.internal.hub.protocol.EndOfStream
 import org.gradle.messaging.remote.internal.hub.protocol.InterHubMessage
-import org.gradle.messaging.serialize.kryo.KryoSerializer
+import org.gradle.messaging.serialize.kryo.JavaSerializer
 import spock.lang.Specification
 
 class InterHubMessageSerializerTest extends Specification {
-    final InterHubMessageSerializer serializer = new InterHubMessageSerializer(new KryoSerializer<Object>())
+    final InterHubMessageSerializer serializer = new InterHubMessageSerializer(new JavaSerializer<Object>())
 
     def "can serialise ChannelMessage"() {
         def channelId = new ChannelIdentifier("channel name")
@@ -38,13 +38,16 @@ class InterHubMessageSerializerTest extends Specification {
         result instanceof ChannelMessage
         result.channel == channelId
         result.payload == "payload"
-        serialized.length == 23
     }
 
     def "replaces a channel ID that has already been seen with an integer value"() {
         def channelId = new ChannelIdentifier("channel name")
         def message1 = new ChannelMessage(channelId, "payload 1")
         def message2 = new ChannelMessage(channelId, "payload 2")
+
+        given:
+        def message1Serialized = serialize(message1)
+        def message2Serialized = serialize(message2)
 
         when:
         def serialized = serialize(message1, message2)
@@ -57,7 +60,7 @@ class InterHubMessageSerializerTest extends Specification {
         result[1] instanceof ChannelMessage
         result[1].channel == channelId
         result[1].payload == "payload 2"
-        serialized.length == 38
+        serialized.length < message1Serialized.length + message2Serialized.length
     }
 
     def "can serialize messages for multiple channels"() {
@@ -81,7 +84,6 @@ class InterHubMessageSerializerTest extends Specification {
         result[2] instanceof ChannelMessage
         result[2].channel == channelId1
         result[2].payload == "payload 3"
-        serialized.length == 57
     }
 
     def "can serialise EndOfStream"() {
@@ -91,7 +93,6 @@ class InterHubMessageSerializerTest extends Specification {
 
         then:
         result instanceof EndOfStream
-        serialized.length == 1
     }
 
     def serialize(InterHubMessage... messages) {
