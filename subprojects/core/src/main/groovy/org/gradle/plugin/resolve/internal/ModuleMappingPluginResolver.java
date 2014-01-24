@@ -26,7 +26,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.reflect.Instantiator;
 
-public class ModuleMappingPluginResolver implements PluginResolver {
+public abstract class ModuleMappingPluginResolver implements PluginResolver {
 
     private final String name;
     private final DependencyResolutionServices dependencyResolutionServices;
@@ -63,4 +63,6 @@ public class ModuleMappingPluginResolver implements PluginResolver {
     public String toString() {
         return getClass().getName() + "[" + name + "]";
     }
+
+    public abstract String getDescriptionForNotFoundMessage();
 }

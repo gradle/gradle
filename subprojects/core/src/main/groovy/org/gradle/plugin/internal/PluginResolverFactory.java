@@ -17,6 +17,7 @@
 package org.gradle.plugin.internal;
 
 import org.gradle.api.UnknownProjectException;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
@@ -42,6 +43,7 @@ public class PluginResolverFactory {
     private final DependencyManagementServices dependencyManagementServices;
     private final FileResolver fileResolver;
     private final DependencyMetaDataProvider dependencyMetaDataProvider;
+    private final DocumentationRegistry documentationRegistry;
 
     private final ProjectFinder projectFinder = new ProjectFinder() {
         public ProjectInternal getProject(String path) {
@@ -49,12 +51,13 @@ public class PluginResolverFactory {
         }
     };
 
-    public PluginResolverFactory(PluginRegistry pluginRegistry, Instantiator instantiator, DependencyManagementServices dependencyManagementServices, FileResolver fileResolver, DependencyMetaDataProvider dependencyMetaDataProvider) {
+    public PluginResolverFactory(PluginRegistry pluginRegistry, Instantiator instantiator, DependencyManagementServices dependencyManagementServices, FileResolver fileResolver, DependencyMetaDataProvider dependencyMetaDataProvider, DocumentationRegistry documentationRegistry) {
         this.pluginRegistry = pluginRegistry;
         this.instantiator = instantiator;
         this.dependencyManagementServices = dependencyManagementServices;
         this.fileResolver = fileResolver;
         this.dependencyMetaDataProvider = dependencyMetaDataProvider;
+        this.documentationRegistry = documentationRegistry;
     }
 
     public PluginResolver createPluginResolver() {
@@ -64,7 +67,7 @@ public class PluginResolverFactory {
     }
 
     private void addDefaultResolvers(List<PluginResolver> resolvers) {
-        resolvers.add(new PluginRegistryPluginResolver(pluginRegistry));
+        resolvers.add(new PluginRegistryPluginResolver(documentationRegistry, pluginRegistry));
         resolvers.add(jcenterGradleOfficial(instantiator, createDependencyResolutionServices()));
     }
 

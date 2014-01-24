@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.bintray.BintrayApi
 import org.gradle.test.fixtures.bintray.BintrayTestServer
 import org.gradle.test.fixtures.plugin.PluginBuilder
+import org.gradle.util.GradleVersion
 import org.junit.Rule
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
@@ -254,6 +255,28 @@ class PluginHandlerScriptIntegTest extends AbstractIntegrationSpec {
         and:
         failure.assertHasLineNumber 4
         errorOutput.contains "only buildscript {} and and other plugins {} script blocks are allowed before plugins {} blocks, no other statements are allowed"
+    }
+
+    def "failed resolution provides helpful error message"() {
+        given:
+        bintray.start()
+
+        buildScript """
+            plugins {
+                apply plugin: "foo"
+            }
+        """
+
+        and:
+        bintray.api.expectPackageSearch("foo")
+
+        when:
+        fails "tasks"
+
+        then:
+        errorOutput.contains """Cannot resolve plugin request [plugin: 'foo'] from plugin repositories:
+   - Gradle Distribution Plugins (listing: http://gradle.org/docs/${GradleVersion.current().version}/userguide/standard_plugins.html)
+   - Gradle Bintray Plugin Repository (listing: https://bintray.com/gradle-plugins-development/gradle-plugins)"""
     }
 
 }

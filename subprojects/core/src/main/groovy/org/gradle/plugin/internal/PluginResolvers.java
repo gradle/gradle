@@ -26,9 +26,15 @@ import org.gradle.plugin.resolve.internal.PluginResolver;
 public abstract class PluginResolvers {
 
     public static PluginResolver jcenterGradleOfficial(Instantiator instantiator, DependencyResolutionServices dependencyResolutionServices) {
+        final JCenterPluginMapper mapper = new JCenterPluginMapper();
         return new ModuleMappingPluginResolver(
                 "jcenter plugin resolver", dependencyResolutionServices, instantiator,
-                new JCenterPluginMapper(), new JCenterRepositoryConfigurer()
-        );
+                mapper, new JCenterRepositoryConfigurer()
+        ) {
+            @Override
+            public String getDescriptionForNotFoundMessage() {
+                return String.format("Gradle Bintray Plugin Repository (listing: %s)", mapper.getBintrayRepoUrl());
+            }
+        };
     }
 }

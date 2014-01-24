@@ -44,7 +44,7 @@ public class JCenterPluginMapper implements ModuleMappingPluginResolver.Mapper {
                 search();
 
         if (results.isEmpty()) {
-            throw new InvalidPluginRequestException("No plugins found for plugin id " + pluginId);
+            return null;
         }
         if (results.size() > 1) {
             throw new InvalidPluginRequestException("Found more than one plugin for plugin id " + pluginId);
@@ -68,6 +68,10 @@ public class JCenterPluginMapper implements ModuleMappingPluginResolver.Mapper {
         } else {
             return BintrayClient.create(override, null, null);
         }
+    }
+
+    public String getBintrayRepoUrl() {
+        return String.format("https://bintray.com/%s/%s", GRADLE_PLUGINS_ORG, GRADLE_PLUGINS_REPO);
     }
 
 }

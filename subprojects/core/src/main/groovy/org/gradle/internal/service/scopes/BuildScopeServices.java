@@ -246,7 +246,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                 get(Instantiator.class),
                 get(DependencyManagementServices.class),
                 get(FileResolver.class),
-                new DependencyMetaDataProviderImpl()
+                new DependencyMetaDataProviderImpl(),
+                get(DocumentationRegistry.class)
         );
 
         return pluginResolverFactory.createPluginResolver();

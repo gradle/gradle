@@ -17,14 +17,17 @@
 package org.gradle.plugin.resolve.internal;
 
 import org.gradle.api.Plugin;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.plugins.UnknownPluginException;
 
 public class PluginRegistryPluginResolver implements PluginResolver {
 
+    private final DocumentationRegistry documentationRegistry;
     private final PluginRegistry pluginRegistry;
 
-    public PluginRegistryPluginResolver(PluginRegistry pluginRegistry) {
+    public PluginRegistryPluginResolver(DocumentationRegistry documentationRegistry, PluginRegistry pluginRegistry) {
+        this.documentationRegistry = documentationRegistry;
         this.pluginRegistry = pluginRegistry;
     }
 
@@ -43,5 +46,9 @@ public class PluginRegistryPluginResolver implements PluginResolver {
     @Override
     public String toString() {
         return "PluginRegistryPluginResolver[" + pluginRegistry + "]";
+    }
+
+    public String getDescriptionForNotFoundMessage() {
+        return String.format("Gradle Distribution Plugins (listing: %s)", documentationRegistry.getDocumentationFor("standard_plugins"));
     }
 }

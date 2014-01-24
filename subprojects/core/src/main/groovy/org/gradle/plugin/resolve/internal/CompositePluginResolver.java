@@ -37,4 +37,12 @@ public class CompositePluginResolver implements PluginResolver {
 
         return resolution;
     }
+
+    public String getDescriptionForNotFoundMessage() {
+        StringBuilder sb = new StringBuilder("plugin repositories:");
+        for (PluginResolver repository : repositories) {
+            sb.append("\n - ").append(repository.getDescriptionForNotFoundMessage());
+        }
+        return sb.toString();
+    }
 }

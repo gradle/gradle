@@ -41,7 +41,7 @@ public class PluginRequestApplicator {
     public void applyPlugin(PluginRequest request) {
         PluginResolution resolution = pluginResolver.resolve(request);
         if (resolution == null) {
-            throw new UnknownPluginException("Cannot resolve plugin request " + request + " from plugin resolver: " + pluginResolver);
+            throw new UnknownPluginException("Cannot resolve plugin request " + request + " from " + pluginResolver.getDescriptionForNotFoundMessage());
         }
 
         pluginResolutionHandler.execute(resolution);
