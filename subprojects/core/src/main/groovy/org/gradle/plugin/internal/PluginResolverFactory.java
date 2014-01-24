@@ -16,9 +16,7 @@
 
 package org.gradle.plugin.internal;
 
-import org.gradle.api.Action;
 import org.gradle.api.UnknownProjectException;
-import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
@@ -28,10 +26,14 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.plugin.resolve.internal.*;
+import org.gradle.plugin.resolve.internal.CompositePluginResolver;
+import org.gradle.plugin.resolve.internal.PluginRegistryPluginResolver;
+import org.gradle.plugin.resolve.internal.PluginResolver;
 
 import java.util.LinkedList;
 import java.util.List;
+
+import static org.gradle.plugin.internal.PluginResolvers.jcenterGradleOfficial;
 
 public class PluginResolverFactory {
 
@@ -63,7 +65,7 @@ public class PluginResolverFactory {
 
     private void addDefaultResolvers(List<PluginResolver> resolvers) {
         resolvers.add(new PluginRegistryPluginResolver(pluginRegistry));
-        resolvers.add(new ModuleMappingPluginResolver("jcenter plugin resolver", createDependencyResolutionServices(), instantiator, new JCenterPluginMapper(), new JCenterRepositoryConfigurer()));
+        resolvers.add(jcenterGradleOfficial(instantiator, createDependencyResolutionServices()));
     }
 
     private DependencyResolutionServices createDependencyResolutionServices() {
@@ -76,9 +78,4 @@ public class PluginResolverFactory {
         }
     }
 
-    private static class JCenterRepositoryConfigurer implements Action<RepositoryHandler> {
-        public void execute(RepositoryHandler repositories) {
-            repositories.jcenter();
-        }
-    }
 }
