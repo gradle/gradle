@@ -294,4 +294,40 @@ class PluginHandlerScriptIntegTest extends AbstractIntegrationSpec {
    - Gradle Bintray Plugin Repository (listing: https://bintray.com/gradle-plugins-development/gradle-plugins)"""
     }
 
+    def "cannot apply plugins added to buildscript classpath in plugins block"() {
+        given:
+        def pluginBuilder = new PluginBuilder(executer, testDirectory.file("plugin"))
+
+        def module = mavenRepo.module("plugin", "plugin")
+        def artifactFile = module.artifact([:]).artifactFile
+        module.publish()
+
+        def message = "from plugin"
+        def taskName = "pluginTask"
+        pluginBuilder.addPluginWithPrintlnTask(taskName, message, "plugin")
+        pluginBuilder.publishTo(artifactFile)
+
+        when:
+        buildScript """
+            buildscript {
+                repositories {
+                    maven { url "$mavenRepo.uri" }
+                }
+                dependencies {
+                    classpath "plugin:plugin:1.0"
+                }
+            }
+
+            plugins {
+                apply plugin: "plugin", version: "1.0"
+            }
+        """
+
+        then:
+        fails "tasks"
+
+        and:
+        errorOutput.contains "Plugin 'plugin' is already on the script classpath (plugins on the script classpath cannot be used in a plugins {} block; move \"apply plugin: 'plugin'\" outside of the plugins {} block)"
+    }
+
 }

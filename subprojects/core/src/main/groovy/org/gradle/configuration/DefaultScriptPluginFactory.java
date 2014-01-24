@@ -20,12 +20,15 @@ import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.internal.initialization.ScriptCompileScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
+import org.gradle.api.internal.plugins.ClassloaderBackedPluginDescriptorLocator;
+import org.gradle.api.internal.plugins.PluginDescriptorLocator;
 import org.gradle.api.plugins.PluginAware;
 import org.gradle.groovy.scripts.*;
 import org.gradle.groovy.scripts.internal.BuildScriptTransformer;
 import org.gradle.groovy.scripts.internal.PluginsAndBuildscriptTransformer;
 import org.gradle.groovy.scripts.internal.StatementExtractingScriptTransformer;
 import org.gradle.internal.Factory;
+import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.logging.LoggingManagerInternal;
@@ -34,9 +37,11 @@ import org.gradle.plugin.internal.DefaultPluginHandler;
 import org.gradle.plugin.internal.NonPluggableTargetPluginHandler;
 import org.gradle.plugin.internal.PluginRequestApplicator;
 import org.gradle.plugin.internal.PluginResolutionApplicator;
+import org.gradle.plugin.resolve.internal.NotInPluginRegistryPluginResolverCheck;
 import org.gradle.plugin.resolve.internal.PluginRequest;
 import org.gradle.plugin.resolve.internal.PluginResolver;
 
+import java.net.URLClassLoader;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -150,9 +155,19 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             classPathScriptRunner.run();
 
             if (!pluginRequests.isEmpty()) {
+                ClassPath extraClassPath = classLoaderProvider.getExtraClassPath();
+                PluginResolver effectivePluginResolver;
+                if (extraClassPath.isEmpty()) {
+                    effectivePluginResolver = pluginResolver;
+                } else {
+                    ClassLoader extraClassPathClassLoader = new URLClassLoader(extraClassPath.getAsURLArray());
+                    PluginDescriptorLocator pluginDescriptorLocator = new ClassloaderBackedPluginDescriptorLocator(extraClassPathClassLoader);
+                    effectivePluginResolver = new NotInPluginRegistryPluginResolverCheck(pluginResolver, pluginDescriptorLocator);
+                }
+
                 @SuppressWarnings("ConstantConditions")
                 PluginResolutionApplicator resolutionApplicator = new PluginResolutionApplicator((PluginAware) target, pluginParentClassLoader, classLoaderProvider);
-                PluginRequestApplicator requestApplicator = new PluginRequestApplicator(pluginResolver, resolutionApplicator);
+                PluginRequestApplicator requestApplicator = new PluginRequestApplicator(effectivePluginResolver, resolutionApplicator);
                 requestApplicator.applyPlugin(pluginRequests);
             }
 
