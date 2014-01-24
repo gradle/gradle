@@ -97,29 +97,29 @@ public class DefaultCopySpec implements CopySpecInternal {
             from(sourcePath);
             return this;
         } else {
-            DefaultCopySpec child = addChild();
+            CopySpecInternal child = addChild();
             child.from(sourcePath);
             return ConfigureUtil.configure(c, instantiator.newInstance(CopySpecWrapper.class, child));
         }
     }
 
-    public DefaultCopySpec addFirst() {
+    public CopySpecInternal addFirst() {
         return addChildAtPosition(0);
     }
 
-    private DefaultCopySpec addChildAtPosition(int position) {
+    private CopySpecInternal addChildAtPosition(int position) {
         DefaultCopySpec child = instantiator.newInstance(DefaultCopySpec.class, resolver, instantiator, this);
         childSpecs.add(position, child);
         return child;
     }
 
-    public DefaultCopySpec addChild() {
+    public CopySpecInternal addChild() {
         DefaultCopySpec child = new DefaultCopySpec(resolver, instantiator, this);
         childSpecs.add(child);
         return child;
     }
 
-    public DefaultCopySpec addChildBeforeSpec(CopySpecInternal childSpec) {
+    public CopySpecInternal addChildBeforeSpec(CopySpecInternal childSpec) {
         int position = childSpecs.indexOf(childSpec);
         return position != -1 ? addChildAtPosition(position) : addChild();
     }
@@ -153,7 +153,7 @@ public class DefaultCopySpec implements CopySpecInternal {
             into(destPath);
             return this;
         } else {
-            DefaultCopySpec child = addChild();
+            CopySpecInternal child = addChild();
             child.into(destPath);
             return ConfigureUtil.configure(configureClosure, instantiator.newInstance(CopySpecWrapper.class, child));
         }
