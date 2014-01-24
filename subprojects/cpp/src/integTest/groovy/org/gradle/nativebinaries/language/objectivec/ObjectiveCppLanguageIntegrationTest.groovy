@@ -31,7 +31,7 @@ class ObjectiveCppLanguageIntegrationTest extends AbstractLanguageIntegrationTes
         buildFile << """
             binaries.all {
                 if (toolChain in Gcc) {
-                    objectiveCppCompiler.args "-I/home/vagrant/GNUstep/Library/Headers", "-I/usr/local/include/GNUstep", "-I/usr/include/GNUstep", "-I/usr/local/include/objc", "-fconstant-string-class=NSConstantString", "-D_NATIVE_OBJC_EXCEPTIONS", "-v"
+                    objectiveCppCompiler.args "-I/home/vagrant/GNUstep/Library/Headers", "-I/usr/local/include/GNUstep", "-I/usr/include/GNUstep", "-I/usr/local/include/objc", "-fconstant-string-class=NSConstantString", "-D_NATIVE_OBJC_EXCEPTIONS"
                 }
 
                 if (toolChain in Clang) {
