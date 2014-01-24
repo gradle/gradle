@@ -84,6 +84,7 @@ public class BuildScopeServicesTest extends Specification {
         parent.get(FileResolver) >> Stub(FileResolver)
         parent.get(ProgressLoggerFactory) >> Stub(ProgressLoggerFactory)
         parent.get(CacheFactory) >> Stub(CacheFactory)
+        parent.get(DocumentationRegistry) >> new DocumentationRegistry()
     }
 
     def delegatesToParentForUnknownService() {
