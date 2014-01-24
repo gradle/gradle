@@ -35,7 +35,9 @@ public class PluginRegistryPluginResolver implements PluginResolver {
         try {
             Class<? extends Plugin> typeForId = pluginRegistry.getTypeForId(pluginRequest.getId());
             if (pluginRequest.getVersion() != null) {
-                throw new InvalidPluginRequestException("Core plugins cannot have a version number. They are versioned with Gradle itself.");
+                throw new InvalidPluginRequestException(
+                        "Plugin '" + pluginRequest.getId() + "' is a core Gradle plugin, which cannot be specified with a version number. " +
+                        "Such plugins are versioned as part of Gradle. Please remove the version number from the declaration.");
             }
             return new SimplePluginResolution(typeForId);
         } catch (UnknownPluginException e) {

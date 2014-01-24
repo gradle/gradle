@@ -147,7 +147,7 @@ class PluginHandlerScriptIntegTest extends AbstractIntegrationSpec {
         fails "tasks"
 
         then:
-        failure.assertHasCause("Core plugins cannot have a version number. They are versioned with Gradle itself.")
+        failure.assertHasCause("Plugin 'java' is a core Gradle plugin, which cannot be specified with a version number")
     }
 
     def void publishPluginToBintray(String id, String group, String name, String version = pluginVersion) {
