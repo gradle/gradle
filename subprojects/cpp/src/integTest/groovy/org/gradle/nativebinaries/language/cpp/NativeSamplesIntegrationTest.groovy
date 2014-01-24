@@ -33,6 +33,7 @@ class NativeSamplesIntegrationTest extends AbstractInstalledToolChainIntegration
     @Rule public final Sample cpp = new Sample(temporaryFolder, 'native-binaries/cpp')
     @Rule public final Sample cppLib = new Sample(temporaryFolder, 'native-binaries/cpp-lib')
     @Rule public final Sample cppExe = new Sample(temporaryFolder, 'native-binaries/cpp-exe')
+    @Rule public final Sample objectiveC = new Sample(temporaryFolder, 'native-binaries/objective-c')
     @Rule public final Sample customLayout = new Sample(temporaryFolder, 'native-binaries/custom-layout')
     @Rule public final Sample multiProject = new Sample(temporaryFolder, 'native-binaries/multi-project')
     @Rule public final Sample flavors = new Sample(temporaryFolder, 'native-binaries/flavors')
@@ -86,6 +87,21 @@ class NativeSamplesIntegrationTest extends AbstractInstalledToolChainIntegration
 
         and:
         installation("native-binaries/cpp/build/install/mainExecutable").exec().out == "Hello world!\n"
+    }
+
+
+    def "objectiveC"() {
+        given:
+        sample objectiveC
+
+        when:
+        succeeds "installMainExecutable"
+
+        then:
+        executedAndNotSkipped ":compileMainExecutableMainObjectiveC", ":linkMainExecutable", ":mainExecutable"
+
+        and:
+        executable("native-binaries/objective-c/build/binaries/mainExecutable/main").exec().out == "Hello world!\n"
     }
 
     def "exe"() {
