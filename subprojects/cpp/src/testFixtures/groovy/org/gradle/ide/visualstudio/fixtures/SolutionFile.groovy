@@ -15,7 +15,6 @@
  */
 
 package org.gradle.ide.visualstudio.fixtures
-
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.TextUtil
 
@@ -25,7 +24,9 @@ class SolutionFile {
 
     SolutionFile(TestFile solutionFile) {
         assert solutionFile.exists()
-        content = TextUtil.normaliseLineSeparators(solutionFile.text)
+        assert TextUtil.convertLineSeparators(solutionFile.text, TextUtil.windowsLineSeparator) == solutionFile.text : "Solution file contains non-windows line separators"
+
+        content = TextUtil.toPlatformLineSeparators(solutionFile.text)
 
         content.findAll(~/(?m)^Project\(\"\{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942\}\"\) = \"(\w+)\", \"([^\"]*)\", \"\{([\w\-]+)\}\"$/, {
             projects.put(it[1], new ProjectReference(it[1], it[2], it[3]))
@@ -75,7 +76,7 @@ class SolutionFile {
         Map<String, String> getConfigurations() {
             def configurations = [:]
             content.eachMatch(~/\{${rawUuid}\}\.(\w+\|\w+)\.ActiveCfg = (\w+\|\w+)/, {
-                configurations[it[1]] = it[2]
+                configurations[it[2]] = it[1]
             })
             return configurations
         }

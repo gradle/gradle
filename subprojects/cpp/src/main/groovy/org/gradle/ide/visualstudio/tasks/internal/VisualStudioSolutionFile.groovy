@@ -21,6 +21,7 @@ import org.gradle.ide.visualstudio.TextProvider
 import org.gradle.ide.visualstudio.internal.DefaultVisualStudioProject
 import org.gradle.ide.visualstudio.internal.VisualStudioProjectConfiguration
 import org.gradle.plugins.ide.internal.generator.AbstractPersistableConfigurationObject
+import org.gradle.util.TextUtil
 
 class VisualStudioSolutionFile extends AbstractPersistableConfigurationObject {
     List<Action<? super TextProvider>> actions = new ArrayList<Action<? super TextProvider>>();
@@ -50,35 +51,33 @@ class VisualStudioSolutionFile extends AbstractPersistableConfigurationObject {
         actions.each {
             it.execute(provider)
         }
-        outputStream << provider.getText()
+        outputStream << TextUtil.convertLineSeparators(provider.getText(), TextUtil.getWindowsLineSeparator())
     }
 
     private void generateContent(StringBuilder builder) {
         builder << baseText
         projects.each { DefaultVisualStudioProject vsProject ->
-            builder << """
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "${vsProject.getName()}", "${vsProject.projectFile.location.absolutePath}", "${vsProject.getUuid()}"
+            builder << """Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "${vsProject.getName()}", "${vsProject.projectFile.location.absolutePath}", "${vsProject.getUuid()}"
 EndProject
 """
         }
-        builder << """
-Global
-    GlobalSection(SolutionConfigurationPlatforms) = preSolution
-        ${solutionConfiguration}=${solutionConfiguration}
-    EndGlobalSection
-    GlobalSection(ProjectConfigurationPlatforms) = postSolution"""
+        builder << """Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		${solutionConfiguration}=${solutionConfiguration}
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution"""
 
-        projectConfigurations.each { VisualStudioProjectConfiguration projectConfiguration ->
-            builder << """
-                ${projectConfiguration.project.getUuid()}.${projectConfiguration.name}.ActiveCfg = ${solutionConfiguration}
-                ${projectConfiguration.project.getUuid()}.${projectConfiguration.name}.Build.0 = ${solutionConfiguration}"""
-        }
+		projectConfigurations.each { VisualStudioProjectConfiguration projectConfiguration ->
+			builder << """
+				${projectConfiguration.project.getUuid()}.${solutionConfiguration}.ActiveCfg = ${projectConfiguration.name}
+				${projectConfiguration.project.getUuid()}.${solutionConfiguration}.Build.0 = ${projectConfiguration.name}"""
+		}
 
-        builder << """
-    EndGlobalSection
-    GlobalSection(SolutionProperties) = preSolution
-        HideSolutionNode = FALSE
-    EndGlobalSection
+		builder << """
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
 EndGlobal
 """
     }

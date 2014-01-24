@@ -49,16 +49,15 @@ class VisualStudioSolutionFileTest extends Specification {
         generatedSolution.content ==
 """Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual C++ Express 2010
-
 Global
-    GlobalSection(SolutionConfigurationPlatforms) = preSolution
-        CONFIG=CONFIG
-    EndGlobalSection
-    GlobalSection(ProjectConfigurationPlatforms) = postSolution
-    EndGlobalSection
-    GlobalSection(SolutionProperties) = preSolution
-        HideSolutionNode = FALSE
-    EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		CONFIG=CONFIG
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
 EndGlobal
 """
     }
@@ -109,12 +108,12 @@ EndGlobal
         with (generatedSolution.projects['project1']) {
             file == project1File.absolutePath
             uuid == project1.uuid
-            configurations == ['debug|Win32':'debug|Win32']
+            configurations == [debug: 'debug']
         }
         with (generatedSolution.projects['project2']) {
             file == project2File.absolutePath
             uuid == project2.uuid
-            configurations == ['debug|Win32':'debug|Win32']
+            configurations == [debug: 'debug']
         }
     }
 
