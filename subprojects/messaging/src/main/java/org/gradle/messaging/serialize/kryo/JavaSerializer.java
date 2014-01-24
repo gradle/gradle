@@ -22,7 +22,7 @@ import org.gradle.messaging.serialize.Encoder;
 import org.gradle.messaging.serialize.ObjectReader;
 import org.gradle.messaging.serialize.ObjectWriter;
 
-public class JavaSerializer<T> implements KryoAwareSerializer<T> {
+public class JavaSerializer<T> implements StatefulSerializer<T> {
     private final ClassLoader classLoader;
 
     public JavaSerializer(ClassLoader classLoader) {

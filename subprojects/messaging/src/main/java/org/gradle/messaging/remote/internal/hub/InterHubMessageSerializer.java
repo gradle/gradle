@@ -26,7 +26,7 @@ import org.gradle.messaging.serialize.Decoder;
 import org.gradle.messaging.serialize.FlushableEncoder;
 import org.gradle.messaging.serialize.ObjectReader;
 import org.gradle.messaging.serialize.ObjectWriter;
-import org.gradle.messaging.serialize.kryo.KryoAwareSerializer;
+import org.gradle.messaging.serialize.kryo.StatefulSerializer;
 import org.gradle.messaging.serialize.kryo.KryoBackedDecoder;
 import org.gradle.messaging.serialize.kryo.KryoBackedEncoder;
 
@@ -39,9 +39,9 @@ import java.util.Map;
 public class InterHubMessageSerializer implements MessageSerializer<InterHubMessage> {
     private static final byte CHANNEL_MESSAGE = 1;
     private static final byte END_STREAM_MESSAGE = 2;
-    private final KryoAwareSerializer<Object> payloadSerializer;
+    private final StatefulSerializer<Object> payloadSerializer;
 
-    public InterHubMessageSerializer(KryoAwareSerializer<Object> payloadSerializer) {
+    public InterHubMessageSerializer(StatefulSerializer<Object> payloadSerializer) {
         this.payloadSerializer = payloadSerializer;
     }
 

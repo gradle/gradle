@@ -21,18 +21,18 @@ import org.gradle.messaging.serialize.Decoder;
 import org.gradle.messaging.serialize.Encoder;
 import org.gradle.messaging.serialize.ObjectReader;
 import org.gradle.messaging.serialize.ObjectWriter;
-import org.gradle.messaging.serialize.kryo.KryoAwareSerializer;
+import org.gradle.messaging.serialize.kryo.StatefulSerializer;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
-public class MethodInvocationSerializer implements KryoAwareSerializer<MethodInvocation> {
+public class MethodInvocationSerializer implements StatefulSerializer<MethodInvocation> {
     private final ClassLoader classLoader;
-    private final KryoAwareSerializer<Object[]> argsSerializer;
+    private final StatefulSerializer<Object[]> argsSerializer;
 
-    public MethodInvocationSerializer(ClassLoader classLoader, KryoAwareSerializer<Object[]> argsSerializer) {
+    public MethodInvocationSerializer(ClassLoader classLoader, StatefulSerializer<Object[]> argsSerializer) {
         this.classLoader = classLoader;
         this.argsSerializer = argsSerializer;
     }

@@ -21,11 +21,11 @@ import org.gradle.messaging.serialize.Encoder;
 import org.gradle.messaging.serialize.ObjectReader;
 import org.gradle.messaging.serialize.ObjectWriter;
 
-public class TypeSafeSerializer<T> implements KryoAwareSerializer<Object> {
+public class TypeSafeSerializer<T> implements StatefulSerializer<Object> {
     private final Class<T> type;
-    private final KryoAwareSerializer<T> serializer;
+    private final StatefulSerializer<T> serializer;
 
-    public TypeSafeSerializer(Class<T> type, KryoAwareSerializer<T> serializer) {
+    public TypeSafeSerializer(Class<T> type, StatefulSerializer<T> serializer) {
         this.type = type;
         this.serializer = serializer;
     }

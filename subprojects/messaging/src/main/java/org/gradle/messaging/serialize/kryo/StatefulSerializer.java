@@ -21,7 +21,7 @@ import org.gradle.messaging.serialize.Encoder;
 import org.gradle.messaging.serialize.ObjectReader;
 import org.gradle.messaging.serialize.ObjectWriter;
 
-public interface KryoAwareSerializer<T> {
+public interface StatefulSerializer<T> {
     ObjectReader<T> newReader(Decoder decoder);
 
     ObjectWriter<T> newWriter(Encoder encoder);
