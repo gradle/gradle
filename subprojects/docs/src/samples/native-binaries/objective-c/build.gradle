@@ -14,15 +14,10 @@ binaries.all {
     objectiveCCompiler.args "-I/usr/include/GNUstep", "-fconstant-string-class=NSConstantString", "-D_NATIVE_OBJC_EXCEPTIONS"
 
     //on osx we need different settings than on linux or windows
-    if(isOsx()){
+    if(targetPlatform.operatingSystem.isMacOsX()){
         linker.args "-framework", "Foundation"
     }else{
         linker.args "-lgnustep-base", "-lobjc"
     }
 }
 // END SNIPPET all-binaries
-
-def isOsx(){
-    String osName = System.getProperty("os.name").toLowerCase();
-    return (osName.contains("mac os x") || osName.contains("darwin"))
-}
