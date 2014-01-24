@@ -24,7 +24,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.logging.LoggingManagerInternal;
-import org.gradle.plugin.resolve.internal.PluginResolver;
+import org.gradle.plugin.internal.PluginResolverFactory;
 import org.jmock.Expectations;
 import org.jmock.Sequence;
 import org.jmock.integration.junit4.JMock;
@@ -55,13 +55,13 @@ public class DefaultScriptPluginFactoryTest {
     private final URLClassLoader baseClassLoader = new URLClassLoader(new URL[0]);
     private final URLClassLoader scriptClassLoader = new URLClassLoader(new URL[0]);
     private final ScriptHandlerFactory scriptHandlerFactoryMock = context.mock(ScriptHandlerFactory.class);
-    private final PluginResolver pluginResolverMock = context.mock(PluginResolver.class);
+    private final PluginResolverFactory pluginResolverFactoryMock = context.mock(PluginResolverFactory.class);
     private final ScriptHandlerInternal scriptHandlerMock = context.mock(ScriptHandlerInternal.class);
     private final ScriptRunner classPathScriptRunnerMock = context.mock(ScriptRunner.class, "classpathScriptRunner");
     private final BasicScript classPathScriptMock = context.mock(BasicScript.class, "classpathScript");
     private final Factory<LoggingManagerInternal> loggingManagerFactoryMock = context.mock(Factory.class);
     private final ClassLoader pluginParentClassLoaderMock = context.mock(ClassLoader.class);
-    private final DefaultScriptPluginFactory factory = new DefaultScriptPluginFactory(scriptCompilerFactoryMock, importsReaderMock, scriptHandlerFactoryMock, parentScope, loggingManagerFactoryMock, instantiatorMock, pluginResolverMock, pluginParentClassLoaderMock);
+    private final DefaultScriptPluginFactory factory = new DefaultScriptPluginFactory(scriptCompilerFactoryMock, importsReaderMock, scriptHandlerFactoryMock, parentScope, loggingManagerFactoryMock, instantiatorMock, pluginResolverFactoryMock, pluginParentClassLoaderMock);
 
     @Test
     public void configuresATargetObjectUsingScript() {

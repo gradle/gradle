@@ -21,8 +21,6 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.internal.classpath.ClassPath;
-import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
@@ -71,10 +69,6 @@ public abstract class AbstractScriptHandler implements ScriptHandlerInternal {
 
     public ClassLoader getClassLoader() {
         return getScriptCompileClassLoader();
-    }
-
-    public ClassPath getExtraClassPath() {
-        return new DefaultClassPath(getClasspathConfiguration());
     }
 
     public File getSourceFile() {

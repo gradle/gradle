@@ -18,21 +18,25 @@ package org.gradle.plugin.resolve.internal;
 
 import org.gradle.api.internal.plugins.PluginDescriptor;
 import org.gradle.api.internal.plugins.PluginDescriptorLocator;
+import org.gradle.api.internal.plugins.PluginRegistry;
+import org.gradle.api.plugins.UnknownPluginException;
 
 public class NotInPluginRegistryPluginResolverCheck implements PluginResolver {
 
     private final PluginResolver delegate;
+    private final PluginRegistry corePluginRegistry;
     private final PluginDescriptorLocator pluginDescriptorLocator;
 
-    public NotInPluginRegistryPluginResolverCheck(PluginResolver delegate, PluginDescriptorLocator pluginDescriptorLocator) {
+    public NotInPluginRegistryPluginResolverCheck(PluginResolver delegate, PluginRegistry corePluginRegistry, PluginDescriptorLocator pluginDescriptorLocator) {
         this.delegate = delegate;
+        this.corePluginRegistry = corePluginRegistry;
         this.pluginDescriptorLocator = pluginDescriptorLocator;
     }
 
     public PluginResolution resolve(PluginRequest pluginRequest) {
         String pluginId = pluginRequest.getId();
         PluginDescriptor pluginDescriptor = pluginDescriptorLocator.findPluginDescriptor(pluginId);
-        if (pluginDescriptor == null) {
+        if (pluginDescriptor == null || isCorePlugin(pluginId)) {
             return delegate.resolve(pluginRequest);
         } else {
             throw new InvalidPluginRequestException(
@@ -41,8 +45,17 @@ public class NotInPluginRegistryPluginResolverCheck implements PluginResolver {
         }
     }
 
+    private boolean isCorePlugin(String pluginId) {
+        try {
+            corePluginRegistry.getTypeForId(pluginId);
+            return true;
+        } catch (UnknownPluginException ignore) {
+            return false;
+        }
+    }
+
     public String getDescriptionForNotFoundMessage() {
-        throw new UnsupportedOperationException();
+        return delegate.getDescriptionForNotFoundMessage();
     }
 
 }

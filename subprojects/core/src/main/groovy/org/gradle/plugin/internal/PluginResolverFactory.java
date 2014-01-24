@@ -24,10 +24,13 @@ import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.plugins.ClassloaderBackedPluginDescriptorLocator;
+import org.gradle.api.internal.plugins.PluginDescriptorLocator;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugin.resolve.internal.CompositePluginResolver;
+import org.gradle.plugin.resolve.internal.NotInPluginRegistryPluginResolverCheck;
 import org.gradle.plugin.resolve.internal.PluginRegistryPluginResolver;
 import org.gradle.plugin.resolve.internal.PluginResolver;
 
@@ -60,10 +63,15 @@ public class PluginResolverFactory {
         this.documentationRegistry = documentationRegistry;
     }
 
-    public PluginResolver createPluginResolver() {
+    public PluginResolver createPluginResolver(ClassLoader scriptClassLoader) {
         List<PluginResolver> resolvers = new LinkedList<PluginResolver>();
         addDefaultResolvers(resolvers);
-        return new CompositePluginResolver(resolvers);
+        CompositePluginResolver compositePluginResolver = new CompositePluginResolver(resolvers);
+
+        PluginDescriptorLocator scriptClasspathPluginDescriptorLocator = new ClassloaderBackedPluginDescriptorLocator(scriptClassLoader);
+        PluginResolver notAlreadyOnClasspathCheck = new NotInPluginRegistryPluginResolverCheck(compositePluginResolver, pluginRegistry, scriptClasspathPluginDescriptorLocator);
+
+        return notAlreadyOnClasspathCheck;
     }
 
     private void addDefaultResolvers(List<PluginResolver> resolvers) {

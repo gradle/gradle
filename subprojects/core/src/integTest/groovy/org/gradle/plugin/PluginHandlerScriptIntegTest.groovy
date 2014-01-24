@@ -294,8 +294,7 @@ class PluginHandlerScriptIntegTest extends AbstractIntegrationSpec {
    - Gradle Bintray Plugin Repository (listing: https://bintray.com/gradle-plugins-development/gradle-plugins)"""
     }
 
-    def "cannot apply plugins added to buildscript classpath in plugins block"() {
-        given:
+    private publishTestPlugin() {
         def pluginBuilder = new PluginBuilder(executer, testDirectory.file("plugin"))
 
         def module = mavenRepo.module("plugin", "plugin")
@@ -306,9 +305,10 @@ class PluginHandlerScriptIntegTest extends AbstractIntegrationSpec {
         def taskName = "pluginTask"
         pluginBuilder.addPluginWithPrintlnTask(taskName, message, "plugin")
         pluginBuilder.publishTo(artifactFile)
+    }
 
-        when:
-        buildScript """
+    private testPluginBuildscriptBlock() {
+        return """
             buildscript {
                 repositories {
                     maven { url "$mavenRepo.uri" }
@@ -317,14 +317,51 @@ class PluginHandlerScriptIntegTest extends AbstractIntegrationSpec {
                     classpath "plugin:plugin:1.0"
                 }
             }
+        """
+    }
 
+    private testPluginPluginsBlock() {
+        return """
             plugins {
                 apply plugin: "plugin", version: "1.0"
             }
         """
+    }
+
+    def "cannot apply plugins added to buildscript classpath in plugins block"() {
+        given:
+        publishTestPlugin()
+
+        when:
+        buildScript """
+            ${testPluginBuildscriptBlock()}
+            ${testPluginPluginsBlock()}
+        """
 
         then:
         fails "tasks"
+
+        and:
+        errorOutput.contains "Plugin 'plugin' is already on the script classpath (plugins on the script classpath cannot be used in a plugins {} block; move \"apply plugin: 'plugin'\" outside of the plugins {} block)"
+    }
+
+    def "cannot apply plugins added to parent buildscript classpath in plugins block"() {
+        given:
+        publishTestPlugin()
+
+        when:
+        buildScript """
+            ${testPluginBuildscriptBlock()}
+        """
+
+        settingsFile << "include 'sub'"
+
+        file("sub/build.gradle") << """
+            ${testPluginPluginsBlock()}
+        """
+
+        then:
+        fails "sub:tasks"
 
         and:
         errorOutput.contains "Plugin 'plugin' is already on the script classpath (plugins on the script classpath cannot be used in a plugins {} block; move \"apply plugin: 'plugin'\" outside of the plugins {} block)"
