@@ -59,7 +59,7 @@ buildTypes {
     localPerformanceTest "performance:integTest"
 
     // Used for cross version tests on CI
-    crossVersionTest "runtimeIntegTests", crossVersionTestsOnly: "", testAllVersions: "", useIncomingDistributions: true, defaultIntegTestExecuter: "forking"
+    crossVersionTest "runtimeIntegTests", crossVersionTestsOnly: "", testVersions: "all", useIncomingDistributions: true, defaultIntegTestExecuter: "forking"
 
     // Used to build production distros and smoke test them
     packageBuild "verifyIsProductionBuildEnvironment", "clean", "buildDists", "distributions:integTest"
@@ -167,7 +167,7 @@ task verifyIsProductionBuildEnvironment << {
 
 task waitForDaemonsToDie {
     if (!project.hasProperty("noWaitForDaemonsToDie")) {
-        if (isWindows && isCiServer && project.hasProperty("testAllVersions")) {
+        if (isWindows && isCiServer && buildTypes.activeNames.contains("crossVersionTest")) {
             gradle.startParameter.taskNames.add(0, it.path)
         }
         doLast {
