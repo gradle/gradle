@@ -16,8 +16,6 @@
 package org.gradle.messaging.remote;
 
 import org.gradle.internal.concurrent.AsyncStoppable;
-import org.gradle.messaging.dispatch.Dispatch;
-import org.gradle.messaging.dispatch.MethodInvocation;
 
 /**
  * Manages a set of incoming and outgoing channels between 2 peers. Implementations must be thread-safe.
@@ -39,15 +37,6 @@ public interface ObjectConnection extends AsyncStoppable {
      * @param instance The handler instance. Incoming messages on the given type are delivered to this handler.
      */
     <T> void addIncoming(Class<T> type, T instance);
-
-    /**
-     * Registers a handler for incoming messages on the given type. The provided handler is not required to be
-     * thread-safe. Messages are delivered to the handler by a single thread.
-     *
-     * @param type The type.
-     * @param dispatch The handler instance. Incoming messages on the given type are delivered to this handler.
-     */
-    void addIncoming(Class<?> type, Dispatch<? super MethodInvocation> dispatch);
 
     /**
      * Commences a graceful stop of this connection. Stops accepting outgoing messages. Requests that the peer stop

@@ -18,7 +18,6 @@ package org.gradle.messaging.remote.internal.hub;
 
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ThreadSafe;
-import org.gradle.messaging.dispatch.Dispatch;
 import org.gradle.messaging.dispatch.MethodInvocation;
 import org.gradle.messaging.dispatch.ProxyDispatchAdapter;
 import org.gradle.messaging.dispatch.ReflectionDispatch;
@@ -34,10 +33,6 @@ public class MessageHubBackedObjectConnection implements ObjectConnection {
         this.hub = hub;
         this.connection = connection;
         hub.addConnection(connection);
-    }
-
-    public void addIncoming(Class<?> type, Dispatch<? super MethodInvocation> dispatch) {
-        hub.addHandler(type.getName(), dispatch);
     }
 
     public <T> void addIncoming(Class<T> type, T instance) {

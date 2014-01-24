@@ -34,8 +34,6 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.nativeplatform.services.NativeServices
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.listener.ListenerBroadcast
-import org.gradle.messaging.dispatch.Dispatch
-import org.gradle.messaging.dispatch.MethodInvocation
 import org.gradle.messaging.remote.MessagingServer
 import org.gradle.messaging.remote.ObjectConnection
 import org.gradle.messaging.remote.internal.MessagingServices
@@ -65,9 +63,8 @@ class PathLimitationIntegTest extends Specification {
     private final ModuleRegistry moduleRegistry = new DefaultModuleRegistry();
     private final ClassPathRegistry classPathRegistry = new DefaultClassPathRegistry(new DefaultClassPathProvider(moduleRegistry), new WorkerProcessClassPathProvider(cacheRepository, moduleRegistry));
     private final DefaultWorkerProcessFactory workerFactory = new DefaultWorkerProcessFactory(LogLevel.INFO, server, classPathRegistry, TestFiles.resolver(tmpDir.getTestDirectory()), new LongIdGenerator());
-    private final ListenerBroadcast<TestListenerInterface> broadcast = new ListenerBroadcast<TestListenerInterface>(
-            TestListenerInterface.class);
-    private final RemoteExceptionListener exceptionListener = new RemoteExceptionListener(broadcast);
+    private final ListenerBroadcast<TestListenerInterface> broadcast = new ListenerBroadcast<TestListenerInterface>(TestListenerInterface.class);
+    private final RemoteExceptionListener exceptionListener = new RemoteExceptionListener(broadcast.source);
 
     public void setup() {
         broadcast.add(listenerMock);
@@ -249,17 +246,17 @@ class PathLimitationIntegTest extends Specification {
     }
 
 
-    public static class RemoteExceptionListener implements Dispatch<MethodInvocation> {
+    public static class RemoteExceptionListener implements TestListenerInterface {
         Throwable ex;
-        final Dispatch<MethodInvocation> dispatch;
+        final TestListenerInterface dispatch;
 
-        public RemoteExceptionListener(Dispatch<MethodInvocation> dispatch) {
+        public RemoteExceptionListener(TestListenerInterface dispatch) {
             this.dispatch = dispatch;
         }
 
-        public void dispatch(MethodInvocation message) {
+        void send(String message, int count) {
             try {
-                dispatch.dispatch(message);
+                dispatch.send(message, count);
             } catch (Throwable e) {
                 ex = e;
             }
