@@ -18,7 +18,6 @@ package org.gradle.integtests.tooling.r112;
 
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
-import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.TaskSelector;
 
