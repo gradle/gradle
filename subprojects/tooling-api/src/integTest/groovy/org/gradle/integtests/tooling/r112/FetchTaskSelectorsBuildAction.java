@@ -17,26 +17,31 @@
 package org.gradle.integtests.tooling.r112;
 
 import org.gradle.tooling.BuildAction;
-import org.gradle.tooling.BuildController
+import org.gradle.tooling.BuildController;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.TaskSelector;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 public class FetchTaskSelectorsBuildAction implements BuildAction<Map<String, Set<String>>> {
-    public Map<String, DomainObjectSet<? extends TaskSelector>> execute(BuildController controller) {
+    public Map<String, Set<String>> execute(BuildController controller) {
         // Use a GradleProject to reference a project
         GradleProject rootProject = controller.getModel(GradleProject.class);
-        Map<String, DomainObjectSet<? extends TaskSelector>> results = new HashMap<String, Set<String>>();
+        Map<String, Set<String>> results = new HashMap<String, Set<String>>();
         visit(rootProject, results);
         return results;
     }
 
     void visit(GradleProject project, Map<String, Set<String>> results) {
         Set<String> tsNames = new HashSet<String>();
-        for (TaskSelector ts: project.taskSelectors) {
-            tsNames.add(ts.name);
+        for (TaskSelector ts: project.getTaskSelectors()) {
+            tsNames.add(ts.getName());
         }
-        results.put(project.name, tsNames);
+        results.put(project.getName(), tsNames);
         for (GradleProject child : project.getChildren()) {
             visit(child, results);
         }
