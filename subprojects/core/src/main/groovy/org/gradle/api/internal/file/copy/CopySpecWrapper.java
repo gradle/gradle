@@ -67,19 +67,23 @@ public class CopySpecWrapper implements CopySpec {
     }
 
     public CopySpec filesMatching(String pattern, Action<? super FileCopyDetails> action) {
-        return delegate.filesMatching(pattern, action);
+        delegate.filesMatching(pattern, action);
+        return this;
     }
 
     public CopySpec filesNotMatching(String pattern, Action<? super FileCopyDetails> action) {
-        return delegate.filesNotMatching(pattern, action);
+        delegate.filesNotMatching(pattern, action);
+        return this;
     }
 
     public CopySpec with(CopySpec... sourceSpecs) {
-        return delegate.with(sourceSpecs);
+        delegate.with(sourceSpecs);
+        return this;
     }
 
     public CopySpec from(Object... sourcePaths) {
-        return delegate.from(sourcePaths);
+        delegate.from(sourcePaths);
+        return this;
     }
 
     public CopySpec from(Object sourcePath, Closure c) {
@@ -87,47 +91,58 @@ public class CopySpecWrapper implements CopySpec {
     }
 
     public CopySpec setIncludes(Iterable<String> includes) {
-        return delegate.setIncludes(includes);
+        delegate.setIncludes(includes);
+        return this;
     }
 
     public CopySpec setExcludes(Iterable<String> excludes) {
-        return delegate.setExcludes(excludes);
+        delegate.setExcludes(excludes);
+        return this;
     }
 
     public CopySpec include(String... includes) {
-        return delegate.include(includes);
+        delegate.include(includes);
+        return this;
     }
 
     public CopySpec include(Iterable<String> includes) {
-        return delegate.include(includes);
+        delegate.include(includes);
+        return this;
     }
 
     public CopySpec include(Spec<FileTreeElement> includeSpec) {
-        return delegate.include(includeSpec);
+        delegate.include(includeSpec);
+        return this;
     }
 
     public CopySpec include(Closure includeSpec) {
-        return delegate.include(includeSpec);
+        delegate.include(includeSpec);
+        return this;
     }
 
     public CopySpec exclude(String... excludes) {
-        return delegate.exclude(excludes);
+        delegate.exclude(excludes);
+        return this;
     }
 
     public CopySpec exclude(Iterable<String> excludes) {
-        return delegate.exclude(excludes);
+        delegate.exclude(excludes);
+        return this;
     }
 
     public CopySpec exclude(Spec<FileTreeElement> excludeSpec) {
-        return delegate.exclude(excludeSpec);
+        delegate.exclude(excludeSpec);
+        return this;
     }
 
     public CopySpec exclude(Closure excludeSpec) {
-        return delegate.exclude(excludeSpec);
+        delegate.exclude(excludeSpec);
+        return this;
     }
 
     public CopySpec into(Object destPath) {
-        return delegate.into(destPath);
+        delegate.into(destPath);
+        return this;
     }
 
     public CopySpec into(Object destPath, Closure configureClosure) {
@@ -135,39 +150,48 @@ public class CopySpecWrapper implements CopySpec {
     }
 
     public CopySpec rename(Closure closure) {
-        return delegate.rename(closure);
+        delegate.rename(closure);
+        return this;
     }
 
     public CopySpec rename(String sourceRegEx, String replaceWith) {
-        return delegate.rename(sourceRegEx, replaceWith);
+        delegate.rename(sourceRegEx, replaceWith);
+        return this;
     }
 
     public CopyProcessingSpec rename(Pattern sourceRegEx, String replaceWith) {
-        return delegate.rename(sourceRegEx, replaceWith);
+        delegate.rename(sourceRegEx, replaceWith);
+        return this;
     }
 
     public CopySpec filter(Map<String, ?> properties, Class<? extends FilterReader> filterType) {
-        return delegate.filter(properties, filterType);
+        delegate.filter(properties, filterType);
+        return this;
     }
 
     public CopySpec filter(Class<? extends FilterReader> filterType) {
-        return delegate.filter(filterType);
+        delegate.filter(filterType);
+        return this;
     }
 
     public CopySpec filter(Closure closure) {
-        return delegate.filter(closure);
+        delegate.filter(closure);
+        return this;
     }
 
     public CopySpec expand(Map<String, ?> properties) {
-        return delegate.expand(properties);
+        delegate.expand(properties);
+        return this;
     }
 
     public CopySpec eachFile(Action<? super FileCopyDetails> action) {
-        return delegate.eachFile(action);
+        delegate.eachFile(action);
+        return this;
     }
 
     public CopySpec eachFile(Closure closure) {
-        return delegate.eachFile(closure);
+        delegate.eachFile(closure);
+        return this;
     }
 
     public Integer getFileMode() {
@@ -175,7 +199,8 @@ public class CopySpecWrapper implements CopySpec {
     }
 
     public CopyProcessingSpec setFileMode(Integer mode) {
-        return delegate.setFileMode(mode);
+        delegate.setFileMode(mode);
+        return this;
     }
 
     public Integer getDirMode() {
@@ -183,7 +208,8 @@ public class CopySpecWrapper implements CopySpec {
     }
 
     public CopyProcessingSpec setDirMode(Integer mode) {
-        return delegate.setDirMode(mode);
+        delegate.setDirMode(mode);
+        return this;
     }
 
     public Set<String> getIncludes() {
