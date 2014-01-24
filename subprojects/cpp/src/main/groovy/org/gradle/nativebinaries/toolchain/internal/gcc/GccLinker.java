@@ -73,7 +73,6 @@ class GccLinker implements Compiler<LinkerSpec> {
             }
 
             for (String userArg : spec.getArgs()) {
-                args.add("-Xlinker");
                 args.add(userArg);
             }
 

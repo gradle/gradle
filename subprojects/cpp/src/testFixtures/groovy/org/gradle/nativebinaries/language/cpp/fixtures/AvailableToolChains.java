@@ -98,7 +98,7 @@ public class AvailableToolChains {
     static private ToolChainCandidate findClang() {
         File compilerExe = OperatingSystem.current().findInPath("clang");
         if (compilerExe != null) {
-            return new InstalledClangToolChain();
+            return new InstalledClang();
         }
         return new UnavailableToolChain("clang");
     }
@@ -402,8 +402,8 @@ public class AvailableToolChains {
         }
     }
 
-    private static class InstalledClangToolChain extends InstalledToolChain {
-        public InstalledClangToolChain() {
+    public static class InstalledClang extends InstalledToolChain {
+        public InstalledClang() {
             super("clang");
         }
 

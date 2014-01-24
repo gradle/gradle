@@ -49,7 +49,7 @@ class GccLinkerTest extends Specification {
                 "-o", outputFile.absolutePath,
                 testDir.file("one.o").absolutePath,
                 testDir.file("two.o").absolutePath,
-                "-Xlinker", "-arg1", "-Xlinker", "-arg2"].flatten()
+                "-arg1", "-arg2"].flatten()
 
         when:
         LinkerSpec spec = Mock(SharedLibraryLinkerSpec)

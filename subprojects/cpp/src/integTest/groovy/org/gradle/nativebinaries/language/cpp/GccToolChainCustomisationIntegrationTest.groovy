@@ -150,12 +150,7 @@ class GccToolChainCustomisationIntegrationTest extends AbstractIntegrationSpec {
                             Collections.replaceAll(args, "CUSTOM", "-O3")
                         }
                         linker.withArguments { args ->
-                            int customIndex = args.indexOf("CUSTOM")
-                            if (customIndex >= 1) {
-                                // Remove "-Xlinker" "CUSTOM"
-                                args.remove(customIndex)
-                                args.remove(customIndex - 1)
-                            }
+                            args.remove "CUSTOM"
                         }
                         staticLibArchiver.withArguments { args ->
                             args.remove "CUSTOM"
