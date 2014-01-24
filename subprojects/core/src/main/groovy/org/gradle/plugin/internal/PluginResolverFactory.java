@@ -63,7 +63,6 @@ public class PluginResolverFactory {
 
     private void addDefaultResolvers(List<PluginResolver> resolvers) {
         resolvers.add(new PluginRegistryPluginResolver(pluginRegistry));
-        resolvers.add(new ModuleMappingPluginResolver("android plugin resolver", createDependencyResolutionServices(), instantiator, new AndroidPluginMapper(), new JCenterRepositoryConfigurer()));
         resolvers.add(new ModuleMappingPluginResolver("jcenter plugin resolver", createDependencyResolutionServices(), instantiator, new JCenterPluginMapper(), new JCenterRepositoryConfigurer()));
     }
 

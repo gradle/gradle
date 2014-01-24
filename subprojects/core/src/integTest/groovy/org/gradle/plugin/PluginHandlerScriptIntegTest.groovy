@@ -19,7 +19,6 @@ package org.gradle.plugin
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.plugin.resolve.internal.AndroidPluginMapper
 import org.gradle.test.fixtures.bintray.BintrayApi
 import org.gradle.test.fixtures.bintray.BintrayTestServer
 import org.gradle.test.fixtures.plugin.PluginBuilder
@@ -148,41 +147,6 @@ class PluginHandlerScriptIntegTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasCause("Core plugins cannot have a version number. They are versioned with Gradle itself.")
-    }
-
-    void "can resolve android plugin"() {
-        given:
-        bintray.start()
-
-        // Not expecting a search of the bintray API, as there is an explicit mapper for this guy
-        publishPluginToBintray(AndroidPluginMapper.ID, AndroidPluginMapper.GROUP, AndroidPluginMapper.NAME)
-
-        buildScript """
-          plugins {
-            apply plugin: "$AndroidPluginMapper.ID", version: $pluginVersion
-          }
-        """
-
-        when:
-        succeeds pluginTaskName
-
-        then:
-        output.contains pluginMessage
-    }
-
-    def "android plugin requires version"() {
-        given:
-        buildScript """
-          plugins {
-            apply plugin: "$AndroidPluginMapper.ID"
-          }
-        """
-
-        when:
-        fails "tasks"
-
-        then:
-        failure.assertHasCause("The 'android' plugin requires a version")
     }
 
     def void publishPluginToBintray(String id, String group, String name, String version = pluginVersion) {
