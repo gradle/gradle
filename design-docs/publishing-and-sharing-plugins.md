@@ -263,6 +263,7 @@ Adds the initial DSL support and APIs. At this stage, can only be used to apply 
 - Can use both `buildscript { ... }` and `plugins { ... }` blocks in a script to apply plugins.
 - Build author receives a nice error message when:
     - A statement other than `buildscript { ... }` precedes the `plugins { ... }` statement.
+    - A `buildscript { ... }` statement follows any `plugins { ... }` statements.
     - Attempting to apply an unknown plugin in a `plugins { ... }` block.
         - Should give a set of candidate plugin ids that are available.
     - Attempting to apply a core plugin with a version selector in a `plugins { ... }` block.

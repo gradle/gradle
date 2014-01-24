@@ -35,6 +35,7 @@ public class PluginsAndBuildscriptTransformer implements StatementTransformer {
 
     private final String classpathBlockName;
     private boolean seenNonClasspathStatement;
+    private boolean seenPluginsBlock;
 
     public PluginsAndBuildscriptTransformer(String classpathBlockName) {
         this.classpathBlockName = classpathBlockName;
@@ -47,6 +48,7 @@ public class PluginsAndBuildscriptTransformer implements StatementTransformer {
             return null;
         } else {
             if (scriptBlock.getName().equals(PLUGINS)) {
+                seenPluginsBlock = true;
                 if (seenNonClasspathStatement) {
                     String message = String.format(
                             "only %s {} and and other %s {} script blocks are allowed before %s {} blocks, no other statements are allowed",
@@ -61,6 +63,16 @@ public class PluginsAndBuildscriptTransformer implements StatementTransformer {
                     return PLUGIN_BLOCK_TRANSFORMER.transform(scriptBlock);
                 }
             } else {
+                if (seenPluginsBlock) {
+                    String message = String.format(
+                            "all %s {} blocks must appear before any %s {} blocks in the script",
+                            classpathBlockName, PLUGINS
+                    );
+                    sourceUnit.getErrorCollector().addError(
+                            new SyntaxException(message, statement.getLineNumber(), statement.getColumnNumber()),
+                            sourceUnit
+                    );
+                }
                 return statement; // don't transform classpathBlockName
             }
         }

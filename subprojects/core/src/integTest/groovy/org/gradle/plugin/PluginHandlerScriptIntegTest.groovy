@@ -226,6 +226,21 @@ class PluginHandlerScriptIntegTest extends AbstractIntegrationSpec {
         succeeds "tasks"
     }
 
+    def "buildscript blocks are not allowed after plugin blocks"() {
+        when:
+        buildScript """
+            plugins {}
+            buildscript {}
+        """
+
+        then:
+        fails "tasks"
+
+        and:
+        failure.assertHasLineNumber 3
+        errorOutput.contains("all buildscript {} blocks must appear before any plugins {} blocks")
+    }
+
     def "build logic cannot precede plugins block"() {
         when:
         buildScript """
