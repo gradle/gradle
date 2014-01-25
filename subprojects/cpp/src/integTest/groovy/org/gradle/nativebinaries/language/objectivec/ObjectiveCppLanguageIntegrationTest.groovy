@@ -30,14 +30,7 @@ class ObjectiveCppLanguageIntegrationTest extends AbstractLanguageIntegrationTes
         def linkerArgs = OperatingSystem.current().isMacOsX() ? '"-framework", "Foundation"' : '"-lgnustep-base", "-lobjc"'
         buildFile << """
             binaries.all {
-                if (toolChain in Gcc) {
-                    objectiveCppCompiler.args "-I/home/vagrant/GNUstep/Library/Headers", "-I/usr/local/include/GNUstep", "-I/usr/include/GNUstep", "-I/usr/local/include/objc", "-fconstant-string-class=NSConstantString", "-D_NATIVE_OBJC_EXCEPTIONS"
-                }
-
-                if (toolChain in Clang) {
-                    objectiveCppCompiler.args "-I/usr/include/GNUstep", "-I/usr/local/include/objc", "-fconstant-string-class=NSConstantString", "-D_NATIVE_OBJC_EXCEPTIONS"
-                }
-
+                objectiveCppCompiler.args "-I/usr/include/GNUstep", "-I/usr/local/include/objc", "-fconstant-string-class=NSConstantString", "-D_NATIVE_OBJC_EXCEPTIONS"
                 linker.args $linkerArgs
             }
         """
