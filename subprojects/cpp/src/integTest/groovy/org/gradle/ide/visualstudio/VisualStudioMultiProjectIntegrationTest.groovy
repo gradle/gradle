@@ -21,7 +21,7 @@ import org.gradle.nativebinaries.language.cpp.fixtures.app.CppHelloWorldApp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.ExeWithLibraryUsingLibraryHelloWorldApp
 
 class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
-    private final Set<String> projectConfigurations = ['debug|Win32', 'release|Win32'] as Set
+    private final Set<String> projectConfigurations = ['debug', 'release'] as Set
 
     def app = new CppHelloWorldApp()
 
@@ -74,20 +74,20 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
         exeProject.sourceFiles == allFiles("exe/src/main/cpp")
         exeProject.headerFiles.isEmpty()
         exeProject.projectConfigurations.keySet() == projectConfigurations
-        exeProject.projectConfigurations['debug|Win32'].includePath == filePath("exe/src/main/headers", "lib/src/hello/headers")
+        exeProject.projectConfigurations['debug'].includePath == filePath("exe/src/main/headers", "lib/src/hello/headers")
 
         and:
         final libProject = projectFile("lib/visualStudio/helloLib.vcxproj")
         libProject.sourceFiles == allFiles("lib/src/hello/cpp")
         libProject.headerFiles == allFiles("lib/src/hello/headers")
         libProject.projectConfigurations.keySet() == projectConfigurations
-        libProject.projectConfigurations['debug|Win32'].includePath == filePath("lib/src/hello/headers")
+        libProject.projectConfigurations['debug'].includePath == filePath("lib/src/hello/headers")
 
         and:
         final mainSolution = solutionFile("exe/visualStudio/mainExe.sln")
         mainSolution.assertHasProjects("mainExe", "helloLib")
-        mainSolution.assertReferencesProject(exeProject, ["debug|Win32"])
-        mainSolution.assertReferencesProject(libProject, ["debug|Win32"])
+        mainSolution.assertReferencesProject(exeProject, ["debug"])
+        mainSolution.assertReferencesProject(libProject, ["debug"])
     }
 
     def "create visual studio solution for executable that transitively depends on multiple projects"() {
@@ -131,14 +131,14 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
 
         and:
         mainSolution.assertHasProjects("mainExe", "helloDll", "greetingsLib")
-        mainSolution.assertReferencesProject(exeProject, ["debug|Win32"])
-        mainSolution.assertReferencesProject(helloProject, ["debug|Win32"])
-        mainSolution.assertReferencesProject(greetProject, ["debug|Win32"])
+        mainSolution.assertReferencesProject(exeProject, ["debug"])
+        mainSolution.assertReferencesProject(helloProject, ["debug"])
+        mainSolution.assertReferencesProject(greetProject, ["debug"])
 
         and:
-        exeProject.projectConfigurations['debug|Win32'].includePath == filePath("exe/src/main/headers", "lib/src/hello/headers")
-        helloProject.projectConfigurations['debug|Win32'].includePath == filePath("lib/src/hello/headers", "greet/src/greetings/headers")
-        greetProject.projectConfigurations['debug|Win32'].includePath == filePath("greet/src/greetings/headers")
+        exeProject.projectConfigurations['debug'].includePath == filePath("exe/src/main/headers", "lib/src/hello/headers")
+        helloProject.projectConfigurations['debug'].includePath == filePath("lib/src/hello/headers", "greet/src/greetings/headers")
+        greetProject.projectConfigurations['debug'].includePath == filePath("greet/src/greetings/headers")
     }
 
     def "create visual studio solution for executable with project dependency cycle"() {
@@ -179,14 +179,14 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
 
         and:
         mainSolution.assertHasProjects("mainExe", "helloDll", "greetingsLib")
-        mainSolution.assertReferencesProject(exeProject, ["debug|Win32"])
-        mainSolution.assertReferencesProject(helloProject, ["debug|Win32"])
-        mainSolution.assertReferencesProject(greetProject, ["debug|Win32"])
+        mainSolution.assertReferencesProject(exeProject, ["debug"])
+        mainSolution.assertReferencesProject(helloProject, ["debug"])
+        mainSolution.assertReferencesProject(greetProject, ["debug"])
 
         and:
-        exeProject.projectConfigurations['debug|Win32'].includePath == filePath("exe/src/main/headers", "lib/src/hello/headers")
-        helloProject.projectConfigurations['debug|Win32'].includePath == filePath("lib/src/hello/headers", "exe/src/greetings/headers")
-        greetProject.projectConfigurations['debug|Win32'].includePath == filePath("exe/src/greetings/headers")
+        exeProject.projectConfigurations['debug'].includePath == filePath("exe/src/main/headers", "lib/src/hello/headers")
+        helloProject.projectConfigurations['debug'].includePath == filePath("lib/src/hello/headers", "exe/src/greetings/headers")
+        greetProject.projectConfigurations['debug'].includePath == filePath("exe/src/greetings/headers")
     }
 
     private SolutionFile solutionFile(String path) {

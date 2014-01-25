@@ -76,7 +76,7 @@ class VisualStudioFileCustomizationIntegrationTest extends AbstractInstalledTool
 
         final mainSolution = solutionFile("vs/mainExe.solution")
         mainSolution.assertHasProjects("mainExe")
-        mainSolution.assertReferencesProject("mainExe", projectFile)
+        mainSolution.assertReferencesProject(projectFile, [debug: "debug"])
     }
 
     def "can add xml configuration to generated project files"() {

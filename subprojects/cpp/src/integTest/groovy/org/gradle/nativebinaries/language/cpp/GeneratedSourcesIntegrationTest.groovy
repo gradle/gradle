@@ -339,8 +339,8 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
         projectFile.headerFiles == [
                 file("build/src/generated/headers/hello.h")
         ]*.absolutePath
-        projectFile.projectConfigurations.keySet() == ['debug|Win32'] as Set
-        with (projectFile.projectConfigurations['debug|Win32']) {
+        projectFile.projectConfigurations.keySet() == ['debug'] as Set
+        with (projectFile.projectConfigurations['debug']) {
             includePath == file("build/src/generated/headers").absolutePath
         }
     }

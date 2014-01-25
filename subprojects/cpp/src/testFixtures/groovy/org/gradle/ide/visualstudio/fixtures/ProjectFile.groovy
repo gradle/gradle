@@ -66,16 +66,12 @@ class ProjectFile {
     }
 
     class Configuration {
-        String configName
+        String name
         String platformName
 
-        Configuration(String configName, String platformName) {
-            this.configName = configName
+        Configuration(String name, String platformName) {
+            this.name = name
             this.platformName = platformName
-        }
-
-        String getName() {
-            "${configName}|${platformName}"
         }
 
         String getMacros() {
@@ -95,7 +91,7 @@ class ProjectFile {
         }
 
         private String getCondition() {
-            "'\$(Configuration)|\$(Platform)'=='${configName}|${platformName}'"
+            "'\$(Configuration)|\$(Platform)'=='${name}|${platformName}'"
         }
     }
 }

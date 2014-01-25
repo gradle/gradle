@@ -20,9 +20,7 @@ import org.gradle.api.internal.DefaultDomainObjectSet
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.language.base.LanguageSourceSet
-import org.gradle.nativebinaries.ExecutableBinary
-import org.gradle.nativebinaries.SharedLibraryBinary
-import org.gradle.nativebinaries.StaticLibraryBinary
+import org.gradle.nativebinaries.*
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
 import spock.lang.Specification
 
@@ -36,10 +34,14 @@ class VisualStudioProjectRegistryTest extends Specification {
     def executableBinary = Mock(ExecutableInternal)
     def sharedLibraryBinary = Mock(SharedLibraryInternal)
     def staticLibraryBinary = Mock(StaticLibraryInternal)
+    def executable = Mock(Executable)
+    def library = Mock(Library)
 
     def "creates a matching visual studio project configuration for NativeBinary"() {
         when:
         visualStudioProjectMapper.mapToConfiguration(executableBinary) >> new VisualStudioProjectMapper.ProjectConfigurationNames("vsProject", "vsConfig", "vsPlatform")
+        executableBinary.component >> executable
+        executable.binaries >> new DefaultDomainObjectSet<NativeBinary>(ExecutableBinary, [executableBinary])
         executableBinary.source >> sources
         registry.addProjectConfiguration(executableBinary)
 
@@ -53,13 +55,17 @@ class VisualStudioProjectRegistryTest extends Specification {
 
     def "returns same visual studio project configuration for native binaries that share project name"() {
         when:
-        visualStudioProjectMapper.mapToConfiguration(sharedLibraryBinary) >> new VisualStudioProjectMapper.ProjectConfigurationNames("vsProject", "vsConfig", "vsPlatform")
+        library.binaries >> new DefaultDomainObjectSet<NativeBinary>(LibraryBinary, [sharedLibraryBinary, staticLibraryBinary])
         sharedLibraryBinary.source >> sources
+        staticLibraryBinary.source >> sources
+
+        visualStudioProjectMapper.mapToConfiguration(sharedLibraryBinary) >> new VisualStudioProjectMapper.ProjectConfigurationNames("vsProject", "vsConfig", "vsPlatform")
+        sharedLibraryBinary.component >> library
         registry.addProjectConfiguration(sharedLibraryBinary)
 
         and:
         visualStudioProjectMapper.mapToConfiguration(staticLibraryBinary) >> new VisualStudioProjectMapper.ProjectConfigurationNames("vsProject", "other", "other")
-        staticLibraryBinary.source >> sources
+        staticLibraryBinary.component >> library
         registry.addProjectConfiguration(staticLibraryBinary)
 
         then:

@@ -41,7 +41,7 @@ class DefaultVisualStudioProject extends AbstractBuildableModelElement implement
     private final DefaultConfigFile projectFile
     private final DefaultConfigFile filtersFile
     private final ProjectNativeComponent component
-    private final List<LanguageSourceSet> sources = new ArrayList<LanguageSourceSet>()
+    private final Set<LanguageSourceSet> sources = new LinkedHashSet<LanguageSourceSet>()
     private final Map<NativeBinary, VisualStudioProjectConfiguration> configurations = [:]
 
     DefaultVisualStudioProject(String name, ProjectNativeComponent component, FileResolver fileResolver, VisualStudioProjectResolver projectResolver, Instantiator instantiator) {
@@ -50,6 +50,10 @@ class DefaultVisualStudioProject extends AbstractBuildableModelElement implement
         this.projectResolver = projectResolver
         projectFile = instantiator.newInstance(DefaultConfigFile, fileResolver, "visualStudio/${name}.vcxproj" as String)
         filtersFile = instantiator.newInstance(DefaultConfigFile, fileResolver, "visualStudio/${name}.vcxproj.filters" as String)
+
+        component.binaries.each { ProjectNativeBinary binary ->
+            source binary.source
+        }
     }
 
     String getName() {

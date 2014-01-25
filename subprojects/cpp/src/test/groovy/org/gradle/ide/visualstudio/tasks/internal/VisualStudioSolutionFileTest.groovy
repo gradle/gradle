@@ -108,12 +108,12 @@ EndGlobal
         with (generatedSolution.projects['project1']) {
             file == project1File.absolutePath
             uuid == project1.uuid
-            configurations == ['debug|Win32': 'debug|Win32']
+            configurations == [debug: 'debug']
         }
         with (generatedSolution.projects['project2']) {
             file == project2File.absolutePath
             uuid == project2.uuid
-            configurations == ['debug|Win32': 'debug|Win32']
+            configurations == [debug: 'debug']
         }
     }
 

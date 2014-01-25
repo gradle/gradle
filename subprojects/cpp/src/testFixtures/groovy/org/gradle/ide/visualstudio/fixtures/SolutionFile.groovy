@@ -46,10 +46,6 @@ class SolutionFile {
         assertReferencesProject(expectedProject.name, expectedProject, configurations)
     }
 
-    def assertReferencesProject(String projectName, ProjectFile expectedProject) {
-        assertReferencesProject(projectName, expectedProject, ["debug|Win32":"debug|Win32"])
-    }
-
     def assertReferencesProject(String projectName, ProjectFile expectedProject, Map<String, String> configurations) {
         ProjectReference reference = projects.get(projectName)
         assert reference.uuid == expectedProject.projectGuid
@@ -75,7 +71,7 @@ class SolutionFile {
 
         Map<String, String> getConfigurations() {
             def configurations = [:]
-            content.eachMatch(~/\{${rawUuid}\}\.(\w+\|\w+)\.ActiveCfg = (\w+\|\w+)/, {
+            content.eachMatch(~/\{${rawUuid}\}\.(\w+)\|\w+\.ActiveCfg = (\w+)\|\w+/, {
                 configurations[it[2]] = it[1]
             })
             return configurations

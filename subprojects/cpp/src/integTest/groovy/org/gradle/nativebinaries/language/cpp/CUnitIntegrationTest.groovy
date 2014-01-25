@@ -203,8 +203,8 @@ There were test failures:
         projectFile.headerFiles == [
                 file("src/hello/headers/hello.h")
         ]*.absolutePath
-        projectFile.projectConfigurations.keySet() == ['debug|Win32'] as Set
-        with (projectFile.projectConfigurations['debug|Win32']) {
+        projectFile.projectConfigurations.keySet() == ['debug'] as Set
+        with (projectFile.projectConfigurations['debug']) {
             includePath == [file("src/hello/headers"), file("libs/cunit/2.1-2/include")]*.absolutePath.join(';')
         }
     }
