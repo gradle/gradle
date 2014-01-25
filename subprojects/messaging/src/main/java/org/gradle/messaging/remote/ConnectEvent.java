@@ -16,26 +16,14 @@
 
 package org.gradle.messaging.remote;
 
-public class ConnectEvent<T> implements Addressable {
+public class ConnectEvent<T> {
     private final T connection;
-    private final Address localAddress;
-    private final Address remoteAddress;
 
-    public ConnectEvent(T connection, Address localAddress, Address remoteAddress) {
+    public ConnectEvent(T connection) {
         this.connection = connection;
-        this.localAddress = localAddress;
-        this.remoteAddress = remoteAddress;
     }
 
     public T getConnection() {
         return connection;
-    }
-
-    public Address getLocalAddress() {
-        return localAddress;
-    }
-
-    public Address getRemoteAddress() {
-        return remoteAddress;
     }
 }

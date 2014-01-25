@@ -17,9 +17,8 @@ package org.gradle.messaging.remote.internal.inet
 
 import org.gradle.api.Action
 import org.gradle.internal.id.UUIDGenerator
-import org.gradle.messaging.remote.ConnectEvent
+import org.gradle.messaging.remote.internal.ConnectCompletion
 import org.gradle.messaging.remote.internal.ConnectException
-import org.gradle.messaging.remote.internal.Connection
 import org.gradle.messaging.remote.internal.DefaultMessageSerializer
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
@@ -34,7 +33,7 @@ class TcpConnectorTest extends ConcurrentSpec {
         Action action = Mock()
 
         when:
-        def acceptor = incomingConnector.accept(action, serializer, false)
+        def acceptor = incomingConnector.accept(action, false)
         def connection = outgoingConnector.connect(acceptor.address, serializer)
 
         then:
@@ -48,7 +47,7 @@ class TcpConnectorTest extends ConcurrentSpec {
         Action action = Mock()
 
         when:
-        def acceptor = incomingConnector.accept(action, serializer, true)
+        def acceptor = incomingConnector.accept(action, true)
         def connection = outgoingConnector.connect(acceptor.address, serializer)
 
         then:
@@ -62,7 +61,7 @@ class TcpConnectorTest extends ConcurrentSpec {
         Action action = Mock()
 
         when:
-        def acceptor = incomingConnector.accept(action, serializer, false)
+        def acceptor = incomingConnector.accept(action, false)
         outgoingConnector.connect(acceptor.address, serializer)
         thread.blockUntil.connected
 
@@ -99,7 +98,7 @@ class TcpConnectorTest extends ConcurrentSpec {
 
     def "client cannot connect when server has requested stop"() {
         when:
-        def acceptor = incomingConnector.accept(Mock(Action), serializer, false)
+        def acceptor = incomingConnector.accept(Mock(Action), false)
         acceptor.requestStop()
         outgoingConnector.connect(acceptor.address, serializer)
 
@@ -118,7 +117,7 @@ class TcpConnectorTest extends ConcurrentSpec {
         }
 
         when:
-        def acceptor = incomingConnector.accept(action, serializer, false)
+        def acceptor = incomingConnector.accept(action, false)
         async {
             outgoingConnector.connect(acceptor.address, serializer)
         }
@@ -144,7 +143,7 @@ class TcpConnectorTest extends ConcurrentSpec {
         }
 
         when:
-        def acceptor = incomingConnector.accept(action, serializer, false)
+        def acceptor = incomingConnector.accept(action, false)
         outgoingConnector.connect(acceptor.address, serializer)
         thread.blockUntil.connected
         operation.stop {
@@ -162,12 +161,12 @@ class TcpConnectorTest extends ConcurrentSpec {
         // This is a test to simulate the messaging that the daemon does on build completion, in order to validate some assumptions
 
         when:
-        def acceptor = incomingConnector.accept({ ConnectEvent<Connection<Object>> event ->
-            def connection = event.connection
+        def acceptor = incomingConnector.accept({ ConnectCompletion event ->
+            def connection = event.create(serializer)
             connection.dispatch("bye")
             connection.stop()
             instant.closed
-        } as Action, serializer, false)
+        } as Action, false)
 
         def connection = outgoingConnector.connect(acceptor.address, serializer)
         thread.blockUntil.closed

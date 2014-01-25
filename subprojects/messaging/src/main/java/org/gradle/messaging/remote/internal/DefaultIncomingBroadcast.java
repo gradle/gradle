@@ -17,18 +17,17 @@ package org.gradle.messaging.remote.internal;
 
 import org.gradle.api.Action;
 import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.concurrent.StoppableExecutor;
+import org.gradle.internal.id.IdGenerator;
 import org.gradle.messaging.dispatch.DiscardingFailureHandler;
 import org.gradle.messaging.dispatch.MethodInvocation;
 import org.gradle.messaging.dispatch.ReflectionDispatch;
 import org.gradle.messaging.remote.Address;
-import org.gradle.messaging.remote.ConnectEvent;
 import org.gradle.messaging.remote.ConnectionAcceptor;
 import org.gradle.messaging.remote.internal.protocol.ChannelAvailable;
 import org.gradle.messaging.remote.internal.protocol.DiscoveryMessage;
-import org.gradle.internal.id.IdGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,7 +59,7 @@ public class DefaultIncomingBroadcast implements IncomingBroadcast, Stoppable {
         connection.dispatchTo(new GroupMessageFilter(group, protocolStack.getBottom()));
         protocolStack.getBottom().dispatchTo(connection);
 
-        acceptor = incomingConnector.accept(new IncomingConnectionAction(), getClass().getClassLoader(), true);
+        acceptor = incomingConnector.accept(new IncomingConnectionAction(), true);
         address = acceptor.getAddress();
         hub = new MessageHub("incoming broadcast", messageOriginator.getName(), executorFactory, idGenerator, messagingClassLoader);
 
@@ -84,9 +83,10 @@ public class DefaultIncomingBroadcast implements IncomingBroadcast, Stoppable {
         CompositeStoppable.stoppable(acceptor, protocolStack, hub, executor).stop();
     }
 
-    private class IncomingConnectionAction implements Action<ConnectEvent<Connection<Message>>> {
-        public void execute(ConnectEvent<Connection<Message>> connectionConnectEvent) {
-            hub.addConnection(connectionConnectEvent.getConnection());
+    private class IncomingConnectionAction implements Action<ConnectCompletion> {
+        public void execute(ConnectCompletion completion) {
+            Connection<Message> connection = completion.create(getClass().getClassLoader());
+            hub.addConnection(connection);
         }
     }
 }

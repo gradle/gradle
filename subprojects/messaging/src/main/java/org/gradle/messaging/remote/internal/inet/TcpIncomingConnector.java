@@ -17,18 +17,14 @@
 package org.gradle.messaging.remote.internal.inet;
 
 import org.gradle.api.Action;
-import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.StoppableExecutor;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.messaging.remote.Address;
-import org.gradle.messaging.remote.ConnectEvent;
 import org.gradle.messaging.remote.ConnectionAcceptor;
-import org.gradle.messaging.remote.internal.Connection;
-import org.gradle.messaging.remote.internal.DefaultMessageSerializer;
-import org.gradle.messaging.remote.internal.IncomingConnector;
-import org.gradle.messaging.remote.internal.MessageSerializer;
+import org.gradle.messaging.remote.internal.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,11 +47,7 @@ public class TcpIncomingConnector implements IncomingConnector {
         this.idGenerator = idGenerator;
     }
 
-    public <T> ConnectionAcceptor accept(Action<ConnectEvent<Connection<T>>> action, ClassLoader classLoader, boolean allowRemote) {
-        return accept(action, new DefaultMessageSerializer<T>(classLoader), allowRemote);
-    }
-
-    public <T> ConnectionAcceptor accept(Action<ConnectEvent<Connection<T>>> action, MessageSerializer<T> serializer, boolean allowRemote) {
+    public ConnectionAcceptor accept(Action<ConnectCompletion> action, boolean allowRemote) {
         final ServerSocketChannel serverSocket;
         int localPort;
         try {
@@ -72,7 +64,7 @@ public class TcpIncomingConnector implements IncomingConnector {
         LOGGER.debug("Listening on {}.", address);
 
         final StoppableExecutor executor = executorFactory.create(String.format("Incoming %s TCP Connector on port %s", allowRemote ? "remote" : "local", localPort));
-        executor.execute(new Receiver<T>(serverSocket, action, serializer, allowRemote));
+        executor.execute(new Receiver(serverSocket, action, allowRemote));
 
         return new ConnectionAcceptor() {
             public Address getAddress() {
@@ -90,16 +82,14 @@ public class TcpIncomingConnector implements IncomingConnector {
         };
     }
 
-    private class Receiver<T> implements Runnable {
+    private class Receiver implements Runnable {
         private final ServerSocketChannel serverSocket;
-        private final Action<ConnectEvent<Connection<T>>> action;
-        private final MessageSerializer<T> serializer;
+        private final Action<ConnectCompletion> action;
         private final boolean allowRemote;
 
-        public Receiver(ServerSocketChannel serverSocket, Action<ConnectEvent<Connection<T>>> action, MessageSerializer<T> serializer, boolean allowRemote) {
+        public Receiver(ServerSocketChannel serverSocket, Action<ConnectCompletion> action, boolean allowRemote) {
             this.serverSocket = serverSocket;
             this.action = action;
-            this.serializer = serializer;
             this.allowRemote = allowRemote;
         }
 
@@ -107,7 +97,7 @@ public class TcpIncomingConnector implements IncomingConnector {
             try {
                 try {
                     while (true) {
-                        SocketChannel socket = serverSocket.accept();
+                        final SocketChannel socket = serverSocket.accept();
                         InetSocketAddress remoteSocketAddress = (InetSocketAddress) socket.socket().getRemoteSocketAddress();
                         InetAddress remoteInetAddress = remoteSocketAddress.getAddress();
                         if (!allowRemote && !addressFactory.isLocal(remoteInetAddress)) {
@@ -115,13 +105,16 @@ public class TcpIncomingConnector implements IncomingConnector {
                             socket.close();
                             continue;
                         }
+                        LOGGER.debug("Accepted connection from {} to {}.", socket.socket().getRemoteSocketAddress(), socket.socket().getLocalSocketAddress());
+                        action.execute(new ConnectCompletion() {
+                            public <T> Connection<T> create(ClassLoader messageClassLoader) {
+                                return new SocketConnection<T>(socket, new DefaultMessageSerializer<T>(messageClassLoader));
+                            }
 
-                        SocketConnection<T> connection = new SocketConnection<T>(socket, serializer);
-                        Address localAddress = connection.getLocalAddress();
-                        Address remoteAddress = connection.getRemoteAddress();
-
-                        LOGGER.debug("Accepted connection from {} to {}.", remoteAddress, localAddress);
-                        action.execute(new ConnectEvent<Connection<T>>(connection, localAddress, remoteAddress));
+                            public <T> Connection<T> create(MessageSerializer<T> serializer) {
+                                return new SocketConnection<T>(socket, serializer);
+                            }
+                        });
                     }
                 } catch (ClosedChannelException e) {
                     // Ignore
