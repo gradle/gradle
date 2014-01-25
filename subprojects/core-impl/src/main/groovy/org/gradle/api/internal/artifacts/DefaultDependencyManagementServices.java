@@ -123,10 +123,9 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return new DefaultArtifactHandler(configurationContainer, publishArtifactNotationParser);
         }
 
-        ConfigurationResolver createDependencyResolver(ArtifactDependencyResolver artifactDependencyResolver, RepositoryHandler repositories) {
-            return new DefaultConfigurationResolver(
-                    artifactDependencyResolver,
-                    repositories);
+        ConfigurationResolver createDependencyResolver(ArtifactDependencyResolver artifactDependencyResolver, RepositoryHandler repositories,
+                                                       ModuleMetadataProcessor metadataProcessor) {
+            return new DefaultConfigurationResolver(artifactDependencyResolver, repositories, metadataProcessor);
         }
 
         ArtifactPublicationServices createArtifactPublicationServices(ServiceRegistry services) {

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
+import org.gradle.api.internal.artifacts.ModuleMetadataProcessor
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver
@@ -25,46 +26,43 @@ import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactIdentifie
 import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData
 import org.gradle.api.internal.externalresource.cached.CachedArtifactIndex
 import org.gradle.api.internal.externalresource.ivy.ArtifactAtRepositoryKey
-import org.gradle.api.internal.externalresource.metadata.DefaultExternalResourceMetaData
-import org.gradle.api.internal.externalresource.metadata.ExternalResourceMetaData
 import org.gradle.util.BuildCommencedTimeProvider
+
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class CachingModuleVersionRepositoryTest extends Specification {
-
-    final realRepo = Mock(ModuleVersionRepository)
-    final moduleResolutionCache = Mock(ModuleResolutionCache)
-    final moduleDescriptorCache = Mock(ModuleMetaDataCache)
-    final artifactAtRepositoryCache = Mock(CachedArtifactIndex)
-    final resolver = Mock(DependencyToModuleVersionResolver)
-    final cachePolicy = Mock(CachePolicy)
-    CachingModuleVersionRepository repo = new CachingModuleVersionRepository(realRepo, moduleResolutionCache, moduleDescriptorCache, artifactAtRepositoryCache,
-            resolver, cachePolicy, new BuildCommencedTimeProvider())
-    int descriptorHash = 1234
-    CachingModuleVersionRepository.CachingModuleSource moduleSource = Mock()
+    def realRepo = Stub(ModuleVersionRepository) {
+        getId() >> "repo-id"
+    }
+    def moduleResolutionCache = Stub(ModuleResolutionCache)
+    def moduleDescriptorCache = Mock(ModuleMetaDataCache)
+    def artifactAtRepositoryCache = Mock(CachedArtifactIndex)
+    def resolver = Stub(DependencyToModuleVersionResolver)
+    def cachePolicy = Stub(CachePolicy)
+    def metadataProcessor = Stub(ModuleMetadataProcessor)
+    def repo = new CachingModuleVersionRepository(realRepo, moduleResolutionCache, moduleDescriptorCache, artifactAtRepositoryCache,
+            resolver, cachePolicy, new BuildCommencedTimeProvider(), metadataProcessor)
 
     @Unroll
-    "last modified date is cached - lastModified = #lastModified"(Date lastModified) {
+    def "last modified date is cached - lastModified = #lastModified"() {
         given:
-        ExternalResourceMetaData externalResourceMetaData = new DefaultExternalResourceMetaData("remote url", lastModified, -1, null, null)
-        File file = new File("local")
-        BuildableArtifactResolveResult result = Mock()
         def artifactId = Stub(ModuleVersionArtifactIdentifier)
         def artifact = Stub(ModuleVersionArtifactMetaData) {
             getId() >> artifactId
         }
-        ArtifactAtRepositoryKey atRepositoryKey = new ArtifactAtRepositoryKey("repo-id", artifactId)
 
-        and:
-        _ * realRepo.id >> "repo-id"
-        _ * realRepo.isLocal() >> false
-        _ * moduleSource.descriptorHash >> descriptorHash
-        _ * moduleSource.isChangingModule >> true
-        _ * artifactAtRepositoryCache.lookup(atRepositoryKey) >> null
-        _ * realRepo.resolve(artifact, result, null)
-        _ * result.file >> file
-        _ * result.externalResourceMetaData >> externalResourceMetaData
+        def file = new File("local")
+        def result = Stub(BuildableArtifactResolveResult) {
+            getFile() >> file
+        }
+
+        def descriptorHash = 1234G
+        def moduleSource = Stub(CachingModuleVersionRepository.CachingModuleSource) {
+            getDescriptorHash() >> descriptorHash
+        }
+
+        ArtifactAtRepositoryKey atRepositoryKey = new ArtifactAtRepositoryKey("repo-id", artifactId)
 
         when:
         repo.resolve(artifact, result, moduleSource)
@@ -72,6 +70,7 @@ class CachingModuleVersionRepositoryTest extends Specification {
         then:
         1 * artifactAtRepositoryCache.store(atRepositoryKey, file, descriptorHash)
         0 * moduleDescriptorCache._
+
         where:
         lastModified << [new Date(), null]
     }

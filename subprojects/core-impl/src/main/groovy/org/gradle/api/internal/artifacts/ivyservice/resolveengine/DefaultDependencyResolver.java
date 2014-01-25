@@ -20,6 +20,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
+import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.*;
@@ -72,11 +73,13 @@ public class DefaultDependencyResolver implements ArtifactDependencyResolver {
         this.latestStrategy = latestStrategy;
     }
 
-    public ResolverResults resolve(final ConfigurationInternal configuration, final List<? extends ResolutionAwareRepository> repositories) throws ResolveException {
+    public ResolverResults resolve(final ConfigurationInternal configuration,
+                                   final List<? extends ResolutionAwareRepository> repositories,
+                                   final ModuleMetadataProcessor metadataProcessor) throws ResolveException {
         LOGGER.debug("Resolving {}", configuration);
         return ivyContextManager.withIvy(new Transformer<ResolverResults, Ivy>() {
             public ResolverResults transform(Ivy ivy) {
-                DependencyToModuleVersionResolver dependencyResolver = ivyFactory.create(configuration, repositories);
+                DependencyToModuleVersionResolver dependencyResolver = ivyFactory.create(configuration, repositories, metadataProcessor);
 
                 dependencyResolver = new ClientModuleResolver(dependencyResolver);
                 ProjectDependencyResolver projectDependencyResolver = new ProjectDependencyResolver(projectModuleRegistry, dependencyResolver, localComponentFactory);

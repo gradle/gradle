@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
+import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
@@ -33,10 +34,12 @@ public class CacheLockingArtifactDependencyResolver implements ArtifactDependenc
         this.resolver = resolver;
     }
 
-    public ResolverResults resolve(final ConfigurationInternal configuration, final List<? extends ResolutionAwareRepository> repositories) throws ResolveException {
+    public ResolverResults resolve(final ConfigurationInternal configuration,
+                                   final List<? extends ResolutionAwareRepository> repositories,
+                                   final ModuleMetadataProcessor metadataProcessor) throws ResolveException {
         return lockingManager.useCache(String.format("resolve %s", configuration), new Factory<ResolverResults>() {
             public ResolverResults create() {
-                return resolver.resolve(configuration, repositories);
+                return resolver.resolve(configuration, repositories, metadataProcessor);
             }
         });
     }

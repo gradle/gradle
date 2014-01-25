@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ModuleInternal;
+import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.component.DefaultProjectComponentIdentifier;
@@ -41,14 +42,16 @@ public class ShortcircuitEmptyConfigsArtifactDependencyResolver implements Artif
         this.dependencyResolver = dependencyResolver;
     }
 
-    public ResolverResults resolve(ConfigurationInternal configuration, List<? extends ResolutionAwareRepository> repositories) throws ResolveException {
+    public ResolverResults resolve(ConfigurationInternal configuration,
+                                   List<? extends ResolutionAwareRepository> repositories,
+                                   ModuleMetadataProcessor metadataProcessor) throws ResolveException {
         if (configuration.getAllDependencies().isEmpty()) {
             ModuleVersionIdentifier id = DefaultModuleVersionIdentifier.newId(configuration.getModule());
             ComponentIdentifier componentIdentifier = determineComponentIdentifier(id, configuration.getModule());
             ResolutionResult emptyResult = new DefaultResolutionResultBuilder().start(id, componentIdentifier).complete();
             return new ResolverResults(new EmptyResolvedConfiguration(), emptyResult);
         }
-        return dependencyResolver.resolve(configuration, repositories);
+        return dependencyResolver.resolve(configuration, repositories, metadataProcessor);
     }
 
     private ComponentIdentifier determineComponentIdentifier(ModuleVersionIdentifier id, ModuleInternal moduleInternal) {

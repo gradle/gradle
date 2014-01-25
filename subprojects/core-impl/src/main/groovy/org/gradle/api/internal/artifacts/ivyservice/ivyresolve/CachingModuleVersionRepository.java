@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
+import org.gradle.api.internal.artifacts.ModuleMetadataProcessor;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.artifacts.ivyservice.BuildableArtifactResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.DependencyToModuleVersionResolver;
@@ -53,11 +54,13 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
 
     private final ModuleVersionRepository delegate;
     private final BuildCommencedTimeProvider timeProvider;
+    private final ModuleMetadataProcessor metadataProcessor;
 
     public CachingModuleVersionRepository(ModuleVersionRepository delegate, ModuleResolutionCache moduleResolutionCache, ModuleMetaDataCache moduleMetaDataCache,
                                           CachedArtifactIndex artifactAtRepositoryCachedResolutionIndex,
                                           DependencyToModuleVersionResolver resolver,
-                                          CachePolicy cachePolicy, BuildCommencedTimeProvider timeProvider) {
+                                          CachePolicy cachePolicy, BuildCommencedTimeProvider timeProvider,
+                                          ModuleMetadataProcessor metadataProcessor) {
         this.delegate = delegate;
         this.moduleMetaDataCache = moduleMetaDataCache;
         this.moduleResolutionCache = moduleResolutionCache;
@@ -65,6 +68,7 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
         this.resolver = resolver;
         this.timeProvider = timeProvider;
         this.cachePolicy = cachePolicy;
+        this.metadataProcessor = metadataProcessor;
     }
 
     public String getId() {
