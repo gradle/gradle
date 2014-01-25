@@ -19,7 +19,6 @@ package org.gradle.plugin.bintray
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.plugin.resolve.internal.DefaultPluginRequest
-import org.gradle.plugin.resolve.internal.InvalidPluginRequestException
 import org.gradle.plugin.resolve.internal.JCenterPluginMapper
 import spock.lang.Specification
 
@@ -41,6 +40,7 @@ class JCenterPluginMapperSpec extends Specification {
             0 * _ //fail if create called with any other string
         }
     }
+
     JCenterPluginMapper mapper = new JCenterPluginMapper()
 
 
@@ -64,13 +64,8 @@ class JCenterPluginMapperSpec extends Specification {
         dependency.version == TEST_PLUGIN_EXPLICIT_VERSION
     }
 
-    def 'Query for non-existing plugin fails'() {
-        setup:
-        String badPluginId = 'vla'
-        when:
-        mapper.map(new DefaultPluginRequest(badPluginId), getMockForVersion(TEST_PLUGIN_EXPLICIT_VERSION))
-        then:
-        InvalidPluginRequestException e = thrown()
-        e.message.contains(badPluginId)
+    def 'Query for non-existing plugin returns null'() {
+        expect:
+        mapper.map(new DefaultPluginRequest("not-exist"), getMockForVersion(TEST_PLUGIN_EXPLICIT_VERSION)) == null
     }
 }
