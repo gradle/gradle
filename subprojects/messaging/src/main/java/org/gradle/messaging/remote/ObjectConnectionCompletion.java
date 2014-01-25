@@ -17,9 +17,13 @@
 package org.gradle.messaging.remote;
 
 /**
- * A builder that allows an {@link ObjectConnection} to be created once the underlying transport with the peer has been
- * established.
+ * A builder that allows an {@link ObjectConnection} to be created once the underlying transport with the peer has been established.
  */
 public interface ObjectConnectionCompletion {
-    ObjectConnection create();
+    /**
+     * Creates the connection. Uses Java serialization for all method parameters.
+     *
+     * @param messagingClassLoader The ClassLoader to use to deserialize method parameters.
+     */
+    ObjectConnection create(ClassLoader messagingClassLoader);
 }

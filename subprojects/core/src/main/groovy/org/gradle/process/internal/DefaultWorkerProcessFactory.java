@@ -48,15 +48,17 @@ public class DefaultWorkerProcessFactory implements Factory<WorkerProcessBuilder
     private final MessagingServer server;
     private final ClassPathRegistry classPathRegistry;
     private final FileResolver resolver;
+    private final ClassLoader messagingClassLoader;
     private final IdGenerator<?> idGenerator;
 
     public DefaultWorkerProcessFactory(LogLevel workerLogLevel, MessagingServer server,
                                        ClassPathRegistry classPathRegistry, FileResolver resolver,
-                                       IdGenerator<?> idGenerator) {
+                                       ClassLoader messagingClassLoader, IdGenerator<?> idGenerator) {
         this.workerLogLevel = workerLogLevel;
         this.server = server;
         this.classPathRegistry = classPathRegistry;
         this.resolver = resolver;
+        this.messagingClassLoader = messagingClassLoader;
         this.idGenerator = idGenerator;
     }
 
@@ -79,7 +81,7 @@ public class DefaultWorkerProcessFactory implements Factory<WorkerProcessBuilder
             final DefaultWorkerProcess workerProcess = new DefaultWorkerProcess(120, TimeUnit.SECONDS);
             ConnectionAcceptor acceptor = server.accept(new Action<ObjectConnectionCompletion>() {
                 public void execute(ObjectConnectionCompletion completion) {
-                    workerProcess.onConnect(completion.create());
+                    workerProcess.onConnect(completion.create(messagingClassLoader));
                 }
             });
             workerProcess.startAccepting(acceptor);

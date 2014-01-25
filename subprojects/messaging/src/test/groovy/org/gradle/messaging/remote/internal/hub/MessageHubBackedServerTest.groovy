@@ -26,15 +26,13 @@ import org.gradle.messaging.remote.ObjectConnectionCompletion
 import org.gradle.messaging.remote.internal.ConnectCompletion
 import org.gradle.messaging.remote.internal.Connection
 import org.gradle.messaging.remote.internal.IncomingConnector
-import org.gradle.messaging.remote.internal.MessageSerializer
 import org.gradle.messaging.remote.internal.hub.protocol.InterHubMessage
 import spock.lang.Specification
 
 class MessageHubBackedServerTest extends Specification {
     final IncomingConnector connector = Mock()
     final ExecutorFactory executorFactory = Mock()
-    final MessageSerializer<InterHubMessage> serializer = Mock()
-    final MessageHubBackedServer server = new MessageHubBackedServer(connector, serializer, executorFactory)
+    final MessageHubBackedServer server = new MessageHubBackedServer(connector, executorFactory)
 
     def "creates connection and cleans up on stop"() {
         ConnectionAcceptor acceptor = Mock()
@@ -56,8 +54,8 @@ class MessageHubBackedServerTest extends Specification {
 
         then:
         1 * executorFactory.create("${backingConnection} workers") >> executor
-        1 * completion.create(serializer) >> backingConnection
-        1 * connectAction.execute(_) >> { ObjectConnectionCompletion event -> connection = event.create() }
+        1 * completion.create(_) >> backingConnection
+        1 * connectAction.execute(_) >> { ObjectConnectionCompletion event -> connection = event.create(Stub(ClassLoader)) }
 
         when:
         connection.stop()

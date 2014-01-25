@@ -51,7 +51,7 @@ public class ActionExecutionWorker implements Action<WorkerContext>, Serializabl
         MessagingServices messagingServices = createClient();
         try {
             final MessagingClient client = messagingServices.get(MessagingClient.class);
-            final ObjectConnection clientConnection = client.getConnection(serverAddress).create();
+            final ObjectConnection clientConnection = client.getConnection(serverAddress).create(getClass().getClassLoader());
             try {
                 LOGGER.debug("Starting {}.", displayName);
                 WorkerProcessContext context = new WorkerProcessContext() {

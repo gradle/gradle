@@ -252,13 +252,14 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return pluginResolverFactory.createPluginResolver();
     }
 
-    protected Factory<WorkerProcessBuilder> createWorkerProcessFactory() {
-        ClassPathRegistry classPathRegistry = get(ClassPathRegistry.class);
+    protected Factory<WorkerProcessBuilder> createWorkerProcessFactory(StartParameter startParameter, MessagingServer messagingServer, ClassPathRegistry classPathRegistry,
+                                                                       FileResolver fileResolver, ClassLoaderRegistry classLoaderRegistry) {
         return new DefaultWorkerProcessFactory(
-                get(StartParameter.class).getLogLevel(),
-                get(MessagingServer.class),
+                startParameter.getLogLevel(),
+                messagingServer,
                 classPathRegistry,
-                get(FileResolver.class),
+                fileResolver,
+                classLoaderRegistry.getPluginsClassLoader(),
                 new LongIdGenerator());
     }
 

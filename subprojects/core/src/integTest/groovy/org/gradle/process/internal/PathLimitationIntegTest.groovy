@@ -62,7 +62,7 @@ class PathLimitationIntegTest extends Specification {
     private final CacheRepository cacheRepository = new DefaultCacheRepository(new DefaultCacheScopeMapping(tmpDir.getTestDirectory(), null, GradleVersion.current()), CacheUsage.ON, factory);
     private final ModuleRegistry moduleRegistry = new DefaultModuleRegistry();
     private final ClassPathRegistry classPathRegistry = new DefaultClassPathRegistry(new DefaultClassPathProvider(moduleRegistry), new WorkerProcessClassPathProvider(cacheRepository, moduleRegistry));
-    private final DefaultWorkerProcessFactory workerFactory = new DefaultWorkerProcessFactory(LogLevel.INFO, server, classPathRegistry, TestFiles.resolver(tmpDir.getTestDirectory()), new LongIdGenerator());
+    private final DefaultWorkerProcessFactory workerFactory = new DefaultWorkerProcessFactory(LogLevel.INFO, server, classPathRegistry, TestFiles.resolver(tmpDir.getTestDirectory()), getClass().classLoader, new LongIdGenerator());
     private final ListenerBroadcast<TestListenerInterface> broadcast = new ListenerBroadcast<TestListenerInterface>(TestListenerInterface.class);
     private final RemoteExceptionListener exceptionListener = new RemoteExceptionListener(broadcast.source);
 

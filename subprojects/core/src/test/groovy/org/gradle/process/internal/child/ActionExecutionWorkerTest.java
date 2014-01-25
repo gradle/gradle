@@ -65,7 +65,7 @@ public class ActionExecutionWorkerTest {
             one(client).getConnection(serverAddress);
             will(returnValue(connectionCompletion));
 
-            one(connectionCompletion).create();
+            one(connectionCompletion).create(getClass().getClassLoader());
             will(returnValue(connection));
 
             one(action).execute(with(notNullValue(WorkerProcessContext.class)));
@@ -100,7 +100,7 @@ public class ActionExecutionWorkerTest {
             one(client).getConnection(serverAddress);
             will(returnValue(connectionCompletion));
 
-            one(connectionCompletion).create();
+            one(connectionCompletion).create(getClass().getClassLoader());
             will(returnValue(connection));
 
             one(action).execute(with(notNullValue(WorkerProcessContext.class)));

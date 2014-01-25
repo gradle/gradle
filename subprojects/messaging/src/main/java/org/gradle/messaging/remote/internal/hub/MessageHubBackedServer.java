@@ -20,25 +20,16 @@ import org.gradle.api.Action;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.messaging.remote.ConnectionAcceptor;
 import org.gradle.messaging.remote.MessagingServer;
-import org.gradle.messaging.remote.ObjectConnection;
 import org.gradle.messaging.remote.ObjectConnectionCompletion;
 import org.gradle.messaging.remote.internal.ConnectCompletion;
-import org.gradle.messaging.remote.internal.Connection;
 import org.gradle.messaging.remote.internal.IncomingConnector;
-import org.gradle.messaging.remote.internal.MessageSerializer;
-import org.gradle.messaging.remote.internal.hub.protocol.InterHubMessage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class MessageHubBackedServer implements MessagingServer {
-    private static final Logger LOGGER = LoggerFactory.getLogger(MessageHubBackedServer.class);
     private final IncomingConnector connector;
-    private final MessageSerializer<InterHubMessage> serializer;
     private final ExecutorFactory executorFactory;
 
-    public MessageHubBackedServer(IncomingConnector connector, MessageSerializer<InterHubMessage> serializer, ExecutorFactory executorFactory) {
+    public MessageHubBackedServer(IncomingConnector connector, ExecutorFactory executorFactory) {
         this.connector = connector;
-        this.serializer = serializer;
         this.executorFactory = executorFactory;
     }
 
@@ -54,18 +45,8 @@ public class MessageHubBackedServer implements MessagingServer {
         }
 
         public void execute(ConnectCompletion completion) {
-            Connection<InterHubMessage> connection = completion.create(serializer);
-            MessageHub hub = new MessageHub(connection.toString(), executorFactory, new Action<Throwable>() {
-                public void execute(Throwable throwable) {
-                    LOGGER.error("Unexpected exception thrown.", throwable);
-                }
-            });
-            final MessageHubBackedObjectConnection objectConnection = new MessageHubBackedObjectConnection(hub, connection);
-            action.execute(new ObjectConnectionCompletion() {
-                public ObjectConnection create() {
-                    return objectConnection;
-                }
-            });
+            action.execute(new DefaultObjectConnectionCompletion(completion, executorFactory));
         }
     }
+
 }
