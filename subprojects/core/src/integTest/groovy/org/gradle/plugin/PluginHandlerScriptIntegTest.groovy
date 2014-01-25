@@ -289,9 +289,9 @@ class PluginHandlerScriptIntegTest extends AbstractIntegrationSpec {
         fails "tasks"
 
         then:
-        errorOutput.contains """Cannot resolve plugin request [plugin: 'foo'] from plugin repositories:
+        errorOutput.contains toPlatformLineSeparators("""Cannot resolve plugin request [plugin: 'foo'] from plugin repositories:
    - Gradle Distribution Plugins (listing: http://gradle.org/docs/${GradleVersion.current().version}/userguide/standard_plugins.html)
-   - Gradle Bintray Plugin Repository (listing: https://bintray.com/gradle-plugins-development/gradle-plugins)"""
+   - Gradle Bintray Plugin Repository (listing: https://bintray.com/gradle-plugins-development/gradle-plugins)""")
     }
 
     private publishTestPlugin() {
