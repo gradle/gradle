@@ -90,6 +90,7 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
         ObjectConnection serverConnection = workerProcessContext.getServerConnection();
         this.resultProcessor = serverConnection.addOutgoing(TestResultProcessor.class);
         serverConnection.addIncoming(RemoteTestClassProcessor.class, this);
+        serverConnection.connect();
     }
 
     public void startProcessing() {

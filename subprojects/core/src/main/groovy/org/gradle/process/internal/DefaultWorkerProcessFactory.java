@@ -23,10 +23,7 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.Factory;
 import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.internal.id.IdGenerator;
-import org.gradle.messaging.remote.Address;
-import org.gradle.messaging.remote.ConnectionAcceptor;
-import org.gradle.messaging.remote.MessagingServer;
-import org.gradle.messaging.remote.ObjectConnectionCompletion;
+import org.gradle.messaging.remote.*;
 import org.gradle.process.internal.child.ApplicationClassesInIsolatedClassLoaderWorkerFactory;
 import org.gradle.process.internal.child.ApplicationClassesInSystemClassLoaderWorkerFactory;
 import org.gradle.process.internal.child.EncodedStream;
@@ -79,9 +76,10 @@ public class DefaultWorkerProcessFactory implements Factory<WorkerProcessBuilder
             }
 
             final DefaultWorkerProcess workerProcess = new DefaultWorkerProcess(120, TimeUnit.SECONDS);
-            ConnectionAcceptor acceptor = server.accept(new Action<ObjectConnectionCompletion>() {
-                public void execute(ObjectConnectionCompletion completion) {
-                    workerProcess.onConnect(completion.create(messagingClassLoader));
+            ConnectionAcceptor acceptor = server.accept(new Action<ObjectConnection>() {
+                public void execute(ObjectConnection connection) {
+                    connection.useDefaultSerialization(messagingClassLoader);
+                    workerProcess.onConnect(connection);
                 }
             });
             workerProcess.startAccepting(acceptor);

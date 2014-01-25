@@ -24,5 +24,5 @@ public interface MessagingClient {
      *
      * @param address The address to connect to.
      */
-    ObjectConnectionCompletion getConnection(Address address);
+    ObjectConnection getConnection(Address address);
 }

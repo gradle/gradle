@@ -20,7 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.MessagingClient;
 import org.gradle.messaging.remote.ObjectConnection;
-import org.gradle.messaging.remote.ObjectConnectionCompletion;
 import org.gradle.messaging.remote.internal.MessagingServices;
 import org.gradle.process.internal.WorkerProcessContext;
 import org.gradle.util.JUnit4GroovyMockery;
@@ -39,7 +38,6 @@ import static org.junit.Assert.fail;
 public class ActionExecutionWorkerTest {
     private final JUnit4Mockery context = new JUnit4GroovyMockery();
     private final Action<WorkerProcessContext> action = context.mock(Action.class);
-    private final ObjectConnectionCompletion connectionCompletion = context.mock(ObjectConnectionCompletion.class);
     private final ObjectConnection connection = context.mock(ObjectConnection.class);
     private final MessagingServices messagingServices = context.mock(MessagingServices.class);
     private final MessagingClient client = context.mock(MessagingClient.class);
@@ -63,9 +61,6 @@ public class ActionExecutionWorkerTest {
             will(returnValue(client));
 
             one(client).getConnection(serverAddress);
-            will(returnValue(connectionCompletion));
-
-            one(connectionCompletion).create(getClass().getClassLoader());
             will(returnValue(connection));
 
             one(action).execute(with(notNullValue(WorkerProcessContext.class)));
@@ -98,9 +93,6 @@ public class ActionExecutionWorkerTest {
             will(returnValue(client));
 
             one(client).getConnection(serverAddress);
-            will(returnValue(connectionCompletion));
-
-            one(connectionCompletion).create(getClass().getClassLoader());
             will(returnValue(connection));
 
             one(action).execute(with(notNullValue(WorkerProcessContext.class)));

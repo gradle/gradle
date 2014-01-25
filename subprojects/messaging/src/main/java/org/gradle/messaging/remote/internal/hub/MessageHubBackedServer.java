@@ -20,7 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.messaging.remote.ConnectionAcceptor;
 import org.gradle.messaging.remote.MessagingServer;
-import org.gradle.messaging.remote.ObjectConnectionCompletion;
+import org.gradle.messaging.remote.ObjectConnection;
 import org.gradle.messaging.remote.internal.ConnectCompletion;
 import org.gradle.messaging.remote.internal.IncomingConnector;
 
@@ -33,19 +33,19 @@ public class MessageHubBackedServer implements MessagingServer {
         this.executorFactory = executorFactory;
     }
 
-    public ConnectionAcceptor accept(Action<ObjectConnectionCompletion> action) {
+    public ConnectionAcceptor accept(Action<ObjectConnection> action) {
         return connector.accept(new ConnectEventAction(action), false);
     }
 
     private class ConnectEventAction implements Action<ConnectCompletion> {
-        private final Action<ObjectConnectionCompletion> action;
+        private final Action<ObjectConnection> action;
 
-        public ConnectEventAction(Action<ObjectConnectionCompletion> action) {
+        public ConnectEventAction(Action<ObjectConnection> action) {
             this.action = action;
         }
 
         public void execute(ConnectCompletion completion) {
-            action.execute(new DefaultObjectConnectionCompletion(completion, executorFactory));
+            action.execute(new MessageHubBackedObjectConnection(executorFactory, completion));
         }
     }
 

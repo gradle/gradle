@@ -30,6 +30,11 @@ class SocketConnectCompletion implements ConnectCompletion {
         this.socket = socket;
     }
 
+    @Override
+    public String toString() {
+        return String.format("%s to %s", socket.socket().getLocalSocketAddress(), socket.socket().getRemoteSocketAddress());
+    }
+
     public <T> Connection<T> create(ClassLoader messageClassLoader) {
         return new SocketConnection<T>(socket, new DefaultMessageSerializer<T>(messageClassLoader));
     }

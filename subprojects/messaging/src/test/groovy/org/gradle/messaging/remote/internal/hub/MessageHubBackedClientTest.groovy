@@ -39,12 +39,17 @@ class MessageHubBackedClientTest extends Specification {
         StoppableExecutor executor = Mock()
 
         when:
-        def objectConnection = client.getConnection(address).create(Stub(ClassLoader))
+        def objectConnection = client.getConnection(address)
 
         then:
         1 * connector.connect(address) >> connectCompletion
+        1 * executorFactory.create("${connectCompletion} workers") >> executor
+
+        when:
+        objectConnection.connect()
+
+        then:
         1 * connectCompletion.create(_) >> backingConnection
-        1 * executorFactory.create("${backingConnection} workers") >> executor
 
         when:
         objectConnection.stop()

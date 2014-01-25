@@ -30,7 +30,7 @@ public interface WorkerProcessContext {
     String getDisplayName();
 
     /**
-     * Returns the connection which can be used to send/receive messages to/from the server process.
+     * Returns the connection which can be used to send/receive messages to/from the server process. Call {@link ObjectConnection#connect()} to complete the connection.
      */
     ObjectConnection getServerConnection();
 

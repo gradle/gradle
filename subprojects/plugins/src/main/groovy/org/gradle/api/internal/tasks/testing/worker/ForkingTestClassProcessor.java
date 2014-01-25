@@ -17,11 +17,11 @@
 package org.gradle.api.internal.tasks.testing.worker;
 
 import org.gradle.api.Action;
-import org.gradle.internal.Factory;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
+import org.gradle.internal.Factory;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.WorkerProcess;
 import org.gradle.process.internal.WorkerProcessBuilder;
@@ -64,6 +64,7 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
 
             workerProcess.getConnection().addIncoming(TestResultProcessor.class, resultProcessor);
             remoteProcessor = workerProcess.getConnection().addOutgoing(RemoteTestClassProcessor.class);
+            workerProcess.getConnection().connect();
 
             remoteProcessor.startProcessing();
         }

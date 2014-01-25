@@ -22,7 +22,7 @@ import org.gradle.api.Action
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.StoppableExecutor
 import org.gradle.messaging.remote.ConnectionAcceptor
-import org.gradle.messaging.remote.ObjectConnectionCompletion
+import org.gradle.messaging.remote.ObjectConnection
 import org.gradle.messaging.remote.internal.ConnectCompletion
 import org.gradle.messaging.remote.internal.Connection
 import org.gradle.messaging.remote.internal.IncomingConnector
@@ -36,7 +36,7 @@ class MessageHubBackedServerTest extends Specification {
 
     def "creates connection and cleans up on stop"() {
         ConnectionAcceptor acceptor = Mock()
-        Action<ObjectConnectionCompletion> connectAction = Mock()
+        Action<ObjectConnection> connectAction = Mock()
         Connection<InterHubMessage> backingConnection = Mock()
         StoppableExecutor executor = Mock()
         ConnectCompletion completion = Mock()
@@ -53,9 +53,14 @@ class MessageHubBackedServerTest extends Specification {
         acceptAction.execute(completion)
 
         then:
-        1 * executorFactory.create("${backingConnection} workers") >> executor
+        1 * executorFactory.create("${completion} workers") >> executor
+        1 * connectAction.execute(_) >> { ObjectConnection c -> connection = c }
+
+        when:
+        connection.connect()
+
+        then:
         1 * completion.create(_) >> backingConnection
-        1 * connectAction.execute(_) >> { ObjectConnectionCompletion event -> connection = event.create(Stub(ClassLoader)) }
 
         when:
         connection.stop()

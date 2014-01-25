@@ -20,23 +20,11 @@ import org.gradle.internal.concurrent.AsyncStoppable;
 /**
  * Manages a set of incoming and outgoing channels between 2 peers. Implementations must be thread-safe.
  */
-public interface ObjectConnection extends AsyncStoppable {
+public interface ObjectConnection extends AsyncStoppable, ObjectConnectionBuilder {
     /**
-     * Creates a transmitter for outgoing messages on the given type. The returned object is thread-safe.
-     *
-     * @param type The type
-     * @return A sink. Method calls made on this object are sent as outgoing messages.
+     * Completes the connection.
      */
-    <T> T addOutgoing(Class<T> type);
-
-    /**
-     * Registers a handler for incoming messages on the given type. The provided handler is not required to be
-     * thread-safe. Messages are delivered to the handler by a single thread.
-     *
-     * @param type The type.
-     * @param instance The handler instance. Incoming messages on the given type are delivered to this handler.
-     */
-    <T> void addIncoming(Class<T> type, T instance);
+    void connect();
 
     /**
      * Commences a graceful stop of this connection. Stops accepting outgoing messages. Requests that the peer stop

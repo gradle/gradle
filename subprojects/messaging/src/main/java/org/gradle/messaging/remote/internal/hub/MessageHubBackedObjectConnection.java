@@ -16,23 +16,37 @@
 
 package org.gradle.messaging.remote.internal.hub;
 
+import org.gradle.api.Action;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ThreadSafe;
 import org.gradle.messaging.dispatch.MethodInvocation;
 import org.gradle.messaging.dispatch.ProxyDispatchAdapter;
 import org.gradle.messaging.dispatch.ReflectionDispatch;
 import org.gradle.messaging.remote.ObjectConnection;
+import org.gradle.messaging.remote.internal.ConnectCompletion;
 import org.gradle.messaging.remote.internal.Connection;
+import org.gradle.messaging.remote.internal.MessageSerializer;
 import org.gradle.messaging.remote.internal.hub.protocol.InterHubMessage;
+import org.gradle.messaging.serialize.kryo.JavaSerializer;
+import org.gradle.messaging.serialize.kryo.TypeSafeSerializer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class MessageHubBackedObjectConnection implements ObjectConnection {
+    private static final Logger LOGGER = LoggerFactory.getLogger(MessageHubBackedObjectConnection.class);
     private final MessageHub hub;
-    private final Connection<InterHubMessage> connection;
+    private ConnectCompletion completion;
+    private Connection<InterHubMessage> connection;
+    private ClassLoader methodParamClassLoader = getClass().getClassLoader();
 
-    public MessageHubBackedObjectConnection(MessageHub hub, Connection<InterHubMessage> connection) {
-        this.hub = hub;
-        this.connection = connection;
-        hub.addConnection(connection);
+    public MessageHubBackedObjectConnection(ExecutorFactory executorFactory, ConnectCompletion completion) {
+        this.hub = new MessageHub(completion.toString(), executorFactory, new Action<Throwable>() {
+            public void execute(Throwable throwable) {
+                LOGGER.error("Unexpected exception thrown.", throwable);
+            }
+        });
+        this.completion = completion;
     }
 
     public <T> void addIncoming(Class<T> type, T instance) {
@@ -44,11 +58,30 @@ public class MessageHubBackedObjectConnection implements ObjectConnection {
         return adapter.getSource();
     }
 
+    public void useDefaultSerialization(ClassLoader methodParamClassLoader) {
+        this.methodParamClassLoader = methodParamClassLoader;
+    }
+
+    public void connect() {
+        MessageSerializer<InterHubMessage> serializer = new InterHubMessageSerializer(
+                new TypeSafeSerializer<MethodInvocation>(
+                        MethodInvocation.class,
+                        new MethodInvocationSerializer(
+                                methodParamClassLoader,
+                                new JavaSerializer<Object[]>(
+                                        methodParamClassLoader))));
+
+        connection = completion.create(serializer);
+        hub.addConnection(connection);
+        completion = null;
+    }
+
     public void requestStop() {
         hub.requestStop();
     }
 
     public void stop() {
+        // TODO:ADAM - need to cleanup completion too
         CompositeStoppable.stoppable(hub, connection).stop();
     }
 }

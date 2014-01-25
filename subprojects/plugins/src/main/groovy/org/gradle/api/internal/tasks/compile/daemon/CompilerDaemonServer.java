@@ -35,9 +35,10 @@ public class CompilerDaemonServer implements Action<WorkerProcessContext>, Compi
     private volatile CountDownLatch stop;
     
     public void execute(WorkerProcessContext context) {
-        client = context.getServerConnection().addOutgoing(CompilerDaemonClientProtocol.class);
         stop = new CountDownLatch(1);
+        client = context.getServerConnection().addOutgoing(CompilerDaemonClientProtocol.class);
         context.getServerConnection().addIncoming(CompilerDaemonServerProtocol.class, this);
+        context.getServerConnection().connect();
         try {
             stop.await();
         } catch (InterruptedException e) {

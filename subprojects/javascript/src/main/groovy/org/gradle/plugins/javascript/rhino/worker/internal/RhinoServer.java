@@ -33,6 +33,7 @@ public class RhinoServer<R extends Serializable, P extends Serializable> impleme
 
     public void execute(WorkerProcessContext context) {
         RhinoWorkerClientProtocol clientHandle = context.getServerConnection().addOutgoing(RhinoWorkerClientProtocol.class);
+        context.getServerConnection().connect();
 
         RhinoWorker<R, P> action;
 

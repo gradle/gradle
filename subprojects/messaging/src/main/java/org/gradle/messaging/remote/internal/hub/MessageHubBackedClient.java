@@ -19,7 +19,7 @@ package org.gradle.messaging.remote.internal.hub;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.MessagingClient;
-import org.gradle.messaging.remote.ObjectConnectionCompletion;
+import org.gradle.messaging.remote.ObjectConnection;
 import org.gradle.messaging.remote.internal.OutgoingConnector;
 
 public class MessageHubBackedClient implements MessagingClient {
@@ -31,7 +31,7 @@ public class MessageHubBackedClient implements MessagingClient {
         this.executorFactory = executorFactory;
     }
 
-    public ObjectConnectionCompletion getConnection(Address address) {
-        return new DefaultObjectConnectionCompletion(connector.connect(address), executorFactory);
+    public ObjectConnection getConnection(Address address) {
+        return new MessageHubBackedObjectConnection(executorFactory, connector.connect(address));
     }
 }

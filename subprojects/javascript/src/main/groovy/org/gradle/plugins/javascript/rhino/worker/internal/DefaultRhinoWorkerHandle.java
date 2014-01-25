@@ -37,8 +37,11 @@ public class DefaultRhinoWorkerHandle<R extends Serializable, P extends Serializ
         CountDownLatch latch = new CountDownLatch(1);
         Receiver receiver = new Receiver(latch);
         workerProcess.start();
+
         workerProcess.getConnection().addIncoming(RhinoWorkerClientProtocol.class, receiver);
         @SuppressWarnings("unchecked") RhinoClientWorkerProtocol<P> worker = workerProcess.getConnection().addOutgoing(RhinoClientWorkerProtocol.class);
+        workerProcess.getConnection().connect();
+
         worker.process(payload);
 
         try {
@@ -46,6 +49,8 @@ public class DefaultRhinoWorkerHandle<R extends Serializable, P extends Serializ
         } catch (InterruptedException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
+
+        workerProcess.waitForStop();
 
         if (receiver.initialisationError != null) {
             throw UncheckedException.throwAsUncheckedException(receiver.initialisationError);

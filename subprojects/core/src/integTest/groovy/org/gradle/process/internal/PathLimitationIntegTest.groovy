@@ -35,7 +35,6 @@ import org.gradle.internal.nativeplatform.services.NativeServices
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.listener.ListenerBroadcast
 import org.gradle.messaging.remote.MessagingServer
-import org.gradle.messaging.remote.ObjectConnection
 import org.gradle.messaging.remote.internal.MessagingServices
 import org.gradle.process.internal.child.WorkerProcessClassPathProvider
 import org.gradle.test.fixtures.file.TestFile
@@ -182,22 +181,11 @@ class PathLimitationIntegTest extends Specification {
         private WorkerProcess proc;
         private Action<? super WorkerProcessContext> action;
         private List<String> jvmArgs = Collections.emptyList();
-        private Action<ObjectConnection> serverAction;
         private final File workingDirectory
 
         public ChildProcess(Action<? super WorkerProcessContext> action, File workingDirectory) {
             this.workingDirectory = workingDirectory
             this.action = action;
-        }
-
-        ChildProcess expectStopFailure() {
-            stopFails = true;
-            return this;
-        }
-
-        ChildProcess expectStartFailure() {
-            startFails = true;
-            return this;
         }
 
         public void start() {
@@ -211,15 +199,12 @@ class PathLimitationIntegTest extends Specification {
                 proc.start();
                 assertFalse(startFails);
             } catch (ExecException e) {
-                println e
                 e.printStackTrace()
                 assertTrue(startFails);
                 return;
             }
             proc.getConnection().addIncoming(TestListenerInterface.class, exceptionListener);
-            if (serverAction != null) {
-                serverAction.execute(proc.getConnection());
-            }
+            proc.getConnection().connect()
         }
 
         public void waitForStop() {
@@ -232,11 +217,6 @@ class PathLimitationIntegTest extends Specification {
             } catch (ExecException e) {
                 assertTrue("Unexpected failure in worker process", stopFails);
             }
-        }
-
-        public ChildProcess onServer(Action<ObjectConnection> action) {
-            this.serverAction = action;
-            return this;
         }
 
         public ChildProcess jvmArgs(String... jvmArgs) {
