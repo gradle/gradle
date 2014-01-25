@@ -67,13 +67,14 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
         for (Execution execution : executions) {
             execution.filter(filter);
         }
+        invalidateDescription();
     }
 
     private void initExecutions() {
         if (executions.isEmpty()) {
             try {
-                Runner descriptionProvider = createRunnerFor(Arrays.asList(target), Collections.<Filter>emptyList());
-                templateDescription = descriptionProvider.getDescription();
+                Runner runner = createRunnerFor(Arrays.asList(target));
+                templateDescription = runner.getDescription();
             } catch (InitializationError initializationError) {
                 throw UncheckedException.throwAsUncheckedException(initializationError);
             }
@@ -94,13 +95,18 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
         }
     }
 
+    private void invalidateDescription() {
+        description = null;
+        templateDescription = null;
+    }
+
     protected abstract void createExecutions();
 
     protected void add(Execution execution) {
         executions.add(execution);
     }
 
-    private static Runner createRunnerFor(List<? extends Class<?>> targetClasses, final List<Filter> filters) throws InitializationError {
+    private static Runner createRunnerFor(List<? extends Class<?>> targetClasses) throws InitializationError {
         RunnerBuilder runnerBuilder = new RunnerBuilder() {
             @Override
             public Runner runnerForClass(Class<?> testClass) throws Throwable {
@@ -108,26 +114,13 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
                     RunWith runWith = candidate.getAnnotation(RunWith.class);
                     if (runWith != null && !AbstractMultiTestRunner.class.isAssignableFrom(runWith.value())) {
                         try {
-                            Runner r = (Runner) runWith.value().getConstructors()[0].newInstance(testClass);
-                            return filter(r);
+                            return (Runner)runWith.value().getConstructors()[0].newInstance(testClass);
                         } catch (InvocationTargetException e) {
                             throw e.getTargetException();
                         }
                     }
                 }
-                return filter(new BlockJUnit4ClassRunner(testClass));
-            }
-
-            //we need to filter at the level child runners because the suite is not doing the right thing here
-            private Runner filter(Runner r) {
-                for (Filter filter : filters) {
-                    try {
-                        ((Filterable)r).filter(filter);
-                    } catch (NoTestsRemainException e) {
-                        //ignore
-                    }
-                }
-                return r;
+                return new BlockJUnit4ClassRunner(testClass);
             }
         };
         return new Suite(runnerBuilder, targetClasses.toArray(new Class<?>[targetClasses.size()]));
@@ -137,8 +130,8 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
         protected Class<?> target;
         private Description templateDescription;
         private final Map<Description, Description> descriptionTranslations = new HashMap<Description, Description>();
+        private final Set<Description> enabledTests = new LinkedHashSet<Description>();
         private final Set<Description> disabledTests = new LinkedHashSet<Description>();
-        private final List<Filter> filters = new LinkedList<Filter>();
 
         final void init(Class<?> target, Description templateDescription) {
             this.target = target;
@@ -147,7 +140,7 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
 
         private Runner createExecutionRunner() throws InitializationError {
             List<? extends Class<?>> targetClasses = loadTargetClasses();
-            return createRunnerFor(targetClasses, filters);
+            return createRunnerFor(targetClasses);
         }
 
         final void addDescriptions(Description parent) {
@@ -166,27 +159,16 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
             }
 
             for (Description disabledTest : disabledTests) {
-                //if the disabled test does not match the filters, it should not end up in the report at all
-                if(matchesFilters(disabledTest)) {
-                    nested.fireTestStarted(disabledTest);
-                    nested.fireTestIgnored(disabledTest);
-                }
+                nested.fireTestStarted(disabledTest);
+                nested.fireTestIgnored(disabledTest);
             }
-        }
-
-        private boolean matchesFilters(Description test) {
-            if (filters.isEmpty()) {
-                return true;
-            }
-            for (Filter filter : filters) {
-                if (!filter.shouldRun(test)) {
-                    return false;
-                }
-            }
-            return true;
         }
 
         private void runEnabledTests(RunNotifier nested) {
+            if (enabledTests.isEmpty()) {
+                return;
+            }
+
             Runner runner;
             try {
                 runner = createExecutionRunner();
@@ -220,7 +202,12 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
         }
 
         public void filter(Filter filter) throws NoTestsRemainException {
-            filters.add(filter);
+            for (Map.Entry<Description, Description> entry : descriptionTranslations.entrySet()) {
+                if (!filter.shouldRun(entry.getKey())) {
+                    enabledTests.remove(entry.getValue());
+                    disabledTests.remove(entry.getValue());
+                }
+            }
         }
 
         protected void before() {
@@ -237,6 +224,8 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
                     parent.addChild(mappedChild);
                     if (!isTestEnabled(new TestDescriptionBackedTestDetails(source, child))) {
                         disabledTests.add(child);
+                    } else {
+                        enabledTests.add(child);
                     }
                 } else {
                     mappedChild = Description.createSuiteDescription(child.getClassName());
