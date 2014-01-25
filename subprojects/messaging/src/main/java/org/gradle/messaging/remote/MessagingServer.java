@@ -23,10 +23,10 @@ import org.gradle.api.Action;
  */
 public interface MessagingServer {
     /**
-     * Creates an endpoint which a single peer can connect to.
+     * Creates an endpoint that a single peer can connect to. Assigns an arbitrary address.
      *
      * @param action The action to execute when the connection has been established.
      * @return The local address of the endpoint, for the peer to connect to.
      */
-    ConnectionAcceptor accept(Action<ConnectEvent<ObjectConnection>> action);
+    ConnectionAcceptor accept(Action<ObjectConnectionCompletion> action);
 }

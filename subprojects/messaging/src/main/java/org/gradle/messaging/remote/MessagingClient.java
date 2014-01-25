@@ -20,9 +20,9 @@ package org.gradle.messaging.remote;
  */
 public interface MessagingClient {
     /**
-     * Returns the connection for this client.
+     * Creates a connection to the given address. Blocks until the connection has been established.
      *
      * @param address The address to connect to.
      */
-    ObjectConnection getConnection(Address address);
+    ObjectConnectionCompletion getConnection(Address address);
 }

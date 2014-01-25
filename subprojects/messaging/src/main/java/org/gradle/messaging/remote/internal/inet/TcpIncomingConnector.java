@@ -106,15 +106,7 @@ public class TcpIncomingConnector implements IncomingConnector {
                             continue;
                         }
                         LOGGER.debug("Accepted connection from {} to {}.", socket.socket().getRemoteSocketAddress(), socket.socket().getLocalSocketAddress());
-                        action.execute(new ConnectCompletion() {
-                            public <T> Connection<T> create(ClassLoader messageClassLoader) {
-                                return new SocketConnection<T>(socket, new DefaultMessageSerializer<T>(messageClassLoader));
-                            }
-
-                            public <T> Connection<T> create(MessageSerializer<T> serializer) {
-                                return new SocketConnection<T>(socket, serializer);
-                            }
-                        });
+                        action.execute(new SocketConnectCompletion(socket));
                     }
                 } catch (ClosedChannelException e) {
                     // Ignore
@@ -125,5 +117,7 @@ public class TcpIncomingConnector implements IncomingConnector {
                 CompositeStoppable.stoppable(serverSocket).stop();
             }
         }
+
     }
+
 }

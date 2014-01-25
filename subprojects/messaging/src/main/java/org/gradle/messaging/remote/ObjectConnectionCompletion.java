@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,10 @@
 
 package org.gradle.messaging.remote;
 
-public class ConnectEvent<T> {
-    private final T connection;
-
-    public ConnectEvent(T connection) {
-        this.connection = connection;
-    }
-
-    public T getConnection() {
-        return connection;
-    }
+/**
+ * A builder that allows an {@link ObjectConnection} to be created once the underlying transport with the peer has been
+ * established.
+ */
+public interface ObjectConnectionCompletion {
+    ObjectConnection create();
 }

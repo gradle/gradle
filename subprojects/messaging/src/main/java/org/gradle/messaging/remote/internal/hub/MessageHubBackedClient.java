@@ -21,6 +21,7 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.messaging.remote.Address;
 import org.gradle.messaging.remote.MessagingClient;
 import org.gradle.messaging.remote.ObjectConnection;
+import org.gradle.messaging.remote.ObjectConnectionCompletion;
 import org.gradle.messaging.remote.internal.Connection;
 import org.gradle.messaging.remote.internal.MessageSerializer;
 import org.gradle.messaging.remote.internal.OutgoingConnector;
@@ -40,13 +41,18 @@ public class MessageHubBackedClient implements MessagingClient {
         this.executorFactory = executorFactory;
     }
 
-    public ObjectConnection getConnection(Address address) {
-        Connection<InterHubMessage> connection = connector.connect(address, serializer);
+    public ObjectConnectionCompletion getConnection(Address address) {
+        Connection<InterHubMessage> connection = connector.connect(address).create(serializer);
         MessageHub hub = new MessageHub(connection.toString(), executorFactory, new Action<Throwable>() {
             public void execute(Throwable throwable) {
                 LOGGER.error("Unexpected exception thrown.", throwable);
             }
         });
-        return new MessageHubBackedObjectConnection(hub, connection);
+        final MessageHubBackedObjectConnection objectConnection = new MessageHubBackedObjectConnection(hub, connection);
+        return new ObjectConnectionCompletion() {
+            public ObjectConnection create() {
+                return objectConnection;
+            }
+        };
     }
 }

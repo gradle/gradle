@@ -17,7 +17,7 @@
 package org.gradle.messaging.remote.internal;
 
 /**
- * A builder that allows a {@code Connection} to be created once the underlying transport with the peer has been
+ * A builder that allows a {@link Connection} to be created once the underlying transport with the peer has been
  * established.
  */
 public interface ConnectCompletion {

@@ -18,10 +18,10 @@ package org.gradle.messaging.remote.internal.hub;
 
 import org.gradle.api.Action;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.messaging.remote.ConnectEvent;
 import org.gradle.messaging.remote.ConnectionAcceptor;
 import org.gradle.messaging.remote.MessagingServer;
 import org.gradle.messaging.remote.ObjectConnection;
+import org.gradle.messaging.remote.ObjectConnectionCompletion;
 import org.gradle.messaging.remote.internal.ConnectCompletion;
 import org.gradle.messaging.remote.internal.Connection;
 import org.gradle.messaging.remote.internal.IncomingConnector;
@@ -42,14 +42,14 @@ public class MessageHubBackedServer implements MessagingServer {
         this.executorFactory = executorFactory;
     }
 
-    public ConnectionAcceptor accept(Action<ConnectEvent<ObjectConnection>> action) {
+    public ConnectionAcceptor accept(Action<ObjectConnectionCompletion> action) {
         return connector.accept(new ConnectEventAction(action), false);
     }
 
     private class ConnectEventAction implements Action<ConnectCompletion> {
-        private final Action<ConnectEvent<ObjectConnection>> action;
+        private final Action<ObjectConnectionCompletion> action;
 
-        public ConnectEventAction(Action<ConnectEvent<ObjectConnection>> action) {
+        public ConnectEventAction(Action<ObjectConnectionCompletion> action) {
             this.action = action;
         }
 
@@ -60,8 +60,12 @@ public class MessageHubBackedServer implements MessagingServer {
                     LOGGER.error("Unexpected exception thrown.", throwable);
                 }
             });
-            MessageHubBackedObjectConnection objectConnection = new MessageHubBackedObjectConnection(hub, connection);
-            action.execute(new ConnectEvent<ObjectConnection>(objectConnection));
+            final MessageHubBackedObjectConnection objectConnection = new MessageHubBackedObjectConnection(hub, connection);
+            action.execute(new ObjectConnectionCompletion() {
+                public ObjectConnection create() {
+                    return objectConnection;
+                }
+            });
         }
     }
 }

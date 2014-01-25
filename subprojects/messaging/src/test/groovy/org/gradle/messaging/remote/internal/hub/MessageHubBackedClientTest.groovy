@@ -21,6 +21,7 @@ package org.gradle.messaging.remote.internal.hub
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.StoppableExecutor
 import org.gradle.messaging.remote.Address
+import org.gradle.messaging.remote.internal.ConnectCompletion
 import org.gradle.messaging.remote.internal.Connection
 import org.gradle.messaging.remote.internal.MessageSerializer
 import org.gradle.messaging.remote.internal.OutgoingConnector
@@ -35,14 +36,16 @@ class MessageHubBackedClientTest extends Specification {
 
     def "creates connection and cleans up on stop"() {
         Address address = Stub()
+        ConnectCompletion connectCompletion = Mock()
         Connection<InterHubMessage> backingConnection = Mock()
         StoppableExecutor executor = Mock()
 
         when:
-        def objectConnection = client.getConnection(address)
+        def objectConnection = client.getConnection(address).create()
 
         then:
-        1 * connector.connect(address, serializer) >> backingConnection
+        1 * connector.connect(address) >> connectCompletion
+        1 * connectCompletion.create(serializer) >> backingConnection
         1 * executorFactory.create("${backingConnection} workers") >> executor
 
         when:

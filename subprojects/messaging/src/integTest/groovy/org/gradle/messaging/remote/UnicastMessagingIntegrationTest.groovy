@@ -215,7 +215,7 @@ class UnicastMessagingIntegrationTest extends ConcurrentSpec {
             acceptor = server.accept({ event ->
                 lock.lock()
                 try {
-                    connection = event.connection
+                    connection = event.create()
                     condition.signalAll()
                 } finally {
                     lock.unlock()
@@ -257,7 +257,7 @@ class UnicastMessagingIntegrationTest extends ConcurrentSpec {
 
         Client(Address serverAddress) {
             def client = services.get(MessagingClient)
-            connection = client.getConnection(serverAddress)
+            connection = client.getConnection(serverAddress).create()
         }
 
         @Override
