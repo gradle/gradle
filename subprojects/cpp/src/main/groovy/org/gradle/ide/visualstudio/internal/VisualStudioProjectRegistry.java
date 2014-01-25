@@ -48,7 +48,7 @@ public class VisualStudioProjectRegistry extends DefaultNamedDomainObjectSet<Def
 
     private VisualStudioProjectConfiguration createVisualStudioProjectConfiguration(ProjectNativeBinary nativeBinary, DefaultVisualStudioProject project, String configuration, String platform) {
         return getInstantiator().newInstance(
-                VisualStudioProjectConfiguration.class, project, configuration, platform, nativeBinary, configurationType(nativeBinary));
+                VisualStudioProjectConfiguration.class, project, configuration, platform, nativeBinary);
     }
 
     private DefaultVisualStudioProject getOrCreateProject(ProjectNativeBinary nativeBinary, String projectName) {
@@ -63,12 +63,6 @@ public class VisualStudioProjectRegistry extends DefaultNamedDomainObjectSet<Def
 
     private String projectName(ProjectNativeBinary nativeBinary) {
         return projectMapper.mapToConfiguration(nativeBinary).project;
-    }
-
-    private static String configurationType(NativeBinary nativeBinary) {
-        return nativeBinary instanceof StaticLibraryBinary ? "StaticLibrary"
-                : nativeBinary instanceof SharedLibraryBinary ? "DynamicLibrary"
-                : "Application";
     }
 }
 

@@ -48,7 +48,7 @@ class VisualStudioProjectConfigurationTest extends Specification {
         getComponent() >> exe
         getTargetPlatform() >> platform
     }
-    def configuration = new VisualStudioProjectConfiguration(null, "configName", "platformName" , exeBinary, "Application")
+    def configuration = new VisualStudioProjectConfiguration(null, "configName", "platformName", exeBinary)
     def cppCompiler = Mock(PreprocessingTool)
     def cCompiler = Mock(PreprocessingTool)
 

@@ -28,14 +28,13 @@ class VisualStudioProjectConfiguration {
     private final String configurationName
     private final String platformName
     final ProjectNativeBinaryInternal binary
-    final String type
+    final String type = "Makefile"
 
-    VisualStudioProjectConfiguration(DefaultVisualStudioProject vsProject, String configurationName, String platformName, ProjectNativeBinary binary, String type) {
+    VisualStudioProjectConfiguration(DefaultVisualStudioProject vsProject, String configurationName, String platformName, ProjectNativeBinary binary) {
         this.vsProject = vsProject
         this.configurationName = configurationName
         this.platformName = platformName
-        this.binary = binary
-        this.type = type
+        this.binary = binary as ProjectNativeBinaryInternal
     }
 
     String getName() {

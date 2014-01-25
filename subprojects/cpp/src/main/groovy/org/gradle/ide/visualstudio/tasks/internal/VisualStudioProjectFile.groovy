@@ -78,20 +78,6 @@ class VisualStudioProjectFile extends XmlPersistableConfigurationObject {
                 NMakePreprocessorDefinitions(configuration.compilerDefines.join(";"))
                 NMakeIncludeSearchPath(includePath)
                 NMakeOutput(toPath(configuration.outputFile))
-                IntDir("\$(ProjectName)\\\$(Configuration)\\")
-            }
-            ItemDefinitionGroup(Label: "VSBuildConfiguration", Condition: configCondition) {
-                ClCompile {
-                    AdditionalIncludeDirectories(includePath)
-                    PreprocessorDefinitions(configuration.compilerDefines.join(";"))
-                }
-                ResourceCompile {
-                    AdditionalIncludeDirectories(includePath)
-                    PreprocessorDefinitions(configuration.resourceDefines.join(";"))
-                }
-                Link {
-                    GenerateDebugInformation("true")
-                }
             }
         }
     }

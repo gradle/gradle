@@ -94,26 +94,26 @@ EndGlobal
         fileResolver.resolve("visualStudio/project1.vcxproj") >> project1File
         def binary1 = binary("one")
         def project1 = new DefaultVisualStudioProject("project1", binary1.component, fileResolver, projectResolver, instantiator)
-        def configuration1 = new VisualStudioProjectConfiguration(project1, "debug", "Win32", binary1, "type")
+        def configuration1 = new VisualStudioProjectConfiguration(project1, "debug", "Win32", binary1)
         solutionFile.addProjectConfiguration(configuration1)
 
         final project2File = new File("project2")
         fileResolver.resolve("visualStudio/project2.vcxproj") >> project2File
         def binary2 = binary("two")
         def project2 = new DefaultVisualStudioProject("project2", binary2.component, fileResolver, projectResolver, instantiator)
-        def configuration2 = new VisualStudioProjectConfiguration(project2, "debug", "Win32", binary2, "type")
+        def configuration2 = new VisualStudioProjectConfiguration(project2, "debug", "Win32", binary2)
         solutionFile.addProjectConfiguration(configuration2)
 
         then:
         with (generatedSolution.projects['project1']) {
             file == project1File.absolutePath
             uuid == project1.uuid
-            configurations == [debug: 'debug']
+            configurations == ['debug|Win32': 'debug|Win32']
         }
         with (generatedSolution.projects['project2']) {
             file == project2File.absolutePath
             uuid == project2.uuid
-            configurations == [debug: 'debug']
+            configurations == ['debug|Win32': 'debug|Win32']
         }
     }
 

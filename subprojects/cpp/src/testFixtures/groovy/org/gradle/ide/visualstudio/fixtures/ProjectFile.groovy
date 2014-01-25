@@ -79,19 +79,11 @@ class ProjectFile {
         }
 
         String getMacros() {
-            buildConfiguration.ClCompile[0].PreprocessorDefinitions[0].text()
+            buildConfiguration.NMakePreprocessorDefinitions[0].text()
         }
 
         String getIncludePath() {
-            buildConfiguration.ClCompile[0].AdditionalIncludeDirectories[0].text()
-        }
-
-        String getResourceMacros() {
-            buildConfiguration.ResourceCompile[0].PreprocessorDefinitions[0].text()
-        }
-
-        String getResourceIncludePath() {
-            buildConfiguration.ResourceCompile[0].AdditionalIncludeDirectories[0].text()
+            buildConfiguration.NMakeIncludeSearchPath[0].text()
         }
 
         ProjectFile getProject() {
@@ -99,7 +91,7 @@ class ProjectFile {
         }
 
         private Node getBuildConfiguration() {
-            projectXml.ItemDefinitionGroup.find({ it.'@Label' == 'VSBuildConfiguration' && it.'@Condition' == condition}) as Node
+            projectXml.PropertyGroup.find({ it.'@Label' == 'NMakeConfiguration' && it.'@Condition' == condition}) as Node
         }
 
         private String getCondition() {

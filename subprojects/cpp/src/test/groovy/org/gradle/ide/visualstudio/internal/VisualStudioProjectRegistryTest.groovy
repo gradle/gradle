@@ -45,38 +45,7 @@ class VisualStudioProjectRegistryTest extends Specification {
 
         then:
         def vsConfig = registry.getProjectConfiguration(executableBinary)
-        vsConfig.type == "Application"
-        vsConfig.project.name == "vsProject"
-        vsConfig.configurationName == "vsConfig"
-        vsConfig.platformName == "vsPlatform"
-    }
-
-    def "creates visual studio project and project configuration for SharedLibraryBinary"() {
-        when:
-        visualStudioProjectMapper.mapToConfiguration(sharedLibraryBinary) >> new VisualStudioProjectMapper.ProjectConfigurationNames("vsProject", "vsConfig", "vsPlatform")
-        sharedLibraryBinary.source >> sources
-        registry.addProjectConfiguration(sharedLibraryBinary)
-
-        then:
-        def vsConfig = registry.getProjectConfiguration(sharedLibraryBinary)
-        vsConfig.type == "DynamicLibrary"
-        vsConfig.project.name == "vsProject"
-        vsConfig.configurationName == "vsConfig"
-        vsConfig.platformName == "vsPlatform"
-    }
-
-    def "creates visual studio project and project configuration for StaticLibraryBinary"() {
-        when:
-        visualStudioProjectMapper.mapToConfiguration(staticLibraryBinary) >> new VisualStudioProjectMapper.ProjectConfigurationNames("vsProject", "vsConfig", "vsPlatform")
-        staticLibraryBinary.source >> sources
-        registry.addProjectConfiguration(staticLibraryBinary)
-
-        and:
-        registry.addProjectConfiguration(staticLibraryBinary)
-
-        then:
-        def vsConfig = registry.getProjectConfiguration(staticLibraryBinary)
-        vsConfig.type == "StaticLibrary"
+        vsConfig.type == "Makefile"
         vsConfig.project.name == "vsProject"
         vsConfig.configurationName == "vsConfig"
         vsConfig.platformName == "vsPlatform"
