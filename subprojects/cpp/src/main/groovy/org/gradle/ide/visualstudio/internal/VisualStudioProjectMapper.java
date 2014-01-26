@@ -38,9 +38,9 @@ public class VisualStudioProjectMapper {
     public ProjectConfigurationNames mapToConfiguration(ProjectNativeBinary nativeBinary) {
         String projectName = baseName(nativeBinary) + projectSuffix(nativeBinary);
         String configurationName = makeName(
-                getFlavorComponent(nativeBinary),
+                getPlatformComponent(nativeBinary),
                 nativeBinary.getBuildType().getName(),
-                getPlatformComponent(nativeBinary)
+                getFlavorComponent(nativeBinary)
         );
         return new ProjectConfigurationNames(projectName, configurationName, "Win32");
     }

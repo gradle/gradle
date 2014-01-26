@@ -90,7 +90,7 @@ class VisualStudioProjectMapperTest extends Specification {
         executable.choosePlatforms(platforms) >> [platformOne]
 
         then:
-        checkNames executableBinary, "exeNameExe", 'flavorOneBuildTypeOne', 'Win32'
+        checkNames executableBinary, "exeNameExe", 'buildTypeOneFlavorOne', 'Win32'
     }
 
     def "includes platform name in configuration where component has multiple platforms"() {
@@ -99,7 +99,7 @@ class VisualStudioProjectMapperTest extends Specification {
         executable.choosePlatforms(platforms) >> [platformOne, Mock(Platform)]
 
         then:
-        checkNames executableBinary, "exeNameExe", 'buildTypeOnePlatformOne', 'Win32'
+        checkNames executableBinary, "exeNameExe", 'platformOneBuildTypeOne', 'Win32'
     }
 
     def "includes flavor and platform name in configuration where component has multiple of both"() {
@@ -108,7 +108,7 @@ class VisualStudioProjectMapperTest extends Specification {
         executable.choosePlatforms(platforms) >> [platformOne, Mock(Platform)]
 
         then:
-        checkNames executableBinary, "exeNameExe", 'flavorOneBuildTypeOnePlatformOne', 'Win32'
+        checkNames executableBinary, "exeNameExe", 'platformOneBuildTypeOneFlavorOne', 'Win32'
     }
 
     private def createExecutableBinary(String binaryName, def buildType, def platform) {
