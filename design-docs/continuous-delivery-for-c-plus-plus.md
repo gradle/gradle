@@ -1866,3 +1866,6 @@ TBD
 * Publish to cocoapods repository.
 * Consume dependencies from NuGet repository.
 * Publish to NuGet repository.
+* JNI plugin generates native header, and sets up the JNI stuff in $java.home as a platform library.
+* Model minimum OS version.
+    * For OS X can use -mmacosx-version-min option.

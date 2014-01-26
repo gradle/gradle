@@ -70,6 +70,7 @@ There are a number of other places where the plugins use `container.all { }` to 
 These should be refactored to use model rules instead. These will probably require some DSL and rules support.
 
 - Remove all usages of `ModelRegistry` outside the rules infrastructure.
+- Document the model rule DSL.
 
 ### Open issues
 
@@ -131,6 +132,10 @@ Similarly, this work should consider how the existing task DSL can be used to ac
 
 TBD
 
+## Internal properties and methods are not visible from the model DSL
+
+The model DSL should expose only public methods and properties defined by the public API. All other methods and properties should be hidden.
+
 ## Plugin author uses model rules to define tasks after plugin model has been configured
 
 A common problem when authoring a plugin is how to handle configuration that happens after the plugin is applied.
@@ -139,7 +144,7 @@ This story exposes model rules as a public (but very much experimental) feature 
 story is mostly about exposing and documenting the features that already exist, possibly along with some sugar to help solve this very common use case.
 
 - Provide a mechanism for the plugin to register a model object and some logic which later receives the immutable model object and defines some tasks from this object.
-- Add documentation and samples.
+- Add documentation for the model rules API and samples.
 - Add some mechanism to expose the model object also as an extension, to provide the plugin with a migration path to the new DSL.
     - Generate a warning when the build script author uses the extension DSL to configure the model.
     - Generate a warning when the extension DSL is used after the model object has been closed.
