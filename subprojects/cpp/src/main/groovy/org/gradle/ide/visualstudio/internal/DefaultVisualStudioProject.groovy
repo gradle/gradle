@@ -25,11 +25,9 @@ import org.gradle.language.HeaderExportingSourceSet
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.internal.AbstractBuildableModelElement
 import org.gradle.language.rc.WindowsResourceSet
-import org.gradle.nativebinaries.LibraryBinary
 import org.gradle.nativebinaries.NativeBinary
 import org.gradle.nativebinaries.ProjectNativeBinary
 import org.gradle.nativebinaries.ProjectNativeComponent
-import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
 import org.gradle.nativebinaries.internal.ProjectNativeComponentInternal
 import org.gradle.util.CollectionUtils
 /**
@@ -109,19 +107,6 @@ class DefaultVisualStudioProject extends AbstractBuildableModelElement implement
         return allHeaders as List
     }
 
-    // TODO:DAZ This isn't right
-    Set<DefaultVisualStudioProject> getProjectReferences() {
-        def projects = [] as Set
-        component.binaries.each { ProjectNativeBinaryInternal binary ->
-            for (LibraryBinary library : binary.dependentBinaries) {
-                if (library instanceof ProjectNativeBinary) {
-                    projects << getProjectResolver().lookupProjectConfiguration(library).getProject()
-                }
-            }
-        }
-        return projects
-    }
-
     List<VisualStudioProjectConfiguration> getConfigurations() {
         return CollectionUtils.toList(configurations.values())
     }
@@ -133,12 +118,6 @@ class DefaultVisualStudioProject extends AbstractBuildableModelElement implement
 
     VisualStudioProjectConfiguration getConfiguration(ProjectNativeBinary nativeBinary) {
         return configurations[nativeBinary]
-    }
-
-    VisualStudioProjectConfiguration getConfiguration(String name) {
-        return configurations.values().find {
-            it.name == name
-        }
     }
 
     public static class DefaultConfigFile implements XmlConfigFile {

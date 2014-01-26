@@ -15,10 +15,8 @@
  */
 
 package org.gradle.ide.visualstudio.tasks.internal
-
 import org.gradle.api.Transformer
 import org.gradle.api.internal.xml.XmlTransformer
-import org.gradle.ide.visualstudio.internal.DefaultVisualStudioProject
 import org.gradle.ide.visualstudio.internal.VisualStudioProjectConfiguration
 import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject
 
@@ -81,12 +79,6 @@ class VisualStudioProjectFile extends XmlPersistableConfigurationObject {
                 NMakeOutput(toPath(configuration.outputFile))
             }
         }
-    }
-
-    def addProjectReference(DefaultVisualStudioProject referencedProject) {
-        Node references = xml.ItemGroup.find({ it.'@Label' == 'References' }) as Node
-        references.appendNode("ProjectReference", [Include: referencedProject.projectFile.location.absolutePath])
-                  .appendNode("Project", referencedProject.uuid)
     }
 
     private Node getConfigurations() {

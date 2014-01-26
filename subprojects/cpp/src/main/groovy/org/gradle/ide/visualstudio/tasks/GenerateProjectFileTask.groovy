@@ -92,10 +92,6 @@ class GenerateProjectFileTask extends XmlGeneratorTask<VisualStudioProjectFile> 
             projectFile.addConfiguration(it)
         }
 
-        vsProject.projectReferences.each { DefaultVisualStudioProject projectReference ->
-            projectFile.addProjectReference(projectReference)
-        }
-
         vsProject.projectFile.xmlActions.each {
             xmlTransformer.addAction(it)
         }

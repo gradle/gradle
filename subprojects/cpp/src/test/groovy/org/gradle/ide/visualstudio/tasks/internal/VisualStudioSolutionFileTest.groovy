@@ -66,6 +66,7 @@ EndGlobal
         def project = createProject("project1")
         def configuration1 = createProjectConfiguration(project, "projectConfig")
         solutionFile.addSolutionConfiguration("solutionConfig", [configuration1])
+        solutionFile.mainProject = project
 
         then:
         generatedSolution.content ==
@@ -93,6 +94,7 @@ EndGlobal
         when:
         def project1 = createProject("project1")
         def project2 = createProject("project2")
+        solutionFile.mainProject = project1
         solutionFile.addSolutionConfiguration("solutionConfig1", [
                 createProjectConfiguration(project1, "config1"),
                 createProjectConfiguration(project1, "config2"),
@@ -122,9 +124,7 @@ Global
 		${project1.uuid}.solutionConfig1.ActiveCfg = config2|Win32
 		${project1.uuid}.solutionConfig1.Build.0 = config2|Win32
 		${project2.uuid}.solutionConfig1.ActiveCfg = configA|Win32
-		${project2.uuid}.solutionConfig1.Build.0 = configA|Win32
 		${project2.uuid}.solutionConfig2.ActiveCfg = configA|Win32
-		${project2.uuid}.solutionConfig2.Build.0 = configA|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

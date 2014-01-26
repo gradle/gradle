@@ -58,6 +58,7 @@ class GenerateSolutionFileTask extends GeneratorTask<VisualStudioSolutionFile> {
 
         public void configure(VisualStudioSolutionFile solutionFile) {
             DefaultVisualStudioSolution solution = getSolution() as DefaultVisualStudioSolution
+            solutionFile.setMainProject(solution.rootProject)
             solution.solutionConfigurations.each { solutionConfig ->
                 solutionFile.addSolutionConfiguration(solutionConfig.name, solution.getProjectConfigurations(solutionConfig))
             }

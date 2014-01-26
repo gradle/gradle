@@ -27,10 +27,15 @@ class VisualStudioSolutionFile extends AbstractPersistableConfigurationObject {
     List<Action<? super TextProvider>> actions = new ArrayList<Action<? super TextProvider>>();
     private final Map<String, List<VisualStudioProjectConfiguration>> solutionConfigurations = [:]
     private final projects = [:]
+    private mainProject
     private baseText
 
     protected String getDefaultResourceName() {
         'default.sln'
+    }
+
+    void setMainProject(DefaultVisualStudioProject mainProject) {
+        this.mainProject = mainProject
     }
 
     void addSolutionConfiguration(String name, List<VisualStudioProjectConfiguration> projectConfigurations) {
@@ -75,8 +80,11 @@ Global
         solutionConfigurations.each { solutionConfiguration, projectConfigurations ->
             projectConfigurations.each { VisualStudioProjectConfiguration projectConfiguration ->
                 builder << """
-		${projectConfiguration.project.getUuid()}.${solutionConfiguration}.ActiveCfg = ${projectConfiguration.name}
+		${projectConfiguration.project.getUuid()}.${solutionConfiguration}.ActiveCfg = ${projectConfiguration.name}"""
+                if (mainProject == projectConfiguration.project) {
+                    builder << """
 		${projectConfiguration.project.getUuid()}.${solutionConfiguration}.Build.0 = ${projectConfiguration.name}"""
+                }
             }
         }
 
