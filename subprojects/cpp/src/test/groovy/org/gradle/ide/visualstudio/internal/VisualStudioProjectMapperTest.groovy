@@ -111,23 +111,6 @@ class VisualStudioProjectMapperTest extends Specification {
         checkNames executableBinary, "exeNameExe", 'flavorOneBuildTypeOnePlatformOne', 'Win32'
     }
 
-    def "maps same project name for native component that has multiple platforms with different architectures"() {
-        when:
-        def platformTwo = Mock(Platform)
-        platformTwo.name >> "platformTwo"
-        platformTwo.architecture >> arch("amd64")
-        def platformTwoBinary = createExecutableBinary("platformTwoBinary", buildTypeOne, platformTwo)
-
-        and:
-        executable.chooseFlavors(flavors) >> [flavorOne]
-        executable.choosePlatforms(platforms) >> [platformOne, platformTwo]
-
-        then:
-        platformOne.architecture != platformTwo.architecture
-        checkNames executableBinary, "exeNameExe", "buildTypeOnePlatformOne", "Win32"
-        checkNames platformTwoBinary, "exeNameExe", "buildTypeOnePlatformTwo", "x64"
-    }
-
     private def createExecutableBinary(String binaryName, def buildType, def platform) {
         def binary = Mock(ExecutableBinaryInternal)
         binary.name >> binaryName

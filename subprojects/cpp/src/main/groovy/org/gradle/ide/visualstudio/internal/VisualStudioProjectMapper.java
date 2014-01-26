@@ -22,9 +22,7 @@ import org.gradle.nativebinaries.ProjectNativeBinary;
 import org.gradle.nativebinaries.SharedLibraryBinary;
 import org.gradle.nativebinaries.StaticLibraryBinary;
 import org.gradle.nativebinaries.internal.ProjectNativeComponentInternal;
-import org.gradle.nativebinaries.platform.Platform;
 import org.gradle.nativebinaries.platform.PlatformContainer;
-import org.gradle.nativebinaries.platform.internal.ArchitectureInternal;
 
 import java.util.Arrays;
 
@@ -44,8 +42,7 @@ public class VisualStudioProjectMapper {
                 nativeBinary.getBuildType().getName(),
                 getPlatformComponent(nativeBinary)
         );
-        String platformName = getArchitectureName(nativeBinary.getTargetPlatform());
-        return new ProjectConfigurationNames(projectName, configurationName, platformName);
+        return new ProjectConfigurationNames(projectName, configurationName, "Win32");
     }
 
     private String baseName(ProjectNativeBinary nativeBinary) {
@@ -90,11 +87,6 @@ public class VisualStudioProjectMapper {
             return nativeBinary.getTargetPlatform().getName();
         }
         return null;
-    }
-
-    private String getArchitectureName(Platform targetPlatform) {
-        ArchitectureInternal arch = (ArchitectureInternal) targetPlatform.getArchitecture();
-        return arch.isIa64() ? "Itanium" : arch.isAmd64() ? "x64" : "Win32";
     }
 
     static class ProjectConfigurationNames {
