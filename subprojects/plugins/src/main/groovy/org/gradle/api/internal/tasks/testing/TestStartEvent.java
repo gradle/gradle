@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks.testing;
 
+import org.gradle.api.Nullable;
+
 import java.io.Serializable;
 
 public class TestStartEvent implements Serializable {
@@ -35,6 +37,7 @@ public class TestStartEvent implements Serializable {
         return startTime;
     }
 
+    @Nullable
     public Object getParentId() {
         return parentId;
     }

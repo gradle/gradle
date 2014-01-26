@@ -80,6 +80,9 @@ public class TestWorkerTest extends MultithreadedTestCase {
                 }
             }
 
+            one(connection).useParameterSerializer(withParam(instanceOf(TestEventSerializer)))
+            one(connection).connect()
+
             ignoring(resultProcessor)
 
             one(processor).startProcessing(withParam(notNullValue()))

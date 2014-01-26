@@ -26,8 +26,8 @@ public class WorkerTestClassProcessor extends SuiteTestClassProcessor {
         super(new WorkerTestSuiteDescriptor(workerSuiteId, workerDisplayName), processor, timeProvider);
     }
 
-    private static class WorkerTestSuiteDescriptor extends DefaultTestSuiteDescriptor {
-        private WorkerTestSuiteDescriptor(Object id, String name) {
+    public static class WorkerTestSuiteDescriptor extends DefaultTestSuiteDescriptor {
+        public WorkerTestSuiteDescriptor(Object id, String name) {
             super(id, name);
         }
 
