@@ -49,13 +49,13 @@ class VisualStudioFileCustomizationIntegrationTest extends AbstractInstalledTool
 """
     }
 
-    def "can specific location of generated files"() {
+    def "can specify location of generated files"() {
         when:
         buildFile << '''
     model {
         visualStudio {
             projects.all { project ->
-                projectFile.location = "other/${project.name}.vcxproj"
+                projectFile.location = "very/deeply/nested/${project.name}.vcxproj"
                 filtersFile.location = "other/filters.vcxproj.filters"
             }
             solutions.all {
@@ -71,9 +71,16 @@ class VisualStudioFileCustomizationIntegrationTest extends AbstractInstalledTool
         executedAndNotSkipped ":mainExeVisualStudio"
 
         and:
-        final projectFile = projectFile("other/mainExe.vcxproj")
+        final projectFile = projectFile("very/deeply/nested/mainExe.vcxproj")
+        projectFile.sourceFiles == file("src/main/cpp").listFiles().collect { file ->
+            "../../../src/main/cpp/${file.name}"
+        }
+        projectFile.projectConfigurations.values().each {
+            assert it.buildCommand == "gradle -p \"../../..\" :${it.name}MainExecutable"
+        }
         filtersFile("other/filters.vcxproj.filters")
 
+        and:
         final mainSolution = solutionFile("vs/mainExe.solution")
         mainSolution.assertHasProjects("mainExe")
         mainSolution.assertReferencesProject(projectFile, ['debug', 'release'])
@@ -156,7 +163,6 @@ EndGlobal
 
     def "can configure gradle command line"() {
         when:
-        def gradlew = file("gradlew.bat") << "dummy wrapper"
         buildFile << """
     executables {
         main {}

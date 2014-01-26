@@ -27,8 +27,6 @@ import org.gradle.ide.visualstudio.tasks.GenerateSolutionFileTask;
 import org.gradle.model.ModelRule;
 import org.gradle.nativebinaries.ProjectNativeComponent;
 
-import java.io.File;
-
 public class CreateVisualStudioTasks extends ModelRule {
 
     @SuppressWarnings("UnusedDeclaration")
@@ -65,8 +63,8 @@ public class CreateVisualStudioTasks extends ModelRule {
 
     private Task createProjectsFileTask(TaskContainer tasks, VisualStudioProject vsProject) {
         GenerateProjectFileTask task = tasks.create(vsProject.getName() + "VisualStudioProject", GenerateProjectFileTask.class);
-        task.initGradleCommand();
         task.setVisualStudioProject(vsProject);
+        task.initGradleCommand();
         return task;
     }
 

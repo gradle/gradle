@@ -194,18 +194,16 @@ There were test failures:
         and:
         final projectFile = new ProjectFile(file("visualStudio/helloTestExe.vcxproj"))
         projectFile.sourceFiles as Set == [
-                file("src/helloTest/cunit/test.c"),
-                file("build/src/cunitLauncher/gradle_cunit_main.c"),
-                file("build/src/cunitLauncher/gradle_cunit_register.h"),
-                file("src/hello/c/hello.c"),
-                file("src/hello/c/sum.c")
-        ]*.absolutePath as Set
-        projectFile.headerFiles == [
-                file("src/hello/headers/hello.h")
-        ]*.absolutePath
+                "../src/helloTest/cunit/test.c",
+                "../build/src/cunitLauncher/gradle_cunit_main.c",
+                "../build/src/cunitLauncher/gradle_cunit_register.h",
+                "../src/hello/c/hello.c",
+                "../src/hello/c/sum.c"
+        ] as Set
+        projectFile.headerFiles == ["../src/hello/headers/hello.h"]
         projectFile.projectConfigurations.keySet() == ['debug'] as Set
         with (projectFile.projectConfigurations['debug']) {
-            includePath == [file("src/hello/headers"), file("libs/cunit/2.1-2/include")]*.absolutePath.join(';')
+            includePath == "../src/hello/headers;../libs/cunit/2.1-2/include"
         }
     }
 

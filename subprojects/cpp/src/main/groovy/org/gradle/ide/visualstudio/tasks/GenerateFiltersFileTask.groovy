@@ -17,7 +17,7 @@ package org.gradle.ide.visualstudio.tasks
 import org.gradle.api.Incubating
 import org.gradle.ide.visualstudio.VisualStudioProject
 import org.gradle.ide.visualstudio.internal.DefaultVisualStudioProject
-import org.gradle.ide.visualstudio.tasks.internal.AbsoluteFileNameTransformer
+import org.gradle.ide.visualstudio.tasks.internal.RelativeFileNameTransformer
 import org.gradle.ide.visualstudio.tasks.internal.VisualStudioFiltersFile
 import org.gradle.plugins.ide.api.XmlGeneratorTask
 
@@ -60,6 +60,6 @@ class GenerateFiltersFileTask extends XmlGeneratorTask<VisualStudioFiltersFile> 
 
     @Override
     protected VisualStudioFiltersFile create() {
-        return new VisualStudioFiltersFile(xmlTransformer, new AbsoluteFileNameTransformer())
+        return new VisualStudioFiltersFile(xmlTransformer, new RelativeFileNameTransformer(project.rootDir, visualStudioProject.filtersFile.location))
     }
 }

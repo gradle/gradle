@@ -76,7 +76,7 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
         exeProject.projectConfigurations.keySet() == projectConfigurations
         exeProject.projectConfigurations.values().each {
             assert it.includePath == filePath("exe/src/main/headers", "lib/src/hello/headers")
-            assert it.buildCommand == "gradle :exe:${it.name}MainExecutable"
+            assert it.buildCommand == "gradle -p \"../..\" :exe:${it.name}MainExecutable"
         }
 
         and:
@@ -86,7 +86,7 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
         libProject.projectConfigurations.keySet() == projectConfigurations
         libProject.projectConfigurations.values().each {
             assert it.includePath == filePath("lib/src/hello/headers")
-            assert it.buildCommand == "gradle :lib:${it.name}HelloStaticLibrary"
+            assert it.buildCommand == "gradle -p \"../..\" :lib:${it.name}HelloStaticLibrary"
         }
 
         and:
@@ -213,7 +213,7 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
         then:
         final exeProject = projectFile("exe/visualStudio/mainExe.vcxproj")
         exeProject.projectConfigurations.values().each {
-            assert it.buildCommand == "${gradlew.absolutePath} :exe:${it.name}MainExecutable"
+            assert it.buildCommand == "../../gradlew.bat -p \"../..\" :exe:${it.name}MainExecutable"
         }
     }
 
@@ -226,12 +226,14 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
     }
 
     private List<String> allFiles(String path) {
-        return file(path).listFiles()*.absolutePath as List
+        return file(path).listFiles().collect { file ->
+            "../../${path}/${file.name}"
+        }
     }
 
     private String filePath(String... paths) {
         return paths.collect {
-            file(it).absolutePath
+            "../../${it}"
         } .join(';')
     }
 }

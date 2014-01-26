@@ -77,7 +77,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         projectFile.projectConfigurations.values().each {
             assert it.macros == "TEST;foo=bar"
             assert it.includePath == filePath("src/main/headers")
-            assert it.buildCommand == "gradle :${it.name}MainExecutable"
+            assert it.buildCommand == "gradle -p \"..\" :${it.name}MainExecutable"
         }
 
         and:
@@ -258,7 +258,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         greetingsLibProject.sourceFiles == allFiles("src/greetings/cpp")
         greetingsLibProject.headerFiles == allFiles("src/greetings/headers")
         greetingsLibProject.projectConfigurations.keySet() == projectConfigurations
-        greetingsLibProject.projectConfigurations['win32Debug'].includePath == file("src/greetings/headers").absolutePath
+        greetingsLibProject.projectConfigurations['win32Debug'].includePath == filePath("src/greetings/headers")
 
         and:
         final mainSolution = solutionFile("visualStudio/mainExe.sln")
@@ -759,14 +759,16 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
     private List<String> allFiles(String... paths) {
         List allFiles = []
         paths.each { path ->
-            allFiles.addAll file(path).listFiles()*.absolutePath as List
+            file(path).listFiles().each { file ->
+                allFiles.add "../${path}/${file.name}"
+            }
         }
         return allFiles
     }
 
     private String filePath(String... paths) {
         return paths.collect {
-            file(it).absolutePath
+            "../${it}"
         } .join(';')
     }
 }

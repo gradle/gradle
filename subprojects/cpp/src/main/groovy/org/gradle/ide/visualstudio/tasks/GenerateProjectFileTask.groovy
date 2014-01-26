@@ -19,13 +19,12 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Optional
 import org.gradle.ide.visualstudio.VisualStudioProject
 import org.gradle.ide.visualstudio.internal.DefaultVisualStudioProject
-import org.gradle.ide.visualstudio.tasks.internal.AbsoluteFileNameTransformer
+import org.gradle.ide.visualstudio.tasks.internal.RelativeFileNameTransformer
 import org.gradle.ide.visualstudio.tasks.internal.VisualStudioProjectFile
 import org.gradle.plugins.ide.api.XmlGeneratorTask
 
 @Incubating
 class GenerateProjectFileTask extends XmlGeneratorTask<VisualStudioProjectFile> {
-    final AbsoluteFileNameTransformer transformer = new AbsoluteFileNameTransformer()
     private DefaultVisualStudioProject visualStudioProject
 
     @Input
@@ -37,11 +36,17 @@ class GenerateProjectFileTask extends XmlGeneratorTask<VisualStudioProjectFile> 
     void initGradleCommand() {
         final File gradlew = project.getRootProject().file("gradlew.bat");
         conventionMapping.map("gradleExe") {
+            def rootDir = transformer.transform(project.rootDir)
+            def args = " -p \"${rootDir}\""
             if (gradlew.isFile()) {
-                return transformer.transform(gradlew)
+                return transformer.transform(gradlew) + args
             }
-            return "gradle"
+            return "gradle" + args
         }
+    }
+
+    def getTransformer() {
+        return new RelativeFileNameTransformer(project.rootDir, visualStudioProject.projectFile.location)
     }
 
     void setVisualStudioProject(VisualStudioProject vsProject) {
