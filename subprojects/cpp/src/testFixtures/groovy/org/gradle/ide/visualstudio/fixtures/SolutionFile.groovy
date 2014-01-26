@@ -38,7 +38,7 @@ class SolutionFile {
         return true
     }
 
-    def assertReferencesProject(ProjectFile expectedProject, List<String> configurations) {
+    def assertReferencesProject(ProjectFile expectedProject, Collection<String> configurations) {
         assertReferencesProject(expectedProject, configurations.collectEntries {[(it):it]})
     }
 
@@ -72,7 +72,7 @@ class SolutionFile {
         Map<String, String> getConfigurations() {
             def configurations = [:]
             content.eachMatch(~/\{${rawUuid}\}\.(\w+)\|\w+\.ActiveCfg = (\w+)\|\w+/, {
-                configurations[it[2]] = it[1]
+                configurations[it[1]] = it[2]
             })
             return configurations
         }

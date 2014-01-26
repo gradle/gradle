@@ -34,7 +34,7 @@ public class DefaultVisualStudioExtension implements VisualStudioExtension {
         VisualStudioProjectResolver projectResolver = new VisualStudioProjectResolver(projectLocator);
         VisualStudioProjectMapper projectMapper = new VisualStudioProjectMapper(flavors, platforms);
         projectRegistry = new VisualStudioProjectRegistry(fileResolver, projectResolver, projectMapper, instantiator);
-        solutionRegistry = new VisualStudioSolutionRegistry(fileResolver, projectResolver, projectRegistry, instantiator);
+        solutionRegistry = new VisualStudioSolutionRegistry(fileResolver, projectResolver, instantiator);
     }
 
     public NamedDomainObjectSet<? extends VisualStudioProject> getProjects() {

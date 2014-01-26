@@ -37,23 +37,94 @@ class VisualStudioSolutionFileTest extends Specification {
     def projectResolver = Mock(VisualStudioProjectResolver)
     def instantiator = new DirectInstantiator()
     def solutionFile = new VisualStudioSolutionFile()
+    def binary1 = binary("one")
 
     def "setup"() {
         solutionFile.loadDefaults()
     }
 
     def "empty solution file"() {
+        expect:
+        generatedSolution.content ==
+"""Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual C++ Express 2010
+
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
+"""
+    }
+
+    def "create for single project configuration"() {
         when:
-        solutionFile.solutionConfiguration = "CONFIG"
+        def project = createProject("project1")
+        def configuration1 = createProjectConfiguration(project, "projectConfig")
+        solutionFile.addSolutionConfiguration("solutionConfig", [configuration1])
+
         then:
         generatedSolution.content ==
 """Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual C++ Express 2010
+
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "project1", "${project.projectFile.location.absolutePath}", "${project.uuid}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		CONFIG=CONFIG
+		solutionConfig=solutionConfig
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		${project.uuid}.solutionConfig.ActiveCfg = projectConfig|Win32
+		${project.uuid}.solutionConfig.Build.0 = projectConfig|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
+"""
+    }
+
+    def "create for multiple configurations"() {
+        when:
+        def project1 = createProject("project1")
+        def project2 = createProject("project2")
+        solutionFile.addSolutionConfiguration("solutionConfig1", [
+                createProjectConfiguration(project1, "config1"),
+                createProjectConfiguration(project1, "config2"),
+                createProjectConfiguration(project2, "configA")
+        ])
+        solutionFile.addSolutionConfiguration("solutionConfig2", [
+                createProjectConfiguration(project2, "configA")
+        ])
+
+        then:
+        generatedSolution.content ==
+"""Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual C++ Express 2010
+
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "project1", "${project1.projectFile.location.absolutePath}", "${project1.uuid}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "project2", "${project2.projectFile.location.absolutePath}", "${project2.uuid}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		solutionConfig1=solutionConfig1
+		solutionConfig2=solutionConfig2
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		${project1.uuid}.solutionConfig1.ActiveCfg = config1|Win32
+		${project1.uuid}.solutionConfig1.Build.0 = config1|Win32
+		${project1.uuid}.solutionConfig1.ActiveCfg = config2|Win32
+		${project1.uuid}.solutionConfig1.Build.0 = config2|Win32
+		${project2.uuid}.solutionConfig1.ActiveCfg = configA|Win32
+		${project2.uuid}.solutionConfig1.Build.0 = configA|Win32
+		${project2.uuid}.solutionConfig2.ActiveCfg = configA|Win32
+		${project2.uuid}.solutionConfig2.Build.0 = configA|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -88,33 +159,14 @@ EndGlobal
         generatedSolutionFile.text == "tset"
     }
 
-    def "includes project references"() {
-        when:
-        final project1File = new File("project1")
-        fileResolver.resolve("visualStudio/project1.vcxproj") >> project1File
-        def binary1 = binary("one")
-        def project1 = new DefaultVisualStudioProject("project1", binary1.component, fileResolver, projectResolver, instantiator)
-        def configuration1 = new VisualStudioProjectConfiguration(project1, "debug", "Win32", binary1)
-        solutionFile.addProjectConfiguration(configuration1)
+    private VisualStudioProjectConfiguration createProjectConfiguration(DefaultVisualStudioProject project1, String configName) {
+        return new VisualStudioProjectConfiguration(project1, configName, "Win32", binary1)
+    }
 
-        final project2File = new File("project2")
-        fileResolver.resolve("visualStudio/project2.vcxproj") >> project2File
-        def binary2 = binary("two")
-        def project2 = new DefaultVisualStudioProject("project2", binary2.component, fileResolver, projectResolver, instantiator)
-        def configuration2 = new VisualStudioProjectConfiguration(project2, "debug", "Win32", binary2)
-        solutionFile.addProjectConfiguration(configuration2)
-
-        then:
-        with (generatedSolution.projects['project1']) {
-            file == project1File.absolutePath
-            uuid == project1.uuid
-            configurations == [debug: 'debug']
-        }
-        with (generatedSolution.projects['project2']) {
-            file == project2File.absolutePath
-            uuid == project2.uuid
-            configurations == [debug: 'debug']
-        }
+    private DefaultVisualStudioProject createProject(String projectName) {
+        final project1File = new File(projectName)
+        fileResolver.resolve("visualStudio/${projectName}.vcxproj") >> project1File
+        return new DefaultVisualStudioProject(projectName, binary1.component, fileResolver, projectResolver, instantiator)
     }
 
     private ProjectNativeBinary binary(def name) {

@@ -24,22 +24,19 @@ import org.gradle.ide.visualstudio.VisualStudioSolution
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.language.base.internal.AbstractBuildableModelElement
 import org.gradle.nativebinaries.LibraryBinary
-import org.gradle.nativebinaries.ProjectNativeBinary
 import org.gradle.nativebinaries.ProjectNativeComponent
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
 
 class DefaultVisualStudioSolution extends AbstractBuildableModelElement implements VisualStudioSolution {
+    final DefaultVisualStudioProject rootProject
     private final String name
-    private final String configurationName
     private final SolutionFile solutionFile
-    private final ProjectNativeBinaryInternal rootBinary
     private final VisualStudioProjectResolver vsProjectResolver
 
-    DefaultVisualStudioSolution(VisualStudioProjectConfiguration rootProjectConfiguration, ProjectNativeBinary rootBinary, FileResolver fileResolver,
+    DefaultVisualStudioSolution(DefaultVisualStudioProject rootProject, FileResolver fileResolver,
                                 VisualStudioProjectResolver vsProjectResolver, Instantiator instantiator) {
-        this.name = rootProjectConfiguration.project.name
-        this.configurationName = rootProjectConfiguration.name
-        this.rootBinary = rootBinary as ProjectNativeBinaryInternal
+        this.rootProject = rootProject
+        this.name = rootProject.name
         this.vsProjectResolver = vsProjectResolver
         this.solutionFile = instantiator.newInstance(SolutionFile, fileResolver, "visualStudio/${name}.sln" as String)
     }
@@ -48,35 +45,42 @@ class DefaultVisualStudioSolution extends AbstractBuildableModelElement implemen
         return name
     }
 
-    String getConfigurationName() {
-        return configurationName
-    }
-
     SolutionFile getSolutionFile() {
         return solutionFile
     }
 
     ProjectNativeComponent getComponent() {
-        return rootBinary.component
+        return rootProject.component
     }
 
     Set<VisualStudioProject> getProjects() {
-        return getProjectConfigurations().collect {it.project} as Set
+        def projects = [] as Set
+        solutionConfigurations.each { solutionConfig ->
+            getProjectConfigurations(solutionConfig).each { projectConfig ->
+                projects << projectConfig.project
+            }
+        }
+        return projects
     }
 
-    Set<VisualStudioProjectConfiguration> getProjectConfigurations() {
+    List<VisualStudioProjectConfiguration> getSolutionConfigurations() {
+        return rootProject.configurations
+    }
+
+    List<VisualStudioProjectConfiguration> getProjectConfigurations(VisualStudioProjectConfiguration solutionConfiguration) {
         def configurations = [] as Set
-        addNativeBinary(configurations, rootBinary)
-        return configurations
+        configurations << solutionConfiguration
+        addDependentConfigurations(configurations, solutionConfiguration)
+        return configurations as List
     }
 
-    private void addNativeBinary(Set configurations, ProjectNativeBinaryInternal nativeBinary) {
-        VisualStudioProjectConfiguration projectConfiguration = vsProjectResolver.lookupProjectConfiguration(nativeBinary);
-        configurations.add(projectConfiguration)
-
-        for (LibraryBinary library : nativeBinary.dependentBinaries) {
+    private void addDependentConfigurations(Set configurations, VisualStudioProjectConfiguration configuration) {
+        for (LibraryBinary library : configuration.binary.dependentBinaries) {
             if (library instanceof ProjectNativeBinaryInternal) {
-                addNativeBinary(configurations, library)
+                VisualStudioProjectConfiguration libraryConfiguration = vsProjectResolver.lookupProjectConfiguration(library);
+                configurations.add(libraryConfiguration)
+
+                addDependentConfigurations(configurations, libraryConfiguration)
             }
         }
     }

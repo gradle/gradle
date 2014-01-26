@@ -25,18 +25,19 @@ import org.gradle.util.TextUtil
 
 class VisualStudioSolutionFile extends AbstractPersistableConfigurationObject {
     List<Action<? super TextProvider>> actions = new ArrayList<Action<? super TextProvider>>();
-    String solutionConfiguration = "debug|Win32"
+    private final Map<String, List<VisualStudioProjectConfiguration>> solutionConfigurations = [:]
+    private final projects = [:]
     private baseText
-    private projects = [] as Set
-    private projectConfigurations = []
 
     protected String getDefaultResourceName() {
         'default.sln'
     }
 
-    void addProjectConfiguration(VisualStudioProjectConfiguration vsConfiguration) {
-        projectConfigurations << vsConfiguration
-        projects << vsConfiguration.project
+    void addSolutionConfiguration(String name, List<VisualStudioProjectConfiguration> projectConfigurations) {
+        solutionConfigurations[name] = projectConfigurations
+        projectConfigurations.each {
+            projects[it.project.name] = it.project
+        }
     }
 
     @Override
@@ -56,24 +57,30 @@ class VisualStudioSolutionFile extends AbstractPersistableConfigurationObject {
 
     private void generateContent(StringBuilder builder) {
         builder << baseText
-        projects.each { DefaultVisualStudioProject vsProject ->
-            builder << """Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "${vsProject.getName()}", "${vsProject.projectFile.location.absolutePath}", "${vsProject.getUuid()}"
-EndProject
-"""
+        projects.each { String name, DefaultVisualStudioProject vsProject ->
+            builder << """
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "${name}", "${vsProject.projectFile.location.absolutePath}", "${vsProject.getUuid()}"
+EndProject"""
         }
-        builder << """Global
-	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		${solutionConfiguration}=${solutionConfiguration}
+        builder << """
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution"""
+        solutionConfigurations.keySet().each { solutionConfiguration ->
+            builder << """
+		${solutionConfiguration}=${solutionConfiguration}"""
+        }
+        builder << """
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution"""
+        solutionConfigurations.each { solutionConfiguration, projectConfigurations ->
+            projectConfigurations.each { VisualStudioProjectConfiguration projectConfiguration ->
+                builder << """
+		${projectConfiguration.project.getUuid()}.${solutionConfiguration}.ActiveCfg = ${projectConfiguration.name}
+		${projectConfiguration.project.getUuid()}.${solutionConfiguration}.Build.0 = ${projectConfiguration.name}"""
+            }
+        }
 
-		projectConfigurations.each { VisualStudioProjectConfiguration projectConfiguration ->
-			builder << """
-				${projectConfiguration.project.getUuid()}.${solutionConfiguration}.ActiveCfg = ${projectConfiguration.name}
-				${projectConfiguration.project.getUuid()}.${solutionConfiguration}.Build.0 = ${projectConfiguration.name}"""
-		}
-
-		builder << """
+        builder << """
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -86,8 +86,8 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
         and:
         final mainSolution = solutionFile("exe/visualStudio/mainExe.sln")
         mainSolution.assertHasProjects("mainExe", "helloLib")
-        mainSolution.assertReferencesProject(exeProject, ["debug"])
-        mainSolution.assertReferencesProject(libProject, ["debug"])
+        mainSolution.assertReferencesProject(exeProject, projectConfigurations)
+        mainSolution.assertReferencesProject(libProject, projectConfigurations)
     }
 
     def "create visual studio solution for executable that transitively depends on multiple projects"() {
@@ -131,9 +131,9 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
 
         and:
         mainSolution.assertHasProjects("mainExe", "helloDll", "greetingsLib")
-        mainSolution.assertReferencesProject(exeProject, ["debug"])
-        mainSolution.assertReferencesProject(helloProject, ["debug"])
-        mainSolution.assertReferencesProject(greetProject, ["debug"])
+        mainSolution.assertReferencesProject(exeProject, projectConfigurations)
+        mainSolution.assertReferencesProject(helloProject, projectConfigurations)
+        mainSolution.assertReferencesProject(greetProject, projectConfigurations)
 
         and:
         exeProject.projectConfigurations['debug'].includePath == filePath("exe/src/main/headers", "lib/src/hello/headers")
@@ -179,9 +179,9 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
 
         and:
         mainSolution.assertHasProjects("mainExe", "helloDll", "greetingsLib")
-        mainSolution.assertReferencesProject(exeProject, ["debug"])
-        mainSolution.assertReferencesProject(helloProject, ["debug"])
-        mainSolution.assertReferencesProject(greetProject, ["debug"])
+        mainSolution.assertReferencesProject(exeProject, projectConfigurations)
+        mainSolution.assertReferencesProject(helloProject, projectConfigurations)
+        mainSolution.assertReferencesProject(greetProject, projectConfigurations)
 
         and:
         exeProject.projectConfigurations['debug'].includePath == filePath("exe/src/main/headers", "lib/src/hello/headers")

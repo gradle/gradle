@@ -135,6 +135,12 @@ class DefaultVisualStudioProject extends AbstractBuildableModelElement implement
         return configurations[nativeBinary]
     }
 
+    VisualStudioProjectConfiguration getConfiguration(String name) {
+        return configurations.values().find {
+            it.name == name
+        }
+    }
+
     public static class DefaultConfigFile implements XmlConfigFile {
         private final List<Action<? super XmlProvider>> actions = new ArrayList<Action<? super XmlProvider>>();
         private final FileResolver fileResolver
