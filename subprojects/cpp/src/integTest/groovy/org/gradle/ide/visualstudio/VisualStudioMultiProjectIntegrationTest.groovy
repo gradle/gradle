@@ -195,6 +195,28 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
         greetProject.projectConfigurations['debug'].includePath == filePath("exe/src/greetings/headers")
     }
 
+    def "detects gradle wrapper and uses in vs project"() {
+        when:
+        def gradlew = file("gradlew.bat") << "dummy wrapper"
+
+        settingsFile.text = "include ':exe'"
+        buildFile << """
+    project(':exe') {
+        executables {
+            main {}
+        }
+    }
+"""
+        and:
+        run ":exe:mainVisualStudio"
+
+        then:
+        final exeProject = projectFile("exe/visualStudio/mainExe.vcxproj")
+        exeProject.projectConfigurations.values().each {
+            assert it.buildCommand == "${gradlew.absolutePath} :exe:${it.name}MainExecutable"
+        }
+    }
+
     private SolutionFile solutionFile(String path) {
         return new SolutionFile(file(path))
     }

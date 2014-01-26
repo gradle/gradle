@@ -24,6 +24,7 @@ import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObje
 
 class VisualStudioProjectFile extends XmlPersistableConfigurationObject {
     private final Transformer<String, File> fileLocationResolver
+    String gradleCommand = 'gradle'
 
     VisualStudioProjectFile(XmlTransformer xmlTransformer, Transformer<String, File> fileLocationResolver) {
         super(xmlTransformer)
@@ -67,11 +68,6 @@ class VisualStudioProjectFile extends XmlPersistableConfigurationObject {
                 UseDebugLibraries(configuration.debug)
             }
         }
-
-        // TODO:DAZ Detect wrapper if present
-        // TODO:DAZ Handle build files other than 'build.gradle'
-        // TODO:DAZ Make the gradle command line configurable
-        final gradleCommand = 'gradle'
 
         final includePath = toPath(configuration.includePaths).join(";")
         Node userMacros = xml.PropertyGroup.find({ it.'@Label' == 'UserMacros'}) as Node

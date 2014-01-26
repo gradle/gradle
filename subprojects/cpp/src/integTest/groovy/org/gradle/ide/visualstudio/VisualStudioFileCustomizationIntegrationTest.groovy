@@ -154,6 +154,28 @@ EndGlobal
         solutionFile.content.contains "Project-list: mainExe"
     }
 
+    def "can configure gradle command line"() {
+        when:
+        def gradlew = file("gradlew.bat") << "dummy wrapper"
+        buildFile << """
+    executables {
+        main {}
+    }
+    tasks.withType(GenerateProjectFileTask) {
+        it.gradleExe "myCustomGradleExe"
+        it.gradleArgs "--configure-on-demand --another"
+    }
+"""
+        and:
+        run "mainVisualStudio"
+
+        then:
+        final projectFile = projectFile("visualStudio/mainExe.vcxproj")
+        projectFile.projectConfigurations.values().each {
+            assert it.buildCommand == "myCustomGradleExe --configure-on-demand --another :${it.name}MainExecutable"
+        }
+    }
+
     private SolutionFile solutionFile(String path) {
         return new SolutionFile(file(path))
     }

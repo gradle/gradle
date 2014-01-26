@@ -15,6 +15,8 @@
  */
 package org.gradle.ide.visualstudio.tasks
 import org.gradle.api.Incubating
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Optional
 import org.gradle.ide.visualstudio.VisualStudioProject
 import org.gradle.ide.visualstudio.internal.DefaultVisualStudioProject
 import org.gradle.ide.visualstudio.tasks.internal.AbsoluteFileNameTransformer
@@ -23,7 +25,24 @@ import org.gradle.plugins.ide.api.XmlGeneratorTask
 
 @Incubating
 class GenerateProjectFileTask extends XmlGeneratorTask<VisualStudioProjectFile> {
+    final AbsoluteFileNameTransformer transformer = new AbsoluteFileNameTransformer()
     private DefaultVisualStudioProject visualStudioProject
+
+    @Input
+    String gradleExe
+
+    @Input @Optional
+    String gradleArgs
+
+    void initGradleCommand() {
+        final File gradlew = project.getRootProject().file("gradlew.bat");
+        conventionMapping.map("gradleExe") {
+            if (gradlew.isFile()) {
+                return transformer.transform(gradlew)
+            }
+            return "gradle"
+        }
+    }
 
     void setVisualStudioProject(VisualStudioProject vsProject) {
         this.visualStudioProject = vsProject as DefaultVisualStudioProject
@@ -45,13 +64,14 @@ class GenerateProjectFileTask extends XmlGeneratorTask<VisualStudioProjectFile> 
 
     @Override
     protected VisualStudioProjectFile create() {
-        return new VisualStudioProjectFile(xmlTransformer, new AbsoluteFileNameTransformer())
+        return new VisualStudioProjectFile(xmlTransformer, transformer)
     }
 
     @Override
     protected void configure(VisualStudioProjectFile projectFile) {
         DefaultVisualStudioProject vsProject = visualStudioProject
 
+        projectFile.gradleCommand = buildGradleCommand()
         projectFile.setProjectUuid(vsProject.uuid)
         vsProject.sourceFiles.each {
             projectFile.addSourceFile(it)
@@ -73,6 +93,16 @@ class GenerateProjectFileTask extends XmlGeneratorTask<VisualStudioProjectFile> 
 
         vsProject.projectFile.xmlActions.each {
             xmlTransformer.addAction(it)
+        }
+    }
+
+    private buildGradleCommand() {
+        String exe = getGradleExe()
+        String args = getGradleArgs()
+        if (args == null || args.trim().length() == 0) {
+            return exe
+        } else {
+            return exe + " " + args.trim()
         }
     }
 }
