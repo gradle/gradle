@@ -17,10 +17,11 @@ package org.gradle.cache;
 
 import org.gradle.api.Nullable;
 import org.gradle.cache.internal.CacheDecorator;
-import org.gradle.messaging.serialize.DefaultSerializer;
+import org.gradle.messaging.serialize.BaseSerializerFactory;
 import org.gradle.messaging.serialize.Serializer;
 
 public class PersistentIndexedCacheParameters<K, V> {
+    private static final BaseSerializerFactory SERIALIZER_FACTORY = new BaseSerializerFactory();
     private final String cacheName;
     private final Serializer<K> keySerializer;
     private final Serializer<V> valueSerializer;
@@ -33,11 +34,11 @@ public class PersistentIndexedCacheParameters<K, V> {
     }
 
     public PersistentIndexedCacheParameters(String cacheName, Class<K> keyType, Serializer<V> valueSerializer) {
-        this(cacheName, new DefaultSerializer<K>(keyType.getClassLoader()), valueSerializer);
+        this(cacheName, SERIALIZER_FACTORY.getSerializerFor(keyType), valueSerializer);
     }
 
     public PersistentIndexedCacheParameters(String cacheName, Class<K> keyType, Class<V> valueType) {
-        this(cacheName, keyType, new DefaultSerializer<V>(valueType.getClassLoader()));
+        this(cacheName, keyType, SERIALIZER_FACTORY.getSerializerFor(valueType));
     }
 
     public String getCacheName() {
