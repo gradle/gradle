@@ -32,5 +32,9 @@ public interface InternalDependencyResult {
     @Nullable
     ModuleVersionIdentifier getSelected();
 
+    /**
+     * Not null only when failure is not null.
+     */
+    @Nullable
     ComponentSelectionReason getReason();
 }

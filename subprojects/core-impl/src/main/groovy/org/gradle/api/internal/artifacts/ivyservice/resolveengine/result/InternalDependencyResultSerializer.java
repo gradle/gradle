@@ -36,12 +36,12 @@ public class InternalDependencyResultSerializer {
 
     public InternalDependencyResult read(Decoder decoder, Map<ComponentSelector, ModuleVersionResolveException> failures) throws IOException {
         ComponentSelector requested = componentSelectorSerializer.read(decoder);
-        ComponentSelectionReason reason = componentSelectionReasonSerializer.read(decoder);
         byte resultByte = decoder.readByte();
         if (resultByte == SUCCESSFUL) {
             ModuleVersionIdentifier selected = moduleVersionIdentifierSerializer.read(decoder);
-            return new DefaultInternalDependencyResult(requested, selected, reason, null);
+            return new DefaultInternalDependencyResult(requested, selected, null, null);
         } else if (resultByte == FAILED) {
+            ComponentSelectionReason reason = componentSelectionReasonSerializer.read(decoder);
             ModuleVersionResolveException failure = failures.get(requested);
             return new DefaultInternalDependencyResult(requested, null, reason, failure);
         } else {
@@ -51,12 +51,12 @@ public class InternalDependencyResultSerializer {
 
     public void write(Encoder encoder, InternalDependencyResult value) throws IOException {
         componentSelectorSerializer.write(encoder, value.getRequested());
-        componentSelectionReasonSerializer.write(encoder, value.getReason());
         if (value.getFailure() == null) {
             encoder.writeByte(SUCCESSFUL);
             moduleVersionIdentifierSerializer.write(encoder, value.getSelected());
         } else {
             encoder.writeByte(FAILED);
+            componentSelectionReasonSerializer.write(encoder, value.getReason());
         }
     }
 }
