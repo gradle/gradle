@@ -15,6 +15,8 @@
  */
 package org.gradle.messaging.remote;
 
+import org.gradle.messaging.serialize.kryo.StatefulSerializer;
+
 public interface ObjectConnectionBuilder {
     /**
      * Creates a transmitter for outgoing messages on the given type. The returned object is thread-safe.
@@ -39,7 +41,15 @@ public interface ObjectConnectionBuilder {
     <T> void addIncoming(Class<T> type, T instance);
 
     /**
-     * Use Java serialization for the parameters of incoming and outgoing method calls.
+     * Use the specified serializer for all incoming and outgoing parameters.
+     */
+    void useParameterSerializer(StatefulSerializer<Object[]> serializer);
+
+    /**
+     * Use Java serialization for the parameters of incoming and outgoing method calls, with the specified ClassLoader used to deserialize incoming
+     * method parameters.
+     *
+     * <p>This method is generally not required as the ClassLoader is inferred from the incoming and outgoing types.</p>
      *
      * @param methodParamClassLoader The ClassLoader to use.
      */
