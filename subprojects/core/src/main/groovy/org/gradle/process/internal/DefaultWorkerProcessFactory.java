@@ -23,7 +23,10 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.Factory;
 import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.internal.id.IdGenerator;
-import org.gradle.messaging.remote.*;
+import org.gradle.messaging.remote.Address;
+import org.gradle.messaging.remote.ConnectionAcceptor;
+import org.gradle.messaging.remote.MessagingServer;
+import org.gradle.messaging.remote.ObjectConnection;
 import org.gradle.process.internal.child.ApplicationClassesInIsolatedClassLoaderWorkerFactory;
 import org.gradle.process.internal.child.ApplicationClassesInSystemClassLoaderWorkerFactory;
 import org.gradle.process.internal.child.EncodedStream;
@@ -45,17 +48,15 @@ public class DefaultWorkerProcessFactory implements Factory<WorkerProcessBuilder
     private final MessagingServer server;
     private final ClassPathRegistry classPathRegistry;
     private final FileResolver resolver;
-    private final ClassLoader messagingClassLoader;
     private final IdGenerator<?> idGenerator;
 
     public DefaultWorkerProcessFactory(LogLevel workerLogLevel, MessagingServer server,
                                        ClassPathRegistry classPathRegistry, FileResolver resolver,
-                                       ClassLoader messagingClassLoader, IdGenerator<?> idGenerator) {
+                                       IdGenerator<?> idGenerator) {
         this.workerLogLevel = workerLogLevel;
         this.server = server;
         this.classPathRegistry = classPathRegistry;
         this.resolver = resolver;
-        this.messagingClassLoader = messagingClassLoader;
         this.idGenerator = idGenerator;
     }
 
@@ -78,7 +79,6 @@ public class DefaultWorkerProcessFactory implements Factory<WorkerProcessBuilder
             final DefaultWorkerProcess workerProcess = new DefaultWorkerProcess(120, TimeUnit.SECONDS);
             ConnectionAcceptor acceptor = server.accept(new Action<ObjectConnection>() {
                 public void execute(ObjectConnection connection) {
-                    connection.useDefaultSerialization(messagingClassLoader);
                     workerProcess.onConnect(connection);
                 }
             });
