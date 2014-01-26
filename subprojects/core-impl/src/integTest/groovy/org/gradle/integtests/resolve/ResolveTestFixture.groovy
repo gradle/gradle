@@ -150,6 +150,17 @@ allprojects {
             return root
         }
 
+        def root(String path, String value, Closure cl) {
+            if (root != null) {
+                throw new IllegalStateException("Root node is already defined")
+            }
+            root = node("project $path", value)
+            cl.resolveStrategy = Closure.DELEGATE_ONLY
+            cl.delegate = root
+            cl.call()
+            return root
+        }
+
         def node(String id, String moduleVersion) {
             def node = nodes[moduleVersion]
             if (!node) {

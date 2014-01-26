@@ -55,7 +55,12 @@ class ResolutionResultApiIntegrationTest extends AbstractDependencyResolutionTes
             task resolutionResult << {
                 def result = configurations.conf.incoming.resolutionResult
                 result.allComponents {
-                    println it.id.module + ":" + it.id.version + " " + it.selectionReason.description
+                    if(it.id instanceof ModuleComponentIdentifier) {
+                        println it.id.module + ":" + it.id.version + " " + it.selectionReason.description
+                    }
+                    else if(it.id instanceof ProjectComponentIdentifier) {
+                        println it.moduleVersion.name + ":" + it.moduleVersion.version + " " + it.selectionReason.description
+                    }
                 }
             }
         """

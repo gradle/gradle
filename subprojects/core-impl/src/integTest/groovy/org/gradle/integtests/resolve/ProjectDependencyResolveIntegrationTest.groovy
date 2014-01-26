@@ -45,6 +45,9 @@ project(":a") {
     artifacts { api jar }
 }
 project(":b") {
+    group = 'org.gradle'
+    version = '1.0'
+
     configurations {
         compile
     }
@@ -58,11 +61,11 @@ project(":b") {
 
          // Check root component
         def rootId = result.root.id
-        assert rootId instanceof ModuleComponentIdentifier
+        assert rootId instanceof ProjectComponentIdentifier
         def rootPublishedAs = result.root.moduleVersion
-        assert rootPublishedAs.group == rootId.group
-        assert rootPublishedAs.name == rootId.module
-        assert rootPublishedAs.version == rootId.version
+        assert rootPublishedAs.group == 'org.gradle'
+        assert rootPublishedAs.name == 'b'
+        assert rootPublishedAs.version == '1.0'
 
         // Check project components
         def projectComponents = result.root.dependencies.selected.findAll { it.id instanceof ProjectComponentIdentifier }

@@ -16,10 +16,14 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.artifacts.*;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.ModuleInternal;
 import org.gradle.api.internal.artifacts.ResolverResults;
+import org.gradle.api.internal.artifacts.component.DefaultModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.component.DefaultProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DefaultResolutionResultBuilder;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
@@ -40,10 +44,16 @@ public class ShortcircuitEmptyConfigsArtifactDependencyResolver implements Artif
     public ResolverResults resolve(ConfigurationInternal configuration, List<? extends ResolutionAwareRepository> repositories) throws ResolveException {
         if (configuration.getAllDependencies().isEmpty()) {
             ModuleVersionIdentifier id = DefaultModuleVersionIdentifier.newId(configuration.getModule());
-            ResolutionResult emptyResult = new DefaultResolutionResultBuilder().start(id).complete();
+            ComponentIdentifier componentIdentifier = determineComponentIdentifier(id, configuration.getModule());
+            ResolutionResult emptyResult = new DefaultResolutionResultBuilder().start(id, componentIdentifier).complete();
             return new ResolverResults(new EmptyResolvedConfiguration(), emptyResult);
         }
         return dependencyResolver.resolve(configuration, repositories);
+    }
+
+    private ComponentIdentifier determineComponentIdentifier(ModuleVersionIdentifier id, ModuleInternal moduleInternal) {
+        String projectPath = moduleInternal.getProjectPath();
+        return projectPath != null ? new DefaultProjectComponentIdentifier(projectPath) : new DefaultModuleComponentIdentifier(id.getGroup(), id.getName(), id.getVersion());
     }
 
     private static class EmptyResolvedConfiguration implements ResolvedConfiguration {

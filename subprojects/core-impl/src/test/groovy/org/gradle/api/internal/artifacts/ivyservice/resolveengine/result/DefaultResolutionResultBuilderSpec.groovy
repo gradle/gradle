@@ -36,7 +36,7 @@ class DefaultResolutionResultBuilderSpec extends Specification {
 
     def "builds basic graph"() {
         given:
-        builder.start(confId("root"))
+        builder.start(confId("root"), createComponentIdentifier("root"))
 
         node("root")
         node("mid1")
@@ -72,7 +72,7 @@ class DefaultResolutionResultBuilderSpec extends Specification {
 
     def "graph with multiple dependents"() {
         given:
-        builder.start(confId("a"))
+        builder.start(confId("a"), createComponentIdentifier("a"))
 
         node("a")
         node("b1")
@@ -101,7 +101,7 @@ class DefaultResolutionResultBuilderSpec extends Specification {
 
     def "builds graph with cycles"() {
         given:
-        builder.start(confId("a"))
+        builder.start(confId("a"), createComponentIdentifier("a"))
         node("a")
         node("b")
         node("c")
@@ -122,7 +122,7 @@ class DefaultResolutionResultBuilderSpec extends Specification {
 
     def "includes selection reason"() {
         given:
-        builder.start(confId("a"))
+        builder.start(confId("a"), createComponentIdentifier("a"))
         node("b", VersionSelectionReasons.FORCED)
         node("c", VersionSelectionReasons.CONFLICT_RESOLUTION)
         node("d")
@@ -144,7 +144,7 @@ class DefaultResolutionResultBuilderSpec extends Specification {
 
     def "links dependents correctly"() {
         given:
-        builder.start(confId("a"))
+        builder.start(confId("a"), createComponentIdentifier("a"))
         node("a")
         node("b")
         node("c")
@@ -177,7 +177,7 @@ class DefaultResolutionResultBuilderSpec extends Specification {
 
     def "accumulates and avoids duplicate dependencies"() {
         given:
-        builder.start(confId("root"))
+        builder.start(confId("root"), createComponentIdentifier("root"))
         node("root")
         node("mid1")
         node("leaf1")
@@ -205,7 +205,7 @@ class DefaultResolutionResultBuilderSpec extends Specification {
 
     def "accumulates and avoids duplicate unresolved dependencies"() {
         given:
-        builder.start(confId("root"))
+        builder.start(confId("root"), createComponentIdentifier("root"))
         node("mid1")
         node("leaf1")
         node("leaf2")
@@ -226,7 +226,7 @@ class DefaultResolutionResultBuilderSpec extends Specification {
 
     def "graph includes unresolved deps"() {
         given:
-        builder.start(confId("a"))
+        builder.start(confId("a"), createComponentIdentifier("a"))
         node("b")
         node("c")
         resolvedConf("a", [dep("b"), dep("c"), dep("U", new RuntimeException("unresolved!"))])
@@ -263,6 +263,10 @@ class DefaultResolutionResultBuilderSpec extends Specification {
 
     private ModuleVersionIdentifier confId(String module) {
         newId("x", module, "1")
+    }
+
+    private ComponentIdentifier createComponentIdentifier(String module) {
+        new DefaultModuleComponentIdentifier("x", module, "1")
     }
 
     class DummyModuleVersionSelection implements ModuleVersionSelection {
