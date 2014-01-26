@@ -56,7 +56,7 @@ public class TcpOutgoingConnector implements OutgoingConnector {
                     lastFailure = e;
                     continue;
                 }
-                LOGGER.debug("Connected to address {}.", socketChannel.getRemoteAddress());
+                LOGGER.debug("Connected to address {}.", socketChannel.socket().getRemoteSocketAddress());
                 return new SocketConnectCompletion(socketChannel);
             }
             throw new ConnectException(String.format("Could not connect to server %s. Tried addresses: %s.",
