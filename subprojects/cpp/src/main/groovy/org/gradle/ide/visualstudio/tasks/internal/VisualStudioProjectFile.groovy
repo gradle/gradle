@@ -68,13 +68,18 @@ class VisualStudioProjectFile extends XmlPersistableConfigurationObject {
             }
         }
 
+        // TODO:DAZ Detect wrapper if present
+        // TODO:DAZ Handle build files other than 'build.gradle'
+        // TODO:DAZ Make the gradle command line configurable
+        final gradleCommand = 'gradle'
+
         final includePath = toPath(configuration.includePaths).join(";")
         Node userMacros = xml.PropertyGroup.find({ it.'@Label' == 'UserMacros'}) as Node
         userMacros + {
             PropertyGroup(Label: "NMakeConfiguration", Condition: configCondition) {
-                NMakeBuildCommandLine("gradlew.bat ${configuration.buildTask}")
-                NMakeCleanCommandLine("gradlew.bat ${configuration.cleanTask}")
-                NMakeReBuildCommandLine("gradlew.bat ${configuration.cleanTask} ${configuration.buildTask}")
+                NMakeBuildCommandLine("${gradleCommand} ${configuration.buildTask}")
+                NMakeCleanCommandLine("${gradleCommand} ${configuration.cleanTask}")
+                NMakeReBuildCommandLine("${gradleCommand} ${configuration.cleanTask} ${configuration.buildTask}")
                 NMakePreprocessorDefinitions(configuration.compilerDefines.join(";"))
                 NMakeIncludeSearchPath(includePath)
                 NMakeOutput(toPath(configuration.outputFile))

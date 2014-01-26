@@ -30,6 +30,7 @@ import org.gradle.nativebinaries.NativeDependencySet
 import org.gradle.nativebinaries.internal.DefaultFlavor
 import org.gradle.nativebinaries.internal.DefaultFlavorContainer
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
+import org.gradle.nativebinaries.internal.ProjectNativeComponentInternal
 import org.gradle.nativebinaries.language.PreprocessingTool
 import org.gradle.nativebinaries.platform.Platform
 import spock.lang.Specification
@@ -37,7 +38,7 @@ import spock.lang.Specification
 class VisualStudioProjectConfigurationTest extends Specification {
     final flavor = new DefaultFlavor("flavor1")
     def flavors = new DefaultFlavorContainer(new DirectInstantiator())
-    def exe = Mock(Executable) {
+    def exe = Mock(ExecutableInternal) {
         getFlavors() >> flavors
     }
     def extensions = Mock(ExtensionContainer)
@@ -66,10 +67,12 @@ class VisualStudioProjectConfigurationTest extends Specification {
     def "configuration tasks are binary tasks"() {
         when:
         exeBinary.name >> "exeBinary"
+        exeBinary.component >> exe
+        exe.projectPath >> ":project-path"
 
         then:
-        configuration.buildTask == "exeBinary"
-        configuration.cleanTask == "cleanExeBinary"
+        configuration.buildTask == ":project-path:exeBinary"
+        configuration.cleanTask == ":project-path:cleanExeBinary"
     }
 
     def "compiler defines are taken from cpp compiler configuration"() {
@@ -187,6 +190,7 @@ class VisualStudioProjectConfigurationTest extends Specification {
         return deps
     }
 
+    interface ExecutableInternal extends Executable, ProjectNativeComponentInternal {}
     interface TestExecutableBinary extends ProjectNativeBinaryInternal, ExecutableBinary, ExtensionAware {}
 
 }

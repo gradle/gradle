@@ -77,6 +77,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         projectFile.projectConfigurations.values().each {
             assert it.macros == "TEST;foo=bar"
             assert it.includePath == filePath("src/main/headers")
+            assert it.buildCommand == "gradle :${it.name}MainExecutable"
         }
 
         and:

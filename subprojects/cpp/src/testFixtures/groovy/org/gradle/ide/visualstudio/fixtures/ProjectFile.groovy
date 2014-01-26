@@ -86,6 +86,14 @@ class ProjectFile {
             return ProjectFile.this
         }
 
+        String getBuildCommand() {
+            buildConfiguration.NMakeBuildCommandLine[0].text()
+        }
+
+        String getOutputFile() {
+            buildConfiguration.NMakeOutput[0].text()
+        }
+
         private Node getBuildConfiguration() {
             projectXml.PropertyGroup.find({ it.'@Label' == 'NMakeConfiguration' && it.'@Condition' == condition}) as Node
         }

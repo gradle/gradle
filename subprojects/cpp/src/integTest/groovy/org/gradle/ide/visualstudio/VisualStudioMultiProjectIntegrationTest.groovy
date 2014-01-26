@@ -74,14 +74,20 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
         exeProject.sourceFiles == allFiles("exe/src/main/cpp")
         exeProject.headerFiles.isEmpty()
         exeProject.projectConfigurations.keySet() == projectConfigurations
-        exeProject.projectConfigurations['debug'].includePath == filePath("exe/src/main/headers", "lib/src/hello/headers")
+        exeProject.projectConfigurations.values().each {
+            assert it.includePath == filePath("exe/src/main/headers", "lib/src/hello/headers")
+            assert it.buildCommand == "gradle :exe:${it.name}MainExecutable"
+        }
 
         and:
         final libProject = projectFile("lib/visualStudio/helloLib.vcxproj")
         libProject.sourceFiles == allFiles("lib/src/hello/cpp")
         libProject.headerFiles == allFiles("lib/src/hello/headers")
         libProject.projectConfigurations.keySet() == projectConfigurations
-        libProject.projectConfigurations['debug'].includePath == filePath("lib/src/hello/headers")
+        libProject.projectConfigurations.values().each {
+            assert it.includePath == filePath("lib/src/hello/headers")
+            assert it.buildCommand == "gradle :lib:${it.name}HelloStaticLibrary"
+        }
 
         and:
         final mainSolution = solutionFile("exe/visualStudio/mainExe.sln")
