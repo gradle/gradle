@@ -16,22 +16,22 @@
 
 package org.gradle.messaging.serialize.kryo;
 
-import com.esotericsoftware.kryo.io.Input;
-import com.esotericsoftware.kryo.io.Output;
+import org.gradle.messaging.serialize.Decoder;
+import org.gradle.messaging.serialize.Encoder;
 import org.gradle.messaging.serialize.ObjectReader;
 import org.gradle.messaging.serialize.ObjectWriter;
 
-public class TypeSafeSerializer<T> implements KryoAwareSerializer<Object> {
+public class TypeSafeSerializer<T> implements StatefulSerializer<Object> {
     private final Class<T> type;
-    private final KryoAwareSerializer<T> serializer;
+    private final StatefulSerializer<T> serializer;
 
-    public TypeSafeSerializer(Class<T> type, KryoAwareSerializer<T> serializer) {
+    public TypeSafeSerializer(Class<T> type, StatefulSerializer<T> serializer) {
         this.type = type;
         this.serializer = serializer;
     }
 
-    public ObjectReader<Object> newReader(Input input) {
-        final ObjectReader<T> reader = serializer.newReader(input);
+    public ObjectReader<Object> newReader(Decoder decoder) {
+        final ObjectReader<T> reader = serializer.newReader(decoder);
         return new ObjectReader<Object>() {
             public Object read() throws Exception {
                 return reader.read();
@@ -39,8 +39,8 @@ public class TypeSafeSerializer<T> implements KryoAwareSerializer<Object> {
         };
     }
 
-    public ObjectWriter<Object> newWriter(final Output output) {
-        final ObjectWriter<T> writer = serializer.newWriter(output);
+    public ObjectWriter<Object> newWriter(Encoder encoder) {
+        final ObjectWriter<T> writer = serializer.newWriter(encoder);
         return new ObjectWriter<Object>() {
             public void write(Object value) throws Exception {
                 writer.write(type.cast(value));

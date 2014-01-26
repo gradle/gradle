@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.m8
+package org.gradle.integtests.tooling.m9
 
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.build.BuildEnvironment
 import spock.lang.IgnoreIf
 
-@ToolingApiVersion('>=1.0-milestone-8')
-@TargetGradleVersion('>=1.0-milestone-8')
+@ToolingApiVersion('>=1.0-milestone-9')
+@TargetGradleVersion('>=1.0-milestone-9')
 class GradlePropertiesToolingApiCrossVersionSpec extends ToolingApiSpecification {
 
     def setup() {

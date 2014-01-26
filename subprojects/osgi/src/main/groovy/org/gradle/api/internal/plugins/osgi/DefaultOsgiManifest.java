@@ -127,15 +127,6 @@ public class DefaultOsgiManifest extends DefaultManifest implements OsgiManifest
         analyzer.setClasspath(getClasspath().getFiles().toArray(new File[getClasspath().getFiles().size()]));
     }
 
-    private String instructionValueString(String instructionName) {
-        List<String> values = instructionValue(instructionName);
-        if (values == null || values.isEmpty()) {
-            return null;
-        } else {
-            return createPropertyStringFromList(values);
-        }
-    }
-
     public List<String> instructionValue(String instructionName) {
         if (instructionName.equals(Analyzer.BUNDLE_SYMBOLICNAME)) {
             return createListFromPropertyString(getSymbolicName());

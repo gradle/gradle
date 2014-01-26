@@ -74,7 +74,9 @@ class ObjectiveCHelloWorldApp extends IncrementalHelloWorldApp {
                 #else
                 NSString *helloWorld = @"${HELLO_WORLD}\\n";
                 #endif
-                printf("%s", [helloWorld UTF8String]);
+                NSFileHandle *stdout = [NSFileHandle fileHandleWithStandardOutput];
+                NSData *strData = [helloWorld dataUsingEncoding: NSASCIIStringEncoding];
+                [stdout writeData: strData];
             }
         """),
                 sourceFile("objectiveC", "sum.m", """
@@ -97,7 +99,9 @@ class ObjectiveCHelloWorldApp extends IncrementalHelloWorldApp {
             void sayHello()
             {
                 NSString *helloWorld = @"${HELLO_WORLD} - ${HELLO_WORLD_FRENCH}\\n";
-                printf("%s", [helloWorld UTF8String]);
+                NSFileHandle *stdout = [NSFileHandle fileHandleWithStandardOutput];
+                NSData *strData = [helloWorld dataUsingEncoding: NSASCIIStringEncoding];
+                [stdout writeData: strData];
             }
 
             // Extra function to ensure library has different size

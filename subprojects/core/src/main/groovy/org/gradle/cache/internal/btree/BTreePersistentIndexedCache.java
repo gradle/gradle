@@ -17,9 +17,9 @@ package org.gradle.cache.internal.btree;
 
 import org.gradle.api.UncheckedIOException;
 import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.messaging.serialize.InputStreamBackedDecoder;
-import org.gradle.messaging.serialize.OutputStreamBackedEncoder;
 import org.gradle.messaging.serialize.Serializer;
+import org.gradle.messaging.serialize.kryo.KryoBackedDecoder;
+import org.gradle.messaging.serialize.kryo.KryoBackedEncoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -133,7 +133,7 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
     public void put(K key, V value) {
         try {
             MessageDigestStream digestStream = new MessageDigestStream();
-            OutputStreamBackedEncoder encoder = new OutputStreamBackedEncoder(digestStream);
+            KryoBackedEncoder encoder = new KryoBackedEncoder(digestStream);
             keySerializer.write(encoder, key);
             encoder.flush();
             long hashCode = digestStream.getChecksum();
@@ -451,7 +451,7 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
 
         public Lookup find(K key) throws Exception {
             MessageDigestStream digestStream = new MessageDigestStream();
-            OutputStreamBackedEncoder encoder = new OutputStreamBackedEncoder(digestStream);
+            KryoBackedEncoder encoder = new KryoBackedEncoder(digestStream);
             keySerializer.write(encoder, key);
             encoder.flush();
             long checksum = digestStream.getChecksum();
@@ -651,7 +651,7 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
 
         public void setValue(V value) throws Exception {
             ByteArrayOutputStream outStr = new ByteArrayOutputStream();
-            OutputStreamBackedEncoder encoder = new OutputStreamBackedEncoder(outStr);
+            KryoBackedEncoder encoder = new KryoBackedEncoder(outStr);
             serializer.write(encoder, value);
             encoder.flush();
             this.serialisedValue = outStr.toByteArray();
@@ -659,7 +659,7 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
 
         public V getValue() throws Exception {
             if (value == null) {
-                value = serializer.read(new InputStreamBackedDecoder(new ByteArrayInputStream(serialisedValue)));
+                value = serializer.read(new KryoBackedDecoder(new ByteArrayInputStream(serialisedValue)));
             }
             return value;
         }

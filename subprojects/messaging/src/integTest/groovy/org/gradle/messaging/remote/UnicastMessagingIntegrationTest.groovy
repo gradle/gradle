@@ -35,8 +35,14 @@ class UnicastMessagingIntegrationTest extends ConcurrentSpec {
         def server = new Server()
         def client = new Client(server.address)
 
-        when:
+        given:
+        server.connection.connect()
+
+        and:
         client.addIncoming(service)
+        client.connection.connect()
+
+        when:
         server.outgoingService1.doStuff("1")
         server.outgoingService1.doStuff("2")
         server.outgoingService1.doStuff("3")
@@ -61,8 +67,14 @@ class UnicastMessagingIntegrationTest extends ConcurrentSpec {
         def server = new Server()
         def client = new Client(server.address)
 
-        when:
+        given:
         server.addIncoming(service)
+        server.connection.connect()
+
+        and:
+        client.connection.connect()
+
+        when:
         client.outgoingService1.doStuff("1")
         client.outgoingService1.doStuff("2")
         client.outgoingService1.doStuff("3")
@@ -92,11 +104,13 @@ class UnicastMessagingIntegrationTest extends ConcurrentSpec {
         when:
         start {
             server.addIncoming(serverService)
+            server.connection.connect()
             server.outgoingService1.doStuff("from server 1")
             server.outgoingService1.doStuff("from server 2")
         }
         start {
             client.addIncoming(clientService)
+            client.connection.connect()
             client.outgoingService1.doStuff("from client 1")
             client.outgoingService1.doStuff("from client 2")
         }
@@ -125,11 +139,13 @@ class UnicastMessagingIntegrationTest extends ConcurrentSpec {
         when:
         start {
             server.addIncoming(serverService)
+            server.connection.connect()
             server.outgoingService2.doStuff("server1")
             server.outgoingService2.doStuff("server2")
         }
         start {
             client.addIncoming(clientService)
+            client.connection.connect()
             client.outgoingService1.doStuff("client1")
             client.outgoingService1.doStuff("client2")
         }
@@ -155,9 +171,12 @@ class UnicastMessagingIntegrationTest extends ConcurrentSpec {
 
         when:
         client = new Client(server.address)
+        client.connection.connect()
         client.outgoingService1.doStuff("1")
         client.outgoingService1.doStuff("2")
+
         server.addIncoming(service)
+        server.connection.connect()
         thread.blockUntil.received
         server.stop()
         client?.stop()
@@ -215,7 +234,7 @@ class UnicastMessagingIntegrationTest extends ConcurrentSpec {
             acceptor = server.accept({ event ->
                 lock.lock()
                 try {
-                    connection = event.connection
+                    connection = event
                     condition.signalAll()
                 } finally {
                     lock.unlock()

@@ -22,6 +22,8 @@ class ObjectiveCppHelloWorldApp extends IncrementalHelloWorldApp {
     SourceFile getMainSource() {
         return sourceFile("objectiveCpp", "main.mm", """
             // Simple hello world app
+            #define __STDC_LIMIT_MACROS
+            #include <stdint.h>
             #import <Foundation/Foundation.h>
             #import "hello.h"
 
@@ -50,8 +52,12 @@ class ObjectiveCppHelloWorldApp extends IncrementalHelloWorldApp {
 
     List<SourceFile> librarySources = [
             sourceFile("objectiveCpp", "hello.mm", """
-            #include <iostream>
+            #define __STDC_LIMIT_MACROS
+            #include <stdint.h>
             #include "hello.h"
+            #import <Foundation/Foundation.h>
+
+            #include <iostream>
 
             #ifdef FRENCH
             const char* greeting() {
@@ -63,7 +69,10 @@ class ObjectiveCppHelloWorldApp extends IncrementalHelloWorldApp {
                 #ifdef FRENCH
                 std::cout << greeting() << std::endl;
                 #else
-                std::cout << "${HELLO_WORLD}" << std::endl;
+                NSString *helloWorld = @"${HELLO_WORLD}\\n";
+                NSFileHandle *stdout = [NSFileHandle fileHandleWithStandardOutput];
+                NSData *strData = [helloWorld dataUsingEncoding: NSASCIIStringEncoding];
+                [stdout writeData: strData];
                 #endif
             }
         """),

@@ -29,7 +29,13 @@ class MavenDependencyResolveIntegrationTest extends AbstractDependencyResolution
         mavenRepo().module("org.gradle", "other", "preview-1").publish()
 
         and:
+        settingsFile << """
+rootProject.name = 'testproject'
+"""
+
         buildFile << """
+group = 'org.gradle'
+version = '1.0'
 repositories { maven { url "${mavenRepo().uri}" } }
 configurations { compile }
 dependencies {
@@ -42,11 +48,11 @@ task check << {
 
     // Check root component
     def rootId = result.root.id
-    assert rootId instanceof ModuleComponentIdentifier
+    assert rootId instanceof ProjectComponentIdentifier
     def rootPublishedAs = result.root.moduleVersion
-    assert rootPublishedAs.group == rootId.group
-    assert rootPublishedAs.name == rootId.module
-    assert rootPublishedAs.version == rootId.version
+    assert rootPublishedAs.group == 'org.gradle'
+    assert rootPublishedAs.name == 'testproject'
+    assert rootPublishedAs.version == '1.0'
 
     // Check external module components
     def externalComponents = result.root.dependencies.selected.findAll { it.id instanceof ModuleComponentIdentifier }

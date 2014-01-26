@@ -27,6 +27,10 @@ multiple daemons for each version.
 - Change test execution for the tooling API test suite so that the tests for a single Gradle version (or small set of versions) are completed before starting
   tests on another Gradle version. One potential implementation is to introduce a test task per Gradle version.
 
+# Automate installation of TeamCity agents on Windows build VM
+
+- Ensure the init.gradle script is installed in the user's home dir.
+
 # Split builds up so that each build covers a smaller slice of the source
 
 Currently, most builds cover the entire Gradle code-base for a particular environment. We might split this up so that each build covers

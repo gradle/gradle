@@ -907,9 +907,9 @@ org:leaf2:1.0
 
         then:
         output.contains(toPlatformLineSeparators("""
-project : -> org.foo:root:1.0
+project :
 \\--- project :impl
-     \\--- org.foo:root:1.0 (*)"""))
+     \\--- project : (*)"""))
     }
 
     def "selects a module component dependency with a given name"() {

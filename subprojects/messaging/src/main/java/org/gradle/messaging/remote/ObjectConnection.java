@@ -16,38 +16,18 @@
 package org.gradle.messaging.remote;
 
 import org.gradle.internal.concurrent.AsyncStoppable;
-import org.gradle.messaging.dispatch.Dispatch;
-import org.gradle.messaging.dispatch.MethodInvocation;
 
 /**
- * Manages a set of incoming and outgoing channels between 2 peers. Implementations must be thread-safe.
+ * Manages a set of incoming and outgoing channels between 2 peers.
+ *
+ * NOTE: This contract guarantees only partial thread-safety. Configuration and {@link #connect()} are not thread-safe and must be performed by the same thread,
+ * generally some configuration thread. Only the stop methods are thread-safe. The other methods will be made thread-safe (or moved somewhere else) later.
  */
-public interface ObjectConnection extends AsyncStoppable {
+public interface ObjectConnection extends AsyncStoppable, ObjectConnectionBuilder {
     /**
-     * Creates a transmitter for outgoing messages on the given type. The returned object is thread-safe.
-     *
-     * @param type The type
-     * @return A sink. Method calls made on this object are sent as outgoing messages.
+     * Completes the connection. No further configuration can be done.
      */
-    <T> T addOutgoing(Class<T> type);
-
-    /**
-     * Registers a handler for incoming messages on the given type. The provided handler is not required to be
-     * thread-safe. Messages are delivered to the handler by a single thread.
-     *
-     * @param type The type.
-     * @param instance The handler instance. Incoming messages on the given type are delivered to this handler.
-     */
-    <T> void addIncoming(Class<T> type, T instance);
-
-    /**
-     * Registers a handler for incoming messages on the given type. The provided handler is not required to be
-     * thread-safe. Messages are delivered to the handler by a single thread.
-     *
-     * @param type The type.
-     * @param dispatch The handler instance. Incoming messages on the given type are delivered to this handler.
-     */
-    void addIncoming(Class<?> type, Dispatch<? super MethodInvocation> dispatch);
+    void connect();
 
     /**
      * Commences a graceful stop of this connection. Stops accepting outgoing messages. Requests that the peer stop

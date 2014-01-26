@@ -18,10 +18,9 @@ package org.gradle.testfixtures.internal;
 import org.gradle.CacheUsage;
 import org.gradle.api.Action;
 import org.gradle.cache.*;
-import org.gradle.cache.internal.*;
+import org.gradle.cache.internal.CacheFactory;
 import org.gradle.cache.internal.filelock.LockOptions;
 import org.gradle.internal.Factory;
-import org.gradle.messaging.serialize.DefaultSerializer;
 import org.gradle.messaging.serialize.Serializer;
 import org.gradle.util.GFileUtils;
 
@@ -45,28 +44,6 @@ public class InMemoryCacheFactory implements CacheFactory {
 
     public <K, V> PersistentIndexedCache<K, V> openIndexedCache(File cacheDir, CacheUsage usage, CacheValidator validator, Map<String, ?> properties, LockOptions lockOptions, Serializer<V> serializer) {
         return new InMemoryIndexedCache<K, V>(serializer);
-    }
-
-    public <E> PersistentStateCache<E> openStateCache(File cacheDir, CacheUsage usage, CacheValidator validator, Map<String, ?> properties, LockOptions lockOptions, Serializer<E> serializer) {
-        GFileUtils.mkdirs(cacheDir);
-        return new SimpleStateCache<E>(new File(cacheDir, "state.bin"), new NoOpFileLock(), new DefaultSerializer<E>());
-    }
-
-    private static class NoOpFileLock extends AbstractFileAccess {
-        public <T> T readFile(Factory<? extends T> action) throws LockTimeoutException {
-            return action.create();
-        }
-
-        public void updateFile(Runnable action) throws LockTimeoutException {
-            action.run();
-        }
-
-        public void writeFile(Runnable action) throws LockTimeoutException {
-            action.run();
-        }
-
-        public void close() {
-        }
     }
 
     private static class InMemoryCache implements PersistentCache {

@@ -19,17 +19,9 @@ import org.gradle.messaging.remote.Address;
 
 public interface OutgoingConnector {
     /**
-     * Creates a connection to the given address. Uses default Java serialization for messages.
+     * Creates a connection to the given address. Blocks until the connection with the peer has been established.
      *
-     * @param messageClassLoader ClassLoader to use to load incoming messages.
      * @throws ConnectException when there is nothing listening on the remote address.
      */
-    <T> Connection<T> connect(Address destinationAddress, ClassLoader messageClassLoader) throws ConnectException;
-
-    /**
-     * Creates a connection to the given address. Uses the given serializer to convert messages between binary form and objects of type T.
-     *
-     * @throws ConnectException when there is nothing listening on the remote address
-     */
-    <T> Connection<T> connect(Address destinationAddress, MessageSerializer<T> serializer) throws ConnectException;
+    ConnectCompletion connect(Address destinationAddress) throws ConnectException;
 }

@@ -33,7 +33,7 @@ class StreamingResolutionResultBuilderTest extends Specification {
     StreamingResolutionResultBuilder builder = new StreamingResolutionResultBuilder(new DummyBinaryStore(), new DummyStore())
 
     def "result can be read multiple times"() {
-        builder.start(newId("org", "root", "1.0"))
+        builder.start(newId("org", "root", "1.0"), new DefaultModuleComponentIdentifier("org", "root", "1.0"))
 
         when:
         def result = builder.complete()
@@ -48,7 +48,7 @@ class StreamingResolutionResultBuilderTest extends Specification {
     }
 
     def "maintains graph in byte stream"() {
-        builder.start(newId("org", "root", "1.0"))
+        builder.start(newId("org", "root", "1.0"), new DefaultModuleComponentIdentifier("org", "root", "1.0"))
 
         builder.resolvedModuleVersion(sel("org", "dep1", "2.0", CONFLICT_RESOLUTION))
         builder.resolvedConfiguration(newId("org", "root", "1.0"), [
@@ -67,7 +67,7 @@ class StreamingResolutionResultBuilderTest extends Specification {
     }
 
     def "visiting resolved module version again has no effect"() {
-        builder.start(newId("org", "root", "1.0"))
+        builder.start(newId("org", "root", "1.0"), new DefaultModuleComponentIdentifier("org", "root", "1.0"))
         builder.resolvedModuleVersion(sel("org", "root", "1.0", REQUESTED)) //it's fine
 
         builder.resolvedModuleVersion(sel("org", "dep1", "2.0", CONFLICT_RESOLUTION))
@@ -86,7 +86,7 @@ class StreamingResolutionResultBuilderTest extends Specification {
     }
 
     def "visiting resolved configuration again accumulates dependencies"() {
-        builder.start(newId("org", "root", "1.0"))
+        builder.start(newId("org", "root", "1.0"), new DefaultModuleComponentIdentifier("org", "root", "1.0"))
 
         builder.resolvedModuleVersion(sel("org", "dep1", "2.0", REQUESTED))
         builder.resolvedModuleVersion(sel("org", "dep2", "2.0", REQUESTED))
@@ -109,7 +109,7 @@ class StreamingResolutionResultBuilderTest extends Specification {
     }
 
     def "dependency failures are remembered"() {
-        builder.start(newId("org", "root", "1.0"))
+        builder.start(newId("org", "root", "1.0"), new DefaultModuleComponentIdentifier("org", "root", "1.0"))
 
         builder.resolvedModuleVersion(sel("org", "dep1", "2.0", REQUESTED))
         builder.resolvedModuleVersion(sel("org", "dep2", "2.0", REQUESTED))

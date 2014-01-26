@@ -33,7 +33,6 @@ public class DefaultInternalDependencyResult implements InternalDependencyResult
                                            ComponentSelectionReason reason,
                                            ModuleVersionResolveException failure) {
         assert requested != null;
-        assert reason != null;
         assert failure != null || selected != null;
 
         this.requested = requested;

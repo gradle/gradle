@@ -21,13 +21,16 @@ import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.Factory;
+import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.internal.id.IdGenerator;
-import org.gradle.messaging.remote.*;
+import org.gradle.messaging.remote.Address;
+import org.gradle.messaging.remote.ConnectionAcceptor;
+import org.gradle.messaging.remote.MessagingServer;
+import org.gradle.messaging.remote.ObjectConnection;
 import org.gradle.process.internal.child.ApplicationClassesInIsolatedClassLoaderWorkerFactory;
 import org.gradle.process.internal.child.ApplicationClassesInSystemClassLoaderWorkerFactory;
 import org.gradle.process.internal.child.EncodedStream;
 import org.gradle.process.internal.child.WorkerFactory;
-import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.util.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,9 +77,9 @@ public class DefaultWorkerProcessFactory implements Factory<WorkerProcessBuilder
             }
 
             final DefaultWorkerProcess workerProcess = new DefaultWorkerProcess(120, TimeUnit.SECONDS);
-            ConnectionAcceptor acceptor = server.accept(new Action<ConnectEvent<ObjectConnection>>() {
-                public void execute(ConnectEvent<ObjectConnection> event) {
-                    workerProcess.onConnect(event.getConnection());
+            ConnectionAcceptor acceptor = server.accept(new Action<ObjectConnection>() {
+                public void execute(ObjectConnection connection) {
+                    workerProcess.onConnect(connection);
                 }
             });
             workerProcess.startAccepting(acceptor);

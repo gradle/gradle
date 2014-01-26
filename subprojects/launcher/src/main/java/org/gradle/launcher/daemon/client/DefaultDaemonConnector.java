@@ -132,7 +132,7 @@ public class DefaultDaemonConnector implements DaemonConnector {
     private DaemonClientConnection connectToDaemon(DaemonInfo daemonInfo, DaemonClientConnection.StaleAddressDetector staleAddressDetector) throws ConnectException {
         Connection<Object> connection;
         try {
-            connection = connector.connect(daemonInfo.getAddress(), getClass().getClassLoader());
+            connection = connector.connect(daemonInfo.getAddress()).create(getClass().getClassLoader());
         } catch (ConnectException e) {
             staleAddressDetector.maybeStaleAddress(e);
             throw e;

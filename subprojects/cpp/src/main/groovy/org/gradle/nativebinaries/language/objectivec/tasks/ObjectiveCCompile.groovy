@@ -21,6 +21,7 @@ import org.gradle.nativebinaries.toolchain.internal.PlatformToolChain
 import org.gradle.nativebinaries.language.c.tasks.AbstractNativeCompileTask
 import org.gradle.nativebinaries.language.objectivec.internal.DefaultObjectiveCCompileSpec
 import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec
+import org.gradle.api.internal.tasks.compile.Compiler
 
 import javax.inject.Inject
 
@@ -40,7 +41,7 @@ class ObjectiveCCompile extends AbstractNativeCompileTask {
     }
 
     @Override
-    protected org.gradle.api.internal.tasks.compile.Compiler<NativeCompileSpec> createCompiler(PlatformToolChain toolChain) {
+    protected Compiler<NativeCompileSpec> createCompiler(PlatformToolChain toolChain) {
         return toolChain.createObjectiveCCompiler()
     }
 }

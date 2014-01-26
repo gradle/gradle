@@ -11,14 +11,18 @@ executables {
 
 // START SNIPPET all-binaries
 binaries.all {
-    if (toolChain in Gcc) {
-        objectiveCCompiler.args "-I/usr/include/GNUstep", "-fconstant-string-class=NSConstantString", "-D_NATIVE_OBJC_EXCEPTIONS"
-        linker.args "-lgnustep-base", "-lobjc"
-    }
+    objectiveCCompiler.args "-I/usr/include/GNUstep", "-fconstant-string-class=NSConstantString", "-D_NATIVE_OBJC_EXCEPTIONS"
 
-    if (toolChain in Clang) {
-        linker.args  '-framework', 'Foundation'
+    //on osx we need different settings than on linux or windows
+    if(isOsx()){
+        linker.args "-framework", "Foundation"
+    }else{
+        linker.args "-lgnustep-base", "-lobjc"
     }
 }
 // END SNIPPET all-binaries
 
+def isOsx(){
+    String osName = System.getProperty("os.name").toLowerCase();
+    return (osName.contains("mac os x") || osName.contains("darwin"))
+}

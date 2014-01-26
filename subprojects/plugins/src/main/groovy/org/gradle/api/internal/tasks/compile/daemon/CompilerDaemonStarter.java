@@ -55,9 +55,11 @@ public class CompilerDaemonStarter {
         javaCommand.setWorkingDir(workingDir);
         WorkerProcess process = builder.worker(new CompilerDaemonServer()).build();
         process.start();
+
         CompilerDaemonServerProtocol server = process.getConnection().addOutgoing(CompilerDaemonServerProtocol.class);
         CompilerDaemonClient client = new CompilerDaemonClient(forkOptions, process, server);
         process.getConnection().addIncoming(CompilerDaemonClientProtocol.class, client);
+        process.getConnection().connect();
 
         LOG.info("Started Gradle compiler daemon ({}) with fork options {}.", clock.getTime(), forkOptions);
 

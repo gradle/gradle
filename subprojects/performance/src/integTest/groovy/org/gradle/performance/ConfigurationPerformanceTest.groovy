@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,13 +21,13 @@ import spock.lang.Unroll
 
 import static org.gradle.performance.measure.Duration.millis
 
-class DependencyReportPerformanceTest extends AbstractPerformanceTest {
-    @Unroll("Project '#testProject' dependency report")
-    def "dependency report"() {
+class ConfigurationPerformanceTest extends AbstractPerformanceTest {
+    @Unroll("Project '#testProject' configuration")
+    def "configuration"() {
         given:
-        runner.testId = "dependencyReport $testProject"
+        runner.testId = "configuration $testProject"
         runner.testProject = testProject
-        runner.tasksToRun = ['dependencyReport']
+        runner.tasksToRun = ['help']
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
         runner.targetVersions = ['1.0', '1.4', '1.8', 'last']
 
@@ -42,5 +42,6 @@ class DependencyReportPerformanceTest extends AbstractPerformanceTest {
         "small"           | millis(500)
         "multi"           | millis(500)
         "lotDependencies" | millis(500)
+        "manyProjects"    | millis(500)
     }
 }

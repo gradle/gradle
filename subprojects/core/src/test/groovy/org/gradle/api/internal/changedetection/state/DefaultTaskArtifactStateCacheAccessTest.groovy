@@ -19,40 +19,26 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.PersistentCache
-import org.gradle.cache.PersistentIndexedCache
 import org.gradle.cache.internal.FileLockManager
 import org.gradle.cache.internal.filelock.LockOptionsBuilder
-import org.gradle.messaging.serialize.DefaultSerializer
 import spock.lang.Specification
 
 class DefaultTaskArtifactStateCacheAccessTest extends Specification {
     final GradleInternal gradle = Mock()
     final CacheRepository cacheRepository = Mock()
-    final DefaultTaskArtifactStateCacheAccess cacheAccess = new DefaultTaskArtifactStateCacheAccess(gradle, cacheRepository, new NoOpDecorator())
-    
-    def "opens backing cache on first use"() {
+
+    def "opens backing cache on construction"() {
         CacheBuilder cacheBuilder = Mock()
         PersistentCache backingCache = Mock()
-        PersistentIndexedCache<String, Integer> backingIndexedCache = Mock()
-
-        def serializer = new DefaultSerializer<Integer>()
-        when:
-        def indexedCache = cacheAccess.createCache("some-cache", String, serializer)
-
-        then:
-        0 * _._
 
         when:
-        indexedCache.get("key")
+        new DefaultTaskArtifactStateCacheAccess(gradle, cacheRepository, new NoOpDecorator())
 
         then:
         1 * cacheRepository.cache(gradle, "taskArtifacts") >> cacheBuilder
         1 * cacheBuilder.withDisplayName(_) >> cacheBuilder
         1 * cacheBuilder.withLockOptions(LockOptionsBuilder.mode(FileLockManager.LockMode.None)) >> cacheBuilder
         1 * cacheBuilder.open() >> backingCache
-        _ * backingCache.baseDir >> new File("baseDir")
-        1 * backingCache.createCache({it.cacheName == "some-cache"}) >> backingIndexedCache
-        1 * backingIndexedCache.get("key")
         0 * _._
     }
 }

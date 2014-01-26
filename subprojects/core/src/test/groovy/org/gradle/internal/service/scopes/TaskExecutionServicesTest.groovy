@@ -46,8 +46,7 @@ class TaskExecutionServicesTest extends Specification {
         _ * parent.get(CacheRepository) >> cacheRepository
         _ * parent.get(Instantiator) >> Mock(Instantiator)
         _ * parent.get(InMemoryTaskArtifactCache) >> Mock(InMemoryTaskArtifactCache)
-        _ * cacheRepository.cache(!null) >> cacheBuilder
-        _ * cacheBuilder.forObject(gradle) >> cacheBuilder
+        _ * cacheRepository.cache(gradle, 'taskArtifacts') >> cacheBuilder
         _ * cacheBuilder.withDisplayName(!null) >> cacheBuilder
         _ * cacheBuilder.withLockOptions(!null) >> cacheBuilder
         _ * cacheBuilder.open() >> Mock(PersistentCache)

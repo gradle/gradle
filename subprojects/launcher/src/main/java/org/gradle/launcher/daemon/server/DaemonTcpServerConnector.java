@@ -20,9 +20,8 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.id.UUIDGenerator;
 import org.gradle.messaging.remote.Address;
-import org.gradle.messaging.remote.ConnectEvent;
-import org.gradle.messaging.remote.internal.Connection;
 import org.gradle.messaging.remote.ConnectionAcceptor;
+import org.gradle.messaging.remote.internal.ConnectCompletion;
 import org.gradle.messaging.remote.internal.IncomingConnector;
 import org.gradle.messaging.remote.internal.inet.InetAddressFactory;
 import org.gradle.messaging.remote.internal.inet.TcpIncomingConnector;
@@ -62,13 +61,13 @@ public class DaemonTcpServerConnector implements DaemonServerConnector {
             // Hold the lock until we actually start accepting connections for the case when stop is called from another
             // thread while we are in the middle here.
 
-            Action<ConnectEvent<Connection<Object>>> connectEvent = new Action<ConnectEvent<Connection<Object>>>() {
-                public void execute(ConnectEvent<Connection<Object>> connectionConnectEvent) {
-                    handler.handle(new SynchronizedDispatchConnection<Object>(connectionConnectEvent.getConnection()));
+            Action<ConnectCompletion> connectEvent = new Action<ConnectCompletion>() {
+                public void execute(ConnectCompletion completion) {
+                    handler.handle(new SynchronizedDispatchConnection<Object>(completion.create(getClass().getClassLoader())));
                 }
             };
 
-            acceptor = incomingConnector.accept(connectEvent, getClass().getClassLoader(), false);
+            acceptor = incomingConnector.accept(connectEvent, false);
             started = true;
             return acceptor.getAddress();
         } finally {

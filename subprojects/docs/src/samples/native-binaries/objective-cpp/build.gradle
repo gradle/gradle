@@ -11,14 +11,19 @@ executables {
 
 // START SNIPPET all-binaries
 binaries.all {
-    if (toolChain in Gcc) {
-        //using GNUStep library when building with Gcc
-        objectiveCppCompiler.args "-I/usr/include/GNUstep", "-fconstant-string-class=NSConstantString", "-D_NATIVE_OBJC_EXCEPTIONS"
-        linker.args "'-lgnustep-base", "-lobjc"
-    }
-    if (toolChain in Clang) {
+    objectiveCppCompiler.args "-I/usr/include/GNUstep", "-I/usr/local/include/objc", "-fconstant-string-class=NSConstantString", "-D_NATIVE_OBJC_EXCEPTIONS"
+
+    //on osx we need different linker settings than on linux or windows
+    if(isOsx()){
         linker.args "-framework", "Foundation"
+    }else{
+        linker.args "-lgnustep-base", "-lobjc"
     }
 }
 // END SNIPPET all-binaries
+
+def isOsx(){
+    String osName = System.getProperty("os.name").toLowerCase();
+    return (osName.contains("mac os x") || osName.contains("darwin"))
+}
 

@@ -16,15 +16,15 @@
 
 package org.gradle.messaging.remote.internal.hub
 
-import com.esotericsoftware.kryo.io.Input
-import com.esotericsoftware.kryo.io.Output
 import org.gradle.messaging.dispatch.MethodInvocation
-import org.gradle.messaging.serialize.kryo.KryoSerializer
+import org.gradle.messaging.serialize.kryo.JavaSerializer
+import org.gradle.messaging.serialize.kryo.KryoBackedDecoder
+import org.gradle.messaging.serialize.kryo.KryoBackedEncoder
 import spock.lang.Specification
 
 class MethodInvocationSerializerTest extends Specification {
     final classLoader = new GroovyClassLoader(getClass().classLoader)
-    final serializer = new MethodInvocationSerializer(classLoader, new KryoSerializer<Object[]>())
+    final serializer = new MethodInvocationSerializer(classLoader, new JavaSerializer<Object[]>(getClass().classLoader))
 
     def "serializes a method invocation with parameters"() {
         def method = String.class.getMethod("substring", Integer.TYPE, Integer.TYPE)
@@ -37,7 +37,6 @@ class MethodInvocationSerializerTest extends Specification {
         then:
         result.method == method
         result.arguments == [1, 2] as Object[]
-        serialized.length == 60
     }
 
     def "replaces a method that has already been seen with an integer ID"() {
@@ -45,6 +44,10 @@ class MethodInvocationSerializerTest extends Specification {
         def method2 = String.class.getMethod("substring", Integer.TYPE, Integer.TYPE)
         def invocation1 = new MethodInvocation(method1, [1, 2] as Object[])
         def invocation2 = new MethodInvocation(method2, [3, 4] as Object[])
+
+        given:
+        def invocation1Serialized = serialize(invocation1)
+        def invocation2Serialized = serialize(invocation2)
 
         when:
         def serialized = serialize(invocation1, invocation2)
@@ -55,7 +58,7 @@ class MethodInvocationSerializerTest extends Specification {
         result[0].arguments == [1, 2] as Object[]
         result[1].method == method1
         result[1].arguments == [3, 4] as Object[]
-        serialized.length == 88
+        serialized.length < invocation1Serialized.length + invocation2Serialized.length
     }
 
     def "serializes method invocations for multiple methods"() {
@@ -94,21 +97,21 @@ class MethodInvocationSerializerTest extends Specification {
 
     def serialize(MethodInvocation... messages) {
         def outStr = new ByteArrayOutputStream()
-        def output = new Output(outStr)
-        def writer = serializer.newWriter(output)
+        def encoder = new KryoBackedEncoder(outStr)
+        def writer = serializer.newWriter(encoder)
         messages.each {
             writer.write(it)
         }
-        output.flush()
+        encoder.flush()
         return outStr.toByteArray()
     }
 
     def deserialize(byte[] data) {
-        return serializer.newReader(new Input(data)).read()
+        return serializer.newReader(new KryoBackedDecoder(new ByteArrayInputStream(data))).read()
     }
 
     def deserializeMultiple(byte[] data, int count) {
-        def reader = serializer.newReader(new Input(data))
+        def reader = serializer.newReader(new KryoBackedDecoder(new ByteArrayInputStream(data)))
         def result = []
         count.times {
             result << reader.read()

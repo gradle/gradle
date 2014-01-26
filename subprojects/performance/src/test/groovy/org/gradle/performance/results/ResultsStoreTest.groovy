@@ -127,15 +127,11 @@ class ResultsStoreTest extends ResultSpecification {
     }
 
     def "returns test names in ascending order"() {
-        def result1 = results(testId: "test1", testTime: 30000, versionUnderTest: "1.7-rc-1")
-        def result2 = results(testId: "test2", testTime: 20000, versionUnderTest: "1.7-rc-2")
-        def result3 = results(testId: "test3", testTime: 10000, versionUnderTest: "1.7-rc-3")
-
         given:
         def writeStore = new ResultsStore(dbFile)
-        writeStore.report(result3)
-        writeStore.report(result1)
-        writeStore.report(result2)
+        writeStore.report(results(testId: "test3"))
+        writeStore.report(results(testId: "test1"))
+        writeStore.report(results(testId: "test2"))
         writeStore.close()
 
         when:
@@ -151,15 +147,11 @@ class ResultsStoreTest extends ResultSpecification {
     }
 
     def "returns test executions in descending date order"() {
-        def result1 = results(testId: "some test", testTime: 10000, versionUnderTest: "1.7-rc-1")
-        def result2 = results(testId: "some test", testTime: 20000, versionUnderTest: "1.7-rc-2")
-        def result3 = results(testId: "some test", testTime: 30000, versionUnderTest: "1.7-rc-3")
-
         given:
         def writeStore = new ResultsStore(dbFile)
-        writeStore.report(result3)
-        writeStore.report(result1)
-        writeStore.report(result2)
+        writeStore.report(results(testId: "some test", testTime: 30000, versionUnderTest: "1.7-rc-3"))
+        writeStore.report(results(testId: "some test", testTime: 10000, versionUnderTest: "1.7-rc-1"))
+        writeStore.report(results(testId: "some test", testTime: 20000, versionUnderTest: "1.7-rc-2"))
         writeStore.close()
 
         when:
@@ -170,6 +162,38 @@ class ResultsStoreTest extends ResultSpecification {
         results.results.size() == 3
         results.results*.versionUnderTest == ["1.7-rc-3", "1.7-rc-2", "1.7-rc-1"]
         results.resultsOldestFirst*.versionUnderTest == ["1.7-rc-1", "1.7-rc-2", "1.7-rc-3"]
+
+        cleanup:
+        writeStore?.close()
+        readStore?.close()
+    }
+
+    def "returns baseline versions in ascending order"() {
+        given:
+        def writeStore = new ResultsStore(dbFile)
+
+        def results1 = results()
+        results1.baseline("1.8-rc-2").results << operation()
+        results1.baseline("1.0").results << operation()
+        def results2 = results()
+        results2.baseline("1.8-rc-1").results << operation()
+        results2.baseline("1.0").results << operation()
+        results2.baseline("1.10").results << operation()
+        def results3 = results()
+        results3.baseline("1.8").results << operation()
+        results3.baseline("1.10").results << operation()
+
+        writeStore.report(results1)
+        writeStore.report(results2)
+        writeStore.report(results3)
+        writeStore.close()
+
+        when:
+        def readStore = new ResultsStore(dbFile)
+        def results = readStore.getTestResults("test-id")
+
+        then:
+        results.baselineVersions == ["1.0", "1.8-rc-1", "1.8-rc-2", "1.8", "1.10"]
 
         cleanup:
         writeStore?.close()

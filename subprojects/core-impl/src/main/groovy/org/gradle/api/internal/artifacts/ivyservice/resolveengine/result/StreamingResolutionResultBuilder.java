@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
@@ -50,6 +51,7 @@ public class StreamingResolutionResultBuilder implements ResolutionResultBuilder
     private final ModuleVersionSelectionSerializer moduleVersionSelectionSerializer = new ModuleVersionSelectionSerializer();
     private final Store<ResolvedComponentResult> cache;
     private final InternalDependencyResultSerializer internalDependencyResultSerializer = new InternalDependencyResultSerializer();
+    private final ComponentIdentifierSerializer componentIdentifierSerializer = new ComponentIdentifierSerializer();
 
     public StreamingResolutionResultBuilder(BinaryStore store, Store<ResolvedComponentResult> cache) {
         this.store = store;
@@ -67,11 +69,12 @@ public class StreamingResolutionResultBuilder implements ResolutionResultBuilder
         return new DefaultResolutionResult(rootSource);
     }
 
-    public ResolutionResultBuilder start(final ModuleVersionIdentifier root) {
+    public ResolutionResultBuilder start(final ModuleVersionIdentifier root, final ComponentIdentifier componentIdentifier) {
         store.write(new BinaryStore.WriteAction() {
             public void write(Encoder encoder) throws IOException {
                 encoder.writeByte(ROOT);
                 moduleVersionIdentifierSerializer.write(encoder, root);
+                componentIdentifierSerializer.write(encoder, componentIdentifier);
             }
         });
         return this;
@@ -121,6 +124,7 @@ public class StreamingResolutionResultBuilder implements ResolutionResultBuilder
         private final Object lock = new Object();
         private final ModuleVersionIdentifierSerializer moduleVersionIdentifierSerializer = new ModuleVersionIdentifierSerializer();
         private final InternalDependencyResultSerializer internalDependencyResultSerializer = new InternalDependencyResultSerializer();
+        private final ComponentIdentifierSerializer componentIdentifierSerializer = new ComponentIdentifierSerializer();
 
         public RootFactory(BinaryStore.BinaryData data, Map<ComponentSelector, ModuleVersionResolveException> failures,
                            Store<ResolvedComponentResult> cache) {
@@ -163,7 +167,8 @@ public class StreamingResolutionResultBuilder implements ResolutionResultBuilder
                     switch (type) {
                         case ROOT:
                             ModuleVersionIdentifier id = moduleVersionIdentifierSerializer.read(decoder);
-                            builder.start(id);
+                            ComponentIdentifier componentIdentifier = componentIdentifierSerializer.read(decoder);
+                            builder.start(id, componentIdentifier);
                             break;
                         case MODULE:
                             ModuleVersionSelection sel = moduleVersionSelectionSerializer.read(decoder);

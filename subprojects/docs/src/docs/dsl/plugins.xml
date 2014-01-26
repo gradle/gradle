@@ -99,6 +99,12 @@
     <plugin id="assembler" description="Assembler Plugin">
         <extends targetClass="org.gradle.nativebinaries.NativeBinary" id="assembler" extensionClass="org.gradle.nativebinaries.Tool"/>
     </plugin>
+    <plugin id="objective-c" description="Objective-C Plugin">
+        <extends targetClass="org.gradle.nativebinaries.NativeBinary" id="objectiveCCompiler" extensionClass="org.gradle.nativebinaries.language.PreprocessingTool"/>
+    </plugin>
+    <plugin id="objective-cpp" description="Objective-C++ Plugin">
+        <extends targetClass="org.gradle.nativebinaries.NativeBinary" id="objectiveCppCompiler" extensionClass="org.gradle.nativebinaries.language.PreprocessingTool"/>
+    </plugin>
     <plugin id="windows-resources" description="Windows Resources Plugin">
         <extends targetClass="org.gradle.nativebinaries.NativeBinary" id="rcCompiler" extensionClass="org.gradle.nativebinaries.language.PreprocessingTool"/>
     </plugin>

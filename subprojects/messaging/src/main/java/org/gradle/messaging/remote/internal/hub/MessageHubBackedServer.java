@@ -18,46 +18,35 @@ package org.gradle.messaging.remote.internal.hub;
 
 import org.gradle.api.Action;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.messaging.remote.*;
-import org.gradle.messaging.remote.internal.Connection;
+import org.gradle.messaging.remote.ConnectionAcceptor;
+import org.gradle.messaging.remote.MessagingServer;
+import org.gradle.messaging.remote.ObjectConnection;
+import org.gradle.messaging.remote.internal.ConnectCompletion;
 import org.gradle.messaging.remote.internal.IncomingConnector;
-import org.gradle.messaging.remote.internal.MessageSerializer;
-import org.gradle.messaging.remote.internal.hub.protocol.InterHubMessage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class MessageHubBackedServer implements MessagingServer {
-    private static final Logger LOGGER = LoggerFactory.getLogger(MessageHubBackedServer.class);
     private final IncomingConnector connector;
-    private final MessageSerializer<InterHubMessage> serializer;
     private final ExecutorFactory executorFactory;
 
-    public MessageHubBackedServer(IncomingConnector connector, MessageSerializer<InterHubMessage> serializer, ExecutorFactory executorFactory) {
+    public MessageHubBackedServer(IncomingConnector connector, ExecutorFactory executorFactory) {
         this.connector = connector;
-        this.serializer = serializer;
         this.executorFactory = executorFactory;
     }
 
-    public ConnectionAcceptor accept(Action<ConnectEvent<ObjectConnection>> action) {
-        return connector.accept(new ConnectEventAction(action), serializer, false);
+    public ConnectionAcceptor accept(Action<ObjectConnection> action) {
+        return connector.accept(new ConnectEventAction(action), false);
     }
 
-    private class ConnectEventAction implements Action<ConnectEvent<Connection<InterHubMessage>>> {
-        private final Action<ConnectEvent<ObjectConnection>> action;
+    private class ConnectEventAction implements Action<ConnectCompletion> {
+        private final Action<ObjectConnection> action;
 
-        public ConnectEventAction(Action<ConnectEvent<ObjectConnection>> action) {
+        public ConnectEventAction(Action<ObjectConnection> action) {
             this.action = action;
         }
 
-        public void execute(ConnectEvent<Connection<InterHubMessage>> connectEvent) {
-            Connection<InterHubMessage> connection = connectEvent.getConnection();
-            MessageHub hub = new MessageHub(connection.toString(), executorFactory, new Action<Throwable>() {
-                public void execute(Throwable throwable) {
-                    LOGGER.error("Unexpected exception thrown.", throwable);
-                }
-            });
-            MessageHubBackedObjectConnection objectConnection = new MessageHubBackedObjectConnection(hub, connection);
-            action.execute(new ConnectEvent<ObjectConnection>(objectConnection, connectEvent.getLocalAddress(), connectEvent.getRemoteAddress()));
+        public void execute(ConnectCompletion completion) {
+            action.execute(new MessageHubBackedObjectConnection(executorFactory, completion));
         }
     }
+
 }

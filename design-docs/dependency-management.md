@@ -204,7 +204,9 @@ This story exposes different kinds of consumers for a dependency graph.
 - Convenience for selecting things with a given id type or selector type?
 - Rename `DependencyResult` to use 'requirement' instead of 'dependency'.
 - Rename `ResolvedComponentResult.getId()` to something that is more explicit about the lack of guarantees. Maybe `getLocalId()` or ...
-- Rename internal class `ModuleVersionSelection` and its methods
+- Internal changes to push components down further:
+    - Rename internal class `ModuleVersionSelection` and its methods.
+    - Change `ResolutionResultBuilder` and its implementations to use component id rather than module version id as the key for the node.
 - Extract a `ModuleComponentMetadataDetails` out of `ComponentMetadataDetails` and use `ComponentIdentifier` instead of `ModuleVersionIdentifier` as id.
 
 ## Story: Dependency resolution result exposes local component instances that are not module versions

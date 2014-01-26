@@ -55,7 +55,7 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
 
         then:
         resolve.expectGraph {
-            root(":test:") {
+            root(":", ":test:") {
                 edge("org.test:projectA:latest.integration", "org.test:projectA:1.0")
             }
         }
@@ -67,7 +67,7 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
 
         then:
         resolve.expectGraph {
-            root(":test:") {
+            root(":", ":test:") {
                 edge("org.test:projectA:latest.integration", "org.test:projectA:1.2")
             }
         }
@@ -78,7 +78,7 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
 
         then:
         resolve.expectGraph {
-            root(":test:") {
+            root(":", ":test:") {
                 edge("org.test:projectA:latest.integration", "org.test:projectA:1.3")
             }
         }
@@ -89,7 +89,7 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
 
         then:
         resolve.expectGraph {
-            root(":test:") {
+            root(":", ":test:") {
                 edge("org.test:projectA:latest.integration", "org.test:projectA:1.4")
             }
         }
@@ -140,7 +140,7 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
 
         then:
         resolve.expectGraph {
-            root(":test:") {
+            root(":", ":test:") {
                 edge("org.test:projectA:latest.milestone", "org.test:projectA:1.1")
             }
         }
@@ -151,7 +151,7 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
 
         then:
         resolve.expectGraph {
-            root(":test:") {
+            root(":", ":test:") {
                 edge("org.test:projectA:latest.milestone", "org.test:projectA:1.2")
             }
         }
@@ -162,7 +162,7 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
 
         then:
         resolve.expectGraph {
-            root(":test:") {
+            root(":", ":test:") {
                 edge("org.test:projectA:latest.milestone", "org.test:projectA:1.2")
             }
         }
@@ -214,7 +214,7 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
 
         then:
         resolve.expectGraph {
-            root(":test:") {
+            root(":", ":test:") {
                 edge("org.test:projectA:latest.release", "org.test:projectA:1.1")
             }
         }
@@ -226,7 +226,7 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
 
         then:
         resolve.expectGraph {
-            root(":test:") {
+            root(":", ":test:") {
                 edge("org.test:projectA:latest.release", "org.test:projectA:1.1")
             }
         }
@@ -266,7 +266,7 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
 
         then:
         resolve.expectGraph {
-            root(":test:") {
+            root(":", ":test:") {
                 edge("org.test:projectA:1.2+", "org.test:projectA:1.2")
             }
         }
@@ -277,7 +277,7 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
 
         then:
         resolve.expectGraph {
-            root(":test:") {
+            root(":", ":test:") {
                 edge("org.test:projectA:1.2+", "org.test:projectA:1.2.1")
             }
         }
@@ -288,7 +288,7 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
 
         then:
         resolve.expectGraph {
-            root(":test:") {
+            root(":", ":test:") {
                 edge("org.test:projectA:1.2+", "org.test:projectA:1.2.9")
             }
         }
@@ -299,7 +299,7 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
 
         then:
         resolve.expectGraph {
-            root(":test:") {
+            root(":", ":test:") {
                 edge("org.test:projectA:1.2+", "org.test:projectA:1.2.10")
             }
         }
@@ -339,7 +339,7 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
 
         then:
         resolve.expectGraph {
-            root(":test:") {
+            root(":", ":test:") {
                 edge("org.test:projectA:[1.2,2.0]", "org.test:projectA:1.2")
             }
         }
@@ -350,7 +350,7 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
 
         then:
         resolve.expectGraph {
-            root(":test:") {
+            root(":", ":test:") {
                 edge("org.test:projectA:[1.2,2.0]", "org.test:projectA:1.2.1")
             }
         }
@@ -361,7 +361,7 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
 
         then:
         resolve.expectGraph {
-            root(":test:") {
+            root(":", ":test:") {
                 edge("org.test:projectA:[1.2,2.0]", "org.test:projectA:1.3")
             }
         }
@@ -372,7 +372,7 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
 
         then:
         resolve.expectGraph {
-            root(":test:") {
+            root(":", ":test:") {
                 edge("org.test:projectA:[1.2,2.0]", "org.test:projectA:1.4")
             }
         }
@@ -411,7 +411,7 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
 
         then:
         resolve.expectGraph {
-            root(":test:") {
+            root(":", ":test:") {
                 edge("org.test:projectA:latest.milestone", "org.test:projectA:1.1")
             }
         }
@@ -422,7 +422,7 @@ class IvyDynamicRevisionResolveIntegrationTest extends AbstractDependencyResolut
 
         then:
         resolve.expectGraph {
-            root(":test:") {
+            root(":", ":test:") {
                 edge("org.test:projectA:latest.milestone", "org.test:projectA:1.3")
             }
         }

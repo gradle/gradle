@@ -28,6 +28,8 @@ class FindBugsWorkerManager {
 
         FindBugsWorkerClient clientCallBack = new FindBugsWorkerClient()
         process.connection.addIncoming(FindBugsWorkerClientProtocol.class, clientCallBack);
+        process.connection.connect()
+
         FindBugsResult result = clientCallBack.getResult();
 
         process.waitForStop();

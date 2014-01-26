@@ -88,8 +88,10 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
         processor = proxy.getSource();
 
         ObjectConnection serverConnection = workerProcessContext.getServerConnection();
+        serverConnection.useParameterSerializer(new TestEventSerializer());
         this.resultProcessor = serverConnection.addOutgoing(TestResultProcessor.class);
         serverConnection.addIncoming(RemoteTestClassProcessor.class, this);
+        serverConnection.connect();
     }
 
     public void startProcessing() {

@@ -29,6 +29,7 @@ import org.gradle.nativebinaries.platform.Platform
 import org.gradle.nativebinaries.toolchain.ToolChain
 import org.gradle.nativebinaries.toolchain.internal.NativeCompileSpec
 import org.gradle.nativebinaries.toolchain.internal.PlatformToolChain
+import org.gradle.api.internal.tasks.compile.Compiler
 
 import javax.inject.Inject
 /**
@@ -123,7 +124,7 @@ abstract class AbstractNativeCompileTask extends DefaultTask {
 
     protected abstract NativeCompileSpec createCompileSpec();
 
-    protected abstract org.gradle.api.internal.tasks.compile.Compiler<NativeCompileSpec> createCompiler(PlatformToolChain toolChain)
+    protected abstract Compiler<NativeCompileSpec> createCompiler(PlatformToolChain toolChain)
 
     /**
      * Add directories where the compiler should search for header files.
