@@ -15,7 +15,9 @@
  */
 package org.gradle.cli
 
-import spock.lang.*
+import spock.lang.Issue
+import spock.lang.Specification
+import spock.lang.Unroll
 
 class CommandLineParserTest extends Specification {
     private final CommandLineParser parser = new CommandLineParser()
@@ -382,7 +384,7 @@ class CommandLineParserTest extends Specification {
                 '-y, -z, --end-option, --last-option  this is the last option'
         ]
     }
-    
+
     def formatsUsageMessageForDeprecatedAndIncubatingOptions() {
         parser.option('a', 'long-option').hasDescription('this is option a').deprecated("don't use this")
         parser.option('b').deprecated('will be removed')
@@ -474,16 +476,23 @@ class CommandLineParserTest extends Specification {
     }
 
     @Unroll
-    def "parse fails when command line contains unknown long option with newline #argv"() {
+    def "parse fails when command line contains unknown option with newline #arg"() {
         when:
-        parser.parse([argv])
+        parser.parse(arg)
 
         then:
         def e = thrown(CommandLineArgumentException)
-        e.message == 'Unknown command-line option \'--a\nb\'.'
+        e.message == "Unknown command-line option '${reportedAs}'."
 
         where:
-        argv << ['--a\nb', '--a\nb=something']
+        arg                | reportedAs
+        '-a\nb'            | '-a'
+        '--a\nb'           | '--a\nb'
+        '--a\nb=something' | '--a\nb'
+        '-\n'              | '-\n'
+        '-\na'             | '-\n'
+        '--\n'             | '--\n'
+        '--\n=nothing'     | '--\n'
     }
 
     def parseFailsWhenCommandLineContainsUnknownLongOptionWithEqualsArgument() {
@@ -582,7 +591,6 @@ class CommandLineParserTest extends Specification {
         expect:
         def result = parser.parse(['--long-option=a\nb\nc'])
         result.option('long-option').values == ['a\nb\nc']
-
     }
 
     def parseFailsWhenEmptyArgumentIsProvided() {
@@ -640,7 +648,7 @@ class CommandLineParserTest extends Specification {
         def e = thrown(CommandLineArgumentException)
         e.message == 'Command-line option \'-a\' does not take an argument.'
     }
-    
+
     def "allow unknown options mode collects unknown options"() {
         given:
         parser.option("a")
@@ -653,7 +661,7 @@ class CommandLineParserTest extends Specification {
 
         then:
         result.option("a") != null
-        
+
         and:
         result.extraArguments == ['-b', '--long-option']
     }
@@ -690,7 +698,7 @@ class CommandLineParserTest extends Specification {
 
         then:
         result.option("a") != null
-        
+
         and:
         result.extraArguments == ['-ba', '-ba=c']
     }
