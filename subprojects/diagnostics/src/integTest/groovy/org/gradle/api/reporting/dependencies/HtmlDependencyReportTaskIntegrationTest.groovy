@@ -138,9 +138,11 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
 
         file("settings.gradle") << """
             rootProject.name = 'fooProject'
+            include 'a'
         """
 
         file("build.gradle") << """
+            apply plugin: 'base'
             apply plugin : 'project-report'
             repositories {
                 maven { url "${mavenRepo.uri}" }
@@ -149,6 +151,7 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
             dependencies {
               compile 'foo:bar:1.0'
               compile 'grr:bzz:1.0'
+              compile project(':a')
             }
         """
 
@@ -157,12 +160,16 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         def json = readGeneratedJson("root")
 
         then:
-        json.project.configurations[0].dependencies.size() == 2
-        json.project.configurations[0].dependencies[0].name == "foo:bar:1.0"
-        json.project.configurations[0].dependencies[0].children[0].name == "foo:qix:1.0"
-        json.project.configurations[0].dependencies[0].children[0].resolvable == false
-        json.project.configurations[0].dependencies[1].name == "grr:bzz:1.0"
-        json.project.configurations[0].dependencies[1].resolvable == false
+        def compileConfiguration = json.project.configurations.find { it.name == 'compile' }
+        compileConfiguration
+        compileConfiguration.dependencies.size() == 3
+        compileConfiguration.dependencies[0].name == "foo:bar:1.0"
+        compileConfiguration.dependencies[0].children[0].name == "foo:qix:1.0"
+        compileConfiguration.dependencies[0].children[0].resolvable == false
+        compileConfiguration.dependencies[1].name == "grr:bzz:1.0"
+        compileConfiguration.dependencies[1].resolvable == false
+        compileConfiguration.dependencies[2].name == "project :a \u27A1 fooProject:a:unspecified"
+        compileConfiguration.dependencies[2].resolvable == false
     }
 
     def "conflictual dependencies are marked as such"() {
