@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 package org.gradle.ide.visualstudio
-
 import org.gradle.ide.visualstudio.fixtures.ProjectFile
 import org.gradle.ide.visualstudio.fixtures.SolutionFile
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativebinaries.language.cpp.fixtures.RequiresInstalledToolChain
 import org.gradle.nativebinaries.language.cpp.fixtures.app.*
@@ -77,7 +77,8 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         projectFile.projectConfigurations.values().each {
             assert it.macros == "TEST;foo=bar"
             assert it.includePath == filePath("src/main/headers")
-            assert it.buildCommand == "gradle -p \"..\" :${it.name}MainExecutable"
+            assert it.buildCommand == "gradle -p \"..\" :install${it.name.capitalize()}MainExecutable"
+            assert it.outputFile == OperatingSystem.current().getExecutableName("../build/install/mainExecutable/${it.name}/lib/main")
         }
 
         and:
@@ -105,7 +106,11 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         projectFile.sourceFiles == allFiles("src/main/cpp")
         projectFile.headerFiles == allFiles("src/main/headers")
         projectFile.projectConfigurations.keySet() == projectConfigurations
-        projectFile.projectConfigurations['win32Debug'].includePath == filePath("src/main/headers")
+        projectFile.projectConfigurations.values().each {
+            assert it.includePath == filePath("src/main/headers")
+            assert it.buildCommand == "gradle -p \"..\" :${it.name}MainSharedLibrary"
+            assert it.outputFile == OperatingSystem.current().getSharedLibraryName("../build/binaries/mainSharedLibrary/${it.name}/main")
+        }
 
         and:
         final mainSolution = solutionFile("visualStudio/mainDll.sln")

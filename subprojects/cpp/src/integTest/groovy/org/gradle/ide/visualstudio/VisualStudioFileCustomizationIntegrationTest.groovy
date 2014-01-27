@@ -76,7 +76,7 @@ class VisualStudioFileCustomizationIntegrationTest extends AbstractInstalledTool
             "../../../src/main/cpp/${file.name}"
         }
         projectFile.projectConfigurations.values().each {
-            assert it.buildCommand == "gradle -p \"../../..\" :${it.name}MainExecutable"
+            assert it.buildCommand == "gradle -p \"../../..\" :install${it.name.capitalize()}MainExecutable"
         }
         filtersFile("other/filters.vcxproj.filters")
 
@@ -178,7 +178,7 @@ EndGlobal
         then:
         final projectFile = projectFile("visualStudio/mainExe.vcxproj")
         projectFile.projectConfigurations.values().each {
-            assert it.buildCommand == "myCustomGradleExe --configure-on-demand --another :${it.name}MainExecutable"
+            assert it.buildCommand == "myCustomGradleExe --configure-on-demand --another :install${it.name.capitalize()}MainExecutable"
         }
     }
 
