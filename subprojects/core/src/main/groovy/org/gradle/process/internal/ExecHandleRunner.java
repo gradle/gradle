@@ -16,15 +16,17 @@
 
 package org.gradle.process.internal;
 
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
+import net.rubygrapefruit.platform.Native;
+import net.rubygrapefruit.platform.ProcessLauncher;
+
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.process.internal.streams.StreamsHandler;
 
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
 public class ExecHandleRunner implements Runnable {
-    private static final Object START_LOCK = new Object();
     private static final Logger LOGGER = Logging.getLogger(ExecHandleRunner.class);
 
     private final ProcessBuilderFactory processBuilderFactory;
@@ -58,17 +60,12 @@ public class ExecHandleRunner implements Runnable {
     }
 
     public void run() {
-        ProcessParentingInitializer.intitialize();
-        ProcessBuilder processBuilder = processBuilderFactory.createProcessBuilder(execHandle);
         try {
-            Process process;
-
-            // This big fat static lock is here for windows. When starting multiple processes concurrently, the stdout
-            // and stderr streams for some of the processes get stuck
-            synchronized (START_LOCK) {
-                process = processBuilder.start();
-                streamsHandler.connectStreams(process, execHandle.getDisplayName());
-            }
+            ProcessBuilder processBuilder = processBuilderFactory.createProcessBuilder(execHandle);
+            final ProcessLauncher processLauncher = Native.get(ProcessLauncher.class);
+            
+            Process process = processLauncher.start(processBuilder);
+            streamsHandler.connectStreams(process, execHandle.getDisplayName());
             setProcess(process);
 
             execHandle.started();
