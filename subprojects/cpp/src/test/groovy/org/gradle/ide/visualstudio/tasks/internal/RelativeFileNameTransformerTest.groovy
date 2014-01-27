@@ -18,12 +18,14 @@ package org.gradle.ide.visualstudio.tasks.internal
 
 import spock.lang.Specification
 
+import static org.gradle.util.TextUtil.normaliseFileSeparators
+
 class RelativeFileNameTransformerTest extends Specification {
     static rootDir = new File("root")
 
     def "returns absolute path where file outside of root"() {
         expect:
-        transform(relative, file) == file.absolutePath
+        transform(relative, file) == normaliseFileSeparators(file.absolutePath)
 
         where:
         relative                                          | file
@@ -31,10 +33,6 @@ class RelativeFileNameTransformerTest extends Specification {
         new File(rootDir, "current")                      | new File(rootDir, "subdir/../../outside/of/root")
         new File("current/outside")                       | new File(rootDir, "file/inside")
         new File(rootDir, "subdir/../../current/outside") | new File(rootDir, "file/inside")
-    }
-
-    String transform(File from, File to) {
-        return new RelativeFileNameTransformer(rootDir, from).transform(to)
     }
 
     def "returns relative path where file inside of root"() {
@@ -54,7 +52,6 @@ class RelativeFileNameTransformerTest extends Specification {
         "subdir/another/child.txt" | "../../subdir/another/child.txt"
     }
 
-    // TODO:DAZ Might be better to reduce these paths
     def "returns relative path where file shared some of current dir path"() {
         when:
         def file = new File(rootDir, filePath)
@@ -72,6 +69,7 @@ class RelativeFileNameTransformerTest extends Specification {
         "current/subdir/child.txt" | "../../current/subdir/child.txt"
     }
 
+    // TODO:DAZ Might be better to reduce these paths
     def "handles mixed paths inside of root"() {
         when:
         def file = new File(rootDir, filePath)
@@ -84,5 +82,9 @@ class RelativeFileNameTransformerTest extends Specification {
         filePath                           | relativePath
         "subdir/down/../another"           | "../../subdir/another"
         "subdir/down/../another/child.txt" | "../../subdir/another/child.txt"
+    }
+
+    String transform(File from, File to) {
+        return normaliseFileSeparators(new RelativeFileNameTransformer(rootDir, from).transform(to))
     }
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.ide.visualstudio.fixtures
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.TextUtil
 
 class ProjectFile {
     String name
@@ -48,17 +49,21 @@ class ProjectFile {
 
     public List<String> getSourceFiles() {
         def sources = itemGroup('Sources').ClCompile
-        return sources*.'@Include'
+        return normalise(sources*.'@Include')
     }
 
     public List<String> getResourceFiles() {
         def sources = itemGroup('References').ResourceCompile
-        return sources*.'@Include'
+        return normalise(sources*.'@Include')
     }
 
     public List<String> getHeaderFiles() {
         def sources = itemGroup('Headers').ClInclude
-        return sources*.'@Include'
+        return normalise(sources*.'@Include')
+    }
+
+    private static List<String> normalise(List<String> files) {
+        return files.collect { TextUtil.normaliseFileSeparators(it)}
     }
 
     private Node itemGroup(String label) {
@@ -74,24 +79,24 @@ class ProjectFile {
             this.platformName = platformName
         }
 
+        ProjectFile getProject() {
+            return ProjectFile.this
+        }
+
         String getMacros() {
             buildConfiguration.NMakePreprocessorDefinitions[0].text()
         }
 
         String getIncludePath() {
-            buildConfiguration.NMakeIncludeSearchPath[0].text()
-        }
-
-        ProjectFile getProject() {
-            return ProjectFile.this
+            TextUtil.normaliseFileSeparators(buildConfiguration.NMakeIncludeSearchPath[0].text())
         }
 
         String getBuildCommand() {
-            buildConfiguration.NMakeBuildCommandLine[0].text()
+            TextUtil.normaliseFileSeparators(buildConfiguration.NMakeBuildCommandLine[0].text())
         }
 
         String getOutputFile() {
-            buildConfiguration.NMakeOutput[0].text()
+            TextUtil.normaliseFileSeparators(buildConfiguration.NMakeOutput[0].text())
         }
 
         private Node getBuildConfiguration() {

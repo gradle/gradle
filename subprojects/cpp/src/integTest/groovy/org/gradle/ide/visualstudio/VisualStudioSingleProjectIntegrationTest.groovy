@@ -521,10 +521,8 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         projectFile.headerFiles == allFiles("src/main/headers")
         projectFile.projectConfigurations.keySet() == projectConfigurations
         with (projectFile.projectConfigurations['win32Debug']) {
-            macros == ""
-            includePath == filePath("src/main/headers")
             macros == "TEST;foo=bar"
-            includePath == includePath
+            includePath == filePath("src/main/headers")
         }
 
         and:

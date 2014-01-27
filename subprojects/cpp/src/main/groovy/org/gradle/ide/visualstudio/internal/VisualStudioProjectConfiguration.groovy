@@ -78,11 +78,8 @@ class VisualStudioProjectConfiguration {
         List<String> defines = []
         defines.addAll getDefines('cCompiler')
         defines.addAll getDefines('cppCompiler')
+        defines.addAll getDefines('rcCompiler')
         return defines
-    }
-
-    List<String> getResourceDefines() {
-        return getDefines('rcCompiler')
     }
 
     private List<String> getDefines(String tool) {

@@ -26,7 +26,7 @@ class SolutionFile {
         assert solutionFile.exists()
         assert TextUtil.convertLineSeparators(solutionFile.text, TextUtil.windowsLineSeparator) == solutionFile.text : "Solution file contains non-windows line separators"
 
-        content = TextUtil.toPlatformLineSeparators(solutionFile.text)
+        content = TextUtil.normaliseLineSeparators(solutionFile.text)
 
         content.findAll(~/(?m)^Project\(\"\{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942\}\"\) = \"(\w+)\", \"([^\"]*)\", \"\{([\w\-]+)\}\"$/, {
             projects.put(it[1], new ProjectReference(it[1], it[2], it[3]))
