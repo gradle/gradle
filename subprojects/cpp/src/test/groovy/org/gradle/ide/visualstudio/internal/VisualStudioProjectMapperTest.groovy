@@ -55,6 +55,7 @@ class VisualStudioProjectMapperTest extends Specification {
 
     def "maps executable binary to visual studio project"() {
         when:
+        executable.projectPath >> ":"
         executable.chooseFlavors(flavors) >> [flavorOne]
         executable.choosePlatforms(platforms) >> [platformOne]
 
@@ -69,14 +70,28 @@ class VisualStudioProjectMapperTest extends Specification {
 
         library.chooseFlavors(flavors) >> [flavorOne]
         library.choosePlatforms(platforms) >> [platformOne]
+        library.projectPath >> ":"
 
         then:
         checkNames sharedLibraryBinary, "libNameDll", 'buildTypeOne', 'Win32'
         checkNames staticLibraryBinary, "libNameLib", 'buildTypeOne', 'Win32'
     }
 
+    def "includes project path in visual studio project name"() {
+        when:
+        executable.projectPath >> ":subproject:name"
+
+        and:
+        executable.chooseFlavors(flavors) >> [flavorOne]
+        executable.choosePlatforms(platforms) >> [platformOne]
+
+        then:
+        checkNames executableBinary, "subproject_name_exeNameExe", 'buildTypeOne', 'Win32'
+    }
+
     def "maps build type to configuration names for native binary"() {
         when:
+        executable.projectPath >> ":"
         executable.chooseFlavors(flavors) >> [flavorOne]
         executable.choosePlatforms(platforms) >> [platformOne]
 
@@ -86,6 +101,7 @@ class VisualStudioProjectMapperTest extends Specification {
 
     def "includes flavor name in configuration where component has multiple flavors"() {
         when:
+        executable.projectPath >> ":"
         executable.chooseFlavors(flavors) >> [flavorOne, new DefaultFlavor("flavorTwo")]
         executable.choosePlatforms(platforms) >> [platformOne]
 
@@ -95,6 +111,7 @@ class VisualStudioProjectMapperTest extends Specification {
 
     def "includes platform name in configuration where component has multiple platforms"() {
         when:
+        executable.projectPath >> ":"
         executable.chooseFlavors(flavors) >> [flavorOne]
         executable.choosePlatforms(platforms) >> [platformOne, Mock(Platform)]
 
@@ -104,6 +121,7 @@ class VisualStudioProjectMapperTest extends Specification {
 
     def "includes flavor and platform name in configuration where component has multiple of both"() {
         when:
+        executable.projectPath >> ":"
         executable.chooseFlavors(flavors) >> [flavorOne, new DefaultFlavor("flavor2")]
         executable.choosePlatforms(platforms) >> [platformOne, Mock(Platform)]
 

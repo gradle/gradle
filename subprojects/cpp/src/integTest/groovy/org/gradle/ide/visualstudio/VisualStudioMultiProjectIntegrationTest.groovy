@@ -70,7 +70,7 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
         run ":exe:mainVisualStudio"
 
         then:
-        final exeProject = projectFile("exe/visualStudio/mainExe.vcxproj")
+        final exeProject = projectFile("exe/visualStudio/exe_mainExe.vcxproj")
         exeProject.sourceFiles == allFiles("exe/src/main/cpp")
         exeProject.headerFiles.isEmpty()
         exeProject.projectConfigurations.keySet() == projectConfigurations
@@ -80,7 +80,7 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
         }
 
         and:
-        final libProject = projectFile("lib/visualStudio/helloLib.vcxproj")
+        final libProject = projectFile("lib/visualStudio/lib_helloLib.vcxproj")
         libProject.sourceFiles == allFiles("lib/src/hello/cpp")
         libProject.headerFiles == allFiles("lib/src/hello/headers")
         libProject.projectConfigurations.keySet() == projectConfigurations
@@ -90,8 +90,8 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
         }
 
         and:
-        final mainSolution = solutionFile("exe/visualStudio/mainExe.sln")
-        mainSolution.assertHasProjects("mainExe", "helloLib")
+        final mainSolution = solutionFile("exe/visualStudio/exe_mainExe.sln")
+        mainSolution.assertHasProjects("exe_mainExe", "lib_helloLib")
         mainSolution.assertReferencesProject(exeProject, projectConfigurations)
         mainSolution.assertReferencesProject(libProject, projectConfigurations)
     }
@@ -130,13 +130,13 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
         succeeds ":exe:mainVisualStudio"
 
         then:
-        final exeProject = projectFile("exe/visualStudio/mainExe.vcxproj")
-        final helloProject = projectFile("lib/visualStudio/helloDll.vcxproj")
-        final greetProject = projectFile("greet/visualStudio/greetingsLib.vcxproj")
-        final mainSolution = solutionFile("exe/visualStudio/mainExe.sln")
+        final exeProject = projectFile("exe/visualStudio/exe_mainExe.vcxproj")
+        final helloProject = projectFile("lib/visualStudio/lib_helloDll.vcxproj")
+        final greetProject = projectFile("greet/visualStudio/greet_greetingsLib.vcxproj")
+        final mainSolution = solutionFile("exe/visualStudio/exe_mainExe.sln")
 
         and:
-        mainSolution.assertHasProjects("mainExe", "helloDll", "greetingsLib")
+        mainSolution.assertHasProjects("exe_mainExe", "lib_helloDll", "greet_greetingsLib")
         mainSolution.assertReferencesProject(exeProject, projectConfigurations)
         mainSolution.assertReferencesProject(helloProject, projectConfigurations)
         mainSolution.assertReferencesProject(greetProject, projectConfigurations)
@@ -145,6 +145,59 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
         exeProject.projectConfigurations['debug'].includePath == filePath("exe/src/main/headers", "lib/src/hello/headers")
         helloProject.projectConfigurations['debug'].includePath == filePath("lib/src/hello/headers", "greet/src/greetings/headers")
         greetProject.projectConfigurations['debug'].includePath == filePath("greet/src/greetings/headers")
+    }
+
+    def "create visual studio solution where multiple components have same name"() {
+        given:
+        def app = new ExeWithLibraryUsingLibraryHelloWorldApp()
+        app.writeSources(file("exe/src/main"), file("lib/src/main"), file("greet/src/main"))
+
+        and:
+        settingsFile.text = "include ':exe', ':lib', ':greet'"
+        buildFile << """
+        project(":exe") {
+            apply plugin: "cpp"
+            executables {
+                main {}
+            }
+            sources.main.cpp.lib project: ':lib', library: 'main'
+        }
+        project(":lib") {
+            apply plugin: "cpp"
+            libraries {
+                main {}
+            }
+            sources.main.cpp.lib project: ':greet', library: 'main', linkage: 'static'
+        }
+        project(":greet") {
+            apply plugin: "cpp"
+            libraries {
+                main {
+                    baseName = 'greet'
+                }
+            }
+        }
+        """
+
+        when:
+        succeeds ":exe:mainVisualStudio"
+
+        then:
+        final exeProject = projectFile("exe/visualStudio/exe_mainExe.vcxproj")
+        final helloProject = projectFile("lib/visualStudio/lib_mainDll.vcxproj")
+        final greetProject = projectFile("greet/visualStudio/greet_greetLib.vcxproj")
+        final mainSolution = solutionFile("exe/visualStudio/exe_mainExe.sln")
+
+        and:
+        mainSolution.assertHasProjects("exe_mainExe", "lib_mainDll", "greet_greetLib")
+        mainSolution.assertReferencesProject(exeProject, projectConfigurations)
+        mainSolution.assertReferencesProject(helloProject, projectConfigurations)
+        mainSolution.assertReferencesProject(greetProject, projectConfigurations)
+
+        and:
+        exeProject.projectConfigurations['debug'].includePath == filePath("exe/src/main/headers", "lib/src/main/headers")
+        helloProject.projectConfigurations['debug'].includePath == filePath("lib/src/main/headers", "greet/src/main/headers")
+        greetProject.projectConfigurations['debug'].includePath == filePath("greet/src/main/headers")
     }
 
     def "create visual studio solution for executable with project dependency cycle"() {
@@ -178,13 +231,13 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
         succeeds ":exe:mainVisualStudio"
 
         then:
-        final exeProject = projectFile("exe/visualStudio/mainExe.vcxproj")
-        final helloProject = projectFile("lib/visualStudio/helloDll.vcxproj")
-        final greetProject = projectFile("exe/visualStudio/greetingsLib.vcxproj")
-        final mainSolution = solutionFile("exe/visualStudio/mainExe.sln")
+        final exeProject = projectFile("exe/visualStudio/exe_mainExe.vcxproj")
+        final helloProject = projectFile("lib/visualStudio/lib_helloDll.vcxproj")
+        final greetProject = projectFile("exe/visualStudio/exe_greetingsLib.vcxproj")
+        final mainSolution = solutionFile("exe/visualStudio/exe_mainExe.sln")
 
         and:
-        mainSolution.assertHasProjects("mainExe", "helloDll", "greetingsLib")
+        mainSolution.assertHasProjects("exe_mainExe", "lib_helloDll", "exe_greetingsLib")
         mainSolution.assertReferencesProject(exeProject, projectConfigurations)
         mainSolution.assertReferencesProject(helloProject, projectConfigurations)
         mainSolution.assertReferencesProject(greetProject, projectConfigurations)
@@ -211,7 +264,7 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
         run ":exe:mainVisualStudio"
 
         then:
-        final exeProject = projectFile("exe/visualStudio/mainExe.vcxproj")
+        final exeProject = projectFile("exe/visualStudio/exe_mainExe.vcxproj")
         exeProject.projectConfigurations.values().each {
             assert it.buildCommand == "../../gradlew.bat -p \"../..\" :exe:install${it.name.capitalize()}MainExecutable"
         }

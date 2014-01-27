@@ -17,10 +17,7 @@
 package org.gradle.ide.visualstudio.internal;
 
 import org.apache.commons.lang.StringUtils;
-import org.gradle.nativebinaries.FlavorContainer;
-import org.gradle.nativebinaries.ProjectNativeBinary;
-import org.gradle.nativebinaries.SharedLibraryBinary;
-import org.gradle.nativebinaries.StaticLibraryBinary;
+import org.gradle.nativebinaries.*;
 import org.gradle.nativebinaries.internal.ProjectNativeComponentInternal;
 import org.gradle.nativebinaries.platform.PlatformContainer;
 
@@ -36,13 +33,22 @@ public class VisualStudioProjectMapper {
     }
 
     public ProjectConfigurationNames mapToConfiguration(ProjectNativeBinary nativeBinary) {
-        String projectName = baseName(nativeBinary) + projectSuffix(nativeBinary);
+        String projectName = projectPrefix(nativeBinary) + baseName(nativeBinary) + projectSuffix(nativeBinary);
         String configurationName = makeName(
                 getPlatformComponent(nativeBinary),
                 nativeBinary.getBuildType().getName(),
                 getFlavorComponent(nativeBinary)
         );
         return new ProjectConfigurationNames(projectName, configurationName, "Win32");
+    }
+
+    private String projectPrefix(ProjectNativeBinary nativeBinary) {
+        ProjectNativeComponentInternal component = (ProjectNativeComponentInternal) nativeBinary.getComponent();
+        String projectPath = component.getProjectPath();
+        if (":".equals(projectPath)) {
+            return "";
+        }
+        return projectPath.substring(1).replace(":", "_") + "_";
     }
 
     private String baseName(ProjectNativeBinary nativeBinary) {
