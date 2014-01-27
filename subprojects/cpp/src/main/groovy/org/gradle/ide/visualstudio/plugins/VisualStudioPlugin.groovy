@@ -14,11 +14,15 @@
  * limitations under the License.
  */
 package org.gradle.ide.visualstudio.plugins
+
+import org.gradle.api.Action
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.ide.visualstudio.VisualStudioExtension
 import org.gradle.ide.visualstudio.internal.DefaultVisualStudioExtension
+import org.gradle.ide.visualstudio.internal.DefaultVisualStudioProject
 import org.gradle.ide.visualstudio.internal.rules.CreateVisualStudioModel
 import org.gradle.ide.visualstudio.internal.rules.CreateVisualStudioTasks
 import org.gradle.internal.reflect.Instantiator
@@ -51,8 +55,26 @@ class VisualStudioPlugin implements Plugin<ProjectInternal> {
         project.plugins.apply(NativeBinariesModelPlugin)
 
         project.modelRegistry.create("visualStudio", ["flavors", "platforms"], new VisualStudioExtensionFactory(instantiator, projectLocator, fileResolver))
+        modelRules.config("visualStudio", new IncludeBuildFileInProject(project))
         modelRules.rule(new CreateVisualStudioModel())
         modelRules.rule(new CreateVisualStudioTasks())
+    }
+
+    private class IncludeBuildFileInProject implements Action<VisualStudioExtension> {
+        private final ProjectInternal project;
+
+        IncludeBuildFileInProject(ProjectInternal project) {
+            this.project = project
+        }
+
+        void execute(VisualStudioExtension extension) {
+            extension.projects.all {
+                if (project.getBuildFile() != null) {
+                    ((DefaultVisualStudioProject) it).addSourceFile(project.getBuildFile())
+                }
+            }
+
+        }
     }
 
     private static class VisualStudioExtensionFactory implements ModelCreator<DefaultVisualStudioExtension> {

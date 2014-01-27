@@ -38,6 +38,7 @@ class DefaultVisualStudioProject extends AbstractBuildableModelElement implement
     private final DefaultConfigFile projectFile
     private final DefaultConfigFile filtersFile
     private final ProjectNativeComponent component
+    private final List<File> additionalFiles = []
     final Set<LanguageSourceSet> sources = new LinkedHashSet<LanguageSourceSet>()
     private final Map<NativeBinary, VisualStudioProjectConfiguration> configurations = [:]
 
@@ -64,6 +65,10 @@ class DefaultVisualStudioProject extends AbstractBuildableModelElement implement
         return component
     }
 
+    void addSourceFile(File sourceFile) {
+        additionalFiles << sourceFile
+    }
+
     String getUuid() {
         String projectPath = (component as ProjectNativeComponentInternal).projectPath
         String vsComponentPath = "${projectPath}:${name}"
@@ -77,6 +82,7 @@ class DefaultVisualStudioProject extends AbstractBuildableModelElement implement
 
     List<File> getSourceFiles() {
         def allSource = [] as Set
+        allSource.addAll additionalFiles
         sources.each { LanguageSourceSet sourceSet ->
             if (!(sourceSet instanceof WindowsResourceSet)) {
                 allSource.addAll sourceSet.source.files

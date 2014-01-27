@@ -332,6 +332,7 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
         and:
         final projectFile = new ProjectFile(file("mainExe.vcxproj"))
         projectFile.sourceFiles as Set == [
+                "build.gradle",
                 "build/src/generated/c/hello.c",
                 "build/src/generated/c/main.c",
                 "build/src/generated/c/sum.c"

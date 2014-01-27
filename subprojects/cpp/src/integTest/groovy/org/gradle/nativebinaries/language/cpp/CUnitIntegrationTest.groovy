@@ -194,6 +194,7 @@ There were test failures:
         and:
         final projectFile = new ProjectFile(file("helloTestExe.vcxproj"))
         projectFile.sourceFiles as Set == [
+                "build.gradle",
                 "src/helloTest/cunit/test.c",
                 "build/src/cunitLauncher/gradle_cunit_main.c",
                 "build/src/cunitLauncher/gradle_cunit_register.h",
