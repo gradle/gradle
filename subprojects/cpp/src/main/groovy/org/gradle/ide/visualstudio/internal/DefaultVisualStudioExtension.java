@@ -31,9 +31,9 @@ public class DefaultVisualStudioExtension implements VisualStudioExtension {
 
     public DefaultVisualStudioExtension(Instantiator instantiator, ProjectLocator projectLocator, FileResolver fileResolver,
                                         FlavorContainer flavors, PlatformContainer platforms) {
-        VisualStudioProjectResolver projectResolver = new VisualStudioProjectResolver(projectLocator);
         VisualStudioProjectMapper projectMapper = new VisualStudioProjectMapper(flavors, platforms);
-        projectRegistry = new VisualStudioProjectRegistry(fileResolver, projectResolver, projectMapper, instantiator);
+        projectRegistry = new VisualStudioProjectRegistry(fileResolver, projectMapper, instantiator);
+        VisualStudioProjectResolver projectResolver = new VisualStudioProjectResolver(projectLocator);
         solutionRegistry = new VisualStudioSolutionRegistry(fileResolver, projectResolver, instantiator);
     }
 

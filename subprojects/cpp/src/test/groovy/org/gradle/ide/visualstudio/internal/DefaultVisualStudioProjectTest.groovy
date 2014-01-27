@@ -27,8 +27,7 @@ class DefaultVisualStudioProjectTest extends Specification {
     private DirectInstantiator instantiator = new DirectInstantiator()
     def component = Mock(ProjectNativeComponentInternal)
     def fileResolver = Mock(FileResolver)
-    def projectResolver = Mock(VisualStudioProjectResolver)
-    def vsProject = new DefaultVisualStudioProject("projectName", component, fileResolver, projectResolver, instantiator)
+    def vsProject = new DefaultVisualStudioProject("projectName", component, fileResolver, instantiator)
 
     def "names"() {
         final projectFile = new File("project")
@@ -74,10 +73,10 @@ class DefaultVisualStudioProjectTest extends Specification {
         def sameComponent = Mock(ProjectNativeComponentInternal)
         def otherComponent = Mock(ProjectNativeComponentInternal)
 
-        def sameProject = new DefaultVisualStudioProject("projectName", component, fileResolver, projectResolver, instantiator)
-        def samePath = new DefaultVisualStudioProject("projectName", sameComponent, fileResolver, projectResolver, instantiator)
-        def differentPath = new DefaultVisualStudioProject("projectName", otherComponent, fileResolver, projectResolver, instantiator)
-        def differentName = new DefaultVisualStudioProject("otherProject", component, fileResolver, projectResolver, instantiator)
+        def sameProject = new DefaultVisualStudioProject("projectName", component, fileResolver, instantiator)
+        def samePath = new DefaultVisualStudioProject("projectName", sameComponent, fileResolver, instantiator)
+        def differentPath = new DefaultVisualStudioProject("projectName", otherComponent, fileResolver, instantiator)
+        def differentName = new DefaultVisualStudioProject("otherProject", component, fileResolver, instantiator)
 
         and:
         component.projectPath >> ":projectPath"

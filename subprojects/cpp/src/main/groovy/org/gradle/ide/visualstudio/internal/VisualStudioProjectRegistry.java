@@ -23,14 +23,11 @@ import org.gradle.nativebinaries.*;
 
 public class VisualStudioProjectRegistry extends DefaultNamedDomainObjectSet<DefaultVisualStudioProject> {
     private final FileResolver fileResolver;
-    private final VisualStudioProjectResolver projectResolver;
     private final VisualStudioProjectMapper projectMapper;
 
-    public VisualStudioProjectRegistry(FileResolver fileResolver, VisualStudioProjectResolver projectResolver,
-                                       VisualStudioProjectMapper projectMapper, Instantiator instantiator) {
+    public VisualStudioProjectRegistry(FileResolver fileResolver, VisualStudioProjectMapper projectMapper, Instantiator instantiator) {
         super(DefaultVisualStudioProject.class, instantiator);
         this.fileResolver = fileResolver;
-        this.projectResolver = projectResolver;
         this.projectMapper = projectMapper;
     }
 
@@ -56,7 +53,7 @@ public class VisualStudioProjectRegistry extends DefaultNamedDomainObjectSet<Def
     private DefaultVisualStudioProject getOrCreateProject(ProjectNativeComponent nativeComponent, String projectName) {
         DefaultVisualStudioProject vsProject = findByName(projectName);
         if (vsProject == null) {
-            vsProject = getInstantiator().newInstance(DefaultVisualStudioProject.class, projectName, nativeComponent, fileResolver, projectResolver, getInstantiator());
+            vsProject = getInstantiator().newInstance(DefaultVisualStudioProject.class, projectName, nativeComponent, fileResolver, getInstantiator());
             add(vsProject);
         }
         return vsProject;

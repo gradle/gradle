@@ -166,7 +166,7 @@ EndGlobal
     private DefaultVisualStudioProject createProject(String projectName) {
         final project1File = new File(projectName)
         fileResolver.resolve("visualStudio/${projectName}.vcxproj") >> project1File
-        return new DefaultVisualStudioProject(projectName, binary1.component, fileResolver, projectResolver, instantiator)
+        return new DefaultVisualStudioProject(projectName, binary1.component, fileResolver, instantiator)
     }
 
     private ProjectNativeBinary binary(def name) {

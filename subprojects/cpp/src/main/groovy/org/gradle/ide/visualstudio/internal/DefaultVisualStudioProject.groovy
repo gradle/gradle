@@ -34,7 +34,6 @@ import org.gradle.util.CollectionUtils
  * A VisualStudio project represents a set of binaries for a component that may vary in build type and target platform.
  */
 class DefaultVisualStudioProject extends AbstractBuildableModelElement implements VisualStudioProject {
-    final VisualStudioProjectResolver projectResolver
     private final String name
     private final DefaultConfigFile projectFile
     private final DefaultConfigFile filtersFile
@@ -42,10 +41,9 @@ class DefaultVisualStudioProject extends AbstractBuildableModelElement implement
     final Set<LanguageSourceSet> sources = new LinkedHashSet<LanguageSourceSet>()
     private final Map<NativeBinary, VisualStudioProjectConfiguration> configurations = [:]
 
-    DefaultVisualStudioProject(String name, ProjectNativeComponent component, FileResolver fileResolver, VisualStudioProjectResolver projectResolver, Instantiator instantiator) {
+    DefaultVisualStudioProject(String name, ProjectNativeComponent component, FileResolver fileResolver, Instantiator instantiator) {
         this.name = name
         this.component = component
-        this.projectResolver = projectResolver
         projectFile = instantiator.newInstance(DefaultConfigFile, fileResolver, "visualStudio/${name}.vcxproj" as String)
         filtersFile = instantiator.newInstance(DefaultConfigFile, fileResolver, "visualStudio/${name}.vcxproj.filters" as String)
     }

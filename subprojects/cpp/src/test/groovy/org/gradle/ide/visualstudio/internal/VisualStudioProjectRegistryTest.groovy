@@ -27,9 +27,8 @@ import spock.lang.Specification
 class VisualStudioProjectRegistryTest extends Specification {
     private DefaultDomainObjectSet<LanguageSourceSet> sources = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet)
     def fileResolver = Mock(FileResolver)
-    def visualStudioProjectResolver = Mock(VisualStudioProjectResolver)
     def visualStudioProjectMapper = Mock(VisualStudioProjectMapper)
-    def registry = new VisualStudioProjectRegistry(fileResolver, visualStudioProjectResolver, visualStudioProjectMapper, new DirectInstantiator())
+    def registry = new VisualStudioProjectRegistry(fileResolver, visualStudioProjectMapper, new DirectInstantiator())
 
     def executable = Mock(Executable)
 
