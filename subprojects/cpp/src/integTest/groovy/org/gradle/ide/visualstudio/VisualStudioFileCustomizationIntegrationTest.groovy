@@ -82,12 +82,21 @@ class VisualStudioFileCustomizationIntegrationTest extends AbstractInstalledTool
             assert it.buildCommand == "../../../gradlew.bat -p \"../../..\" :install${it.name.capitalize()}MainExecutable"
             assert it.outputFile == OperatingSystem.current().getExecutableName("../../../build/install/mainExecutable/${it.name}/lib/main")
         }
-        filtersFile("other/filters.vcxproj.filters")
+        def filtersFile = filtersFile("other/filters.vcxproj.filters")
 
         and:
         final mainSolution = solutionFile("vs/mainExe.solution")
         mainSolution.assertHasProjects("mainExe")
         mainSolution.assertReferencesProject(projectFile, ['debug', 'release'])
+
+        // Ensure that clean handles custom file locations
+        when:
+        run "cleanVisualStudio"
+
+        then:
+        projectFile.projectFile.assertDoesNotExist()
+        filtersFile.file.assertDoesNotExist()
+        mainSolution.file.assertDoesNotExist()
     }
 
     def "can add xml configuration to generated project files"() {

@@ -19,11 +19,13 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.TextUtil
 
 class SolutionFile {
+    TestFile file
     String content
     Map<String, ProjectReference> projects = [:]
 
     SolutionFile(TestFile solutionFile) {
         assert solutionFile.exists()
+        this.file = solutionFile
         assert TextUtil.convertLineSeparators(solutionFile.text, TextUtil.windowsLineSeparator) == solutionFile.text : "Solution file contains non-windows line separators"
 
         content = TextUtil.normaliseLineSeparators(solutionFile.text)

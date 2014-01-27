@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.ide.visualstudio
+
 import org.gradle.ide.visualstudio.fixtures.ProjectFile
 import org.gradle.ide.visualstudio.fixtures.SolutionFile
 import org.gradle.nativebinaries.language.cpp.fixtures.AbstractInstalledToolChainIntegrationSpec
@@ -268,6 +269,43 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractInstalledToolChain
         exeProject.projectConfigurations.values().each {
             assert it.buildCommand == "../gradlew.bat -p \"..\" :exe:install${it.name.capitalize()}MainExecutable"
         }
+    }
+
+    def "cleanVisualStudio removes all generated visual studio files"() {
+        when:
+        settingsFile.text = "include ':exe', ':lib'"
+        buildFile << """
+    project(':exe') {
+        executables {
+            main {}
+        }
+        sources.main.cpp.lib project: ':lib', library: 'main', linkage: 'static'
+    }
+    project(':lib') {
+        libraries {
+            main {}
+        }
+    }
+"""
+        and:
+        run "mainVisualStudio"
+
+        then:
+        def generatedFiles = [
+                file("exe/exe_mainExe.sln"),
+                file("exe/exe_mainExe.vcxproj"),
+                file("exe/exe_mainExe.vcxproj.filters"),
+                file("lib/lib_mainDll.sln"),
+                file("lib/lib_mainDll.vcxproj"),
+                file("lib/lib_mainDll.vcxproj.filters")
+        ]
+        generatedFiles*.assertExists()
+
+        when:
+        run "cleanVisualStudio"
+
+        then:
+        generatedFiles*.assertDoesNotExist()
     }
 
     private SolutionFile solutionFile(String path) {
