@@ -60,6 +60,6 @@ class GenerateFiltersFileTask extends XmlGeneratorTask<VisualStudioFiltersFile> 
 
     @Override
     protected VisualStudioFiltersFile create() {
-        return new VisualStudioFiltersFile(xmlTransformer, new RelativeFileNameTransformer(project.rootDir, visualStudioProject.filtersFile.location))
+        return new VisualStudioFiltersFile(xmlTransformer, RelativeFileNameTransformer.forFile(project.rootDir, visualStudioProject.filtersFile.location))
     }
 }

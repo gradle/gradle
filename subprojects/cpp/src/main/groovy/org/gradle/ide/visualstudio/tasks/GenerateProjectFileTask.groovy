@@ -37,7 +37,10 @@ class GenerateProjectFileTask extends XmlGeneratorTask<VisualStudioProjectFile> 
         final File gradlew = project.getRootProject().file("gradlew.bat");
         conventionMapping.map("gradleExe") {
             def rootDir = transformer.transform(project.rootDir)
-            def args = " -p \"${rootDir}\""
+            def args = ""
+            if (rootDir != ".") {
+                args = " -p \"${rootDir}\""
+            }
             if (gradlew.isFile()) {
                 return transformer.transform(gradlew) + args
             }
@@ -46,7 +49,7 @@ class GenerateProjectFileTask extends XmlGeneratorTask<VisualStudioProjectFile> 
     }
 
     def getTransformer() {
-        return new RelativeFileNameTransformer(project.rootDir, visualStudioProject.projectFile.location)
+        return RelativeFileNameTransformer.forFile(project.rootDir, visualStudioProject.projectFile.location)
     }
 
     void setVisualStudioProject(VisualStudioProject vsProject) {

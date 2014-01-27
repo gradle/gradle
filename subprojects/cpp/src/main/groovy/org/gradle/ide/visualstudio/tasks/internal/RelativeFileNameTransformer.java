@@ -25,13 +25,17 @@ public class RelativeFileNameTransformer implements Transformer<String, File> {
     private final File rootDir;
     private final File currentDir;
 
-    public RelativeFileNameTransformer(File rootDir, File relative) {
+    private RelativeFileNameTransformer(File rootDir, File currentDir) {
         this.rootDir = rootDir;
-        if (relative.isDirectory()) {
-            this.currentDir = relative;
-        } else {
-            this.currentDir = relative.getParentFile();
-        }
+        this.currentDir = currentDir;
+    }
+
+    public static Transformer<String, File> forFile(File rootDir, File relativeFile) {
+        return new RelativeFileNameTransformer(rootDir, relativeFile.getParentFile());
+    }
+
+    public static Transformer<String, File> forDirectory(File rootDir, File currentDirectory) {
+        return new RelativeFileNameTransformer(rootDir, currentDirectory);
     }
 
     public String transform(File file) {
@@ -51,10 +55,17 @@ public class RelativeFileNameTransformer implements Transformer<String, File> {
         }
 
         String relativeFile = canonicalFile.substring(canonicalRoot.length());
+        if (canonicalCurrent.equals(canonicalRoot)) {
+            return relativeFile.length() == 0 ? "." : relativeFile.substring(1);
+        }
+
         return findPathUpTo(new File(canonicalCurrent), new File(canonicalRoot)) + relativeFile;
     }
 
     private String findPathUpTo(File from, File to) {
+        if (from.equals(to)) {
+            return "";
+        }
         if (from.getParentFile() == null) {
             throw new IllegalStateException("We've already verified that this should never happen");
         }

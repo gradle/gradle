@@ -38,7 +38,7 @@ class RelativeFileNameTransformerTest extends Specification {
     def "returns relative path where file inside of root"() {
         when:
         def file = new File(rootDir, filePath)
-        def current = new File(rootDir, "current/dir/here.txt")
+        def current = new File(rootDir, "current/dir")
 
         then:
         transform(current, file) == relativePath
@@ -55,7 +55,7 @@ class RelativeFileNameTransformerTest extends Specification {
     def "returns relative path where file shared some of current dir path"() {
         when:
         def file = new File(rootDir, filePath)
-        def current = new File(rootDir, "current/dir/here.txt")
+        def current = new File(rootDir, "current/dir")
 
 
         then:
@@ -73,7 +73,7 @@ class RelativeFileNameTransformerTest extends Specification {
     def "handles mixed paths inside of root"() {
         when:
         def file = new File(rootDir, filePath)
-        def current = new File(rootDir, "current/dir/here.txt")
+        def current = new File(rootDir, "current/dir")
 
         then:
         transform(current, file) == relativePath
@@ -84,7 +84,39 @@ class RelativeFileNameTransformerTest extends Specification {
         "subdir/down/../another/child.txt" | "../../subdir/another/child.txt"
     }
 
+    def "handles current is root"() {
+        when:
+        def file = new File(rootDir, filePath)
+        def current = new File(rootDir.absolutePath)
+
+        then:
+        transform(current, file) == relativePath
+
+        where:
+        filePath                   | relativePath
+        "child.txt"                | "child.txt"
+        "subdir"                   | "subdir"
+        "subdir/child.txt"         | "subdir/child.txt"
+        "subdir/another"           | "subdir/another"
+        "subdir/another/child.txt" | "subdir/another/child.txt"
+    }
+
+    def "handles file is root"() {
+        when:
+        def file = new File(rootDir.path)
+        def current = new File(rootDir, currentPath)
+
+        then:
+        transform(current, file) == relativePath
+
+        where:
+        currentPath      | relativePath
+        "."              | "."
+        "subdir"         | ".."
+        "subdir/another" | "../.."
+    }
+
     String transform(File from, File to) {
-        return normaliseFileSeparators(new RelativeFileNameTransformer(rootDir, from).transform(to))
+        return normaliseFileSeparators(RelativeFileNameTransformer.forDirectory(rootDir, from).transform(to))
     }
 }
