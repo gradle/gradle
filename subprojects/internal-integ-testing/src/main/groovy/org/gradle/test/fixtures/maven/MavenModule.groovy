@@ -15,9 +15,10 @@
  */
 package org.gradle.test.fixtures.maven
 
+import org.gradle.test.fixtures.Module
 import org.gradle.test.fixtures.file.TestFile
 
-interface MavenModule {
+interface MavenModule extends Module {
     /**
      * Publishes the pom.xml plus main artifact, plus any additional artifacts for this module. Publishes only those artifacts whose content has
      * changed since the last call to {@code #publish()}.

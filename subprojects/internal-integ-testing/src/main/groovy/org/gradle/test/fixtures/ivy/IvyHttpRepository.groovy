@@ -16,9 +16,10 @@
 
 package org.gradle.test.fixtures.ivy
 
+import org.gradle.test.fixtures.HttpRepository
 import org.gradle.test.fixtures.server.http.HttpServer
 
-class IvyHttpRepository implements IvyRepository {
+class IvyHttpRepository implements IvyRepository, HttpRepository {
     private final HttpServer server
     private final IvyFileRepository backingRepository
     private final String contextPath

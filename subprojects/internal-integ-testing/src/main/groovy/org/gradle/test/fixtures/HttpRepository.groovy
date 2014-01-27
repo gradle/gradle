@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.test.fixtures.maven
+package org.gradle.test.fixtures
 
-import org.gradle.test.fixtures.Repository
+public interface HttpRepository extends Repository {
+    HttpModule module(String group, String module)
 
-/**
- * A fixture for dealing with Maven repositories.
- */
-interface MavenRepository extends Repository {
-    URI getUri()
-
-    MavenModule module(String groupId, String artifactId)
-
-    MavenModule module(String groupId, String artifactId, Object version)
+    HttpModule module(String group, String module, Object version)
 }

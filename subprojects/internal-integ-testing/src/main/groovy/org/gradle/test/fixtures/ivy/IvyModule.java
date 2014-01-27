@@ -17,11 +17,12 @@
 package org.gradle.test.fixtures.ivy;
 
 import groovy.lang.Closure;
+import org.gradle.test.fixtures.Module;
 import org.gradle.test.fixtures.file.TestFile;
 
 import java.util.Map;
 
-public interface IvyModule {
+public interface IvyModule extends Module {
     TestFile getIvyFile();
 
     TestFile getJarFile();
