@@ -21,7 +21,6 @@ import org.gradle.ide.visualstudio.TextProvider
 import org.gradle.ide.visualstudio.fixtures.SolutionFile
 import org.gradle.ide.visualstudio.internal.DefaultVisualStudioProject
 import org.gradle.ide.visualstudio.internal.VisualStudioProjectConfiguration
-import org.gradle.ide.visualstudio.internal.VisualStudioProjectResolver
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.nativebinaries.ProjectNativeBinary
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
@@ -34,7 +33,6 @@ import spock.lang.Specification
 class VisualStudioSolutionFileTest extends Specification {
     TestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
     def fileResolver = Mock(FileResolver)
-    def projectResolver = Mock(VisualStudioProjectResolver)
     def instantiator = new DirectInstantiator()
     def solutionFile = new VisualStudioSolutionFile()
     def binary1 = binary("one")
@@ -165,7 +163,7 @@ EndGlobal
 
     private DefaultVisualStudioProject createProject(String projectName) {
         final project1File = new File(projectName)
-        fileResolver.resolve("visualStudio/${projectName}.vcxproj") >> project1File
+        fileResolver.resolve("${projectName}.vcxproj") >> project1File
         return new DefaultVisualStudioProject(projectName, binary1.component, fileResolver, instantiator)
     }
 

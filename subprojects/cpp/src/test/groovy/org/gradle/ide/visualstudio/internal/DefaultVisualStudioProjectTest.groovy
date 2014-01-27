@@ -33,8 +33,8 @@ class DefaultVisualStudioProjectTest extends Specification {
         final projectFile = new File("project")
         final filtersFile = new File("filters")
         when:
-        fileResolver.resolve("visualStudio/projectName.vcxproj") >> projectFile
-        fileResolver.resolve("visualStudio/projectName.vcxproj.filters") >> filtersFile
+        fileResolver.resolve("projectName.vcxproj") >> projectFile
+        fileResolver.resolve("projectName.vcxproj.filters") >> filtersFile
 
         then:
         vsProject.name == "projectName"

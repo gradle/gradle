@@ -326,20 +326,20 @@ class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrat
         succeeds "mainVisualStudio"
 
         then:
-        final mainSolution = new SolutionFile(file("visualStudio/mainExe.sln"))
+        final mainSolution = new SolutionFile(file("mainExe.sln"))
         mainSolution.assertHasProjects("mainExe")
 
         and:
-        final projectFile = new ProjectFile(file("visualStudio/mainExe.vcxproj"))
+        final projectFile = new ProjectFile(file("mainExe.vcxproj"))
         projectFile.sourceFiles as Set == [
-                "../build/src/generated/c/hello.c",
-                "../build/src/generated/c/main.c",
-                "../build/src/generated/c/sum.c"
+                "build/src/generated/c/hello.c",
+                "build/src/generated/c/main.c",
+                "build/src/generated/c/sum.c"
         ] as Set
-        projectFile.headerFiles == [ "../build/src/generated/headers/hello.h" ]
+        projectFile.headerFiles == [ "build/src/generated/headers/hello.h" ]
         projectFile.projectConfigurations.keySet() == ['debug'] as Set
         with (projectFile.projectConfigurations['debug']) {
-            includePath == "../build/src/generated/headers"
+            includePath == "build/src/generated/headers"
         }
     }
 

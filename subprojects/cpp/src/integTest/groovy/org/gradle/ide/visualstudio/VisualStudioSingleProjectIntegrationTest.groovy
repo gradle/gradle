@@ -70,19 +70,19 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         executedAndNotSkipped ":mainExeVisualStudio"
 
         and:
-        final projectFile = projectFile("visualStudio/mainExe.vcxproj")
+        final projectFile = projectFile("mainExe.vcxproj")
         projectFile.sourceFiles == allFiles("src/main/cpp")
         projectFile.headerFiles == allFiles("src/main/headers")
         projectFile.projectConfigurations.keySet() == projectConfigurations
         projectFile.projectConfigurations.values().each {
             assert it.macros == "TEST;foo=bar"
             assert it.includePath == filePath("src/main/headers")
-            assert it.buildCommand == "gradle -p \"..\" :install${it.name.capitalize()}MainExecutable"
-            assert it.outputFile == OperatingSystem.current().getExecutableName("../build/install/mainExecutable/${it.name}/lib/main")
+            assert it.buildCommand == "gradle :install${it.name.capitalize()}MainExecutable"
+            assert it.outputFile == OperatingSystem.current().getExecutableName("build/install/mainExecutable/${it.name}/lib/main")
         }
 
         and:
-        final mainSolution = solutionFile("visualStudio/mainExe.sln")
+        final mainSolution = solutionFile("mainExe.sln")
         mainSolution.assertHasProjects("mainExe")
         mainSolution.assertReferencesProject(projectFile, projectConfigurations)
     }
@@ -102,18 +102,18 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         executedAndNotSkipped ":mainDllVisualStudio"
 
         and:
-        final projectFile = projectFile("visualStudio/mainDll.vcxproj")
+        final projectFile = projectFile("mainDll.vcxproj")
         projectFile.sourceFiles == allFiles("src/main/cpp")
         projectFile.headerFiles == allFiles("src/main/headers")
         projectFile.projectConfigurations.keySet() == projectConfigurations
         projectFile.projectConfigurations.values().each {
             assert it.includePath == filePath("src/main/headers")
-            assert it.buildCommand == "gradle -p \"..\" :${it.name}MainSharedLibrary"
-            assert it.outputFile == OperatingSystem.current().getSharedLibraryName("../build/binaries/mainSharedLibrary/${it.name}/main")
+            assert it.buildCommand == "gradle :${it.name}MainSharedLibrary"
+            assert it.outputFile == OperatingSystem.current().getSharedLibraryName("build/binaries/mainSharedLibrary/${it.name}/main")
         }
 
         and:
-        final mainSolution = solutionFile("visualStudio/mainDll.sln")
+        final mainSolution = solutionFile("mainDll.sln")
         mainSolution.assertHasProjects("mainDll")
         mainSolution.assertReferencesProject(projectFile, projectConfigurations)
     }
@@ -136,14 +136,14 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         executedAndNotSkipped ":mainLibVisualStudio"
 
         and:
-        final projectFile = projectFile("visualStudio/mainLib.vcxproj")
+        final projectFile = projectFile("mainLib.vcxproj")
         projectFile.sourceFiles == allFiles("src/main/cpp")
         projectFile.headerFiles == allFiles("src/main/headers")
         projectFile.projectConfigurations.keySet() == projectConfigurations
         projectFile.projectConfigurations['win32Debug'].includePath == filePath("src/main/headers")
 
         and:
-        final mainSolution = solutionFile("visualStudio/mainLib.sln")
+        final mainSolution = solutionFile("mainLib.sln")
         mainSolution.assertHasProjects("mainLib")
         mainSolution.assertReferencesProject(projectFile, projectConfigurations)
     }
@@ -165,21 +165,21 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         run "mainVisualStudio"
 
         then:
-        final exeProject = projectFile("visualStudio/mainExe.vcxproj")
+        final exeProject = projectFile("mainExe.vcxproj")
         exeProject.sourceFiles == allFiles("src/main/cpp")
         exeProject.headerFiles.isEmpty()
         exeProject.projectConfigurations.keySet() == projectConfigurations
         exeProject.projectConfigurations['win32Debug'].includePath == filePath("src/main/headers", "src/hello/headers")
 
         and:
-        final libProject = projectFile("visualStudio/helloLib.vcxproj")
+        final libProject = projectFile("helloLib.vcxproj")
         libProject.sourceFiles == allFiles("src/hello/cpp")
         libProject.headerFiles == allFiles("src/hello/headers")
         libProject.projectConfigurations.keySet() == projectConfigurations
         libProject.projectConfigurations['win32Debug'].includePath == filePath("src/hello/headers")
 
         and:
-        final mainSolution = solutionFile("visualStudio/mainExe.sln")
+        final mainSolution = solutionFile("mainExe.sln")
         mainSolution.assertHasProjects("mainExe", "helloLib")
         mainSolution.assertReferencesProject(exeProject, projectConfigurations)
         mainSolution.assertReferencesProject(libProject, projectConfigurations)
@@ -202,21 +202,21 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         run "mainVisualStudio"
 
         then:
-        final exeProject = projectFile("visualStudio/mainExe.vcxproj")
+        final exeProject = projectFile("mainExe.vcxproj")
         exeProject.sourceFiles == allFiles("src/main/cpp")
         exeProject.headerFiles.isEmpty()
         exeProject.projectConfigurations.keySet() == projectConfigurations
         exeProject.projectConfigurations['win32Debug'].includePath == filePath("src/main/headers", "src/hello/headers")
 
         and:
-        final dllProject = projectFile("visualStudio/helloDll.vcxproj")
+        final dllProject = projectFile("helloDll.vcxproj")
         dllProject.sourceFiles == allFiles("src/hello/cpp")
         dllProject.headerFiles == allFiles("src/hello/headers")
         dllProject.projectConfigurations.keySet() == projectConfigurations
         dllProject.projectConfigurations['win32Debug'].includePath == filePath("src/hello/headers")
 
         and:
-        final mainSolution = solutionFile("visualStudio/mainExe.sln")
+        final mainSolution = solutionFile("mainExe.sln")
         mainSolution.assertHasProjects("mainExe", "helloDll")
         mainSolution.assertReferencesProject(exeProject, projectConfigurations)
         mainSolution.assertReferencesProject(dllProject, projectConfigurations)
@@ -245,28 +245,28 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         run "mainVisualStudio"
 
         then:
-        final exeProject = projectFile("visualStudio/mainExe.vcxproj")
+        final exeProject = projectFile("mainExe.vcxproj")
         exeProject.sourceFiles == allFiles("src/main/cpp")
         exeProject.headerFiles.isEmpty()
         exeProject.projectConfigurations.keySet() == projectConfigurations
         exeProject.projectConfigurations['win32Debug'].includePath == filePath("src/main/headers", "src/hello/headers")
 
         and:
-        final helloDllProject = projectFile("visualStudio/helloDll.vcxproj")
+        final helloDllProject = projectFile("helloDll.vcxproj")
         helloDllProject.sourceFiles == allFiles("src/hello/cpp")
         helloDllProject.headerFiles == allFiles("src/hello/headers")
         helloDllProject.projectConfigurations.keySet() == projectConfigurations
         helloDllProject.projectConfigurations['win32Debug'].includePath == filePath("src/hello/headers", "src/greetings/headers")
 
         and:
-        final greetingsLibProject = projectFile("visualStudio/greetingsLib.vcxproj")
+        final greetingsLibProject = projectFile("greetingsLib.vcxproj")
         greetingsLibProject.sourceFiles == allFiles("src/greetings/cpp")
         greetingsLibProject.headerFiles == allFiles("src/greetings/headers")
         greetingsLibProject.projectConfigurations.keySet() == projectConfigurations
         greetingsLibProject.projectConfigurations['win32Debug'].includePath == filePath("src/greetings/headers")
 
         and:
-        final mainSolution = solutionFile("visualStudio/mainExe.sln")
+        final mainSolution = solutionFile("mainExe.sln")
         mainSolution.assertHasProjects("mainExe", "helloDll", "greetingsLib")
         mainSolution.assertReferencesProject(exeProject, projectConfigurations)
         mainSolution.assertReferencesProject(helloDllProject, projectConfigurations)
@@ -293,19 +293,19 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         run "mainVisualStudio", "mainStaticVisualStudio"
 
         then:
-        solutionFile("visualStudio/mainExe.sln").assertHasProjects("mainExe", "helloDll")
-        solutionFile("visualStudio/mainStaticExe.sln").assertHasProjects("mainStaticExe", "helloLib")
+        solutionFile("mainExe.sln").assertHasProjects("mainExe", "helloDll")
+        solutionFile("mainStaticExe.sln").assertHasProjects("mainStaticExe", "helloLib")
 
         and:
-        final exeProject = projectFile("visualStudio/mainExe.vcxproj")
-        final staticExeProject = projectFile("visualStudio/mainStaticExe.vcxproj")
+        final exeProject = projectFile("mainExe.vcxproj")
+        final staticExeProject = projectFile("mainStaticExe.vcxproj")
         exeProject.sourceFiles == staticExeProject.sourceFiles
         exeProject.headerFiles == []
         staticExeProject.headerFiles == []
 
         and:
-        final dllProject = projectFile("visualStudio/helloDll.vcxproj")
-        final libProject = projectFile("visualStudio/helloLib.vcxproj")
+        final dllProject = projectFile("helloDll.vcxproj")
+        final libProject = projectFile("helloLib.vcxproj")
         dllProject.sourceFiles == libProject.sourceFiles
         dllProject.headerFiles == libProject.headerFiles
     }
@@ -333,21 +333,21 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         run "mainVisualStudio", "mainReleaseVisualStudio"
 
         then:
-        solutionFile("visualStudio/mainExe.sln").assertHasProjects("mainExe", "helloDll")
-        solutionFile("visualStudio/mainReleaseExe.sln").assertHasProjects("mainReleaseExe", "helloDll")
+        solutionFile("mainExe.sln").assertHasProjects("mainExe", "helloDll")
+        solutionFile("mainReleaseExe.sln").assertHasProjects("mainReleaseExe", "helloDll")
 
         and:
-        final helloProjectFile = projectFile("visualStudio/helloDll.vcxproj")
+        final helloProjectFile = projectFile("helloDll.vcxproj")
         helloProjectFile.projectConfigurations.keySet() == projectConfigurations
-        final mainProjectFile = projectFile("visualStudio/mainExe.vcxproj")
+        final mainProjectFile = projectFile("mainExe.vcxproj")
         mainProjectFile.projectConfigurations.keySet() == projectConfigurations
-        final mainReleaseProjectFile = projectFile("visualStudio/mainReleaseExe.vcxproj")
+        final mainReleaseProjectFile = projectFile("mainReleaseExe.vcxproj")
         mainReleaseProjectFile.projectConfigurations.keySet() == ['win32Release', 'x64Release'] as Set
 
         and:
-        final mainSolution = solutionFile("visualStudio/mainExe.sln")
+        final mainSolution = solutionFile("mainExe.sln")
         mainSolution.assertReferencesProject(helloProjectFile, projectConfigurations)
-        final mainReleaseSolution = solutionFile("visualStudio/mainReleaseExe.sln")
+        final mainReleaseSolution = solutionFile("mainReleaseExe.sln")
         mainReleaseSolution.assertReferencesProject(helloProjectFile, ['win32Release', 'x64Release'])
     }
 
@@ -373,7 +373,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         run "mainVisualStudio"
 
         then:
-        final mainProjectFile = projectFile("visualStudio/mainExe.vcxproj")
+        final mainProjectFile = projectFile("mainExe.vcxproj")
         mainProjectFile.projectConfigurations.keySet() == ['win32Debug', 'otherWin32Debug'] as Set
     }
 
@@ -398,10 +398,10 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         succeeds "mainVisualStudio"
 
         then:
-        final exeProject = projectFile("visualStudio/mainExe.vcxproj")
-        final helloProject = projectFile("visualStudio/helloDll.vcxproj")
-        final greetProject = projectFile("visualStudio/greetingsLib.vcxproj")
-        final mainSolution = solutionFile("visualStudio/mainExe.sln")
+        final exeProject = projectFile("mainExe.vcxproj")
+        final helloProject = projectFile("helloDll.vcxproj")
+        final greetProject = projectFile("greetingsLib.vcxproj")
+        final mainSolution = solutionFile("mainExe.sln")
 
         and:
         mainSolution.assertHasProjects("mainExe", "helloDll", "greetingsLib")
@@ -439,11 +439,11 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         succeeds "mainVisualStudio"
 
         then:
-        final exeProject = projectFile("visualStudio/mainExe.vcxproj")
-        final helloProject = projectFile("visualStudio/helloDll.vcxproj")
-        final greetDllProject = projectFile("visualStudio/greetingsDll.vcxproj")
-        final greetLibProject = projectFile("visualStudio/greetingsLib.vcxproj")
-        final mainSolution = solutionFile("visualStudio/mainExe.sln")
+        final exeProject = projectFile("mainExe.vcxproj")
+        final helloProject = projectFile("helloDll.vcxproj")
+        final greetDllProject = projectFile("greetingsDll.vcxproj")
+        final greetLibProject = projectFile("greetingsLib.vcxproj")
+        final mainSolution = solutionFile("mainExe.sln")
 
         and:
         mainSolution.assertHasProjects("mainExe", "helloDll", "greetingsLib", "greetingsDll")
@@ -481,7 +481,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         run "mainVisualStudio"
 
         then:
-        final projectFile = projectFile("visualStudio/mainExe.vcxproj")
+        final projectFile = projectFile("mainExe.vcxproj")
         projectFile.sourceFiles == allFiles("src/main/asm", "src/main/c", "src/main/cpp")
         projectFile.headerFiles == allFiles("src/main/headers")
         projectFile.projectConfigurations.keySet() == projectConfigurations
@@ -490,7 +490,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         }
 
         and:
-        solutionFile("visualStudio/mainExe.sln").assertHasProjects("mainExe")
+        solutionFile("mainExe.sln").assertHasProjects("mainExe")
     }
 
     @RequiresInstalledToolChain(VisualCpp)
@@ -515,7 +515,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         run "mainVisualStudio"
 
         then:
-        final projectFile = projectFile("visualStudio/mainExe.vcxproj")
+        final projectFile = projectFile("mainExe.vcxproj")
         projectFile.sourceFiles == allFiles("src/main/cpp")
         projectFile.resourceFiles == allFiles("src/main/rc")
         projectFile.headerFiles == allFiles("src/main/headers")
@@ -526,7 +526,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         }
 
         and:
-        solutionFile("visualStudio/mainExe.sln").assertHasProjects("mainExe")
+        solutionFile("mainExe.sln").assertHasProjects("mainExe")
     }
 
     def "builds solution for component with no source"() {
@@ -541,7 +541,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         run "mainVisualStudio"
 
         then:
-        final projectFile = projectFile("visualStudio/mainExe.vcxproj")
+        final projectFile = projectFile("mainExe.vcxproj")
         projectFile.sourceFiles == []
         projectFile.headerFiles == []
         projectFile.projectConfigurations.keySet() == projectConfigurations
@@ -550,7 +550,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         }
 
         and:
-        solutionFile("visualStudio/mainExe.sln").assertHasProjects("mainExe")
+        solutionFile("mainExe.sln").assertHasProjects("mainExe")
     }
 
     def "visual studio solution with header-only library"() {
@@ -579,17 +579,17 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         succeeds "mainVisualStudio"
 
         then:
-        final mainSolution = solutionFile("visualStudio/mainExe.sln")
+        final mainSolution = solutionFile("mainExe.sln")
         mainSolution.assertHasProjects("mainExe", "helloDll")
 
         and:
-        final mainExeProject = projectFile("visualStudio/mainExe.vcxproj")
+        final mainExeProject = projectFile("mainExe.vcxproj")
         with (mainExeProject.projectConfigurations['win32Debug']) {
             includePath == filePath("src/main/headers", "src/helloApi/headers", "src/hello/headers")
         }
 
         and:
-        final helloDllProject = projectFile("visualStudio/helloDll.vcxproj")
+        final helloDllProject = projectFile("helloDll.vcxproj")
         with (helloDllProject.projectConfigurations['win32Debug']) {
             includePath == filePath("src/hello/headers", "src/helloApi/headers")
         }
@@ -615,13 +615,13 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         run "mainVisualStudio"
 
         then:
-        final projectFile = projectFile("visualStudio/mainExe.vcxproj")
+        final projectFile = projectFile("mainExe.vcxproj")
         projectFile.sourceFiles == allFiles("src/win32/cpp", "src/x64/cpp")
         projectFile.headerFiles == allFiles("src/win32/headers", "src/x64/headers")
         projectFile.projectConfigurations.keySet() == projectConfigurations
 
         and:
-        final mainSolution = solutionFile("visualStudio/mainExe.sln")
+        final mainSolution = solutionFile("mainExe.sln")
         mainSolution.assertHasProjects("mainExe")
         mainSolution.assertReferencesProject(projectFile, projectConfigurations)
     }
@@ -653,11 +653,11 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         and:
 
         then:
-        final mainSolution = solutionFile("visualStudio/mainExe.sln")
+        final mainSolution = solutionFile("mainExe.sln")
         mainSolution.assertHasProjects("mainExe")
 
         and:
-        final mainExeProject = projectFile("visualStudio/mainExe.vcxproj")
+        final mainExeProject = projectFile("mainExe.vcxproj")
         with (mainExeProject.projectConfigurations['win32Debug']) {
             includePath == filePath("src/main/headers", "libs/test/include")
         }
@@ -689,23 +689,23 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         succeeds "mainVisualStudio"
 
         then:
-        final mainSolution = solutionFile("visualStudio/mainExe.sln")
+        final mainSolution = solutionFile("mainExe.sln")
         mainSolution.assertHasProjects("mainExe", "helloDll", "greetingsLib")
 
         and:
-        final mainExeProject = projectFile("visualStudio/mainExe.vcxproj")
+        final mainExeProject = projectFile("mainExe.vcxproj")
         with (mainExeProject.projectConfigurations['win32Debug']) {
             includePath == filePath("src/main/headers", "src/hello/headers")
         }
 
         and:
-        final helloDllProject = projectFile("visualStudio/helloDll.vcxproj")
+        final helloDllProject = projectFile("helloDll.vcxproj")
         with (helloDllProject.projectConfigurations['win32Debug']) {
             includePath == filePath( "src/hello/headers", "src/greetings/headers")
         }
 
         and:
-        final greetingsLibProject = projectFile("visualStudio/greetingsLib.vcxproj")
+        final greetingsLibProject = projectFile("greetingsLib.vcxproj")
         with (greetingsLibProject.projectConfigurations['win32Debug']) {
             includePath == filePath("src/greetings/headers", "src/hello/headers")
         }
@@ -731,21 +731,21 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         run "mainVisualStudio"
 
         then:
-        final exeProject = projectFile("visualStudio/mainExe.vcxproj")
+        final exeProject = projectFile("mainExe.vcxproj")
         exeProject.sourceFiles == allFiles("src/main/cpp")
         exeProject.headerFiles.isEmpty()
         exeProject.projectConfigurations.keySet() == ['release'] as Set
         exeProject.projectConfigurations['release'].includePath == filePath("src/main/headers", "src/hello/headers")
 
         and:
-        final dllProject = projectFile("visualStudio/helloDll.vcxproj")
+        final dllProject = projectFile("helloDll.vcxproj")
         dllProject.sourceFiles == allFiles("src/hello/cpp")
         dllProject.headerFiles == allFiles("src/hello/headers")
         dllProject.projectConfigurations.keySet() == projectConfigurations
         dllProject.projectConfigurations['win32Debug'].includePath == filePath("src/hello/headers")
 
         and:
-        final mainSolution = solutionFile("visualStudio/mainExe.sln")
+        final mainSolution = solutionFile("mainExe.sln")
         mainSolution.assertHasProjects("mainExe", "helloDll")
         mainSolution.assertReferencesProject(exeProject, ['release'])
         mainSolution.assertReferencesProject(dllProject, [release: 'win32Release'])
@@ -763,7 +763,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         List allFiles = []
         paths.each { path ->
             file(path).listFiles().each { file ->
-                allFiles.add "../${path}/${file.name}"
+                allFiles.add "${path}/${file.name}"
             }
         }
         return allFiles
@@ -771,7 +771,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
 
     private String filePath(String... paths) {
         return paths.collect {
-            "../${it}"
+            "${it}"
         } .join(';')
     }
 }

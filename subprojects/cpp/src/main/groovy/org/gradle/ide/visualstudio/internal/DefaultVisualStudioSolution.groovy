@@ -38,7 +38,7 @@ class DefaultVisualStudioSolution extends AbstractBuildableModelElement implemen
         this.rootProject = rootProject
         this.name = rootProject.name
         this.vsProjectResolver = vsProjectResolver
-        this.solutionFile = instantiator.newInstance(SolutionFile, fileResolver, "visualStudio/${name}.sln" as String)
+        this.solutionFile = instantiator.newInstance(SolutionFile, fileResolver, "${name}.sln" as String)
     }
 
     String getName() {

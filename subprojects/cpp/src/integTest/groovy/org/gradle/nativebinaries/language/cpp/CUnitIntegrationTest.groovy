@@ -188,22 +188,22 @@ There were test failures:
         succeeds "helloTestVisualStudio"
 
         then:
-        final mainSolution = new SolutionFile(file("visualStudio/helloTestExe.sln"))
+        final mainSolution = new SolutionFile(file("helloTestExe.sln"))
         mainSolution.assertHasProjects("helloTestExe")
 
         and:
-        final projectFile = new ProjectFile(file("visualStudio/helloTestExe.vcxproj"))
+        final projectFile = new ProjectFile(file("helloTestExe.vcxproj"))
         projectFile.sourceFiles as Set == [
-                "../src/helloTest/cunit/test.c",
-                "../build/src/cunitLauncher/gradle_cunit_main.c",
-                "../build/src/cunitLauncher/gradle_cunit_register.h",
-                "../src/hello/c/hello.c",
-                "../src/hello/c/sum.c"
+                "src/helloTest/cunit/test.c",
+                "build/src/cunitLauncher/gradle_cunit_main.c",
+                "build/src/cunitLauncher/gradle_cunit_register.h",
+                "src/hello/c/hello.c",
+                "src/hello/c/sum.c"
         ] as Set
-        projectFile.headerFiles == ["../src/hello/headers/hello.h"]
+        projectFile.headerFiles == ["src/hello/headers/hello.h"]
         projectFile.projectConfigurations.keySet() == ['debug'] as Set
         with (projectFile.projectConfigurations['debug']) {
-            includePath == "../src/hello/headers;../libs/cunit/2.1-2/include"
+            includePath == "src/hello/headers;libs/cunit/2.1-2/include"
         }
     }
 

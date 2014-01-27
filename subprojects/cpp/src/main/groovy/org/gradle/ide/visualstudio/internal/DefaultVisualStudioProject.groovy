@@ -44,8 +44,8 @@ class DefaultVisualStudioProject extends AbstractBuildableModelElement implement
     DefaultVisualStudioProject(String name, ProjectNativeComponent component, FileResolver fileResolver, Instantiator instantiator) {
         this.name = name
         this.component = component
-        projectFile = instantiator.newInstance(DefaultConfigFile, fileResolver, "visualStudio/${name}.vcxproj" as String)
-        filtersFile = instantiator.newInstance(DefaultConfigFile, fileResolver, "visualStudio/${name}.vcxproj.filters" as String)
+        projectFile = instantiator.newInstance(DefaultConfigFile, fileResolver, "${name}.vcxproj" as String)
+        filtersFile = instantiator.newInstance(DefaultConfigFile, fileResolver, "${name}.vcxproj.filters" as String)
     }
 
     String getName() {
