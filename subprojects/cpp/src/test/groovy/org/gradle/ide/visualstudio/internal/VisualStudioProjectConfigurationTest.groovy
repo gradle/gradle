@@ -73,7 +73,7 @@ class VisualStudioProjectConfigurationTest extends Specification {
 
         then:
         configuration.buildTask == ":project-path:exeBinary"
-        configuration.cleanTask == ":project-path:cleanExeBinary"
+        configuration.cleanTask == ":project-path:clean"
     }
 
     def "compiler defines are taken from cpp compiler configuration"() {
