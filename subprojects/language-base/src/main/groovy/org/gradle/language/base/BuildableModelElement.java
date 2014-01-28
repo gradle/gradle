@@ -36,4 +36,6 @@ public interface BuildableModelElement extends Buildable {
      * A task added this way is then added as a dependency of the associated lifecycle task.
      */
     void builtBy(Object... tasks);
+
+    boolean hasBuildDependencies();
 }
