@@ -16,11 +16,37 @@
 package org.gradle.api.internal.file.pattern;
 
 public class PatternStepFactory {
-    public static PatternStep getStep(String source, boolean isLast, boolean caseSensitive) {
-        if (source.equals("**")) {
-            return new GreedyPatternStep();
-        } else {
-            return new RegExpPatternStep(source, caseSensitive);
+    public static PatternStep getStep(String source, boolean caseSensitive) {
+        if (source.length() == 0) {
+            return new FixedPatternStep(source, caseSensitive);
         }
+
+        // Handle '**' and '*some-pattern' special cases
+        char ch = source.charAt(0);
+        if (ch == '*') {
+            if (source.length() == 2 && source.charAt(1) == '*') {
+                return new GreedyPatternStep();
+            }
+            int pos = 1;
+            while (pos < source.length() && source.charAt(pos) == '*') {
+                pos++;
+            }
+            for (int i = pos; i < source.length(); i++) {
+                ch = source.charAt(i);
+                if (ch == '?' || ch == '*') {
+                    // Too complicated - fall back to regexp
+                    return new RegExpPatternStep(source, caseSensitive);
+                }
+            }
+            return new WildcardPrefixPatternStep(source.substring(pos), caseSensitive);
+        }
+
+        for (int i = 0; i < source.length(); i++) {
+            ch = source.charAt(i);
+            if (ch == '?' || ch == '*') {
+                return new RegExpPatternStep(source, caseSensitive);
+            }
+        }
+        return new FixedPatternStep(source, caseSensitive);
     }
 }

@@ -41,7 +41,7 @@ public class NameOnlyPatternMatcher implements Spec<RelativePath> {
      */
     public NameOnlyPatternMatcher(boolean partialMatchDirs, boolean caseSensitive, String pattern) {
         this.partialMatchDirs = partialMatchDirs;
-        nameStep = PatternStepFactory.getStep(pattern, true, caseSensitive);
+        nameStep = PatternStepFactory.getStep(pattern, caseSensitive);
     }
 
     public boolean isSatisfiedBy(RelativePath path) {

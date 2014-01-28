@@ -33,10 +33,8 @@ public class DefaultPatternMatcher implements Spec<RelativePath> {
     }
 
     private void compile(boolean caseSensitive, String[] parts) {
-        if (parts.length > 0) {
-            for (int i = 0; i < parts.length; i++) {
-                steps.add(PatternStepFactory.getStep(parts[i], i == parts.length - 1, caseSensitive));
-            }
+        for (int i = 0; i < parts.length; i++) {
+            steps.add(PatternStepFactory.getStep(parts[i], caseSensitive));
         }
     }
 
