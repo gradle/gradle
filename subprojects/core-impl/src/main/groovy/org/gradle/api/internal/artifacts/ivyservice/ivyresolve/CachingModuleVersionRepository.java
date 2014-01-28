@@ -101,8 +101,7 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
                 moduleResolutionCache.cacheModuleResolution(delegate, dependency.getRequested(), metaData.getId());
                 ModuleSource moduleSource = result.getModuleSource();
                 ModuleMetaDataCache.CachedMetaData cachedMetaData = moduleMetaDataCache.cacheMetaData(delegate, metaData, moduleSource);
-                metadataProcessor.process(metaData);
-                result.setModuleSource(new CachingModuleSource(cachedMetaData.getDescriptorHash(), metaData.isChanging() || dependency.isChanging(), moduleSource));
+                result.setModuleSource(new CachingModuleSource(cachedMetaData.getDescriptorHash(), isChanging(dependency, metaData), moduleSource));
                 break;
             case Failed:
                 break;
@@ -150,8 +149,7 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
             return;
         }
 
-        metadataProcessor.process(cachedMetaData.getMetaData());
-        if (cachedMetaData.getMetaData().isChanging() || dependency.isChanging()) {
+        if (isChanging(dependency, cachedMetaData.getMetaData())) {
             if (cachePolicy.mustRefreshChangingModule(moduleVersionIdentifier, cachedMetaData.getModuleVersion(), cachedMetaData.getAgeMillis())) {
                 LOGGER.debug("Cached meta-data for changing module is expired: will perform fresh resolve of '{}' in '{}'", resolvedModuleVersionId, repository.getName());
                 return;
@@ -166,6 +164,14 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
 
         LOGGER.debug("Using cached module metadata for module '{}' in '{}'", resolvedModuleVersionId, repository.getName());
         result.resolved(cachedMetaData.getMetaData(), new CachingModuleSource(cachedMetaData.getDescriptorHash(), cachedMetaData.getMetaData().isChanging(), cachedMetaData.getModuleSource()));
+    }
+
+    private boolean isChanging(DependencyMetaData dependency, ModuleVersionMetaData metadata) {
+        if (dependency.isChanging()) {
+            return true;
+        }
+        metadataProcessor.process(metadata);
+        return metadata.isChanging();
     }
 
     public void resolve(ModuleVersionArtifactMetaData artifact, BuildableArtifactResolveResult result, ModuleSource moduleSource) {
