@@ -123,10 +123,11 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractInstalledToolChai
         app.library.writeSources(file("src/main"))
         buildFile << """
     libraries {
-        main {}
-    }
-    binaries.withType(SharedLibraryBinary) {
-        buildable = false
+        main {
+            binaries.withType(SharedLibraryBinary) {
+                buildable = false
+            }
+        }
     }
 """
         and:
