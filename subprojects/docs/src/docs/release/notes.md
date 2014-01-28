@@ -280,6 +280,10 @@ The default value for this property will change in Gradle 2.0.
 
 ## Potential breaking changes
 
+### Change to '?' wildcard in file patterns
+
+Previously, the '?' character would match zero or more characters. To better match the Ant behaviour, the '?' character now matches exactly one character.
+
 ### Changed DSL and model for native binary components
 
 Much of the model and DSL for defining native binary components has been changed. Most build scripts leveraging this functionality
