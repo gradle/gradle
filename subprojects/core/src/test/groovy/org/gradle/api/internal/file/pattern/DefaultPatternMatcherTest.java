@@ -36,11 +36,11 @@ public class DefaultPatternMatcherTest {
         steps = matcher.getStepsForTest();
         assertEquals(3, steps.size());
         step = steps.get(2);
-        assertTrue(step.matches("c", true));
+        assertTrue(step.matches("c"));
         //assertFalse(step.matches("c", false));
 
         // try matching a wrong literal string
-        assertFalse(step.matches("somethingelse", true));
+        assertFalse(step.matches("somethingelse"));
 
         // check greedy
         matcher = new DefaultPatternMatcher(true, true, "a", "**", "c");

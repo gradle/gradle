@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,26 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.api.internal.file.pattern;
 
-/**
- * A pattern step for a fixed pattern segment that does not contain any wildcards.
- */
-public class FixedPatternStep implements PatternStep {
-    private final String value;
-    private final boolean caseSensitive;
-
-    public FixedPatternStep(String value, boolean caseSensitive) {
-        this.value = value;
-        this.caseSensitive = caseSensitive;
+public class AnyWildcardPatternStep implements PatternStep{
+    public boolean matches(String candidate) {
+        return true;
     }
 
     public boolean isGreedy() {
         return false;
-    }
-
-    public boolean matches(String candidate) {
-        return caseSensitive ? candidate.equals(value) : candidate.equalsIgnoreCase(value);
     }
 }

@@ -23,20 +23,20 @@ class FixedPatternStepTest extends Specification {
         def step = new FixedPatternStep("name", true)
 
         expect:
-        step.matches("name", true)
-        !step.matches("Name", true)
-        !step.matches("", true)
-        !step.matches("something else", true)
+        step.matches("name")
+        !step.matches("Name")
+        !step.matches("")
+        !step.matches("something else")
     }
 
     def "matches name case insensitive"() {
         def step = new FixedPatternStep("name", false)
 
         expect:
-        step.matches("name", true)
-        step.matches("Name", true)
-        step.matches("NAME", true)
-        !step.matches("", true)
-        !step.matches("something else", true)
+        step.matches("name")
+        step.matches("Name")
+        step.matches("NAME")
+        !step.matches("")
+        !step.matches("something else")
     }
 }

@@ -23,25 +23,25 @@ class WildcardPrefixPatternStepTest extends Specification {
         def step = new WildcardPrefixPatternStep(".java", true)
 
         expect:
-        step.matches("thing.java", true)
-        step.matches(".java", true)
-        !step.matches("thing.JAVA", true)
-        !step.matches("thing.jav", true)
-        !step.matches("thing.c", true)
-        !step.matches("", true)
-        !step.matches("something else", true)
+        step.matches("thing.java")
+        step.matches(".java")
+        !step.matches("thing.JAVA")
+        !step.matches("thing.jav")
+        !step.matches("thing.c")
+        !step.matches("")
+        !step.matches("something else")
     }
 
     def "matches name case insensitive"() {
         def step = new WildcardPrefixPatternStep(".java", false)
 
         expect:
-        step.matches("thing.java", true)
-        step.matches(".java", true)
-        step.matches("thing.JAVA", true)
-        !step.matches("thing.jav", true)
-        !step.matches("thing.c", true)
-        !step.matches("", true)
-        !step.matches("something else", true)
+        step.matches("thing.java")
+        step.matches(".java")
+        step.matches("thing.JAVA")
+        !step.matches("thing.jav")
+        !step.matches("thing.c")
+        !step.matches("")
+        !step.matches("something else")
     }
 }

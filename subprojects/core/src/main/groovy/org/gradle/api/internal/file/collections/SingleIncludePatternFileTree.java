@@ -88,7 +88,7 @@ public class SingleIncludePatternFileTree implements MinimalFileTree {
             }
             for (File child : children) {
                 if (stopFlag.get()) { break; }
-                if (step.matches(child.getName(), child.isFile())) {
+                if (step.matches(child.getName())) {
                     relativePath.addLast(child.getName());
                     doVisitDirOrFile(visitor, child, relativePath, segmentIndex + 1, stopFlag);
                     relativePath.removeLast();

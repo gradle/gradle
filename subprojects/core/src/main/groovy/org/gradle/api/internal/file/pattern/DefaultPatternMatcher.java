@@ -65,7 +65,7 @@ public class DefaultPatternMatcher implements Spec<RelativePath> {
                 patternStep = patternIt.next();
 
                 // advance test until match
-                while (!(patternStep.matches(nextToTest, !testIt.hasNext() && pathToTest.isFile()) && (
+                while (!(patternStep.matches(nextToTest) && (
                         (patternIt.hasNext() == testIt.hasNext()) || nextPatternIsGreedy(patternIt)))) {
                     if (!testIt.hasNext()) {
                         return partialMatchDirs && !pathToTest
@@ -77,7 +77,7 @@ public class DefaultPatternMatcher implements Spec<RelativePath> {
                 // should have match at this point, can continue on around the loop
             } else {
                 // not a greedy patternStep
-                if (!patternStep.matches(nextToTest, !testIt.hasNext() && pathToTest.isFile())) {
+                if (!patternStep.matches(nextToTest)) {
                     // didn't match, check if we are after another greedy
                     if (seenGreedy) {
                         rewindPatternStepToPreviousGreedy(patternIt);  // rewind pattern to greedy

@@ -34,7 +34,7 @@ public class WildcardPrefixPatternStep implements PatternStep {
         return false;
     }
 
-    public boolean matches(String candidate, boolean isFile) {
+    public boolean matches(String candidate) {
         return candidate.regionMatches(!caseSensitive, candidate.length() - suffixLength, suffix, 0, suffixLength);
     }
 }

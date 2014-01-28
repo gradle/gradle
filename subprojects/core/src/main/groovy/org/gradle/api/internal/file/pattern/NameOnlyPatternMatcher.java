@@ -52,6 +52,6 @@ public class NameOnlyPatternMatcher implements Spec<RelativePath> {
         if (lastName == null) {
             return false;
         }
-        return nameStep.matches(lastName, true);
+        return nameStep.matches(lastName);
     }
 }

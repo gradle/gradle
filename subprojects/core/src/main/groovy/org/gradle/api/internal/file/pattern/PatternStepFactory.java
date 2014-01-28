@@ -24,6 +24,9 @@ public class PatternStepFactory {
         // Handle '**' and '*some-pattern' special cases
         char ch = source.charAt(0);
         if (ch == '*') {
+            if (source.length() == 1) {
+                return new AnyWildcardPatternStep();
+            }
             if (source.length() == 2 && source.charAt(1) == '*') {
                 return new GreedyPatternStep();
             }
