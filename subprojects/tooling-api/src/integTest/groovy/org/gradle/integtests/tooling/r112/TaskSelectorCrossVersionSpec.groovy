@@ -22,7 +22,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.UnsupportedMethodException
 
-@ToolingApiVersion("current")
+@ToolingApiVersion(">=1.12")
 class TaskSelectorCrossVersionSpec extends ToolingApiSpecification {
     def setup() {
         file('settings.gradle') << '''
@@ -49,7 +49,7 @@ task t1 << {
         e.cause.message.startsWith('Unsupported method: GradleProject.getTaskSelectors().')
     }
 
-    @TargetGradleVersion("current")
+    @TargetGradleVersion(">=1.12")
     def "can request task selectors in action"() {
         when:
         Map<String, Set<String>> result = withConnection { connection ->

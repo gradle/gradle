@@ -15,6 +15,7 @@
  */
 package org.gradle.tooling.internal.consumer;
 
+import org.gradle.api.GradleException;
 import org.gradle.tooling.BuildLauncher;
 import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
@@ -61,6 +62,8 @@ class DefaultBuildLauncher extends AbstractLongRunningOperation<DefaultBuildLaun
                 taskPaths.add(((Task) task).getPath());
             } else if (task instanceof TaskSelector) {
                 taskPaths.add(((TaskSelector) task).getName());
+            } else {
+                throw new GradleException("Only Task or TaskSelector instances are supported.");
             }
         }
         operationParameters.setTasks(taskPaths);

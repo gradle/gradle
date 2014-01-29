@@ -15,10 +15,13 @@
  */
 package org.gradle.tooling.model;
 
+import org.gradle.api.Incubating;
+
 /**
  * Represents an arbitrary entry point to the build
  *
- * @since 1.11
+ * @since 1.12
  */
+@Incubating
 public interface EntryPoint {
 }
