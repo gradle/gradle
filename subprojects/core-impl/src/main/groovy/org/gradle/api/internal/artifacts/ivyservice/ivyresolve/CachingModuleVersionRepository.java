@@ -166,10 +166,8 @@ public class CachingModuleVersionRepository implements LocalAwareModuleVersionRe
         result.resolved(cachedMetaData.getMetaData(), new CachingModuleSource(cachedMetaData.getDescriptorHash(), cachedMetaData.getMetaData().isChanging(), cachedMetaData.getModuleSource()));
     }
 
-    private boolean isChanging(DependencyMetaData dependency, ModuleVersionMetaData metadata) {
-        if (dependency.isChanging()) {
-            return true;
-        }
+    private boolean isChanging(DependencyMetaData dependency, MutableModuleVersionMetaData metadata) {
+        metadata.setChanging(dependency.isChanging());
         metadataProcessor.process(metadata);
         return metadata.isChanging();
     }
