@@ -43,40 +43,35 @@ public class ConfigureCUnitTestSources extends ModelRule {
     }
 
     public void configureCUnitSources(CUnitTestSuite cUnitTestSuite) {
-        CSourceSet cunitSourceSet = createCUnitSourceSet(cUnitTestSuite);
-        cUnitTestSuite.source(cunitSourceSet);
+        FunctionalSourceSet suiteSourceSet = createSuiteSources(cUnitTestSuite);
 
-        // TODO:DAZ This duplicates ApplySourceSetConventions, but the sources won't be empty due to the generated sources.
-        // TODO:DAZ We could fix this by putting the generated sources into a different source set
-        if (cunitSourceSet.getSource().getSrcDirs().isEmpty()) {
-            cunitSourceSet.getSource().srcDir(String.format("src/%s/%s", cUnitTestSuite.getName(), cunitSourceSet.getName()));
-        }
+        CSourceSet launcherSources = suiteSourceSet.create("cunitLauncher", CSourceSet.class);
+        cUnitTestSuite.source(launcherSources);
+        createCUnitLauncherTask(cUnitTestSuite, launcherSources);
+
+        CSourceSet testSources = suiteSourceSet.create("cunit", CSourceSet.class);
+        cUnitTestSuite.source(testSources);
+        testSources.lib(launcherSources);
 
         if (cUnitTestSuite instanceof ProjectComponentTestSuite) {
             ProjectNativeComponent testedComponent = ((ProjectComponentTestSuite) cUnitTestSuite).getTestedComponent();
-            cunitSourceSet.lib(testedComponent.getSource().withType(CSourceSet.class));
+            testSources.lib(testedComponent.getSource().withType(CSourceSet.class));
             cUnitTestSuite.source(testedComponent.getSource());
         }
-
-        createCUnitLauncherTask(cunitSourceSet);
     }
 
-    private CSourceSet createCUnitSourceSet(CUnitTestSuite cUnitTestSuite) {
+    private FunctionalSourceSet createSuiteSources(CUnitTestSuite cUnitTestSuite) {
         ProjectSourceSet projectSourceSet = project.getExtensions().getByType(ProjectSourceSet.class);
-        FunctionalSourceSet componentTestSources = projectSourceSet.maybeCreate(cUnitTestSuite.getName());
-        return componentTestSources.maybeCreate("cunit", CSourceSet.class);
+        return projectSourceSet.maybeCreate(cUnitTestSuite.getName());
     }
 
-    private void createCUnitLauncherTask(CSourceSet cunitSourceSet) {
-        String taskName = cunitSourceSet.getName() + "Launcher";
+    private void createCUnitLauncherTask(CUnitTestSuite suite, CSourceSet cunitSourceSet) {
+        String taskName = suite.getName() + "CUnitLauncher";
         GenerateCUnitLauncher skeletonTask = project.getTasks().create(taskName, GenerateCUnitLauncher.class);
 
-        // TODO:DAZ Can't use 'generatedBy' because the ConfigureGeneratedSourceSets action runs before this (need to make it a rule)
         File baseDir = new File(project.getBuildDir(), "src/" + taskName);
         skeletonTask.setSourceDir(new File(baseDir, "cunit"));
         skeletonTask.setHeaderDir(new File(baseDir, "headers"));
-        cunitSourceSet.builtBy(skeletonTask);
-        cunitSourceSet.getSource().srcDir(skeletonTask.getSourceDir());
-        cunitSourceSet.getExportedHeaders().srcDir(skeletonTask.getHeaderDir());
+        cunitSourceSet.generatedBy(skeletonTask);
     }
 }
