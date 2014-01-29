@@ -70,8 +70,11 @@ public class ConfigureCUnitTestSources extends ModelRule {
         GenerateCUnitLauncher skeletonTask = project.getTasks().create(taskName, GenerateCUnitLauncher.class);
 
         // TODO:DAZ Can't use 'generatedBy' because the ConfigureGeneratedSourceSets action runs before this (need to make it a rule)
-        skeletonTask.setSourceDir(new File(project.getBuildDir(), "src/" + taskName));
+        File baseDir = new File(project.getBuildDir(), "src/" + taskName);
+        skeletonTask.setSourceDir(new File(baseDir, "cunit"));
+        skeletonTask.setHeaderDir(new File(baseDir, "headers"));
         cunitSourceSet.builtBy(skeletonTask);
         cunitSourceSet.getSource().srcDir(skeletonTask.getSourceDir());
+        cunitSourceSet.getExportedHeaders().srcDir(skeletonTask.getHeaderDir());
     }
 }

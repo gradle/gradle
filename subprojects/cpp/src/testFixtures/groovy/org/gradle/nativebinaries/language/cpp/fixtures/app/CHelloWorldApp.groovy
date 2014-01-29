@@ -121,6 +121,7 @@ class CHelloWorldApp extends IncrementalHelloWorldApp {
                     sourceFile("cunit", "test.c", """
 #include <CUnit/Basic.h>
 #include "hello.h"
+#include "gradle_cunit_register.h"
 
 int init_test(void) {
     return 0;

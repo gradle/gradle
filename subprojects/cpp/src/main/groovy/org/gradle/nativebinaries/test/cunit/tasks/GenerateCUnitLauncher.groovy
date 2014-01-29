@@ -24,15 +24,16 @@ import org.gradle.api.tasks.TaskAction
  */
 class GenerateCUnitLauncher extends DefaultTask {
     @OutputDirectory File sourceDir
+    @OutputDirectory File headerDir
 
     @TaskAction
     void generate() {
-        writeToFile("gradle_cunit_main.c")
-        writeToFile("gradle_cunit_register.h")
+        writeToFile(sourceDir, "gradle_cunit_main.c")
+        writeToFile(headerDir, "gradle_cunit_register.h")
     }
 
-    private void writeToFile(String fileName) {
-        final File file = new File(sourceDir, fileName)
+    private void writeToFile(File directory, String fileName) {
+        final File file = new File(directory, fileName)
         file.text = ''
         file << getClass().getResourceAsStream(fileName)
     }

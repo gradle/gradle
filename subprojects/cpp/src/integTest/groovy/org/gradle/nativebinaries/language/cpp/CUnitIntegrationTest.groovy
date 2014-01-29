@@ -270,15 +270,17 @@ There were test failures:
         projectFile.sourceFiles as Set == [
                 "build.gradle",
                 "src/helloTest/cunit/test.c",
-                "build/src/cunitLauncher/gradle_cunit_main.c",
-                "build/src/cunitLauncher/gradle_cunit_register.h",
+                "build/src/cunitLauncher/cunit/gradle_cunit_main.c",
                 "src/hello/c/hello.c",
                 "src/hello/c/sum.c"
         ] as Set
-        projectFile.headerFiles == ["src/hello/headers/hello.h"]
+        projectFile.headerFiles == [
+                "build/src/cunitLauncher/headers/gradle_cunit_register.h",
+                "src/hello/headers/hello.h"
+        ]
         projectFile.projectConfigurations.keySet() == ['debug'] as Set
         with (projectFile.projectConfigurations['debug']) {
-            includePath == "src/hello/headers;libs/cunit/2.1-2/include"
+            includePath == "build/src/cunitLauncher/headers;src/hello/headers;libs/cunit/2.1-2/include"
         }
     }
 
