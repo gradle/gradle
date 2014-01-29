@@ -28,10 +28,15 @@ class IvyComponentMetadataRulesChangingModulesIntegrationTest extends ComponentM
 """
 repositories {
     ivy {
-        url "${getRepo().uri}"
+        url "$repo.uri"
     }
 }
 """
+    }
+
+    def setup() {
+        // for listing versions
+        server.allowGetOrHead("/repo/org.test/moduleA/", moduleA.jarFile.parentFile.parentFile)
     }
 }
 

@@ -28,9 +28,37 @@ class MavenComponentMetadataRulesChangingModulesIntegrationTest extends Componen
 """
 repositories {
     maven {
-        url "${getRepo().uri}"
+        url "$repo.uri"
     }
 }
 """
+    }
+
+    def "snapshot dependencies have changing flag initialized to true"() {
+        repo.module("org.test", "moduleA", "1.0-SNAPSHOT")
+        buildFile <<
+"""
+$repoDeclaration
+configurations {
+    modules
+}
+dependencies {
+    modules("org.test:moduleA:1.0-SNAPSHOT")
+    components {
+        eachComponent { details ->
+            file(details.id.name).text = details.changing
+        }
+    }
+}
+task resolve << {
+    configurations.modules.files
+}
+"""
+
+        when:
+        run("resolve")
+
+        then:
+        file("moduleA").text == "true"
     }
 }

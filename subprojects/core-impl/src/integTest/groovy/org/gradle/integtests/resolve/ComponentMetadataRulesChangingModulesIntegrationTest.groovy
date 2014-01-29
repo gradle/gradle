@@ -23,70 +23,141 @@ abstract class ComponentMetadataRulesChangingModulesIntegrationTest extends Abst
     abstract HttpRepository getRepo()
     abstract String getRepoDeclaration()
 
-    def "rule can flag a module as changing"() {
+    def moduleA = getRepo().module('org.test', 'moduleA', '1.0')
+
+    def setup() {
         server.start()
-        def moduleA = getRepo().module('org.test', 'projectA', '1.0').publish()
-        def moduleB = getRepo().module('org.test', 'projectB', '1.0').publish()
-        moduleA.allowAll()
-        moduleB.allowAll()
-
-        writeBuildScriptWithChangingModuleNamed("projectA")
-
-        when:
         moduleA.publish()
-        moduleB.publish()
-        run("resolveA", "resolveB")
-
-        then:
-        executedAndNotSkipped(":resolveA", ":resolveB")
-
-        when:
-        moduleA.publishWithChangedContent()
-        moduleB.publishWithChangedContent()
-        run("resolveA", "resolveB")
-
-        then:
-        executedAndNotSkipped(":resolveA")
-        skipped(":resolveB")
-
-        when:
-        writeBuildScriptWithChangingModuleNamed("")
-        moduleA.publishWithChangedContent()
-        moduleB.publishWithChangedContent()
-        run("resolveA", "resolveB")
-
-        then:
-        skipped(":resolveA", ":resolveB")
+        moduleA.allowAll()
     }
 
-    private writeBuildScriptWithChangingModuleNamed(String changingModuleName) {
-        buildFile.text = getRepoDeclaration()
+    def "changing dependencies have changing flag initialized to true"() {
         buildFile <<
 """
+$repoDeclaration
 configurations {
-    configA
-    configB
-}
-configurations.all {
-    resolutionStrategy.cacheChangingModulesFor 0, "seconds"
+    modules
 }
 dependencies {
-    configA "org.test:projectA:1.0"
-    configB "org.test:projectB:1.0"
+    modules("org.test:moduleA:1.0") { changing = true }
     components {
         eachComponent { details ->
-            details.changing = details.id.name == "${changingModuleName}"
+            file(details.id.name).text = details.changing
         }
     }
 }
-task resolveA(type: Sync) {
-    from configurations.configA
-    into 'libsA'
-}
-task resolveB(type: Sync) {
-    from configurations.configB
-    into 'libsB'
+task resolve << {
+    configurations.modules.files
 }
 """
+
+        when:
+        run("resolve")
+
+        then:
+        file("moduleA").text == "true"
+    }
+
+    def "static and dynamic dependencies have changing flag initialized to false"() {
+        buildFile <<
+"""
+$repoDeclaration
+configurations {
+    modules
+}
+dependencies {
+    modules "org.test:moduleA:$version"
+    components {
+        eachComponent { details ->
+            file(details.id.name).text = details.changing
+        }
+    }
+}
+task resolve << {
+    configurations.modules.files
+}
+"""
+
+        when:
+        run("resolve")
+
+        then:
+        file("moduleA").text == "false"
+
+        where:
+        version << ["1.0", "[1.0,2.0]"]
+    }
+
+
+    def "rule can change a non-changing component to changing"() {
+        buildFile <<
+"""
+$repoDeclaration
+configurations {
+    modules {
+        resolutionStrategy.cacheChangingModulesFor 0, "seconds"
+    }
+}
+dependencies {
+    modules("org.test:moduleA:1.0")
+    components {
+        eachComponent { it.changing = true }
+    }
+}
+task resolve << {
+    copy {
+        from configurations.modules
+        into "modules"
+    }
+}
+"""
+
+        when:
+        run("resolve")
+        def artifact = file("modules/moduleA-1.0.jar")
+        def snapshot = artifact.snapshot()
+
+        and:
+        moduleA.publishWithChangedContent()
+        run("resolve")
+
+        then:
+        artifact.assertHasChangedSince(snapshot)
+    }
+
+    def "rule can change a changing component to non-changing"() {
+        buildFile <<
+"""
+$repoDeclaration
+configurations {
+    modules {
+        resolutionStrategy.cacheChangingModulesFor 0, "seconds"
+    }
+}
+dependencies {
+    modules("org.test:moduleA:1.0") { changing = true }
+    components {
+        eachComponent { it.changing = false }
+    }
+}
+task resolve << {
+    copy {
+        from configurations.modules
+        into "modules"
+    }
+}
+"""
+
+        when:
+        run("resolve")
+        def artifact = file("modules/moduleA-1.0.jar")
+        def snapshot = artifact.snapshot()
+
+        and:
+        moduleA.publishWithChangedContent()
+        run("resolve")
+
+        then:
+        artifact.assertHasNotChangedSince(snapshot)
     }
 }
