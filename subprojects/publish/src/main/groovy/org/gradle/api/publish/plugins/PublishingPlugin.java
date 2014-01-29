@@ -27,7 +27,6 @@ import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.internal.DefaultPublicationContainer;
 import org.gradle.api.publish.internal.DefaultPublishingExtension;
 import org.gradle.api.publish.internal.PublicationInternal;
-import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.ModelPath;
 import org.gradle.model.ModelRule;
@@ -50,16 +49,13 @@ public class PublishingPlugin implements Plugin<Project> {
     private final ModelRules modelRules;
     private final ArtifactPublicationServices publicationServices;
     private final ProjectPublicationRegistry publicationRegistry;
-    private final ProjectConfigurationActionContainer configurationActionContainer;
 
     @Inject
-    public PublishingPlugin(ArtifactPublicationServices publicationServices, Instantiator instantiator, ModelRules modelRules,
-                            ProjectPublicationRegistry publicationRegistry, ProjectConfigurationActionContainer configurationActionContainer) {
+    public PublishingPlugin(ArtifactPublicationServices publicationServices, Instantiator instantiator, ModelRules modelRules, ProjectPublicationRegistry publicationRegistry) {
         this.publicationServices = publicationServices;
         this.instantiator = instantiator;
         this.modelRules = modelRules;
         this.publicationRegistry = publicationRegistry;
-        this.configurationActionContainer = configurationActionContainer;
     }
 
     public void apply(final Project project) {
@@ -69,7 +65,7 @@ public class PublishingPlugin implements Plugin<Project> {
         // TODO Registering an extension should register it with the model registry as well
         final PublishingExtension extension = project.getExtensions().create(PublishingExtension.NAME, DefaultPublishingExtension.class, repositories, publications);
 
-        configurationActionContainer.add(new Action<Project>() {
+        project.afterEvaluate(new Action<Project>() {
             public void execute(Project project) {
                 for (Publication publication : extension.getPublications()) {
                     PublicationInternal internalPublication = (PublicationInternal) publication;
