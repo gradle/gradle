@@ -25,6 +25,7 @@ import org.gradle.nativebinaries.test.cunit.CUnitTestResults
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
+import spock.lang.Ignore
 
 import static org.gradle.util.TextUtil.normaliseLineSeparators
 
@@ -59,9 +60,6 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
             }
         """
         settingsFile << "rootProject.name = 'test'"
-
-        app.library.writeSources(file("src/hello"))
-        app.cunitTests.writeSources(file("src/helloTest"))
     }
 
     private def getCunitPlatform() {
@@ -94,6 +92,9 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     }
 
     def "can build and run cunit test suite"() {
+        given:
+        useConventionalSourceLocations()
+
         when:
         run "runHelloTestCUnitExe"
 
@@ -110,8 +111,81 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
         testResults.checkAssertions(3, 3, 0)
     }
 
+    def "can configure location of cunit test sources"() {
+        given:
+        app.library.writeSources(file("src/hello"))
+        app.cunitTests.writeSources(file("src/alternateHelloTest"))
+
+        when:
+        buildFile << """
+            sources {
+                helloTest {
+                    // TODO:DAZ Should not need type here
+                    cunit(CSourceSet) {
+                        source.srcDir "src/alternateHelloTest/cunit"
+                    }
+                }
+            }
+"""
+
+        then:
+        succeeds "runHelloTestCUnitExe"
+        file("build/test-results/helloTestCUnitExe/CUnitAutomated-Listing.xml").assertExists()
+    }
+
+    @Ignore("Not yet implemented")
+    def "runs tests against variant-dependent sources"() {
+        given:
+        app.library.writeSources(file("src/variant"))
+        app.cunitTests.writeSources(file("src/helloTest"))
+
+        when:
+        buildFile << """
+            sources {
+                variant
+            }
+            binaries.withType(LibraryBinary) {
+                source sources.variant
+            }
+"""
+
+        then:
+        succeeds "runHelloTestCUnitExe"
+        file("build/test-results/helloTestCUnitExe/CUnitAutomated-Listing.xml").assertExists()
+    }
+
+    def "can configure variant-dependent test sources"() {
+        given:
+        app.library.writeSources(file("src/hello"))
+        app.cunitTests.writeSources(file("src/variantTest"))
+
+        when:
+        buildFile << """
+            sources {
+                // TODO:DAZ This should not be required; should have already been defined
+                helloTest {
+                    cunit(CSourceSet)
+                }
+                variantTest {
+                    cunit(CSourceSet) {
+                        lib sources.hello.c
+                        lib sources.helloTest.cunit
+                    }
+                }
+            }
+            binaries.withType(TestSuiteExecutableBinary) {
+                source sources.variantTest.cunit
+            }
+"""
+
+        then:
+        succeeds "runHelloTestCUnitExe"
+        file("build/test-results/helloTestCUnitExe/CUnitAutomated-Listing.xml").assertExists()
+    }
+
     def "test suite skipped after successful run"() {
         given:
+        useConventionalSourceLocations()
         run "runHelloTestCUnitExe"
 
         when:
@@ -123,7 +197,7 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
     def "can build and run cunit failing test suite"() {
         when:
-        useFailingSources()
+        useFailingTestSources()
         fails "runHelloTestCUnitExe"
 
         then:
@@ -146,10 +220,9 @@ There were test failures:
         file("build/test-results/helloTestCUnitExe/CUnitAutomated-Listing.xml").assertExists()
     }
 
-
     def "build does not break for failing tests if ignoreFailures is true"() {
         when:
-        useFailingSources()
+        useFailingTestSources()
         buildFile << """
     tasks.withType(RunTestExecutable) {
         it.ignoreFailures = true
@@ -170,8 +243,7 @@ There were test failures:
 
     def "test suite not skipped after failing run"() {
         given:
-        final String originalText = file("src/hello/c/sum.c").text
-        file("src/hello/c/sum.c").text = originalText.replace("return a + b;", "return 2;")
+        useFailingTestSources()
         fails "runHelloTestCUnitExe"
 
         when:
@@ -182,6 +254,8 @@ There were test failures:
     }
 
     def "creates visual studio solution and project for cunit test suite"() {
+        given:
+        useConventionalSourceLocations()
         buildFile.text = "apply plugin: 'visual-studio'\n" + buildFile.text
 
         when:
@@ -208,7 +282,13 @@ There were test failures:
         }
     }
 
-    private def useFailingSources() {
+    private useConventionalSourceLocations() {
+        app.library.writeSources(file("src/hello"))
+        app.cunitTests.writeSources(file("src/helloTest"))
+    }
+
+    private useFailingTestSources() {
+        useConventionalSourceLocations()
         file("src/hello/c/sum.c").text = file("src/hello/c/sum.c").text.replace("return a + b;", "return 2;")
     }
 
