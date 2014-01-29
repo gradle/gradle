@@ -45,6 +45,10 @@ class IvyHttpRepository implements IvyRepository, HttpRepository {
         return "$uri/${backingRepository.baseArtifactPattern}"
     }
 
+    void allowDirectoryListGet(String organisation, String module) {
+        server.allowGetDirectoryListing("$contextPath/$organisation/$module/", backingRepository.module(organisation, module, "1.0").moduleDir.parentFile)
+    }
+
     void expectDirectoryListGet(String organisation, String module) {
         server.expectGetDirectoryListing("$contextPath/$organisation/$module/", backingRepository.module(organisation, module, "1.0").moduleDir.parentFile)
     }
