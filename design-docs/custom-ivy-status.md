@@ -120,11 +120,11 @@ Add a "changing" property to `ComponentMetadataDetails`.
 
 * Add a rule that forces a static component to changing and verify that the component is treated as changing (cf. the existing concept of changing dependency).
     * Verify that the `changing` flag defaults to `false`.
-    * While not expired, no HTTP requests are made.
+    * Verify that the component is treated as changing.
     * When expired, HTTP requests are made to verify the component meta-data and artifacts have changed, and artifacts downloaded if they have changed.
 * Add a rule that forces a changing component to not changing and verify that the component is treated as static.
     * Verify that the `changing` flag defaults to `true`.
-    * No further HTTP requests are made until run with `--refresh-dependencies`.
+    * Verify that the component is treated as not changing.
 * Verify that `details.changing` is initialized to true for:
     * Dependency declaration with `changing` flag set to `true`
     * Maven snapshots.
@@ -139,11 +139,15 @@ whether the component is cached or not, as if the rule is evaluated on each reso
 
 ### Implementation
 
-TBD
+Component metadata rules are evaluated "just in time" whenever `CachingMavenRepository` queries the changing flag for a component (right in that class). This is done
+in such a way that the result won't be cached. It will add one or two invocations of a rule per dependency to be resolved.
 
 ### Test coverage
 
-TBD
+* Changes made to the changing flag by a component metadata rule aren't cached.
+    * Add a rule that flips the changing flag for a component
+    * Remove the rule after the first resolve
+    * Verify that the original value of the changing flag is honored on the second resolve
 
 ## Consume a "latest" version of an Ivy module with custom status that exists in multiple Ivy repositories
 
