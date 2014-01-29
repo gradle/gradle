@@ -40,6 +40,7 @@ import org.gradle.api.publication.maven.internal.DefaultMavenFactory;
 import org.gradle.api.publication.maven.internal.DefaultMavenRepositoryHandlerConvention;
 import org.gradle.api.publication.maven.internal.MavenFactory;
 import org.gradle.api.tasks.Upload;
+import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.internal.Factory;
 import org.gradle.logging.LoggingManagerInternal;
 
@@ -63,14 +64,17 @@ public class MavenPlugin implements Plugin<ProjectInternal> {
     private final Factory<LoggingManagerInternal> loggingManagerFactory;
     private final FileResolver fileResolver;
     private final ProjectPublicationRegistry publicationRegistry;
+    private final ProjectConfigurationActionContainer configurationActionContainer;
 
     private Project project;
 
     @Inject
-    public MavenPlugin(Factory<LoggingManagerInternal> loggingManagerFactory, FileResolver fileResolver, ProjectPublicationRegistry publicationRegistry) {
+    public MavenPlugin(Factory<LoggingManagerInternal> loggingManagerFactory, FileResolver fileResolver,
+                       ProjectPublicationRegistry publicationRegistry, ProjectConfigurationActionContainer configurationActionContainer) {
         this.loggingManagerFactory = loggingManagerFactory;
         this.fileResolver = fileResolver;
         this.publicationRegistry = publicationRegistry;
+        this.configurationActionContainer = configurationActionContainer;
     }
 
     public void apply(final ProjectInternal project) {
@@ -116,7 +120,7 @@ public class MavenPlugin implements Plugin<ProjectInternal> {
     }
 
     private void configureUploadArchivesTask() {
-        project.afterEvaluate(new Action<Project>() {
+        configurationActionContainer.add(new Action<Project>() {
             public void execute(Project project) {
                 Upload uploadArchives = project.getTasks().withType(Upload.class).findByName(BasePlugin.UPLOAD_ARCHIVES_TASK_NAME);
                 if (uploadArchives == null) { return; }

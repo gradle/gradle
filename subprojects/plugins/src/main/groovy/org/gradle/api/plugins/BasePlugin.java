@@ -36,6 +36,7 @@ import org.gradle.api.tasks.Delete;
 import org.gradle.api.tasks.Upload;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.api.tasks.bundling.Jar;
+import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.language.base.plugins.LanguageBasePlugin;
 
 import javax.inject.Inject;
@@ -53,10 +54,12 @@ public class BasePlugin implements Plugin<Project> {
     public static final String UPLOAD_GROUP = "upload";
 
     private final ProjectPublicationRegistry publicationRegistry;
+    private final ProjectConfigurationActionContainer configurationActionContainer;
 
     @Inject
-    public BasePlugin(ProjectPublicationRegistry publicationRegistry) {
+    public BasePlugin(ProjectPublicationRegistry publicationRegistry, ProjectConfigurationActionContainer configurationActionContainer) {
         this.publicationRegistry = publicationRegistry;
+        this.configurationActionContainer = configurationActionContainer;
     }
 
     public void apply(Project project) {
@@ -65,7 +68,7 @@ public class BasePlugin implements Plugin<Project> {
 
         configureBuildConfigurationRule(project);
         configureUploadRules(project);
-        configureUploadArchivesTask(project);
+        configureUploadArchivesTask();
         configureArchiveDefaults(project, convention);
         configureConfigurations(project);
 
@@ -140,8 +143,8 @@ public class BasePlugin implements Plugin<Project> {
         project.getTasks().addRule(new UploadRule(project));
     }
 
-    private void configureUploadArchivesTask(Project project) {
-        project.afterEvaluate(new Action<Project>() {
+    private void configureUploadArchivesTask() {
+        configurationActionContainer.add(new Action<Project>() {
             public void execute(Project project) {
                 Upload uploadArchives = project.getTasks().withType(Upload.class).findByName(UPLOAD_ARCHIVES_TASK_NAME);
                 if (uploadArchives == null) { return; }
