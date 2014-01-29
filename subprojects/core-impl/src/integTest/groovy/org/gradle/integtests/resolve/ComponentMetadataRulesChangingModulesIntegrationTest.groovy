@@ -122,7 +122,7 @@ task resolve << {
         run("resolve")
 
         then:
-        artifact.assertHasChangedSince(snapshot)
+        artifact.assertContentsHaveChangedSince(snapshot)
     }
 
     def "rule can change a changing component to non-changing"() {
@@ -158,6 +158,6 @@ task resolve << {
         run("resolve")
 
         then:
-        artifact.assertHasNotChangedSince(snapshot)
+        artifact.assertContentsHaveNotChangedSince(snapshot)
     }
 }
