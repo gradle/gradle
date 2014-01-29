@@ -28,6 +28,7 @@ import org.gradle.nativebinaries.test.cunit.tasks.GenerateCUnitLauncher;
 
 import java.io.File;
 
+// TODO:DAZ Actually use this as a model rule
 public class ConfigureCUnitTestSources extends ModelRule {
     private final ProjectInternal project;
 
@@ -37,15 +38,16 @@ public class ConfigureCUnitTestSources extends ModelRule {
 
     public void configureCUnitSources(TestSuiteContainer testSuites) {
         for (CUnitTestSuite cUnitTestSuite : testSuites.withType(CUnitTestSuite.class)) {
-            createCUnitSources(cUnitTestSuite);
+            configureCUnitSources(cUnitTestSuite);
         }
     }
 
-    private void createCUnitSources(CUnitTestSuite cUnitTestSuite) {
+    public void configureCUnitSources(CUnitTestSuite cUnitTestSuite) {
         CSourceSet cunitSourceSet = createCUnitSourceSet(cUnitTestSuite);
         cUnitTestSuite.source(cunitSourceSet);
 
-        // TODO:DAZ This duplicates ApplySourceSetConventions, but is executed _after_ that rule.
+        // TODO:DAZ This duplicates ApplySourceSetConventions, but the sources won't be empty due to the generated sources.
+        // TODO:DAZ We could fix this by putting the generated sources into a different source set
         if (cunitSourceSet.getSource().getSrcDirs().isEmpty()) {
             cunitSourceSet.getSource().srcDir(String.format("src/%s/%s", cUnitTestSuite.getName(), cunitSourceSet.getName()));
         }

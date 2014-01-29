@@ -120,8 +120,7 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
         buildFile << """
             sources {
                 helloTest {
-                    // TODO:DAZ Should not need type here
-                    cunit(CSourceSet) {
+                    cunit {
                         source.srcDir "src/alternateHelloTest/cunit"
                     }
                 }
@@ -162,10 +161,6 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
         when:
         buildFile << """
             sources {
-                // TODO:DAZ This should not be required; should have already been defined
-                helloTest {
-                    cunit(CSourceSet)
-                }
                 variantTest {
                     cunit(CSourceSet) {
                         lib sources.hello.c

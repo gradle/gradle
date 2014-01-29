@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.nativebinaries.test.plugins;
 
 import org.gradle.api.Incubating;
@@ -23,24 +24,22 @@ import org.gradle.model.ModelRules;
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativebinaries.plugins.NativeBinariesModelPlugin;
 import org.gradle.nativebinaries.test.internal.CreateTestBinaries;
-import org.gradle.nativebinaries.test.internal.CreateTestTasks;
 import org.gradle.nativebinaries.test.internal.DefaultTestSuiteContainer;
 
 import javax.inject.Inject;
-import java.io.File;
 
 /**
  * A plugin that sets up the infrastructure for testing native binaries with CUnit.
  */
 @Incubating
-public class NativeBinariesTestPlugin implements Plugin<ProjectInternal> {
+public class NativeBinariesTestModelPlugin implements Plugin<ProjectInternal> {
 
     private final Instantiator instantiator;
     private final ModelRules modelRules;
     private final NativeDependencyResolver resolver;
 
     @Inject
-    public NativeBinariesTestPlugin(Instantiator instantiator, ModelRules modelRules, NativeDependencyResolver resolver) {
+    public NativeBinariesTestModelPlugin(Instantiator instantiator, ModelRules modelRules, NativeDependencyResolver resolver) {
         this.instantiator = instantiator;
         this.modelRules = modelRules;
         this.resolver = resolver;
@@ -49,10 +48,12 @@ public class NativeBinariesTestPlugin implements Plugin<ProjectInternal> {
     public void apply(final ProjectInternal project) {
         project.getPlugins().apply(NativeBinariesModelPlugin.class);
 
-        File buildDir = project.getBuildDir();
+        modelRules.rule(new CreateTestBinaries(instantiator, resolver, project));
 
-        modelRules.register("testSuites", new DefaultTestSuiteContainer(instantiator));
-        modelRules.rule(new CreateTestBinaries(instantiator, resolver, buildDir));
-        modelRules.rule(new CreateTestTasks(project));
+        project.getExtensions().create(
+                "testSuites",
+                DefaultTestSuiteContainer.class,
+                instantiator
+        );
     }
 }

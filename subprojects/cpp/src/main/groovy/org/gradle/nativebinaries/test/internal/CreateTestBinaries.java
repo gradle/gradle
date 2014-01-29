@@ -16,6 +16,7 @@
 package org.gradle.nativebinaries.test.internal;
 
 import org.gradle.api.Action;
+import org.gradle.api.Project;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.BinaryContainer;
 import org.gradle.language.base.internal.BinaryNamingSchemeBuilder;
@@ -24,12 +25,12 @@ import org.gradle.model.ModelRule;
 import org.gradle.nativebinaries.BuildTypeContainer;
 import org.gradle.nativebinaries.FlavorContainer;
 import org.gradle.nativebinaries.ProjectNativeComponent;
-import org.gradle.nativebinaries.test.TestSuite;
-import org.gradle.nativebinaries.test.TestSuiteContainer;
 import org.gradle.nativebinaries.internal.configure.NativeBinariesFactory;
 import org.gradle.nativebinaries.internal.configure.ProjectNativeComponentInitializer;
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativebinaries.platform.PlatformContainer;
+import org.gradle.nativebinaries.test.TestSuite;
+import org.gradle.nativebinaries.test.TestSuiteContainer;
 import org.gradle.nativebinaries.toolchain.internal.ToolChainRegistryInternal;
 
 import java.io.File;
@@ -37,17 +38,20 @@ import java.io.File;
 public class CreateTestBinaries extends ModelRule {
     private final Instantiator instantiator;
     private final NativeDependencyResolver resolver;
+    private final Project project;
     private final File binaryOutputDir;
 
-    public CreateTestBinaries(Instantiator instantiator, NativeDependencyResolver resolver, File buildDir) {
+    public CreateTestBinaries(Instantiator instantiator, NativeDependencyResolver resolver, Project project) {
         this.instantiator = instantiator;
         this.resolver = resolver;
-        this.binaryOutputDir = new File(buildDir, "binaries");
+        this.project = project;
+        this.binaryOutputDir = new File(project.getBuildDir(), "binaries");
     }
 
-    public void create(BinaryContainer binaries, TestSuiteContainer testSuites, ToolChainRegistryInternal toolChains,
+    public void create(BinaryContainer binaries, ToolChainRegistryInternal toolChains,
                        PlatformContainer platforms, BuildTypeContainer buildTypes, FlavorContainer flavors) {
 
+        TestSuiteContainer testSuites = project.getExtensions().getByType(TestSuiteContainer.class);
         NativeBinariesFactory factory = new TestBinariesFactory(instantiator, resolver, binaryOutputDir);
         BinaryNamingSchemeBuilder namingSchemeBuilder = new DefaultBinaryNamingSchemeBuilder();
         Action<ProjectNativeComponent> createBinariesAction =

@@ -13,34 +13,51 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.gradle.nativebinaries.test.internal
-import org.gradle.api.Project
-import org.gradle.api.tasks.TaskContainer
+package org.gradle.nativebinaries.test.plugins
+import org.gradle.api.Incubating
+import org.gradle.api.Plugin
+import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.language.base.BinaryContainer
-import org.gradle.model.ModelRule
+import org.gradle.model.ModelRules
 import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
+import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver
+import org.gradle.nativebinaries.plugins.NativeBinariesPlugin
 import org.gradle.nativebinaries.tasks.InstallExecutable
 import org.gradle.nativebinaries.test.TestSuiteExecutableBinary
 import org.gradle.nativebinaries.test.tasks.RunTestExecutable
 
-public class CreateTestTasks extends ModelRule {
-    private final Project project
+import javax.inject.Inject
+/**
+ * A plugin that sets up the infrastructure for testing native binaries with CUnit.
+ */
+@Incubating
+public class NativeBinariesTestPlugin implements Plugin<ProjectInternal> {
 
-    CreateTestTasks(Project project) {
-        this.project = project
+    private final Instantiator instantiator
+    private final ModelRules modelRules
+    private final NativeDependencyResolver resolver
+
+    @Inject
+    public NativeBinariesTestPlugin(Instantiator instantiator, ModelRules modelRules, NativeDependencyResolver resolver) {
+        this.instantiator = instantiator
+        this.modelRules = modelRules
+        this.resolver = resolver
     }
 
-    @SuppressWarnings("unused")
-    void create(TaskContainer tasks, BinaryContainer binaries) {
-        binaries.withType(TestSuiteExecutableBinary).each { testBinary ->
+    public void apply(final ProjectInternal project) {
+        project.getPlugins().apply(NativeBinariesTestModelPlugin.class)
+        project.getPlugins().apply(NativeBinariesPlugin.class)
+
+        final BinaryContainer binaries = project.getExtensions().getByType(BinaryContainer.class);
+        binaries.withType(TestSuiteExecutableBinary).all { testBinary ->
             def binary = testBinary as ProjectNativeBinaryInternal
             def namingScheme = binary.namingScheme
 
             // TODO:DAZ Need a better model for accessing tasks related to binary
             def installTask = binary.tasks.withType(InstallExecutable).find()
 
-            def runTask = tasks.create(namingScheme.getTaskName("run"), RunTestExecutable)
+            def runTask = project.tasks.create(namingScheme.getTaskName("run"), RunTestExecutable)
             runTask.setDescription("Runs the " + binary.getDisplayName())
             runTask.inputs.files(installTask.outputs.files)
 
