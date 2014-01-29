@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
+import com.google.common.base.Charsets;
 import org.gradle.api.Action;
 import org.gradle.internal.Actions;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
@@ -38,6 +39,9 @@ import org.gradle.tooling.model.idea.BasicIdeaProject;
 import org.gradle.tooling.model.idea.IdeaProject;
 import org.gradle.tooling.model.internal.Exceptions;
 import org.gradle.util.GradleVersion;
+
+import java.io.IOException;
+import java.io.OutputStream;
 
 /**
  * An adapter that wraps a {@link ConnectionVersion4} based provider.
@@ -72,6 +76,14 @@ public class ConnectionVersion4BackedConsumerConnection extends AbstractPre12Con
         }
         if (operationParameters.getStandardInput() != null) {
             throw Exceptions.unsupportedOperationConfiguration("modelBuilder.setStandardInput() and buildLauncher.setStandardInput()", versionDetails.getVersion());
+        }
+        OutputStream out = operationParameters.getStandardOutput();
+        if (out != null) {
+            try {
+                out.write(("Connecting to Gradle build version " + versionDetails.getVersion() + " has been deprecated and is scheduled to be removed in Gradle 2.0\n").getBytes(Charsets.UTF_8));
+            } catch (IOException e) {
+                throw new RuntimeException("UTF-8 unsupported", e);
+            }
         }
         return super.run(type, operationParameters);
     }
