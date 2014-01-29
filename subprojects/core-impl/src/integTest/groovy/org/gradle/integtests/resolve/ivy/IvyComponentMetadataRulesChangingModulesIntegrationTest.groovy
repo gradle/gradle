@@ -17,10 +17,10 @@
 package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.resolve.ComponentMetadataRulesChangingModulesIntegrationTest
-import org.gradle.test.fixtures.HttpRepository
+import org.gradle.test.fixtures.ivy.IvyHttpRepository
 
 class IvyComponentMetadataRulesChangingModulesIntegrationTest extends ComponentMetadataRulesChangingModulesIntegrationTest {
-    HttpRepository getRepo() {
+    IvyHttpRepository getRepo() {
         ivyHttpRepo
     }
 
@@ -35,8 +35,7 @@ repositories {
     }
 
     def setup() {
-        // for listing versions
-        server.allowGetOrHead("/repo/org.test/moduleA/", moduleA.jarFile.parentFile.parentFile)
+        repo.allowDirectoryListGet("org.test", "moduleA")
     }
 }
 
