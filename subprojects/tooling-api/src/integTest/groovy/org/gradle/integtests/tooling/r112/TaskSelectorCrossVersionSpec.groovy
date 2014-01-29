@@ -20,7 +20,6 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.GradleProject
-import org.gradle.tooling.model.UnsupportedMethodException
 
 @ToolingApiVersion(">=1.12")
 class TaskSelectorCrossVersionSpec extends ToolingApiSpecification {
