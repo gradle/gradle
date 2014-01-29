@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
-import com.google.common.base.Charsets;
 import org.gradle.api.Action;
 import org.gradle.internal.Actions;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
@@ -80,7 +79,7 @@ public class ConnectionVersion4BackedConsumerConnection extends AbstractPre12Con
         OutputStream out = operationParameters.getStandardOutput();
         if (out != null) {
             try {
-                out.write(("Connecting to Gradle build version " + versionDetails.getVersion() + " has been deprecated and is scheduled to be removed in Gradle 2.0\n").getBytes(Charsets.UTF_8));
+                out.write(("Connecting to Gradle build version " + versionDetails.getVersion() + " has been deprecated and is scheduled to be removed in Gradle 2.0\n").getBytes("UTF-8"));
             } catch (IOException e) {
                 throw new RuntimeException("UTF-8 unsupported", e);
             }
