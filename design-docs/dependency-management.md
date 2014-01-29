@@ -1,4 +1,3 @@
-
 This specification is a proposal for a deep reworking of the Gradle dependency management and publication model.
 
 # Why?
@@ -130,11 +129,12 @@ as `ResolvedArtifact` instances. These artifacts have a module version identifie
 module version identifier. This only work when the component has a module version associated with it, which is not always the case.
 
 TBD: provide some API to query the artifacts associated for a given component instance in a resolution result.
-    - It should be possible to query only the graph and not the artifacts. This should not download any artifacts.
-    - It should be possible to query the artifacts as a single batch, so that, for example, we will be able to resolve and download artifacts
+
+- It should be possible to query only the graph and not the artifacts. This should not download any artifacts.
+- It should be possible to query the artifacts as a single batch, so that, for example, we will be able to resolve and download artifacts
       in parallel.
-    - The API should expose download failures.
-    - A component may have zero or more artifacts associated with it.
+- The API should expose download failures.
+- A component may have zero or more artifacts associated with it.
 
 ### Test cases
 
