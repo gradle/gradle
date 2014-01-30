@@ -55,7 +55,7 @@ import org.gradle.api.internal.externalresource.local.ivy.LocallyAvailableResour
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
-import org.gradle.api.internal.filestore.PathKeyFileStore;
+import org.gradle.api.internal.filestore.UniquePathKeyFileStore;
 import org.gradle.api.internal.filestore.ivy.ArtifactRevisionIdFileStore;
 import org.gradle.api.internal.notations.*;
 import org.gradle.internal.typeconversion.NotationParser;
@@ -149,12 +149,8 @@ class DependencyManagementBuildScopeServices {
         );
     }
 
-    PathKeyFileStore createUniquePathFileStore(CacheLockingManager cacheLockingManager) {
-        return cacheLockingManager.createFileStore();
-    }
-
-    ArtifactRevisionIdFileStore createArtifactRevisionIdFileStore(PathKeyFileStore pathKeyFileStore) {
-        return new ArtifactRevisionIdFileStore(pathKeyFileStore, new TmpDirTemporaryFileProvider());
+    ArtifactRevisionIdFileStore createArtifactRevisionIdFileStore(CacheLockingManager cacheLockingManager) {
+        return new ArtifactRevisionIdFileStore(new UniquePathKeyFileStore(cacheLockingManager.getFileStoreDirectory()), new TmpDirTemporaryFileProvider());
     }
 
     MavenSettingsProvider createMavenSettingsProvider() {

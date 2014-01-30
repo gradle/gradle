@@ -16,7 +16,7 @@
 package org.gradle.api.internal.file.pattern;
 
 public class GreedyPatternStep implements PatternStep{
-    public boolean matches(String candidate, boolean isFile) {
+    public boolean matches(String candidate) {
         return true;
     }
 

@@ -15,13 +15,11 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.gradle.api.internal.filestore.PathKeyFileStore;
-import org.gradle.api.internal.filestore.UniquePathKeyFileStore;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.cache.internal.FileLockManager;
 import org.gradle.cache.PersistentIndexedCacheParameters;
+import org.gradle.cache.internal.FileLockManager;
 import org.gradle.internal.Factory;
 import org.gradle.messaging.serialize.Serializer;
 import org.gradle.util.VersionNumber;
@@ -76,20 +74,12 @@ public class DefaultCacheLockingManager implements CacheLockingManager {
         return cache.createCache(new PersistentIndexedCacheParameters<K, V>(cacheFileInMetaDataStore, keySerializer, valueSerializer));
     }
 
-    public PathKeyFileStore createFileStore() {
-        return createCacheRelativeStore(CacheLayout.FILE_STORE);
+    public File getFileStoreDirectory() {
+        return createCacheRelativeDir(CacheLayout.FILE_STORE);
     }
 
-    public PathKeyFileStore createMetaDataStore() {
-        return createCacheRelativeStore(CacheLayout.META_DATA, "descriptors");
-    }
-
-    private PathKeyFileStore createCacheRelativeStore(CacheLayout cacheLayout) {
-        return new UniquePathKeyFileStore(createCacheRelativeDir(cacheLayout));
-    }
-
-    private PathKeyFileStore createCacheRelativeStore(CacheLayout cacheLayout, String appendedPath) {
-        return new UniquePathKeyFileStore(new File(createCacheRelativeDir(cacheLayout), appendedPath));
+    public File createMetaDataStore() {
+        return new File(createCacheRelativeDir(CacheLayout.META_DATA), "descriptors");
     }
 
     private File createCacheRelativeDir(CacheLayout cacheLayout) {

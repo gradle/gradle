@@ -19,12 +19,12 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 
 public class VersionSelectionReasons {
-    public static final ComponentSelectionReason REQUESTED = new DefaultComponentSelectionReason(false, false, false, "requested");
-    public static final ComponentSelectionReason ROOT = new DefaultComponentSelectionReason(false, false, false, "root");
-    public static final ComponentSelectionReason FORCED = new DefaultComponentSelectionReason(true, false, false, "forced");
-    public static final ComponentSelectionReason CONFLICT_RESOLUTION = new DefaultComponentSelectionReason(false, true, false, "conflict resolution");
-    public static final ComponentSelectionReason SELECTED_BY_RULE = new DefaultComponentSelectionReason(false, false, true, "selected by rule");
-    public static final ComponentSelectionReason CONFLICT_RESOLUTION_BY_RULE = new DefaultComponentSelectionReason(false, true, true, "selected by rule and conflict resolution");
+    public static final ComponentSelectionReason REQUESTED = new DefaultComponentSelectionReason(false, false, false, true, "requested");
+    public static final ComponentSelectionReason ROOT = new DefaultComponentSelectionReason(false, false, false, true, "root");
+    public static final ComponentSelectionReason FORCED = new DefaultComponentSelectionReason(true, false, false, false, "forced");
+    public static final ComponentSelectionReason CONFLICT_RESOLUTION = new DefaultComponentSelectionReason(false, true, false, false, "conflict resolution");
+    public static final ComponentSelectionReason SELECTED_BY_RULE = new DefaultComponentSelectionReason(false, false, true, false, "selected by rule");
+    public static final ComponentSelectionReason CONFLICT_RESOLUTION_BY_RULE = new DefaultComponentSelectionReason(false, true, true, false, "selected by rule and conflict resolution");
 
     public static ComponentSelectionReason withConflictResolution(ComponentSelectionReason reason) {
         if (reason.isConflictResolution()) {
@@ -42,12 +42,14 @@ public class VersionSelectionReasons {
         private final boolean forced;
         private final boolean conflictResolution;
         private final boolean selectedByRule;
+        private final boolean expected;
         private final String description;
 
-        private DefaultComponentSelectionReason(boolean forced, boolean conflictResolution, boolean selectedByRule, String description) {
+        private DefaultComponentSelectionReason(boolean forced, boolean conflictResolution, boolean selectedByRule, boolean expected, String description) {
             this.forced = forced;
             this.conflictResolution = conflictResolution;
             this.selectedByRule = selectedByRule;
+            this.expected = expected;
             assert description != null;
             this.description = description;
         }
@@ -62,6 +64,10 @@ public class VersionSelectionReasons {
 
         public boolean isSelectedByRule() {
             return selectedByRule;
+        }
+
+        public boolean isExpected() {
+            return expected;
         }
 
         public String getDescription() {

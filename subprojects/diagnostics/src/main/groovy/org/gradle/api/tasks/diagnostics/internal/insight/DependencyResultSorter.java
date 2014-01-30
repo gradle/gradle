@@ -143,7 +143,7 @@ public class DependencyResultSorter {
                 return byVersion;
             }
 
-            return new FromComponentIdentifierComparator(matcher).compare(left.getFrom(), right.getFrom());
+            return compareFromComponentIdentifiers(left.getFrom(), right.getFrom());
         }
 
         private int compareRequestedProjectComponentSelectors(DependencyEdge left, DependencyEdge right) {
@@ -152,58 +152,50 @@ public class DependencyResultSorter {
             return leftRequested.getProjectPath().compareTo(rightRequested.getProjectPath());
         }
 
-        private static class FromComponentIdentifierComparator implements Comparator<ComponentIdentifier> {
-            private final VersionMatcher matcher;
-
-            private FromComponentIdentifierComparator(VersionMatcher matcher) {
-                this.matcher = matcher;
+        public int compareFromComponentIdentifiers(ComponentIdentifier left, ComponentIdentifier right) {
+            if(isLeftAndRightFromProjectComponentIdentifier(left, right)) {
+                return compareFromProjectComponentIdentifiers(left, right);
             }
 
-            public int compare(ComponentIdentifier left, ComponentIdentifier right) {
-                if(isLeftAndRightFromProjectComponentIdentifier(left, right)) {
-                    return compareFromProjectComponentIdentifiers(left, right);
-                }
-
-                if(isLeftAndRightFromModuleComponentIdentifier(left, right)) {
-                    return compareFromModuleComponentIdentifiers(left, right);
-                }
-
-                return isLeftFromProjectButRightIsModuleComponentIdentifier(left, right) ? -1 : 1;
+            if(isLeftAndRightFromModuleComponentIdentifier(left, right)) {
+                return compareFromModuleComponentIdentifiers(left, right);
             }
 
-            private int compareFromProjectComponentIdentifiers(ComponentIdentifier left, ComponentIdentifier right) {
-                ProjectComponentIdentifier leftFrom = (ProjectComponentIdentifier)left;
-                ProjectComponentIdentifier rightFrom = (ProjectComponentIdentifier)right;
-                return leftFrom.getProjectPath().compareTo(rightFrom.getProjectPath());
+            return isLeftFromProjectButRightIsModuleComponentIdentifier(left, right) ? -1 : 1;
+        }
+
+        private int compareFromProjectComponentIdentifiers(ComponentIdentifier left, ComponentIdentifier right) {
+            ProjectComponentIdentifier leftFrom = (ProjectComponentIdentifier)left;
+            ProjectComponentIdentifier rightFrom = (ProjectComponentIdentifier)right;
+            return leftFrom.getProjectPath().compareTo(rightFrom.getProjectPath());
+        }
+
+        private int compareFromModuleComponentIdentifiers(ComponentIdentifier left, ComponentIdentifier right) {
+            ModuleComponentIdentifier leftFrom = (ModuleComponentIdentifier)left;
+            ModuleComponentIdentifier rightFrom = (ModuleComponentIdentifier)right;
+            int byGroup = leftFrom.getGroup().compareTo(rightFrom.getGroup());
+            if (byGroup != 0) {
+                return byGroup;
             }
 
-            private int compareFromModuleComponentIdentifiers(ComponentIdentifier left, ComponentIdentifier right) {
-                ModuleComponentIdentifier leftFrom = (ModuleComponentIdentifier)left;
-                ModuleComponentIdentifier rightFrom = (ModuleComponentIdentifier)right;
-                int byGroup = leftFrom.getGroup().compareTo(rightFrom.getGroup());
-                if (byGroup != 0) {
-                    return byGroup;
-                }
-
-                int byModule = leftFrom.getModule().compareTo(rightFrom.getModule());
-                if (byModule != 0) {
-                    return byModule;
-                }
-
-                return matcher.compare(leftFrom.getVersion(), rightFrom.getVersion());
+            int byModule = leftFrom.getModule().compareTo(rightFrom.getModule());
+            if (byModule != 0) {
+                return byModule;
             }
 
-            private boolean isLeftAndRightFromProjectComponentIdentifier(ComponentIdentifier left, ComponentIdentifier right) {
-                return left instanceof ProjectComponentIdentifier && right instanceof ProjectComponentIdentifier;
-            }
+            return matcher.compare(leftFrom.getVersion(), rightFrom.getVersion());
+        }
 
-            private boolean isLeftAndRightFromModuleComponentIdentifier(ComponentIdentifier left, ComponentIdentifier right) {
-                return left instanceof ModuleComponentIdentifier && right instanceof ModuleComponentIdentifier;
-            }
+        private boolean isLeftAndRightFromProjectComponentIdentifier(ComponentIdentifier left, ComponentIdentifier right) {
+            return left instanceof ProjectComponentIdentifier && right instanceof ProjectComponentIdentifier;
+        }
 
-            private boolean isLeftFromProjectButRightIsModuleComponentIdentifier(ComponentIdentifier left, ComponentIdentifier right) {
-                return left instanceof ProjectComponentIdentifier && right instanceof ModuleComponentIdentifier;
-            }
+        private boolean isLeftAndRightFromModuleComponentIdentifier(ComponentIdentifier left, ComponentIdentifier right) {
+            return left instanceof ModuleComponentIdentifier && right instanceof ModuleComponentIdentifier;
+        }
+
+        private boolean isLeftFromProjectButRightIsModuleComponentIdentifier(ComponentIdentifier left, ComponentIdentifier right) {
+            return left instanceof ProjectComponentIdentifier && right instanceof ModuleComponentIdentifier;
         }
     }
 }

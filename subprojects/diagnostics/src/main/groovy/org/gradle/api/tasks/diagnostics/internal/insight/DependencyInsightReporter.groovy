@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.diagnostics.internal.insight
 
 import org.gradle.api.artifacts.component.ComponentIdentifier
+import org.gradle.api.artifacts.result.ComponentSelectionReason
 import org.gradle.api.artifacts.result.DependencyResult
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionMatcher
@@ -52,7 +53,7 @@ public class DependencyInsightReporter {
                     current = new RequestedVersion(dependency.requested, dependency.actual, dependency.resolvable, null)
                     out << current
                 } else {
-                    current = new RequestedVersion(dependency.requested, dependency.actual, dependency.resolvable, new DescribableComponentSelectionReason(dependency.reason).describe())
+                    current = new RequestedVersion(dependency.requested, dependency.actual, dependency.resolvable, getReasonDescription(dependency.reason))
                     out << current
                 }
             } else if (current.requested != dependency.requested) {
@@ -63,5 +64,9 @@ public class DependencyInsightReporter {
         }
 
         out
+    }
+
+    private String getReasonDescription(ComponentSelectionReason reason) {
+        !reason.expected ? reason.description : null
     }
 }
