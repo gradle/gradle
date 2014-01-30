@@ -160,4 +160,53 @@ task resolve << {
         then:
         artifact.assertContentsHaveNotChangedSince(snapshot)
     }
+
+    def "changes made by metadata rule aren't cached"() {
+        when:
+        writeBuildScriptWithRule()
+        run("resolve")
+        def artifact = file("modules/moduleA-1.0.jar")
+        def snapshot = artifact.snapshot()
+
+        and:
+        writeBuildScriptWithoutRule()
+        moduleA.publishWithChangedContent()
+        run("resolve")
+
+        then:
+        artifact.assertContentsHaveChangedSince(snapshot)
+    }
+
+    private writeBuildScriptWithoutRule() {
+        buildFile.text =
+"""
+$repoDeclaration
+configurations {
+    modules {
+        resolutionStrategy.cacheChangingModulesFor 0, "seconds"
+    }
+}
+dependencies {
+    modules("org.test:moduleA:1.0") { changing = true }
+}
+task resolve << {
+    copy {
+        from configurations.modules
+        into "modules"
+    }
+}
+"""
+    }
+
+    private writeBuildScriptWithRule() {
+        writeBuildScriptWithoutRule()
+        buildFile <<
+"""
+dependencies {
+    components {
+        eachComponent { it.changing = false }
+    }
+}
+"""
+    }
 }
