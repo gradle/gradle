@@ -21,6 +21,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.GradleProject
+import org.gradle.tooling.model.eclipse.EclipseProject
 
 @ToolingApiVersion(">=1.12")
 class ToolingApiDeprecationsCrossVersionSpec extends ToolingApiSpecification {
@@ -34,7 +35,7 @@ task noop << {
     }
 
     @TargetGradleVersion("<1.0-milestone-8")
-    def "build shows deprecation warning for pre 1.0m8 clients"() {
+    def "build shows deprecation warning for pre 1.0m8 providers"() {
         when:
         def output = new ByteArrayOutputStream()
         withConnection { ProjectConnection connection ->
@@ -45,25 +46,25 @@ task noop << {
         }
 
         then:
-        output.toString().contains("has been deprecated and is scheduled to be removed in Gradle 2.0")
+        output.toString().contains(deprecationMessage(targetDist.version.version))
     }
 
-    @TargetGradleVersion(">=1.0-milestone-5 <1.0-milestone-8")
-    def "model retrieving shows deprecation warning for pre 1.0m8 clients"() {
+    @TargetGradleVersion("<1.0-milestone-8")
+    def "model retrieving shows deprecation warning for pre 1.0m8 providers"() {
         when:
         def output = new ByteArrayOutputStream()
         withConnection { ProjectConnection connection ->
-            def modelBuilder = connection.model(GradleProject)
+            def modelBuilder = connection.model(EclipseProject)
             modelBuilder.standardOutput = output
             def model = modelBuilder.get()
         }
 
         then:
-        output.toString().contains("has been deprecated and is scheduled to be removed in Gradle 2.0")
+        output.toString().contains(deprecationMessage(targetDist.version.version))
     }
 
     @TargetGradleVersion(">=1.0-milestone-8")
-    def "build shows no deprecation warning for 1.0m8+ clients"() {
+    def "build shows no deprecation warning for 1.0m8+ providers"() {
         when:
         def output = new ByteArrayOutputStream()
         withConnection { ProjectConnection connection ->
@@ -74,11 +75,11 @@ task noop << {
         }
 
         then:
-        !output.toString().contains("has been deprecated and is scheduled to be removed in Gradle 2.0")
+        !output.toString().contains(deprecationMessage(targetDist.version.version))
     }
 
     @TargetGradleVersion(">=1.0-milestone-8")
-    def "model retrieving shows no deprecation warning for 1.0m8+ clients"() {
+    def "model retrieving shows no deprecation warning for 1.0m8+ providers"() {
         when:
         def output = new ByteArrayOutputStream()
         withConnection { ProjectConnection connection ->
@@ -88,6 +89,10 @@ task noop << {
         }
 
         then:
-        !output.toString().contains("has been deprecated and is scheduled to be removed in Gradle 2.0")
+        !output.toString().contains(deprecationMessage(targetDist.version.version))
+    }
+
+    def deprecationMessage(def version) {
+        "Connecting to Gradle build version " + version + " has been deprecated and is scheduled to be removed in Gradle 2.0"
     }
 }

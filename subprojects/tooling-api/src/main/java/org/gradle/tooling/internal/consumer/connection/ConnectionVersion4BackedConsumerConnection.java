@@ -79,7 +79,8 @@ public class ConnectionVersion4BackedConsumerConnection extends AbstractPre12Con
         OutputStream out = operationParameters.getStandardOutput();
         if (out != null) {
             try {
-                out.write(("Connecting to Gradle build version " + versionDetails.getVersion() + " has been deprecated and is scheduled to be removed in Gradle 2.0\n").getBytes("UTF-8"));
+                out.write(("Connecting to Gradle build version " + versionDetails.getVersion()
+                        + " has been deprecated and is scheduled to be removed in Gradle 2.0" + System.getProperty("line.separator")).getBytes());
             } catch (IOException e) {
                 throw new RuntimeException("UTF-8 unsupported", e);
             }
