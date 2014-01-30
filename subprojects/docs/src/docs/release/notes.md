@@ -322,6 +322,11 @@ when writing a `Spec` for the `DependencyInsightReportTask`. Here's an example f
         setDependencySpec { it.requested instanceof ModuleComponentSelector && it.requested.module == 'leaf2' }
     }
 
+### Changes to resolution result root identifier
+
+The root node identifier for a resolved project configuration was changed to return a `ProjectComponentIdentifier`. Before the change the method `ResolutionResult.getRoot().getId()`
+exclusively returned a `ModuleComponentIdentifier`.
+
 ### Changes to container configuration DSL
 
 In previous versions of Gradle, accessing a property on the [configuration container](dsl/org.gradle.api.Project.html#org.gradle.api.Project:configurations(groovy.lang.Closure)) would 
