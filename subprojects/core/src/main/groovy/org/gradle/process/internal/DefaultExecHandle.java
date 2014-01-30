@@ -17,10 +17,12 @@
 package org.gradle.process.internal;
 
 import com.google.common.base.Joiner;
+import net.rubygrapefruit.platform.ProcessLauncher;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.StoppableExecutor;
+import org.gradle.internal.nativeplatform.services.NativeServices;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.shutdown.ShutdownHookActionRegister;
@@ -75,6 +77,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
     private final Map<String, String> environment;
     private final StreamsHandler streamsHandler;
     private final boolean redirectErrorStream;
+    private final ProcessLauncher processLauncher;
     private int timeoutMillis;
     private boolean daemon;
 
@@ -119,6 +122,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
         this.condition = lock.newCondition();
         this.state = ExecHandleState.INIT;
         executor = new DefaultExecutorFactory().create(String.format("Run %s", displayName));
+        processLauncher = NativeServices.getInstance().get(ProcessLauncher.class);
         shutdownHookAction = new ExecHandleShutdownHookAction(this);
         broadcast = new ListenerBroadcast<ExecHandleListener>(ExecHandleListener.class);
         broadcast.addAll(listeners);
@@ -224,7 +228,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
             }
             setState(ExecHandleState.STARTING);
 
-            execHandleRunner = new ExecHandleRunner(this, streamsHandler);
+            execHandleRunner = new ExecHandleRunner(this, streamsHandler, processLauncher);
             executor.execute(execHandleRunner);
 
             while(stateIn(ExecHandleState.STARTING)) {

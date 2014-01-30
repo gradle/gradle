@@ -16,15 +16,13 @@
 
 package org.gradle.process.internal;
 
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
-import net.rubygrapefruit.platform.Native;
 import net.rubygrapefruit.platform.ProcessLauncher;
-
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.process.internal.streams.StreamsHandler;
+
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class ExecHandleRunner implements Runnable {
     private static final Logger LOGGER = Logging.getLogger(ExecHandleRunner.class);
@@ -32,12 +30,14 @@ public class ExecHandleRunner implements Runnable {
     private final ProcessBuilderFactory processBuilderFactory;
     private final DefaultExecHandle execHandle;
     private final Lock lock = new ReentrantLock();
+    private final ProcessLauncher processLauncher;
 
     private Process process;
     private boolean aborted;
     private final StreamsHandler streamsHandler;
 
-    public ExecHandleRunner(DefaultExecHandle execHandle, StreamsHandler streamsHandler) {
+    public ExecHandleRunner(DefaultExecHandle execHandle, StreamsHandler streamsHandler, ProcessLauncher processLauncher) {
+        this.processLauncher = processLauncher;
         if (execHandle == null) {
             throw new IllegalArgumentException("execHandle == null!");
         }
@@ -62,8 +62,6 @@ public class ExecHandleRunner implements Runnable {
     public void run() {
         try {
             ProcessBuilder processBuilder = processBuilderFactory.createProcessBuilder(execHandle);
-            final ProcessLauncher processLauncher = Native.get(ProcessLauncher.class);
-            
             Process process = processLauncher.start(processBuilder);
             streamsHandler.connectStreams(process, execHandle.getDisplayName());
             setProcess(process);
