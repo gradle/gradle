@@ -42,12 +42,12 @@ dependencies {
     modules("org.test:moduleA:1.0") { changing = true }
     components {
         eachComponent { details ->
-            file(details.id.name).text = details.changing
+            file("changing").text = details.changing
         }
     }
 }
 task resolve << {
-    configurations.modules.files
+    configurations.modules.resolve()
 }
 """
 
@@ -55,7 +55,7 @@ task resolve << {
         run("resolve")
 
         then:
-        file("moduleA").text == "true"
+        file("changing").text == "true"
     }
 
     def "static and dynamic dependencies have changing flag initialized to false"() {
@@ -69,12 +69,12 @@ dependencies {
     modules "org.test:moduleA:$version"
     components {
         eachComponent { details ->
-            file(details.id.name).text = details.changing
+            file("changing").text = details.changing
         }
     }
 }
 task resolve << {
-    configurations.modules.files
+    configurations.modules.resolve()
 }
 """
 
@@ -82,7 +82,7 @@ task resolve << {
         run("resolve")
 
         then:
-        file("moduleA").text == "false"
+        file("changing").text == "false"
 
         where:
         version << ["1.0", "[1.0,2.0]"]
@@ -162,51 +162,31 @@ task resolve << {
     }
 
     def "changes made by metadata rule aren't cached"() {
-        when:
-        writeBuildScriptWithRule()
-        run("resolve")
-        def artifact = file("modules/moduleA-1.0.jar")
-        def snapshot = artifact.snapshot()
-
-        and:
-        writeBuildScriptWithoutRule()
-        moduleA.publishWithChangedContent()
-        run("resolve")
-
-        then:
-        artifact.assertContentsHaveChangedSince(snapshot)
-    }
-
-    private writeBuildScriptWithoutRule() {
-        buildFile.text =
+        buildFile <<
 """
 $repoDeclaration
 configurations {
-    modules {
-        resolutionStrategy.cacheChangingModulesFor 0, "seconds"
-    }
+    modules
 }
 dependencies {
-    modules("org.test:moduleA:1.0") { changing = true }
+    modules "org.test:moduleA:1.0"
+    components {
+        eachComponent {
+            file("changing").text = it.changing
+            it.changing = true
+        }
+    }
 }
 task resolve << {
-    copy {
-        from configurations.modules
-        into "modules"
-    }
+    configurations.modules.resolve()
 }
 """
-    }
 
-    private writeBuildScriptWithRule() {
-        writeBuildScriptWithoutRule()
-        buildFile <<
-"""
-dependencies {
-    components {
-        eachComponent { it.changing = false }
-    }
-}
-"""
+        when:
+        run("resolve")
+        run("resolve")
+
+        then:
+        file("changing").text == "false"
     }
 }
