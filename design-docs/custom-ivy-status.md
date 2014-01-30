@@ -139,15 +139,16 @@ whether the component is cached or not, as if the rule is evaluated on each reso
 
 ### Implementation
 
-Component metadata rules are evaluated "just in time" whenever `CachingMavenRepository` queries the changing flag for a component (right in that class). This is done
-in such a way that the result won't be cached. It will add one or two invocations of a rule per dependency to be resolved.
+Whenever `CachingMavenRepository` needs to query the changing flag for a component, component metadata rules are evaluated just beforehand. Rules are
+evaluated at most twice per dependency to be resolved (not counting any rule evaluations performed by other classes). Rules are evaluated after writing into
+the metadata cache, hence any changes made by rules won't be cached.
 
 ### Test coverage
 
 * Changes made to the changing flag by a component metadata rule aren't cached.
-    * Add a rule that flips the changing flag for a component
-    * Remove the rule after the first resolve
-    * Verify that the original value of the changing flag is honored on the second resolve
+    * Add a rule that makes a non-changing component changing
+    * Resolve the component
+    * Verify that on the next resolve, component is again presented as non-changing to metadata rule
 
 ## Consume a "latest" version of an Ivy module with custom status that exists in multiple Ivy repositories
 
