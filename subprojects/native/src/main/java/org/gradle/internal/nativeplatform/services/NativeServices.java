@@ -17,11 +17,11 @@ package org.gradle.internal.nativeplatform.services;
 
 import com.sun.jna.Native;
 import net.rubygrapefruit.platform.*;
-import net.rubygrapefruit.platform.NativeIntegrationUnavailableException;
 import net.rubygrapefruit.platform.Process;
+import net.rubygrapefruit.platform.internal.DefaultProcessLauncher;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.jvm.Jvm;
-import org.gradle.internal.nativeplatform.*;
+import org.gradle.internal.nativeplatform.ProcessEnvironment;
 import org.gradle.internal.nativeplatform.console.ConsoleDetector;
 import org.gradle.internal.nativeplatform.console.NativePlatformConsoleDetector;
 import org.gradle.internal.nativeplatform.console.NoOpConsoleDetector;
@@ -107,8 +107,6 @@ public class NativeServices extends DefaultServiceRegistry {
         try {
             if (operatingSystem.isUnix()) {
                 return new LibCBackedProcessEnvironment(get(LibC.class));
-            } else if (operatingSystem.isWindows()) {
-                return new WindowsProcessEnvironment();
             } else {
                 return new UnsupportedEnvironment();
             }
@@ -157,6 +155,15 @@ public class NativeServices extends DefaultServiceRegistry {
             LOGGER.debug("Native-platform system info is not available. Continuing with fallback.");
         }
         return notAvailable(SystemInfo.class);
+    }
+
+    protected ProcessLauncher createProcessLauncher() {
+        try {
+            return net.rubygrapefruit.platform.Native.get(ProcessLauncher.class);
+        } catch (NativeIntegrationUnavailableException e) {
+            LOGGER.debug("Native-platform process launcher is not available. Continuing with fallback.");
+        }
+        return new DefaultProcessLauncher();
     }
 
     private <T> T notAvailable(Class<T> type) {
