@@ -23,7 +23,6 @@ import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.eclipse.EclipseProject
 
-@ToolingApiVersion(">=1.12")
 class ToolingApiDeprecationsCrossVersionSpec extends ToolingApiSpecification {
     def setup() {
         toolingApi.isEmbedded = false
@@ -34,6 +33,7 @@ task noop << {
 """
     }
 
+    @ToolingApiVersion(">=1.12")
     @TargetGradleVersion("<1.0-milestone-8")
     def "build shows deprecation warning for pre 1.0m8 providers"() {
         when:
@@ -46,9 +46,10 @@ task noop << {
         }
 
         then:
-        output.toString().contains(deprecationMessage(targetDist.version.version))
+        output.toString().contains(deprecationMessageProvider(targetDist.version.version))
     }
 
+    @ToolingApiVersion(">=1.12")
     @TargetGradleVersion("<1.0-milestone-8")
     def "model retrieving shows deprecation warning for pre 1.0m8 providers"() {
         when:
@@ -60,9 +61,10 @@ task noop << {
         }
 
         then:
-        output.toString().contains(deprecationMessage(targetDist.version.version))
+        output.toString().contains(deprecationMessageProvider(targetDist.version.version))
     }
 
+    @ToolingApiVersion(">=1.12")
     @TargetGradleVersion(">=1.0-milestone-8")
     def "build shows no deprecation warning for 1.0m8+ providers"() {
         when:
@@ -75,9 +77,10 @@ task noop << {
         }
 
         then:
-        !output.toString().contains(deprecationMessage(targetDist.version.version))
+        !output.toString().contains(deprecationMessageProvider(targetDist.version.version))
     }
 
+    @ToolingApiVersion(">=1.12")
     @TargetGradleVersion(">=1.0-milestone-8")
     def "model retrieving shows no deprecation warning for 1.0m8+ providers"() {
         when:
@@ -89,10 +92,77 @@ task noop << {
         }
 
         then:
-        !output.toString().contains(deprecationMessage(targetDist.version.version))
+        !output.toString().contains(deprecationMessageProvider(targetDist.version.version))
     }
 
-    def deprecationMessage(def version) {
+    def deprecationMessageProvider(def version) {
         "Connecting to Gradle build version " + version + " has been deprecated and is scheduled to be removed in Gradle 2.0"
     }
+
+    @ToolingApiVersion("<1.2")
+    @TargetGradleVersion(">=1.12")
+    def "provider shows deprecation warning when build is requested by old toolingApi"() {
+        when:
+        def output = new ByteArrayOutputStream()
+        withConnection { ProjectConnection connection ->
+            def build = connection.newBuild()
+            build.standardOutput = output
+            build.forTasks("noop")
+            build.run()
+        }
+
+        then:
+        output.toString().contains(deprecationMessageApi(targetDist.version.version))
+    }
+
+    @ToolingApiVersion(">=1.2")
+    @TargetGradleVersion(">=1.12")
+    def "provider shows no deprecation warning when build is requested by supported toolingApi"() {
+        when:
+        def output = new ByteArrayOutputStream()
+        withConnection { ProjectConnection connection ->
+            def build = connection.newBuild()
+            build.standardOutput = output
+            build.forTasks("noop")
+            build.run()
+        }
+
+        then:
+        !output.toString().contains(deprecationMessageApi(targetDist.version.version))
+    }
+
+    @ToolingApiVersion("<1.2")
+    @TargetGradleVersion(">=1.12")
+    def "provider shows deprecation warning when model is requested by old toolingApi"() {
+        when:
+        def output = new ByteArrayOutputStream()
+        withConnection { ProjectConnection connection ->
+            def modelBuilder = connection.model(EclipseProject)
+            modelBuilder.standardOutput = output
+            def model = modelBuilder.get()
+        }
+
+        then:
+        output.toString().contains(deprecationMessageApi(targetDist.version.version))
+    }
+
+    @ToolingApiVersion(">=1.2")
+    @TargetGradleVersion(">=1.12")
+    def "provider shows no deprecation warning when model is requested by supported toolingApi"() {
+        when:
+        def output = new ByteArrayOutputStream()
+        withConnection { ProjectConnection connection ->
+            def modelBuilder = connection.model(EclipseProject)
+            modelBuilder.standardOutput = output
+            def model = modelBuilder.get()
+        }
+
+        then:
+        !output.toString().contains(deprecationMessageApi(targetDist.version.version))
+    }
+
+    def deprecationMessageApi(def version) {
+        "Connection from tooling API older than version 1.2 has been deprecated and is scheduled to be removed in Gradle 2.0"
+    }
+
 }

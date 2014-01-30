@@ -29,6 +29,7 @@ The following are the newly deprecated items in this Gradle release. If you have
 ### Deprecations in Tooling API communication
 
 * Using Tooling API to connect to provider using older distribution than Gradle 1.0-milestone-8 is now deprecated and scheduled for removal in version Gradle 2.0.
+* Using Tooling API client version older than 1.2 to connect to a provider from current distribution is now deprecated and scheduled for removal in version Gradle 2.0.
 <!--
 ### Example deprecation
 -->
