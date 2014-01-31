@@ -9,6 +9,200 @@ Thanks to all who submitted contributions, bug reports and ideas for the release
 
 Here are the new features introduced in this Gradle release.
 
+### Choose applicable platforms, build types and flavors for a native component (i)
+
+It is now possible to specify a global set of build types, platforms and flavors and then specifically choose which of
+these should apply for a particular component. This makes it easier to have a single plugin that adds support for a
+bunch of platforms, build types, and/or flavors, and have the build script choose which of these are appropriate.
+
+- `buildTypes` is now `model.buildTypes`
+- `targetPlatforms` is now `model.platforms`
+- `executable.flavors` or `library.flavors` is now `model.flavors`
+
+
+    model {
+        platforms {
+            x86 {
+                ... config
+            }
+        }
+        buildTypes {
+            debug
+        }
+        flavors {
+            custom
+        }
+        ... Many others, perhaps added by capability plugins
+    }
+
+    executables {
+        main {
+            targetPlatforms "x86" // Only build for this platform
+            targetFlavors "foo", "bar" // Build these 2 flavors
+            // targetBuildTypes - without this, all build types are targeted.
+        }
+    }
+
+#### Current Limitations
+
+- The `component.target*` methods match on element _name_. It is not possible to supply an element instance at this time.
+
+### Improved notation for declaring library dependencies when building native binaries (i)
+
+When building native binaries, it is now possible to declare a dependency on a library using a dependency notation.
+
+    libraries {
+        hello
+    }
+
+    executables {
+        main
+    }
+    sources {
+        main {
+            cpp {
+                lib library: 'hello', linkage: 'static'
+            }
+            c {
+                lib project: ':another', library: 'hi'
+            }
+        }
+    }
+
+The `project`, `library` and `linkage` attributes can be specified. Only `library` is required and must be the name of a library
+in the specified project, or in the current project if the `project` attribute is omitted.
+
+This notation based syntax provides a number of benefits over directly accessing the library when declaring the dependency requirement:
+
+- The library referenced does not have to be declared before the dependency declaration in the build script.
+- For libraries in another project, the depended-on project does not need to have been evaluated when the dependency declaration is added.
+- The linkage is clearly specified.
+
+### Declare header-only library dependencies in native binary projects (i)
+
+There are times when your source may require the headers of a library at compile time, but not require the library binary when linking.
+To support this use case, it is now possible to add a dependency on the 'api' linkage of a library. In this case, the headers
+of the library will be available when compiling, but no binary will be provided when linking.
+
+A dependency on the 'api' linkage can be specified by both the direct and the map-based syntax.
+
+    sources {
+        main {
+            cpp {
+                lib project: ':A', library: 'my-lib', linkage: 'api'
+                lib libraries.hello.api
+            }
+        }
+    }
+
+### Include pre-built libraries in native binary projects (i)
+
+It would be very unusual for a sophisticated software project not to make some use of 3rd party system libraries.
+In some cases these libraries are already available locally. This version of Gradle makes it possible to reference
+these 'pre-built' libraries such that they can be referenced as a dependency in the same way as libraries built by
+Gradle.
+
+In order to reference pre-built libraries, they must be added to a local repository of type `PrebuiltLibraries`.
+For each library, the header directories to include can be defined, as well as the actual binary files for
+static and shared library linkages.
+
+    model {
+        repositories {
+            libs(PrebuiltLibraries) {
+                boost {
+                    headers.srcDir "libs/boost_1_55_0/boost"
+                }
+                util {
+                    headers.srcDir "libs/util/src/include"
+                    binaries.withType(StaticLibraryBinary) {
+                        staticLibraryFile = file("libs/util/bin/libutil.a")
+                    }
+                    binaries.withType(SharedLibraryBinary) {
+                        sharedLibraryFile = file("libs/util/bin/libutil.so")
+                    }
+                }
+            }
+        }
+    }
+
+Future releases of Gradle will provide full-featured dependency resolution for third-party libraries, as well as
+providing more sophisticated support for system libraries (such as the Windows SDK).
+`PrebuiltLibraries` takes a step in that direction, and provides a tool that can be used for many use cases.
+
+### Support for generated sources in native binary projects (i)
+
+Any `LanguageSourceSet` (e.g. `CSourceSet`, `CppSourceSet`) is now a `BuildableModelElement`, which means that a
+task can be supplied which will be executed before the sources are used. This makes it easy to include generated sources in your
+native binary project.
+
+A 'builder' task for a source set can be added using the `builtBy` method. All such tasks will be executed before the source set is
+used. The source set files and headers will still need to be explicitly configured, either as directory paths or by
+connecting task outputs.
+
+    sources {
+        main {
+            c {
+                builtBy tasks.generateCSources
+                source {
+                    srcDirs tasks.generateCSources.sourceDir
+                }
+                exportedHeaders {
+                    srcDirs tasks.generateCSources.headerDir
+                }
+            }
+        }
+    }
+
+As an added convenience, it is possible to specify that a source set is `generatedBy` a particular task. As well as linking the task
+as a 'builder' for the source set, Gradle will also inspect the generator task for `sourceDir` and `headerDir` output properties,
+which will then be automatically configured as source set inputs.
+
+Using this mechanism, the above example can be simplified to:
+
+    source {
+        main {
+            c {
+                generatedBy tasks.generateCSources
+            }
+        }
+    }
+
+See the `idl` sample in your Gradle distribution for a working example of generated sources for a native binary.
+
+### Objective-C and Objective-C++ Support (i)
+
+With Gradle 1.11, it is now possible to include 'Objective-C' and 'Objective-C++' source files to create a native library or executable.
+Including Objective-C and Objective-C++ sources in your project is straightforward. Whereas C++ sources are contained in a 'cpp' source directory,
+Objective-C source files should be located in a 'objectiveC' directory and Objective-C++ source files in a 'objectiveCpp' directory.
+These directory locations are by convention, and can be updated in your build script.
+
+Here's an example of how you can customize which source files and directories to include:
+
+    sources {
+        main {
+            // Configure an existing ObjectiveCSourceSet
+            objectiveC {
+                source {
+                    srcDirs "objectiveCFiles"
+                    include "**{@literal /}*.m"
+                }
+                exportedHeaders {
+                    srcDirs "includes"
+                }
+            }
+
+            objectiveCpp {
+                source {
+                    srcDirs "src/shared/objectiveCpp"
+                    include "**{@literal /}*.mm"
+                }
+                exportedHeaders {
+                    srcDirs "src/main/include"
+                }
+            }
+        }
+    }
+
 ### Generate Visual Studio configuration for a native binary project (i)
 
 One of the great things about using Gradle for building Java projects is the ability to generate IDE configuration files: this
@@ -58,198 +252,10 @@ While Visual Studio support is functional, there remain some limitations:
 - Macros defined by passing `/D` to compiler args are not included in your project configuration. Use `cppCompiler.define` instead.
 - Includes defined by passing `/I` to compiler args are not included in your project configuration. Use library dependencies instead.
 - External dependencies supplied via `sourceSet.dependency` are not yet handled.
+- The way a component graph is mapped to Visual Studio projects is overly complex, often resulting in several VS projects to cater for different binary variants.
+    - This will be improved in the next release of Gradle.
 
 Please try it out an let us know how it works for you.
-
-### Choose applicable platforms, build types and flavors for a native component (i)
-
-It is now possible to specify a global set of build types, platforms and flavors and then specifically choose which of
-these should apply for a particular component. This makes it easier to have a single plugin that adds support for a
-bunch of platforms, build types, and/or flavors, and have the build script choose which of these are appropriate.
-
-- `buildTypes` is now `model.buildTypes`
-- `targetPlatforms` is now `model.platforms`
-- `executable.flavors` or `library.flavors` is now `model.flavors`
-
-
-    model {
-        platforms {
-            x86 {
-                ... config
-            }
-        }
-        buildTypes {
-            debug
-        }
-        flavors {
-            custom
-        }
-        ... Many others, perhaps added by capability plugins
-    }
-
-    executables {
-        main {
-            targetPlatforms "x86" // Only build for this platform
-            targetFlavors "foo", "bar" // Build these 2 flavors
-            // targetBuildTypes - without this, all build types are targeted.
-        }
-    }
-
-#### Current Limitations
-
-- The `component.target*` methods match on element _name_. It is not possible to supply an element instance at this time.
-
-### Improved notation for declaring library dependencies when building native binaries (i)
-
-When building native binaries, it is now possible to declare a dependency on a library by a dependency notation.
-
-    libraries {
-        hello
-    }
-
-    executables {
-        main
-    }
-    sources {
-        main {
-            cpp {
-                lib library: 'hello', linkage: 'static'
-            }
-            c {
-                lib project: ':another', library: 'hi'
-            }
-        }
-    }
-
-The `project`, `library` and `linkage` attributes can be specified. Only `library` is required and must be the name of a library
-in the specified project, or in the current project if the `project` attribute is omitted.
-
-This notation based syntax provides a number of benefits over directly accessing the library when declaring the dependency requirement:
-
-- The library referenced does not have to be declared before the dependency declaration in the build script
-- For libraries in another project, the depended-on project does not need to have been evaluated when the dependency declaration is added
-- The linkage is clearly specified
-
-### Header-only library dependencies in native binary projects (i)
-
-There are times when your source may require the headers of a library at compile time, but not require the library binary when linking.
-To support this use case, it is now possible to add a dependency on the 'api' linkage of a library. In this case, the headers
-of the library will be available when compiling, but no binary will be provided when linking.
-
-A dependency on the 'api' linkage can be specified by both the direct and the map-based syntax.
-
-    sources {
-        main {
-            cpp {
-                lib project: ':A', library: 'my-lib', linkage: 'api'
-                lib libraries.hello.api
-            }
-        }
-    }
-
-### Pre-built libraries in native binary projects (i)
-
-It would be very unusual for a sophisticated software project not to make some use of 3rd party system libraries.
-In some cases these libraries are already available locally. This version of Gradle makes it possible to reference
-these 'pre-built' libraries such that they can be referenced as a dependency in the same way as libraries built by
-Gradle.
-
-In order to reference pre-built libraries, they must be added to a local repository of type `PrebuiltLibraries`.
-For each library, the header directories to include can be defined, as well as the actual binary files for
-static and shared library linkages.
-
-    model {
-        repositories {
-            libs(PrebuiltLibraries) {
-                boost {
-                    headers.srcDir "libs/boost_1_55_0/boost"
-                }
-                util {
-                    headers.srcDir "libs/util/src/include"
-                    binaries.withType(StaticLibraryBinary) {
-                        staticLibraryFile = file("libs/util/bin/libutil.a")
-                    }
-                    binaries.withType(SharedLibraryBinary) {
-                        sharedLibraryFile = file("libs/util/bin/libutil.so")
-                    }
-                }
-            }
-        }
-    }
-
-Future releases of Gradle will provide full-featured dependency resolution for third-party libraries, as well as
-providing more sophisticated support for system libraries (such as the Windows SDK).
-`PrebuiltLibraries` takes a step in that direction, and provides a tool that can be used for many use cases.
-
-### Support for generated sources in native binary projects (i)
-
-Any `LanguageSourceSet` (e.g. `CSourceSet`, `CppSourceSet`) is now a `BuildableModelElement`, which means that a
-task can be supplied which will be executed before the sources are used.
-
-The 'builder' task can be specified stating that the source set is `builtBy` the task. The source inputs will then need to be
-explicitly configured, either as directory paths or by connecting task outputs.
-
-    sources {
-        main {
-            c {
-                builtBy tasks.generateCSources
-                source {
-                    srcDirs tasks.generateCSources.sourceDir
-                }
-                exportedHeaders {
-                    srcDirs tasks.generateCSources.headerDir
-                }
-            }
-        }
-    }
-
-Additionally, it is possible to specify that the source set is `generatedBy` the specified task. In this case, Gradle will
-inspect the task for `sourceDir` and `headerDir` output properties, which will then be automatically configured as source set inputs.
-The above example can thus be simplified to:
-
-    source {
-        main {
-            c {
-                generatedBy tasks.generateCSources
-            }
-        }
-    }
-
-See the `idl` sample in your Gradle distribution for a working example of generated sources for a native binary.
-
-### Objective-C and Objective-C++ Support (i)
-
-With Gradle 1.11, it is now possible to include 'Objective-C' and 'Objective-C++' source files to create a native library or executable.
-Including Objective-C and Objective-C++ sources in your project is straightforward. Whereas C++ sources are contained in a 'cpp' source directory,
-Objective-C source files should be located in a 'objectiveC' directory and Objective-C++ source files in a 'objectiveCpp' directory.
-These directory locations are by convention, and can be updated in your build script.
-
-Here's an example of how you can customize which source files and directories to include:
-
-    sources {
-        main {
-            // Configure an existing ObjectiveCSourceSet
-            objectiveC {
-                source {
-                    srcDirs "objectiveCFiles"
-                    include "**{@literal /}*.m"
-                }
-                exportedHeaders {
-                    srcDirs "includes"
-                }
-            }
-
-            objectiveCpp {
-                source {
-                    srcDirs "src/shared/objectiveCpp"
-                    include "**{@literal /}*.mm"
-                }
-                exportedHeaders {
-                    srcDirs "src/main/include"
-                }
-            }
-        }
-    }
 
 ### Improved detection of Visual studio and Windows SDK installations
 
