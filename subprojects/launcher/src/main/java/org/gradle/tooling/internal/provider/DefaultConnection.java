@@ -158,7 +158,8 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
         OutputStream out = parameters.getStandardOutput();
         if (out != null) {
             try {
-                out.write("Connection from tooling API older than version 1.2 has been deprecated and is scheduled to be removed in Gradle 2.0".getBytes());
+                out.write(("Connection from tooling API older than version 1.2 has been deprecated and is scheduled to be removed in Gradle 2.0"
+                        + System.getProperty("line.separator")).getBytes());
             } catch (IOException e) {
                 throw new RuntimeException("Cannot write to stream", e);
             }
