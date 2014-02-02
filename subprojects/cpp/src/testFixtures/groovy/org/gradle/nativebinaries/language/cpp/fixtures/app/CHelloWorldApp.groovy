@@ -133,8 +133,10 @@ int clean_test(void) {
 
 void test_sum(void) {
   CU_ASSERT(sum(0, 2) == 2);
+#ifndef ONE_TEST
   CU_ASSERT(sum(0, -2) == -2);
   CU_ASSERT(sum(2, 2) == 4);
+#endif
 }
 
 void gradle_cunit_register() {

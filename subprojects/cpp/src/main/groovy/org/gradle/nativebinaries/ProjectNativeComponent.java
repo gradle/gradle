@@ -64,6 +64,7 @@ public interface ProjectNativeComponent extends Named {
      */
     void setBaseName(String baseName);
 
+    // TODO:DAZ These are no longer honoured for TestSuite: need to split into a separate API
     /**
      * Specifies one or more {@link org.gradle.nativebinaries.Flavor}s that this component should be built for.
      * <p/>

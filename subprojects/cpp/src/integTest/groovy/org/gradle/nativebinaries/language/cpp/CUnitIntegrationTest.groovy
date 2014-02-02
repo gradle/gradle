@@ -111,6 +111,24 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
         testResults.checkAssertions(3, 3, 0)
     }
 
+    def "can supply cCompiler macro to cunit sources"() {
+        given:
+        useConventionalSourceLocations()
+
+        when:
+        buildFile << """
+            binaries.withType(TestSuiteExecutableBinary) {
+                cCompiler.define "ONE_TEST"
+            }
+"""
+        and:
+        run "runHelloTestCUnitExe"
+
+        then:
+        def testResults = new CUnitTestResults(file("build/test-results/helloTestCUnitExe/CUnitAutomated-Results.xml"))
+        testResults.checkAssertions(1, 1, 0)
+    }
+
     def "can configure location of cunit test sources"() {
         given:
         app.library.writeSources(file("src/hello"))

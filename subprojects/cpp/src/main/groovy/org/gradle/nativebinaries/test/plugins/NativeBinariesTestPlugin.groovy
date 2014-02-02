@@ -25,9 +25,11 @@ import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver
 import org.gradle.nativebinaries.plugins.NativeBinariesPlugin
 import org.gradle.nativebinaries.tasks.InstallExecutable
 import org.gradle.nativebinaries.test.TestSuiteExecutableBinary
+import org.gradle.nativebinaries.test.internal.DefaultTestSuiteContainer
 import org.gradle.nativebinaries.test.tasks.RunTestExecutable
 
 import javax.inject.Inject
+
 /**
  * A plugin that sets up the infrastructure for testing native binaries with CUnit.
  */
@@ -46,8 +48,13 @@ public class NativeBinariesTestPlugin implements Plugin<ProjectInternal> {
     }
 
     public void apply(final ProjectInternal project) {
-        project.getPlugins().apply(NativeBinariesTestModelPlugin.class)
         project.getPlugins().apply(NativeBinariesPlugin.class)
+
+        project.getExtensions().create(
+                "testSuites",
+                DefaultTestSuiteContainer.class,
+                instantiator
+        );
 
         final BinaryContainer binaries = project.getExtensions().getByType(BinaryContainer.class);
         binaries.withType(TestSuiteExecutableBinary).all { testBinary ->
