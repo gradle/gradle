@@ -253,23 +253,23 @@ Note that no core plugins will be visible to the plugin implementation by defaul
 
 Add some basic DSL and resolver infrastructure to demonstrate plugin resolution from the public plugin repository.
 
-## Story: Introduce plugins DSL block
+## Story: Introduce plugins DSL block (✓)
 
 Adds the initial DSL support and APIs. At this stage, can only be used to apply core plugins to the script's target object. Later stories make this more useful.
 
 ### Test cases
 
-- Script can use a `plugins { ... }` block to apply a core plugin.
-- Can use both `buildscript { ... }` and `plugins { ... }` blocks in a script to apply plugins.
+- Script can use a `plugins { ... }` block to apply a core plugin. (✓)
+- Can use both `buildscript { ... }` and `plugins { ... }` blocks in a script to apply plugins. (✓)
 - Build author receives a nice error message when:
-    - A statement other than `buildscript { ... }` precedes the `plugins { ... }` statement.
-    - A `buildscript { ... }` statement follows any `plugins { ... }` statements.
+    - A statement other than `buildscript { ... }` precedes the `plugins { ... }` statement. (✓)
+    - A `buildscript { ... }` statement follows any `plugins { ... }` statements. (✓)
     - Attempting to apply an unknown plugin in a `plugins { ... }` block.
-        - Should give a set of candidate plugin ids that are available.
-    - Attempting to apply a core plugin with a version selector in a `plugins { ... }` block.
-    - Attempting to apply a plugin declared in the script's `buildscript { ... }` from the `plugins { ... }` block.
-    - Attempting to apply a plugin declared a parent project's build script `buildscript { ... }` from the `plugins { ... }` block.
-- The script's delegate object is not visible to the `plugins { ... }` block.
+        - Should provide information on how to find which plugins are available. (✓)
+    - Attempting to apply a core plugin with a version selector in a `plugins { ... }` block. (✓)
+    - Attempting to apply a plugin declared in the script's `buildscript { ... }` from the `plugins { ... }` block. (✓)
+    - Attempting to apply a plugin declared a parent project's build script `buildscript { ... }` from the `plugins { ... }` block. (✓)
+- The script's delegate object is not visible to the `plugins { ... }` block. (✓)
 
 ## Story: Resolve hard-coded set of plugins from public bintray repository
 
