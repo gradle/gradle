@@ -24,10 +24,10 @@ import org.gradle.util.ChangeListener
 import org.junit.Rule
 import spock.lang.Specification
 
-public class DefaultFileSnapshotterTest extends Specification {
+public class DefaultFileCollectionSnapshotterTest extends Specification {
     def hasher = new DefaultHasher()
     def cacheAccess = Stub(TaskArtifactStateCacheAccess)
-    def snapshotter = new DefaultFileSnapshotter(hasher, cacheAccess)
+    def snapshotter = new DefaultFileCollectionSnapshotter(hasher, cacheAccess)
 
     def listener = Mock(ChangeListener)
     @Rule

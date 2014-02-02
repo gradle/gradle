@@ -17,7 +17,7 @@ package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.file.FileCollection;
 
-public interface FileSnapshotter {
+public interface FileCollectionSnapshotter {
     /**
      * Creates an empty snapshot, which changes can be later merged into.
      *

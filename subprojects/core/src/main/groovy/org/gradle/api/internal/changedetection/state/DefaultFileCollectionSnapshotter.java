@@ -26,11 +26,11 @@ import java.io.File;
 import java.math.BigInteger;
 import java.util.*;
 
-public class DefaultFileSnapshotter implements FileSnapshotter {
+public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshotter {
     private final Hasher hasher;
     private TaskArtifactStateCacheAccess cacheAccess;
 
-    public DefaultFileSnapshotter(Hasher hasher, TaskArtifactStateCacheAccess cacheAccess) {
+    public DefaultFileCollectionSnapshotter(Hasher hasher, TaskArtifactStateCacheAccess cacheAccess) {
         this.hasher = hasher;
         this.cacheAccess = cacheAccess;
     }

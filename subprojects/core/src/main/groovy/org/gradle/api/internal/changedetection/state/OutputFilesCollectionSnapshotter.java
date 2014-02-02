@@ -38,14 +38,14 @@ import java.util.*;
  * </ul>
  *
  */
-public class OutputFilesSnapshotter implements FileSnapshotter {
-    private final FileSnapshotter snapshotter;
+public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshotter {
+    private final FileCollectionSnapshotter snapshotter;
     private final IdGenerator<Long> idGenerator;
     private TaskArtifactStateCacheAccess cacheAccess;
     private final PersistentIndexedCache<String, Long> dirIdentiferCache;
 
-    public OutputFilesSnapshotter(FileSnapshotter snapshotter, IdGenerator<Long> idGenerator,
-                                  TaskArtifactStateCacheAccess cacheAccess) {
+    public OutputFilesCollectionSnapshotter(FileCollectionSnapshotter snapshotter, IdGenerator<Long> idGenerator,
+                                            TaskArtifactStateCacheAccess cacheAccess) {
         this.snapshotter = snapshotter;
         this.idGenerator = idGenerator;
         this.cacheAccess = cacheAccess;

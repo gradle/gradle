@@ -25,21 +25,21 @@ import java.util.Map;
 
 class DefaultFileSnapshotterSerializer implements Serializer<FileCollectionSnapshot> {
     public FileCollectionSnapshot read(Decoder decoder) throws Exception {
-        Map<String, DefaultFileSnapshotter.FileSnapshot> snapshots = new HashMap<String, DefaultFileSnapshotter.FileSnapshot>();
-        DefaultFileSnapshotter.FileCollectionSnapshotImpl snapshot = new DefaultFileSnapshotter.FileCollectionSnapshotImpl(snapshots);
+        Map<String, DefaultFileCollectionSnapshotter.FileSnapshot> snapshots = new HashMap<String, DefaultFileCollectionSnapshotter.FileSnapshot>();
+        DefaultFileCollectionSnapshotter.FileCollectionSnapshotImpl snapshot = new DefaultFileCollectionSnapshotter.FileCollectionSnapshotImpl(snapshots);
         int snapshotsCount = decoder.readInt();
         for (int i = 0; i < snapshotsCount; i++) {
             String key = decoder.readString();
             byte fileSnapshotKind = decoder.readByte();
             if (fileSnapshotKind == 1) {
-                snapshots.put(key, new DefaultFileSnapshotter.DirSnapshot());
+                snapshots.put(key, new DefaultFileCollectionSnapshotter.DirSnapshot());
             } else if (fileSnapshotKind == 2) {
-                snapshots.put(key, new DefaultFileSnapshotter.MissingFileSnapshot());
+                snapshots.put(key, new DefaultFileCollectionSnapshotter.MissingFileSnapshot());
             } else if (fileSnapshotKind == 3) {
                 byte hashSize = decoder.readByte();
                 byte[] hash = new byte[hashSize];
                 decoder.readBytes(hash);
-                snapshots.put(key, new DefaultFileSnapshotter.FileHashSnapshot(hash));
+                snapshots.put(key, new DefaultFileCollectionSnapshotter.FileHashSnapshot(hash));
             } else {
                 throw new RuntimeException("Unable to read serialized file collection snapshot. Unrecognized value found in the data stream.");
             }
@@ -48,18 +48,18 @@ class DefaultFileSnapshotterSerializer implements Serializer<FileCollectionSnaps
     }
 
     public void write(Encoder encoder, FileCollectionSnapshot value) throws Exception {
-        DefaultFileSnapshotter.FileCollectionSnapshotImpl cached = (DefaultFileSnapshotter.FileCollectionSnapshotImpl) value;
+        DefaultFileCollectionSnapshotter.FileCollectionSnapshotImpl cached = (DefaultFileCollectionSnapshotter.FileCollectionSnapshotImpl) value;
         encoder.writeInt(cached.snapshots.size());
         for (String key : cached.snapshots.keySet()) {
             encoder.writeString(key);
-            DefaultFileSnapshotter.FileSnapshot fileSnapshot = cached.snapshots.get(key);
-            if (fileSnapshot instanceof DefaultFileSnapshotter.DirSnapshot) {
+            DefaultFileCollectionSnapshotter.FileSnapshot fileSnapshot = cached.snapshots.get(key);
+            if (fileSnapshot instanceof DefaultFileCollectionSnapshotter.DirSnapshot) {
                 encoder.writeByte((byte) 1);
-            } else if (fileSnapshot instanceof DefaultFileSnapshotter.MissingFileSnapshot) {
+            } else if (fileSnapshot instanceof DefaultFileCollectionSnapshotter.MissingFileSnapshot) {
                 encoder.writeByte((byte) 2);
-            } else if (fileSnapshot instanceof DefaultFileSnapshotter.FileHashSnapshot) {
+            } else if (fileSnapshot instanceof DefaultFileCollectionSnapshotter.FileHashSnapshot) {
                 encoder.writeByte((byte) 3);
-                byte[] hash = ((DefaultFileSnapshotter.FileHashSnapshot) fileSnapshot).hash;
+                byte[] hash = ((DefaultFileCollectionSnapshotter.FileHashSnapshot) fileSnapshot).hash;
                 encoder.writeByte((byte) hash.length);
                 encoder.writeBytes(hash);
             }

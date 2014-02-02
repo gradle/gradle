@@ -20,26 +20,26 @@ import org.gradle.messaging.serialize.SerializerSpec
 
 class FileSnapshotSerializerTest extends SerializerSpec {
 
-    def snapshot = new DefaultFileSnapshotter.FileCollectionSnapshotImpl(["hey": new DefaultFileSnapshotter.DirSnapshot()])
-    def outputSnapshot = new OutputFilesSnapshotter.OutputFilesSnapshot(["foo": 1L, "bar": 2L], snapshot)
+    def snapshot = new DefaultFileCollectionSnapshotter.FileCollectionSnapshotImpl(["hey": new DefaultFileCollectionSnapshotter.DirSnapshot()])
+    def outputSnapshot = new OutputFilesCollectionSnapshotter.OutputFilesSnapshot(["foo": 1L, "bar": 2L], snapshot)
 
     def "handles default snapshots"() {
         when:
-        DefaultFileSnapshotter.FileCollectionSnapshotImpl out = serialize(snapshot, new FileSnapshotSerializer())
+        DefaultFileCollectionSnapshotter.FileCollectionSnapshotImpl out = serialize(snapshot, new FileSnapshotSerializer())
 
         then:
         out.snapshots.size() == 1
-        out.snapshots['hey'] instanceof DefaultFileSnapshotter.DirSnapshot
+        out.snapshots['hey'] instanceof DefaultFileCollectionSnapshotter.DirSnapshot
     }
 
     def "handles output snapshots"() {
         when:
-        OutputFilesSnapshotter.OutputFilesSnapshot out = serialize(outputSnapshot, new FileSnapshotSerializer())
+        OutputFilesCollectionSnapshotter.OutputFilesSnapshot out = serialize(outputSnapshot, new FileSnapshotSerializer())
 
         then:
         out.rootFileIds == ["foo": 1L, "bar": 2L]
-        DefaultFileSnapshotter.FileCollectionSnapshotImpl filesSnapshot = out.filesSnapshot
+        DefaultFileCollectionSnapshotter.FileCollectionSnapshotImpl filesSnapshot = out.filesSnapshot
         filesSnapshot.snapshots.size() == 1
-        filesSnapshot.snapshots['hey'] instanceof DefaultFileSnapshotter.DirSnapshot
+        filesSnapshot.snapshots['hey'] instanceof DefaultFileCollectionSnapshotter.DirSnapshot
     }
 }
