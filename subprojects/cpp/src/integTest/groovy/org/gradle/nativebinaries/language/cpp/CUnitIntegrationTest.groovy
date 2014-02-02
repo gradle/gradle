@@ -25,7 +25,6 @@ import org.gradle.nativebinaries.test.cunit.CUnitTestResults
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
-import spock.lang.Ignore
 
 import static org.gradle.util.TextUtil.normaliseLineSeparators
 
@@ -150,16 +149,20 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
         file("build/test-results/helloTestCUnitExe/CUnitAutomated-Listing.xml").assertExists()
     }
 
-    @Ignore("Not yet implemented")
-    def "runs tests against variant-dependent sources"() {
+    def "variant-dependent sources are included in test binary"() {
         given:
-        app.library.writeSources(file("src/variant"))
+        app.library.headerFiles*.writeToDir(file("src/hello"))
         app.cunitTests.writeSources(file("src/helloTest"))
+        app.library.sourceFiles*.writeToDir(file("src/variant"))
 
         when:
         buildFile << """
             sources {
-                variant
+                variant {
+                    c {
+                        lib sources.hello.c
+                    }
+                }
             }
             binaries.withType(LibraryBinary) {
                 source sources.variant

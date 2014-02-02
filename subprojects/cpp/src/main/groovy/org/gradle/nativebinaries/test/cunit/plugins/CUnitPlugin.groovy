@@ -19,22 +19,16 @@ import org.gradle.api.Plugin
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.language.base.BinaryContainer
-import org.gradle.language.base.internal.BinaryNamingScheme
-import org.gradle.language.base.internal.DefaultBinaryNamingSchemeBuilder
 import org.gradle.nativebinaries.*
 import org.gradle.nativebinaries.internal.NativeProjectComponentIdentifier
-import org.gradle.nativebinaries.internal.ProjectNativeBinaryInternal
 import org.gradle.nativebinaries.internal.ProjectNativeComponentInternal
 import org.gradle.nativebinaries.internal.resolve.NativeDependencyResolver
-import org.gradle.nativebinaries.language.internal.DefaultPreprocessingTool
 import org.gradle.nativebinaries.test.TestSuiteContainer
-import org.gradle.nativebinaries.test.TestSuiteExecutableBinary
 import org.gradle.nativebinaries.test.cunit.CUnitTestSuite
 import org.gradle.nativebinaries.test.cunit.internal.ConfigureCUnitTestSources
+import org.gradle.nativebinaries.test.cunit.internal.CreateCUnitBinaries
 import org.gradle.nativebinaries.test.cunit.internal.DefaultCUnitTestSuite
-import org.gradle.nativebinaries.test.internal.DefaultTestSuiteExecutableBinary
 import org.gradle.nativebinaries.test.plugins.NativeBinariesTestPlugin
-import org.gradle.nativebinaries.toolchain.internal.ToolChainInternal
 
 import javax.inject.Inject
 /**
@@ -65,37 +59,15 @@ public class CUnitPlugin implements Plugin<ProjectInternal> {
         }
     }
 
-    private CUnitTestSuite createCUnitTestSuite(ProjectNativeComponent component, BinaryContainer binaries, ProjectInternal project) {
-        String suiteName = "${component.name}Test"
-        String path = (component as ProjectNativeComponentInternal).projectPath
+    private CUnitTestSuite createCUnitTestSuite(ProjectNativeComponent testedComponent, BinaryContainer binaries, ProjectInternal project) {
+        String suiteName = "${testedComponent.name}Test"
+        String path = (testedComponent as ProjectNativeComponentInternal).projectPath
         NativeProjectComponentIdentifier id = new NativeProjectComponentIdentifier(path, suiteName);
-        CUnitTestSuite cUnitTestSuite = instantiator.newInstance(DefaultCUnitTestSuite, id, component);
-        component.binaries.all { ProjectNativeBinaryInternal testedBinary ->
-            final ProjectNativeBinary cunitExe = createTestBinary(cUnitTestSuite, testedBinary, project)
-            cUnitTestSuite.binaries.add cunitExe
-            binaries.add cunitExe
-        }
-        new ConfigureCUnitTestSources(project).configureCUnitSources(cUnitTestSuite)
+        CUnitTestSuite cUnitTestSuite = instantiator.newInstance(DefaultCUnitTestSuite, id, testedComponent);
+
+        // TODO:DAZ Convert to model rules
+        new ConfigureCUnitTestSources(project).apply(cUnitTestSuite)
+        new CreateCUnitBinaries(project, instantiator, resolver).apply(cUnitTestSuite, binaries);
         return cUnitTestSuite;
-    }
-
-    public ProjectNativeBinary createTestBinary(CUnitTestSuite cUnitTestSuite, ProjectNativeBinaryInternal testedBinary, ProjectInternal project) {
-        BinaryNamingScheme namingScheme = new DefaultBinaryNamingSchemeBuilder(testedBinary.getNamingScheme()).withComponentName(cUnitTestSuite.baseName).withTypeString("CUnitExe").build();
-        ProjectNativeBinary testBinary = instantiator.newInstance(DefaultTestSuiteExecutableBinary.class,
-                cUnitTestSuite, testedBinary.getFlavor(), testedBinary.getToolChain(),
-                testedBinary.getTargetPlatform(), testedBinary.getBuildType(), namingScheme, resolver);
-
-        setupDefaults(testBinary, project);
-        testBinary.extensions.create("cCompiler", DefaultPreprocessingTool)
-        return testBinary;
-    }
-
-    private void setupDefaults(ProjectNativeBinary nativeBinary, ProjectInternal project) {
-        BinaryNamingScheme namingScheme = ((ProjectNativeBinaryInternal) nativeBinary).getNamingScheme();
-        File binaryOutputDir = new File(new File(project.getBuildDir(), "binaries"), namingScheme.getOutputDirectoryBase());
-        String baseName = nativeBinary.getComponent().getBaseName();
-
-        ToolChainInternal tc = (ToolChainInternal) nativeBinary.getToolChain();
-        ((TestSuiteExecutableBinary) nativeBinary).setExecutableFile(new File(binaryOutputDir, tc.getExecutableName(baseName)));
     }
 }

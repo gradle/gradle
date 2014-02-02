@@ -19,30 +19,20 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.language.base.FunctionalSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
 import org.gradle.language.c.CSourceSet;
-import org.gradle.model.ModelRule;
 import org.gradle.nativebinaries.ProjectNativeComponent;
-import org.gradle.nativebinaries.test.ProjectComponentTestSuite;
-import org.gradle.nativebinaries.test.TestSuiteContainer;
 import org.gradle.nativebinaries.test.cunit.CUnitTestSuite;
 import org.gradle.nativebinaries.test.cunit.tasks.GenerateCUnitLauncher;
 
 import java.io.File;
 
-// TODO:DAZ Actually use this as a model rule
-public class ConfigureCUnitTestSources extends ModelRule {
+public class ConfigureCUnitTestSources {
     private final ProjectInternal project;
 
     public ConfigureCUnitTestSources(ProjectInternal project) {
         this.project = project;
     }
 
-    public void configureCUnitSources(TestSuiteContainer testSuites) {
-        for (CUnitTestSuite cUnitTestSuite : testSuites.withType(CUnitTestSuite.class)) {
-            configureCUnitSources(cUnitTestSuite);
-        }
-    }
-
-    public void configureCUnitSources(CUnitTestSuite cUnitTestSuite) {
+    public void apply(CUnitTestSuite cUnitTestSuite) {
         FunctionalSourceSet suiteSourceSet = createSuiteSources(cUnitTestSuite);
 
         CSourceSet launcherSources = suiteSourceSet.create("cunitLauncher", CSourceSet.class);
@@ -53,11 +43,10 @@ public class ConfigureCUnitTestSources extends ModelRule {
         cUnitTestSuite.source(testSources);
         testSources.lib(launcherSources);
 
-        if (cUnitTestSuite instanceof ProjectComponentTestSuite) {
-            ProjectNativeComponent testedComponent = ((ProjectComponentTestSuite) cUnitTestSuite).getTestedComponent();
-            testSources.lib(testedComponent.getSource().withType(CSourceSet.class));
-            cUnitTestSuite.source(testedComponent.getSource());
-        }
+        ProjectNativeComponent testedComponent = cUnitTestSuite.getTestedComponent();
+        cUnitTestSuite.source(testedComponent.getSource());
+
+        testSources.lib(testedComponent.getSource().withType(CSourceSet.class));
     }
 
     private FunctionalSourceSet createSuiteSources(CUnitTestSuite cUnitTestSuite) {
