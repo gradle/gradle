@@ -32,24 +32,6 @@ class ObjectiveCLanguageIncrementalBuildIntegrationTest extends AbstractLanguage
         multiPlatformsAvailable = OperatingSystem.current().isMacOsX();
     }
 
-    // TODO Rene: same configuration as in ObjectiveCLanguageIntegrationTest; Move into a fixture
-    def "setup"() {
-        def linkerArgs = OperatingSystem.current().isMacOsX() ? '"-framework", "Foundation"' : '"-lgnustep-base", "-lobjc"'
-        buildFile << """
-            binaries.all {
-                if (toolChain in Gcc) {
-                    objcCompiler.args "-I/usr/include/GNUstep", "-fconstant-string-class=NSConstantString", "-D_NATIVE_OBJC_EXCEPTIONS"
-                }
-
-                if (toolChain in Clang) {
-                    objcCompiler.args "-I/usr/include/GNUstep", "-I/usr/local/include/objc", "-fconstant-string-class=NSConstantString", "-D_NATIVE_OBJC_EXCEPTIONS"
-                }
-
-                linker.args $linkerArgs
-            }
-        """
-    }
-
     def "recompiles binary when #statement header file changes"() {
         println sourceFile.text
         sourceFile.text = sourceFile.text.replaceFirst('#import "hello.h"', "#$statement \"hello.h\"")

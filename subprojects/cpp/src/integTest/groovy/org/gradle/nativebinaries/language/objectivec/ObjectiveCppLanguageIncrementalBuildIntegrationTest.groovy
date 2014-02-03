@@ -16,7 +16,6 @@
 
 package org.gradle.nativebinaries.language.objectivec
 
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativebinaries.language.cpp.AbstractLanguageIncrementalBuildIntegrationTest
 import org.gradle.nativebinaries.language.cpp.fixtures.app.IncrementalHelloWorldApp
 import org.gradle.nativebinaries.language.cpp.fixtures.app.ObjectiveCppHelloWorldApp
@@ -24,24 +23,6 @@ import org.junit.Ignore
 
 @Ignore
 class ObjectiveCppLanguageIncrementalBuildIntegrationTest  extends AbstractLanguageIncrementalBuildIntegrationTest{
-
-    // TODO Rene: same configuration as in ObjectiveCLanguageIntegrationTest; Move into a fixture
-    def "setup"() {
-        def linkerArgs = OperatingSystem.current().isMacOsX() ? '"-framework", "Foundation"' : '"-lgnustep-base", "-lobjc"'
-        buildFile << """
-            binaries.all {
-                if (toolChain in Gcc) {
-                    objcppCompiler.args "-I/usr/include/GNUstep", "-fconstant-string-class=NSConstantString", "-D_NATIVE_OBJC_EXCEPTIONS"
-                }
-
-                if (toolChain in Clang) {
-                    objcppCompiler.args "-I/usr/include/GNUstep", "-I/usr/local/include/objc", "-fconstant-string-class=NSConstantString", "-D_NATIVE_OBJC_EXCEPTIONS"
-                }
-
-                linker.args $linkerArgs
-            }
-        """
-    }
 
     @Override
     IncrementalHelloWorldApp getHelloWorldApp() {

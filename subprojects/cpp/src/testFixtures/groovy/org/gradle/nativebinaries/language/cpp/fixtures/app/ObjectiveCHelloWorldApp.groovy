@@ -16,6 +16,8 @@
 
 package org.gradle.nativebinaries.language.cpp.fixtures.app
 
+import org.gradle.internal.os.OperatingSystem
+
 class ObjectiveCHelloWorldApp extends IncrementalHelloWorldApp {
 
     @Override
@@ -120,6 +122,23 @@ class ObjectiveCHelloWorldApp extends IncrementalHelloWorldApp {
     }
 
     String alternateLibraryOutput = "${HELLO_WORLD} - ${HELLO_WORLD_FRENCH}\n12"
+
+    public String getExtraConfiguration() {
+        def linkerArgs = OperatingSystem.current().isMacOsX() ? '"-framework", "Foundation"' : '"-lgnustep-base", "-lobjc"'
+        return """
+            binaries.all {
+                if (toolChain in Gcc) {
+                    objcCompiler.args "-I/usr/include/GNUstep", "-fconstant-string-class=NSConstantString", "-D_NATIVE_OBJC_EXCEPTIONS"
+                }
+
+                if (toolChain in Clang) {
+                    objcCompiler.args "-I/usr/include/GNUstep", "-I/usr/local/include/objc", "-fconstant-string-class=NSConstantString", "-D_NATIVE_OBJC_EXCEPTIONS"
+                }
+
+                linker.args $linkerArgs
+            }
+        """
+    }
 
     @Override
     List<String> getPluginList() {
