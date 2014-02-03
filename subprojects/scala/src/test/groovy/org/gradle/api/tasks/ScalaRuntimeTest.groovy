@@ -71,7 +71,7 @@ class ScalaRuntimeTest extends Specification {
 
         then:
         GradleException e = thrown()
-        e.message == "Cannot infer Scala class path because no repository is declared for the project."
+        e.message == "Cannot infer Scala class path because no repository is declared in $project"
     }
 
     def "inference fails if 'scalaTools' configuration is empty and no Scala library Jar is found on class path"() {
@@ -85,7 +85,7 @@ class ScalaRuntimeTest extends Specification {
 
         then:
         GradleException e = thrown()
-        e.message.startsWith("Cannot infer Scala class path because no Scala library Jar was found on class path:")
+        e.message.startsWith("Cannot infer Scala class path because no Scala library Jar was found. Does root project 'test' declare dependency to scala-library? Searched classpath:")
     }
 
     def "allows to find Scala Jar on class path"() {
