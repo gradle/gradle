@@ -20,11 +20,11 @@ import org.gradle.api.internal.artifacts.metadata.LocalComponentMetaData;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
 
-public class DefaultProjectModuleRegistry implements ProjectModuleRegistry {
+public class DefaultProjectComponentRegistry implements ProjectComponentRegistry {
     private final LocalComponentFactory localComponentFactory;
     private final ProjectRegistry<ProjectInternal> projectRegistry;
 
-    public DefaultProjectModuleRegistry(LocalComponentFactory localComponentFactory, ProjectRegistry<ProjectInternal> projectRegistry) {
+    public DefaultProjectComponentRegistry(LocalComponentFactory localComponentFactory, ProjectRegistry<ProjectInternal> projectRegistry) {
         this.localComponentFactory = localComponentFactory;
         this.projectRegistry = projectRegistry;
     }

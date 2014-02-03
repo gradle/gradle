@@ -27,7 +27,7 @@ import org.gradle.api.internal.project.ProjectInternal
 import spock.lang.Specification
 
 class ProjectDependencyResolverTest extends Specification {
-    final ProjectModuleRegistry registry = Mock()
+    final ProjectComponentRegistry registry = Mock()
     final DependencyToModuleVersionResolver target = Mock()
     final LocalComponentFactory converter = Mock()
     final ProjectDependencyResolver resolver = new ProjectDependencyResolver(registry, target, converter)

@@ -28,12 +28,12 @@ import org.gradle.api.internal.artifacts.metadata.ModuleVersionArtifactMetaData;
 import java.util.Set;
 
 public class ProjectDependencyResolver implements DependencyToModuleVersionResolver, ModuleToModuleVersionResolver {
-    private final ProjectModuleRegistry projectModuleRegistry;
+    private final ProjectComponentRegistry projectComponentRegistry;
     private final DependencyToModuleVersionResolver resolver;
     private final LocalComponentFactory localComponentFactory;
 
-    public ProjectDependencyResolver(ProjectModuleRegistry projectModuleRegistry, DependencyToModuleVersionResolver resolver, LocalComponentFactory localComponentFactory) {
-        this.projectModuleRegistry = projectModuleRegistry;
+    public ProjectDependencyResolver(ProjectComponentRegistry projectComponentRegistry, DependencyToModuleVersionResolver resolver, LocalComponentFactory localComponentFactory) {
+        this.projectComponentRegistry = projectComponentRegistry;
         this.resolver = resolver;
         this.localComponentFactory = localComponentFactory;
     }
@@ -42,7 +42,7 @@ public class ProjectDependencyResolver implements DependencyToModuleVersionResol
         DependencyDescriptor descriptor = dependency.getDescriptor();
         if (descriptor instanceof ProjectDependencyDescriptor) {
             ProjectDependencyDescriptor desc = (ProjectDependencyDescriptor) descriptor;
-            LocalComponentMetaData componentMetaData = projectModuleRegistry.getProject(desc.getTargetProject().getPath());
+            LocalComponentMetaData componentMetaData = projectComponentRegistry.getProject(desc.getTargetProject().getPath());
             result.resolved(componentMetaData.toResolveMetaData(), new ProjectArtifactResolver(componentMetaData));
         } else {
             resolver.resolve(dependency, result);
