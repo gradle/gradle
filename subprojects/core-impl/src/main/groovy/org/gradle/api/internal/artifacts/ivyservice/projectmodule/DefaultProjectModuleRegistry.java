@@ -16,19 +16,21 @@
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
 import org.gradle.api.internal.artifacts.ivyservice.LocalComponentFactory;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ProjectDependencyDescriptor;
 import org.gradle.api.internal.artifacts.metadata.LocalComponentMetaData;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectRegistry;
 
 public class DefaultProjectModuleRegistry implements ProjectModuleRegistry {
     private final LocalComponentFactory localComponentFactory;
+    private final ProjectRegistry<ProjectInternal> projectRegistry;
 
-    public DefaultProjectModuleRegistry(LocalComponentFactory localComponentFactory) {
+    public DefaultProjectModuleRegistry(LocalComponentFactory localComponentFactory, ProjectRegistry<ProjectInternal> projectRegistry) {
         this.localComponentFactory = localComponentFactory;
+        this.projectRegistry = projectRegistry;
     }
 
-    public LocalComponentMetaData findProject(ProjectDependencyDescriptor descriptor) {
-        ProjectInternal project = descriptor.getTargetProject();
+    public LocalComponentMetaData getProject(String projectPath) {
+        ProjectInternal project = projectRegistry.getProject(projectPath);
         return localComponentFactory.convert(project.getConfigurations(), project.getModule());
     }
 }

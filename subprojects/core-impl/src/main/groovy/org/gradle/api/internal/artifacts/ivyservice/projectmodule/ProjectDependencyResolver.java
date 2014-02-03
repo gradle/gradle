@@ -42,7 +42,7 @@ public class ProjectDependencyResolver implements DependencyToModuleVersionResol
         DependencyDescriptor descriptor = dependency.getDescriptor();
         if (descriptor instanceof ProjectDependencyDescriptor) {
             ProjectDependencyDescriptor desc = (ProjectDependencyDescriptor) descriptor;
-            LocalComponentMetaData componentMetaData = projectModuleRegistry.findProject(desc);
+            LocalComponentMetaData componentMetaData = projectModuleRegistry.getProject(desc.getTargetProject().getPath());
             result.resolved(componentMetaData.toResolveMetaData(), new ProjectArtifactResolver(componentMetaData));
         } else {
             resolver.resolve(dependency, result);

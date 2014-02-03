@@ -58,6 +58,8 @@ import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
 import org.gradle.api.internal.filestore.UniquePathKeyFileStore;
 import org.gradle.api.internal.filestore.ivy.ArtifactRevisionIdFileStore;
 import org.gradle.api.internal.notations.*;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.cache.CacheRepository;
 import org.gradle.initialization.ProjectAccessListener;
@@ -239,7 +241,7 @@ class DependencyManagementBuildScopeServices {
 
     ArtifactDependencyResolver createArtifactDependencyResolver(ResolveIvyFactory resolveIvyFactory, PublishLocalComponentFactory publishModuleDescriptorConverter,
                                                                 CacheLockingManager cacheLockingManager, IvyContextManager ivyContextManager, ResolutionResultsStoreFactory resolutionResultsStoreFactory,
-                                                                VersionMatcher versionMatcher, LatestStrategy latestStrategy) {
+                                                                VersionMatcher versionMatcher, LatestStrategy latestStrategy, ProjectRegistry<ProjectInternal> projectRegistry) {
         ArtifactDependencyResolver resolver = new DefaultDependencyResolver(
                 resolveIvyFactory,
                 publishModuleDescriptorConverter,
@@ -248,7 +250,8 @@ class DependencyManagementBuildScopeServices {
                         ivyContextManager
                 ),
                 new DefaultProjectModuleRegistry(
-                        publishModuleDescriptorConverter),
+                        publishModuleDescriptorConverter,
+                        projectRegistry),
                 cacheLockingManager,
                 ivyContextManager,
                 resolutionResultsStoreFactory,

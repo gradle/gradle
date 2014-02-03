@@ -15,12 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ProjectDependencyDescriptor;
 import org.gradle.api.internal.artifacts.metadata.LocalComponentMetaData;
 
-/**
- * TODO - this probably should lookup a project by id, much like ClientModuleRegistry. Then, there would be no dependency on ivy DependencyDescriptor.
- */
 public interface ProjectModuleRegistry {
-    LocalComponentMetaData findProject(ProjectDependencyDescriptor descriptor);
+    LocalComponentMetaData getProject(String projectPath);
 }
