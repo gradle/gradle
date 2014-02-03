@@ -27,9 +27,11 @@ import java.io.File;
 
 public class ProjectFactory implements IProjectFactory {
     private final Instantiator instantiator;
+    private final ProjectRegistry<ProjectInternal> projectRegistry;
 
-    public ProjectFactory(Instantiator instantiator) {
+    public ProjectFactory(Instantiator instantiator, ProjectRegistry<ProjectInternal> projectRegistry) {
         this.instantiator = instantiator;
+        this.projectRegistry = projectRegistry;
     }
 
     public DefaultProject createProject(ProjectDescriptor projectDescriptor, ProjectInternal parent, GradleInternal gradle) {
@@ -52,7 +54,7 @@ public class ProjectFactory implements IProjectFactory {
         if (parent != null) {
             parent.addChildProject(project);
         }
-        gradle.getProjectRegistry().addProject(project);
+        projectRegistry.addProject(project);
 
         return project;
     }

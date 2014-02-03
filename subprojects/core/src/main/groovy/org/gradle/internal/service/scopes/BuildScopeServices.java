@@ -98,8 +98,12 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new TrueTimeProvider();
     }
 
-    protected IProjectFactory createProjectFactory() {
-        return new ProjectFactory(get(Instantiator.class));
+    protected ProjectRegistry<ProjectInternal> createProjectRegistry() {
+        return new DefaultProjectRegistry<ProjectInternal>();
+    }
+
+    protected IProjectFactory createProjectFactory(Instantiator instantiator, ProjectRegistry<ProjectInternal> projectRegistry) {
+        return new ProjectFactory(instantiator, projectRegistry);
     }
 
     protected ListenerManager createListenerManager(ListenerManager listenerManager) {

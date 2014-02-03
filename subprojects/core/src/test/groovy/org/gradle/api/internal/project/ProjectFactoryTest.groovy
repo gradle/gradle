@@ -32,8 +32,9 @@ class ProjectFactoryTest extends Specification {
     def projectDescriptor = Stub(ProjectDescriptor)
     def gradle = Stub(GradleInternal)
     def serviceRegistryFactory = Stub(ServiceRegistryFactory)
+    def projectRegistry = Mock(ProjectRegistry)
     def project = Stub(DefaultProject)
-    def factory = new ProjectFactory(instantiator)
+    def factory = new ProjectFactory(instantiator, projectRegistry)
 
     def setup() {
         gradle.serviceRegistryFactory >> serviceRegistryFactory
@@ -54,6 +55,7 @@ class ProjectFactoryTest extends Specification {
         then:
         result == project
         1 * instantiator.newInstance(DefaultProject, "name", null, projectDir, {it instanceof UriScriptSource}, gradle, serviceRegistryFactory) >> project
+        1 * projectRegistry.addProject(project)
     }
 
     def "creates a project with missing build script"() {
@@ -71,6 +73,7 @@ class ProjectFactoryTest extends Specification {
         then:
         result == project
         1 * instantiator.newInstance(DefaultProject, "name", null, projectDir, {it instanceof StringScriptSource}, gradle, serviceRegistryFactory) >> project
+        1 * projectRegistry.addProject(project)
     }
 
     def "creates a child project"() {
@@ -90,5 +93,6 @@ class ProjectFactoryTest extends Specification {
         result == project
         1 * instantiator.newInstance(DefaultProject, "name", parent, projectDir, _, gradle, serviceRegistryFactory) >> project
         1 * parent.addChildProject(project)
+        1 * projectRegistry.addProject(project)
     }
 }
