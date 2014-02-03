@@ -41,13 +41,13 @@ class ObjectiveCNativeBinariesPlugin implements Plugin<ProjectInternal> {
 
         project.executables.all { Executable executable ->
             executable.binaries.all { binary ->
-                binary.extensions.create("objectiveCCompiler", DefaultPreprocessingTool)
+                binary.extensions.create("objcCompiler", DefaultPreprocessingTool)
             }
         }
 
         project.libraries.all { Library library ->
             library.binaries.all { binary ->
-                binary.extensions.create("objectiveCCompiler", DefaultPreprocessingTool)
+                binary.extensions.create("objcCompiler", DefaultPreprocessingTool)
             }
         }
 
@@ -81,8 +81,8 @@ class ObjectiveCNativeBinariesPlugin implements Plugin<ProjectInternal> {
         compileTask.source sourceSet.source
 
         compileTask.objectFileDir = project.file("${project.buildDir}/objectFiles/${binary.namingScheme.outputDirectoryBase}/${sourceSet.fullName}")
-        compileTask.macros = binary.objectiveCCompiler.macros
-        compileTask.compilerArgs = binary.objectiveCCompiler.args
+        compileTask.macros = binary.objcCompiler.macros
+        compileTask.compilerArgs = binary.objcCompiler.args
 
         compileTask
     }

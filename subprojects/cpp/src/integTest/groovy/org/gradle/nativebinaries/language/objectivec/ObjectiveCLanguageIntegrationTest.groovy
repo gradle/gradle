@@ -30,11 +30,11 @@ class ObjectiveCLanguageIntegrationTest extends AbstractLanguageIntegrationTest{
         buildFile << """
             binaries.all {
                 if (toolChain in Gcc) {
-                    objectiveCCompiler.args "-I/usr/include/GNUstep", "-fconstant-string-class=NSConstantString", "-D_NATIVE_OBJC_EXCEPTIONS"
+                    objcCompiler.args "-I/usr/include/GNUstep", "-fconstant-string-class=NSConstantString", "-D_NATIVE_OBJC_EXCEPTIONS"
                 }
 
                 if (toolChain in Clang) {
-                    objectiveCCompiler.args "-I/usr/include/GNUstep", "-I/usr/local/include/objc", "-fconstant-string-class=NSConstantString", "-D_NATIVE_OBJC_EXCEPTIONS"
+                    objcCompiler.args "-I/usr/include/GNUstep", "-I/usr/local/include/objc", "-fconstant-string-class=NSConstantString", "-D_NATIVE_OBJC_EXCEPTIONS"
                 }
 
                 linker.args $linkerArgs

@@ -33,7 +33,7 @@ import org.gradle.language.base.LanguageSourceSet;
  * sources {
  *     main {
  *         // Configure an existing ObjectiveCSourceSet
- *         objectiveC {
+ *         objc {
  *             source {
  *                 srcDirs "src/main/objectiveC", "src/shared/objectiveC"
  *                 include "**{@literal /}*.m"

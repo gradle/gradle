@@ -32,7 +32,7 @@ import org.gradle.language.base.LanguageSourceSet;
  * sources {
  *     main {
  *         // Configure an existing ObjectiveCppSourceSet
- *         objectiveCpp {
+ *         objcpp {
  *             source {
  *                 srcDirs "src/main/objectiveCpp", "src/shared/objectiveCpp"
  *                 include "**{@literal /}*.mm"

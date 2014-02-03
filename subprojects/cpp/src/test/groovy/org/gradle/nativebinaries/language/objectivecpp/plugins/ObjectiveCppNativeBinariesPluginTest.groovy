@@ -40,6 +40,6 @@ class ObjectiveCppNativeBinariesPluginTest extends AbstractNativeBinariesPluginT
 
     @Override
     String getPluginName() {
-        return "objectiveCpp"
+        return "objcpp"
     }
 }

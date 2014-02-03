@@ -99,7 +99,7 @@ class NativeSamplesIntegrationTest extends AbstractInstalledToolChainIntegration
         succeeds "installMainExecutable"
 
         then:
-        executedAndNotSkipped ":compileMainExecutableMainObjectiveC", ":linkMainExecutable", ":mainExecutable"
+        executedAndNotSkipped ":compileMainExecutableMainObjc", ":linkMainExecutable", ":mainExecutable"
 
         and:
         executable("native-binaries/objective-c/build/binaries/mainExecutable/main").exec().out == "Hello world!\n"
@@ -114,7 +114,7 @@ class NativeSamplesIntegrationTest extends AbstractInstalledToolChainIntegration
         succeeds "installMainExecutable"
 
         then:
-        executedAndNotSkipped ":compileMainExecutableMainObjectiveCpp", ":linkMainExecutable", ":mainExecutable"
+        executedAndNotSkipped ":compileMainExecutableMainObjcpp", ":linkMainExecutable", ":mainExecutable"
 
         and:
         executable("native-binaries/objective-cpp/build/binaries/mainExecutable/main").exec().out == "Hello world!\n"

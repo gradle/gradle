@@ -20,7 +20,7 @@ package org.gradle.nativebinaries.language.cpp.fixtures.app
 class ObjectiveCppHelloWorldApp extends IncrementalHelloWorldApp {
     @Override
     SourceFile getMainSource() {
-        return sourceFile("objectiveCpp", "main.mm", """
+        return sourceFile("objcpp", "main.mm", """
             // Simple hello world app
             #define __STDC_LIMIT_MACROS
             #include <stdint.h>
@@ -51,7 +51,7 @@ class ObjectiveCppHelloWorldApp extends IncrementalHelloWorldApp {
     }
 
     List<SourceFile> librarySources = [
-            sourceFile("objectiveCpp", "hello.mm", """
+            sourceFile("objcpp", "hello.mm", """
             #define __STDC_LIMIT_MACROS
             #include <stdint.h>
             #include "hello.h"
@@ -76,7 +76,7 @@ class ObjectiveCppHelloWorldApp extends IncrementalHelloWorldApp {
                 #endif
             }
         """),
-            sourceFile("objectiveCpp", "sum.mm", """
+            sourceFile("objcpp", "sum.mm", """
             #include "hello.h"
             int DLL_FUNC sum(int a, int b) {
                 return a + b;
@@ -86,7 +86,7 @@ class ObjectiveCppHelloWorldApp extends IncrementalHelloWorldApp {
 
     @Override
     SourceFile getAlternateMainSource() {
-        return sourceFile("objectiveCpp", "main.mm", """
+        return sourceFile("objcpp", "main.mm", """
             // Simple hello world app
             #import <Foundation/Foundation.h>
             #import <iostream>
@@ -106,7 +106,7 @@ class ObjectiveCppHelloWorldApp extends IncrementalHelloWorldApp {
     @Override
     List<SourceFile> getAlternateLibrarySources() {
         return [
-            sourceFile("objectiveCpp", "hello.mm", """
+            sourceFile("objcpp", "hello.mm", """
             #include <iostream>
             #include "hello.h"
 
@@ -114,7 +114,7 @@ class ObjectiveCppHelloWorldApp extends IncrementalHelloWorldApp {
                 std::cout << "${HELLO_WORLD} - ${HELLO_WORLD_FRENCH}" << std::endl;
             }
         """),
-        sourceFile("objectiveCpp", "sum.mm", """
+        sourceFile("objcpp", "sum.mm", """
             #include "hello.h"
             int DLL_FUNC sum(int a, int b) {
                 return a + b;
@@ -124,4 +124,8 @@ class ObjectiveCppHelloWorldApp extends IncrementalHelloWorldApp {
 
     String alternateLibraryOutput = "${HELLO_WORLD} - ${HELLO_WORLD_FRENCH}\n12"
 
+    @Override
+    List<String> getPluginList() {
+        ['objective-cpp']
+    }
 }

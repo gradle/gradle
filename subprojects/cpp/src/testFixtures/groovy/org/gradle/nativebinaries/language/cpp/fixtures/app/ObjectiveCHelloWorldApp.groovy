@@ -20,7 +20,7 @@ class ObjectiveCHelloWorldApp extends IncrementalHelloWorldApp {
 
     @Override
     SourceFile getMainSource() {
-        return sourceFile("objectiveC", "main.m", """
+        return sourceFile("objc", "main.m", """
             // Simple hello world app
             #import <Foundation/Foundation.h>
             #import "hello.h"
@@ -36,7 +36,7 @@ class ObjectiveCHelloWorldApp extends IncrementalHelloWorldApp {
 
     @Override
     SourceFile getAlternateMainSource() {
-        return sourceFile("objectiveC", "main.m", """
+        return sourceFile("objc", "main.m", """
             #import <Foundation/Foundation.h>
             #import "hello.h"
 
@@ -63,7 +63,7 @@ class ObjectiveCHelloWorldApp extends IncrementalHelloWorldApp {
     @Override
     List<SourceFile> getLibrarySources() {
         return [
-                sourceFile("objectiveC", "hello.m", """
+                sourceFile("objc", "hello.m", """
             #import <Foundation/Foundation.h>
             #import "hello.h"
 
@@ -79,7 +79,7 @@ class ObjectiveCHelloWorldApp extends IncrementalHelloWorldApp {
                 [stdout writeData: strData];
             }
         """),
-                sourceFile("objectiveC", "sum.m", """
+                sourceFile("objc", "sum.m", """
             #import "hello.h"
 
             int sum (int a, int b)
@@ -92,7 +92,7 @@ class ObjectiveCHelloWorldApp extends IncrementalHelloWorldApp {
     @Override
     List<SourceFile> getAlternateLibrarySources() {
         return [
-                sourceFile("objectiveC", "hello.m", """
+                sourceFile("objc", "hello.m", """
             #import <Foundation/Foundation.h>
             #import "hello.h"
 
@@ -109,7 +109,7 @@ class ObjectiveCHelloWorldApp extends IncrementalHelloWorldApp {
                 return 1000;
             }
         """),
-                sourceFile("objectiveC", "sum.m", """
+                sourceFile("objc", "sum.m", """
             #import "hello.h"
 
             int sum (int a, int b)
@@ -120,4 +120,9 @@ class ObjectiveCHelloWorldApp extends IncrementalHelloWorldApp {
     }
 
     String alternateLibraryOutput = "${HELLO_WORLD} - ${HELLO_WORLD_FRENCH}\n12"
+
+    @Override
+    List<String> getPluginList() {
+        ['objective-c']
+    }
 }
