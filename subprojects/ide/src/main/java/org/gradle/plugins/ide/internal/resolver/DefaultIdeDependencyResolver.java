@@ -23,10 +23,11 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.result.*;
 import org.gradle.api.specs.Spec;
-import org.gradle.plugins.ide.internal.resolver.model.IdeLocalFileDependency;
-import org.gradle.plugins.ide.internal.resolver.model.IdeProjectDependency;
-import org.gradle.plugins.ide.internal.resolver.model.IdeRepoFileDependency;
-import org.gradle.plugins.ide.internal.resolver.model.UnresolvedIdeRepoFileDependency;
+import org.gradle.api.specs.Specs;
+import org.gradle.plugins.ide.internal.resolver.model.*;
+import org.gradle.plugins.ide.internal.resolver.translator.ExternalModuleDependencyTranslator;
+import org.gradle.plugins.ide.internal.resolver.translator.JavadocExternalModuleDependencyTranslator;
+import org.gradle.plugins.ide.internal.resolver.translator.SourceExternalModuleDependencyTranslator;
 
 import java.io.File;
 import java.util.*;
@@ -145,17 +146,17 @@ public class DefaultIdeDependencyResolver implements IdeDependencyResolver {
      * @param configuration Configuration
      * @return IDE local file dependencies
      */
-    public List<IdeRepoFileDependency> getIdeRepoFileDependencies(Configuration configuration) {
+    public List<IdeExtendedRepoFileDependency> getIdeRepoFileDependencies(Configuration configuration) {
         ResolutionResult result = getIncomingResolutionResult(configuration);
         List<ResolvedDependencyResult> resolvedDependencies = findAllResolvedModuleDependencies(result.getAllDependencies());
         Map<ModuleVersionIdentifier, ResolvedDependencyResult> mappedResolvedDependencies = mapResolvedDependencies(resolvedDependencies);
         Set<ResolvedArtifact> artifacts = getExternalArtifacts(configuration);
 
-        List<IdeRepoFileDependency> externalDependencies = new ArrayList<IdeRepoFileDependency>();
+        List<IdeExtendedRepoFileDependency> externalDependencies = new ArrayList<IdeExtendedRepoFileDependency>();
 
         for(ResolvedArtifact artifact : artifacts) {
             if(mappedResolvedDependencies.containsKey(artifact.getModuleVersion().getId())) {
-                IdeRepoFileDependency ideRepoFileDependency = new IdeRepoFileDependency(configuration, artifact.getFile());
+                IdeExtendedRepoFileDependency ideRepoFileDependency = new IdeExtendedRepoFileDependency(configuration, artifact.getFile());
                 ideRepoFileDependency.setId(artifact.getModuleVersion().getId());
                 externalDependencies.add(ideRepoFileDependency);
             }
@@ -273,12 +274,82 @@ public class DefaultIdeDependencyResolver implements IdeDependencyResolver {
      * @return External artifacts
      */
     private Set<ResolvedArtifact> getExternalArtifacts(Configuration configuration) {
-        Spec<Dependency> externalDependencySpec = new Spec<Dependency>() {
-            public boolean isSatisfiedBy(Dependency element) {
-                return element instanceof ExternalDependency;
-            }
-        };
+        return configuration.getResolvedConfiguration().getLenientConfiguration().getArtifacts(new ExternalDependencySpec());
+    }
 
-        return configuration.getResolvedConfiguration().getLenientConfiguration().getArtifacts(externalDependencySpec);
+    private class ExternalDependencySpec implements Spec<Dependency> {
+        public boolean isSatisfiedBy(Dependency element) {
+            return element instanceof ExternalDependency;
+        }
+    }
+
+    public List<IdeRepoFileDependency> getIdeSourceDependencies(Configuration configuration, ConfigurationContainer configurationContainer) {
+        ExternalModuleDependencyTranslator translator = new SourceExternalModuleDependencyTranslator();
+        return resolveExternalModuleDependencies(configuration, configurationContainer, translator);
+    }
+
+    public List<IdeRepoFileDependency> getIdeJavadocDependencies(Configuration configuration, ConfigurationContainer configurationContainer) {
+        ExternalModuleDependencyTranslator translator = new JavadocExternalModuleDependencyTranslator();
+        return resolveExternalModuleDependencies(configuration, configurationContainer, translator);
+    }
+
+    private List<IdeRepoFileDependency> resolveExternalModuleDependencies(Configuration configuration, ConfigurationContainer configurationContainer, ExternalModuleDependencyTranslator translator) {
+        Set<ResolvedDependency> allDeps = resolveDependenciesIncludingChildren(configuration);
+        Set<File> files = retrieveFilesForDependencies(configurationContainer, allDeps, translator);
+        return createIdeRepoFileDependencies(configuration, files);
+    }
+
+    /**
+     * Creates IDE repository file dependencies from given configuration and set of files.
+     *
+     * @param configuration Configuration
+     * @param files Files
+     * @return List of IDE repository file dependencies
+     */
+    private List<IdeRepoFileDependency> createIdeRepoFileDependencies(Configuration configuration, Set<File> files) {
+        List<IdeRepoFileDependency> ideRepoFileDependencies = new ArrayList<IdeRepoFileDependency>();
+
+        for(File file : files) {
+            ideRepoFileDependencies.add(new IdeRepoFileDependency(configuration, file));
+        }
+
+        return ideRepoFileDependencies;
+    }
+
+    /**
+     * Recursively resolves dependencies including their children.
+     *
+     * @param configuration Configuration
+     * @return Resolved dependencies
+     */
+    private Set<ResolvedDependency> resolveDependenciesIncludingChildren(Configuration configuration) {
+        Set<ResolvedDependency> resolvedDependencies = configuration.getResolvedConfiguration().getLenientConfiguration().getFirstLevelModuleDependencies(new ExternalDependencySpec());
+        return getDependenciesIncludingTheirChildren(resolvedDependencies, new LinkedHashSet<ResolvedDependency>());
+    }
+
+    private Set<ResolvedDependency> getDependenciesIncludingTheirChildren(Collection<ResolvedDependency> deps, Set<ResolvedDependency> allDeps) {
+        for(ResolvedDependency resolvedDependency : deps) {
+            boolean notSeenBefore = allDeps.add(resolvedDependency);
+
+            if(notSeenBefore) {
+                getDependenciesIncludingTheirChildren(resolvedDependency.getChildren(), allDeps);
+            }
+        }
+
+        return allDeps;
+    }
+
+    /**
+     * Retrieves files for dependencies.
+     *
+     * @param configurationContainer Configuration container
+     * @param allDeps Dependencies
+     * @param translator External module dependency translator
+     * @return Files
+     */
+    private Set<File> retrieveFilesForDependencies(ConfigurationContainer configurationContainer, Set<ResolvedDependency> allDeps, ExternalModuleDependencyTranslator translator) {
+        List<ExternalDependency> externalDependencies = translator.translate(allDeps);
+        Configuration detachedConfiguration = configurationContainer.detachedConfiguration(externalDependencies.toArray(new Dependency[externalDependencies.size()]));
+        return detachedConfiguration.getResolvedConfiguration().getLenientConfiguration().getFiles(Specs.satisfyAll());
     }
 }

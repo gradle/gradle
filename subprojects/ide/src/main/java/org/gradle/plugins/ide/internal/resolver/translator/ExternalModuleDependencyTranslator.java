@@ -14,24 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.ide.internal.resolver.model;
+package org.gradle.plugins.ide.internal.resolver.translator;
 
-import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ExternalDependency;
+import org.gradle.api.artifacts.ResolvedDependency;
 
-import java.io.File;
+import java.util.List;
+import java.util.Set;
 
-public class UnresolvedIdeRepoFileDependency extends IdeExtendedRepoFileDependency {
-    private Exception problem;
-
-    public UnresolvedIdeRepoFileDependency(Configuration declaredConfiguration, File file) {
-        super(declaredConfiguration, file);
-    }
-
-    public Exception getProblem() {
-        return problem;
-    }
-
-    public void setProblem(Exception problem) {
-        this.problem = problem;
-    }
+public interface ExternalModuleDependencyTranslator {
+    List<ExternalDependency> translate(Set<ResolvedDependency> resolvedDependencies);
 }

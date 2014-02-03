@@ -20,18 +20,27 @@ import org.gradle.api.artifacts.Configuration;
 
 import java.io.File;
 
-public class UnresolvedIdeRepoFileDependency extends IdeExtendedRepoFileDependency {
-    private Exception problem;
+public class IdeExtendedRepoFileDependency extends IdeRepoFileDependency {
+    private File sourceFile;
+    private File javadocFile;
 
-    public UnresolvedIdeRepoFileDependency(Configuration declaredConfiguration, File file) {
+    public IdeExtendedRepoFileDependency(Configuration declaredConfiguration, File file) {
         super(declaredConfiguration, file);
     }
 
-    public Exception getProblem() {
-        return problem;
+    public File getSourceFile() {
+        return sourceFile;
     }
 
-    public void setProblem(Exception problem) {
-        this.problem = problem;
+    public void setSourceFile(File sourceFile) {
+        this.sourceFile = sourceFile;
+    }
+
+    public File getJavadocFile() {
+        return javadocFile;
+    }
+
+    public void setJavadocFile(File javadocFile) {
+        this.javadocFile = javadocFile;
     }
 }
