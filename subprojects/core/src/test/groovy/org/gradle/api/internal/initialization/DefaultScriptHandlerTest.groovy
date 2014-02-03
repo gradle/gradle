@@ -54,7 +54,7 @@ class DefaultScriptHandlerTest extends Specification {
 
         when:
         handler.updateClassPath()
-        def classLoader = handler.classLoader
+        def classLoader = handler.scriptCompileClassLoader
 
         then:
         classLoader == baseClassLoader
@@ -70,7 +70,7 @@ class DefaultScriptHandlerTest extends Specification {
 
         when:
         handler.updateClassPath()
-        def classLoader = handler.classLoader
+        def classLoader = handler.scriptCompileClassLoader
 
         then:
         classLoader instanceof MutableURLClassLoader
@@ -89,7 +89,7 @@ class DefaultScriptHandlerTest extends Specification {
 
         when:
         handler.updateClassPath()
-        def classLoader = handler.classLoader
+        def classLoader = handler.scriptCompileClassLoader
 
         then:
         classLoader instanceof CachingClassLoader
@@ -116,7 +116,7 @@ class DefaultScriptHandlerTest extends Specification {
 
         when:
         handler.updateClassPath()
-        def classLoader = handler.classLoader
+        def classLoader = handler.scriptCompileClassLoader
 
         then:
         classLoader instanceof CachingClassLoader
@@ -144,7 +144,7 @@ class DefaultScriptHandlerTest extends Specification {
         configuration.files >> [file1, file2]
 
         when:
-        def classLoader = handler.classLoader
+        def classLoader = handler.scriptCompileClassLoader
 
         then:
         classLoader instanceof CachingClassLoader
